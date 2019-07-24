@@ -6,14 +6,15 @@ import React from "react";
 
 import ActionDialog from "@saleor/components/ActionDialog";
 import useBulkActions from "@saleor/hooks/useBulkActions";
+import useListSettings from "@saleor/hooks/useListSettings";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
 import usePaginator, {
   createPaginationState
 } from "@saleor/hooks/usePaginator";
-import { PAGINATE_BY } from "../../config";
-import i18n from "../../i18n";
-import { getMutationState, maybe } from "../../misc";
+import i18n from "@saleor/i18n";
+import { getMutationState, maybe } from "@saleor/misc";
+import { ListViews } from "@saleor/types";
 import CollectionListPage from "../components/CollectionListPage/CollectionListPage";
 import {
   TypedCollectionBulkDelete,
@@ -43,6 +44,9 @@ export const CollectionList: React.StatelessComponent<CollectionListProps> = ({
   const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
+  const { updateListSettings, settings } = useListSettings(
+    ListViews.COLLECTION_LIST
+  );
 
   const closeModal = () =>
     navigate(
@@ -62,7 +66,7 @@ export const CollectionList: React.StatelessComponent<CollectionListProps> = ({
       })
     );
 
-  const paginationState = createPaginationState(PAGINATE_BY, params);
+  const paginationState = createPaginationState(settings.rowNumber, params);
   return (
     <TypedCollectionListQuery displayLoader variables={paginationState}>
       {({ data, loading, refetch }) => {
@@ -129,8 +133,10 @@ export const CollectionList: React.StatelessComponent<CollectionListProps> = ({
                         collections={maybe(() =>
                           data.collections.edges.map(edge => edge.node)
                         )}
+                        settings={settings}
                         onNextPage={loadNextPage}
                         onPreviousPage={loadPreviousPage}
+                        onUpdateListSettings={updateListSettings}
                         pageInfo={pageInfo}
                         onRowClick={id => () => navigate(collectionUrl(id))}
                         toolbar={

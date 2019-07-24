@@ -4,17 +4,18 @@ import DeleteIcon from "@material-ui/icons/Delete";
 import React from "react";
 
 import ActionDialog from "@saleor/components/ActionDialog";
+import { configurationMenuUrl } from "@saleor/configuration";
 import useBulkActions from "@saleor/hooks/useBulkActions";
+import useListSettings from "@saleor/hooks/useListSettings";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
 import usePaginator, {
   createPaginationState
 } from "@saleor/hooks/usePaginator";
 import useShop from "@saleor/hooks/useShop";
-import { PAGINATE_BY } from "../../config";
-import { configurationMenuUrl } from "../../configuration";
-import i18n from "../../i18n";
-import { getMutationState, maybe } from "../../misc";
+import i18n from "@saleor/i18n";
+import { getMutationState, maybe } from "@saleor/misc";
+import { ListViews } from "@saleor/types";
 import ShippingZonesListPage from "../components/ShippingZonesListPage";
 import {
   TypedBulkDeleteShippingZone,
@@ -46,8 +47,11 @@ export const ShippingZonesList: React.StatelessComponent<
   const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
+  const { updateListSettings, settings } = useListSettings(
+    ListViews.SHIPPING_METHODS_LIST
+  );
 
-  const paginationState = createPaginationState(PAGINATE_BY, params);
+  const paginationState = createPaginationState(settings.rowNumber, params);
 
   return (
     <TypedShippingZones displayLoader variables={paginationState}>
@@ -145,6 +149,7 @@ export const ShippingZonesList: React.StatelessComponent<
                             defaultWeightUnit={maybe(
                               () => shop.defaultWeightUnit
                             )}
+                            settings={settings}
                             disabled={
                               loading ||
                               deleteShippingZoneOpts.loading ||
@@ -156,6 +161,7 @@ export const ShippingZonesList: React.StatelessComponent<
                             pageInfo={pageInfo}
                             onAdd={() => navigate(shippingZoneAddUrl)}
                             onBack={() => navigate(configurationMenuUrl)}
+                            onUpdateListSettings={updateListSettings}
                             onNextPage={loadNextPage}
                             onPreviousPage={loadPreviousPage}
                             onRemove={id =>

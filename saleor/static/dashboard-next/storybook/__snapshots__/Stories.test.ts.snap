@@ -7128,7 +7128,47 @@ exports[`Storyshots Views / Categories / Category list default 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -7499,7 +7539,47 @@ exports[`Storyshots Views / Categories / Category list empty 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -7676,7 +7756,47 @@ exports[`Storyshots Views / Categories / Category list loading 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -16677,7 +16797,47 @@ exports[`Storyshots Views / Collections / Collection list default 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -16921,7 +17081,47 @@ exports[`Storyshots Views / Collections / Collection list loading 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -17503,7 +17703,7 @@ Ctrl + K"
                       y2="23.5714"
                     >
                       <stop
-                        stop-color="#13BEBB"
+                        stop-color="#06847B"
                       />
                       <stop
                         offset="1"
@@ -18158,7 +18358,7 @@ Ctrl + K"
                       y2="23.5714"
                     >
                       <stop
-                        stop-color="#13BEBB"
+                        stop-color="#06847B"
                       />
                       <stop
                         offset="1"
@@ -18406,7 +18606,7 @@ exports[`Storyshots Views / Configuration default 1`] = `
                   y2="46.78"
                 >
                   <stop
-                    stop-color="#13BEBB"
+                    stop-color="#06847B"
                   />
                   <stop
                     offset="1"
@@ -18462,7 +18662,7 @@ exports[`Storyshots Views / Configuration default 1`] = `
                   y2="46.2508"
                 >
                   <stop
-                    stop-color="#13BEBB"
+                    stop-color="#06847B"
                   />
                   <stop
                     offset="1"
@@ -18518,7 +18718,7 @@ exports[`Storyshots Views / Configuration default 1`] = `
                   y2="47.1429"
                 >
                   <stop
-                    stop-color="#13BEBB"
+                    stop-color="#06847B"
                   />
                   <stop
                     offset="1"
@@ -18574,7 +18774,7 @@ exports[`Storyshots Views / Configuration default 1`] = `
                   y2="43.2798"
                 >
                   <stop
-                    stop-color="#13BEBB"
+                    stop-color="#06847B"
                   />
                   <stop
                     offset="1"
@@ -18636,7 +18836,7 @@ exports[`Storyshots Views / Configuration default 1`] = `
                   y2="46.8339"
                 >
                   <stop
-                    stop-color="#13BEBB"
+                    stop-color="#06847B"
                   />
                   <stop
                     offset="1"
@@ -18652,7 +18852,7 @@ exports[`Storyshots Views / Configuration default 1`] = `
                   y2="33.2176"
                 >
                   <stop
-                    stop-color="#13BEBB"
+                    stop-color="#06847B"
                   />
                   <stop
                     offset="1"
@@ -18708,7 +18908,7 @@ exports[`Storyshots Views / Configuration default 1`] = `
                   y2="47.2508"
                 >
                   <stop
-                    stop-color="#13BEBB"
+                    stop-color="#06847B"
                   />
                   <stop
                     offset="1"
@@ -18764,7 +18964,7 @@ exports[`Storyshots Views / Configuration default 1`] = `
                   y2="46.7403"
                 >
                   <stop
-                    stop-color="#13BEBB"
+                    stop-color="#06847B"
                   />
                   <stop
                     offset="1"
@@ -18847,7 +19047,7 @@ exports[`Storyshots Views / Configuration partial access 1`] = `
                   y2="46.78"
                 >
                   <stop
-                    stop-color="#13BEBB"
+                    stop-color="#06847B"
                   />
                   <stop
                     offset="1"
@@ -18903,7 +19103,7 @@ exports[`Storyshots Views / Configuration partial access 1`] = `
                   y2="43.2798"
                 >
                   <stop
-                    stop-color="#13BEBB"
+                    stop-color="#06847B"
                   />
                   <stop
                     offset="1"
@@ -18965,7 +19165,7 @@ exports[`Storyshots Views / Configuration partial access 1`] = `
                   y2="46.8339"
                 >
                   <stop
-                    stop-color="#13BEBB"
+                    stop-color="#06847B"
                   />
                   <stop
                     offset="1"
@@ -18981,7 +19181,7 @@ exports[`Storyshots Views / Configuration partial access 1`] = `
                   y2="33.2176"
                 >
                   <stop
-                    stop-color="#13BEBB"
+                    stop-color="#06847B"
                   />
                   <stop
                     offset="1"
@@ -19037,7 +19237,7 @@ exports[`Storyshots Views / Configuration partial access 1`] = `
                   y2="46.7403"
                 >
                   <stop
-                    stop-color="#13BEBB"
+                    stop-color="#06847B"
                   />
                   <stop
                     offset="1"
@@ -25312,7 +25512,47 @@ exports[`Storyshots Views / Customers / Customer list default 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -26296,7 +26536,47 @@ exports[`Storyshots Views / Customers / Customer list loading 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -26506,7 +26786,47 @@ exports[`Storyshots Views / Customers / Customer list no data 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -30305,7 +30625,47 @@ exports[`Storyshots Views / Discounts / Sale list default 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -30703,7 +31063,47 @@ exports[`Storyshots Views / Discounts / Sale list loading 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -30931,7 +31331,47 @@ exports[`Storyshots Views / Discounts / Sale list no data 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -34586,7 +35026,47 @@ exports[`Storyshots Views / Discounts / Voucher list default 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -34881,7 +35361,47 @@ exports[`Storyshots Views / Discounts / Voucher list loading 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -35139,7 +35659,47 @@ exports[`Storyshots Views / Discounts / Voucher list no data 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -35358,7 +35918,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                       y2="46.3533"
                     >
                       <stop
-                        stop-color="#13BEBB"
+                        stop-color="#06847B"
                       />
                       <stop
                         offset="1"
@@ -35419,7 +35979,7 @@ exports[`Storyshots Views / HomePage default 1`] = `
                       y2="40.6161"
                     >
                       <stop
-                        stop-color="#13BEBB"
+                        stop-color="#06847B"
                       />
                       <stop
                         offset="1"
@@ -36064,7 +36624,7 @@ exports[`Storyshots Views / HomePage loading 1`] = `
                       y2="46.3533"
                     >
                       <stop
-                        stop-color="#13BEBB"
+                        stop-color="#06847B"
                       />
                       <stop
                         offset="1"
@@ -36130,7 +36690,7 @@ exports[`Storyshots Views / HomePage loading 1`] = `
                       y2="40.6161"
                     >
                       <stop
-                        stop-color="#13BEBB"
+                        stop-color="#06847B"
                       />
                       <stop
                         offset="1"
@@ -36467,7 +37027,7 @@ exports[`Storyshots Views / HomePage no data 1`] = `
                       y2="46.3533"
                     >
                       <stop
-                        stop-color="#13BEBB"
+                        stop-color="#06847B"
                       />
                       <stop
                         offset="1"
@@ -36528,7 +37088,7 @@ exports[`Storyshots Views / HomePage no data 1`] = `
                       y2="40.6161"
                     >
                       <stop
-                        stop-color="#13BEBB"
+                        stop-color="#06847B"
                       />
                       <stop
                         offset="1"
@@ -36907,7 +37467,7 @@ exports[`Storyshots Views / Navigation / Menu details default 1`] = `
                                 y2="10.4478"
                               >
                                 <stop
-                                  stop-color="#13BEBB"
+                                  stop-color="#06847B"
                                 />
                                 <stop
                                   offset="1"
@@ -37038,7 +37598,7 @@ exports[`Storyshots Views / Navigation / Menu details default 1`] = `
                                 y2="10.4478"
                               >
                                 <stop
-                                  stop-color="#13BEBB"
+                                  stop-color="#06847B"
                                 />
                                 <stop
                                   offset="1"
@@ -37169,7 +37729,7 @@ exports[`Storyshots Views / Navigation / Menu details default 1`] = `
                                 y2="10.4478"
                               >
                                 <stop
-                                  stop-color="#13BEBB"
+                                  stop-color="#06847B"
                                 />
                                 <stop
                                   offset="1"
@@ -37296,7 +37856,7 @@ exports[`Storyshots Views / Navigation / Menu details default 1`] = `
                                 y2="10.4478"
                               >
                                 <stop
-                                  stop-color="#13BEBB"
+                                  stop-color="#06847B"
                                 />
                                 <stop
                                   offset="1"
@@ -37423,7 +37983,7 @@ exports[`Storyshots Views / Navigation / Menu details default 1`] = `
                                 y2="10.4478"
                               >
                                 <stop
-                                  stop-color="#13BEBB"
+                                  stop-color="#06847B"
                                 />
                                 <stop
                                   offset="1"
@@ -37927,7 +38487,47 @@ exports[`Storyshots Views / Navigation / Menu list default 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -38205,7 +38805,47 @@ exports[`Storyshots Views / Navigation / Menu list loading 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -38436,7 +39076,47 @@ exports[`Storyshots Views / Navigation / Menu list no data 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -38685,7 +39365,47 @@ exports[`Storyshots Views / Orders / Draft order list default 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -39759,7 +40479,47 @@ exports[`Storyshots Views / Orders / Draft order list loading 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -39990,7 +40750,47 @@ exports[`Storyshots Views / Orders / Draft order list when no data 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -54941,7 +55741,47 @@ exports[`Storyshots Views / Orders / Order list default 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -56494,7 +57334,47 @@ exports[`Storyshots Views / Orders / Order list loading 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -56863,7 +57743,47 @@ exports[`Storyshots Views / Orders / Order list when no data 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -57638,7 +58558,47 @@ exports[`Storyshots Views / Orders / Order list with custom filters 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -61269,7 +62229,47 @@ exports[`Storyshots Views / Pages / Page list default 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -61589,7 +62589,47 @@ exports[`Storyshots Views / Pages / Page list loading 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -61805,7 +62845,47 @@ exports[`Storyshots Views / Pages / Page list no data 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -66422,7 +67502,7 @@ exports[`Storyshots Views / Products / Create product variant default 1`] = `
                             y2="23.5714"
                           >
                             <stop
-                              stop-color="#13BEBB"
+                              stop-color="#06847B"
                             />
                             <stop
                               offset="1"
@@ -66823,7 +67903,7 @@ exports[`Storyshots Views / Products / Create product variant when loading data 
                             y2="23.5714"
                           >
                             <stop
-                              stop-color="#13BEBB"
+                              stop-color="#06847B"
                             />
                             <stop
                               offset="1"
@@ -67196,7 +68276,7 @@ exports[`Storyshots Views / Products / Create product variant with errors 1`] = 
                             y2="23.5714"
                           >
                             <stop
-                              stop-color="#13BEBB"
+                              stop-color="#06847B"
                             />
                             <stop
                               offset="1"
@@ -68160,7 +69240,7 @@ Ctrl + K"
                         y2="23.5714"
                       >
                         <stop
-                          stop-color="#13BEBB"
+                          stop-color="#06847B"
                         />
                         <stop
                           offset="1"
@@ -70536,7 +71616,7 @@ Ctrl + K"
                         y2="23.5714"
                       >
                         <stop
-                          stop-color="#13BEBB"
+                          stop-color="#06847B"
                         />
                         <stop
                           offset="1"
@@ -71905,7 +72985,7 @@ Ctrl + K"
                         y2="23.5714"
                       >
                         <stop
-                          stop-color="#13BEBB"
+                          stop-color="#06847B"
                         />
                         <stop
                           offset="1"
@@ -73212,7 +74292,47 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -74047,7 +75167,47 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -74413,7 +75573,47 @@ exports[`Storyshots Views / Products / Product list no data 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -75180,7 +76380,47 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -78946,7 +80186,47 @@ exports[`Storyshots Views / Shipping / Shipping zones list default 1`] = `
                   >
                     <div
                       class="TablePagination-spacer-id"
-                    />
+                    >
+                      <div>
+                        <span
+                          class="RowNumberSelect-label-id"
+                        >
+                          No of Rows:
+                        </span>
+                        <div
+                          class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                        >
+                          <div
+                            class="MuiSelect-root-id"
+                          >
+                            <div
+                              aria-haspopup="true"
+                              aria-pressed="false"
+                              class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                              role="button"
+                              tabindex="0"
+                            >
+                              20
+                            </div>
+                            <input
+                              type="hidden"
+                              value="20"
+                            />
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                              focusable="false"
+                              role="presentation"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M7 10l5 5 5-5z"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                     <div
                       class="TablePaginationActions-root-id"
                     >
@@ -79503,7 +80783,47 @@ exports[`Storyshots Views / Shipping / Shipping zones list loading 1`] = `
                   >
                     <div
                       class="TablePagination-spacer-id"
-                    />
+                    >
+                      <div>
+                        <span
+                          class="RowNumberSelect-label-id"
+                        >
+                          No of Rows:
+                        </span>
+                        <div
+                          class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                        >
+                          <div
+                            class="MuiSelect-root-id"
+                          >
+                            <div
+                              aria-haspopup="true"
+                              aria-pressed="false"
+                              class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                              role="button"
+                              tabindex="0"
+                            >
+                              20
+                            </div>
+                            <input
+                              type="hidden"
+                              value="20"
+                            />
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                              focusable="false"
+                              role="presentation"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M7 10l5 5 5-5z"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                     <div
                       class="TablePaginationActions-root-id"
                     >
@@ -79839,7 +81159,47 @@ exports[`Storyshots Views / Shipping / Shipping zones list no data 1`] = `
                   >
                     <div
                       class="TablePagination-spacer-id"
-                    />
+                    >
+                      <div>
+                        <span
+                          class="RowNumberSelect-label-id"
+                        >
+                          No of Rows:
+                        </span>
+                        <div
+                          class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                        >
+                          <div
+                            class="MuiSelect-root-id"
+                          >
+                            <div
+                              aria-haspopup="true"
+                              aria-pressed="false"
+                              class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                              role="button"
+                              tabindex="0"
+                            >
+                              20
+                            </div>
+                            <input
+                              type="hidden"
+                              value="20"
+                            />
+                            <svg
+                              aria-hidden="true"
+                              class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                              focusable="false"
+                              role="presentation"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                d="M7 10l5 5 5-5z"
+                              />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                     <div
                       class="TablePaginationActions-root-id"
                     >
@@ -83089,7 +84449,47 @@ exports[`Storyshots Views / Staff / Staff members default 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >
@@ -83619,7 +85019,47 @@ exports[`Storyshots Views / Staff / Staff members when loading 1`] = `
               >
                 <div
                   class="TablePagination-spacer-id"
-                />
+                >
+                  <div>
+                    <span
+                      class="RowNumberSelect-label-id"
+                    >
+                      No of Rows:
+                    </span>
+                    <div
+                      class="MuiInputBase-root-id MuiInput-root-id MuiInput-underline-id RowNumberSelect-select-id"
+                    >
+                      <div
+                        class="MuiSelect-root-id"
+                      >
+                        <div
+                          aria-haspopup="true"
+                          aria-pressed="false"
+                          class="MuiSelect-select-id MuiSelect-selectMenu-id MuiInputBase-input-id MuiInput-input-id"
+                          role="button"
+                          tabindex="0"
+                        >
+                          20
+                        </div>
+                        <input
+                          type="hidden"
+                          value="20"
+                        />
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id MuiSelect-icon-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M7 10l5 5 5-5z"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
                 <div
                   class="TablePaginationActions-root-id"
                 >

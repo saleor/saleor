@@ -25,6 +25,7 @@ if TYPE_CHECKING:
 
 class VatlayerPlugin(BasePlugin):
     META_FIELD = "vatlayer"
+    META_NAMESPACE = "taxes"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -240,9 +241,15 @@ class VatlayerPlugin(BasePlugin):
         if tax_code not in dict(TaxRateType.CHOICES):
             return previous_value
 
-        if "taxes" not in obj.meta:
-            obj.meta["taxes"] = {}
-        obj.meta["taxes"][self.META_FIELD] = {"code": tax_code, "description": tax_code}
+        tax_item = {"code": tax_code, "description": tax_code}
+        stored_tax_meta = obj.get_meta(
+            namespace=self.META_NAMESPACE, client=self.META_FIELD
+        )
+        stored_tax_meta.update(tax_item)
+        obj.store_meta(
+            namespace=self.META_NAMESPACE, client=self.META_FIELD, item=stored_tax_meta
+        )
+        obj.save()
         return previous_value
 
     def get_tax_code_from_object_meta(
@@ -255,5 +262,5 @@ class VatlayerPlugin(BasePlugin):
     def __get_tax_code_from_object_meta(
         self, obj: Union["Product", "ProductType"]
     ) -> "TaxType":
-        tax = obj.meta.get("taxes", {}).get(self.META_FIELD, {})
+        tax = obj.get_meta(namespace=self.META_NAMESPACE, client=self.META_FIELD)
         return TaxType(code=tax.get("code", ""), description=tax.get("description", ""))
