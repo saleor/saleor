@@ -417,7 +417,6 @@ def get_cached_tax_codes_or_fetch(cache_time: int = TAX_CODES_CACHE_TIME):
 
 
 def retrieve_tax_code_from_meta(obj: Union["Product", "ProductVariant"]):
-    if not hasattr(obj, "meta"):
-        return "O9999999"  # "Temporary Unmapped Other SKU - taxable default"
     tax = obj.meta.get("taxes", {}).get(META_FIELD, {})
+    # O9999999 - "Temporary Unmapped Other SKU - taxable default"
     return tax.get("code", "O9999999")

@@ -82,8 +82,8 @@ class VatlayerPlugin(BasePlugin):
         lines_total = TaxedMoney(net=zero_total, gross=zero_total)
         for line in lines:
             price = line.variant.get_price(discounts)
-            lines_total += line.quantity * self.apply_taxes_to_product(
-                line.variant.product, price, address.country if address else None, price
+            lines_total += line.quantity * self.__apply_taxes_to_product(
+                line.variant.product, price, address.country if address else None
             )
         return lines_total
 
@@ -147,8 +147,8 @@ class VatlayerPlugin(BasePlugin):
         )
         price = checkout_line.variant.get_price(discounts) * checkout_line.quantity
         country = address.country if address else None
-        return self.apply_taxes_to_product(
-            checkout_line.variant.product, price, country, previous_value
+        return self.__apply_taxes_to_product(
+            checkout_line.variant.product, price, country
         )
 
     def calculate_order_line_unit(
@@ -160,8 +160,8 @@ class VatlayerPlugin(BasePlugin):
         address = order_line.order.shipping_address or order_line.order.billing_address
         country = address.country if address else None
         variant = order_line.variant
-        return self.apply_taxes_to_product(
-            variant.product, order_line.unit_price_net, country, previous_value
+        return self.__apply_taxes_to_product(
+            variant.product, order_line.unit_price_net, country
         )
 
     def get_tax_rate_type_choices(
@@ -215,7 +215,11 @@ class VatlayerPlugin(BasePlugin):
     ) -> TaxedMoney:
         if self._skip_plugin(previous_value):
             return previous_value
+        return self.__apply_taxes_to_product(product, price, country)
 
+    def __apply_taxes_to_product(
+        self, product: "Product", price: Money, country: Country
+    ):
         taxes = None
         if country and product.charge_taxes:
             taxes = self._get_taxes_for_country(country)
