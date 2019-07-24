@@ -1449,10 +1449,12 @@ def test_customer_update_own_address(
     assert address_obj.city == address_data["city"]
 
 
+@pytest.mark.parametrize(
+    "query", [ADDRESS_UPDATE_MUTATION, ACCOUNT_ADDRESS_UPDATE_MUTATION]
+)
 def test_customer_update_address_for_other(
-    user_api_client, customer_user, address_other_country, graphql_address_data
+    user_api_client, customer_user, address_other_country, graphql_address_data, query
 ):
-    query = ADDRESS_UPDATE_MUTATION
     address_obj = address_other_country
     assert customer_user not in address_obj.user_addresses.all()
 
@@ -1496,22 +1498,38 @@ def test_address_delete_mutation(
         address_obj.refresh_from_db()
 
 
+ACCOUNT_ADDRESS_DELETE_MUTATION = """
+    mutation deleteUserAddress($id: ID!) {
+        accountAddressDelete(id: $id) {
+            address {
+                city
+            }
+            user {
+                id
+            }
+        }
+    }
+"""
+
+
 def test_customer_delete_own_address(user_api_client, customer_user):
-    query = ADDRESS_DELETE_MUTATION
+    query = ACCOUNT_ADDRESS_DELETE_MUTATION
     address_obj = customer_user.addresses.first()
     variables = {"id": graphene.Node.to_global_id("Address", address_obj.id)}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    data = content["data"]["addressDelete"]
+    data = content["data"]["accountAddressDelete"]
     assert data["address"]["city"] == address_obj.city
     with pytest.raises(address_obj._meta.model.DoesNotExist):
         address_obj.refresh_from_db()
 
 
+@pytest.mark.parametrize(
+    "query", [ADDRESS_DELETE_MUTATION, ACCOUNT_ADDRESS_DELETE_MUTATION]
+)
 def test_customer_delete_address_for_other(
-    user_api_client, customer_user, address_other_country
+    user_api_client, customer_user, address_other_country, query
 ):
-    query = ADDRESS_DELETE_MUTATION
     address_obj = address_other_country
     assert customer_user not in address_obj.user_addresses.all()
     variables = {"id": graphene.Node.to_global_id("Address", address_obj.id)}

@@ -97,6 +97,8 @@ class PasswordReset(BaseMutation):
 
 
 class BaseAddressUpdate(ModelMutation):
+    """Base mutation for address update used by staff and account."""
+
     user = graphene.Field(
         User, description="A user instance for which the address was edited."
     )
@@ -126,7 +128,9 @@ class BaseAddressUpdate(ModelMutation):
         return response
 
 
-class AddressDelete(ModelDeleteMutation):
+class BaseAddressDelete(ModelDeleteMutation):
+    """Base mutation for address delete used by staff and account."""
+
     user = graphene.Field(
         User, description="A user instance for which the address was deleted."
     )
@@ -135,8 +139,7 @@ class AddressDelete(ModelDeleteMutation):
         id = graphene.ID(required=True, description="ID of the address to delete.")
 
     class Meta:
-        description = "Deletes an address"
-        model = models.Address
+        abstract = True
 
     @classmethod
     def clean_instance(cls, info, instance):
