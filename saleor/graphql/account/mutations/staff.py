@@ -172,7 +172,6 @@ class CustomerUpdate(CustomerCreate):
 
         It overrides the `perform_mutation` base method of ModelMutation.
         """
-
         # Retrieve the data
         original_instance = cls.get_instance(info, **data)
         data = data.get("input")
