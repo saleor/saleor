@@ -1,6 +1,7 @@
 """Checkout-related utility functions."""
 from datetime import date, timedelta
 from functools import wraps
+from typing import Optional, Tuple
 from uuid import UUID
 
 from django.contrib import messages
@@ -10,13 +11,18 @@ from django.db.models import Sum
 from django.utils import timezone
 from django.utils.encoding import smart_text
 from django.utils.translation import get_language, pgettext, pgettext_lazy
-from prices import TaxedMoneyRange
+from prices import MoneyRange, TaxedMoneyRange
 
 from ..account.forms import get_address_form
 from ..account.models import Address, User
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
-from ..core.taxes import quantize_price, zero_money, zero_taxed_money
+from ..core.taxes import (
+    interface as tax_interface,
+    quantize_price,
+    zero_money,
+    zero_taxed_money,
+)
 from ..core.taxes.interface import (
     calculate_checkout_line_total,
     calculate_checkout_shipping,
@@ -254,19 +260,22 @@ def get_or_create_anonymous_checkout_from_token(
     )[0]
 
 
-def get_or_create_user_checkout(user: User, checkout_queryset=Checkout.objects.all()):
-    """Return an open checkout for given user or create a new one."""
-    defaults = {
-        "shipping_address": user.default_shipping_address,
-        "billing_address": user.default_billing_address,
-    }
-
-    created = False
-    checkout = checkout_queryset.filter(user=user).first()
-    if checkout is None:
-        checkout = Checkout.objects.create(user=user, **defaults)
-        created = True
-    return checkout, created
+def get_user_checkout(
+    user: User, checkout_queryset=Checkout.objects.all(), auto_create=False
+) -> Tuple[Optional[Checkout], bool]:
+    """Return an active checkout for given user or None if no auto create.
+    If auto create is enabled, it will retrieve an active checkout or create it
+    (safer for concurrency).
+    """
+    if auto_create:
+        return checkout_queryset.get_or_create(
+            user=user,
+            defaults={
+                "shipping_address": user.default_shipping_address,
+                "billing_address": user.default_billing_address,
+            },
+        )
+    return checkout_queryset.filter(user=user).first(), False
 
 
 def get_anonymous_checkout_from_token(token, checkout_queryset=Checkout.objects.all()):
@@ -274,17 +283,12 @@ def get_anonymous_checkout_from_token(token, checkout_queryset=Checkout.objects.
     return checkout_queryset.filter(token=token, user=None).first()
 
 
-def get_user_checkout(user, checkout_queryset=Checkout.objects.all()):
-    """Return an open checkout for given user if any."""
-    return checkout_queryset.filter(user=user).first()
-
-
 def get_or_create_checkout_from_request(
     request, checkout_queryset=Checkout.objects.all()
-):
+) -> Checkout:
     """Fetch checkout from database or create a new one based on cookie."""
     if request.user.is_authenticated:
-        return get_or_create_user_checkout(request.user, checkout_queryset)[0]
+        return get_user_checkout(request.user, checkout_queryset, auto_create=True)[0]
     token = request.get_signed_cookie(COOKIE_NAME, default=None)
     return get_or_create_anonymous_checkout_from_token(token, checkout_queryset)
 
@@ -292,7 +296,7 @@ def get_or_create_checkout_from_request(
 def get_checkout_from_request(request, checkout_queryset=Checkout.objects.all()):
     """Fetch checkout from database or return a new instance based on cookie."""
     if request.user.is_authenticated:
-        checkout = get_user_checkout(request.user, checkout_queryset)
+        checkout, _ = get_user_checkout(request.user, checkout_queryset)
         user = request.user
     else:
         token = request.get_signed_cookie(COOKIE_NAME, default=None)
@@ -360,33 +364,52 @@ def update_checkout_quantity(checkout):
     checkout.save(update_fields=["quantity"])
 
 
-def add_variant_to_checkout(
+def check_variant_in_stock(
     checkout, variant, quantity=1, replace=False, check_quantity=True
-):
-    """Add a product variant to checkout.
+) -> Tuple[int, Optional[CheckoutLine]]:
+    """Check if a given variant is in stock and return the new quantity + line"""
+    line = checkout.lines.filter(variant=variant).first()
+    line_quantity = 0 if line is None else line.quantity
 
-    The `data` parameter may be used to differentiate between items with
-    different customization options.
-
-    If `replace` is truthy then any previous quantity is discarded instead
-    of added to.
-    """
-    line, _ = checkout.lines.get_or_create(
-        variant=variant, defaults={"quantity": 0, "data": {}}
-    )
-    new_quantity = quantity if replace else (quantity + line.quantity)
+    new_quantity = quantity if replace else (quantity + line_quantity)
 
     if new_quantity < 0:
         raise ValueError(
             "%r is not a valid quantity (results in %r)" % (quantity, new_quantity)
         )
 
-    if new_quantity == 0:
-        line.delete()
-    else:
-        if check_quantity:
-            variant.check_quantity(new_quantity)
+    if new_quantity > 0 and check_quantity:
+        variant.check_quantity(new_quantity)
 
+    return new_quantity, line
+
+
+def add_variant_to_checkout(
+    checkout, variant, quantity=1, replace=False, check_quantity=True
+):
+    """Add a product variant to checkout.
+
+    If `replace` is truthy then any previous quantity is discarded instead
+    of added to.
+    """
+
+    new_quantity, line = check_variant_in_stock(
+        checkout,
+        variant,
+        quantity=quantity,
+        replace=replace,
+        check_quantity=check_quantity,
+    )
+
+    if line is None:
+        line = checkout.lines.filter(variant=variant).first()
+
+    if new_quantity == 0:
+        if line is not None:
+            line.delete()
+    elif line is None:
+        checkout.lines.create(checkout=checkout, variant=variant, quantity=new_quantity)
+    elif new_quantity > 0:
         line.quantity = new_quantity
         line.save(update_fields=["quantity"])
 
@@ -949,20 +972,45 @@ def remove_voucher_from_checkout(checkout: Checkout):
     )
 
 
+def get_valid_shipping_methods_for_checkout(
+    checkout: Checkout, discounts, country_code=None
+):
+    return ShippingMethod.objects.applicable_shipping_methods_for_instance(
+        checkout,
+        price=calculate_checkout_subtotal(checkout, discounts).gross,
+        country_code=country_code,
+    )
+
+
 def is_valid_shipping_method(checkout, discounts):
     """Check if shipping method is valid and remove (if not)."""
     if not checkout.shipping_method:
         return False
 
-    valid_methods = ShippingMethod.objects.applicable_shipping_methods(
-        price=calculate_checkout_subtotal(checkout, discounts).gross,
-        weight=checkout.get_total_weight(),
-        country_code=checkout.shipping_address.country.code,
-    )
-    if checkout.shipping_method not in valid_methods:
+    valid_methods = get_valid_shipping_methods_for_checkout(checkout, discounts)
+    if valid_methods is None or checkout.shipping_method not in valid_methods:
         clear_shipping_method(checkout)
         return False
     return True
+
+
+def get_shipping_price_estimate(checkout: Checkout, discounts, country_code):
+    """Returns estimated price range for shipping for given order."""
+
+    shipping_methods = get_valid_shipping_methods_for_checkout(
+        checkout, discounts, country_code=country_code
+    )
+
+    if shipping_methods is None:
+        return None
+
+    shipping_methods = shipping_methods.values_list("price", flat=True)
+
+    if not shipping_methods:
+        return None
+
+    prices = MoneyRange(start=min(shipping_methods), stop=max(shipping_methods))
+    return tax_interface.apply_taxes_to_shipping_price_range(prices, country_code)
 
 
 def clear_shipping_method(checkout):

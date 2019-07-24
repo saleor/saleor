@@ -12,11 +12,10 @@ from django_countries.fields import Country, LazyTypedChoiceField
 
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import display_gross_prices
-from ..core.taxes.interface import apply_taxes_to_shipping, calculate_checkout_subtotal
+from ..core.taxes.interface import apply_taxes_to_shipping
 from ..core.utils import format_money
 from ..discount.models import NotApplicable, Voucher
 from ..shipping.models import ShippingMethod, ShippingZone
-from ..shipping.utils import get_shipping_price_estimate
 from .models import Checkout
 
 
@@ -200,14 +199,16 @@ class CountryForm(forms.Form):
             available_countries, key=lambda choice: choice[1]
         )
 
-    def get_shipping_price_estimate(self, price, weight):
+    def get_shipping_price_estimate(self, checkout, discounts):
         """Return a shipping price range for given order for the selected
         country.
         """
+        from .utils import get_shipping_price_estimate
+
         country = self.cleaned_data["country"]
         if isinstance(country, str):
             country = Country(country)
-        return get_shipping_price_estimate(price, weight, country)
+        return get_shipping_price_estimate(checkout, discounts, country)
 
 
 class AnonymousUserShippingForm(forms.ModelForm):
@@ -320,14 +321,14 @@ class CheckoutShippingMethodForm(forms.ModelForm):
         fields = ["shipping_method"]
 
     def __init__(self, *args, **kwargs):
+        from .utils import get_valid_shipping_methods_for_checkout
+
         discounts = kwargs.pop("discounts")
         super().__init__(*args, **kwargs)
         shipping_address = self.instance.shipping_address
         country_code = shipping_address.country.code
-        qs = ShippingMethod.objects.applicable_shipping_methods(
-            price=calculate_checkout_subtotal(self.instance, discounts).gross,
-            weight=self.instance.get_total_weight(),
-            country_code=country_code,
+        qs = get_valid_shipping_methods_for_checkout(
+            self.instance, discounts, country_code=country_code
         )
         self.fields["shipping_method"].queryset = qs
         self.fields["shipping_method"].shipping_address = shipping_address

@@ -6,6 +6,7 @@ from django.core.serializers.json import (
     PythonDeserializer,
     Serializer as JsonSerializer,
 )
+from draftjs_sanitizer import SafeJSONEncoder
 from prices import Money
 
 MONEY_TYPE = "Money"
@@ -22,6 +23,11 @@ class CustomJsonEncoder(DjangoJSONEncoder):
         if isinstance(obj, Money):
             return {"_type": MONEY_TYPE, "amount": obj.amount, "currency": obj.currency}
         return super().default(obj)
+
+
+class HTMLSafeJSON(SafeJSONEncoder, DjangoJSONEncoder):
+    """Escapes dangerous characters for integrating JSON into HTML content
+    and serializes Django objects."""
 
 
 def object_hook(obj):

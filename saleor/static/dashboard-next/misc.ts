@@ -1,9 +1,11 @@
 import moment from "moment-timezone";
 import { MutationFn, MutationResult } from "react-apollo";
 import urlJoin from "url-join";
+
 import { ConfirmButtonTransitionState } from "./components/ConfirmButton/ConfirmButton";
 import { APP_MOUNT_URI } from "./config";
 import { AddressType } from "./customers/types";
+import { ChangeEvent } from "./hooks/useForm";
 import i18n from "./i18n";
 import { PartialMutationProviderOutput, UserError } from "./types";
 import {
@@ -145,7 +147,9 @@ export const translatedAuthorizationKeyTypes = () => ({
   [AuthorizationKeyType.GOOGLE_OAUTH2]: i18n.t("Google OAuth2")
 });
 
-export function maybe<T>(exp: () => T, d?: T) {
+export function maybe<T>(exp: () => T): T | undefined;
+export function maybe<T>(exp: () => T, d: T): T;
+export function maybe(exp: any, d?: any) {
   try {
     const result = exp();
     return result === undefined ? d : result;
@@ -270,4 +274,15 @@ export function generateCode(charNum: number) {
     result += characters.charAt(Math.floor(Math.random() * characters.length));
   }
   return result;
+}
+
+export function onQueryChange(
+  event: ChangeEvent,
+  onFetch: (data: string) => void,
+  setQuery: (data: string) => void
+) {
+  const value = event.target.value;
+
+  onFetch(value);
+  setQuery(value);
 }

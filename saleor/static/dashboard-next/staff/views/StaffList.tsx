@@ -1,14 +1,16 @@
 import React from "react";
 
+import useListSettings from "@saleor/hooks/useListSettings";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
 import usePaginator, {
   createPaginationState
 } from "@saleor/hooks/usePaginator";
-import { PAGINATE_BY } from "../../config";
-import { configurationMenuUrl } from "../../configuration";
-import i18n from "../../i18n";
-import { getMutationState, maybe } from "../../misc";
+
+import { configurationMenuUrl } from "@saleor/configuration";
+import i18n from "@saleor/i18n";
+import { getMutationState, maybe } from "@saleor/misc";
+import { ListViews } from "@saleor/types";
 import StaffAddMemberDialog, {
   FormData as AddStaffMemberForm
 } from "../components/StaffAddMemberDialog";
@@ -32,6 +34,9 @@ export const StaffList: React.StatelessComponent<StaffListProps> = ({
   const navigate = useNavigator();
   const notify = useNotifier();
   const paginate = usePaginator();
+  const { updateListSettings, settings } = useListSettings(
+    ListViews.STAFF_MEMBERS_LIST
+  );
 
   const closeModal = () =>
     navigate(
@@ -43,7 +48,7 @@ export const StaffList: React.StatelessComponent<StaffListProps> = ({
       true
     );
 
-  const paginationState = createPaginationState(PAGINATE_BY, params);
+  const paginationState = createPaginationState(settings.rowNumber, params);
   return (
     <TypedStaffListQuery displayLoader variables={paginationState}>
       {({ data, loading }) => {
@@ -91,6 +96,7 @@ export const StaffList: React.StatelessComponent<StaffListProps> = ({
                 <>
                   <StaffListPage
                     disabled={loading || addStaffMemberData.loading}
+                    settings={settings}
                     pageInfo={pageInfo}
                     staffMembers={maybe(() =>
                       data.staffUsers.edges.map(edge => edge.node)
@@ -105,6 +111,7 @@ export const StaffList: React.StatelessComponent<StaffListProps> = ({
                     onBack={() => navigate(configurationMenuUrl)}
                     onNextPage={loadNextPage}
                     onPreviousPage={loadPreviousPage}
+                    onUpdateListSettings={updateListSettings}
                     onRowClick={id => () => navigate(staffMemberDetailsUrl(id))}
                   />
                   <StaffAddMemberDialog

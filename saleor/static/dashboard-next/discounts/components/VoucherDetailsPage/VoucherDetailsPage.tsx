@@ -51,11 +51,11 @@ export interface FormData {
   endTime: string;
   hasEndDate: boolean;
   hasUsageLimit: boolean;
-  minAmountSpent: number;
+  minAmountSpent: string;
   startDate: string;
   startTime: string;
   type: VoucherTypeEnum;
-  usageLimit: number;
+  usageLimit: string;
   value: number;
 }
 
@@ -134,11 +134,11 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
     endTime: splitDateTime(maybe(() => voucher.endDate, "")).time,
     hasEndDate: maybe(() => !!voucher.endDate),
     hasUsageLimit: maybe(() => !!voucher.usageLimit),
-    minAmountSpent: maybe(() => voucher.minAmountSpent.amount, 0),
+    minAmountSpent: maybe(() => voucher.minAmountSpent.amount.toString(), "0"),
     startDate: splitDateTime(maybe(() => voucher.startDate, "")).date,
     startTime: splitDateTime(maybe(() => voucher.startDate, "")).time,
     type: maybe(() => voucher.type, VoucherTypeEnum.ENTIRE_ORDER),
-    usageLimit: maybe(() => voucher.usageLimit || 0, 0),
+    usageLimit: maybe(() => voucher.usageLimit.toString(), "0"),
     value: maybe(() => voucher.discountValue, 0)
   };
 

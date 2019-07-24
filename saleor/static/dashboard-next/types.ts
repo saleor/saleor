@@ -9,15 +9,36 @@ export interface UserError {
   message: string;
 }
 
+export interface ListSettings {
+  rowNumber: number;
+}
+
+export enum ListViews {
+  CATEGORY_LIST = "CATEGORY_LIST",
+  COLLECTION_LIST = "COLLECTION_LIST",
+  CUSTOMER_LIST = "CUSTOMER_LIST",
+  DRAFT_LIST = "DRAFT_LIST",
+  NAVIGATION_LIST = "NAVIGATION_LIST",
+  ORDER_LIST = "ORDER_LIST",
+  PAGES_LIST = "PAGES_LIST",
+  PRODUCT_LIST = "PRODUCT_LIST",
+  SALES_LIST = "SALES_LIST",
+  SHIPPING_METHODS_LIST = "SHIPPING_METHODS_LIST",
+  STAFF_MEMBERS_LIST = "STAFF_MEMBERS_LIST",
+  VOUCHER_LIST = "VOUCHER_LIST"
+}
+
 export interface ListProps {
   disabled: boolean;
   pageInfo?: {
     hasNextPage: boolean;
     hasPreviousPage: boolean;
   };
+  settings?: ListSettings;
   onNextPage: () => void;
   onPreviousPage: () => void;
   onRowClick: (id: string) => () => void;
+  onUpdateListSettings?(key: keyof ListSettings, value: any): void;
 }
 export interface ListActionsWithoutToolbar {
   toggle: (id: string) => void;
