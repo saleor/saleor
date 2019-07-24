@@ -7,7 +7,8 @@ from django.utils import timezone
 from django.utils.formats import localize
 
 from saleor.dashboard.menu.forms import AssignMenuForm
-from saleor.dashboard.menu.utils import (
+from saleor.menu.models import Menu, MenuItem, MenuItemTranslation
+from saleor.menu.utils import (
     get_menu_as_json,
     get_menu_item_as_dict,
     get_menus_that_needs_update,
@@ -15,7 +16,6 @@ from saleor.dashboard.menu.utils import (
     update_menu_item_linked_object,
     update_menus,
 )
-from saleor.menu.models import Menu, MenuItem, MenuItemTranslation
 
 from ..utils import get_redirect_location
 

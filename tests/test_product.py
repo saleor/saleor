@@ -17,8 +17,8 @@ from saleor.account import events as account_events
 from saleor.checkout import utils
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
-from saleor.dashboard.menu.utils import update_menu
 from saleor.menu.models import MenuItemTranslation
+from saleor.menu.utils import update_menu
 from saleor.product import ProductAvailabilityStatus, models
 from saleor.product.models import DigitalContentUrl
 from saleor.product.thumbnails import create_product_thumbnails

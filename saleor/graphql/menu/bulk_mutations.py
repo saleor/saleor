@@ -1,6 +1,7 @@
 import graphene
 
 from ...menu import models
+from ...menu.utils import update_menus
 from ..core.mutations import ModelBulkDeleteMutation
 
 
@@ -26,3 +27,9 @@ class MenuItemBulkDelete(ModelBulkDeleteMutation):
         description = "Deletes menu items."
         model = models.MenuItem
         permissions = ("menu.manage_menus",)
+
+    @classmethod
+    def bulk_action(cls, queryset):
+        menu_ids = set([item.menu_id for item in queryset])
+        queryset.delete()
+        update_menus(menu_ids)

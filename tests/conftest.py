@@ -20,11 +20,11 @@ from saleor.account.models import Address, User
 from saleor.checkout import utils
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
-from saleor.dashboard.menu.utils import update_menu
 from saleor.discount import DiscountInfo, DiscountValueType, VoucherType
 from saleor.discount.models import Sale, Voucher, VoucherCustomer, VoucherTranslation
 from saleor.giftcard.models import GiftCard
 from saleor.menu.models import Menu, MenuItem
+from saleor.menu.utils import update_menu
 from saleor.order import OrderStatus
 from saleor.order.events import OrderEvents
 from saleor.order.models import FulfillmentStatus, Order, OrderEvent

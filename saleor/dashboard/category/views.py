@@ -8,8 +8,8 @@ from django.urls import reverse
 from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
+from ...menu.utils import get_menus_that_needs_update, update_menus
 from ...product.models import Category
-from ..menu.utils import get_menus_that_needs_update, update_menus
 from ..views import staff_member_required
 from .filters import CategoryFilter
 from .forms import CategoryForm
