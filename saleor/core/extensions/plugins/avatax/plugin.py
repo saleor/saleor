@@ -7,7 +7,7 @@ from django.conf import settings
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ....taxes import TaxError, TaxType, zero_taxed_money
-from ...plugin import BasePlugin
+from ...base_plugin import BasePlugin
 from . import (
     META_FIELD,
     META_NAMESPACE,

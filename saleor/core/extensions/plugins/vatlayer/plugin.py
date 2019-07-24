@@ -6,7 +6,7 @@ from django_prices_vatlayer.utils import get_tax_rate_types
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from ....taxes import TaxType
-from ...plugin import BasePlugin
+from ...base_plugin import BasePlugin
 from . import (
     DEFAULT_TAX_RATE_NAME,
     TaxRateType,
