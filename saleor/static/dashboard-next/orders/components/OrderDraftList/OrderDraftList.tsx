@@ -17,14 +17,14 @@ import Money from "@saleor/components/Money";
 import Skeleton from "@saleor/components/Skeleton";
 import TableHead from "@saleor/components/TableHead";
 import TablePagination from "@saleor/components/TablePagination";
-import i18n from "../../../i18n";
+import i18n from "@saleor/i18n";
 import {
   maybe,
   renderCollection,
   transformOrderStatus,
   transformPaymentStatus
-} from "../../../misc";
-import { ListActions, ListProps } from "../../../types";
+} from "@saleor/misc";
+import { ListActions, ListProps } from "@saleor/types";
 import { OrderDraftList_draftOrders_edges_node } from "../../types/OrderDraftList";
 
 const styles = (theme: Theme) =>
@@ -63,10 +63,12 @@ export const OrderDraftList = withStyles(styles, { name: "OrderDraftList" })(
   ({
     classes,
     disabled,
+    settings,
     orders,
     pageInfo,
     onPreviousPage,
     onNextPage,
+    onUpdateListSettings,
     onRowClick,
     isChecked,
     selected,
@@ -107,8 +109,10 @@ export const OrderDraftList = withStyles(styles, { name: "OrderDraftList" })(
           <TableRow>
             <TablePagination
               colSpan={5}
+              settings={settings}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
+              onUpdateListSettings={onUpdateListSettings}
               hasPreviousPage={
                 pageInfo && !disabled ? pageInfo.hasPreviousPage : false
               }

@@ -1,3 +1,4 @@
+import Avatar from "@material-ui/core/Avatar";
 import Chip from "@material-ui/core/Chip";
 import ClickAwayListener from "@material-ui/core/ClickAwayListener";
 import Grow from "@material-ui/core/Grow";
@@ -54,7 +55,7 @@ const styles = (theme: Theme) =>
       transition: theme.transitions.duration.standard + "ms"
     },
     content: {
-      [theme.breakpoints.down("md")]: {
+      [theme.breakpoints.down("sm")]: {
         paddingLeft: 0
       },
       paddingLeft: drawerWidthExpanded,
@@ -62,7 +63,7 @@ const styles = (theme: Theme) =>
       width: "100%"
     },
     contentToggle: {
-      [theme.breakpoints.down("md")]: {
+      [theme.breakpoints.down("sm")]: {
         paddingLeft: 0
       },
       paddingLeft: drawerWidth
@@ -231,8 +232,8 @@ const styles = (theme: Theme) =>
       display: "flex"
     },
     userChip: {
-      backgroundColor: theme.palette.common.white,
-      border: `1px solid ${theme.palette.grey[200]}`
+      backgroundColor: theme.palette.background.paper,
+      color: theme.palette.text.primary
     },
     userMenuContainer: {
       position: "relative"
@@ -383,6 +384,9 @@ const AppLayout = withStyles(styles, {
                               ref={anchor}
                             >
                               <Chip
+                                avatar={
+                                  <Avatar alt="user" src={user.avatar.url} />
+                                }
                                 className={classes.userChip}
                                 label={
                                   <>

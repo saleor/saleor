@@ -10,6 +10,7 @@ from ....taxes import TaxError, TaxType, zero_taxed_money
 from ...plugin import BasePlugin
 from . import (
     META_FIELD,
+    META_NAMESPACE,
     CustomerErrors,
     TransactionType,
     _validate_checkout,
@@ -264,21 +265,20 @@ class AvataxPlugin(BasePlugin):
             return
 
         tax_description = codes[tax_code]
-        if not hasattr(obj, "meta"):
-            return
-        if "taxes" not in obj.meta:
-            obj.meta["taxes"] = {}
-        obj.meta["taxes"][META_FIELD] = {
-            "code": tax_code,
-            "description": tax_description,
-        }
+        tax_item = {"code": tax_code, "description": tax_description}
+        stored_tax_meta = obj.get_meta(namespace=META_NAMESPACE, client=META_FIELD)
+        stored_tax_meta.update(tax_item)
+        obj.store_meta(
+            namespace=META_NAMESPACE, client=META_FIELD, item=stored_tax_meta
+        )
+        obj.save()
 
     def get_tax_code_from_object_meta(
         self, obj: Union["Product", "ProductType"], previous_value: Any
     ) -> TaxType:
         if not self._enabled:
             return previous_value
-        tax = obj.meta.get("taxes", {}).get(META_FIELD, {})
+        tax = obj.get_meta(namespace=META_NAMESPACE, client=META_FIELD)
         return TaxType(code=tax.get("code", ""), description=tax.get("description", ""))
 
     def show_taxes_on_storefront(self, previous_value: bool) -> bool:

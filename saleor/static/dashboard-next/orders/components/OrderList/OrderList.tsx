@@ -18,14 +18,14 @@ import Skeleton from "@saleor/components/Skeleton";
 import StatusLabel from "@saleor/components/StatusLabel";
 import TableHead from "@saleor/components/TableHead";
 import TablePagination from "@saleor/components/TablePagination";
-import i18n from "../../../i18n";
+import i18n from "@saleor/i18n";
 import {
   maybe,
   renderCollection,
   transformOrderStatus,
   transformPaymentStatus
-} from "../../../misc";
-import { ListActions, ListProps } from "../../../types";
+} from "@saleor/misc";
+import { ListActions, ListProps } from "@saleor/types";
 import { OrderList_orders_edges_node } from "../../types/OrderList";
 
 const styles = (theme: Theme) =>
@@ -70,10 +70,12 @@ export const OrderList = withStyles(styles, { name: "OrderList" })(
   ({
     classes,
     disabled,
+    settings,
     orders,
     pageInfo,
     onPreviousPage,
     onNextPage,
+    onUpdateListSettings,
     onRowClick,
     isChecked,
     selected,
@@ -120,8 +122,10 @@ export const OrderList = withStyles(styles, { name: "OrderList" })(
           <TableRow>
             <TablePagination
               colSpan={7}
+              settings={settings}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
+              onUpdateListSettings={onUpdateListSettings}
               hasPreviousPage={
                 pageInfo && !disabled ? pageInfo.hasPreviousPage : false
               }

@@ -5,8 +5,8 @@ import React from "react";
 import AppHeader from "@saleor/components/AppHeader";
 import Container from "@saleor/components/Container";
 import PageHeader from "@saleor/components/PageHeader";
-import i18n from "../../../i18n";
-import { ListActions, PageListProps } from "../../../types";
+import i18n from "@saleor/i18n";
+import { ListActions, PageListProps } from "@saleor/types";
 import { PageList_pages_edges_node } from "../../types/PageList";
 import PageList from "../PageList/PageList";
 
@@ -17,11 +17,13 @@ export interface PageListPageProps extends PageListProps, ListActions {
 
 const PageListPage: React.StatelessComponent<PageListPageProps> = ({
   disabled,
+  settings,
   onAdd,
   onBack,
   onNextPage,
   onPreviousPage,
   onRowClick,
+  onUpdateListSettings,
   pageInfo,
   pages,
   isChecked,
@@ -45,9 +47,11 @@ const PageListPage: React.StatelessComponent<PageListPageProps> = ({
     </PageHeader>
     <PageList
       disabled={disabled}
+      settings={settings}
       pages={pages}
       onNextPage={onNextPage}
       onPreviousPage={onPreviousPage}
+      onUpdateListSettings={onUpdateListSettings}
       onRowClick={onRowClick}
       pageInfo={pageInfo}
       isChecked={isChecked}
