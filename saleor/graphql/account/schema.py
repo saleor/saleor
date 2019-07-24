@@ -14,17 +14,19 @@ from .mutations.account import (
     AccountRequestDeletion,
     AccountSetDefaultAddress,
     AccountUpdate,
-    CustomerAddressCreate,
     CustomerPasswordReset,
     CustomerRegister,
-    CustomerSetDefaultAddress,
-    LoggedUserUpdate,
 )
 from .mutations.base import (
     PasswordReset,
     SetPassword,
     UserClearStoredMeta,
     UserUpdateMeta,
+)
+from .mutations.deprecated_account import (
+    CustomerAddressCreate,
+    CustomerSetDefaultAddress,
+    LoggedUserUpdate,
 )
 from .mutations.staff import (
     AddressCreate,
