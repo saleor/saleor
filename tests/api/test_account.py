@@ -15,6 +15,7 @@ from prices import Money
 
 from saleor.account import events as account_events
 from saleor.account.models import Address, User
+from saleor.account.utils import get_random_avatar
 from saleor.checkout import AddressType
 from saleor.graphql.account.mutations import (
     CustomerDelete,
@@ -1129,6 +1130,47 @@ def test_staff_update(staff_api_client, permission_manage_staff, media_root):
     assert data["errors"] == []
     assert data["user"]["permissions"] == []
     assert not data["user"]["isActive"]
+
+
+@patch("saleor.graphql.account.mutations.get_random_avatar")
+def test_staff_update_doesnt_change_existing_avatar(
+    mock_get_random_avatar, staff_api_client, permission_manage_staff, media_root
+):
+    query = """
+    mutation UpdateStaff(
+            $id: ID!, $permissions: [PermissionEnum], $is_active: Boolean) {
+        staffUpdate(
+                id: $id,
+                input: {permissions: $permissions, isActive: $is_active}) {
+            errors {
+                field
+                message
+            }
+        }
+    }
+    """
+
+    mock_file = MagicMock(spec=File)
+    mock_file.name = "image.jpg"
+    mock_get_random_avatar.return_value = mock_file
+
+    staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
+
+    # Create random avatar
+    staff_user.avatar = get_random_avatar()
+    staff_user.save()
+
+    id = graphene.Node.to_global_id("User", staff_user.id)
+    variables = {"id": id, "permissions": [], "is_active": False}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_staff]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["staffUpdate"]
+    assert data["errors"] == []
+
+    # Make sure that random avatar isn't recreated when there is one already set.
+    mock_get_random_avatar.assert_not_called()
 
 
 def test_staff_delete(staff_api_client, permission_manage_staff):
