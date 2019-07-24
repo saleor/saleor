@@ -113,6 +113,10 @@ class AccountRequestDeletion(BaseMutation):
 
 
 class AccountAddressCreate(ModelMutation):
+    user = graphene.Field(
+        User, description="A user instance for which the address was created."
+    )
+
     class Arguments:
         input = AddressInput(
             description="Fields required to create address", required=True
@@ -143,6 +147,7 @@ class AccountAddressCreate(ModelMutation):
             user = info.context.user
             instance = success_response.address
             utils.change_user_default_address(user, instance, address_type)
+            success_response.user = user
         return success_response
 
     @classmethod
