@@ -1,0 +1,51 @@
+interactions:
+- request:
+    body: '{"createTransactionModel": {"companyCode": "DEFAULT", "type": "SalesOrder",
+      "lines": [{"quantity": 3, "amount": "15.00", "taxCode": "O9999999", "taxIncluded":
+      true, "itemCode": "123", "description": ""}, {"quantity": 1, "amount": "10.00",
+      "taxCode": "FR020100", "taxIncluded": true, "itemCode": "Shipping", "description":
+      ""}], "code": "69a838ee-0c2e-4768-9f5d-ee4cb32a152e", "date": "2019-07-23",
+      "customerCode": 0, "addresses": {"shipFrom": {"line1": null, "line2": null,
+      "city": null, "region": null, "country": null, "postalCode": null}, "shipTo":
+      {"line1": "T\u0119czowa 7", "line2": "", "city": "WROC\u0141AW", "region": "",
+      "country": "PL", "postalCode": "53-601"}}, "commit": false, "currencyCode":
+      "USD", "email": ""}}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Basic Tm9uZTpOb25l
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '727'
+      User-Agent:
+      - python-requests/2.22.0
+    method: POST
+    uri: https://sandbox-rest.avatax.com/api/v2/transactions/createoradjust
+  response:
+    body:
+      string: '{"error":{"code":"AuthenticationException","message":"Authentication
+        failed.","target":"HttpRequestHeaders","details":[{"code":"AuthenticationException","number":30,"message":"Authentication
+        failed.","description":"Unable to authenticate the user or the account.","faultCode":"Client","helpLink":"http://developer.avalara.com/avatax/errors/AuthenticationException","severity":"Exception"},{"code":"StringLengthError","number":13,"message":"Field
+        ''password'' has an invalid length.","description":"Field ''password'' must
+        be between 5 and 50 characters in length.","faultCode":"Client","helpLink":"http://developer.avalara.com/avatax/errors/StringLengthError","severity":"Error"}]}}'
+    headers:
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Tue, 23 Jul 2019 14:05:25 GMT
+      ServerDuration:
+      - '00:00:00.0009998'
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+    status:
+      code: 401
+      message: Unauthorized
+version: 1
