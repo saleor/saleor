@@ -6,7 +6,7 @@ from ....checkout import AddressType
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import BaseMutation, ModelMutation
-from .base import BaseAddressUpdate, send_user_password_reset_email
+from .base import BaseAddressDelete, BaseAddressUpdate, send_user_password_reset_email
 from .staff import CustomerCreate, UserAddressInput
 
 
@@ -190,6 +190,13 @@ class CustomerSetDefaultAddress(BaseMutation):
 class AccountAddressUpdate(BaseAddressUpdate):
     class Meta:
         description = "Updates an address of the logged-in user."
+        model = models.Address
+        exclude = ["user_addresses"]
+
+
+class AccountAddressDelete(BaseAddressDelete):
+    class Meta:
+        description = "Delete an address of the logged-in user."
         model = models.Address
 
 
