@@ -460,6 +460,9 @@ class AttributeProduct(SortableModel):
         ProductType, related_name="attributeproduct", on_delete=models.CASCADE
     )
 
+    class Meta:
+        unique_together = (("attribute", "product_type"),)
+
     def get_ordering_queryset(self):
         return self.product_type.attributeproduct.all()
 
@@ -471,6 +474,9 @@ class AttributeVariant(SortableModel):
     product_type = models.ForeignKey(
         ProductType, related_name="attributevariant", on_delete=models.CASCADE
     )
+
+    class Meta:
+        unique_together = (("attribute", "product_type"),)
 
     def get_ordering_queryset(self):
         return self.product_type.attributevariant.all()
@@ -664,6 +670,9 @@ class CollectionProduct(SortableModel):
     product = models.ForeignKey(
         Product, related_name="collectionproduct", on_delete=models.CASCADE
     )
+
+    class Meta:
+        unique_together = (("collection", "product"),)
 
     def get_ordering_queryset(self):
         return self.product.collectionproduct.all()
