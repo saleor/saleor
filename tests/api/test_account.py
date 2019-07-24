@@ -1414,10 +1414,24 @@ def test_address_update_mutation(
     assert address_obj.city == graphql_address_data["city"]
 
 
+ACCOUNT_ADDRESS_UPDATE_MUTATION = """
+    mutation updateUserAddress($addressId: ID!, $address: AddressInput!) {
+        accountAddressUpdate(id: $addressId, input: $address) {
+            address {
+                city
+            }
+            user {
+                id
+            }
+        }
+    }
+"""
+
+
 def test_customer_update_own_address(
     user_api_client, customer_user, graphql_address_data
 ):
-    query = ADDRESS_UPDATE_MUTATION
+    query = ACCOUNT_ADDRESS_UPDATE_MUTATION
     address_obj = customer_user.addresses.first()
     address_data = graphql_address_data
     address_data["city"] = "Poznań"
@@ -1429,7 +1443,7 @@ def test_customer_update_own_address(
     }
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    data = content["data"]["addressUpdate"]
+    data = content["data"]["accountAddressUpdate"]
     assert data["address"]["city"] == address_data["city"]
     address_obj.refresh_from_db()
     assert address_obj.city == address_data["city"]
