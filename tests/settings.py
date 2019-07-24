@@ -41,3 +41,4 @@ MAX_CHECKOUT_LINE_QUANTITY = 50
 
 
 PASSWORD_HASHERS = ["tests.dummy_password_hasher.DummyHasher"]
+USE_JSON_CONTENT = False

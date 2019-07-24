@@ -27,9 +27,13 @@ from .bulk_mutations.products import (
 from .enums import StockAvailability
 from .filters import CollectionFilter, ProductFilter, ProductTypeFilter
 from .mutations.attributes import (
+    AttributeClearMeta,
+    AttributeClearPrivateMeta,
     AttributeCreate,
     AttributeDelete,
     AttributeUpdate,
+    AttributeUpdateMeta,
+    AttributeUpdatePrivateMeta,
     AttributeValueCreate,
     AttributeValueDelete,
     AttributeValueUpdate,
@@ -41,28 +45,48 @@ from .mutations.digital_contents import (
     DigitalContentUrlCreate,
 )
 from .mutations.products import (
+    CategoryClearMeta,
+    CategoryClearPrivateMeta,
     CategoryCreate,
     CategoryDelete,
     CategoryUpdate,
+    CategoryUpdateMeta,
+    CategoryUpdatePrivateMeta,
     CollectionAddProducts,
+    CollectionClearMeta,
+    CollectionClearPrivateMeta,
     CollectionCreate,
     CollectionDelete,
     CollectionRemoveProducts,
     CollectionReorderProducts,
     CollectionUpdate,
+    CollectionUpdateMeta,
+    CollectionUpdatePrivateMeta,
+    ProductClearMeta,
+    ProductClearPrivateMeta,
     ProductCreate,
     ProductDelete,
     ProductImageCreate,
     ProductImageDelete,
     ProductImageReorder,
     ProductImageUpdate,
+    ProductTypeClearMeta,
+    ProductTypeClearPrivateMeta,
     ProductTypeCreate,
     ProductTypeDelete,
     ProductTypeUpdate,
+    ProductTypeUpdateMeta,
+    ProductTypeUpdatePrivateMeta,
     ProductUpdate,
+    ProductUpdateMeta,
+    ProductUpdatePrivateMeta,
+    ProductVariantClearMeta,
+    ProductVariantClearPrivateMeta,
     ProductVariantCreate,
     ProductVariantDelete,
     ProductVariantUpdate,
+    ProductVariantUpdateMeta,
+    ProductVariantUpdatePrivateMeta,
     VariantImageAssign,
     VariantImageUnassign,
 )
@@ -263,6 +287,10 @@ class ProductMutations(graphene.ObjectType):
     attribute_bulk_delete = AttributeBulkDelete.Field()
     attribute_update = AttributeUpdate.Field()
     attribute_translate = AttributeTranslate.Field()
+    attribute_update_metadata = AttributeUpdateMeta.Field()
+    attribute_clear_metadata = AttributeClearMeta.Field()
+    attribute_update_private_metadata = AttributeUpdatePrivateMeta.Field()
+    attribute_clear_private_metadata = AttributeClearPrivateMeta.Field()
 
     attribute_value_create = AttributeValueCreate.Field()
     attribute_value_delete = AttributeValueDelete.Field()
@@ -275,6 +303,10 @@ class ProductMutations(graphene.ObjectType):
     category_bulk_delete = CategoryBulkDelete.Field()
     category_update = CategoryUpdate.Field()
     category_translate = CategoryTranslate.Field()
+    category_update_metadata = CategoryUpdateMeta.Field()
+    category_clear_metadata = CategoryClearMeta.Field()
+    category_update_private_metadata = CategoryUpdatePrivateMeta.Field()
+    category_clear_private_metadata = CategoryClearPrivateMeta.Field()
 
     collection_add_products = CollectionAddProducts.Field()
     collection_create = CollectionCreate.Field()
@@ -285,6 +317,10 @@ class ProductMutations(graphene.ObjectType):
     collection_remove_products = CollectionRemoveProducts.Field()
     collection_update = CollectionUpdate.Field()
     collection_translate = CollectionTranslate.Field()
+    collection_update_metadata = CollectionUpdateMeta.Field()
+    collection_clear_metadata = CollectionClearMeta.Field()
+    collection_update_private_metadata = CollectionUpdatePrivateMeta.Field()
+    collection_clear_private_metadata = CollectionClearPrivateMeta.Field()
 
     product_create = ProductCreate.Field()
     product_delete = ProductDelete.Field()
@@ -292,6 +328,10 @@ class ProductMutations(graphene.ObjectType):
     product_bulk_publish = ProductBulkPublish.Field()
     product_update = ProductUpdate.Field()
     product_translate = ProductTranslate.Field()
+    product_update_metadata = ProductUpdateMeta.Field()
+    product_clear_metadata = ProductClearMeta.Field()
+    product_update_private_metadata = ProductUpdatePrivateMeta.Field()
+    product_clear_private_metadata = ProductClearPrivateMeta.Field()
 
     product_image_create = ProductImageCreate.Field()
     product_image_delete = ProductImageDelete.Field()
@@ -303,6 +343,10 @@ class ProductMutations(graphene.ObjectType):
     product_type_delete = ProductTypeDelete.Field()
     product_type_bulk_delete = ProductTypeBulkDelete.Field()
     product_type_update = ProductTypeUpdate.Field()
+    product_type_update_metadata = ProductTypeUpdateMeta.Field()
+    product_type_clear_metadata = ProductTypeClearMeta.Field()
+    product_type_update_private_metadata = ProductTypeUpdatePrivateMeta.Field()
+    product_type_clear_private_metadata = ProductTypeClearPrivateMeta.Field()
 
     digital_content_create = DigitalContentCreate.Field()
     digital_content_delete = DigitalContentDelete.Field()
@@ -315,6 +359,10 @@ class ProductMutations(graphene.ObjectType):
     product_variant_bulk_delete = ProductVariantBulkDelete.Field()
     product_variant_update = ProductVariantUpdate.Field()
     product_variant_translate = ProductVariantTranslate.Field()
+    product_variant_update_metadata = ProductVariantUpdateMeta.Field()
+    product_variant_clear_metadata = ProductVariantClearMeta.Field()
+    product_variant_update_private_metadata = ProductVariantUpdatePrivateMeta.Field()
+    product_variant_clear_private_metadata = ProductVariantClearPrivateMeta.Field()
 
     variant_image_assign = VariantImageAssign.Field()
     variant_image_unassign = VariantImageUnassign.Field()

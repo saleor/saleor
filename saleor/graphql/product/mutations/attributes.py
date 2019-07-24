@@ -4,7 +4,12 @@ from django.db.models import Q
 from django.template.defaultfilters import slugify
 
 from ....product import models
-from ...core.mutations import ModelDeleteMutation, ModelMutation
+from ...core.mutations import (
+    ClearMetaBaseMutation,
+    ModelDeleteMutation,
+    ModelMutation,
+    UpdateMetaBaseMutation,
+)
 from ...product.types import ProductType
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..enums import AttributeTypeEnum
@@ -228,6 +233,38 @@ class AttributeDelete(ModelDeleteMutation):
         response = super().success_response(instance)
         response.product_type = instance.product_type or instance.product_variant_type
         return response
+
+
+class AttributeUpdateMeta(UpdateMetaBaseMutation):
+    class Meta:
+        model = models.Attribute
+        description = "Update public metadata for Attribute "
+        permissions = ("product.manage_products",)
+        public = True
+
+
+class AttributeClearMeta(ClearMetaBaseMutation):
+    class Meta:
+        description = "Clears public metadata item for Attribute"
+        model = models.Attribute
+        permissions = ("product.manage_products",)
+        public = True
+
+
+class AttributeUpdatePrivateMeta(UpdateMetaBaseMutation):
+    class Meta:
+        description = "Update public metadata for Attribute"
+        model = models.Attribute
+        permissions = ("product.manage_products",)
+        public = False
+
+
+class AttributeClearPrivateMeta(ClearMetaBaseMutation):
+    class Meta:
+        description = "Clears public metadata item for Attribute"
+        model = models.Attribute
+        permissions = ("product.manage_products",)
+        public = False
 
 
 class AttributeValueCreate(ModelMutation):

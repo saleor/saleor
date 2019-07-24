@@ -79,7 +79,7 @@ def item_title(item: ProductVariant):
 
 
 def item_description(item: ProductVariant):
-    return item.product.description[:100]
+    return item.product.plain_text_description[:100]
 
 
 def item_condition(item: ProductVariant):

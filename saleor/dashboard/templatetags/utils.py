@@ -5,6 +5,7 @@ from django import forms
 from django.template import Library
 from django.templatetags.static import static
 from django_filters.fields import RangeField
+from draftjs_sanitizer import SafeJSONEncoder
 from versatileimagefield.widgets import VersatileImagePPOIClickWidget
 
 from ...product.utils.costs import get_margin_for_variant, get_variant_costs_data
@@ -113,7 +114,7 @@ def serialize_messages(context):
     data = {}
     for i, message in enumerate(messages):
         data[i] = str(message)
-    return dumps(data)
+    return dumps(data, cls=SafeJSONEncoder)
 
 
 @register.inclusion_tag("dashboard/includes/_sorting_header.html", takes_context=True)
