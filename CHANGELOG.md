@@ -82,6 +82,7 @@ All notable, unreleased changes to this project will be documented in this file.
         - CustomerPasswordReset
 
 
+- Users cannot add multiple times the same product into a collection anymore - #4518 by @NyanKiyoshi
 
 ## 2.8.0
 
