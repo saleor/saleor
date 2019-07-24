@@ -7,7 +7,7 @@ from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import BaseMutation, ModelMutation
 from .base import BaseAddressDelete, BaseAddressUpdate, send_user_password_reset_email
-from .staff import CustomerCreate, UserAddressInput
+from .staff import CustomerCreate
 
 
 class CustomerRegisterInput(graphene.InputObjectType):
@@ -34,31 +34,6 @@ class CustomerRegister(ModelMutation):
         user.set_password(password)
         user.save()
         account_events.customer_account_created_event(user=user)
-
-
-class LoggedUserUpdate(CustomerCreate):
-    class Arguments:
-        input = UserAddressInput(
-            description="Fields required to update logged in user.", required=True
-        )
-
-    class Meta:
-        description = (
-            "DEPRECATED: Use AccountUpdate instead. "
-            "Updates data of the logged in user."
-        )
-        exclude = ["password"]
-        model = models.User
-
-    @classmethod
-    def check_permissions(cls, user):
-        return user.is_authenticated
-
-    @classmethod
-    def perform_mutation(cls, root, info, **data):
-        user = info.context.user
-        data["id"] = graphene.Node.to_global_id("User", user.id)
-        return super().perform_mutation(root, info, **data)
 
 
 class AccountInput(graphene.InputObjectType):
@@ -157,16 +132,6 @@ class AccountAddressCreate(ModelMutation):
         instance.user_addresses.add(user)
 
 
-class CustomerAddressCreate(AccountAddressCreate):
-    class Meta:
-        description = (
-            "DEPRECATED: Use AccountAddressCreate instead."
-            "Create a new address for the customer."
-        )
-        model = models.Address
-        exclude = ["user_addresses"]
-
-
 class AccountAddressUpdate(BaseAddressUpdate):
     class Meta:
         description = "Updates an address of the logged-in user."
@@ -213,14 +178,6 @@ class AccountSetDefaultAddress(BaseMutation):
         return cls(user=user)
 
 
-class CustomerSetDefaultAddress(AccountSetDefaultAddress):
-    class Meta:
-        description = (
-            "DEPRECATED: Use AccountSetDefaultAddress instead."
-            "Sets a default address for the authenticated user."
-        )
-
-
 class CustomerPasswordResetInput(graphene.InputObjectType):
     email = graphene.String(
         required=True,
@@ -235,9 +192,7 @@ class CustomerPasswordReset(BaseMutation):
         )
 
     class Meta:
-        description = (
-            "DEPRECATED: Use SetPassword instead. Resets the customer's password."
-        )
+        description = "Resets the customer's password."
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
