@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 from graphql_relay import from_global_id
 
 from ...menu import models
+from ...menu.utils import update_menu
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..page.types import Page
 from ..product.types import Category, Collection
@@ -147,6 +148,11 @@ class MenuItemCreate(ModelMutation):
             raise ValidationError({"items": "More than one item provided."})
         return cleaned_input
 
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        instance.save()
+        update_menu(instance.menu)
+
 
 class MenuItemUpdate(MenuItemCreate):
     class Arguments:
@@ -181,6 +187,12 @@ class MenuItemDelete(ModelDeleteMutation):
         description = "Deletes a menu item."
         model = models.MenuItem
         permissions = ("menu.manage_menus",)
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        response = super().perform_mutation(_root, info, **data)
+        update_menu(response.menu_item.menu)
+        return response
 
 
 _MenuMoveOperation = namedtuple(
@@ -281,7 +293,9 @@ class MenuItemMove(BaseMutation):
         for operation in operations:
             cls.perform_operation(operation)
 
-        return cls(menu=models.Menu.objects.get(pk=menu_id))
+        menu = models.Menu.objects.get(pk=menu_id)
+        update_menu(menu)
+        return cls(menu=menu)
 
 
 class AssignNavigation(BaseMutation):

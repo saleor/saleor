@@ -3,11 +3,11 @@ from django.urls import reverse_lazy
 from django.utils.translation import pgettext_lazy
 
 from ...menu.models import Menu, MenuItem
+from ...menu.utils import update_menu_item_linked_object
 from ...page.models import Page
 from ...product.models import Category, Collection
 from ...site.models import SiteSettings
 from ..forms import AjaxSelect2CombinedChoiceField, OrderedModelMultipleChoiceField
-from .utils import update_menu_item_linked_object
 
 
 class AssignMenuForm(forms.ModelForm):

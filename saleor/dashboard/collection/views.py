@@ -9,8 +9,8 @@ from django.utils.translation import pgettext_lazy
 from django.views.decorators.http import require_POST
 
 from ...core.utils import get_paginator_items
+from ...menu.utils import get_menus_that_needs_update, update_menus
 from ...product.models import Collection
-from ..menu.utils import get_menus_that_needs_update, update_menus
 from ..views import staff_member_required
 from .filters import CollectionFilter
 from .forms import AssignHomepageCollectionForm, CollectionForm

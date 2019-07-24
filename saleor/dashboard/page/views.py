@@ -6,8 +6,8 @@ from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
+from ...menu.utils import get_menus_that_needs_update, update_menus
 from ...page.models import Page
-from ..menu.utils import get_menus_that_needs_update, update_menus
 from ..views import staff_member_required
 from .filters import PageFilter
 from .forms import PageForm
