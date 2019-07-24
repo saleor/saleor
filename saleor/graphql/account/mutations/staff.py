@@ -29,6 +29,7 @@ from ...core.mutations import (
 from ...core.types import Upload
 from ...core.utils import validate_image_file
 from ..utils import CustomerDeleteMixin, StaffDeleteMixin, UserDeleteMixin
+from .base import BaseAddressUpdate
 
 BILLING_ADDRESS_FIELD = "default_billing_address"
 SHIPPING_ADDRESS_FIELD = "default_shipping_address"
@@ -372,6 +373,14 @@ class AddressSetDefault(BaseMutation):
 
         utils.change_user_default_address(user, address, address_type)
         return cls(user=user)
+
+
+class AddressUpdate(BaseAddressUpdate):
+    class Meta:
+        permissions = ("account.manage_users",)
+        description = "Updates an address"
+        model = models.Address
+        exclude = ["user_addresses"]
 
 
 class UserAvatarUpdate(BaseMutation):

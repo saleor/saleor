@@ -96,7 +96,7 @@ class PasswordReset(BaseMutation):
         return PasswordReset()
 
 
-class AddressUpdate(ModelMutation):
+class BaseAddressUpdate(ModelMutation):
     user = graphene.Field(
         User, description="A user instance for which the address was edited."
     )
@@ -108,9 +108,7 @@ class AddressUpdate(ModelMutation):
         )
 
     class Meta:
-        description = "Updates an address"
-        model = models.Address
-        exclude = ["user_addresses"]
+        abstract = True
 
     @classmethod
     def clean_input(cls, info, instance, data):

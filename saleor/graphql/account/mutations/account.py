@@ -6,7 +6,7 @@ from ....checkout import AddressType
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import BaseMutation, ModelMutation
-from .base import send_user_password_reset_email
+from .base import BaseAddressUpdate, send_user_password_reset_email
 from .staff import CustomerCreate, UserAddressInput
 
 
@@ -185,6 +185,12 @@ class CustomerSetDefaultAddress(BaseMutation):
 
         utils.change_user_default_address(user, address, address_type)
         return cls(user=user)
+
+
+class AccountAddressUpdate(BaseAddressUpdate):
+    class Meta:
+        description = "Updates an address of the logged-in user."
+        model = models.Address
 
 
 class CustomerPasswordResetInput(graphene.InputObjectType):
