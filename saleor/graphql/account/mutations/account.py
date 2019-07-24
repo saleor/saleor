@@ -112,8 +112,7 @@ class AccountRequestDeletion(BaseMutation):
         return AccountRequestDeletion()
 
 
-# The same as AddressCreate, but for the currently authenticated user.
-class CustomerAddressCreate(ModelMutation):
+class AccountAddressCreate(ModelMutation):
     class Arguments:
         input = AddressInput(
             description="Fields required to create address", required=True
@@ -151,6 +150,16 @@ class CustomerAddressCreate(ModelMutation):
         super().save(info, instance, cleaned_input)
         user = info.context.user
         instance.user_addresses.add(user)
+
+
+class CustomerAddressCreate(AccountAddressCreate):
+    class Meta:
+        description = (
+            "DEPRECATED: Use AccountAddressCreate instead."
+            "Create a new address for the customer."
+        )
+        model = models.Address
+        exclude = ["user_addresses"]
 
 
 class AccountAddressUpdate(BaseAddressUpdate):
@@ -202,7 +211,7 @@ class AccountSetDefaultAddress(BaseMutation):
 class CustomerSetDefaultAddress(AccountSetDefaultAddress):
     class Meta:
         description = (
-            "DEPRECATED: Use SetPassword instead."
+            "DEPRECATED: Use AccountSetDefaultAddress instead."
             "Sets a default address for the authenticated user."
         )
 
