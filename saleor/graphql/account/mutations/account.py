@@ -153,8 +153,20 @@ class CustomerAddressCreate(ModelMutation):
         instance.user_addresses.add(user)
 
 
-# The same as SetDefaultAddress, but for the currently authenticated user.
-class CustomerSetDefaultAddress(BaseMutation):
+class AccountAddressUpdate(BaseAddressUpdate):
+    class Meta:
+        description = "Updates an address of the logged-in user."
+        model = models.Address
+        exclude = ["user_addresses"]
+
+
+class AccountAddressDelete(BaseAddressDelete):
+    class Meta:
+        description = "Delete an address of the logged-in user."
+        model = models.Address
+
+
+class AccountSetDefaultAddress(BaseMutation):
     user = graphene.Field(User, description="An updated user instance.")
 
     class Arguments:
@@ -173,8 +185,8 @@ class CustomerSetDefaultAddress(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         address = cls.get_node_or_error(info, data.get("id"), Address)
-
         user = info.context.user
+
         if address not in user.addresses.all():
             raise ValidationError({"id": "The address doesn't belong to that user."})
 
@@ -187,17 +199,12 @@ class CustomerSetDefaultAddress(BaseMutation):
         return cls(user=user)
 
 
-class AccountAddressUpdate(BaseAddressUpdate):
+class CustomerSetDefaultAddress(AccountSetDefaultAddress):
     class Meta:
-        description = "Updates an address of the logged-in user."
-        model = models.Address
-        exclude = ["user_addresses"]
-
-
-class AccountAddressDelete(BaseAddressDelete):
-    class Meta:
-        description = "Delete an address of the logged-in user."
-        model = models.Address
+        description = (
+            "DEPRECATED: Use SetPassword instead."
+            "Sets a default address for the authenticated user."
+        )
 
 
 class CustomerPasswordResetInput(graphene.InputObjectType):

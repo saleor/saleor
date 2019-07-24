@@ -1805,7 +1805,28 @@ mutation($id: ID!, $type: AddressTypeEnum!) {
 """
 
 
-def test_customer_set_address_as_default(user_api_client, address):
+ACCOUNT_SET_DEFAULT_ADDRESS_MUTATION = """
+mutation($id: ID!, $type: AddressTypeEnum!) {
+  accountSetDefaultAddress(id: $id, type: $type) {
+    errors {
+      field,
+      message
+    }
+  }
+}
+"""
+
+
+@pytest.mark.parametrize(
+    "query, mutation_name",
+    [
+        (CUSTOMER_SET_DEFAULT_ADDRESS_MUTATION, "customerSetDefaultAddress"),
+        (ACCOUNT_SET_DEFAULT_ADDRESS_MUTATION, "accountSetDefaultAddress"),
+    ],
+)
+def test_customer_set_address_as_default(
+    user_api_client, address, query, mutation_name
+):
     user = user_api_client.user
     user.default_billing_address = None
     user.default_shipping_address = None
@@ -1815,14 +1836,13 @@ def test_customer_set_address_as_default(user_api_client, address):
 
     assert address in user.addresses.all()
 
-    query = CUSTOMER_SET_DEFAULT_ADDRESS_MUTATION
     variables = {
         "id": graphene.Node.to_global_id("Address", address.id),
         "type": AddressType.SHIPPING.upper(),
     }
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    data = content["data"]["customerSetDefaultAddress"]
+    data = content["data"][mutation_name]
     assert not data["errors"]
 
     user.refresh_from_db()
@@ -1831,14 +1851,23 @@ def test_customer_set_address_as_default(user_api_client, address):
     variables["type"] = AddressType.BILLING.upper()
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    data = content["data"]["customerSetDefaultAddress"]
+    data = content["data"][mutation_name]
     assert not data["errors"]
 
     user.refresh_from_db()
     assert user.default_billing_address == address
 
 
-def test_customer_change_default_address(user_api_client, address_other_country):
+@pytest.mark.parametrize(
+    "query, mutation_name",
+    [
+        (CUSTOMER_SET_DEFAULT_ADDRESS_MUTATION, "customerSetDefaultAddress"),
+        (ACCOUNT_SET_DEFAULT_ADDRESS_MUTATION, "accountSetDefaultAddress"),
+    ],
+)
+def test_customer_change_default_address(
+    user_api_client, address_other_country, query, mutation_name
+):
     user = user_api_client.user
     assert user.default_billing_address
     assert user.default_billing_address
@@ -1851,14 +1880,13 @@ def test_customer_change_default_address(user_api_client, address_other_country)
     user.refresh_from_db()
     assert address_other_country not in user.addresses.all()
 
-    query = CUSTOMER_SET_DEFAULT_ADDRESS_MUTATION
     variables = {
         "id": graphene.Node.to_global_id("Address", address.id),
         "type": AddressType.SHIPPING.upper(),
     }
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    data = content["data"]["customerSetDefaultAddress"]
+    data = content["data"][mutation_name]
     assert not data["errors"]
 
     user.refresh_from_db()
@@ -1866,20 +1894,26 @@ def test_customer_change_default_address(user_api_client, address_other_country)
     assert address_other_country in user.addresses.all()
 
 
+@pytest.mark.parametrize(
+    "query, mutation_name",
+    [
+        (CUSTOMER_SET_DEFAULT_ADDRESS_MUTATION, "customerSetDefaultAddress"),
+        (ACCOUNT_SET_DEFAULT_ADDRESS_MUTATION, "accountSetDefaultAddress"),
+    ],
+)
 def test_customer_change_default_address_invalid_address(
-    user_api_client, address_other_country
+    user_api_client, address_other_country, query, mutation_name
 ):
     user = user_api_client.user
     assert address_other_country not in user.addresses.all()
 
-    query = CUSTOMER_SET_DEFAULT_ADDRESS_MUTATION
     variables = {
         "id": graphene.Node.to_global_id("Address", address_other_country.id),
         "type": AddressType.SHIPPING.upper(),
     }
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    assert content["data"]["customerSetDefaultAddress"]["errors"][0]["field"] == "id"
+    assert content["data"][mutation_name]["errors"][0]["field"] == "id"
 
 
 USER_AVATAR_UPDATE_MUTATION = """
