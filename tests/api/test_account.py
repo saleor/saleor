@@ -1738,15 +1738,35 @@ mutation($addressInput: AddressInput!, $addressType: AddressTypeEnum) {
 """
 
 
-def test_customer_create_address(user_api_client, graphql_address_data):
+ACCOUNT_ADDRESS_CREATE_MUTATION = """
+mutation($addressInput: AddressInput!, $addressType: AddressTypeEnum) {
+  accountAddressCreate(input: $addressInput, type: $addressType) {
+    address {
+        id,
+        city
+    }
+  }
+}
+"""
+
+
+@pytest.mark.parametrize(
+    "query, mutation_name",
+    [
+        (CUSTOMER_ADDRESS_CREATE_MUTATION, "customerAddressCreate"),
+        (ACCOUNT_ADDRESS_CREATE_MUTATION, "accountAddressCreate"),
+    ],
+)
+def test_customer_create_address(
+    user_api_client, graphql_address_data, query, mutation_name
+):
     user = user_api_client.user
     nr_of_addresses = user.addresses.count()
 
-    query = CUSTOMER_ADDRESS_CREATE_MUTATION
     variables = {"addressInput": graphql_address_data}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    data = content["data"]["customerAddressCreate"]
+    data = content["data"][mutation_name]
 
     assert data["address"]["city"] == graphql_address_data["city"]
 
@@ -1754,16 +1774,24 @@ def test_customer_create_address(user_api_client, graphql_address_data):
     assert user.addresses.count() == nr_of_addresses + 1
 
 
-def test_customer_create_default_address(user_api_client, graphql_address_data):
+@pytest.mark.parametrize(
+    "query, mutation_name",
+    [
+        (CUSTOMER_ADDRESS_CREATE_MUTATION, "customerAddressCreate"),
+        (ACCOUNT_ADDRESS_CREATE_MUTATION, "accountAddressCreate"),
+    ],
+)
+def test_customer_create_default_address(
+    user_api_client, graphql_address_data, query, mutation_name
+):
     user = user_api_client.user
     nr_of_addresses = user.addresses.count()
 
-    query = CUSTOMER_ADDRESS_CREATE_MUTATION
     address_type = AddressType.SHIPPING.upper()
     variables = {"addressInput": graphql_address_data, "addressType": address_type}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    data = content["data"]["customerAddressCreate"]
+    data = content["data"][mutation_name]
     assert data["address"]["city"] == graphql_address_data["city"]
 
     user.refresh_from_db()
@@ -1776,7 +1804,7 @@ def test_customer_create_default_address(user_api_client, graphql_address_data):
     variables = {"addressInput": graphql_address_data, "addressType": address_type}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    data = content["data"]["customerAddressCreate"]
+    data = content["data"][mutation_name]
     assert data["address"]["city"] == graphql_address_data["city"]
 
     user.refresh_from_db()
@@ -1786,8 +1814,10 @@ def test_customer_create_default_address(user_api_client, graphql_address_data):
     )
 
 
-def test_anonymous_user_create_address(api_client, graphql_address_data):
-    query = CUSTOMER_ADDRESS_CREATE_MUTATION
+@pytest.mark.parametrize(
+    "query", [CUSTOMER_ADDRESS_CREATE_MUTATION, ACCOUNT_ADDRESS_CREATE_MUTATION]
+)
+def test_anonymous_user_create_address(api_client, graphql_address_data, query):
     variables = {"addressInput": graphql_address_data}
     response = api_client.post_graphql(query, variables)
     assert_no_permission(response)
