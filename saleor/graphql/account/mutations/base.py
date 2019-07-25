@@ -1,7 +1,7 @@
 import graphene
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ValidationError
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from graphql_jwt.exceptions import PermissionDenied
@@ -9,7 +9,6 @@ from graphql_jwt.exceptions import PermissionDenied
 from ....account import emails, events as account_events, models
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import (
-    BaseMutation,
     ClearMetaBaseMutation,
     ModelDeleteMutation,
     ModelMutation,
@@ -76,24 +75,6 @@ class SetPassword(ModelMutation):
         instance.set_password(cleaned_input["password"])
         instance.save()
         account_events.customer_password_reset_event(user=instance)
-
-
-class PasswordReset(BaseMutation):
-    class Arguments:
-        email = graphene.String(description="Email", required=True)
-
-    class Meta:
-        description = "Sends password reset email"
-
-    @classmethod
-    def perform_mutation(cls, _root, info, email):
-        try:
-            user = models.User.objects.get(email=email)
-        except ObjectDoesNotExist:
-            raise ValidationError({"email": "User with this email doesn't exist"})
-        site = info.context.site
-        send_user_password_reset_email(user, site)
-        return PasswordReset()
 
 
 class BaseAddressUpdate(ModelMutation):

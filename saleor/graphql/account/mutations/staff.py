@@ -1,7 +1,7 @@
 from copy import copy
 
 import graphene
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from graphql_jwt.decorators import staff_member_required
 from graphql_jwt.exceptions import PermissionDenied
 
@@ -29,7 +29,7 @@ from ...core.mutations import (
 from ...core.types import Upload
 from ...core.utils import validate_image_file
 from ..utils import CustomerDeleteMixin, StaffDeleteMixin, UserDeleteMixin
-from .base import BaseAddressDelete, BaseAddressUpdate
+from .base import BaseAddressDelete, BaseAddressUpdate, send_user_password_reset_email
 
 BILLING_ADDRESS_FIELD = "default_billing_address"
 SHIPPING_ADDRESS_FIELD = "default_shipping_address"
@@ -452,3 +452,22 @@ class UserClearStoredPrivateMeta(ClearMetaBaseMutation):
         model = models.User
         permissions = ("account.manage_users",)
         public = False
+
+
+class PasswordReset(BaseMutation):
+    class Arguments:
+        email = graphene.String(description="Email", required=True)
+
+    class Meta:
+        description = "Sends password reset email"
+        permissions = ("account.manage_users",)
+
+    @classmethod
+    def perform_mutation(cls, _root, info, email):
+        try:
+            user = models.User.objects.get(email=email)
+        except ObjectDoesNotExist:
+            raise ValidationError({"email": "User with this email doesn't exist"})
+        site = info.context.site
+        send_user_password_reset_email(user, site)
+        return PasswordReset()

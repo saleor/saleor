@@ -17,12 +17,7 @@ from .mutations.account import (
     AccountSetDefaultAddress,
     AccountUpdate,
 )
-from .mutations.base import (
-    PasswordReset,
-    SetPassword,
-    UserClearStoredMeta,
-    UserUpdateMeta,
-)
+from .mutations.base import SetPassword, UserClearStoredMeta, UserUpdateMeta
 from .mutations.deprecated_account import (
     CustomerAddressCreate,
     CustomerPasswordReset,
@@ -38,6 +33,7 @@ from .mutations.staff import (
     CustomerCreate,
     CustomerDelete,
     CustomerUpdate,
+    PasswordReset,
     StaffCreate,
     StaffDelete,
     StaffUpdate,
