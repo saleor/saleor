@@ -110,46 +110,54 @@ class AccountQueries(graphene.ObjectType):
 
 
 class AccountMutations(graphene.ObjectType):
-    # TODO: Refactor: create Dashboard, Storefront, Base sections
-    password_reset = PasswordReset.Field()
+    # Base mutations
     set_password = SetPassword.Field()
 
-    customer_create = CustomerCreate.Field()
-    customer_delete = CustomerDelete.Field()
-    customer_bulk_delete = CustomerBulkDelete.Field()
-    customer_password_reset = CustomerPasswordReset.Field()
-    customer_register = CustomerRegister.Field()
-    customer_update = CustomerUpdate.Field()
-    customer_address_create = CustomerAddressCreate.Field()
-    customer_set_default_address = CustomerSetDefaultAddress.Field()
+    user_update_metadata = UserUpdateMeta.Field()
+    user_clear_stored_metadata = UserClearStoredMeta.Field()
 
-    logged_user_update = LoggedUserUpdate.Field()
-    account_update = AccountUpdate.Field()
-    account_request_deletion = AccountRequestDeletion.Field()
-    account_register = AccountRegister.Field()
+    # Account mutations
+    account_password_reset = AccountPasswordReset.Field()
 
+    account_address_create = AccountAddressCreate.Field()
     account_address_update = AccountAddressUpdate.Field()
     account_address_delete = AccountAddressDelete.Field()
     account_set_default_address = AccountSetDefaultAddress.Field()
-    account_address_create = AccountAddressCreate.Field()
-    account_password_reset = AccountPasswordReset.Field()
 
-    staff_create = StaffCreate.Field()
-    staff_delete = StaffDelete.Field()
-    staff_bulk_delete = StaffBulkDelete.Field()
-    staff_update = StaffUpdate.Field()
+    account_register = AccountRegister.Field()
+    account_update = AccountUpdate.Field()
+    account_request_deletion = AccountRequestDeletion.Field()
+
+    # Account deprecated mutations
+    customer_password_reset = CustomerPasswordReset.Field()
+
+    customer_address_create = CustomerAddressCreate.Field()
+    customer_set_default_address = CustomerSetDefaultAddress.Field()
+
+    customer_register = CustomerRegister.Field()
+    logged_user_update = LoggedUserUpdate.Field()
+
+    # Staff mutation
+    password_reset = PasswordReset.Field()
 
     address_create = AddressCreate.Field()
-    address_delete = AddressDelete.Field()
     address_update = AddressUpdate.Field()
+    address_delete = AddressDelete.Field()
     address_set_default = AddressSetDefault.Field()
+
+    customer_create = CustomerCreate.Field()
+    customer_update = CustomerUpdate.Field()
+    customer_delete = CustomerDelete.Field()
+    customer_bulk_delete = CustomerBulkDelete.Field()
+
+    staff_create = StaffCreate.Field()
+    staff_update = StaffUpdate.Field()
+    staff_delete = StaffDelete.Field()
+    staff_bulk_delete = StaffBulkDelete.Field()
 
     user_avatar_update = UserAvatarUpdate.Field()
     user_avatar_delete = UserAvatarDelete.Field()
     user_bulk_set_active = UserBulkSetActive.Field()
-
-    user_update_metadata = UserUpdateMeta.Field()
-    user_clear_stored_metadata = UserClearStoredMeta.Field()
 
     user_update_private_metadata = UserUpdatePrivateMeta.Field()
     user_clear_stored_private_metadata = UserClearStoredPrivateMeta.Field()
