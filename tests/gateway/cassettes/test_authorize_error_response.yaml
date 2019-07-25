@@ -1,0 +1,278 @@
+interactions:
+- request:
+    body: payment_method=abcdefghijklmnoprstquwz&amount=4242&currency=usd&confirmation_method=manual&confirm=True
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '103'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Idempotency-Key:
+      - 6172c460-3a9c-424e-a190-036c7406ea53
+      User-Agent:
+      - Stripe/v1 PythonBindings/2.33.0
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics": {"request_id": "req_8S93V2YnPF1OyS", "request_duration_ms":
+        75}}'
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version": "2.33.0", "lang": "python", "publisher": "stripe", "httplib":
+        "requests", "lang_version": "3.7.4", "platform": "Darwin-18.7.0-x86_64-i386-64bit",
+        "uname": "Darwin mbp-jakub.lan 18.7.0 Darwin Kernel Version 18.7.0: Thu Jun
+        20 18:42:21 PDT 2019; root:xnu-4903.270.47~4/RELEASE_X86_64 x86_64 i386"}'
+    method: POST
+    uri: https://api.stripe.com/v1/payment_intents
+  response:
+    body:
+      string: "{\n  \"error\": {\n    \"code\": \"resource_missing\",\n    \"doc_url\"\
+        : \"https://stripe.com/docs/error-codes/resource-missing\",\n    \"message\"\
+        : \"No such payment_method: abcdefghijklmnoprstquwz\",\n    \"param\": \"\
+        payment_method\",\n    \"type\": \"invalid_request_error\"\n  }\n}\n"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '257'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 08 Aug 2019 13:01:25 GMT
+      Server:
+      - nginx
+      Strict-Transport-Security:
+      - max-age=31556926; includeSubDomains; preload
+      access-control-allow-credentials:
+      - 'true'
+      access-control-allow-methods:
+      - GET, POST, HEAD, OPTIONS, DELETE
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Request-Id, Stripe-Manage-Version, X-Stripe-External-Auth-Required, X-Stripe-Privileged-Session-Required
+      access-control-max-age:
+      - '300'
+      cache-control:
+      - no-cache, no-store
+      idempotency-key:
+      - 6172c460-3a9c-424e-a190-036c7406ea53
+      original-request:
+      - req_6K0JNwQccyE7q0
+      request-id:
+      - req_6K0JNwQccyE7q0
+      stripe-version:
+      - '2019-05-16'
+    status:
+      code: 400
+      message: Bad Request
+- request:
+    body: payment_method=abcdefghijklmnoprstquwz&amount=4242&currency=usd&confirmation_method=manual&confirm=True&capture_method=automatic
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '128'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Idempotency-Key:
+      - 86b391dc-2c40-4b7d-a879-2a2c4eea9829
+      User-Agent:
+      - Stripe/v1 PythonBindings/2.33.0
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics": {"request_id": "req_Xs3SMl52WIayjo", "request_duration_ms":
+        1640}}'
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version": "2.33.0", "lang": "python", "publisher": "stripe", "httplib":
+        "requests", "lang_version": "3.7.4", "platform": "Darwin-18.7.0-x86_64-i386-64bit",
+        "uname": "Darwin mbp-jakub.lan 18.7.0 Darwin Kernel Version 18.7.0: Thu Jun
+        20 18:42:21 PDT 2019; root:xnu-4903.270.47~4/RELEASE_X86_64 x86_64 i386"}'
+    method: POST
+    uri: https://api.stripe.com/v1/payment_intents
+  response:
+    body:
+      string: "{\n  \"error\": {\n    \"code\": \"resource_missing\",\n    \"doc_url\"\
+        : \"https://stripe.com/docs/error-codes/resource-missing\",\n    \"message\"\
+        : \"No such payment_method: abcdefghijklmnoprstquwz\",\n    \"param\": \"\
+        payment_method\",\n    \"type\": \"invalid_request_error\"\n  }\n}\n"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '257'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 08 Aug 2019 13:37:52 GMT
+      Server:
+      - nginx
+      Strict-Transport-Security:
+      - max-age=31556926; includeSubDomains; preload
+      access-control-allow-credentials:
+      - 'true'
+      access-control-allow-methods:
+      - GET, POST, HEAD, OPTIONS, DELETE
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Request-Id, Stripe-Manage-Version, X-Stripe-External-Auth-Required, X-Stripe-Privileged-Session-Required
+      access-control-max-age:
+      - '300'
+      cache-control:
+      - no-cache, no-store
+      idempotency-key:
+      - 86b391dc-2c40-4b7d-a879-2a2c4eea9829
+      original-request:
+      - req_RuacIvBFwUqhLp
+      request-id:
+      - req_RuacIvBFwUqhLp
+      stripe-version:
+      - '2019-05-16'
+    status:
+      code: 400
+      message: Bad Request
+- request:
+    body: payment_method=abcdefghijklmnoprstquwz&amount=4242&currency=usd&confirmation_method=manual&confirm=True&capture_method=automatic
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '128'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Idempotency-Key:
+      - 62996bcb-2954-48a3-9916-209c5993b74d
+      User-Agent:
+      - Stripe/v1 PythonBindings/2.33.0
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics": {"request_id": "req_YUZwIYFjguCgKX", "request_duration_ms":
+        1539}}'
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version": "2.33.0", "lang": "python", "publisher": "stripe", "httplib":
+        "requests", "lang_version": "3.7.4", "platform": "Darwin-18.7.0-x86_64-i386-64bit",
+        "uname": "Darwin mbp-jakub.lan 18.7.0 Darwin Kernel Version 18.7.0: Thu Jun
+        20 18:42:21 PDT 2019; root:xnu-4903.270.47~4/RELEASE_X86_64 x86_64 i386"}'
+    method: POST
+    uri: https://api.stripe.com/v1/payment_intents
+  response:
+    body:
+      string: "{\n  \"error\": {\n    \"code\": \"resource_missing\",\n    \"doc_url\"\
+        : \"https://stripe.com/docs/error-codes/resource-missing\",\n    \"message\"\
+        : \"No such payment_method: abcdefghijklmnoprstquwz\",\n    \"param\": \"\
+        payment_method\",\n    \"type\": \"invalid_request_error\"\n  }\n}\n"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '257'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 08 Aug 2019 13:40:24 GMT
+      Server:
+      - nginx
+      Strict-Transport-Security:
+      - max-age=31556926; includeSubDomains; preload
+      access-control-allow-credentials:
+      - 'true'
+      access-control-allow-methods:
+      - GET, POST, HEAD, OPTIONS, DELETE
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Request-Id, Stripe-Manage-Version, X-Stripe-External-Auth-Required, X-Stripe-Privileged-Session-Required
+      access-control-max-age:
+      - '300'
+      cache-control:
+      - no-cache, no-store
+      idempotency-key:
+      - 62996bcb-2954-48a3-9916-209c5993b74d
+      original-request:
+      - req_02IDhq6m8xrUYO
+      request-id:
+      - req_02IDhq6m8xrUYO
+      stripe-version:
+      - '2019-05-16'
+    status:
+      code: 400
+      message: Bad Request
+- request:
+    body: payment_method=abcdefghijklmnoprstquwz&amount=4242&currency=usd&confirmation_method=manual&confirm=True&capture_method=automatic
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '128'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Idempotency-Key:
+      - 19b4617d-3ac2-4e6a-9437-6968cc4f7a0d
+      User-Agent:
+      - Stripe/v1 PythonBindings/2.33.0
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics": {"request_id": "req_Yp2Xralp4YSSas", "request_duration_ms":
+        1884}}'
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version": "2.33.0", "lang": "python", "publisher": "stripe", "httplib":
+        "requests", "lang_version": "3.7.4", "platform": "Darwin-18.7.0-x86_64-i386-64bit",
+        "uname": "Darwin mbp-jakub.lan 18.7.0 Darwin Kernel Version 18.7.0: Thu Jun
+        20 18:42:21 PDT 2019; root:xnu-4903.270.47~4/RELEASE_X86_64 x86_64 i386"}'
+    method: POST
+    uri: https://api.stripe.com/v1/payment_intents
+  response:
+    body:
+      string: "{\n  \"error\": {\n    \"code\": \"resource_missing\",\n    \"doc_url\"\
+        : \"https://stripe.com/docs/error-codes/resource-missing\",\n    \"message\"\
+        : \"No such payment_method: abcdefghijklmnoprstquwz\",\n    \"param\": \"\
+        payment_method\",\n    \"type\": \"invalid_request_error\"\n  }\n}\n"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '257'
+      Content-Type:
+      - application/json
+      Date:
+      - Thu, 08 Aug 2019 13:41:58 GMT
+      Server:
+      - nginx
+      Strict-Transport-Security:
+      - max-age=31556926; includeSubDomains; preload
+      access-control-allow-credentials:
+      - 'true'
+      access-control-allow-methods:
+      - GET, POST, HEAD, OPTIONS, DELETE
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Request-Id, Stripe-Manage-Version, X-Stripe-External-Auth-Required, X-Stripe-Privileged-Session-Required
+      access-control-max-age:
+      - '300'
+      cache-control:
+      - no-cache, no-store
+      idempotency-key:
+      - 19b4617d-3ac2-4e6a-9437-6968cc4f7a0d
+      original-request:
+      - req_KxLRnayybvlIeS
+      request-id:
+      - req_KxLRnayybvlIeS
+      stripe-version:
+      - '2019-05-16'
+    status:
+      code: 400
+      message: Bad Request
+version: 1
