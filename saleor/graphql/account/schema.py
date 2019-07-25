@@ -11,11 +11,11 @@ from .mutations.account import (
     AccountAddressCreate,
     AccountAddressDelete,
     AccountAddressUpdate,
+    AccountPasswordReset,
     AccountRegister,
     AccountRequestDeletion,
     AccountSetDefaultAddress,
     AccountUpdate,
-    CustomerPasswordReset,
 )
 from .mutations.base import (
     PasswordReset,
@@ -25,6 +25,7 @@ from .mutations.base import (
 )
 from .mutations.deprecated_account import (
     CustomerAddressCreate,
+    CustomerPasswordReset,
     CustomerRegister,
     CustomerSetDefaultAddress,
     LoggedUserUpdate,
@@ -135,6 +136,7 @@ class AccountMutations(graphene.ObjectType):
     account_address_delete = AccountAddressDelete.Field()
     account_set_default_address = AccountSetDefaultAddress.Field()
     account_address_create = AccountAddressCreate.Field()
+    account_password_reset = AccountPasswordReset.Field()
 
     staff_create = StaffCreate.Field()
     staff_delete = StaffDelete.Field()
