@@ -191,7 +191,7 @@ class MenuItemDelete(ModelDeleteMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         response = super().perform_mutation(_root, info, **data)
-        update_menu(response.menu_item.menu)
+        update_menu(response.menuItem.menu)
         return response
 
 
