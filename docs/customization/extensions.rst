@@ -19,7 +19,7 @@ to the ``settings.PLUGINS``
 Your own plugin can be written as a class whose instances are callable, like this:
 
 
-``custom_plugin/plugin.py``
+``custom/plugin.py``
 
 .. code-block:: python
 
@@ -58,7 +58,7 @@ To activate the plugin, add it to the ``PLUGINS`` list in your Django settings
 
 .. code-block:: python
 
-    PLUGINS = ["saleor.core.extensions.plugins.custom_plugin.plugin.CustomPlugin", ]
+    PLUGINS = ["saleor.core.extensions.plugins.custom.CustomPlugin", ]
 
 
 ExtensionsManager
