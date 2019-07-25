@@ -17,7 +17,7 @@ from saleor.account import events as account_events
 from saleor.account.models import Address, User
 from saleor.account.utils import get_random_avatar
 from saleor.checkout import AddressType
-from saleor.graphql.account.mutations.base import SetPassword
+from saleor.graphql.account.mutations.base import INVALID_TOKEN
 from saleor.graphql.account.mutations.staff import (
     CustomerDelete,
     StaffDelete,
@@ -963,7 +963,7 @@ def test_logged_customer_update_anonymous_user(api_client, query):
     assert_no_permission(response)
 
 
-ACCOUNT_REQUEST_DELETION_QUERY = """
+ACCOUNT_REQUEST_DELETION_MUTATION = """
     mutation accountRequestDeletion {
         accountRequestDeletion {
             errors {
@@ -981,7 +981,7 @@ def test_account_request_deletion(
 ):
     user = user_api_client.user
 
-    response = user_api_client.post_graphql(ACCOUNT_REQUEST_DELETION_QUERY)
+    response = user_api_client.post_graphql(ACCOUNT_REQUEST_DELETION_MUTATION)
     content = get_graphql_content(response)
     data = content["data"]["accountRequestDeletion"]
 
@@ -991,11 +991,80 @@ def test_account_request_deletion(
     )
 
 
+ACCOUNT_DELETE_MUTATION = """
+    mutation AccountDelete($token: String!){
+        accountDelete(token: $token){
+            errors{
+                field
+                message
+            }
+        }
+    }
+"""
+
+
+def test_account_delete(user_api_client):
+    user = user_api_client.user
+    token = user.token
+    variables = {"token": token}
+
+    response = user_api_client.post_graphql(ACCOUNT_DELETE_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["accountDelete"]
+    assert data["errors"] == []
+    assert not User.objects.filter(pk=user.id).exists()
+
+
+def test_account_delete_invalid_token(user_api_client):
+    user = user_api_client.user
+    variables = {"token": "invalid"}
+
+    response = user_api_client.post_graphql(ACCOUNT_DELETE_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["accountDelete"]
+    assert not data["errors"] == []
+    assert data["errors"][0]["message"] == "Invalid or expired token."
+    assert User.objects.filter(pk=user.id).exists()
+
+
+def test_account_delete_anonymous_user(api_client):
+    variables = {"token": "invalid"}
+
+    response = api_client.post_graphql(ACCOUNT_DELETE_MUTATION, variables)
+    assert_no_permission(response)
+
+
+def test_account_delete_staff_user(staff_api_client):
+    user = staff_api_client.user
+    variables = {"token": "invalid"}
+
+    response = staff_api_client.post_graphql(ACCOUNT_DELETE_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["accountDelete"]
+    assert not data["errors"] == []
+    assert data["errors"][0]["message"] == "Cannot delete a staff account."
+    assert User.objects.filter(pk=user.id).exists()
+
+
+def test_account_delete_other_customer_token(user_api_client):
+    user = user_api_client.user
+    other_user = User.objects.create(email="temp@example.com")
+    variables = {"token": other_user.token}
+
+    response = user_api_client.post_graphql(ACCOUNT_DELETE_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["accountDelete"]
+    assert not data["errors"] == []
+    assert data["errors"][0]["message"] == "Invalid or expired token."
+    assert User.objects.filter(pk=user.id).exists()
+    assert User.objects.filter(pk=other_user.id).exists()
+
+
 @patch("saleor.account.emails.send_account_delete_confirmation_email.delay")
 def test_account_request_deletion_anonymous_user(
     send_account_delete_confirmation_email_mock, api_client
 ):
-    response = api_client.post_graphql(ACCOUNT_REQUEST_DELETION_QUERY, {})
+    response = api_client.post_graphql(ACCOUNT_REQUEST_DELETION_MUTATION, {})
     assert_no_permission(response)
     send_account_delete_confirmation_email_mock.assert_not_called()
 
@@ -1156,7 +1225,7 @@ def test_staff_update(staff_api_client, permission_manage_staff, media_root):
     assert not data["user"]["isActive"]
 
 
-@patch("saleor.graphql.account.mutations.get_random_avatar")
+@patch("saleor.graphql.account.mutations.staff.get_random_avatar")
 def test_staff_update_doesnt_change_existing_avatar(
     mock_get_random_avatar, staff_api_client, permission_manage_staff, media_root
 ):
@@ -1295,7 +1364,7 @@ def test_set_password(user_api_client, customer_user):
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     errors = content["data"]["setPassword"]["errors"]
-    assert errors[0]["message"] == SetPassword.INVALID_TOKEN
+    assert errors[0]["message"] == INVALID_TOKEN
 
     variables["token"] = token
     response = user_api_client.post_graphql(query, variables)

@@ -15,6 +15,8 @@ from ...core.mutations import (
     UpdateMetaBaseMutation,
 )
 
+INVALID_TOKEN = "Invalid or expired token."
+
 
 def send_user_password_reset_email(user, site):
     context = {
@@ -44,7 +46,7 @@ class SetPasswordInput(graphene.InputObjectType):
     token = graphene.String(
         description=(
             "A one-time token required to set the password. "
-            "Sent by email using  PasswordReset mutation for if staff user "
+            "Sent by email using PasswordReset mutation for if staff user "
             "or AccountRequestPasswordReset mutation for customers."
         ),
         required=True,
@@ -53,8 +55,6 @@ class SetPasswordInput(graphene.InputObjectType):
 
 
 class SetPassword(ModelMutation):
-    INVALID_TOKEN = "Invalid or expired token."
-
     class Arguments:
         id = graphene.ID(
             description="ID of a user to set password whom.", required=True
@@ -72,7 +72,7 @@ class SetPassword(ModelMutation):
         cleaned_input = super().clean_input(info, instance, data)
         token = cleaned_input.pop("token")
         if not default_token_generator.check_token(instance, token):
-            raise ValidationError({"token": SetPassword.INVALID_TOKEN})
+            raise ValidationError({"token": INVALID_TOKEN})
         return cleaned_input
 
     @classmethod
