@@ -23,7 +23,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Create general abstraction for object metadata - #4447 by @salwator
 - Contrast improvements - #4508 by @benekex2
 - Allow selecting the number of rows displayed in dashboard's list views - #4414 by @benekex2
+- Fix generating random avatars when updating staff accounts - #4521 by @maarcingebala
 - Changed license for artwork to CC-BY 4.0
+
 
 ## 2.8.0
 
