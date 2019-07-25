@@ -5,6 +5,62 @@ It includes hooks for most basic operations like calculation of prices in the ch
 calling some actions when an order has been created.
 
 
+Plugin
+------
+Saleor has some plugins implemented by default. These plugins are located in ``saleor.core.extensions.plugins``.
+The ExtensionManager needs to receive a list of enabled plugins. It can be done by including the plugin python path in the
+``settings.PLUGINS`` list.
+
+Writing Your Own Plugin
+^^^^^^^^^^^^^^^^^^^^^^^
+A custom plugin has to inherit from the BasePlugin class. It should overwrite base methods. The plugin needs to be added
+to the ``settings.PLUGINS``
+
+Your own plugin can be written as a class whose instances are callable, like this:
+
+
+``custom_plugin/plugin.py``
+
+.. code-block:: python
+
+
+    from django.conf import settings
+    from urllib.parse import urljoin
+
+    from ...base_plugin import BasePlugin
+    from .tasks import api_post_request_task
+
+    class CustomPlugin(BasePlugin):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self._enabled = bool(settings.CUSTOM_PLUGIN_KEYS)
+
+
+        def postprocess_order_creation(self, order: "Order", previous_value: Any):
+            if not self._enabled:
+                return
+            data = {}
+
+            transaction_url = urljoin(settings.CUSTOM_API_URL, "transactions/createoradjust")
+            api_post_request_task.delay(transaction_url, data)
+
+
+.. note::
+   There is no need to implement all base methods. ``ExtensionManager`` will use default values for methods that are not implemented.
+
+Activating Plugin
+^^^^^^^^^^^^^^^^^
+
+To activate the plugin, add it to the ``PLUGINS`` list in your Django settings
+
+
+``settings.py``
+
+.. code-block:: python
+
+    PLUGINS = ["saleor.core.extensions.plugins.custom_plugin.plugin.CustomPlugin", ]
+
+
 ExtensionsManager
 -----------------
 ExtensionsManager is located in ``saleor.core.extensions.base_plugin``.
@@ -21,13 +77,6 @@ BasePlugin is located in ``saleor.core.extensions.base_plugin``. It is an abstra
 available for any plugin. All methods take the ``previous_value`` parameter. ``previous_value`` contains a value
 calculated by the previous plugin in the queue. If the plugin is first, it will use the default value calculated by
 the manager.
-
-
-Plugins
--------
-Saleor has some plugins implemented by default. These plugins are located in ``saleor.core.extensions.plugins``.
-The ExtensionManager needs to receive a list of enabled plugins. It can be done by including the plugin python path in the
-``settings.PLUGINS`` list.
 
 
 Celery Tasks
@@ -54,22 +103,24 @@ declared in ``tasks.py`` in the plugin directories.
 
 .. code-block:: python
 
+    import json
     from celery import shared_task
+    from typing import Any, Dict
 
-    from . import api_post_request
+    import requests
+    from requests.auth import HTTPBasicAuth
+    from django.conf import settings
 
 
     @shared_task
-    def api_post_request_task(transaction_url, data):
-        api_post_request(transaction_url, data)
-
-
-
-
-Writing Your Own Plugin
------------------------
-Acustom plugin has to inherit from the BasePlugin class. It should overwrite base methods. The plugin needs to be added
-to the ``settings.PLUGINS``
-
-.. note::
-   There is no need to implement all base methods. ``ExtensionManager`` will use default values for methods that are not implemented.
+    def api_post_request(
+        url: str,
+        data: Dict[str, Any],
+    ):
+        try:
+            username = "username"
+            password = "password"
+            auth = HTTPBasicAuth(username, password)
+            requests.post(url, auth=auth, data=json.dumps(data), timeout=settings.TIMEOUT)
+        except requests.exceptions.RequestException:
+            return
