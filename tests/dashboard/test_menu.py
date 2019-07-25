@@ -357,13 +357,13 @@ def test_get_menu_as_json(menu):
     assert proper_data == get_menu_as_json(menu)
 
 
-@mock.patch("saleor.dashboard.menu.utils.update_menu")
+@mock.patch("saleor.menu.utils.update_menu")
 def test_update_menus(mock_update_menu, menu):
     update_menus([menu.pk])
     mock_update_menu.assert_called_once_with(menu)
 
 
-@mock.patch("saleor.dashboard.menu.utils.get_menu_as_json")
+@mock.patch("saleor.menu.utils.get_menu_as_json")
 def test_update_menu(mock_json_menu, menu):
     mock_json_menu.return_value = "Return value"
     update_menu(menu)

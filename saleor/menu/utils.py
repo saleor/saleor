@@ -41,7 +41,7 @@ def get_menus_that_needs_update(collection=None, categories=None, page=None):
     return menus_to_be_updated
 
 
-def _get_menu_item_as_dict(menu_item):
+def get_menu_item_as_dict(menu_item):
     data = {}
     if menu_item.linked_object:
         data["url"] = menu_item.linked_object.get_absolute_url()
@@ -75,14 +75,14 @@ def get_menu_as_json(menu):
     )
     menu_data = []
     for item in top_items:
-        top_item_data = _get_menu_item_as_dict(item)
+        top_item_data = get_menu_item_as_dict(item)
         top_item_data["child_items"] = []
         children = item.children.all()
         for child in children:
-            child_data = _get_menu_item_as_dict(child)
+            child_data = get_menu_item_as_dict(child)
             grand_children = child.children.all()
             grand_children_data = [
-                _get_menu_item_as_dict(grand_child) for grand_child in grand_children
+                get_menu_item_as_dict(grand_child) for grand_child in grand_children
             ]
             child_data["child_items"] = grand_children_data
             top_item_data["child_items"].append(child_data)
