@@ -1159,6 +1159,7 @@ def test_staff_update_doesnt_change_existing_avatar(
     # Create random avatar
     staff_user.avatar = get_random_avatar()
     staff_user.save()
+    original_path = staff_user.avatar.path
 
     id = graphene.Node.to_global_id("User", staff_user.id)
     variables = {"id": id, "permissions": [], "is_active": False}
@@ -1171,6 +1172,8 @@ def test_staff_update_doesnt_change_existing_avatar(
 
     # Make sure that random avatar isn't recreated when there is one already set.
     mock_get_random_avatar.assert_not_called()
+    staff_user.refresh_from_db()
+    assert staff_user.avatar.path == original_path
 
 
 def test_staff_delete(staff_api_client, permission_manage_staff):
