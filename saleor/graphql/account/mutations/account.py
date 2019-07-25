@@ -178,16 +178,16 @@ class AccountSetDefaultAddress(BaseMutation):
         return cls(user=user)
 
 
-class AccountPasswordResetInput(graphene.InputObjectType):
+class AccountRequestPasswordResetInput(graphene.InputObjectType):
     email = graphene.String(
         required=True,
         description=("Email of the user that will be used for password recovery."),
     )
 
 
-class AccountPasswordReset(BaseMutation):
+class AccountRequestPasswordReset(BaseMutation):
     class Arguments:
-        input = AccountPasswordResetInput(
+        input = AccountRequestPasswordResetInput(
             description="Fields required to reset customer's password", required=True
         )
 
@@ -206,4 +206,4 @@ class AccountPasswordReset(BaseMutation):
             raise ValidationError({"email": "User with this email doesn't exist"})
         site = info.context.site
         send_user_password_reset_email(user, site)
-        return AccountPasswordReset()
+        return AccountRequestPasswordReset()

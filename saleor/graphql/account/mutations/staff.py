@@ -1,7 +1,7 @@
 from copy import copy
 
 import graphene
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ValidationError
 from graphql_jwt.decorators import staff_member_required
 from graphql_jwt.exceptions import PermissionDenied
 
@@ -211,6 +211,28 @@ class CustomerDelete(CustomerDeleteMixin, UserDelete):
         results = super().perform_mutation(root, info, **data)
         cls.post_process(info)
         return results
+
+
+class CustomerRequestPasswordReset(BaseMutation):
+    class Arguments:
+        id = graphene.ID(
+            description="ID of a customer  for whom we reset the password.",
+            required=True,
+        )
+
+    class Meta:
+        description = (
+            "Sends an email with the account password change link to customer."
+        )
+        permissions = ("account.manage_users",)
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        user_id = data["id"]
+        user = cls.get_node_or_error(info, user_id, field="user_id", only_type=User)
+        site = info.context.site
+        send_user_password_reset_email(user, site)
+        return CustomerRequestPasswordReset()
 
 
 class StaffCreate(ModelMutation):
@@ -452,24 +474,3 @@ class UserClearStoredPrivateMeta(ClearMetaBaseMutation):
         model = models.User
         permissions = ("account.manage_users",)
         public = False
-
-
-class PasswordReset(BaseMutation):
-    class Arguments:
-        email = graphene.String(description="Email", required=True)
-
-    class Meta:
-        description = (
-            "Sends an email with the account password change link to customer."
-        )
-        permissions = ("account.manage_users",)
-
-    @classmethod
-    def perform_mutation(cls, _root, info, email):
-        try:
-            user = models.User.objects.get(email=email)
-        except ObjectDoesNotExist:
-            raise ValidationError({"email": "User with this email doesn't exist"})
-        site = info.context.site
-        send_user_password_reset_email(user, site)
-        return PasswordReset()
