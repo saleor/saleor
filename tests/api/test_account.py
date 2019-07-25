@@ -517,31 +517,55 @@ def test_user_with_cancelled_fulfillments(
     assert fulfillments[1]["status"] == FulfillmentStatus.CANCELED.upper()
 
 
-def test_customer_register(user_api_client):
-    query = """
-        mutation RegisterCustomer($password: String!, $email: String!) {
-            customerRegister(input: {password: $password, email: $email}) {
-                errors {
-                    field
-                    message
-                }
-                user {
-                    id
-                }
+CUSTOMER_REGISTER_MUTATION = """
+    mutation RegisterCustomer($password: String!, $email: String!) {
+        customerRegister(input: {password: $password, email: $email}) {
+            errors {
+                field
+                message
+            }
+            user {
+                id
             }
         }
-    """
+    }
+"""
+
+
+ACCOUNT_REGISTER_MUTATION = """
+    mutation RegisterAccount($password: String!, $email: String!) {
+        accountRegister(input: {password: $password, email: $email}) {
+            errors {
+                field
+                message
+            }
+            user {
+                id
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "query, mutation_name",
+    [
+        (CUSTOMER_REGISTER_MUTATION, "customerRegister"),
+        (ACCOUNT_REGISTER_MUTATION, "accountRegister"),
+    ],
+)
+def test_customer_register(user_api_client, query, mutation_name):
     email = "customer@example.com"
     variables = {"email": email, "password": "Password"}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    data = content["data"]["customerRegister"]
+    data = content["data"][mutation_name]
     assert not data["errors"]
     new_user = User.objects.get(email=email)
 
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    data = content["data"]["customerRegister"]
+    data = content["data"][mutation_name]
     assert data["errors"]
     assert data["errors"][0]["field"] == "email"
     assert data["errors"][0]["message"] == ("User with this Email already exists.")
@@ -1415,7 +1439,7 @@ def test_address_update_mutation(
 
 
 ACCOUNT_ADDRESS_UPDATE_MUTATION = """
-    mutation updateUserAddress($addressId: ID!, $address: AddressInput!) {
+    mutation updateAccountAddress($addressId: ID!, $address: AddressInput!) {
         accountAddressUpdate(id: $addressId, input: $address) {
             address {
                 city

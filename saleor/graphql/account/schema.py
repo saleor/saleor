@@ -11,11 +11,11 @@ from .mutations.account import (
     AccountAddressCreate,
     AccountAddressDelete,
     AccountAddressUpdate,
+    AccountRegister,
     AccountRequestDeletion,
     AccountSetDefaultAddress,
     AccountUpdate,
     CustomerPasswordReset,
-    CustomerRegister,
 )
 from .mutations.base import (
     PasswordReset,
@@ -25,6 +25,7 @@ from .mutations.base import (
 )
 from .mutations.deprecated_account import (
     CustomerAddressCreate,
+    CustomerRegister,
     CustomerSetDefaultAddress,
     LoggedUserUpdate,
 )
@@ -112,6 +113,7 @@ class AccountQueries(graphene.ObjectType):
 
 
 class AccountMutations(graphene.ObjectType):
+    # TODO: Refactor: create Dashboard, Storefront, Base sections
     password_reset = PasswordReset.Field()
     set_password = SetPassword.Field()
 
@@ -127,6 +129,7 @@ class AccountMutations(graphene.ObjectType):
     logged_user_update = LoggedUserUpdate.Field()
     account_update = AccountUpdate.Field()
     account_request_deletion = AccountRequestDeletion.Field()
+    account_register = AccountRegister.Field()
 
     account_address_update = AccountAddressUpdate.Field()
     account_address_delete = AccountAddressDelete.Field()

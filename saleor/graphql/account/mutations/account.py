@@ -10,16 +10,16 @@ from .base import BaseAddressDelete, BaseAddressUpdate, send_user_password_reset
 from .staff import CustomerCreate
 
 
-class CustomerRegisterInput(graphene.InputObjectType):
+class AccountRegisterInput(graphene.InputObjectType):
     email = graphene.String(
         description="The unique email address of the user.", required=True
     )
     password = graphene.String(description="Password", required=True)
 
 
-class CustomerRegister(ModelMutation):
+class AccountRegister(ModelMutation):
     class Arguments:
-        input = CustomerRegisterInput(
+        input = AccountRegisterInput(
             description="Fields required to create a user.", required=True
         )
 
