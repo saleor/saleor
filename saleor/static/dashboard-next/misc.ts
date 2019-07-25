@@ -147,7 +147,9 @@ export const translatedAuthorizationKeyTypes = () => ({
   [AuthorizationKeyType.GOOGLE_OAUTH2]: i18n.t("Google OAuth2")
 });
 
-export function maybe<T>(exp: () => T, d?: T) {
+export function maybe<T>(exp: () => T): T | undefined;
+export function maybe<T>(exp: () => T, d: T): T;
+export function maybe(exp: any, d?: any) {
   try {
     const result = exp();
     return result === undefined ? d : result;
