@@ -81,7 +81,7 @@ the manager.
 
 Celery Tasks
 ------------
-Some plugin operations should be done asynchronously. If Saleor has celery enabled, it will discover all tasks
+Some plugin operations should be done asynchronously. If Saleor has Celery enabled, it will discover all tasks
 declared in ``tasks.py`` in the plugin directories.
 
 
