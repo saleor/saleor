@@ -606,9 +606,11 @@ DUMMY = "dummy"
 BRAINTREE = "braintree"
 RAZORPAY = "razorpay"
 STRIPE = "stripe"
+STRIPE_NEW = "stripe_new"
 
 CHECKOUT_PAYMENT_GATEWAYS = {
-    DUMMY: pgettext_lazy("Payment method name", "Dummy gateway")
+    DUMMY: pgettext_lazy("Payment method name", "Dummy gateway"),
+    STRIPE_NEW: pgettext_lazy("Payment method name", "Stripe gateway"),
 }
 
 PAYMENT_GATEWAYS = {
@@ -652,6 +654,29 @@ PAYMENT_GATEWAYS = {
     },
     STRIPE: {
         "module": "saleor.payment.gateways.stripe",
+        "config": {
+            "store_card": get_bool_from_env("STRIPE_STORE_CARD", False),
+            "auto_capture": get_bool_from_env("STRIPE_AUTO_CAPTURE", True),
+            "template_path": "order/payment/stripe.html",
+            "connection_params": {
+                "public_key": os.environ.get("STRIPE_PUBLIC_KEY"),
+                "secret_key": os.environ.get("STRIPE_SECRET_KEY"),
+                "store_name": os.environ.get("STRIPE_STORE_NAME", "Saleor"),
+                "store_image": os.environ.get("STRIPE_STORE_IMAGE", None),
+                "prefill": get_bool_from_env("STRIPE_PREFILL", True),
+                "remember_me": os.environ.get("STRIPE_REMEMBER_ME", True),
+                "locale": os.environ.get("STRIPE_LOCALE", "auto"),
+                "enable_billing_address": os.environ.get(
+                    "STRIPE_ENABLE_BILLING_ADDRESS", False
+                ),
+                "enable_shipping_address": os.environ.get(
+                    "STRIPE_ENABLE_SHIPPING_ADDRESS", False
+                ),
+            },
+        },
+    },
+    STRIPE_NEW: {
+        "module": "saleor.payment.gateways.stripe_new",
         "config": {
             "store_card": get_bool_from_env("STRIPE_STORE_CARD", False),
             "auto_capture": get_bool_from_env("STRIPE_AUTO_CAPTURE", True),
