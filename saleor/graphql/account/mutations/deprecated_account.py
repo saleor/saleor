@@ -1,12 +1,38 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....account import models, utils
+from ....account import events as account_events, models, utils
 from ....checkout import AddressType
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import BaseMutation, ModelMutation
 from .staff import CustomerCreate, UserAddressInput
+
+
+class CustomerRegisterInput(graphene.InputObjectType):
+    email = graphene.String(
+        description="The unique email address of the user.", required=True
+    )
+    password = graphene.String(description="Password", required=True)
+
+
+class CustomerRegister(ModelMutation):
+    class Arguments:
+        input = CustomerRegisterInput(
+            description="Fields required to create a user.", required=True
+        )
+
+    class Meta:
+        description = "DEPRECATED: Use AccountRegister instead. Register a new user."
+        exclude = ["password"]
+        model = models.User
+
+    @classmethod
+    def save(cls, info, user, cleaned_input):
+        password = cleaned_input["password"]
+        user.set_password(password)
+        user.save()
+        account_events.customer_account_created_event(user=user)
 
 
 class LoggedUserUpdate(CustomerCreate):
