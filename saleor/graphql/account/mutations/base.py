@@ -42,7 +42,12 @@ def can_edit_address(user, address):
 
 class SetPasswordInput(graphene.InputObjectType):
     token = graphene.String(
-        description="A one-time token required to set the password.", required=True
+        description=(
+            "A one-time token required to set the password. "
+            "Sent by email using  PasswordReset mutation for if staff user "
+            "or AccountPasswordReset mutation for customers."
+        ),
+        required=True,
     )
     password = graphene.String(description="Password", required=True)
 
