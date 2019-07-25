@@ -1723,20 +1723,37 @@ def test_address_validator_with_country_area(user_api_client):
     assert not data["cityAreaChoices"]
 
 
-@patch("saleor.account.emails.send_password_reset_email.delay")
-def test_customer_reset_password(
-    send_password_reset_mock, user_api_client, customer_user
-):
-    query = """
-        mutation CustomerPasswordReset($email: String!) {
-            customerPasswordReset(input: {email: $email}) {
-                errors {
-                    field
-                    message
-                }
+CUSTOMER_PASSWORD_RESET_MUTATION = """
+    mutation CustomerPasswordReset($email: String!) {
+        customerPasswordReset(input: {email: $email}) {
+            errors {
+                field
+                message
             }
         }
-    """
+    }
+"""
+
+
+ACCOUNT_PASSWORD_RESET_MUTATION = """
+    mutation AccountPasswordReset($email: String!) {
+        accountPasswordReset(input: {email: $email}) {
+            errors {
+                field
+                message
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "query", [CUSTOMER_PASSWORD_RESET_MUTATION, ACCOUNT_PASSWORD_RESET_MUTATION]
+)
+@patch("saleor.account.emails.send_password_reset_email.delay")
+def test_account_reset_password(
+    send_password_reset_mock, user_api_client, customer_user, query
+):
     # we have no user with given email
     variables = {"email": "non-existing-email@email.com"}
     response = user_api_client.post_graphql(query, variables)
