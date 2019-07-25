@@ -5,8 +5,13 @@ from ....account import emails, events as account_events, models, utils
 from ....checkout import AddressType
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
-from ...core.mutations import BaseMutation, ModelMutation
-from .base import BaseAddressDelete, BaseAddressUpdate, send_user_password_reset_email
+from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
+from .base import (
+    INVALID_TOKEN,
+    BaseAddressDelete,
+    BaseAddressUpdate,
+    send_user_password_reset_email,
+)
 from .staff import CustomerCreate
 
 
@@ -85,6 +90,48 @@ class AccountRequestDeletion(BaseMutation):
         user = info.context.user
         emails.send_account_delete_confirmation_email.delay(str(user.token), user.email)
         return AccountRequestDeletion()
+
+
+class AccountDelete(ModelDeleteMutation):
+    class Arguments:
+        token = graphene.String(
+            description=(
+                "A one-time token required to remove account. "
+                "Sent by email using AccountRequestDeletion mutation."
+            ),
+            required=True,
+        )
+
+    class Meta:
+        description = "Remove user account."
+        model = models.User
+
+    @classmethod
+    def check_permissions(cls, user):
+        return user.is_authenticated
+
+    @classmethod
+    def clean_instance(cls, info, instance):
+        super().clean_instance(info, instance)
+        if instance.is_staff:
+            raise ValidationError("Cannot delete a staff account.")
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        user = info.context.user
+        cls.clean_instance(info, user)
+
+        token = data.pop("token")
+        if str(user.token) != token:
+            raise ValidationError({"token": INVALID_TOKEN})
+
+        db_id = user.id
+
+        user.delete()
+        # After the instance is deleted, set its ID to the original database's
+        # ID so that the success response contains ID of the deleted object.
+        user.id = db_id
+        return cls.success_response(user)
 
 
 class AccountAddressCreate(ModelMutation):
