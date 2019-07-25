@@ -45,7 +45,7 @@ class SetPasswordInput(graphene.InputObjectType):
         description=(
             "A one-time token required to set the password. "
             "Sent by email using  PasswordReset mutation for if staff user "
-            "or AccountPasswordReset mutation for customers."
+            "or AccountRequestPasswordReset mutation for customers."
         ),
         required=True,
     )

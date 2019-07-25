@@ -1312,7 +1312,39 @@ def test_set_password(user_api_client, customer_user):
 
 
 @patch("saleor.account.emails.send_password_reset_email.delay")
-def test_password_reset_email(
+def test_request_password_reset_email(
+    send_password_reset_mock, staff_api_client, customer_user, permission_manage_users
+):
+    query = """
+    mutation CustomerRequestPasswordReset($id: ID!) {
+        customerRequestPasswordReset(id: $id) {
+            errors {
+                field
+                message
+            }
+        }
+    }
+    """
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variables = {"id": user_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["customerRequestPasswordReset"]
+    assert data == {"errors": []}
+    assert send_password_reset_mock.call_count == 1
+    args, kwargs = send_password_reset_mock.call_args
+    call_context = args[0]
+    call_email = args[1]
+    call_user_pk = args[2]
+    assert call_email == customer_user.email
+    assert "token" in call_context
+    assert call_user_pk == customer_user.pk
+
+
+@patch("saleor.account.emails.send_password_reset_email.delay")
+def test_deprecated_password_reset_email(
     send_password_reset_mock, staff_api_client, customer_user, permission_manage_users
 ):
     query = """
@@ -1740,8 +1772,8 @@ CUSTOMER_PASSWORD_RESET_MUTATION = """
 
 
 ACCOUNT_PASSWORD_RESET_MUTATION = """
-    mutation AccountPasswordReset($email: String!) {
-        accountPasswordReset(input: {email: $email}) {
+    mutation AccountRequestPasswordReset($email: String!) {
+        accountRequestPasswordReset(input: {email: $email}) {
             errors {
                 field
                 message

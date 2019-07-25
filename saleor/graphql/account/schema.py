@@ -11,9 +11,9 @@ from .mutations.account import (
     AccountAddressCreate,
     AccountAddressDelete,
     AccountAddressUpdate,
-    AccountPasswordReset,
     AccountRegister,
     AccountRequestDeletion,
+    AccountRequestPasswordReset,
     AccountSetDefaultAddress,
     AccountUpdate,
 )
@@ -25,6 +25,7 @@ from .mutations.deprecated_account import (
     CustomerSetDefaultAddress,
     LoggedUserUpdate,
 )
+from .mutations.deprecated_staff import PasswordReset
 from .mutations.staff import (
     AddressCreate,
     AddressDelete,
@@ -32,8 +33,8 @@ from .mutations.staff import (
     AddressUpdate,
     CustomerCreate,
     CustomerDelete,
+    CustomerRequestPasswordReset,
     CustomerUpdate,
-    PasswordReset,
     StaffCreate,
     StaffDelete,
     StaffUpdate,
@@ -117,7 +118,7 @@ class AccountMutations(graphene.ObjectType):
     user_clear_stored_metadata = UserClearStoredMeta.Field()
 
     # Account mutations
-    account_password_reset = AccountPasswordReset.Field()
+    account_request_password_reset = AccountRequestPasswordReset.Field()
 
     account_address_create = AccountAddressCreate.Field()
     account_address_update = AccountAddressUpdate.Field()
@@ -138,7 +139,7 @@ class AccountMutations(graphene.ObjectType):
     logged_user_update = LoggedUserUpdate.Field()
 
     # Staff mutation
-    password_reset = PasswordReset.Field()
+    customer_request_password_reset = CustomerRequestPasswordReset.Field()
 
     address_create = AddressCreate.Field()
     address_update = AddressUpdate.Field()
@@ -161,3 +162,6 @@ class AccountMutations(graphene.ObjectType):
 
     user_update_private_metadata = UserUpdatePrivateMeta.Field()
     user_clear_stored_private_metadata = UserClearStoredPrivateMeta.Field()
+
+    # Staff deprecated mutation
+    password_reset = PasswordReset.Field()
