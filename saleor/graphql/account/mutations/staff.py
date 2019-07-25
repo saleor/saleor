@@ -459,7 +459,9 @@ class PasswordReset(BaseMutation):
         email = graphene.String(description="Email", required=True)
 
     class Meta:
-        description = "Sends password reset email"
+        description = (
+            "Sends an email with the account password change link to customer."
+        )
         permissions = ("account.manage_users",)
 
     @classmethod

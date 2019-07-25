@@ -192,7 +192,10 @@ class AccountPasswordReset(BaseMutation):
         )
 
     class Meta:
-        description = "Resets the customer's password."
+        description = (
+            "Sends an email with the account password change link "
+            "for the logged-in user."
+        )
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
