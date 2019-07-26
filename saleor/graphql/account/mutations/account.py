@@ -225,17 +225,11 @@ class AccountSetDefaultAddress(BaseMutation):
         return cls(user=user)
 
 
-class AccountRequestPasswordResetInput(graphene.InputObjectType):
-    email = graphene.String(
-        required=True,
-        description=("Email of the user that will be used for password recovery."),
-    )
-
-
 class AccountRequestPasswordReset(BaseMutation):
     class Arguments:
-        input = AccountRequestPasswordResetInput(
-            description="Fields required to reset customer's password", required=True
+        email = graphene.String(
+            required=True,
+            description=("Email of the user that will be used for password recovery."),
         )
 
     class Meta:
@@ -246,7 +240,7 @@ class AccountRequestPasswordReset(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        email = data.get("input")["email"]
+        email = data["email"]
         try:
             user = models.User.objects.get(email=email)
         except ObjectDoesNotExist:
