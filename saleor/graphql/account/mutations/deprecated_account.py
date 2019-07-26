@@ -6,8 +6,7 @@ from ....checkout import AddressType
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import BaseMutation, ModelMutation
-from .base import send_user_password_reset_email
-from .staff import CustomerCreate, UserAddressInput
+from .base import BaseCustomerCreate, UserAddressInput, send_user_password_reset_email
 
 
 class CustomerRegisterInput(graphene.InputObjectType):
@@ -36,7 +35,7 @@ class CustomerRegister(ModelMutation):
         account_events.customer_account_created_event(user=user)
 
 
-class LoggedUserUpdate(CustomerCreate):
+class LoggedUserUpdate(BaseCustomerCreate):
     class Arguments:
         input = UserAddressInput(
             description="Fields required to update logged in user.", required=True

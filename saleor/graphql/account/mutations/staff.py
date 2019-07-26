@@ -10,13 +10,9 @@ from ....account.thumbnails import create_user_avatar_thumbnails
 from ....account.utils import get_random_avatar
 from ....checkout import AddressType
 from ....core.permissions import get_permissions
-from ....dashboard.emails import (
-    send_set_password_customer_email,
-    send_set_password_staff_email,
-)
+from ....dashboard.emails import send_set_password_staff_email
 from ....dashboard.staff.utils import remove_staff_member
 from ...account.enums import AddressTypeEnum
-from ...account.i18n import I18nMixin
 from ...account.types import Address, AddressInput, User
 from ...core.enums import PermissionEnum
 from ...core.mutations import (
@@ -29,37 +25,13 @@ from ...core.mutations import (
 from ...core.types import Upload
 from ...core.utils import validate_image_file
 from ..utils import CustomerDeleteMixin, StaffDeleteMixin, UserDeleteMixin
-from .base import BaseAddressDelete, BaseAddressUpdate
-
-BILLING_ADDRESS_FIELD = "default_billing_address"
-SHIPPING_ADDRESS_FIELD = "default_shipping_address"
-
-
-class UserInput(graphene.InputObjectType):
-    first_name = graphene.String(description="Given name.")
-    last_name = graphene.String(description="Family name.")
-    email = graphene.String(description="The unique email address of the user.")
-    is_active = graphene.Boolean(required=False, description="User account is active.")
-    note = graphene.String(description="A note about the user.")
-
-
-class UserAddressInput(graphene.InputObjectType):
-    default_billing_address = AddressInput(
-        description="Billing address of the customer."
-    )
-    default_shipping_address = AddressInput(
-        description="Shipping address of the customer."
-    )
-
-
-class CustomerInput(UserInput, UserAddressInput):
-    pass
-
-
-class UserCreateInput(CustomerInput):
-    send_password_email = graphene.Boolean(
-        description="Send an email with a link to set a password"
-    )
+from .base import (
+    BaseAddressDelete,
+    BaseAddressUpdate,
+    BaseCustomerCreate,
+    CustomerInput,
+    UserInput,
+)
 
 
 class StaffInput(UserInput):
@@ -75,59 +47,12 @@ class StaffCreateInput(StaffInput):
     )
 
 
-class CustomerCreate(ModelMutation, I18nMixin):
-    class Arguments:
-        input = UserCreateInput(
-            description="Fields required to create a customer.", required=True
-        )
-
+class CustomerCreate(BaseCustomerCreate):
     class Meta:
         description = "Creates a new customer."
         exclude = ["password"]
         model = models.User
         permissions = ("account.manage_users",)
-
-    @classmethod
-    def clean_input(cls, info, instance, data):
-        shipping_address_data = data.pop(SHIPPING_ADDRESS_FIELD, None)
-        billing_address_data = data.pop(BILLING_ADDRESS_FIELD, None)
-        cleaned_input = super().clean_input(info, instance, data)
-
-        if shipping_address_data:
-            shipping_address = cls.validate_address(
-                shipping_address_data,
-                instance=getattr(instance, SHIPPING_ADDRESS_FIELD),
-            )
-            cleaned_input[SHIPPING_ADDRESS_FIELD] = shipping_address
-
-        if billing_address_data:
-            billing_address = cls.validate_address(
-                billing_address_data, instance=getattr(instance, BILLING_ADDRESS_FIELD)
-            )
-            cleaned_input[BILLING_ADDRESS_FIELD] = billing_address
-        return cleaned_input
-
-    @classmethod
-    def save(cls, info, instance, cleaned_input):
-        # FIXME: save address in user.addresses as well
-        default_shipping_address = cleaned_input.get(SHIPPING_ADDRESS_FIELD)
-        if default_shipping_address:
-            default_shipping_address.save()
-            instance.default_shipping_address = default_shipping_address
-        default_billing_address = cleaned_input.get(BILLING_ADDRESS_FIELD)
-        if default_billing_address:
-            default_billing_address.save()
-            instance.default_billing_address = default_billing_address
-
-        is_creation = instance.pk is None
-        super().save(info, instance, cleaned_input)
-
-        # The instance is a new object in db, create an event
-        if is_creation:
-            account_events.customer_account_created_event(user=instance)
-
-        if cleaned_input.get("send_password_email"):
-            send_set_password_customer_email.delay(instance.pk)
 
 
 class CustomerUpdate(CustomerCreate):
