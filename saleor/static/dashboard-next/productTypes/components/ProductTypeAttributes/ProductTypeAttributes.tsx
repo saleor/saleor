@@ -32,6 +32,10 @@ import {
 
 const styles = (theme: Theme) =>
   createStyles({
+    colName: {},
+    colSlug: {
+      width: 300
+    },
     iconCell: {
       "&:last-child": {
         paddingRight: 0
@@ -102,7 +106,10 @@ const ProductTypeAttributes = withStyles(styles, {
           toggleAll={toggleAll}
           toolbar={toolbar}
         >
-          <TableCell>{i18n.t("Attribute name")}</TableCell>
+          <TableCell className={classes.colName}>
+            {i18n.t("Attribute name")}
+          </TableCell>
+          <TableCell className={classes.colName}>{i18n.t("Slug")}</TableCell>
           <TableCell />
         </TableHead>
         <SortableTableBody onSortEnd={onAttributeReorder}>
@@ -131,9 +138,16 @@ const ProductTypeAttributes = withStyles(styles, {
                       onChange={() => toggle(attribute.id)}
                     />
                   </TableCell>
-                  <TableCell>
+                  <TableCell className={classes.colName}>
                     {maybe(() => attribute.name) ? (
                       attribute.name
+                    ) : (
+                      <Skeleton />
+                    )}
+                  </TableCell>
+                  <TableCell className={classes.colSlug}>
+                    {maybe(() => attribute.slug) ? (
+                      attribute.slug
                     ) : (
                       <Skeleton />
                     )}
