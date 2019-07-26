@@ -63,7 +63,10 @@ export default (colors: IThemeColors): Theme =>
         root: {
           borderColor: colors.paperBorder,
           borderRadius: 8,
-          boxShadow: "none"
+          borderStyle: "solid",
+          borderWidth: 1,
+          boxShadow: "none",
+          overflow: "visible"
         }
       },
       MuiCardActions: {
