@@ -55,7 +55,6 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ params }) => {
 
   const handleValueDelete = () => {
     setValues([...values.slice(0, id), ...values.slice(id + 1)]);
-    notify({ text: i18n.t("Value removed") });
     closeModal();
   };
   const handleCreate = (data: AttributeCreate) => {
@@ -66,12 +65,10 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ params }) => {
   };
   const handleValueUpdate = (input: AttributeValueEditDialogFormData) => {
     setValues([...values.slice(0, id), input, ...values.slice(id + 1)]);
-    notify({ text: i18n.t("Saved changes") });
     closeModal();
   };
   const handleValueCreate = (input: AttributeValueEditDialogFormData) => {
     setValues([...values, input]);
-    notify({ text: i18n.t("Added new value") });
     closeModal();
   };
 
@@ -120,7 +117,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ params }) => {
                 __typename: "AttributeValue" as "AttributeValue",
                 id: valueIndex.toString(),
                 slug: slugify(value.name).toLowerCase(),
-                sortOrder: null,
+                sortOrder: valueIndex,
                 type: null,
                 value: null,
                 ...value
