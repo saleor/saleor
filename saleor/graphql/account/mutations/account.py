@@ -1,17 +1,12 @@
 import graphene
-from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.core.exceptions import ValidationError
 
 from ....account import emails, events as account_events, models, utils
 from ....checkout import AddressType
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from .base import (
-    INVALID_TOKEN,
-    BaseAddressDelete,
-    BaseAddressUpdate,
-    send_user_password_reset_email,
-)
+from .base import INVALID_TOKEN, BaseAddressDelete, BaseAddressUpdate
 from .staff import CustomerCreate
 
 
@@ -223,28 +218,3 @@ class AccountSetDefaultAddress(BaseMutation):
 
         utils.change_user_default_address(user, address, address_type)
         return cls(user=user)
-
-
-class AccountRequestPasswordReset(BaseMutation):
-    class Arguments:
-        email = graphene.String(
-            required=True,
-            description=("Email of the user that will be used for password recovery."),
-        )
-
-    class Meta:
-        description = (
-            "Sends an email with the account password change link "
-            "for the logged-in user."
-        )
-
-    @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        email = data["email"]
-        try:
-            user = models.User.objects.get(email=email)
-        except ObjectDoesNotExist:
-            raise ValidationError({"email": "User with this email doesn't exist"})
-        site = info.context.site
-        send_user_password_reset_email(user, site)
-        return AccountRequestPasswordReset()

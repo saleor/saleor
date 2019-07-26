@@ -1,7 +1,7 @@
 import graphene
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from graphql_jwt.exceptions import PermissionDenied
@@ -9,6 +9,7 @@ from graphql_jwt.exceptions import PermissionDenied
 from ....account import emails, events as account_events, models
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import (
+    BaseMutation,
     ClearMetaBaseMutation,
     ModelDeleteMutation,
     ModelMutation,
@@ -44,12 +45,7 @@ def can_edit_address(user, address):
 
 class SetPasswordInput(graphene.InputObjectType):
     token = graphene.String(
-        description=(
-            "A one-time token required to set the password. "
-            "Sent by email using PasswordReset mutation for if staff user "
-            "or AccountRequestPasswordReset mutation for customers."
-        ),
-        required=True,
+        description="A one-time token required to set the password.", required=True
     )
     password = graphene.String(description="Password", required=True)
 
@@ -64,7 +60,10 @@ class SetPassword(ModelMutation):
         )
 
     class Meta:
-        description = "Sets user password."
+        description = (
+            "Sets user password. Token sent by email "
+            "using RequestPasswordReset mutation."
+        )
         model = models.User
 
     @classmethod
@@ -80,6 +79,28 @@ class SetPassword(ModelMutation):
         instance.set_password(cleaned_input["password"])
         instance.save()
         account_events.customer_password_reset_event(user=instance)
+
+
+class RequestPasswordReset(BaseMutation):
+    class Arguments:
+        email = graphene.String(
+            required=True,
+            description=("Email of the user that will be used for password recovery."),
+        )
+
+    class Meta:
+        description = "Sends an email with the account password change link."
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        email = data["email"]
+        try:
+            user = models.User.objects.get(email=email)
+        except ObjectDoesNotExist:
+            raise ValidationError({"email": "User with this email doesn't exist"})
+        site = info.context.site
+        send_user_password_reset_email(user, site)
+        return RequestPasswordReset()
 
 
 class BaseAddressUpdate(ModelMutation):

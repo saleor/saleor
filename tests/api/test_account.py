@@ -1381,12 +1381,12 @@ def test_set_password(user_api_client, customer_user):
 
 
 @patch("saleor.account.emails.send_password_reset_email.delay")
-def test_request_password_reset_email(
-    send_password_reset_mock, staff_api_client, customer_user, permission_manage_users
+def test_request_password_reset_email_for_staff(
+    send_password_reset_mock, staff_api_client
 ):
     query = """
-    mutation CustomerRequestPasswordReset($id: ID!) {
-        customerRequestPasswordReset(id: $id) {
+    mutation RequestPasswordReset($email: String!) {
+        requestPasswordReset(email: $email) {
             errors {
                 field
                 message
@@ -1394,17 +1394,14 @@ def test_request_password_reset_email(
         }
     }
     """
-    user_id = graphene.Node.to_global_id("User", customer_user.id)
-    variables = {"id": user_id}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_users]
-    )
+    variables = {"email": staff_api_client.user.email}
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    data = content["data"]["customerRequestPasswordReset"]
+    data = content["data"]["requestPasswordReset"]
     assert data == {"errors": []}
     assert send_password_reset_mock.call_count == 1
     send_password_reset_mock.assert_called_once_with(
-        ANY, customer_user.email, customer_user.pk
+        ANY, staff_api_client.user.email, staff_api_client.user.pk
     )
 
 
@@ -1832,9 +1829,9 @@ CUSTOMER_PASSWORD_RESET_MUTATION = """
 """
 
 
-ACCOUNT_PASSWORD_RESET_MUTATION = """
-    mutation AccountRequestPasswordReset($email: String!) {
-        accountRequestPasswordReset(email: $email) {
+REQUEST_PASSWORD_RESET_MUTATION = """
+    mutation RequestPasswordReset($email: String!) {
+        requestPasswordReset(email: $email) {
             errors {
                 field
                 message
@@ -1845,7 +1842,7 @@ ACCOUNT_PASSWORD_RESET_MUTATION = """
 
 
 @pytest.mark.parametrize(
-    "query", [CUSTOMER_PASSWORD_RESET_MUTATION, ACCOUNT_PASSWORD_RESET_MUTATION]
+    "query", [CUSTOMER_PASSWORD_RESET_MUTATION, REQUEST_PASSWORD_RESET_MUTATION]
 )
 @patch("saleor.account.emails.send_password_reset_email.delay")
 def test_account_reset_password(
