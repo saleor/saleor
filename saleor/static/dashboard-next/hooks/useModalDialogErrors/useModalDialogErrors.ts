@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-import useStateFromProps from "./useStateFromProps";
+import useStateFromProps from "../useStateFromProps";
 
 function useModalDialogErrors<TError>(
   errors: TError[],
