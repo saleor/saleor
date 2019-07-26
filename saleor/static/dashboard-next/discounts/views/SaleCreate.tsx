@@ -5,7 +5,7 @@ import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
 import useShop from "@saleor/hooks/useShop";
 import i18n from "../../i18n";
-import { decimal, getMutationState, maybe } from "../../misc";
+import { decimal, getMutationState, joinDateTime, maybe } from "../../misc";
 import { DiscountValueTypeEnum, SaleType } from "../../types/globalTypes";
 import SaleCreatePage from "../components/SaleCreatePage";
 import { TypedSaleCreate } from "../mutations";
@@ -55,11 +55,14 @@ export const SaleDetails: React.StatelessComponent = () => {
                 saleCreate({
                   variables: {
                     input: {
-                      endDate:
-                        formData.endDate === "" ? null : formData.endDate,
+                      endDate: formData.hasEndDate
+                        ? joinDateTime(formData.endDate, formData.endTime)
+                        : null,
                       name: formData.name,
-                      startDate:
-                        formData.startDate === "" ? null : formData.startDate,
+                      startDate: joinDateTime(
+                        formData.startDate,
+                        formData.startTime
+                      ),
                       type: discountValueTypeEnum(formData.type),
                       value: decimal(formData.value)
                     }

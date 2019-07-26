@@ -5,7 +5,7 @@ import React from "react";
 
 import CardSpacer from "@saleor/components/CardSpacer";
 import CardTitle from "@saleor/components/CardTitle";
-import Date from "@saleor/components/Date";
+import { DateTime } from "@saleor/components/Date";
 import FormSpacer from "@saleor/components/FormSpacer";
 import Hr from "@saleor/components/Hr";
 import Money from "@saleor/components/Money";
@@ -60,7 +60,7 @@ const SaleSummary: React.StatelessComponent<SaleSummaryProps> = ({
       <Typography>
         {maybe<React.ReactNode>(
           () => (
-            <Date date={sale.startDate} plain />
+            <DateTime date={sale.startDate} plain />
           ),
           <Skeleton />
         )}
@@ -71,7 +71,11 @@ const SaleSummary: React.StatelessComponent<SaleSummaryProps> = ({
       <Typography>
         {maybe<React.ReactNode>(
           () =>
-            sale.endDate === null ? "-" : <Date date={sale.endDate} plain />,
+            sale.endDate === null ? (
+              "-"
+            ) : (
+              <DateTime date={sale.endDate} plain />
+            ),
           <Skeleton />
         )}
       </Typography>

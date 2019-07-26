@@ -11,15 +11,19 @@ import SaveButtonBar from "@saleor/components/SaveButtonBar";
 import i18n from "../../../i18n";
 import { UserError } from "../../../types";
 import { SaleType } from "../../../types/globalTypes";
+import DiscountDates from "../DiscountDates";
 import SaleInfo from "../SaleInfo";
 import SalePricing from "../SalePricing";
 
 export interface FormData {
+  endDate: string;
+  endTime: string;
+  hasEndDate: boolean;
   name: string;
   startDate: string;
-  endDate: string;
-  value: string;
+  startTime: string;
   type: SaleType;
+  value: string;
 }
 
 export interface SaleCreatePageProps {
@@ -41,8 +45,11 @@ const SaleCreatePage: React.StatelessComponent<SaleCreatePageProps> = ({
 }) => {
   const initialForm: FormData = {
     endDate: "",
+    endTime: "",
+    hasEndDate: false,
     name: "",
     startDate: "",
+    startTime: "",
     type: SaleType.FIXED,
     value: ""
   };
@@ -65,6 +72,14 @@ const SaleCreatePage: React.StatelessComponent<SaleCreatePageProps> = ({
                 data={data}
                 defaultCurrency={defaultCurrency}
                 disabled={disabled}
+                errors={formErrors}
+                onChange={change}
+              />
+              <CardSpacer />
+              <DiscountDates
+                data={data}
+                disabled={disabled}
+                defaultCurrency={defaultCurrency}
                 errors={formErrors}
                 onChange={change}
               />

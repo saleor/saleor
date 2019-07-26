@@ -21,7 +21,7 @@ import SearchCategories from "../../containers/SearchCategories";
 import SearchCollections from "../../containers/SearchCollections";
 import SearchProducts from "../../containers/SearchProducts";
 import i18n from "../../i18n";
-import { decimal, getMutationState, maybe } from "../../misc";
+import { decimal, getMutationState, joinDateTime, maybe } from "../../misc";
 import { productUrl } from "../../products/urls";
 import { DiscountValueTypeEnum, SaleType } from "../../types/globalTypes";
 import SaleDetailsPage, {
@@ -269,15 +269,17 @@ export const SaleDetails: React.StatelessComponent<SaleDetailsProps> = ({
                                   variables: {
                                     id,
                                     input: {
-                                      endDate:
-                                        formData.endDate === ""
-                                          ? null
-                                          : formData.endDate,
+                                      endDate: formData.hasEndDate
+                                        ? joinDateTime(
+                                            formData.endDate,
+                                            formData.endTime
+                                          )
+                                        : null,
                                       name: formData.name,
-                                      startDate:
-                                        formData.startDate === ""
-                                          ? null
-                                          : formData.startDate,
+                                      startDate: joinDateTime(
+                                        formData.startDate,
+                                        formData.startTime
+                                      ),
                                       type: discountValueTypeEnum(
                                         formData.type
                                       ),

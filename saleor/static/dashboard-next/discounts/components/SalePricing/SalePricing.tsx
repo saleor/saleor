@@ -6,12 +6,9 @@ import {
   WithStyles,
   withStyles
 } from "@material-ui/core/styles";
-import TextField from "@material-ui/core/TextField";
-import Typography from "@material-ui/core/Typography";
 import React from "react";
 
 import CardTitle from "@saleor/components/CardTitle";
-import Hr from "@saleor/components/Hr";
 import TextFieldWithChoice from "@saleor/components/TextFieldWithChoice";
 import i18n from "../../../i18n";
 import { FormErrors } from "../../../types";
@@ -80,40 +77,6 @@ const SalePricing = withStyles(styles, {
           inputProps={{
             min: 0
           }}
-        />
-      </CardContent>
-      <Hr />
-      <CardContent className={classes.root}>
-        <Typography className={classes.subheading} variant="subtitle1">
-          {i18n.t("Time Frame")}
-        </Typography>
-        <TextField
-          disabled={disabled}
-          error={!!errors.startDate}
-          helperText={errors.startDate}
-          name={"startDate" as keyof FormData}
-          onChange={onChange}
-          label={i18n.t("Start Date")}
-          value={data.startDate}
-          type="date"
-          InputLabelProps={{
-            shrink: true
-          }}
-          fullWidth
-        />
-        <TextField
-          disabled={disabled}
-          error={!!errors.endDate}
-          helperText={errors.endDate}
-          name={"endDate" as keyof FormData}
-          onChange={onChange}
-          label={i18n.t("End Date")}
-          value={data.endDate}
-          type="date"
-          InputLabelProps={{
-            shrink: true
-          }}
-          fullWidth
         />
       </CardContent>
     </Card>
