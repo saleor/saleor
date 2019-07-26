@@ -56,7 +56,6 @@ const styles = (theme: Theme) =>
       },
       WebkitAppearance: "none",
       border: `1px solid ${theme.palette.grey[500]}`,
-      borderRadius: 4,
       boxSizing: "border-box",
       cursor: "pointer",
       height: 14,

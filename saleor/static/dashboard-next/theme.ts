@@ -21,7 +21,10 @@ export type IThemeColors = Record<
 } & {
   gray: Record<"default" | "disabled", string>;
 } & {
-  input: Record<"default" | "focused" | "disabled", string>;
+  input: Record<
+    "default" | "focused" | "disabled" | "text" | "textHover",
+    string
+  >;
 };
 
 const fontFamily = '"Inter", "roboto", "sans-serif"';
@@ -68,41 +71,6 @@ export default (colors: IThemeColors): Theme =>
           flexDirection: "row-reverse" as "row-reverse"
         }
       },
-      MuiFilledInput: {
-        root: {
-          "&$disabled": {
-            backgroundColor: colors.input.disabled
-          },
-          "&$focused": {
-            backgroundColor: colors.input.focused
-          },
-          "&:hover": {
-            backgroundColor: colors.input.default
-          },
-          backgroundColor: colors.input.default
-        },
-        underline: {
-          "&$focused": {
-            "&:after": {
-              borderBottomColor: colors.primary
-            }
-          },
-          "&:before": {
-            borderBottomColor: "rgba(0, 0, 0, 0)"
-          },
-          "&:hover": {
-            "&:not($disabled)": {
-              "&:not($focused)": {
-                "&:not($error)": {
-                  "&:before": {
-                    borderBottomColor: colors.primary
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
       MuiIconButton: {
         root: {
           "&:hover": {
@@ -134,19 +102,20 @@ export default (colors: IThemeColors): Theme =>
         }
       },
       MuiInputLabel: {
-        filled: {
-          transform: "translate(12px, 10px) scale(0.75)"
-        },
         formControl: {
           transform: "translate(0, 1.5px) scale(0.75)",
           transformOrigin: "top left" as "top left",
           width: "100%"
         },
+        outlined: {
+          "&$shrink": {
+            transform: "translate(12px, 6px) scale(0.75)"
+          }
+        },
         root: {
-          color: [[colors.primary], "!important"] as any
+          color: [[colors.input.text], "!important"] as any
         },
         shrink: {
-          // Negates x0.75 scale
           width: "133%"
         }
       },
@@ -185,7 +154,42 @@ export default (colors: IThemeColors): Theme =>
           borderRadius: 4
         }
       },
-
+      MuiOutlinedInput: {
+        input: {
+          color: colors.input.text,
+          margin: "4px 0",
+          padding: "25px 12px 8px 12px"
+        },
+        root: {
+          "& legend": {
+            display: "none"
+          },
+          "&$disabled": {
+            "& fieldset": {
+              backgroundColor: colors.input.disabled
+            },
+            "& input": {
+              color: colors.input.text,
+              zIndex: 2
+            }
+          },
+          "&$focused": {
+            "& input": {
+              color: colors.input.textHover,
+              zIndex: 2
+            }
+          },
+          "&:hover": {
+            "& fieldset": {
+              borderColor: colors.primary + "!important"
+            },
+            "& input": {
+              color: colors.input.textHover,
+              zIndex: 2
+            }
+          }
+        }
+      },
       MuiSwitch: {
         bar: {
           "$colorPrimary$checked + &": {
@@ -362,5 +366,5 @@ export default (colors: IThemeColors): Theme =>
 
 TextField.defaultProps = {
   ...TextField.defaultProps,
-  variant: "filled"
+  variant: "outlined"
 };
