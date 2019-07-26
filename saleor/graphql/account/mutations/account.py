@@ -154,7 +154,6 @@ class AccountAddressCreate(ModelMutation):
     class Meta:
         description = "Create a new address for the customer."
         model = models.Address
-        # exclude = ["user_addresses"]
 
     @classmethod
     def check_permissions(cls, user):
@@ -182,7 +181,6 @@ class AccountAddressUpdate(BaseAddressUpdate):
     class Meta:
         description = "Updates an address of the logged-in user."
         model = models.Address
-        # exclude = ["user_addresses"]
 
 
 class AccountAddressDelete(BaseAddressDelete):
