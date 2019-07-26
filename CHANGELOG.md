@@ -24,6 +24,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Contrast improvements - #4508 by @benekex2
 - Allow selecting the number of rows displayed in dashboard's list views - #4414 by @benekex2
 - Changed license for artwork to CC-BY 4.0
+- Input UI changes - #4542 by @benekex2
 
 ## 2.8.0
 
