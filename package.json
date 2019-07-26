@@ -186,6 +186,9 @@
   "jest": {
     "globals": {
       "ts-jest": {
+        "diagnostics": {
+          "warnOnly": true
+        },
         "tsConfig": "tsconfig.json"
       }
     },
