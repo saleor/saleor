@@ -19,6 +19,7 @@ import InfiniteScroll from "react-infinite-scroller";
 import ConfirmButton, {
   ConfirmButtonTransitionState
 } from "@saleor/components/ConfirmButton";
+import useModalDialogErrors from "@saleor/hooks/useModalDialogErrors";
 import useSearchQuery from "@saleor/hooks/useSearchQuery";
 import { maybe, renderCollection } from "@saleor/misc";
 import { FetchMoreProps } from "@saleor/types";
@@ -58,7 +59,7 @@ export interface AssignAttributeDialogProps extends FetchMoreProps {
 const AssignAttributeDialog: React.FC<AssignAttributeDialogProps> = ({
   attributes,
   confirmButtonState,
-  errors,
+  errors: apiErrors,
   hasMore,
   loading,
   open,
@@ -71,6 +72,7 @@ const AssignAttributeDialog: React.FC<AssignAttributeDialogProps> = ({
 }: AssignAttributeDialogProps) => {
   const classes = useStyles({});
   const [query, onQueryChange] = useSearchQuery(onFetch);
+  const errors = useModalDialogErrors(apiErrors, open);
 
   return (
     <Dialog onClose={onClose} open={open} fullWidth maxWidth="sm">
