@@ -29,7 +29,7 @@ from ...core.mutations import (
 from ...core.types import Upload
 from ...core.utils import validate_image_file
 from ..utils import CustomerDeleteMixin, StaffDeleteMixin, UserDeleteMixin
-from .base import BaseAddressDelete, BaseAddressUpdate, send_user_password_reset_email
+from .base import BaseAddressDelete, BaseAddressUpdate
 
 BILLING_ADDRESS_FIELD = "default_billing_address"
 SHIPPING_ADDRESS_FIELD = "default_shipping_address"
@@ -211,28 +211,6 @@ class CustomerDelete(CustomerDeleteMixin, UserDelete):
         results = super().perform_mutation(root, info, **data)
         cls.post_process(info)
         return results
-
-
-class CustomerRequestPasswordReset(BaseMutation):
-    class Arguments:
-        id = graphene.ID(
-            description="ID of a customer  for whom we reset the password.",
-            required=True,
-        )
-
-    class Meta:
-        description = (
-            "Sends an email with the account password change link to customer."
-        )
-        permissions = ("account.manage_users",)
-
-    @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        user_id = data["id"]
-        user = cls.get_node_or_error(info, user_id, field="user_id", only_type=User)
-        site = info.context.site
-        send_user_password_reset_email(user, site)
-        return CustomerRequestPasswordReset()
 
 
 class StaffCreate(ModelMutation):
