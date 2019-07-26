@@ -1,7 +1,7 @@
 import json
 import re
 import uuid
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import ANY, MagicMock, Mock, patch
 
 import graphene
 import pytest
@@ -1403,13 +1403,9 @@ def test_request_password_reset_email(
     data = content["data"]["customerRequestPasswordReset"]
     assert data == {"errors": []}
     assert send_password_reset_mock.call_count == 1
-    args, kwargs = send_password_reset_mock.call_args
-    call_context = args[0]
-    call_email = args[1]
-    call_user_pk = args[2]
-    assert call_email == customer_user.email
-    assert "token" in call_context
-    assert call_user_pk == customer_user.pk
+    send_password_reset_mock.assert_called_once_with(
+        ANY, customer_user.email, customer_user.pk
+    )
 
 
 @patch("saleor.account.emails.send_password_reset_email.delay")
@@ -1435,13 +1431,9 @@ def test_deprecated_password_reset_email(
     data = content["data"]["passwordReset"]
     assert data == {"errors": []}
     assert send_password_reset_mock.call_count == 1
-    args, kwargs = send_password_reset_mock.call_args
-    call_context = args[0]
-    call_email = args[1]
-    call_user_pk = args[2]
-    assert call_email == email
-    assert "token" in call_context
-    assert call_user_pk == customer_user.pk
+    send_password_reset_mock.assert_called_once_with(
+        ANY, customer_user.email, customer_user.pk
+    )
 
 
 @patch("saleor.account.emails.send_password_reset_email.delay")
@@ -1842,7 +1834,7 @@ CUSTOMER_PASSWORD_RESET_MUTATION = """
 
 ACCOUNT_PASSWORD_RESET_MUTATION = """
     mutation AccountRequestPasswordReset($email: String!) {
-        accountRequestPasswordReset(input: {email: $email}) {
+        accountRequestPasswordReset(email: $email) {
             errors {
                 field
                 message
