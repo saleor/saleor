@@ -37,6 +37,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Enforced pydocstyle for Python docstrings over the project - #4562 by @NyanKiyoshi
 - Add e2e test config - #4553 by @dominik-zeglen
 - Fix MUI warnings - #4588 by @dominik-zeglen
+- Add time to sale dates - #4539 by @dominik-zeglen
+
 
 ## 2.8.0
 
