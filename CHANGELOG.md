@@ -31,6 +31,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix minor bugs - #4503 by @dominik-zeglen
 - Fix attribute errors displaying - #4505 by @dominik-zeglen
 - Reset errors after closing modal - #4536 by @dominik-zeglen
+- Add slug column to product type's attribute list - #4538 by @dominik-zeglen
 
 ## [Unreleased]
 

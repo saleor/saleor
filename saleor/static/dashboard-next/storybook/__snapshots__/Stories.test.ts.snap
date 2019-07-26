@@ -68079,10 +68079,16 @@ exports[`Storyshots Views / Product types / Product type details default 1`] = `
                     </button>
                   </th>
                   <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    class="MuiTableCell-root-id MuiTableCell-head-id ProductTypeAttributes-colName-id"
                     scope="col"
                   >
                     Attribute name
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id ProductTypeAttributes-colName-id"
+                    scope="col"
+                  >
+                    Slug
                   </th>
                   <th
                     class="MuiTableCell-root-id MuiTableCell-head-id"
@@ -68149,11 +68155,16 @@ exports[`Storyshots Views / Product types / Product type details default 1`] = `
                     </button>
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-colName-id"
                   >
                     Author
                   </td>
                   <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-colSlug-id"
+                  >
+                    author
+                  </td>
+                  <td
                     class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-iconCell-id"
                   >
                     <button
@@ -68239,11 +68250,16 @@ exports[`Storyshots Views / Product types / Product type details default 1`] = `
                     </button>
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-colName-id"
                   >
                     Language
                   </td>
                   <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-colSlug-id"
+                  >
+                    language
+                  </td>
+                  <td
                     class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-iconCell-id"
                   >
                     <button
@@ -68329,9 +68345,14 @@ exports[`Storyshots Views / Product types / Product type details default 1`] = `
                     </button>
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-colName-id"
                   >
                     Publisher
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-colSlug-id"
+                  >
+                    publisher
                   </td>
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-iconCell-id"
@@ -68662,10 +68683,16 @@ exports[`Storyshots Views / Product types / Product type details form errors 1`]
                     </button>
                   </th>
                   <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    class="MuiTableCell-root-id MuiTableCell-head-id ProductTypeAttributes-colName-id"
                     scope="col"
                   >
                     Attribute name
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id ProductTypeAttributes-colName-id"
+                    scope="col"
+                  >
+                    Slug
                   </th>
                   <th
                     class="MuiTableCell-root-id MuiTableCell-head-id"
@@ -68732,11 +68759,16 @@ exports[`Storyshots Views / Product types / Product type details form errors 1`]
                     </button>
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-colName-id"
                   >
                     Author
                   </td>
                   <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-colSlug-id"
+                  >
+                    author
+                  </td>
+                  <td
                     class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-iconCell-id"
                   >
                     <button
@@ -68822,11 +68854,16 @@ exports[`Storyshots Views / Product types / Product type details form errors 1`]
                     </button>
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-colName-id"
                   >
                     Language
                   </td>
                   <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-colSlug-id"
+                  >
+                    language
+                  </td>
+                  <td
                     class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-iconCell-id"
                   >
                     <button
@@ -68912,9 +68949,14 @@ exports[`Storyshots Views / Product types / Product type details form errors 1`]
                     </button>
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-colName-id"
                   >
                     Publisher
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-colSlug-id"
+                  >
+                    publisher
                   </td>
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-iconCell-id"
@@ -69248,10 +69290,16 @@ exports[`Storyshots Views / Product types / Product type details loading 1`] = `
                     </button>
                   </th>
                   <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    class="MuiTableCell-root-id MuiTableCell-head-id ProductTypeAttributes-colName-id"
                     scope="col"
                   >
                     Attribute name
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id ProductTypeAttributes-colName-id"
+                    scope="col"
+                  >
+                    Slug
                   </th>
                   <th
                     class="MuiTableCell-root-id MuiTableCell-head-id"
@@ -69320,7 +69368,16 @@ exports[`Storyshots Views / Product types / Product type details loading 1`] = `
                     </button>
                   </td>
                   <td
-                    class="MuiTableCell-root-id MuiTableCell-body-id"
+                    class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-colName-id"
+                  >
+                    <span
+                      class="Skeleton-skeleton-id"
+                    >
+                      ‌
+                    </span>
+                  </td>
+                  <td
+                    class="MuiTableCell-root-id MuiTableCell-body-id ProductTypeAttributes-colSlug-id"
                   >
                     <span
                       class="Skeleton-skeleton-id"
@@ -69636,10 +69693,16 @@ exports[`Storyshots Views / Product types / Product type details no attributes 1
                   class="MuiTableRow-root-id MuiTableRow-head-id"
                 >
                   <th
-                    class="MuiTableCell-root-id MuiTableCell-head-id"
+                    class="MuiTableCell-root-id MuiTableCell-head-id ProductTypeAttributes-colName-id"
                     scope="col"
                   >
                     Attribute name
+                  </th>
+                  <th
+                    class="MuiTableCell-root-id MuiTableCell-head-id ProductTypeAttributes-colName-id"
+                    scope="col"
+                  >
+                    Slug
                   </th>
                   <th
                     class="MuiTableCell-root-id MuiTableCell-head-id"
