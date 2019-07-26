@@ -6,8 +6,12 @@ from ....checkout import AddressType
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from .base import INVALID_TOKEN, BaseAddressDelete, BaseAddressUpdate
-from .staff import CustomerCreate
+from .base import (
+    INVALID_TOKEN,
+    BaseAddressDelete,
+    BaseAddressUpdate,
+    BaseCustomerCreate,
+)
 
 
 class AccountRegisterInput(graphene.InputObjectType):
@@ -47,7 +51,7 @@ class AccountInput(graphene.InputObjectType):
     )
 
 
-class AccountUpdate(CustomerCreate):
+class AccountUpdate(BaseCustomerCreate):
     class Arguments:
         input = AccountInput(
             description="Fields required to update the account of the logged-in user.",
