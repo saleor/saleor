@@ -8,15 +8,14 @@ calling some actions when an order has been created.
 Plugin
 ------
 Saleor has some plugins implemented by default. These plugins are located in ``saleor.core.extensions.plugins``.
-The ExtensionManager needs to receive a list of enabled plugins. It can be done by including the plugin python path in the
+The ExtensionManager needs to receive a list of enabled plugins. It can be done by including the Python plugin path in the
 ``settings.PLUGINS`` list.
 
 Writing Your Own Plugin
 ^^^^^^^^^^^^^^^^^^^^^^^
 A custom plugin has to inherit from the BasePlugin class. It should overwrite base methods. The plugin needs to be added
 to the ``settings.PLUGINS``
-
-Your own plugin can be written as a class whose instances are callable, like this:
+Your own plugin can be written as a class which has callable instances, like this:
 
 
 ``custom/plugin.py``
@@ -50,8 +49,7 @@ Your own plugin can be written as a class whose instances are callable, like thi
 
 Activating Plugin
 ^^^^^^^^^^^^^^^^^
-
-To activate the plugin, add it to the ``PLUGINS`` list in your Django settings
+To activate the plugin, add it to the ``PLUGINS`` list in your Django settings:
 
 
 ``settings.py``
@@ -65,8 +63,8 @@ ExtensionsManager
 -----------------
 ExtensionsManager is located in ``saleor.core.extensions.base_plugin``.
 It is a class responsible for handling all declared plugins and serving a response from them.
-It serves a default response in case of a non-declared plugin.  There is a possibility to overwrite ExtensionsManager
-class by implementing it on its own. Saleor will discover the manager class by taking declared path from
+It serves a default response in case of a non-declared plugin.  There is a possibility to overwrite an ExtensionsManager
+class by implementing it on its own. Saleor will discover the manager class by taking the declared path from
 ``settings.EXTENSIONS_MANAGER``.
 Each Django request object has its own manager included as the ``extensions`` field. It is attached in the Saleor middleware.
 
@@ -74,8 +72,8 @@ Each Django request object has its own manager included as the ``extensions`` fi
 BasePlugin
 ----------
 BasePlugin is located in ``saleor.core.extensions.base_plugin``. It is an abstract class for storing all methods
-available for any plugin. All methods take the ``previous_value`` parameter. ``previous_value`` contains a value
-calculated by the previous plugin in the queue. If the plugin is first, it will use the default value calculated by
+available for any plugin. All methods take the ``previous_value`` parameter. This contains a value
+calculated by the previous plugin in the queue. If the plugin is first in line, it will use the default value calculated by
 the manager.
 
 
