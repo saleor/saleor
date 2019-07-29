@@ -58,8 +58,8 @@ const StaffDetailsPage: React.StatelessComponent<StaffDetailsPageProps> = ({
   onSubmit
 }: StaffDetailsPageProps) => {
   const initialForm: FormData = {
-    email: maybe(() => staffMember.email),
-    firstName: maybe(() => staffMember.firstName),
+    email: maybe(() => staffMember.email, ""),
+    firstName: maybe(() => staffMember.firstName, ""),
     hasFullAccess: maybe(
       () =>
         permissions.filter(
@@ -71,7 +71,7 @@ const StaffDetailsPage: React.StatelessComponent<StaffDetailsPageProps> = ({
       false
     ),
     isActive: maybe(() => staffMember.isActive, false),
-    lastName: maybe(() => staffMember.lastName),
+    lastName: maybe(() => staffMember.lastName, ""),
     permissions: maybe(() => staffMember.permissions, []).map(perm => perm.code)
   };
   return (
