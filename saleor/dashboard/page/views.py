@@ -6,7 +6,7 @@ from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
-from ...menu.utils import get_menus_that_needs_update, update_menus
+from ...menu.utils import get_menus_that_need_update, update_menus
 from ...page.models import Page
 from ..views import staff_member_required
 from .filters import PageFilter
@@ -59,7 +59,7 @@ def _page_edit(request, page):
 def page_delete(request, pk):
     page = get_object_or_404(Page, pk=pk)
     if request.POST:
-        menus = get_menus_that_needs_update(page=page)
+        menus = get_menus_that_need_update(page=page)
         page.delete()
         if menus:
             update_menus(menus)

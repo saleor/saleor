@@ -22,8 +22,8 @@ def update_menu_item_linked_object(menu_item, linked_object):
     return menu_item.save()
 
 
-def get_menus_that_needs_update(collection=None, categories=None, page=None):
-    """Returns PrimaryKeys of Menu instances that will be affected by
+def get_menus_that_need_update(collection=None, categories=None, page=None):
+    """Returns primary keys of Menu instances that will be affected by
     deleting one of the listed objects, therefore needs to be updated
     afterwards.
     """
