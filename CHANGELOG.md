@@ -26,6 +26,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix generating random avatars when updating staff accounts - #4521 by @maarcingebala
 - Changed license for artwork to CC-BY 4.0
 - Fix rendering user avatar when it's null #4546 by @maarcingebala
+- Add e2e test config - #4553 by @dominik-zeglen
 
 ## 2.8.0
 
