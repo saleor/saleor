@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
-from ...menu.utils import get_menus_that_needs_update, update_menus
+from ...menu.utils import get_menus_that_need_update, update_menus
 from ...product.models import Category
 from ..views import staff_member_required
 from .filters import CategoryFilter
@@ -109,7 +109,7 @@ def category_delete(request, pk):
     category = get_object_or_404(Category, pk=pk)
     if request.method == "POST":
         descendants = category.get_descendants()
-        menus = get_menus_that_needs_update(categories=descendants)
+        menus = get_menus_that_need_update(categories=descendants)
         category.delete()
         if menus:
             update_menus(menus)

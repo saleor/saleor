@@ -11,7 +11,7 @@ from saleor.menu.models import Menu, MenuItem, MenuItemTranslation
 from saleor.menu.utils import (
     get_menu_as_json,
     get_menu_item_as_dict,
-    get_menus_that_needs_update,
+    get_menus_that_need_update,
     update_menu,
     update_menu_item_linked_object,
     update_menus,
@@ -373,8 +373,8 @@ def test_update_menu(mock_json_menu, menu):
     assert menu.json_content == "Return value"
 
 
-def test_get_menus_that_needs_update(category, collection, page):
-    assert not get_menus_that_needs_update()
+def test_get_menus_that_need_update(category, collection, page):
+    assert not get_menus_that_need_update()
 
     menus = Menu.objects.bulk_create(
         [Menu(name="category"), Menu(name="collection"), Menu(name="page")]
@@ -384,7 +384,7 @@ def test_get_menus_that_needs_update(category, collection, page):
     MenuItem.objects.create(name="item", menu=menus[1], collection=collection),
     MenuItem.objects.create(name="item", menu=menus[2], page=page)
 
-    result = get_menus_that_needs_update(
+    result = get_menus_that_need_update(
         categories=[category], collection=collection, page=page
     )
     assert sorted(list(result)) == sorted([m.pk for m in menus])
