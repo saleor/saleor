@@ -7,7 +7,7 @@ from django.contrib.postgres.fields import JSONField
 from django.core import exceptions
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import Q
+from django.db.models import F, Q
 from django.urls import reverse
 from django.utils.encoding import smart_text
 from django.utils.html import strip_tags
@@ -145,7 +145,10 @@ class ProductsQueryset(PublishedQuerySet):
         qs = self.visible_to_user(user).prefetch_related(
             "collections__products__collectionproduct"
         )
-        qs = qs.order_by("collectionproduct__sort_order")
+        qs = qs.order_by(
+            F("collectionproduct__sort_order").asc(nulls_last=True),
+            F("collectionproduct__id"),
+        )
         return qs
 
 
@@ -508,13 +511,23 @@ class AttributeQuerySet(models.QuerySet):
             return self.all()
         return self.get_public_attributes()
 
+    def _get_sorted_m2m_field(self, m2m_field_name: str, asc: bool):
+        sort_order_field = F(f"{m2m_field_name}__sort_order")
+        id_field = F(f"{m2m_field_name}__id")
+        if asc:
+            sort_method = sort_order_field.asc(nulls_last=True)
+            id_sort = id_field
+        else:
+            sort_method = sort_order_field.desc(nulls_first=True)
+            id_sort = id_field.desc()
+
+        return self.order_by(sort_method, id_sort)
+
     def product_attributes_sorted_for_dashboard(self, asc=True):
-        direction = "" if asc else "-"
-        return self.order_by(f"{direction}attributeproduct__sort_order")
+        return self._get_sorted_m2m_field("attributeproduct", asc)
 
     def variant_attributes_sorted_for_dashboard(self, asc=True):
-        direction = "" if asc else "-"
-        return self.order_by(f"{direction}attributevariant__sort_order")
+        return self._get_sorted_m2m_field("attributevariant", asc)
 
 
 class Attribute(ModelWithMetadata):
@@ -602,7 +615,7 @@ class AttributeValue(SortableModel):
     translated = TranslationProxy()
 
     class Meta:
-        ordering = ("sort_order",)
+        ordering = ("sort_order", "id")
         unique_together = ("name", "attribute")
 
     def __str__(self):

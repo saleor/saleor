@@ -7,7 +7,6 @@ from django.db.models import Q
 from django.template.defaultfilters import slugify
 
 from ....product import AttributeInputType, models
-from ...core.interfaces import MoveOperation
 from ...core.mutations import (
     BaseMutation,
     ClearMetaBaseMutation,
@@ -15,11 +14,12 @@ from ...core.mutations import (
     ModelMutation,
     UpdateMetaBaseMutation,
 )
-from ...core.utils import from_global_id_strict_type, perform_reordering
+from ...core.utils import from_global_id_strict_type
+from ...core.utils.reordering import perform_reordering
 from ...product.types import ProductType
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..enums import AttributeInputTypeEnum, AttributeTypeEnum
-from ..types import Attribute
+from ..types import Attribute, AttributeValue
 
 
 class AttributeValueCreateInput(graphene.InputObjectType):
@@ -96,12 +96,11 @@ class AttributeAssignInput(graphene.InputObjectType):
     )
 
 
-class AttributeReorderInput(graphene.InputObjectType):
-    id = graphene.ID(required=True, description="The ID of the attribute to move")
+class ReorderInput(graphene.InputObjectType):
+    id = graphene.ID(required=True, description="The ID of the item to move")
     sort_order = graphene.Int(
         description=(
-            "The relative sorting position of the attribute (from -inf to +inf) "
-            "starting from the first given attribute's actual position."
+            "The new relative sorting position of the item (from -inf to +inf)"
         )
     )
 
@@ -598,14 +597,14 @@ class ProductTypeReorderAttributes(BaseMutation):
             required=True, description="The attribute type to reorder."
         )
         moves = graphene.List(
-            AttributeReorderInput,
+            ReorderInput,
             required=True,
             description="The list of attribute reordering operations.",
         )
 
     @classmethod
     def perform_mutation(cls, _root, info, product_type_id, type, moves):
-        product_type_id = from_global_id_strict_type(
+        pk = from_global_id_strict_type(
             info, product_type_id, only_type=ProductType, field="product_type_id"
         )
 
@@ -614,26 +613,91 @@ class ProductTypeReorderAttributes(BaseMutation):
         else:
             m2m_field = "attributevariant"
 
-        product_type = models.ProductType.objects.prefetch_related(m2m_field).get(
-            pk=product_type_id
-        )
+        try:
+            product_type = models.ProductType.objects.prefetch_related(m2m_field).get(
+                pk=pk
+            )
+        except ObjectDoesNotExist:
+            raise ValidationError(
+                {
+                    "product_type_id": (
+                        f"Couldn't resolve to a product type: {product_type_id}"
+                    )
+                }
+            )
 
         attributes_m2m = getattr(product_type, m2m_field)
-        operations = []
+        operations = {}
 
+        # Resolve the attributes
         for move_info in moves:
-            attribute_id = from_global_id_strict_type(
+            attribute_pk = from_global_id_strict_type(
                 info, move_info.id, only_type=Attribute, field="moves"
             )
 
             try:
-                node = attributes_m2m.get(attribute_id=attribute_id)
+                m2m_info = attributes_m2m.get(attribute_id=int(attribute_pk))
             except ObjectDoesNotExist:
                 raise ValidationError(
-                    {"moves": "Couldn't resolve to an attribute: %s" % move_info.id}
+                    {"moves": f"Couldn't resolve to an attribute: {move_info.id}"}
                 )
+            operations[m2m_info.pk] = move_info.sort_order
 
-            operations.append(MoveOperation(node=node, sort_order=move_info.sort_order))
-
-        perform_reordering(operations)
+        with transaction.atomic():
+            perform_reordering(attributes_m2m, operations)
         return ProductTypeReorderAttributes(product_type=product_type)
+
+
+class AttributeReorderValues(BaseMutation):
+    attribute = graphene.Field(
+        Attribute, description="Attribute from which values are reordered."
+    )
+
+    class Meta:
+        description = "Reorder the values of an attribute"
+        permissions = ("product.manage_products",)
+
+    class Arguments:
+        attribute_id = graphene.Argument(
+            graphene.ID, required=True, description="ID of an attribute."
+        )
+        moves = graphene.List(
+            ReorderInput,
+            required=True,
+            description="The list of reordering operations for given attribute values.",
+        )
+
+    @classmethod
+    def perform_mutation(cls, _root, info, attribute_id, moves):
+        pk = from_global_id_strict_type(
+            info, attribute_id, only_type=Attribute, field="attribute_id"
+        )
+
+        try:
+            attribute = models.Attribute.objects.prefetch_related("values").get(pk=pk)
+        except ObjectDoesNotExist:
+            raise ValidationError(
+                {"attribute_id": (f"Couldn't resolve to an attribute: {attribute_id}")}
+            )
+
+        values_m2m = attribute.values
+        operations = {}
+
+        # Resolve the values
+        for move_info in moves:
+            value_pk = from_global_id_strict_type(
+                info, move_info.id, only_type=AttributeValue, field="moves"
+            )
+
+            try:
+                m2m_info = values_m2m.get(pk=int(value_pk))
+            except ObjectDoesNotExist:
+                raise ValidationError(
+                    {"moves": f"Couldn't resolve to an attribute value: {move_info.id}"}
+                )
+            operations[m2m_info.pk] = move_info.sort_order
+
+        with transaction.atomic():
+            perform_reordering(values_m2m, operations)
+        attribute.refresh_from_db(fields=["values"])
+        return AttributeReorderValues(attribute=attribute)

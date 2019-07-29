@@ -42,7 +42,7 @@ def remove_duplicates(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    dependencies = [("product", "0102_attribute_available_in_grid")]
+    dependencies = [("product", "0104_attribute_input_type_multiple_values")]
 
     operations = [
         migrations.RunPython(remove_duplicates),
