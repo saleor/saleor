@@ -25,6 +25,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Allow selecting the number of rows displayed in dashboard's list views - #4414 by @benekex2
 - Fix generating random avatars when updating staff accounts - #4521 by @maarcingebala
 - Changed license for artwork to CC-BY 4.0
+- Input UI changes - #4542 by @benekex2
 - Fix rendering user avatar when it's null #4546 by @maarcingebala
 - Do not lose focus while typing in product description field - #4549 by @dominik-zeglen
 
