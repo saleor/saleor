@@ -166,6 +166,7 @@ export default (colors: IThemeColors): Theme =>
           padding: "25px 12px 8px 12px"
         },
         root: {
+          borderColor: colors.input.border,
           "& fieldset": {
             borderColor: [[colors.input.border], "!important"] as any
           },
