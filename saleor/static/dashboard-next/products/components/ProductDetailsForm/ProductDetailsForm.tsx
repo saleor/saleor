@@ -7,6 +7,7 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
+import { RawDraftContentState } from "draft-js";
 import React from "react";
 
 import CardTitle from "@saleor/components/CardTitle";
@@ -29,40 +30,53 @@ interface ProductDetailsFormProps extends WithStyles<typeof styles> {
   data: CreateFormData & UpdateFormData;
   disabled?: boolean;
   errors: { [key: string]: string };
+  // Draftail isn't controlled - it needs only initial input
+  // because it's autosaving on its own.
+  // Ref https://github.com/mirumee/saleor/issues/4470
+  initialDescription: RawDraftContentState;
   onChange(event: any);
 }
 
 export const ProductDetailsForm = withStyles(styles, {
   name: "ProductDetailsForm"
-})(({ classes, data, disabled, errors, onChange }: ProductDetailsFormProps) => (
-  <Card>
-    <CardTitle title={i18n.t("General information")} />
-    <CardContent>
-      <div className={classes.root}>
-        <TextField
-          error={!!errors.name}
-          helperText={errors.name}
+})(
+  ({
+    classes,
+    data,
+    disabled,
+    errors,
+    initialDescription,
+    onChange
+  }: ProductDetailsFormProps) => (
+    <Card>
+      <CardTitle title={i18n.t("General information")} />
+      <CardContent>
+        <div className={classes.root}>
+          <TextField
+            error={!!errors.name}
+            helperText={errors.name}
+            disabled={disabled}
+            fullWidth
+            label={i18n.t("Name")}
+            name="name"
+            rows={5}
+            value={data.name}
+            onChange={onChange}
+          />
+        </div>
+        <FormSpacer />
+        <RichTextEditor
           disabled={disabled}
-          fullWidth
-          label={i18n.t("Name")}
-          name="name"
-          rows={5}
-          value={data.name}
+          error={!!errors.descriptionJson}
+          helperText={errors.descriptionJson}
+          initial={initialDescription}
+          label={i18n.t("Description")}
+          name="description"
           onChange={onChange}
         />
-      </div>
-      <FormSpacer />
-      <RichTextEditor
-        disabled={disabled}
-        error={!!errors.descriptionJson}
-        helperText={errors.descriptionJson}
-        initial={data.description}
-        label={i18n.t("Description")}
-        name="description"
-        onChange={onChange}
-      />
-    </CardContent>
-  </Card>
-));
+      </CardContent>
+    </Card>
+  )
+);
 ProductDetailsForm.displayName = "ProductDetailsForm";
 export default ProductDetailsForm;
