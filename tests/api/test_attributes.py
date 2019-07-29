@@ -1817,3 +1817,87 @@ def test_sort_attributes_by_default_sorting(api_client):
     assert len(attributes) == 2
     assert attributes[0]["node"]["slug"] == "b"
     assert attributes[1]["node"]["slug"] == "a"
+
+
+@pytest.mark.parametrize("is_variant", (True, False))
+def test_attributes_of_products_are_sorted(
+    staff_api_client, product, color_attribute, is_variant
+):
+    """Ensures the attributes of products and variants are sorted."""
+
+    variant = product.variants.first()
+
+    if is_variant:
+        query = """
+            query($id: ID!) {
+              productVariant(id: $id) {
+                attributes {
+                  attribute {
+                    id
+                  }
+                }
+              }
+            }
+        """
+    else:
+        query = """
+            query($id: ID!) {
+              product(id: $id) {
+                attributes {
+                  attribute {
+                    id
+                  }
+                }
+              }
+            }
+        """
+
+    # Create a dummy attribute with a higher ID
+    # This will allow us to make sure it is always the last attribute
+    # when sorted by ID. Thus, we are sure the query is actually passing the test.
+    other_attribute = Attribute.objects.create(name="Other", slug="other")
+
+    # Add the attribute to the product type
+    if is_variant:
+        product.product_type.variant_attributes.set([color_attribute, other_attribute])
+    else:
+        product.product_type.product_attributes.set([color_attribute, other_attribute])
+
+    # Retrieve the M2M object for the attribute vs the product type
+    if is_variant:
+        m2m_rel_other_attr = other_attribute.attributevariant.last()
+    else:
+        m2m_rel_other_attr = other_attribute.attributeproduct.last()
+
+    # Push the last attribute to the top and let the others to None
+    m2m_rel_other_attr.sort_order = 0
+    m2m_rel_other_attr.save(update_fields=["sort_order"])
+
+    # Assign attributes to the product
+    node = variant if is_variant else product
+    node.attributes = {
+        str(color_attribute.pk): [str(color_attribute.values.first().pk)]
+    }
+    node.save(update_fields=["attributes"])
+
+    # Sort the database attributes by their sort order and ID (when None)
+    expected_order = [other_attribute.pk, color_attribute.pk]
+
+    # Make the node ID
+    if is_variant:
+        node_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    else:
+        node_id = graphene.Node.to_global_id("Product", product.pk)
+
+    # Retrieve the attributes
+    data = get_graphql_content(staff_api_client.post_graphql(query, {"id": node_id}))[
+        "data"
+    ]
+    attributes = data["productVariant" if is_variant else "product"]["attributes"]
+    actual_order = [
+        int(graphene.Node.from_global_id(attr["attribute"]["id"])[1])
+        for attr in attributes
+    ]
+
+    # Compare the received data against our expectations
+    assert actual_order == expected_order
