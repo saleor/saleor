@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import TYPE_CHECKING, Any, List, Union
 
 from django_countries.fields import Country
@@ -105,4 +106,9 @@ class BasePlugin:
     def get_tax_code_from_object_meta(
         self, obj: Union["Product", "ProductType"], previous_value: "TaxType"
     ) -> "TaxType":
+        return NotImplemented
+
+    def get_tax_rate_percentage_value(
+        self, obj: Union["Product", "ProductType"], country: Country, previous_value
+    ) -> Decimal:
         return NotImplemented

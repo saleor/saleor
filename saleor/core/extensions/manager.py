@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import TYPE_CHECKING, Any, List, Union
 
 from django.conf import settings
@@ -127,7 +128,6 @@ class ExtensionsManager:
         return self.__run_method_on_plugins("show_taxes_on_storefront", default_value)
 
     def taxes_are_enabled(self) -> bool:
-
         default_value = False
         return self.__run_method_on_plugins("taxes_are_enabled", default_value)
 
@@ -191,6 +191,14 @@ class ExtensionsManager:
         return self.__run_method_on_plugins(
             "get_tax_code_from_object_meta", default_value, obj
         )
+
+    def get_tax_rate_percentage_value(
+        self, obj: Union["Product", "ProductType"], country: Country
+    ) -> Decimal:
+        default_value = Decimal("0").quantize(Decimal("1."))
+        return self.__run_method_on_plugins(
+            "get_tax_rate_percentage_value", default_value, obj, country
+        ).quantize(Decimal("1."))
 
 
 def get_extensions_manager(

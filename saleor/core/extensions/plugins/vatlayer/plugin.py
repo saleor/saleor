@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import TYPE_CHECKING, Any, List, Union
 
 from django.conf import settings
@@ -263,3 +264,17 @@ class VatlayerPlugin(BasePlugin):
     ) -> "TaxType":
         tax = obj.get_meta(namespace=self.META_NAMESPACE, client=self.META_FIELD)
         return TaxType(code=tax.get("code", ""), description=tax.get("description", ""))
+
+    def get_tax_rate_percentage_value(
+        self, obj: Union["Product", "ProductType"], country: Country, previous_value
+    ) -> Decimal:
+        """Return tax rate percentage value for given tax rate type in current
+        country."""
+        if not self._enabled:
+            return previous_value
+        taxes = self._get_taxes_for_country(country)
+        if not taxes:
+            return Decimal(0)
+        rate_name = self.__get_tax_code_from_object_meta(obj).code
+        tax = taxes.get(rate_name) or taxes.get(DEFAULT_TAX_RATE_NAME)
+        return Decimal(tax["value"])

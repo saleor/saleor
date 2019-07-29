@@ -1,3 +1,4 @@
+from decimal import Decimal
 from unittest import mock
 from unittest.mock import Mock
 from urllib.parse import urlparse
@@ -498,3 +499,14 @@ def test_calculate_order_line_unit(vatlayer, order_line, shipping_zone, site_set
     assert line_price == TaxedMoney(
         net=Money("8.13", "USD"), gross=Money("10.00", "USD")
     )
+
+
+def test_get_tax_rate_percentage_value(
+    vatlayer, order_line, shipping_zone, site_settings, product
+):
+    manager = get_extensions_manager(
+        plugins=["saleor.core.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+    )
+    country = Country("PL")
+    tax_rate = manager.get_tax_rate_percentage_value(product, country)
+    assert tax_rate == Decimal("23")
