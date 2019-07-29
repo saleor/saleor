@@ -2,7 +2,7 @@ import React from "react";
 
 import { ChangeEvent } from "@saleor/hooks/useForm";
 
-export type UseSearchQuery = [string, (event: ChangeEvent) => void];
+export type UseSearchQuery = [string, (event: ChangeEvent) => void, () => void];
 function useSearchQuery(
   onFetch: (query: string) => void,
   initial?: string
@@ -15,7 +15,15 @@ function useSearchQuery(
     setQuery(value);
   };
 
-  return [query, change];
+  const reset = () =>
+    change({
+      target: {
+        name: "",
+        value: initial || ""
+      }
+    });
+
+  return [query, change, reset];
 }
 
 export default useSearchQuery;
