@@ -179,12 +179,11 @@ export default (colors: IThemeColors): Theme =>
           position: "relative"
         },
         root: {
-          borderColor: colors.input.border,
-          "& legend": {
-            display: "none"
-          },
           "& fieldset": {
             borderColor: [[colors.input.border], "!important"] as any
+          },
+          "& legend": {
+            display: "none"
           },
           "&$disabled": {
             "& fieldset": {
@@ -212,7 +211,8 @@ export default (colors: IThemeColors): Theme =>
               color: colors.input.textHover,
               zIndex: 2
             }
-          }
+          },
+          borderColor: colors.input.border
         }
       },
       MuiSwitch: {
