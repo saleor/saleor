@@ -52,6 +52,7 @@ export const VoucherDetails: React.StatelessComponent = () => {
                 voucherCreate({
                   variables: {
                     input: {
+                      applyOncePerCustomer: formData.applyOncePerCustomer,
                       applyOncePerOrder: formData.applyOncePerOrder,
                       code: formData.code,
                       discountValue:
@@ -65,7 +66,16 @@ export const VoucherDetails: React.StatelessComponent = () => {
                       endDate: formData.hasEndDate
                         ? joinDateTime(formData.endDate, formData.endTime)
                         : null,
-                      minAmountSpent: parseFloat(formData.minAmountSpent),
+                      minAmountSpent:
+                        formData.requirementsPicker === "NONE" ||
+                        formData.requirementsPicker === "ITEM"
+                          ? 0
+                          : parseFloat(formData.minAmountSpent),
+                      minCheckoutItemsQuantity:
+                        formData.requirementsPicker === "NONE" ||
+                        formData.requirementsPicker === "ORDER"
+                          ? 0
+                          : parseFloat(formData.minCheckoutItemsQuantity),
                       startDate: joinDateTime(
                         formData.startDate,
                         formData.startTime

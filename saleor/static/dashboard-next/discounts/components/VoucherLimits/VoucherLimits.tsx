@@ -51,6 +51,12 @@ const VoucherLimits = ({
             fullWidth
           />
         )}
+        <ControlledCheckbox
+          checked={data.applyOncePerCustomer}
+          label={i18n.t("Limit to one use per customer")}
+          name={"applyOncePerCustomer" as keyof FormData}
+          onChange={onChange}
+        />
       </CardContent>
     </Card>
   );
