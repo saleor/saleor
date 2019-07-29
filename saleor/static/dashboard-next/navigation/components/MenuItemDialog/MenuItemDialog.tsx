@@ -217,9 +217,13 @@ const MenuItemDialog: React.StatelessComponent<MenuItemDialogProps> = ({
       }}
     >
       <DialogTitle>
-        {i18n.t("Add Item", {
-          context: "create new menu item"
-        })}
+        {!!initial
+          ? i18n.t("Edit Item", {
+              context: "edit menu item"
+            })
+          : i18n.t("Add Item", {
+              context: "create new menu item"
+            })}
       </DialogTitle>
       <DialogContent style={{ overflowY: "visible" }}>
         <TextField
