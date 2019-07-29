@@ -4,13 +4,21 @@ from typing import Dict, List
 
 import graphene
 import pytest
+from django.core.exceptions import ValidationError
 from graphql_relay import from_global_id
 
-from saleor.graphql.menu.mutations import NavigationType
+from saleor.graphql.menu.mutations import NavigationType, _validate_menu_item_instance
 from saleor.menu.models import Menu, MenuItem
+from saleor.product.models import Category
 from tests.api.utils import get_graphql_content
 
 from .utils import assert_no_permission, menu_item_to_json
+
+
+def test_validate_menu_item_instance(category, page):
+    _validate_menu_item_instance({"category": category}, "category", Category)
+    with pytest.raises(ValidationError):
+        _validate_menu_item_instance({"category": page}, "category", Category)
 
 
 def test_menu_query(user_api_client, menu):
