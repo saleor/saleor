@@ -102,7 +102,7 @@ const styles = (theme: Theme) =>
           "&:hover": {
             borderColor: theme.palette.primary.main
           },
-          border: `1px rgba(0, 0, 0, 0.23) solid`,
+          border: `1px #3d3d3d solid`,
           borderTopLeftRadius: 4,
           borderTopRightRadius: 4,
           padding: "27px 12px 10px",

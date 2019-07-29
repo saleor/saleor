@@ -96,6 +96,9 @@ const SalePricing = withStyles(styles, {
           label={i18n.t("Start Date")}
           value={data.startDate}
           type="date"
+          InputLabelProps={{
+            shrink: true
+          }}
           fullWidth
         />
         <TextField
@@ -107,6 +110,9 @@ const SalePricing = withStyles(styles, {
           label={i18n.t("End Date")}
           value={data.endDate}
           type="date"
+          InputLabelProps={{
+            shrink: true
+          }}
           fullWidth
         />
       </CardContent>

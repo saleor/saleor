@@ -24,10 +24,10 @@ const dark: IThemeColors = {
     disabled: "rgba(32, 33, 36, 0.6)"
   },
   input: {
+    border: "#FCFCFC",
     default: "#25262A",
     disabled: "none",
-    focused: "#25262A",
-    text: "#9E9D9D",
+    text: "#FCFCFC",
     textHover: "#616161"
   },
   paperBorder: "#252728",
@@ -52,10 +52,10 @@ const light: IThemeColors = {
     disabled: "rgba(216, 216, 216, 0.3)"
   },
   input: {
+    border: "#3D3D3D",
     default: "#FFFFFF",
     disabled: "#EAEAEA",
-    focused: "#FFFFFF",
-    text: "#9D9D9D",
+    text: "#3D3D3D",
     textHover: "#616161"
   },
   paperBorder: "#EAEAEA",
