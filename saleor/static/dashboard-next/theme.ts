@@ -71,6 +71,11 @@ export default (colors: IThemeColors): Theme =>
           flexDirection: "row-reverse" as "row-reverse"
         }
       },
+      MuiDialogContent: {
+        root: {
+          padding: "5px 24px 24px"
+        }
+      },
       MuiFormLabel: {
         filled: {
           color: [[colors.primary], "!important"] as any
