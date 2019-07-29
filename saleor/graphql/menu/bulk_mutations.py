@@ -30,6 +30,6 @@ class MenuItemBulkDelete(ModelBulkDeleteMutation):
 
     @classmethod
     def bulk_action(cls, queryset):
-        menu_ids = set([item.menu_id for item in queryset])
+        menu_ids = {item.menu_id for item in queryset}
         queryset.delete()
         update_menus(menu_ids)
