@@ -1,4 +1,5 @@
 from collections import defaultdict
+from decimal import Decimal
 from typing import Iterable
 
 from django_prices.templatetags import prices_i18n
@@ -81,9 +82,10 @@ def get_variant_picker_data(
             )
 
     product_price = extensions.apply_taxes_to_product(product, product.price, country)
-    tax_rates = 0
+    tax_rates = Decimal(0)
     if product_price.tax and product_price.net:
-        tax_rates = int((product_price.tax / product_price.net) * 100)
+        tax_rates = (product_price.tax / product_price.net) * 100
+        tax_rates = tax_rates.quantize(Decimal("1."))
 
     data["availability"] = {
         "discount": price_as_dict(availability.discount),
