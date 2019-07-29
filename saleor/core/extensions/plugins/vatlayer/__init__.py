@@ -76,20 +76,24 @@ class TaxRateType:
 DEFAULT_TAX_RATE_NAME = TaxRateType.STANDARD
 
 
+def _convert_to_naive_taxed_money(base, taxes, rate_name):
+    """Naively convert Money to TaxedMoney for consistency with price
+     handling logic across the codebase, passthrough other money types"""
+    if isinstance(base, Money):
+        return TaxedMoney(net=base, gross=base)
+    if isinstance(base, MoneyRange):
+        return TaxedMoneyRange(
+            apply_tax_to_price(taxes, rate_name, base.start),
+            apply_tax_to_price(taxes, rate_name, base.stop),
+        )
+    if isinstance(base, (TaxedMoney, TaxedMoneyRange)):
+        return base
+    raise TypeError("Unknown base for flat_tax: %r" % (base,))
+
+
 def apply_tax_to_price(taxes, rate_name, base):
     if not taxes or not rate_name:
-        # Naively convert Money to TaxedMoney for consistency with price
-        # handling logic across the codebase, passthrough other money types
-        if isinstance(base, Money):
-            return TaxedMoney(net=base, gross=base)
-        if isinstance(base, MoneyRange):
-            return TaxedMoneyRange(
-                apply_tax_to_price(taxes, rate_name, base.start),
-                apply_tax_to_price(taxes, rate_name, base.stop),
-            )
-        if isinstance(base, (TaxedMoney, TaxedMoneyRange)):
-            return base
-        raise TypeError("Unknown base for flat_tax: %r" % (base,))
+        return _convert_to_naive_taxed_money(base, taxes, rate_name)
 
     if rate_name in taxes:
         tax_to_apply = taxes[rate_name]["tax"]

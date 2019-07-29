@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, List, Union
+from typing import TYPE_CHECKING, Any, Dict, List, Union
 from urllib.parse import urljoin
 
 from django.conf import settings
@@ -80,6 +80,20 @@ class AvataxPlugin(BasePlugin):
             total -= voucher_amount
         return max(total, zero_taxed_money(total.currency))
 
+    def _calculate_checkout_subtotal(
+        self, currency: str, lines: List[Dict]
+    ) -> TaxedMoney:
+        sub_tax = Decimal(0.0)
+        sub_net = Decimal(0.0)
+        for line in lines:
+            if line["itemCode"] == "Shipping":
+                continue
+            sub_tax += Decimal(line["tax"])
+            sub_net += Decimal(line.get("lineAmount", 0.0))
+        sub_total_gross = Money(sub_net + sub_tax, currency)
+        sub_total_net = Money(sub_net, currency)
+        return TaxedMoney(net=sub_total_net, gross=sub_total_gross)
+
     def calculate_checkout_subtotal(
         self,
         checkout: "Checkout",
@@ -99,17 +113,22 @@ class AvataxPlugin(BasePlugin):
             return TaxedMoney(net=sub_total, gross=sub_total)
 
         currency = response.get("currencyCode")
-        sub_tax = Decimal(0.0)
-        sub_net = Decimal(0.0)
-        for line in response.get("lines", []):
-            if line["itemCode"] == "Shipping":
-                continue
-            sub_tax += Decimal(line["tax"])
-            sub_net += Decimal(line.get("lineAmount", 0.0))
+        return self._calculate_checkout_subtotal(currency, response.get("lines", []))
 
-        sub_total_gross = Money(sub_net + sub_tax, currency)
-        sub_total_net = Money(sub_net, currency)
-        return TaxedMoney(net=sub_total_net, gross=sub_total_gross)
+    def _calculate_checkout_shipping(
+        self, currency: str, lines: List[Dict], shipping_price: Money
+    ) -> TaxedMoney:
+        shipping_tax = Decimal(0.0)
+        shipping_net = shipping_price.amount
+        for line in lines:
+            if line["itemCode"] == "Shipping":
+                shipping_net = Decimal(line["lineAmount"])
+                shipping_tax = Decimal(line["tax"])
+                break
+
+        shipping_gross = Money(amount=shipping_net + shipping_tax, currency=currency)
+        shipping_net = Money(amount=shipping_net, currency=currency)
+        return TaxedMoney(net=shipping_net, gross=shipping_gross)
 
     def calculate_checkout_shipping(
         self,
@@ -128,18 +147,10 @@ class AvataxPlugin(BasePlugin):
         if not response or "error" in response:
             return TaxedMoney(net=shipping_price, gross=shipping_price)
 
-        shipping_tax = Decimal(0.0)
-        shipping_net = shipping_price.amount
         currency = response.get("currencyCode")
-        for line in response.get("lines", []):
-            if line["itemCode"] == "Shipping":
-                shipping_net = Decimal(line["lineAmount"])
-                shipping_tax = Decimal(line["tax"])
-                break
-
-        shipping_gross = Money(amount=shipping_net + shipping_tax, currency=currency)
-        shipping_net = Money(amount=shipping_net, currency=currency)
-        return TaxedMoney(net=shipping_net, gross=shipping_gross)
+        return self._calculate_checkout_shipping(
+            currency, response.get("lines", []), shipping_price
+        )
 
     def preprocess_order_creation(
         self, checkout: "Checkout", discounts: List["DiscountInfo"], previous_value: Any
@@ -205,24 +216,27 @@ class AvataxPlugin(BasePlugin):
         total = checkout_line.get_total(discounts)
         return TaxedMoney(net=total, gross=total)
 
+    def _calculate_order_line_unit(self, order_line):
+        order = order_line.order
+        taxes_data = get_order_tax_data(order)
+        currency = taxes_data.get("currencyCode")
+        for line in taxes_data.get("lines", []):
+            if line.get("itemCode") == order_line.variant.sku:
+                tax = Decimal(line.get("tax", 0.0)) / order_line.quantity
+                net = Decimal(line.get("lineAmount", 0.0)) / order_line.quantity
+
+                gross = Money(amount=net + tax, currency=currency)
+                net = Money(amount=net, currency=currency)
+                return TaxedMoney(net=net, gross=gross)
+
     def calculate_order_line_unit(
         self, order_line: "OrderLine", previous_value: TaxedMoney
     ) -> TaxedMoney:
         if self._skip_plugin(previous_value):
             return previous_value
 
-        order = order_line.order
-        if _validate_order(order):
-            taxes_data = get_order_tax_data(order)
-            currency = taxes_data.get("currencyCode")
-            for line in taxes_data.get("lines", []):
-                if line.get("itemCode") == order_line.variant.sku:
-                    tax = Decimal(line.get("tax", 0.0)) / order_line.quantity
-                    net = Decimal(line.get("lineAmount", 0.0)) / order_line.quantity
-
-                    gross = Money(amount=net + tax, currency=currency)
-                    net = Money(amount=net, currency=currency)
-                    return TaxedMoney(net=net, gross=gross)
+        if _validate_order(order_line.order):
+            return self._calculate_order_line_unit(order_line)
         return order_line.unit_price
 
     def calculate_order_shipping(

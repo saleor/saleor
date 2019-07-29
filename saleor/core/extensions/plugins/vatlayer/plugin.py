@@ -212,7 +212,6 @@ class VatlayerPlugin(BasePlugin):
         price: Money,
         country: Country,
         previous_value: TaxedMoney,
-        **kwargs,
     ) -> TaxedMoney:
         if self._skip_plugin(previous_value):
             return previous_value

@@ -86,7 +86,6 @@ class BasePlugin:
         price: Money,
         country: Country,
         previous_value: TaxedMoney,
-        **kwargs,
     ) -> TaxedMoney:
         return NotImplemented
 
