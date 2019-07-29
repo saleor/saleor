@@ -24,7 +24,7 @@ const dark: IThemeColors = {
     disabled: "rgba(32, 33, 36, 0.6)"
   },
   input: {
-    border: "#FCFCFC",
+    border: "#9d9d9d",
     default: "#25262A",
     disabled: "none",
     text: "#FCFCFC",
@@ -52,7 +52,7 @@ const light: IThemeColors = {
     disabled: "rgba(216, 216, 216, 0.3)"
   },
   input: {
-    border: "#3D3D3D",
+    border: "#616161",
     default: "#FFFFFF",
     disabled: "#EAEAEA",
     text: "#3D3D3D",

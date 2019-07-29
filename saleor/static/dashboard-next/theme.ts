@@ -79,6 +79,9 @@ export default (colors: IThemeColors): Theme =>
       MuiFormLabel: {
         filled: {
           color: [[colors.primary], "!important"] as any
+        },
+        focused: {
+          color: [[colors.primary], "!important"] as any
         }
       },
       MuiIconButton: {
@@ -120,7 +123,8 @@ export default (colors: IThemeColors): Theme =>
         outlined: {
           "&$shrink": {
             transform: "translate(12px, 6px) scale(0.75)"
-          }
+          },
+          transform: "translate(14px, 14px) scale(1)"
         },
         root: {
           color: colors.input.text
@@ -167,16 +171,20 @@ export default (colors: IThemeColors): Theme =>
       MuiOutlinedInput: {
         input: {
           color: colors.input.text,
-          margin: "4px 0",
-          padding: "25px 12px 8px 12px"
+          padding: "20px 12px 8px 12px"
+        },
+        inputMultiline: {
+          left: -2,
+          padding: "10px 0",
+          position: "relative"
         },
         root: {
           borderColor: colors.input.border,
-          "& fieldset": {
-            borderColor: [[colors.input.border], "!important"] as any
-          },
           "& legend": {
             display: "none"
+          },
+          "& fieldset": {
+            borderColor: [[colors.input.border], "!important"] as any
           },
           "&$disabled": {
             "& fieldset": {
@@ -188,6 +196,9 @@ export default (colors: IThemeColors): Theme =>
             }
           },
           "&$focused": {
+            "& fieldset": {
+              borderColor: [[colors.primary], "!important"] as any
+            },
             "& input": {
               color: colors.input.textHover,
               zIndex: 2
