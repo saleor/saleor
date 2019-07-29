@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.db.models import Q
 
 from ..menu.models import Menu, MenuItem
@@ -90,6 +91,7 @@ def get_menu_as_json(menu):
     return menu_data
 
 
+@transaction.atomic
 def update_menus(menus_pk):
     menus = Menu.objects.filter(pk__in=menus_pk)
     for menu in menus:
