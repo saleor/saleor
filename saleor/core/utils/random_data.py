@@ -21,12 +21,12 @@ from ...account.utils import store_user_address
 from ...checkout import AddressType
 from ...core.utils.json_serializer import object_hook
 from ...core.weight import zero_weight
-from ...dashboard.menu.utils import update_menu
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
 from ...discount.utils import fetch_discounts
 from ...giftcard.models import GiftCard
 from ...menu.models import Menu
+from ...menu.utils import update_menu
 from ...order.models import Fulfillment, Order, OrderLine
 from ...order.utils import update_order_status
 from ...page.models import Page

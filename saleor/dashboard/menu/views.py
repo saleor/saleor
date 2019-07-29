@@ -10,12 +10,13 @@ from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
 from ...menu.models import Menu, MenuItem
+from ...menu.utils import update_menu
 from ...page.models import Page
 from ...product.models import Category, Collection
 from ..views import staff_member_required
 from .filters import MenuFilter, MenuItemFilter
 from .forms import AssignMenuForm, MenuForm, MenuItemForm, ReorderMenuItemsForm
-from .utils import get_menu_obj_text, update_menu
+from .utils import get_menu_obj_text
 
 
 @staff_member_required
