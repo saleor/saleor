@@ -56,7 +56,7 @@ export default (colors: IThemeColors): Theme =>
           "& svg": {
             marginLeft: 8
           },
-          borderRadius: 8
+          borderRadius: 4
         }
       },
       MuiCard: {
