@@ -3,6 +3,7 @@ import json
 from django.core.serializers.json import DjangoJSONEncoder
 
 from saleor.graphql.core.utils import snake_to_camel_case
+from saleor.menu.utils import get_menu_item_as_dict
 
 
 def _get_graphql_content_from_response(response):
@@ -53,3 +54,10 @@ def convert_dict_keys_to_camel_case(d):
         new_key = snake_to_camel_case(k)
         data[new_key] = d[k]
     return data
+
+
+def menu_item_to_json(menu_item):
+    """Transforms a menu item to a JSON representation as used in the storefront."""
+    item_json = get_menu_item_as_dict(menu_item)
+    item_json["child_items"] = []
+    return item_json

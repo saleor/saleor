@@ -29,6 +29,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix rendering user avatar when it's null #4546 by @maarcingebala
 - Do not lose focus while typing in product description field - #4549 by @dominik-zeglen
 
+- Update JSON menu representation in mutations - #4524 by @maarcingebala
+
 ## 2.8.0
 
 ### Core
