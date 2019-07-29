@@ -43,6 +43,9 @@ const styles = (theme: Theme) =>
       flex: 1
     },
     labelContainer: {
+      "& span": {
+        paddingRight: 30
+      },
       display: "flex"
     },
     preview: {
@@ -128,7 +131,6 @@ const SeoForm = withStyles(styles, { name: "SeoForm" })(
                 )}
                 value={title.slice(0, 69)}
                 disabled={loading || disabled}
-                InputLabelProps={{ shrink: true }}
                 placeholder={titlePlaceholder}
                 onChange={onChange}
                 fullWidth
@@ -158,7 +160,6 @@ const SeoForm = withStyles(styles, { name: "SeoForm" })(
                 fullWidth
                 multiline
                 placeholder={descriptionPlaceholder}
-                InputLabelProps={{ shrink: true }}
                 rows={10}
               />
             </div>
