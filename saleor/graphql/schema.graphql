@@ -240,6 +240,11 @@ enum AttributeInputTypeEnum {
   MULTISELECT
 }
 
+type AttributeReorderValues {
+  errors: [Error!]
+  attribute: Attribute
+}
+
 scalar AttributeScalar
 
 enum AttributeSortField {
@@ -312,7 +317,6 @@ type AttributeUpdatePrivateMeta {
 }
 
 type AttributeValue implements Node {
-  sortOrder: Int!
   id: ID!
   name: String
   slug: String
@@ -1613,7 +1617,7 @@ input MenuInput {
 
 type MenuItem implements Node {
   id: ID!
-  sortOrder: Int!
+  sortOrder: Int
   menu: Menu!
   name: String!
   parent: MenuItem
@@ -1780,6 +1784,7 @@ type Mutations {
   attributeValueBulkDelete(ids: [ID]!): AttributeValueBulkDelete
   attributeValueUpdate(id: ID!, input: AttributeValueCreateInput!): AttributeValueUpdate
   attributeValueTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): AttributeValueTranslate
+  attributeReorderValues(attributeId: ID!, moves: [ReorderInput]!): AttributeReorderValues
   categoryCreate(input: CategoryInput!, parent: ID): CategoryCreate
   categoryDelete(id: ID!): CategoryDelete
   categoryBulkDelete(ids: [ID]!): CategoryBulkDelete
@@ -1821,6 +1826,7 @@ type Mutations {
   productTypeDelete(id: ID!): ProductTypeDelete
   productTypeBulkDelete(ids: [ID]!): ProductTypeBulkDelete
   productTypeUpdate(id: ID!, input: ProductTypeInput!): ProductTypeUpdate
+  productTypeReorderAttributes(moves: [ReorderInput]!, productTypeId: ID!, type: AttributeTypeEnum!): ProductTypeReorderAttributes
   productTypeUpdateMetadata(id: ID!, input: MetaInput!): ProductTypeUpdateMeta
   productTypeClearMetadata(id: ID!, input: MetaPath!): ProductTypeClearMeta
   productTypeUpdatePrivateMetadata(id: ID!, input: MetaInput!): ProductTypeUpdatePrivateMeta
@@ -2527,7 +2533,7 @@ input ProductFilterInput {
 }
 
 type ProductImage implements Node {
-  sortOrder: Int!
+  sortOrder: Int
   id: ID!
   alt: String!
   url(size: Int): String!
@@ -2707,6 +2713,11 @@ input ProductTypeInput {
   weight: WeightScalar
   taxRate: TaxRateType
   taxCode: String
+}
+
+type ProductTypeReorderAttributes {
+  errors: [Error!]
+  productType: ProductType
 }
 
 type ProductTypeUpdate {
@@ -2911,6 +2922,11 @@ type ReducedRate {
 type Refresh {
   token: String
   payload: GenericScalar
+}
+
+input ReorderInput {
+  id: ID!
+  sortOrder: Int
 }
 
 enum ReportingPeriod {

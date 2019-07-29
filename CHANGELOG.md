@@ -23,7 +23,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - The `SelectedAttribute` type now returns multiple values and will always return all the attributes assigned to the product type. - #4394 by @NyanKiyoshi
 - Add attribute visibility config - #4449 by @dominik-zeglen
 - Add slug generation = #4488 by @dominik-zeglen
-- Dropped `null` in `sort_order` fields to make it easier to reorder in API - #4481 by @NyanKiyoshi
 - Add drag'n'drop attribute reordering in product type view - #4492 by @dominik-zeglen
 - Fix attribute picker = #4501 by @dominik-zeglen
 - Rework adding attribute values - #4504 by @dominik-zeglen

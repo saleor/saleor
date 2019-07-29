@@ -40,7 +40,6 @@ from saleor.product.models import (
     AttributeValue,
     Category,
     Collection,
-    CollectionProduct,
     DigitalContent,
     DigitalContentUrl,
     Product,
@@ -1056,10 +1055,7 @@ def collection(db):
 
 @pytest.fixture
 def collection_with_products(db, collection, product_list_published):
-    for sort_order, product in enumerate(product_list_published):
-        CollectionProduct(
-            collection=collection, product=product, sort_order=sort_order
-        ).save()
+    collection.products.set(list(product_list_published))
     return product_list_published
 
 
