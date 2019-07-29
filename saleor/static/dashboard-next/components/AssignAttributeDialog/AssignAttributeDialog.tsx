@@ -71,8 +71,10 @@ const AssignAttributeDialog: React.FC<AssignAttributeDialogProps> = ({
   onToggle
 }: AssignAttributeDialogProps) => {
   const classes = useStyles({});
-  const [query, onQueryChange] = useSearchQuery(onFetch);
+  const [query, onQueryChange, resetQuery] = useSearchQuery(onFetch);
   const errors = useModalDialogErrors(apiErrors, open);
+
+  React.useEffect(resetQuery, [open]);
 
   return (
     <Dialog onClose={onClose} open={open} fullWidth maxWidth="sm">
