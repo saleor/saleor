@@ -5,7 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [("product", "0101_remove_null_sort_order")]
+    dependencies = [("product", "0102_unique_slug_attributes")]
 
     operations = [
         migrations.AddField(

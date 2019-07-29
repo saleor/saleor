@@ -72,7 +72,7 @@ class AttributeValue(CountableDjangoObjectType):
 
     class Meta:
         description = "Represents a value of an attribute."
-        only_fields = ["id", "sort_order"]
+        only_fields = ["id"]
         interfaces = [relay.Node]
         model = models.AttributeValue
 

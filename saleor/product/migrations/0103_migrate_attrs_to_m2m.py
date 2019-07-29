@@ -21,7 +21,7 @@ def migrate_fk_to_m2m(product_type_related_field):
 
 class Migration(migrations.Migration):
 
-    dependencies = [("product", "0097_auto_20190611_0952")]
+    dependencies = [("product", "0103_attribute_available_in_grid")]
 
     operations = [
         migrations.AddField(

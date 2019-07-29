@@ -8,7 +8,7 @@ from .utils.json_serializer import CustomJsonEncoder
 
 
 class SortableModel(models.Model):
-    sort_order = models.PositiveIntegerField(editable=False, db_index=True, default=0)
+    sort_order = models.IntegerField(editable=False, db_index=True, null=True)
 
     class Meta:
         abstract = True
@@ -29,8 +29,11 @@ class SortableModel(models.Model):
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        qs = self.get_ordering_queryset()
-        qs.filter(sort_order__gt=self.sort_order).update(sort_order=F("sort_order") - 1)
+        if self.sort_order is not None:
+            qs = self.get_ordering_queryset()
+            qs.filter(sort_order__gt=self.sort_order).update(
+                sort_order=F("sort_order") - 1
+            )
         super().delete(*args, **kwargs)
 
 
