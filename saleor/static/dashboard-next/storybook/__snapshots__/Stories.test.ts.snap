@@ -28970,8 +28970,8 @@ exports[`Storyshots Views / Discounts / Sale create default 1`] = `
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-outlined-id"
-                  data-shrink="false"
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-outlined-id"
+                  data-shrink="true"
                 >
                   Start Date
                 </label>
@@ -28985,7 +28985,7 @@ exports[`Storyshots Views / Discounts / Sale create default 1`] = `
                   >
                     <legend
                       class="MuiPrivateNotchedOutline-legend-id"
-                      style="width:0.01px"
+                      style="width:0"
                     >
                       <span>
                         ​
@@ -29005,8 +29005,8 @@ exports[`Storyshots Views / Discounts / Sale create default 1`] = `
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-outlined-id"
-                  data-shrink="false"
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-outlined-id"
+                  data-shrink="true"
                 >
                   End Date
                 </label>
@@ -29020,7 +29020,7 @@ exports[`Storyshots Views / Discounts / Sale create default 1`] = `
                   >
                     <legend
                       class="MuiPrivateNotchedOutline-legend-id"
-                      style="width:0.01px"
+                      style="width:0"
                     >
                       <span>
                         ​
@@ -29243,8 +29243,8 @@ exports[`Storyshots Views / Discounts / Sale create form errors 1`] = `
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-outlined-id"
-                  data-shrink="false"
+                  class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-outlined-id"
+                  data-shrink="true"
                 >
                   Start Date
                 </label>
@@ -29258,7 +29258,7 @@ exports[`Storyshots Views / Discounts / Sale create form errors 1`] = `
                   >
                     <legend
                       class="MuiPrivateNotchedOutline-legend-id"
-                      style="width:0.01px"
+                      style="width:0"
                     >
                       <span>
                         ​
@@ -29283,8 +29283,8 @@ exports[`Storyshots Views / Discounts / Sale create form errors 1`] = `
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-outlined-id"
-                  data-shrink="false"
+                  class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-outlined-id"
+                  data-shrink="true"
                 >
                   End Date
                 </label>
@@ -29298,7 +29298,7 @@ exports[`Storyshots Views / Discounts / Sale create form errors 1`] = `
                   >
                     <legend
                       class="MuiPrivateNotchedOutline-legend-id"
-                      style="width:0.01px"
+                      style="width:0"
                     >
                       <span>
                         ​
@@ -29518,8 +29518,8 @@ exports[`Storyshots Views / Discounts / Sale create loading 1`] = `
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-outlined-id"
-                  data-shrink="false"
+                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-outlined-id"
+                  data-shrink="true"
                 >
                   Start Date
                 </label>
@@ -29533,7 +29533,7 @@ exports[`Storyshots Views / Discounts / Sale create loading 1`] = `
                   >
                     <legend
                       class="MuiPrivateNotchedOutline-legend-id"
-                      style="width:0.01px"
+                      style="width:0"
                     >
                       <span>
                         ​
@@ -29554,8 +29554,8 @@ exports[`Storyshots Views / Discounts / Sale create loading 1`] = `
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-outlined-id"
-                  data-shrink="false"
+                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-outlined-id"
+                  data-shrink="true"
                 >
                   End Date
                 </label>
@@ -29569,7 +29569,7 @@ exports[`Storyshots Views / Discounts / Sale create loading 1`] = `
                   >
                     <legend
                       class="MuiPrivateNotchedOutline-legend-id"
-                      style="width:0.01px"
+                      style="width:0"
                     >
                       <span>
                         ​
@@ -29818,8 +29818,8 @@ exports[`Storyshots Views / Discounts / Sale details collections 1`] = `
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-outlined-id"
-                  data-shrink="false"
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-outlined-id"
+                  data-shrink="true"
                 >
                   End Date
                 </label>
@@ -29833,7 +29833,7 @@ exports[`Storyshots Views / Discounts / Sale details collections 1`] = `
                   >
                     <legend
                       class="MuiPrivateNotchedOutline-legend-id"
-                      style="width:0.01px"
+                      style="width:0"
                     >
                       <span>
                         ​
@@ -30400,8 +30400,8 @@ exports[`Storyshots Views / Discounts / Sale details default 1`] = `
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-outlined-id"
-                  data-shrink="false"
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-outlined-id"
+                  data-shrink="true"
                 >
                   End Date
                 </label>
@@ -30415,7 +30415,7 @@ exports[`Storyshots Views / Discounts / Sale details default 1`] = `
                   >
                     <legend
                       class="MuiPrivateNotchedOutline-legend-id"
-                      style="width:0.01px"
+                      style="width:0"
                     >
                       <span>
                         ​
@@ -31001,8 +31001,8 @@ exports[`Storyshots Views / Discounts / Sale details form errors 1`] = `
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-outlined-id"
-                  data-shrink="false"
+                  class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-outlined-id"
+                  data-shrink="true"
                 >
                   End Date
                 </label>
@@ -31016,7 +31016,7 @@ exports[`Storyshots Views / Discounts / Sale details form errors 1`] = `
                   >
                     <legend
                       class="MuiPrivateNotchedOutline-legend-id"
-                      style="width:0.01px"
+                      style="width:0"
                     >
                       <span>
                         ​
@@ -31564,8 +31564,8 @@ exports[`Storyshots Views / Discounts / Sale details loading 1`] = `
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-outlined-id"
-                  data-shrink="false"
+                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-outlined-id"
+                  data-shrink="true"
                 >
                   Start Date
                 </label>
@@ -31579,7 +31579,7 @@ exports[`Storyshots Views / Discounts / Sale details loading 1`] = `
                   >
                     <legend
                       class="MuiPrivateNotchedOutline-legend-id"
-                      style="width:0.01px"
+                      style="width:0"
                     >
                       <span>
                         ​
@@ -31600,8 +31600,8 @@ exports[`Storyshots Views / Discounts / Sale details loading 1`] = `
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-outlined-id"
-                  data-shrink="false"
+                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-outlined-id"
+                  data-shrink="true"
                 >
                   End Date
                 </label>
@@ -31615,7 +31615,7 @@ exports[`Storyshots Views / Discounts / Sale details loading 1`] = `
                   >
                     <legend
                       class="MuiPrivateNotchedOutline-legend-id"
-                      style="width:0.01px"
+                      style="width:0"
                     >
                       <span>
                         ​
@@ -32203,8 +32203,8 @@ exports[`Storyshots Views / Discounts / Sale details products 1`] = `
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
-                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-outlined-id"
-                  data-shrink="false"
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-outlined-id"
+                  data-shrink="true"
                 >
                   End Date
                 </label>
@@ -32218,7 +32218,7 @@ exports[`Storyshots Views / Discounts / Sale details products 1`] = `
                   >
                     <legend
                       class="MuiPrivateNotchedOutline-legend-id"
-                      style="width:0.01px"
+                      style="width:0"
                     >
                       <span>
                         ​
@@ -34288,8 +34288,8 @@ exports[`Storyshots Views / Discounts / Voucher create default 1`] = `
                   class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
-                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-outlined-id"
-                    data-shrink="false"
+                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-outlined-id"
+                    data-shrink="true"
                   >
                     Start Date
                   </label>
@@ -34303,7 +34303,7 @@ exports[`Storyshots Views / Discounts / Voucher create default 1`] = `
                     >
                       <legend
                         class="MuiPrivateNotchedOutline-legend-id"
-                        style="width:0.01px"
+                        style="width:0"
                       >
                         <span>
                           ​
@@ -34323,8 +34323,8 @@ exports[`Storyshots Views / Discounts / Voucher create default 1`] = `
                   class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
-                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-outlined-id"
-                    data-shrink="false"
+                    class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-outlined-id"
+                    data-shrink="true"
                   >
                     Start Hour
                   </label>
@@ -34338,7 +34338,7 @@ exports[`Storyshots Views / Discounts / Voucher create default 1`] = `
                     >
                       <legend
                         class="MuiPrivateNotchedOutline-legend-id"
-                        style="width:0.01px"
+                        style="width:0"
                       >
                         <span>
                           ​
@@ -34913,8 +34913,8 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
                   class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
-                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-outlined-id"
-                    data-shrink="false"
+                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-outlined-id"
+                    data-shrink="true"
                   >
                     Start Date
                   </label>
@@ -34928,7 +34928,7 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
                     >
                       <legend
                         class="MuiPrivateNotchedOutline-legend-id"
-                        style="width:0.01px"
+                        style="width:0"
                       >
                         <span>
                           ​
@@ -34953,8 +34953,8 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
                   class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
-                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-outlined-id"
-                    data-shrink="false"
+                    class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-outlined-id"
+                    data-shrink="true"
                   >
                     Start Hour
                   </label>
@@ -34968,7 +34968,7 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
                     >
                       <legend
                         class="MuiPrivateNotchedOutline-legend-id"
-                        style="width:0.01px"
+                        style="width:0"
                       >
                         <span>
                           ​
@@ -37318,8 +37318,8 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
                   class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
-                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-outlined-id"
-                    data-shrink="false"
+                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-outlined-id"
+                    data-shrink="true"
                   >
                     Start Date
                   </label>
@@ -37333,7 +37333,7 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
                     >
                       <legend
                         class="MuiPrivateNotchedOutline-legend-id"
-                        style="width:0.01px"
+                        style="width:0"
                       >
                         <span>
                           ​
@@ -37354,8 +37354,8 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
                   class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
                 >
                   <label
-                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-outlined-id"
-                    data-shrink="false"
+                    class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-outlined-id"
+                    data-shrink="true"
                   >
                     Start Hour
                   </label>
@@ -37369,7 +37369,7 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
                     >
                       <legend
                         class="MuiPrivateNotchedOutline-legend-id"
-                        style="width:0.01px"
+                        style="width:0"
                       >
                         <span>
                           ​
