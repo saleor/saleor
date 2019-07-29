@@ -24434,6 +24434,7 @@ exports[`Storyshots Views / Customers / Customer details loading 1`] = `
                       disabled=""
                       name="firstName"
                       type="text"
+                      value=""
                     />
                   </div>
                 </div>
@@ -24469,6 +24470,7 @@ exports[`Storyshots Views / Customers / Customer details loading 1`] = `
                       disabled=""
                       name="lastName"
                       type="text"
+                      value=""
                     />
                   </div>
                 </div>
@@ -24508,6 +24510,7 @@ exports[`Storyshots Views / Customers / Customer details loading 1`] = `
                     disabled=""
                     name="email"
                     type="email"
+                    value=""
                   />
                 </div>
               </div>
@@ -88224,6 +88227,7 @@ exports[`Storyshots Views / Staff / Staff member details loading 1`] = `
                             class="MuiInputBase-input-id MuiOutlinedInput-input-id"
                             name="firstName"
                             type="text"
+                            value=""
                           />
                         </div>
                       </div>
@@ -88262,6 +88266,7 @@ exports[`Storyshots Views / Staff / Staff member details loading 1`] = `
                             class="MuiInputBase-input-id MuiOutlinedInput-input-id"
                             name="lastName"
                             type="text"
+                            value=""
                           />
                         </div>
                       </div>
@@ -88300,6 +88305,7 @@ exports[`Storyshots Views / Staff / Staff member details loading 1`] = `
                             class="MuiInputBase-input-id MuiOutlinedInput-input-id"
                             name="email"
                             type="text"
+                            value=""
                           />
                         </div>
                       </div>
