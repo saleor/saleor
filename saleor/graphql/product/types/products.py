@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from typing import Dict
 
 import graphene
@@ -81,7 +82,7 @@ def resolve_attribute_list(attributes_json, attributes_qs):
     `attributes_qs` is the queryset of attribute objects. If it's prefetch
     beforehand along with the values, it saves database queries.
     """
-    attributes_map = {}  # type: Dict[str, models.Attribute]
+    attributes_map = OrderedDict()  # type: Dict[str, models.Attribute]
     values_map = {}  # type: Dict[str, models.AttributeValue]
     for attr in attributes_qs:
         attributes_map[str(attr.pk)] = attr
@@ -277,7 +278,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
     def resolve_attributes(root: models.ProductVariant, info):
         attr_qs = root.product.product_type.variant_attributes.get_visible_to_user(
             info.context.user
-        )
+        ).variant_attributes_sorted()
         return resolve_attribute_list(root.attributes, attr_qs)
 
     @staticmethod
@@ -561,7 +562,7 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
     def resolve_attributes(root: models.Product, info):
         attributes_qs = root.product_type.product_attributes.get_visible_to_user(
             info.context.user
-        )
+        ).product_attributes_sorted()
         return resolve_attribute_list(root.attributes, attributes_qs)
 
     @staticmethod
@@ -679,14 +680,14 @@ class ProductType(CountableDjangoObjectType, MetadataObjectType):
         prefetch_related="product_attributes__attributeproduct"
     )
     def resolve_product_attributes(root: models.ProductType, *_args, **_kwargs):
-        return root.product_attributes.product_attributes_sorted_for_dashboard().all()
+        return root.product_attributes.product_attributes_sorted().all()
 
     @staticmethod
     @gql_optimizer.resolver_hints(
         prefetch_related="variant_attributes__attributevariant"
     )
     def resolve_variant_attributes(root: models.ProductType, *_args, **_kwargs):
-        return root.variant_attributes.variant_attributes_sorted_for_dashboard().all()
+        return root.variant_attributes.variant_attributes_sorted().all()
 
     @staticmethod
     def resolve_products(root: models.ProductType, info, **_kwargs):

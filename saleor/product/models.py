@@ -523,10 +523,10 @@ class AttributeQuerySet(models.QuerySet):
 
         return self.order_by(sort_method, id_sort)
 
-    def product_attributes_sorted_for_dashboard(self, asc=True):
+    def product_attributes_sorted(self, asc=True):
         return self._get_sorted_m2m_field("attributeproduct", asc)
 
-    def variant_attributes_sorted_for_dashboard(self, asc=True):
+    def variant_attributes_sorted(self, asc=True):
         return self._get_sorted_m2m_field("attributevariant", asc)
 
 
