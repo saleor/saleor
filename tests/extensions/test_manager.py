@@ -1,3 +1,6 @@
+from decimal import Decimal
+from typing import Union
+
 import pytest
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
@@ -53,6 +56,11 @@ class TestPlugin(BasePlugin):
     ) -> TaxedMoney:
         price = Money("1.0", price.currency)
         return TaxedMoney(price, price)
+
+    def get_tax_rate_percentage_value(
+        self, obj: Union["Product", "ProductType"], country: Country, previous_value
+    ) -> Decimal:
+        return Decimal("15.0").quantize(Decimal("1."))
 
 
 def test_get_extensions_manager():
@@ -215,3 +223,15 @@ def test_manager_apply_taxes_to_shipping(
         shipping_method.price, address
     )
     assert TaxedMoney(expected_price, expected_price) == taxed_price
+
+
+@pytest.mark.parametrize(
+    "plugins, amount",
+    [(["tests.extensions.test_manager.TestPlugin"], "15.0"), ([], "0")],
+)
+def test_manager_get_tax_rate_percentage_value(plugins, amount, product):
+    country = Country("PL")
+    tax_rate_value = ExtensionsManager(plugins=plugins).get_tax_rate_percentage_value(
+        product, country
+    )
+    assert tax_rate_value == Decimal(amount)

@@ -95,25 +95,6 @@ def site(get_response):
     return middleware
 
 
-def taxes(get_response):
-    """Assign tax rates for default country to `request.taxes`."""
-
-    def middleware(request):
-        if settings.VATLAYER_ACCESS_KEY:
-            # FIXME this should be disabled after we will introduce plugin architecure.
-            # For now, a lot of templates use tax_rate function.
-            from .extensions.plugins.vatlayer import get_taxes_for_country
-
-            request.taxes = SimpleLazyObject(
-                lambda: get_taxes_for_country(request.country)
-            )
-        else:
-            request.taxes = None
-        return get_response(request)
-
-    return middleware
-
-
 def extensions(get_response):
     """Assign extensions manager"""
 
