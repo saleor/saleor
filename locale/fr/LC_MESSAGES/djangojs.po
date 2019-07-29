@@ -5,7 +5,7 @@
 # 
 # Translators:
 # benoit barthelet <benoit.barthelet@gmail.com>, 2018
-# Marouane Fawzi <glamarouane@gmail.com>, 2019
+# Da Costa Faro Rémy <remy@dacostafaro.com>, 2019
 # NyаnKiyoshi <hello@vanille.bid>, 2019
 # 
 #, fuzzy
@@ -13,7 +13,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-17 04:57-0500\n"
+"POT-Creation-Date: 2019-07-22 05:53-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
 "Last-Translator: NyаnKiyoshi <hello@vanille.bid>, 2019\n"
 "Language-Team: French (https://www.transifex.com/mirumee/teams/34782/fr/)\n"
@@ -22,14 +22,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: fr\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-
-#: build/static/vendors~preview.3e127659ad09b01744f8.bundle.js:75
-msgid "Missing source"
-msgstr "source manquante"
-
-#: build/static/vendors~preview.3e127659ad09b01744f8.bundle.js:136
-msgid "\n"
-msgstr ""
 
 #: saleor/static/dashboard/js/components/bulk-actions.js:89
 msgid "item selected"
@@ -326,6 +318,47 @@ msgstr "Citation"
 msgctxt "Rich text editor option"
 msgid "Link"
 msgstr "Lien hypertexte"
+
+#: saleor/static/dashboard/js/components/editor.js:61
+msgctxt "Rich text editor option"
+msgid "Image (converts selected text to an image tag)"
+msgstr "Image (convertit le texte sélectionné en une balise image)"
+
+#: saleor/static/dashboard/js/components/editor.js:66
+msgctxt "Rich text editor option"
+msgid "Left align"
+msgstr "Aligner à gauche"
+
+#: saleor/static/dashboard/js/components/editor.js:71
+msgctxt "Rich text editor option"
+msgid "Center align"
+msgstr "Centrer"
+
+#: saleor/static/dashboard/js/components/editor.js:76
+msgctxt "Rich text editor option"
+msgid "Right align"
+msgstr "Aligner à droite"
+
+#: saleor/static/dashboard/js/components/editor.js:81
+msgctxt "Rich text editor option"
+msgid "Justify"
+msgstr "Justifier"
+
+#: saleor/static/dashboard/js/components/editor.js:86
+msgctxt "Rich text editor option"
+msgid "Remove formatting"
+msgstr "Supprimer le formatage"
+
+#: saleor/static/dashboard/js/components/google-preview.js:46
+msgid ""
+"Your input might be a little too short, think of something more descriptive"
+msgstr ""
+"Votre texte peut être un peu trop court, pensez à quelque chose de plus "
+"descriptif"
+
+#: saleor/static/dashboard/js/components/google-preview.js:50
+msgid "Your input fits between the recommended lengths"
+msgstr "Votre texte rentre dans la longueur optimale"
 
 #: saleor/static/js/components/variantPicker/QuantityInput.js:22
 msgctxt "Add to cart form field label"

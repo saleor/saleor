@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-22 05:53-0500\n"
+"POT-Creation-Date: 2019-07-29 11:49-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -727,71 +727,71 @@ msgctxt "Menu item form error"
 msgid "A single menu item must point to an internal link or URL."
 msgstr ""
 
-#: saleor/dashboard/menu/utils.py:110
+#: saleor/dashboard/menu/utils.py:11
 #, python-format
 msgctxt "Menu item page hidden status"
 msgid ""
 "%(menu_item_name)s is hidden (will become visible on %(available_on_date)s)"
 msgstr ""
 
-#: saleor/dashboard/menu/utils.py:123
+#: saleor/dashboard/menu/utils.py:24
 #, python-format
 msgctxt "Menu item published status"
 msgid "%(menu_item_name)s (Not published)"
 msgstr ""
 
-#: saleor/dashboard/menu/views.py:34
+#: saleor/dashboard/menu/views.py:35
 msgctxt "Dashboard message"
 msgid "Updated storefront menus"
 msgstr ""
 
-#: saleor/dashboard/menu/views.py:53
+#: saleor/dashboard/menu/views.py:54
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added menu %s"
 msgstr ""
 
-#: saleor/dashboard/menu/views.py:67
+#: saleor/dashboard/menu/views.py:68
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated menu %s"
 msgstr ""
 
-#: saleor/dashboard/menu/views.py:101
+#: saleor/dashboard/menu/views.py:102
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed menu %s"
 msgstr ""
 
-#: saleor/dashboard/menu/views.py:122
+#: saleor/dashboard/menu/views.py:123
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added menu item %s"
 msgstr ""
 
-#: saleor/dashboard/menu/views.py:144
+#: saleor/dashboard/menu/views.py:145
 #, python-format
 msgctxt "Dashboard message"
 msgid "Saved menu item %s"
 msgstr ""
 
-#: saleor/dashboard/menu/views.py:159
+#: saleor/dashboard/menu/views.py:160
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed menu item %s"
 msgstr ""
 
-#: saleor/dashboard/menu/views.py:245
+#: saleor/dashboard/menu/views.py:246
 msgctxt "Link object type group description"
 msgid "Collection"
 msgstr ""
 
-#: saleor/dashboard/menu/views.py:251
+#: saleor/dashboard/menu/views.py:252
 msgctxt "Link object type group description"
 msgid "Category"
 msgstr ""
 
-#: saleor/dashboard/menu/views.py:257
+#: saleor/dashboard/menu/views.py:258
 msgctxt "Link object type group description"
 msgid "Page"
 msgstr ""
