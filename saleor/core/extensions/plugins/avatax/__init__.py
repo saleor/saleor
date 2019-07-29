@@ -89,6 +89,18 @@ def api_get_request(
     return response.json()
 
 
+def _validate_adddress_details(
+    shipping_address, is_shipping_required, address, shipping_method
+):
+    if not is_shipping_required and not address:
+        return False
+    if not shipping_address:
+        return False
+    if not shipping_method:
+        return False
+    return True
+
+
 def _validate_order(order: "Order") -> bool:
     """Validate if order object contains enough information to generate a request to
     avatax"""
@@ -97,14 +109,9 @@ def _validate_order(order: "Order") -> bool:
     shipping_address = order.shipping_address
     is_shipping_required = order.is_shipping_required()
     address = shipping_address or order.billing_address
-
-    if not is_shipping_required and not address:
-        return False
-    if not shipping_address:
-        return False
-    if not order.shipping_method:
-        return False
-    return True
+    return _validate_adddress_details(
+        shipping_address, is_shipping_required, address, order.shipping_method
+    )
 
 
 def _validate_checkout(checkout: "Checkout") -> bool:
@@ -116,13 +123,9 @@ def _validate_checkout(checkout: "Checkout") -> bool:
     shipping_address = checkout.shipping_address
     is_shipping_required = checkout.is_shipping_required
     address = shipping_address or checkout.billing_address
-    if not is_shipping_required and not address:
-        return False
-    if not shipping_address:
-        return False
-    if not checkout.shipping_method:
-        return False
-    return True
+    return _validate_adddress_details(
+        shipping_address, is_shipping_required, address, checkout.shipping_method
+    )
 
 
 def _retrieve_from_cache(token):
@@ -183,6 +186,20 @@ def append_line_to_data(
     )
 
 
+def append_shipping_to_data(data: List[Dict], shipping_method):
+    charge_taxes_on_shipping = (
+        Site.objects.get_current().settings.charge_taxes_on_shipping
+    )
+    if charge_taxes_on_shipping and shipping_method:
+        append_line_to_data(
+            data,
+            quantity=1,
+            amount=str(shipping_method.price.amount),
+            tax_code=COMMON_CARRIER_CODE,
+            item_code="Shipping",
+        )
+
+
 def get_checkout_lines_data(
     checkout: "Checkout", discounts=None
 ) -> List[Dict[str, str]]:
@@ -209,17 +226,7 @@ def get_checkout_lines_data(
             description=description,
         )
 
-    charge_taxes_on_shipping = (
-        Site.objects.get_current().settings.charge_taxes_on_shipping
-    )
-    if charge_taxes_on_shipping and checkout.shipping_method:
-        append_line_to_data(
-            data,
-            quantity=1,
-            amount=str(checkout.shipping_method.price.amount),
-            tax_code=COMMON_CARRIER_CODE,
-            item_code="Shipping",
-        )
+    append_shipping_to_data(data, checkout.shipping_method)
     return data
 
 
@@ -255,17 +262,7 @@ def get_order_lines_data(order: "Order") -> List[Dict[str, str]]:
             description=order.discount_name,
             tax_included=True,  # Voucher should be always applied as a gross amount
         )
-    charge_taxes_on_shipping = (
-        Site.objects.get_current().settings.charge_taxes_on_shipping
-    )
-    if charge_taxes_on_shipping and order.shipping_method:
-        append_line_to_data(
-            data,
-            quantity=1,
-            amount=order.shipping_method.price.amount,
-            tax_code=COMMON_CARRIER_CODE,
-            item_code="Shipping",
-        )
+    append_shipping_to_data(data, order.shipping_method)
     return data
 
 
@@ -347,18 +344,23 @@ def generate_request_data_from_checkout(
     return data
 
 
+def _fetch_new_taxes_data(data: List[Dict], data_cache_key: str):
+    transaction_url = urljoin(get_api_url(), "transactions/createoradjust")
+    response = api_post_request(transaction_url, data)
+    if response and "error" not in response:
+        cache.set(data_cache_key, (data, response), CACHE_TIME)
+    else:
+        # cache failed response to limit hits to avatax.
+        cache.set(data_cache_key, (data, response), 10)
+    return response
+
+
 def get_cached_response_or_fetch(data, token_in_cache, force_refresh=False):
     """Try to find response in cache. Return cached response if requests data are
     the same. Fetch new data in other cases"""
     data_cache_key = CACHE_KEY + token_in_cache
     if taxes_need_new_fetch(data, token_in_cache) or force_refresh:
-        transaction_url = urljoin(get_api_url(), "transactions/createoradjust")
-        response = api_post_request(transaction_url, data)
-        if response and "error" not in response:
-            cache.set(data_cache_key, (data, response), CACHE_TIME)
-        else:
-            # cache failed response to limit hits to avatax.
-            cache.set(data_cache_key, (data, response), 10)
+        response = _fetch_new_taxes_data(data, data_cache_key)
     else:
         _, response = cache.get(data_cache_key)
 

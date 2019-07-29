@@ -132,13 +132,13 @@ class ExtensionsManager:
         return self.__run_method_on_plugins("taxes_are_enabled", default_value)
 
     def apply_taxes_to_product(
-        self, product: "Product", price: Money, country: Country, **kwargs
+        self, product: "Product", price: Money, country: Country
     ):
         default_value = quantize_price(
             TaxedMoney(net=price, gross=price), price.currency
         )
         return self.__run_method_on_plugins(
-            "apply_taxes_to_product", default_value, product, price, country, **kwargs
+            "apply_taxes_to_product", default_value, product, price, country
         )
 
     def apply_taxes_to_shipping(
