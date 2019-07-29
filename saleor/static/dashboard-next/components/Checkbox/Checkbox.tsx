@@ -45,7 +45,6 @@ const styles = (theme: Theme) =>
       },
       "&:before": {
         background: "rgba(0, 0, 0, 0)",
-        borderRadius: 2,
         content: '""',
         height: 8,
         left: 2,
