@@ -28,8 +28,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Input UI changes - #4542 by @benekex2
 - Fix rendering user avatar when it's null #4546 by @maarcingebala
 - Do not lose focus while typing in product description field - #4549 by @dominik-zeglen
-
 - Update JSON menu representation in mutations - #4524 by @maarcingebala
+- Add voucher settings - #4556 by @benekex2
 
 ## 2.8.0
 
