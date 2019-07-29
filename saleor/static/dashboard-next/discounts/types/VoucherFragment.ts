@@ -31,4 +31,5 @@ export interface VoucherFragment {
   discountValue: number;
   countries: (VoucherFragment_countries | null)[] | null;
   minAmountSpent: VoucherFragment_minAmountSpent | null;
+  minCheckoutItemsQuantity: number | null;
 }
