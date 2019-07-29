@@ -141,9 +141,11 @@ export interface VoucherCataloguesRemove_voucherCataloguesRemove_voucher {
   discountValue: number;
   countries: (VoucherCataloguesRemove_voucherCataloguesRemove_voucher_countries | null)[] | null;
   minAmountSpent: VoucherCataloguesRemove_voucherCataloguesRemove_voucher_minAmountSpent | null;
+  minCheckoutItemsQuantity: number | null;
   type: VoucherTypeEnum;
   used: number;
   applyOncePerOrder: boolean;
+  applyOncePerCustomer: boolean;
   products: VoucherCataloguesRemove_voucherCataloguesRemove_voucher_products | null;
   collections: VoucherCataloguesRemove_voucherCataloguesRemove_voucher_collections | null;
   categories: VoucherCataloguesRemove_voucherCataloguesRemove_voucher_categories | null;

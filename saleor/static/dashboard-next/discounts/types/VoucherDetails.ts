@@ -135,9 +135,11 @@ export interface VoucherDetails_voucher {
   discountValue: number;
   countries: (VoucherDetails_voucher_countries | null)[] | null;
   minAmountSpent: VoucherDetails_voucher_minAmountSpent | null;
+  minCheckoutItemsQuantity: number | null;
   type: VoucherTypeEnum;
   used: number;
   applyOncePerOrder: boolean;
+  applyOncePerCustomer: boolean;
   products: VoucherDetails_voucher_products | null;
   collections: VoucherDetails_voucher_collections | null;
   categories: VoucherDetails_voucher_categories | null;
