@@ -96,13 +96,14 @@ const styles = (theme: Theme) =>
       "& .Draftail": {
         "&-Editor": {
           "&--focus": {
-            borderColor: theme.palette.common.white,
             boxShadow: `inset 0px 0px 0px 2px ${theme.palette.primary.main}`
           },
           "&:hover": {
             borderColor: theme.palette.primary.main
           },
-          border: `1px #3d3d3d solid`,
+          border: `1px ${
+            theme.overrides.MuiOutlinedInput.root.borderColor
+          } solid`,
           borderTopLeftRadius: 4,
           borderTopRightRadius: 4,
           padding: "27px 12px 10px",
