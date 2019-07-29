@@ -1485,7 +1485,7 @@ type MenuCreate {
 }
 
 input MenuCreateInput {
-  name: String
+  name: String!
   items: [MenuItemInput]
 }
 
@@ -1535,7 +1535,7 @@ type MenuItemCreate {
 }
 
 input MenuItemCreateInput {
-  name: String
+  name: String!
   url: String
   category: ID
   collection: ID
