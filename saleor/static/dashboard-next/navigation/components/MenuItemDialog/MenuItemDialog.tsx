@@ -202,6 +202,10 @@ const MenuItemDialog: React.StatelessComponent<MenuItemDialogProps> = ({
 
   const handleSubmit = () => onSubmit(data);
 
+  const idError = ["category", "collection", "page", "url"]
+    .map(field => getFieldError(errors, field))
+    .reduce((acc, err) => acc || err);
+
   return (
     <Dialog
       onClose={onClose}
@@ -238,12 +242,12 @@ const MenuItemDialog: React.StatelessComponent<MenuItemDialogProps> = ({
           disabled={disabled}
           onChange={handleSelectChange}
           name="id"
-          helperText=""
           label={i18n.t("Link")}
           displayValue={displayValue}
           loading={loading}
-          error={false}
           options={options}
+          error={!!idError}
+          helperText={idError}
           placeholder={i18n.t("Start typing to begin search...")}
           onInputChange={handleQueryChange}
         />
