@@ -49,14 +49,14 @@ class ProductFilter(SortedFilterSet):
         q_product_attributes = self._get_product_attributes_lookup()
         q_variant_attributes = self._get_variant_attributes_lookup()
         product_attributes = (
-            Attribute.objects.all()
-            .prefetch_related("translations", "values__translations")
+            Attribute.objects.prefetch_related("translations", "values__translations")
+            .exclude(filterable_in_storefront=False)
             .filter(q_product_attributes)
             .distinct()
         )
         variant_attributes = (
-            Attribute.objects.all()
-            .prefetch_related("translations", "values__translations")
+            Attribute.objects.prefetch_related("translations", "values__translations")
+            .exclude(filterable_in_storefront=False)
             .filter(q_variant_attributes)
             .distinct()
         )

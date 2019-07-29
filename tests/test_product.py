@@ -6,10 +6,12 @@ from decimal import Decimal
 from unittest.mock import patch
 
 import pytest
+from bs4 import BeautifulSoup, Tag
 from django.core import serializers
 from django.core.exceptions import ValidationError
 from django.core.serializers.base import DeserializationError
 from django.http import JsonResponse
+from django.template.response import TemplateResponse
 from django.urls import reverse
 from freezegun import freeze_time
 from prices import Money, MoneyRange, TaxedMoney
@@ -20,8 +22,16 @@ from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
 from saleor.menu.models import MenuItemTranslation
 from saleor.menu.utils import update_menu
-from saleor.product import ProductAvailabilityStatus, models
-from saleor.product.models import DigitalContentUrl, validate_attribute_json
+from saleor.product import AttributeInputType, ProductAvailabilityStatus, models
+from saleor.product.models import (
+    Attribute,
+    AttributeTranslation,
+    AttributeValue,
+    AttributeValueTranslation,
+    DigitalContentUrl,
+    Product,
+    validate_attribute_json,
+)
 from saleor.product.thumbnails import create_product_thumbnails
 from saleor.product.utils import (
     allocate_stock,
@@ -413,6 +423,70 @@ def test_product_filter_product_exists(authorized_client, product, category):
     assert list(response.context["filter_set"].qs) == list(products)
 
 
+def test_product_filter_multi_values_attribute(
+    authorized_client, product_with_multiple_values_attributes, category
+):
+    """This tests the filters against multiple values attributes.
+
+    It ensures:
+        - It can filter by selecting multiple values
+        - It can filter by selecting only one value
+        - Having no occurrence can actually happen
+    """
+
+    product = product_with_multiple_values_attributes
+    product_type = product.product_type
+    attribute = product_type.product_attributes.first()
+    attribute_values = attribute.values.in_bulk()  # type: dict
+
+    url = reverse(
+        "product:category", kwargs={"slug": category.slug, "category_id": category.pk}
+    )
+
+    # Try selecting all the values
+    data = {"modes": list(attribute_values.keys())}
+    response = authorized_client.get(url, data)
+    assert list(response.context["filter_set"].qs) == [product]
+
+    # Try filtering with only one value
+    data["modes"].pop()
+    response = authorized_client.get(url, data)
+    assert list(response.context["filter_set"].qs) == [product]
+
+    # Try filtering with no occurrence
+    product.attributes[str(attribute.pk)].remove(str(data["modes"][0]))
+    product.save(update_fields=["attributes"])
+    response = authorized_client.get(url, data)
+    assert list(response.context["filter_set"].qs) == []
+
+
+def test_product_filter_non_filterable(
+    authorized_client,
+    product_with_multiple_values_attributes,
+    category,
+    product_list_published,
+):
+    """Ensures one cannot filter using a non filterable attribute"""
+
+    product = product_with_multiple_values_attributes
+    product_type = product.product_type
+    attribute = product_type.product_attributes.first()
+    attribute_values = attribute.values.in_bulk()  # type: dict
+    attribute.filterable_in_storefront = False
+    attribute.save(update_fields=["filterable_in_storefront"])
+
+    url = reverse(
+        "product:category", kwargs={"slug": category.slug, "category_id": category.pk}
+    )
+
+    # Try selecting by the disabled attribute
+    data = {"modes": list(attribute_values.keys())}
+    response = authorized_client.get(url, data)
+
+    # Nothing should have been filtered, thus returning all the products
+    assert list(response.context["filter_set"].qs) == list(Product.objects.all())
+
+
 def test_product_filter_product_does_not_exist(authorized_client, product, category):
     url = reverse(
         "product:category", kwargs={"slug": category.slug, "category_id": category.pk}
@@ -477,13 +551,31 @@ def test_get_variant_picker_data_proper_variant_count(product):
     assert len(data["variantAttributes"][0]["values"]) == 1
 
 
-def test_get_variant_picker_data_no_nested_attributes(
-    variant_with_multiple_values_attributes
-):
+def test_get_variant_picker_data_no_nested_attributes(variant, product_type, category):
     """Ensures that if someone bypassed variant attributes checks (e.g. a raw SQL query)
     and inserted an attribute with multiple values, it doesn't return invalid data
     to the storefront that would crash it."""
-    product = variant_with_multiple_values_attributes.product
+
+    variant_attr = Attribute.objects.create(
+        slug="modes", name="Available Modes", input_type=AttributeInputType.MULTISELECT
+    )
+
+    attr_val_1 = AttributeValue.objects.create(
+        attribute=variant_attr, name="Eco Mode", slug="eco"
+    )
+    attr_val_2 = AttributeValue.objects.create(
+        attribute=variant_attr, name="Performance Mode", slug="power"
+    )
+
+    product_type.variant_attributes.clear()
+    product_type.variant_attributes.add(variant_attr)
+
+    variant.attributes = {
+        str(variant_attr.pk): [str(attr_val_1.pk), str(attr_val_2.pk)]
+    }
+    variant.save(update_fields=["attributes"])
+
+    product = variant.product
     data = get_variant_picker_data(
         product, discounts=None, taxes=None, local_currency=None
     )
@@ -503,6 +595,99 @@ def test_render_product_page_with_no_variant(unavailable_product, admin_client):
     )
     response = admin_client.get(url)
     assert response.status_code == 200
+
+
+def test_render_product_page_with_multi_values_attribute(
+    client, product_with_multiple_values_attributes
+):
+    """This test ensures the rendering of a product without attribute doesn't fail."""
+    product = product_with_multiple_values_attributes
+    url = reverse(
+        "product:details", kwargs={"product_id": product.pk, "slug": product.get_slug()}
+    )
+    response = client.get(url)
+    assert response.status_code == 200
+
+
+def test_product_page_renders_attributes_properly(
+    settings, client, product_with_multiple_values_attributes, color_attribute
+):
+    """This test ensures the product attributes are properly rendered as expected
+    including the translations."""
+
+    settings.LANGUAGE_CODE = "fr"
+
+    product = product_with_multiple_values_attributes
+    multi_values_attribute = product.product_type.product_attributes.first()
+
+    # Retrieve the attributes' values
+    red, blue = color_attribute.values.all()
+    eco_mode, performance_mode = multi_values_attribute.values.all()
+
+    # Assign the dropdown attribute to the product
+    product.product_type.product_attributes.add(color_attribute)
+    product.attributes[str(color_attribute.pk)] = [
+        str(color_attribute.values.first().pk)
+    ]
+    product.save(update_fields=["attributes"])
+
+    # Create the attribute name translations
+    AttributeTranslation.objects.bulk_create(
+        [
+            AttributeTranslation(
+                language_code="fr",
+                attribute=multi_values_attribute,
+                name="Multiple Valeurs",
+            ),
+            AttributeTranslation(
+                language_code="fr", attribute=color_attribute, name="Couleur"
+            ),
+        ]
+    )
+
+    # Create the attribute value translations
+    AttributeValueTranslation.objects.bulk_create(
+        [
+            AttributeValueTranslation(
+                language_code="fr", attribute_value=red, name="Rouge"
+            ),
+            AttributeValueTranslation(
+                language_code="fr", attribute_value=blue, name="Bleu"
+            ),
+            AttributeValueTranslation(
+                language_code="fr", attribute_value=eco_mode, name="Mode économique"
+            ),
+            AttributeValueTranslation(
+                language_code="fr",
+                attribute_value=performance_mode,
+                name="Mode performance",
+            ),
+        ]
+    )
+
+    # Render the page
+    url = reverse(
+        "product:details", kwargs={"product_id": product.pk, "slug": product.get_slug()}
+    )
+    response = client.get(url)  # type: TemplateResponse
+    assert response.status_code == 200
+
+    # Retrieve the attribute table
+    soup = BeautifulSoup(response.content, "lxml")
+    attribute_table = soup.select_one(".product__info table")  # type: Tag
+    assert attribute_table, "Did not find the attribute table"
+
+    # Retrieve the table rows
+    expected_attributes = {
+        "Multiple Valeurs:Mode économique, Mode performance",
+        "Couleur:Rouge",
+    }
+    actual_attributes = [
+        row.get_text(strip=True) for row in attribute_table.select("tr")
+    ]
+
+    assert len(actual_attributes) == 2
+    assert set(actual_attributes) == expected_attributes
 
 
 def test_include_products_from_subcategories_in_main_view(
@@ -753,6 +938,35 @@ def test_get_product_attributes_data_translation(
     attributes_data = get_product_attributes_data(product)
     attributes_keys = [attr.name for attr in attributes_data.keys()]
     assert translated_attribute.name in attributes_keys
+
+
+def test_get_product_attributes_data_excludes_hidden_attributes(
+    product, color_attribute
+):
+    """Ensures hidden attributes are ignored."""
+
+    attributes_data = get_product_attributes_data(product)
+    assert attributes_data
+
+    color_attribute.visible_in_storefront = False
+    color_attribute.save(update_fields=["visible_in_storefront"])
+    attributes_data = get_product_attributes_data(product)
+    assert not attributes_data
+
+
+def test_get_product_attributes_data_multi_values_attribute(
+    product_with_multiple_values_attributes
+):
+    """Ensures attributes with multiple values are properly resolved and handled."""
+
+    product = product_with_multiple_values_attributes
+    attribute = product.product_type.product_attributes.first()
+
+    attributes_data = get_product_attributes_data(product)
+    values = list(attributes_data.values())
+
+    assert len(values) == 1
+    assert values[0] == ", ".join([v.name for v in attribute.values.all()])
 
 
 def test_homepage_collection_render(client, site_settings, collection, product_list):
