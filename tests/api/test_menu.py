@@ -360,7 +360,6 @@ def test_add_more_than_one_item(
     )
     content = get_graphql_content(response)
     data = content["data"]["menuItemUpdate"]["errors"][0]
-    assert data["field"] == "items"
     assert data["message"] == "More than one item provided."
 
 
