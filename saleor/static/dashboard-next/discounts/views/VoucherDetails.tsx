@@ -315,6 +315,8 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                   variables: {
                                     id,
                                     input: {
+                                      applyOncePerCustomer:
+                                        formData.applyOncePerCustomer,
                                       applyOncePerOrder:
                                         formData.applyOncePerOrder,
                                       discountValue:
@@ -333,9 +335,20 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                             formData.endTime
                                           )
                                         : null,
-                                      minAmountSpent: parseFloat(
-                                        formData.minAmountSpent
-                                      ),
+                                      minAmountSpent:
+                                        formData.requirementsPicker ===
+                                          "NONE" ||
+                                        formData.requirementsPicker === "ITEM"
+                                          ? 0
+                                          : parseFloat(formData.minAmountSpent),
+                                      minCheckoutItemsQuantity:
+                                        formData.requirementsPicker ===
+                                          "NONE" ||
+                                        formData.requirementsPicker === "ORDER"
+                                          ? 0
+                                          : parseFloat(
+                                              formData.minCheckoutItemsQuantity
+                                            ),
                                       startDate: joinDateTime(
                                         formData.startDate,
                                         formData.startTime
