@@ -22,7 +22,7 @@ export type IThemeColors = Record<
   gray: Record<"default" | "disabled", string>;
 } & {
   input: Record<
-    "default" | "focused" | "disabled" | "text" | "textHover",
+    "default" | "border" | "disabled" | "text" | "textHover",
     string
   >;
 };
@@ -71,6 +71,11 @@ export default (colors: IThemeColors): Theme =>
           flexDirection: "row-reverse" as "row-reverse"
         }
       },
+      MuiFormLabel: {
+        filled: {
+          color: [[colors.primary], "!important"] as any
+        }
+      },
       MuiIconButton: {
         root: {
           "&:hover": {
@@ -113,7 +118,7 @@ export default (colors: IThemeColors): Theme =>
           }
         },
         root: {
-          color: [[colors.input.text], "!important"] as any
+          color: colors.input.text
         },
         shrink: {
           width: "133%"
@@ -161,6 +166,9 @@ export default (colors: IThemeColors): Theme =>
           padding: "25px 12px 8px 12px"
         },
         root: {
+          "& fieldset": {
+            borderColor: [[colors.input.border], "!important"] as any
+          },
           "& legend": {
             display: "none"
           },
@@ -181,7 +189,7 @@ export default (colors: IThemeColors): Theme =>
           },
           "&:hover": {
             "& fieldset": {
-              borderColor: colors.primary + "!important"
+              borderColor: [[colors.primary], "!important"] as any
             },
             "& input": {
               color: colors.input.textHover,
