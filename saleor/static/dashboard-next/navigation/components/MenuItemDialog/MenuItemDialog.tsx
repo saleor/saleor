@@ -4,6 +4,7 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import TextField from "@material-ui/core/TextField";
+import Typography from "@material-ui/core/Typography";
 import isUrl from "is-url";
 import React from "react";
 
@@ -12,11 +13,15 @@ import ConfirmButton, {
   ConfirmButtonTransitionState
 } from "@saleor/components/ConfirmButton";
 import FormSpacer from "@saleor/components/FormSpacer";
-import { SearchCategories_categories_edges_node } from "../../../containers/SearchCategories/types/SearchCategories";
-import { SearchCollections_collections_edges_node } from "../../../containers/SearchCollections/types/SearchCollections";
-import { SearchPages_pages_edges_node } from "../../../containers/SearchPages/types/SearchPages";
-import i18n from "../../../i18n";
-import { getMenuItemByValue, IMenu } from "../../../utils/menu";
+import { SearchCategories_categories_edges_node } from "@saleor/containers/SearchCategories/types/SearchCategories";
+import { SearchCollections_collections_edges_node } from "@saleor/containers/SearchCollections/types/SearchCollections";
+import { SearchPages_pages_edges_node } from "@saleor/containers/SearchPages/types/SearchPages";
+import useModalDialogErrors from "@saleor/hooks/useModalDialogErrors";
+import useStateFromProps from "@saleor/hooks/useStateFromProps";
+import i18n from "@saleor/i18n";
+import { UserError } from "@saleor/types";
+import { getErrors, getFieldError } from "@saleor/utils/errors";
+import { getMenuItemByValue, IMenu } from "@saleor/utils/menu";
 
 export type MenuItemType = "category" | "collection" | "link" | "page";
 export interface MenuItemData {
@@ -31,6 +36,7 @@ export interface MenuItemDialogFormData extends MenuItemData {
 export interface MenuItemDialogProps {
   confirmButtonState: ConfirmButtonTransitionState;
   disabled: boolean;
+  errors: UserError[];
   initial?: MenuItemDialogFormData;
   initialDisplayValue?: string;
   loading: boolean;
@@ -68,6 +74,7 @@ function getDisplayValue(menu: IMenu, value: string): string {
 const MenuItemDialog: React.StatelessComponent<MenuItemDialogProps> = ({
   confirmButtonState,
   disabled,
+  errors: apiErrors,
   initial,
   initialDisplayValue,
   loading,
@@ -79,10 +86,11 @@ const MenuItemDialog: React.StatelessComponent<MenuItemDialogProps> = ({
   collections,
   pages
 }) => {
+  const errors = useModalDialogErrors(apiErrors, open);
   const [displayValue, setDisplayValue] = React.useState(
     initialDisplayValue || ""
   );
-  const [data, setData] = React.useState<MenuItemDialogFormData>(
+  const [data, setData] = useStateFromProps<MenuItemDialogFormData>(
     initial || defaultInitial
   );
   const [url, setUrl] = React.useState<string>(undefined);
@@ -97,6 +105,8 @@ const MenuItemDialog: React.StatelessComponent<MenuItemDialogProps> = ({
     setDisplayValue(initialDisplayValue);
     setUrl(undefined);
   }, [open]);
+
+  const mutationErrors = getErrors(errors);
 
   let options: IMenu = [];
 
@@ -220,7 +230,8 @@ const MenuItemDialog: React.StatelessComponent<MenuItemDialogProps> = ({
             }))
           }
           name="name"
-          helperText=""
+          error={!!getFieldError(errors, "name")}
+          helperText={getFieldError(errors, "name")}
         />
         <FormSpacer />
         <AutocompleteSelectMenu
@@ -236,6 +247,16 @@ const MenuItemDialog: React.StatelessComponent<MenuItemDialogProps> = ({
           placeholder={i18n.t("Start typing to begin search...")}
           onInputChange={handleQueryChange}
         />
+        {mutationErrors.length > 0 && (
+          <>
+            <FormSpacer />
+            {mutationErrors.map(err => (
+              <Typography variant="caption" color="error">
+                {err}
+              </Typography>
+            ))}
+          </>
+        )}
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>
