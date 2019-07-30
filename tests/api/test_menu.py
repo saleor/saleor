@@ -20,6 +20,10 @@ def test_validate_menu_item_instance(category, page):
     with pytest.raises(ValidationError):
         _validate_menu_item_instance({"category": page}, "category", Category)
 
+    # test that validation passes with empty values passed in input
+    _validate_menu_item_instance({}, "category", Category)
+    _validate_menu_item_instance({"category": None}, "category", Category)
+
 
 def test_menu_query(user_api_client, menu):
     query = """

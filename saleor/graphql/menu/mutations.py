@@ -129,8 +129,8 @@ def _validate_menu_item_instance(
     cleaned_input: dict, field: str, expected_model: Model
 ):
     """Check if the value to assign as a menu item matches the expected model."""
-    if field in cleaned_input:
-        item = cleaned_input[field]
+    item = cleaned_input.get(field)
+    if item is not None:
         if not isinstance(item, expected_model):
             msg = (
                 f"Enter a valid {expected_model._meta.verbose_name} ID "
