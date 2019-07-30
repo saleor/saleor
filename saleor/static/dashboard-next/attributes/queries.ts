@@ -29,7 +29,6 @@ export const attributeDetailsFragment = gql`
       id
       name
       slug
-      sortOrder
       type
       value
     }

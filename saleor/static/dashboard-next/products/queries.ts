@@ -280,7 +280,6 @@ const productCreateQuery = gql`
             name
             values {
               id
-              sortOrder
               name
               slug
             }
@@ -312,7 +311,6 @@ const productVariantCreateQuery = gql`
           name
           values {
             id
-            sortOrder
             name
             slug
           }

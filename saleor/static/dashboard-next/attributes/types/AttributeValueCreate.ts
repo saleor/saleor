@@ -19,7 +19,6 @@ export interface AttributeValueCreate_attributeValueCreate_attribute_values {
   id: string;
   name: string | null;
   slug: string | null;
-  sortOrder: number;
   type: AttributeValueType | null;
   value: string | null;
 }

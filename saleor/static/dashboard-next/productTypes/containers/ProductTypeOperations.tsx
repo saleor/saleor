@@ -1,10 +1,7 @@
 import React from "react";
 import { MutationFn } from "react-apollo";
 
-import {
-  AttributeReorderInput,
-  AttributeTypeEnum
-} from "@saleor/types/globalTypes";
+import { AttributeTypeEnum, ReorderInput } from "@saleor/types/globalTypes";
 import { getMutationProviderData } from "../../misc";
 import { PartialMutationProviderOutput } from "../../types";
 import {
@@ -43,7 +40,7 @@ function moveAttribute(
   attributes:
     | ProductTypeDetailsFragment_productAttributes[]
     | ProductTypeDetailsFragment_productAttributes[],
-  move: AttributeReorderInput
+  move: ReorderInput
 ) {
   const attributeIndex = attributes.findIndex(
     attribute => attribute.id === move.id
