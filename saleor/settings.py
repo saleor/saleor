@@ -211,7 +211,6 @@ MIDDLEWARE = [
     "saleor.core.middleware.country",
     "saleor.core.middleware.currency",
     "saleor.core.middleware.site",
-    "saleor.core.middleware.taxes",
     "saleor.core.middleware.extensions",
     "social_django.middleware.SocialAuthExceptionMiddleware",
     "impersonate.middleware.ImpersonateMiddleware",

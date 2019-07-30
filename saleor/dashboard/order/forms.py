@@ -11,7 +11,8 @@ from ...account.i18n import (
 from ...account.models import User
 from ...checkout.forms import QuantityField
 from ...core.exceptions import InsufficientStock
-from ...core.taxes import interface as tax_interface, zero_taxed_money
+from ...core.extensions.manager import get_extensions_manager
+from ...core.taxes import zero_taxed_money
 from ...discount.models import Voucher
 from ...discount.utils import decrease_voucher_usage, increase_voucher_usage
 from ...order import OrderStatus, events
@@ -211,9 +212,9 @@ class OrderShippingForm(forms.ModelForm):
     def save(self, commit=True):
         method = self.instance.shipping_method
         self.instance.shipping_method_name = method.name
-        self.instance.shipping_price = tax_interface.calculate_order_shipping(
-            self.instance
-        )
+
+        manager = get_extensions_manager()
+        self.instance.shipping_price = manager.calculate_order_shipping(self.instance)
         recalculate_order(self.instance)
         return super().save(commit)
 

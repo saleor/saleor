@@ -1,10 +1,11 @@
 from collections import defaultdict
+from decimal import Decimal
 from typing import Iterable
 
 from django_prices.templatetags import prices_i18n
 
+from ...core.extensions.manager import get_extensions_manager
 from ...core.taxes import display_gross_prices
-from ...core.taxes.interface import apply_taxes_to_product, show_taxes_on_storefront
 from ...core.utils import to_local_currency
 from ...discount import DiscountInfo
 from ...seo.schema.product import variant_json_ld
@@ -14,12 +15,14 @@ from .availability import get_product_availability
 def get_variant_picker_data(
     product,
     discounts: Iterable[DiscountInfo] = None,
-    taxes=None,
+    extensions=None,
     local_currency=None,
     country=None,
 ):
+    if not extensions:
+        extensions = get_extensions_manager()
     availability = get_product_availability(
-        product, discounts, country, local_currency, taxes
+        product, discounts, country, local_currency, extensions
     )
     variants = product.variants.all()
     data = {"variantAttributes": [], "variants": []}
@@ -30,11 +33,11 @@ def get_variant_picker_data(
     filter_available_variants = defaultdict(list)
 
     for variant in variants:
-        price = apply_taxes_to_product(
-            variant.product, variant.get_price(discounts), country, taxes=taxes
+        price = extensions.apply_taxes_to_product(
+            variant.product, variant.get_price(discounts), country
         )
-        price_undiscounted = apply_taxes_to_product(
-            variant.product, variant.get_price(), country, taxes=taxes
+        price_undiscounted = extensions.apply_taxes_to_product(
+            variant.product, variant.get_price(), country
         )
         if local_currency:
             price_local_currency = to_local_currency(price, local_currency)
@@ -78,10 +81,11 @@ def get_variant_picker_data(
                 }
             )
 
-    product_price = apply_taxes_to_product(product, product.price, country, taxes=taxes)
-    tax_rates = 0
+    product_price = extensions.apply_taxes_to_product(product, product.price, country)
+    tax_rates = Decimal(0)
     if product_price.tax and product_price.net:
-        tax_rates = int((product_price.tax / product_price.net) * 100)
+        tax_rates = (product_price.tax / product_price.net) * 100
+        tax_rates = tax_rates.quantize(Decimal("1."))
 
     data["availability"] = {
         "discount": price_as_dict(availability.discount),
@@ -96,7 +100,7 @@ def get_variant_picker_data(
     }
     data["priceDisplay"] = {
         "displayGross": display_gross_prices(),
-        "handleTaxes": show_taxes_on_storefront(),
+        "handleTaxes": extensions.show_taxes_on_storefront(),
     }
     return data
 

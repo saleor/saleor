@@ -5,12 +5,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.response import TemplateResponse
 
 from ...account.forms import LoginForm
-from ...core.taxes import (
-    get_display_price,
-    interface as tax_interface,
-    quantize_price,
-    zero_taxed_money,
-)
+from ...core.taxes import get_display_price, quantize_price, zero_taxed_money
 from ...core.utils import format_money, get_user_shipping_country, to_local_currency
 from ..forms import CheckoutShippingMethodForm, CountryForm, ReplaceCheckoutLineForm
 from ..models import Checkout
@@ -132,6 +127,7 @@ def checkout_index(request, checkout):
         "variant__images",
         "variant__product__product_type__variant_attributes",
     )
+    manager = request.extensions
     for line in lines:
         initial = {"quantity": line.quantity}
         form = ReplaceCheckoutLineForm(
@@ -141,7 +137,7 @@ def checkout_index(request, checkout):
             initial=initial,
             discounts=discounts,
         )
-        total_line = tax_interface.calculate_checkout_line_total(line, discounts)
+        total_line = manager.calculate_checkout_line_total(line, discounts)
         variant_price = quantize_price(total_line / line.quantity, total_line.currency)
         checkout_lines.append(
             {
@@ -210,6 +206,7 @@ def update_checkout_line(request, checkout, variant_id):
         variant=checkout_line.variant,
         discounts=discounts,
     )
+    manager = request.extensions
     if form.is_valid():
         form.save()
         checkout.refresh_from_db()
@@ -217,9 +214,7 @@ def update_checkout_line(request, checkout, variant_id):
         checkout_line = checkout.lines.filter(variant_id=variant_id).first()
         line_total = zero_taxed_money(currency=settings.DEFAULT_CURRENCY)
         if checkout_line:
-            line_total = tax_interface.calculate_checkout_line_total(
-                checkout_line, discounts
-            )
+            line_total = manager.calculate_checkout_line_total(checkout_line, discounts)
         subtotal = get_display_price(line_total)
         response = {
             "variantId": variant_id,
@@ -228,7 +223,7 @@ def update_checkout_line(request, checkout, variant_id):
             "checkout": {"numItems": checkout.quantity, "numLines": len(checkout)},
         }
 
-        checkout_total = tax_interface.calculate_checkout_subtotal(checkout, discounts)
+        checkout_total = manager.calculate_checkout_subtotal(checkout, discounts)
         checkout_total = get_display_price(checkout_total)
         response["total"] = format_money(checkout_total)
         local_checkout_total = to_local_currency(checkout_total, request.currency)
@@ -257,6 +252,7 @@ def clear_checkout(request, checkout):
 def checkout_dropdown(request, checkout):
     """Display a checkout summary suitable for displaying on all pages."""
     discounts = request.discounts
+    manager = request.extensions
 
     def prepare_line_data(line):
         first_image = line.variant.get_first_image()
@@ -267,7 +263,7 @@ def checkout_dropdown(request, checkout):
             "variant": line.variant,
             "quantity": line.quantity,
             "image": first_image,
-            "line_total": tax_interface.calculate_checkout_line_total(line, discounts),
+            "line_total": manager.calculate_checkout_line_total(line, discounts),
             "variant_url": line.variant.get_absolute_url(),
         }
 
@@ -276,7 +272,7 @@ def checkout_dropdown(request, checkout):
     else:
         data = {
             "quantity": checkout.quantity,
-            "total": tax_interface.calculate_checkout_subtotal(checkout, discounts),
+            "total": manager.calculate_checkout_subtotal(checkout, discounts),
             "lines": [prepare_line_data(line) for line in checkout],
         }
 
