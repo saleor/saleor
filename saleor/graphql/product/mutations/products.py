@@ -6,8 +6,6 @@ from django.db import transaction
 from django.template.defaultfilters import slugify
 from graphene.types import InputObjectType
 
-from ....core.taxes import interface as tax_interface
-from ....core.taxes.vatlayer import interface as vatlayer_interface
 from ....product import models
 from ....product.tasks import update_variants_names
 from ....product.thumbnails import (
@@ -489,11 +487,11 @@ class ProductCreate(ModelMutation):
         # FIXME  tax_rate logic should be dropped after we remove tax_rate from input
         tax_rate = cleaned_input.pop("tax_rate", "")
         if tax_rate:
-            vatlayer_interface.assign_tax_to_object_meta(instance, tax_rate)
+            info.context.extensions.assign_tax_code_to_object_meta(instance, tax_rate)
 
         tax_code = cleaned_input.pop("tax_code", "")
         if tax_code:
-            tax_interface.assign_tax_to_object_meta(instance, tax_code)
+            info.context.extensions.assign_tax_code_to_object_meta(instance, tax_code)
 
         if attributes and product_type:
             qs = product_type.product_attributes.prefetch_related("values")
@@ -830,11 +828,17 @@ class ProductTypeCreate(ModelMutation):
         # FIXME  tax_rate logic should be dropped after we remove tax_rate from input
         tax_rate = cleaned_input.pop("tax_rate", "")
         if tax_rate:
-            vatlayer_interface.assign_tax_to_object_meta(instance, tax_rate)
+            if "taxes" not in instance.meta:
+                instance.meta["taxes"] = {}
+            instance.meta["taxes"]["vatlayer"] = {
+                "code": tax_rate,
+                "description": tax_rate,
+            }
+            info.context.extensions.assign_tax_code_to_object_meta(instance, tax_rate)
 
         tax_code = cleaned_input.pop("tax_code", "")
         if tax_code:
-            tax_interface.assign_tax_to_object_meta(instance, tax_code)
+            info.context.extensions.assign_tax_code_to_object_meta(instance, tax_code)
 
         return cleaned_input
 

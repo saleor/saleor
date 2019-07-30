@@ -26,7 +26,7 @@ from ...checkout.utils import (
 )
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
-from ...core.taxes.errors import TaxError
+from ...core.taxes import TaxError
 from ...discount import models as voucher_model
 from ...payment import PaymentError
 from ...payment.interface import AddressData

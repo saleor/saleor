@@ -2,13 +2,11 @@
 
 from django.db import migrations, models
 
-from ...core.taxes.vatlayer import DEFAULT_TAX_RATE_NAME
-
 
 def add_default_tax_rate_instead_of_empty_field(apps, schema_editor):
     ProductType = apps.get_model("product", "ProductType")
     product_types = ProductType.objects.filter(tax_rate="")
-    product_types.update(tax_rate=DEFAULT_TAX_RATE_NAME)
+    product_types.update(tax_rate="standard")
 
 
 class Migration(migrations.Migration):
