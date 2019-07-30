@@ -19,7 +19,7 @@ def ensure_attribute_slugs_are_unique_or_fix(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    dependencies = [("product", "0096_raw_html_to_json")]
+    dependencies = [("product", "0101_auto_20190719_0839")]
 
     operations = [
         migrations.RunPython(ensure_attribute_slugs_are_unique_or_fix),

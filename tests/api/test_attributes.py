@@ -6,6 +6,7 @@ from django.db.models import Q
 from django.template.defaultfilters import slugify
 from graphene.utils.str_converters import to_camel_case
 
+from saleor.graphql.core.utils import snake_to_camel_case
 from saleor.graphql.product.enums import AttributeTypeEnum, AttributeValueType
 from saleor.graphql.product.types.attributes import resolve_attribute_value_type
 from saleor.graphql.product.types.products import resolve_attribute_list
@@ -1396,7 +1397,7 @@ def test_retrieving_the_restricted_attributes_restricted(
 ATTRIBUTES_RESORT_QUERY = """
     mutation ProductTypeReorderAttributes(
       $productTypeId: ID!
-      $moves: [AttributeReorderInput]!
+      $moves: [ReorderInput]!
       $type: AttributeTypeEnum!
     ) {
       productTypeReorderAttributes(
@@ -1405,6 +1406,7 @@ ATTRIBUTES_RESORT_QUERY = """
         type: $type
       ) {
         productType {
+          id
           variantAttributes {
             id
             slug
@@ -1421,6 +1423,34 @@ ATTRIBUTES_RESORT_QUERY = """
       }
     }
 """
+
+
+def test_sort_attributes_within_product_type_invalid_product_type(
+    staff_api_client, permission_manage_products
+):
+    """Try to reorder an invalid product type (invalid ID)."""
+
+    product_type_id = graphene.Node.to_global_id("ProductType", -1)
+    attribute_id = graphene.Node.to_global_id("Attribute", -1)
+
+    variables = {
+        "type": "VARIANT",
+        "productTypeId": product_type_id,
+        "moves": [{"id": attribute_id, "sortOrder": 1}],
+    }
+
+    content = get_graphql_content(
+        staff_api_client.post_graphql(
+            ATTRIBUTES_RESORT_QUERY, variables, permissions=[permission_manage_products]
+        )
+    )["data"]["productTypeReorderAttributes"]
+
+    assert content["errors"] == [
+        {
+            "field": "productTypeId",
+            "message": f"Couldn't resolve to a product type: {product_type_id}",
+        }
+    ]
 
 
 def test_sort_attributes_within_product_type_invalid_id(
@@ -1460,7 +1490,7 @@ def test_sort_attributes_within_product_type_invalid_id(
         ("PRODUCT", "product_attributes", "attributeproduct"),
     ),
 )
-def test_sort_variant_attributes_within_product_type(
+def test_sort_attributes_within_product_type(
     staff_api_client,
     attribute_list,
     permission_manage_products,
@@ -1468,35 +1498,186 @@ def test_sort_variant_attributes_within_product_type(
     relation_field,
     backref_field,
 ):
+    attributes = attribute_list
+    assert len(attributes) == 3
+
     staff_api_client.user.user_permissions.add(permission_manage_products)
 
     product_type = ProductType.objects.create(name="Dummy Type")
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.id)
-    getattr(product_type, relation_field).set(attribute_list)
+    m2m_attributes = getattr(product_type, relation_field)
+    m2m_attributes.set(attributes)
+
+    sort_method = getattr(m2m_attributes, f"{relation_field}_sorted_for_dashboard")
+    attributes = list(sort_method())
+
+    assert len(attributes) == 3
 
     variables = {
         "type": attribute_type,
         "productTypeId": product_type_id,
         "moves": [
-            {"id": graphene.Node.to_global_id("Attribute", attr.id), "sortOrder": 0}
-            for attr in attribute_list
+            {
+                "id": graphene.Node.to_global_id("Attribute", attributes[0].pk),
+                "sortOrder": +1,
+            },
+            {
+                "id": graphene.Node.to_global_id("Attribute", attributes[2].pk),
+                "sortOrder": -1,
+            },
         ],
     }
+
+    expected_order = [attributes[1].pk, attributes[2].pk, attributes[0].pk]
 
     content = get_graphql_content(
         staff_api_client.post_graphql(ATTRIBUTES_RESORT_QUERY, variables)
     )["data"]["productTypeReorderAttributes"]
     assert not content["errors"]
 
-    gql_attributes = content["productType"]["variantAttributes"]
-    current_sort_pos = 0
-    for gql_attr, db_attr in zip(gql_attributes, attribute_list):
-        assert getattr(db_attr, backref_field).last().sort_order == current_sort_pos
+    assert (
+        content["productType"]["id"] == product_type_id
+    ), "Did not return the correct product type"
 
-        _, gql_attr_id = graphene.Node.from_global_id(gql_attr["id"])
-        assert gql_attr_id == str(db_attr.pk)
+    gql_attributes = content["productType"][snake_to_camel_case(relation_field)]
+    assert len(gql_attributes) == len(expected_order)
 
-        current_sort_pos += 1
+    for attr, expected_pk in zip(gql_attributes, expected_order):
+        gql_type, gql_attr_id = graphene.Node.from_global_id(attr["id"])
+        assert gql_type == "Attribute"
+        assert int(gql_attr_id) == expected_pk
+
+
+ATTRIBUTE_VALUES_RESORT_QUERY = """
+    mutation attributeReorderValues($attributeId: ID!, $moves: [ReorderInput]!) {
+      attributeReorderValues(attributeId: $attributeId, moves: $moves) {
+        attribute {
+          id
+          values {
+            id
+          }
+        }
+
+        errors {
+          field
+          message
+        }
+      }
+    }
+"""
+
+
+def test_sort_values_within_attribute_invalid_product_type(
+    staff_api_client, permission_manage_products
+):
+    """Try to reorder an invalid attribute (invalid ID)."""
+
+    attribute_id = graphene.Node.to_global_id("Attribute", -1)
+    value_id = graphene.Node.to_global_id("AttributeValue", -1)
+
+    variables = {
+        "attributeId": attribute_id,
+        "moves": [{"id": value_id, "sortOrder": 1}],
+    }
+
+    content = get_graphql_content(
+        staff_api_client.post_graphql(
+            ATTRIBUTE_VALUES_RESORT_QUERY,
+            variables,
+            permissions=[permission_manage_products],
+        )
+    )["data"]["attributeReorderValues"]
+
+    assert content["errors"] == [
+        {
+            "field": "attributeId",
+            "message": f"Couldn't resolve to an attribute: {attribute_id}",
+        }
+    ]
+
+
+def test_sort_values_within_attribute_invalid_id(
+    staff_api_client, permission_manage_products, color_attribute
+):
+    """Try to reorder a value not associated to the given attribute."""
+
+    attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.id)
+    value_id = graphene.Node.to_global_id("AttributeValue", -1)
+
+    variables = {
+        "type": "VARIANT",
+        "attributeId": attribute_id,
+        "moves": [{"id": value_id, "sortOrder": 1}],
+    }
+
+    content = get_graphql_content(
+        staff_api_client.post_graphql(
+            ATTRIBUTE_VALUES_RESORT_QUERY,
+            variables,
+            permissions=[permission_manage_products],
+        )
+    )["data"]["attributeReorderValues"]
+
+    assert content["errors"] == [
+        {
+            "field": "moves",
+            "message": f"Couldn't resolve to an attribute value: {value_id}",
+        }
+    ]
+
+
+def test_sort_values_within_attribute(
+    staff_api_client, color_attribute, permission_manage_products
+):
+    attribute = color_attribute
+    AttributeValue.objects.create(attribute=attribute, name="Green", slug="green")
+    values = list(attribute.values.all())
+    assert len(values) == 3
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    m2m_values = attribute.values
+    m2m_values.set(values)
+
+    assert values == sorted(
+        values, key=lambda o: o.sort_order if o.sort_order is not None else o.pk
+    ), "The values are not properly ordered"
+
+    variables = {
+        "attributeId": attribute_id,
+        "moves": [
+            {
+                "id": graphene.Node.to_global_id("AttributeValue", values[0].pk),
+                "sortOrder": +1,
+            },
+            {
+                "id": graphene.Node.to_global_id("AttributeValue", values[2].pk),
+                "sortOrder": -1,
+            },
+        ],
+    }
+
+    expected_order = [values[1].pk, values[2].pk, values[0].pk]
+
+    content = get_graphql_content(
+        staff_api_client.post_graphql(ATTRIBUTE_VALUES_RESORT_QUERY, variables)
+    )["data"]["attributeReorderValues"]
+    assert not content["errors"]
+
+    assert content["attribute"]["id"] == attribute_id
+
+    gql_values = content["attribute"]["values"]
+    assert len(gql_values) == len(expected_order)
+
+    actual_order = []
+
+    for attr, expected_pk in zip(gql_values, expected_order):
+        gql_type, gql_attr_id = graphene.Node.from_global_id(attr["id"])
+        assert gql_type == "AttributeValue"
+        actual_order.append(int(gql_attr_id))
+
+    assert actual_order == expected_order
 
 
 ATTRIBUTES_FILTER_QUERY = """
