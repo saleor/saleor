@@ -21,3 +21,8 @@ repos:
     rev: v4.3.21
     hooks:
     -   id: isort
+
+-   repo: https://github.com/pycqa/pydocstyle
+    rev: 4.0.0
+    hooks:
+    -   id: pydocstyle

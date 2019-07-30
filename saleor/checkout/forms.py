@@ -200,9 +200,7 @@ class CountryForm(forms.Form):
         )
 
     def get_shipping_price_estimate(self, checkout, discounts):
-        """Return a shipping price range for given order for the selected
-        country.
-        """
+        """Return a shipping price range for given order for the selected country."""
         from .utils import get_shipping_price_estimate
 
         country = self.cleaned_data["country"]

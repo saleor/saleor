@@ -31,6 +31,7 @@ ZERO_DECIMAL_CURRENCIES = [
 
 def get_amount_for_stripe(amount, currency):
     """Get appropriate amount for stripe.
+
     Stripe is using currency's smallest unit such as cents for USD and
     stripe requires integer instead of decimal, so multiplying by 100
     and converting to integer is required. But for zero-decimal currencies,
@@ -60,6 +61,7 @@ def get_amount_from_stripe(amount, currency):
 
 def get_currency_for_stripe(currency):
     """Convert Saleor's currency format to Stripe's currency format.
+
     Stripe's currency is using lowercase while Saleor is using uppercase.
     """
     return currency.lower()
@@ -67,6 +69,7 @@ def get_currency_for_stripe(currency):
 
 def get_currency_from_stripe(currency):
     """Convert Stripe's currency format to Saleor's currency format.
+
     Stripe's currency is using lowercase while Saleor is using uppercase.
     """
     return currency.upper()

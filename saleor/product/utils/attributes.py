@@ -1,6 +1,7 @@
 def get_product_attributes_data(product):
-    """Returns attributes associated with the product,
-    as dict of Attribute: AttributeValue values.
+    """Return the attributes associated with the product.
+
+    It is returned as a dict of Attribute: AttributeValue values.
     """
     attributes = product.product_type.product_attributes.all()
     attributes_map = {attribute.pk: attribute.translated for attribute in attributes}
@@ -12,17 +13,18 @@ def get_product_attributes_data(product):
 
 
 def get_name_from_attributes(variant, attributes):
-    """Generates ProductVariant's name based on its attributes."""
+    """Generate ProductVariant's name based on its attributes."""
     values = get_attributes_display_map(variant, attributes)
     return generate_name_from_values(values)
 
 
 def get_attributes_display_map(obj, attributes):
-    """Returns attributes associated with an object,
-    as dict of Attribute: AttributeValue values.
+    """Return attributes associated with an object, as dict of AttrPK: AttributeValue.
 
     Args:
+        obj: The variant or product.
         attributes: Attribute Iterable
+
     """
     display_map = {}
     for attribute in attributes:
@@ -34,11 +36,13 @@ def get_attributes_display_map(obj, attributes):
 
 
 def generate_name_from_values(attributes_dict):
-    """Generates name from AttributeValues. Attributes dict is sorted,
-    as attributes order should be kept within each save.
+    """Generate name from AttributeValues.
+
+    Attributes dict is sorted, as attributes order should be kept within each save.
 
     Args:
         attributes_dict: dict of attribute_pk: AttributeValue values
+
     """
     return " / ".join(
         str(attribute_value)

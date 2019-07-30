@@ -28,7 +28,7 @@ from . import events
 
 
 def order_line_needs_automatic_fulfillment(line: OrderLine) -> bool:
-    """Check if given line is digital and should be automatically fulfilled"""
+    """Check if given line is digital and should be automatically fulfilled."""
     digital_content_settings = get_default_digital_content_settings()
     default_automatic_fulfillment = digital_content_settings["automatic_fulfillment"]
     content = line.variant.digital_content
@@ -40,8 +40,7 @@ def order_line_needs_automatic_fulfillment(line: OrderLine) -> bool:
 
 
 def order_needs_automatic_fullfilment(order: Order) -> bool:
-    """Check if order has digital products which should be automatically
-    fulfilled"""
+    """Check if order has digital products which should be automatically fulfilled."""
     for line in order.lines.digital():
         if order_line_needs_automatic_fulfillment(line):
             return True
@@ -57,8 +56,10 @@ def fulfill_order_line(order_line, quantity):
 
 
 def automatically_fulfill_digital_lines(order: Order):
-    """Fulfill all digital lines which have enabled automatic fulfillment
-    setting and send confirmation email."""
+    """Fulfill all digital lines which have enabled automatic fulfillment setting.
+
+    Send confirmation email afterward.
+    """
     digital_lines = order.lines.filter(
         is_shipping_required=False, variant__digital_content__isnull=False
     )

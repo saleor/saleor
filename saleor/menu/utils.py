@@ -23,9 +23,10 @@ def update_menu_item_linked_object(menu_item, linked_object):
 
 
 def get_menus_that_need_update(collection=None, categories=None, page=None):
-    """Returns primary keys of Menu instances that will be affected by
-    deleting one of the listed objects, therefore needs to be updated
-    afterwards.
+    """Return the primary keys of the Menu instances.
+
+    They that will be affected by deleting one of the listed objects,
+    therefore needs to be updated afterwards.
     """
     if not any([page, collection, categories]):
         return []
@@ -57,9 +58,7 @@ def get_menu_item_as_dict(menu_item):
 
 
 def get_menu_as_json(menu):
-    """Builds Tree-like structure from top menu items,
-    its children and its grandchildren.
-    """
+    """Build a tree structure from top menu items, its children and grandchildren."""
     top_items = menu.items.filter(parent=None).prefetch_related(
         "category",
         "page",

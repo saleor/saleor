@@ -50,10 +50,7 @@ from .types import Checkout, CheckoutLine
 def clean_shipping_method(
     checkout: models.Checkout, method: Optional[models.ShippingMethod], discounts
 ) -> bool:
-    """
-    Check if current shipping method is valid. If so - return True.
-    It returns whether the selected shipping method is valid
-    """
+    """Check if current shipping method is valid."""
 
     if not method:
         # no shipping method was provided, it is valid

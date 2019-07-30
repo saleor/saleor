@@ -184,9 +184,7 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
 
     @classmethod
     def clean_remove_values(cls, cleaned_input, instance):
-        """Check if AttributeValues to be removed are assigned to given
-        Attribute.
-        """
+        """Check if the values to be removed are assigned to the given attribute."""
         remove_values = cleaned_input.get("remove_values", [])
         for value in remove_values:
             if value.attribute != instance:

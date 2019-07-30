@@ -96,7 +96,7 @@ def site(get_response):
 
 
 def extensions(get_response):
-    """Assign extensions manager"""
+    """Assign extensions manager."""
 
     def _get_manager():
         return get_extensions_manager(plugins=settings.PLUGINS)
