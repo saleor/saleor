@@ -64,7 +64,7 @@ class TestPlugin(BasePlugin):
 
 
 def test_get_extensions_manager():
-    manager_path = "saleor.core.extensions.manager.ExtensionsManager"
+    manager_path = "saleor.extensions.manager.ExtensionsManager"
     plugin_path = "tests.extensions.test_manager.TestPlugin"
     manager = get_extensions_manager(manager_path=manager_path, plugins=[plugin_path])
     assert isinstance(manager, ExtensionsManager)
