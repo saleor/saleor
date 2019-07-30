@@ -3,7 +3,7 @@ from unittest.mock import Mock
 
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
-from saleor.core.extensions.manager import ExtensionsManager
+from saleor.extensions.manager import ExtensionsManager
 from saleor.product import ProductAvailabilityStatus, VariantAvailabilityStatus, models
 from saleor.product.utils.availability import (
     get_product_availability,

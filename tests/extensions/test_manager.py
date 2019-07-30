@@ -5,9 +5,9 @@ import pytest
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
-from saleor.core.extensions.base_plugin import BasePlugin
-from saleor.core.extensions.manager import ExtensionsManager, get_extensions_manager
 from saleor.core.taxes import TaxType
+from saleor.extensions.base_plugin import BasePlugin
+from saleor.extensions.manager import ExtensionsManager, get_extensions_manager
 
 
 class TestPlugin(BasePlugin):

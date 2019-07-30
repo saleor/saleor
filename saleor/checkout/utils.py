@@ -17,7 +17,6 @@ from ..account.forms import get_address_form
 from ..account.models import Address, User
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
-from ..core.extensions.manager import get_extensions_manager
 from ..core.taxes import quantize_price, zero_money, zero_taxed_money
 from ..core.utils import to_local_currency
 from ..core.utils.promo_code import (
@@ -35,6 +34,7 @@ from ..discount.utils import (
     remove_voucher_usage_by_customer,
     validate_voucher_for_checkout,
 )
+from ..extensions.manager import get_extensions_manager
 from ..giftcard.utils import (
     add_gift_card_code_to_checkout,
     remove_gift_card_code_from_checkout,

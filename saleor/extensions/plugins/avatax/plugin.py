@@ -6,7 +6,7 @@ from urllib.parse import urljoin
 from django.conf import settings
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
-from ....taxes import TaxError, TaxType, zero_taxed_money
+from ....core.taxes import TaxError, TaxType, zero_taxed_money
 from ...base_plugin import BasePlugin
 from . import (
     META_FIELD,
@@ -25,8 +25,8 @@ from . import (
 from .tasks import api_post_request_task
 
 if TYPE_CHECKING:
-    from .....checkout.models import Checkout, CheckoutLine
-    from .....order.models import Order, OrderLine
+    from ....checkout.models import Checkout, CheckoutLine
+    from ....order.models import Order, OrderLine
 
 logger = logging.getLogger(__name__)
 

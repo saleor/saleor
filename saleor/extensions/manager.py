@@ -6,14 +6,14 @@ from django.utils.module_loading import import_string
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from ..taxes import TaxType, quantize_price
+from ..core.taxes import TaxType, quantize_price
 
 if TYPE_CHECKING:
     from .base_plugin import BasePlugin
-    from ...checkout.models import Checkout, CheckoutLine
-    from ...product.models import Product
-    from ...account.models import Address
-    from ...order.models import OrderLine, Order
+    from ..checkout.models import Checkout, CheckoutLine
+    from ..product.models import Product
+    from ..account.models import Address
+    from ..order.models import OrderLine, Order
 
 
 class ExtensionsManager:

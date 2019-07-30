@@ -12,8 +12,8 @@ from django.utils.translation import pgettext_lazy
 from requests.auth import HTTPBasicAuth
 
 if TYPE_CHECKING:
-    from .....checkout.models import Checkout
-    from .....order.models import Order
+    from ....checkout.models import Checkout
+    from ....order.models import Order
 
 logger = logging.getLogger(__name__)
 
