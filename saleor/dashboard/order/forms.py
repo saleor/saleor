@@ -11,10 +11,10 @@ from ...account.i18n import (
 from ...account.models import User
 from ...checkout.forms import QuantityField
 from ...core.exceptions import InsufficientStock
-from ...core.extensions.manager import get_extensions_manager
 from ...core.taxes import zero_taxed_money
 from ...discount.models import Voucher
 from ...discount.utils import decrease_voucher_usage, increase_voucher_usage
+from ...extensions.manager import get_extensions_manager
 from ...order import OrderStatus, events
 from ...order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ...order.utils import (

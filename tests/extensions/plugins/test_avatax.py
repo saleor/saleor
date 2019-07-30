@@ -2,13 +2,13 @@ import pytest
 from prices import Money, TaxedMoney
 
 from saleor.checkout.utils import add_variant_to_checkout
-from saleor.core.extensions.manager import get_extensions_manager
-from saleor.core.extensions.plugins.avatax import (
+from saleor.core.taxes import TaxError, quantize_price
+from saleor.extensions.manager import get_extensions_manager
+from saleor.extensions.plugins import (
     checkout_needs_new_fetch,
     generate_request_data_from_checkout,
     get_cached_tax_codes_or_fetch,
 )
-from saleor.core.taxes import TaxError, quantize_price
 
 
 @pytest.mark.vcr()

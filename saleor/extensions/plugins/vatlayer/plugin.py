@@ -6,7 +6,7 @@ from django_countries.fields import Country
 from django_prices_vatlayer.utils import get_tax_rate_types
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from ....taxes import TaxType
+from ....core.taxes import TaxType
 from ...base_plugin import BasePlugin
 from . import (
     DEFAULT_TAX_RATE_NAME,
@@ -18,10 +18,10 @@ from . import (
 
 if TYPE_CHECKING:
 
-    from .....checkout.models import Checkout, CheckoutLine
-    from .....product.models import Product
-    from .....account.models import Address
-    from .....order.models import OrderLine, Order
+    from ....checkout.models import Checkout, CheckoutLine
+    from ....product.models import Product
+    from ....account.models import Address
+    from ....order.models import OrderLine, Order
 
 
 class VatlayerPlugin(BasePlugin):

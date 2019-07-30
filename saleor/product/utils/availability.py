@@ -7,9 +7,9 @@ from prices import TaxedMoneyRange
 from saleor.graphql.core.types import MoneyRange
 from saleor.product.models import Product, ProductVariant
 
-from ...core.extensions.manager import get_extensions_manager
 from ...core.utils import to_local_currency
 from ...discount import DiscountInfo
+from ...extensions.manager import get_extensions_manager
 from .. import ProductAvailabilityStatus, VariantAvailabilityStatus
 
 ProductAvailability = namedtuple(

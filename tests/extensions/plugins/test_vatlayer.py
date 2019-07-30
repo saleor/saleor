@@ -11,17 +11,17 @@ from django_prices_vatlayer.models import VAT
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from saleor.checkout.utils import add_variant_to_checkout
-from saleor.core.extensions.manager import get_extensions_manager
-from saleor.core.extensions.plugins.vatlayer import (
+from saleor.core.taxes import quantize_price
+from saleor.dashboard.taxes.filters import get_country_choices_for_vat
+from saleor.extensions.manager import get_extensions_manager
+from saleor.extensions.plugins.vatlayer import (
     DEFAULT_TAX_RATE_NAME,
+    VatlayerPlugin,
     apply_tax_to_price,
     get_tax_rate_by_name,
     get_taxed_shipping_price,
     get_taxes_for_country,
 )
-from saleor.core.extensions.plugins.vatlayer.plugin import VatlayerPlugin
-from saleor.core.taxes import quantize_price
-from saleor.dashboard.taxes.filters import get_country_choices_for_vat
 
 
 def get_url_path(url):

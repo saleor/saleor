@@ -231,6 +231,7 @@ INSTALLED_APPS = [
     "django.contrib.postgres",
     "django.forms",
     # Local apps
+    "saleor.extensions",
     "saleor.account",
     "saleor.discount",
     "saleor.giftcard",
@@ -676,7 +677,7 @@ GRAPHENE = {
     "RELAY_CONNECTION_MAX_LIMIT": 100,
 }
 
-EXTENSIONS_MANAGER = "saleor.core.extensions.manager.ExtensionsManager"
+EXTENSIONS_MANAGER = "saleor.extensions.manager.ExtensionsManager"
 
 PLUGINS = os.environ.get("PLUGINS", [])
 

@@ -4,10 +4,10 @@ from typing import Iterable
 
 from django_prices.templatetags import prices_i18n
 
-from ...core.extensions.manager import get_extensions_manager
 from ...core.taxes import display_gross_prices
 from ...core.utils import to_local_currency
 from ...discount import DiscountInfo
+from ...extensions.manager import get_extensions_manager
 from ...seo.schema.product import variant_json_ld
 from .availability import get_product_availability
 

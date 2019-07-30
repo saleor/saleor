@@ -5,8 +5,8 @@ from typing import Iterable
 from django.db.models import F
 from django.utils.translation import pgettext
 
-from ..core.extensions.manager import get_extensions_manager
 from ..core.taxes import zero_money
+from ..extensions.manager import get_extensions_manager
 from . import DiscountInfo
 from .models import NotApplicable, Sale, VoucherCustomer
 

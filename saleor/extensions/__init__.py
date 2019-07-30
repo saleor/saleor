@@ -1,6 +1,8 @@
 import importlib
 from typing import List
 
+from .checks import check_extensions  # NOQA: F401
+
 
 def discover_plugins_modules(plugins: List[str]):
     plugins_modules = []
