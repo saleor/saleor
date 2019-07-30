@@ -469,31 +469,27 @@ def product(product_type, category):
 
 
 @pytest.fixture
-def variant_with_multiple_values_attributes(
-    variant, product_type, category
-) -> ProductVariant:
-    variant_attr = Attribute.objects.create(
+def product_with_multiple_values_attributes(product, product_type, category) -> Product:
+
+    attribute = Attribute.objects.create(
         slug="modes", name="Available Modes", input_type=AttributeInputType.MULTISELECT
     )
 
     attr_val_1 = AttributeValue.objects.create(
-        attribute=variant_attr, name="Eco Mode", slug="eco"
+        attribute=attribute, name="Eco Mode", slug="eco"
     )
     attr_val_2 = AttributeValue.objects.create(
-        attribute=variant_attr, name="Performance Mode", slug="power"
+        attribute=attribute, name="Performance Mode", slug="power"
     )
 
-    product_type.variant_attributes.clear()
-    product_type.variant_attributes.add(variant_attr)
+    product_type.product_attributes.clear()
+    product_type.product_attributes.add(attribute)
 
-    variant.attributes = {
-        smart_text(variant_attr.pk): [
-            smart_text(attr_val_1.pk),
-            smart_text(attr_val_2.pk),
-        ]
+    product.attributes = {
+        smart_text(attribute.pk): [smart_text(attr_val_1.pk), smart_text(attr_val_2.pk)]
     }
-    variant.save(update_fields=["attributes"])
-    return variant
+    product.save(update_fields=["attributes"])
+    return product
 
 
 @pytest.fixture
