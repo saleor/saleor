@@ -446,6 +446,8 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
         resolver=resolve_translation,
     )
 
+    slug = graphene.String(required=True, description="The slug of a product.")
+
     class Meta:
         description = """Represents an individual item for sale in the
         storefront."""
@@ -604,6 +606,10 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
     @staticmethod
     def resolve_meta(root, _info):
         return resolve_meta(root, _info)
+
+    @staticmethod
+    def resolve_slug(root: models.Product, *_args):
+        return root.get_slug()
 
 
 class ProductType(CountableDjangoObjectType, MetadataObjectType):
