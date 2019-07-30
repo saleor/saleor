@@ -30,10 +30,10 @@ from saleor.checkout.utils import (
     remove_voucher_from_checkout,
 )
 from saleor.core.exceptions import InsufficientStock
-from saleor.core.extensions.manager import ExtensionsManager, get_extensions_manager
 from saleor.core.taxes import zero_money, zero_taxed_money
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import NotApplicable, Voucher
+from saleor.extensions.manager import ExtensionsManager, get_extensions_manager
 from saleor.order import OrderEvents, OrderEventsEmails
 from saleor.order.models import OrderEvent
 from saleor.product.models import Category

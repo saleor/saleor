@@ -24,6 +24,7 @@ from ...core.weight import zero_weight
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
 from ...discount.utils import fetch_discounts
+from ...extensions.manager import get_extensions_manager
 from ...giftcard.models import GiftCard
 from ...menu.models import Menu
 from ...menu.utils import update_menu
@@ -53,7 +54,6 @@ from ...product.thumbnails import (
     create_product_thumbnails,
 )
 from ...shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
-from ..extensions.manager import get_extensions_manager
 
 fake = Factory.create()
 

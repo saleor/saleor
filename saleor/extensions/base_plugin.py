@@ -5,11 +5,11 @@ from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 if TYPE_CHECKING:
-    from ..taxes import TaxType
-    from ...checkout.models import Checkout, CheckoutLine
-    from ...product.models import Product
-    from ...account.models import Address
-    from ...order.models import OrderLine, Order
+    from ..core.taxes import TaxType
+    from ..checkout.models import Checkout, CheckoutLine
+    from ..product.models import Product
+    from ..account.models import Address
+    from ..order.models import OrderLine, Order
 
 
 class BasePlugin:

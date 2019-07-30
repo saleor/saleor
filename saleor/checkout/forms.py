@@ -11,10 +11,10 @@ from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django_countries.fields import Country, LazyTypedChoiceField
 
 from ..core.exceptions import InsufficientStock
-from ..core.extensions.manager import get_extensions_manager
 from ..core.taxes import display_gross_prices
 from ..core.utils import format_money
 from ..discount.models import NotApplicable, Voucher
+from ..extensions.manager import get_extensions_manager
 from ..shipping.models import ShippingMethod, ShippingZone
 from .models import Checkout
 

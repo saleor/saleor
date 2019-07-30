@@ -9,9 +9,9 @@ from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from mptt.forms import TreeNodeChoiceField
 
-from ...core.extensions.manager import get_extensions_manager
 from ...core.taxes import include_taxes_in_prices
 from ...core.weight import WeightField
+from ...extensions.manager import get_extensions_manager
 from ...product.models import (
     Attribute,
     AttributeValue,

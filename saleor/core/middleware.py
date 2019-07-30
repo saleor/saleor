@@ -9,8 +9,8 @@ from django.utils.translation import get_language
 from django_countries.fields import Country
 
 from ..discount.utils import fetch_discounts
+from ..extensions.manager import get_extensions_manager
 from . import analytics
-from .extensions.manager import get_extensions_manager
 from .utils import get_client_ip, get_country_by_ip, get_currency_for_country
 
 logger = logging.getLogger(__name__)

@@ -2,7 +2,7 @@ from unittest.mock import Mock
 
 from prices import Money, TaxedMoney
 
-from saleor.core.extensions.manager import ExtensionsManager
+from saleor.extensions.manager import ExtensionsManager
 from saleor.product.models import ProductVariant
 from saleor.product.utils.availability import get_variant_availability
 from tests.api.utils import get_graphql_content
