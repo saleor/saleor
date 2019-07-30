@@ -6140,7 +6140,19 @@ exports[`Storyshots Navigation / Menu create loading 1`] = `
 />
 `;
 
-exports[`Storyshots Navigation / Menu item create default 1`] = `
+exports[`Storyshots Navigation / Menu item default 1`] = `
+<div
+  style="padding:24px"
+/>
+`;
+
+exports[`Storyshots Navigation / Menu item edit 1`] = `
+<div
+  style="padding:24px"
+/>
+`;
+
+exports[`Storyshots Navigation / Menu item errors 1`] = `
 <div
   style="padding:24px"
 />

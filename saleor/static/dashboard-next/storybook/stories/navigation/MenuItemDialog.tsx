@@ -1,6 +1,7 @@
 import { storiesOf } from "@storybook/react";
 import React from "react";
 
+import { formError } from "@saleor/storybook/misc";
 import MenuItemDialog, {
   MenuItemDialogProps
 } from "../../../navigation/components/MenuItemDialog";
@@ -22,6 +23,7 @@ const props: MenuItemDialogProps = {
   collections: [],
   confirmButtonState: "default",
   disabled: false,
+  errors: [],
   loading: false,
   onClose: () => undefined,
   onQueryChange: () => undefined,
@@ -30,6 +32,22 @@ const props: MenuItemDialogProps = {
   pages: []
 };
 
-storiesOf("Navigation / Menu item create", module)
+storiesOf("Navigation / Menu item", module)
   .addDecorator(Decorator)
-  .add("default", () => <MenuItemDialog {...props} />);
+  .add("default", () => <MenuItemDialog {...props} />)
+  .add("edit", () => (
+    <MenuItemDialog
+      {...props}
+      initial={{
+        ...props.categories[0],
+        type: "category"
+      }}
+      initialDisplayValue={props.categories[0].name}
+    />
+  ))
+  .add("errors", () => (
+    <MenuItemDialog
+      {...props}
+      errors={["", "", "name", "category"].map(formError)}
+    />
+  ));
