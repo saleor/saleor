@@ -7,7 +7,7 @@ from django.utils.translation import pgettext
 from ...account.models import Address
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
-from ...core.taxes.errors import TaxError
+from ...core.taxes import TaxError
 from ...discount.models import NotApplicable
 from ..forms import CheckoutNoteForm
 from ..utils import (

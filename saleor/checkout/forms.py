@@ -12,9 +12,9 @@ from django_countries.fields import Country, LazyTypedChoiceField
 
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import display_gross_prices
-from ..core.taxes.interface import apply_taxes_to_shipping
 from ..core.utils import format_money
 from ..discount.models import NotApplicable, Voucher
+from ..extensions.manager import get_extensions_manager
 from ..shipping.models import ShippingMethod, ShippingZone
 from .models import Checkout
 
@@ -70,7 +70,7 @@ class AddToCheckoutForm(forms.Form):
         self.product = kwargs.pop("product")
         self.discounts = kwargs.pop("discounts", ())
         self.country = kwargs.pop("country", {})
-        self.taxes = kwargs.pop("taxes", None)
+        self.extensions = kwargs.pop("extensions", None)
         super().__init__(*args, **kwargs)
 
     def add_error_i18n(self, field, error_name, fmt: Any = tuple()):
@@ -294,12 +294,13 @@ class ShippingMethodChoiceField(forms.ModelChoiceField):
     """
 
     shipping_address = None
+    extensions = None
     widget = forms.RadioSelect()
 
     def label_from_instance(self, obj):
         """Return a friendly label for the shipping method."""
         if display_gross_prices():
-            price = apply_taxes_to_shipping(
+            price = self.extensions.apply_taxes_to_shipping(
                 obj.price, shipping_address=self.shipping_address
             ).gross
         else:
@@ -324,6 +325,7 @@ class CheckoutShippingMethodForm(forms.ModelForm):
         from .utils import get_valid_shipping_methods_for_checkout
 
         discounts = kwargs.pop("discounts")
+        extensions = get_extensions_manager()
         super().__init__(*args, **kwargs)
         shipping_address = self.instance.shipping_address
         country_code = shipping_address.country.code
@@ -332,6 +334,7 @@ class CheckoutShippingMethodForm(forms.ModelForm):
         )
         self.fields["shipping_method"].queryset = qs
         self.fields["shipping_method"].shipping_address = shipping_address
+        self.fields["shipping_method"].extensions = extensions
 
         if self.initial.get("shipping_method") is None:
             shipping_methods = qs.all()

@@ -1,14 +1,15 @@
+from decimal import Decimal
 from typing import TYPE_CHECKING, Any, List, Union
 
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 if TYPE_CHECKING:
-    from ..taxes import TaxType
-    from ...checkout.models import Checkout, CheckoutLine
-    from ...product.models import Product
-    from ...account.models import Address
-    from ...order.models import OrderLine, Order
+    from ..core.taxes import TaxType
+    from ..checkout.models import Checkout, CheckoutLine
+    from ..product.models import Product
+    from ..account.models import Address
+    from ..order.models import OrderLine, Order
 
 
 class BasePlugin:
@@ -86,7 +87,6 @@ class BasePlugin:
         price: Money,
         country: Country,
         previous_value: TaxedMoney,
-        **kwargs,
     ) -> TaxedMoney:
         return NotImplemented
 
@@ -106,4 +106,9 @@ class BasePlugin:
     def get_tax_code_from_object_meta(
         self, obj: Union["Product", "ProductType"], previous_value: "TaxType"
     ) -> "TaxType":
+        return NotImplemented
+
+    def get_tax_rate_percentage_value(
+        self, obj: Union["Product", "ProductType"], country: Country, previous_value
+    ) -> Decimal:
         return NotImplemented

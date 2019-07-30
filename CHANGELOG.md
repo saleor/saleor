@@ -15,6 +15,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add mutation for deleting account - #4494 by @fowczarek
 - New translations:
   - Greek
+- Extensions Manager - #4497 by @korycins
+- Migration of tax logic into a plugin architecture - #4497 by @korycins
+- Move core.extensions to separate module - #4559 by @korycins
 - Fix searches and pickers - #4487 by @dominik-zeglen
 - Fix dashboard menu styles - #4491 by @benekex2
 - Do not allow random ids to appear in snapshots - #4495 by @dominik-zeglen
@@ -29,6 +32,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix rendering user avatar when it's null #4546 by @maarcingebala
 - Do not lose focus while typing in product description field - #4549 by @dominik-zeglen
 - Update JSON menu representation in mutations - #4524 by @maarcingebala
+- Display menu item form errors - #4551 by @dominik-zeglen
 - Add voucher settings - #4556 by @benekex2
 
 ## 2.8.0

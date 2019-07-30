@@ -6,7 +6,7 @@ from django.db.models import F
 from django.utils.translation import pgettext
 
 from ..core.taxes import zero_money
-from ..core.taxes.interface import calculate_checkout_subtotal
+from ..extensions.manager import get_extensions_manager
 from . import DiscountInfo
 from .models import NotApplicable, Sale, VoucherCustomer
 
@@ -85,7 +85,8 @@ def calculate_discounted_price(product, price, discounts: Iterable[DiscountInfo]
 
 
 def validate_voucher_for_checkout(voucher, checkout, discounts):
-    subtotal = calculate_checkout_subtotal(checkout, discounts)
+    manager = get_extensions_manager()
+    subtotal = manager.calculate_checkout_subtotal(checkout, discounts)
     customer_email = checkout.get_customer_email()
     validate_voucher(voucher, subtotal.gross, checkout.quantity, customer_email)
 
