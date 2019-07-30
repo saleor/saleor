@@ -135,9 +135,11 @@ export interface VoucherDetailsFragment {
   discountValue: number;
   countries: (VoucherDetailsFragment_countries | null)[] | null;
   minAmountSpent: VoucherDetailsFragment_minAmountSpent | null;
+  minCheckoutItemsQuantity: number | null;
   type: VoucherTypeEnum;
   used: number;
   applyOncePerOrder: boolean;
+  applyOncePerCustomer: boolean;
   products: VoucherDetailsFragment_products | null;
   collections: VoucherDetailsFragment_collections | null;
   categories: VoucherDetailsFragment_categories | null;

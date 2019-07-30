@@ -37,6 +37,7 @@ export interface VoucherCreate_voucherCreate_voucher {
   discountValue: number;
   countries: (VoucherCreate_voucherCreate_voucher_countries | null)[] | null;
   minAmountSpent: VoucherCreate_voucherCreate_voucher_minAmountSpent | null;
+  minCheckoutItemsQuantity: number | null;
 }
 
 export interface VoucherCreate_voucherCreate {

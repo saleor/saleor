@@ -95,6 +95,7 @@ export const voucherFragment = gql`
       currency
       amount
     }
+    minCheckoutItemsQuantity
   }
 `;
 
@@ -108,6 +109,7 @@ export const voucherDetailsFragment = gql`
     usageLimit
     used
     applyOncePerOrder
+    applyOncePerCustomer
     products(after: $after, before: $before, first: $first, last: $last) {
       edges {
         node {
