@@ -52,7 +52,7 @@ const VoucherRequirements = ({
           onChange={onChange}
         />
         <FormSpacer />
-        {data.requirementsPicker.toString() === RequirementsPickerEnum.ORDER ? (
+        {data.requirementsPicker === RequirementsPickerEnum.ORDER ? (
           <TextField
             disabled={disabled}
             error={!!errors.minAmountSpent}
@@ -63,8 +63,7 @@ const VoucherRequirements = ({
             onChange={onChange}
             fullWidth
           />
-        ) : data.requirementsPicker.toString() ===
-          RequirementsPickerEnum.ITEM ? (
+        ) : data.requirementsPicker === RequirementsPickerEnum.ITEM ? (
           <TextField
             disabled={disabled}
             error={!!errors.minCheckoutItemsQuantity}
