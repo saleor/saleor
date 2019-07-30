@@ -16,6 +16,7 @@ import { maybe, splitDateTime } from "../../../misc";
 import { ListProps, TabListActions, UserError } from "../../../types";
 import {
   DiscountValueTypeEnum,
+  RequirementsPickerEnum,
   VoucherTypeEnum
 } from "../../../types/globalTypes";
 import { VoucherDetails_voucher } from "../../types/VoucherDetails";
@@ -35,6 +36,7 @@ export enum VoucherDetailsPageTab {
   collections = "collections",
   products = "products"
 }
+
 export function voucherDetailsPageTab(tab: string): VoucherDetailsPageTab {
   return tab === VoucherDetailsPageTab.products
     ? VoucherDetailsPageTab.products
@@ -44,6 +46,7 @@ export function voucherDetailsPageTab(tab: string): VoucherDetailsPageTab {
 }
 
 export interface FormData {
+  applyOncePerCustomer: boolean;
   applyOncePerOrder: boolean;
   code: string;
   discountType: DiscountValueTypeEnum;
@@ -52,6 +55,8 @@ export interface FormData {
   hasEndDate: boolean;
   hasUsageLimit: boolean;
   minAmountSpent: string;
+  minCheckoutItemsQuantity: string;
+  requirementsPicker: RequirementsPickerEnum;
   startDate: string;
   startTime: string;
   type: VoucherTypeEnum;
@@ -123,7 +128,17 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
   collectionListToolbar,
   productListToolbar
 }) => {
+  let requirementsPickerInitValue;
+  if (maybe(() => voucher.minAmountSpent.amount) > 0) {
+    requirementsPickerInitValue = RequirementsPickerEnum.ORDER;
+  } else if (maybe(() => voucher.minCheckoutItemsQuantity) > 0) {
+    requirementsPickerInitValue = RequirementsPickerEnum.ITEM;
+  } else {
+    requirementsPickerInitValue = RequirementsPickerEnum.NONE;
+  }
+
   const initialForm: FormData = {
+    applyOncePerCustomer: maybe(() => voucher.applyOncePerCustomer, false),
     applyOncePerOrder: maybe(() => voucher.applyOncePerOrder, false),
     code: maybe(() => voucher.code, ""),
     discountType: maybe(
@@ -135,6 +150,11 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
     hasEndDate: maybe(() => !!voucher.endDate),
     hasUsageLimit: maybe(() => !!voucher.usageLimit),
     minAmountSpent: maybe(() => voucher.minAmountSpent.amount.toString(), "0"),
+    minCheckoutItemsQuantity: maybe(
+      () => voucher.minCheckoutItemsQuantity.toString(),
+      "0"
+    ),
+    requirementsPicker: requirementsPickerInitValue,
     startDate: splitDateTime(maybe(() => voucher.startDate, "")).date,
     startTime: splitDateTime(maybe(() => voucher.startDate, "")).time,
     type: maybe(() => voucher.type, VoucherTypeEnum.ENTIRE_ORDER),

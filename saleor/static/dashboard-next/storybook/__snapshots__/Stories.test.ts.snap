@@ -34183,40 +34183,121 @@ exports[`Storyshots Views / Discounts / Voucher create default 1`] = `
               class="MuiCardContent-root-id"
             >
               <div
-                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                class="MuiFormControl-root-id RadioGroupField-formControl-id"
               >
-                <label
-                  class="MuiFormLabel-root-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-outlined-id"
-                  data-shrink="true"
-                >
-                  Minimal order value
-                </label>
                 <div
-                  class="MuiInputBase-root-id MuiOutlinedInput-root-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                  aria-label="requirementsPicker"
+                  class="MuiFormGroup-root-id"
+                  role="radiogroup"
                 >
-                  <fieldset
-                    aria-hidden="true"
-                    class="MuiPrivateNotchedOutline-root-id MuiOutlinedInput-notchedOutline-id"
-                    style="padding-left:8px"
+                  <label
+                    class="MuiFormControlLabel-root-id RadioGroupField-radioLabel-id"
                   >
-                    <legend
-                      class="MuiPrivateNotchedOutline-legend-id"
-                      style="width:0"
+                    <span
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiRadio-checked-id"
                     >
-                      <span>
-                        ​
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                          />
+                        </svg>
+                        <input
+                          checked=""
+                          class="MuiPrivateSwitchBase-input-id"
+                          name="requirementsPicker"
+                          type="radio"
+                          value="NONE"
+                        />
                       </span>
-                    </legend>
-                  </fieldset>
-                  <input
-                    aria-invalid="false"
-                    class="MuiInputBase-input-id MuiOutlinedInput-input-id"
-                    name="minAmountSpent"
-                    type="text"
-                    value="0"
-                  />
+                    </span>
+                    <span
+                      class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                    >
+                      None
+                    </span>
+                  </label>
+                  <label
+                    class="MuiFormControlLabel-root-id RadioGroupField-radioLabel-id"
+                  >
+                    <span
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                          />
+                        </svg>
+                        <input
+                          class="MuiPrivateSwitchBase-input-id"
+                          name="requirementsPicker"
+                          type="radio"
+                          value="ORDER"
+                        />
+                      </span>
+                    </span>
+                    <span
+                      class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                    >
+                      Minimal order value
+                    </span>
+                  </label>
+                  <label
+                    class="MuiFormControlLabel-root-id RadioGroupField-radioLabel-id"
+                  >
+                    <span
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                          />
+                        </svg>
+                        <input
+                          class="MuiPrivateSwitchBase-input-id"
+                          name="requirementsPicker"
+                          type="radio"
+                          value="ITEM"
+                        />
+                      </span>
+                    </span>
+                    <span
+                      class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                    >
+                      Minimum quantity of items
+                    </span>
+                  </label>
                 </div>
               </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
             </div>
           </div>
           <div
@@ -34265,6 +34346,27 @@ exports[`Storyshots Views / Discounts / Voucher create default 1`] = `
                   class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
                 >
                   Limit number of times this discount can be used in total
+                </span>
+              </label>
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id Checkbox-root-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <input
+                    class="Checkbox-box-id"
+                    name="applyOncePerCustomer"
+                    type="checkbox"
+                    value="false"
+                  />
+                </button>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  Limit to one use per customer
                 </span>
               </label>
             </div>
@@ -34803,45 +34905,121 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
               class="MuiCardContent-root-id"
             >
               <div
-                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                class="MuiFormControl-root-id RadioGroupField-formControl-id"
               >
-                <label
-                  class="MuiFormLabel-root-id MuiFormLabel-error-id MuiInputLabel-error-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-outlined-id"
-                  data-shrink="true"
-                >
-                  Minimal order value
-                </label>
                 <div
-                  class="MuiInputBase-root-id MuiOutlinedInput-root-id MuiInputBase-error-id MuiOutlinedInput-error-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                  aria-label="requirementsPicker"
+                  class="MuiFormGroup-root-id"
+                  role="radiogroup"
                 >
-                  <fieldset
-                    aria-hidden="true"
-                    class="MuiPrivateNotchedOutline-root-id MuiOutlinedInput-notchedOutline-id"
-                    style="padding-left:8px"
+                  <label
+                    class="MuiFormControlLabel-root-id RadioGroupField-radioLabel-id"
                   >
-                    <legend
-                      class="MuiPrivateNotchedOutline-legend-id"
-                      style="width:0"
+                    <span
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiRadio-checked-id"
                     >
-                      <span>
-                        ​
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                          />
+                        </svg>
+                        <input
+                          checked=""
+                          class="MuiPrivateSwitchBase-input-id"
+                          name="requirementsPicker"
+                          type="radio"
+                          value="NONE"
+                        />
                       </span>
-                    </legend>
-                  </fieldset>
-                  <input
-                    aria-invalid="true"
-                    class="MuiInputBase-input-id MuiOutlinedInput-input-id"
-                    name="minAmountSpent"
-                    type="text"
-                    value="0"
-                  />
+                    </span>
+                    <span
+                      class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                    >
+                      None
+                    </span>
+                  </label>
+                  <label
+                    class="MuiFormControlLabel-root-id RadioGroupField-radioLabel-id"
+                  >
+                    <span
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                          />
+                        </svg>
+                        <input
+                          class="MuiPrivateSwitchBase-input-id"
+                          name="requirementsPicker"
+                          type="radio"
+                          value="ORDER"
+                        />
+                      </span>
+                    </span>
+                    <span
+                      class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                    >
+                      Minimal order value
+                    </span>
+                  </label>
+                  <label
+                    class="MuiFormControlLabel-root-id RadioGroupField-radioLabel-id"
+                  >
+                    <span
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                          />
+                        </svg>
+                        <input
+                          class="MuiPrivateSwitchBase-input-id"
+                          name="requirementsPicker"
+                          type="radio"
+                          value="ITEM"
+                        />
+                      </span>
+                    </span>
+                    <span
+                      class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                    >
+                      Minimum quantity of items
+                    </span>
+                  </label>
                 </div>
-                <p
-                  class="MuiFormHelperText-root-id MuiFormHelperText-contained-id MuiFormHelperText-error-id MuiFormHelperText-filled-id"
-                >
-                  Generic form error
-                </p>
               </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
             </div>
           </div>
           <div
@@ -34890,6 +35068,27 @@ exports[`Storyshots Views / Discounts / Voucher create form errors 1`] = `
                   class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
                 >
                   Limit number of times this discount can be used in total
+                </span>
+              </label>
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id Checkbox-root-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <input
+                    class="Checkbox-box-id"
+                    name="applyOncePerCustomer"
+                    type="checkbox"
+                    value="false"
+                  />
+                </button>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  Limit to one use per customer
                 </span>
               </label>
             </div>
@@ -35513,6 +35712,122 @@ exports[`Storyshots Views / Discounts / Voucher details default 1`] = `
               class="MuiCardContent-root-id"
             >
               <div
+                class="MuiFormControl-root-id RadioGroupField-formControl-id"
+              >
+                <div
+                  aria-label="requirementsPicker"
+                  class="MuiFormGroup-root-id"
+                  role="radiogroup"
+                >
+                  <label
+                    class="MuiFormControlLabel-root-id RadioGroupField-radioLabel-id"
+                  >
+                    <span
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                          />
+                        </svg>
+                        <input
+                          class="MuiPrivateSwitchBase-input-id"
+                          name="requirementsPicker"
+                          type="radio"
+                          value="NONE"
+                        />
+                      </span>
+                    </span>
+                    <span
+                      class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                    >
+                      None
+                    </span>
+                  </label>
+                  <label
+                    class="MuiFormControlLabel-root-id RadioGroupField-radioLabel-id"
+                  >
+                    <span
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiRadio-checked-id"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                          />
+                        </svg>
+                        <input
+                          checked=""
+                          class="MuiPrivateSwitchBase-input-id"
+                          name="requirementsPicker"
+                          type="radio"
+                          value="ORDER"
+                        />
+                      </span>
+                    </span>
+                    <span
+                      class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                    >
+                      Minimal order value
+                    </span>
+                  </label>
+                  <label
+                    class="MuiFormControlLabel-root-id RadioGroupField-radioLabel-id"
+                  >
+                    <span
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                          />
+                        </svg>
+                        <input
+                          class="MuiPrivateSwitchBase-input-id"
+                          name="requirementsPicker"
+                          type="radio"
+                          value="ITEM"
+                        />
+                      </span>
+                    </span>
+                    <span
+                      class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                    >
+                      Minimum quantity of items
+                    </span>
+                  </label>
+                </div>
+              </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <div
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
@@ -35595,6 +35910,27 @@ exports[`Storyshots Views / Discounts / Voucher details default 1`] = `
                   class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
                 >
                   Limit number of times this discount can be used in total
+                </span>
+              </label>
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id Checkbox-root-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <input
+                    class="Checkbox-box-id"
+                    name="applyOncePerCustomer"
+                    type="checkbox"
+                    value="false"
+                  />
+                </button>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  Limit to one use per customer
                 </span>
               </label>
             </div>
@@ -36356,6 +36692,122 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
               class="MuiCardContent-root-id"
             >
               <div
+                class="MuiFormControl-root-id RadioGroupField-formControl-id"
+              >
+                <div
+                  aria-label="requirementsPicker"
+                  class="MuiFormGroup-root-id"
+                  role="radiogroup"
+                >
+                  <label
+                    class="MuiFormControlLabel-root-id RadioGroupField-radioLabel-id"
+                  >
+                    <span
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                          />
+                        </svg>
+                        <input
+                          class="MuiPrivateSwitchBase-input-id"
+                          name="requirementsPicker"
+                          type="radio"
+                          value="NONE"
+                        />
+                      </span>
+                    </span>
+                    <span
+                      class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                    >
+                      None
+                    </span>
+                  </label>
+                  <label
+                    class="MuiFormControlLabel-root-id RadioGroupField-radioLabel-id"
+                  >
+                    <span
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiRadio-checked-id"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                          />
+                        </svg>
+                        <input
+                          checked=""
+                          class="MuiPrivateSwitchBase-input-id"
+                          name="requirementsPicker"
+                          type="radio"
+                          value="ORDER"
+                        />
+                      </span>
+                    </span>
+                    <span
+                      class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                    >
+                      Minimal order value
+                    </span>
+                  </label>
+                  <label
+                    class="MuiFormControlLabel-root-id RadioGroupField-radioLabel-id"
+                  >
+                    <span
+                      class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                          />
+                        </svg>
+                        <input
+                          class="MuiPrivateSwitchBase-input-id"
+                          name="requirementsPicker"
+                          type="radio"
+                          value="ITEM"
+                        />
+                      </span>
+                    </span>
+                    <span
+                      class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                    >
+                      Minimum quantity of items
+                    </span>
+                  </label>
+                </div>
+              </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
+              <div
                 class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
               >
                 <label
@@ -36443,6 +36895,27 @@ exports[`Storyshots Views / Discounts / Voucher details form errors 1`] = `
                   class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
                 >
                   Limit number of times this discount can be used in total
+                </span>
+              </label>
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id Checkbox-root-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <input
+                    class="Checkbox-box-id"
+                    name="applyOncePerCustomer"
+                    type="checkbox"
+                    value="false"
+                  />
+                </button>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  Limit to one use per customer
                 </span>
               </label>
             </div>
@@ -37212,41 +37685,127 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
               class="MuiCardContent-root-id"
             >
               <div
-                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+                class="MuiFormControl-root-id RadioGroupField-formControl-id"
               >
-                <label
-                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiFormLabel-filled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-shrink-id MuiInputLabel-outlined-id"
-                  data-shrink="true"
-                >
-                  Minimal order value
-                </label>
                 <div
-                  class="MuiInputBase-root-id MuiOutlinedInput-root-id MuiInputBase-disabled-id MuiOutlinedInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                  aria-label="requirementsPicker"
+                  class="MuiFormGroup-root-id"
+                  role="radiogroup"
                 >
-                  <fieldset
-                    aria-hidden="true"
-                    class="MuiPrivateNotchedOutline-root-id MuiOutlinedInput-notchedOutline-id"
-                    style="padding-left:8px"
+                  <label
+                    class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id RadioGroupField-radioLabel-id"
                   >
-                    <legend
-                      class="MuiPrivateNotchedOutline-legend-id"
-                      style="width:0"
+                    <span
+                      class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiRadio-checked-id MuiPrivateSwitchBase-disabled-id MuiRadio-disabled-id"
+                      tabindex="-1"
                     >
-                      <span>
-                        ​
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M12 7c-2.76 0-5 2.24-5 5s2.24 5 5 5 5-2.24 5-5-2.24-5-5-5zm0-5C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                          />
+                        </svg>
+                        <input
+                          checked=""
+                          class="MuiPrivateSwitchBase-input-id"
+                          disabled=""
+                          name="requirementsPicker"
+                          type="radio"
+                          value="NONE"
+                        />
                       </span>
-                    </legend>
-                  </fieldset>
-                  <input
-                    aria-invalid="false"
-                    class="MuiInputBase-input-id MuiOutlinedInput-input-id MuiInputBase-disabled-id MuiOutlinedInput-disabled-id"
-                    disabled=""
-                    name="minAmountSpent"
-                    type="text"
-                    value="0"
-                  />
+                    </span>
+                    <span
+                      class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                    >
+                      None
+                    </span>
+                  </label>
+                  <label
+                    class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id RadioGroupField-radioLabel-id"
+                  >
+                    <span
+                      class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiRadio-disabled-id"
+                      tabindex="-1"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                          />
+                        </svg>
+                        <input
+                          class="MuiPrivateSwitchBase-input-id"
+                          disabled=""
+                          name="requirementsPicker"
+                          type="radio"
+                          value="ORDER"
+                        />
+                      </span>
+                    </span>
+                    <span
+                      class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                    >
+                      Minimal order value
+                    </span>
+                  </label>
+                  <label
+                    class="MuiFormControlLabel-root-id MuiFormControlLabel-disabled-id RadioGroupField-radioLabel-id"
+                  >
+                    <span
+                      class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiRadio-root-id MuiRadio-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiRadio-disabled-id"
+                      tabindex="-1"
+                    >
+                      <span
+                        class="MuiIconButton-label-id"
+                      >
+                        <svg
+                          aria-hidden="true"
+                          class="MuiSvgIcon-root-id"
+                          focusable="false"
+                          role="presentation"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z"
+                          />
+                        </svg>
+                        <input
+                          class="MuiPrivateSwitchBase-input-id"
+                          disabled=""
+                          name="requirementsPicker"
+                          type="radio"
+                          value="ITEM"
+                        />
+                      </span>
+                    </span>
+                    <span
+                      class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id MuiFormControlLabel-disabled-id"
+                    >
+                      Minimum quantity of items
+                    </span>
+                  </label>
                 </div>
               </div>
+              <div
+                class="FormSpacer-spacer-id"
+              />
             </div>
           </div>
           <div
@@ -37295,6 +37854,27 @@ exports[`Storyshots Views / Discounts / Voucher details loading 1`] = `
                   class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
                 >
                   Limit number of times this discount can be used in total
+                </span>
+              </label>
+              <label
+                class="MuiFormControlLabel-root-id"
+              >
+                <button
+                  class="MuiButtonBase-root-id Checkbox-root-id"
+                  tabindex="0"
+                  type="button"
+                >
+                  <input
+                    class="Checkbox-box-id"
+                    name="applyOncePerCustomer"
+                    type="checkbox"
+                    value="false"
+                  />
+                </button>
+                <span
+                  class="MuiTypography-root-id MuiTypography-body2-id MuiFormControlLabel-label-id"
+                >
+                  Limit to one use per customer
                 </span>
               </label>
             </div>
