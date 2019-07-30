@@ -20,6 +20,7 @@ from saleor.core.utils import (
     create_thumbnails,
     format_money,
     get_country_by_ip,
+    get_country_name_by_code,
     get_currency_for_country,
     random_data,
 )
@@ -299,3 +300,8 @@ def test_csrf_middleware_is_enabled():
     checkout_url = reverse("checkout:index")
     response = csrf_client.post(checkout_url)
     assert response.status_code == 403
+
+
+def test_get_country_name_by_code():
+    country_name = get_country_name_by_code("PL")
+    assert country_name == "Poland"

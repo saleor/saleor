@@ -31,9 +31,9 @@ from saleor.checkout.utils import (
 )
 from saleor.core.exceptions import InsufficientStock
 from saleor.core.taxes import zero_money, zero_taxed_money
-from saleor.core.taxes.interface import calculate_checkout_subtotal, taxes_are_enabled
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import NotApplicable, Voucher
+from saleor.extensions.manager import ExtensionsManager, get_extensions_manager
 from saleor.order import OrderEvents, OrderEventsEmails
 from saleor.order.models import OrderEvent
 from saleor.product.models import Category
@@ -865,7 +865,8 @@ def test_get_voucher_discount_for_checkout_voucher_validation(
     mock_validate_voucher, voucher, checkout_with_voucher
 ):
     get_voucher_discount_for_checkout(voucher, checkout_with_voucher)
-    subtotal = calculate_checkout_subtotal(checkout_with_voucher, [])
+    manager = get_extensions_manager()
+    subtotal = manager.calculate_checkout_subtotal(checkout_with_voucher, [])
     quantity = checkout_with_voucher.quantity
     customer_email = checkout_with_voucher.get_customer_email()
     mock_validate_voucher.assert_called_once_with(
@@ -1047,7 +1048,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(monkeypatc
     subtotal = TaxedMoney(net=Money(100, "USD"), gross=Money(100, "USD"))
     shipping_total = TaxedMoney(net=Money(10, "USD"), gross=Money(10, "USD"))
     monkeypatch.setattr(
-        "saleor.discount.utils.calculate_checkout_subtotal", Mock(return_value=subtotal)
+        ExtensionsManager, "calculate_checkout_subtotal", Mock(return_value=subtotal)
     )
     checkout = Mock(
         get_subtotal=Mock(return_value=subtotal),
@@ -1183,8 +1184,10 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
 
 def test_get_discount_for_checkout_product_voucher_not_applicable(monkeypatch):
     discounts = []
+
     monkeypatch.setattr(
-        "saleor.discount.utils.calculate_checkout_subtotal",
+        ExtensionsManager,
+        "calculate_checkout_subtotal",
         Mock(return_value=TaxedMoney(net=Money("1", "USD"), gross=Money("1", "USD"))),
     )
     monkeypatch.setattr(
@@ -1208,7 +1211,8 @@ def test_get_discount_for_checkout_product_voucher_not_applicable(monkeypatch):
 def test_get_discount_for_checkout_collection_voucher_not_applicable(monkeypatch):
     discounts = []
     monkeypatch.setattr(
-        "saleor.discount.utils.calculate_checkout_subtotal",
+        ExtensionsManager,
+        "calculate_checkout_subtotal",
         Mock(return_value=TaxedMoney(net=Money("1", "USD"), gross=Money("1", "USD"))),
     )
     monkeypatch.setattr(
@@ -1384,9 +1388,10 @@ def test_recalculate_checkout_discount_expired_voucher(checkout_with_voucher, vo
 
 def test_get_checkout_context(checkout_with_voucher):
     line_price = TaxedMoney(net=Money("30.00", "USD"), gross=Money("30.00", "USD"))
+    manager = get_extensions_manager()
     expected_data = {
         "checkout": checkout_with_voucher,
-        "checkout_are_taxes_handled": taxes_are_enabled(),
+        "checkout_are_taxes_handled": manager.taxes_are_enabled(),
         "checkout_lines": [(checkout_with_voucher.lines.first(), line_price)],
         "checkout_shipping_price": zero_taxed_money(),
         "checkout_subtotal": line_price,

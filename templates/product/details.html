@@ -144,9 +144,9 @@
                 {% price availability.price_range_local_currency %}
               </small>
             {% endif %}
-            {% if request.taxes %}
+            {% if request.extensions.show_taxes_on_storefront %}
               <small>
-                {% tax_rate request.taxes product.tax_rate as tax_rate %}
+                {% tax_rate request product as tax_rate %}
                 {% if site.settings.display_gross_prices %}
                   {% blocktrans trimmed with tax_rate=tax_rate context "Product details page vat rate value" %}
                     including {{ tax_rate }}% VAT

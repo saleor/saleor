@@ -10,8 +10,8 @@ from django.utils.translation import pgettext_lazy
 from mptt.forms import TreeNodeChoiceField
 
 from ...core.taxes import include_taxes_in_prices
-from ...core.taxes.interface import get_tax_from_object_meta, get_tax_rate_type_choices
 from ...core.weight import WeightField
+from ...extensions.manager import get_extensions_manager
 from ...product.models import (
     Attribute,
     AttributeValue,
@@ -106,8 +106,9 @@ class ProductTypeForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        manager = get_extensions_manager()
         self.fields["tax_rate"].choices = [
-            (tax.code, tax.description) for tax in get_tax_rate_type_choices()
+            (tax.code, tax.description) for tax in manager.get_tax_rate_type_choices()
         ]
         unassigned_attrs_q = Q(
             product_type__isnull=True, product_variant_type__isnull=True
@@ -277,10 +278,11 @@ class ProductForm(forms.ModelForm, AttributesMixin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        manager = get_extensions_manager()
         product_type = self.instance.product_type
-        product_tax_rate = get_tax_from_object_meta(self.instance).code
+        product_tax_rate = manager.get_tax_code_from_object_meta(self.instance).code
         self.initial["tax_rate"] = (
-            product_tax_rate or get_tax_from_object_meta(product_type).code
+            product_tax_rate or manager.get_tax_code_from_object_meta(product_type).code
         )
         self.available_attributes = product_type.product_attributes.prefetch_related(
             "values"
@@ -299,7 +301,7 @@ class ProductForm(forms.ModelForm, AttributesMixin):
             extra_attrs={"data-bind": self["name"].auto_id}
         )
         self.fields["tax_rate"].choices = [
-            (tax.code, tax.description) for tax in get_tax_rate_type_choices()
+            (tax.code, tax.description) for tax in manager.get_tax_rate_type_choices()
         ]
         if include_taxes_in_prices():
             self.fields["price"].label = pgettext_lazy(

@@ -9,8 +9,8 @@ from django.utils.translation import get_language
 from django_countries.fields import Country
 
 from ..discount.utils import fetch_discounts
+from ..extensions.manager import get_extensions_manager
 from . import analytics
-from .extensions.manager import get_extensions_manager
 from .utils import get_client_ip, get_country_by_ip, get_currency_for_country
 
 logger = logging.getLogger(__name__)
@@ -95,33 +95,14 @@ def site(get_response):
     return middleware
 
 
-def taxes(get_response):
-    """Assign tax rates for default country to `request.taxes`."""
-
-    def middleware(request):
-        if settings.VATLAYER_ACCESS_KEY:
-            # FIXME this should be disabled after we will introduce plugin architecure.
-            # For now, a lot of templates use tax_rate function.
-            from .taxes.vatlayer import get_taxes_for_country
-
-            request.taxes = SimpleLazyObject(
-                lambda: get_taxes_for_country(request.country)
-            )
-        else:
-            request.taxes = None
-        return get_response(request)
-
-    return middleware
-
-
 def extensions(get_response):
     """Assign extensions manager"""
 
     def _get_manager():
-        return get_extensions_manager()
+        return get_extensions_manager(plugins=settings.PLUGINS)
 
     def middleware(request):
-        request.extensions = SimpleLazyObject(_get_manager)
+        request.extensions = SimpleLazyObject(lambda: _get_manager())
         return get_response(request)
 
     return middleware

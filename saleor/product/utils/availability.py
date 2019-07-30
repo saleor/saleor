@@ -7,9 +7,9 @@ from prices import TaxedMoneyRange
 from saleor.graphql.core.types import MoneyRange
 from saleor.product.models import Product, ProductVariant
 
-from ...core.taxes.interface import apply_taxes_to_product
 from ...core.utils import to_local_currency
 from ...discount import DiscountInfo
+from ...extensions.manager import get_extensions_manager
 from .. import ProductAvailabilityStatus, VariantAvailabilityStatus
 
 ProductAvailability = namedtuple(
@@ -40,13 +40,13 @@ VariantAvailability = namedtuple(
 
 
 def products_with_availability(
-    products, discounts, country, local_currency, taxes=None
+    products, discounts, country, local_currency, extensions
 ):
     for product in products:
         yield (
             product,
             get_product_availability(
-                product, discounts, country, local_currency, taxes=taxes
+                product, discounts, country, local_currency, extensions=extensions
             ),
         )
 
@@ -117,25 +117,27 @@ def get_product_availability(
     discounts: Iterable[DiscountInfo] = None,
     country=None,
     local_currency=None,
-    taxes=None,
+    extensions=None,
 ) -> ProductAvailability:
 
+    if not extensions:
+        extensions = get_extensions_manager()
     discounted_net_range = product.get_price_range(discounts=discounts)
     undiscounted_net_range = product.get_price_range()
     discounted = TaxedMoneyRange(
-        start=apply_taxes_to_product(
-            product, discounted_net_range.start, country, taxes=taxes
+        start=extensions.apply_taxes_to_product(
+            product, discounted_net_range.start, country
         ),
-        stop=apply_taxes_to_product(
-            product, discounted_net_range.stop, country, taxes=taxes
+        stop=extensions.apply_taxes_to_product(
+            product, discounted_net_range.stop, country
         ),
     )
     undiscounted = TaxedMoneyRange(
-        start=apply_taxes_to_product(
-            product, undiscounted_net_range.start, country, taxes=taxes
+        start=extensions.apply_taxes_to_product(
+            product, undiscounted_net_range.start, country
         ),
-        stop=apply_taxes_to_product(
-            product, undiscounted_net_range.stop, country, taxes=taxes
+        stop=extensions.apply_taxes_to_product(
+            product, undiscounted_net_range.stop, country
         ),
     )
 
@@ -162,14 +164,16 @@ def get_variant_availability(
     discounts: Iterable[DiscountInfo] = None,
     country=None,
     local_currency=None,
-    taxes=None,
+    extensions=None,
 ) -> VariantAvailability:
 
-    discounted = apply_taxes_to_product(
-        variant.product, variant.get_price(discounts=discounts), country, taxes=taxes
+    if not extensions:
+        extensions = get_extensions_manager()
+    discounted = extensions.apply_taxes_to_product(
+        variant.product, variant.get_price(discounts=discounts), country
     )
-    undiscounted = apply_taxes_to_product(
-        variant.product, variant.get_price(), country, taxes=taxes
+    undiscounted = extensions.apply_taxes_to_product(
+        variant.product, variant.get_price(), country
     )
 
     discount = _get_total_discount(undiscounted, discounted)
