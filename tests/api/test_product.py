@@ -135,6 +135,7 @@ def test_product_query(staff_api_client, product, permission_manage_products):
                         id
                         name
                         url
+                        slug
                         thumbnailUrl
                         thumbnail{
                             url
@@ -195,6 +196,7 @@ def test_product_query(staff_api_client, product, permission_manage_products):
     product_data = product_edges_data[0]["node"]
     assert product_data["name"] == product.name
     assert product_data["url"] == product.get_absolute_url()
+    assert product_data["slug"] == product.get_slug()
     gross = product_data["pricing"]["priceRange"]["start"]["gross"]
     assert float(gross["amount"]) == float(product.price.amount)
     from saleor.product.utils.costs import get_product_costs_data
