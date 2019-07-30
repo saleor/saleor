@@ -7059,7 +7059,7 @@ exports[`Storyshots Views / Attributes / Attribute details create 1`] = `
                           y2="10.4478"
                         >
                           <stop
-                            stop-color="#13BEBB"
+                            stop-color="#06847B"
                           />
                           <stop
                             offset="1"
@@ -7139,7 +7139,7 @@ exports[`Storyshots Views / Attributes / Attribute details create 1`] = `
                           y2="10.4478"
                         >
                           <stop
-                            stop-color="#13BEBB"
+                            stop-color="#06847B"
                           />
                           <stop
                             offset="1"
@@ -7673,7 +7673,7 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                           y2="10.4478"
                         >
                           <stop
-                            stop-color="#13BEBB"
+                            stop-color="#06847B"
                           />
                           <stop
                             offset="1"
@@ -7753,7 +7753,7 @@ exports[`Storyshots Views / Attributes / Attribute details default 1`] = `
                           y2="10.4478"
                         >
                           <stop
-                            stop-color="#13BEBB"
+                            stop-color="#06847B"
                           />
                           <stop
                             offset="1"
@@ -8315,7 +8315,7 @@ exports[`Storyshots Views / Attributes / Attribute details form errors 1`] = `
                           y2="10.4478"
                         >
                           <stop
-                            stop-color="#13BEBB"
+                            stop-color="#06847B"
                           />
                           <stop
                             offset="1"
@@ -8395,7 +8395,7 @@ exports[`Storyshots Views / Attributes / Attribute details form errors 1`] = `
                           y2="10.4478"
                         >
                           <stop
-                            stop-color="#13BEBB"
+                            stop-color="#06847B"
                           />
                           <stop
                             offset="1"
@@ -8963,7 +8963,7 @@ exports[`Storyshots Views / Attributes / Attribute details loading 1`] = `
                           y2="10.4478"
                         >
                           <stop
-                            stop-color="#13BEBB"
+                            stop-color="#06847B"
                           />
                           <stop
                             offset="1"
@@ -9512,7 +9512,7 @@ exports[`Storyshots Views / Attributes / Attribute details multiple select input
                           y2="10.4478"
                         >
                           <stop
-                            stop-color="#13BEBB"
+                            stop-color="#06847B"
                           />
                           <stop
                             offset="1"
@@ -9592,7 +9592,7 @@ exports[`Storyshots Views / Attributes / Attribute details multiple select input
                           y2="10.4478"
                         >
                           <stop
-                            stop-color="#13BEBB"
+                            stop-color="#06847B"
                           />
                           <stop
                             offset="1"
@@ -10149,7 +10149,7 @@ exports[`Storyshots Views / Attributes / Attribute details no values 1`] = `
                           y2="10.4478"
                         >
                           <stop
-                            stop-color="#13BEBB"
+                            stop-color="#06847B"
                           />
                           <stop
                             offset="1"
@@ -10448,7 +10448,7 @@ exports[`Storyshots Views / Attributes / Attribute list default 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Add attribute
+            Add attribute 
             <svg
               aria-hidden="true"
               class="MuiSvgIcon-root-id"
@@ -11167,7 +11167,7 @@ exports[`Storyshots Views / Attributes / Attribute list loading 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Add attribute
+            Add attribute 
             <svg
               aria-hidden="true"
               class="MuiSvgIcon-root-id"
@@ -11427,7 +11427,7 @@ exports[`Storyshots Views / Attributes / Attribute list no data 1`] = `
           <span
             class="MuiButton-label-id"
           >
-            Add attribute
+            Add attribute 
             <svg
               aria-hidden="true"
               class="MuiSvgIcon-root-id"
@@ -23830,7 +23830,7 @@ exports[`Storyshots Views / Configuration default 1`] = `
                   y2="46.78"
                 >
                   <stop
-                    stop-color="#13BEBB"
+                    stop-color="#06847B"
                   />
                   <stop
                     offset="1"
@@ -24271,7 +24271,7 @@ exports[`Storyshots Views / Configuration partial access 1`] = `
                   y2="46.78"
                 >
                   <stop
-                    stop-color="#13BEBB"
+                    stop-color="#06847B"
                   />
                   <stop
                     offset="1"
@@ -69209,7 +69209,7 @@ exports[`Storyshots Views / Product types / Product type details default 1`] = `
                           y2="10.4478"
                         >
                           <stop
-                            stop-color="#13BEBB"
+                            stop-color="#06847B"
                           />
                           <stop
                             offset="1"
@@ -69304,7 +69304,7 @@ exports[`Storyshots Views / Product types / Product type details default 1`] = `
                           y2="10.4478"
                         >
                           <stop
-                            stop-color="#13BEBB"
+                            stop-color="#06847B"
                           />
                           <stop
                             offset="1"
@@ -69399,7 +69399,7 @@ exports[`Storyshots Views / Product types / Product type details default 1`] = `
                           y2="10.4478"
                         >
                           <stop
-                            stop-color="#13BEBB"
+                            stop-color="#06847B"
                           />
                           <stop
                             offset="1"
@@ -69813,7 +69813,7 @@ exports[`Storyshots Views / Product types / Product type details form errors 1`]
                           y2="10.4478"
                         >
                           <stop
-                            stop-color="#13BEBB"
+                            stop-color="#06847B"
                           />
                           <stop
                             offset="1"
@@ -69908,7 +69908,7 @@ exports[`Storyshots Views / Product types / Product type details form errors 1`]
                           y2="10.4478"
                         >
                           <stop
-                            stop-color="#13BEBB"
+                            stop-color="#06847B"
                           />
                           <stop
                             offset="1"
@@ -70003,7 +70003,7 @@ exports[`Storyshots Views / Product types / Product type details form errors 1`]
                           y2="10.4478"
                         >
                           <stop
-                            stop-color="#13BEBB"
+                            stop-color="#06847B"
                           />
                           <stop
                             offset="1"
@@ -70420,7 +70420,7 @@ exports[`Storyshots Views / Product types / Product type details loading 1`] = `
                           y2="10.4478"
                         >
                           <stop
-                            stop-color="#13BEBB"
+                            stop-color="#06847B"
                           />
                           <stop
                             offset="1"
@@ -74471,7 +74471,7 @@ exports[`Storyshots Views / Products / Create product variant add first variant 
                             y2="23.5714"
                           >
                             <stop
-                              stop-color="#13BEBB"
+                              stop-color="#06847B"
                             />
                             <stop
                               offset="1"

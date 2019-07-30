@@ -2,7 +2,7 @@
 /* eslint-disable */
 // This file was automatically generated and should not be edited.
 
-import { AttributeReorderInput, AttributeTypeEnum } from "./../../types/globalTypes";
+import { ReorderInput, AttributeTypeEnum } from "./../../types/globalTypes";
 
 // ====================================================
 // GraphQL mutation operation: ProductTypeAttributeReorder
@@ -69,7 +69,7 @@ export interface ProductTypeAttributeReorder {
 }
 
 export interface ProductTypeAttributeReorderVariables {
-  move: AttributeReorderInput;
+  move: ReorderInput;
   productTypeId: string;
   type: AttributeTypeEnum;
 }

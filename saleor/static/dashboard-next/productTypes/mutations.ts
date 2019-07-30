@@ -143,7 +143,7 @@ export const TypedProductTypeCreateMutation = TypedMutation<
 const productTypeAttributeReorder = gql`
   ${productTypeDetailsFragment}
   mutation ProductTypeAttributeReorder(
-    $move: AttributeReorderInput!
+    $move: ReorderInput!
     $productTypeId: ID!
     $type: AttributeTypeEnum!
   ) {
