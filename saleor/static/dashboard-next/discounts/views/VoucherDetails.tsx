@@ -29,6 +29,7 @@ import {
 } from "../../types/globalTypes";
 import DiscountCountrySelectDialog from "../components/DiscountCountrySelectDialog";
 import VoucherDetailsPage, {
+  RequirementsPickerEnum,
   VoucherDetailsPageTab
 } from "../components/VoucherDetailsPage";
 import {
@@ -337,14 +338,16 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                         : null,
                                       minAmountSpent:
                                         formData.requirementsPicker ===
-                                          "NONE" ||
-                                        formData.requirementsPicker === "ITEM"
+                                          RequirementsPickerEnum.NONE ||
+                                        formData.requirementsPicker ===
+                                          RequirementsPickerEnum.ITEM
                                           ? 0
                                           : parseFloat(formData.minAmountSpent),
                                       minCheckoutItemsQuantity:
                                         formData.requirementsPicker ===
-                                          "NONE" ||
-                                        formData.requirementsPicker === "ORDER"
+                                          RequirementsPickerEnum.NONE ||
+                                        formData.requirementsPicker ===
+                                          RequirementsPickerEnum.ORDER
                                           ? 0
                                           : parseFloat(
                                               formData.minCheckoutItemsQuantity

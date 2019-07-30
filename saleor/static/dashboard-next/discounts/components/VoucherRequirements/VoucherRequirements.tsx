@@ -8,7 +8,7 @@ import { FormSpacer } from "@saleor/components/FormSpacer";
 import RadioGroupField from "@saleor/components/RadioGroupField";
 import i18n from "@saleor/i18n";
 import { FormErrors } from "@saleor/types";
-import { FormData } from "../VoucherDetailsPage";
+import { FormData, RequirementsPickerEnum } from "../VoucherDetailsPage";
 
 interface VoucherRequirementsProps {
   data: FormData;
@@ -27,15 +27,15 @@ const VoucherRequirements = ({
   const requirementsPickerChoices = [
     {
       label: i18n.t("None"),
-      value: "NONE"
+      value: RequirementsPickerEnum.NONE
     },
     {
       label: i18n.t("Minimal order value"),
-      value: "ORDER"
+      value: RequirementsPickerEnum.ORDER
     },
     {
       label: i18n.t("Minimum quantity of items"),
-      value: "ITEM"
+      value: RequirementsPickerEnum.ITEM
     }
   ];
 
@@ -51,7 +51,7 @@ const VoucherRequirements = ({
           onChange={onChange}
         />
         <FormSpacer />
-        {data.requirementsPicker.toString() === "ORDER" ? (
+        {data.requirementsPicker.toString() === RequirementsPickerEnum.ORDER ? (
           <TextField
             disabled={disabled}
             error={!!errors.minAmountSpent}
@@ -62,8 +62,8 @@ const VoucherRequirements = ({
             onChange={onChange}
             fullWidth
           />
-        ) : null}
-        {data.requirementsPicker.toString() === "ITEM" ? (
+        ) : data.requirementsPicker.toString() ===
+          RequirementsPickerEnum.ITEM ? (
           <TextField
             disabled={disabled}
             error={!!errors.minCheckoutItemsQuantity}
