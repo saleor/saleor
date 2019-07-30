@@ -89,9 +89,7 @@ const AttributeValues: React.FC<AttributeValuesProps> = ({
         </TableHead>
         <SortableTableBody onSortEnd={onValueReorder}>
           {renderCollection(
-            values
-              ? values.sort((a, b) => (a.sortOrder > b.sortOrder ? 1 : -1))
-              : undefined,
+            values,
             (value, valueIndex) => (
               <SortableTableRow
                 className={!!value ? classes.link : undefined}

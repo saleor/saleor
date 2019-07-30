@@ -265,16 +265,12 @@ export interface AttributeCreateInput {
   filterableInStorefront?: boolean | null;
   filterableInDashboard?: boolean | null;
   storefrontSearchPosition?: number | null;
+  availableInGrid?: boolean | null;
 }
 
 export interface AttributeInput {
   slug: string;
   value: string;
-}
-
-export interface AttributeReorderInput {
-  id: string;
-  sortOrder?: number | null;
 }
 
 export interface AttributeUpdateInput {
@@ -288,6 +284,7 @@ export interface AttributeUpdateInput {
   filterableInStorefront?: boolean | null;
   filterableInDashboard?: boolean | null;
   storefrontSearchPosition?: number | null;
+  availableInGrid?: boolean | null;
 }
 
 export interface AttributeValueCreateInput {
@@ -510,6 +507,11 @@ export interface ProductVariantInput {
   quantity?: number | null;
   trackInventory?: boolean | null;
   weight?: any | null;
+}
+
+export interface ReorderInput {
+  id: string;
+  sortOrder?: number | null;
 }
 
 export interface SaleInput {

@@ -81,11 +81,7 @@ export const HomeProductList = withStyles(styles, { name: "HomeProductList" })(
                       <Typography color={"textSecondary"}>
                         {maybe(() =>
                           variant.attributes
-                            .map(attribute => attribute.value)
-                            .sort((a, b) =>
-                              a.sortOrder > b.sortOrder ? 1 : -1
-                            )
-                            .map(attribute => attribute.name)
+                            .map(attribute => attribute.value.name)
                             .join(" / ")
                         )}
                       </Typography>

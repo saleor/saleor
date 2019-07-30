@@ -37,7 +37,6 @@ const home = gql`
             value {
               id
               name
-              sortOrder
             }
           }
           product {
