@@ -7,8 +7,9 @@ from ...account.validators import validate_possible_number
 
 
 class I18nMixin:
-    """Mixin to be used with BaseMutation or ModelMutation, providing methods
-    necessary to fulfill the internationalization process.
+    """A mixin providing methods necessary to fulfill the internationalization process.
+
+    It is to be used with BaseMutation or ModelMutation.
     """
 
     @classmethod

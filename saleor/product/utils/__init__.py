@@ -121,7 +121,8 @@ def increase_stock(variant, quantity, allocate=False):
 
 
 def get_product_list_context(request, filter_set):
-    """
+    """Build a context from the given filter set.
+
     :param request: request object
     :param filter_set: filter set for product list
     :return: context dictionary

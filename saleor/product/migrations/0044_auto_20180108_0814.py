@@ -5,12 +5,12 @@ from __future__ import unicode_literals
 from decimal import Decimal
 
 import django.contrib.postgres.fields.hstore
-from django.conf import settings
 import django.core.validators
-from django.db import migrations, models
 import django.db.models.deletion
 import django_prices.models
 import versatileimagefield.fields
+from django.conf import settings
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):

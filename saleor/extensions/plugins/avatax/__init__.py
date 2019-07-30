@@ -52,7 +52,7 @@ class CustomerErrors:
 
 
 def get_api_url() -> str:
-    """Based on settings return sanbox or production url"""
+    """Based on settings return sanbox or production url."""
     if settings.AVATAX_USE_SANDBOX:
         return "https://sandbox-rest.avatax.com/api/v2/"
     return "https://rest.avatax.com/api/v2/"
@@ -102,8 +102,7 @@ def _validate_adddress_details(
 
 
 def _validate_order(order: "Order") -> bool:
-    """Validate if order object contains enough information to generate a request to
-    avatax"""
+    """Validate the order object if it is ready to generate a request to avatax."""
     if not order.lines.count():
         return False
     shipping_address = order.shipping_address
@@ -115,8 +114,7 @@ def _validate_order(order: "Order") -> bool:
 
 
 def _validate_checkout(checkout: "Checkout") -> bool:
-    """Validate if checkout object contains enough information to generate a request to
-    avatax"""
+    """Validate the checkout object if it is ready to generate a request to avatax."""
     if not checkout.lines.count():
         return False
 
@@ -135,8 +133,11 @@ def _retrieve_from_cache(token):
 
 
 def checkout_needs_new_fetch(data, checkout_token: str) -> bool:
-    """We store the response from avatax for checkout object for given time. If object
-    doesn't exist in cache or something has changed, then we fetch data from avatax."""
+    """Check if avatax's checkout response is cached or not.
+
+    We store the response from avatax for checkout object for given time. If object
+    doesn't exist in cache or something has changed, then we fetch data from avatax.
+    """
 
     cached_checkout = _retrieve_from_cache(checkout_token)
 
@@ -150,8 +151,11 @@ def checkout_needs_new_fetch(data, checkout_token: str) -> bool:
 
 
 def taxes_need_new_fetch(data: Dict[str, Any], taxes_token: str) -> bool:
-    """We store the response from avatax. If object doesn't exist in cache or
-    something has changed, then we fetch data from avatax."""
+    """Check if Avatax's taxes data need to be refetched.
+
+    The response from Avatax is stored in a cache. If an object doesn't exist in cache
+    or something has changed, taxes need to be refetched.
+    """
     cached_data = _retrieve_from_cache(taxes_token)
 
     if not cached_data:
@@ -356,8 +360,10 @@ def _fetch_new_taxes_data(data: List[Dict], data_cache_key: str):
 
 
 def get_cached_response_or_fetch(data, token_in_cache, force_refresh=False):
-    """Try to find response in cache. Return cached response if requests data are
-    the same. Fetch new data in other cases"""
+    """Try to find response in cache.
+
+    Return cached response if requests data are the same. Fetch new data in other cases.
+    """
     data_cache_key = CACHE_KEY + token_in_cache
     if taxes_need_new_fetch(data, token_in_cache) or force_refresh:
         response = _fetch_new_taxes_data(data, data_cache_key)
@@ -407,8 +413,10 @@ def generate_tax_codes_dict(
 
 
 def get_cached_tax_codes_or_fetch(cache_time: int = TAX_CODES_CACHE_TIME):
-    """Try to get cached tax codes. If cache is empty fetch the newest taxcodes from
-    avatax"""
+    """Try to get cached tax codes.
+
+    If the cache is empty, fetch the newest taxcodes from avatax.
+    """
     tax_codes = cache.get(TAX_CODES_CACHE_KEY, {})
     if not tax_codes:
         tax_codes_url = urljoin(get_api_url(), "definitions/taxcodes")

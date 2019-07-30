@@ -54,8 +54,9 @@ def get_available_sizes_by_method(method, rendition_key_set):
 
 
 def get_thumbnail_size(size, method, rendition_key_set):
-    """ Return closest larger size if not more than 2 times larger, otherwise
-    return closest smaller size
+    """Return the closest larger size if not more than 2 times larger.
+
+    Otherwise, return the closest smaller size
     """
     on_demand = settings.VERSATILEIMAGEFIELD_SETTINGS["create_images_on_demand"]
     if isinstance(size, int):

@@ -77,8 +77,11 @@ DEFAULT_TAX_RATE_NAME = TaxRateType.STANDARD
 
 
 def _convert_to_naive_taxed_money(base, taxes, rate_name):
-    """Naively convert Money to TaxedMoney for consistency with price
-     handling logic across the codebase, passthrough other money types"""
+    """Naively convert Money to TaxedMoney.
+
+    It is meant for consistency with price handling logic across the codebase,
+    passthrough other money types.
+    """
     if isinstance(base, Money):
         return TaxedMoney(net=base, gross=base)
     if isinstance(base, MoneyRange):

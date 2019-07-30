@@ -3,11 +3,11 @@ from __future__ import unicode_literals
 
 from decimal import Decimal
 
-from django.db import models, migrations
-from django.conf import settings
-import versatileimagefield.fields
 import django.core.validators
 import django_prices.models
+import versatileimagefield.fields
+from django.conf import settings
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):

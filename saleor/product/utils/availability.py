@@ -85,8 +85,11 @@ def _get_total_discount(
     undiscounted: Union[MoneyRange, TaxedMoneyRange, Decimal],
     discounted: Union[MoneyRange, TaxedMoneyRange, Decimal],
 ):
-    """Subtracts two prices that are whether a price range or decimal prices
-    and return their total discount, if any. Otherwise, it returns None."""
+    """Calculate the discount amount between two amounts.
+
+    Subtract two prices that are whether a price range or decimal prices
+    and return their total discount, if any. Otherwise, it returns None.
+    """
     if not isinstance(undiscounted, (MoneyRange, TaxedMoneyRange)):
         if undiscounted > discounted:
             return undiscounted - discounted

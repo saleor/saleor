@@ -116,7 +116,7 @@ def product_details(request, slug, product_id, form=None):
 
 
 def digital_product(request, token: str) -> Union[FileResponse, HttpResponseNotFound]:
-    """Returns direct download link to content if given token is still valid"""
+    """Return the direct download link to content if given token is still valid."""
 
     qs = DigitalContentUrl.objects.prefetch_related("line__order__user")
     content_url = get_object_or_404(qs, token=token)  # type: DigitalContentUrl
