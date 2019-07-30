@@ -21,12 +21,12 @@ from ...account.utils import store_user_address
 from ...checkout import AddressType
 from ...core.utils.json_serializer import object_hook
 from ...core.weight import zero_weight
-from ...dashboard.menu.utils import update_menu
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
 from ...discount.utils import fetch_discounts
 from ...giftcard.models import GiftCard
 from ...menu.models import Menu
+from ...menu.utils import update_menu
 from ...order.models import Fulfillment, Order, OrderLine
 from ...order.utils import update_order_status
 from ...page.models import Page
@@ -53,7 +53,7 @@ from ...product.thumbnails import (
     create_product_thumbnails,
 )
 from ...shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
-from ..taxes import interface as tax_interface
+from ..extensions.manager import get_extensions_manager
 
 fake = Factory.create()
 
@@ -378,8 +378,9 @@ def create_order_lines(order, discounts, how_many=10):
         )
     ProductVariant.objects.bulk_update(variants, ["quantity", "quantity_allocated"])
     lines = OrderLine.objects.bulk_create(lines)
+    manager = get_extensions_manager()
     for line in lines:
-        unit_price = tax_interface.calculate_order_line_unit(line)
+        unit_price = manager.calculate_order_line_unit(line)
         line.unit_price_net = unit_price.net
         line.unit_price_gross = unit_price.gross
         line.tax_rate = unit_price.tax / unit_price.net
@@ -420,9 +421,10 @@ def create_fake_order(discounts, max_order_lines=5):
             "user_email": get_email(address.first_name, address.last_name),
         }
 
+    manager = get_extensions_manager()
     shipping_method = ShippingMethod.objects.order_by("?").first()
     shipping_price = shipping_method.price
-    shipping_price = tax_interface.apply_taxes_to_shipping(shipping_price, address)
+    shipping_price = manager.apply_taxes_to_shipping(shipping_price, address)
     order_data.update(
         {"shipping_method_name": shipping_method.name, "shipping_price": shipping_price}
     )

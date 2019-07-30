@@ -17,21 +17,8 @@ from ..account.forms import get_address_form
 from ..account.models import Address, User
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
-from ..core.taxes import (
-    interface as tax_interface,
-    quantize_price,
-    zero_money,
-    zero_taxed_money,
-)
-from ..core.taxes.interface import (
-    calculate_checkout_line_total,
-    calculate_checkout_shipping,
-    calculate_checkout_subtotal,
-    calculate_checkout_total,
-    postprocess_order_creation,
-    preprocess_order_creation,
-    taxes_are_enabled,
-)
+from ..core.extensions.manager import get_extensions_manager
+from ..core.taxes import quantize_price, zero_money, zero_taxed_money
 from ..core.utils import to_local_currency
 from ..core.utils.promo_code import (
     InvalidPromoCode,
@@ -137,8 +124,9 @@ def get_prices_of_discounted_specific_product(lines, voucher, discounts=None):
         # it means that all products are discounted
         discounted_lines.extend(list(lines))
 
+    manager = get_extensions_manager()
     for line in discounted_lines:
-        line_total = calculate_checkout_line_total(line, discounts or []).gross
+        line_total = manager.calculate_checkout_line_total(line, discounts or []).gross
         line_unit_price = quantize_price(
             (line_total / line.quantity), line_total.currency
         )
@@ -153,9 +141,12 @@ def get_prices_of_discounted_products(checkout, discounted_products, discounts=N
     # it means that all products are discounted
     line_prices = []
     if discounted_products:
+        manager = get_extensions_manager()
         for line in checkout:
             if line.variant.product in discounted_products:
-                line_total = calculate_checkout_line_total(line, discounts or []).gross
+                line_total = manager.calculate_checkout_line_total(
+                    line, discounts or []
+                ).gross
                 line_unit_price = quantize_price(
                     (line_total / line.quantity), line_total.currency
                 )
@@ -171,12 +162,15 @@ def get_prices_of_products_in_discounted_collections(
     # it means that all of them are discounted
     line_prices = []
     if discounted_collections:
+        manager = get_extensions_manager()
         for line in checkout:
             if not line.variant:
                 continue
             product_collections = line.variant.product.collections.all()
             if set(product_collections).intersection(discounted_collections):
-                line_total = calculate_checkout_line_total(line, discounts or []).gross
+                line_total = manager.calculate_checkout_line_total(
+                    line, discounts or []
+                ).gross
                 line_unit_price = quantize_price(
                     (line_total / line.quantity), line_total.currency
                 )
@@ -200,9 +194,12 @@ def get_prices_of_products_in_discounted_categories(
         for line in checkout:
             if not line.variant:
                 continue
+            manager = get_extensions_manager()
             product_category = line.variant.product.category
             if product_category in discounted_categories:
-                line_total = calculate_checkout_line_total(line, discounts or []).gross
+                line_total = manager.calculate_checkout_line_total(
+                    line, discounts or []
+                ).gross
                 line_unit_price = quantize_price(
                     (line_total / line.quantity), line_total.currency
                 )
@@ -731,13 +728,14 @@ def change_shipping_address_in_checkout(checkout, address):
 
 def get_checkout_context(checkout, discounts, currency=None, shipping_range=None):
     """Data shared between views in checkout process."""
+    manager = get_extensions_manager()
     checkout_total = (
-        calculate_checkout_total(checkout=checkout, discounts=discounts)
+        manager.calculate_checkout_total(checkout=checkout, discounts=discounts)
         - checkout.get_total_gift_cards_balance()
     )
     checkout_total = max(checkout_total, zero_taxed_money(checkout_total.currency))
-    checkout_subtotal = calculate_checkout_subtotal(checkout, discounts)
-    shipping_price = calculate_checkout_shipping(checkout, discounts)
+    checkout_subtotal = manager.calculate_checkout_subtotal(checkout, discounts)
+    shipping_price = manager.calculate_checkout_shipping(checkout, discounts)
 
     shipping_required = checkout.is_shipping_required()
     total_with_shipping = TaxedMoneyRange(
@@ -748,9 +746,10 @@ def get_checkout_context(checkout, discounts, currency=None, shipping_range=None
 
     context = {
         "checkout": checkout,
-        "checkout_are_taxes_handled": taxes_are_enabled(),
+        "checkout_are_taxes_handled": manager.taxes_are_enabled(),
         "checkout_lines": [
-            (line, calculate_checkout_line_total(line, discounts)) for line in checkout
+            (line, manager.calculate_checkout_line_total(line, discounts))
+            for line in checkout
         ],
         "checkout_shipping_price": shipping_price,
         "checkout_subtotal": checkout_subtotal,
@@ -791,7 +790,8 @@ def _get_shipping_voucher_discount_for_checkout(voucher, checkout, discounts=Non
         )
         raise NotApplicable(msg)
 
-    shipping_price = calculate_checkout_shipping(checkout, discounts).gross
+    manager = get_extensions_manager()
+    shipping_price = manager.calculate_checkout_shipping(checkout, discounts).gross
     return voucher.get_discount_amount_for(shipping_price)
 
 
@@ -828,7 +828,8 @@ def get_voucher_discount_for_checkout(voucher, checkout, discounts=None):
     """
     validate_voucher_for_checkout(voucher, checkout, discounts)
     if voucher.type == VoucherType.ENTIRE_ORDER:
-        subtotal = calculate_checkout_subtotal(checkout, discounts).gross
+        manager = get_extensions_manager()
+        subtotal = manager.calculate_checkout_subtotal(checkout, discounts).gross
         return voucher.get_discount_amount_for(subtotal)
     if voucher.type == VoucherType.SHIPPING:
         return _get_shipping_voucher_discount_for_checkout(voucher, checkout, discounts)
@@ -870,7 +871,8 @@ def recalculate_checkout_discount(checkout, discounts):
         except NotApplicable:
             remove_voucher_from_checkout(checkout)
         else:
-            subtotal = calculate_checkout_subtotal(checkout, discounts).gross
+            manager = get_extensions_manager()
+            subtotal = manager.calculate_checkout_subtotal(checkout, discounts).gross
             checkout.discount_amount = min(discount, subtotal)
             checkout.discount_name = str(voucher)
             checkout.translated_discount_name = (
@@ -975,9 +977,10 @@ def remove_voucher_from_checkout(checkout: Checkout):
 def get_valid_shipping_methods_for_checkout(
     checkout: Checkout, discounts, country_code=None
 ):
+    manager = get_extensions_manager()
     return ShippingMethod.objects.applicable_shipping_methods_for_instance(
         checkout,
-        price=calculate_checkout_subtotal(checkout, discounts).gross,
+        price=manager.calculate_checkout_subtotal(checkout, discounts).gross,
         country_code=country_code,
     )
 
@@ -1009,8 +1012,9 @@ def get_shipping_price_estimate(checkout: Checkout, discounts, country_code):
     if not shipping_methods:
         return None
 
+    manager = get_extensions_manager()
     prices = MoneyRange(start=min(shipping_methods), stop=max(shipping_methods))
-    return tax_interface.apply_taxes_to_shipping_price_range(prices, country_code)
+    return manager.apply_taxes_to_shipping_price_range(prices, country_code)
 
 
 def clear_shipping_method(checkout):
@@ -1115,7 +1119,8 @@ def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine
     if translated_product_name == product_name:
         translated_product_name = ""
 
-    total_line_price = calculate_checkout_line_total(checkout_line, discounts)
+    manager = get_extensions_manager()
+    total_line_price = manager.calculate_checkout_line_total(checkout_line, discounts)
     unit_price = quantize_price(
         total_line_price / checkout_line.quantity, total_line_price.currency
     )
@@ -1141,13 +1146,14 @@ def prepare_order_data(*, checkout: Checkout, tracking_code: str, discounts) -> 
     """
     order_data = {}
 
+    manager = get_extensions_manager()
     total = (
-        calculate_checkout_total(checkout=checkout, discounts=discounts)
+        manager.calculate_checkout_total(checkout=checkout, discounts=discounts)
         - checkout.get_total_gift_cards_balance()
     )
     total = max(total, zero_taxed_money(total.currency))
 
-    shipping_total = calculate_checkout_shipping(checkout, discounts)
+    shipping_total = manager.calculate_checkout_shipping(checkout, discounts)
     order_data.update(_process_shipping_data_for_order(checkout, shipping_total))
     order_data.update(_process_user_data_for_order(checkout))
     order_data.update(
@@ -1171,12 +1177,12 @@ def prepare_order_data(*, checkout: Checkout, tracking_code: str, discounts) -> 
 
     # assign gift cards to the order
     order_data["total_price_left"] = (
-        calculate_checkout_subtotal(checkout, discounts)
+        manager.calculate_checkout_subtotal(checkout, discounts)
         + shipping_total
         - checkout.discount_amount
     ).gross
 
-    preprocess_order_creation(checkout, discounts)
+    manager.preprocess_order_creation(checkout, discounts)
     return order_data
 
 
@@ -1227,7 +1233,8 @@ def create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
     # assign checkout payments to the order
     checkout.payments.update(order=order)
 
-    postprocess_order_creation(order)
+    manager = get_extensions_manager()
+    manager.postprocess_order_creation(order)
 
     # Create the order placed
     events.order_created_event(order=order, user=user)
@@ -1242,8 +1249,9 @@ def is_fully_paid(checkout: Checkout, discounts):
     Note that these payments may not be captured or charged at all."""
     payments = [payment for payment in checkout.payments.all() if payment.is_active]
     total_paid = sum([p.total for p in payments])
+    manager = get_extensions_manager()
     checkout_total = (
-        calculate_checkout_total(checkout=checkout, discounts=discounts)
+        manager.calculate_checkout_total(checkout=checkout, discounts=discounts)
         - checkout.get_total_gift_cards_balance()
     )
     checkout_total = max(

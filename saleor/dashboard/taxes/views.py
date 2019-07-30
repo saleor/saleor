@@ -13,7 +13,7 @@ from django.views.decorators.http import require_POST
 from django_countries.fields import Country
 from django_prices_vatlayer.models import VAT
 
-from ...core.taxes.vatlayer import TaxRateType, get_taxes_for_country
+from ...core.extensions.plugins.vatlayer import TaxRateType, get_taxes_for_country
 from ...core.utils import get_paginator_items
 from ...dashboard.taxes.filters import TaxFilter
 from ...dashboard.taxes.forms import TaxesConfigurationForm

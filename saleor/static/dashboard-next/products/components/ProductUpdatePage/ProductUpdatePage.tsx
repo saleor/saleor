@@ -129,6 +129,10 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
   toggleAll,
   toolbar
 }) => {
+  const initialDescription = maybe<RawDraftContentState>(() =>
+    JSON.parse(product.descriptionJson)
+  );
+
   const initialData: FormData = {
     attributes: maybe(
       () =>
@@ -150,7 +154,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
           value: collection.id
         }))
       : [],
-    description: maybe(() => JSON.parse(product.descriptionJson)),
+    description: initialDescription,
     isPublished: maybe(() => product.isPublished, false),
     name: maybe(() => product.name, ""),
     productType: maybe(() => ({
@@ -217,6 +221,7 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                   data={data}
                   disabled={disabled}
                   errors={errors}
+                  initialDescription={initialDescription}
                   onChange={change}
                 />
                 <CardSpacer />
