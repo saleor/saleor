@@ -35,6 +35,13 @@ export enum VoucherDetailsPageTab {
   collections = "collections",
   products = "products"
 }
+
+export enum RequirementsPickerEnum {
+  ORDER = "ORDER",
+  ITEM = "ITEM",
+  NONE = "NONE"
+}
+
 export function voucherDetailsPageTab(tab: string): VoucherDetailsPageTab {
   return tab === VoucherDetailsPageTab.products
     ? VoucherDetailsPageTab.products
@@ -128,11 +135,11 @@ const VoucherDetailsPage: React.StatelessComponent<VoucherDetailsPageProps> = ({
 }) => {
   let requirementsPickerInitValue;
   if (maybe(() => voucher.minAmountSpent.amount) > 0) {
-    requirementsPickerInitValue = "ORDER";
+    requirementsPickerInitValue = RequirementsPickerEnum.ORDER;
   } else if (maybe(() => voucher.minCheckoutItemsQuantity) > 0) {
-    requirementsPickerInitValue = "ITEM";
+    requirementsPickerInitValue = RequirementsPickerEnum.ITEM;
   } else {
-    requirementsPickerInitValue = "NONE";
+    requirementsPickerInitValue = RequirementsPickerEnum.NONE;
   }
 
   const initialForm: FormData = {
