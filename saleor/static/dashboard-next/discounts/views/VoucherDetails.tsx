@@ -25,11 +25,11 @@ import { decimal, getMutationState, joinDateTime, maybe } from "../../misc";
 import { productUrl } from "../../products/urls";
 import {
   DiscountValueTypeEnum,
+  RequirementsPickerEnum,
   VoucherTypeEnum
 } from "../../types/globalTypes";
 import DiscountCountrySelectDialog from "../components/DiscountCountrySelectDialog";
 import VoucherDetailsPage, {
-  RequirementsPickerEnum,
   VoucherDetailsPageTab
 } from "../components/VoucherDetailsPage";
 import {

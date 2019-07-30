@@ -16,6 +16,7 @@ import { maybe, splitDateTime } from "../../../misc";
 import { ListProps, TabListActions, UserError } from "../../../types";
 import {
   DiscountValueTypeEnum,
+  RequirementsPickerEnum,
   VoucherTypeEnum
 } from "../../../types/globalTypes";
 import { VoucherDetails_voucher } from "../../types/VoucherDetails";
@@ -34,12 +35,6 @@ export enum VoucherDetailsPageTab {
   categories = "categories",
   collections = "collections",
   products = "products"
-}
-
-export enum RequirementsPickerEnum {
-  ORDER = "ORDER",
-  ITEM = "ITEM",
-  NONE = "NONE"
 }
 
 export function voucherDetailsPageTab(tab: string): VoucherDetailsPageTab {
@@ -61,7 +56,7 @@ export interface FormData {
   hasUsageLimit: boolean;
   minAmountSpent: string;
   minCheckoutItemsQuantity: string;
-  requirementsPicker: string;
+  requirementsPicker: RequirementsPickerEnum;
   startDate: string;
   startTime: string;
   type: VoucherTypeEnum;
