@@ -122,7 +122,7 @@ def test_category_details(admin_client, category):
     assert response.status_code == 200
 
 
-@patch("saleor.dashboard.category.views.get_menus_that_needs_update")
+@patch("saleor.dashboard.category.views.get_menus_that_need_update")
 @patch("saleor.dashboard.category.views.update_menus")
 def test_category_delete(mock_update_menus, mock_get_menus, admin_client, category):
     assert Category.objects.count() == 1
@@ -135,7 +135,7 @@ def test_category_delete(mock_update_menus, mock_get_menus, admin_client, catego
     assert Category.objects.count() == 0
 
 
-@patch("saleor.dashboard.category.views.get_menus_that_needs_update")
+@patch("saleor.dashboard.category.views.get_menus_that_need_update")
 @patch("saleor.dashboard.category.views.update_menus")
 def test_category_delete_menus_not_updated(
     mock_update_menus, mock_get_menus, admin_client, category
