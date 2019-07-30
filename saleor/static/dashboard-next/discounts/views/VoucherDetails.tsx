@@ -337,17 +337,13 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                           )
                                         : null,
                                       minAmountSpent:
-                                        formData.requirementsPicker ===
-                                          RequirementsPickerEnum.NONE ||
-                                        formData.requirementsPicker ===
-                                          RequirementsPickerEnum.ITEM
+                                        formData.requirementsPicker !==
+                                        RequirementsPickerEnum.ORDER
                                           ? 0
                                           : parseFloat(formData.minAmountSpent),
                                       minCheckoutItemsQuantity:
-                                        formData.requirementsPicker ===
-                                          RequirementsPickerEnum.NONE ||
-                                        formData.requirementsPicker ===
-                                          RequirementsPickerEnum.ORDER
+                                        formData.requirementsPicker !==
+                                        RequirementsPickerEnum.ITEM
                                           ? 0
                                           : parseFloat(
                                               formData.minCheckoutItemsQuantity
