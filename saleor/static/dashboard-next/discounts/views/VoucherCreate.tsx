@@ -8,6 +8,7 @@ import i18n from "../../i18n";
 import { decimal, getMutationState, joinDateTime, maybe } from "../../misc";
 import {
   DiscountValueTypeEnum,
+  RequirementsPickerEnum,
   VoucherTypeEnum
 } from "../../types/globalTypes";
 import VoucherCreatePage from "../components/VoucherCreatePage";
@@ -67,13 +68,17 @@ export const VoucherDetails: React.StatelessComponent = () => {
                         ? joinDateTime(formData.endDate, formData.endTime)
                         : null,
                       minAmountSpent:
-                        formData.requirementsPicker === "NONE" ||
-                        formData.requirementsPicker === "ITEM"
+                        formData.requirementsPicker ===
+                          RequirementsPickerEnum.NONE ||
+                        formData.requirementsPicker ===
+                          RequirementsPickerEnum.ITEM
                           ? 0
                           : parseFloat(formData.minAmountSpent),
                       minCheckoutItemsQuantity:
-                        formData.requirementsPicker === "NONE" ||
-                        formData.requirementsPicker === "ORDER"
+                        formData.requirementsPicker ===
+                          RequirementsPickerEnum.NONE ||
+                        formData.requirementsPicker ===
+                          RequirementsPickerEnum.ORDER
                           ? 0
                           : parseFloat(formData.minCheckoutItemsQuantity),
                       startDate: joinDateTime(

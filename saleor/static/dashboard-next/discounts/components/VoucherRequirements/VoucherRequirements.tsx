@@ -8,7 +8,8 @@ import { FormSpacer } from "@saleor/components/FormSpacer";
 import RadioGroupField from "@saleor/components/RadioGroupField";
 import i18n from "@saleor/i18n";
 import { FormErrors } from "@saleor/types";
-import { FormData, RequirementsPickerEnum } from "../VoucherDetailsPage";
+import { RequirementsPickerEnum } from "../../../types/globalTypes";
+import { FormData } from "../VoucherDetailsPage";
 
 interface VoucherRequirementsProps {
   data: FormData;
