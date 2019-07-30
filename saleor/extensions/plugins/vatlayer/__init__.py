@@ -2,7 +2,7 @@ from django.utils.translation import pgettext_lazy
 from django_prices_vatlayer.utils import get_tax_for_rate, get_tax_rates_for_country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from ....taxes import charge_taxes_on_shipping, include_taxes_in_prices
+from ....core.taxes import charge_taxes_on_shipping, include_taxes_in_prices
 
 
 class TaxRateType:

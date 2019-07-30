@@ -1,8 +1,8 @@
 import graphene
 
-from ...core.extensions.plugins.vatlayer import TaxRateType as CoreTaxRateType
 from ...core.permissions import MODELS_PERMISSIONS
 from ...core.weight import WeightUnits
+from ...extensions.plugins.vatlayer import TaxRateType as CoreTaxRateType
 from .utils import str_to_enum
 
 # FIXME CoreTaxRateType should be removed after we will drop old api fields dedicated

@@ -11,8 +11,8 @@ from django.utils.text import slugify
 from graphql_relay import to_global_id
 from prices import Money
 
-from saleor.core.extensions.manager import ExtensionsManager
 from saleor.core.taxes import TaxType
+from saleor.extensions.manager import ExtensionsManager
 from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.product.enums import StockAvailability
 from saleor.graphql.product.types.products import resolve_attribute_list
@@ -1309,7 +1309,7 @@ def test_product_type_create_mutation(
     staff_api_client, product_type, permission_manage_products, monkeypatch, settings
 ):
     settings.VATLAYER_ACCESS_KEY = "test"
-    settings.PLUGINS = ["saleor.core.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+    settings.PLUGINS = ["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
     manager = ExtensionsManager(plugins=settings.PLUGINS)
     query = """
     mutation createProductType(

@@ -11,17 +11,17 @@ from django_prices_vatlayer.models import VAT
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from saleor.checkout.utils import add_variant_to_checkout
-from saleor.core.extensions.manager import get_extensions_manager
-from saleor.core.extensions.plugins.vatlayer import (
+from saleor.core.taxes import quantize_price
+from saleor.dashboard.taxes.filters import get_country_choices_for_vat
+from saleor.extensions.manager import get_extensions_manager
+from saleor.extensions.plugins.vatlayer import (
     DEFAULT_TAX_RATE_NAME,
     apply_tax_to_price,
     get_tax_rate_by_name,
     get_taxed_shipping_price,
     get_taxes_for_country,
 )
-from saleor.core.extensions.plugins.vatlayer.plugin import VatlayerPlugin
-from saleor.core.taxes import quantize_price
-from saleor.dashboard.taxes.filters import get_country_choices_for_vat
+from saleor.extensions.plugins.vatlayer.plugin import VatlayerPlugin
 
 
 def get_url_path(url):
@@ -353,8 +353,7 @@ def test_vatlayer_plugin_caches_taxes(vatlayer, monkeypatch, product, address):
 
     mocked_taxes = Mock(wraps=get_taxes_for_country)
     monkeypatch.setattr(
-        "saleor.core.extensions.plugins.vatlayer.plugin.get_taxes_for_country",
-        mocked_taxes,
+        "saleor.extensions.plugins.vatlayer.plugin.get_taxes_for_country", mocked_taxes
     )
     plugin = VatlayerPlugin()
     price = product.variants.first().get_price()
@@ -388,7 +387,7 @@ def test_calculate_checkout_total(
     taxes_in_prices,
 ):
     manager = get_extensions_manager(
-        plugins=["saleor.core.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+        plugins=["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
     )
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
@@ -443,7 +442,7 @@ def test_calculate_checkout_subtotal(
     checkout_with_item.save()
 
     manager = get_extensions_manager(
-        plugins=["saleor.core.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+        plugins=["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
     )
 
     product = variant.product
@@ -461,7 +460,7 @@ def test_calculate_checkout_subtotal(
 
 def test_calculate_order_shipping(vatlayer, order_line, shipping_zone, site_settings):
     manager = get_extensions_manager(
-        plugins=["saleor.core.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+        plugins=["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
     )
     order = order_line.order
     method = shipping_zone.shipping_methods.get()
@@ -476,7 +475,7 @@ def test_calculate_order_shipping(vatlayer, order_line, shipping_zone, site_sett
 
 def test_calculate_order_line_unit(vatlayer, order_line, shipping_zone, site_settings):
     manager = get_extensions_manager(
-        plugins=["saleor.core.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+        plugins=["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
     )
     order_line.unit_price = TaxedMoney(
         net=Money("10.00", "USD"), gross=Money("10.00", "USD")
@@ -505,7 +504,7 @@ def test_get_tax_rate_percentage_value(
     vatlayer, order_line, shipping_zone, site_settings, product
 ):
     manager = get_extensions_manager(
-        plugins=["saleor.core.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+        plugins=["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
     )
     country = Country("PL")
     tax_rate = manager.get_tax_rate_percentage_value(product, country)

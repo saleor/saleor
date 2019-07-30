@@ -5,9 +5,9 @@ import pytest
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
-from saleor.core.extensions.base_plugin import BasePlugin
-from saleor.core.extensions.manager import ExtensionsManager, get_extensions_manager
 from saleor.core.taxes import TaxType
+from saleor.extensions.base_plugin import BasePlugin
+from saleor.extensions.manager import ExtensionsManager, get_extensions_manager
 
 
 class TestPlugin(BasePlugin):
@@ -64,7 +64,7 @@ class TestPlugin(BasePlugin):
 
 
 def test_get_extensions_manager():
-    manager_path = "saleor.core.extensions.manager.ExtensionsManager"
+    manager_path = "saleor.extensions.manager.ExtensionsManager"
     plugin_path = "tests.extensions.test_manager.TestPlugin"
     manager = get_extensions_manager(manager_path=manager_path, plugins=[plugin_path])
     assert isinstance(manager, ExtensionsManager)
