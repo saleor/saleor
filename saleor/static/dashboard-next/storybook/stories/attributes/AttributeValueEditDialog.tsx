@@ -12,7 +12,6 @@ import Decorator from "../../Decorator";
 const props: AttributeValueEditDialogProps = {
   attributeValue: {
     ...attribute.values[0],
-    sortOrder: 0,
     type: AttributeValueType.STRING,
     value: ""
   },

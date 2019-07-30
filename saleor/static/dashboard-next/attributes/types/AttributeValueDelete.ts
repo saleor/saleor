@@ -19,7 +19,6 @@ export interface AttributeValueDelete_attributeValueDelete_attribute_values {
   id: string;
   name: string | null;
   slug: string | null;
-  sortOrder: number;
   type: AttributeValueType | null;
   value: string | null;
 }
