@@ -2,7 +2,7 @@ from typing import List, Optional, Tuple
 
 import graphene
 from django.conf import settings
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.utils import timezone
 
@@ -45,6 +45,8 @@ from ..order.types import Order
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
 from .types import Checkout, CheckoutLine
+
+ERROR_DOES_NOT_SHIP = "This checkout doesn't have shipping"
 
 
 def clean_shipping_method(
@@ -126,12 +128,25 @@ class CheckoutCreateInput(graphene.InputObjectType):
     )
     email = graphene.String(description="The customer's email address.")
     shipping_address = AddressInput(
-        description="The mailing address to where the checkout will be shipped."
+        description=(
+            "The mailing address to where the checkout will be shipped. "
+            "Note: the address will be ignored if the checkout "
+            "doesn't contain shippable items."
+        )
     )
     billing_address = AddressInput(description="Billing address of the customer.")
 
 
 class CheckoutCreate(ModelMutation, I18nMixin):
+    created = graphene.Field(
+        graphene.Boolean,
+        description=(
+            "Whether the checkout was created or the current active one was returned. "
+            "Refer to checkoutLinesAdd and checkoutLinesUpdate to merge a cart "
+            "with an active checkout."
+        ),
+    )
+
     class Arguments:
         input = CheckoutCreateInput(
             required=True, description="Fields required to create checkout."
@@ -171,7 +186,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return None
 
     @classmethod
-    def clean_input(cls, info, instance, data):
+    def clean_input(cls, info, instance: models.Checkout, data):
         cleaned_input = super().clean_input(info, instance, data)
         user = info.context.user
 
@@ -193,18 +208,23 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return cleaned_input
 
     @classmethod
-    @transaction.atomic()
-    def save(cls, info, instance, cleaned_input):
+    def save_addresses(cls, instance: models.Checkout, cleaned_input):
         shipping_address = cleaned_input.get("shipping_address")
         billing_address = cleaned_input.get("billing_address")
 
-        if shipping_address:
+        if instance.is_shipping_required() and shipping_address:
             shipping_address.save()
             instance.shipping_address = shipping_address.get_copy()
         if billing_address:
             billing_address.save()
             instance.billing_address = billing_address.get_copy()
 
+        instance.save(update_fields=["shipping_address", "billing_address"])
+
+    @classmethod
+    @transaction.atomic()
+    def save(cls, info, instance: models.Checkout, cleaned_input):
+        # Create the instance to create relations to the checkout object
         instance.save()
 
         variants = cleaned_input.get("variants")
@@ -218,6 +238,8 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 except InsufficientStock as exc:
                     raise ValidationError(f"Insufficient product stock: {exc.item}")
 
+        cls.save_addresses(instance, cleaned_input)
+
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         user = info.context.user
@@ -230,7 +252,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             if checkout is not None:
                 # If user has an active checkout, return it without any
                 # modifications.
-                return CheckoutCreate(checkout=checkout)
+                return CheckoutCreate(checkout=checkout, created=False)
 
             checkout = models.Checkout(user=user)
         else:
@@ -241,7 +263,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         cls.clean_instance(checkout)
         cls.save(info, checkout, cleaned_input)
         cls._save_m2m(info, checkout, cleaned_input)
-        return CheckoutCreate(checkout=checkout)
+        return CheckoutCreate(checkout=checkout, created=True)
 
 
 class CheckoutLinesAdd(BaseMutation):
@@ -384,9 +406,22 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, shipping_address):
-        checkout = cls.get_node_or_error(
-            info, checkout_id, only_type=Checkout, field="checkout_id"
+        pk = from_global_id_strict_type(
+            info, checkout_id, Checkout, field="checkout_id"
         )
+
+        try:
+            checkout = models.Checkout.objects.prefetch_related(
+                "lines__variant__product__product_type"
+            ).get(pk=pk)
+        except ObjectDoesNotExist:
+            raise ValidationError(
+                {"checkout_id": f"Couldn't resolve to a node: {checkout_id}"}
+            )
+
+        if not checkout.is_shipping_required():
+            raise ValidationError({"shipping_address": ERROR_DOES_NOT_SHIP})
+
         shipping_address = cls.validate_address(
             shipping_address, instance=checkout.shipping_address
         )
@@ -407,7 +442,7 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
     class Arguments:
         checkout_id = graphene.ID(required=True, description="ID of the Checkout.")
         billing_address = AddressInput(
-            required=True, description=("The billing address of the checkout.")
+            required=True, description="The billing address of the checkout."
         )
 
     class Meta:
@@ -462,12 +497,23 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, shipping_method_id):
-        checkout_id = from_global_id_strict_type(
+        pk = from_global_id_strict_type(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
-        checkout = models.Checkout.objects.prefetch_related(
-            "lines__variant__product__collections"
-        ).get(pk=checkout_id)
+
+        try:
+            checkout = models.Checkout.objects.prefetch_related(
+                "lines__variant__product__collections",
+                "lines__variant__product__product_type",
+            ).get(pk=pk)
+        except ObjectDoesNotExist:
+            raise ValidationError(
+                {"checkout_id": f"Couldn't resolve to a node: {checkout_id}"}
+            )
+
+        if not checkout.is_shipping_required():
+            raise ValidationError({"shipping_method": ERROR_DOES_NOT_SHIP})
+
         shipping_method = cls.get_node_or_error(
             info,
             shipping_method_id,
