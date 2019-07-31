@@ -60,7 +60,8 @@ class StripeCheckoutWidget(HiddenInput):
 
 
 class StripePaymentModalForm(forms.Form):
-    """
+    """The modal form of the Stripe payment provider.
+
     At this moment partial-payment is not supported, but there is no need to
     validate amount, which may be manually adjusted in the template,
     since checkout.js can do that automatically.

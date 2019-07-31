@@ -286,6 +286,12 @@ const MenuDetails: React.FC<MenuDetailsProps> = ({ id, params }) => {
                                           open={params.action === "add-item"}
                                           categories={categories}
                                           collections={collections}
+                                          errors={maybe(
+                                            () =>
+                                              menuItemCreateOpts.data
+                                                .menuItemCreate.errors,
+                                            []
+                                          )}
                                           pages={pages}
                                           loading={
                                             categorySearch.result.loading ||
@@ -355,6 +361,12 @@ const MenuDetails: React.FC<MenuDetailsProps> = ({ id, params }) => {
                                           open={params.action === "edit-item"}
                                           categories={categories}
                                           collections={collections}
+                                          errors={maybe(
+                                            () =>
+                                              menuItemUpdateOpts.data
+                                                .menuItemUpdate.errors,
+                                            []
+                                          )}
                                           pages={pages}
                                           initial={initialFormData}
                                           initialDisplayValue={getInitialDisplayValue(

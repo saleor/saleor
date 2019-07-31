@@ -1,4 +1,7 @@
+from decimal import Decimal
 from unittest import mock
+from unittest.mock import Mock
+from urllib.parse import urlparse
 
 import pytest
 from django.core.exceptions import ImproperlyConfigured
@@ -7,18 +10,28 @@ from django_countries.fields import Country
 from django_prices_vatlayer.models import VAT
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from saleor.core.taxes.vatlayer import (
+from saleor.checkout.utils import add_variant_to_checkout
+from saleor.core.taxes import quantize_price
+from saleor.dashboard.taxes.filters import get_country_choices_for_vat
+from saleor.extensions.manager import get_extensions_manager
+from saleor.extensions.plugins.vatlayer import (
     DEFAULT_TAX_RATE_NAME,
     apply_tax_to_price,
     get_tax_rate_by_name,
     get_taxed_shipping_price,
-    get_taxes_for_address,
     get_taxes_for_country,
 )
-from saleor.core.utils import get_country_name_by_code
-from saleor.dashboard.taxes.filters import get_country_choices_for_vat
+from saleor.extensions.plugins.vatlayer.plugin import VatlayerPlugin
 
-from ..utils import get_redirect_location
+
+def get_url_path(url):
+    parsed_url = urlparse(url)
+    return parsed_url.path
+
+
+def get_redirect_location(response):
+    # Due to Django 1.8 compatibility, we have to handle both cases
+    return get_url_path(response["Location"])
 
 
 @pytest.fixture
@@ -248,34 +261,9 @@ def test_get_country_choices_for_vat(vatlayer):
     assert choices == expected_choices
 
 
-def test_get_taxes_for_address(address, vatlayer, compare_taxes):
-    taxes = get_taxes_for_address(address)
-    compare_taxes(taxes, vatlayer)
-
-
-def test_get_taxes_for_address_fallback_default(settings, vatlayer, compare_taxes):
-    settings.DEFAULT_COUNTRY = "PL"
-    taxes = get_taxes_for_address(None)
-    compare_taxes(taxes, vatlayer)
-
-
-def test_get_taxes_for_address_other_country(address, vatlayer, compare_taxes):
-    address.country = "DE"
-    address.save()
-    tax_rates = get_taxes_for_country(Country("DE"))
-
-    taxes = get_taxes_for_address(address)
-    compare_taxes(taxes, tax_rates)
-
-
 def test_get_taxes_for_country(vatlayer, compare_taxes):
     taxes = get_taxes_for_country(Country("PL"))
     compare_taxes(taxes, vatlayer)
-
-
-def test_get_country_name_by_code():
-    country_name = get_country_name_by_code("PL")
-    assert country_name == "Poland"
 
 
 def test_apply_tax_to_price_do_not_include_tax(site_settings, taxes):
@@ -359,3 +347,165 @@ def test_apply_tax_to_price_no_taxes_return_taxed_money_range():
 def test_apply_tax_to_price_no_taxes_raise_typeerror_for_invalid_type():
     with pytest.raises(TypeError):
         assert apply_tax_to_price(None, "standard", 100)
+
+
+def test_vatlayer_plugin_caches_taxes(vatlayer, monkeypatch, product, address):
+
+    mocked_taxes = Mock(wraps=get_taxes_for_country)
+    monkeypatch.setattr(
+        "saleor.extensions.plugins.vatlayer.plugin.get_taxes_for_country", mocked_taxes
+    )
+    plugin = VatlayerPlugin()
+    price = product.variants.first().get_price()
+    price = TaxedMoney(price, price)
+    address.country = Country("de")
+    plugin.apply_taxes_to_product(product, price, address.country, price)
+    plugin.apply_taxes_to_shipping(price, address, price)
+    assert mocked_taxes.call_count == 1
+
+
+@pytest.mark.parametrize(
+    "with_discount, expected_net, expected_gross, voucher_amount, taxes_in_prices",
+    [
+        (True, "20.34", "25.00", "0.0", True),
+        (True, "20.00", "25.75", "5.0", False),
+        (False, "40.00", "49.20", "0.0", False),
+        (False, "29.52", "37.00", "3.0", True),
+    ],
+)
+def test_calculate_checkout_total(
+    site_settings,
+    vatlayer,
+    checkout_with_item,
+    address,
+    shipping_zone,
+    discount_info,
+    with_discount,
+    expected_net,
+    expected_gross,
+    voucher_amount,
+    taxes_in_prices,
+):
+    manager = get_extensions_manager(
+        plugins=["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+    )
+    checkout_with_item.shipping_address = address
+    checkout_with_item.save()
+    voucher_amount = Money(voucher_amount, "USD")
+    checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
+    checkout_with_item.discount_amount = voucher_amount
+    checkout_with_item.save()
+    line = checkout_with_item.lines.first()
+    product = line.variant.product
+    manager.assign_tax_code_to_object_meta(product, "standard")
+    product.save()
+
+    site_settings.include_taxes_in_prices = taxes_in_prices
+    site_settings.save()
+
+    discounts = [discount_info] if with_discount else None
+    total = manager.calculate_checkout_total(checkout_with_item, discounts)
+    total = quantize_price(total, total.currency)
+    assert total == TaxedMoney(
+        net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
+    )
+
+
+@pytest.mark.vcr
+@pytest.mark.parametrize(
+    "with_discount, expected_net, expected_gross, taxes_in_prices",
+    [
+        (True, "25.00", "30.75", False),
+        (False, "40.65", "50.00", True),
+        (False, "50.00", "61.50", False),
+        (True, "20.35", "25.00", True),
+    ],
+)
+def test_calculate_checkout_subtotal(
+    site_settings,
+    vatlayer,
+    checkout_with_item,
+    address,
+    shipping_zone,
+    discount_info,
+    with_discount,
+    expected_net,
+    expected_gross,
+    taxes_in_prices,
+    variant,
+):
+    site_settings.include_taxes_in_prices = taxes_in_prices
+    site_settings.save()
+
+    checkout_with_item.shipping_address = address
+    checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
+    checkout_with_item.save()
+
+    manager = get_extensions_manager(
+        plugins=["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+    )
+
+    product = variant.product
+    manager.assign_tax_code_to_object_meta(product, "standard")
+    product.save()
+
+    discounts = [discount_info] if with_discount else None
+    add_variant_to_checkout(checkout_with_item, variant, 2)
+    total = manager.calculate_checkout_subtotal(checkout_with_item, discounts)
+    total = quantize_price(total, total.currency)
+    assert total == TaxedMoney(
+        net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
+    )
+
+
+def test_calculate_order_shipping(vatlayer, order_line, shipping_zone, site_settings):
+    manager = get_extensions_manager(
+        plugins=["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+    )
+    order = order_line.order
+    method = shipping_zone.shipping_methods.get()
+    order.shipping_address = order.billing_address.get_copy()
+    order.shipping_method_name = method.name
+    order.shipping_method = method
+    order.save()
+    price = manager.calculate_order_shipping(order)
+    price = quantize_price(price, price.currency)
+    assert price == TaxedMoney(net=Money("8.13", "USD"), gross=Money("10.00", "USD"))
+
+
+def test_calculate_order_line_unit(vatlayer, order_line, shipping_zone, site_settings):
+    manager = get_extensions_manager(
+        plugins=["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+    )
+    order_line.unit_price = TaxedMoney(
+        net=Money("10.00", "USD"), gross=Money("10.00", "USD")
+    )
+    order_line.save()
+
+    order = order_line.order
+    method = shipping_zone.shipping_methods.get()
+    order.shipping_address = order.billing_address.get_copy()
+    order.shipping_method_name = method.name
+    order.shipping_method = method
+    order.save()
+
+    product = order_line.variant.product
+    manager.assign_tax_code_to_object_meta(product, "standard")
+    product.save()
+
+    line_price = manager.calculate_order_line_unit(order_line)
+    line_price = quantize_price(line_price, line_price.currency)
+    assert line_price == TaxedMoney(
+        net=Money("8.13", "USD"), gross=Money("10.00", "USD")
+    )
+
+
+def test_get_tax_rate_percentage_value(
+    vatlayer, order_line, shipping_zone, site_settings, product
+):
+    manager = get_extensions_manager(
+        plugins=["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+    )
+    country = Country("PL")
+    tax_rate = manager.get_tax_rate_percentage_value(product, country)
+    assert tax_rate == Decimal("23")

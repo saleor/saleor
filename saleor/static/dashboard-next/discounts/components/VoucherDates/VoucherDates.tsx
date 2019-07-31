@@ -38,6 +38,9 @@ const VoucherDates = ({
             label={i18n.t("Start Date")}
             value={data.startDate}
             type="date"
+            InputLabelProps={{
+              shrink: true
+            }}
             fullWidth
           />
           <TextField
@@ -49,6 +52,9 @@ const VoucherDates = ({
             label={i18n.t("Start Hour")}
             value={data.startTime}
             type="time"
+            InputLabelProps={{
+              shrink: true
+            }}
             fullWidth
           />
         </Grid>
@@ -69,6 +75,9 @@ const VoucherDates = ({
               label={i18n.t("End Date")}
               value={data.endDate}
               type="date"
+              InputLabelProps={{
+                shrink: true
+              }}
               fullWidth
             />
             <TextField
@@ -80,6 +89,9 @@ const VoucherDates = ({
               label={i18n.t("End Hour")}
               value={data.endTime}
               type="time"
+              InputLabelProps={{
+                shrink: true
+              }}
               fullWidth
             />
           </Grid>

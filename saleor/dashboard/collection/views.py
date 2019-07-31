@@ -9,8 +9,8 @@ from django.utils.translation import pgettext_lazy
 from django.views.decorators.http import require_POST
 
 from ...core.utils import get_paginator_items
+from ...menu.utils import get_menus_that_need_update, update_menus
 from ...product.models import Collection
-from ..menu.utils import get_menus_that_needs_update, update_menus
 from ..views import staff_member_required
 from .filters import CollectionFilter
 from .forms import AssignHomepageCollectionForm, CollectionForm
@@ -87,7 +87,7 @@ def collection_update(request, pk=None):
 def collection_delete(request, pk=None):
     collection = get_object_or_404(Collection, pk=pk)
     if request.method == "POST":
-        menus = get_menus_that_needs_update(collection=collection)
+        menus = get_menus_that_need_update(collection=collection)
         collection.delete()
         if menus:
             update_menus(menus)

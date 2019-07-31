@@ -1,38 +1,36 @@
-import importlib
+from decimal import Decimal
 from typing import TYPE_CHECKING, Any, List, Union
 
 from django.conf import settings
+from django.utils.module_loading import import_string
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from ..taxes import TaxType, quantize_price
+from ..core.taxes import TaxType, quantize_price
 
 if TYPE_CHECKING:
-    from ...checkout.models import Checkout, CheckoutLine
-    from ...product.models import Product
-    from ...account.models import Address
-    from ...order.models import OrderLine, Order
-    from .plugin import BasePlugin
+    from .base_plugin import BasePlugin
+    from ..checkout.models import Checkout, CheckoutLine
+    from ..product.models import Product
+    from ..account.models import Address
+    from ..order.models import OrderLine, Order
 
 
 class ExtensionsManager:
-    """Base manager for handling a plugins logic"""
+    """Base manager for handling plugins logic."""
 
     plugins = None
 
     def __init__(self, plugins: List[str]):
         self.plugins = []
         for plugin_path in plugins:
-            plugin_path, _, plugin_name = plugin_path.rpartition(".")
-            plugin_module = importlib.import_module(plugin_path)
-            plugin_class = getattr(plugin_module, plugin_name)
+            plugin_class = import_string(plugin_path)
             self.plugins.append(plugin_class())
 
     def __run_method_on_plugins(
         self, method_name: str, default_value: Any, *args, **kwargs
     ):
-        """It takes all declared plugins and tries to run method with the given name on
-        each plugin"""
+        """Try to run a method with the given name on each declared plugin."""
         value = default_value
         for plugin in self.plugins:
             value = self.__run_method_on_single_plugin(
@@ -48,9 +46,12 @@ class ExtensionsManager:
         *args,
         **kwargs,
     ) -> Any:
-        """Run method_name on plugin. Method will return value returned from plugin's
+        """Run method_name on plugin.
+
+        Method will return value returned from plugin's
         method. If plugin doesn't have own implementation of expected method_name, it
-        will return previous_value."""
+        will return previous_value.
+        """
         plugin_method = getattr(plugin, method_name, NotImplemented)
         if plugin_method == NotImplemented:
             return previous_value
@@ -129,18 +130,17 @@ class ExtensionsManager:
         return self.__run_method_on_plugins("show_taxes_on_storefront", default_value)
 
     def taxes_are_enabled(self) -> bool:
-
         default_value = False
         return self.__run_method_on_plugins("taxes_are_enabled", default_value)
 
     def apply_taxes_to_product(
-        self, product: "Product", price: Money, country: Country, **kwargs
+        self, product: "Product", price: Money, country: Country
     ):
         default_value = quantize_price(
             TaxedMoney(net=price, gross=price), price.currency
         )
         return self.__run_method_on_plugins(
-            "apply_taxes_to_product", default_value, product, price, country, **kwargs
+            "apply_taxes_to_product", default_value, product, price, country
         )
 
     def apply_taxes_to_shipping(
@@ -194,12 +194,18 @@ class ExtensionsManager:
             "get_tax_code_from_object_meta", default_value, obj
         )
 
+    def get_tax_rate_percentage_value(
+        self, obj: Union["Product", "ProductType"], country: Country
+    ) -> Decimal:
+        default_value = Decimal("0").quantize(Decimal("1."))
+        return self.__run_method_on_plugins(
+            "get_tax_rate_percentage_value", default_value, obj, country
+        ).quantize(Decimal("1."))
+
 
 def get_extensions_manager(
     manager_path: str = settings.EXTENSIONS_MANAGER,
     plugins: List[str] = settings.PLUGINS,
 ) -> ExtensionsManager:
-    manager_path, _, manager_name = manager_path.rpartition(".")
-    manager_module = importlib.import_module(manager_path)
-    manager_class = getattr(manager_module, manager_name, None)
-    return manager_class(plugins)
+    manager = import_string(manager_path)
+    return manager(plugins)

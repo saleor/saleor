@@ -309,13 +309,13 @@ class Order(models.Model):
 
 class OrderLineQueryset(models.QuerySet):
     def digital(self):
-        """Returns lines with digital products"""
+        """Return lines with digital products."""
         for line in self.all():
             if line.is_digital:
                 yield line
 
     def physical(self):
-        """Returns lines with physical products"""
+        """Return lines with physical products."""
         for line in self.all():
             if not line.is_digital:
                 yield line
@@ -375,8 +375,7 @@ class OrderLine(models.Model):
 
     @property
     def is_digital(self) -> bool:
-        """Return true if product variant is a digital type and has assigned
-        digital content"""
+        """Check if a variant is digital and contains digital content."""
         is_digital = self.variant.is_digital()
         has_digital = hasattr(self.variant, "digital_content")
         return is_digital and has_digital
@@ -437,6 +436,7 @@ class OrderEvent(models.Model):
     Args:
         parameters: Values needed to display the event on the storefront
         type: Type of an order
+
     """
 
     date = models.DateTimeField(default=now, editable=False)

@@ -2,7 +2,7 @@ from typing import Dict
 
 
 def json_content_to_raw_text(content: Dict[str, dict], sep: str = "\n") -> str:
-    """Converts DraftJS JSON content to plain text."""
+    """Convert DraftJS JSON content to plain text."""
 
     if not isinstance(content, dict) or "blocks" not in content:
         return ""

@@ -110,6 +110,7 @@
     "@babel/runtime": "^7.5.4",
     "@storybook/addon-storyshots": "^5.1.9",
     "@storybook/react": "^5.1.9",
+    "@testing-library/react-hooks": "^1.1.0",
     "@types/draft-js": "^0.10.34",
     "@types/i18next": "^8.4.6",
     "@types/jest": "^23.3.14",

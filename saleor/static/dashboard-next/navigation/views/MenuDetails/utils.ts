@@ -47,7 +47,7 @@ export function getInitialDisplayValue(item: MenuDetails_menu_items): string {
   } else if (item.url) {
     return item.url;
   } else {
-    throw unknownTypeError;
+    return "";
   }
 }
 

@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.db import models, migrations
-import django.db.models.deletion
-from django.conf import settings
-import django_prices.models
 import django.core.validators
+import django.db.models.deletion
 import django.utils.timezone
+import django_prices.models
+from django.conf import settings
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):

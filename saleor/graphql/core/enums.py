@@ -1,8 +1,8 @@
 import graphene
 
 from ...core.permissions import MODELS_PERMISSIONS
-from ...core.taxes.vatlayer import TaxRateType as CoreTaxRateType
 from ...core.weight import WeightUnits
+from ...extensions.plugins.vatlayer import TaxRateType as CoreTaxRateType
 from .utils import str_to_enum
 
 # FIXME CoreTaxRateType should be removed after we will drop old api fields dedicated
@@ -15,8 +15,7 @@ class ReportingPeriod(graphene.Enum):
 
 
 def to_enum(enum_cls, *, type_name=None, **options) -> graphene.Enum:
-    """
-    Create a graphene enum from a class containing a set of options.
+    """Create a Graphene enum from a class containing a set of options.
 
     :param enum_cls:
         The class to build the enum from.
