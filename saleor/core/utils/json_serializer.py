@@ -26,8 +26,11 @@ class CustomJsonEncoder(DjangoJSONEncoder):
 
 
 class HTMLSafeJSON(SafeJSONEncoder, DjangoJSONEncoder):
-    """Escapes dangerous characters for integrating JSON into HTML content
-    and serializes Django objects."""
+    """Escape dangerous characters from JSON.
+
+    It is used for integrating JSON into HTML content in addition to
+    serializing Django objects.
+    """
 
 
 def object_hook(obj):
@@ -37,9 +40,11 @@ def object_hook(obj):
 
 
 def Deserializer(stream_or_string, **options):
-    """Deserialize a stream or string of JSON data. This is a slightly modified
-    copy of Django implementation with additional argument <object_hook> in
-    json.loads"""
+    """Deserialize a stream or string of JSON data.
+
+    This is a slightly modified copy of Django implementation with additional
+    argument <object_hook> in json.loads.
+    """
     if not isinstance(stream_or_string, (bytes, str)):
         stream_or_string = stream_or_string.read()
     if isinstance(stream_or_string, bytes):

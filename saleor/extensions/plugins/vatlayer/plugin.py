@@ -73,7 +73,7 @@ class VatlayerPlugin(BasePlugin):
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
-        """Calculate subtotal gross for checkout"""
+        """Calculate subtotal gross for checkout."""
         if self._skip_plugin(previous_value):
             return previous_value
 
@@ -90,8 +90,11 @@ class VatlayerPlugin(BasePlugin):
         return lines_total
 
     def _get_taxes_for_country(self, country: Country):
-        """Tries to fetch cached taxes on the plugin level. If the plugin doesn't have
-        cached taxes for a given country it will fetch it from cache or db"""
+        """Try to fetch cached taxes on the plugin level.
+
+        If the plugin doesn't have cached taxes for a given country it will fetch it
+        from cache or db.
+        """
         if not country:
             country = Country(settings.DEFAULT_COUNTRY)
         country_code = country.code
@@ -107,7 +110,7 @@ class VatlayerPlugin(BasePlugin):
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
-        """Calculate shipping gross for checkout"""
+        """Calculate shipping gross for checkout."""
         if self._skip_plugin(previous_value):
             return previous_value
 
@@ -268,8 +271,7 @@ class VatlayerPlugin(BasePlugin):
     def get_tax_rate_percentage_value(
         self, obj: Union["Product", "ProductType"], country: Country, previous_value
     ) -> Decimal:
-        """Return tax rate percentage value for given tax rate type in current
-        country."""
+        """Return tax rate percentage value for given tax rate type in the country."""
         if not self._enabled:
             return previous_value
         taxes = self._get_taxes_for_country(country)

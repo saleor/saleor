@@ -261,6 +261,7 @@ def get_user_checkout(
     user: User, checkout_queryset=Checkout.objects.all(), auto_create=False
 ) -> Tuple[Optional[Checkout], bool]:
     """Return an active checkout for given user or None if no auto create.
+
     If auto create is enabled, it will retrieve an active checkout or create it
     (safer for concurrency).
     """
@@ -364,7 +365,7 @@ def update_checkout_quantity(checkout):
 def check_variant_in_stock(
     checkout, variant, quantity=1, replace=False, check_quantity=True
 ) -> Tuple[int, Optional[CheckoutLine]]:
-    """Check if a given variant is in stock and return the new quantity + line"""
+    """Check if a given variant is in stock and return the new quantity + line."""
     line = checkout.lines.filter(variant=variant).first()
     line_quantity = 0 if line is None else line.quantity
 
@@ -414,7 +415,7 @@ def add_variant_to_checkout(
 
 
 def get_shipping_address_forms(checkout, user_addresses, data, country):
-    """Forms initialized with data depending on shipping address in checkout."""
+    """Retrieve a form initialized with data based on the checkout shipping address."""
     shipping_address = (
         checkout.shipping_address or checkout.user.default_shipping_address
     )
@@ -567,7 +568,7 @@ def update_billing_address_in_checkout_with_shipping(
 
 
 def get_anonymous_summary_without_shipping_forms(checkout, data, country):
-    """Forms initialized with data depending on addresses in checkout."""
+    """Build a form initialized with data depending on addresses in checkout."""
     billing_address = checkout.billing_address
 
     if billing_address:
@@ -607,7 +608,7 @@ def update_billing_address_in_anonymous_checkout(checkout, data, country):
 
 
 def get_summary_without_shipping_forms(checkout, user_addresses, data, country):
-    """Forms initialized with data depending on addresses in checkout."""
+    """Build a forms initialized with data depending on addresses in checkout."""
     billing_address = checkout.billing_address
 
     if billing_address and billing_address in user_addresses:
@@ -727,7 +728,7 @@ def change_shipping_address_in_checkout(checkout, address):
 
 
 def get_checkout_context(checkout, discounts, currency=None, shipping_range=None):
-    """Data shared between views in checkout process."""
+    """Retrieve the data shared between views in checkout process."""
     manager = get_extensions_manager()
     checkout_total = (
         manager.calculate_checkout_total(checkout=checkout, discounts=discounts)
@@ -796,8 +797,7 @@ def _get_shipping_voucher_discount_for_checkout(voucher, checkout, discounts=Non
 
 
 def _get_products_voucher_discount(checkout, voucher, discounts=None):
-    """Calculate products discount value for a voucher, depending on its type.
-    """
+    """Calculate products discount value for a voucher, depending on its type."""
     prices = None
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
         prices = get_prices_of_discounted_specific_product(checkout, voucher, discounts)
@@ -998,7 +998,7 @@ def is_valid_shipping_method(checkout, discounts):
 
 
 def get_shipping_price_estimate(checkout: Checkout, discounts, country_code):
-    """Returns estimated price range for shipping for given order."""
+    """Return the estimated price range for shipping for given order."""
 
     shipping_methods = get_valid_shipping_methods_for_checkout(
         checkout, discounts, country_code=country_code
@@ -1023,8 +1023,7 @@ def clear_shipping_method(checkout):
 
 
 def _get_voucher_data_for_order(checkout):
-    """
-    Fetch, process and return voucher/discount data from checkout.
+    """Fetch, process and return voucher/discount data from checkout.
 
     Careful! It should be called inside a transaction.
 
@@ -1105,8 +1104,9 @@ def validate_gift_cards(checkout: Checkout):
 
 
 def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine:
-    """
-    :raises InsufficientStock: when there is not enough items in stock for this variant
+    """Create a line for the given order.
+
+    :raises InsufficientStock: when there is not enough items in stock for this variant.
     """
 
     quantity = checkout_line.quantity
@@ -1139,8 +1139,7 @@ def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine
 
 
 def prepare_order_data(*, checkout: Checkout, tracking_code: str, discounts) -> dict:
-    """
-    Runs checks and returns all the data from a given checkout to create an order.
+    """Run checks and return all the data from a given checkout to create an order.
 
     :raises NotApplicable InsufficientStock:
     """
@@ -1246,7 +1245,9 @@ def create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
 
 def is_fully_paid(checkout: Checkout, discounts):
     """Check if provided payment methods cover the checkout's total amount.
-    Note that these payments may not be captured or charged at all."""
+
+    Note that these payments may not be captured or charged at all.
+    """
     payments = [payment for payment in checkout.payments.all() if payment.is_active]
     total_paid = sum([p.total for p in payments])
     manager = get_extensions_manager()

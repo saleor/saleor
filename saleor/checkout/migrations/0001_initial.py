@@ -3,10 +3,10 @@ from __future__ import unicode_literals
 
 import uuid
 
-from django.db import models, migrations
-from django.conf import settings
 import django.core.validators
 import django_prices.models
+from django.conf import settings
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):

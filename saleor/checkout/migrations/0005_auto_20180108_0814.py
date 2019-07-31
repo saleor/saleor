@@ -4,12 +4,12 @@ from __future__ import unicode_literals
 
 import uuid
 
-from django.conf import settings
 import django.core.validators
-from django.db import migrations, models
 import django.db.models.deletion
 import django_prices.models
+from django.conf import settings
 from django.contrib.postgres import fields
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):

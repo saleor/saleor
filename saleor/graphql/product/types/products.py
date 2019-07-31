@@ -45,6 +45,7 @@ from .digital_contents import DigitalContent
 
 def prefetch_products(info, *_args, **_kwargs):
     """Prefetch products visible to the current user.
+
     Can be used with models that have the `products` relationship. The queryset
     of products being prefetched is filtered based on permissions of the
     requesting user, to restrict access to unpublished products from non-staff
@@ -71,6 +72,7 @@ def prefetch_products_collection_sorted(info, *_args, **_kwargs):
 
 def resolve_attribute_list(attributes_hstore, attributes_qs):
     """Resolve attributes dict into a list of `SelectedAttribute`s.
+
     keys = list(attributes.keys())
     values = list(attributes.values())
 

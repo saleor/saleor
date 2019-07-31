@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 
 class ExtensionsManager:
-    """Base manager for handling a plugins logic"""
+    """Base manager for handling plugins logic."""
 
     plugins = None
 
@@ -30,8 +30,7 @@ class ExtensionsManager:
     def __run_method_on_plugins(
         self, method_name: str, default_value: Any, *args, **kwargs
     ):
-        """It takes all declared plugins and tries to run method with the given name on
-        each plugin"""
+        """Try to run a method with the given name on each declared plugin."""
         value = default_value
         for plugin in self.plugins:
             value = self.__run_method_on_single_plugin(
@@ -47,9 +46,12 @@ class ExtensionsManager:
         *args,
         **kwargs,
     ) -> Any:
-        """Run method_name on plugin. Method will return value returned from plugin's
+        """Run method_name on plugin.
+
+        Method will return value returned from plugin's
         method. If plugin doesn't have own implementation of expected method_name, it
-        will return previous_value."""
+        will return previous_value.
+        """
         plugin_method = getattr(plugin, method_name, NotImplemented)
         if plugin_method == NotImplemented:
             return previous_value
