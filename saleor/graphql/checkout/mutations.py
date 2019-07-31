@@ -162,7 +162,14 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         cls, lines
     ) -> Tuple[List[product_models.ProductVariant], List[int]]:
         variant_ids = [line.get("variant_id") for line in lines]
-        variants = cls.get_nodes_or_error(variant_ids, "variant_id", ProductVariant)
+        variants = cls.get_nodes_or_error(
+            variant_ids,
+            "variant_id",
+            ProductVariant,
+            qs=product_models.ProductVariant.objects.prefetch_related(
+                "product__product_type"
+            ),
+        )
         quantities = [line.get("quantity") for line in lines]
 
         check_lines_quantity(variants, quantities)
@@ -208,27 +215,35 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return cleaned_input
 
     @classmethod
-    def save_addresses(cls, instance: models.Checkout, cleaned_input):
+    def save_addresses(
+        cls,
+        instance: models.Checkout,
+        cleaned_input: dict,
+        variants: List[product_models.ProductVariant],
+    ):
         shipping_address = cleaned_input.get("shipping_address")
         billing_address = cleaned_input.get("billing_address")
 
-        if instance.is_shipping_required() and shipping_address:
+        if shipping_address and any(
+            variant.is_shipping_required() for variant in variants
+        ):
             shipping_address.save()
             instance.shipping_address = shipping_address.get_copy()
         if billing_address:
             billing_address.save()
             instance.billing_address = billing_address.get_copy()
 
-        instance.save(update_fields=["shipping_address", "billing_address"])
-
     @classmethod
     @transaction.atomic()
     def save(cls, info, instance: models.Checkout, cleaned_input):
-        # Create the instance to create relations to the checkout object
-        instance.save()
-
         variants = cleaned_input.get("variants")
         quantities = cleaned_input.get("quantities")
+
+        # Save provided addresses and associate them to the checkout
+        cls.save_addresses(instance, cleaned_input, variants)
+
+        # Create the checkout object
+        instance.save()
 
         # Update/create checkout lines
         if variants and quantities:
@@ -237,8 +252,6 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                     add_variant_to_checkout(instance, variant, quantity)
                 except InsufficientStock as exc:
                     raise ValidationError(f"Insufficient product stock: {exc.item}")
-
-        cls.save_addresses(instance, cleaned_input)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
