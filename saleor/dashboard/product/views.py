@@ -152,7 +152,10 @@ def product_create(request, type_pk):
 @staff_member_required
 @permission_required("product.manage_products")
 def product_edit(request, pk):
-    product = get_object_or_404(Product.objects.prefetch_related("variants"), pk=pk)
+    product = get_object_or_404(
+        Product.objects.prefetch_related("variants", "product_type__attributeproduct"),
+        pk=pk,
+    )
     form = forms.ProductForm(request.POST or None, instance=product)
     edit_variant = not product.product_type.has_variants
     if edit_variant:

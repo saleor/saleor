@@ -1508,7 +1508,7 @@ def test_sort_attributes_within_product_type(
     m2m_attributes = getattr(product_type, relation_field)
     m2m_attributes.set(attributes)
 
-    sort_method = getattr(m2m_attributes, f"{relation_field}_sorted_for_dashboard")
+    sort_method = getattr(m2m_attributes, f"{relation_field}_sorted")
     attributes = list(sort_method())
 
     assert len(attributes) == 3
