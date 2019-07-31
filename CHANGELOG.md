@@ -35,6 +35,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Display menu item form errors - #4551 by @dominik-zeglen
 - Add voucher settings - #4556 by @benekex2
 - Enforced pydocstyle for Python docstrings over the project - #4562 by @NyanKiyoshi
+- The checkout process of digital orders no longer require shipping information over the API - #4573 by @NyanKiyoshi
 
 ## 2.8.0
 
