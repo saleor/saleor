@@ -113,8 +113,12 @@ class ProductTypeForm(forms.ModelForm):
         variant_attrs_qs = product_attrs_qs = Attribute.objects.all()
 
         if self.instance.pk:
-            product_attrs_initial = self.instance.product_attributes.all()
-            variant_attrs_initial = self.instance.variant_attributes.all()
+            product_attrs_initial = (
+                self.instance.product_attributes.all().product_attributes_sorted()
+            )
+            variant_attrs_initial = (
+                self.instance.variant_attributes.all().variant_attributes_sorted()
+            )
         else:
             product_attrs_initial = []
             variant_attrs_initial = []
@@ -275,7 +279,7 @@ class ProductForm(forms.ModelForm, AttributesMixin):
         )
         self.available_attributes = product_type.product_attributes.prefetch_related(
             "values"
-        ).all()
+        ).product_attributes_sorted()
         self.prepare_fields_for_attributes()
         self.fields["collections"].initial = Collection.objects.filter(
             products__name=self.instance
@@ -371,8 +375,10 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
             self.fields["price_override"].widget.attrs[
                 "placeholder"
             ] = self.instance.product.price.amount
-            qs = self.instance.product.product_type.variant_attributes.all()
-            self.available_attributes = qs.prefetch_related("values")
+            qs = self.instance.product.product_type.variant_attributes
+            self.available_attributes = qs.prefetch_related(
+                "values"
+            ).variant_attributes_sorted()
             self.prepare_fields_for_attributes()
 
         if include_taxes_in_prices():

@@ -60,14 +60,14 @@
                   </td>
                   <td>
                     {% if product_attributes %}
-                      {{ product_attributes|join:", " }}
+                      {{ product_attributes.product_attributes_sorted|join:", " }}
                     {% else %}
                       -
                     {% endif %}
                   </td>
                   <td>
                     {% if variant_attributes %}
-                      {{ variant_attributes|join:", " }}
+                      {{ variant_attributes.variant_attributes_sorted|join:", " }}
                     {% else %}
                       -
                     {% endif %}

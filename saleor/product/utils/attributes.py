@@ -9,7 +9,8 @@ def get_product_attributes_data(product):
     """
     attributes = product.product_type.product_attributes.exclude(
         visible_in_storefront=False
-    )
+    ).product_attributes_sorted()
+
     attributes_map = {attribute.pk: attribute.translated for attribute in attributes}
     values_map = get_attributes_display_map(product, attributes)
     product_attributes = {}

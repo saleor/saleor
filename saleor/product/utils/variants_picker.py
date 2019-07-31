@@ -44,7 +44,9 @@ def get_variant_picker_data(
     variants = product.variants.all()
     data = {"variantAttributes": [], "variants": []}
 
-    variant_attributes = product.product_type.variant_attributes.all()
+    variant_attributes = (
+        product.product_type.variant_attributes.all().variant_attributes_sorted()
+    )
 
     # Collect only available variants
     filter_available_variants = defaultdict(list)
