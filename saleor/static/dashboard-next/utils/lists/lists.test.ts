@@ -1,4 +1,13 @@
-import { add, addAtIndex, isSelected, move, remove, toggle } from "./lists";
+import {
+  add,
+  addAtIndex,
+  isSelected,
+  move,
+  remove,
+  removeAtIndex,
+  toggle,
+  updateAtIndex
+} from "./lists";
 
 const initialArray = ["lorem", "ipsum", "dolor"];
 
@@ -11,8 +20,16 @@ describe("Properly calculates output arrays", () => {
     expect(addAtIndex("sit", initialArray, 2)).toMatchSnapshot();
   });
 
+  it("Updates at index", () => {
+    expect(updateAtIndex("amet", initialArray, 1)).toMatchSnapshot();
+  });
+
   it("Removes", () => {
     expect(remove("ipsum", initialArray, (a, b) => a === b)).toMatchSnapshot();
+  });
+
+  it("Removes at index", () => {
+    expect(removeAtIndex(initialArray, 1)).toMatchSnapshot();
   });
 
   it("Matches", () => {

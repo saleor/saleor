@@ -30,12 +30,24 @@ export function move<TData>(
   return addAtIndex(data, remove(data, list, compare), index);
 }
 
+export function updateAtIndex<TData>(
+  data: TData,
+  list: List<TData>,
+  index: number
+) {
+  return addAtIndex(data, removeAtIndex(list, index), index);
+}
+
 export function remove<TData>(
   data: TData,
   list: List<TData>,
   compare: Compare<TData>
 ) {
   return list.filter(listElement => !compare(listElement, data));
+}
+
+export function removeAtIndex<TData>(list: List<TData>, index: number) {
+  return [...list.slice(0, index), ...list.slice(index + 1)];
 }
 
 export function toggle<TData>(

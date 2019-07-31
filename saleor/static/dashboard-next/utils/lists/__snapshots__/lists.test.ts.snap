@@ -33,6 +33,13 @@ Array [
 ]
 `;
 
+exports[`Properly calculates output arrays Removes at index 1`] = `
+Array [
+  "lorem",
+  "dolor",
+]
+`;
+
 exports[`Properly calculates output arrays Toggles 1`] = `
 Array [
   "ipsum",
@@ -46,5 +53,13 @@ Array [
   "ipsum",
   "dolor",
   "sit",
+]
+`;
+
+exports[`Properly calculates output arrays Updates at index 1`] = `
+Array [
+  "lorem",
+  "amet",
+  "dolor",
 ]
 `;
