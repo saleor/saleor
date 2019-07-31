@@ -96,7 +96,7 @@ const Checkbox = withStyles(styles, { name: "Checkbox" })(
         centerRipple
         className={classNames(classes.root, className)}
         disabled={disabled}
-        onClick={stopPropagation(() => inputRef.current.click())}
+        onClick={() => inputRef.current.click()}
       >
         <input
           className={classNames(classes.box, {
