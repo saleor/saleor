@@ -71,7 +71,7 @@ def handle_checkout_form(request, product, create_checkout=False):
         data=request.POST or None,
         discounts=request.discounts,
         country=request.country,
-        taxes=request.taxes,
+        extensions=request.extensions,
     )
     return form, checkout
 
@@ -121,7 +121,8 @@ def increase_stock(variant, quantity, allocate=False):
 
 
 def get_product_list_context(request, filter_set):
-    """
+    """Build a context from the given filter set.
+
     :param request: request object
     :param filter_set: filter set for product list
     :return: context dictionary
@@ -141,7 +142,7 @@ def get_product_list_context(request, filter_set):
             request.discounts,
             request.country,
             request.currency,
-            request.taxes,
+            request.extensions,
         )
     )
     now_sorted_by = get_now_sorted_by(filter_set)

@@ -95,10 +95,11 @@ def get_nodes(ids, graphene_type=None):
 def filter_by_query_param(queryset, query, search_fields):
     """Filter queryset according to given parameters.
 
-    Keyword arguments:
-    queryset - queryset to be filtered
-    query - search string
-    search_fields - fields considered in filtering
+    Keyword Arguments:
+        queryset - queryset to be filtered
+        query - search string
+        search_fields - fields considered in filtering
+
     """
     if query:
         query_by = {
@@ -138,8 +139,9 @@ def generate_query_argument_description(search_fields):
 def format_permissions_for_display(permissions):
     """Transform permissions queryset into PermissionDisplay list.
 
-    Keyword arguments:
-    permissions - queryset with permissions
+    Keyword Arguments:
+        permissions - queryset with permissions
+
     """
     formatted_permissions = []
     for permission in permissions:

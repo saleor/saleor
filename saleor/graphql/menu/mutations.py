@@ -3,9 +3,13 @@ from typing import List
 
 import graphene
 from django.core.exceptions import ValidationError
+from django.db.models import Model
 from graphql_relay import from_global_id
 
 from ...menu import models
+from ...menu.utils import update_menu
+from ...page import models as page_models
+from ...product import models as product_models
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..page.types import Page
 from ..product.types import Category, Collection
@@ -26,6 +30,7 @@ class MenuItemInput(graphene.InputObjectType):
 
 
 class MenuItemCreateInput(MenuItemInput):
+    name = graphene.String(description="Name of the menu item.", required=True)
     menu = graphene.ID(
         description="Menu to which item belongs to.", name="menu", required=True
     )
@@ -41,7 +46,8 @@ class MenuInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the menu.")
 
 
-class MenuCreateInput(MenuInput):
+class MenuCreateInput(graphene.InputObjectType):
+    name = graphene.String(description="Name of the menu.", required=True)
     items = graphene.List(MenuItemInput, description="List of menu items.")
 
 
@@ -119,6 +125,20 @@ class MenuDelete(ModelDeleteMutation):
         permissions = ("menu.manage_menus",)
 
 
+def _validate_menu_item_instance(
+    cleaned_input: dict, field: str, expected_model: Model
+):
+    """Check if the value to assign as a menu item matches the expected model."""
+    item = cleaned_input.get(field)
+    if item is not None:
+        if not isinstance(item, expected_model):
+            msg = (
+                f"Enter a valid {expected_model._meta.verbose_name} ID "
+                f"(got {item._meta.verbose_name} ID)."
+            )
+            raise ValidationError({field: msg})
+
+
 class MenuItemCreate(ModelMutation):
     class Arguments:
         input = MenuItemCreateInput(
@@ -129,13 +149,20 @@ class MenuItemCreate(ModelMutation):
         )
 
     class Meta:
-        description = "Creates a new Menu"
+        description = "Creates a new menu item."
         model = models.MenuItem
         permissions = ("menu.manage_menus",)
 
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
+
+        _validate_menu_item_instance(cleaned_input, "page", page_models.Page)
+        _validate_menu_item_instance(
+            cleaned_input, "collection", product_models.Collection
+        )
+        _validate_menu_item_instance(cleaned_input, "category", product_models.Category)
+
         items = [
             cleaned_input.get("page"),
             cleaned_input.get("collection"),
@@ -144,8 +171,13 @@ class MenuItemCreate(ModelMutation):
         ]
         items = [item for item in items if item is not None]
         if len(items) > 1:
-            raise ValidationError({"items": "More than one item provided."})
+            raise ValidationError("More than one item provided.")
         return cleaned_input
+
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        instance.save()
+        update_menu(instance.menu)
 
 
 class MenuItemUpdate(MenuItemCreate):
@@ -181,6 +213,12 @@ class MenuItemDelete(ModelDeleteMutation):
         description = "Deletes a menu item."
         model = models.MenuItem
         permissions = ("menu.manage_menus",)
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        response = super().perform_mutation(_root, info, **data)
+        update_menu(response.menuItem.menu)
+        return response
 
 
 _MenuMoveOperation = namedtuple(
@@ -281,7 +319,9 @@ class MenuItemMove(BaseMutation):
         for operation in operations:
             cls.perform_operation(operation)
 
-        return cls(menu=models.Menu.objects.get(pk=menu_id))
+        menu = models.Menu.objects.get(pk=menu_id)
+        update_menu(menu)
+        return cls(menu=menu)
 
 
 class AssignNavigation(BaseMutation):

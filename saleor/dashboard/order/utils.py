@@ -118,8 +118,7 @@ def get_prices_of_products_in_discounted_categories(order, discounted_categories
 
 
 def get_products_voucher_discount_for_order(order, voucher):
-    """Calculate products discount value for a voucher, depending on its type.
-    """
+    """Calculate products discount value for a voucher, depending on its type."""
     prices = None
     if voucher.type == VoucherType.PRODUCT:
         prices = get_prices_of_discounted_products(order, voucher.products.all())

@@ -31,6 +31,7 @@ export interface VoucherList_vouchers_edges_node {
   discountValue: number;
   countries: (VoucherList_vouchers_edges_node_countries | null)[] | null;
   minAmountSpent: VoucherList_vouchers_edges_node_minAmountSpent | null;
+  minCheckoutItemsQuantity: number | null;
 }
 
 export interface VoucherList_vouchers_edges {

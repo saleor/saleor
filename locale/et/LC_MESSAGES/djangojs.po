@@ -12,7 +12,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-17 04:57-0500\n"
+"POT-Creation-Date: 2019-07-22 05:53-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
 "Last-Translator: Henri Tamvere <henri.tamvere@magmatech.ee>, 2019\n"
 "Language-Team: Estonian (https://www.transifex.com/mirumee/teams/34782/et/)\n"
@@ -21,14 +21,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: et\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-
-#: build/static/vendors~preview.3e127659ad09b01744f8.bundle.js:75
-msgid "Missing source"
-msgstr "Allikas puudub"
-
-#: build/static/vendors~preview.3e127659ad09b01744f8.bundle.js:136
-msgid "\n"
-msgstr "\n"
 
 #: saleor/static/dashboard/js/components/bulk-actions.js:89
 msgid "item selected"
@@ -325,6 +317,45 @@ msgstr "Tsitaat"
 msgctxt "Rich text editor option"
 msgid "Link"
 msgstr "Link"
+
+#: saleor/static/dashboard/js/components/editor.js:61
+msgctxt "Rich text editor option"
+msgid "Image (converts selected text to an image tag)"
+msgstr "Pilt (muudab valitud teksti pildi märksõnaks)"
+
+#: saleor/static/dashboard/js/components/editor.js:66
+msgctxt "Rich text editor option"
+msgid "Left align"
+msgstr "Joonda vasakule"
+
+#: saleor/static/dashboard/js/components/editor.js:71
+msgctxt "Rich text editor option"
+msgid "Center align"
+msgstr "Joonda keskele"
+
+#: saleor/static/dashboard/js/components/editor.js:76
+msgctxt "Rich text editor option"
+msgid "Right align"
+msgstr "Joonda paremale"
+
+#: saleor/static/dashboard/js/components/editor.js:81
+msgctxt "Rich text editor option"
+msgid "Justify"
+msgstr "Rööpjoondus"
+
+#: saleor/static/dashboard/js/components/editor.js:86
+msgctxt "Rich text editor option"
+msgid "Remove formatting"
+msgstr "Eemalda vormindamine"
+
+#: saleor/static/dashboard/js/components/google-preview.js:46
+msgid ""
+"Your input might be a little too short, think of something more descriptive"
+msgstr "Sinu sisend on liiga lühike, mõtle midagi rohkem iseloomulikku"
+
+#: saleor/static/dashboard/js/components/google-preview.js:50
+msgid "Your input fits between the recommended lengths"
+msgstr "Sinu sisend sobib soovitatud pikkusevahemikuga"
 
 #: saleor/static/js/components/variantPicker/QuantityInput.js:22
 msgctxt "Add to cart form field label"

@@ -17,21 +17,7 @@ from ..account.forms import get_address_form
 from ..account.models import Address, User
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
-from ..core.taxes import (
-    interface as tax_interface,
-    quantize_price,
-    zero_money,
-    zero_taxed_money,
-)
-from ..core.taxes.interface import (
-    calculate_checkout_line_total,
-    calculate_checkout_shipping,
-    calculate_checkout_subtotal,
-    calculate_checkout_total,
-    postprocess_order_creation,
-    preprocess_order_creation,
-    taxes_are_enabled,
-)
+from ..core.taxes import quantize_price, zero_money, zero_taxed_money
 from ..core.utils import to_local_currency
 from ..core.utils.promo_code import (
     InvalidPromoCode,
@@ -48,6 +34,7 @@ from ..discount.utils import (
     remove_voucher_usage_by_customer,
     validate_voucher_for_checkout,
 )
+from ..extensions.manager import get_extensions_manager
 from ..giftcard.utils import (
     add_gift_card_code_to_checkout,
     remove_gift_card_code_from_checkout,
@@ -137,8 +124,9 @@ def get_prices_of_discounted_specific_product(lines, voucher, discounts=None):
         # it means that all products are discounted
         discounted_lines.extend(list(lines))
 
+    manager = get_extensions_manager()
     for line in discounted_lines:
-        line_total = calculate_checkout_line_total(line, discounts or []).gross
+        line_total = manager.calculate_checkout_line_total(line, discounts or []).gross
         line_unit_price = quantize_price(
             (line_total / line.quantity), line_total.currency
         )
@@ -153,9 +141,12 @@ def get_prices_of_discounted_products(checkout, discounted_products, discounts=N
     # it means that all products are discounted
     line_prices = []
     if discounted_products:
+        manager = get_extensions_manager()
         for line in checkout:
             if line.variant.product in discounted_products:
-                line_total = calculate_checkout_line_total(line, discounts or []).gross
+                line_total = manager.calculate_checkout_line_total(
+                    line, discounts or []
+                ).gross
                 line_unit_price = quantize_price(
                     (line_total / line.quantity), line_total.currency
                 )
@@ -171,12 +162,15 @@ def get_prices_of_products_in_discounted_collections(
     # it means that all of them are discounted
     line_prices = []
     if discounted_collections:
+        manager = get_extensions_manager()
         for line in checkout:
             if not line.variant:
                 continue
             product_collections = line.variant.product.collections.all()
             if set(product_collections).intersection(discounted_collections):
-                line_total = calculate_checkout_line_total(line, discounts or []).gross
+                line_total = manager.calculate_checkout_line_total(
+                    line, discounts or []
+                ).gross
                 line_unit_price = quantize_price(
                     (line_total / line.quantity), line_total.currency
                 )
@@ -200,9 +194,12 @@ def get_prices_of_products_in_discounted_categories(
         for line in checkout:
             if not line.variant:
                 continue
+            manager = get_extensions_manager()
             product_category = line.variant.product.category
             if product_category in discounted_categories:
-                line_total = calculate_checkout_line_total(line, discounts or []).gross
+                line_total = manager.calculate_checkout_line_total(
+                    line, discounts or []
+                ).gross
                 line_unit_price = quantize_price(
                     (line_total / line.quantity), line_total.currency
                 )
@@ -264,6 +261,7 @@ def get_user_checkout(
     user: User, checkout_queryset=Checkout.objects.all(), auto_create=False
 ) -> Tuple[Optional[Checkout], bool]:
     """Return an active checkout for given user or None if no auto create.
+
     If auto create is enabled, it will retrieve an active checkout or create it
     (safer for concurrency).
     """
@@ -367,7 +365,7 @@ def update_checkout_quantity(checkout):
 def check_variant_in_stock(
     checkout, variant, quantity=1, replace=False, check_quantity=True
 ) -> Tuple[int, Optional[CheckoutLine]]:
-    """Check if a given variant is in stock and return the new quantity + line"""
+    """Check if a given variant is in stock and return the new quantity + line."""
     line = checkout.lines.filter(variant=variant).first()
     line_quantity = 0 if line is None else line.quantity
 
@@ -417,7 +415,7 @@ def add_variant_to_checkout(
 
 
 def get_shipping_address_forms(checkout, user_addresses, data, country):
-    """Forms initialized with data depending on shipping address in checkout."""
+    """Retrieve a form initialized with data based on the checkout shipping address."""
     shipping_address = (
         checkout.shipping_address or checkout.user.default_shipping_address
     )
@@ -570,7 +568,7 @@ def update_billing_address_in_checkout_with_shipping(
 
 
 def get_anonymous_summary_without_shipping_forms(checkout, data, country):
-    """Forms initialized with data depending on addresses in checkout."""
+    """Build a form initialized with data depending on addresses in checkout."""
     billing_address = checkout.billing_address
 
     if billing_address:
@@ -610,7 +608,7 @@ def update_billing_address_in_anonymous_checkout(checkout, data, country):
 
 
 def get_summary_without_shipping_forms(checkout, user_addresses, data, country):
-    """Forms initialized with data depending on addresses in checkout."""
+    """Build a forms initialized with data depending on addresses in checkout."""
     billing_address = checkout.billing_address
 
     if billing_address and billing_address in user_addresses:
@@ -730,14 +728,15 @@ def change_shipping_address_in_checkout(checkout, address):
 
 
 def get_checkout_context(checkout, discounts, currency=None, shipping_range=None):
-    """Data shared between views in checkout process."""
+    """Retrieve the data shared between views in checkout process."""
+    manager = get_extensions_manager()
     checkout_total = (
-        calculate_checkout_total(checkout=checkout, discounts=discounts)
+        manager.calculate_checkout_total(checkout=checkout, discounts=discounts)
         - checkout.get_total_gift_cards_balance()
     )
     checkout_total = max(checkout_total, zero_taxed_money(checkout_total.currency))
-    checkout_subtotal = calculate_checkout_subtotal(checkout, discounts)
-    shipping_price = calculate_checkout_shipping(checkout, discounts)
+    checkout_subtotal = manager.calculate_checkout_subtotal(checkout, discounts)
+    shipping_price = manager.calculate_checkout_shipping(checkout, discounts)
 
     shipping_required = checkout.is_shipping_required()
     total_with_shipping = TaxedMoneyRange(
@@ -748,9 +747,10 @@ def get_checkout_context(checkout, discounts, currency=None, shipping_range=None
 
     context = {
         "checkout": checkout,
-        "checkout_are_taxes_handled": taxes_are_enabled(),
+        "checkout_are_taxes_handled": manager.taxes_are_enabled(),
         "checkout_lines": [
-            (line, calculate_checkout_line_total(line, discounts)) for line in checkout
+            (line, manager.calculate_checkout_line_total(line, discounts))
+            for line in checkout
         ],
         "checkout_shipping_price": shipping_price,
         "checkout_subtotal": checkout_subtotal,
@@ -791,13 +791,13 @@ def _get_shipping_voucher_discount_for_checkout(voucher, checkout, discounts=Non
         )
         raise NotApplicable(msg)
 
-    shipping_price = calculate_checkout_shipping(checkout, discounts).gross
+    manager = get_extensions_manager()
+    shipping_price = manager.calculate_checkout_shipping(checkout, discounts).gross
     return voucher.get_discount_amount_for(shipping_price)
 
 
 def _get_products_voucher_discount(checkout, voucher, discounts=None):
-    """Calculate products discount value for a voucher, depending on its type.
-    """
+    """Calculate products discount value for a voucher, depending on its type."""
     prices = None
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
         prices = get_prices_of_discounted_specific_product(checkout, voucher, discounts)
@@ -828,7 +828,8 @@ def get_voucher_discount_for_checkout(voucher, checkout, discounts=None):
     """
     validate_voucher_for_checkout(voucher, checkout, discounts)
     if voucher.type == VoucherType.ENTIRE_ORDER:
-        subtotal = calculate_checkout_subtotal(checkout, discounts).gross
+        manager = get_extensions_manager()
+        subtotal = manager.calculate_checkout_subtotal(checkout, discounts).gross
         return voucher.get_discount_amount_for(subtotal)
     if voucher.type == VoucherType.SHIPPING:
         return _get_shipping_voucher_discount_for_checkout(voucher, checkout, discounts)
@@ -870,7 +871,8 @@ def recalculate_checkout_discount(checkout, discounts):
         except NotApplicable:
             remove_voucher_from_checkout(checkout)
         else:
-            subtotal = calculate_checkout_subtotal(checkout, discounts).gross
+            manager = get_extensions_manager()
+            subtotal = manager.calculate_checkout_subtotal(checkout, discounts).gross
             checkout.discount_amount = min(discount, subtotal)
             checkout.discount_name = str(voucher)
             checkout.translated_discount_name = (
@@ -975,9 +977,10 @@ def remove_voucher_from_checkout(checkout: Checkout):
 def get_valid_shipping_methods_for_checkout(
     checkout: Checkout, discounts, country_code=None
 ):
+    manager = get_extensions_manager()
     return ShippingMethod.objects.applicable_shipping_methods_for_instance(
         checkout,
-        price=calculate_checkout_subtotal(checkout, discounts).gross,
+        price=manager.calculate_checkout_subtotal(checkout, discounts).gross,
         country_code=country_code,
     )
 
@@ -995,7 +998,7 @@ def is_valid_shipping_method(checkout, discounts):
 
 
 def get_shipping_price_estimate(checkout: Checkout, discounts, country_code):
-    """Returns estimated price range for shipping for given order."""
+    """Return the estimated price range for shipping for given order."""
 
     shipping_methods = get_valid_shipping_methods_for_checkout(
         checkout, discounts, country_code=country_code
@@ -1009,8 +1012,9 @@ def get_shipping_price_estimate(checkout: Checkout, discounts, country_code):
     if not shipping_methods:
         return None
 
+    manager = get_extensions_manager()
     prices = MoneyRange(start=min(shipping_methods), stop=max(shipping_methods))
-    return tax_interface.apply_taxes_to_shipping_price_range(prices, country_code)
+    return manager.apply_taxes_to_shipping_price_range(prices, country_code)
 
 
 def clear_shipping_method(checkout):
@@ -1019,8 +1023,7 @@ def clear_shipping_method(checkout):
 
 
 def _get_voucher_data_for_order(checkout):
-    """
-    Fetch, process and return voucher/discount data from checkout.
+    """Fetch, process and return voucher/discount data from checkout.
 
     Careful! It should be called inside a transaction.
 
@@ -1101,8 +1104,9 @@ def validate_gift_cards(checkout: Checkout):
 
 
 def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine:
-    """
-    :raises InsufficientStock: when there is not enough items in stock for this variant
+    """Create a line for the given order.
+
+    :raises InsufficientStock: when there is not enough items in stock for this variant.
     """
 
     quantity = checkout_line.quantity
@@ -1115,7 +1119,8 @@ def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine
     if translated_product_name == product_name:
         translated_product_name = ""
 
-    total_line_price = calculate_checkout_line_total(checkout_line, discounts)
+    manager = get_extensions_manager()
+    total_line_price = manager.calculate_checkout_line_total(checkout_line, discounts)
     unit_price = quantize_price(
         total_line_price / checkout_line.quantity, total_line_price.currency
     )
@@ -1134,20 +1139,20 @@ def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine
 
 
 def prepare_order_data(*, checkout: Checkout, tracking_code: str, discounts) -> dict:
-    """
-    Runs checks and returns all the data from a given checkout to create an order.
+    """Run checks and return all the data from a given checkout to create an order.
 
     :raises NotApplicable InsufficientStock:
     """
     order_data = {}
 
+    manager = get_extensions_manager()
     total = (
-        calculate_checkout_total(checkout=checkout, discounts=discounts)
+        manager.calculate_checkout_total(checkout=checkout, discounts=discounts)
         - checkout.get_total_gift_cards_balance()
     )
     total = max(total, zero_taxed_money(total.currency))
 
-    shipping_total = calculate_checkout_shipping(checkout, discounts)
+    shipping_total = manager.calculate_checkout_shipping(checkout, discounts)
     order_data.update(_process_shipping_data_for_order(checkout, shipping_total))
     order_data.update(_process_user_data_for_order(checkout))
     order_data.update(
@@ -1171,12 +1176,12 @@ def prepare_order_data(*, checkout: Checkout, tracking_code: str, discounts) -> 
 
     # assign gift cards to the order
     order_data["total_price_left"] = (
-        calculate_checkout_subtotal(checkout, discounts)
+        manager.calculate_checkout_subtotal(checkout, discounts)
         + shipping_total
         - checkout.discount_amount
     ).gross
 
-    preprocess_order_creation(checkout, discounts)
+    manager.preprocess_order_creation(checkout, discounts)
     return order_data
 
 
@@ -1227,7 +1232,8 @@ def create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
     # assign checkout payments to the order
     checkout.payments.update(order=order)
 
-    postprocess_order_creation(order)
+    manager = get_extensions_manager()
+    manager.postprocess_order_creation(order)
 
     # Create the order placed
     events.order_created_event(order=order, user=user)
@@ -1239,11 +1245,14 @@ def create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
 
 def is_fully_paid(checkout: Checkout, discounts):
     """Check if provided payment methods cover the checkout's total amount.
-    Note that these payments may not be captured or charged at all."""
+
+    Note that these payments may not be captured or charged at all.
+    """
     payments = [payment for payment in checkout.payments.all() if payment.is_active]
     total_paid = sum([p.total for p in payments])
+    manager = get_extensions_manager()
     checkout_total = (
-        calculate_checkout_total(checkout=checkout, discounts=discounts)
+        manager.calculate_checkout_total(checkout=checkout, discounts=discounts)
         - checkout.get_total_gift_cards_balance()
     )
     checkout_total = max(

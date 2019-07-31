@@ -1,6 +1,6 @@
 import pytest
 
-from saleor.core.extensions.checks import check_extensions
+from saleor.extensions.checks import check_extensions
 
 
 @pytest.mark.parametrize(

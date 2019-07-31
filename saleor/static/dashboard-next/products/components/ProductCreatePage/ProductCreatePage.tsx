@@ -1,4 +1,4 @@
-import { RawDraftContentState } from "draft-js";
+import { ContentState, convertToRaw, RawDraftContentState } from "draft-js";
 import React from "react";
 
 import AppHeader from "@saleor/components/AppHeader";
@@ -95,6 +95,8 @@ export const ProductCreatePage: React.StatelessComponent<
   onBack,
   onSubmit
 }: ProductCreatePageProps) => {
+  const initialDescription = convertToRaw(ContentState.createFromText(""));
+
   const initialData: FormData = {
     attributes: [],
     basePrice: 0,
@@ -143,6 +145,7 @@ export const ProductCreatePage: React.StatelessComponent<
                   data={data}
                   disabled={disabled}
                   errors={errors}
+                  initialDescription={initialDescription}
                   onChange={change}
                 />
                 <CardSpacer />

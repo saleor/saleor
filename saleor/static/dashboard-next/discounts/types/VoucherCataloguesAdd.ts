@@ -141,9 +141,11 @@ export interface VoucherCataloguesAdd_voucherCataloguesAdd_voucher {
   discountValue: number;
   countries: (VoucherCataloguesAdd_voucherCataloguesAdd_voucher_countries | null)[] | null;
   minAmountSpent: VoucherCataloguesAdd_voucherCataloguesAdd_voucher_minAmountSpent | null;
+  minCheckoutItemsQuantity: number | null;
   type: VoucherTypeEnum;
   used: number;
   applyOncePerOrder: boolean;
+  applyOncePerCustomer: boolean;
   products: VoucherCataloguesAdd_voucherCataloguesAdd_voucher_products | null;
   collections: VoucherCataloguesAdd_voucherCataloguesAdd_voucher_collections | null;
   categories: VoucherCataloguesAdd_voucherCataloguesAdd_voucher_categories | null;

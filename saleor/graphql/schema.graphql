@@ -1485,7 +1485,7 @@ type MenuCreate {
 }
 
 input MenuCreateInput {
-  name: String
+  name: String!
   items: [MenuItemInput]
 }
 
@@ -1535,7 +1535,7 @@ type MenuItemCreate {
 }
 
 input MenuItemCreateInput {
-  name: String
+  name: String!
   url: String
   category: ID
   collection: ID
@@ -2327,6 +2327,7 @@ type Product implements Node {
   collections: [Collection]
   availableOn: Date @deprecated(reason: "availableOn is deprecated, use publicationDate instead")
   translation(languageCode: LanguageCodeEnum!): ProductTranslation
+  slug: String!
 }
 
 type ProductBulkDelete {
