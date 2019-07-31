@@ -215,43 +215,45 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return cleaned_input
 
     @classmethod
-    def save_addresses(
-        cls,
-        instance: models.Checkout,
-        cleaned_input: dict,
-        variants: List[product_models.ProductVariant],
-    ):
+    def save_addresses(cls, instance: models.Checkout, cleaned_input: dict):
         shipping_address = cleaned_input.get("shipping_address")
         billing_address = cleaned_input.get("billing_address")
 
-        if shipping_address and any(
-            variant.is_shipping_required() for variant in variants
-        ):
+        updated_fields = []
+
+        if shipping_address and instance.is_shipping_required():
             shipping_address.save()
             instance.shipping_address = shipping_address.get_copy()
+            updated_fields.append("shipping_address")
         if billing_address:
             billing_address.save()
             instance.billing_address = billing_address.get_copy()
+            updated_fields.append("billing_address")
+
+        # Save the updated fields
+        # Note django will simply return if the list is empty
+        instance.save(update_fields=updated_fields)
 
     @classmethod
     @transaction.atomic()
     def save(cls, info, instance: models.Checkout, cleaned_input):
-        variants = cleaned_input.get("variants")
-        quantities = cleaned_input.get("quantities")
-
-        # Save provided addresses and associate them to the checkout
-        cls.save_addresses(instance, cleaned_input, variants)
-
         # Create the checkout object
         instance.save()
 
-        # Update/create checkout lines
+        # Retrieve the lines to create
+        variants = cleaned_input.get("variants")
+        quantities = cleaned_input.get("quantities")
+
+        # Create the checkout lines
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
                 try:
                     add_variant_to_checkout(instance, variant, quantity)
                 except InsufficientStock as exc:
                     raise ValidationError(f"Insufficient product stock: {exc.item}")
+
+        # Save provided addresses and associate them to the checkout
+        cls.save_addresses(instance, cleaned_input)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -597,13 +599,19 @@ class CheckoutComplete(BaseMutation):
                 )
 
         try:
-            billing_address = order_data["billing_address"]  # type: models.Address
-            shipping_address = order_data["shipping_address"]  # type: models.Address
+            billing_address = order_data["billing_address"]
+            shipping_address = order_data.get("shipping_address", None)
+
+            billing_address = AddressData(**billing_address.as_data())
+
+            if shipping_address is not None:
+                shipping_address = AddressData(**shipping_address.as_data())
+
             txn = gateway_process_payment(
                 payment=payment,
                 payment_token=payment.token,
-                billing_address=AddressData(**billing_address.as_data()),
-                shipping_address=AddressData(**shipping_address.as_data()),
+                billing_address=billing_address,
+                shipping_address=shipping_address,
                 store_source=store_source,
             )
             if txn.is_success and txn.customer_id and user.is_authenticated:
