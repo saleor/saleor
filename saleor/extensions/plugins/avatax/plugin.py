@@ -4,9 +4,11 @@ from typing import TYPE_CHECKING, Any, Dict, List, Union
 from urllib.parse import urljoin
 
 from django.conf import settings
+from django.db.models import QuerySet
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ....core.taxes import TaxError, TaxType, zero_taxed_money
+from ... import ConfigurationTypeField
 from ...base_plugin import BasePlugin
 from . import (
     META_FIELD,
@@ -27,11 +29,15 @@ from .tasks import api_post_request_task
 if TYPE_CHECKING:
     from ....checkout.models import Checkout, CheckoutLine
     from ....order.models import Order, OrderLine
+    from ...models import PluginConfiguration
 
 logger = logging.getLogger(__name__)
 
 
 class AvataxPlugin(BasePlugin):
+    PLUGIN_NAME = "Avalara"
+    _CACHED_CONFIGURATION = None
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._enabled = (
@@ -306,3 +312,59 @@ class AvataxPlugin(BasePlugin):
         if not self._enabled:
             return previous_value
         return True
+
+    @classmethod
+    def save_plugin_configuration(cls, configuration: "PluginConfiguration"):
+        pass
+
+    @classmethod
+    def get_plugin_configuration(cls, queryset: QuerySet) -> "PluginConfiguration":
+        if cls._CACHED_CONFIGURATION:
+            return cls._CACHED_CONFIGURATION
+        defaults = {
+            "name": cls.PLUGIN_NAME,
+            "description": "",
+            "active": False,
+            "configuration": [
+                {
+                    "name": "Username or account",
+                    "value": "",
+                    "type": ConfigurationTypeField.STRING,
+                    "help_text": "",
+                    "label": "",
+                },
+                {
+                    "name": "Password or license",
+                    "value": "",
+                    "type": ConfigurationTypeField.STRING,
+                    "help_text": "",
+                    "label": "",
+                },
+                {
+                    "name": "Use sandbox",
+                    "value": True,
+                    "type": ConfigurationTypeField.BOOLEAN,
+                    "help_text": "",
+                    "label": "",
+                },
+                {
+                    "name": "Company name",
+                    "value": "",
+                    "type": ConfigurationTypeField.STRING,
+                    "help_text": "",
+                    "label": "",
+                },
+                {
+                    "name": "Autocommit",
+                    "value": False,
+                    "type": ConfigurationTypeField.BOOLEAN,
+                    "help_text": "",
+                    "label": "",
+                },
+            ],
+        }
+        configuration = queryset.get_or_create(name=cls.PLUGIN_NAME, defaults=defaults)[
+            0
+        ]
+        cls._CACHED_CONFIGURATION = configuration
+        return configuration

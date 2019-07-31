@@ -4,6 +4,8 @@ from django.conf import settings
 from django.core.checks import Error, register
 from django.utils.module_loading import import_string
 
+from .base_plugin import BasePlugin
+
 
 @register()
 def check_extensions(app_configs, **kwargs):
@@ -39,6 +41,16 @@ def check_single_plugin(plugin_path: str, errors: List[Error]):
         errors.append(Error("Wrong plugin_path %s" % plugin_path))
         return
     try:
-        import_string(plugin_path)
+        plugin_class = import_string(plugin_path)
     except ImportError:
         errors.append(Error("Plugin with path: %s doesn't exist" % plugin_path))
+
+    if not errors:
+        check_plugin_name(plugin_class, errors)
+
+
+def check_plugin_name(plugin_class: BasePlugin, errors: List[Error]):
+    if not getattr(plugin_class, "PLUGIN_NAME", None):
+        errors.append(
+            Error("Missing field PLUGIN_NAME for plugin - %s" % plugin_class.__name__)
+        )

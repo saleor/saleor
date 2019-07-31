@@ -703,6 +703,17 @@ type CollectionUpdatePrivateMeta {
   collection: Collection
 }
 
+type ConfigurationItem {
+  name: String!
+  value: String!
+  type: ConfigurationTypeField
+}
+
+enum ConfigurationTypeField {
+  STRING
+  BOOLEAN
+}
+
 enum CountryCode {
   AF
   AX
@@ -2287,6 +2298,25 @@ enum PermissionEnum {
   MANAGE_TRANSLATIONS
 }
 
+type PluginConfiguration implements Node {
+  name: String!
+  description: String!
+  active: Boolean!
+  configuration: [ConfigurationItem]
+  id: ID!
+}
+
+type PluginConfigurationCountableConnection {
+  pageInfo: PageInfo!
+  edges: [PluginConfigurationCountableEdge!]!
+  totalCount: Int
+}
+
+type PluginConfigurationCountableEdge {
+  node: PluginConfiguration!
+  cursor: String!
+}
+
 input PriceRangeInput {
   gte: Float
   lte: Float
@@ -2762,6 +2792,8 @@ type Query {
   menuItems(query: String, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
   giftCard(id: ID!): GiftCard
   giftCards(before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
+  pluginConfiguration(id: ID!): PluginConfiguration
+  pluginConfigurations(before: String, after: String, first: Int, last: Int): PluginConfigurationCountableConnection
   sale(id: ID!): Sale
   sales(filter: SaleFilterInput, query: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection
   voucher(id: ID!): Voucher

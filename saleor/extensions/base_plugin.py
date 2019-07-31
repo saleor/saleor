@@ -1,6 +1,7 @@
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, List, Union
 
+from django.db.models import QuerySet
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
@@ -10,6 +11,7 @@ if TYPE_CHECKING:
     from ..product.models import Product
     from ..account.models import Address
     from ..order.models import OrderLine, Order
+    from .models import PluginConfiguration
 
 
 class BasePlugin:
@@ -19,6 +21,11 @@ class BasePlugin:
     previous_value contains a value calculated by the previous plugin in the queue.
     If the plugin is first, it will use default value calculated by the manager.
     """
+
+    PLUGIN_NAME = ""
+
+    def __str__(self):
+        return self.PLUGIN_NAME
 
     def calculate_checkout_total(
         self,
@@ -113,4 +120,12 @@ class BasePlugin:
     def get_tax_rate_percentage_value(
         self, obj: Union["Product", "ProductType"], country: Country, previous_value
     ) -> Decimal:
+        return NotImplemented
+
+    @classmethod
+    def save_plugin_configuration(cls, configuration: List[dict]):
+        return NotImplemented
+
+    @classmethod
+    def get_plugin_configuration(cls, queryset: QuerySet) -> "PluginConfiguration":
         return NotImplemented
