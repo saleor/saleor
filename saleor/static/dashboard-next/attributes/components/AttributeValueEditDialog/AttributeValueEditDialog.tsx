@@ -10,6 +10,7 @@ import ConfirmButton, {
   ConfirmButtonTransitionState
 } from "@saleor/components/ConfirmButton";
 import Form from "@saleor/components/Form";
+import useModalDialogErrors from "@saleor/hooks/useModalDialogErrors";
 import i18n from "@saleor/i18n";
 import { maybe } from "@saleor/misc";
 import { UserError } from "@saleor/types";
@@ -34,7 +35,7 @@ const AttributeValueEditDialog: React.StatelessComponent<
   attributeValue,
   confirmButtonState,
   disabled,
-  errors,
+  errors: apiErrors,
   onClose,
   onSubmit,
   open
@@ -42,6 +43,7 @@ const AttributeValueEditDialog: React.StatelessComponent<
   const initialForm: AttributeValueEditDialogFormData = {
     name: maybe(() => attributeValue.name, "")
   };
+  const errors = useModalDialogErrors(apiErrors, open);
 
   return (
     <Dialog onClose={onClose} open={open} fullWidth maxWidth="sm">
@@ -59,6 +61,7 @@ const AttributeValueEditDialog: React.StatelessComponent<
           <>
             <DialogContent>
               <TextField
+                autoFocus
                 disabled={disabled}
                 error={!!formErrors.name}
                 fullWidth
