@@ -5,6 +5,14 @@ import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
 import i18n from "@saleor/i18n";
 import { getMutationState, maybe } from "@saleor/misc";
+import { ReorderEvent, UserError } from "@saleor/types";
+import {
+  add,
+  isSelected,
+  move,
+  remove,
+  updateAtIndex
+} from "@saleor/utils/lists";
 import AttributePage from "../../components/AttributePage";
 import AttributeValueDeleteDialog from "../../components/AttributeValueDeleteDialog";
 import AttributeValueEditDialog, {
@@ -24,6 +32,13 @@ interface AttributeDetailsProps {
   params: AttributeAddUrlQueryParams;
 }
 
+function areValuesEqual(
+  a: AttributeValueEditDialogFormData,
+  b: AttributeValueEditDialogFormData
+) {
+  return a.name === b.name;
+}
+
 const AttributeDetails: React.FC<AttributeDetailsProps> = ({ params }) => {
   const navigate = useNavigator();
   const notify = useNotifier();
@@ -31,6 +46,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ params }) => {
   const [values, setValues] = React.useState<
     AttributeValueEditDialogFormData[]
   >([]);
+  const [valueErrors, setValueErrors] = React.useState<UserError[]>([]);
 
   const id = params.id ? parseInt(params.id, 0) : undefined;
 
@@ -54,7 +70,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ params }) => {
     );
 
   const handleValueDelete = () => {
-    setValues([...values.slice(0, id), ...values.slice(id + 1)]);
+    setValues(remove(values[params.id], values, areValuesEqual));
     closeModal();
   };
   const handleCreate = (data: AttributeCreate) => {
@@ -64,13 +80,39 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ params }) => {
     }
   };
   const handleValueUpdate = (input: AttributeValueEditDialogFormData) => {
-    setValues([...values.slice(0, id), input, ...values.slice(id + 1)]);
-    closeModal();
+    if (isSelected(input, values, areValuesEqual)) {
+      setValueErrors([
+        {
+          field: "name",
+          message: i18n.t("A value named {{ name }} already exists", {
+            context: "value edit error",
+            name: input.name
+          })
+        }
+      ]);
+    } else {
+      setValues(updateAtIndex(input, values, id));
+      closeModal();
+    }
   };
   const handleValueCreate = (input: AttributeValueEditDialogFormData) => {
-    setValues([...values, input]);
-    closeModal();
+    if (isSelected(input, values, areValuesEqual)) {
+      setValueErrors([
+        {
+          field: "name",
+          message: i18n.t("A value named {{ name }} already exists", {
+            context: "value edit error",
+            name: input.name
+          })
+        }
+      ]);
+    } else {
+      setValues(add(input, values));
+      closeModal();
+    }
   };
+  const handleValueReorder = ({ newIndex, oldIndex }: ReorderEvent) =>
+    setValues(move(values[oldIndex], values, areValuesEqual, newIndex));
 
   return (
     <AttributeCreateMutation onCompleted={handleCreate}>
@@ -110,7 +152,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ params }) => {
               }
               onValueAdd={() => openModal("add-value")}
               onValueDelete={id => openModal("remove-value", id)}
-              onValueReorder={() => undefined}
+              onValueReorder={handleValueReorder}
               onValueUpdate={id => openModal("edit-value", id)}
               saveButtonBarState={createTransitionState}
               values={values.map((value, valueIndex) => ({
@@ -127,7 +169,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ params }) => {
               attributeValue={null}
               confirmButtonState="default"
               disabled={false}
-              errors={[]}
+              errors={valueErrors}
               open={params.action === "add-value"}
               onClose={closeModal}
               onSubmit={handleValueCreate}
@@ -137,7 +179,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ params }) => {
                 <AttributeValueDeleteDialog
                   attributeName={undefined}
                   open={params.action === "remove-value"}
-                  name={maybe(() => values[id].name)}
+                  name={maybe(() => values[id].name, "...")}
                   confirmButtonState="default"
                   onClose={closeModal}
                   onConfirm={handleValueDelete}
@@ -146,7 +188,7 @@ const AttributeDetails: React.FC<AttributeDetailsProps> = ({ params }) => {
                   attributeValue={maybe(() => values[params.id])}
                   confirmButtonState="default"
                   disabled={false}
-                  errors={[]}
+                  errors={valueErrors}
                   open={params.action === "edit-value"}
                   onClose={closeModal}
                   onSubmit={handleValueUpdate}

@@ -29,10 +29,13 @@ export interface UseFormResult<T> {
 function parseErrors(errors: UserError[]): Record<string, string> {
   return errors
     ? errors.reduce(
-        (prev, curr) => ({
-          ...prev,
-          [curr.field.split(":")[0]]: curr.message
-        }),
+        (acc, curr) =>
+          curr.field
+            ? {
+                ...acc,
+                [curr.field.split(":")[0]]: curr.message
+              }
+            : acc,
         {}
       )
     : {};
@@ -41,13 +44,16 @@ function parseErrors(errors: UserError[]): Record<string, string> {
 type FormData = Record<string, any | any[]>;
 
 function merge<T extends FormData>(prevData: T, prevState: T, data: T): T {
-  return Object.keys(prevState).reduce((acc, key) => {
-    if (!isEqual(data[key], prevData[key])) {
-      acc[key as keyof T] = data[key];
-    }
+  return Object.keys(prevState).reduce(
+    (acc, key) => {
+      if (!isEqual(data[key], prevData[key])) {
+        acc[key as keyof T] = data[key];
+      }
 
-    return acc;
-  }, prevState);
+      return acc;
+    },
+    { ...prevState }
+  );
 }
 
 function handleRefresh<T extends FormData>(
