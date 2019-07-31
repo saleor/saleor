@@ -6,7 +6,7 @@
 # Translators:
 # Trong Lam Phan <lampt2509@gmail.com>, 2018
 # Khoa <lnxkhoa@gmail.com>, 2018
-# Duc Dang <dangtrungduc17895@gmail.com>, 2018
+# Duc Dang <dangtrungduc17895@gmail.com>, 2019
 # Hung Nguyen Tien <hung.nguyentien97@gmail.com>, 2019
 # 
 #, fuzzy
@@ -14,7 +14,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-17 04:57-0500\n"
+"POT-Creation-Date: 2019-07-22 05:53-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
 "Last-Translator: Hung Nguyen Tien <hung.nguyentien97@gmail.com>, 2019\n"
 "Language-Team: Vietnamese (https://www.transifex.com/mirumee/teams/34782/vi/)\n"
@@ -23,14 +23,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: vi\n"
 "Plural-Forms: nplurals=1; plural=0;\n"
-
-#: build/static/vendors~preview.3e127659ad09b01744f8.bundle.js:75
-msgid "Missing source"
-msgstr ""
-
-#: build/static/vendors~preview.3e127659ad09b01744f8.bundle.js:136
-msgid "\n"
-msgstr "\n"
 
 #: saleor/static/dashboard/js/components/bulk-actions.js:89
 msgid "item selected"
@@ -326,6 +318,45 @@ msgstr "Trích dẫn"
 msgctxt "Rich text editor option"
 msgid "Link"
 msgstr "Link"
+
+#: saleor/static/dashboard/js/components/editor.js:61
+msgctxt "Rich text editor option"
+msgid "Image (converts selected text to an image tag)"
+msgstr "Hình ảnh (chuyển đổi văn bản đã chọn thành thẻ hình ảnh)"
+
+#: saleor/static/dashboard/js/components/editor.js:66
+msgctxt "Rich text editor option"
+msgid "Left align"
+msgstr "Căn lề trái"
+
+#: saleor/static/dashboard/js/components/editor.js:71
+msgctxt "Rich text editor option"
+msgid "Center align"
+msgstr "Căn giữa"
+
+#: saleor/static/dashboard/js/components/editor.js:76
+msgctxt "Rich text editor option"
+msgid "Right align"
+msgstr "Căn lề phải"
+
+#: saleor/static/dashboard/js/components/editor.js:81
+msgctxt "Rich text editor option"
+msgid "Justify"
+msgstr "Căn đều"
+
+#: saleor/static/dashboard/js/components/editor.js:86
+msgctxt "Rich text editor option"
+msgid "Remove formatting"
+msgstr "Xóa định dạng"
+
+#: saleor/static/dashboard/js/components/google-preview.js:46
+msgid ""
+"Your input might be a little too short, think of something more descriptive"
+msgstr "Đầu vào của bạn có thể hơi ngắn, hãy nhập mô tả dài hơn"
+
+#: saleor/static/dashboard/js/components/google-preview.js:50
+msgid "Your input fits between the recommended lengths"
+msgstr " Đầu vào của bạn phù hợp trong độ dài được đề xuất"
 
 #: saleor/static/js/components/variantPicker/QuantityInput.js:22
 msgctxt "Add to cart form field label"

@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-22 05:53-0500\n"
+"POT-Creation-Date: 2019-07-29 11:49-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -263,17 +263,17 @@ msgctxt "Address form"
 msgid "This value is invalid for selected country"
 msgstr ""
 
-#: saleor/account/models.py:164
+#: saleor/account/models.py:163
 msgctxt "Permission description"
 msgid "Manage customers."
 msgstr ""
 
-#: saleor/account/models.py:166
+#: saleor/account/models.py:165
 msgctxt "Permission description"
 msgid "Manage staff."
 msgstr ""
 
-#: saleor/account/models.py:169
+#: saleor/account/models.py:168
 msgctxt "Permission description"
 msgid "Impersonate customers."
 msgstr ""
@@ -1125,7 +1125,7 @@ msgctxt "Stripe payment gateway description"
 msgid "Total payment"
 msgstr ""
 
-#: saleor/payment/utils.py:279
+#: saleor/payment/utils.py:277
 msgctxt "Mark order as paid validation error"
 msgid "Orders with payments can not be manually marked as paid."
 msgstr ""
@@ -1201,12 +1201,12 @@ msgctxt "Variant choice field label"
 msgid "%(variant_label)s - %(price)s"
 msgstr ""
 
-#: saleor/product/models.py:159
+#: saleor/product/models.py:160
 msgctxt "Permission description"
 msgid "Manage products."
 msgstr ""
 
-#: saleor/product/models.py:383
+#: saleor/product/models.py:384
 msgctxt "File as a digital product"
 msgid "digital_product"
 msgstr ""
