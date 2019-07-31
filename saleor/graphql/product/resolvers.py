@@ -60,9 +60,9 @@ def resolve_attributes(
     if sort_by:
         is_asc = sort_by["direction"] == OrderDirection.ASC.value
         if sort_by["field"] == AttributeSortField.DASHBOARD_VARIANT_POSITION.value:
-            qs = qs.variant_attributes_sorted_for_dashboard(is_asc)
+            qs = qs.variant_attributes_sorted(is_asc)
         elif sort_by["field"] == AttributeSortField.DASHBOARD_PRODUCT_POSITION.value:
-            qs = qs.product_attributes_sorted_for_dashboard(is_asc)
+            qs = qs.product_attributes_sorted(is_asc)
         else:
             qs = sort_qs(qs, sort_by)
     else:
