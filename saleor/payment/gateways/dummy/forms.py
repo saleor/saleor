@@ -35,6 +35,8 @@ class DummyPaymentForm(forms.Form):
 
     def get_payment_token(self):
         """Return selected charge status instead of token for testing only.
-        Gateways used for production should return an actual token instead."""
+
+        Gateways used for production should return an actual token instead.
+        """
         charge_status = self.cleaned_data["charge_status"]
         return charge_status

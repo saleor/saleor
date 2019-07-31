@@ -97,7 +97,7 @@ class IntRangeInput(graphene.InputObjectType):
 
 
 class TaxType(graphene.ObjectType):
-    """Representation of tax types fetched from tax gateway"""
+    """Representation of tax types fetched from tax gateway."""
 
     description = graphene.String(description="Description of the tax type")
     tax_code = graphene.String(

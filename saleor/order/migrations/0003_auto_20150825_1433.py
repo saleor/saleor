@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-from django.conf import settings
-from django.db import models, migrations
 import django_prices.models
+from django.conf import settings
+from django.db import migrations, models
 
 
 class Migration(migrations.Migration):

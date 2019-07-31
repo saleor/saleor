@@ -13,10 +13,12 @@ if TYPE_CHECKING:
 
 
 class BasePlugin:
-    """Abstract class for storing all methods available for any plugin. All methods
-    take previous_value parameter. previous_value contains a value calculated by the
-    previous plugin in the queue. If the plugin is first, it will use default value
-    calculated by the manager"""
+    """Abstract class for storing all methods available for any plugin.
+
+    All methods take previous_value parameter.
+    previous_value contains a value calculated by the previous plugin in the queue.
+    If the plugin is first, it will use default value calculated by the manager.
+    """
 
     def calculate_checkout_total(
         self,

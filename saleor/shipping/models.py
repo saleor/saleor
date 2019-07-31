@@ -25,9 +25,7 @@ from . import ShippingMethodType
 
 
 def _applicable_weight_based_methods(weight, qs):
-    """Returns weight based ShippingMethods that can be applied to an order
-    with given total weight.
-    """
+    """Return weight based shipping methods that are applicable for the total weight."""
     qs = qs.weight_based()
     min_weight_matched = Q(minimum_order_weight__lte=weight)
     no_weight_limit = Q(maximum_order_weight__isnull=True)
@@ -36,9 +34,7 @@ def _applicable_weight_based_methods(weight, qs):
 
 
 def _applicable_price_based_methods(price, qs):
-    """Returns price based ShippingMethods that can be applied to an order
-    with given price total.
-    """
+    """Return price based shipping methods that are applicable for the given total."""
     qs = qs.price_based()
     min_price_matched = Q(minimum_order_price__lte=price)
     no_price_limit = Q(maximum_order_price__isnull=True)
@@ -125,9 +121,10 @@ class ShippingMethodQueryset(models.QuerySet):
         return self.filter(type=ShippingMethodType.WEIGHT_BASED)
 
     def applicable_shipping_methods(self, price, weight, country_code):
-        """Returns ShippingMethods that can be used on an order with
-        shipment to given country(code), that are applicable to given
-        price & weight total.
+        """Return the ShippingMethods that can be used on an order with shipment.
+
+        It is based on the given country code, and by shipping methods that are
+        applicable to the given price & weight total.
         """
         # If dedicated shipping zone for the country exists, we should use it
         # in the first place

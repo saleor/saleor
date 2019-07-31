@@ -9,11 +9,14 @@ from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 
 class TaxError(Exception):
-    """Default tax error"""
+    """Default tax error."""
 
 
 def zero_money(currency=settings.DEFAULT_CURRENCY):
-    """Function used as a model's default."""
+    """Return a money object set to zero.
+
+    This is a function used as a model's default.
+    """
     return Money(0, currency)
 
 
@@ -37,7 +40,7 @@ def charge_taxes_on_shipping():
 def get_display_price(
     base: Union[TaxedMoney, TaxedMoneyRange], display_gross=None
 ) -> Money:
-    """Return price amount that should be displayed based on settings"""
+    """Return the price amount that should be displayed based on settings."""
     if not display_gross:
         display_gross = display_gross_prices()
     if isinstance(base, TaxedMoneyRange):
@@ -61,7 +64,7 @@ def quantize_price(
 
 @dataclass(frozen=True)
 class TaxType:
-    """Dataclass for unifying tax type object that comes from tax gateway"""
+    """Dataclass for unifying tax type object that comes from tax gateway."""
 
     code: str
     description: str

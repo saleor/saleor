@@ -155,8 +155,10 @@ class AvataxPlugin(BasePlugin):
     def preprocess_order_creation(
         self, checkout: "Checkout", discounts: List["DiscountInfo"], previous_value: Any
     ):
-        """Confirm that all data is correct and we can proceed with creation of order.
-        Raise error when can't receive taxes"""
+        """Ensure all the data is correct and we can proceed with creation of order.
+
+        Raise an error when can't receive taxes.
+        """
         if not self._enabled:
             return
         data = generate_request_data_from_checkout(

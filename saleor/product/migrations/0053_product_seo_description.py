@@ -3,6 +3,7 @@ import html
 
 from django.core.validators import MaxLengthValidator
 from django.db import migrations, models
+
 from saleor.core.utils.text import strip_html_and_truncate
 
 

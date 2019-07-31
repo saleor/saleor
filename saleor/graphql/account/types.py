@@ -68,7 +68,8 @@ class Address(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_is_default_shipping_address(root: models.Address, _info):
-        """
+        """Look if the address is the default shipping address of the user.
+
         This field is added through annotation when using the
         `resolve_addresses` resolver. It's invalid for
         `resolve_default_shipping_address` and
@@ -86,7 +87,8 @@ class Address(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_is_default_billing_address(root: models.Address, _info):
-        """
+        """Look if the address is the default billing address of the user.
+
         This field is added through annotation when using the
         `resolve_addresses` resolver. It's invalid for
         `resolve_default_shipping_address` and

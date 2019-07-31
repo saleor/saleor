@@ -105,6 +105,7 @@ class ReorderMenuItemsForm(forms.ModelForm):
 
     Args:
         ordered_menu_items - sorted menu items
+
     """
 
     ordered_menu_items = OrderedModelMultipleChoiceField(

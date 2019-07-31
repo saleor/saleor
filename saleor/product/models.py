@@ -291,8 +291,9 @@ class ProductVariant(ModelWithMetadata):
         return self.product.is_available
 
     def check_quantity(self, quantity):
-        """Check if there is at least the given quantity in stock
-        if stock handling is enabled.
+        """Check if there is at least the given quantity in stock.
+
+        If stock handling is disabled, it simply run no check.
         """
         if self.track_inventory and quantity > self.quantity_available:
             raise InsufficientStock(self)

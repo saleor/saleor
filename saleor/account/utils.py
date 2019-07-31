@@ -46,8 +46,10 @@ def change_user_default_address(user, address, address_type):
 
 
 def get_user_first_name(user):
-    """Return user first name if not exist return first name from
-    default billing address or None."""
+    """Return a user's first name from their default belling address.
+
+    Return nothing if none where found.
+    """
     if user.first_name:
         return user.first_name
     if user.default_billing_address:
@@ -56,8 +58,10 @@ def get_user_first_name(user):
 
 
 def get_user_last_name(user):
-    """Return user last name if not exist return first name from
-    default billing address or None."""
+    """Return a user's last name from their default belling address.
+
+    Return nothing if none where found.
+    """
     if user.last_name:
         return user.last_name
     if user.default_billing_address:

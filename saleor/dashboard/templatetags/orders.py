@@ -24,7 +24,9 @@ EMAIL_CHOICES = {
 
 
 def get_money_from_params(amount):
-    """Money serialization changed at one point, as for now it's serialized
+    """Retrieve the correct money amount from the given object.
+
+    Money serialization changed at one point, as for now it's serialized
     as a dict. But we keep those settings for the legacy data.
 
     Can be safely removed after migrating to Dashboard 2.0
@@ -38,10 +40,10 @@ def get_money_from_params(amount):
 
 @register.simple_tag
 def display_order_event(order_event: OrderEvent):
-    """This function is used to keep the backwards compatibility
-        with the old dashboard and new type of order events
-        (storing enums instead of messages)
-        """
+    """Keep the backwards compatibility with the old dashboard and new type of events.
+
+    The new one is storing enums values instead of raw messages.
+    """
     event_type = order_event.type
     params = order_event.parameters
     if event_type == events.OrderEvents.PLACED_FROM_DRAFT:

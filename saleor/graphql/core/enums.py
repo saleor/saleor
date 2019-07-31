@@ -15,8 +15,7 @@ class ReportingPeriod(graphene.Enum):
 
 
 def to_enum(enum_cls, *, type_name=None, **options) -> graphene.Enum:
-    """
-    Create a graphene enum from a class containing a set of options.
+    """Create a Graphene enum from a class containing a set of options.
 
     :param enum_cls:
         The class to build the enum from.
