@@ -11,7 +11,7 @@ from saleor.extensions.manager import ExtensionsManager, get_extensions_manager
 
 
 class TestPlugin(BasePlugin):
-    """"""
+    PLUGIN_NAME = "Test Plugin"
 
     def calculate_checkout_total(self, checkout, discounts, previous_value):
         total = Money("1.0", currency=checkout.get_total().currency)

@@ -2,6 +2,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any, List, Union
 
 from django.conf import settings
+from django.db.models import QuerySet
 from django_countries.fields import Country
 from django_prices_vatlayer.utils import get_tax_rate_types
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
@@ -22,11 +23,14 @@ if TYPE_CHECKING:
     from ....product.models import Product
     from ....account.models import Address
     from ....order.models import OrderLine, Order
+    from ...models import PluginConfiguration
 
 
 class VatlayerPlugin(BasePlugin):
+    PLUGIN_NAME = "Vatlayer"
     META_FIELD = "vatlayer"
     META_NAMESPACE = "taxes"
+    _CACHED_CONFIGURATION = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -280,3 +284,23 @@ class VatlayerPlugin(BasePlugin):
         rate_name = self.__get_tax_code_from_object_meta(obj).code
         tax = taxes.get(rate_name) or taxes.get(DEFAULT_TAX_RATE_NAME)
         return Decimal(tax["value"])
+
+    @classmethod
+    def save_plugin_configuration(cls, configuration: "PluginConfiguration"):
+        pass
+
+    @classmethod
+    def get_plugin_configuration(cls, queryset: QuerySet) -> "PluginConfiguration":
+        if cls._CACHED_CONFIGURATION:
+            return cls._CACHED_CONFIGURATION
+        defaults = {
+            "name": cls.PLUGIN_NAME,
+            "description": "",
+            "active": bool(settings.VATLAYER_ACCESS_KEY),
+            "configuration": None,
+        }
+        configuration = queryset.get_or_create(name=cls.PLUGIN_NAME, defaults=defaults)[
+            0
+        ]
+        cls._CACHED_CONFIGURATION = configuration
+        return configuration

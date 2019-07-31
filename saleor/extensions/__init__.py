@@ -17,3 +17,8 @@ def discover_plugins_modules(plugins: List[str]):
         module = importlib.import_module(module_path)
         plugins_modules.append(module.__package__)
     return plugins_modules
+
+
+class ConfigurationTypeField:
+    STRING = "String"
+    BOOLEAN = "Boolean"
