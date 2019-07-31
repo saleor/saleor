@@ -13,6 +13,23 @@ export function add<TData>(data: TData, list: List<TData>) {
   return [...list, data];
 }
 
+export function addAtIndex<TData>(
+  data: TData,
+  list: List<TData>,
+  index: number
+) {
+  return [...list.slice(0, index), data, ...list.slice(index)];
+}
+
+export function move<TData>(
+  data: TData,
+  list: List<TData>,
+  compare: Compare<TData>,
+  index: number
+) {
+  return addAtIndex(data, remove(data, list, compare), index);
+}
+
 export function remove<TData>(
   data: TData,
   list: List<TData>,
