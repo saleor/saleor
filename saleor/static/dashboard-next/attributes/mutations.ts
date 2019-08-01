@@ -27,6 +27,10 @@ import {
   AttributeValueDeleteVariables
 } from "./types/AttributeValueDelete";
 import {
+  AttributeValueReorder,
+  AttributeValueReorderVariables
+} from "./types/AttributeValueReorder";
+import {
   AttributeValueUpdate,
   AttributeValueUpdateVariables
 } from "./types/AttributeValueUpdate";
@@ -155,3 +159,24 @@ export const AttributeCreateMutation = TypedMutation<
   AttributeCreate,
   AttributeCreateVariables
 >(attributeCreateMutation);
+
+const attributeValueReorderMutation = gql`
+  mutation AttributeValueReorder($id: ID!, $move: ReorderInput!) {
+    attributeReorderValues(attributeId: $id, moves: [$move]) {
+      errors {
+        field
+        message
+      }
+      attribute {
+        id
+        values {
+          id
+        }
+      }
+    }
+  }
+`;
+export const AttributeValueReorderMutation = TypedMutation<
+  AttributeValueReorder,
+  AttributeValueReorderVariables
+>(attributeValueReorderMutation);
