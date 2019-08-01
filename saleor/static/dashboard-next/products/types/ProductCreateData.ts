@@ -21,6 +21,7 @@ export interface ProductCreateData_productTypes_edges_node_productAttributes {
   inputType: AttributeInputTypeEnum | null;
   slug: string | null;
   name: string | null;
+  valueRequired: boolean | null;
   values: (ProductCreateData_productTypes_edges_node_productAttributes_values | null)[] | null;
 }
 
