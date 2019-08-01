@@ -37,6 +37,12 @@
   {% else %}
     <meta property="og:image" content="{% static "images/block1.png" %}">
   {% endif %}
+
+  <meta property="product:condition" content="new">
+  <meta property="product:availability" content="{% if product.is_in_stock %}in stock{% else %}out of stock{% endif %}">
+  <meta property="product:price:amount" content="{% if site.settings.display_gross_prices %}{{ availability.price_range.start.gross.amount }}{% else %}{{ availability.price_range.net.gross.amount }}{% endif %}">
+  <meta property="product:price:currency" content="{{ availability.price_range.currency }}">
+  <meta property="product:retailer_item_id" content="SKU">
 {% endblock meta_tags %}
 
 {% block breadcrumb %}
