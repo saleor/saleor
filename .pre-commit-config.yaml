@@ -13,7 +13,7 @@ repos:
     -   id: flake8
 
 -   repo: https://github.com/asottile/seed-isort-config
-    rev: v1.9.1
+    rev: v1.9.2
     hooks:
     -   id: seed-isort-config
 
@@ -26,3 +26,4 @@ repos:
     rev: 4.0.0
     hooks:
     -   id: pydocstyle
+        files: ^saleor/
