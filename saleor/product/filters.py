@@ -50,7 +50,7 @@ class ProductFilter(SortedFilterSet):
                 widget=CheckboxSelectMultiple,
                 choices=self._get_attribute_choices(attribute),
             )
-        self.filters = filters
+        self.filters.update(filters)
 
     def _get_attributes(self):
         q_product_attributes = self._get_product_attributes_lookup()
