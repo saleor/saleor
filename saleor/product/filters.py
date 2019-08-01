@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from itertools import chain
 
 from django.db.models import Q
 from django.forms import CheckboxSelectMultiple
@@ -40,10 +41,16 @@ class ProductFilter(SortedFilterSet):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.product_attributes, self.variant_attributes = self._get_attributes()
-        self.filters.update(self._get_product_attributes_filters())
-        self.filters.update(self._get_product_variants_attributes_filters())
-        self.filters = OrderedDict(sorted(self.filters.items()))
+        attributes = self._get_attributes()
+        filters = {}
+        for attribute in attributes:
+            filters[attribute.slug] = JSONBArrayFilter(
+                field_name=f"attributes__from_key_{attribute.pk}",
+                label=attribute.translated.name,
+                widget=CheckboxSelectMultiple,
+                choices=self._get_attribute_choices(attribute),
+            )
+        self.filters = filters
 
     def _get_attributes(self):
         q_product_attributes = self._get_product_attributes_lookup()
@@ -60,35 +67,18 @@ class ProductFilter(SortedFilterSet):
             .filter(q_variant_attributes)
             .distinct()
         )
-        return product_attributes, variant_attributes
+
+        attributes = chain(product_attributes, variant_attributes)
+        attributes = sorted(
+            attributes, key=lambda attr: attr.storefront_search_position
+        )
+        return attributes
 
     def _get_product_attributes_lookup(self):
         raise NotImplementedError()
 
     def _get_variant_attributes_lookup(self):
         raise NotImplementedError()
-
-    def _get_product_attributes_filters(self):
-        filters = {}
-        for attribute in self.product_attributes:
-            filters[attribute.slug] = JSONBArrayFilter(
-                field_name=f"attributes__from_key_{attribute.pk}",
-                label=attribute.translated.name,
-                widget=CheckboxSelectMultiple,
-                choices=self._get_attribute_choices(attribute),
-            )
-        return filters
-
-    def _get_product_variants_attributes_filters(self):
-        filters = {}
-        for attribute in self.variant_attributes:
-            filters[attribute.slug] = JSONBArrayFilter(
-                field_name=f"variants__attributes__from_key_{attribute.pk}",
-                label=attribute.translated.name,
-                widget=CheckboxSelectMultiple,
-                choices=self._get_attribute_choices(attribute),
-            )
-        return filters
 
     def _get_attribute_choices(self, attribute):
         return [
