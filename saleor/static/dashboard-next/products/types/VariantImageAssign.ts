@@ -24,6 +24,7 @@ export interface VariantImageAssign_variantImageAssign_productVariant_attributes
   id: string;
   name: string | null;
   slug: string | null;
+  valueRequired: boolean | null;
   values: (VariantImageAssign_variantImageAssign_productVariant_attributes_attribute_values | null)[] | null;
 }
 

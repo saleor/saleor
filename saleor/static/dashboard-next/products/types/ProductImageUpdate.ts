@@ -69,6 +69,7 @@ export interface ProductImageUpdate_productImageUpdate_product_attributes_attrib
   slug: string | null;
   name: string | null;
   inputType: AttributeInputTypeEnum | null;
+  valueRequired: boolean | null;
   values: (ProductImageUpdate_productImageUpdate_product_attributes_attribute_values | null)[] | null;
 }
 

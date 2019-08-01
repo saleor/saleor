@@ -69,6 +69,7 @@ export interface SimpleProductUpdate_productUpdate_product_attributes_attribute 
   slug: string | null;
   name: string | null;
   inputType: AttributeInputTypeEnum | null;
+  valueRequired: boolean | null;
   values: (SimpleProductUpdate_productUpdate_product_attributes_attribute_values | null)[] | null;
 }
 
@@ -199,6 +200,7 @@ export interface SimpleProductUpdate_productVariantUpdate_productVariant_attribu
   id: string;
   name: string | null;
   slug: string | null;
+  valueRequired: boolean | null;
   values: (SimpleProductUpdate_productVariantUpdate_productVariant_attributes_attribute_values | null)[] | null;
 }
 

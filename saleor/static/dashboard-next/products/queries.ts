@@ -96,6 +96,7 @@ export const productFragmentDetails = gql`
         slug
         name
         inputType
+        valueRequired
         values {
           id
           name
@@ -156,6 +157,7 @@ export const fragmentVariant = gql`
         id
         name
         slug
+        valueRequired
         values {
           id
           name
@@ -278,6 +280,7 @@ const productCreateQuery = gql`
             inputType
             slug
             name
+            valueRequired
             values {
               id
               name
@@ -309,6 +312,7 @@ const productVariantCreateQuery = gql`
           id
           slug
           name
+          valueRequired
           values {
             id
             name
