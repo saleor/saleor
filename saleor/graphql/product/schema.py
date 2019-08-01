@@ -3,7 +3,6 @@ from graphql_jwt.decorators import permission_required
 
 from ..core.enums import ReportingPeriod
 from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
-from ..core.types import FilterInputObjectType
 from ..descriptions import DESCRIPTIONS
 from ..translations.mutations import (
     AttributeTranslate,
@@ -25,7 +24,12 @@ from .bulk_mutations.products import (
     ProductVariantBulkDelete,
 )
 from .enums import StockAvailability
-from .filters import AttributeFilter, CollectionFilter, ProductFilter, ProductTypeFilter
+from .filters import (
+    AttributeFilterInput,
+    CollectionFilterInput,
+    ProductFilterInput,
+    ProductTypeFilterInput,
+)
 from .mutations.attributes import (
     AttributeAssign,
     AttributeClearMeta,
@@ -116,26 +120,6 @@ from .types import (
     ProductVariant,
 )
 from .types.attributes import AttributeSortingInput
-
-
-class ProductFilterInput(FilterInputObjectType):
-    class Meta:
-        filterset_class = ProductFilter
-
-
-class CollectionFilterInput(FilterInputObjectType):
-    class Meta:
-        filterset_class = CollectionFilter
-
-
-class ProductTypeFilterInput(FilterInputObjectType):
-    class Meta:
-        filterset_class = ProductTypeFilter
-
-
-class AttributeFilterInput(FilterInputObjectType):
-    class Meta:
-        filterset_class = AttributeFilter
 
 
 class ProductQueries(graphene.ObjectType):

@@ -2354,24 +2354,26 @@ def test_product_base_price_permission(
     assert content["data"]["product"]["basePrice"]["amount"] == product.price.amount
 
 
-def test_product_type_get_unassigned_attributes(
-    staff_api_client, permission_manage_products
-):
-    query = """
-        query($productTypeId:ID!) {
-          productType(id: $productTypeId) {
-            availableAttributes(first: 10) {
-              edges {
-                node {
-                  id
-                  slug
-                }
-              }
+QUERY_AVAILABLE_ATTRIBUTES = """
+    query($productTypeId:ID!, $filters: AttributeFilterInput) {
+      productType(id: $productTypeId) {
+        availableAttributes(first: 10, filter: $filters) {
+          edges {
+            node {
+              id
+              slug
             }
           }
         }
-    """
+      }
+    }
+"""
 
+
+def test_product_type_get_unassigned_attributes(
+    staff_api_client, permission_manage_products
+):
+    query = QUERY_AVAILABLE_ATTRIBUTES
     target_product_type, ignored_product_type = ProductType.objects.bulk_create(
         [ProductType(name="Type 1"), ProductType(name="Type 2")]
     )
@@ -2424,3 +2426,26 @@ def test_product_type_get_unassigned_attributes(
     )
 
     assert received_ids == expected_ids
+
+
+def test_product_type_filter_unassigned_attributes(
+    staff_api_client, permission_manage_products, attribute_list
+):
+    expected_attribute = attribute_list[0]
+    query = QUERY_AVAILABLE_ATTRIBUTES
+    product_type = ProductType.objects.create(name="Empty Type")
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    filters = {"search": expected_attribute.name}
+
+    found_attributes = get_graphql_content(
+        staff_api_client.post_graphql(
+            query,
+            {"productTypeId": product_type_id, "filters": filters},
+            permissions=[permission_manage_products],
+        )
+    )["data"]["productType"]["availableAttributes"]["edges"]
+
+    assert len(found_attributes) == 1
+
+    _, attribute_id = graphene.Node.from_global_id(found_attributes[0]["node"]["id"])
+    assert attribute_id == str(expected_attribute.pk)

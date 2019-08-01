@@ -15,7 +15,6 @@ from .filters import (
     filter_products_by_stock_availability,
     sort_qs,
 )
-from .types import Category, Collection, ProductVariant
 
 PRODUCT_SEARCH_FIELDS = ("name", "description")
 CATEGORY_SEARCH_FIELDS = ("name", "slug", "description", "parent__name")
@@ -31,14 +30,20 @@ def _filter_attributes_by_product_types(attribute_qs, product_qs):
 
 
 def resolve_attributes(
-    info, category_id=None, collection_id=None, query=None, sort_by=None, **_kwargs
+    info,
+    qs=None,
+    category_id=None,
+    collection_id=None,
+    query=None,
+    sort_by=None,
+    **_kwargs,
 ):
-    qs = models.Attribute.objects.get_visible_to_user(info.context.user)
+    qs = qs or models.Attribute.objects.get_visible_to_user(info.context.user)
     qs = filter_by_query_param(qs, query, ATTRIBUTES_SEARCH_FIELDS)
 
     if category_id:
         # Filter attributes by product types belonging to the given category.
-        category = graphene.Node.get_node_from_global_id(info, category_id, Category)
+        category = graphene.Node.get_node_from_global_id(info, category_id, "Category")
         if category:
             tree = category.get_descendants(include_self=True)
             product_qs = models.Product.objects.filter(category__in=tree)
@@ -49,7 +54,7 @@ def resolve_attributes(
     if collection_id:
         # Filter attributes by product types belonging to the given collection.
         collection = graphene.Node.get_node_from_global_id(
-            info, collection_id, Collection
+            info, collection_id, "Collection"
         )
         if collection:
             product_qs = collection.products.all()
@@ -119,11 +124,11 @@ def resolve_products(
         qs = filter_products_by_attributes(qs, attributes)
 
     if categories:
-        categories = get_nodes(categories, Category)
+        categories = get_nodes(categories, "Category")
         qs = filter_products_by_categories(qs, categories)
 
     if collections:
-        collections = get_nodes(collections, Collection)
+        collections = get_nodes(collections, "Collection")
         qs = filter_products_by_collections(qs, collections)
     if stock_availability:
         qs = filter_products_by_stock_availability(qs, stock_availability)
@@ -148,9 +153,7 @@ def resolve_product_variants(info, ids=None):
     )
     qs = models.ProductVariant.objects.filter(product__id__in=visible_products)
     if ids:
-        db_ids = [
-            get_database_id(info, node_id, only_type=ProductVariant) for node_id in ids
-        ]
+        db_ids = [get_database_id(info, node_id, "ProductVariant") for node_id in ids]
         qs = qs.filter(pk__in=db_ids)
     return gql_optimizer.query(qs, info)
 
