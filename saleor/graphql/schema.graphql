@@ -2649,7 +2649,7 @@ type ProductType implements Node {
   taxType: TaxType
   variantAttributes: [Attribute]
   productAttributes: [Attribute]
-  availableAttributes(before: String, after: String, first: Int, last: Int): AttributeCountableConnection
+  availableAttributes(filter: AttributeFilterInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
 }
 
 type ProductTypeBulkDelete {

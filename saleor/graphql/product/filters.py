@@ -9,6 +9,7 @@ from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 from ...product.models import Attribute, Collection, Product, ProductType
 from ...search.backends import picker
 from ..core.filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
+from ..core.types import FilterInputObjectType
 from ..core.types.common import PriceRangeInput
 from ..utils import filter_by_query_param, get_nodes
 from . import types
@@ -233,3 +234,23 @@ class AttributeFilter(django_filters.FilterSet):
             "filterable_in_dashboard",
             "available_in_grid",
         ]
+
+
+class ProductFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = ProductFilter
+
+
+class CollectionFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = CollectionFilter
+
+
+class ProductTypeFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = ProductTypeFilter
+
+
+class AttributeFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = AttributeFilter

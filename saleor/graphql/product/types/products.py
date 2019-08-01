@@ -21,7 +21,7 @@ from ....product.utils.availability import (
 from ....product.utils.costs import get_margin_for_variant, get_product_costs_data
 from ...core.connection import CountableDjangoObjectType
 from ...core.enums import ReportingPeriod, TaxRateType
-from ...core.fields import PrefetchingConnectionField
+from ...core.fields import FilterInputConnectionField, PrefetchingConnectionField
 from ...core.resolvers import resolve_meta, resolve_private_meta
 from ...core.types import (
     Image,
@@ -42,6 +42,8 @@ from ...translations.types import (
 )
 from ...utils import get_database_id, reporting_period_to_date
 from ..enums import OrderDirection, ProductOrderField
+from ..filters import AttributeFilterInput
+from ..resolvers import resolve_attributes
 from .attributes import Attribute, SelectedAttribute
 from .digital_contents import DigitalContent
 
@@ -647,10 +649,7 @@ class ProductType(CountableDjangoObjectType, MetadataObjectType):
         Attribute, description="Product attributes of that product type."
     )
     available_attributes = gql_optimizer.field(
-        PrefetchingConnectionField(
-            Attribute,
-            description="List of attributes that are available for assignment.",
-        )
+        FilterInputConnectionField(Attribute, filter=AttributeFilterInput())
     )
 
     class Meta:
@@ -704,9 +703,9 @@ class ProductType(CountableDjangoObjectType, MetadataObjectType):
 
     @staticmethod
     @permission_required("product.manage_products")
-    def resolve_available_attributes(root: models.ProductType, info, **_kwargs):
+    def resolve_available_attributes(root: models.ProductType, info, **kwargs):
         qs = models.Attribute.objects.get_unassigned_attributes(root.pk)
-        return gql_optimizer.query(qs, info)
+        return resolve_attributes(info, qs=qs, **kwargs)
 
     @staticmethod
     @permission_required("account.manage_products")
