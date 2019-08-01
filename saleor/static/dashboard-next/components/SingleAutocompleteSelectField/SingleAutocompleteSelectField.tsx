@@ -10,6 +10,7 @@ import {
   WithStyles
 } from "@material-ui/core/styles";
 import TextField from "@material-ui/core/TextField";
+import Typography from "@material-ui/core/Typography";
 import Downshift from "downshift";
 import React from "react";
 import { compareTwoStrings } from "string-similarity";
@@ -44,6 +45,7 @@ export interface SingleAutocompleteSelectFieldProps {
   error?: boolean;
   name: string;
   displayValue: string;
+  emptyOption?: boolean;
   choices: SingleAutocompleteChoiceType[];
   value?: string;
   disabled?: boolean;
@@ -77,6 +79,7 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
     allowCustomValues,
     disabled,
     displayValue,
+    emptyOption,
     error,
     helperText,
     label,
@@ -159,19 +162,38 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
                     <Paper className={classes.paper} square>
                       {choices.length > 0 || allowCustomValues ? (
                         <>
-                          {choices.map((suggestion, index) => (
+                          {emptyOption && (
                             <MenuItem
-                              key={JSON.stringify(suggestion)}
-                              selected={
-                                highlightedIndex === index ||
-                                selectedItem === suggestion.value
-                              }
                               component="div"
-                              {...getItemProps({ item: suggestion.value })}
+                              {...getItemProps({
+                                item: ""
+                              })}
                             >
-                              {suggestion.label}
+                              <Typography color="textSecondary">
+                                {i18n.t("None")}
+                              </Typography>
                             </MenuItem>
-                          ))}
+                          )}
+                          {choices.map((suggestion, index) => {
+                            const choiceIndex = emptyOption ? index + 1 : 0;
+
+                            return (
+                              <MenuItem
+                                key={JSON.stringify(suggestion)}
+                                selected={
+                                  highlightedIndex === choiceIndex ||
+                                  selectedItem === suggestion.value
+                                }
+                                component="div"
+                                {...getItemProps({
+                                  index: choiceIndex,
+                                  item: suggestion.value
+                                })}
+                              >
+                                {suggestion.label}
+                              </MenuItem>
+                            );
+                          })}
                           {allowCustomValues &&
                             !!inputValue &&
                             !choices.find(

@@ -25,6 +25,7 @@ import { AttributeInputTypeEnum } from "@saleor/types/globalTypes";
 
 export interface ProductAttributeInputData {
   inputType: AttributeInputTypeEnum;
+  isRequired: boolean;
   values: ProductDetails_product_attributes_attribute_values[];
 }
 export type ProductAttributeInput = FormsetAtomicData<
@@ -177,13 +178,14 @@ const ProductAttributes: React.FC<ProductAttributesProps> = ({
                             ).name,
                           attribute.value[0]
                         )}
+                        emptyOption
                         name={`attribute:${attribute.label}`}
                         label={i18n.t("Value")}
                         value={attribute.value[0]}
                         onChange={event =>
                           onChange(attribute.id, event.target.value)
                         }
-                        allowCustomValues
+                        allowCustomValues={!attribute.data.isRequired}
                       />
                     ) : (
                       <MultiAutocompleteSelectField
@@ -195,7 +197,7 @@ const ProductAttributes: React.FC<ProductAttributesProps> = ({
                         onChange={event =>
                           onMultiChange(attribute.id, event.target.value)
                         }
-                        allowCustomValues
+                        allowCustomValues={!attribute.data.isRequired}
                       />
                     )}
                   </div>

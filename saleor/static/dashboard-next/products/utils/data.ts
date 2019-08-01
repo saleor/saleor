@@ -46,6 +46,7 @@ export function getAttributeInputFromProduct(
       product.attributes.map(attribute => ({
         data: {
           inputType: attribute.attribute.inputType,
+          isRequired: attribute.attribute.valueRequired,
           values: attribute.attribute.values
         },
         id: attribute.attribute.id,
@@ -82,6 +83,7 @@ export function getAttributeInputFromProductType(
   return productType.productAttributes.map(attribute => ({
     data: {
       inputType: attribute.inputType,
+      isRequired: attribute.valueRequired,
       values: attribute.values
     },
     id: attribute.id,
