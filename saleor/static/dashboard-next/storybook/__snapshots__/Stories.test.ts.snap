@@ -6923,15 +6923,16 @@ exports[`Storyshots Views / Attributes / Attribute details create 1`] = `
                   class="MuiSwitch-root-id"
                 >
                   <span
-                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id"
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiSwitch-checked-id"
                   >
                     <span
                       class="MuiIconButton-label-id"
                     >
                       <span
-                        class="MuiSwitch-icon-id"
+                        class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
                       />
                       <input
+                        checked=""
                         class="MuiPrivateSwitchBase-input-id"
                         name="valueRequired"
                         type="checkbox"
@@ -7233,15 +7234,16 @@ exports[`Storyshots Views / Attributes / Attribute details create 1`] = `
                   class="MuiSwitch-root-id"
                 >
                   <span
-                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id"
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiSwitch-checked-id"
                   >
                     <span
                       class="MuiIconButton-label-id"
                     >
                       <span
-                        class="MuiSwitch-icon-id"
+                        class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
                       />
                       <input
+                        checked=""
                         class="MuiPrivateSwitchBase-input-id"
                         name="filterableInStorefront"
                         type="checkbox"
@@ -7268,6 +7270,27 @@ exports[`Storyshots Views / Attributes / Attribute details create 1`] = `
                 </span>
               </label>
               <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                  data-shrink="false"
+                >
+                  Position in faceted navigation
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id"
+                    name="storefrontSearchPosition"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+              <div
                 class="FormSpacer-spacer-id"
               />
               <label
@@ -7277,15 +7300,16 @@ exports[`Storyshots Views / Attributes / Attribute details create 1`] = `
                   class="MuiSwitch-root-id"
                 >
                   <span
-                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id"
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiSwitch-checked-id"
                   >
                     <span
                       class="MuiIconButton-label-id"
                     >
                       <span
-                        class="MuiSwitch-icon-id"
+                        class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
                       />
                       <input
+                        checked=""
                         class="MuiPrivateSwitchBase-input-id"
                         name="visibleInStorefront"
                         type="checkbox"
@@ -7332,15 +7356,16 @@ exports[`Storyshots Views / Attributes / Attribute details create 1`] = `
                   class="MuiSwitch-root-id"
                 >
                   <span
-                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id"
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiSwitch-checked-id"
                   >
                     <span
                       class="MuiIconButton-label-id"
                     >
                       <span
-                        class="MuiSwitch-icon-id"
+                        class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
                       />
                       <input
+                        checked=""
                         class="MuiPrivateSwitchBase-input-id"
                         name="filterableInDashboard"
                         type="checkbox"
@@ -8827,15 +8852,16 @@ exports[`Storyshots Views / Attributes / Attribute details loading 1`] = `
                   class="MuiSwitch-root-id"
                 >
                   <span
-                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id"
+                    class="MuiButtonBase-root-id MuiIconButton-root-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiSwitch-checked-id"
                   >
                     <span
                       class="MuiIconButton-label-id"
                     >
                       <span
-                        class="MuiSwitch-icon-id"
+                        class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
                       />
                       <input
+                        checked=""
                         class="MuiPrivateSwitchBase-input-id"
                         name="valueRequired"
                         type="checkbox"
@@ -9066,16 +9092,17 @@ exports[`Storyshots Views / Attributes / Attribute details loading 1`] = `
                   class="MuiSwitch-root-id"
                 >
                   <span
-                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiSwitch-disabled-id"
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiSwitch-checked-id MuiPrivateSwitchBase-disabled-id MuiSwitch-disabled-id"
                     tabindex="-1"
                   >
                     <span
                       class="MuiIconButton-label-id"
                     >
                       <span
-                        class="MuiSwitch-icon-id"
+                        class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
                       />
                       <input
+                        checked=""
                         class="MuiPrivateSwitchBase-input-id"
                         disabled=""
                         name="filterableInStorefront"
@@ -9103,6 +9130,28 @@ exports[`Storyshots Views / Attributes / Attribute details loading 1`] = `
                 </span>
               </label>
               <div
+                class="MuiFormControl-root-id MuiFormControl-fullWidth-id"
+              >
+                <label
+                  class="MuiFormLabel-root-id MuiFormLabel-disabled-id MuiInputLabel-disabled-id MuiInputLabel-root-id MuiInputLabel-formControl-id MuiInputLabel-animated-id MuiInputLabel-filled-id"
+                  data-shrink="false"
+                >
+                  Position in faceted navigation
+                </label>
+                <div
+                  class="MuiInputBase-root-id MuiFilledInput-root-id MuiFilledInput-underline-id MuiInputBase-disabled-id MuiFilledInput-disabled-id MuiInputBase-fullWidth-id MuiInputBase-formControl-id"
+                >
+                  <input
+                    aria-invalid="false"
+                    class="MuiInputBase-input-id MuiFilledInput-input-id MuiInputBase-disabled-id MuiFilledInput-disabled-id"
+                    disabled=""
+                    name="storefrontSearchPosition"
+                    type="text"
+                    value=""
+                  />
+                </div>
+              </div>
+              <div
                 class="FormSpacer-spacer-id"
               />
               <label
@@ -9112,16 +9161,17 @@ exports[`Storyshots Views / Attributes / Attribute details loading 1`] = `
                   class="MuiSwitch-root-id"
                 >
                   <span
-                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiSwitch-disabled-id"
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiSwitch-checked-id MuiPrivateSwitchBase-disabled-id MuiSwitch-disabled-id"
                     tabindex="-1"
                   >
                     <span
                       class="MuiIconButton-label-id"
                     >
                       <span
-                        class="MuiSwitch-icon-id"
+                        class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
                       />
                       <input
+                        checked=""
                         class="MuiPrivateSwitchBase-input-id"
                         disabled=""
                         name="visibleInStorefront"
@@ -9169,16 +9219,17 @@ exports[`Storyshots Views / Attributes / Attribute details loading 1`] = `
                   class="MuiSwitch-root-id"
                 >
                   <span
-                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-disabled-id MuiSwitch-disabled-id"
+                    class="MuiButtonBase-root-id MuiButtonBase-disabled-id MuiIconButton-root-id MuiIconButton-disabled-id MuiPrivateSwitchBase-root-id MuiSwitch-switchBase-id MuiSwitch-colorPrimary-id MuiPrivateSwitchBase-checked-id MuiSwitch-checked-id MuiPrivateSwitchBase-disabled-id MuiSwitch-disabled-id"
                     tabindex="-1"
                   >
                     <span
                       class="MuiIconButton-label-id"
                     >
                       <span
-                        class="MuiSwitch-icon-id"
+                        class="MuiSwitch-icon-id MuiSwitch-iconChecked-id"
                       />
                       <input
+                        checked=""
                         class="MuiPrivateSwitchBase-input-id"
                         disabled=""
                         name="filterableInDashboard"
