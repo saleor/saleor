@@ -959,8 +959,9 @@ def payment_not_authorized(payment_dummy):
 
 
 @pytest.fixture
-def sale(category, collection):
+def sale(product, category, collection):
     sale = Sale.objects.create(name="Sale", value=5)
+    sale.products.add(product)
     sale.categories.add(category)
     sale.collections.add(collection)
     return sale

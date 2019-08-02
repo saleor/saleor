@@ -5,6 +5,7 @@ from .utils.attributes import get_name_from_attributes
 from .utils.variant_prices import (
     update_product_minimal_variant_price,
     update_products_minimal_variant_prices,
+    update_products_minimal_variant_prices_of_catalogues,
     update_products_minimal_variant_prices_of_discount,
 )
 
@@ -46,18 +47,21 @@ def update_product_minimal_variant_price_task(product_pk):
 
 
 @app.task
-def update_products_minimal_variant_prices_task(product_pks):
-    products = Product.objects.filter(pk__in=product_pks)
-    update_products_minimal_variant_prices(products)
-
-
-@app.task
-def update_all_products_minimal_variant_prices_task():
-    products = Product.objects.iterator()
-    update_products_minimal_variant_prices(products)
+def update_products_minimal_variant_prices_of_catalogues_task(
+    product_ids=[], category_ids=[], collection_ids=[]
+):
+    update_products_minimal_variant_prices_of_catalogues(
+        product_ids, category_ids, collection_ids
+    )
 
 
 @app.task
 def update_products_minimal_variant_prices_of_discount_task(discount_pk):
     discount = Sale.objects.get(pk=discount_pk)
     update_products_minimal_variant_prices_of_discount(discount)
+
+
+@app.task
+def update_all_products_minimal_variant_prices_task():
+    products = Product.objects.iterator()
+    update_products_minimal_variant_prices(products)

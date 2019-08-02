@@ -1,4 +1,7 @@
+from django.db.models.query_utils import Q
+
 from ...discount.utils import fetch_active_discounts
+from ..models import Product
 
 
 def _get_product_minimal_variant_price(product, discounts):
@@ -27,10 +30,20 @@ def update_products_minimal_variant_prices(products, discounts=None):
         update_product_minimal_variant_price(product, discounts)
 
 
+def update_products_minimal_variant_prices_of_catalogues(
+    product_ids=[], category_ids=[], collection_ids=[]
+):
+    products = Product.objects.filter(
+        Q(pk__in=product_ids)
+        | Q(category_id__in=category_ids)
+        | Q(collectionproduct__collection_id__in=collection_ids)
+    ).distinct()
+    update_products_minimal_variant_prices(products)
+
+
 def update_products_minimal_variant_prices_of_discount(discount):
-    all_discounts = fetch_active_discounts()
-    update_products_minimal_variant_prices(discount.products.all(), all_discounts)
-    for category in discount.categories.all():
-        update_products_minimal_variant_prices(category.products.all(), all_discounts)
-    for collection in discount.collections.all():
-        update_products_minimal_variant_prices(collection.products.all(), all_discounts)
+    update_products_minimal_variant_prices_of_catalogues(
+        product_ids=discount.products.all().values_list("id", flat=True),
+        categorie_ids=discount.categories.all().values_list("id", flat=True),
+        collection_ids=discount.collections.all().values_list("id", flat=True),
+    )

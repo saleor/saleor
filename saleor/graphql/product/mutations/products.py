@@ -7,7 +7,11 @@ from django.template.defaultfilters import slugify
 from graphene.types import InputObjectType
 
 from ....product import models
-from ....product.tasks import update_variants_names
+from ....product.tasks import (
+    update_product_minimal_variant_price_task,
+    update_products_minimal_variant_prices_of_catalogues_task,
+    update_variants_names,
+)
 from ....product.thumbnails import (
     create_category_background_image_thumbnails,
     create_collection_background_image_thumbnails,
@@ -287,10 +291,11 @@ class CollectionAddProducts(BaseMutation):
             info, collection_id, field="collection_id", only_type=Collection
         )
         products = cls.get_nodes_or_error(products, "products", Product)
-
-        for product in products:
-            models.CollectionProduct.objects.create(
-                collection=collection, product=product
+        collection.products.add(*products)
+        if collection.sale_set.exists():
+            # Updated the db entries, recalculating discounts of affected products
+            update_products_minimal_variant_prices_of_catalogues_task.delay(
+                product_ids=[p.pk for p in products]
             )
         return CollectionAddProducts(collection=collection)
 
@@ -319,6 +324,11 @@ class CollectionRemoveProducts(BaseMutation):
         )
         products = cls.get_nodes_or_error(products, "products", only_type=Product)
         collection.products.remove(*products)
+        if collection.sale_set.exists():
+            # Updated the db entries, recalculating discounts of affected products
+            update_products_minimal_variant_prices_of_catalogues_task.delay(
+                product_ids=[p.pk for p in products]
+            )
         return CollectionRemoveProducts(collection=collection)
 
 
@@ -743,6 +753,8 @@ class ProductVariantCreate(ModelMutation):
         )
         instance.name = get_name_from_attributes(instance, attributes)
         instance.save()
+        # Recalculate the "minimal variant price" for the parent product
+        update_product_minimal_variant_price_task.delay(instance.product_id)
 
 
 class ProductVariantUpdate(ProductVariantCreate):
@@ -770,6 +782,12 @@ class ProductVariantDelete(ModelDeleteMutation):
         description = "Deletes a product variant."
         model = models.ProductVariant
         permissions = ("product.manage_products",)
+
+    @classmethod
+    def success_response(cls, instance):
+        # Update the "minimal_variant_prices" of the parent product
+        update_product_minimal_variant_price_task.delay(instance.product_id)
+        return super().success_response(instance)
 
 
 class ProductVariantUpdateMeta(UpdateMetaBaseMutation):
