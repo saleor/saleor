@@ -5,17 +5,69 @@ from prices import Money
 
 from saleor.discount import DiscountValueType
 from saleor.product.models import Product, ProductVariant
-from saleor.product.tasks import update_all_products_minimal_variant_prices_task
+from saleor.product.tasks import (
+    update_all_products_minimal_variant_prices_task,
+    update_products_minimal_variant_prices_of_catalogues,
+)
 from saleor.product.utils.variant_prices import update_product_minimal_variant_price
 
 
 def test_update_product_minimal_variant_price(product):
-    assert product.minimal_variant_price == product.price == Money("10", "USD")
     variant = product.variants.first()
     variant.price_override = Money("4.99", "USD")
     variant.save()
 
+    assert product.minimal_variant_price == product.price == Money("10", "USD")
     update_product_minimal_variant_price(product)
+    assert product.minimal_variant_price == variant.price_override
+
+
+def test_update_products_minimal_variant_prices_of_catalogues_for_product(product):
+    variant = ProductVariant(
+        product=product,
+        sku="SKU_MINIMAL_VARIANT_PRICE",
+        price_override=Money("0.99", "USD"),
+    )
+    variant.save()
+    product.refresh_from_db()
+    assert product.minimal_variant_price == product.price == Money("10", "USD")
+    update_products_minimal_variant_prices_of_catalogues(product_ids=[product.pk])
+    product.refresh_from_db()
+    assert product.minimal_variant_price == variant.price_override
+
+
+def test_update_products_minimal_variant_prices_of_catalogues_for_category(
+    category, product
+):
+    variant = ProductVariant(
+        product=product,
+        sku="SKU_MINIMAL_VARIANT_PRICE",
+        price_override=Money("0.89", "USD"),
+    )
+    variant.save()
+    product.refresh_from_db()
+    assert product.minimal_variant_price == product.price == Money("10", "USD")
+    update_products_minimal_variant_prices_of_catalogues(
+        category_ids=[product.category_id]
+    )
+    product.refresh_from_db()
+    assert product.minimal_variant_price == variant.price_override
+
+
+def test_update_products_minimal_variant_prices_of_catalogues_for_collection(
+    collection, product
+):
+    variant = ProductVariant(
+        product=product,
+        sku="SKU_MINIMAL_VARIANT_PRICE",
+        price_override=Money("0.79", "USD"),
+    )
+    variant.save()
+    product.refresh_from_db()
+    collection.products.add(product)
+    assert product.minimal_variant_price == product.price == Money("10", "USD")
+    update_products_minimal_variant_prices_of_catalogues(collection_ids=[collection.pk])
+    product.refresh_from_db()
     assert product.minimal_variant_price == variant.price_override
 
 
@@ -191,7 +243,7 @@ def test_dashboard_sale_of_product_create_view_updates_minimal_variant_price(
     data = {
         "name": "Half price products",
         "type": DiscountValueType.PERCENTAGE,
-        "value": 50,
+        "value": "50",
         "start_date": "2019-07-11 00:00:01",
         "products": [product.pk],
     }
@@ -208,12 +260,12 @@ def test_dashboard_sale_of_category_create_view_updates_minimal_variant_price(
     category = product.category
     # Store the old "minimal_variant_price"
     old_minimal_variant_price = product.minimal_variant_price
-    # Create the "Sale" object of the given product
+    # Create the "Sale" object of the given category
     url = reverse("dashboard:sale-add")
     data = {
-        "name": "Half price products",
+        "name": "Half price category",
         "type": DiscountValueType.PERCENTAGE,
-        "value": 50,
+        "value": "50",
         "start_date": "2019-07-11 00:00:01",
         "categories": [category.pk],
     }
@@ -230,12 +282,12 @@ def test_dashboard_sale_of_collection_create_view_updates_minimal_variant_price(
     collection.products.add(product)
     # Store the old "minimal_variant_price"
     old_minimal_variant_price = product.minimal_variant_price
-    # Create the "Sale" object of the given product
+    # Create the "Sale" object of the given collection
     url = reverse("dashboard:sale-add")
     data = {
-        "name": "Half price products",
+        "name": "Half price collection",
         "type": DiscountValueType.PERCENTAGE,
-        "value": 50,
+        "value": "50",
         "start_date": "2019-07-11 00:00:01",
         "collections": [collection.pk],
     }
