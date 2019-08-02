@@ -15,7 +15,7 @@ class PluginConfiguration(models.Model):
 
     class Meta:
         permissions = (
-            ("manage_plugin", pgettext_lazy("Plugin description", "Manage plugins")),
+            ("manage_plugins", pgettext_lazy("Plugin description", "Manage plugins")),
         )
 
     def __str__(self):
