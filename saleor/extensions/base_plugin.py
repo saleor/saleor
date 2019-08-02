@@ -23,7 +23,6 @@ class BasePlugin:
     """
 
     PLUGIN_NAME = ""
-    _CACHED_CONFIGURATION = None
 
     def __str__(self):
         return self.PLUGIN_NAME
@@ -142,7 +141,6 @@ class BasePlugin:
         if "active" in cleaned_data:
             plugin_configuration.active = cleaned_data["active"]
         plugin_configuration.save()
-        cls._CACHED_CONFIGURATION = plugin_configuration
         return plugin_configuration
 
     @classmethod
@@ -152,11 +150,8 @@ class BasePlugin:
 
     @classmethod
     def get_plugin_configuration(cls, queryset: QuerySet) -> "PluginConfiguration":
-        if cls._CACHED_CONFIGURATION:
-            return cls._CACHED_CONFIGURATION
         defaults = cls._get_default_configuration()
         configuration = queryset.get_or_create(name=cls.PLUGIN_NAME, defaults=defaults)[
             0
         ]
-        cls._CACHED_CONFIGURATION = configuration
         return configuration

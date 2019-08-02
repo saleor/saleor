@@ -34,7 +34,6 @@ logger = logging.getLogger(__name__)
 
 class AvataxPlugin(BasePlugin):
     PLUGIN_NAME = "Avalara"
-    _CACHED_CONFIGURATION = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

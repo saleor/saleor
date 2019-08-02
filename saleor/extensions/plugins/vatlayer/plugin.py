@@ -28,7 +28,6 @@ class VatlayerPlugin(BasePlugin):
     PLUGIN_NAME = "Vatlayer"
     META_FIELD = "vatlayer"
     META_NAMESPACE = "taxes"
-    _CACHED_CONFIGURATION = None
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
