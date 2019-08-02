@@ -44,6 +44,6 @@ def update_products_minimal_variant_prices_of_catalogues(
 def update_products_minimal_variant_prices_of_discount(discount):
     update_products_minimal_variant_prices_of_catalogues(
         product_ids=discount.products.all().values_list("id", flat=True),
-        categorie_ids=discount.categories.all().values_list("id", flat=True),
+        category_ids=discount.categories.all().values_list("id", flat=True),
         collection_ids=discount.collections.all().values_list("id", flat=True),
     )
