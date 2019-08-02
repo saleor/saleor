@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, Any, Dict, List, Union
 from urllib.parse import urljoin
 
 from django.conf import settings
-from django.db.models import QuerySet
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ....core.taxes import TaxError, TaxType, zero_taxed_money
@@ -29,7 +28,6 @@ from .tasks import api_post_request_task
 if TYPE_CHECKING:
     from ....checkout.models import Checkout, CheckoutLine
     from ....order.models import Order, OrderLine
-    from ...models import PluginConfiguration
 
 logger = logging.getLogger(__name__)
 
@@ -314,13 +312,7 @@ class AvataxPlugin(BasePlugin):
         return True
 
     @classmethod
-    def save_plugin_configuration(cls, configuration: "PluginConfiguration"):
-        pass
-
-    @classmethod
-    def get_plugin_configuration(cls, queryset: QuerySet) -> "PluginConfiguration":
-        if cls._CACHED_CONFIGURATION:
-            return cls._CACHED_CONFIGURATION
+    def _get_default_configuration(cls):
         defaults = {
             "name": cls.PLUGIN_NAME,
             "description": "",
@@ -363,8 +355,4 @@ class AvataxPlugin(BasePlugin):
                 },
             ],
         }
-        configuration = queryset.get_or_create(name=cls.PLUGIN_NAME, defaults=defaults)[
-            0
-        ]
-        cls._CACHED_CONFIGURATION = configuration
-        return configuration
+        return defaults

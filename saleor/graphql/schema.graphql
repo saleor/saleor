@@ -706,10 +706,17 @@ type CollectionUpdatePrivateMeta {
 type ConfigurationItem {
   name: String!
   value: String!
-  type: ConfigurationTypeField
+  type: ConfigurationTypeFieldEnum
+  helpText: String
+  label: String
 }
 
-enum ConfigurationTypeField {
+input ConfigurationItemInput {
+  name: String!
+  value: String!
+}
+
+enum ConfigurationTypeFieldEnum {
   STRING
   BOOLEAN
 }
@@ -1320,8 +1327,6 @@ input FulfillmentUpdateTrackingInput {
 enum GatewaysEnum {
   DUMMY
   BRAINTREE
-  RAZORPAY
-  STRIPE
 }
 
 scalar GenericScalar
@@ -1781,6 +1786,7 @@ type Mutations {
   giftCardCreate(input: GiftCardCreateInput!): GiftCardCreate
   giftCardDeactivate(id: ID!): GiftCardDeactivate
   giftCardUpdate(id: ID!, input: GiftCardUpdateInput!): GiftCardUpdate
+  pluginConfigurationUpdate(id: ID!, input: PluginConfigurationUpdateInput!): PluginConfigurationUpdate
   saleCreate(input: SaleInput!): SaleCreate
   saleDelete(id: ID!): SaleDelete
   saleBulkDelete(ids: [ID]!): SaleBulkDelete
@@ -2289,6 +2295,7 @@ enum PermissionEnum {
   IMPERSONATE_USERS
   MANAGE_DISCOUNTS
   MANAGE_GIFT_CARD
+  MANAGE_PLUGINS
   MANAGE_MENUS
   MANAGE_ORDERS
   MANAGE_PAGES
@@ -2315,6 +2322,16 @@ type PluginConfigurationCountableConnection {
 type PluginConfigurationCountableEdge {
   node: PluginConfiguration!
   cursor: String!
+}
+
+type PluginConfigurationUpdate {
+  errors: [Error!]
+  pluginConfiguration: PluginConfiguration
+}
+
+input PluginConfigurationUpdateInput {
+  active: Boolean
+  configuration: [ConfigurationItemInput]
 }
 
 input PriceRangeInput {

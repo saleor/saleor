@@ -23,6 +23,7 @@ class BasePlugin:
     """
 
     PLUGIN_NAME = ""
+    _CACHED_CONFIGURATION = None
 
     def __str__(self):
         return self.PLUGIN_NAME
@@ -123,9 +124,39 @@ class BasePlugin:
         return NotImplemented
 
     @classmethod
-    def save_plugin_configuration(cls, configuration: List[dict]):
-        return NotImplemented
+    def _update_config_items(cls, configuration_to_update: dict, current_config: dict):
+        for config_item in current_config:
+            for config_item_to_update in configuration_to_update:
+                if config_item["name"] == config_item_to_update.get("name"):
+                    new_value = config_item_to_update.get("value")
+                    config_item.update([("value", new_value)])
+
+    @classmethod
+    def save_plugin_configuration(
+        cls, plugin_configuration: "PluginConfiguration", cleaned_data
+    ):
+        current_config = plugin_configuration.configuration
+        configuration_to_update = cleaned_data.get("configuration")
+        if configuration_to_update:
+            cls._update_config_items(configuration_to_update, current_config)
+        if "active" in cleaned_data:
+            plugin_configuration.active = cleaned_data["active"]
+        plugin_configuration.save()
+        cls._CACHED_CONFIGURATION = plugin_configuration
+        return plugin_configuration
+
+    @classmethod
+    def _get_default_configuration(cls):
+        defaults = None
+        return defaults
 
     @classmethod
     def get_plugin_configuration(cls, queryset: QuerySet) -> "PluginConfiguration":
-        return NotImplemented
+        if cls._CACHED_CONFIGURATION:
+            return cls._CACHED_CONFIGURATION
+        defaults = cls._get_default_configuration()
+        configuration = queryset.get_or_create(name=cls.PLUGIN_NAME, defaults=defaults)[
+            0
+        ]
+        cls._CACHED_CONFIGURATION = configuration
+        return configuration

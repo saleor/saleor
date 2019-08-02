@@ -203,6 +203,14 @@ class ExtensionsManager:
             "get_tax_rate_percentage_value", default_value, obj, country
         ).quantize(Decimal("1."))
 
+    def save_plugin_configuration(self, plugin_name, cleaned_data: dict):
+        plugin_configuration = PluginConfiguration.objects.get(name=plugin_name)
+        for plugin in self.plugins:
+            if plugin.PLUGIN_NAME == plugin_name:
+                return plugin.save_plugin_configuration(
+                    plugin_configuration, cleaned_data
+                )
+
     def get_plugin_configuration(self, plugin_name) -> "PluginConfiguration":
         plugin_configurations_qs = PluginConfiguration.objects.all()
         for plugin in self.plugins:
@@ -221,8 +229,11 @@ class ExtensionsManager:
 
 
 def get_extensions_manager(
-    manager_path: str = settings.EXTENSIONS_MANAGER,
-    plugins: List[str] = settings.PLUGINS,
+    manager_path: str = None, plugins: List[str] = None
 ) -> ExtensionsManager:
+    if not manager_path:
+        manager_path = settings.EXTENSIONS_MANAGER
+    if plugins is None:
+        plugins = settings.PLUGINS
     manager = import_string(manager_path)
     return manager(plugins)

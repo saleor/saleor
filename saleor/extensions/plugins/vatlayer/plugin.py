@@ -2,7 +2,6 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any, List, Union
 
 from django.conf import settings
-from django.db.models import QuerySet
 from django_countries.fields import Country
 from django_prices_vatlayer.utils import get_tax_rate_types
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
@@ -23,7 +22,6 @@ if TYPE_CHECKING:
     from ....product.models import Product
     from ....account.models import Address
     from ....order.models import OrderLine, Order
-    from ...models import PluginConfiguration
 
 
 class VatlayerPlugin(BasePlugin):
@@ -286,21 +284,11 @@ class VatlayerPlugin(BasePlugin):
         return Decimal(tax["value"])
 
     @classmethod
-    def save_plugin_configuration(cls, configuration: "PluginConfiguration"):
-        pass
-
-    @classmethod
-    def get_plugin_configuration(cls, queryset: QuerySet) -> "PluginConfiguration":
-        if cls._CACHED_CONFIGURATION:
-            return cls._CACHED_CONFIGURATION
+    def _get_default_configuration(cls):
         defaults = {
             "name": cls.PLUGIN_NAME,
             "description": "",
             "active": bool(settings.VATLAYER_ACCESS_KEY),
             "configuration": None,
         }
-        configuration = queryset.get_or_create(name=cls.PLUGIN_NAME, defaults=defaults)[
-            0
-        ]
-        cls._CACHED_CONFIGURATION = configuration
-        return configuration
+        return defaults
