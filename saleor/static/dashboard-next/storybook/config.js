@@ -11,6 +11,7 @@ function loadStories() {
   require("./stories/components/CardMenu");
   require("./stories/components/Checkbox");
   require("./stories/components/Chip");
+  require("./stories/components/ColumnPicker");
   require("./stories/components/Date");
   require("./stories/components/DateTime");
   require("./stories/components/DeleteFilterTabDialog");
