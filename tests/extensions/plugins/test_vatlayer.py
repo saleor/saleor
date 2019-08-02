@@ -174,8 +174,8 @@ def test_configure_taxes(admin_client, site_settings):
 @mock.patch("saleor.dashboard.taxes.views.messages", create=True)
 @mock.patch("saleor.dashboard.taxes.views.call_command", create=True)
 def test_fetch_tax_rates(mocked_call_command, mocked_messages, admin_client):
-    """Ensure a valid fetch VAT rates request is correctly handled,
-    and is leading to the proper VAT fetching command being invoked."""
+    # Ensure a valid fetch VAT rates request is correctly handled,
+    # and is leading to the proper VAT fetching command being invoked.
     url = reverse("dashboard:fetch-tax-rates")
     response = admin_client.post(url)
 
@@ -198,8 +198,8 @@ def test_fetch_tax_rates(mocked_call_command, mocked_messages, admin_client):
 def test_fetch_tax_rates_improperly_configured(
     mocked_call_command, mocked_logger, mocked_messages, admin_client
 ):
-    """Ensure a failing VAT rate fetching is leading to an error being
-    returned, and that error is handled."""
+    # Ensure a failing VAT rate fetching is leading to an error being
+    # returned, and that error is handled.
     url = reverse("dashboard:fetch-tax-rates")
     response = admin_client.post(url)
 
@@ -217,7 +217,7 @@ def test_fetch_tax_rates_improperly_configured(
 
 
 def test_fetch_tax_rates_invalid_method(admin_client):
-    """Ensure the GET method is not allowed for tax rates fetching"""
+    # Ensure the GET method is not allowed for tax rates fetching
     url = reverse("dashboard:fetch-tax-rates")
     assert admin_client.get(url).status_code == 405
 
@@ -509,3 +509,25 @@ def test_get_tax_rate_percentage_value(
     country = Country("PL")
     tax_rate = manager.get_tax_rate_percentage_value(product, country)
     assert tax_rate == Decimal("23")
+
+
+def test_get_plugin_configuration(vatlayer, settings):
+    settings.PLUGINS = ["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+    manager = get_extensions_manager()
+    configurations = manager.get_plugin_configurations()
+    assert len(configurations) == 1
+    configuration = configurations[0]
+
+    assert configuration.name == "Vatlayer"
+    assert configuration.active
+    assert not configuration.configuration
+
+
+def test_save_plugin_configuration(vatlayer, settings):
+    settings.PLUGINS = ["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+    manager = get_extensions_manager()
+    configuration = manager.get_plugin_configuration("Vatlayer")
+    manager.save_plugin_configuration("Vatlayer", {"active": False})
+
+    configuration.refresh_from_db()
+    assert not configuration.active
