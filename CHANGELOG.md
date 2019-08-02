@@ -36,6 +36,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add voucher settings - #4556 by @benekex2
 - Enforced pydocstyle for Python docstrings over the project - #4562 by @NyanKiyoshi
 - Add e2e test config - #4553 by @dominik-zeglen
+- Fix MUI warnings - #4588 by @dominik-zeglen
 
 ## 2.8.0
 
