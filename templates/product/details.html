@@ -21,6 +21,7 @@
 {% endblock %}
 
 {% block meta_tags %}
+  <meta name="og:type" content="product.item">
   <meta property="og:title" content="{{ product.translated.seo_title|default:product.translated.name }}">
   <meta property="og:description" content="{{ product.translated.seo_description|default:"" }}">
   <meta name="description" content="{{ product.translated.seo_description|default:"" }}">
@@ -40,9 +41,9 @@
 
   <meta property="product:condition" content="new">
   <meta property="product:availability" content="{% if product.is_in_stock %}in stock{% else %}out of stock{% endif %}">
-  <meta property="product:price:amount" content="{% if site.settings.display_gross_prices %}{{ availability.price_range.start.gross.amount }}{% else %}{{ availability.price_range.net.gross.amount }}{% endif %}">
+  <meta property="product:price:amount" content="{% if site.settings.display_gross_prices %}{{ availability.price_range.start.gross.amount }}{% else %}{{ availability.price_range.start.net.amount }}{% endif %}">
   <meta property="product:price:currency" content="{{ availability.price_range.currency }}">
-  <meta property="product:retailer_item_id" content="SKU">
+  <meta property="product:retailer_item_id" content="{{ selected_variant.sku }}">
 {% endblock meta_tags %}
 
 {% block breadcrumb %}

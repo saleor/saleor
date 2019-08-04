@@ -124,3 +124,29 @@ def price_range_as_dict(price_range):
         "minPrice": price_as_dict(price_range.start),
         "maxPrice": price_as_dict(price_range.stop),
     }
+
+
+def get_selected_variant(product, query):
+    selection = {}
+    for variant_attribute in product.product_type.variant_attributes.all():
+        if variant_attribute.slug in query:
+            for variant_attribute_value in variant_attribute.values.all():
+                if variant_attribute_value.slug == query[variant_attribute.slug]:
+                    selection[str(variant_attribute.pk)] = str(variant_attribute_value.pk)
+                    break
+
+    variants = product.variants.all()
+    current_variant = None
+    if len(selection):
+        for variant in variants:
+            for key, value in variant.attributes.items():
+                if str(key) in selection and selection[str(key)] == str(value):
+                    current_variant = variant
+                else:
+                    current_variant = None
+                    break
+            if current_variant is not None:
+                break
+    else:
+        current_variant = variants[0]
+    return current_variant

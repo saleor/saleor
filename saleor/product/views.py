@@ -35,7 +35,10 @@ from .utils.digital_products import (
     digital_content_url_is_valid,
     increment_download_count,
 )
-from .utils.variants_picker import get_variant_picker_data
+from .utils.variants_picker import (
+    get_selected_variant,
+    get_variant_picker_data,
+)
 
 
 def product_details(request, slug, product_id, form=None):
@@ -84,6 +87,7 @@ def product_details(request, slug, product_id, form=None):
         extensions=request.extensions,
     )
     product_images = get_product_images(product)
+    selected_variant = get_selected_variant(product, request.GET)
     variant_picker_data = get_variant_picker_data(
         product,
         request.discounts,
@@ -104,6 +108,7 @@ def product_details(request, slug, product_id, form=None):
         "product": product,
         "product_attributes": product_attributes,
         "product_images": product_images,
+        "selected_variant": selected_variant,
         "show_variant_picker": show_variant_picker,
         "variant_picker_data": json.dumps(
             variant_picker_data, default=serialize_decimal, cls=SafeJSONEncoder

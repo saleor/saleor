@@ -18,7 +18,6 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <meta name="apple-mobile-web-app-title" content="{{ site.name }}">
-    <meta name="og:type" content="website">
     {% get_available_languages as LANGUAGES %}
     {% for lang_code, language_name in LANGUAGES %}
       <link rel="alternate" hreflang="{{ lang_code }}" href="{% translate_url url=request.path lang_code=lang_code %}" />
@@ -31,6 +30,7 @@
   {% block stylesheet %}{% endblock stylesheet %}
 
   {% block meta_tags %}
+    <meta name="og:type" content="website">
     <meta property="og:title" content="{{ site.settings.translated.header_text }}">
     <meta property="og:description" content="{{ site.settings.translated.description }}">
     <meta name="description" content="{{ site.settings.translated.description }}">
