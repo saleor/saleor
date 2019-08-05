@@ -5,6 +5,7 @@ from saleor.checkout.utils import add_variant_to_checkout
 from saleor.core.taxes import TaxError, quantize_price
 from saleor.extensions.manager import get_extensions_manager
 from saleor.extensions.plugins.avatax import (
+    AvataxConfiguration,
     checkout_needs_new_fetch,
     generate_request_data_from_checkout,
     get_cached_tax_codes_or_fetch,
@@ -40,7 +41,7 @@ def test_calculate_checkout_line_total(
     settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
     monkeypatch.setattr(
         "saleor.extensions.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
-        lambda: {"PC040156": "desc"},
+        lambda _: {"PC040156": "desc"},
     )
     manager = get_extensions_manager(plugins=settings.PLUGINS)
 
@@ -92,7 +93,7 @@ def test_calculate_checkout_total(
     settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
     monkeypatch.setattr(
         "saleor.extensions.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
-        lambda: {"PC040156": "desc"},
+        lambda _: {"PC040156": "desc"},
     )
     manager = get_extensions_manager(plugins=settings.PLUGINS)
     checkout_with_item.shipping_address = address
@@ -133,7 +134,7 @@ def test_calculate_checkout_shipping(
     settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
     monkeypatch.setattr(
         "saleor.extensions.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
-        lambda: {"PC040156": "desc"},
+        lambda _: {"PC040156": "desc"},
     )
     manager = get_extensions_manager(plugins=settings.PLUGINS)
     site_settings.company_address = address_usa
@@ -181,7 +182,7 @@ def test_calculate_checkout_subtotal(
     settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
     monkeypatch.setattr(
         "saleor.extensions.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
-        lambda: {"PC040156": "desc"},
+        lambda _: {"PC040156": "desc"},
     )
     manager = get_extensions_manager(plugins=settings.PLUGINS)
     site_settings.company_address = address_usa
@@ -272,7 +273,7 @@ def test_preprocess_order_creation(
     settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
     monkeypatch.setattr(
         "saleor.extensions.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
-        lambda: {"PC040156": "desc"},
+        lambda _: {"PC040156": "desc"},
     )
     manager = get_extensions_manager(plugins=settings.PLUGINS)
     site_settings.company_address = address_usa
@@ -301,7 +302,7 @@ def test_preprocess_order_creation_wrong_data(
     settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
     monkeypatch.setattr(
         "saleor.extensions.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
-        lambda: {"PC040156": "desc"},
+        lambda _: {"PC040156": "desc"},
     )
     manager = get_extensions_manager(plugins=settings.PLUGINS)
 
@@ -316,25 +317,28 @@ def test_preprocess_order_creation_wrong_data(
 @pytest.mark.vcr
 def test_get_cached_tax_codes_or_fetch(monkeypatch, settings):
     monkeypatch.setattr("saleor.extensions.plugins.avatax.cache.get", lambda x, y: {})
-    settings.AVATAX_USERNAME_OR_ACCOUNT = "test"
-    settings.AVATAX_PASSWORD_OR_LICENSE = "test"
-    tax_codes = get_cached_tax_codes_or_fetch()
+    config = AvataxConfiguration(username_or_account="test", password_or_license="test")
+    tax_codes = get_cached_tax_codes_or_fetch(config)
     assert len(tax_codes) > 0
 
 
 @pytest.mark.vcr
-def test_get_cached_tax_codes_or_fetch_wrong_response(monkeypatch, settings):
+def test_get_cached_tax_codes_or_fetch_wrong_response(monkeypatch):
     monkeypatch.setattr("saleor.extensions.plugins.avatax.cache.get", lambda x, y: {})
-    settings.AVATAX_USERNAME_OR_ACCOUNT = "wrong_data"
-    settings.AVATAX_PASSWORD_OR_LICENSE = "wrong_data"
-    tax_codes = get_cached_tax_codes_or_fetch()
+    config = AvataxConfiguration(
+        username_or_account="wrong_data", password_or_license="wrong_data"
+    )
+    tax_codes = get_cached_tax_codes_or_fetch(config)
     assert len(tax_codes) == 0
 
 
 def test_checkout_needs_new_fetch(monkeypatch, checkout_with_item, address):
     monkeypatch.setattr("saleor.extensions.plugins.avatax.cache.get", lambda x: None)
     checkout_with_item.shipping_address = address
-    checkout_data = generate_request_data_from_checkout(checkout_with_item)
+    config = AvataxConfiguration(
+        username_or_account="wrong_data", password_or_license="wrong_data"
+    )
+    checkout_data = generate_request_data_from_checkout(checkout_with_item, config)
     assert checkout_needs_new_fetch(checkout_data, str(checkout_with_item.token))
 
 

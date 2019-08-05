@@ -9,9 +9,11 @@ from prices import Money, TaxedMoney, TaxedMoneyRange
 from ....core.taxes import TaxError, TaxType, zero_taxed_money
 from ... import ConfigurationTypeField
 from ...base_plugin import BasePlugin
+from ...models import PluginConfiguration
 from . import (
     META_FIELD,
     META_NAMESPACE,
+    AvataxConfiguration,
     CustomerErrors,
     TransactionType,
     _validate_checkout,
@@ -37,12 +39,48 @@ class AvataxPlugin(BasePlugin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._enabled = (
-            settings.AVATAX_USERNAME_OR_ACCOUNT and settings.AVATAX_PASSWORD_OR_LICENSE
-        )
+        self._cached_config_from_db = None
+        self.config = None
+        self.active = None
+
+    def _initialize_plugin_configuration(self):
+        plugin_config_qs = PluginConfiguration.objects.filter(name=self.PLUGIN_NAME)
+        plugin_config = self._cached_config_from_db or plugin_config_qs.first()
+
+        if plugin_config and plugin_config.configuration:
+            configuration = plugin_config.configuration
+
+            # Convert to dict to easier take config elements
+            configuration = {item["name"]: item["value"] for item in configuration}
+            self.config = AvataxConfiguration(
+                username_or_account=configuration["Username or account"],
+                password_or_license=configuration["Password or license"],
+                use_sandbox=configuration["Use sandbox"] == "true",
+                company_name=configuration["Company name"],
+                autocommit=configuration["Autocommit"] == "true",
+            )
+            self.active = plugin_config.active
+
+            if not self._cached_config_from_db:
+                self._cached_config_from_db = plugin_config
+
+        else:
+            # This should be removed after we drop an Avatax's settings from Django
+            # settings file
+            self.config = AvataxConfiguration(
+                username_or_account=settings.AVATAX_USERNAME_OR_ACCOUNT,
+                password_or_license=settings.AVATAX_PASSWORD_OR_LICENSE,
+            )
+            self.active = (
+                settings.AVATAX_USERNAME_OR_ACCOUNT
+                and settings.AVATAX_PASSWORD_OR_LICENSE
+            )
 
     def _skip_plugin(self, previous_value: Union[TaxedMoney, TaxedMoneyRange]) -> bool:
-        if not self._enabled:
+        if not (self.config.username_or_account and self.config.password_or_license):
+            return True
+
+        if not self.active:
             return True
 
         # The previous plugin already calculated taxes so we can skip our logic
@@ -62,13 +100,15 @@ class AvataxPlugin(BasePlugin):
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
+        self._initialize_plugin_configuration()
+
         if self._skip_plugin(previous_value):
             return previous_value
 
         checkout_total = checkout.get_total(discounts=discounts)
         if not _validate_checkout(checkout):
             return TaxedMoney(net=checkout_total, gross=checkout_total)
-        response = get_checkout_tax_data(checkout, discounts)
+        response = get_checkout_tax_data(checkout, discounts, self.config)
         if not response or "error" in response:
             return TaxedMoney(net=checkout_total, gross=checkout_total)
 
@@ -103,6 +143,7 @@ class AvataxPlugin(BasePlugin):
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
+        self._initialize_plugin_configuration()
 
         if self._skip_plugin(previous_value):
             return previous_value
@@ -111,7 +152,7 @@ class AvataxPlugin(BasePlugin):
         if not _validate_checkout(checkout):
             return TaxedMoney(net=sub_total, gross=sub_total)
 
-        response = get_checkout_tax_data(checkout, discounts)
+        response = get_checkout_tax_data(checkout, discounts, self.config)
         if not response or "error" in response:
             return TaxedMoney(net=sub_total, gross=sub_total)
 
@@ -139,6 +180,8 @@ class AvataxPlugin(BasePlugin):
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
+        self._initialize_plugin_configuration()
+
         if self._skip_plugin(previous_value):
             return previous_value
 
@@ -146,7 +189,7 @@ class AvataxPlugin(BasePlugin):
         if not _validate_checkout(checkout):
             return TaxedMoney(net=shipping_price, gross=shipping_price)
 
-        response = get_checkout_tax_data(checkout, discounts)
+        response = get_checkout_tax_data(checkout, discounts, self.config)
         if not response or "error" in response:
             return TaxedMoney(net=shipping_price, gross=shipping_price)
 
@@ -162,16 +205,22 @@ class AvataxPlugin(BasePlugin):
 
         Raise an error when can't receive taxes.
         """
-        if not self._enabled:
-            return
+        self._initialize_plugin_configuration()
+
+        if not self.active:
+            return previous_value
+
         data = generate_request_data_from_checkout(
             checkout,
+            self.config,
             transaction_token=str(checkout.token),
             transaction_type=TransactionType.ORDER,
             discounts=discounts,
         )
-        transaction_url = urljoin(get_api_url(), "transactions/createoradjust")
-        response = api_post_request(transaction_url, data)
+        transaction_url = urljoin(
+            get_api_url(self.config.use_sandbox), "transactions/createoradjust"
+        )
+        response = api_post_request(transaction_url, data, self.config)
         if not response or "error" in response:
             msg = response.get("error", {}).get("message", "")
             error_code = response.get("error", {}).get("code", "")
@@ -184,16 +233,20 @@ class AvataxPlugin(BasePlugin):
             )
             customer_msg = CustomerErrors.get_error_msg(response.get("error", {}))
             raise TaxError(customer_msg)
+        return previous_value
 
-    def postprocess_order_creation(self, order: "Order", previous_value: Any):
-        if not self._enabled:
-            return
-        data = get_order_tax_data(
-            order, commit=settings.AVATAX_AUTOCOMMIT, force_refresh=True
+    def postprocess_order_creation(self, order: "Order", previous_value: Any) -> Any:
+        self._initialize_plugin_configuration()
+
+        if not self.active:
+            return previous_value
+        data = get_order_tax_data(order, self.config, force_refresh=True)
+
+        transaction_url = urljoin(
+            get_api_url(self.config.use_sandbox), "transactions/createoradjust"
         )
-
-        transaction_url = urljoin(get_api_url(), "transactions/createoradjust")
         api_post_request_task.delay(transaction_url, data)
+        return previous_value
 
     def calculate_checkout_line_total(
         self,
@@ -201,6 +254,8 @@ class AvataxPlugin(BasePlugin):
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
+        self._initialize_plugin_configuration()
+
         if self._skip_plugin(previous_value):
             return previous_value
 
@@ -208,7 +263,7 @@ class AvataxPlugin(BasePlugin):
         total = checkout_line.get_total(discounts)
         if not _validate_checkout(checkout):
             return TaxedMoney(net=total, gross=total)
-        taxes_data = get_checkout_tax_data(checkout, discounts)
+        taxes_data = get_checkout_tax_data(checkout, discounts, self.config)
         currency = taxes_data.get("currencyCode")
         for line in taxes_data.get("lines", []):
             if line.get("itemCode") == checkout_line.variant.sku:
@@ -223,7 +278,7 @@ class AvataxPlugin(BasePlugin):
 
     def _calculate_order_line_unit(self, order_line):
         order = order_line.order
-        taxes_data = get_order_tax_data(order)
+        taxes_data = get_order_tax_data(order, self.config)
         currency = taxes_data.get("currencyCode")
         for line in taxes_data.get("lines", []):
             if line.get("itemCode") == order_line.variant.sku:
@@ -237,6 +292,8 @@ class AvataxPlugin(BasePlugin):
     def calculate_order_line_unit(
         self, order_line: "OrderLine", previous_value: TaxedMoney
     ) -> TaxedMoney:
+        self._initialize_plugin_configuration()
+
         if self._skip_plugin(previous_value):
             return previous_value
 
@@ -247,12 +304,14 @@ class AvataxPlugin(BasePlugin):
     def calculate_order_shipping(
         self, order: "Order", previous_value: TaxedMoney
     ) -> TaxedMoney:
+        self._initialize_plugin_configuration()
+
         if self._skip_plugin(previous_value):
             return previous_value
 
         if not _validate_order(order):
             return zero_taxed_money(order.total.currency)
-        taxes_data = get_order_tax_data(order, False)
+        taxes_data = get_order_tax_data(order, self.config, False)
         currency = taxes_data.get("currencyCode")
         for line in taxes_data.get("lines", []):
             if line["itemCode"] == "Shipping":
@@ -266,20 +325,24 @@ class AvataxPlugin(BasePlugin):
         )
 
     def get_tax_rate_type_choices(self, previous_value: Any) -> List[TaxType]:
-        if not self._enabled:
+        self._initialize_plugin_configuration()
+
+        if not self.active:
             return previous_value
         return [
             TaxType(code=tax_code, description=desc)
-            for tax_code, desc in get_cached_tax_codes_or_fetch().items()
+            for tax_code, desc in get_cached_tax_codes_or_fetch(self.config).items()
         ]
 
     def assign_tax_code_to_object_meta(
         self, obj: Union["Product", "ProductType"], tax_code: str, previous_value: Any
     ):
-        if not self._enabled:
+        self._initialize_plugin_configuration()
+
+        if not self.active:
             return previous_value
 
-        codes = get_cached_tax_codes_or_fetch()
+        codes = get_cached_tax_codes_or_fetch(self.config)
         if tax_code not in codes:
             return
 
@@ -295,18 +358,24 @@ class AvataxPlugin(BasePlugin):
     def get_tax_code_from_object_meta(
         self, obj: Union["Product", "ProductType"], previous_value: Any
     ) -> TaxType:
-        if not self._enabled:
+        self._initialize_plugin_configuration()
+
+        if not self.active:
             return previous_value
         tax = obj.get_meta(namespace=META_NAMESPACE, client=META_FIELD)
         return TaxType(code=tax.get("code", ""), description=tax.get("description", ""))
 
     def show_taxes_on_storefront(self, previous_value: bool) -> bool:
-        if not self._enabled:
+        self._initialize_plugin_configuration()
+
+        if not self.active:
             return previous_value
         return False
 
     def taxes_are_enabled(self, previous_value: bool) -> bool:
-        if not self._enabled:
+        self._initialize_plugin_configuration()
+
+        if not self.active:
             return previous_value
         return True
 
@@ -340,7 +409,7 @@ class AvataxPlugin(BasePlugin):
                 },
                 {
                     "name": "Company name",
-                    "value": "",
+                    "value": "DEFAULT",
                     "type": ConfigurationTypeField.STRING,
                     "help_text": "",
                     "label": "",
