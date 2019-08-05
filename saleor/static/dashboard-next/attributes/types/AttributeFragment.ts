@@ -11,7 +11,7 @@ export interface AttributeFragment {
   id: string;
   name: string | null;
   slug: string | null;
-  visibleInStorefront: boolean | null;
-  filterableInDashboard: boolean | null;
-  filterableInStorefront: boolean | null;
+  visibleInStorefront: boolean;
+  filterableInDashboard: boolean;
+  filterableInStorefront: boolean;
 }

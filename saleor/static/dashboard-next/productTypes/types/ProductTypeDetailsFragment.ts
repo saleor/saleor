@@ -17,9 +17,9 @@ export interface ProductTypeDetailsFragment_productAttributes {
   id: string;
   name: string | null;
   slug: string | null;
-  visibleInStorefront: boolean | null;
-  filterableInDashboard: boolean | null;
-  filterableInStorefront: boolean | null;
+  visibleInStorefront: boolean;
+  filterableInDashboard: boolean;
+  filterableInStorefront: boolean;
 }
 
 export interface ProductTypeDetailsFragment_variantAttributes {
@@ -27,9 +27,9 @@ export interface ProductTypeDetailsFragment_variantAttributes {
   id: string;
   name: string | null;
   slug: string | null;
-  visibleInStorefront: boolean | null;
-  filterableInDashboard: boolean | null;
-  filterableInStorefront: boolean | null;
+  visibleInStorefront: boolean;
+  filterableInDashboard: boolean;
+  filterableInStorefront: boolean;
 }
 
 export interface ProductTypeDetailsFragment_weight {

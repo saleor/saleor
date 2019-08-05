@@ -18,7 +18,7 @@ export interface ProductVariantDetails_productVariant_attributes_attribute {
   id: string;
   name: string | null;
   slug: string | null;
-  valueRequired: boolean | null;
+  valueRequired: boolean;
   values: (ProductVariantDetails_productVariant_attributes_attribute_values | null)[] | null;
 }
 
