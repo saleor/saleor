@@ -1,8 +1,11 @@
+import ClickAwayListener from "@material-ui/core/ClickAwayListener";
 import Grow from "@material-ui/core/Grow";
 import Popper from "@material-ui/core/Popper";
 import { Theme } from "@material-ui/core/styles";
+import { fade } from "@material-ui/core/styles/colorManipulator";
 import makeStyles from "@material-ui/styles/makeStyles";
 import React from "react";
+
 import ColumnPickerButton from "./ColumnPickerButton";
 import ColumnPickerContent, {
   ColumnPickerContentProps
@@ -16,7 +19,9 @@ export interface ColumnPickerProps extends ColumnPickerContentProps {
 const useStyles = makeStyles(
   (theme: Theme) => ({
     popper: {
-      marginTop: theme.spacing.unit * 2
+      boxShadow: `0px 5px 10px 0 ${fade(theme.palette.common.black, 0.05)}`,
+      marginTop: theme.spacing.unit * 2,
+      zIndex: 1
     }
   }),
   {
@@ -56,10 +61,15 @@ const ColumnPicker: React.FC<ColumnPickerProps> = props => {
                 placement === "bottom" ? "right bottom" : "right top"
             }}
           >
-            <ColumnPickerContent
-              columns={columns}
-              selectedColumns={selectedColumns}
-            />
+            <ClickAwayListener
+              onClickAway={() => setExpansionState(false)}
+              mouseEvent="onClick"
+            >
+              <ColumnPickerContent
+                columns={columns}
+                selectedColumns={selectedColumns}
+              />
+            </ClickAwayListener>
           </Grow>
         )}
       </Popper>
