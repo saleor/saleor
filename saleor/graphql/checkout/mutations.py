@@ -46,7 +46,7 @@ from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
 from .types import Checkout, CheckoutLine
 
-ERROR_DOES_NOT_SHIP = "This checkout doesn't have shipping"
+ERROR_DOES_NOT_SHIP = "This checkout doesn't need shipping"
 
 
 def clean_shipping_method(
@@ -230,7 +230,6 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             instance.billing_address = billing_address.get_copy()
             updated_fields.append("billing_address")
 
-        # Save the updated fields
         # Note django will simply return if the list is empty
         instance.save(update_fields=updated_fields)
 
@@ -598,15 +597,15 @@ class CheckoutComplete(BaseMutation):
                     "Unable to calculate taxes - %s" % str(tax_error)
                 )
 
+        billing_address = order_data["billing_address"]
+        shipping_address = order_data.get("shipping_address", None)
+
+        billing_address = AddressData(**billing_address.as_data())
+
+        if shipping_address is not None:
+            shipping_address = AddressData(**shipping_address.as_data())
+
         try:
-            billing_address = order_data["billing_address"]
-            shipping_address = order_data.get("shipping_address", None)
-
-            billing_address = AddressData(**billing_address.as_data())
-
-            if shipping_address is not None:
-                shipping_address = AddressData(**shipping_address.as_data())
-
             txn = gateway_process_payment(
                 payment=payment,
                 payment_token=payment.token,
@@ -614,8 +613,6 @@ class CheckoutComplete(BaseMutation):
                 shipping_address=shipping_address,
                 store_source=store_source,
             )
-            if txn.is_success and txn.customer_id and user.is_authenticated:
-                store_customer_id(user, payment.gateway, txn.customer_id)
 
             if not txn.is_success:
                 raise PaymentError(txn.error)
@@ -623,6 +620,9 @@ class CheckoutComplete(BaseMutation):
         except PaymentError as e:
             abort_order_data(order_data)
             raise ValidationError(str(e))
+
+        if txn.customer_id and user.is_authenticated:
+            store_customer_id(user, payment.gateway, txn.customer_id)
 
         # create the order into the database
         order = create_order(checkout=checkout, order_data=order_data, user=user)
