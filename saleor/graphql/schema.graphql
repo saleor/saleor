@@ -151,13 +151,13 @@ type Attribute implements Node {
   name: String
   slug: String
   values: [AttributeValue]
-  valueRequired: Boolean
-  visibleInStorefront: Boolean
-  filterableInStorefront: Boolean
-  filterableInDashboard: Boolean
-  availableInGrid: Boolean
+  valueRequired: Boolean!
+  visibleInStorefront: Boolean!
+  filterableInStorefront: Boolean!
+  filterableInDashboard: Boolean!
+  availableInGrid: Boolean!
   translation(languageCode: LanguageCodeEnum!): AttributeTranslation
-  storefrontSearchPosition: Int
+  storefrontSearchPosition: Int!
 }
 
 type AttributeAssign {

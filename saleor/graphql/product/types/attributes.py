@@ -97,18 +97,20 @@ class Attribute(CountableDjangoObjectType, MetadataObjectType):
         model_field="values",
     )
 
-    value_required = graphene.Boolean(description=AttributeDescriptions.VALUE_REQUIRED)
+    value_required = graphene.Boolean(
+        description=AttributeDescriptions.VALUE_REQUIRED, required=True
+    )
     visible_in_storefront = graphene.Boolean(
-        description=AttributeDescriptions.VISIBLE_IN_STOREFRONT
+        description=AttributeDescriptions.VISIBLE_IN_STOREFRONT, required=True
     )
     filterable_in_storefront = graphene.Boolean(
-        description=AttributeDescriptions.FILTERABLE_IN_STOREFRONT
+        description=AttributeDescriptions.FILTERABLE_IN_STOREFRONT, required=True
     )
     filterable_in_dashboard = graphene.Boolean(
-        description=AttributeDescriptions.FILTERABLE_IN_DASHBOARD
+        description=AttributeDescriptions.FILTERABLE_IN_DASHBOARD, required=True
     )
     available_in_grid = graphene.Boolean(
-        description=AttributeDescriptions.AVAILABLE_IN_GRID
+        description=AttributeDescriptions.AVAILABLE_IN_GRID, required=True
     )
 
     translation = graphene.Field(
@@ -125,7 +127,7 @@ class Attribute(CountableDjangoObjectType, MetadataObjectType):
     )
 
     storefront_search_position = graphene.Int(
-        description=AttributeDescriptions.STOREFRONT_SEARCH_POSITION
+        description=AttributeDescriptions.STOREFRONT_SEARCH_POSITION, required=True
     )
 
     class Meta:
