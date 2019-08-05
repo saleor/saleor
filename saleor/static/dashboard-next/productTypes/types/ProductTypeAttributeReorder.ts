@@ -25,9 +25,9 @@ export interface ProductTypeAttributeReorder_productTypeReorderAttributes_produc
   id: string;
   name: string | null;
   slug: string | null;
-  visibleInStorefront: boolean | null;
-  filterableInDashboard: boolean | null;
-  filterableInStorefront: boolean | null;
+  visibleInStorefront: boolean;
+  filterableInDashboard: boolean;
+  filterableInStorefront: boolean;
 }
 
 export interface ProductTypeAttributeReorder_productTypeReorderAttributes_productType_variantAttributes {
@@ -35,9 +35,9 @@ export interface ProductTypeAttributeReorder_productTypeReorderAttributes_produc
   id: string;
   name: string | null;
   slug: string | null;
-  visibleInStorefront: boolean | null;
-  filterableInDashboard: boolean | null;
-  filterableInStorefront: boolean | null;
+  visibleInStorefront: boolean;
+  filterableInDashboard: boolean;
+  filterableInStorefront: boolean;
 }
 
 export interface ProductTypeAttributeReorder_productTypeReorderAttributes_productType_weight {

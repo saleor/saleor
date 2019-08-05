@@ -2,39 +2,42 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import IconButton from "@material-ui/core/IconButton";
 import DeleteIcon from "@material-ui/icons/Delete";
 import React from "react";
-import { arrayMove } from "react-sortable-hoc";
 
 import ActionDialog from "@saleor/components/ActionDialog";
 import { WindowTitle } from "@saleor/components/WindowTitle";
 import useBulkActions from "@saleor/hooks/useBulkActions";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
-import placeholderImg from "../../../images/placeholder255x255.png";
-import { DEFAULT_INITIAL_SEARCH_DATA } from "../../config";
-import SearchCategories from "../../containers/SearchCategories";
-import SearchCollections from "../../containers/SearchCollections";
-import i18n from "../../i18n";
-import { decimal, getMutationState, maybe } from "../../misc";
-import { productTypeUrl } from "../../productTypes/urls";
-import ProductUpdatePage, {
-  ProductUpdatePageSubmitData
-} from "../components/ProductUpdatePage";
-import ProductUpdateOperations from "../containers/ProductUpdateOperations";
-import { TypedProductDetailsQuery } from "../queries";
+import placeholderImg from "../../../../images/placeholder255x255.png";
+import { DEFAULT_INITIAL_SEARCH_DATA } from "../../../config";
+import SearchCategories from "../../../containers/SearchCategories";
+import SearchCollections from "../../../containers/SearchCollections";
+import i18n from "../../../i18n";
+import { getMutationState, maybe } from "../../../misc";
+import { productTypeUrl } from "../../../productTypes/urls";
+import ProductUpdatePage from "../../components/ProductUpdatePage";
+import ProductUpdateOperations from "../../containers/ProductUpdateOperations";
+import { TypedProductDetailsQuery } from "../../queries";
 import {
   ProductImageCreate,
   ProductImageCreateVariables
-} from "../types/ProductImageCreate";
-import { ProductUpdate as ProductUpdateMutationResult } from "../types/ProductUpdate";
-import { ProductVariantBulkDelete } from "../types/ProductVariantBulkDelete";
+} from "../../types/ProductImageCreate";
+import { ProductUpdate as ProductUpdateMutationResult } from "../../types/ProductUpdate";
+import { ProductVariantBulkDelete } from "../../types/ProductVariantBulkDelete";
 import {
   productImageUrl,
   productListUrl,
   productUrl,
+  ProductUrlDialog,
   ProductUrlQueryParams,
   productVariantAddUrl,
   productVariantEditUrl
-} from "../urls";
+} from "../../urls";
+import {
+  createImageReorderHandler,
+  createImageUploadHandler,
+  createUpdateHandler
+} from "./handlers";
 
 interface ProductUpdateProps {
   id: string;
@@ -50,6 +53,13 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
   const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
+
+  const openModal = (action: ProductUrlDialog) =>
+    navigate(
+      productUrl(id, {
+        action
+      })
+    );
 
   return (
     <SearchCategories variables={DEFAULT_INITIAL_SEARCH_DATA}>
@@ -131,64 +141,19 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                         deleteProductImage.mutate({ id });
                       const handleImageEdit = (imageId: string) => () =>
                         navigate(productImageUrl(id, imageId));
-                      const handleSubmit = (
-                        data: ProductUpdatePageSubmitData
-                      ) => {
-                        if (product) {
-                          if (product.productType.hasVariants) {
-                            updateProduct.mutate({
-                              attributes: data.attributes.map(attribute => ({
-                                id: attribute.id,
-                                values: attribute.value
-                              })),
-                              basePrice: decimal(data.basePrice),
-                              category: data.category,
-                              chargeTaxes: data.chargeTaxes,
-                              collections: data.collections,
-                              descriptionJson: JSON.stringify(data.description),
-                              id: product.id,
-                              isPublished: data.isPublished,
-                              name: data.name,
-                              publicationDate:
-                                data.publicationDate !== ""
-                                  ? data.publicationDate
-                                  : null,
-                              seo: {
-                                description: data.seoDescription,
-                                title: data.seoTitle
-                              }
-                            });
-                          } else {
-                            updateSimpleProduct.mutate({
-                              attributes: data.attributes.map(attribute => ({
-                                id: attribute.id,
-                                values: attribute.value
-                              })),
-                              basePrice: decimal(data.basePrice),
-                              category: data.category,
-                              chargeTaxes: data.chargeTaxes,
-                              collections: data.collections,
-                              descriptionJson: JSON.stringify(data.description),
-                              id: product.id,
-                              isPublished: data.isPublished,
-                              name: data.name,
-                              productVariantId: product.variants[0].id,
-                              productVariantInput: {
-                                quantity: data.stockQuantity,
-                                sku: data.sku
-                              },
-                              publicationDate:
-                                data.publicationDate !== ""
-                                  ? data.publicationDate
-                                  : null,
-                              seo: {
-                                description: data.seoDescription,
-                                title: data.seoTitle
-                              }
-                            });
-                          }
-                        }
-                      };
+                      const handleSubmit = createUpdateHandler(
+                        product,
+                        updateProduct.mutate,
+                        updateSimpleProduct.mutate
+                      );
+                      const handleImageUpload = createImageUploadHandler(
+                        id,
+                        createProductImage.mutate
+                      );
+                      const handleImageReorder = createImageReorderHandler(
+                        product,
+                        reorderProductImages.mutate
+                      );
 
                       const disableFormSave =
                         createProductImage.opts.loading ||
@@ -232,25 +197,27 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                         )
                       );
 
+                      const categories = maybe(
+                        () => searchCategoriesOpts.data.categories.edges,
+                        []
+                      ).map(edge => edge.node);
+                      const collections = maybe(
+                        () => searchCollectionsOpts.data.collections.edges,
+                        []
+                      ).map(edge => edge.node);
+                      const errors = maybe(
+                        () => updateProduct.opts.data.productUpdate.errors,
+                        []
+                      );
+
                       return (
                         <>
                           <WindowTitle title={maybe(() => data.product.name)} />
                           <ProductUpdatePage
-                            categories={maybe(
-                              () => searchCategoriesOpts.data.categories.edges,
-                              []
-                            ).map(edge => edge.node)}
-                            collections={maybe(
-                              () =>
-                                searchCollectionsOpts.data.collections.edges,
-                              []
-                            ).map(edge => edge.node)}
+                            categories={categories}
+                            collections={collections}
                             disabled={disableFormSave}
-                            errors={maybe(
-                              () =>
-                                updateProduct.opts.data.productUpdate.errors,
-                              []
-                            )}
+                            errors={errors}
                             fetchCategories={searchCategories}
                             fetchCollections={searchCollections}
                             saveButtonBarState={formTransitionState}
@@ -267,43 +234,20 @@ export const ProductUpdate: React.StatelessComponent<ProductUpdateProps> = ({
                             onBack={() => {
                               navigate(productListUrl());
                             }}
-                            onDelete={() =>
-                              navigate(
-                                productUrl(id, {
-                                  action: "remove"
-                                })
-                              )
-                            }
+                            onDelete={() => openModal("remove")}
                             onProductShow={() => {
                               if (product) {
                                 window.open(product.url);
                               }
                             }}
-                            onImageReorder={({ newIndex, oldIndex }) => {
-                              if (product) {
-                                let ids = product.images.map(image => image.id);
-                                ids = arrayMove(ids, oldIndex, newIndex);
-                                reorderProductImages.mutate({
-                                  imagesIds: ids,
-                                  productId: product.id
-                                });
-                              }
-                            }}
+                            onImageReorder={handleImageReorder}
                             onSubmit={handleSubmit}
                             onVariantAdd={handleVariantAdd}
                             onVariantShow={variantId => () =>
                               navigate(
                                 productVariantEditUrl(product.id, variantId)
                               )}
-                            onImageUpload={file => {
-                              if (product) {
-                                createProductImage.mutate({
-                                  alt: "",
-                                  image: file,
-                                  product: product.id
-                                });
-                              }
-                            }}
+                            onImageUpload={handleImageUpload}
                             onImageEdit={handleImageEdit}
                             onImageDelete={handleImageDelete}
                             toolbar={

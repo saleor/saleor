@@ -32,6 +32,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Reset errors after closing modal - #4536 by @dominik-zeglen
 - Add slug column to product type's attribute list - #4538 by @dominik-zeglen
 - Reset query after modal close - #4554 by @dominik-zeglen
+- Fix various minor bugs - #4586 by @dominik-zeglen
 
 ## [Unreleased]
 

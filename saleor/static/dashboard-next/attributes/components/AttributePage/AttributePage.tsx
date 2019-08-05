@@ -64,23 +64,23 @@ const AttributePage: React.FC<AttributePageProps> = ({
   const initialForm: AttributePageFormData =
     attribute === null
       ? {
-          filterableInDashboard: false,
-          filterableInStorefront: false,
+          filterableInDashboard: true,
+          filterableInStorefront: true,
           inputType: AttributeInputTypeEnum.DROPDOWN,
           name: "",
           slug: "",
           storefrontSearchPosition: "",
-          valueRequired: false,
-          visibleInStorefront: false
+          valueRequired: true,
+          visibleInStorefront: true
         }
       : {
           filterableInDashboard: maybe(
             () => attribute.filterableInDashboard,
-            false
+            true
           ),
           filterableInStorefront: maybe(
             () => attribute.filterableInStorefront,
-            false
+            true
           ),
           inputType: maybe(
             () => attribute.inputType,
@@ -92,8 +92,8 @@ const AttributePage: React.FC<AttributePageProps> = ({
             () => attribute.storefrontSearchPosition.toString(),
             ""
           ),
-          valueRequired: maybe(() => attribute.valueRequired, false),
-          visibleInStorefront: maybe(() => attribute.visibleInStorefront, false)
+          valueRequired: maybe(() => attribute.valueRequired, true),
+          visibleInStorefront: maybe(() => attribute.visibleInStorefront, true)
         };
 
   const handleSubmit = (data: AttributePageFormData) =>

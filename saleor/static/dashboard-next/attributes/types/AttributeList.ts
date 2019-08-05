@@ -11,9 +11,9 @@ export interface AttributeList_attributes_edges_node {
   id: string;
   name: string | null;
   slug: string | null;
-  visibleInStorefront: boolean | null;
-  filterableInDashboard: boolean | null;
-  filterableInStorefront: boolean | null;
+  visibleInStorefront: boolean;
+  filterableInDashboard: boolean;
+  filterableInStorefront: boolean;
 }
 
 export interface AttributeList_attributes_edges {

@@ -14,6 +14,7 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
       inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Author",
       slug: "author",
+      valueRequired: true,
       values: [
         {
           __typename: "AttributeValue" as "AttributeValue",
@@ -43,6 +44,7 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
       inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Box Size",
       slug: "box-size",
+      valueRequired: true,
       values: [
         {
           __typename: "AttributeValue" as "AttributeValue",
@@ -90,6 +92,7 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
       inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Brand",
       slug: "brand",
+      valueRequired: true,
       values: [
         {
           __typename: "AttributeValue" as "AttributeValue",
@@ -110,6 +113,7 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
       inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Candy Box Size",
       slug: "candy-box-size",
+      valueRequired: true,
       values: [
         {
           __typename: "AttributeValue" as "AttributeValue",
@@ -148,6 +152,7 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
       inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Coffee Genre",
       slug: "coffee-genre",
+      valueRequired: true,
       values: [
         {
           __typename: "AttributeValue" as "AttributeValue",
@@ -177,6 +182,7 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
       inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Collar",
       slug: "collar",
+      valueRequired: true,
       values: [
         {
           __typename: "AttributeValue" as "AttributeValue",
@@ -215,6 +221,7 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
       inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Color",
       slug: "color",
+      valueRequired: true,
       values: [
         {
           __typename: "AttributeValue" as "AttributeValue",
@@ -244,6 +251,7 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
       inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Cover",
       slug: "cover",
+      valueRequired: true,
       values: [
         {
           __typename: "AttributeValue" as "AttributeValue",
@@ -309,6 +317,7 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
       inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Flavor",
       slug: "flavor",
+      valueRequired: true,
       values: [
         {
           __typename: "AttributeValue" as "AttributeValue",
@@ -338,6 +347,7 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
       inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Language",
       slug: "language",
+      valueRequired: true,
       values: [
         {
           __typename: "AttributeValue" as "AttributeValue",
@@ -367,6 +377,7 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
       inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Publisher",
       slug: "publisher",
+      valueRequired: true,
       values: [
         {
           __typename: "AttributeValue" as "AttributeValue",
@@ -396,6 +407,7 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
       inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Size",
       slug: "size",
+      valueRequired: true,
       values: [
         {
           __typename: "AttributeValue" as "AttributeValue",

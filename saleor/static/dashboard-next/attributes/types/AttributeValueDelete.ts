@@ -28,12 +28,12 @@ export interface AttributeValueDelete_attributeValueDelete_attribute {
   id: string;
   name: string | null;
   slug: string | null;
-  visibleInStorefront: boolean | null;
-  filterableInDashboard: boolean | null;
-  filterableInStorefront: boolean | null;
+  visibleInStorefront: boolean;
+  filterableInDashboard: boolean;
+  filterableInStorefront: boolean;
   inputType: AttributeInputTypeEnum | null;
-  storefrontSearchPosition: number | null;
-  valueRequired: boolean | null;
+  storefrontSearchPosition: number;
+  valueRequired: boolean;
   values: (AttributeValueDelete_attributeValueDelete_attribute_values | null)[] | null;
 }
 

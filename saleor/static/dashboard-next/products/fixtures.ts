@@ -18,6 +18,7 @@ export const product: (
         inputType: AttributeInputTypeEnum.DROPDOWN,
         name: "Borders",
         slug: "Borders",
+        valueRequired: true,
         values: [
           {
             __typename: "AttributeValue",
@@ -50,6 +51,7 @@ export const product: (
         inputType: AttributeInputTypeEnum.MULTISELECT,
         name: "Legacy",
         slug: "Legacy",
+        valueRequired: true,
         values: [
           {
             __typename: "AttributeValue",
@@ -192,6 +194,7 @@ export const product: (
         name: "Color",
         slug: "color",
         sortOrder: 0,
+        valueRequired: true,
         values: [
           {
             __typename: "AttributeValue",
@@ -2186,6 +2189,7 @@ export const variant = (placeholderImage: string): ProductVariant => ({
         id: "pta18161",
         name: "Borders",
         slug: "Borders",
+        valueRequired: true,
         values: [
           {
             __typename: "AttributeValue",
@@ -2215,6 +2219,7 @@ export const variant = (placeholderImage: string): ProductVariant => ({
         id: "pta22785",
         name: "Legacy",
         slug: "Legacy",
+        valueRequired: true,
         values: [
           {
             __typename: "AttributeValue",
