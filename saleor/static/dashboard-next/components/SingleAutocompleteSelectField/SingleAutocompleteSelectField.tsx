@@ -175,7 +175,7 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
                             </MenuItem>
                           )}
                           {choices.map((suggestion, index) => {
-                            const choiceIndex = emptyOption ? index + 1 : 0;
+                            const choiceIndex = index + (emptyOption ? 1 : 0);
 
                             return (
                               <MenuItem
