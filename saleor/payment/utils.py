@@ -76,10 +76,10 @@ def create_payment_information(
     """
     billing, shipping = None, None
 
-    if billing_address is None and payment.order.billing_address:
+    if billing_address is None and payment.order and payment.order.billing_address:
         billing = AddressData(**payment.order.billing_address.as_data())
 
-    if shipping_address is None and payment.order.shipping_address:
+    if shipping_address is None and payment.order and payment.order.shipping_address:
         shipping = AddressData(**payment.order.shipping_address.as_data())
 
     order_id = payment.order.pk if payment.order else None
