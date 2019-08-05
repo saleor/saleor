@@ -205,10 +205,12 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
     is_available = graphene.Boolean(
         description="Whether the variant is in stock and visible or not."
     )
-    attributes = graphene.List(
-        graphene.NonNull(SelectedAttribute),
-        required=True,
-        description="List of attributes assigned to this variant.",
+    attributes = gql_optimizer.field(
+        graphene.List(
+            graphene.NonNull(SelectedAttribute),
+            required=True,
+            description="List of attributes assigned to this variant.",
+        )
     )
     cost_price = graphene.Field(Money, description="Cost price of the variant.")
     margin = graphene.Int(description="Gross margin percentage value.")
@@ -272,13 +274,14 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         return root.quantity_available
 
     @staticmethod
-    @gql_optimizer.resolver_hints(
-        prefetch_related="product__product_type__variant_attributes__values"
-    )
+    @gql_optimizer.resolver_hints("product__product_type__variant_attributes__values")
     def resolve_attributes(root: models.ProductVariant, info):
-        attr_qs = root.product.product_type.variant_attributes.get_visible_to_user(
-            info.context.user
-        ).variant_attributes_sorted()
+        attr_qs = (
+            root.product.product_type.variant_attributes.prefetch_related("values")
+            .get_visible_to_user(info.context.user)
+            .variant_attributes_sorted()
+        )
+        attr_qs = gql_optimizer.query(attr_qs, info)
         return resolve_attribute_list(root.attributes, attr_qs)
 
     @staticmethod
@@ -560,10 +563,13 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
         prefetch_related="product_type__product_attributes__values"
     )
     def resolve_attributes(root: models.Product, info):
-        attributes_qs = root.product_type.product_attributes.get_visible_to_user(
-            info.context.user
-        ).product_attributes_sorted()
-        return resolve_attribute_list(root.attributes, attributes_qs)
+        attr_qs = (
+            root.product_type.product_attributes.prefetch_related("values")
+            .get_visible_to_user(info.context.user)
+            .product_attributes_sorted()
+        )
+        attr_qs = gql_optimizer.query(attr_qs, info)
+        return resolve_attribute_list(root.attributes, attr_qs)
 
     @staticmethod
     @permission_required("product.manage_products")
