@@ -942,7 +942,7 @@ def create_page():
         "title": "About",
         "is_published": True,
     }
-    page, dummy = Page.objects.get_or_create(slug="about", **page_data)
+    page, dummy = Page.objects.get_or_create(slug="about", defaults=page_data)
     yield "Page %s created" % page.slug
 
 
