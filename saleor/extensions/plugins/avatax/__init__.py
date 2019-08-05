@@ -1,5 +1,6 @@
 import json
 import logging
+from dataclasses import dataclass
 from datetime import date
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 from urllib.parse import urljoin
@@ -32,6 +33,15 @@ COMMON_CARRIER_CODE = "FR020100"
 COMMON_DISCOUNT_VOUCHER_CODE = "OD010000"
 
 
+@dataclass
+class AvataxConfiguration:
+    username_or_account: str
+    password_or_license: str
+    use_sandbox: bool = True
+    company_name: str = "DEFAULT"
+    autocommit: bool = False
+
+
 class TransactionType:
     INVOICE = "SalesInvoice"
     ORDER = "SalesOrder"
@@ -51,21 +61,18 @@ class CustomerErrors:
         return cls.DEFAULT_MSG
 
 
-def get_api_url() -> str:
+def get_api_url(use_sandbox=True) -> str:
     """Based on settings return sanbox or production url."""
-    if settings.AVATAX_USE_SANDBOX:
+    if use_sandbox:
         return "https://sandbox-rest.avatax.com/api/v2/"
     return "https://rest.avatax.com/api/v2/"
 
 
 def api_post_request(
-    url: str,
-    data: Dict[str, Any],
-    username: str = settings.AVATAX_USERNAME_OR_ACCOUNT,
-    password: str = settings.AVATAX_PASSWORD_OR_LICENSE,
+    url: str, data: Dict[str, Any], config: AvataxConfiguration
 ) -> Dict[str, Any]:
     try:
-        auth = HTTPBasicAuth(username, password)
+        auth = HTTPBasicAuth(config.username_or_account, config.password_or_license)
         response = requests.post(url, auth=auth, data=json.dumps(data), timeout=TIMEOUT)
         logger.debug("Hit to Avatax to calculate taxes %s", url)
     except requests.exceptions.RequestException:
@@ -74,13 +81,9 @@ def api_post_request(
     return response.json()
 
 
-def api_get_request(
-    url: str,
-    username: str = settings.AVATAX_USERNAME_OR_ACCOUNT,
-    password: str = settings.AVATAX_PASSWORD_OR_LICENSE,
-):
+def api_get_request(url: str, config: AvataxConfiguration):
     try:
-        auth = HTTPBasicAuth(username, password)
+        auth = HTTPBasicAuth(config.username_or_account, config.password_or_license)
         response = requests.get(url, auth=auth, timeout=TIMEOUT)
         logger.debug("[GET] Hit to %s", url)
     except requests.exceptions.RequestException:
@@ -277,7 +280,7 @@ def generate_request_data(
     address: Dict[str, str],
     customer_code: Optional[int],
     customer_email: str,
-    commit=False,
+    config: AvataxConfiguration,
     currency=settings.DEFAULT_CURRENCY,
 ):
     company_address = Site.objects.get_current().settings.company_address
@@ -291,7 +294,7 @@ def generate_request_data(
         company_address = {}
 
     data = {
-        "companyCode": settings.AVATAX_COMPANY_NAME,
+        "companyCode": config.company_name,
         "type": transaction_type,
         "lines": lines,
         "code": transaction_token,
@@ -315,7 +318,7 @@ def generate_request_data(
                 "postalCode": address.get("postal_code"),
             },
         },
-        "commit": commit,
+        "commit": config.autocommit,
         "currencyCode": currency,
         "email": customer_email,
     }
@@ -324,9 +327,9 @@ def generate_request_data(
 
 def generate_request_data_from_checkout(
     checkout: "Checkout",
+    config: AvataxConfiguration,
     transaction_token=None,
     transaction_type=TransactionType.ORDER,
-    commit=False,
     discounts=None,
 ):
 
@@ -342,15 +345,19 @@ def generate_request_data_from_checkout(
         address=address.as_data(),
         customer_code=checkout.user.id if checkout.user else 0,
         customer_email=checkout.email,
-        commit=commit,
+        config=config,
         currency=currency,
     )
     return data
 
 
-def _fetch_new_taxes_data(data: List[Dict], data_cache_key: str):
-    transaction_url = urljoin(get_api_url(), "transactions/createoradjust")
-    response = api_post_request(transaction_url, data)
+def _fetch_new_taxes_data(
+    data: Dict[str, Dict], data_cache_key: str, config: AvataxConfiguration
+):
+    transaction_url = urljoin(
+        get_api_url(config.use_sandbox), "transactions/createoradjust"
+    )
+    response = api_post_request(transaction_url, data, config)
     if response and "error" not in response:
         cache.set(data_cache_key, (data, response), CACHE_TIME)
     else:
@@ -359,27 +366,34 @@ def _fetch_new_taxes_data(data: List[Dict], data_cache_key: str):
     return response
 
 
-def get_cached_response_or_fetch(data, token_in_cache, force_refresh=False):
+def get_cached_response_or_fetch(
+    data: Dict[str, Dict],
+    token_in_cache: str,
+    config: AvataxConfiguration,
+    force_refresh: bool = False,
+):
     """Try to find response in cache.
 
     Return cached response if requests data are the same. Fetch new data in other cases.
     """
     data_cache_key = CACHE_KEY + token_in_cache
     if taxes_need_new_fetch(data, token_in_cache) or force_refresh:
-        response = _fetch_new_taxes_data(data, data_cache_key)
+        response = _fetch_new_taxes_data(data, data_cache_key, config)
     else:
         _, response = cache.get(data_cache_key)
 
     return response
 
 
-def get_checkout_tax_data(checkout: "Checkout", discounts) -> Dict[str, Any]:
-    data = generate_request_data_from_checkout(checkout, discounts=discounts)
-    return get_cached_response_or_fetch(data, str(checkout.token))
+def get_checkout_tax_data(
+    checkout: "Checkout", discounts, config: AvataxConfiguration
+) -> Dict[str, Any]:
+    data = generate_request_data_from_checkout(checkout, config, discounts=discounts)
+    return get_cached_response_or_fetch(data, str(checkout.token), config)
 
 
 def get_order_tax_data(
-    order: "Order", commit=False, force_refresh=False
+    order: "Order", config: AvataxConfiguration, force_refresh=False
 ) -> Dict[str, Any]:
     address = order.shipping_address or order.billing_address
     lines = get_order_lines_data(order)
@@ -393,11 +407,11 @@ def get_order_tax_data(
         address=address.as_data(),
         customer_code=order.user.id if order.user else None,
         customer_email=order.user_email,
-        commit=commit,
+        config=config,
         currency=order.total.currency,
     )
     response = get_cached_response_or_fetch(
-        data, "order_%s" % order.token, force_refresh
+        data, "order_%s" % order.token, config, force_refresh
     )
     return response
 
@@ -412,15 +426,17 @@ def generate_tax_codes_dict(
     return tax_codes
 
 
-def get_cached_tax_codes_or_fetch(cache_time: int = TAX_CODES_CACHE_TIME):
+def get_cached_tax_codes_or_fetch(
+    config: AvataxConfiguration, cache_time: int = TAX_CODES_CACHE_TIME
+):
     """Try to get cached tax codes.
 
     If the cache is empty, fetch the newest taxcodes from avatax.
     """
     tax_codes = cache.get(TAX_CODES_CACHE_KEY, {})
     if not tax_codes:
-        tax_codes_url = urljoin(get_api_url(), "definitions/taxcodes")
-        response = api_get_request(tax_codes_url)
+        tax_codes_url = urljoin(get_api_url(config.use_sandbox), "definitions/taxcodes")
+        response = api_get_request(tax_codes_url, config)
         if response and "error" not in response:
             tax_codes = generate_tax_codes_dict(response)
             cache.set(TAX_CODES_CACHE_KEY, tax_codes, cache_time)
