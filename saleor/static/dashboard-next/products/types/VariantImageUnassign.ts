@@ -24,7 +24,7 @@ export interface VariantImageUnassign_variantImageUnassign_productVariant_attrib
   id: string;
   name: string | null;
   slug: string | null;
-  valueRequired: boolean | null;
+  valueRequired: boolean;
   values: (VariantImageUnassign_variantImageUnassign_productVariant_attributes_attribute_values | null)[] | null;
 }
 

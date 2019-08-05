@@ -25,7 +25,7 @@ export interface ProductVariantCreateData_product_productType_variantAttributes 
   id: string;
   slug: string | null;
   name: string | null;
-  valueRequired: boolean | null;
+  valueRequired: boolean;
   values: (ProductVariantCreateData_product_productType_variantAttributes_values | null)[] | null;
 }
 
