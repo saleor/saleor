@@ -69,7 +69,7 @@ export interface ProductCreate_productCreate_product_attributes_attribute {
   slug: string | null;
   name: string | null;
   inputType: AttributeInputTypeEnum | null;
-  valueRequired: boolean | null;
+  valueRequired: boolean;
   values: (ProductCreate_productCreate_product_attributes_attribute_values | null)[] | null;
 }
 
