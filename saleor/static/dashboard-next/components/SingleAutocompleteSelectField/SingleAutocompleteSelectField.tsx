@@ -26,6 +26,10 @@ const styles = (theme: Theme) =>
       flexGrow: 1,
       position: "relative"
     },
+    menuItem: {
+      height: "auto",
+      whiteSpace: "normal"
+    },
     paper: {
       borderRadius: 4,
       left: 0,
@@ -164,6 +168,7 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
                         <>
                           {emptyOption && (
                             <MenuItem
+                              className={classes.menuItem}
                               component="div"
                               {...getItemProps({
                                 item: ""
@@ -179,6 +184,7 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
 
                             return (
                               <MenuItem
+                                className={classes.menuItem}
                                 key={JSON.stringify(suggestion)}
                                 selected={
                                   highlightedIndex === choiceIndex ||
@@ -202,6 +208,7 @@ const SingleAutocompleteSelectFieldComponent = withStyles(styles, {
                                 inputValue.toLowerCase()
                             ) && (
                               <MenuItem
+                                className={classes.menuItem}
                                 key={"customValue"}
                                 selected={isCustomValueSelected}
                                 component="div"
