@@ -124,11 +124,11 @@ def resolve_products(
         qs = filter_products_by_attributes(qs, attributes)
 
     if categories:
-        categories = get_nodes(categories, "Category")
+        categories = get_nodes(categories, "Category", models.Category)
         qs = filter_products_by_categories(qs, categories)
 
     if collections:
-        collections = get_nodes(collections, "Collection")
+        collections = get_nodes(collections, "Collection", models.Collection)
         qs = filter_products_by_collections(qs, collections)
     if stock_availability:
         qs = filter_products_by_stock_availability(qs, stock_availability)
