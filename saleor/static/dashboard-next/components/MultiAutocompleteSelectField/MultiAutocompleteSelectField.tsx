@@ -79,7 +79,6 @@ const styles = (theme: Theme) =>
 export interface MultiAutocompleteSelectFieldProps {
   allowCustomValues?: boolean;
   displayValues: MultiAutocompleteChoiceType[];
-  emptyOption?: boolean;
   name: string;
   choices: MultiAutocompleteChoiceType[];
   value: string[];
@@ -103,7 +102,6 @@ export const MultiAutocompleteSelectFieldComponent = withStyles(styles, {
     choices,
     classes,
     displayValues,
-    emptyOption,
     helperText,
     label,
     loading,
@@ -169,19 +167,6 @@ export const MultiAutocompleteSelectFieldComponent = withStyles(styles, {
                   displayValues.length > 0 ||
                   allowCustomValues ? (
                     <>
-                      {emptyOption && (
-                        <MenuItem
-                          component="div"
-                          {...getItemProps({
-                            item: ""
-                          })}
-                        >
-                          <Checkbox checked={false} disabled disableRipple />
-                          <Typography color="textSecondary">
-                            {i18n.t("None")}
-                          </Typography>
-                        </MenuItem>
-                      )}
                       {displayValues.map(value => (
                         <MenuItem
                           key={value.value}
