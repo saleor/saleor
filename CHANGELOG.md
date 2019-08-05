@@ -38,6 +38,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - The checkout process of digital orders no longer require shipping information over the API - #4573 by @NyanKiyoshi
 - Add e2e test config - #4553 by @dominik-zeglen
 - Fix MUI warnings - #4588 by @dominik-zeglen
+- Disabled unneeded reports from uWSGI about broken pipe and write errors from disconnected clients. Preventing from spamming sentry users. - #4596 by @NyanKiyoshi
 
 ## 2.8.0
 
