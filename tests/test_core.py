@@ -4,9 +4,11 @@ from unittest.mock import Mock, patch
 from urllib.parse import urljoin
 
 import pytest
+from django.db import connection
 from django.shortcuts import reverse
 from django.templatetags.static import static
 from django.test import Client, override_settings
+from django.test.utils import CaptureQueriesContext
 from django.urls import translate_url
 from measurement.measures import Weight
 from prices import Money
@@ -28,7 +30,7 @@ from saleor.core.weight import WeightUnits, convert_weight
 from saleor.discount.models import Sale, Voucher
 from saleor.giftcard.models import GiftCard
 from saleor.order.models import Order
-from saleor.product.models import ProductImage
+from saleor.product.models import Product, ProductImage
 from saleor.shipping.models import ShippingZone
 
 type_schema = {
@@ -302,3 +304,28 @@ def test_csrf_middleware_is_enabled():
     checkout_url = reverse("checkout:index")
     response = csrf_client.post(checkout_url)
     assert response.status_code == 403
+
+
+@pytest.mark.parametrize(
+    "key, expected",
+    (
+        ("test", ".\"attributes\" -> 'test') = '\"a\"'"),
+        (
+            "'test'); select current_date;",
+            (
+                "\"product_product\".\"attributes\" -> '''test''); "
+                "select current_date;') = '\"a\"'"
+            ),
+        ),
+        ("15", ".\"attributes\" -> '15') = '\"a\"'"),
+    ),
+)
+def test_filterable_json(key, expected):
+    with CaptureQueriesContext(connection) as queries:
+        Product.objects.only("pk").filter(
+            **{f"attributes__from_key_{key}": "a"}
+        ).first()
+
+    queries = list(queries)
+    assert len(queries) == 1
+    assert expected in queries[0]["sql"]
