@@ -99,7 +99,6 @@ pyphen==0.9.5
 python-dateutil==2.8.0 ; python_version >= '2.7'
 python3-openid==3.1.0 ; python_version >= '3.0'
 pytz==2019.2
-raven==6.9.0
 razorpay==1.2.0
 redis==3.3.5
 requests-oauthlib==1.2.0
@@ -107,6 +106,7 @@ requests==2.22.0
 rsa==4.0
 rx==1.6.1
 s3transfer==0.2.1
+sentry-sdk==0.10.2
 singledispatch==3.4.0.3
 six==1.12.0
 social-auth-app-django==3.1.0
