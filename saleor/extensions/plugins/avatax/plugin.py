@@ -9,7 +9,6 @@ from prices import Money, TaxedMoney, TaxedMoneyRange
 from ....core.taxes import TaxError, TaxType, zero_taxed_money
 from ... import ConfigurationTypeField
 from ...base_plugin import BasePlugin
-from ...models import PluginConfiguration
 from . import (
     META_FIELD,
     META_NAMESPACE,
@@ -39,16 +38,14 @@ class AvataxPlugin(BasePlugin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self._cached_config_from_db = None
         self.config = None
         self.active = None
 
     def _initialize_plugin_configuration(self):
-        plugin_config_qs = PluginConfiguration.objects.filter(name=self.PLUGIN_NAME)
-        plugin_config = self._cached_config_from_db or plugin_config_qs.first()
+        super()._initialize_plugin_configuration()
 
-        if plugin_config and plugin_config.configuration:
-            configuration = plugin_config.configuration
+        if self._cached_config_from_db and self._cached_config_from_db.configuration:
+            configuration = self._cached_config_from_db.configuration
 
             # Convert to dict to easier take config elements
             configuration = {item["name"]: item["value"] for item in configuration}
@@ -59,10 +56,7 @@ class AvataxPlugin(BasePlugin):
                 company_name=configuration["Company name"],
                 autocommit=configuration["Autocommit"] == "true",
             )
-            self.active = plugin_config.active
-
-            if not self._cached_config_from_db:
-                self._cached_config_from_db = plugin_config
+            self.active = self._cached_config_from_db.active
 
         else:
             # This should be removed after we drop an Avatax's settings from Django

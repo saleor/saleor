@@ -8,16 +8,16 @@ from saleor.extensions.models import PluginConfiguration
 from tests.api.utils import get_graphql_content
 
 
-class TestPlugin(BasePlugin):
-    PLUGIN_NAME = "TestPlugin"
+class PluginSample(BasePlugin):
+    PLUGIN_NAME = "PluginSample"
 
     @classmethod
     def get_plugin_configuration(cls, queryset) -> "PluginConfiguration":
-        qs = queryset.filter(name="TestPlugin")
+        qs = queryset.filter(name="PluginSample")
         if qs.exists():
             return qs[0]
         defaults = {
-            "name": "TestPlugin",
+            "name": "PluginSample",
             "description": "Test plugin description",
             "active": True,
             "configuration": [
@@ -45,7 +45,7 @@ def test_query_plugin_configurations(
 ):
 
     # Enable test plugin
-    settings.PLUGINS = ["tests.api.test_extensions.TestPlugin"]
+    settings.PLUGINS = ["tests.api.test_extensions.PluginSample"]
     query = """
         {
           pluginConfigurations(first:1){
@@ -107,9 +107,9 @@ def test_query_plugin_configurations(
 def test_query_plugin_configuration(
     staff_api_client, permission_manage_plugins, settings
 ):
-    settings.PLUGINS = ["tests.api.test_extensions.TestPlugin"]
+    settings.PLUGINS = ["tests.api.test_extensions.PluginSample"]
     manager = get_extensions_manager()
-    plugin_configuration = manager.get_plugin_configuration("TestPlugin")
+    plugin_configuration = manager.get_plugin_configuration("PluginSample")
     configuration_id = graphene.Node.to_global_id(
         "PluginConfiguration", plugin_configuration.pk
     )
@@ -192,12 +192,11 @@ def test_plugin_configuration_update(
           }
         }
     """
-    settings.PLUGINS = ["tests.api.test_extensions.TestPlugin"]
+    settings.PLUGINS = ["tests.api.test_extensions.PluginSample"]
     manager = get_extensions_manager()
-    plugin = manager.get_plugin_configuration(plugin_name="TestPlugin")
+    plugin = manager.get_plugin_configuration(plugin_name="PluginSample")
     old_configuration = plugin.configuration
     plugin_id = graphene.Node.to_global_id("PluginConfiguration", plugin.pk)
-    print(plugin_id)
     variables = {
         "id": plugin_id,
         "active": active,
