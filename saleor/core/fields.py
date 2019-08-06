@@ -65,13 +65,10 @@ class FromKeyLookup(Transform):
         lhs, params = compiler.compile(previous)
 
         if len(key_transforms) > 1:
-            return (
-                "(%s %s %%s)" % (lhs, self.nested_operator),
-                [key_transforms] + params,
-            )
-
-        lookup = "'%s'" % self.key_name
-        return "(%s %s %s)" % (lhs, self.operator, lookup), params
+            operator, lookup = self.nested_operator, key_transforms
+        else:
+            operator, lookup = self.operator, self.key_name
+        return "(%s %s %%s)" % (lhs, operator), [lookup] + params
 
 
 class KeyTransformFactory:
