@@ -3,10 +3,10 @@ import * as React from "react";
 
 import { attributes } from "@saleor/attributes/fixtures";
 import { fetchMoreProps } from "@saleor/fixtures";
-import { formError } from "@saleor/storybook/misc";
 import AssignAttributeDialog, {
   AssignAttributeDialogProps
-} from "../../../components/AssignAttributeDialog";
+} from "@saleor/productTypes/components/AssignAttributeDialog";
+import { formError } from "@saleor/storybook/misc";
 import Decorator from "../../Decorator";
 
 const props: AssignAttributeDialogProps = {
