@@ -6,8 +6,8 @@ babel==2.7.0
 beautifulsoup4==4.7.1
 billiard==3.6.0.0
 bleach==2.1.4
-boto3==1.9.199
-botocore==1.12.199
+boto3==1.9.201
+botocore==1.12.201
 braintree==3.49.0
 cachetools==3.1.1
 cairocffi==1.0.2
@@ -45,7 +45,7 @@ django-storages[google]==1.7.1
 django-templated-email==2.3.0
 django-versatileimagefield==1.10
 django-webpack-loader==0.6.0
-django==2.2.3
+django==2.2.4
 docutils==0.14
 draftjs-sanitizer==1.0.0
 elasticsearch-dsl==6.0.1
@@ -61,7 +61,7 @@ google-measurement-protocol==1.0.0
 google-resumable-media==0.3.2
 googleapis-common-protos==1.6.0
 gprof2dot==2016.10.13
-graphene-django-optimizer==0.4.2
+graphene-django-optimizer==0.6.0
 graphene-django==2.4.0
 graphene==2.1.7
 graphql-core==2.2.1
@@ -82,15 +82,15 @@ maxminddb==1.4.1
 measurement==3.0.0
 mpmath==1.1.0
 oauthlib==3.0.2
-phonenumberslite==8.10.15
+phonenumberslite==8.10.16
 pillow==5.4.1
 prices==1.0.0
 promise==2.2.1
-protobuf==3.9.0
+protobuf==3.9.1
 psycopg2-binary==2.8.3
 purl==1.5
-pyasn1-modules==0.2.5
-pyasn1==0.4.5
+pyasn1-modules==0.2.6
+pyasn1==0.4.6
 pycodestyle==2.5.0
 pycparser==2.19
 pygments==2.4.2
@@ -98,10 +98,10 @@ pyjwt==1.7.1
 pyphen==0.9.5
 python-dateutil==2.8.0 ; python_version >= '2.7'
 python3-openid==3.1.0 ; python_version >= '3.0'
-pytz==2019.1
+pytz==2019.2
 raven==6.9.0
 razorpay==1.2.0
-redis==3.3.4
+redis==3.3.5
 requests-oauthlib==1.2.0
 requests==2.22.0
 rsa==4.0
