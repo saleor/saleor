@@ -16,16 +16,16 @@ import makeStyles from "@material-ui/styles/makeStyles";
 import * as React from "react";
 import InfiniteScroll from "react-infinite-scroller";
 
+import Checkbox from "@saleor/components/Checkbox";
 import ConfirmButton, {
   ConfirmButtonTransitionState
 } from "@saleor/components/ConfirmButton";
 import useModalDialogErrors from "@saleor/hooks/useModalDialogErrors";
 import useSearchQuery from "@saleor/hooks/useSearchQuery";
+import i18n from "@saleor/i18n";
 import { maybe, renderCollection } from "@saleor/misc";
 import { FetchMoreProps } from "@saleor/types";
-import { SearchAttributes_attributes_edges_node } from "../../containers/SearchAttributes/types/SearchAttributes";
-import i18n from "../../i18n";
-import Checkbox from "../Checkbox";
+import { SearchAttributes_productType_availableAttributes_edges_node } from "../../containers/SearchAttributes/types/SearchAttributes";
 
 const useStyles = makeStyles((theme: Theme) => ({
   checkboxCell: {
@@ -49,7 +49,7 @@ export interface AssignAttributeDialogProps extends FetchMoreProps {
   confirmButtonState: ConfirmButtonTransitionState;
   errors: string[];
   open: boolean;
-  attributes: SearchAttributes_attributes_edges_node[];
+  attributes: SearchAttributes_productType_availableAttributes_edges_node[];
   selected: string[];
   onClose: () => void;
   onSubmit: () => void;
