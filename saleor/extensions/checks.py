@@ -1,10 +1,11 @@
-from typing import List
+from typing import TYPE_CHECKING, List
 
 from django.conf import settings
 from django.core.checks import Error, register
 from django.utils.module_loading import import_string
 
-from .base_plugin import BasePlugin
+if TYPE_CHECKING:
+    from .base_plugin import BasePlugin
 
 
 @register()
@@ -49,7 +50,7 @@ def check_single_plugin(plugin_path: str, errors: List[Error]):
         check_plugin_name(plugin_class, errors)
 
 
-def check_plugin_name(plugin_class: BasePlugin, errors: List[Error]):
+def check_plugin_name(plugin_class: "BasePlugin", errors: List[Error]):
     if not getattr(plugin_class, "PLUGIN_NAME", None):
         errors.append(
             Error("Missing field PLUGIN_NAME for plugin - %s" % plugin_class.__name__)

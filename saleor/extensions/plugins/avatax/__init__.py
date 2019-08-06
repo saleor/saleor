@@ -49,7 +49,8 @@ class TransactionType:
 
 class CustomerErrors:
     DEFAULT_MSG = pgettext_lazy(
-        "We are not able to calculate taxes for your order. Please try later"
+        "Default tax error msg",
+        "We are not able to calculate taxes for your order. Please try later",
     )
     ERRORS = ("InvalidPostalCode", "InvalidAddress", "MissingAddress")
 

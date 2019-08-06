@@ -5,13 +5,14 @@ from django.db.models import QuerySet
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
+from .models import PluginConfiguration
+
 if TYPE_CHECKING:
     from ..core.taxes import TaxType
     from ..checkout.models import Checkout, CheckoutLine
     from ..product.models import Product
     from ..account.models import Address
     from ..order.models import OrderLine, Order
-    from .models import PluginConfiguration
 
 
 class BasePlugin:
@@ -24,8 +25,18 @@ class BasePlugin:
 
     PLUGIN_NAME = ""
 
+    def __init__(self, *args, **kwargs):
+        self._cached_config_from_db = None
+
     def __str__(self):
         return self.PLUGIN_NAME
+
+    def _initialize_plugin_configuration(self):
+        plugin_config_qs = PluginConfiguration.objects.filter(name=self.PLUGIN_NAME)
+        plugin_config = self._cached_config_from_db or plugin_config_qs.first()
+
+        if plugin_config:
+            self._cached_config_from_db = plugin_config
 
     def calculate_checkout_total(
         self,
