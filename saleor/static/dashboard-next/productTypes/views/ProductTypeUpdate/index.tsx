@@ -2,14 +2,13 @@ import Button from "@material-ui/core/Button";
 import React from "react";
 
 import { attributeUrl } from "@saleor/attributes/urls";
-import AssignAttributeDialog from "@saleor/components/AssignAttributeDialog";
 import { WindowTitle } from "@saleor/components/WindowTitle";
-import SearchAttributes from "@saleor/containers/SearchAttributes";
 import useBulkActions from "@saleor/hooks/useBulkActions";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useNotifier from "@saleor/hooks/useNotifier";
 import i18n from "@saleor/i18n";
 import { getMutationState, maybe } from "@saleor/misc";
+import AssignAttributeDialog from "@saleor/productTypes/components/AssignAttributeDialog";
 import { ReorderEvent } from "@saleor/types";
 import { AttributeTypeEnum } from "@saleor/types/globalTypes";
 import ProductTypeAttributeUnassignDialog from "../../components/ProductTypeAttributeUnassignDialog";
@@ -19,6 +18,7 @@ import ProductTypeDetailsPage, {
   ProductTypeForm
 } from "../../components/ProductTypeDetailsPage";
 import ProductTypeOperations from "../../containers/ProductTypeOperations";
+import SearchAttributes from "../../containers/SearchAttributes";
 import { TypedProductTypeDetailsQuery } from "../../queries";
 import { AssignAttribute } from "../../types/AssignAttribute";
 import { ProductTypeDelete } from "../../types/ProductTypeDelete";
@@ -326,6 +326,7 @@ export const ProductTypeUpdate: React.FC<ProductTypeUpdateProps> = ({
                         <SearchAttributes
                           variables={{
                             first: 10,
+                            id,
                             query: ""
                           }}
                         >
@@ -334,26 +335,36 @@ export const ProductTypeUpdate: React.FC<ProductTypeUpdateProps> = ({
                               result.loadMore(
                                 (prev, next) => {
                                   if (
-                                    prev.attributes.pageInfo.endCursor ===
-                                    next.attributes.pageInfo.endCursor
+                                    prev.productType.availableAttributes
+                                      .pageInfo.endCursor ===
+                                    next.productType.availableAttributes
+                                      .pageInfo.endCursor
                                   ) {
                                     return prev;
                                   }
                                   return {
                                     ...prev,
-                                    attributes: {
-                                      ...prev.attributes,
-                                      edges: [
-                                        ...prev.attributes.edges,
-                                        ...next.attributes.edges
-                                      ],
-                                      pageInfo: next.attributes.pageInfo
+                                    productType: {
+                                      ...prev.productType,
+                                      availableAttributes: {
+                                        ...prev.productType.availableAttributes,
+                                        edges: [
+                                          ...prev.productType
+                                            .availableAttributes.edges,
+                                          ...next.productType
+                                            .availableAttributes.edges
+                                        ],
+                                        pageInfo:
+                                          next.productType.availableAttributes
+                                            .pageInfo
+                                      }
                                     }
                                   };
                                 },
                                 {
                                   after:
-                                    result.data.attributes.pageInfo.endCursor
+                                    result.data.productType.availableAttributes
+                                      .pageInfo.endCursor
                                 }
                               );
 
@@ -362,7 +373,7 @@ export const ProductTypeUpdate: React.FC<ProductTypeUpdateProps> = ({
                                 {Object.keys(AttributeTypeEnum).map(key => (
                                   <AssignAttributeDialog
                                     attributes={maybe(() =>
-                                      result.data.attributes.edges.map(
+                                      result.data.productType.availableAttributes.edges.map(
                                         edge => edge.node
                                       )
                                     )}
@@ -381,7 +392,8 @@ export const ProductTypeUpdate: React.FC<ProductTypeUpdateProps> = ({
                                     onFetchMore={fetchMore}
                                     hasMore={maybe(
                                       () =>
-                                        result.data.attributes.pageInfo
+                                        result.data.productType
+                                          .availableAttributes.pageInfo
                                           .hasNextPage,
                                       false
                                     )}
