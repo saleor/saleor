@@ -7,7 +7,7 @@ calling some actions when an order has been created.
 
 Plugin
 ------
-Saleor has some plugins implemented by default. These plugins are located in ``saleor.core.extensions.plugins``.
+Saleor has some plugins implemented by default. These plugins are located in ``saleor.extensions.plugins``.
 The ExtensionManager needs to receive a list of enabled plugins. It can be done by including the Python plugin path in the
 ``settings.PLUGINS`` list.
 
@@ -56,12 +56,88 @@ To activate the plugin, add it to the ``PLUGINS`` list in your Django settings:
 
 .. code-block:: python
 
-    PLUGINS = ["saleor.core.extensions.plugins.custom.CustomPlugin", ]
+    PLUGINS = ["saleor.extensions.plugins.custom.CustomPlugin", ]
+
+
+Configuring Plugin
+^^^^^^^^^^^^^^^^^^
+Saleor allows you to change a configuration of the given plugin over API.
+Plugin owner needs to overwrite a method to create a structure of default configuration ``_get_default_configuration``.
+It requires an expected structure as in the followed example:
+
+.. code-block:: python
+
+
+        from saleor.extensions import ConfigurationTypeField
+        @classmethod
+        def _get_default_configuration(cls):
+            defaults = {
+                "name": cls.PLUGIN_NAME,
+                "description": "",
+                "active": False,
+                "configuration": [
+                    {
+                        "name": "Username or account",
+                        "value": "",
+                        "type": ConfigurationTypeField.STRING,
+                        "help_text": "",
+                        "label": "",
+                    },
+                    {
+                        "name": "Password or license",
+                        "value": "",
+                        "type": ConfigurationTypeField.STRING,
+                        "help_text": "",
+                        "label": "",
+                    },
+                ]
+            }
+            return defaults
+
+
+``ExtensionManager`` will use these data to create default configuration in DB which will be served by API.
+
+By using graphQL queries -  ``pluginConfigurations`` and ``pluginConfiguration`` user will be able to list all enabled plugins.
+Mutation ``pluginConfigurationUpdate`` will allow the user to active/disable and update configuration fields like ``API keys``
+for a  given plugin.
+
+API serves response with the given fields:
+
+
++------------------+-----------------------------------------------------------------------------+
+| Name             |  Description                                                                |
++==================+=============================================================================+
+| id               | Id of the plugin                                                            |
++------------------+-----------------------------------------------------------------------------+
+| name             | Name of the plugin                                                          |
++------------------+-----------------------------------------------------------------------------+
+| active           | Indicate if the plugin is activated or not                                  |
++------------------+-----------------------------------------------------------------------------+
+| description      | Quick description of the plugin                                             |
++------------------+-----------------------------------------------------------------------------+
+| configuration    |  It stores all configuration fields as a list that can be changed by a user |
++------------------+-----------------------------------------------------------------------------+
+
+Configuration fields:
+
++----------+-----------------------------------------------------------------+
+| Name     |  Description                                                    |
++==========+=================================================================+
+| name     | name of the field                                               |
++----------+-----------------------------------------------------------------+
+| value    | current value of the field                                      |
++----------+-----------------------------------------------------------------+
+| type     | type of the field. Saleor supports - ``String`` and ``Boolean`` |
++----------+-----------------------------------------------------------------+
+| helpText | description of the field                                        |
++----------+-----------------------------------------------------------------+
+| label    | label for the field                                             |
++----------+-----------------------------------------------------------------+
 
 
 ExtensionsManager
 -----------------
-ExtensionsManager is located in ``saleor.core.extensions.base_plugin``.
+ExtensionsManager is located in ``saleor.extensions.base_plugin``.
 It is a class responsible for handling all declared plugins and serving a response from them.
 It serves a default response in case of a non-declared plugin.  There is a possibility to overwrite an ExtensionsManager
 class by implementing it on its own. Saleor will discover the manager class by taking the declared path from
@@ -71,7 +147,7 @@ Each Django request object has its own manager included as the ``extensions`` fi
 
 BasePlugin
 ----------
-BasePlugin is located in ``saleor.core.extensions.base_plugin``. It is an abstract class for storing all methods
+BasePlugin is located in ``saleor.extensions.base_plugin``. It is an abstract class for storing all methods
 available for any plugin. All methods take the ``previous_value`` parameter. This contains a value
 calculated by the previous plugin in the queue. If the plugin is first in line, it will use the default value calculated by
 the manager.
