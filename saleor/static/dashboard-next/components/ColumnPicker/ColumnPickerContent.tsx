@@ -20,6 +20,10 @@ export interface ColumnPickerChoice {
 export interface ColumnPickerContentProps {
   columns: ColumnPickerChoice[];
   selectedColumns: string[];
+  onCancel: () => void;
+  onColumnToggle: (column: string) => void;
+  onReset: () => void;
+  onSave: () => void;
 }
 
 const useStyles = makeStyles((theme: Theme) => ({
@@ -49,7 +53,14 @@ const useStyles = makeStyles((theme: Theme) => ({
 }));
 
 const ColumnPickerContent: React.FC<ColumnPickerContentProps> = props => {
-  const { columns, selectedColumns } = props;
+  const {
+    columns,
+    selectedColumns,
+    onCancel,
+    onColumnToggle,
+    onReset,
+    onSave
+  } = props;
   const classes = useStyles(props);
   const anchor = React.useRef<HTMLDivElement>();
   const scrollPosition = useElementScroll(anchor);
@@ -85,7 +96,7 @@ const ColumnPickerContent: React.FC<ColumnPickerContentProps> = props => {
               )}
               name={column.value}
               label={column.label}
-              onChange={() => undefined}
+              onChange={() => onColumnToggle(column.value)}
             />
           ))}
         </div>
@@ -97,10 +108,14 @@ const ColumnPickerContent: React.FC<ColumnPickerContentProps> = props => {
         })}
       >
         <div className={classes.actionBar}>
-          <Button color="default">{i18n.t("Reset")}</Button>
+          <Button color="default" onClick={onReset}>
+            {i18n.t("Reset")}
+          </Button>
           <div>
-            <Button color="default">{i18n.t("Cancel")}</Button>
-            <Button color="primary" variant="contained">
+            <Button color="default" onClick={onCancel}>
+              {i18n.t("Cancel")}
+            </Button>
+            <Button color="primary" variant="contained" onClick={onSave}>
               {i18n.t("Save")}
             </Button>
           </div>

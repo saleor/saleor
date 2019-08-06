@@ -30,7 +30,16 @@ const useStyles = makeStyles(
 );
 
 const ColumnPicker: React.FC<ColumnPickerProps> = props => {
-  const { className, columns, initial, selectedColumns } = props;
+  const {
+    className,
+    columns,
+    initial,
+    selectedColumns,
+    onCancel,
+    onColumnToggle,
+    onReset,
+    onSave
+  } = props;
   const classes = useStyles(props);
   const anchor = React.useRef<HTMLDivElement>();
   const [isExpanded, setExpansionState] = React.useState(false);
@@ -38,6 +47,16 @@ const ColumnPicker: React.FC<ColumnPickerProps> = props => {
   React.useEffect(() => {
     setTimeout(() => setExpansionState(!!initial), 100);
   }, []);
+
+  const handleCancel = React.useCallback(() => {
+    setExpansionState(false);
+    onCancel();
+  }, []);
+
+  const handleSave = () => {
+    setExpansionState(false);
+    onSave();
+  };
 
   return (
     <div ref={anchor} className={className}>
@@ -68,6 +87,10 @@ const ColumnPicker: React.FC<ColumnPickerProps> = props => {
               <ColumnPickerContent
                 columns={columns}
                 selectedColumns={selectedColumns}
+                onCancel={handleCancel}
+                onColumnToggle={onColumnToggle}
+                onReset={onReset}
+                onSave={handleSave}
               />
             </ClickAwayListener>
           </Grow>

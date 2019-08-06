@@ -9,30 +9,34 @@ import {
   listActionsProps,
   pageListProps
 } from "../../../fixtures";
-import ProductListCard, {
-  ProductListCardProps
-} from "../../../products/components/ProductListCard";
+import ProductListPage, {
+  ProductListPageProps
+} from "../../../products/components/ProductListPage";
 import Decorator from "../../Decorator";
 
 const products = categoryFixture(placeholderImage).products.edges.map(
   edge => edge.node
 );
 
-const props: ProductListCardProps = {
+const props: ProductListPageProps = {
   ...listActionsProps,
   ...pageListProps.default,
   ...filterPageProps,
-  products
+  products,
+  settings: {
+    ...pageListProps.default.settings,
+    columns: ["thumbnail"]
+  }
 };
 
 storiesOf("Views / Products / Product list", module)
   .addDecorator(Decorator)
-  .add("default", () => <ProductListCard {...props} />)
+  .add("default", () => <ProductListPage {...props} />)
   .add("with custom filters", () => (
-    <ProductListCard {...props} filtersList={filters} />
+    <ProductListPage {...props} filtersList={filters} />
   ))
   .add("loading", () => (
-    <ProductListCard
+    <ProductListPage
       {...props}
       products={undefined}
       filtersList={undefined}
@@ -40,4 +44,4 @@ storiesOf("Views / Products / Product list", module)
       disabled={true}
     />
   ))
-  .add("no data", () => <ProductListCard {...props} products={[]} />);
+  .add("no data", () => <ProductListPage {...props} products={[]} />);

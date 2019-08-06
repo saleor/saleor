@@ -9,6 +9,7 @@ import DeleteFilterTabDialog from "@saleor/components/DeleteFilterTabDialog";
 import SaveFilterTabDialog, {
   SaveFilterTabDialogFormData
 } from "@saleor/components/SaveFilterTabDialog";
+import { defaultListSettings, ProductListColumns } from "@saleor/config";
 import useBulkActions from "@saleor/hooks/useBulkActions";
 import useListSettings from "@saleor/hooks/useListSettings";
 import useLocale from "@saleor/hooks/useLocale";
@@ -21,7 +22,7 @@ import useShop from "@saleor/hooks/useShop";
 import i18n from "@saleor/i18n";
 import { getMutationState, maybe } from "@saleor/misc";
 import { ListViews } from "@saleor/types";
-import ProductListCard from "../../components/ProductListCard";
+import ProductListPage from "../../components/ProductListPage";
 import {
   TypedProductBulkDeleteMutation,
   TypedProductBulkPublishMutation
@@ -63,7 +64,7 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
   const { isSelected, listElements, reset, toggle, toggleAll } = useBulkActions(
     params.ids
   );
-  const { updateListSettings, settings } = useListSettings(
+  const { updateListSettings, settings } = useListSettings<ProductListColumns>(
     ListViews.PRODUCT_LIST
   );
   const tabs = getFilterTabs();
@@ -196,9 +197,12 @@ export const ProductList: React.StatelessComponent<ProductListProps> = ({
 
                   return (
                     <>
-                      <ProductListCard
+                      <ProductListPage
                         currencySymbol={currencySymbol}
                         currentTab={currentTab}
+                        defaultSettings={
+                          defaultListSettings[ListViews.PRODUCT_LIST]
+                        }
                         settings={settings}
                         filtersList={createFilterChips(
                           params,
