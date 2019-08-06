@@ -104,7 +104,7 @@ function loadStories() {
   // Products
   require("./stories/products/ProductCreatePage");
   require("./stories/products/ProductImagePage");
-  require("./stories/products/ProductListCard");
+  require("./stories/products/ProductListPage");
   require("./stories/products/ProductUpdatePage");
   require("./stories/products/ProductVariantCreatePage");
   require("./stories/products/ProductVariantImageSelectDialog");
