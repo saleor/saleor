@@ -15,9 +15,7 @@ from .base import (
 
 
 class AccountRegisterInput(graphene.InputObjectType):
-    email = graphene.String(
-        description="The unique email address of the user.", required=True
-    )
+    email = graphene.String(description="The email address of the user.", required=True)
     password = graphene.String(description="Password", required=True)
 
 
@@ -210,7 +208,7 @@ class AccountSetDefaultAddress(BaseMutation):
         address = cls.get_node_or_error(info, data.get("id"), Address)
         user = info.context.user
 
-        if address not in user.addresses.all():
+        if not user.addresses.filter(pk=address.pk).exists():
             raise ValidationError({"id": "The address doesn't belong to that user."})
 
         if data.get("type") == AddressTypeEnum.BILLING.value:
