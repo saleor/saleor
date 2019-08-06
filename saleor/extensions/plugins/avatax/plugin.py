@@ -39,7 +39,6 @@ class AvataxPlugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.config = None
-        self.active = None
 
     def _initialize_plugin_configuration(self):
         super()._initialize_plugin_configuration()
@@ -56,8 +55,6 @@ class AvataxPlugin(BasePlugin):
                 company_name=configuration["Company name"],
                 autocommit=configuration["Autocommit"] == "true",
             )
-            self.active = self._cached_config_from_db.active
-
         else:
             # This should be removed after we drop an Avatax's settings from Django
             # settings file
