@@ -531,3 +531,59 @@ def test_save_plugin_configuration(vatlayer, settings):
 
     configuration.refresh_from_db()
     assert not configuration.active
+
+
+def test_show_taxes_on_storefront(vatlayer, settings):
+    settings.PLUGINS = ["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+    manager = get_extensions_manager()
+    assert manager.show_taxes_on_storefront() is True
+
+
+def test_get_tax_rate_type_choices(vatlayer, settings, monkeypatch):
+    expected_choices = [
+        "accommodation",
+        "admission to cultural events",
+        "admission to entertainment events",
+    ]
+    monkeypatch.setattr(
+        "saleor.extensions.plugins.vatlayer.plugin.get_tax_rate_types",
+        lambda: expected_choices,
+    )
+    settings.PLUGINS = ["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+    manager = get_extensions_manager()
+    choices = manager.get_tax_rate_type_choices()
+
+    # add a default choice
+    expected_choices.append("standard")
+
+    assert len(choices) == 4
+    for choice in choices:
+        assert choice.code in expected_choices
+
+
+def test_apply_taxes_to_shipping_price_range(vatlayer, settings):
+    settings.PLUGINS = ["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+    money_range = MoneyRange(Money(100, "USD"), Money(200, "USD"))
+    country = Country("PL")
+    manager = get_extensions_manager()
+
+    expected_start = TaxedMoney(net=Money("81.30", "USD"), gross=Money("100", "USD"))
+    expected_stop = TaxedMoney(net=Money("162.60", "USD"), gross=Money("200", "USD"))
+
+    price_range = manager.apply_taxes_to_shipping_price_range(money_range, country)
+
+    assert price_range.start == expected_start
+    assert price_range.stop == expected_stop
+
+
+def test_apply_taxes_to_product(vatlayer, settings, variant, discount_info):
+    settings.PLUGINS = ["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+    country = Country("PL")
+    manager = get_extensions_manager()
+    variant.product.meta = {
+        "taxes": {"vatlayer": {"code": "standard", "description": "standard"}}
+    }
+    price = manager.apply_taxes_to_product(
+        variant.product, variant.get_price([discount_info]), country
+    )
+    assert price == TaxedMoney(net=Money("4.07", "USD"), gross=Money("5.00", "USD"))
