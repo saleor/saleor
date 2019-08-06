@@ -43,10 +43,7 @@ class VatlayerPlugin(BasePlugin):
             self.active = bool(settings.VATLAYER_ACCESS_KEY)
 
     def _skip_plugin(self, previous_value: Union[TaxedMoney, TaxedMoneyRange]) -> bool:
-        if not self.active:
-            return True
-
-        if not settings.VATLAYER_ACCESS_KEY:
+        if not self.active or not settings.VATLAYER_ACCESS_KEY:
             return True
 
         # The previous plugin already calculated taxes so we can skip our logic
