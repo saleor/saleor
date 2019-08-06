@@ -1011,7 +1011,7 @@ def test_account_delete(user_api_client):
     response = user_api_client.post_graphql(ACCOUNT_DELETE_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["accountDelete"]
-    assert data["errors"] == []
+    assert not data["errors"]
     assert not User.objects.filter(pk=user.id).exists()
 
 
@@ -1022,7 +1022,7 @@ def test_account_delete_invalid_token(user_api_client):
     response = user_api_client.post_graphql(ACCOUNT_DELETE_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["accountDelete"]
-    assert not data["errors"] == []
+    assert len(data["errors"]) == 1
     assert data["errors"][0]["message"] == "Invalid or expired token."
     assert User.objects.filter(pk=user.id).exists()
 
@@ -1041,7 +1041,7 @@ def test_account_delete_staff_user(staff_api_client):
     response = staff_api_client.post_graphql(ACCOUNT_DELETE_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["accountDelete"]
-    assert not data["errors"] == []
+    assert len(data["errors"]) == 1
     assert data["errors"][0]["message"] == "Cannot delete a staff account."
     assert User.objects.filter(pk=user.id).exists()
 
@@ -1054,7 +1054,7 @@ def test_account_delete_other_customer_token(user_api_client):
     response = user_api_client.post_graphql(ACCOUNT_DELETE_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["accountDelete"]
-    assert not data["errors"] == []
+    assert len(data["errors"]) == 1
     assert data["errors"][0]["message"] == "Invalid or expired token."
     assert User.objects.filter(pk=user.id).exists()
     assert User.objects.filter(pk=other_user.id).exists()
@@ -1989,17 +1989,16 @@ mutation($id: ID!, $type: AddressTypeEnum!) {
         (ACCOUNT_SET_DEFAULT_ADDRESS_MUTATION, "accountSetDefaultAddress"),
     ],
 )
-def test_customer_set_address_as_default(
-    user_api_client, address, query, mutation_name
-):
+def test_customer_set_address_as_default(user_api_client, query, mutation_name):
     user = user_api_client.user
     user.default_billing_address = None
     user.default_shipping_address = None
     user.save()
     assert not user.default_billing_address
     assert not user.default_shipping_address
+    assert user.addresses.exists()
 
-    assert address in user.addresses.all()
+    address = user.addresses.first()
 
     variables = {
         "id": graphene.Node.to_global_id("Address", address.id),

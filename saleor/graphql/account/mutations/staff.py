@@ -43,7 +43,7 @@ class StaffInput(UserInput):
 
 class StaffCreateInput(StaffInput):
     send_password_email = graphene.Boolean(
-        description="Send an email with a link to set a password"
+        description="Send an email with a link to set the password"
     )
 
 
@@ -97,6 +97,7 @@ class CustomerUpdate(CustomerCreate):
 
         It overrides the `perform_mutation` base method of ModelMutation.
         """
+
         # Retrieve the data
         original_instance = cls.get_instance(info, **data)
         data = data.get("input")
@@ -299,7 +300,7 @@ class AddressSetDefault(BaseMutation):
         )
         user = cls.get_node_or_error(info, user_id, field="user_id", only_type=User)
 
-        if address not in user.addresses.all():
+        if not user.addresses.filter(pk=address.pk).exists():
             raise ValidationError(
                 {"address_id": "The address doesn't belong to that user."}
             )

@@ -2,6 +2,7 @@ import graphene
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
+from django.db import transaction
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from graphql_jwt.exceptions import PermissionDenied
@@ -39,12 +40,13 @@ def can_edit_address(user, address):
     """Determine whether the user can edit the given address.
 
     This method assumes that an address can be edited by:
-    - users with proper permission (staff)
-    - customers who "own" the given address.
+    - users with proper permissions (staff)
+    - customers associated to the given address.
     """
-    has_perm = user.has_perm("account.manage_users")
-    belongs_to_user = address in user.addresses.all()
-    return has_perm or belongs_to_user
+    return (
+        user.has_perm("account.manage_users")
+        or user.addresses.filter(pk=address.pk).exists()
+    )
 
 
 class SetPasswordInput(graphene.InputObjectType):
@@ -65,8 +67,8 @@ class SetPassword(ModelMutation):
 
     class Meta:
         description = (
-            "Sets user password. Token sent by email "
-            "using RequestPasswordReset mutation."
+            "Sets the user's password from the token sent by email "
+            "using the RequestPasswordReset mutation."
         )
         model = models.User
 
@@ -81,7 +83,7 @@ class SetPassword(ModelMutation):
     @classmethod
     def save(cls, info, instance, cleaned_input):
         instance.set_password(cleaned_input["password"])
-        instance.save()
+        instance.save(update_fields=["password"])
         account_events.customer_password_reset_event(user=instance)
 
 
@@ -89,11 +91,11 @@ class RequestPasswordReset(BaseMutation):
     class Arguments:
         email = graphene.String(
             required=True,
-            description=("Email of the user that will be used for password recovery."),
+            description="Email of the user that will be used for password recovery.",
         )
 
     class Meta:
-        description = "Sends an email with the account password change link."
+        description = "Sends an email with the account password modification link."
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -111,13 +113,13 @@ class BaseAddressUpdate(ModelMutation):
     """Base mutation for address update used by staff and account."""
 
     user = graphene.Field(
-        User, description="A user instance for which the address was edited."
+        User, description="A user object for which the address was edited."
     )
 
     class Arguments:
         id = graphene.ID(description="ID of the address to update", required=True)
         input = AddressInput(
-            description="Fields required to update address", required=True
+            description="Fields required to update the address", required=True
         )
 
     class Meta:
@@ -140,7 +142,7 @@ class BaseAddressUpdate(ModelMutation):
 
 
 class BaseAddressDelete(ModelDeleteMutation):
-    """Base mutation for address delete used by staff and account."""
+    """Base mutation for address delete used by staff and customers."""
 
     user = graphene.Field(
         User, description="A user instance for which the address was deleted."
@@ -180,13 +182,13 @@ class BaseAddressDelete(ModelDeleteMutation):
         instance.delete()
         instance.id = db_id
 
-        response = cls.success_response(instance)
-
         # Refresh the user instance to clear the default addresses. If the
         # deleted address was used as default, it would stay cached in the
         # user instance and the invalid ID returned in the response might cause
         # an error.
         user.refresh_from_db()
+
+        response = cls.success_response(instance)
 
         response.user = user
         return response
@@ -251,6 +253,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
         return cleaned_input
 
     @classmethod
+    @transaction.atomic
     def save(cls, info, instance, cleaned_input):
         # FIXME: save address in user.addresses as well
         default_shipping_address = cleaned_input.get(SHIPPING_ADDRESS_FIELD)

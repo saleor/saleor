@@ -12,7 +12,7 @@ class PasswordReset(BaseMutation):
 
     class Meta:
         description = (
-            "DEPRECATED: Use CustomerRequestPasswordReset instead."
+            "DEPRECATED: Use RequestPasswordReset instead."
             "Sends an email with the account password change link to customer."
         )
         permissions = ("account.manage_users",)

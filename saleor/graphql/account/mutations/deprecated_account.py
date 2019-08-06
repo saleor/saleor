@@ -38,7 +38,7 @@ class CustomerRegister(ModelMutation):
 class LoggedUserUpdate(BaseCustomerCreate):
     class Arguments:
         input = UserAddressInput(
-            description="Fields required to update logged in user.", required=True
+            description="Fields required to update a logged in user.", required=True
         )
 
     class Meta:
@@ -158,7 +158,10 @@ class CustomerPasswordReset(BaseMutation):
         )
 
     class Meta:
-        description = "Resets the customer's password."
+        description = (
+            "DEPRECATED: Use RequestPasswordReset instead."
+            "Resets the customer's password."
+        )
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
