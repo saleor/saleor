@@ -38,7 +38,7 @@ const useStyles = makeStyles((theme: Theme) => ({
     maxHeight: 256,
     overflowX: "visible",
     overflowY: "scroll",
-    padding: theme.spacing.unit * 2
+    padding: `${theme.spacing.unit * 2}px ${theme.spacing.unit * 3}px`
   },
   contentContainer: {
     padding: 0
