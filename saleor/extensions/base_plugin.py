@@ -27,6 +27,7 @@ class BasePlugin:
 
     def __init__(self, *args, **kwargs):
         self._cached_config_from_db = None
+        self.active = None
 
     def __str__(self):
         return self.PLUGIN_NAME
@@ -37,6 +38,7 @@ class BasePlugin:
 
         if plugin_config:
             self._cached_config_from_db = plugin_config
+            self.active = plugin_config.active
 
     def calculate_checkout_total(
         self,
