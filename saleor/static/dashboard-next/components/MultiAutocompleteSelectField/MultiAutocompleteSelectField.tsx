@@ -29,6 +29,10 @@ export interface MultiAutocompleteChoiceType {
 
 const styles = (theme: Theme) =>
   createStyles({
+    checkbox: {
+      height: 24,
+      width: 20
+    },
     chip: {
       width: "100%"
     },
@@ -66,6 +70,16 @@ const styles = (theme: Theme) =>
     hr: {
       margin: `${theme.spacing.unit}px 0`
     },
+    menuItem: {
+      display: "grid",
+      gridColumnGap: theme.spacing.unit + "px",
+      gridTemplateColumns: "20px 1fr",
+      height: "auto",
+      whiteSpace: "normal"
+    },
+    menuItemLabel: {
+      overflowWrap: "break-word"
+    },
     paper: {
       left: 0,
       marginTop: theme.spacing.unit,
@@ -79,7 +93,6 @@ const styles = (theme: Theme) =>
 export interface MultiAutocompleteSelectFieldProps {
   allowCustomValues?: boolean;
   displayValues: MultiAutocompleteChoiceType[];
-  emptyOption?: boolean;
   name: string;
   choices: MultiAutocompleteChoiceType[];
   value: string[];
@@ -103,7 +116,6 @@ export const MultiAutocompleteSelectFieldComponent = withStyles(styles, {
     choices,
     classes,
     displayValues,
-    emptyOption,
     helperText,
     label,
     loading,
@@ -169,21 +181,9 @@ export const MultiAutocompleteSelectFieldComponent = withStyles(styles, {
                   displayValues.length > 0 ||
                   allowCustomValues ? (
                     <>
-                      {emptyOption && (
-                        <MenuItem
-                          component="div"
-                          {...getItemProps({
-                            item: ""
-                          })}
-                        >
-                          <Checkbox checked={false} disabled disableRipple />
-                          <Typography color="textSecondary">
-                            {i18n.t("None")}
-                          </Typography>
-                        </MenuItem>
-                      )}
                       {displayValues.map(value => (
                         <MenuItem
+                          className={classes.menuItem}
                           key={value.value}
                           selected={true}
                           component="div"
@@ -191,8 +191,14 @@ export const MultiAutocompleteSelectFieldComponent = withStyles(styles, {
                             item: value.value
                           })}
                         >
-                          <Checkbox checked={true} disableRipple />
-                          {value.label}
+                          <Checkbox
+                            className={classes.checkbox}
+                            checked={true}
+                            disableRipple
+                          />
+                          <span className={classes.menuItemLabel}>
+                            {value.label}
+                          </span>
                         </MenuItem>
                       ))}
                       {displayValues.length > 0 && suggestions.length > 0 && (
@@ -200,6 +206,7 @@ export const MultiAutocompleteSelectFieldComponent = withStyles(styles, {
                       )}
                       {suggestions.map((suggestion, index) => (
                         <MenuItem
+                          className={classes.menuItem}
                           key={suggestion.value}
                           selected={highlightedIndex === index + value.length}
                           component="div"
@@ -209,9 +216,12 @@ export const MultiAutocompleteSelectFieldComponent = withStyles(styles, {
                         >
                           <Checkbox
                             checked={value.includes(suggestion.value)}
+                            className={classes.checkbox}
                             disableRipple
                           />
-                          {suggestion.label}
+                          <span className={classes.menuItemLabel}>
+                            {suggestion.label}
+                          </span>
                         </MenuItem>
                       ))}
                       {allowCustomValues &&
@@ -222,16 +232,19 @@ export const MultiAutocompleteSelectFieldComponent = withStyles(styles, {
                             inputValue.toLowerCase()
                         ) && (
                           <MenuItem
+                            className={classes.menuItem}
                             key={"customValue"}
                             component="div"
                             {...getItemProps({
                               item: inputValue
                             })}
                           >
-                            {i18n.t("Add new value: {{ value }}", {
-                              context: "add custom option",
-                              value: inputValue
-                            })}
+                            <span className={classes.menuItemLabel}>
+                              {i18n.t("Add new value: {{ value }}", {
+                                context: "add custom option",
+                                value: inputValue
+                              })}
+                            </span>
                           </MenuItem>
                         )}
                     </>
