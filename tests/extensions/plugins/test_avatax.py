@@ -1,3 +1,5 @@
+from unittest.mock import Mock
+
 import pytest
 from prices import Money, TaxedMoney
 
@@ -370,3 +372,39 @@ def test_save_plugin_configuration(settings):
 
     configuration.refresh_from_db()
     assert configuration.active
+
+
+def test_taxes_are_enabled(settings):
+    settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
+    settings.AVATAX_USERNAME_OR_ACCOUNT = "test"
+    settings.AVATAX_PASSWORD_OR_LICENSE = "test"
+    manager = get_extensions_manager()
+    assert manager.taxes_are_enabled() is True
+
+
+def test_show_taxes_on_storefront(settings):
+    settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
+    settings.AVATAX_USERNAME_OR_ACCOUNT = "test"
+    settings.AVATAX_PASSWORD_OR_LICENSE = "test"
+    manager = get_extensions_manager()
+    assert manager.show_taxes_on_storefront() is False
+
+
+def test_postprocess_order_creation(settings, order, monkeypatch):
+    settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
+    settings.AVATAX_USERNAME_OR_ACCOUNT = "test"
+    settings.AVATAX_PASSWORD_OR_LICENSE = "test"
+    manager = get_extensions_manager()
+
+    mocked_task = Mock()
+    monkeypatch.setattr(
+        "saleor.extensions.plugins.avatax.plugin.get_order_tax_data", Mock()
+    )
+    monkeypatch.setattr(
+        "saleor.extensions.plugins.avatax.plugin.api_post_request_task.delay",
+        mocked_task,
+    )
+
+    manager.postprocess_order_creation(order)
+
+    assert mocked_task.called
