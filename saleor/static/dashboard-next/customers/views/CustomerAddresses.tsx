@@ -133,6 +133,16 @@ const CustomerAddresses: React.FC<CustomerAddressesProps> = ({
                             []
                           )
                         );
+
+                        const countryChoices = maybe(
+                          () =>
+                            shop.countries.map(country => ({
+                              code: country.code,
+                              label: country.country
+                            })),
+                          []
+                        );
+
                         return (
                           <>
                             <WindowTitle
@@ -156,14 +166,7 @@ const CustomerAddresses: React.FC<CustomerAddressesProps> = ({
                             <CustomerAddressDialog
                               address={undefined}
                               confirmButtonState={createAddressTransitionState}
-                              countries={maybe(
-                                () =>
-                                  shop.countries.map(country => ({
-                                    code: country.code,
-                                    label: country.country
-                                  })),
-                                []
-                              )}
+                              countries={countryChoices}
                               errors={maybe(
                                 () =>
                                   createCustomerAddressOpts.data.addressCreate
@@ -173,14 +176,11 @@ const CustomerAddresses: React.FC<CustomerAddressesProps> = ({
                               open={params.action === "add"}
                               variant="create"
                               onClose={closeModal}
-                              onConfirm={formData =>
+                              onConfirm={input =>
                                 createCustomerAddress({
                                   variables: {
                                     id,
-                                    input: {
-                                      ...formData,
-                                      country: formData.country.value
-                                    }
+                                    input
                                   }
                                 })
                               }
@@ -192,7 +192,7 @@ const CustomerAddresses: React.FC<CustomerAddressesProps> = ({
                                 )
                               )}
                               confirmButtonState={updateAddressTransitionState}
-                              countries={[]}
+                              countries={countryChoices}
                               errors={maybe(
                                 () =>
                                   updateCustomerAddressOpts.data.addressUpdate
@@ -202,14 +202,11 @@ const CustomerAddresses: React.FC<CustomerAddressesProps> = ({
                               open={params.action === "edit"}
                               variant="edit"
                               onClose={closeModal}
-                              onConfirm={formData =>
+                              onConfirm={input =>
                                 updateCustomerAddress({
                                   variables: {
                                     id: params.id,
-                                    input: {
-                                      ...formData,
-                                      country: formData.country.value
-                                    }
+                                    input
                                   }
                                 })
                               }

@@ -152,9 +152,11 @@ def product_create(request, type_pk):
 @staff_member_required
 @permission_required("product.manage_products")
 def product_edit(request, pk):
-    product = get_object_or_404(Product.objects.prefetch_related("variants"), pk=pk)
+    product = get_object_or_404(
+        Product.objects.prefetch_related("variants", "product_type__attributeproduct"),
+        pk=pk,
+    )
     form = forms.ProductForm(request.POST or None, instance=product)
-
     edit_variant = not product.product_type.has_variants
     if edit_variant:
         variant = product.variants.first()
@@ -533,14 +535,15 @@ def ajax_upload_image(request, product_pk):
 @permission_required("product.manage_products")
 def attribute_list(request):
     attributes = Attribute.objects.prefetch_related(
-        "values", "product_type", "product_variant_type"
+        "values", "product_types", "product_variant_types"
     ).order_by("name")
     attribute_filter = AttributeFilter(request.GET, queryset=attributes)
     attributes = [
         (
             attribute.pk,
             attribute.name,
-            attribute.product_type or attribute.product_variant_type,
+            list(attribute.product_types.all())
+            + list(attribute.product_variant_types.all()),
             attribute.values.all(),
         )
         for attribute in attribute_filter.qs
@@ -560,12 +563,14 @@ def attribute_list(request):
 @permission_required("product.manage_products")
 def attribute_details(request, pk):
     attributes = Attribute.objects.prefetch_related(
-        "values", "product_type", "product_variant_type"
+        "values", "product_types", "product_variant_types"
     ).all()
     attribute = get_object_or_404(attributes, pk=pk)
-    product_type = attribute.product_type or attribute.product_variant_type
+    product_types = list(attribute.product_types.all()) + list(
+        attribute.product_variant_types.all()
+    )
     values = attribute.values.all()
-    ctx = {"attribute": attribute, "product_type": product_type, "values": values}
+    ctx = {"attribute": attribute, "product_types": product_types, "values": values}
     return TemplateResponse(request, "dashboard/product/attribute/detail.html", ctx)
 
 

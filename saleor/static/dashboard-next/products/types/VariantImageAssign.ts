@@ -24,6 +24,7 @@ export interface VariantImageAssign_variantImageAssign_productVariant_attributes
   id: string;
   name: string | null;
   slug: string | null;
+  valueRequired: boolean;
   values: (VariantImageAssign_variantImageAssign_productVariant_attributes_attribute_values | null)[] | null;
 }
 
@@ -37,7 +38,7 @@ export interface VariantImageAssign_variantImageAssign_productVariant_attributes
 export interface VariantImageAssign_variantImageAssign_productVariant_attributes {
   __typename: "SelectedAttribute";
   attribute: VariantImageAssign_variantImageAssign_productVariant_attributes_attribute;
-  value: VariantImageAssign_variantImageAssign_productVariant_attributes_value;
+  value: VariantImageAssign_variantImageAssign_productVariant_attributes_value | null;
 }
 
 export interface VariantImageAssign_variantImageAssign_productVariant_costPrice {

@@ -109,3 +109,16 @@ export type SingleAction = Partial<{
 export type BulkAction = Partial<{
   ids: string[];
 }>;
+
+export interface ReorderEvent {
+  oldIndex: number;
+  newIndex: number;
+}
+export type ReorderAction = (event: ReorderEvent) => void;
+
+export interface FetchMoreProps<TData = string> {
+  loading: boolean;
+  hasMore: boolean;
+  onFetch: (value: TData) => void;
+  onFetchMore: () => void;
+}

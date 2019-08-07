@@ -143,14 +143,31 @@ type AssignNavigation {
 
 type Attribute implements Node {
   id: ID!
-  productType: ProductType
-  productVariantType: ProductType
+  productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
+  productVariantTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
   privateMeta: [MetaStore]!
   meta: [MetaStore]!
+  inputType: AttributeInputTypeEnum
   name: String
   slug: String
   values: [AttributeValue]
+  valueRequired: Boolean!
+  visibleInStorefront: Boolean!
+  filterableInStorefront: Boolean!
+  filterableInDashboard: Boolean!
+  availableInGrid: Boolean!
   translation(languageCode: LanguageCodeEnum!): AttributeTranslation
+  storefrontSearchPosition: Int!
+}
+
+type AttributeAssign {
+  errors: [Error!]
+  productType: ProductType
+}
+
+input AttributeAssignInput {
+  id: ID!
+  type: AttributeTypeEnum!
 }
 
 type AttributeBulkDelete {
@@ -182,18 +199,35 @@ type AttributeCountableEdge {
 type AttributeCreate {
   errors: [Error!]
   attribute: Attribute
-  productType: ProductType
 }
 
 input AttributeCreateInput {
+  inputType: AttributeInputTypeEnum
   name: String!
+  slug: String
   values: [AttributeValueCreateInput]
+  valueRequired: Boolean
+  isVariantOnly: Boolean
+  visibleInStorefront: Boolean
+  filterableInStorefront: Boolean
+  filterableInDashboard: Boolean
+  storefrontSearchPosition: Int
+  availableInGrid: Boolean
 }
 
 type AttributeDelete {
   errors: [Error!]
-  productType: ProductType
   attribute: Attribute
+}
+
+input AttributeFilterInput {
+  valueRequired: Boolean
+  isVariantOnly: Boolean
+  visibleInStorefront: Boolean
+  filterableInStorefront: Boolean
+  filterableInDashboard: Boolean
+  availableInGrid: Boolean
+  search: String
 }
 
 input AttributeInput {
@@ -201,7 +235,36 @@ input AttributeInput {
   value: String!
 }
 
+enum AttributeInputTypeEnum {
+  DROPDOWN
+  MULTISELECT
+}
+
+type AttributeReorderValues {
+  errors: [Error!]
+  attribute: Attribute
+}
+
 scalar AttributeScalar
+
+enum AttributeSortField {
+  NAME
+  SLUG
+  VALUE_REQUIRED
+  IS_VARIANT_ONLY
+  VISIBLE_IN_STOREFRONT
+  FILTERABLE_IN_STOREFRONT
+  FILTERABLE_IN_DASHBOARD
+  DASHBOARD_VARIANT_POSITION
+  DASHBOARD_PRODUCT_POSITION
+  STOREFRONT_SEARCH_POSITION
+  AVAILABLE_IN_GRID
+}
+
+input AttributeSortingInput {
+  field: AttributeSortField!
+  direction: OrderDirection!
+}
 
 type AttributeTranslate {
   errors: [Error!]
@@ -219,16 +282,28 @@ enum AttributeTypeEnum {
   VARIANT
 }
 
-type AttributeUpdate {
+type AttributeUnassign {
   errors: [Error!]
   productType: ProductType
+}
+
+type AttributeUpdate {
+  errors: [Error!]
   attribute: Attribute
 }
 
 input AttributeUpdateInput {
   name: String
+  slug: String
   removeValues: [ID]
   addValues: [AttributeValueCreateInput]
+  valueRequired: Boolean
+  isVariantOnly: Boolean
+  visibleInStorefront: Boolean
+  filterableInStorefront: Boolean
+  filterableInDashboard: Boolean
+  storefrontSearchPosition: Int
+  availableInGrid: Boolean
 }
 
 type AttributeUpdateMeta {
@@ -242,13 +317,13 @@ type AttributeUpdatePrivateMeta {
 }
 
 type AttributeValue implements Node {
-  sortOrder: Int
   id: ID!
   name: String
   slug: String
   type: AttributeValueType
-  value: String
+  value: String @deprecated(reason: "This field is deprecated")
   translation(languageCode: LanguageCodeEnum!): AttributeValueTranslation
+  inputType: AttributeInputTypeEnum
 }
 
 type AttributeValueBulkDelete {
@@ -274,8 +349,10 @@ type AttributeValueDelete {
 }
 
 input AttributeValueInput {
-  slug: String!
-  value: String!
+  id: ID
+  name: String
+  slug: String
+  values: [String]!
 }
 
 type AttributeValueTranslate {
@@ -1691,9 +1768,11 @@ type Mutations {
   shippingZoneDelete(id: ID!): ShippingZoneDelete
   shippingZoneBulkDelete(ids: [ID]!): ShippingZoneBulkDelete
   shippingZoneUpdate(id: ID!, input: ShippingZoneInput!): ShippingZoneUpdate
-  attributeCreate(id: ID!, input: AttributeCreateInput!, type: AttributeTypeEnum!): AttributeCreate
+  attributeCreate(input: AttributeCreateInput!): AttributeCreate
   attributeDelete(id: ID!): AttributeDelete
   attributeBulkDelete(ids: [ID]!): AttributeBulkDelete
+  attributeAssign(operations: [AttributeAssignInput]!, productTypeId: ID!): AttributeAssign
+  attributeUnassign(attributeIds: [ID]!, productTypeId: ID!): AttributeUnassign
   attributeUpdate(id: ID!, input: AttributeUpdateInput!): AttributeUpdate
   attributeTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): AttributeTranslate
   attributeUpdateMetadata(id: ID!, input: MetaInput!): AttributeUpdateMeta
@@ -1705,6 +1784,7 @@ type Mutations {
   attributeValueBulkDelete(ids: [ID]!): AttributeValueBulkDelete
   attributeValueUpdate(id: ID!, input: AttributeValueCreateInput!): AttributeValueUpdate
   attributeValueTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): AttributeValueTranslate
+  attributeReorderValues(attributeId: ID!, moves: [ReorderInput]!): AttributeReorderValues
   categoryCreate(input: CategoryInput!, parent: ID): CategoryCreate
   categoryDelete(id: ID!): CategoryDelete
   categoryBulkDelete(ids: [ID]!): CategoryBulkDelete
@@ -1746,6 +1826,7 @@ type Mutations {
   productTypeDelete(id: ID!): ProductTypeDelete
   productTypeBulkDelete(ids: [ID]!): ProductTypeBulkDelete
   productTypeUpdate(id: ID!, input: ProductTypeInput!): ProductTypeUpdate
+  productTypeReorderAttributes(moves: [ReorderInput]!, productTypeId: ID!, type: AttributeTypeEnum!): ProductTypeReorderAttributes
   productTypeUpdateMetadata(id: ID!, input: MetaInput!): ProductTypeUpdateMeta
   productTypeClearMetadata(id: ID!, input: MetaPath!): ProductTypeClearMeta
   productTypeUpdatePrivateMetadata(id: ID!, input: MetaInput!): ProductTypeUpdatePrivateMeta
@@ -2568,6 +2649,7 @@ type ProductType implements Node {
   taxType: TaxType
   variantAttributes: [Attribute]
   productAttributes: [Attribute]
+  availableAttributes(filter: AttributeFilterInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
 }
 
 type ProductTypeBulkDelete {
@@ -2631,6 +2713,11 @@ input ProductTypeInput {
   weight: WeightScalar
   taxRate: TaxRateType
   taxCode: String
+}
+
+type ProductTypeReorderAttributes {
+  errors: [Error!]
+  productType: ProductType
 }
 
 type ProductTypeUpdate {
@@ -2780,7 +2867,8 @@ type Query {
   shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
   digitalContent(id: ID!): DigitalContent
   digitalContents(query: String, level: Int, before: String, after: String, first: Int, last: Int): DigitalContentCountableConnection
-  attributes(query: String, inCategory: ID, inCollection: ID, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
+  attributes(query: String, inCategory: ID, inCollection: ID, filter: AttributeFilterInput, sortBy: AttributeSortingInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
+  attribute(id: ID!): Attribute
   categories(query: String, level: Int, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   category(id: ID!): Category
   collection(id: ID!): Collection
@@ -2834,6 +2922,11 @@ type ReducedRate {
 type Refresh {
   token: String
   payload: GenericScalar
+}
+
+input ReorderInput {
+  id: ID!
+  sortOrder: Int
 }
 
 enum ReportingPeriod {
@@ -2935,7 +3028,8 @@ type SaleUpdate {
 
 type SelectedAttribute {
   attribute: Attribute!
-  value: AttributeValue!
+  value: AttributeValue @deprecated(reason: "Use values instead.")
+  values: [AttributeValue]!
 }
 
 input SeoInput {

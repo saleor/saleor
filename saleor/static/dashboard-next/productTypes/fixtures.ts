@@ -2,6 +2,7 @@ import {
   ProductCreateData_productTypes_edges_node,
   ProductCreateData_productTypes_edges_node_productAttributes
 } from "../products/types/ProductCreateData";
+import { AttributeInputTypeEnum } from "../types/globalTypes";
 import { ProductTypeDetails_productType } from "./types/ProductTypeDetails";
 import { ProductTypeList_productTypes_edges_node } from "./types/ProductTypeList";
 
@@ -10,8 +11,10 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
     node: {
       __typename: "Attribute" as "Attribute",
       id: "UHJvZHVjdEF0dHJpYnV0ZTo5",
+      inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Author",
       slug: "author",
+      valueRequired: true,
       values: [
         {
           __typename: "AttributeValue" as "AttributeValue",
@@ -38,8 +41,10 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
     node: {
       __typename: "Attribute" as "Attribute",
       id: "UHJvZHVjdEF0dHJpYnV0ZTo2",
+      inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Box Size",
       slug: "box-size",
+      valueRequired: true,
       values: [
         {
           __typename: "AttributeValue" as "AttributeValue",
@@ -84,8 +89,10 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
     node: {
       __typename: "Attribute" as "Attribute",
       id: "UHJvZHVjdEF0dHJpYnV0ZToz",
+      inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Brand",
       slug: "brand",
+      valueRequired: true,
       values: [
         {
           __typename: "AttributeValue" as "AttributeValue",
@@ -103,8 +110,10 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
     node: {
       __typename: "Attribute" as "Attribute",
       id: "UHJvZHVjdEF0dHJpYnV0ZTo4",
+      inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Candy Box Size",
       slug: "candy-box-size",
+      valueRequired: true,
       values: [
         {
           __typename: "AttributeValue" as "AttributeValue",
@@ -140,8 +149,10 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
     node: {
       __typename: "Attribute" as "Attribute",
       id: "UHJvZHVjdEF0dHJpYnV0ZTo1",
+      inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Coffee Genre",
       slug: "coffee-genre",
+      valueRequired: true,
       values: [
         {
           __typename: "AttributeValue" as "AttributeValue",
@@ -168,8 +179,10 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
     node: {
       __typename: "Attribute" as "Attribute",
       id: "UHJvZHVjdEF0dHJpYnV0ZToy",
+      inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Collar",
       slug: "collar",
+      valueRequired: true,
       values: [
         {
           __typename: "AttributeValue" as "AttributeValue",
@@ -205,8 +218,10 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
     node: {
       __typename: "Attribute" as "Attribute",
       id: "UHJvZHVjdEF0dHJpYnV0ZTox",
+      inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Color",
       slug: "color",
+      valueRequired: true,
       values: [
         {
           __typename: "AttributeValue" as "AttributeValue",
@@ -233,8 +248,10 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
     node: {
       __typename: "Attribute" as "Attribute",
       id: "UHJvZHVjdEF0dHJpYnV0ZToxMg==",
+      inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Cover",
       slug: "cover",
+      valueRequired: true,
       values: [
         {
           __typename: "AttributeValue" as "AttributeValue",
@@ -297,8 +314,10 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
     node: {
       __typename: "Attribute" as "Attribute",
       id: "UHJvZHVjdEF0dHJpYnV0ZTo3",
+      inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Flavor",
       slug: "flavor",
+      valueRequired: true,
       values: [
         {
           __typename: "AttributeValue" as "AttributeValue",
@@ -325,8 +344,10 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
     node: {
       __typename: "Attribute" as "Attribute",
       id: "UHJvZHVjdEF0dHJpYnV0ZToxMQ==",
+      inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Language",
       slug: "language",
+      valueRequired: true,
       values: [
         {
           __typename: "AttributeValue" as "AttributeValue",
@@ -353,8 +374,10 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
     node: {
       __typename: "Attribute" as "Attribute",
       id: "UHJvZHVjdEF0dHJpYnV0ZToxMA==",
+      inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Publisher",
       slug: "publisher",
+      valueRequired: true,
       values: [
         {
           __typename: "AttributeValue" as "AttributeValue",
@@ -381,8 +404,10 @@ export const attributes: ProductCreateData_productTypes_edges_node_productAttrib
     node: {
       __typename: "Attribute" as "Attribute",
       id: "UHJvZHVjdEF0dHJpYnV0ZTo0",
+      inputType: AttributeInputTypeEnum.DROPDOWN,
       name: "Size",
       slug: "size",
+      valueRequired: true,
       values: [
         {
           __typename: "AttributeValue" as "AttributeValue",
@@ -530,63 +555,30 @@ export const productType: ProductTypeDetails_productType = {
   productAttributes: [
     {
       __typename: "Attribute" as "Attribute",
+      filterableInDashboard: true,
+      filterableInStorefront: false,
       id: "UHJvZHVjdEF0dHJpYnV0ZTo5",
       name: "Author",
       slug: "author",
-      values: [
-        {
-          __typename: "AttributeValue" as "AttributeValue",
-          id: "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjI0",
-          name: "John Doe",
-          slug: "john-doe"
-        },
-        {
-          __typename: "AttributeValue" as "AttributeValue",
-          id: "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjI1",
-          name: "Milionare Pirate",
-          slug: "milionare-pirate"
-        }
-      ]
+      visibleInStorefront: true
     },
     {
       __typename: "Attribute" as "Attribute",
+      filterableInDashboard: true,
+      filterableInStorefront: false,
       id: "UHJvZHVjdEF0dHJpYnV0ZToxMQ==",
       name: "Language",
       slug: "language",
-      values: [
-        {
-          __typename: "AttributeValue" as "AttributeValue",
-          id: "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjI4",
-          name: "English",
-          slug: "english"
-        },
-        {
-          __typename: "AttributeValue" as "AttributeValue",
-          id: "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjI5",
-          name: "Pirate",
-          slug: "pirate"
-        }
-      ]
+      visibleInStorefront: true
     },
     {
       __typename: "Attribute" as "Attribute",
+      filterableInDashboard: true,
+      filterableInStorefront: false,
       id: "UHJvZHVjdEF0dHJpYnV0ZToxMA==",
       name: "Publisher",
       slug: "publisher",
-      values: [
-        {
-          __typename: "AttributeValue" as "AttributeValue",
-          id: "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjI2",
-          name: "Mirumee Press",
-          slug: "mirumee-press"
-        },
-        {
-          __typename: "AttributeValue" as "AttributeValue",
-          id: "UHJvZHVjdEF0dHJpYnV0ZVZhbHVlOjI3",
-          name: "Saleor Publishing",
-          slug: "saleor-publishing"
-        }
-      ]
+      visibleInStorefront: true
     }
   ],
   taxType: {
@@ -594,7 +586,20 @@ export const productType: ProductTypeDetails_productType = {
     description: "PH405458",
     taxCode: "Shields"
   },
-  variantAttributes: [attributes[1], attributes[6]],
+  variantAttributes: [
+    {
+      ...attributes[1],
+      filterableInDashboard: true,
+      filterableInStorefront: false,
+      visibleInStorefront: true
+    },
+    {
+      ...attributes[6],
+      filterableInDashboard: true,
+      filterableInStorefront: false,
+      visibleInStorefront: true
+    }
+  ],
   weight: {
     __typename: "Weight",
     unit: "kg",

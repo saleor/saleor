@@ -1,15 +1,27 @@
+from collections import defaultdict
+from typing import List
+
+
 def get_product_attributes_data(product):
     """Return the attributes associated with the product.
 
     It is returned as a dict of Attribute: AttributeValue values.
     """
-    attributes = product.product_type.product_attributes.all()
+    attributes = product.product_type.product_attributes.exclude(
+        visible_in_storefront=False
+    ).product_attributes_sorted()
+
     attributes_map = {attribute.pk: attribute.translated for attribute in attributes}
     values_map = get_attributes_display_map(product, attributes)
-    return {
-        attributes_map[attr_pk]: value_obj.translated
-        for (attr_pk, value_obj) in values_map.items()
-    }
+    product_attributes = {}
+
+    for attr_pk, value_obj in values_map.items():
+        key = attributes_map[attr_pk]
+        if not isinstance(value_obj, str):
+            value_obj = value_obj.translated
+        product_attributes[key] = value_obj
+
+    return product_attributes
 
 
 def get_name_from_attributes(variant, attributes):
@@ -26,12 +38,18 @@ def get_attributes_display_map(obj, attributes):
         attributes: Attribute Iterable
 
     """
-    display_map = {}
+    display_map = defaultdict(str)
     for attribute in attributes:
-        value = obj.attributes.get(str(attribute.pk))
-        if value:
+        attribute_values = obj.attributes.get(str(attribute.pk))  # type: List
+        if attribute_values:
             choices = {str(a.pk): a.translated for a in attribute.values.all()}
-            display_map[attribute.pk] = choices[value]
+            for value in attribute_values:
+                current_display_value = display_map[attribute.pk]
+                if not current_display_value:
+                    current_display_value = choices[value]
+                else:
+                    current_display_value = f"{current_display_value}, {choices[value]}"
+                display_map[attribute.pk] = current_display_value
     return display_map
 
 

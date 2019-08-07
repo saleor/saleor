@@ -1,7 +1,7 @@
 import bleach
 from django import forms
 from django.conf import settings
-from django.db.models import Count, Q
+from django.db.models import Count
 from django.forms.models import ModelChoiceIterator
 from django.forms.widgets import CheckboxSelectMultiple
 from django.utils.encoding import smart_text
@@ -110,23 +110,16 @@ class ProductTypeForm(forms.ModelForm):
         self.fields["tax_rate"].choices = [
             (tax.code, tax.description) for tax in manager.get_tax_rate_type_choices()
         ]
-        unassigned_attrs_q = Q(
-            product_type__isnull=True, product_variant_type__isnull=True
-        )
+        variant_attrs_qs = product_attrs_qs = Attribute.objects.all()
 
         if self.instance.pk:
-            product_attrs_qs = Attribute.objects.filter(
-                Q(product_type=self.instance) | unassigned_attrs_q
+            product_attrs_initial = (
+                self.instance.product_attributes.all().product_attributes_sorted()
             )
-            variant_attrs_qs = Attribute.objects.filter(
-                Q(product_variant_type=self.instance) | unassigned_attrs_q
+            variant_attrs_initial = (
+                self.instance.variant_attributes.all().variant_attributes_sorted()
             )
-            product_attrs_initial = self.instance.product_attributes.all()
-            variant_attrs_initial = self.instance.variant_attributes.all()
         else:
-            unassigned_attrs = Attribute.objects.filter(unassigned_attrs_q)
-            product_attrs_qs = unassigned_attrs
-            variant_attrs_qs = unassigned_attrs
             product_attrs_initial = []
             variant_attrs_initial = []
 
@@ -229,7 +222,7 @@ class AttributesMixin:
                         attribute_id=attr.pk, name=value, slug=slugify(value)
                     )
                     value.save()
-                attributes[smart_text(attr.pk)] = smart_text(value.pk)
+                attributes[smart_text(attr.pk)] = [smart_text(value.pk)]
         return attributes
 
 
@@ -286,7 +279,7 @@ class ProductForm(forms.ModelForm, AttributesMixin):
         )
         self.available_attributes = product_type.product_attributes.prefetch_related(
             "values"
-        ).all()
+        ).product_attributes_sorted()
         self.prepare_fields_for_attributes()
         self.fields["collections"].initial = Collection.objects.filter(
             products__name=self.instance
@@ -382,8 +375,10 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
             self.fields["price_override"].widget.attrs[
                 "placeholder"
             ] = self.instance.product.price.amount
-            qs = self.instance.product.product_type.variant_attributes.all()
-            self.available_attributes = qs.prefetch_related("values")
+            qs = self.instance.product.product_type.variant_attributes
+            self.available_attributes = qs.prefetch_related(
+                "values"
+            ).variant_attributes_sorted()
             self.prepare_fields_for_attributes()
 
         if include_taxes_in_prices():
@@ -495,7 +490,7 @@ class VariantImagesSelectForm(forms.Form):
 class AttributeForm(forms.ModelForm):
     class Meta:
         model = Attribute
-        exclude = []
+        exclude = ["input_type"]
         labels = {
             "name": pgettext_lazy("Product display name", "Display name"),
             "slug": pgettext_lazy("Product internal name", "Internal name"),

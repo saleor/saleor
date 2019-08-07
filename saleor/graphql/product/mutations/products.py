@@ -1,7 +1,7 @@
-from typing import List, Tuple
+from typing import Dict, List
 
 import graphene
-from django.core.exceptions import ValidationError
+from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.template.defaultfilters import slugify
 from graphene.types import InputObjectType
@@ -29,7 +29,9 @@ from ...core.utils import (
     from_global_id_strict_type,
     validate_image_file,
 )
+from ...core.utils.reordering import perform_reordering
 from ..types import (
+    Attribute,
     Category,
     Collection,
     MoveProductInput,
@@ -37,7 +39,7 @@ from ..types import (
     ProductImage,
     ProductVariant,
 )
-from ..utils import attributes_to_hstore
+from ..utils import attributes_to_json
 
 
 class CategoryInput(graphene.InputObjectType):
@@ -224,53 +226,40 @@ class CollectionReorderProducts(BaseMutation):
         )
 
     @classmethod
-    def get_operations(
-        cls, info, collection_id: int, moves: List[MoveProductInput]
-    ) -> List[Tuple[models.CollectionProduct, int]]:
-        operations = []
-        current_rel_pos = None
+    def perform_mutation(cls, _root, info, collection_id, moves):
+        pk = from_global_id_strict_type(
+            info, collection_id, only_type=Collection, field="collection_id"
+        )
 
+        try:
+            collection = models.Collection.objects.prefetch_related(
+                "collectionproduct"
+            ).get(pk=pk)
+        except ObjectDoesNotExist:
+            raise ValidationError(
+                {"collection_id": f"Couldn't resolve to a collection: {collection_id}"}
+            )
+
+        m2m_related_field = collection.collectionproduct
+
+        operations = {}
+
+        # Resolve the products
         for move_info in moves:
-            product_id = from_global_id_strict_type(
+            product_pk = from_global_id_strict_type(
                 info, move_info.product_id, only_type=Product, field="moves"
             )
 
             try:
-                node = models.CollectionProduct.objects.get(
-                    product_id=product_id, collection_id=collection_id
-                )
-            except models.CollectionProduct.DoesNotExist:
+                m2m_info = m2m_related_field.get(product_id=int(product_pk))
+            except ObjectDoesNotExist:
                 raise ValidationError(
-                    {"moves": "Couldn't resolve to a product: %s" % product_id}
+                    {"moves": f"Couldn't resolve to a product: {move_info.product_id}"}
                 )
+            operations[m2m_info.pk] = move_info.sort_order
 
-            if current_rel_pos is None:
-                # This case happens when products created using a bulk_creation
-                # e.g., bulk_create or collections.add
-                if node.sort_order is None:
-                    current_rel_pos = (
-                        node.get_max_sort_order(node.get_ordering_queryset()) or 0
-                    )
-                else:
-                    current_rel_pos = node.sort_order
-            else:
-                current_rel_pos += 1
-
-            sort_position = max(0, current_rel_pos + move_info.sort_order)
-            operations.append((node, sort_position))
-
-        return operations
-
-    @classmethod
-    def perform_mutation(cls, _root, info, collection_id, moves):
-        collection = cls.get_node_or_error(
-            info, collection_id, field="collection_id", only_type=Collection
-        )
-
-        for node, new_position in cls.get_operations(info, collection.id, moves):
-            node.sort_order = new_position
-            node.save(update_fields=["sort_order"])
-
+        with transaction.atomic():
+            perform_reordering(m2m_related_field, operations)
         return CollectionReorderProducts(collection=collection)
 
 
@@ -292,12 +281,17 @@ class CollectionAddProducts(BaseMutation):
         permissions = ("product.manage_products",)
 
     @classmethod
+    @transaction.atomic()
     def perform_mutation(cls, _root, info, collection_id, products):
         collection = cls.get_node_or_error(
             info, collection_id, field="collection_id", only_type=Collection
         )
         products = cls.get_nodes_or_error(products, "products", Product)
-        collection.products.add(*products)
+
+        for product in products:
+            models.CollectionProduct.objects.create(
+                collection=collection, product=product
+            )
         return CollectionAddProducts(collection=collection)
 
 
@@ -393,8 +387,20 @@ class CategoryClearPrivateMeta(ClearMetaBaseMutation):
 
 
 class AttributeValueInput(InputObjectType):
-    slug = graphene.String(required=True, description="Slug of an attribute.")
-    value = graphene.String(required=True, description="Value of an attribute.")
+    id = graphene.ID(description="ID of an attribute")
+    name = graphene.String(
+        description="Slug of an attribute",
+        deprecation_reason="name is deprecated, use id instead",
+    )
+    slug = graphene.String(description="Slug of an attribute.")
+    values = graphene.List(
+        graphene.String,
+        required=True,
+        description=(
+            "The value or slug of an attribute to resolve. "
+            "If the passed value is non-existent, it will be created."
+        ),
+    )
 
 
 class ProductInput(graphene.InputObjectType):
@@ -496,7 +502,7 @@ class ProductCreate(ModelMutation):
         if attributes and product_type:
             qs = product_type.product_attributes.prefetch_related("values")
             try:
-                attributes = attributes_to_hstore(attributes, qs)
+                attributes = attributes_to_json(attributes, qs)
             except ValueError as e:
                 raise ValidationError({"attributes": str(e)})
             else:
@@ -675,13 +681,33 @@ class ProductVariantCreate(ModelMutation):
         permissions = ("product.manage_products",)
 
     @classmethod
-    def clean_product_type_attributes(cls, attributes_qs, attributes_input):
+    def clean_product_type_attributes(cls, info, attributes_qs, attributes_input):
         # transform attributes_input list to a dict of slug:value pairs
-        attributes_input = {item["slug"]: item["value"] for item in attributes_input}
+        input_slug_map = {}  # type: Dict[str, List[str]]
+        input_id_map = {}  # type: Dict[int, List[str]]
+
+        for attr_input in attributes_input:
+            attr_id = attr_input.get("id", None)
+            slug = attr_input.get("slug", None)
+            values = attr_input["values"]
+
+            if attr_id:
+                attr_id = from_global_id_strict_type(
+                    info, attr_id, only_type=Attribute, field="attributes"
+                )
+                input_id_map[int(attr_id)] = values
+            elif slug:
+                input_slug_map[slug] = values
+            else:
+                raise ValidationError(
+                    {"attributes": "Please provide a value's identifier."}
+                )
 
         for attr in attributes_qs:
-            value = attributes_input.get(attr.slug, None)
-            if not value:
+            values_by_id = input_id_map.get(attr.id, None)
+            values_by_slug = input_slug_map.get(attr.slug, None)
+
+            if not values_by_id and not values_by_slug:
                 fieldname = "attributes:%s" % attr.slug
                 raise ValidationError({fieldname: "This field cannot be blank."})
 
@@ -700,8 +726,8 @@ class ProductVariantCreate(ModelMutation):
             product_type = product.product_type
             variant_attrs = product_type.variant_attributes.prefetch_related("values")
             try:
-                cls.clean_product_type_attributes(variant_attrs, attributes_input)
-                attributes = attributes_to_hstore(attributes_input, variant_attrs)
+                cls.clean_product_type_attributes(info, variant_attrs, attributes_input)
+                attributes = attributes_to_json(attributes_input, variant_attrs)
             except ValueError as e:
                 raise ValidationError({"attributes": str(e)})
             else:
