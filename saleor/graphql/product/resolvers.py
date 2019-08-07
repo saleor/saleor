@@ -11,6 +11,7 @@ from .filters import (
     filter_products_by_attributes,
     filter_products_by_categories,
     filter_products_by_collections,
+    filter_products_by_minimal_price,
     filter_products_by_price,
     filter_products_by_stock_availability,
     sort_qs,
@@ -108,6 +109,8 @@ def resolve_products(
     collections=None,
     price_lte=None,
     price_gte=None,
+    minimal_price_lte=None,
+    minimal_price_gte=None,
     sort_by=None,
     stock_availability=None,
     query=None,
@@ -131,10 +134,12 @@ def resolve_products(
     if collections:
         collections = get_nodes(collections, "Collection", models.Collection)
         qs = filter_products_by_collections(qs, collections)
+
     if stock_availability:
         qs = filter_products_by_stock_availability(qs, stock_availability)
 
     qs = filter_products_by_price(qs, price_lte, price_gte)
+    qs = filter_products_by_minimal_price(qs, minimal_price_lte, minimal_price_gte)
     qs = sort_qs(qs, sort_by)
     qs = qs.distinct()
 
