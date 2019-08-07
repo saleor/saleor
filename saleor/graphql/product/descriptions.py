@@ -22,7 +22,7 @@ class AttributeValueDescriptions:
     ID = "The ID of a value displayed in the interface."
     NAME = "Name of a value displayed in the interface."
     SLUG = "Internal representation of a value (unique per attribute)."
-    TYPE = """Type of value (used only when `value` field is set)."""
-    VALUE = """Special value other than a textual name. Possible types are:
-    string (default), CSS color property, CSS gradient property, URL
-    (e.g. link to an image)."""
+    TYPE = "Type of value (used only when `value` field is set)."
+    VALUE = """DEPRECATED: This field is deprecated.
+    Special value other than a textual name. Possible types are: string (default),
+    CSS color property, CSS gradient property, URL (e.g. link to an image)."""

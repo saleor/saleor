@@ -321,7 +321,7 @@ type AttributeValue implements Node {
   name: String
   slug: String
   type: AttributeValueType
-  value: String
+  value: String @deprecated(reason: "This field is deprecated")
   translation(languageCode: LanguageCodeEnum!): AttributeValueTranslation
   inputType: AttributeInputTypeEnum
 }
