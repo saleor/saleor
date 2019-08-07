@@ -1,6 +1,8 @@
 import { storiesOf } from "@storybook/react";
 import React from "react";
 
+import { defaultListSettings } from "@saleor/config";
+import { ListViews } from "@saleor/types";
 import placeholderImage from "../../../../images/placeholder255x255.png";
 import { category as categoryFixture } from "../../../categories/fixtures";
 import {
@@ -22,10 +24,11 @@ const props: ProductListPageProps = {
   ...listActionsProps,
   ...pageListProps.default,
   ...filterPageProps,
+  defaultSettings: defaultListSettings[ListViews.PRODUCT_LIST],
   products,
   settings: {
     ...pageListProps.default.settings,
-    columns: ["thumbnail"]
+    columns: ["isPublished", "productType", "price"]
   }
 };
 
