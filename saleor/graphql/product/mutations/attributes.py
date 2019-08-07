@@ -24,7 +24,10 @@ from ..types import Attribute, AttributeValue
 
 class AttributeValueCreateInput(graphene.InputObjectType):
     name = graphene.String(required=True, description=AttributeValueDescriptions.NAME)
-    value = graphene.String(description=AttributeValueDescriptions.VALUE)
+    value = graphene.String(
+        description=AttributeValueDescriptions.VALUE,
+        deprecation_reason="This field is depracated",
+    )
 
 
 class AttributeCreateInput(graphene.InputObjectType):
@@ -494,6 +497,13 @@ class AttributeClearPrivateMeta(ClearMetaBaseMutation):
         public = False
 
 
+def validate_value_is_unique(attribute: models.Attribute, value: models.AttributeValue):
+    """Check if the attribute value is unique within the attribute it belongs to."""
+    duplicated_values = attribute.values.exclude(pk=value.pk).filter(slug=value.slug)
+    if duplicated_values.exists():
+        raise ValidationError({"name": f"Value with slug {value.slug} already exists."})
+
+
 class AttributeValueCreate(ModelMutation):
     attribute = graphene.Field(Attribute, description="The updated attribute.")
 
@@ -517,6 +527,11 @@ class AttributeValueCreate(ModelMutation):
         cleaned_input = super().clean_input(info, instance, data)
         cleaned_input["slug"] = slugify(cleaned_input["name"])
         return cleaned_input
+
+    @classmethod
+    def clean_instance(cls, instance):
+        validate_value_is_unique(instance.attribute, instance)
+        super().clean_instance(instance)
 
     @classmethod
     def perform_mutation(cls, _root, info, attribute_id, input):
@@ -554,6 +569,11 @@ class AttributeValueUpdate(ModelMutation):
         if "name" in cleaned_input:
             cleaned_input["slug"] = slugify(cleaned_input["name"])
         return cleaned_input
+
+    @classmethod
+    def clean_instance(cls, instance):
+        validate_value_is_unique(instance.attribute, instance)
+        super().clean_instance(instance)
 
     @classmethod
     def success_response(cls, instance):
