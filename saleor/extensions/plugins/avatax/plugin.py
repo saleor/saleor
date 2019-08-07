@@ -4,6 +4,7 @@ from typing import TYPE_CHECKING, Any, Dict, List, Union
 from urllib.parse import urljoin
 
 from django.conf import settings
+from django.utils.translation import pgettext_lazy
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ....core.taxes import TaxError, TaxType, zero_taxed_money
@@ -381,36 +382,40 @@ class AvataxPlugin(BasePlugin):
                     "name": "Username or account",
                     "value": "",
                     "type": ConfigurationTypeField.STRING,
-                    "help_text": "",
-                    "label": "",
+                    "help_text": "Provide user or account details",
+                    "label": pgettext_lazy("Plugin label", "Username or account"),
                 },
                 {
                     "name": "Password or license",
                     "value": "",
                     "type": ConfigurationTypeField.STRING,
-                    "help_text": "",
-                    "label": "",
+                    "help_text": "Provide password or license details",
+                    "label": pgettext_lazy("Plugin label", "Password or license"),
                 },
                 {
                     "name": "Use sandbox",
                     "value": True,
                     "type": ConfigurationTypeField.BOOLEAN,
-                    "help_text": "",
-                    "label": "",
+                    "help_text": "Determines if Saleor should use Avatax sandbox API.",
+                    "label": pgettext_lazy("Plugin label", "Use sandbox"),
                 },
                 {
                     "name": "Company name",
                     "value": "DEFAULT",
                     "type": ConfigurationTypeField.STRING,
-                    "help_text": "",
-                    "label": "",
+                    "help_text": "Avalara needs to receive company code. Some more "
+                    "complicated systems can use more than one company "
+                    "code, in that case, this variable should be changed "
+                    "based on data from Avalara's admin panel",
+                    "label": pgettext_lazy("Plugin label", "Company name"),
                 },
                 {
                     "name": "Autocommit",
                     "value": False,
                     "type": ConfigurationTypeField.BOOLEAN,
-                    "help_text": "",
-                    "label": "",
+                    "help_text": "Determines, if all transactions sent to Avalara "
+                    "should be committed by default.",
+                    "label": pgettext_lazy("Plugin label", "Autocommit"),
                 },
             ],
         }
