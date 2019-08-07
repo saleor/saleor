@@ -459,6 +459,7 @@ type CheckoutCountableEdge {
 
 type CheckoutCreate {
   errors: [Error!]
+  created: Boolean
   checkout: Checkout
 }
 

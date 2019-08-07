@@ -37,8 +37,10 @@ def other_shipping_method(shipping_zone):
 def test_clean_shipping_method_after_shipping_address_changes_stay_the_same(
     checkout_with_single_item, address, shipping_method, other_shipping_method
 ):
-    """If current shipping method applies to new address
-    then it doesn't need to be changed."""
+    """Ensure the current shipping method applies to new address.
+
+    If it does, then it doesn't need to be changed.
+    """
 
     checkout = checkout_with_single_item
     checkout.shipping_address = address
@@ -86,22 +88,23 @@ def test_update_checkout_shipping_method_if_invalid(
 
 MUTATION_CHECKOUT_CREATE = """
     mutation createCheckout($checkoutInput: CheckoutCreateInput!) {
-        checkoutCreate(input: $checkoutInput) {
-            checkout {
-                id
-                token
-                email
-                lines {
-                    quantity
-                }
-            }
-            errors {
-                field
-                message
-            }
+      checkoutCreate(input: $checkoutInput) {
+        created
+        checkout {
+          id
+          token
+          email
+          lines {
+            quantity
+          }
         }
+        errors {
+          field
+          message
+        }
+      }
     }
-    """
+"""
 
 
 def test_checkout_create(api_client, variant, graphql_address_data):
@@ -118,11 +121,14 @@ def test_checkout_create(api_client, variant, graphql_address_data):
     }
     assert not Checkout.objects.exists()
     response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
-    content = get_graphql_content(response)
+    content = get_graphql_content(response)["data"]["checkoutCreate"]
+
+    # Look at the flag to see whether a new checkout was created or not
+    assert content["created"] is True
 
     new_checkout = Checkout.objects.first()
     assert new_checkout is not None
-    checkout_data = content["data"]["checkoutCreate"]["checkout"]
+    checkout_data = content["checkout"]
     assert checkout_data["token"] == str(new_checkout.token)
     assert new_checkout.lines.count() == 1
     checkout_line = new_checkout.lines.first()
@@ -183,10 +189,13 @@ def test_checkout_create_reuse_checkout(checkout, user_api_client, variant):
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     variables = {"checkoutInput": {"lines": [{"quantity": 1, "variantId": variant_id}]}}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
-    content = get_graphql_content(response)
+    content = get_graphql_content(response)["data"]["checkoutCreate"]
+
+    # Look at the flag to see whether a new checkout was created or not
+    assert not content["created"]
 
     # assert that existing checkout was reused and returned by mutation
-    checkout_data = content["data"]["checkoutCreate"]["checkout"]
+    checkout_data = content["checkout"]
     assert checkout_data["token"] == str(checkout.token)
 
     # if checkout was reused it should be returned unmodified (e.g. without
@@ -1261,7 +1270,7 @@ def test_checkout_prices(user_api_client, checkout_with_item):
     )
 
 
-UPDATE_SHIPPING_METHOD_QUERY = """
+MUTATION_UPDATE_SHIPPING_METHOD = """
     mutation checkoutShippingMethodUpdate(
             $checkoutId:ID!, $shippingMethodId:ID!){
         checkoutShippingMethodUpdate(
@@ -1288,7 +1297,7 @@ def test_checkout_shipping_method_update(
     is_valid_shipping_method,
 ):
     checkout = checkout_with_item
-    query = UPDATE_SHIPPING_METHOD_QUERY
+    query = MUTATION_UPDATE_SHIPPING_METHOD
     mock_clean_shipping.return_value = is_valid_shipping_method
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)

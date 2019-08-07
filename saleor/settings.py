@@ -5,11 +5,11 @@ import warnings
 import dj_database_url
 import dj_email_url
 import django_cache_url
+import sentry_sdk
 from django.contrib.messages import constants as messages
 from django.utils.translation import gettext_lazy as _, pgettext_lazy
 from django_prices.templatetags.prices_i18n import get_currency_fraction
-
-from . import __version__
+from sentry_sdk.integrations.django import DjangoIntegration
 
 
 def get_list(text):
@@ -592,8 +592,7 @@ RECAPTCHA_PRIVATE_KEY = os.environ.get("RECAPTCHA_PRIVATE_KEY")
 #  Sentry
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 if SENTRY_DSN:
-    INSTALLED_APPS.append("raven.contrib.django.raven_compat")
-    RAVEN_CONFIG = {"dsn": SENTRY_DSN, "release": __version__}
+    sentry_sdk.init(dsn=SENTRY_DSN, integrations=[DjangoIntegration()])
 
 
 SERIALIZATION_MODULES = {"json": "saleor.core.utils.json_serializer"}
