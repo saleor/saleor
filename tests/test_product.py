@@ -576,9 +576,7 @@ def test_get_variant_picker_data_no_nested_attributes(variant, product_type, cat
     variant.save(update_fields=["attributes"])
 
     product = variant.product
-    data = get_variant_picker_data(
-        product, discounts=None, taxes=None, local_currency=None
-    )
+    data = get_variant_picker_data(product, discounts=None, local_currency=None)
 
     assert len(data["variantAttributes"]) == 0
 

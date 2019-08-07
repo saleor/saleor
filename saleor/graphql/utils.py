@@ -85,6 +85,8 @@ def get_nodes(
 
     if qs is None and not isinstance(graphene_type, str):
         qs = graphene_type._meta.model.objects
+    elif model is not None:
+        qs = model.objects
 
     nodes = list(qs.filter(pk__in=pks))
     nodes.sort(key=lambda e: pks.index(str(e.pk)))  # preserve order in pks
