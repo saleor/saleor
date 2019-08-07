@@ -17,10 +17,8 @@ storiesOf("Orders / OrderCustomerEditDialog", module)
       onClose={undefined}
       onConfirm={undefined}
       open={true}
-      user={{
-        label: user.email,
-        value: user.id
-      }}
+      user={user.id}
+      userDisplayValue={user.email}
       users={users}
     />
   ));

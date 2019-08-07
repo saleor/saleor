@@ -1,4 +1,8 @@
-import { MenuItemInput, MenuItemMoveInput } from "../../../types/globalTypes";
+import {
+  MenuItemCreateInput,
+  MenuItemInput,
+  MenuItemMoveInput
+} from "../../../types/globalTypes";
 import { MenuDetailsSubmitData } from "../../components/MenuDetailsPage";
 import { MenuItemDialogFormData } from "../../components/MenuItemDialog";
 import { unknownTypeError } from "../../components/MenuItems";
@@ -8,6 +12,38 @@ export function getMenuItemInputData(
   data: MenuItemDialogFormData
 ): MenuItemInput {
   const variables: MenuItemInput = {
+    name: data.name
+  };
+  switch (data.type) {
+    case "category":
+      variables.category = data.id;
+      break;
+
+    case "collection":
+      variables.collection = data.id;
+      break;
+
+    case "page":
+      variables.page = data.id;
+      break;
+
+    case "link":
+      variables.url = data.id;
+      break;
+
+    default:
+      throw unknownTypeError;
+  }
+
+  return variables;
+}
+
+export function getMenuItemCreateInputData(
+  menu: string,
+  data: MenuItemDialogFormData
+): MenuItemCreateInput {
+  const variables: MenuItemCreateInput = {
+    menu,
     name: data.name
   };
   switch (data.type) {

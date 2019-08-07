@@ -6,7 +6,9 @@ import useNotifier from "@saleor/hooks/useNotifier";
 import useShop from "@saleor/hooks/useShop";
 import i18n from "../../i18n";
 import { decimal, getMutationState, maybe } from "../../misc";
-import ProductVariantCreatePage from "../components/ProductVariantCreatePage";
+import ProductVariantCreatePage, {
+  ProductVariantCreatePageSubmitData
+} from "../components/ProductVariantCreatePage";
 import { TypedVariantCreateMutation } from "../mutations";
 import { TypedProductVariantCreateQuery } from "../queries";
 import { VariantCreate } from "../types/VariantCreate";
@@ -14,17 +16,6 @@ import { productUrl, productVariantEditUrl } from "../urls";
 
 interface ProductUpdateProps {
   productId: string;
-}
-
-interface FormData {
-  attributes: Array<{
-    slug: string;
-    value: string;
-  }>;
-  costPrice: string;
-  priceOverride: string;
-  quantity: number;
-  sku: string;
 }
 
 export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
@@ -57,13 +48,17 @@ export const ProductVariant: React.StatelessComponent<ProductUpdateProps> = ({
           <TypedVariantCreateMutation onCompleted={handleCreateSuccess}>
             {(variantCreate, variantCreateResult) => {
               const handleBack = () => navigate(productUrl(productId));
-              const handleSubmit = (formData: FormData) =>
+              const handleSubmit = (
+                formData: ProductVariantCreatePageSubmitData
+              ) =>
                 variantCreate({
                   variables: {
-                    attributes: formData.attributes.map(attribute => ({
-                      slug: attribute.slug,
-                      value: attribute.value
-                    })),
+                    attributes: formData.attributes
+                      .filter(attribute => attribute.value !== "")
+                      .map(attribute => ({
+                        id: attribute.id,
+                        values: [attribute.value]
+                      })),
                     costPrice: decimal(formData.costPrice),
                     priceOverride: decimal(formData.priceOverride),
                     product: productId,

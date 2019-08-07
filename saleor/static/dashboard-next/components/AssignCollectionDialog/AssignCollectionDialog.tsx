@@ -12,8 +12,7 @@ import TableRow from "@material-ui/core/TableRow";
 import TextField from "@material-ui/core/TextField";
 import React from "react";
 
-import { ChangeEvent } from "@saleor/hooks/useForm";
-import { onQueryChange } from "@saleor/misc";
+import useSearchQuery from "@saleor/hooks/useSearchQuery";
 import { SearchCollections_collections_edges_node } from "../../containers/SearchCollections/types/SearchCollections";
 import i18n from "../../i18n";
 import Checkbox from "../Checkbox";
@@ -86,13 +85,11 @@ const AssignCollectionDialog = withStyles(styles, {
     onFetch,
     onSubmit
   }: AssignCollectionDialogProps) => {
-    const [query, setQuery] = React.useState("");
+    const [query, onQueryChange] = useSearchQuery(onFetch);
     const [selectedCollections, setSelectedCollections] = React.useState<
       SearchCollections_collections_edges_node[]
     >([]);
 
-    const handleQueryChange = (event: ChangeEvent) =>
-      onQueryChange(event, onFetch, setQuery);
     const handleSubmit = () => onSubmit(selectedCollections);
 
     return (
@@ -108,7 +105,7 @@ const AssignCollectionDialog = withStyles(styles, {
           <TextField
             name="query"
             value={query}
-            onChange={handleQueryChange}
+            onChange={onQueryChange}
             label={i18n.t("Search Collection", {
               context: "product search input label"
             })}

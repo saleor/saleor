@@ -16,7 +16,6 @@ export interface ProductVariantCreateData_product_images {
 export interface ProductVariantCreateData_product_productType_variantAttributes_values {
   __typename: "AttributeValue";
   id: string;
-  sortOrder: number | null;
   name: string | null;
   slug: string | null;
 }
@@ -26,6 +25,7 @@ export interface ProductVariantCreateData_product_productType_variantAttributes 
   id: string;
   slug: string | null;
   name: string | null;
+  valueRequired: boolean;
   values: (ProductVariantCreateData_product_productType_variantAttributes_values | null)[] | null;
 }
 

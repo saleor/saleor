@@ -42,17 +42,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Upgraded to django 2.2.4 - #4603 by @NyanKiyoshi
 - Invalid IP address in HTTP requests now fallback to the requester's IP address. - #4597 by @NyanKiyoshi
 - Refactor account mutations - #4510 by @fowczarek
-    - split mutations into multiple files
-    - use "Account" prefix for all mutation related to the logged-in user
-    - deprecated mutations:
-        - PasswordReset
-        - CustomerRegister
-        - LoggedUserUpdate
-        - CustomerAddressCreate
-        - CustomerSetDefaultAddress
-        - CustomerPasswordReset
-
-
+- Users cannot add multiple times the same product into a collection anymore - #4518 by @NyanKiyoshi
+- Enterprise-grade attributes management - #4351 by @dominik-zeglen and @NyanKiyoshi
 
 ## 2.8.0
 

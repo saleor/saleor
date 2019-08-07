@@ -28,6 +28,7 @@
     "@types/react-dropzone": "^4.2.2",
     "@types/react-helmet": "^5.0.8",
     "@types/react-infinite-scroller": "^1.2.1",
+    "@types/react-sortable-hoc": "^0.6.5",
     "@types/react-sortable-tree": "^0.3.6",
     "@types/storybook__addon-storyshots": "^3.4.9",
     "@types/string-similarity": "^1.2.1",
@@ -143,7 +144,7 @@
     "jest": "^24.8.0",
     "jest-file": "^1.0.0",
     "mini-css-extract-plugin": "^0.4.5",
-    "mjml": "^4.3.1",
+    "mjml": "^4.4.0",
     "node-sass": "^4.12.0",
     "plop": "^2.4.0",
     "postcss": "^6.0.23",
@@ -185,6 +186,9 @@
   "jest": {
     "globals": {
       "ts-jest": {
+        "diagnostics": {
+          "warnOnly": true
+        },
         "tsConfig": "tsconfig.json"
       }
     },

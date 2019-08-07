@@ -1,5 +1,10 @@
 import { Filter } from "./components/TableFilter";
-import { FilterPageProps, ListActions, PageListProps } from "./types";
+import {
+  FetchMoreProps,
+  FilterPageProps,
+  ListActions,
+  PageListProps
+} from "./types";
 
 const pageInfo = {
   hasNextPage: true,
@@ -125,3 +130,10 @@ export const filters: Filter[] = [
   ...filter,
   label: filter.label + filterIndex
 }));
+
+export const fetchMoreProps: FetchMoreProps = {
+  hasMore: true,
+  loading: false,
+  onFetch: () => undefined,
+  onFetchMore: () => undefined
+};

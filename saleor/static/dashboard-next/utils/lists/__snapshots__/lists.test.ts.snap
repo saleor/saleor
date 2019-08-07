@@ -9,7 +9,31 @@ Array [
 ]
 `;
 
+exports[`Properly calculates output arrays Adds at index 1`] = `
+Array [
+  "lorem",
+  "ipsum",
+  "sit",
+  "dolor",
+]
+`;
+
+exports[`Properly calculates output arrays Moves 1`] = `
+Array [
+  "ipsum",
+  "lorem",
+  "dolor",
+]
+`;
+
 exports[`Properly calculates output arrays Removes 1`] = `
+Array [
+  "lorem",
+  "dolor",
+]
+`;
+
+exports[`Properly calculates output arrays Removes at index 1`] = `
 Array [
   "lorem",
   "dolor",
@@ -29,5 +53,13 @@ Array [
   "ipsum",
   "dolor",
   "sit",
+]
+`;
+
+exports[`Properly calculates output arrays Updates at index 1`] = `
+Array [
+  "lorem",
+  "amet",
+  "dolor",
 ]
 `;

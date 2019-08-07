@@ -20,7 +20,7 @@ def test_fetch_variant(staff_api_client, product, permission_manage_products):
                         slug
                     }
                 }
-                value {
+                values {
                     id
                     name
                     slug
@@ -79,6 +79,10 @@ def test_create_variant(
                         trackInventory: $trackInventory,
                         weight: $weight
                     }) {
+                    errors {
+                      field
+                      message
+                    }
                     productVariant {
                         name
                         sku
@@ -86,7 +90,7 @@ def test_create_variant(
                             attribute {
                                 slug
                             }
-                            value {
+                            values {
                                 slug
                             }
                         }
@@ -126,21 +130,22 @@ def test_create_variant(
         "costPrice": cost_price,
         "priceOverride": price_override,
         "weight": weight,
-        "attributes": [{"slug": variant_slug, "value": variant_value}],
+        "attributes": [{"slug": variant_slug, "values": [variant_value]}],
         "trackInventory": True,
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
-    content = get_graphql_content(response)
-    data = content["data"]["productVariantCreate"]["productVariant"]
+    content = get_graphql_content(response)["data"]["productVariantCreate"]
+    assert not content["errors"]
+    data = content["productVariant"]
     assert data["name"] == variant_value
     assert data["quantity"] == quantity
     assert data["costPrice"]["amount"] == cost_price
     assert data["priceOverride"]["amount"] == price_override
     assert data["sku"] == sku
     assert data["attributes"][0]["attribute"]["slug"] == variant_slug
-    assert data["attributes"][0]["value"]["slug"] == variant_value
+    assert data["attributes"][0]["values"][0]["slug"] == variant_value
     assert data["weight"]["unit"] == "kg"
     assert data["weight"]["value"] == weight
 
@@ -176,7 +181,7 @@ def test_create_product_variant_not_all_attributes(
     variables = {
         "productId": product_id,
         "sku": sku,
-        "attributes": [{"slug": variant_slug, "value": variant_value}],
+        "attributes": [{"slug": variant_slug, "values": [variant_value]}],
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
@@ -187,6 +192,92 @@ def test_create_product_variant_not_all_attributes(
         "attributes:color"
     )
     assert not product.variants.filter(sku=sku).exists()
+
+
+def test_create_product_variant_update_with_new_attributes(
+    staff_api_client, permission_manage_products, product, size_attribute
+):
+    query = """
+        mutation VariantUpdate(
+          $id: ID!
+          $attributes: [AttributeValueInput]
+          $costPrice: Decimal
+          $priceOverride: Decimal
+          $sku: String
+          $quantity: Int
+          $trackInventory: Boolean!
+        ) {
+          productVariantUpdate(
+            id: $id
+            input: {
+              attributes: $attributes
+              costPrice: $costPrice
+              priceOverride: $priceOverride
+              sku: $sku
+              quantity: $quantity
+              trackInventory: $trackInventory
+            }
+          ) {
+            errors {
+              field
+              message
+            }
+            productVariant {
+              id
+              attributes {
+                attribute {
+                  id
+                  name
+                  slug
+                  values {
+                    id
+                    name
+                    slug
+                    __typename
+                  }
+                  __typename
+                }
+                value {
+                  id
+                  name
+                  slug
+                  __typename
+                }
+                __typename
+              }
+            }
+          }
+        }
+    """
+
+    size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+    variant_id = graphene.Node.to_global_id(
+        "ProductVariant", product.variants.first().pk
+    )
+
+    variables = {
+        "attributes": [{"id": size_attribute_id, "values": ["XXXL"]}],
+        "costPrice": 10,
+        "id": variant_id,
+        "priceOverride": 0,
+        "quantity": 4,
+        "sku": "21599567",
+        "trackInventory": True,
+    }
+
+    data = get_graphql_content(
+        staff_api_client.post_graphql(
+            query, variables, permissions=[permission_manage_products]
+        )
+    )["data"]["productVariantUpdate"]
+    assert not data["errors"]
+    assert data["productVariant"]["id"] == variant_id
+
+    attributes = data["productVariant"]["attributes"]
+    assert len(attributes) == 1
+    assert attributes[0]["attribute"]["id"] == size_attribute_id
+    assert attributes[0]["value"]["name"] == "XXXL"
+    assert attributes[0]["value"]["slug"] == "xxxl"
 
 
 def test_update_product_variant(staff_api_client, product, permission_manage_products):
@@ -248,6 +339,10 @@ def test_update_product_variant(staff_api_client, product, permission_manage_pro
 def test_update_product_variant_not_all_attributes(
     staff_api_client, product, product_type, color_attribute, permission_manage_products
 ):
+    """Ensures updating a variant with missing attributes (all attributes must
+    be provided) raises an error. We expect the color attribute
+    to be flagged as missing."""
+
     query = """
         mutation updateVariant (
             $id: ID!,
@@ -270,14 +365,16 @@ def test_update_product_variant_not_all_attributes(
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     sku = "test sku"
-    variant_slug = product_type.variant_attributes.first().slug
+    attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type.variant_attributes.first().id
+    )
     variant_value = "test-value"
     product_type.variant_attributes.add(color_attribute)
 
     variables = {
         "id": variant_id,
         "sku": sku,
-        "attributes": [{"slug": variant_slug, "value": variant_value}],
+        "attributes": [{"id": attr_id, "values": [variant_value]}],
     }
 
     response = staff_api_client.post_graphql(

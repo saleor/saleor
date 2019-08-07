@@ -9,6 +9,7 @@ from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 from ...product.models import Attribute, Collection, Product, ProductType
 from ...search.backends import picker
 from ..core.filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
+from ..core.types import FilterInputObjectType
 from ..core.types.common import PriceRangeInput
 from ..utils import filter_by_query_param, get_nodes
 from . import types
@@ -43,8 +44,8 @@ def filter_products_by_attributes(qs, filter_value):
         functools.reduce(
             operator.or_,
             [
-                Q(**{"variants__attributes__%s" % (key,): v})
-                | Q(**{"attributes__%s" % (key,): v})
+                Q(**{f"variants__attributes__from_key_{key}__has_key": str(v)})
+                | Q(**{f"attributes__from_key_{key}__has_key": str(v)})
                 for v in values
             ],
         )
@@ -74,11 +75,9 @@ def filter_products_by_collections(qs, collections):
     return qs.filter(collections__in=collections)
 
 
-def sort_qs(qs, sort_by_product_order):
-    if sort_by_product_order:
-        qs = qs.order_by(
-            sort_by_product_order["direction"] + sort_by_product_order["field"]
-        )
+def sort_qs(qs, sort_by):
+    if sort_by:
+        qs = qs.order_by(sort_by["direction"] + sort_by["field"])
     return qs
 
 
@@ -163,6 +162,13 @@ def filter_product_type(qs, _, value):
     return qs
 
 
+def filter_attributes_search(qs, _, value):
+    search_fields = ("name", "slug")
+    if value:
+        qs = filter_by_query_param(qs, value, search_fields)
+    return qs
+
+
 class ProductFilter(django_filters.FilterSet):
     is_published = django_filters.BooleanFilter()
     collections = GlobalIDMultipleChoiceFilter(method=filter_collections)
@@ -212,3 +218,39 @@ class ProductTypeFilter(django_filters.FilterSet):
     class Meta:
         model = ProductType
         fields = ["configurable", "product_type"]
+
+
+class AttributeFilter(django_filters.FilterSet):
+    # Search by attribute name and slug
+    search = django_filters.CharFilter(method=filter_attributes_search)
+
+    class Meta:
+        model = Attribute
+        fields = [
+            "value_required",
+            "is_variant_only",
+            "visible_in_storefront",
+            "filterable_in_storefront",
+            "filterable_in_dashboard",
+            "available_in_grid",
+        ]
+
+
+class ProductFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = ProductFilter
+
+
+class CollectionFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = CollectionFilter
+
+
+class ProductTypeFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = ProductTypeFilter
+
+
+class AttributeFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = AttributeFilter

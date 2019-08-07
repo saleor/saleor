@@ -3,7 +3,6 @@ from graphql_jwt.decorators import permission_required
 
 from ..core.enums import ReportingPeriod
 from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
-from ..core.types import FilterInputObjectType
 from ..descriptions import DESCRIPTIONS
 from ..translations.mutations import (
     AttributeTranslate,
@@ -25,18 +24,27 @@ from .bulk_mutations.products import (
     ProductVariantBulkDelete,
 )
 from .enums import StockAvailability
-from .filters import CollectionFilter, ProductFilter, ProductTypeFilter
+from .filters import (
+    AttributeFilterInput,
+    CollectionFilterInput,
+    ProductFilterInput,
+    ProductTypeFilterInput,
+)
 from .mutations.attributes import (
+    AttributeAssign,
     AttributeClearMeta,
     AttributeClearPrivateMeta,
     AttributeCreate,
     AttributeDelete,
+    AttributeReorderValues,
+    AttributeUnassign,
     AttributeUpdate,
     AttributeUpdateMeta,
     AttributeUpdatePrivateMeta,
     AttributeValueCreate,
     AttributeValueDelete,
     AttributeValueUpdate,
+    ProductTypeReorderAttributes,
 )
 from .mutations.digital_contents import (
     DigitalContentCreate,
@@ -111,21 +119,7 @@ from .types import (
     ProductType,
     ProductVariant,
 )
-
-
-class ProductFilterInput(FilterInputObjectType):
-    class Meta:
-        filterset_class = ProductFilter
-
-
-class CollectionFilterInput(FilterInputObjectType):
-    class Meta:
-        filterset_class = CollectionFilter
-
-
-class ProductTypeFilterInput(FilterInputObjectType):
-    class Meta:
-        filterset_class = ProductTypeFilter
+from .types.attributes import AttributeSortingInput
 
 
 class ProductQueries(graphene.ObjectType):
@@ -138,7 +132,7 @@ class ProductQueries(graphene.ObjectType):
         level=graphene.Argument(graphene.Int),
         description="List of the digital contents.",
     )
-    attributes = PrefetchingConnectionField(
+    attributes = FilterInputConnectionField(
         Attribute,
         description="List of the shop's attributes.",
         query=graphene.String(description=DESCRIPTIONS["attributes"]),
@@ -152,6 +146,15 @@ class ProductQueries(graphene.ObjectType):
             description="""Return attributes for products
             belonging to the given collection.""",
         ),
+        filter=AttributeFilterInput(),
+        sort_by=graphene.Argument(
+            AttributeSortingInput, description="Sort attributes."
+        ),
+    )
+    attribute = graphene.Field(
+        Attribute,
+        id=graphene.Argument(graphene.ID, required=True),
+        description="Lookup an attribute by ID.",
     )
     categories = PrefetchingConnectionField(
         Category,
@@ -233,10 +236,11 @@ class ProductQueries(graphene.ObjectType):
         description="List of top selling products.",
     )
 
-    def resolve_attributes(
-        self, info, in_category=None, in_collection=None, query=None, **_kwargs
-    ):
-        return resolve_attributes(info, in_category, in_collection, query)
+    def resolve_attributes(self, info, **kwargs):
+        return resolve_attributes(info, **kwargs)
+
+    def resolve_attribute(self, info, id):
+        return graphene.Node.get_node_from_global_id(info, id, Attribute)
 
     def resolve_categories(self, info, level=None, query=None, **_kwargs):
         return resolve_categories(info, level=level, query=query)
@@ -285,6 +289,8 @@ class ProductMutations(graphene.ObjectType):
     attribute_create = AttributeCreate.Field()
     attribute_delete = AttributeDelete.Field()
     attribute_bulk_delete = AttributeBulkDelete.Field()
+    attribute_assign = AttributeAssign.Field()
+    attribute_unassign = AttributeUnassign.Field()
     attribute_update = AttributeUpdate.Field()
     attribute_translate = AttributeTranslate.Field()
     attribute_update_metadata = AttributeUpdateMeta.Field()
@@ -297,6 +303,7 @@ class ProductMutations(graphene.ObjectType):
     attribute_value_bulk_delete = AttributeValueBulkDelete.Field()
     attribute_value_update = AttributeValueUpdate.Field()
     attribute_value_translate = AttributeValueTranslate.Field()
+    attribute_reorder_values = AttributeReorderValues.Field()
 
     category_create = CategoryCreate.Field()
     category_delete = CategoryDelete.Field()
@@ -343,6 +350,8 @@ class ProductMutations(graphene.ObjectType):
     product_type_delete = ProductTypeDelete.Field()
     product_type_bulk_delete = ProductTypeBulkDelete.Field()
     product_type_update = ProductTypeUpdate.Field()
+    product_type_reorder_attributes = ProductTypeReorderAttributes.Field()
+
     product_type_update_metadata = ProductTypeUpdateMeta.Field()
     product_type_clear_metadata = ProductTypeClearMeta.Field()
     product_type_update_private_metadata = ProductTypeUpdatePrivateMeta.Field()

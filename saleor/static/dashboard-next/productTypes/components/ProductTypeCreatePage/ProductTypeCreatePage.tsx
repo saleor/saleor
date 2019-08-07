@@ -8,38 +8,51 @@ import Form from "@saleor/components/Form";
 import Grid from "@saleor/components/Grid";
 import PageHeader from "@saleor/components/PageHeader";
 import SaveButtonBar from "@saleor/components/SaveButtonBar";
-import i18n from "../../../i18n";
-import { WeightUnitsEnum } from "../../../types/globalTypes";
+import { ChangeEvent, FormChange } from "@saleor/hooks/useForm";
+import useStateFromProps from "@saleor/hooks/useStateFromProps";
+import i18n from "@saleor/i18n";
+import { ProductTypeDetails_taxTypes } from "@saleor/productTypes/types/ProductTypeDetails";
+import { UserError } from "@saleor/types";
+import { WeightUnitsEnum } from "@saleor/types/globalTypes";
 import ProductTypeDetails from "../ProductTypeDetails/ProductTypeDetails";
 import ProductTypeShipping from "../ProductTypeShipping/ProductTypeShipping";
 import ProductTypeTaxes from "../ProductTypeTaxes/ProductTypeTaxes";
 
 export interface ProductTypeForm {
-  chargeTaxes: boolean;
   name: string;
   isShippingRequired: boolean;
-  taxType: {
-    label: string;
-    value: string;
-  };
+  taxType: string;
   weight: number;
 }
 
 export interface ProductTypeCreatePageProps {
-  errors: Array<{
-    field: string;
-    message: string;
-  }>;
+  errors: UserError[];
   defaultWeightUnit: WeightUnitsEnum;
   disabled: boolean;
   pageTitle: string;
   saveButtonBarState: ConfirmButtonTransitionState;
-  taxTypes: Array<{
-    description: string;
-    taxCode: string;
-  }>;
+  taxTypes: ProductTypeDetails_taxTypes[];
   onBack: () => void;
   onSubmit: (data: ProductTypeForm) => void;
+}
+
+const formInitialData: ProductTypeForm = {
+  isShippingRequired: false,
+  name: "",
+  taxType: "",
+  weight: 0
+};
+
+function handleTaxTypeChange(
+  event: ChangeEvent,
+  taxTypes: ProductTypeDetails_taxTypes[],
+  formChange: FormChange,
+  displayChange: (name: string) => void
+) {
+  formChange(event);
+  displayChange(
+    taxTypes.find(taxType => taxType.taxCode === event.target.value).description
+  );
 }
 
 const ProductTypeCreatePage: React.StatelessComponent<
@@ -54,16 +67,8 @@ const ProductTypeCreatePage: React.StatelessComponent<
   onBack,
   onSubmit
 }: ProductTypeCreatePageProps) => {
-  const formInitialData: ProductTypeForm = {
-    chargeTaxes: true,
-    isShippingRequired: false,
-    name: "",
-    taxType: {
-      label: "",
-      value: ""
-    },
-    weight: 0
-  };
+  const [taxTypeDisplayName, setTaxTypeDisplayName] = useStateFromProps("");
+
   return (
     <Form
       errors={errors}
@@ -71,7 +76,7 @@ const ProductTypeCreatePage: React.StatelessComponent<
       onSubmit={onSubmit}
       confirmLeave
     >
-      {({ change, data, hasChanged, submit }) => (
+      {({ change, data, errors: formErrors, hasChanged, submit }) => (
         <Container>
           <AppHeader onBack={onBack}>{i18n.t("Product Types")}</AppHeader>
           <PageHeader title={pageTitle} />
@@ -80,6 +85,7 @@ const ProductTypeCreatePage: React.StatelessComponent<
               <ProductTypeDetails
                 data={data}
                 disabled={disabled}
+                errors={formErrors}
                 onChange={change}
               />
               <CardSpacer />
@@ -87,7 +93,15 @@ const ProductTypeCreatePage: React.StatelessComponent<
                 disabled={disabled}
                 data={data}
                 taxTypes={taxTypes}
-                onChange={change}
+                taxTypeDisplayName={taxTypeDisplayName}
+                onChange={event =>
+                  handleTaxTypeChange(
+                    event,
+                    taxTypes,
+                    change,
+                    setTaxTypeDisplayName
+                  )
+                }
               />
             </div>
             <div>
