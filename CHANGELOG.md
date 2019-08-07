@@ -2,39 +2,6 @@
 
 All notable, unreleased changes to this project will be documented in this file. For the released changes, please visit the [Releases](https://github.com/mirumee/saleor/releases) page.
 
-## [Unreleased Changeset: Attributes]
-
-- The mutations `attributeCreate` and `attributeUpdate`:
-    - They no longer crash if no values were passed. - #4260 by @NyanKiyoshi
-    - They no longer accept the `productType` parameter and no longer return the attribute's `productType` in the root of the response; instead, you should query the attribute's `productType` manually. - #4260 by @NyanKiyoshi
-    - They now accept an optional `slug` input parameter for setting the internal representation of the attribute instead of always generating it. This allows users to have multiple attributes with the same name but that are different things or set of values. - #4260 by @NyanKiyoshi
-- The `Attribute` model:
-    - They now always unique, instead of being unique only into a given product type. - #4260 by @NyanKiyoshi
-- Attributes can now be associated to multiple product types. - #4266 by @NyanKiyoshi
-- The `Attribute` model's `product_type` field was renamed to `product_types` (M2M related manager). - #4266 by @NyanKiyoshi
-- Added `attributeAssign(...)` and `attributeUnassign(...)` mutations in the GraphQL API. - #4266 by @NyanKiyoshi
-- Implemented a `input_type` field into the attribute models and refactored the product attributes to be able to store more than one value per attribute per product. - #4255 by @NyanKiyoshi.
-- Staff users can now flag attributes as to be hidden in the storefront. -  #4338 by @NyanKiyoshi
-- Added flags to attributes: whether they are filterable or not in dashboard and/or storefront. - #4341 by @NyanKiyoshi.
-- Attributes can now be flagged as required. - #4340 by @NyanKiyoshi.
-- Added a search position field for the storefront navigation to the attributes. - #4343 by @NyanKiyoshi
-- Deprecate the slug field for value input in attributes, and pass by ID instead. - #4348 by @NyanKiyoshi
-- Add filtering and sorting capabilities to the top-level attributes' field. - #4387 by @NyanKiyoshi
-- The `SelectedAttribute` type now returns multiple values and will always return all the attributes assigned to the product type. - #4394 by @NyanKiyoshi
-- Add attribute visibility config - #4449 by @dominik-zeglen
-- Add slug generation = #4488 by @dominik-zeglen
-- Add drag'n'drop attribute reordering in product type view - #4492 by @dominik-zeglen
-- Fix attribute picker = #4501 by @dominik-zeglen
-- Rework adding attribute values - #4504 by @dominik-zeglen
-- Add "value required" switch - #4498 by @dominik-zeglen
-- Fix minor bugs - #4503 by @dominik-zeglen
-- Fix attribute errors displaying - #4505 by @dominik-zeglen
-- Reset errors after closing modal - #4536 by @dominik-zeglen
-- Add slug column to product type's attribute list - #4538 by @dominik-zeglen
-- Reset query after modal close - #4554 by @dominik-zeglen
-- Fix various minor bugs - #4586 by @dominik-zeglen
-- Use `availableAttributes` field in modal to assign attributes - #4605 by @dominik-zeglen
-
 ## [Unreleased]
 
 - Fix product type taxes select - #4453 by @benekex2
@@ -75,18 +42,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Upgraded to django 2.2.4 - #4603 by @NyanKiyoshi
 - Invalid IP address in HTTP requests now fallback to the requester's IP address. - #4597 by @NyanKiyoshi
 - Refactor account mutations - #4510 by @fowczarek
-    - split mutations into multiple files
-    - use "Account" prefix for all mutation related to the logged-in user
-    - deprecated mutations:
-        - PasswordReset
-        - CustomerRegister
-        - LoggedUserUpdate
-        - CustomerAddressCreate
-        - CustomerSetDefaultAddress
-        - CustomerPasswordReset
-
-
 - Users cannot add multiple times the same product into a collection anymore - #4518 by @NyanKiyoshi
+- Enterprise-grade attributes management - #4351 by @dominik-zeglen and @NyanKiyoshi
 
 ## 2.8.0
 
@@ -169,8 +126,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix checkbox clickable area size - #4280 by @dominik-zeglen
 - Fix breaking object selection in menu section - #4282 by @dominik-zeglen
 - Reset selected items when tab switch - #4268 by @benekex2
-- Add attribute section - #4305 by @dominik-zeglen
-- Allow users to assign attributes to product types - #4329 by @dominik-zeglen
 
 ### Other notable changes
 
