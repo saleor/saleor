@@ -92,6 +92,7 @@ const DiscountCollections = withStyles(styles, {
           <TableCell className={classes.textRight}>
             {i18n.t("Products")}
           </TableCell>
+          <TableCell />
         </TableHead>
         <TableFooter>
           <TableRow>

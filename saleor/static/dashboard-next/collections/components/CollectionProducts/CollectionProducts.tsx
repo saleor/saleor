@@ -19,7 +19,9 @@ import CardTitle from "@saleor/components/CardTitle";
 import Checkbox from "@saleor/components/Checkbox";
 import Skeleton from "@saleor/components/Skeleton";
 import StatusLabel from "@saleor/components/StatusLabel";
-import TableCellAvatar from "@saleor/components/TableCellAvatar";
+import TableCellAvatar, {
+  AVATAR_MARGIN
+} from "@saleor/components/TableCellAvatar";
 import TableHead from "@saleor/components/TableHead";
 import TablePagination from "@saleor/components/TablePagination";
 import i18n from "../../../i18n";
@@ -29,11 +31,26 @@ import { CollectionDetails_collection } from "../../types/CollectionDetails";
 
 const styles = (theme: Theme) =>
   createStyles({
-    iconCell: {
+    colActions: {
       "&:last-child": {
         paddingRight: 0
       },
       width: 48 + theme.spacing.unit / 2
+    },
+    colName: {
+      width: "auto"
+    },
+    colNameLabel: {
+      marginLeft: AVATAR_MARGIN
+    },
+    colPublished: {
+      width: 200
+    },
+    colType: {
+      width: 200
+    },
+    table: {
+      tableLayout: "fixed"
     },
     tableRow: {
       cursor: "pointer"
@@ -47,6 +64,8 @@ export interface CollectionProductsProps
   collection: CollectionDetails_collection;
   onProductUnassign: (id: string, event: React.MouseEvent<any>) => void;
 }
+
+const columns = 5;
 
 const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
   ({
@@ -89,7 +108,7 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
           </Button>
         }
       />
-      <Table>
+      <Table className={classes.table}>
         <TableHead
           selected={selected}
           disabled={disabled}
@@ -97,16 +116,23 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
           toggleAll={toggleAll}
           toolbar={toolbar}
         >
-          <TableCell>{i18n.t("Name", { context: "table header" })}</TableCell>
-          <TableCell>{i18n.t("Type", { context: "table header" })}</TableCell>
-          <TableCell>
+          <TableCell className={classes.colName}>
+            <span className={classes.colNameLabel}>
+              {i18n.t("Name", { context: "table header" })}
+            </span>
+          </TableCell>
+          <TableCell className={classes.colType}>
+            {i18n.t("Type", { context: "table header" })}
+          </TableCell>
+          <TableCell className={classes.colPublished}>
             {i18n.t("Published", { context: "table header" })}
           </TableCell>
+          <TableCell className={classes.colActions} />
         </TableHead>
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={6}
+              colSpan={columns}
               hasNextPage={maybe(() => pageInfo.hasNextPage)}
               onNextPage={onNextPage}
               hasPreviousPage={maybe(() => pageInfo.hasPreviousPage)}
@@ -136,18 +162,18 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
                     />
                   </TableCell>
                   <TableCellAvatar
+                    className={classes.colName}
                     thumbnail={maybe(() => product.thumbnail.url)}
-                  />
-                  <TableCell>
+                  >
                     {maybe<React.ReactNode>(() => product.name, <Skeleton />)}
-                  </TableCell>
-                  <TableCell>
+                  </TableCellAvatar>
+                  <TableCell className={classes.colType}>
                     {maybe<React.ReactNode>(
                       () => product.productType.name,
                       <Skeleton />
                     )}
                   </TableCell>
-                  <TableCell>
+                  <TableCell className={classes.colPublished}>
                     {maybe(
                       () => (
                         <StatusLabel
@@ -162,7 +188,7 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
                       <Skeleton />
                     )}
                   </TableCell>
-                  <TableCell className={classes.iconCell}>
+                  <TableCell className={classes.colActions}>
                     <IconButton
                       disabled={!product}
                       onClick={event => onProductUnassign(product.id, event)}
@@ -176,7 +202,9 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
             () => (
               <TableRow>
                 <TableCell />
-                <TableCell colSpan={6}>{i18n.t("No products found")}</TableCell>
+                <TableCell colSpan={columns}>
+                  {i18n.t("No products found")}
+                </TableCell>
               </TableRow>
             )
           )}
