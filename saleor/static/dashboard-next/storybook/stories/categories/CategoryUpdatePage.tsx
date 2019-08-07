@@ -46,6 +46,12 @@ const updateProps: Omit<CategoryUpdatePageProps, "classes"> = {
 storiesOf("Views / Categories / Update category", module)
   .addDecorator(Decorator)
   .add("default", () => <CategoryUpdatePage {...updateProps} />)
+  .add("products", () => (
+    <CategoryUpdatePage
+      {...updateProps}
+      currentTab={CategoryPageTab.products}
+    />
+  ))
   .add("no background", () => (
     <CategoryUpdatePage {...updateProps} category={category} />
   ))

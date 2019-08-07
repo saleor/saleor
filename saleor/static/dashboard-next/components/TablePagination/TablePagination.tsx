@@ -12,6 +12,7 @@ import Toolbar from "@material-ui/core/Toolbar";
 import React from "react";
 
 import RowNumberSelect from "@saleor/components/RowNumberSelect";
+import { maybe } from "@saleor/misc";
 import { ListSettings } from "../../types";
 import TablePaginationActions from "./TablePaginationActions";
 
@@ -97,7 +98,7 @@ const TablePagination = withStyles(styles, { name: "TablePagination" })(
       <Component className={classes.root} colSpan={colSpan} {...other}>
         <Toolbar className={classes.toolbar}>
           <div className={classes.spacer}>
-            {settings && (
+            {maybe(() => settings.rowNumber) && (
               <RowNumberSelect
                 choices={[20, 30, 50, 100]}
                 settings={settings}

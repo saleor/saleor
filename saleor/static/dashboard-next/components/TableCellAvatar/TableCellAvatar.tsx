@@ -21,7 +21,7 @@ const styles = (theme: Theme) =>
       border: `1px solid ${theme.overrides.MuiCard.root.borderColor}`,
       borderRadius: 2,
       color: "#bdbdbd",
-      display: "inline-block",
+      display: "inline-flex",
       padding: theme.spacing.unit / 2
     },
     children: {
@@ -29,6 +29,7 @@ const styles = (theme: Theme) =>
       marginLeft: theme.spacing.unit * 2
     },
     content: {
+      alignItems: "center",
       display: "flex"
     },
     root: {

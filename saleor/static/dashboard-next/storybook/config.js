@@ -7,6 +7,7 @@ function loadStories() {
   require("./stories/components/AddressEdit");
   require("./stories/components/AddressFormatter");
   require("./stories/components/AssignAttributeDialog");
+  require("./stories/components/AssignProductDialog");
   require("./stories/components/AutocompleteSelectMenu");
   require("./stories/components/CardMenu");
   require("./stories/components/Checkbox");
@@ -55,7 +56,6 @@ function loadStories() {
   require("./stories/attributes/AttributeValueEditDialog");
 
   // Categories
-  require("./stories/categories/CategoryProducts");
   require("./stories/categories/CategoryCreatePage");
   require("./stories/categories/CategoryUpdatePage");
   require("./stories/categories/CategoryListPage");
