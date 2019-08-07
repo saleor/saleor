@@ -68,6 +68,7 @@ It requires an expected structure as in the followed example:
 .. code-block:: python
 
 
+        from django.utils.translation import pgettext_lazy
         from saleor.extensions import ConfigurationTypeField
         @classmethod
         def _get_default_configuration(cls):
@@ -80,15 +81,15 @@ It requires an expected structure as in the followed example:
                         "name": "Username or account",
                         "value": "",
                         "type": ConfigurationTypeField.STRING,
-                        "help_text": "",
-                        "label": "",
+                        "help_text": "Provide user or account details",
+                        "label": pgettext_lazy("Plugin label", "Username or account"),
                     },
                     {
                         "name": "Password or license",
                         "value": "",
                         "type": ConfigurationTypeField.STRING,
-                        "help_text": "",
-                        "label": "",
+                        "help_text": "Provide password or license details",
+                        "label": pgettext_lazy("Plugin label", "Password or license"),
                     },
                 ]
             }
