@@ -15,6 +15,7 @@ export interface ListSettings<TColumn extends string = string> {
 }
 
 export enum ListViews {
+  ATTRIBUTE_LIST = "ATTRIBUTE_LIST",
   CATEGORY_LIST = "CATEGORY_LIST",
   COLLECTION_LIST = "COLLECTION_LIST",
   CUSTOMER_LIST = "CUSTOMER_LIST",
@@ -60,7 +61,7 @@ export interface ListActions extends ListActionsWithoutToolbar {
 }
 export interface PageListProps<TColumns extends string = string>
   extends ListProps<TColumns> {
-  defaultSettings: ListSettings<TColumns>;
+  defaultSettings?: ListSettings<TColumns>;
   onAdd: () => void;
 }
 export interface FilterPageProps<TUrlFilters> {
