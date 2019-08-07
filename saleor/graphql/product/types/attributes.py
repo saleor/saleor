@@ -51,7 +51,10 @@ class AttributeValue(CountableDjangoObjectType):
     name = graphene.String(description=AttributeValueDescriptions.NAME)
     slug = graphene.String(description=AttributeValueDescriptions.SLUG)
     type = AttributeValueType(description=AttributeValueDescriptions.TYPE)
-    value = graphene.String(description=AttributeValueDescriptions.VALUE)
+    value = graphene.String(
+        description=AttributeValueDescriptions.VALUE,
+        deprecation_reason="This field is deprecated",
+    )
     translation = graphene.Field(
         AttributeValueTranslation,
         language_code=graphene.Argument(
