@@ -28,26 +28,24 @@ interface HomeOrdersCardProps extends WithStyles<typeof styles> {
 }
 
 const HomeOrdersCard = withStyles(styles, { name: "HomeOrdersCard" })(
-  ({ classes, userName }: HomeOrdersCardProps) => {
-    return (
-      <div className={classes.headerContainer}>
-        <Typography className={classes.pageHeader} variant="h4">
-          {userName ? (
-            i18n.t("Hello there, {{userName}}", { userName })
-          ) : (
-            <Skeleton style={{ width: "10em" }} />
-          )}
-        </Typography>
-        <Typography className={classes.subtitle}>
-          {userName ? (
-            i18n.t("Here is some information we gathered about your store")
-          ) : (
-            <Skeleton style={{ width: "10em" }} />
-          )}
-        </Typography>
-      </div>
-    );
-  }
+  ({ classes, userName }: HomeOrdersCardProps) => (
+    <div className={classes.headerContainer} data-tc="home-header">
+      <Typography className={classes.pageHeader} variant="h4">
+        {userName ? (
+          i18n.t("Hello there, {{userName}}", { userName })
+        ) : (
+          <Skeleton style={{ width: "10em" }} />
+        )}
+      </Typography>
+      <Typography className={classes.subtitle}>
+        {userName ? (
+          i18n.t("Here is some information we gathered about your store")
+        ) : (
+          <Skeleton style={{ width: "10em" }} />
+        )}
+      </Typography>
+    </div>
+  )
 );
 HomeOrdersCard.displayName = "HomeOrdersCard";
 export default HomeOrdersCard;

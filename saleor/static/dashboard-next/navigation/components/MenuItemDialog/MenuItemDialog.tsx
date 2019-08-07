@@ -259,7 +259,9 @@ const MenuItemDialog: React.StatelessComponent<MenuItemDialogProps> = ({
           <>
             <FormSpacer />
             {mutationErrors.map(err => (
-              <Typography color="error">{err}</Typography>
+              <Typography key={err} color="error">
+                {err}
+              </Typography>
             ))}
           </>
         )}
