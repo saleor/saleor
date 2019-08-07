@@ -2,12 +2,14 @@ from typing import Union
 
 import graphene
 import pytest
+from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.template.defaultfilters import slugify
 from graphene.utils.str_converters import to_camel_case
 
 from saleor.graphql.core.utils import snake_to_camel_case
 from saleor.graphql.product.enums import AttributeTypeEnum, AttributeValueType
+from saleor.graphql.product.mutations.attributes import validate_value_is_unique
 from saleor.graphql.product.types.attributes import resolve_attribute_value_type
 from saleor.graphql.product.types.products import resolve_attribute_list
 from saleor.graphql.product.utils import attributes_to_json
@@ -21,6 +23,22 @@ from saleor.product.models import (
     ProductType,
 )
 from tests.api.utils import get_graphql_content
+
+
+def test_validate_value_is_unique(color_attribute):
+    value = color_attribute.values.first()
+
+    # a new value but with existing slug should raise an error
+    with pytest.raises(ValidationError):
+        validate_value_is_unique(color_attribute, AttributeValue(slug=value.slug))
+
+    # a new value with a new slug should pass
+    validate_value_is_unique(
+        color_attribute, AttributeValue(slug="spanish-inquisition")
+    )
+
+    # value that already belongs to the attribute shouldn't be taken into account
+    validate_value_is_unique(color_attribute, value)
 
 
 def test_attributes_to_json(product, color_attribute, size_attribute):
@@ -807,7 +825,7 @@ def test_create_attribute_value_not_unique_name(
     data = content["data"]["attributeValueCreate"]
     assert data["errors"]
     assert data["errors"][0]["message"]
-    assert not data["errors"][0]["field"]
+    assert data["errors"][0]["field"] == "name"
 
 
 UPDATE_ATTRIBUTE_VALUE_QUERY = """
@@ -869,7 +887,7 @@ def test_update_attribute_value_name_not_unique(
     data = content["data"]["attributeValueUpdate"]
     assert data["errors"]
     assert data["errors"][0]["message"]
-    assert not data["errors"][0]["field"]
+    assert data["errors"][0]["field"] == "name"
 
 
 def test_update_same_attribute_value(
