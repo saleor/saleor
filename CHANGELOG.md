@@ -35,6 +35,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Display menu item form errors - #4551 by @dominik-zeglen
 - Add voucher settings - #4556 by @benekex2
 - Enforced pydocstyle for Python docstrings over the project - #4562 by @NyanKiyoshi
+- Add queries and mutation for serving and saving the configuration of all plugins - #4576 by @korycins
+
 
 ## 2.8.0
 
