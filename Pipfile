@@ -48,7 +48,6 @@ phonenumberslite = ">=8.10.10"
 prices = ">=1.0.0"
 "psycopg2-binary" = ">=2.7"
 purl = ">=0.4.1"
-raven = "==6.9.0"
 requests = ">=1.2.0"
 social-auth-app-django = ">=2.0.0"
 text-unidecode = "*"
@@ -65,6 +64,7 @@ stripe = "*"
 dataclasses = {version = "*",markers = "python_version < '3.7'"}
 html-to-draftjs = "*"
 draftjs-sanitizer = "*"
+sentry-sdk = "*"
 
 [dev-packages]
 pytest = "*"
