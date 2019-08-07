@@ -36,8 +36,8 @@
   <a href="http://codecov.io/github/mirumee/saleor?branch=master">
     <img src="http://codecov.io/github/mirumee/saleor/coverage.svg?branch=master" alt="Codecov" />
   </a>
-  <a href="https://docs.getsaleor.com/en/latest/?badge=latest">
-    <img src="https://readthedocs.org/projects/saleor/badge/?version=latest" alt="Documentation Status" />
+  <a href="https://docs.getsaleor.com/">
+    <img src="https://img.shields.io/badge/docs-docs.getsaleor.com-brightgreen.svg" alt="Documentation" />
   </a>
   <a href="https://github.com/python/black">
     <img src="https://img.shields.io/badge/code%20style-black-000000.svg" alt="Code style: black">
@@ -49,6 +49,7 @@
 - [What makes Saleor special?](#what-makes-saleor-special)
 - [Features](#features)
 - [Installation](#installation)
+- [Documentation](#documentation)
 - [Demo](#demo)
 - [Contributing](#contributing)
 - [Translations](#translations)
@@ -85,7 +86,14 @@ Help us out… If you love free stuff and great software, give us a star! 🌟
 
 Saleor requires Python 3.6+, Node.js 10.0+, PostgreSQL and OS-specific dependency tools.
 
-[See the Saleor docs](https://saleor.readthedocs.io) for step-by-step installation and deployment instructions.
+[See the Saleor docs](https://docs.getsaleor.com/docs/getting-started/intro/) for step-by-step installation and deployment instructions.
+
+
+## Documentation
+
+Saleor documentation is available here: [docs.getsaleor.com](https://docs.getsaleor.com)
+
+To contribute, please see the [`mirumee/saleor-docs` repository](https://github.com/mirumee/saleor-docs/).
 
 
 ## Demo
@@ -112,7 +120,7 @@ We love your contributions and do our best to provide you with mentorship and su
 
 If nothing grabs your attention, check [our roadmap](https://github.com/mirumee/saleor/projects/6) or come up with your own feature. Just drop us a line or [open an issue](https://github.com/mirumee/saleor/issues/new) and we’ll work out how to handle it.
 
-Get more details in our [Contributing Guide](https://saleor.readthedocs.io/en/latest/contributing.html).
+Get more details in our [Contributing Guide](https://docs.getsaleor.com/docs/contributing/intro/).
 
 
 ## Translations
