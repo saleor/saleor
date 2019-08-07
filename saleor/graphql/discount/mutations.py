@@ -38,7 +38,7 @@ class BaseDiscountCatalogueMutation(BaseMutation):
         abstract = True
 
     @classmethod
-    def recalculate_discounts(cls, products, categories, collections):
+    def recalculate_minimal_prices(cls, products, categories, collections):
         update_products_minimal_variant_prices_of_catalogues_task.delay(
             product_ids=[p.pk for p in products],
             category_ids=[c.pk for c in categories],
@@ -60,7 +60,7 @@ class BaseDiscountCatalogueMutation(BaseMutation):
             collections = cls.get_nodes_or_error(collections, "collections", Collection)
             node.collections.add(*collections)
         # Updated the db entries, recalculating discounts of affected products
-        cls.recalculate_discounts(products, categories, collections)
+        cls.recalculate_minimal_prices(products, categories, collections)
 
     @classmethod
     def remove_catalogues_from_node(cls, node, input):
@@ -77,7 +77,7 @@ class BaseDiscountCatalogueMutation(BaseMutation):
             collections = cls.get_nodes_or_error(collections, "collections", Collection)
             node.collections.remove(*collections)
         # Updated the db entries, recalculating discounts of affected products
-        cls.recalculate_discounts(products, categories, collections)
+        cls.recalculate_minimal_prices(products, categories, collections)
 
 
 class VoucherInput(graphene.InputObjectType):
