@@ -136,7 +136,9 @@ class BasePlugin:
         return NotImplemented
 
     @classmethod
-    def _update_config_items(cls, configuration_to_update: dict, current_config: dict):
+    def _update_config_items(
+        cls, configuration_to_update: List[dict], current_config: List[dict]
+    ):
         for config_item in current_config:
             for config_item_to_update in configuration_to_update:
                 if config_item["name"] == config_item_to_update.get("name"):

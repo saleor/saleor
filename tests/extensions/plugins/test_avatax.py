@@ -6,12 +6,29 @@ from prices import Money, TaxedMoney
 from saleor.checkout.utils import add_variant_to_checkout
 from saleor.core.taxes import TaxError, quantize_price
 from saleor.extensions.manager import get_extensions_manager
+from saleor.extensions.models import PluginConfiguration
 from saleor.extensions.plugins.avatax import (
     AvataxConfiguration,
     checkout_needs_new_fetch,
     generate_request_data_from_checkout,
     get_cached_tax_codes_or_fetch,
 )
+from saleor.extensions.plugins.avatax.plugin import AvataxPlugin
+
+
+@pytest.fixture
+def plugin_configuration(db):
+    plugin_configuration = PluginConfiguration.objects.create(
+        **AvataxPlugin._get_default_configuration()
+    )
+    config = [
+        {"name": "Username or account", "value": "2000134479"},
+        {"name": "Password or license", "value": "697932CFCBDE505B"},
+    ]
+    AvataxPlugin._update_config_items(config, plugin_configuration.configuration)
+    plugin_configuration.active = True
+    plugin_configuration.save()
+    return plugin_configuration
 
 
 @pytest.mark.vcr()
@@ -408,3 +425,47 @@ def test_postprocess_order_creation(settings, order, monkeypatch):
     manager.postprocess_order_creation(order)
 
     assert mocked_task.called
+
+
+@pytest.mark.vcr
+def test_plugin_uses_configuration_from_db(
+    settings,
+    plugin_configuration,
+    product,
+    monkeypatch,
+    address_usa,
+    site_settings,
+    address,
+    checkout_with_item,
+    shipping_zone,
+    discount_info,
+):
+    settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
+    manager = get_extensions_manager()
+
+    monkeypatch.setattr(
+        "saleor.extensions.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
+        lambda _: {"PC040156": "desc"},
+    )
+    site_settings.company_address = address_usa
+    site_settings.save()
+
+    checkout_with_item.shipping_address = address
+    checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
+    checkout_with_item.save()
+    discounts = [discount_info]
+
+    manager.preprocess_order_creation(checkout_with_item, discounts)
+
+    field_to_update = [
+        {"name": "Username or account", "value": "New value"},
+        {"name": "Password or license", "value": "Wrong pass"},
+    ]
+    AvataxPlugin._update_config_items(
+        field_to_update, plugin_configuration.configuration
+    )
+    plugin_configuration.save()
+
+    manager = get_extensions_manager()
+    with pytest.raises(TaxError):
+        manager.preprocess_order_creation(checkout_with_item, discounts)

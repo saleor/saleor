@@ -198,7 +198,7 @@ class AvataxPlugin(BasePlugin):
         """
         self._initialize_plugin_configuration()
 
-        if not self.active:
+        if self._skip_plugin(previous_value):
             return previous_value
 
         data = generate_request_data_from_checkout(
