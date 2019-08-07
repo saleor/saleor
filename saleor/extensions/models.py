@@ -9,9 +9,7 @@ class PluginConfiguration(models.Model):
     name = models.CharField(max_length=128, unique=True)
     description = models.TextField(blank=True)
     active = models.BooleanField(default=True)
-    configuration = JSONField(
-        blank=True, null=True, default=dict, encoder=CustomJsonEncoder
-    )
+    configuration = JSONField(default=dict, encoder=CustomJsonEncoder)
 
     class Meta:
         permissions = (
@@ -19,4 +17,4 @@ class PluginConfiguration(models.Model):
         )
 
     def __str__(self):
-        return "Configuration of {}, active: {}".format(self.name, self.active)
+        return f"Configuration of {self.name}, active: {self.active}"
