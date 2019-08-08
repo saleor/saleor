@@ -48,6 +48,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Refetch attribute list after closing modal - #4615 by @dominik-zeglen
 - Add ability to toggle visible columns in product list - #4608 by @dominik-zeglen 
 - Serialize empty URL as string when creating menu items - #4616 by @maarcingebala
+- Fix bulk actions - #4618 by @dominik-zeglen
 
 ## 2.8.0
 
