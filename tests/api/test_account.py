@@ -1341,32 +1341,27 @@ def test_staff_update_errors(staff_user, customer_user, admin_user):
     StaffUpdate.clean_is_active(False, customer_user, staff_user)
 
 
-def test_set_password(user_api_client, customer_user):
-    query = """
+SET_PASSWORD_MUTATION = """
     mutation SetPassword($email: String!, $token: String!, $password: String!) {
         setPassword(email: $email, input: {token: $token, password: $password}) {
             errors {
-                    field
-                    message
-                }
-                user {
-                    id
-                }
+                field
+                message
+            }
+            user {
+                id
             }
         }
-    """
+    }
+"""
+
+
+def test_set_password(user_api_client, customer_user):
     token = default_token_generator.make_token(customer_user)
     password = "spanish-inquisition"
 
-    # check invalid token
-    variables = {"email": customer_user.email, "password": password, "token": "nope"}
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    errors = content["data"]["setPassword"]["errors"]
-    assert errors[0]["message"] == INVALID_TOKEN
-
-    variables["token"] = token
-    response = user_api_client.post_graphql(query, variables)
+    variables = {"email": customer_user.email, "password": password, "token": token}
+    response = user_api_client.post_graphql(SET_PASSWORD_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["setPassword"]
     assert data["user"]["id"]
@@ -1377,6 +1372,45 @@ def test_set_password(user_api_client, customer_user):
     password_resent_event = account_events.CustomerEvent.objects.get()
     assert password_resent_event.type == account_events.CustomerEvents.PASSWORD_RESET
     assert password_resent_event.user == customer_user
+
+
+def test_set_password_invalid_token(user_api_client, customer_user):
+    variables = {"email": customer_user.email, "password": "pass", "token": "token"}
+    response = user_api_client.post_graphql(SET_PASSWORD_MUTATION, variables)
+    content = get_graphql_content(response)
+    errors = content["data"]["setPassword"]["errors"]
+    assert errors[0]["message"] == INVALID_TOKEN
+
+
+def test_set_password_invalid_email(user_api_client):
+    variables = {"email": "fake@example.com", "password": "pass", "token": "token"}
+    response = user_api_client.post_graphql(SET_PASSWORD_MUTATION, variables)
+    content = get_graphql_content(response)
+    errors = content["data"]["setPassword"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "email"
+
+
+def test_set_password_invalid_password(user_api_client, customer_user, settings):
+    settings.AUTH_PASSWORD_VALIDATORS = [
+        {
+            "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+            "OPTIONS": {"min_length": 5},
+        },
+        {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
+    ]
+
+    token = default_token_generator.make_token(customer_user)
+    variables = {"email": customer_user.email, "password": "1234", "token": token}
+    response = user_api_client.post_graphql(SET_PASSWORD_MUTATION, variables)
+    content = get_graphql_content(response)
+    errors = content["data"]["setPassword"]["errors"]
+    assert len(errors) == 2
+    assert (
+        errors[0]["message"]
+        == "This password is too short. It must contain at least 5 characters."
+    )
+    assert errors[1]["message"] == "This password is entirely numeric."
 
 
 @patch("saleor.account.emails.send_password_reset_email.delay")

@@ -1,5 +1,6 @@
 import graphene
 from django.conf import settings
+from django.contrib.auth import password_validation
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
@@ -76,14 +77,21 @@ class SetPassword(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         email = data["email"]
+        token = data["input"]["token"]
+        password = data["input"]["password"]
+
         try:
             user = models.User.objects.get(email=email)
         except ObjectDoesNotExist:
             raise ValidationError({"email": "User doesn't exist"})
-        token = data["input"]["token"]
         if not default_token_generator.check_token(user, token):
             raise ValidationError({"token": INVALID_TOKEN})
-        user.set_password(data["input"]["password"])
+        try:
+            password_validation.validate_password(password, user)
+        except ValidationError as error:
+            raise ValidationError({"password": error.messages})
+
+        user.set_password(password)
         user.save(update_fields=["password"])
         account_events.customer_password_reset_event(user=user)
         return cls(user=user)
