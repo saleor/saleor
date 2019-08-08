@@ -12,6 +12,9 @@ class ConfigurationItem(graphene.ObjectType):
     help_text = graphene.String(required=False, description="Help text for the field")
     label = graphene.String(required=False, description="Label for the field")
 
+    class Meta:
+        description = "Stores information about single configuration field"
+
 
 class PluginConfiguration(CountableDjangoObjectType):
     configuration = graphene.List(ConfigurationItem)
