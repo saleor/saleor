@@ -48,7 +48,7 @@ def get_menu_item_as_dict(menu_item):
     if menu_item.linked_object:
         data["url"] = menu_item.linked_object.get_absolute_url()
     else:
-        data["url"] = menu_item.url
+        data["url"] = menu_item.url or ""
     data["name"] = menu_item.name
     data["translations"] = {
         translated.language_code: {"name": translated.name}
