@@ -325,7 +325,7 @@ export const ProductTypeUpdate: React.FC<ProductTypeUpdateProps> = ({
                       {!dataLoading && (
                         <SearchAttributes
                           variables={{
-                            first: 10,
+                            first: 15,
                             id,
                             query: ""
                           }}
@@ -390,6 +390,7 @@ export const ProductTypeUpdate: React.FC<ProductTypeUpdateProps> = ({
                                     onSubmit={handleAssignAttribute}
                                     onFetch={search}
                                     onFetchMore={fetchMore}
+                                    onOpen={result.refetch}
                                     hasMore={maybe(
                                       () =>
                                         result.data.productType
