@@ -15,6 +15,7 @@ import Typography from "@material-ui/core/Typography";
 import makeStyles from "@material-ui/styles/makeStyles";
 import * as React from "react";
 import InfiniteScroll from "react-infinite-scroller";
+
 import Checkbox from "@saleor/components/Checkbox";
 import ConfirmButton, {
   ConfirmButtonTransitionState
