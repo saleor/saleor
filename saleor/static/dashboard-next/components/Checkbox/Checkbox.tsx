@@ -91,20 +91,23 @@ const Checkbox = withStyles(styles, { name: "Checkbox" })(
     ...props
   }: CheckboxProps & WithStyles<typeof styles>) => {
     const inputRef = React.useRef<HTMLInputElement>(null);
+    const handleClick = React.useCallback(
+      disableClickPropagation
+        ? event => {
+            event.stopPropagation();
+            inputRef.current.click();
+          }
+        : () => inputRef.current.click(),
+      []
+    );
+
     return (
       <ButtonBase
         {...props}
         centerRipple
         className={classNames(classes.root, className)}
         disabled={disabled}
-        onClick={
-          disableClickPropagation
-            ? event => {
-                event.stopPropagation();
-                inputRef.current.click();
-              }
-            : () => inputRef.current.click()
-        }
+        onClick={handleClick}
       >
         <input
           className={classNames(classes.box, {
