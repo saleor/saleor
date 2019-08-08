@@ -89,7 +89,32 @@ def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
 
 
 def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
-    pass
+    client = _get_client(**config.connection_params)
+    currency = get_currency_for_stripe(payment_information.currency)
+    stripe_amount = get_amount_for_stripe(payment_information.amount, currency)
+    try:
+        intent = client.PaymentIntent.retrieve(id=payment_information.token)
+        refund = intent["charges"]["data"][0].refund(amount=stripe_amount)
+        response = GatewayResponse(
+            is_success=refund.status == "succeeded",
+            transaction_id=intent.id,
+            amount=payment_information.amount,
+            currency=get_currency_from_stripe(refund.currency),
+            error=None,
+            kind=TransactionKind.REFUND,
+            raw_response=refund,
+        )
+    except stripe.error.StripeError as exc:
+        response = GatewayResponse(
+            is_success=False,
+            transaction_id=payment_information.token,
+            amount=payment_information.amount,
+            currency=payment_information.currency,
+            error=exc.user_message,
+            kind=TransactionKind.REFUND,
+            raw_response=exc.json_body or {},
+        )
+    return response
 
 
 def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
