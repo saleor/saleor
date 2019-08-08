@@ -5,7 +5,12 @@ import os
 import pytest
 
 from saleor.payment import ChargeStatus
-from saleor.payment.gateways.stripe_new import TransactionKind, authorize, capture
+from saleor.payment.gateways.stripe_new import (
+    TransactionKind,
+    authorize,
+    capture,
+    refund,
+)
 from saleor.payment.interface import GatewayConfig
 from saleor.payment.utils import create_payment_information
 
@@ -111,6 +116,7 @@ def stripe_authorized_payment(stripe_payment):
 @pytest.mark.integration
 @pytest.mark.vcr(filter_headers=["authorization"])
 def test_capture(stripe_authorized_payment, sandbox_gateway_config):
+    # Get id from sandbox for intent not yet captured
     INTENT_ID = "pi_1F5BsRIUmJaD6Oqvz2XMKZCD"
     payment_info = create_payment_information(
         stripe_authorized_payment, payment_token=INTENT_ID
@@ -138,3 +144,30 @@ def test_capture_error_response(stripe_payment, sandbox_gateway_config):
     assert not response.is_success
     assert response.amount == stripe_payment.total
     assert response.currency == stripe_payment.currency
+
+
+@pytest.fixture()
+def stripe_paid_payment(stripe_payment):
+    stripe_payment.charge_status = ChargeStatus.FULLY_CHARGED
+    stripe_payment.save(update_fields=["charge_status"])
+
+    return stripe_payment
+
+
+@pytest.mark.integration
+@pytest.mark.vcr(filter_headers=["authorization"])
+def test_refund(stripe_paid_payment, sandbox_gateway_config):
+    # Get id from sandbox for intent not yet captured
+    REFUND_AMOUNT = Decimal(10.0)
+    INTENT_ID = "pi_1F5BsRIUmJaD6Oqvz2XMKZCD"
+    payment_info = create_payment_information(
+        stripe_paid_payment, amount=REFUND_AMOUNT, payment_token=INTENT_ID
+    )
+    response = refund(payment_info, sandbox_gateway_config)
+
+    assert not response.error
+    assert response.transaction_id == INTENT_ID
+    assert response.kind == TransactionKind.REFUND
+    assert response.is_success
+    assert isclose(response.amount, REFUND_AMOUNT)
+    assert response.currency == TRANSACTION_CURRENCY
