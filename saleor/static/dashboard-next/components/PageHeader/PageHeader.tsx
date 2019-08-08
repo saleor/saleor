@@ -12,6 +12,9 @@ import Skeleton from "../Skeleton";
 
 const styles = (theme: Theme) =>
   createStyles({
+    root: {
+      display: "flex"
+    },
     title: {
       flex: 1,
       fontSize: 24,
@@ -35,7 +38,7 @@ const PageHeader = withStyles(styles)(
         </Typography>
       }
     >
-      {children}
+      <div className={classes.root}>{children}</div>
     </ExtendedPageHeader>
   )
 );

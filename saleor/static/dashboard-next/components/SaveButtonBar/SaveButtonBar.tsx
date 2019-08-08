@@ -9,7 +9,7 @@ import {
 import classNames from "classnames";
 import React from "react";
 
-import useScroll from "@saleor/hooks/useScroll";
+import useWindowScroll from "@saleor/hooks/useWindowScroll";
 import i18n from "../../i18n";
 import { maybe } from "../../misc";
 import AppActionContext from "../AppLayout/AppActionContext";
@@ -82,7 +82,7 @@ export const SaveButtonBar = withStyles(styles, { name: "SaveButtonBar" })(
     onSave,
     ...props
   }: SaveButtonBarProps) => {
-    const scrollPosition = useScroll();
+    const scrollPosition = useWindowScroll();
     const scrolledToBottom =
       scrollPosition.y + window.innerHeight >= document.body.scrollHeight;
 

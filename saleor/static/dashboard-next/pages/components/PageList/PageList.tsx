@@ -44,6 +44,9 @@ const styles = (theme: Theme) =>
       cursor: "pointer"
     }
   });
+
+const numberOfColumns = 4;
+
 const PageList = withStyles(styles, { name: "PageList" })(
   ({
     classes,
@@ -64,6 +67,7 @@ const PageList = withStyles(styles, { name: "PageList" })(
     <Card>
       <Table>
         <TableHead
+          colSpan={numberOfColumns}
           selected={selected}
           disabled={disabled}
           items={pages}
@@ -83,7 +87,7 @@ const PageList = withStyles(styles, { name: "PageList" })(
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={4}
+              colSpan={numberOfColumns}
               settings={settings}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
@@ -142,7 +146,9 @@ const PageList = withStyles(styles, { name: "PageList" })(
             },
             () => (
               <TableRow>
-                <TableCell colSpan={4}>{i18n.t("No pages found")}</TableCell>
+                <TableCell colSpan={numberOfColumns}>
+                  {i18n.t("No pages found")}
+                </TableCell>
               </TableRow>
             )
           )}

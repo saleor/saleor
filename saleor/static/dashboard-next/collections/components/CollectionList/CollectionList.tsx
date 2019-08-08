@@ -50,6 +50,8 @@ interface CollectionListProps
   collections: CollectionList_collections_edges_node[];
 }
 
+const numberOfColumns = 5;
+
 const CollectionList = withStyles(styles, { name: "CollectionList" })(
   ({
     classes,
@@ -70,6 +72,7 @@ const CollectionList = withStyles(styles, { name: "CollectionList" })(
     <Card>
       <Table>
         <TableHead
+          colSpan={numberOfColumns}
           selected={selected}
           disabled={disabled}
           items={collections}
@@ -91,7 +94,7 @@ const CollectionList = withStyles(styles, { name: "CollectionList" })(
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={5}
+              colSpan={numberOfColumns}
               settings={settings}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
@@ -155,7 +158,7 @@ const CollectionList = withStyles(styles, { name: "CollectionList" })(
             },
             () => (
               <TableRow>
-                <TableCell colSpan={3}>
+                <TableCell colSpan={numberOfColumns}>
                   {i18n.t("No collections found")}
                 </TableCell>
               </TableRow>
