@@ -130,7 +130,7 @@ const AssignProductDialog = withStyles(styles, {
               <TableBody>
                 {products &&
                   products.map(product => {
-                    const isSelected = !!selectedProducts.find(
+                    const isSelected = selectedProducts.some(
                       selectedProduct => selectedProduct.id === product.id
                     );
 
