@@ -188,7 +188,6 @@ const MenuNested = withStyles(styles, { name: "MenuNested" })(
                 onClick={event => closeMenu(item.url, event)}
                 key={item.label}
               >
-                <SVG className={classes.menuIcon} src={item.icon} />
                 <Typography aria-label={item.ariaLabel}>
                   {item.label}
                 </Typography>
