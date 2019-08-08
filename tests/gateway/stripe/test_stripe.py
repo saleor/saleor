@@ -100,31 +100,41 @@ def test_authorize_without_capture(stripe_payment, sandbox_gateway_config):
     assert response.is_success is True
 
 
-# @pytest.fixture()
-# def stripe_authorized_payment(stripe_payment):
-#    stripe_payment.charge_status = ChargeStatus.NOT_CHARGED
-#    stripe_payment.save(update_fields=["charge_status"])
-#
-#    return stripe_payment
-#
-#
-# @pytest.mark.integration
-# @pytest.mark.vcr(filter_headers=["authorization"])
-# def test_capture(
-#    stripe_authorized_payment,
-#    gateway_config,
-#    stripe_charge_success_response,
-# ):
-#    payment = stripe_authorized_payment
-#    payment_info = create_payment_information(payment, amount=TRANSACTION_AMOUNT)
-#    response = stripe_charge_success_response
-#
-#    response = capture(payment_info, gateway_config)
-#
-#    assert not response.error
-#    assert response.transaction_id == PAYMENT_METHOD_CARD_SIMPLE
-#    assert response.kind == TransactionKind.CAPTURE
-#    assert response.is_success
-#    assert isclose(response.amount, TRANSACTION_AMOUNT)
-#    assert response.currency == TRANSACTION_CURRENCY
-#    assert response.raw_response == stripe_charge_success_response
+@pytest.fixture()
+def stripe_authorized_payment(stripe_payment):
+    stripe_payment.charge_status = ChargeStatus.NOT_CHARGED
+    stripe_payment.save(update_fields=["charge_status"])
+
+    return stripe_payment
+
+
+@pytest.mark.integration
+@pytest.mark.vcr(filter_headers=["authorization"])
+def test_capture(stripe_authorized_payment, sandbox_gateway_config):
+    INTENT_ID = "pi_1F5BsRIUmJaD6Oqvz2XMKZCD"
+    payment_info = create_payment_information(
+        stripe_authorized_payment, payment_token=INTENT_ID
+    )
+    response = capture(payment_info, sandbox_gateway_config)
+
+    assert not response.error
+    assert response.transaction_id == INTENT_ID
+    assert response.kind == TransactionKind.CAPTURE
+    assert response.is_success
+    assert isclose(response.amount, TRANSACTION_AMOUNT)
+    assert response.currency == TRANSACTION_CURRENCY
+
+
+@pytest.mark.integration
+@pytest.mark.vcr(filter_headers=["authorization"])
+def test_capture_error_response(stripe_payment, sandbox_gateway_config):
+    INVALID_INTENT = "THIS_INTENT_DOES_NOT_EXISTS"
+    payment_info = create_payment_information(stripe_payment, INVALID_INTENT)
+    response = capture(payment_info, sandbox_gateway_config)
+
+    assert response.error == "No such payment_intent: " + INVALID_INTENT
+    assert response.transaction_id == INVALID_INTENT
+    assert response.kind == TransactionKind.CAPTURE
+    assert not response.is_success
+    assert response.amount == stripe_payment.total
+    assert response.currency == stripe_payment.currency
