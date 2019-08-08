@@ -9,11 +9,13 @@ export interface UserError {
   message: string;
 }
 
-export interface ListSettings {
+export interface ListSettings<TColumn extends string = string> {
+  columns?: TColumn[];
   rowNumber: number;
 }
 
 export enum ListViews {
+  ATTRIBUTE_LIST = "ATTRIBUTE_LIST",
   CATEGORY_LIST = "CATEGORY_LIST",
   COLLECTION_LIST = "COLLECTION_LIST",
   CUSTOMER_LIST = "CUSTOMER_LIST",
@@ -28,17 +30,21 @@ export enum ListViews {
   VOUCHER_LIST = "VOUCHER_LIST"
 }
 
-export interface ListProps {
+export interface ListProps<TColumns extends string = string> {
   disabled: boolean;
   pageInfo?: {
     hasNextPage: boolean;
     hasPreviousPage: boolean;
   };
-  settings?: ListSettings;
+  settings?: ListSettings<TColumns>;
   onNextPage: () => void;
   onPreviousPage: () => void;
   onRowClick: (id: string) => () => void;
-  onUpdateListSettings?(key: keyof ListSettings, value: any): void;
+  onUpdateListSettings?: (
+    key: keyof ListSettings<TColumns>,
+    value: any
+  ) => void;
+  onListSettingsReset?: () => void;
 }
 export interface ListActionsWithoutToolbar {
   toggle: (id: string) => void;
@@ -53,7 +59,9 @@ export type TabListActions<
 export interface ListActions extends ListActionsWithoutToolbar {
   toolbar: React.ReactNode | React.ReactNodeArray;
 }
-export interface PageListProps extends ListProps {
+export interface PageListProps<TColumns extends string = string>
+  extends ListProps<TColumns> {
+  defaultSettings?: ListSettings<TColumns>;
   onAdd: () => void;
 }
 export interface FilterPageProps<TUrlFilters> {

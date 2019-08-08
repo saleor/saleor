@@ -16,8 +16,10 @@ function useStateFromProps<T>(
     opts = {};
   }
 
-  if (!isEqual(prevData, data)) {
-    const { mergeFunc, onRefresh } = opts;
+  const { mergeFunc, onRefresh } = opts;
+  const shouldUpdate = !isEqual(prevData, data);
+
+  if (shouldUpdate) {
     const newData =
       typeof mergeFunc === "function" ? mergeFunc(prevData, state, data) : data;
     setState(newData);

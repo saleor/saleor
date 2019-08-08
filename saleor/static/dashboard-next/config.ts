@@ -1,4 +1,5 @@
 import { SearchQueryVariables } from "./containers/BaseSearch";
+import { ListSettings, ListViews } from "./types";
 
 export const APP_MOUNT_URI = "/dashboard/next/";
 export const API_URI = "/graphql/";
@@ -11,41 +12,57 @@ export const DEFAULT_INITIAL_SEARCH_DATA: SearchQueryVariables = {
 
 export const PAGINATE_BY = 20;
 
-export const defaultListSettings = {
-  CATEGORY_LIST: {
+export type ProductListColumns = "productType" | "isPublished" | "price";
+export interface AppListViewSettings {
+  [ListViews.CATEGORY_LIST]: ListSettings;
+  [ListViews.COLLECTION_LIST]: ListSettings;
+  [ListViews.CUSTOMER_LIST]: ListSettings;
+  [ListViews.DRAFT_LIST]: ListSettings;
+  [ListViews.NAVIGATION_LIST]: ListSettings;
+  [ListViews.ORDER_LIST]: ListSettings;
+  [ListViews.PAGES_LIST]: ListSettings;
+  [ListViews.PRODUCT_LIST]: ListSettings<ProductListColumns>;
+  [ListViews.SALES_LIST]: ListSettings;
+  [ListViews.SHIPPING_METHODS_LIST]: ListSettings;
+  [ListViews.STAFF_MEMBERS_LIST]: ListSettings;
+  [ListViews.VOUCHER_LIST]: ListSettings;
+}
+export const defaultListSettings: AppListViewSettings = {
+  [ListViews.CATEGORY_LIST]: {
     rowNumber: PAGINATE_BY
   },
-  COLLECTION_LIST: {
+  [ListViews.COLLECTION_LIST]: {
     rowNumber: PAGINATE_BY
   },
-  CUSTOMER_LIST: {
+  [ListViews.CUSTOMER_LIST]: {
     rowNumber: PAGINATE_BY
   },
-  DRAFT_LIST: {
+  [ListViews.DRAFT_LIST]: {
     rowNumber: PAGINATE_BY
   },
-  NAVIGATION_LIST: {
+  [ListViews.NAVIGATION_LIST]: {
     rowNumber: PAGINATE_BY
   },
-  ORDER_LIST: {
+  [ListViews.ORDER_LIST]: {
     rowNumber: PAGINATE_BY
   },
-  PAGES_LIST: {
+  [ListViews.PAGES_LIST]: {
     rowNumber: PAGINATE_BY
   },
-  PRODUCT_LIST: {
+  [ListViews.PRODUCT_LIST]: {
+    columns: ["isPublished", "price", "productType"],
     rowNumber: PAGINATE_BY
   },
-  SALES_LIST: {
+  [ListViews.SALES_LIST]: {
     rowNumber: PAGINATE_BY
   },
-  SHIPPING_METHODS_LIST: {
+  [ListViews.SHIPPING_METHODS_LIST]: {
     rowNumber: PAGINATE_BY
   },
-  STAFF_MEMBERS_LIST: {
+  [ListViews.STAFF_MEMBERS_LIST]: {
     rowNumber: PAGINATE_BY
   },
-  VOUCHER_LIST: {
+  [ListViews.VOUCHER_LIST]: {
     rowNumber: PAGINATE_BY
   }
 };

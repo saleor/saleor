@@ -46,6 +46,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Users cannot add multiple times the same product into a collection anymore - #4518 by @NyanKiyoshi
 - Enterprise-grade attributes management - #4351 by @dominik-zeglen and @NyanKiyoshi
 - Refetch attribute list after closing modal - #4615 by @dominik-zeglen
+- Add ability to toggle visible columns in product list - #4608 by @dominik-zeglen 
 
 ## 2.8.0
 
