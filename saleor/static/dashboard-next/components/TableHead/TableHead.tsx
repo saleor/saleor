@@ -20,6 +20,7 @@ import i18n from "../../i18n";
 import Checkbox from "../Checkbox";
 
 export interface TableHeadProps extends MuiTableHeadProps {
+  colSpan: number;
   disabled: boolean;
   dragRows?: boolean;
   selected: number;
@@ -81,6 +82,7 @@ const TableHead = withStyles(styles, {
   ({
     classes,
     children,
+    colSpan,
     disabled,
     dragRows,
     items,
@@ -120,7 +122,10 @@ const TableHead = withStyles(styles, {
           )}
           {selected ? (
             <>
-              <TableCell className={classNames(classes.root)} colSpan={50}>
+              <TableCell
+                className={classNames(classes.root)}
+                colSpan={colSpan - 1}
+              >
                 <div className={classes.container}>
                   {selected && (
                     <Typography>

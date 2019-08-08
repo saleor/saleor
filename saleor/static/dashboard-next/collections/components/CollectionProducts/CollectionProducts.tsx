@@ -110,6 +110,7 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
       />
       <Table className={classes.table}>
         <TableHead
+          colSpan={numberOfColumns}
           selected={selected}
           disabled={disabled}
           items={maybe(() => collection.products.edges.map(edge => edge.node))}

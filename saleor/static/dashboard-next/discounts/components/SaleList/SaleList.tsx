@@ -59,6 +59,8 @@ const styles = (theme: Theme) =>
     }
   });
 
+const numberOfColumns = 5;
+
 const SaleList = withStyles(styles, {
   name: "SaleList"
 })(
@@ -82,6 +84,7 @@ const SaleList = withStyles(styles, {
     <Card>
       <Table>
         <TableHead
+          colSpan={numberOfColumns}
           selected={selected}
           disabled={disabled}
           items={sales}
@@ -112,7 +115,7 @@ const SaleList = withStyles(styles, {
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={5}
+              colSpan={numberOfColumns}
               settings={settings}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
@@ -188,7 +191,9 @@ const SaleList = withStyles(styles, {
             },
             () => (
               <TableRow>
-                <TableCell colSpan={5}>{i18n.t("No sales found")}</TableCell>
+                <TableCell colSpan={numberOfColumns}>
+                  {i18n.t("No sales found")}
+                </TableCell>
               </TableRow>
             )
           )}

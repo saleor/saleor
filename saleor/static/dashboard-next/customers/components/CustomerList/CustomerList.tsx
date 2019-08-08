@@ -47,6 +47,8 @@ export interface CustomerListProps
   customers: ListCustomers_customers_edges_node[];
 }
 
+const numberOfColumns = 4;
+
 const CustomerList = withStyles(styles, { name: "CustomerList" })(
   ({
     classes,
@@ -67,6 +69,7 @@ const CustomerList = withStyles(styles, { name: "CustomerList" })(
     <Card>
       <Table>
         <TableHead
+          colSpan={numberOfColumns}
           selected={selected}
           disabled={disabled}
           items={customers}
@@ -86,7 +89,7 @@ const CustomerList = withStyles(styles, { name: "CustomerList" })(
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={4}
+              colSpan={numberOfColumns}
               settings={settings}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
@@ -136,7 +139,7 @@ const CustomerList = withStyles(styles, { name: "CustomerList" })(
             },
             () => (
               <TableRow>
-                <TableCell colSpan={4}>
+                <TableCell colSpan={numberOfColumns}>
                   {i18n.t("No customers found")}
                 </TableCell>
               </TableRow>
