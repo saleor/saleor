@@ -19,7 +19,9 @@ import CardTitle from "@saleor/components/CardTitle";
 import Checkbox from "@saleor/components/Checkbox";
 import Skeleton from "@saleor/components/Skeleton";
 import StatusLabel from "@saleor/components/StatusLabel";
-import TableCellAvatar from "@saleor/components/TableCellAvatar";
+import TableCellAvatar, {
+  AVATAR_MARGIN
+} from "@saleor/components/TableCellAvatar";
 import TableHead from "@saleor/components/TableHead";
 import TablePagination from "@saleor/components/TablePagination";
 import i18n from "../../../i18n";
@@ -36,28 +38,34 @@ export interface SaleProductsProps extends ListProps, ListActions {
 
 const styles = (theme: Theme) =>
   createStyles({
-    [theme.breakpoints.up("lg")]: {
-      colName: {},
-      colPublished: {
-        width: 150
-      },
-      colType: {
-        width: 200
-      }
-    },
-    colName: {},
-    colPublished: {},
-    colType: {},
-    iconCell: {
+    colActions: {
       "&:last-child": {
         paddingRight: 0
       },
       width: 48 + theme.spacing.unit / 2
     },
+    colName: {
+      width: "auto"
+    },
+    colNameLabel: {
+      marginLeft: AVATAR_MARGIN
+    },
+    colPublished: {
+      width: 150
+    },
+    colType: {
+      width: 200
+    },
+    table: {
+      tableLayout: "fixed"
+    },
     tableRow: {
       cursor: "pointer"
     }
   });
+
+const numberOfColumns = 5;
+
 const DiscountProducts = withStyles(styles, {
   name: "DiscountProducts"
 })(
@@ -88,15 +96,17 @@ const DiscountProducts = withStyles(styles, {
       />
       <Table>
         <TableHead
+          colSpan={numberOfColumns}
           selected={selected}
           disabled={disabled}
           items={maybe(() => sale.products.edges.map(edge => edge.node))}
           toggleAll={toggleAll}
           toolbar={toolbar}
         >
-          <TableCell />
           <TableCell className={classes.colName}>
-            {i18n.t("Product name")}
+            <span className={classes.colNameLabel}>
+              {i18n.t("Product name")}
+            </span>
           </TableCell>
           <TableCell className={classes.colType}>
             {i18n.t("Product Type")}
@@ -109,7 +119,7 @@ const DiscountProducts = withStyles(styles, {
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={6}
+              colSpan={numberOfColumns}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
               hasPreviousPage={
@@ -140,11 +150,11 @@ const DiscountProducts = withStyles(styles, {
                     />
                   </TableCell>
                   <TableCellAvatar
+                    className={classes.colName}
                     thumbnail={maybe(() => product.thumbnail.url)}
-                  />
-                  <TableCell className={classes.colName}>
+                  >
                     {maybe<React.ReactNode>(() => product.name, <Skeleton />)}
-                  </TableCell>
+                  </TableCellAvatar>
                   <TableCell className={classes.colType}>
                     {maybe<React.ReactNode>(
                       () => product.productType.name,
@@ -167,7 +177,7 @@ const DiscountProducts = withStyles(styles, {
                       <Skeleton />
                     )}
                   </TableCell>
-                  <TableCell className={classes.iconCell}>
+                  <TableCell className={classes.colActions}>
                     <IconButton
                       disabled={!product || disabled}
                       onClick={event => {
@@ -183,7 +193,9 @@ const DiscountProducts = withStyles(styles, {
             },
             () => (
               <TableRow>
-                <TableCell colSpan={6}>{i18n.t("No products found")}</TableCell>
+                <TableCell colSpan={numberOfColumns}>
+                  {i18n.t("No products found")}
+                </TableCell>
               </TableRow>
             )
           )}

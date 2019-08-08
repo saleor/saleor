@@ -8,11 +8,11 @@ function getPosition() {
   };
 }
 
-function useScroll() {
+function useWindowScroll() {
   const [scroll, setScroll] = useState(getPosition);
 
   useEffect(() => {
-    const handleScroll = throttle(() => setScroll(getPosition()), 250);
+    const handleScroll = throttle(() => setScroll(getPosition()), 100);
 
     window.addEventListener("scroll", handleScroll);
 
@@ -21,4 +21,4 @@ function useScroll() {
 
   return scroll;
 }
-export default useScroll;
+export default useWindowScroll;

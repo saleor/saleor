@@ -1,13 +1,20 @@
 import useLocalStorage from "@saleor/hooks/useLocalStorage";
-import { defaultListSettings } from "./../config";
+import { AppListViewSettings, defaultListSettings } from "./../config";
 import { ListSettings, ListViews } from "./../types";
 
-export default function useListSettings(listName: ListViews) {
-  const [settings, setListSettings] = useLocalStorage(
+export interface UseListSettings<TColumns extends string = string> {
+  settings: ListSettings<TColumns>;
+  updateListSettings: (key: keyof ListSettings<TColumns>, value: any) => void;
+}
+export default function useListSettings<TColumns extends string = string>(
+  listName: ListViews
+): UseListSettings<TColumns> {
+  const [settings, setListSettings] = useLocalStorage<AppListViewSettings>(
     "listConfig",
     defaultListSettings
   );
-  const updateListSettings = (key: keyof ListSettings, value: any) => {
+
+  const updateListSettings = (key: keyof ListSettings, value: any) =>
     setListSettings(settings => ({
       ...settings,
       [listName]: {
@@ -15,10 +22,9 @@ export default function useListSettings(listName: ListViews) {
         [key]: value
       }
     }));
-  };
 
   return {
-    settings: settings[listName],
+    settings: settings[listName] as ListSettings<TColumns>,
     updateListSettings
   };
 }

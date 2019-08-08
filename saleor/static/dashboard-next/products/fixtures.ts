@@ -8,12 +8,12 @@ export const product: (
   placeholderImage: string
 ) => ProductDetails_product &
   ProductVariantCreateData_product = placeholderImage => ({
-  __typename: "Product",
+  __typename: "Product" as "Product",
   attributes: [
     {
       __typename: "SelectedAttribute",
       attribute: {
-        __typename: "Attribute",
+        __typename: "Attribute" as "Attribute",
         id: "pta18161",
         inputType: AttributeInputTypeEnum.DROPDOWN,
         name: "Borders",
@@ -46,7 +46,7 @@ export const product: (
     {
       __typename: "SelectedAttribute",
       attribute: {
-        __typename: "Attribute",
+        __typename: "Attribute" as "Attribute",
         id: "pta22785",
         inputType: AttributeInputTypeEnum.MULTISELECT,
         name: "Legacy",
@@ -233,7 +233,7 @@ export const product: (
   seoDescription: "Seo description",
   seoTitle: "Seo title",
   sku: "59661-34207",
-  thumbnail: { __typename: "Image", url: placeholderImage },
+  thumbnail: { __typename: "Image" as "Image", url: placeholderImage },
   url: "/example-url",
   variants: [
     {
@@ -290,9 +290,11 @@ export const product: (
 });
 export const products = (placeholderImage: string) => [
   {
+    __typename: "Product" as "Product",
     attributes: [
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta37372",
           name: "expedite",
           slug: "expedite",
@@ -323,6 +325,7 @@ export const products = (placeholderImage: string) => [
       },
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta3183",
           name: "system",
           slug: "system",
@@ -349,6 +352,7 @@ export const products = (placeholderImage: string) => [
       },
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta47147",
           name: "interactive",
           slug: "interactive",
@@ -371,6 +375,7 @@ export const products = (placeholderImage: string) => [
       },
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta34499",
           name: "deposit",
           slug: "deposit",
@@ -418,6 +423,7 @@ export const products = (placeholderImage: string) => [
       edges: [
         {
           node: {
+            __typename: "Image" as "Image",
             id: "UHJvZHVjdEltYWdlOjE=",
             image: placeholderImage,
             sortOrder: 0,
@@ -445,7 +451,7 @@ export const products = (placeholderImage: string) => [
       "Autem odit tempora nesciunt quaerat enim reprehenderit eius. Excepturi nemo quos veritatis laboriosam aperiam atque natus soluta",
     seoTitle: "Generic Rubber Pants",
     sku: "57599-97473",
-    thumbnail: { __typename: "Image", url: placeholderImage },
+    thumbnail: { __typename: "Image" as "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -472,9 +478,11 @@ export const products = (placeholderImage: string) => [
     }
   },
   {
+    __typename: "Product" as "Product",
     attributes: [
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta1529",
           name: "Granite",
           slug: "Granite",
@@ -504,6 +512,7 @@ export const products = (placeholderImage: string) => [
       },
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta44120",
           name: "wireless",
           slug: "wireless",
@@ -540,6 +549,7 @@ export const products = (placeholderImage: string) => [
       },
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta83114",
           name: "6th generation",
           slug: "6th-generation",
@@ -579,6 +589,7 @@ export const products = (placeholderImage: string) => [
       edges: [
         {
           node: {
+            __typename: "Image" as "Image",
             id: "UHJvZHVjdEltYWdlOjE=",
             image: placeholderImage,
             sortOrder: 0,
@@ -601,7 +612,7 @@ export const products = (placeholderImage: string) => [
     seoDescription: "enim est recusandae soluta aperiam",
     seoTitle: "Handcrafted Wooden Towels",
     sku: "6526-89350",
-    thumbnail: { __typename: "Image", url: placeholderImage },
+    thumbnail: { __typename: "Image" as "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -658,9 +669,11 @@ export const products = (placeholderImage: string) => [
     }
   },
   {
+    __typename: "Product" as "Product",
     attributes: [
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta40940",
           name: "monitor",
           slug: "monitor",
@@ -707,6 +720,7 @@ export const products = (placeholderImage: string) => [
       },
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta33894",
           name: "Assurance",
           slug: "Assurance",
@@ -743,6 +757,7 @@ export const products = (placeholderImage: string) => [
       },
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta35528",
           name: "Function-based",
           slug: "Function-based",
@@ -776,6 +791,7 @@ export const products = (placeholderImage: string) => [
       edges: [
         {
           node: {
+            __typename: "Image" as "Image",
             id: "UHJvZHVjdEltYWdlOjE=",
             image: placeholderImage,
             sortOrder: 0,
@@ -798,7 +814,7 @@ export const products = (placeholderImage: string) => [
     seoDescription: "quas minima error repudiandae corrupti",
     seoTitle: "Handcrafted Metal Cheese",
     sku: "9937-5954",
-    thumbnail: { __typename: "Image", url: placeholderImage },
+    thumbnail: { __typename: "Image" as "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -845,9 +861,11 @@ export const products = (placeholderImage: string) => [
     }
   },
   {
+    __typename: "Product" as "Product",
     attributes: [
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta58079",
           name: "Cotton",
           slug: "Cotton",
@@ -874,6 +892,7 @@ export const products = (placeholderImage: string) => [
       },
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta51731",
           name: "Assistant",
           slug: "Assistant",
@@ -886,6 +905,7 @@ export const products = (placeholderImage: string) => [
       },
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta53013",
           name: "target",
           slug: "target",
@@ -921,6 +941,7 @@ export const products = (placeholderImage: string) => [
       },
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta98307",
           name: "Brand",
           slug: "Brand",
@@ -943,6 +964,7 @@ export const products = (placeholderImage: string) => [
       },
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta52191",
           name: "invoice",
           slug: "invoice",
@@ -984,6 +1006,7 @@ export const products = (placeholderImage: string) => [
       edges: [
         {
           node: {
+            __typename: "Image" as "Image",
             id: "UHJvZHVjdEltYWdlOjE=",
             image: placeholderImage,
             sortOrder: 0,
@@ -1007,7 +1030,7 @@ export const products = (placeholderImage: string) => [
       "Veniam quasi temporibus ab similique. Praesentium vero repudiandae",
     seoTitle: "Awesome Granite Car",
     sku: "96777-48145",
-    thumbnail: { __typename: "Image", url: placeholderImage },
+    thumbnail: { __typename: "Image" as "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -1084,9 +1107,11 @@ export const products = (placeholderImage: string) => [
     }
   },
   {
+    __typename: "Product" as "Product",
     attributes: [
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta96115",
           name: "Officer",
           slug: "Officer",
@@ -1099,6 +1124,7 @@ export const products = (placeholderImage: string) => [
       },
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta74440",
           name: "driver",
           slug: "driver",
@@ -1119,6 +1145,7 @@ export const products = (placeholderImage: string) => [
       },
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta95292",
           name: "SDD",
           slug: "SDD",
@@ -1147,6 +1174,7 @@ export const products = (placeholderImage: string) => [
       },
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta28064",
           name: "firewall",
           slug: "firewall",
@@ -1165,6 +1193,7 @@ export const products = (placeholderImage: string) => [
       },
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta90527",
           name: "Jamaica",
           slug: "Jamaica",
@@ -1201,6 +1230,7 @@ export const products = (placeholderImage: string) => [
       edges: [
         {
           node: {
+            __typename: "Image" as "Image",
             id: "UHJvZHVjdEltYWdlOjE=",
             image: placeholderImage,
             sortOrder: 0,
@@ -1224,7 +1254,7 @@ export const products = (placeholderImage: string) => [
       "Minima quaerat error incidunt qui quis vitae maxime. Est ab et",
     seoTitle: "Gorgeous Metal Gloves",
     sku: "60799-40023",
-    thumbnail: { __typename: "Image", url: placeholderImage },
+    thumbnail: { __typename: "Image" as "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -1311,9 +1341,11 @@ export const products = (placeholderImage: string) => [
     }
   },
   {
+    __typename: "Product" as "Product",
     attributes: [
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta77866",
           name: "well-modulated",
           slug: "well-modulated",
@@ -1335,6 +1367,7 @@ export const products = (placeholderImage: string) => [
       },
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta46984",
           name: "magenta",
           slug: "magenta",
@@ -1357,6 +1390,7 @@ export const products = (placeholderImage: string) => [
       },
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta58329",
           name: "District",
           slug: "District",
@@ -1380,6 +1414,7 @@ export const products = (placeholderImage: string) => [
       },
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta24725",
           name: "payment",
           slug: "payment",
@@ -1415,6 +1450,7 @@ export const products = (placeholderImage: string) => [
       },
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta20828",
           name: "functionalities",
           slug: "functionalities",
@@ -1457,6 +1493,7 @@ export const products = (placeholderImage: string) => [
       edges: [
         {
           node: {
+            __typename: "Image" as "Image",
             id: "UHJvZHVjdEltYWdlOjE=",
             image: placeholderImage,
             sortOrder: 0,
@@ -1480,7 +1517,7 @@ export const products = (placeholderImage: string) => [
       "Esse quia voluptates veniam eveniet. Velit laborum possimus eveniet consequuntur magnam eveniet provident et voluptatem",
     seoTitle: "Unbranded Rubber Ball",
     sku: "2840-48373",
-    thumbnail: { __typename: "Image", url: placeholderImage },
+    thumbnail: { __typename: "Image" as "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -1567,9 +1604,11 @@ export const products = (placeholderImage: string) => [
     }
   },
   {
+    __typename: "Product" as "Product",
     attributes: [
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta66889",
           name: "Compatible",
           slug: "Compatible",
@@ -1610,6 +1649,7 @@ export const products = (placeholderImage: string) => [
       },
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta85893",
           name: "program",
           slug: "program",
@@ -1652,6 +1692,7 @@ export const products = (placeholderImage: string) => [
       edges: [
         {
           node: {
+            __typename: "Image" as "Image",
             id: "UHJvZHVjdEltYWdlOjE=",
             image: placeholderImage,
             sortOrder: 0,
@@ -1675,7 +1716,7 @@ export const products = (placeholderImage: string) => [
       "Sed tempore autem voluptas voluptas aut sit et. Molestiae rem quo cupiditate consectetur",
     seoTitle: "Fantastic Cotton Tuna",
     sku: "63913-27946",
-    thumbnail: { __typename: "Image", url: placeholderImage },
+    thumbnail: { __typename: "Image" as "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -1722,9 +1763,11 @@ export const products = (placeholderImage: string) => [
     }
   },
   {
+    __typename: "Product" as "Product",
     attributes: [
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta3756",
           name: "directional",
           slug: "directional",
@@ -1761,6 +1804,7 @@ export const products = (placeholderImage: string) => [
       edges: [
         {
           node: {
+            __typename: "Image" as "Image",
             id: "UHJvZHVjdEltYWdlOjE=",
             image: placeholderImage,
             sortOrder: 0,
@@ -1784,7 +1828,7 @@ export const products = (placeholderImage: string) => [
       "Voluptatem veniam aut rerum. Illum veniam asperiores ut et iusto enim vel sapiente quia",
     seoTitle: "Tasty Steel Pants",
     sku: "4110-47925",
-    thumbnail: { __typename: "Image", url: placeholderImage },
+    thumbnail: { __typename: "Image" as "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -1861,9 +1905,11 @@ export const products = (placeholderImage: string) => [
     }
   },
   {
+    __typename: "Product" as "Product",
     attributes: [
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta93061",
           name: "Cotton",
           slug: "Cotton",
@@ -1895,6 +1941,7 @@ export const products = (placeholderImage: string) => [
       },
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta58822",
           name: "Shore",
           slug: "Shore",
@@ -1909,6 +1956,7 @@ export const products = (placeholderImage: string) => [
       },
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta33738",
           name: "Communications",
           slug: "Communications",
@@ -1932,6 +1980,7 @@ export const products = (placeholderImage: string) => [
       },
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta46618",
           name: "Credit Card Account",
           slug: "Credit-Card-Account",
@@ -1968,6 +2017,7 @@ export const products = (placeholderImage: string) => [
       edges: [
         {
           node: {
+            __typename: "Image" as "Image",
             id: "UHJvZHVjdEltYWdlOjE=",
             image: placeholderImage,
             sortOrder: 0,
@@ -1991,7 +2041,7 @@ export const products = (placeholderImage: string) => [
       "Sapiente qui error. Placeat hic nulla repudiandae delectus et",
     seoTitle: "Ergonomic Cotton Shoes",
     sku: "9207-4523",
-    thumbnail: { __typename: "Image", url: placeholderImage },
+    thumbnail: { __typename: "Image" as "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -2058,9 +2108,11 @@ export const products = (placeholderImage: string) => [
     }
   },
   {
+    __typename: "Product" as "Product",
     attributes: [
       {
         attribute: {
+          __typename: "Attribute" as "Attribute",
           id: "pta1842",
           name: "Small",
           slug: "Small",
@@ -2100,6 +2152,7 @@ export const products = (placeholderImage: string) => [
       edges: [
         {
           node: {
+            __typename: "Image" as "Image",
             id: "UHJvZHVjdEltYWdlOjE=",
             image: placeholderImage,
             sortOrder: 0,
@@ -2122,7 +2175,7 @@ export const products = (placeholderImage: string) => [
     seoDescription: "adipisci laboriosam autem vel soluta",
     seoTitle: "Unbranded Steel Tuna",
     sku: "84653-71539",
-    thumbnail: { __typename: "Image", url: placeholderImage },
+    thumbnail: { __typename: "Image" as "Image", url: placeholderImage },
     variants: {
       edges: [
         {
@@ -2185,7 +2238,7 @@ export const variant = (placeholderImage: string): ProductVariant => ({
     {
       __typename: "SelectedAttribute",
       attribute: {
-        __typename: "Attribute",
+        __typename: "Attribute" as "Attribute",
         id: "pta18161",
         name: "Borders",
         slug: "Borders",
@@ -2215,7 +2268,7 @@ export const variant = (placeholderImage: string): ProductVariant => ({
     {
       __typename: "SelectedAttribute",
       attribute: {
-        __typename: "Attribute",
+        __typename: "Attribute" as "Attribute",
         id: "pta22785",
         name: "Legacy",
         slug: "Legacy",
@@ -2290,7 +2343,7 @@ export const variant = (placeholderImage: string): ProductVariant => ({
     currency: "USD"
   },
   product: {
-    __typename: "Product",
+    __typename: "Product" as "Product",
     id: "prod1",
     images: [
       {
@@ -2358,7 +2411,7 @@ export const variant = (placeholderImage: string): ProductVariant => ({
       }
     ],
     name: "Our Awesome Book",
-    thumbnail: { __typename: "Image", url: placeholderImage },
+    thumbnail: { __typename: "Image" as "Image", url: placeholderImage },
     variants: [
       {
         __typename: "ProductVariant",

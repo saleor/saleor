@@ -48,6 +48,8 @@ interface ProductTypeListProps
   productTypes: ProductTypeList_productTypes_edges_node[];
 }
 
+const numberOfColumns = 4;
+
 const ProductTypeList = withStyles(styles, { name: "ProductTypeList" })(
   ({
     classes,
@@ -66,6 +68,7 @@ const ProductTypeList = withStyles(styles, { name: "ProductTypeList" })(
     <Card>
       <Table>
         <TableHead
+          colSpan={numberOfColumns}
           selected={selected}
           disabled={disabled}
           items={productTypes}
@@ -85,7 +88,7 @@ const ProductTypeList = withStyles(styles, { name: "ProductTypeList" })(
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={4}
+              colSpan={numberOfColumns}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
               hasPreviousPage={
@@ -159,7 +162,7 @@ const ProductTypeList = withStyles(styles, { name: "ProductTypeList" })(
             },
             () => (
               <TableRow>
-                <TableCell colSpan={4}>
+                <TableCell colSpan={numberOfColumns}>
                   {i18n.t("No product types found")}
                 </TableCell>
               </TableRow>

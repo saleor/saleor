@@ -174,8 +174,8 @@ def test_configure_taxes(admin_client, site_settings):
 @mock.patch("saleor.dashboard.taxes.views.messages", create=True)
 @mock.patch("saleor.dashboard.taxes.views.call_command", create=True)
 def test_fetch_tax_rates(mocked_call_command, mocked_messages, admin_client):
-    """Ensure a valid fetch VAT rates request is correctly handled,
-    and is leading to the proper VAT fetching command being invoked."""
+    # Ensure a valid fetch VAT rates request is correctly handled,
+    # and is leading to the proper VAT fetching command being invoked.
     url = reverse("dashboard:fetch-tax-rates")
     response = admin_client.post(url)
 
@@ -198,8 +198,8 @@ def test_fetch_tax_rates(mocked_call_command, mocked_messages, admin_client):
 def test_fetch_tax_rates_improperly_configured(
     mocked_call_command, mocked_logger, mocked_messages, admin_client
 ):
-    """Ensure a failing VAT rate fetching is leading to an error being
-    returned, and that error is handled."""
+    # Ensure a failing VAT rate fetching is leading to an error being
+    # returned, and that error is handled.
     url = reverse("dashboard:fetch-tax-rates")
     response = admin_client.post(url)
 
@@ -217,7 +217,7 @@ def test_fetch_tax_rates_improperly_configured(
 
 
 def test_fetch_tax_rates_invalid_method(admin_client):
-    """Ensure the GET method is not allowed for tax rates fetching"""
+    # Ensure the GET method is not allowed for tax rates fetching
     url = reverse("dashboard:fetch-tax-rates")
     assert admin_client.get(url).status_code == 405
 
@@ -509,3 +509,81 @@ def test_get_tax_rate_percentage_value(
     country = Country("PL")
     tax_rate = manager.get_tax_rate_percentage_value(product, country)
     assert tax_rate == Decimal("23")
+
+
+def test_get_plugin_configuration(vatlayer, settings):
+    settings.PLUGINS = ["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+    manager = get_extensions_manager()
+    configurations = manager.get_plugin_configurations()
+    assert len(configurations) == 1
+    configuration = configurations[0]
+
+    assert configuration.name == "Vatlayer"
+    assert configuration.active
+    assert not configuration.configuration
+
+
+def test_save_plugin_configuration(vatlayer, settings):
+    settings.PLUGINS = ["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+    manager = get_extensions_manager()
+    configuration = manager.get_plugin_configuration("Vatlayer")
+    manager.save_plugin_configuration("Vatlayer", {"active": False})
+
+    configuration.refresh_from_db()
+    assert not configuration.active
+
+
+def test_show_taxes_on_storefront(vatlayer, settings):
+    settings.PLUGINS = ["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+    manager = get_extensions_manager()
+    assert manager.show_taxes_on_storefront() is True
+
+
+def test_get_tax_rate_type_choices(vatlayer, settings, monkeypatch):
+    expected_choices = [
+        "accommodation",
+        "admission to cultural events",
+        "admission to entertainment events",
+    ]
+    monkeypatch.setattr(
+        "saleor.extensions.plugins.vatlayer.plugin.get_tax_rate_types",
+        lambda: expected_choices,
+    )
+    settings.PLUGINS = ["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+    manager = get_extensions_manager()
+    choices = manager.get_tax_rate_type_choices()
+
+    # add a default choice
+    expected_choices.append("standard")
+
+    assert len(choices) == 4
+    for choice in choices:
+        assert choice.code in expected_choices
+
+
+def test_apply_taxes_to_shipping_price_range(vatlayer, settings):
+    settings.PLUGINS = ["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+    money_range = MoneyRange(Money(100, "USD"), Money(200, "USD"))
+    country = Country("PL")
+    manager = get_extensions_manager()
+
+    expected_start = TaxedMoney(net=Money("81.30", "USD"), gross=Money("100", "USD"))
+    expected_stop = TaxedMoney(net=Money("162.60", "USD"), gross=Money("200", "USD"))
+
+    price_range = manager.apply_taxes_to_shipping_price_range(money_range, country)
+
+    assert price_range.start == expected_start
+    assert price_range.stop == expected_stop
+
+
+def test_apply_taxes_to_product(vatlayer, settings, variant, discount_info):
+    settings.PLUGINS = ["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+    country = Country("PL")
+    manager = get_extensions_manager()
+    variant.product.meta = {
+        "taxes": {"vatlayer": {"code": "standard", "description": "standard"}}
+    }
+    price = manager.apply_taxes_to_product(
+        variant.product, variant.get_price([discount_info]), country
+    )
+    assert price == TaxedMoney(net=Money("4.07", "USD"), gross=Money("5.00", "USD"))
