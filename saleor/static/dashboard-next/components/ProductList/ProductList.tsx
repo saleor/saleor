@@ -107,6 +107,13 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
     return (
       <div className={classes.tableContainer}>
         <Table className={classes.table}>
+          <col />
+          <col className={classes.colName} />
+          {displayColumn("productType") && <col className={classes.colType} />}
+          {displayColumn("isPublished") && (
+            <col className={classes.colPublished} />
+          )}
+          {displayColumn("price") && <col className={classes.colPrice} />}
           <TableHead
             colSpan={numberOfColumns}
             selected={selected}
