@@ -12,7 +12,7 @@ import Skeleton from "@saleor/components/Skeleton";
 import TableHead from "@saleor/components/TableHead";
 import TablePagination from "@saleor/components/TablePagination";
 import i18n from "@saleor/i18n";
-import { renderCollection, stopPropagation } from "@saleor/misc";
+import { renderCollection } from "@saleor/misc";
 import { ListActions, ListProps } from "@saleor/types";
 import { translateBoolean } from "@saleor/utils/i18n";
 import { AttributeList_attributes_edges_node } from "../../types/AttributeList";
