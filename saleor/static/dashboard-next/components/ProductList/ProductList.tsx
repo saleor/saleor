@@ -9,7 +9,7 @@ import TableBody from "@material-ui/core/TableBody";
 import TableCell from "@material-ui/core/TableCell";
 import TableFooter from "@material-ui/core/TableFooter";
 import TableRow from "@material-ui/core/TableRow";
-import React, { useCallback } from "react";
+import React from "react";
 
 import TableCellAvatar, {
   AVATAR_MARGIN
@@ -97,7 +97,7 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
     onUpdateListSettings,
     onRowClick
   }: ProductListProps) => {
-    const displayColumn = useCallback(
+    const displayColumn = React.useCallback(
       (column: ProductListColumns) =>
         isSelected(column, settings.columns, (a, b) => a === b),
       [settings.columns]
