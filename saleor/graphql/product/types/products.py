@@ -1,3 +1,6 @@
+from collections import OrderedDict
+from typing import Dict
+
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from django.db.models import Prefetch
@@ -18,7 +21,7 @@ from ....product.utils.availability import (
 from ....product.utils.costs import get_margin_for_variant, get_product_costs_data
 from ...core.connection import CountableDjangoObjectType
 from ...core.enums import ReportingPeriod, TaxRateType
-from ...core.fields import PrefetchingConnectionField
+from ...core.fields import FilterInputConnectionField, PrefetchingConnectionField
 from ...core.resolvers import resolve_meta, resolve_private_meta
 from ...core.types import (
     Image,
@@ -39,6 +42,8 @@ from ...translations.types import (
 )
 from ...utils import get_database_id, reporting_period_to_date
 from ..enums import OrderDirection, ProductOrderField
+from ..filters import AttributeFilterInput
+from ..resolvers import resolve_attributes
 from .attributes import Attribute, SelectedAttribute
 from .digital_contents import DigitalContent
 
@@ -70,7 +75,7 @@ def prefetch_products_collection_sorted(info, *_args, **_kwargs):
     )
 
 
-def resolve_attribute_list(attributes_hstore, attributes_qs):
+def resolve_attribute_list(attributes_json, attributes_qs):
     """Resolve attributes dict into a list of `SelectedAttribute`s.
 
     keys = list(attributes.keys())
@@ -79,19 +84,21 @@ def resolve_attribute_list(attributes_hstore, attributes_qs):
     `attributes_qs` is the queryset of attribute objects. If it's prefetch
     beforehand along with the values, it saves database queries.
     """
-    attributes_map = {}
-    values_map = {}
+    attributes_map = OrderedDict()  # type: Dict[str, models.Attribute]
+    values_map = {}  # type: Dict[str, models.AttributeValue]
     for attr in attributes_qs:
-        attributes_map[attr.pk] = attr
+        attributes_map[str(attr.pk)] = attr
         for val in attr.values.all():
-            values_map[val.pk] = val
+            values_map[str(val.pk)] = val
 
     attributes_list = []
-    for k, v in attributes_hstore.items():
-        attribute = attributes_map.get(int(k))
-        value = values_map.get(int(v))
-        if attribute and value:
-            attributes_list.append(SelectedAttribute(attribute=attribute, value=value))
+    for attr_pk, attr in attributes_map.items():
+        values = attributes_json.get(attr_pk, [])
+        values = [values_map[v_pk] for v_pk in values if v_pk in values_map]
+        value = values[0] if values else None
+        attributes_list.append(
+            SelectedAttribute(attribute=attr, value=value, values=values)
+        )
     return attributes_list
 
 
@@ -200,10 +207,12 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
     is_available = graphene.Boolean(
         description="Whether the variant is in stock and visible or not."
     )
-    attributes = graphene.List(
-        graphene.NonNull(SelectedAttribute),
-        required=True,
-        description="List of attributes assigned to this variant.",
+    attributes = gql_optimizer.field(
+        graphene.List(
+            graphene.NonNull(SelectedAttribute),
+            required=True,
+            description="List of attributes assigned to this variant.",
+        )
     )
     cost_price = graphene.Field(Money, description="Cost price of the variant.")
     margin = graphene.Int(description="Gross margin percentage value.")
@@ -267,12 +276,15 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         return root.quantity_available
 
     @staticmethod
-    @gql_optimizer.resolver_hints(
-        prefetch_related="product__product_type__variant_attributes__values"
-    )
-    def resolve_attributes(root: models.ProductVariant, *_args):
-        attributes_qs = root.product.product_type.variant_attributes.all()
-        return resolve_attribute_list(root.attributes, attributes_qs)
+    @gql_optimizer.resolver_hints("product__product_type__variant_attributes__values")
+    def resolve_attributes(root: models.ProductVariant, info):
+        attr_qs = (
+            root.product.product_type.variant_attributes.prefetch_related("values")
+            .get_visible_to_user(info.context.user)
+            .variant_attributes_sorted()
+        )
+        attr_qs = gql_optimizer.query(attr_qs, info)
+        return resolve_attribute_list(root.attributes, attr_qs)
 
     @staticmethod
     @permission_required("product.manage_products")
@@ -552,9 +564,14 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
     @gql_optimizer.resolver_hints(
         prefetch_related="product_type__product_attributes__values"
     )
-    def resolve_attributes(root: models.Product, *_args):
-        attributes_qs = root.product_type.product_attributes.all()
-        return resolve_attribute_list(root.attributes, attributes_qs)
+    def resolve_attributes(root: models.Product, info):
+        attr_qs = (
+            root.product_type.product_attributes.prefetch_related("values")
+            .get_visible_to_user(info.context.user)
+            .product_attributes_sorted()
+        )
+        attr_qs = gql_optimizer.query(attr_qs, info)
+        return resolve_attribute_list(root.attributes, attr_qs)
 
     @staticmethod
     @permission_required("product.manage_products")
@@ -631,6 +648,9 @@ class ProductType(CountableDjangoObjectType, MetadataObjectType):
     product_attributes = graphene.List(
         Attribute, description="Product attributes of that product type."
     )
+    available_attributes = gql_optimizer.field(
+        FilterInputConnectionField(Attribute, filter=AttributeFilterInput())
+    )
 
     class Meta:
         description = """Represents a type of product. It defines what
@@ -661,14 +681,18 @@ class ProductType(CountableDjangoObjectType, MetadataObjectType):
         return tax.get("code")
 
     @staticmethod
-    @gql_optimizer.resolver_hints(prefetch_related="product_attributes")
+    @gql_optimizer.resolver_hints(
+        prefetch_related="product_attributes__attributeproduct"
+    )
     def resolve_product_attributes(root: models.ProductType, *_args, **_kwargs):
-        return root.product_attributes.all()
+        return root.product_attributes.product_attributes_sorted().all()
 
     @staticmethod
-    @gql_optimizer.resolver_hints(prefetch_related="variant_attributes")
+    @gql_optimizer.resolver_hints(
+        prefetch_related="variant_attributes__attributevariant"
+    )
     def resolve_variant_attributes(root: models.ProductType, *_args, **_kwargs):
-        return root.variant_attributes.all()
+        return root.variant_attributes.variant_attributes_sorted().all()
 
     @staticmethod
     def resolve_products(root: models.ProductType, info, **_kwargs):
@@ -676,6 +700,12 @@ class ProductType(CountableDjangoObjectType, MetadataObjectType):
             return root.prefetched_products
         qs = root.products.visible_to_user(info.context.user)
         return gql_optimizer.query(qs, info)
+
+    @staticmethod
+    @permission_required("product.manage_products")
+    def resolve_available_attributes(root: models.ProductType, info, **kwargs):
+        qs = models.Attribute.objects.get_unassigned_attributes(root.pk)
+        return resolve_attributes(info, qs=qs, **kwargs)
 
     @staticmethod
     @permission_required("account.manage_products")

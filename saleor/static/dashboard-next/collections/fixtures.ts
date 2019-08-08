@@ -22,6 +22,46 @@ export const collections: CollectionList_collections_edges_node[] = [
       __typename: "ProductCountableConnection",
       totalCount: 4
     }
+  },
+  {
+    __typename: "Collection",
+    id: "Q29sbGVjdGlvbjoz",
+    isPublished: true,
+    name: "Vintage vibes",
+    products: {
+      __typename: "ProductCountableConnection",
+      totalCount: 4
+    }
+  },
+  {
+    __typename: "Collection",
+    id: "Q29sbGVjdGlvbjoa",
+    isPublished: true,
+    name: "Merry Christmas",
+    products: {
+      __typename: "ProductCountableConnection",
+      totalCount: 4
+    }
+  },
+  {
+    __typename: "Collection",
+    id: "Q29sbGVjdGlvbjob",
+    isPublished: true,
+    name: "80s Miami",
+    products: {
+      __typename: "ProductCountableConnection",
+      totalCount: 4
+    }
+  },
+  {
+    __typename: "Collection",
+    id: "Q29sbGVjdGlvbjoc",
+    isPublished: true,
+    name: "Yellow Submarine 2019",
+    products: {
+      __typename: "ProductCountableConnection",
+      totalCount: 4
+    }
   }
 ];
 export const collection: (

@@ -1,6 +1,7 @@
 import gql from "graphql-tag";
 
-import { TypedQuery } from "../queries";
+import { attributeFragment } from "@saleor/attributes/queries";
+import { pageInfoFragment, TypedQuery } from "../queries";
 import { ProductTypeCreateData } from "./types/ProductTypeCreateData";
 import {
   ProductTypeDetails,
@@ -11,18 +12,6 @@ import {
   ProductTypeListVariables
 } from "./types/ProductTypeList";
 
-export const attributeFragment = gql`
-  fragment AttributeFragment on Attribute {
-    id
-    name
-    slug
-    values {
-      id
-      name
-      slug
-    }
-  }
-`;
 export const productTypeFragment = gql`
   fragment ProductTypeFragment on ProductType {
     id
@@ -55,6 +44,7 @@ export const productTypeDetailsFragment = gql`
 `;
 
 export const productTypeListQuery = gql`
+  ${pageInfoFragment}
   ${productTypeFragment}
   query ProductTypeList(
     $after: String
@@ -69,10 +59,7 @@ export const productTypeListQuery = gql`
         }
       }
       pageInfo {
-        hasNextPage
-        hasPreviousPage
-        startCursor
-        endCursor
+        ...PageInfoFragment
       }
     }
   }

@@ -129,7 +129,7 @@ export const SiteSettings: React.StatelessComponent<SiteSettingsProps> = ({
                           addressInput: {
                             city: data.city,
                             companyName: data.companyName,
-                            country: data.country.code,
+                            country: data.country,
                             countryArea: data.countryArea,
                             phone: data.phone,
                             postalCode: data.postalCode,

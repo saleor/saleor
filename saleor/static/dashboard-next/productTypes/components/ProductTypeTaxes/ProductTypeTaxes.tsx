@@ -5,21 +5,17 @@ import React from "react";
 
 import CardTitle from "@saleor/components/CardTitle";
 import SingleAutocompleteSelectField from "@saleor/components/SingleAutocompleteSelectField";
+import { ProductTypeDetails_taxTypes } from "@saleor/productTypes/types/ProductTypeDetails";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { ProductTypeForm } from "../ProductTypeDetailsPage/ProductTypeDetailsPage";
 
 interface ProductTypeTaxesProps extends WithStyles<typeof styles> {
   data: {
-    taxType: {
-      label: string;
-      value: string;
-    };
+    taxType: string;
   };
-  taxTypes: Array<{
-    description: string;
-    taxCode: string;
-  }>;
+  taxTypeDisplayName: string;
+  taxTypes: ProductTypeDetails_taxTypes[];
   disabled: boolean;
   onChange: (event: React.ChangeEvent<any>) => void;
 }
@@ -31,19 +27,24 @@ const styles = createStyles({
 });
 
 const ProductTypeTaxes = withStyles(styles, { name: "ProductTypeTaxes" })(
-  ({ classes, data, disabled, taxTypes, onChange }: ProductTypeTaxesProps) => (
+  ({
+    classes,
+    data,
+    disabled,
+    taxTypes,
+    taxTypeDisplayName,
+    onChange
+  }: ProductTypeTaxesProps) => (
     <Card className={classes.root}>
       <CardTitle title={i18n.t("Taxes")} />
       <CardContent>
         <SingleAutocompleteSelectField
           disabled={disabled}
+          displayValue={taxTypeDisplayName}
           label={i18n.t("Taxes")}
           name={"taxType" as keyof ProductTypeForm}
           onChange={onChange}
-          value={{
-            label: data.taxType.label,
-            value: data.taxType.value
-          }}
+          value={data.taxType}
           choices={maybe(
             () =>
               taxTypes.map(c => ({ label: c.description, value: c.taxCode })),

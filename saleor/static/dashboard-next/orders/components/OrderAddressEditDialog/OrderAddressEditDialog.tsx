@@ -11,6 +11,9 @@ import ConfirmButton, {
   ConfirmButtonTransitionState
 } from "@saleor/components/ConfirmButton";
 import Form from "@saleor/components/Form";
+import useStateFromProps from "@saleor/hooks/useStateFromProps";
+import { maybe } from "@saleor/misc";
+import createSingleAutocompleteSelectHandler from "@saleor/utils/handlers/singleAutocompleteSelectChangeHandler";
 import { AddressTypeInput } from "../../../customers/types";
 import i18n from "../../../i18n";
 import { UserError } from "../../../types";
@@ -48,43 +51,69 @@ const OrderAddressEditDialog = withStyles(styles, {
     countries,
     onClose,
     onConfirm
-  }: OrderAddressEditDialogProps) => (
-    <Dialog onClose={onClose} open={open} classes={{ paper: classes.overflow }}>
-      <Form initial={address} errors={errors} onSubmit={onConfirm}>
-        {({ change, data, errors, submit }) => (
-          <>
-            <DialogTitle>
-              {variant === "billing"
-                ? i18n.t("Edit billing address", { context: "title" })
-                : i18n.t("Edit shipping address", { context: "title" })}
-            </DialogTitle>
-            <DialogContent className={classes.overflow}>
-              <AddressEdit
-                countries={countries}
-                data={data}
-                errors={errors}
-                onChange={change}
-              />
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={onClose}>
-                {i18n.t("Cancel", { context: "button" })}
-              </Button>
-              <ConfirmButton
-                transitionState={confirmButtonState}
-                color="primary"
-                variant="contained"
-                onClick={submit}
-                type="submit"
-              >
-                {i18n.t("Confirm", { context: "button" })}
-              </ConfirmButton>
-            </DialogActions>
-          </>
-        )}
-      </Form>
-    </Dialog>
-  )
+  }: OrderAddressEditDialogProps) => {
+    const [countryDisplayName, setCountryDisplayName] = useStateFromProps(
+      maybe(
+        () => countries.find(country => address.country === country.code).label
+      )
+    );
+    const countryChoices = countries.map(country => ({
+      label: country.label,
+      value: country.code
+    }));
+
+    return (
+      <Dialog
+        onClose={onClose}
+        open={open}
+        classes={{ paper: classes.overflow }}
+      >
+        <Form initial={address} errors={errors} onSubmit={onConfirm}>
+          {({ change, data, errors, submit }) => {
+            const handleCountrySelect = createSingleAutocompleteSelectHandler(
+              change,
+              setCountryDisplayName,
+              countryChoices
+            );
+
+            return (
+              <>
+                <DialogTitle>
+                  {variant === "billing"
+                    ? i18n.t("Edit billing address", { context: "title" })
+                    : i18n.t("Edit shipping address", { context: "title" })}
+                </DialogTitle>
+                <DialogContent className={classes.overflow}>
+                  <AddressEdit
+                    countries={countryChoices}
+                    countryDisplayValue={countryDisplayName}
+                    data={data}
+                    errors={errors}
+                    onChange={change}
+                    onCountryChange={handleCountrySelect}
+                  />
+                </DialogContent>
+                <DialogActions>
+                  <Button onClick={onClose}>
+                    {i18n.t("Cancel", { context: "button" })}
+                  </Button>
+                  <ConfirmButton
+                    transitionState={confirmButtonState}
+                    color="primary"
+                    variant="contained"
+                    onClick={submit}
+                    type="submit"
+                  >
+                    {i18n.t("Confirm", { context: "button" })}
+                  </ConfirmButton>
+                </DialogActions>
+              </>
+            );
+          }}
+        </Form>
+      </Dialog>
+    );
+  }
 );
 OrderAddressEditDialog.displayName = "OrderAddressEditDialog";
 export default OrderAddressEditDialog;
