@@ -65,7 +65,7 @@ export interface CollectionProductsProps
   onProductUnassign: (id: string, event: React.MouseEvent<any>) => void;
 }
 
-const columns = 5;
+const numberOfColumns = 5;
 
 const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
   ({
@@ -132,7 +132,7 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={columns}
+              colSpan={numberOfColumns}
               hasNextPage={maybe(() => pageInfo.hasNextPage)}
               onNextPage={onNextPage}
               hasPreviousPage={maybe(() => pageInfo.hasPreviousPage)}
@@ -202,7 +202,7 @@ const CollectionProducts = withStyles(styles, { name: "CollectionProducts" })(
             () => (
               <TableRow>
                 <TableCell />
-                <TableCell colSpan={columns}>
+                <TableCell colSpan={numberOfColumns}>
                   {i18n.t("No products found")}
                 </TableCell>
               </TableRow>

@@ -64,7 +64,7 @@ const styles = (theme: Theme) =>
     }
   });
 
-const columns = 5;
+const numberOfColumns = 5;
 
 const DiscountProducts = withStyles(styles, {
   name: "DiscountProducts"
@@ -118,7 +118,7 @@ const DiscountProducts = withStyles(styles, {
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={columns}
+              colSpan={numberOfColumns}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
               hasPreviousPage={
@@ -192,7 +192,7 @@ const DiscountProducts = withStyles(styles, {
             },
             () => (
               <TableRow>
-                <TableCell colSpan={columns}>
+                <TableCell colSpan={numberOfColumns}>
                   {i18n.t("No products found")}
                 </TableCell>
               </TableRow>
