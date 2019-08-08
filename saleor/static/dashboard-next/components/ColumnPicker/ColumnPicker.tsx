@@ -33,7 +33,7 @@ const ColumnPicker: React.FC<ColumnPickerProps> = props => {
   const {
     className,
     columns,
-    initial,
+    initial = false,
     selectedColumns,
     onCancel,
     onColumnToggle,
@@ -45,7 +45,7 @@ const ColumnPicker: React.FC<ColumnPickerProps> = props => {
   const [isExpanded, setExpansionState] = React.useState(false);
 
   React.useEffect(() => {
-    setTimeout(() => setExpansionState(!!initial), 100);
+    setTimeout(() => setExpansionState(initial), 100);
   }, []);
 
   const handleCancel = React.useCallback(() => {
