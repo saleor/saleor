@@ -499,8 +499,9 @@ class ProductCreate(ModelMutation):
         price = data.get("base_price", data.get("price"))
         if price is not None:
             cleaned_input["price"] = price
-            # Set the default "minimal_variant_price" to the "price"
-            cleaned_input["minimal_variant_price"] = price
+            if instance.minimal_variant_price is None:
+                # Set the default "minimal_variant_price" to the "price"
+                cleaned_input["minimal_variant_price"] = price
 
         # FIXME  tax_rate logic should be dropped after we remove tax_rate from input
         tax_rate = cleaned_input.pop("tax_rate", "")
@@ -604,6 +605,8 @@ class ProductUpdate(ProductCreate):
                 update_fields.append("sku")
             if update_fields:
                 variant.save(update_fields=update_fields)
+        # Recalculate the "minimal variant price"
+        update_product_minimal_variant_price_task.delay(instance.pk)
 
 
 class ProductDelete(ModelDeleteMutation):
