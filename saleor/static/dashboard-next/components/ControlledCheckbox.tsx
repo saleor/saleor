@@ -20,7 +20,7 @@ export const ControlledCheckbox: React.StatelessComponent<
       <Checkbox
         checked={checked}
         name={name}
-        onClick={() => onChange({ target: { name, value: !checked } })}
+        disableClickPropagation
         onChange={() => onChange({ target: { name, value: !checked } })}
       />
     }
