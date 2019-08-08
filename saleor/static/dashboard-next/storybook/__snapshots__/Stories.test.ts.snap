@@ -17441,6 +17441,21 @@ Ctrl + K"
           <table
             class="MuiTable-root-id ProductList-table-id"
           >
+            <colgroup>
+              <col />
+              <col
+                class="ProductList-colName-id"
+              />
+              <col
+                class="ProductList-colType-id"
+              />
+              <col
+                class="ProductList-colPublished-id"
+              />
+              <col
+                class="ProductList-colPrice-id"
+              />
+            </colgroup>
             <thead
               class="MuiTableHead-root-id"
             >
@@ -19427,6 +19442,21 @@ Ctrl + K"
           <table
             class="MuiTable-root-id ProductList-table-id"
           >
+            <colgroup>
+              <col />
+              <col
+                class="ProductList-colName-id"
+              />
+              <col
+                class="ProductList-colType-id"
+              />
+              <col
+                class="ProductList-colPublished-id"
+              />
+              <col
+                class="ProductList-colPrice-id"
+              />
+            </colgroup>
             <thead
               class="MuiTableHead-root-id"
             >
@@ -88974,6 +89004,21 @@ exports[`Storyshots Views / Products / Product list default 1`] = `
         <table
           class="MuiTable-root-id ProductList-table-id"
         >
+          <colgroup>
+            <col />
+            <col
+              class="ProductList-colName-id"
+            />
+            <col
+              class="ProductList-colType-id"
+            />
+            <col
+              class="ProductList-colPublished-id"
+            />
+            <col
+              class="ProductList-colPrice-id"
+            />
+          </colgroup>
           <thead
             class="MuiTableHead-root-id"
           >
@@ -89953,6 +89998,21 @@ exports[`Storyshots Views / Products / Product list loading 1`] = `
         <table
           class="MuiTable-root-id ProductList-table-id"
         >
+          <colgroup>
+            <col />
+            <col
+              class="ProductList-colName-id"
+            />
+            <col
+              class="ProductList-colType-id"
+            />
+            <col
+              class="ProductList-colPublished-id"
+            />
+            <col
+              class="ProductList-colPrice-id"
+            />
+          </colgroup>
           <thead
             class="MuiTableHead-root-id"
           >
@@ -90429,6 +90489,21 @@ exports[`Storyshots Views / Products / Product list no data 1`] = `
         <table
           class="MuiTable-root-id ProductList-table-id"
         >
+          <colgroup>
+            <col />
+            <col
+              class="ProductList-colName-id"
+            />
+            <col
+              class="ProductList-colType-id"
+            />
+            <col
+              class="ProductList-colPublished-id"
+            />
+            <col
+              class="ProductList-colPrice-id"
+            />
+          </colgroup>
           <thead
             class="MuiTableHead-root-id"
           >
@@ -91272,6 +91347,21 @@ exports[`Storyshots Views / Products / Product list with custom filters 1`] = `
         <table
           class="MuiTable-root-id ProductList-table-id"
         >
+          <colgroup>
+            <col />
+            <col
+              class="ProductList-colName-id"
+            />
+            <col
+              class="ProductList-colType-id"
+            />
+            <col
+              class="ProductList-colPublished-id"
+            />
+            <col
+              class="ProductList-colPrice-id"
+            />
+          </colgroup>
           <thead
             class="MuiTableHead-root-id"
           >
