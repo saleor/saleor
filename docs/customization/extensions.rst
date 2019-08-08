@@ -64,7 +64,7 @@ Configuring Plugins
 Saleor allows you to change a configuration of the given plugin over API.
 Plugin owner needs to overwrite a method to create a structure of default configuration ``_get_default_configuration``
 and ``CONFIG_STRUCTURE`` .
-It requires an expected structure as in the followed example:
+It requires an expected structure as in the following example:
 
 .. code-block:: python
 
