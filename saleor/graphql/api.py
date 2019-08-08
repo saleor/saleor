@@ -4,6 +4,7 @@ from .account.schema import AccountMutations, AccountQueries
 from .checkout.schema import CheckoutMutations, CheckoutQueries
 from .core.schema import CoreMutations, CoreQueries
 from .discount.schema import DiscountMutations, DiscountQueries
+from .extensions.schema import ExtensionsMutations, ExtensionsQueries
 from .giftcard.schema import GiftCardMutations, GiftCardQueries
 from .menu.schema import MenuMutations, MenuQueries
 from .order.schema import OrderMutations, OrderQueries
@@ -20,6 +21,7 @@ class Query(
     CheckoutQueries,
     CoreQueries,
     DiscountQueries,
+    ExtensionsQueries,
     GiftCardQueries,
     MenuQueries,
     OrderQueries,
@@ -38,6 +40,7 @@ class Mutations(
     CheckoutMutations,
     CoreMutations,
     DiscountMutations,
+    ExtensionsMutations,
     GiftCardMutations,
     MenuMutations,
     OrderMutations,
