@@ -157,7 +157,7 @@ def test_ProductVariantCreate_updates_minimal_variant_price(
         "productId": product_id,
         "sku": sku,
         "priceOverride": price_override,
-        "attributes": [{"slug": variant_slug, "value": variant_value}],
+        "attributes": [{"slug": variant_slug, "values": [variant_value]}],
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
