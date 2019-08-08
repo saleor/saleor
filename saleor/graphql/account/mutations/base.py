@@ -56,10 +56,12 @@ class SetPasswordInput(graphene.InputObjectType):
     password = graphene.String(description="Password", required=True)
 
 
-class SetPassword(ModelMutation):
+class SetPassword(BaseMutation):
+    user = graphene.Field(User, description="An user instance with new password.")
+
     class Arguments:
-        id = graphene.ID(
-            description="ID of a user to set password whom.", required=True
+        email = graphene.String(
+            required=True, description="Email of a user to set password whom."
         )
         input = SetPasswordInput(
             description="Fields required to set password.", required=True
@@ -70,21 +72,21 @@ class SetPassword(ModelMutation):
             "Sets the user's password from the token sent by email "
             "using the RequestPasswordReset mutation."
         )
-        model = models.User
 
     @classmethod
-    def clean_input(cls, info, instance, data):
-        cleaned_input = super().clean_input(info, instance, data)
-        token = cleaned_input.pop("token")
-        if not default_token_generator.check_token(instance, token):
+    def perform_mutation(cls, _root, info, **data):
+        email = data["email"]
+        try:
+            user = models.User.objects.get(email=email)
+        except ObjectDoesNotExist:
+            raise ValidationError({"email": "User doesn't exist"})
+        token = data["input"]["token"]
+        if not default_token_generator.check_token(user, token):
             raise ValidationError({"token": INVALID_TOKEN})
-        return cleaned_input
-
-    @classmethod
-    def save(cls, info, instance, cleaned_input):
-        instance.set_password(cleaned_input["password"])
-        instance.save(update_fields=["password"])
-        account_events.customer_password_reset_event(user=instance)
+        user.set_password(data["input"]["password"])
+        user.save(update_fields=["password"])
+        account_events.customer_password_reset_event(user=user)
+        return cls(user=user)
 
 
 class RequestPasswordReset(BaseMutation):
