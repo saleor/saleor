@@ -13,21 +13,31 @@ def _get_product_minimal_variant_price(product, discounts):
     return minimal_variant_price
 
 
-def update_product_minimal_variant_price(product, discounts=None):
+def update_product_minimal_variant_price(product, discounts=None, save=True):
     if discounts is None:
         discounts = fetch_active_discounts()
     minimal_variant_price = _get_product_minimal_variant_price(product, discounts)
     if product.minimal_variant_price != minimal_variant_price:
         product.minimal_variant_price = minimal_variant_price
-        product.save(update_fields=["minimal_variant_price"])
+        if save:
+            product.save(update_fields=["minimal_variant_price"])
     return product
 
 
 def update_products_minimal_variant_prices(products, discounts=None):
     if discounts is None:
         discounts = fetch_active_discounts()
+    changed_products_to_update = []
     for product in products:
-        update_product_minimal_variant_price(product, discounts)
+        old_minimal_variant_price = product.minimal_variant_price
+        updated_product = update_product_minimal_variant_price(
+            product, discounts, save=False
+        )
+        # Check if the "minimal_variant_price" has changed
+        if updated_product.minimal_variant_price != old_minimal_variant_price:
+            changed_products_to_update.append(updated_product)
+    # Bulk update the changed products
+    Product.objects.bulk_update(changed_products_to_update, ["minimal_variant_price"])
 
 
 def update_products_minimal_variant_prices_of_catalogues(
