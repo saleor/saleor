@@ -78,7 +78,10 @@ const linkOptions = {
   uri: API_URI
 };
 const uploadLink = createUploadLink(linkOptions);
-const batchLink = new BatchHttpLink(linkOptions);
+const batchLink = new BatchHttpLink({
+  batchInterval: 100,
+  ...linkOptions
+});
 
 const link = ApolloLink.split(
   operation => operation.getContext().useBatching,
