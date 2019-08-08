@@ -102,7 +102,7 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
         isSelected(column, settings.columns, (a, b) => a === b),
       [settings.columns]
     );
-    const columns = 2 + settings.columns.length;
+    const numberOfColumns = 2 + settings.columns.length;
 
     return (
       <div className={classes.tableContainer}>
@@ -138,7 +138,7 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
           <TableFooter>
             <TableRow>
               <TablePagination
-                colSpan={columns}
+                colSpan={numberOfColumns}
                 settings={settings}
                 hasNextPage={
                   pageInfo && !disabled ? pageInfo.hasNextPage : false
@@ -226,7 +226,7 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
               },
               () => (
                 <TableRow>
-                  <TableCell colSpan={columns}>
+                  <TableCell colSpan={numberOfColumns}>
                     {i18n.t("No products found")}
                   </TableCell>
                 </TableRow>

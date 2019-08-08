@@ -71,7 +71,7 @@ interface OrderFulfillmentProps extends WithStyles<typeof styles> {
   onTrackingCodeAdd: () => void;
 }
 
-const columns = 3;
+const numberOfColumns = 3;
 
 const OrderFulfillment = withStyles(styles, { name: "OrderFulfillment" })(
   ({
@@ -193,7 +193,7 @@ const OrderFulfillment = withStyles(styles, { name: "OrderFulfillment" })(
             ))}
             {maybe(() => fulfillment.trackingNumber) && (
               <TableRow>
-                <TableCell colSpan={columns}>
+                <TableCell colSpan={numberOfColumns}>
                   {i18n.t("Tracking Number: {{ trackingNumber }}", {
                     trackingNumber: fulfillment.trackingNumber
                   })}
