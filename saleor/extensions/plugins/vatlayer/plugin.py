@@ -37,7 +37,7 @@ class VatlayerPlugin(BasePlugin):
     def _initialize_plugin_configuration(self):
         super()._initialize_plugin_configuration()
 
-        if not self._cached_config_from_db:
+        if not self._cached_config:
             # This should be removed after we drop an Vatl's settings from Django
             # settings file
             self.active = bool(settings.VATLAYER_ACCESS_KEY)

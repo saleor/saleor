@@ -24,9 +24,10 @@ class BasePlugin:
     """
 
     PLUGIN_NAME = ""
+    CONFIG_STRUCTURE = None
 
     def __init__(self, *args, **kwargs):
-        self._cached_config_from_db = None
+        self._cached_config = None
         self.active = None
 
     def __str__(self):
@@ -34,10 +35,10 @@ class BasePlugin:
 
     def _initialize_plugin_configuration(self):
         plugin_config_qs = PluginConfiguration.objects.filter(name=self.PLUGIN_NAME)
-        plugin_config = self._cached_config_from_db or plugin_config_qs.first()
+        plugin_config = self._cached_config or plugin_config_qs.first()
 
         if plugin_config:
-            self._cached_config_from_db = plugin_config
+            self._cached_config = plugin_config
             self.active = plugin_config.active
 
     def calculate_checkout_total(
@@ -164,9 +165,22 @@ class BasePlugin:
         return defaults
 
     @classmethod
+    def _append_config_structure(cls, configuration):
+        config_structure = getattr(cls, "CONFIG_STRUCTURE", {})
+        for coniguration_field in configuration:
+
+            structure_to_add = config_structure.get(coniguration_field.get("name"))
+            if structure_to_add:
+                coniguration_field.update(structure_to_add)
+        return config_structure
+
+    @classmethod
     def get_plugin_configuration(cls, queryset: QuerySet) -> "PluginConfiguration":
         defaults = cls._get_default_configuration()
         configuration = queryset.get_or_create(name=cls.PLUGIN_NAME, defaults=defaults)[
             0
         ]
+        if configuration.configuration:
+            # Let's add a translated descriptions and labels
+            cls._append_config_structure(configuration.configuration)
         return configuration

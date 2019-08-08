@@ -25,14 +25,9 @@ class ConfigurationTypeField:
     STRING = "String"
     BOOLEAN = "Boolean"
     CHOICES = [
-        (
-            STRING,
-            pgettext_lazy("Configuration field is a String type", "Field is a String"),
-        ),
+        (STRING, pgettext_lazy("Type of the configuration field", "Field is a String")),
         (
             BOOLEAN,
-            pgettext_lazy(
-                "Configuration field is a Boolean type", "Field is a Boolean"
-            ),
+            pgettext_lazy("Type of the configuration field", "Field is a Boolean"),
         ),
     ]

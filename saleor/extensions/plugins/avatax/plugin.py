@@ -36,6 +36,50 @@ logger = logging.getLogger(__name__)
 
 class AvataxPlugin(BasePlugin):
     PLUGIN_NAME = "Avalara"
+    CONFIG_STRUCTURE = {
+        "Username or account": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": pgettext_lazy(
+                "Plugin help text", "Provide user or account details"
+            ),
+            "label": pgettext_lazy("Plugin label", "Username or account"),
+        },
+        "Password or license": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": pgettext_lazy(
+                "Plugin help text", "Provide password or license details"
+            ),
+            "label": pgettext_lazy("Plugin label", "Password or license"),
+        },
+        "Use sandbox": {
+            "type": ConfigurationTypeField.BOOLEAN,
+            "help_text": pgettext_lazy(
+                "Plugin help text",
+                "Determines if Saleor should use Avatax sandbox API.",
+            ),
+            "label": pgettext_lazy("Plugin label", "Use sandbox"),
+        },
+        "Company name": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": pgettext_lazy(
+                "Plugin help text",
+                "Avalara needs to receive company code. Some more "
+                "complicated systems can use more than one company "
+                "code, in that case, this variable should be changed "
+                "based on data from Avalara's admin panel",
+            ),
+            "label": pgettext_lazy("Plugin label", "Company name"),
+        },
+        "Autocommit": {
+            "type": ConfigurationTypeField.BOOLEAN,
+            "help_text": pgettext_lazy(
+                "Plugin help text",
+                "Determines, if all transactions sent to Avalara "
+                "should be committed by default.",
+            ),
+            "label": pgettext_lazy("Plugin label", "Autocommit"),
+        },
+    }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -44,8 +88,8 @@ class AvataxPlugin(BasePlugin):
     def _initialize_plugin_configuration(self):
         super()._initialize_plugin_configuration()
 
-        if self._cached_config_from_db and self._cached_config_from_db.configuration:
-            configuration = self._cached_config_from_db.configuration
+        if self._cached_config and self._cached_config.configuration:
+            configuration = self._cached_config.configuration
 
             # Convert to dict to easier take config elements
             configuration = {item["name"]: item["value"] for item in configuration}
@@ -378,45 +422,11 @@ class AvataxPlugin(BasePlugin):
             "description": "",
             "active": False,
             "configuration": [
-                {
-                    "name": "Username or account",
-                    "value": "",
-                    "type": ConfigurationTypeField.STRING,
-                    "help_text": "Provide user or account details",
-                    "label": pgettext_lazy("Plugin label", "Username or account"),
-                },
-                {
-                    "name": "Password or license",
-                    "value": "",
-                    "type": ConfigurationTypeField.STRING,
-                    "help_text": "Provide password or license details",
-                    "label": pgettext_lazy("Plugin label", "Password or license"),
-                },
-                {
-                    "name": "Use sandbox",
-                    "value": True,
-                    "type": ConfigurationTypeField.BOOLEAN,
-                    "help_text": "Determines if Saleor should use Avatax sandbox API.",
-                    "label": pgettext_lazy("Plugin label", "Use sandbox"),
-                },
-                {
-                    "name": "Company name",
-                    "value": "DEFAULT",
-                    "type": ConfigurationTypeField.STRING,
-                    "help_text": "Avalara needs to receive company code. Some more "
-                    "complicated systems can use more than one company "
-                    "code, in that case, this variable should be changed "
-                    "based on data from Avalara's admin panel",
-                    "label": pgettext_lazy("Plugin label", "Company name"),
-                },
-                {
-                    "name": "Autocommit",
-                    "value": False,
-                    "type": ConfigurationTypeField.BOOLEAN,
-                    "help_text": "Determines, if all transactions sent to Avalara "
-                    "should be committed by default.",
-                    "label": pgettext_lazy("Plugin label", "Autocommit"),
-                },
+                {"name": "Username or account", "value": ""},
+                {"name": "Password or license", "value": ""},
+                {"name": "Use sandbox", "value": True},
+                {"name": "Company name", "value": "DEFAULT"},
+                {"name": "Autocommit", "value": False},
             ],
         }
         return defaults
