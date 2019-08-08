@@ -321,6 +321,12 @@ def test_get_menu_item_as_dict(menu):
     assert result == {"name": "Name", "url": "http://url.com", "translations": {}}
 
 
+def test_get_menu_item_as_dict_empty_url():
+    item = MenuItem(name="Name")
+    result = get_menu_item_as_dict(item)
+    assert result == {"name": "Name", "url": "", "translations": {}}
+
+
 def test_get_menu_item_as_dict_with_translations(menu, collection):
     item = MenuItem.objects.create(name="Name", menu=menu, collection=collection)
     MenuItemTranslation.objects.create(
