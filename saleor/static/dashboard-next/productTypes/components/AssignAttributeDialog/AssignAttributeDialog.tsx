@@ -15,12 +15,12 @@ import Typography from "@material-ui/core/Typography";
 import makeStyles from "@material-ui/styles/makeStyles";
 import * as React from "react";
 import InfiniteScroll from "react-infinite-scroller";
-
 import Checkbox from "@saleor/components/Checkbox";
 import ConfirmButton, {
   ConfirmButtonTransitionState
 } from "@saleor/components/ConfirmButton";
 import useModalDialogErrors from "@saleor/hooks/useModalDialogErrors";
+import useModalDialogOpen from "@saleor/hooks/useModalDialogOpen";
 import useSearchQuery from "@saleor/hooks/useSearchQuery";
 import i18n from "@saleor/i18n";
 import { maybe, renderCollection } from "@saleor/misc";
@@ -52,6 +52,7 @@ export interface AssignAttributeDialogProps extends FetchMoreProps {
   attributes: SearchAttributes_productType_availableAttributes_edges_node[];
   selected: string[];
   onClose: () => void;
+  onOpen: () => void;
   onSubmit: () => void;
   onToggle: (id: string) => void;
 }
@@ -67,6 +68,7 @@ const AssignAttributeDialog: React.FC<AssignAttributeDialogProps> = ({
   onClose,
   onFetch,
   onFetchMore,
+  onOpen,
   onSubmit,
   onToggle
 }: AssignAttributeDialogProps) => {
@@ -74,7 +76,10 @@ const AssignAttributeDialog: React.FC<AssignAttributeDialogProps> = ({
   const [query, onQueryChange, resetQuery] = useSearchQuery(onFetch);
   const errors = useModalDialogErrors(apiErrors, open);
 
-  React.useEffect(resetQuery, [open]);
+  useModalDialogOpen(open, {
+    onClose: resetQuery,
+    onOpen
+  });
 
   return (
     <Dialog onClose={onClose} open={open} fullWidth maxWidth="sm">
@@ -108,7 +113,8 @@ const AssignAttributeDialog: React.FC<AssignAttributeDialogProps> = ({
               <CircularProgress size={16} />
             </div>
           }
-          threshold={10}
+          threshold={100}
+          key="infinite-scroll"
         >
           <Table key="table">
             <TableBody>
