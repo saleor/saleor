@@ -55,6 +55,8 @@ const useStyles = makeStyles((theme: Theme) => ({
   }
 }));
 
+const numberOfColumns = 6;
+
 const AttributeList: React.StatelessComponent<AttributeListProps> = ({
   attributes,
   disabled,
@@ -73,6 +75,7 @@ const AttributeList: React.StatelessComponent<AttributeListProps> = ({
   return (
     <Table>
       <TableHead
+        colSpan={numberOfColumns}
         selected={selected}
         disabled={disabled}
         items={attributes}
@@ -102,7 +105,7 @@ const AttributeList: React.StatelessComponent<AttributeListProps> = ({
       <TableFooter>
         <TableRow>
           <TablePagination
-            colSpan={6}
+            colSpan={numberOfColumns}
             hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
             onNextPage={onNextPage}
             hasPreviousPage={
@@ -165,7 +168,9 @@ const AttributeList: React.StatelessComponent<AttributeListProps> = ({
           },
           () => (
             <TableRow>
-              <TableCell colSpan={3}>{i18n.t("No attributes found")}</TableCell>
+              <TableCell colSpan={numberOfColumns}>
+                {i18n.t("No attributes found")}
+              </TableCell>
             </TableRow>
           )
         )}

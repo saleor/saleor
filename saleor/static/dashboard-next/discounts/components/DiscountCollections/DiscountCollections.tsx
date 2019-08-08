@@ -50,6 +50,9 @@ const styles = (theme: Theme) =>
       width: "60%"
     }
   });
+
+const numberOfColumns = 4;
+
 const DiscountCollections = withStyles(styles, {
   name: "DiscountCollections"
 })(
@@ -80,6 +83,7 @@ const DiscountCollections = withStyles(styles, {
       />
       <Table>
         <TableHead
+          colSpan={numberOfColumns}
           selected={selected}
           disabled={disabled}
           items={maybe(() => sale.collections.edges.map(edge => edge.node))}
@@ -97,7 +101,7 @@ const DiscountCollections = withStyles(styles, {
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={4}
+              colSpan={numberOfColumns}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
               hasPreviousPage={
@@ -155,7 +159,7 @@ const DiscountCollections = withStyles(styles, {
             },
             () => (
               <TableRow>
-                <TableCell colSpan={4}>
+                <TableCell colSpan={numberOfColumns}>
                   {i18n.t("No collections found")}
                 </TableCell>
               </TableRow>

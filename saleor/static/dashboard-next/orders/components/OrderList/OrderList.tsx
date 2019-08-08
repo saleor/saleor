@@ -66,6 +66,8 @@ interface OrderListProps
   orders: OrderList_orders_edges_node[];
 }
 
+const numberOfColumns = 7;
+
 export const OrderList = withStyles(styles, { name: "OrderList" })(
   ({
     classes,
@@ -93,6 +95,7 @@ export const OrderList = withStyles(styles, { name: "OrderList" })(
     return (
       <Table>
         <TableHead
+          colSpan={numberOfColumns}
           selected={selected}
           disabled={disabled}
           items={orders}
@@ -121,7 +124,7 @@ export const OrderList = withStyles(styles, { name: "OrderList" })(
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={7}
+              colSpan={numberOfColumns}
               settings={settings}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
@@ -215,7 +218,9 @@ export const OrderList = withStyles(styles, { name: "OrderList" })(
             },
             () => (
               <TableRow>
-                <TableCell colSpan={7}>{i18n.t("No orders found")}</TableCell>
+                <TableCell colSpan={numberOfColumns}>
+                  {i18n.t("No orders found")}
+                </TableCell>
               </TableRow>
             )
           )}

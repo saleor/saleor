@@ -59,6 +59,8 @@ interface OrderDraftListProps
   orders: OrderDraftList_draftOrders_edges_node[];
 }
 
+const numberOfColumns = 5;
+
 export const OrderDraftList = withStyles(styles, { name: "OrderDraftList" })(
   ({
     classes,
@@ -86,6 +88,7 @@ export const OrderDraftList = withStyles(styles, { name: "OrderDraftList" })(
     return (
       <Table>
         <TableHead
+          colSpan={numberOfColumns}
           selected={selected}
           disabled={disabled}
           items={orders}
@@ -108,7 +111,7 @@ export const OrderDraftList = withStyles(styles, { name: "OrderDraftList" })(
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={5}
+              colSpan={numberOfColumns}
               settings={settings}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
@@ -180,7 +183,9 @@ export const OrderDraftList = withStyles(styles, { name: "OrderDraftList" })(
             },
             () => (
               <TableRow>
-                <TableCell colSpan={5}>{i18n.t("No orders found")}</TableCell>
+                <TableCell colSpan={numberOfColumns}>
+                  {i18n.t("No orders found")}
+                </TableCell>
               </TableRow>
             )
           )}

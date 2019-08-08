@@ -72,6 +72,8 @@ interface ProductVariantsProps extends ListActions, WithStyles<typeof styles> {
   onVariantAdd?();
 }
 
+const numberOfColumns = 5;
+
 export const ProductVariants = withStyles(styles, { name: "ProductVariants" })(
   ({
     classes,
@@ -110,6 +112,7 @@ export const ProductVariants = withStyles(styles, { name: "ProductVariants" })(
       </CardContent>
       <Table className={classes.denseTable}>
         <TableHead
+          colSpan={numberOfColumns}
           selected={selected}
           disabled={disabled}
           items={variants}
@@ -188,7 +191,7 @@ export const ProductVariants = withStyles(styles, { name: "ProductVariants" })(
             },
             () => (
               <TableRow>
-                <TableCell colSpan={2}>
+                <TableCell colSpan={numberOfColumns}>
                   {i18n.t("This product has no variants")}
                 </TableCell>
               </TableRow>

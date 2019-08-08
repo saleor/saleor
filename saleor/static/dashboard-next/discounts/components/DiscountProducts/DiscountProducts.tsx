@@ -96,6 +96,7 @@ const DiscountProducts = withStyles(styles, {
       />
       <Table>
         <TableHead
+          colSpan={numberOfColumns}
           selected={selected}
           disabled={disabled}
           items={maybe(() => sale.products.edges.map(edge => edge.node))}

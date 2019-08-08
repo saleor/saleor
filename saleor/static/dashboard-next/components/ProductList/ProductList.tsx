@@ -108,6 +108,7 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
       <div className={classes.tableContainer}>
         <Table className={classes.table}>
           <TableHead
+            colSpan={numberOfColumns}
             selected={selected}
             disabled={disabled}
             items={products}

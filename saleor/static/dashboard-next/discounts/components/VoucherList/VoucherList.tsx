@@ -74,6 +74,8 @@ const styles = (theme: Theme) =>
     }
   });
 
+const numberOfColumns = 7;
+
 const VoucherList = withStyles(styles, {
   name: "VoucherList"
 })(
@@ -97,6 +99,7 @@ const VoucherList = withStyles(styles, {
     <Card>
       <Table>
         <TableHead
+          colSpan={numberOfColumns}
           selected={selected}
           disabled={disabled}
           items={vouchers}
@@ -137,7 +140,7 @@ const VoucherList = withStyles(styles, {
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={7}
+              colSpan={numberOfColumns}
               settings={settings}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
@@ -234,7 +237,9 @@ const VoucherList = withStyles(styles, {
             },
             () => (
               <TableRow>
-                <TableCell colSpan={7}>{i18n.t("No vouchers found")}</TableCell>
+                <TableCell colSpan={numberOfColumns}>
+                  {i18n.t("No vouchers found")}
+                </TableCell>
               </TableRow>
             )
           )}
