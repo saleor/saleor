@@ -225,6 +225,7 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
                 className={classNames(classes.menuListItem, {
                   [classes.menuListItemActive]: isAnyChildActive
                 })}
+                key={menuItem.label}
               >
                 <div
                   className={classNames(classes.menuItemHover, {
