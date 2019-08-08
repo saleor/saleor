@@ -1,8 +1,11 @@
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, List, Union
 
+from django.db.models import QuerySet
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
+
+from .models import PluginConfiguration
 
 if TYPE_CHECKING:
     from ..core.taxes import TaxType
@@ -19,6 +22,24 @@ class BasePlugin:
     previous_value contains a value calculated by the previous plugin in the queue.
     If the plugin is first, it will use default value calculated by the manager.
     """
+
+    PLUGIN_NAME = ""
+    CONFIG_STRUCTURE = None
+
+    def __init__(self, *args, **kwargs):
+        self._cached_config = None
+        self.active = None
+
+    def __str__(self):
+        return self.PLUGIN_NAME
+
+    def _initialize_plugin_configuration(self):
+        plugin_config_qs = PluginConfiguration.objects.filter(name=self.PLUGIN_NAME)
+        plugin_config = self._cached_config or plugin_config_qs.first()
+
+        if plugin_config:
+            self._cached_config = plugin_config
+            self.active = plugin_config.active
 
     def calculate_checkout_total(
         self,
@@ -114,3 +135,52 @@ class BasePlugin:
         self, obj: Union["Product", "ProductType"], country: Country, previous_value
     ) -> Decimal:
         return NotImplemented
+
+    @classmethod
+    def _update_config_items(
+        cls, configuration_to_update: List[dict], current_config: List[dict]
+    ):
+        for config_item in current_config:
+            for config_item_to_update in configuration_to_update:
+                if config_item["name"] == config_item_to_update.get("name"):
+                    new_value = config_item_to_update.get("value")
+                    config_item.update([("value", new_value)])
+
+    @classmethod
+    def save_plugin_configuration(
+        cls, plugin_configuration: "PluginConfiguration", cleaned_data
+    ):
+        current_config = plugin_configuration.configuration
+        configuration_to_update = cleaned_data.get("configuration")
+        if configuration_to_update:
+            cls._update_config_items(configuration_to_update, current_config)
+        if "active" in cleaned_data:
+            plugin_configuration.active = cleaned_data["active"]
+        plugin_configuration.save()
+        return plugin_configuration
+
+    @classmethod
+    def _get_default_configuration(cls):
+        defaults = None
+        return defaults
+
+    @classmethod
+    def _append_config_structure(cls, configuration):
+        config_structure = getattr(cls, "CONFIG_STRUCTURE", {})
+        for coniguration_field in configuration:
+
+            structure_to_add = config_structure.get(coniguration_field.get("name"))
+            if structure_to_add:
+                coniguration_field.update(structure_to_add)
+        return config_structure
+
+    @classmethod
+    def get_plugin_configuration(cls, queryset: QuerySet) -> "PluginConfiguration":
+        defaults = cls._get_default_configuration()
+        configuration = queryset.get_or_create(name=cls.PLUGIN_NAME, defaults=defaults)[
+            0
+        ]
+        if configuration.configuration:
+            # Let's add a translated descriptions and labels
+            cls._append_config_structure(configuration.configuration)
+        return configuration

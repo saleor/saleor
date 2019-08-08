@@ -13,7 +13,9 @@ import CardTitle from "@saleor/components/CardTitle";
 import Money from "@saleor/components/Money";
 import Skeleton from "@saleor/components/Skeleton";
 import StatusLabel from "@saleor/components/StatusLabel";
-import TableCellAvatar from "@saleor/components/TableCellAvatar";
+import TableCellAvatar, {
+  AVATAR_MARGIN
+} from "@saleor/components/TableCellAvatar";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { OrderDetails_order_lines } from "../../types/OrderDetails";
@@ -22,14 +24,29 @@ const styles = createStyles({
   clickableRow: {
     cursor: "pointer"
   },
-  textCenter: {
-    textAlign: "center"
+  colName: {
+    width: "auto"
   },
-  textRight: {
-    textAlign: "right"
+  colNameLabel: {
+    marginLeft: AVATAR_MARGIN
   },
-  wideCell: {
-    width: "50%"
+  colPrice: {
+    textAlign: "right",
+    width: 120
+  },
+  colQuantity: {
+    textAlign: "center",
+    width: 120
+  },
+  colTotal: {
+    textAlign: "right",
+    width: 120
+  },
+  statusBar: {
+    paddingTop: 0
+  },
+  table: {
+    tableLayout: "fixed"
   }
 });
 
@@ -55,17 +72,17 @@ const OrderUnfulfilledItems = withStyles(styles, {
         />
       }
     />
-    <Table>
+    <Table className={classes.table}>
       <TableHead>
         <TableRow>
-          <TableCell className={classes.wideCell} colSpan={2}>
-            {i18n.t("Product")}
+          <TableCell className={classes.colName}>
+            <span className={classes.colNameLabel}>{i18n.t("Product")}</span>
           </TableCell>
-          <TableCell className={classes.textCenter}>
+          <TableCell className={classes.colQuantity}>
             {i18n.t("Quantity")}
           </TableCell>
-          <TableCell className={classes.textRight}>{i18n.t("Price")}</TableCell>
-          <TableCell className={classes.textRight}>{i18n.t("Total")}</TableCell>
+          <TableCell className={classes.colPrice}>{i18n.t("Price")}</TableCell>
+          <TableCell className={classes.colTotal}>{i18n.t("Total")}</TableCell>
         </TableRow>
       </TableHead>
       <TableBody>
@@ -75,23 +92,25 @@ const OrderUnfulfilledItems = withStyles(styles, {
             hover={!!line}
             key={maybe(() => line.id)}
           >
-            <TableCellAvatar thumbnail={maybe(() => line.thumbnail.url)} />
-            <TableCell>
+            <TableCellAvatar
+              className={classes.colName}
+              thumbnail={maybe(() => line.thumbnail.url)}
+            >
               {maybe(() => line.productName) || <Skeleton />}
-            </TableCell>
-            <TableCell className={classes.textCenter}>
+            </TableCellAvatar>
+            <TableCell className={classes.colQuantity}>
               {maybe(() => line.quantity - line.quantityFulfilled) || (
                 <Skeleton />
               )}
             </TableCell>
-            <TableCell className={classes.textRight}>
+            <TableCell className={classes.colPrice}>
               {maybe(() => line.unitPrice.gross) ? (
                 <Money money={line.unitPrice.gross} />
               ) : (
                 <Skeleton />
               )}
             </TableCell>
-            <TableCell className={classes.textRight}>
+            <TableCell className={classes.colTotal}>
               {maybe(
                 () =>
                   (line.quantity - line.quantityFulfilled) *

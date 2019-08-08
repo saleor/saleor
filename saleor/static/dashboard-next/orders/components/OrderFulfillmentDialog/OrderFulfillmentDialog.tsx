@@ -22,7 +22,9 @@ import ConfirmButton, {
 } from "@saleor/components/ConfirmButton";
 import Form from "@saleor/components/Form";
 import { FormSpacer } from "@saleor/components/FormSpacer";
-import TableCellAvatar from "@saleor/components/TableCellAvatar";
+import TableCellAvatar, {
+  AVATAR_MARGIN
+} from "@saleor/components/TableCellAvatar";
 import i18n from "../../../i18n";
 import { maybe } from "../../../misc";
 import { OrderDetails_order_lines } from "../../types/OrderDetails";
@@ -34,23 +36,32 @@ export interface FormData {
 
 const styles = (theme: Theme) =>
   createStyles({
-    avatarCell: {
-      paddingLeft: theme.spacing.unit * 2,
-      paddingRight: theme.spacing.unit * 3,
-      width: theme.spacing.unit * 5
+    colName: {
+      width: "auto"
+    },
+    colNameLabel: {
+      marginLeft: AVATAR_MARGIN
+    },
+    colQuantity: {
+      textAlign: "right",
+      width: 150
+    },
+    colQuantityContent: {
+      alignItems: "center",
+      display: "inline-flex"
+    },
+    colSku: {
+      width: 120
     },
     quantityInput: {
       width: "4rem"
     },
-    quantityInputContainer: {
-      paddingRight: theme.spacing.unit,
-      textAlign: "right" as "right"
-    },
     remainingQuantity: {
-      paddingBottom: 4
+      marginLeft: theme.spacing.unit,
+      paddingTop: 14
     },
-    textRight: {
-      textAlign: "right" as "right"
+    table: {
+      tableLayout: "fixed"
     }
   });
 
@@ -104,13 +115,18 @@ const OrderFulfillmentDialog = withStyles(styles, {
           return (
             <>
               <DialogTitle>{i18n.t("Fulfill products")}</DialogTitle>
-              <Table>
+              <Table className={classes.table}>
                 <TableHead>
                   <TableRow>
-                    <TableCell />
-                    <TableCell>{i18n.t("Product name")}</TableCell>
-                    <TableCell>{i18n.t("SKU")}</TableCell>
-                    <TableCell className={classes.textRight} colSpan={2}>
+                    <TableCell className={classes.colName}>
+                      <span className={classes.colNameLabel}>
+                        {i18n.t("Product name")}
+                      </span>
+                    </TableCell>
+                    <TableCell className={classes.colSku}>
+                      {i18n.t("SKU")}
+                    </TableCell>
+                    <TableCell className={classes.colQuantity}>
                       {i18n.t("Quantity")}
                     </TableCell>
                   </TableRow>
@@ -122,28 +138,34 @@ const OrderFulfillmentDialog = withStyles(styles, {
                     return (
                       <TableRow key={product.id}>
                         <TableCellAvatar
+                          className={classes.colName}
                           thumbnail={maybe(() => product.thumbnail.url)}
-                        />
-                        <TableCell>{product.productName}</TableCell>
-                        <TableCell>{product.productSku}</TableCell>
-                        <TableCell className={classes.quantityInputContainer}>
-                          <TextField
-                            type="number"
-                            inputProps={{
-                              max: remainingQuantity,
-                              style: { textAlign: "right" }
-                            }}
-                            className={classes.quantityInput}
-                            value={data.lines[productIndex]}
-                            onChange={event =>
-                              handleQuantityChange(productIndex, event)
-                            }
-                            error={remainingQuantity < data.lines[productIndex]}
-                          />
+                        >
+                          {product.productName}
+                        </TableCellAvatar>
+                        <TableCell className={classes.colSku}>
+                          {product.productSku}
                         </TableCell>
-                        <TableCell>
-                          <div className={classes.remainingQuantity}>
-                            / {remainingQuantity}
+                        <TableCell className={classes.colQuantity}>
+                          <div className={classes.colQuantityContent}>
+                            <TextField
+                              type="number"
+                              inputProps={{
+                                max: remainingQuantity,
+                                style: { textAlign: "right" }
+                              }}
+                              className={classes.quantityInput}
+                              value={data.lines[productIndex]}
+                              onChange={event =>
+                                handleQuantityChange(productIndex, event)
+                              }
+                              error={
+                                remainingQuantity < data.lines[productIndex]
+                              }
+                            />
+                            <div className={classes.remainingQuantity}>
+                              / {remainingQuantity}
+                            </div>
                           </div>
                         </TableCell>
                       </TableRow>

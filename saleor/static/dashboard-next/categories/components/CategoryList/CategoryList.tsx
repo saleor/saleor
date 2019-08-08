@@ -67,6 +67,8 @@ interface CategoryListProps
   onAdd?();
 }
 
+const numberOfColumns = 4;
+
 const CategoryList = withStyles(styles, { name: "CategoryList" })(
   ({
     categories,
@@ -99,6 +101,7 @@ const CategoryList = withStyles(styles, { name: "CategoryList" })(
       )}
       <Table>
         <TableHead
+          colSpan={numberOfColumns}
           selected={selected}
           disabled={disabled}
           items={categories}
@@ -118,7 +121,7 @@ const CategoryList = withStyles(styles, { name: "CategoryList" })(
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={4}
+              colSpan={numberOfColumns}
               settings={settings}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
@@ -177,7 +180,7 @@ const CategoryList = withStyles(styles, { name: "CategoryList" })(
             },
             () => (
               <TableRow>
-                <TableCell colSpan={4}>
+                <TableCell colSpan={numberOfColumns}>
                   {isRoot
                     ? i18n.t("No categories found")
                     : i18n.t("No subcategories found")}

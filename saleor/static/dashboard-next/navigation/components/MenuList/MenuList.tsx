@@ -44,6 +44,9 @@ const styles = (theme: Theme) =>
       cursor: "pointer"
     }
   });
+
+const numberOfColumns = 4;
+
 const MenuList = withStyles(styles, { name: "MenuList" })(
   ({
     classes,
@@ -65,6 +68,7 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
     <Card>
       <Table>
         <TableHead
+          colSpan={numberOfColumns}
           selected={selected}
           disabled={disabled}
           items={menus}
@@ -81,7 +85,7 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
         <TableFooter>
           <TableRow>
             <TablePagination
-              colSpan={4}
+              colSpan={numberOfColumns}
               settings={settings}
               hasNextPage={pageInfo && !disabled ? pageInfo.hasNextPage : false}
               onNextPage={onNextPage}
@@ -134,7 +138,9 @@ const MenuList = withStyles(styles, { name: "MenuList" })(
             },
             () => (
               <TableRow>
-                <TableCell colSpan={4}>{i18n.t("No menus found")}</TableCell>
+                <TableCell colSpan={numberOfColumns}>
+                  {i18n.t("No menus found")}
+                </TableCell>
               </TableRow>
             )
           )}
