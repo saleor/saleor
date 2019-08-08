@@ -1343,8 +1343,8 @@ def test_staff_update_errors(staff_user, customer_user, admin_user):
 
 def test_set_password(user_api_client, customer_user):
     query = """
-    mutation SetPassword($id: ID!, $token: String!, $password: String!) {
-        setPassword(id: $id, input: {token: $token, password: $password}) {
+    mutation SetPassword($email: String!, $token: String!, $password: String!) {
+        setPassword(email: $email, input: {token: $token, password: $password}) {
             errors {
                     field
                     message
@@ -1355,12 +1355,11 @@ def test_set_password(user_api_client, customer_user):
             }
         }
     """
-    id = graphene.Node.to_global_id("User", customer_user.id)
     token = default_token_generator.make_token(customer_user)
     password = "spanish-inquisition"
 
     # check invalid token
-    variables = {"id": id, "password": password, "token": "nope"}
+    variables = {"email": customer_user.email, "password": password, "token": "nope"}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     errors = content["data"]["setPassword"]["errors"]
