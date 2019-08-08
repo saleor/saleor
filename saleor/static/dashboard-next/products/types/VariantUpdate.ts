@@ -26,6 +26,7 @@ export interface VariantUpdate_productVariantUpdate_productVariant_attributes_at
   id: string;
   name: string | null;
   slug: string | null;
+  valueRequired: boolean;
   values: (VariantUpdate_productVariantUpdate_productVariant_attributes_attribute_values | null)[] | null;
 }
 
@@ -39,7 +40,7 @@ export interface VariantUpdate_productVariantUpdate_productVariant_attributes_va
 export interface VariantUpdate_productVariantUpdate_productVariant_attributes {
   __typename: "SelectedAttribute";
   attribute: VariantUpdate_productVariantUpdate_productVariant_attributes_attribute;
-  value: VariantUpdate_productVariantUpdate_productVariant_attributes_value;
+  value: VariantUpdate_productVariantUpdate_productVariant_attributes_value | null;
 }
 
 export interface VariantUpdate_productVariantUpdate_productVariant_costPrice {

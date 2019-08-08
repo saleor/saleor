@@ -44,6 +44,7 @@ import {
 } from "./successHandlers";
 import {
   getInitialDisplayValue,
+  getMenuItemCreateInputData,
   getMenuItemInputData,
   getMoves,
   getRemoveIds
@@ -262,10 +263,10 @@ const MenuDetails: React.FC<MenuDetailsProps> = ({ id, params }) => {
                                         data: MenuItemDialogFormData
                                       ) => {
                                         const variables: MenuItemCreateVariables = {
-                                          input: {
-                                            menu: id,
-                                            ...getMenuItemInputData(data)
-                                          }
+                                          input: getMenuItemCreateInputData(
+                                            id,
+                                            data
+                                          )
                                         };
 
                                         menuItemCreate({ variables });

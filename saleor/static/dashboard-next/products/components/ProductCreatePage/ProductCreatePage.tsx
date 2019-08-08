@@ -7,62 +7,63 @@ import { ConfirmButtonTransitionState } from "@saleor/components/ConfirmButton";
 import Container from "@saleor/components/Container";
 import Form from "@saleor/components/Form";
 import Grid from "@saleor/components/Grid";
+import { MultiAutocompleteChoiceType } from "@saleor/components/MultiAutocompleteSelectField";
 import PageHeader from "@saleor/components/PageHeader";
 import SaveButtonBar from "@saleor/components/SaveButtonBar";
 import SeoForm from "@saleor/components/SeoForm";
 import VisibilityCard from "@saleor/components/VisibilityCard";
+import { SearchCategories_categories_edges_node } from "@saleor/containers/SearchCategories/types/SearchCategories";
+import { SearchCollections_collections_edges_node } from "@saleor/containers/SearchCollections/types/SearchCollections";
+import useFormset from "@saleor/hooks/useFormset";
+import useStateFromProps from "@saleor/hooks/useStateFromProps";
+import {
+  getChoices,
+  ProductAttributeValueChoices,
+  ProductType
+} from "@saleor/products/utils/data";
+import createMultiAutocompleteSelectHandler from "@saleor/utils/handlers/multiAutocompleteSelectChangeHandler";
+import createSingleAutocompleteSelectHandler from "@saleor/utils/handlers/singleAutocompleteSelectChangeHandler";
 import i18n from "../../../i18n";
-import { maybe } from "../../../misc";
 import { UserError } from "../../../types";
 import { ProductCreateData_productTypes_edges_node_productAttributes } from "../../types/ProductCreateData";
+import {
+  createAttributeChangeHandler,
+  createAttributeMultiChangeHandler,
+  createProductTypeSelectHandler
+} from "../../utils/handlers";
+import ProductAttributes, {
+  ProductAttributeInput,
+  ProductAttributeInputData
+} from "../ProductAttributes";
 import ProductDetailsForm from "../ProductDetailsForm";
 import ProductOrganization from "../ProductOrganization";
 import ProductPricing from "../ProductPricing";
 import ProductStock from "../ProductStock";
 
-interface ChoiceType {
-  label: string;
-  value: string;
-}
-export interface FormData {
-  attributes: Array<{
-    slug: string;
-    value: string;
-  }>;
+interface FormData {
   basePrice: number;
   publicationDate: string;
-  category: ChoiceType;
+  category: string;
+  collections: string[];
   chargeTaxes: boolean;
-  collections: ChoiceType[];
   description: RawDraftContentState;
   isPublished: boolean;
   name: string;
-  productType: {
-    label: string;
-    value: {
-      hasVariants: boolean;
-      id: string;
-      name: string;
-      productAttributes: ProductCreateData_productTypes_edges_node_productAttributes[];
-    };
-  };
+  productType: string;
   seoDescription: string;
   seoTitle: string;
   sku: string;
   stockQuantity: number;
 }
+export interface ProductCreatePageSubmitData extends FormData {
+  attributes: ProductAttributeInput[];
+}
 
 interface ProductCreatePageProps {
   errors: UserError[];
-  collections?: Array<{
-    id: string;
-    name: string;
-  }>;
+  collections: SearchCollections_collections_edges_node[];
+  categories: SearchCategories_categories_edges_node[];
   currency: string;
-  categories?: Array<{
-    id: string;
-    name: string;
-  }>;
   disabled: boolean;
   productTypes?: Array<{
     id: string;
@@ -76,7 +77,7 @@ interface ProductCreatePageProps {
   fetchCollections: (data: string) => void;
   onAttributesEdit: () => void;
   onBack?();
-  onSubmit?(data: FormData);
+  onSubmit?(data: ProductCreatePageSubmitData);
 }
 
 export const ProductCreatePage: React.StatelessComponent<
@@ -84,40 +85,34 @@ export const ProductCreatePage: React.StatelessComponent<
 > = ({
   currency,
   disabled,
-  categories,
-  collections,
+  categories: categoryChoiceList,
+  collections: collectionChoiceList,
   errors: userErrors,
   fetchCategories,
   fetchCollections,
   header,
-  productTypes,
+  productTypes: productTypeChoiceList,
   saveButtonBarState,
   onBack,
   onSubmit
 }: ProductCreatePageProps) => {
-  const initialDescription = convertToRaw(ContentState.createFromText(""));
+  // Form values
+  const {
+    change: changeAttributeData,
+    data: attributes,
+    set: setAttributeData
+  } = useFormset<ProductAttributeInputData>([]);
 
+  const initialDescription = convertToRaw(ContentState.createFromText(""));
   const initialData: FormData = {
-    attributes: [],
     basePrice: 0,
-    category: {
-      label: "",
-      value: ""
-    },
+    category: "",
     chargeTaxes: false,
     collections: [],
     description: {} as any,
     isPublished: false,
     name: "",
-    productType: {
-      label: "",
-      value: {
-        hasVariants: false,
-        id: "",
-        name: "",
-        productAttributes: [] as ProductCreateData_productTypes_edges_node_productAttributes[]
-      }
-    },
+    productType: "",
     publicationDate: "",
     seoDescription: "",
     seoTitle: "",
@@ -125,16 +120,84 @@ export const ProductCreatePage: React.StatelessComponent<
     stockQuantity: null
   };
 
+  // Display values
+  const [selectedAttributes, setSelectedAttributes] = useStateFromProps<
+    ProductAttributeValueChoices[]
+  >([]);
+
+  const [selectedCategory, setSelectedCategory] = useStateFromProps("");
+
+  const [selectedCollections, setSelectedCollections] = useStateFromProps<
+    MultiAutocompleteChoiceType[]
+  >([]);
+
+  const [productType, setProductType] = React.useState<ProductType>({
+    hasVariants: false,
+    id: "",
+    name: "",
+    productAttributes: [] as ProductCreateData_productTypes_edges_node_productAttributes[]
+  });
+
+  const categories = getChoices(categoryChoiceList);
+  const collections = getChoices(collectionChoiceList);
+  const productTypes = getChoices(productTypeChoiceList);
+
+  const handleSubmit = (data: FormData) =>
+    onSubmit({
+      attributes,
+      ...data
+    });
+
   return (
     <Form
-      onSubmit={onSubmit}
+      onSubmit={handleSubmit}
       errors={userErrors}
       initial={initialData}
       confirmLeave
     >
-      {({ change, data, errors, hasChanged, set, submit }) => {
-        const hasVariants =
-          data.productType && data.productType.value.hasVariants;
+      {({
+        change,
+        data,
+        errors,
+        hasChanged,
+        submit,
+        triggerChange,
+        toggleValue
+      }) => {
+        const handleCollectionSelect = createMultiAutocompleteSelectHandler(
+          toggleValue,
+          setSelectedCollections,
+          selectedCollections,
+          collections
+        );
+        const handleCategorySelect = createSingleAutocompleteSelectHandler(
+          change,
+          setSelectedCategory,
+          categories
+        );
+        const handleAttributeChange = createAttributeChangeHandler(
+          changeAttributeData,
+          setSelectedAttributes,
+          selectedAttributes,
+          attributes,
+          triggerChange
+        );
+        const handleAttributeMultiChange = createAttributeMultiChangeHandler(
+          changeAttributeData,
+          setSelectedAttributes,
+          selectedAttributes,
+          attributes,
+          triggerChange
+        );
+
+        const handleProductTypeSelect = createProductTypeSelectHandler(
+          change,
+          setAttributeData,
+          setSelectedAttributes,
+          setProductType,
+          productTypeChoiceList
+        );
+
         return (
           <Container>
             <AppHeader onBack={onBack}>{i18n.t("Products")}</AppHeader>
@@ -149,6 +212,13 @@ export const ProductCreatePage: React.StatelessComponent<
                   onChange={change}
                 />
                 <CardSpacer />
+                <ProductAttributes
+                  attributes={attributes}
+                  disabled={disabled}
+                  onChange={handleAttributeChange}
+                  onMultiChange={handleAttributeMultiChange}
+                />
+                <CardSpacer />
                 <ProductPricing
                   currency={currency}
                   data={data}
@@ -156,7 +226,7 @@ export const ProductCreatePage: React.StatelessComponent<
                   onChange={change}
                 />
                 <CardSpacer />
-                {!hasVariants && (
+                {!productType.hasVariants && (
                   <>
                     <ProductStock
                       data={data}
@@ -183,30 +253,21 @@ export const ProductCreatePage: React.StatelessComponent<
               <div>
                 <ProductOrganization
                   canChangeType={true}
-                  categories={maybe(
-                    () =>
-                      categories.map(category => ({
-                        label: category.name,
-                        value: category.id
-                      })),
-                    []
-                  )}
+                  categories={categories}
+                  categoryInputDisplayValue={selectedCategory}
+                  collections={collections}
+                  data={data}
+                  disabled={disabled}
                   errors={errors}
                   fetchCategories={fetchCategories}
                   fetchCollections={fetchCollections}
-                  collections={maybe(
-                    () =>
-                      collections.map(collection => ({
-                        label: collection.name,
-                        value: collection.id
-                      })),
-                    []
-                  )}
+                  productType={productType}
+                  productTypeInputDisplayValue={productType.name}
                   productTypes={productTypes}
-                  data={data}
-                  disabled={disabled}
-                  onChange={change}
-                  onSet={set}
+                  onCategoryChange={handleCategorySelect}
+                  onCollectionChange={handleCollectionSelect}
+                  onProductTypeChange={handleProductTypeSelect}
+                  collectionsInputDisplayValue={selectedCollections}
                 />
                 <CardSpacer />
                 <VisibilityCard

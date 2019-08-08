@@ -5,7 +5,8 @@ import TextField from "@material-ui/core/TextField";
 import React from "react";
 
 import CardTitle from "@saleor/components/CardTitle";
-import i18n from "../../../i18n";
+import i18n from "@saleor/i18n";
+import { FormErrors } from "@saleor/types";
 
 const styles = createStyles({
   root: {
@@ -18,17 +19,20 @@ interface ProductTypeDetailsProps extends WithStyles<typeof styles> {
     name: string;
   };
   disabled: boolean;
+  errors: FormErrors<"name">;
   onChange: (event: React.ChangeEvent<any>) => void;
 }
 
 const ProductTypeDetails = withStyles(styles, { name: "ProductTypeDetails" })(
-  ({ classes, data, disabled, onChange }: ProductTypeDetailsProps) => (
+  ({ classes, data, disabled, errors, onChange }: ProductTypeDetailsProps) => (
     <Card className={classes.root}>
       <CardTitle title={i18n.t("Information")} />
       <CardContent>
         <TextField
           disabled={disabled}
+          error={!!errors.name}
           fullWidth
+          helperText={errors.name}
           label={i18n.t("Product Type Name")}
           name="name"
           onChange={onChange}

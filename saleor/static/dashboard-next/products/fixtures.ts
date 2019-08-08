@@ -1,3 +1,4 @@
+import { AttributeInputTypeEnum } from "@saleor/types/globalTypes";
 import { content } from "../storybook/stories/components/RichTextEditor";
 import { ProductDetails_product } from "./types/ProductDetails";
 import { ProductVariant } from "./types/ProductVariant";
@@ -14,80 +15,78 @@ export const product: (
       attribute: {
         __typename: "Attribute",
         id: "pta18161",
+        inputType: AttributeInputTypeEnum.DROPDOWN,
         name: "Borders",
         slug: "Borders",
-        sortNumber: 0,
+        valueRequired: true,
         values: [
           {
             __typename: "AttributeValue",
             id: "ptav47282",
             name: "portals",
-            slug: "portals",
-            sortNumber: 0
+            slug: "portals"
           },
           {
             __typename: "AttributeValue",
             id: "ptav17253",
             name: "Baht",
-            slug: "Baht",
-            sortNumber: 1
+            slug: "Baht"
           }
         ]
       },
-      value: {
-        __typename: "AttributeValue",
-        id: "ptav47282",
-        name: "portals",
-        slug: "portals",
-        sortNumber: 0
-      }
+      values: [
+        {
+          __typename: "AttributeValue",
+          id: "ptav47282",
+          name: "portals",
+          slug: "portals"
+        }
+      ]
     },
     {
       __typename: "SelectedAttribute",
       attribute: {
         __typename: "Attribute",
         id: "pta22785",
+        inputType: AttributeInputTypeEnum.MULTISELECT,
         name: "Legacy",
         slug: "Legacy",
-        sortNumber: 1,
+        valueRequired: true,
         values: [
           {
             __typename: "AttributeValue",
             id: "ptav31282",
             name: "payment",
-            slug: "payment",
-            sortNumber: 0
+            slug: "payment"
           },
           {
             __typename: "AttributeValue",
             id: "ptav14907",
             name: "Auto Loan Account",
-            slug: "Auto-Loan-Account",
-            sortNumber: 1
+            slug: "Auto-Loan-Account"
           },
           {
             __typename: "AttributeValue",
             id: "ptav27366",
             name: "Garden",
-            slug: "Garden",
-            sortNumber: 2
+            slug: "Garden"
           },
           {
             __typename: "AttributeValue",
             id: "ptav11873",
             name: "override",
-            slug: "override",
-            sortNumber: 3
+            slug: "override"
           }
         ]
       },
-      value: {
-        __typename: "AttributeValue",
-        id: "ptav14907",
-        name: "Auto Loan Account",
-        slug: "Auto-Loan-Account",
-        sortNumber: 1
-      }
+      values: [
+        {
+          __typename: "AttributeValue",
+          id: "ptav14907",
+          name: "Auto Loan Account",
+          slug: "Auto-Loan-Account"
+        }
+      ]
     }
   ],
   basePrice: {
@@ -195,6 +194,7 @@ export const product: (
         name: "Color",
         slug: "color",
         sortOrder: 0,
+        valueRequired: true,
         values: [
           {
             __typename: "AttributeValue",
@@ -2189,6 +2189,7 @@ export const variant = (placeholderImage: string): ProductVariant => ({
         id: "pta18161",
         name: "Borders",
         slug: "Borders",
+        valueRequired: true,
         values: [
           {
             __typename: "AttributeValue",
@@ -2218,6 +2219,7 @@ export const variant = (placeholderImage: string): ProductVariant => ({
         id: "pta22785",
         name: "Legacy",
         slug: "Legacy",
+        valueRequired: true,
         values: [
           {
             __typename: "AttributeValue",

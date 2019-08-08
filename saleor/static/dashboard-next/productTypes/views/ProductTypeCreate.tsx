@@ -39,7 +39,7 @@ export const ProductTypeCreate: React.StatelessComponent = () => {
                 hasVariants: false,
                 isShippingRequired: formData.isShippingRequired,
                 name: formData.name,
-                taxCode: formData.taxType.value,
+                taxCode: formData.taxType,
                 weight: formData.weight
               }
             }

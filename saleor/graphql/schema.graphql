@@ -3,6 +3,29 @@ schema {
   mutation: Mutations
 }
 
+type AccountAddressCreate {
+  errors: [Error!]
+  user: User
+  address: Address
+}
+
+type AccountAddressDelete {
+  errors: [Error!]
+  user: User
+  address: Address
+}
+
+type AccountAddressUpdate {
+  errors: [Error!]
+  user: User
+  address: Address
+}
+
+type AccountDelete {
+  errors: [Error!]
+  user: User
+}
+
 input AccountInput {
   firstName: String
   lastName: String
@@ -10,8 +33,23 @@ input AccountInput {
   defaultShippingAddress: AddressInput
 }
 
+type AccountRegister {
+  errors: [Error!]
+  user: User
+}
+
+input AccountRegisterInput {
+  email: String!
+  password: String!
+}
+
 type AccountRequestDeletion {
   errors: [Error!]
+}
+
+type AccountSetDefaultAddress {
+  errors: [Error!]
+  user: User
 }
 
 type AccountUpdate {
@@ -105,14 +143,31 @@ type AssignNavigation {
 
 type Attribute implements Node {
   id: ID!
-  productType: ProductType
-  productVariantType: ProductType
+  productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
+  productVariantTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
   privateMeta: [MetaStore]!
   meta: [MetaStore]!
+  inputType: AttributeInputTypeEnum
   name: String
   slug: String
   values: [AttributeValue]
+  valueRequired: Boolean!
+  visibleInStorefront: Boolean!
+  filterableInStorefront: Boolean!
+  filterableInDashboard: Boolean!
+  availableInGrid: Boolean!
   translation(languageCode: LanguageCodeEnum!): AttributeTranslation
+  storefrontSearchPosition: Int!
+}
+
+type AttributeAssign {
+  errors: [Error!]
+  productType: ProductType
+}
+
+input AttributeAssignInput {
+  id: ID!
+  type: AttributeTypeEnum!
 }
 
 type AttributeBulkDelete {
@@ -144,18 +199,35 @@ type AttributeCountableEdge {
 type AttributeCreate {
   errors: [Error!]
   attribute: Attribute
-  productType: ProductType
 }
 
 input AttributeCreateInput {
+  inputType: AttributeInputTypeEnum
   name: String!
+  slug: String
   values: [AttributeValueCreateInput]
+  valueRequired: Boolean
+  isVariantOnly: Boolean
+  visibleInStorefront: Boolean
+  filterableInStorefront: Boolean
+  filterableInDashboard: Boolean
+  storefrontSearchPosition: Int
+  availableInGrid: Boolean
 }
 
 type AttributeDelete {
   errors: [Error!]
-  productType: ProductType
   attribute: Attribute
+}
+
+input AttributeFilterInput {
+  valueRequired: Boolean
+  isVariantOnly: Boolean
+  visibleInStorefront: Boolean
+  filterableInStorefront: Boolean
+  filterableInDashboard: Boolean
+  availableInGrid: Boolean
+  search: String
 }
 
 input AttributeInput {
@@ -163,7 +235,36 @@ input AttributeInput {
   value: String!
 }
 
+enum AttributeInputTypeEnum {
+  DROPDOWN
+  MULTISELECT
+}
+
+type AttributeReorderValues {
+  errors: [Error!]
+  attribute: Attribute
+}
+
 scalar AttributeScalar
+
+enum AttributeSortField {
+  NAME
+  SLUG
+  VALUE_REQUIRED
+  IS_VARIANT_ONLY
+  VISIBLE_IN_STOREFRONT
+  FILTERABLE_IN_STOREFRONT
+  FILTERABLE_IN_DASHBOARD
+  DASHBOARD_VARIANT_POSITION
+  DASHBOARD_PRODUCT_POSITION
+  STOREFRONT_SEARCH_POSITION
+  AVAILABLE_IN_GRID
+}
+
+input AttributeSortingInput {
+  field: AttributeSortField!
+  direction: OrderDirection!
+}
 
 type AttributeTranslate {
   errors: [Error!]
@@ -181,16 +282,28 @@ enum AttributeTypeEnum {
   VARIANT
 }
 
-type AttributeUpdate {
+type AttributeUnassign {
   errors: [Error!]
   productType: ProductType
+}
+
+type AttributeUpdate {
+  errors: [Error!]
   attribute: Attribute
 }
 
 input AttributeUpdateInput {
   name: String
+  slug: String
   removeValues: [ID]
   addValues: [AttributeValueCreateInput]
+  valueRequired: Boolean
+  isVariantOnly: Boolean
+  visibleInStorefront: Boolean
+  filterableInStorefront: Boolean
+  filterableInDashboard: Boolean
+  storefrontSearchPosition: Int
+  availableInGrid: Boolean
 }
 
 type AttributeUpdateMeta {
@@ -204,13 +317,13 @@ type AttributeUpdatePrivateMeta {
 }
 
 type AttributeValue implements Node {
-  sortOrder: Int
   id: ID!
   name: String
   slug: String
   type: AttributeValueType
-  value: String
+  value: String @deprecated(reason: "This field is deprecated")
   translation(languageCode: LanguageCodeEnum!): AttributeValueTranslation
+  inputType: AttributeInputTypeEnum
 }
 
 type AttributeValueBulkDelete {
@@ -236,8 +349,10 @@ type AttributeValueDelete {
 }
 
 input AttributeValueInput {
-  slug: String!
-  value: String!
+  id: ID
+  name: String
+  slug: String
+  values: [String]!
 }
 
 type AttributeValueTranslate {
@@ -997,6 +1112,7 @@ type CreditCard {
 
 type CustomerAddressCreate {
   errors: [Error!]
+  user: User
   address: Address
 }
 
@@ -1670,9 +1786,11 @@ type Mutations {
   shippingZoneDelete(id: ID!): ShippingZoneDelete
   shippingZoneBulkDelete(ids: [ID]!): ShippingZoneBulkDelete
   shippingZoneUpdate(id: ID!, input: ShippingZoneInput!): ShippingZoneUpdate
-  attributeCreate(id: ID!, input: AttributeCreateInput!, type: AttributeTypeEnum!): AttributeCreate
+  attributeCreate(input: AttributeCreateInput!): AttributeCreate
   attributeDelete(id: ID!): AttributeDelete
   attributeBulkDelete(ids: [ID]!): AttributeBulkDelete
+  attributeAssign(operations: [AttributeAssignInput]!, productTypeId: ID!): AttributeAssign
+  attributeUnassign(attributeIds: [ID]!, productTypeId: ID!): AttributeUnassign
   attributeUpdate(id: ID!, input: AttributeUpdateInput!): AttributeUpdate
   attributeTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): AttributeTranslate
   attributeUpdateMetadata(id: ID!, input: MetaInput!): AttributeUpdateMeta
@@ -1684,6 +1802,7 @@ type Mutations {
   attributeValueBulkDelete(ids: [ID]!): AttributeValueBulkDelete
   attributeValueUpdate(id: ID!, input: AttributeValueCreateInput!): AttributeValueUpdate
   attributeValueTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): AttributeValueTranslate
+  attributeReorderValues(attributeId: ID!, moves: [ReorderInput]!): AttributeReorderValues
   categoryCreate(input: CategoryInput!, parent: ID): CategoryCreate
   categoryDelete(id: ID!): CategoryDelete
   categoryBulkDelete(ids: [ID]!): CategoryBulkDelete
@@ -1725,6 +1844,7 @@ type Mutations {
   productTypeDelete(id: ID!): ProductTypeDelete
   productTypeBulkDelete(ids: [ID]!): ProductTypeBulkDelete
   productTypeUpdate(id: ID!, input: ProductTypeInput!): ProductTypeUpdate
+  productTypeReorderAttributes(moves: [ReorderInput]!, productTypeId: ID!, type: AttributeTypeEnum!): ProductTypeReorderAttributes
   productTypeUpdateMetadata(id: ID!, input: MetaInput!): ProductTypeUpdateMeta
   productTypeClearMetadata(id: ID!, input: MetaPath!): ProductTypeClearMeta
   productTypeUpdatePrivateMetadata(id: ID!, input: MetaInput!): ProductTypeUpdatePrivateMeta
@@ -1826,34 +1946,41 @@ type Mutations {
   checkoutClearMetadata(id: ID!, input: MetaPath!): CheckoutClearStoredMeta
   checkoutUpdatePrivateMetadata(id: ID!, input: MetaInput!): CheckoutUpdatePrivateMeta
   checkoutClearPrivateMetadata(id: ID!, input: MetaPath!): CheckoutClearStoredPrivateMeta
-  passwordReset(email: String!): PasswordReset
+  requestPasswordReset(email: String!): RequestPasswordReset
   setPassword(id: ID!, input: SetPasswordInput!): SetPassword
-  customerCreate(input: UserCreateInput!): CustomerCreate
-  customerDelete(id: ID!): CustomerDelete
-  customerBulkDelete(ids: [ID]!): CustomerBulkDelete
-  customerPasswordReset(input: CustomerPasswordResetInput!): CustomerPasswordReset
-  customerRegister(input: CustomerRegisterInput!): CustomerRegister
-  customerUpdate(id: ID!, input: CustomerInput!): CustomerUpdate
-  customerAddressCreate(input: AddressInput!, type: AddressTypeEnum): CustomerAddressCreate
-  customerSetDefaultAddress(id: ID!, type: AddressTypeEnum!): CustomerSetDefaultAddress
-  loggedUserUpdate(input: UserAddressInput!): LoggedUserUpdate
+  userUpdateMetadata(id: ID!, input: MetaInput!): UserUpdateMeta
+  userClearStoredMetadata(id: ID!, input: MetaPath!): UserClearStoredMeta
+  accountAddressCreate(input: AddressInput!, type: AddressTypeEnum): AccountAddressCreate
+  accountAddressUpdate(id: ID!, input: AddressInput!): AccountAddressUpdate
+  accountAddressDelete(id: ID!): AccountAddressDelete
+  accountSetDefaultAddress(id: ID!, type: AddressTypeEnum!): AccountSetDefaultAddress
+  accountRegister(input: AccountRegisterInput!): AccountRegister
   accountUpdate(input: AccountInput!): AccountUpdate
   accountRequestDeletion: AccountRequestDeletion
+  accountDelete(token: String!): AccountDelete
+  customerPasswordReset(input: CustomerPasswordResetInput!): CustomerPasswordReset
+  customerAddressCreate(input: AddressInput!, type: AddressTypeEnum): CustomerAddressCreate
+  customerSetDefaultAddress(id: ID!, type: AddressTypeEnum!): CustomerSetDefaultAddress
+  customerRegister(input: CustomerRegisterInput!): CustomerRegister
+  loggedUserUpdate(input: UserAddressInput!): LoggedUserUpdate
+  addressCreate(input: AddressInput!, userId: ID!): AddressCreate
+  addressUpdate(id: ID!, input: AddressInput!): AddressUpdate
+  addressDelete(id: ID!): AddressDelete
+  addressSetDefault(addressId: ID!, type: AddressTypeEnum!, userId: ID!): AddressSetDefault
+  customerCreate(input: UserCreateInput!): CustomerCreate
+  customerUpdate(id: ID!, input: CustomerInput!): CustomerUpdate
+  customerDelete(id: ID!): CustomerDelete
+  customerBulkDelete(ids: [ID]!): CustomerBulkDelete
   staffCreate(input: StaffCreateInput!): StaffCreate
+  staffUpdate(id: ID!, input: StaffInput!): StaffUpdate
   staffDelete(id: ID!): StaffDelete
   staffBulkDelete(ids: [ID]!): StaffBulkDelete
-  staffUpdate(id: ID!, input: StaffInput!): StaffUpdate
-  addressCreate(input: AddressInput!, userId: ID!): AddressCreate
-  addressDelete(id: ID!): AddressDelete
-  addressUpdate(id: ID!, input: AddressInput!): AddressUpdate
-  addressSetDefault(addressId: ID!, type: AddressTypeEnum!, userId: ID!): AddressSetDefault
   userAvatarUpdate(image: Upload!): UserAvatarUpdate
   userAvatarDelete: UserAvatarDelete
   userBulkSetActive(ids: [ID]!, isActive: Boolean!): UserBulkSetActive
-  userUpdateMetadata(id: ID!, input: MetaInput!): UserUpdateMeta
-  userClearStoredMetadata(id: ID!, input: MetaPath!): UserClearStoredMeta
   userUpdatePrivateMetadata(id: ID!, input: MetaInput!): UserUpdatePrivateMeta
   userClearStoredPrivateMetadata(id: ID!, input: MetaPath!): UserClearStoredPrivateMeta
+  passwordReset(email: String!): PasswordReset
 }
 
 input NameTranslationInput {
@@ -2571,6 +2698,7 @@ type ProductType implements Node {
   taxType: TaxType
   variantAttributes: [Attribute]
   productAttributes: [Attribute]
+  availableAttributes(filter: AttributeFilterInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
 }
 
 type ProductTypeBulkDelete {
@@ -2634,6 +2762,11 @@ input ProductTypeInput {
   weight: WeightScalar
   taxRate: TaxRateType
   taxCode: String
+}
+
+type ProductTypeReorderAttributes {
+  errors: [Error!]
+  productType: ProductType
 }
 
 type ProductTypeUpdate {
@@ -2783,7 +2916,8 @@ type Query {
   shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
   digitalContent(id: ID!): DigitalContent
   digitalContents(query: String, level: Int, before: String, after: String, first: Int, last: Int): DigitalContentCountableConnection
-  attributes(query: String, inCategory: ID, inCollection: ID, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
+  attributes(query: String, inCategory: ID, inCollection: ID, filter: AttributeFilterInput, sortBy: AttributeSortingInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
+  attribute(id: ID!): Attribute
   categories(query: String, level: Int, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   category(id: ID!): Category
   collection(id: ID!): Collection
@@ -2841,9 +2975,18 @@ type Refresh {
   payload: GenericScalar
 }
 
+input ReorderInput {
+  id: ID!
+  sortOrder: Int
+}
+
 enum ReportingPeriod {
   TODAY
   THIS_MONTH
+}
+
+type RequestPasswordReset {
+  errors: [Error!]
 }
 
 type Sale implements Node {
@@ -2936,7 +3079,8 @@ type SaleUpdate {
 
 type SelectedAttribute {
   attribute: Attribute!
-  value: AttributeValue!
+  value: AttributeValue @deprecated(reason: "Use values instead.")
+  values: [AttributeValue]!
 }
 
 input SeoInput {

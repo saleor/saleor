@@ -21,6 +21,7 @@ import Checkbox from "../Checkbox";
 
 export interface TableHeadProps extends MuiTableHeadProps {
   disabled: boolean;
+  dragRows?: boolean;
   selected: number;
   items: Node[];
   toolbar: React.ReactNode | React.ReactNodeArray;
@@ -34,7 +35,7 @@ const styles = (theme: Theme) =>
     },
     checkboxPartialSelect: {
       "&:after": {
-        background: "#fff",
+        background: theme.palette.common.white,
         content: "''",
         height: 2,
         position: "absolute",
@@ -50,6 +51,10 @@ const styles = (theme: Theme) =>
       height: 47,
       marginRight: -theme.spacing.unit * 2
     },
+    dragRows: {
+      padding: 0,
+      width: 52
+    },
     padding: {
       "&:last-child": {
         padding: 0
@@ -57,7 +62,6 @@ const styles = (theme: Theme) =>
     },
     root: {
       backgroundColor: fade(theme.palette.primary.main, 0.05),
-      borderBottom: "1px solid rgba(224, 224, 224, 1)",
       paddingLeft: 0,
       paddingRight: 24
     },
@@ -78,6 +82,7 @@ const TableHead = withStyles(styles, {
     classes,
     children,
     disabled,
+    dragRows,
     items,
     selected,
     toggleAll,
@@ -87,13 +92,21 @@ const TableHead = withStyles(styles, {
     return (
       <MuiTableHead {...muiTableHeadProps}>
         <TableRow>
-          <TableCell
-            padding="checkbox"
-            className={classNames({
-              [classes.checkboxSelected]: selected
-            })}
-          >
-            {items && items.length > 0 ? (
+          {dragRows && (items === undefined || items.length > 0) && (
+            <TableCell
+              className={classNames({
+                [classes.checkboxSelected]: selected
+              })}
+            />
+          )}
+          {(items === undefined || items.length > 0) && (
+            <TableCell
+              padding="checkbox"
+              className={classNames({
+                [classes.checkboxSelected]: selected,
+                [classes.dragRows]: dragRows
+              })}
+            >
               <Checkbox
                 className={classNames({
                   [classes.checkboxPartialSelect]:
@@ -103,8 +116,8 @@ const TableHead = withStyles(styles, {
                 disabled={disabled}
                 onChange={() => toggleAll(items, selected)}
               />
-            ) : null}
-          </TableCell>
+            </TableCell>
+          )}
           {selected ? (
             <>
               <TableCell className={classNames(classes.root)} colSpan={50}>

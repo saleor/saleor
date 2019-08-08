@@ -63,7 +63,10 @@ export default (colors: IThemeColors): Theme =>
         root: {
           borderColor: colors.paperBorder,
           borderRadius: 8,
-          boxShadow: "none"
+          borderStyle: "solid",
+          borderWidth: 1,
+          boxShadow: "none",
+          overflow: "visible"
         }
       },
       MuiCardActions: {
@@ -95,7 +98,7 @@ export default (colors: IThemeColors): Theme =>
             boxShadow: `inset 0 0 0px 9999px ${colors.autofill}`
           },
           "&::placeholder": {
-            opacity: "initial !important" as "initial"
+            opacity: "1 !important" as any
           }
         },
         underline: {
@@ -107,7 +110,8 @@ export default (colors: IThemeColors): Theme =>
       MuiInputBase: {
         input: {
           "&::placeholder": {
-            color: colors.font.gray
+            color: colors.font.gray,
+            opacity: "1 !important" as any
           }
         }
       },
@@ -127,6 +131,7 @@ export default (colors: IThemeColors): Theme =>
           color: colors.input.text
         },
         shrink: {
+          // Negates x0.75 scale
           width: "133%"
         }
       },
@@ -263,7 +268,14 @@ export default (colors: IThemeColors): Theme =>
           fontWeight: 400
         },
         paddingCheckbox: {
-          width: 72
+          "&:first-child": {
+            padding: "0 12px",
+            width: 72
+          },
+          "&:not(first-child)": {
+            padding: 0,
+            width: 52
+          }
         },
         root: {
           "&:first-child": {

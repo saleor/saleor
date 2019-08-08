@@ -25,7 +25,6 @@ import { decimal, getMutationState, joinDateTime, maybe } from "../../misc";
 import { productUrl } from "../../products/urls";
 import {
   DiscountValueTypeEnum,
-  RequirementsPickerEnum,
   VoucherTypeEnum
 } from "../../types/globalTypes";
 import DiscountCountrySelectDialog from "../components/DiscountCountrySelectDialog";
@@ -39,6 +38,7 @@ import {
   TypedVoucherUpdate
 } from "../mutations";
 import { TypedVoucherDetails } from "../queries";
+import { RequirementsPicker } from "../types";
 import { VoucherCataloguesAdd } from "../types/VoucherCataloguesAdd";
 import { VoucherCataloguesRemove } from "../types/VoucherCataloguesRemove";
 import { VoucherDelete } from "../types/VoucherDelete";
@@ -338,12 +338,12 @@ export const VoucherDetails: React.StatelessComponent<VoucherDetailsProps> = ({
                                         : null,
                                       minAmountSpent:
                                         formData.requirementsPicker !==
-                                        RequirementsPickerEnum.ORDER
+                                        RequirementsPicker.ORDER
                                           ? 0
                                           : parseFloat(formData.minAmountSpent),
                                       minCheckoutItemsQuantity:
                                         formData.requirementsPicker !==
-                                        RequirementsPickerEnum.ITEM
+                                        RequirementsPicker.ITEM
                                           ? 0
                                           : parseFloat(
                                               formData.minCheckoutItemsQuantity

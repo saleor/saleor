@@ -6,8 +6,8 @@ babel==2.7.0
 beautifulsoup4==4.7.1
 billiard==3.6.0.0
 bleach==2.1.4
-boto3==1.9.201
-botocore==1.12.201
+boto3==1.9.202
+botocore==1.12.202
 braintree==3.49.0
 cachetools==3.1.1
 cairocffi==1.0.2
@@ -81,7 +81,7 @@ maxminddb-geolite2==2018.703
 maxminddb==1.4.1
 measurement==3.0.0
 mpmath==1.1.0
-oauthlib==3.0.2
+oauthlib==3.1.0
 phonenumberslite==8.10.16
 pillow==5.4.1
 prices==1.0.0
@@ -100,7 +100,7 @@ python-dateutil==2.8.0 ; python_version >= '2.7'
 python3-openid==3.1.0 ; python_version >= '3.0'
 pytz==2019.2
 razorpay==1.2.0
-redis==3.3.5
+redis==3.3.6
 requests-oauthlib==1.2.0
 requests==2.22.0
 rsa==4.0
@@ -113,7 +113,7 @@ social-auth-app-django==3.1.0
 social-auth-core==3.2.0
 soupsieve==1.9.2
 sqlparse==0.3.0
-stripe==2.33.0
+stripe==2.33.2
 sympy==1.4
 text-unidecode==1.2
 tinycss2==1.0.2

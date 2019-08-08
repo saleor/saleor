@@ -1,28 +1,36 @@
 import React from "react";
 
+import { attributeListUrl } from "@saleor/attributes/urls";
+import { WindowTitle } from "@saleor/components/WindowTitle";
 import useNavigator from "@saleor/hooks/useNavigator";
 import useUser from "@saleor/hooks/useUser";
-import { WindowTitle } from "../components/WindowTitle";
-import i18n from "../i18n";
-import Navigation from "../icons/Navigation";
-import Pages from "../icons/Pages";
-import ProductTypes from "../icons/ProductTypes";
-import ShippingMethods from "../icons/ShippingMethods";
-import SiteSettings from "../icons/SiteSettings";
-import StaffMembers from "../icons/StaffMembers";
-import Taxes from "../icons/Taxes";
-import { maybe } from "../misc";
-import { menuListUrl } from "../navigation/urls";
-import { pageListUrl } from "../pages/urls";
-import { productTypeListUrl } from "../productTypes/urls";
-import { shippingZonesListUrl } from "../shipping/urls";
-import { siteSettingsUrl } from "../siteSettings/urls";
-import { staffListUrl } from "../staff/urls";
-import { taxSection } from "../taxes/urls";
-import { PermissionEnum } from "../types/globalTypes";
+import i18n from "@saleor/i18n";
+import Navigation from "@saleor/icons/Navigation";
+import Pages from "@saleor/icons/Pages";
+import ProductTypes from "@saleor/icons/ProductTypes";
+import ShippingMethods from "@saleor/icons/ShippingMethods";
+import SiteSettings from "@saleor/icons/SiteSettings";
+import StaffMembers from "@saleor/icons/StaffMembers";
+import Taxes from "@saleor/icons/Taxes";
+import { maybe } from "@saleor/misc";
+import { menuListUrl } from "@saleor/navigation/urls";
+import { pageListUrl } from "@saleor/pages/urls";
+import { productTypeListUrl } from "@saleor/productTypes/urls";
+import { shippingZonesListUrl } from "@saleor/shipping/urls";
+import { siteSettingsUrl } from "@saleor/siteSettings/urls";
+import { staffListUrl } from "@saleor/staff/urls";
+import { taxSection } from "@saleor/taxes/urls";
+import { PermissionEnum } from "@saleor/types/globalTypes";
 import ConfigurationPage, { MenuItem } from "./ConfigurationPage";
 
 export const configurationMenu: MenuItem[] = [
+  {
+    description: i18n.t("Determine attributes used to create product types"),
+    icon: <ProductTypes fontSize="inherit" viewBox="0 0 44 44" />,
+    permission: PermissionEnum.MANAGE_PRODUCTS,
+    title: i18n.t("Attributes"),
+    url: attributeListUrl()
+  },
   {
     description: i18n.t("Define types of products you sell"),
     icon: <ProductTypes fontSize="inherit" viewBox="0 0 44 44" />,

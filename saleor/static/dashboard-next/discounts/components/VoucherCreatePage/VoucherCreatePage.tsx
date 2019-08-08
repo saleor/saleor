@@ -12,9 +12,9 @@ import i18n from "../../../i18n";
 import { UserError } from "../../../types";
 import {
   DiscountValueTypeEnum,
-  RequirementsPickerEnum,
   VoucherTypeEnum
 } from "../../../types/globalTypes";
+import { RequirementsPicker } from "../../types";
 import VoucherDates from "../VoucherDates";
 import VoucherInfo from "../VoucherInfo";
 import VoucherLimits from "../VoucherLimits";
@@ -33,7 +33,7 @@ export interface FormData {
   hasUsageLimit: boolean;
   minAmountSpent: string;
   minCheckoutItemsQuantity: string;
-  requirementsPicker: RequirementsPickerEnum;
+  requirementsPicker: RequirementsPicker;
   startDate: string;
   startTime: string;
   type: VoucherTypeEnum;
@@ -69,7 +69,7 @@ const VoucherCreatePage: React.StatelessComponent<VoucherCreatePageProps> = ({
     hasUsageLimit: false,
     minAmountSpent: "0",
     minCheckoutItemsQuantity: "0",
-    requirementsPicker: RequirementsPickerEnum.NONE,
+    requirementsPicker: RequirementsPicker.NONE,
     startDate: "",
     startTime: "",
     type: VoucherTypeEnum.ENTIRE_ORDER,
