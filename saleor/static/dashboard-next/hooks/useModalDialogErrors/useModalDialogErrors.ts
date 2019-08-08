@@ -1,5 +1,4 @@
-import { useState } from "react";
-
+import useModalDialogOpen from "../useModalDialogOpen";
 import useStateFromProps from "../useStateFromProps";
 
 function useModalDialogErrors<TError>(
@@ -7,14 +6,10 @@ function useModalDialogErrors<TError>(
   open: boolean
 ): TError[] {
   const [state, setState] = useStateFromProps(errors);
-  const [prevOpenState, setPrevOpenstate] = useState(open);
 
-  if (open !== prevOpenState) {
-    setPrevOpenstate(open);
-    if (!open) {
-      setState([]);
-    }
-  }
+  useModalDialogOpen(open, {
+    onClose: () => setState([])
+  });
 
   return state;
 }
