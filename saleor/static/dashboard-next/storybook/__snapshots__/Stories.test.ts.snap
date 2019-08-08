@@ -11528,7 +11528,7 @@ exports[`Storyshots Views / Attributes / Attribute list no data 1`] = `
           >
             <td
               class="MuiTableCell-root-id MuiTableCell-body-id"
-              colspan="3"
+              colspan="6"
             >
               No attributes found
             </td>
@@ -76407,7 +76407,7 @@ exports[`Storyshots Views / Product types / Product type details no attributes 1
                 >
                   <td
                     class="MuiTableCell-root-id MuiTableCell-body-id"
-                    colspan="2"
+                    colspan="5"
                   >
                     No attributes found
                   </td>
@@ -96136,6 +96136,10 @@ exports[`Storyshots Views / Shipping / Shipping zones list default 1`] = `
                 >
                   Countries
                 </th>
+                <th
+                  class="MuiTableCell-root-id MuiTableCell-head-id"
+                  scope="col"
+                />
               </tr>
             </thead>
             <tfoot
@@ -96751,6 +96755,10 @@ exports[`Storyshots Views / Shipping / Shipping zones list loading 1`] = `
                 >
                   Countries
                 </th>
+                <th
+                  class="MuiTableCell-root-id MuiTableCell-head-id"
+                  scope="col"
+                />
               </tr>
             </thead>
             <tfoot
@@ -97127,6 +97135,10 @@ exports[`Storyshots Views / Shipping / Shipping zones list no data 1`] = `
                 >
                   Countries
                 </th>
+                <th
+                  class="MuiTableCell-root-id MuiTableCell-head-id"
+                  scope="col"
+                />
               </tr>
             </thead>
             <tfoot
