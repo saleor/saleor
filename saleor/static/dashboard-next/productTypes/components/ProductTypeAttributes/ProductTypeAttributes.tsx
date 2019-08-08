@@ -138,6 +138,7 @@ const ProductTypeAttributes = withStyles(styles, {
                     <Checkbox
                       checked={isSelected}
                       disabled={disabled}
+                      disableClickPropagation
                       onChange={() => toggle(attribute.id)}
                     />
                   </TableCell>

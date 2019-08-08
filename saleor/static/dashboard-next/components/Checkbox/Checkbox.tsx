@@ -18,7 +18,9 @@ export type CheckboxProps = Omit<
   | "indeterminateIcon"
   | "classes"
   | "onChange"
+  | "onClick"
 > & {
+  disableClickPropagation?: boolean;
   onChange?: (event: React.ChangeEvent<any>) => void;
 };
 
@@ -81,9 +83,9 @@ const Checkbox = withStyles(styles, { name: "Checkbox" })(
     className,
     classes,
     disabled,
+    disableClickPropagation,
     indeterminate,
     onChange,
-    onClick,
     value,
     name,
     ...props
@@ -95,7 +97,14 @@ const Checkbox = withStyles(styles, { name: "Checkbox" })(
         centerRipple
         className={classNames(classes.root, className)}
         disabled={disabled}
-        onClick={() => inputRef.current.click()}
+        onClick={
+          disableClickPropagation
+            ? event => {
+                event.stopPropagation();
+                inputRef.current.click();
+              }
+            : () => inputRef.current.click()
+        }
       >
         <input
           className={classNames(classes.box, {

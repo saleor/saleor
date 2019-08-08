@@ -145,6 +145,7 @@ const SaleList = withStyles(styles, {
                     <Checkbox
                       checked={isSelected}
                       disabled={disabled}
+                      disableClickPropagation
                       onChange={() => toggle(sale.id)}
                     />
                   </TableCell>
