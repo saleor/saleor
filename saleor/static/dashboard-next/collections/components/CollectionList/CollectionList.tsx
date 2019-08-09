@@ -123,6 +123,7 @@ const CollectionList = withStyles(styles, { name: "CollectionList" })(
                     <Checkbox
                       checked={isSelected}
                       disabled={disabled}
+                      disableClickPropagation
                       onChange={() => toggle(collection.id)}
                     />
                   </TableCell>
