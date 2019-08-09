@@ -19,6 +19,7 @@ TRANSACTION_AMOUNT = Decimal(42.42)
 TRANSACTION_REFUND_AMOUNT = Decimal(24.24)
 TRANSACTION_CURRENCY = "USD"
 PAYMENT_METHOD_CARD_SIMPLE = "pm_card_pl"
+PAYMENT_METHOD_CARD_3D_SECURE = "pm_card_threeDSecure2Required"
 
 # Set to True if recording new cassette with sandbox using credentials in env
 RECORD = False
@@ -74,6 +75,7 @@ def test_authorize(sandbox_gateway_config, stripe_payment):
     assert isclose(response.amount, TRANSACTION_AMOUNT)
     assert response.currency == TRANSACTION_CURRENCY
     assert response.is_success is True
+    assert not response.action_required
 
 
 @pytest.mark.integration
@@ -89,6 +91,22 @@ def test_authorize_error_response(stripe_payment, sandbox_gateway_config):
     assert not response.is_success
     assert response.amount == stripe_payment.total
     assert response.currency == stripe_payment.currency
+    assert not response.action_required
+
+
+@pytest.mark.integration
+@pytest.mark.vcr(filter_headers=["authorization"])
+def test_authorize_3d_secure(stripe_payment, sandbox_gateway_config):
+    payment_info = create_payment_information(
+        stripe_payment, PAYMENT_METHOD_CARD_3D_SECURE
+    )
+    response = authorize(payment_info, sandbox_gateway_config)
+    assert not response.error
+    assert response.kind == TransactionKind.CAPTURE
+    assert isclose(response.amount, TRANSACTION_AMOUNT)
+    assert response.currency == TRANSACTION_CURRENCY
+    assert response.is_success is True
+    assert response.action_required
 
 
 @pytest.mark.integration

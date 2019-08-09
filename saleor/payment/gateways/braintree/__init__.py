@@ -147,6 +147,7 @@ def authorize(
     kind = TransactionKind.CAPTURE if config.auto_capture else TransactionKind.AUTH
     return GatewayResponse(
         is_success=result.is_success,
+        action_required=False,
         kind=kind,
         amount=gateway_response.get("amount", payment_information.amount),
         currency=gateway_response.get("currency", payment_information.currency),
@@ -207,6 +208,7 @@ def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
 
     return GatewayResponse(
         is_success=result.is_success,
+        action_required=False,
         kind=TransactionKind.CAPTURE,
         amount=gateway_response.get("amount", payment_information.amount),
         currency=gateway_response.get("currency", payment_information.currency),
@@ -231,6 +233,7 @@ def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResp
 
     return GatewayResponse(
         is_success=result.is_success,
+        action_required=False,
         kind=TransactionKind.VOID,
         amount=gateway_response.get("amount", payment_information.amount),
         currency=gateway_response.get("currency", payment_information.currency),
@@ -258,6 +261,7 @@ def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayRe
 
     return GatewayResponse(
         is_success=result.is_success,
+        action_required=False,
         kind=TransactionKind.REFUND,
         amount=gateway_response.get("amount", payment_information.amount),
         currency=gateway_response.get("currency", payment_information.currency),

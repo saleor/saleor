@@ -34,6 +34,7 @@ def _generate_response(
     """Generate Saleor transaction information from the payload or from passed data."""
     return GatewayResponse(
         transaction_id=data.get("id", payment_information.token),
+        action_required=False,
         kind=kind,
         amount=data.get("amount", payment_information.amount),
         currency=data.get("currency", payment_information.currency),

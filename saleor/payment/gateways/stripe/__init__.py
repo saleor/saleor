@@ -206,6 +206,7 @@ def _create_response(
     is_success = response.get("status") == "succeeded"
     return GatewayResponse(
         is_success=is_success,
+        action_required=False,
         transaction_id=token,
         kind=kind,
         amount=amount,

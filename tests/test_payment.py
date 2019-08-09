@@ -44,6 +44,7 @@ EXAMPLE_ERROR = "Example dummy error"
 def gateway_response(settings):
     return GatewayResponse(
         is_success=True,
+        action_required=False,
         transaction_id="transaction-token",
         amount=Decimal(14.50),
         currency=settings.DEFAULT_CURRENCY,
@@ -87,6 +88,7 @@ def transaction_token():
 def dummy_response(payment_dummy, transaction_data, transaction_token):
     return GatewayResponse(
         is_success=True,
+        action_required=False,
         transaction_id=transaction_token,
         error=EXAMPLE_ERROR,
         amount=payment_dummy.total,

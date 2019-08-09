@@ -38,7 +38,9 @@ def authorize(
             capture_method="automatic" if config.auto_capture else "manual",
         )
         response = GatewayResponse(
-            is_success=intent.status in ("succeeded", "requires_capture"),
+            is_success=intent.status
+            in ("succeeded", "requires_capture", "requires_action"),
+            action_required=intent.status == "requires_action",
             transaction_id=intent.id,
             amount=get_amount_from_stripe(intent.amount, currency),
             currency=get_currency_from_stripe(intent.currency),
@@ -49,6 +51,7 @@ def authorize(
     except stripe.error.StripeError as exc:
         response = GatewayResponse(
             is_success=False,
+            action_required=False,
             transaction_id=payment_information.token,
             amount=payment_information.amount,
             currency=payment_information.currency,
@@ -66,6 +69,7 @@ def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
         capture = intent.capture()
         response = GatewayResponse(
             is_success=capture.status == "succeeded",
+            action_required=False,
             transaction_id=intent.id,
             amount=get_amount_from_stripe(intent.amount, intent.currency),
             currency=get_currency_from_stripe(intent.currency),
@@ -76,6 +80,7 @@ def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
     except stripe.error.StripeError as exc:
         response = GatewayResponse(
             is_success=False,
+            action_required=False,
             transaction_id=payment_information.token,
             amount=payment_information.amount,
             currency=payment_information.currency,
@@ -95,6 +100,7 @@ def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayRe
         refund = intent["charges"]["data"][0].refund(amount=stripe_amount)
         response = GatewayResponse(
             is_success=refund.status == "succeeded",
+            action_required=False,
             transaction_id=intent.id,
             amount=payment_information.amount,
             currency=get_currency_from_stripe(refund.currency),
@@ -105,6 +111,7 @@ def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayRe
     except stripe.error.StripeError as exc:
         response = GatewayResponse(
             is_success=False,
+            action_required=False,
             transaction_id=payment_information.token,
             amount=payment_information.amount,
             currency=payment_information.currency,
@@ -122,6 +129,7 @@ def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResp
         refund = intent["charges"]["data"][0].refund()
         response = GatewayResponse(
             is_success=refund.status == "succeeded",
+            action_required=False,
             transaction_id=intent.id,
             amount=get_amount_from_stripe(intent.amount, intent.currency),
             currency=get_currency_from_stripe(refund.currency),
@@ -132,6 +140,7 @@ def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResp
     except stripe.error.StripeError as exc:
         response = GatewayResponse(
             is_success=False,
+            action_required=False,
             transaction_id=payment_information.token,
             amount=payment_information.amount,
             currency=payment_information.currency,
