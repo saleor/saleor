@@ -1,11 +1,8 @@
 import graphene
-from django.conf import settings
 from django.contrib.auth import password_validation
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
-from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode
 from graphql_jwt.exceptions import PermissionDenied
 
 from ....account import emails, events as account_events, models
@@ -25,16 +22,11 @@ SHIPPING_ADDRESS_FIELD = "default_shipping_address"
 INVALID_TOKEN = "Invalid or expired token."
 
 
-def send_user_password_reset_email(user, site):
-    context = {
-        "email": user.email,
-        "uid": urlsafe_base64_encode(force_bytes(user.pk)),
-        "token": default_token_generator.make_token(user),
-        "site_name": site.name,
-        "domain": site.domain,
-        "protocol": "https" if settings.ENABLE_SSL else "http",
-    }
-    emails.send_password_reset_email.delay(context, user.email, user.pk)
+def send_user_password_reset_email(redirect_url, user):
+    token = default_token_generator.make_token(user)
+    emails.send_password_reset_email_with_url.delay(
+        redirect_url, user.email, token, user.pk
+    )
 
 
 def can_edit_address(user, address):
@@ -103,6 +95,14 @@ class RequestPasswordReset(BaseMutation):
             required=True,
             description="Email of the user that will be used for password recovery.",
         )
+        # TODO: Add description of storefronts whitelist in settings
+        redirect_url = graphene.String(
+            required=True,
+            description=(
+                "Url of storefront view which allow user reset password, "
+                "sent by email.",
+            ),
+        )
 
     class Meta:
         description = "Sends an email with the account password modification link."
@@ -110,12 +110,12 @@ class RequestPasswordReset(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         email = data["email"]
+        redirect_url = data["redirect_url"]
         try:
             user = models.User.objects.get(email=email)
         except ObjectDoesNotExist:
             raise ValidationError({"email": "User with this email doesn't exist"})
-        site = info.context.site
-        send_user_password_reset_email(user, site)
+        send_user_password_reset_email(redirect_url, user)
         return RequestPasswordReset()
 
 
