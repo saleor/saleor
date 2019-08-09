@@ -49,6 +49,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add ability to toggle visible columns in product list - #4608 by @dominik-zeglen 
 - Serialize empty URL as string when creating menu items - #4616 by @maarcingebala
 - Fix bulk actions - #4618 by @dominik-zeglen
+- Remove dashboard 2.0 files - #4631 by @dominik-zeglen
 
 ## 2.8.0
 
