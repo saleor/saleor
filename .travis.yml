@@ -30,10 +30,6 @@ install:
     fi
 
 script:
-  - >
-    if [ -n "$DJANGO" ]; then
-      npm run test
-    fi
   - tox
 
 env:
@@ -43,8 +39,8 @@ env:
     - DIFF_RESULTS_BASE_URL="http://dhrwmpu5reeyd.cloudfront.net"
     - QUERIES_RESULTS_PATH=/tmp/queries-results.json
   matrix:
-  - DJANGO="2.2"
-  - DJANGO="master"
+    - DJANGO="2.2"
+    - DJANGO="master"
 
 matrix:
   fast_finish: true
