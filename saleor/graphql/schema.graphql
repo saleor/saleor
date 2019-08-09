@@ -2587,6 +2587,7 @@ input ProductFilterInput {
   stockAvailability: StockAvailability
   productType: ID
   search: String
+  minimalPrice: PriceRangeInput
 }
 
 type ProductImage implements Node {
@@ -2664,6 +2665,7 @@ input ProductOrder {
 enum ProductOrderField {
   NAME
   PRICE
+  MINIMAL_PRICE
   DATE
 }
 
@@ -2932,7 +2934,7 @@ type Query {
   collection(id: ID!): Collection
   collections(filter: CollectionFilterInput, query: String, before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   product(id: ID!): Product
-  products(filter: ProductFilterInput, attributes: [AttributeScalar], categories: [ID], collections: [ID], priceLte: Float, priceGte: Float, sortBy: ProductOrder, stockAvailability: StockAvailability, query: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  products(filter: ProductFilterInput, attributes: [AttributeScalar], categories: [ID], collections: [ID], priceLte: Float, priceGte: Float, minimalPriceLte: Float, minimalPriceGte: Float, sortBy: ProductOrder, stockAvailability: StockAvailability, query: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   productType(id: ID!): ProductType
   productTypes(filter: ProductTypeFilterInput, query: String, before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
   productVariant(id: ID!): ProductVariant
