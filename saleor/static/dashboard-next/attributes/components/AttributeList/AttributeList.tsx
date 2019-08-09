@@ -133,6 +133,7 @@ const AttributeList: React.StatelessComponent<AttributeListProps> = ({
                   <Checkbox
                     checked={isSelected}
                     disabled={disabled}
+                    disableClickPropagation
                     onChange={() => toggle(attribute.id)}
                   />
                 </TableCell>

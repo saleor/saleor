@@ -178,6 +178,7 @@ export const ProductList = withStyles(styles, { name: "ProductList" })(
                       <Checkbox
                         checked={isSelected}
                         disabled={disabled}
+                        disableClickPropagation
                         onChange={() => toggle(product.id)}
                       />
                     </TableCell>

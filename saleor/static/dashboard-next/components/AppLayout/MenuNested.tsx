@@ -19,15 +19,6 @@ import { IMenuItem } from "./menuStructure";
 
 const styles = (theme: Theme) =>
   createStyles({
-    menuIcon: {
-      "& svg": {
-        height: 32,
-        width: 32
-      },
-      display: "inline-block",
-      position: "relative",
-      top: 8
-    },
     menuListNested: {
       background: theme.palette.background.paper,
       height: "100vh",
@@ -79,6 +70,7 @@ const styles = (theme: Theme) =>
         }
       },
       display: "block",
+      marginBottom: theme.spacing.unit * 2,
       padding: "0px 30px",
       textDecoration: "none"
     },
@@ -94,7 +86,8 @@ const styles = (theme: Theme) =>
     subHeader: {
       borderBottom: "solid 1px #EAEAEA",
       margin: "30px",
-      paddingBottom: 20
+      marginBottom: 39,
+      paddingBottom: 22
     },
     subHeaderDark: {
       borderBottom: "solid 1px #252728"
@@ -188,7 +181,6 @@ const MenuNested = withStyles(styles, { name: "MenuNested" })(
                 onClick={event => closeMenu(item.url, event)}
                 key={item.label}
               >
-                <SVG className={classes.menuIcon} src={item.icon} />
                 <Typography aria-label={item.ariaLabel}>
                   {item.label}
                 </Typography>

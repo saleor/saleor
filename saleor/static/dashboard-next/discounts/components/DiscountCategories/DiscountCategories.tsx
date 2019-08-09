@@ -131,6 +131,7 @@ const DiscountCategories = withStyles(styles, {
                     <Checkbox
                       checked={isSelected}
                       disabled={disabled}
+                      disableClickPropagation
                       onChange={() => toggle(category.id)}
                     />
                   </TableCell>

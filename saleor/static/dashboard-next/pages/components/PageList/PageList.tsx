@@ -117,6 +117,7 @@ const PageList = withStyles(styles, { name: "PageList" })(
                     <Checkbox
                       checked={isSelected}
                       disabled={disabled}
+                      disableClickPropagation
                       onChange={() => toggle(page.id)}
                     />
                   </TableCell>
