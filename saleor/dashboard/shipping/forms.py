@@ -49,7 +49,7 @@ class ShippingZoneForm(forms.ModelForm):
         model = ShippingZone
         fields = ["name", "default", "countries"]
         labels = {
-            "name": pgettext_lazy("Shippment Zone field name", "Shipping zone name"),
+            "name": pgettext_lazy("Shipment Zone field name", "Shipping zone name"),
             "default": pgettext_lazy("Shipping Zone field name", "Rest of World"),
             "countries": pgettext_lazy("List of countries to pick from", "Countries"),
         }
@@ -71,6 +71,7 @@ class ShippingZoneForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        
         super().__init__(*args, **kwargs)
         pk = self.instance.pk if self.instance else None
         available_countries = get_available_countries(pk)
