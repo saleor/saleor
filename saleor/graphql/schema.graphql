@@ -1447,6 +1447,7 @@ enum GatewaysEnum {
   BRAINTREE
   RAZORPAY
   STRIPE
+  STRIPE_NEW
 }
 
 scalar GenericScalar
