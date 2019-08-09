@@ -10,6 +10,7 @@ from saleor.payment.gateways.stripe_new import (
     authorize,
     capture,
     refund,
+    void,
 )
 from saleor.payment.interface import GatewayConfig
 from saleor.payment.utils import create_payment_information
@@ -20,7 +21,7 @@ TRANSACTION_CURRENCY = "USD"
 PAYMENT_METHOD_CARD_SIMPLE = "pm_card_pl"
 
 # Set to True if recording new cassette with sandbox using credentials in env
-RECORD = True
+RECORD = False
 
 
 @pytest.fixture()
@@ -157,8 +158,8 @@ def stripe_paid_payment(stripe_payment):
 @pytest.mark.integration
 @pytest.mark.vcr(filter_headers=["authorization"])
 def test_refund(stripe_paid_payment, sandbox_gateway_config):
-    # Get id from sandbox for intent not yet captured
-    REFUND_AMOUNT = Decimal(10.0)
+    # Get id from sandbox for succeeded payment
+    REFUND_AMOUNT = Decimal(10.0)  # partial refund
     INTENT_ID = "pi_1F5BsRIUmJaD6Oqvz2XMKZCD"
     payment_info = create_payment_information(
         stripe_paid_payment, amount=REFUND_AMOUNT, payment_token=INTENT_ID
@@ -171,3 +172,51 @@ def test_refund(stripe_paid_payment, sandbox_gateway_config):
     assert response.is_success
     assert isclose(response.amount, REFUND_AMOUNT)
     assert response.currency == TRANSACTION_CURRENCY
+
+
+@pytest.mark.integration
+@pytest.mark.vcr(filter_headers=["authorization"])
+def test_refund_error_response(stripe_payment, sandbox_gateway_config):
+    INVALID_INTENT = "THIS_INTENT_DOES_NOT_EXISTS"
+    payment_info = create_payment_information(stripe_payment, INVALID_INTENT)
+    response = refund(payment_info, sandbox_gateway_config)
+
+    assert response.error == "No such payment_intent: " + INVALID_INTENT
+    assert response.transaction_id == INVALID_INTENT
+    assert response.kind == TransactionKind.REFUND
+    assert not response.is_success
+    assert response.amount == stripe_payment.total
+    assert response.currency == stripe_payment.currency
+
+
+@pytest.mark.integration
+@pytest.mark.vcr(filter_headers=["authorization"])
+def test_void(stripe_paid_payment, sandbox_gateway_config):
+    # Get id from sandbox for succedeed payment
+    INTENT_ID = "pi_1F5BsOIUmJaD6Oqvmh5vBJIA"
+    payment_info = create_payment_information(
+        stripe_paid_payment, payment_token=INTENT_ID
+    )
+    response = void(payment_info, sandbox_gateway_config)
+
+    assert not response.error
+    assert response.transaction_id == INTENT_ID
+    assert response.kind == TransactionKind.VOID
+    assert response.is_success
+    assert isclose(response.amount, TRANSACTION_AMOUNT)
+    assert response.currency == TRANSACTION_CURRENCY
+
+
+@pytest.mark.integration
+@pytest.mark.vcr(filter_headers=["authorization"])
+def test_void_error_response(stripe_payment, sandbox_gateway_config):
+    INVALID_INTENT = "THIS_INTENT_DOES_NOT_EXISTS"
+    payment_info = create_payment_information(stripe_payment, INVALID_INTENT)
+    response = void(payment_info, sandbox_gateway_config)
+
+    assert response.error == "No such payment_intent: " + INVALID_INTENT
+    assert response.transaction_id == INVALID_INTENT
+    assert response.kind == TransactionKind.VOID
+    assert not response.is_success
+    assert response.amount == stripe_payment.total
+    assert response.currency == stripe_payment.currency
