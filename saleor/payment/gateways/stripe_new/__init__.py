@@ -2,17 +2,15 @@ from typing import Dict
 
 import stripe
 
-from saleor.payment.gateways.stripe.utils import (
+from ... import TransactionKind
+from ...interface import GatewayConfig, GatewayResponse, PaymentData
+from .forms import StripePaymentModalForm
+from .utils import (
     get_amount_for_stripe,
     get_amount_from_stripe,
     get_currency_for_stripe,
     get_currency_from_stripe,
 )
-
-from ... import TransactionKind
-from ...interface import GatewayConfig, GatewayResponse, PaymentData
-from .forms import StripePaymentModalForm
-from .utils import get_amount_for_stripe, get_currency_for_stripe
 
 
 def get_client_token(**_):
