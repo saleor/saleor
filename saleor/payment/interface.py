@@ -12,6 +12,7 @@ class GatewayResponse:
     """
 
     is_success: bool
+    action_required: bool
     kind: str
     amount: Decimal
     currency: str
