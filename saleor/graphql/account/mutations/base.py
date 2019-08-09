@@ -1,8 +1,12 @@
+from urllib.parse import urlparse
+
 import graphene
+from django.conf import settings
 from django.contrib.auth import password_validation
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
+from django.http.request import validate_host
 from graphql_jwt.exceptions import PermissionDenied
 
 from ....account import emails, events as account_events, models
@@ -95,12 +99,11 @@ class RequestPasswordReset(BaseMutation):
             required=True,
             description="Email of the user that will be used for password recovery.",
         )
-        # TODO: Add description of storefronts whitelist in settings
         redirect_url = graphene.String(
             required=True,
             description=(
                 "Url of storefront view which allow user reset password, "
-                "sent by email.",
+                "sent by email. Url in RFC 1808 format.",
             ),
         )
 
@@ -111,6 +114,15 @@ class RequestPasswordReset(BaseMutation):
     def perform_mutation(cls, _root, info, **data):
         email = data["email"]
         redirect_url = data["redirect_url"]
+
+        parsed_url = urlparse(redirect_url)
+        if not validate_host(parsed_url.netloc, settings.ALLOWED_STOREFRONT_HOSTS):
+            raise ValidationError(
+                {
+                    "redirectUrl": "%s this is not valid storefront address."
+                    % parsed_url.netloc
+                }
+            )
         try:
             user = models.User.objects.get(email=email)
         except ObjectDoesNotExist:
