@@ -1311,6 +1311,7 @@ enum GatewaysEnum {
   BRAINTREE
   RAZORPAY
   STRIPE
+  PAYREXX
 }
 
 scalar GenericScalar
