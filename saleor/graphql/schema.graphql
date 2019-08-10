@@ -1308,10 +1308,10 @@ input FulfillmentUpdateTrackingInput {
 
 enum GatewaysEnum {
   DUMMY
+  PAYREXX
   BRAINTREE
   RAZORPAY
   STRIPE
-  PAYREXX
 }
 
 scalar GenericScalar
