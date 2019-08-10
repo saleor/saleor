@@ -1,16 +1,16 @@
-from typing import Dict
+from ...interface import PaymentData
+
+from .utils import create_payrexx_link
 
 from django import forms
 from django.forms.widgets import HiddenInput
 from django.utils.translation import pgettext_lazy
 
-from ...interface import PaymentData
-
-from .utils import create_payrexx_link
+from typing import Dict
 
 CHECKOUT_DESCRIPTION = pgettext_lazy(
     "Payrex payment gateway description", "Total payment"
-    )
+)
 
 
 class PayrexxPaymentForm(forms.Form):
@@ -30,3 +30,4 @@ class PayrexxPaymentForm(forms.Form):
         if self.cleaned_data:
             return self.cleaned_data["payrexxHash"] + ':'\
                 + self.cleaned_data['paymentLinkId']
+        return 'empty'

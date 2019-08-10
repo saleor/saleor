@@ -1,18 +1,18 @@
-from typing import Dict
-from django_countries import countries
-
-from ...interface import GatewayConfig, GatewayResponse, PaymentData
-
-from ..stripe.utils import get_amount_for_stripe
-
-import urllib.request
-from urllib.parse import urlencode
-from urllib.request import urlopen
-import hmac
-import hashlib
 import base64
 import json
+import hashlib
+import hmac
+import urllib.request
+
+from ...interface import PaymentData
+from ..stripe.utils import get_amount_for_stripe
+
 from django.utils.translation import pgettext_lazy
+
+from typing import Dict
+
+from urllib.parse import urlencode
+from urllib.request import urlopen
 
 PAYREXX_API_URL = "https://api.payrexx.com/v1.0"
 
@@ -51,12 +51,12 @@ def create_payrexx_link(payment_information: PaymentData, gateway_params: Dict):
         "amount": get_amount_for_stripe(
             payment_information.amount,
             payment_information.currency
-            ),
+        ),
         "currency": payment_information.currency,
         "preAuthorization": gateway_params.get('preAuth', 0),
         "reservation": 0,
         "name": gateway_params.get('name'),
-        }
+    }
     instance = gateway_params['instance']
 
     data = urllib.parse.urlencode(post_data).encode('UTF-8')
@@ -71,7 +71,6 @@ def create_payrexx_link(payment_information: PaymentData, gateway_params: Dict):
     result = urlopen(PAYREXX_API_URL + '/Invoice/?instance=' + instance, data)
     content = result.read().decode('UTF-8')
     response = json.loads(content)
-    print(response)
 
     return response['data'][0]
 
@@ -90,7 +89,6 @@ def get_payrexx_link(payrexx_id, gateway_params: Dict):
 
     data = urlencode(post_data, quote_via=urllib.parse.quote)
 
-    print(PAYREXX_API_URL + '/Invoice/' + payrexx_id + '/')
     result = urlopen(PAYREXX_API_URL + '/Invoice/' + payrexx_id + '/?' + data)
     content = result.read().decode('UTF-8')
     response = json.loads(content)
