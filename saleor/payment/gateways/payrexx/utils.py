@@ -1,3 +1,4 @@
+# pylint: disable=E1101
 import base64
 import hashlib
 import hmac
@@ -31,7 +32,7 @@ ZERO_DECIMAL_CURRENCIES = [
     "XAF",
     "XOF",
     "XPF",
-    ]
+]
 
 CHECKOUT_DESCRIPTION = pgettext_lazy(
     "Payrexx payment gateway description", "Total payment"
