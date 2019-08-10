@@ -1,12 +1,11 @@
-from ...interface import PaymentData
-
-from .utils import create_payrexx_link
+from typing import Dict
 
 from django import forms
 from django.forms.widgets import HiddenInput
 from django.utils.translation import pgettext_lazy
 
-from typing import Dict
+from ...interface import PaymentData
+from .utils import create_payrexx_link
 
 CHECKOUT_DESCRIPTION = pgettext_lazy(
     "Payrex payment gateway description", "Total payment"

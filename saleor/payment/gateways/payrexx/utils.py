@@ -1,18 +1,16 @@
 import base64
-import json
 import hashlib
 import hmac
+import json
 import urllib.request
-
-from ...interface import PaymentData
-from ..stripe.utils import get_amount_for_stripe
+from typing import Dict
+from urllib.parse import urlencode
+from urllib.request import urlopen
 
 from django.utils.translation import pgettext_lazy
 
-from typing import Dict
-
-from urllib.parse import urlencode
-from urllib.request import urlopen
+from ...interface import PaymentData
+from ..stripe.utils import get_amount_for_stripe
 
 PAYREXX_API_URL = "https://api.payrexx.com/v1.0"
 

@@ -1,11 +1,9 @@
+from typing import Dict
+
 from ... import TransactionKind
-
 from ...interface import GatewayConfig, GatewayResponse, PaymentData
-
 from .forms import PayrexxPaymentForm
 from .utils import get_payrexx_link
-
-from typing import Dict
 
 
 def get_client_token(config: GatewayConfig) -> str:
