@@ -614,7 +614,7 @@ STRIPE_ENABLE_SHIPPING_ADDRESS = True
 CHECKOUT_PAYMENT_GATEWAYS = {
     DUMMY: pgettext_lazy("Payment method name", "Dummy gateway"),
     STRIPE: pgettext_lazy("Payment method name", "Stripe"),
-    PAYREXX: pgettext_lazy("Payment method name", "Payrexx")
+    PAYREXX: pgettext_lazy("Payment method name", "Payrexx"),
 }
 
 PAYMENT_GATEWAYS = {
@@ -628,17 +628,17 @@ PAYMENT_GATEWAYS = {
         },
     },
     PAYREXX: {
-        "module": 'saleor.payment.gateways.payrexx',
+        "module": "saleor.payment.gateways.payrexx",
         "config": {
             "auto_capture": get_bool_from_env("PAYREXX_AUTO_CAPTURE", True),
             "store_card": get_bool_from_env("PAYREXX_STORE_CARD", False),
             "template_path": "order/payment/payrexx.html",
             "connection_params": {
-                'instance': os.environ.get("PAYREXX_INSTANCE"),
-                'api_secret': os.environ.get("PAYREXX_API_SECRET"),
-                "store_name": os.environ.get("PAYREXX_STORE_NAME", 'Saleor'),
-            }
-        }
+                "instance": os.environ.get("PAYREXX_INSTANCE"),
+                "api_secret": os.environ.get("PAYREXX_API_SECRET"),
+                "store_name": os.environ.get("PAYREXX_STORE_NAME", "Saleor"),
+            },
+        },
     },
     BRAINTREE: {
         "module": "saleor.payment.gateways.braintree",
