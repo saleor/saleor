@@ -16,17 +16,20 @@ class PayrexxPaymentForm(forms.Form):
     payrexxHash = forms.CharField(required=True, widget=HiddenInput)
     paymentLinkId = forms.CharField(required=True, widget=HiddenInput)
 
-    def __init__(self,
-                 payment_information: PaymentData,
-                 gateway_params: Dict, *args, **kwargs):
+    def __init__(
+        self, payment_information: PaymentData, gateway_params: Dict, *args, **kwargs
+    ):
         super().__init__(*args, **kwargs)
         payment_link = create_payrexx_link(payment_information, gateway_params)
-        self.payrexxLink = payment_link['link']
-        self.fields['payrexxHash'].initial = payment_link['hash']
-        self.fields['paymentLinkId'].initial = payment_link['id']
+        self.payrexxLink = payment_link["link"]
+        self.fields["payrexxHash"].initial = payment_link["hash"]
+        self.fields["paymentLinkId"].initial = payment_link["id"]
 
     def get_payment_token(self):
         if self.cleaned_data:
-            return self.cleaned_data["payrexxHash"] + ':'\
-                + self.cleaned_data['paymentLinkId']
-        return 'empty'
+            return (
+                self.cleaned_data["payrexxHash"]
+                + ":"
+                + self.cleaned_data["paymentLinkId"]
+            )
+        return "empty"
