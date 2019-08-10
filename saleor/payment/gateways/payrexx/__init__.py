@@ -6,7 +6,8 @@ from .forms import PayrexxPaymentForm
 from .utils import get_payrexx_link
 
 
-def get_client_token(_config: GatewayConfig) -> str:
+def get_client_token(config: GatewayConfig) -> str:
+    # pylint: disable=unused-argument
     return
 
 
@@ -40,11 +41,13 @@ def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayC
     )
 
 
-def refund(_payment_information: PaymentData, _config: GatewayConfig) -> GatewayConfig:
+def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayConfig:
+    # pylint: disable=unused-argument
     pass
 
 
-def void(_payment_information: PaymentData, _config: GatewayConfig) -> GatewayConfig:
+def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayConfig:
+    # pylint: disable=unused-argument
     pass
 
 
