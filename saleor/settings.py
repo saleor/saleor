@@ -603,9 +603,18 @@ DUMMY = "dummy"
 BRAINTREE = "braintree"
 RAZORPAY = "razorpay"
 STRIPE = "stripe"
+PAYREXX = "payrexx"
+
+
+STRIPE_PUBLIC_KEY = "pk_test_e6OIuwo52qRQ1VNcBHfEjQB7"
+STRIPE_SECRET_KEY = "sk_test_X3lMBE13AdWysA2TabYmW6f8"
+STRIPE_STORE_NAME = "JUSO Shop"
+STRIPE_ENABLE_SHIPPING_ADDRESS = True
 
 CHECKOUT_PAYMENT_GATEWAYS = {
-    DUMMY: pgettext_lazy("Payment method name", "Dummy gateway")
+    DUMMY: pgettext_lazy("Payment method name", "Dummy gateway"),
+    STRIPE: pgettext_lazy("Payment method name", "Stripe"),
+    PAYREXX: pgettext_lazy("Payment method name", "Payrexx")
 }
 
 PAYMENT_GATEWAYS = {
@@ -617,6 +626,19 @@ PAYMENT_GATEWAYS = {
             "connection_params": {},
             "template_path": "order/payment/dummy.html",
         },
+    },
+    PAYREXX: {
+        "module": 'saleor.payment.gateways.payrexx',
+        "config": {
+            "auto_capture": get_bool_from_env("PAYREXX_AUTO_CAPTURE", True),
+            "store_card": get_bool_from_env("PAYREXX_STORE_CARD", False),
+            "template_path": "order/payment/payrexx.html",
+            "connection_params": {
+                'instance': os.environ.get("PAYREXX_INSTANCE"),
+                'api_secret': os.environ.get("PAYREXX_API_SECRET"),
+                "store_name": os.environ.get("PAYREXX_STORE_NAME", 'Saleor'),
+            }
+        }
     },
     BRAINTREE: {
         "module": "saleor.payment.gateways.braintree",

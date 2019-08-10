@@ -1,0 +1,47 @@
+{% extends "order/payment/details.html" %}
+{% load i18n %}
+{% block stylesheet %}
+{{block.super}}
+<style>
+#payrexx-modal {
+  opacity: 1 !important;
+}
+</style>
+{% endblock %}
+
+{% block forms %}
+
+<a class="payrexx-modal-window btn btn-primary" href="#" data-href="{{form.payrexxLink}}">
+  {% trans "Open payment dialog" context "Payment form (Payrexx) open dialog" %}
+</a>
+
+  <form method="POST" id="payment-form" {% if form.action %} action="{{ form.action }}"{% endif %}>
+    {% csrf_token %}
+    {{ form.media }}
+    {{ form }}
+    {% if form.errors %}
+      <a class="btn" href="{% url "order:details" token=payment.order.token %}">
+        {% trans "Change payment" context "Payment form (Payrexx) secondary action" %}
+      </a>
+    {% endif %}
+  </form>
+{% endblock forms %}
+
+{% block footer_scripts %}
+{{block.super}}
+<script
+  src="https://code.jquery.com/jquery-1.12.4.js"
+  integrity="sha256-Qw82+bXyGq6MydymqBxNPYTaUXXq7c8v3CwiYwLLNXU="
+  crossorigin="anonymous"></script>
+
+<script type="text/javascript" src="https://media.payrexx.com/modal/v1/modal.min.js"></script>
+<script type="text/javascript">
+  var t;
+  jQuery(".payrexx-modal-window").payrexxModal({
+    hidden: function(transaction){
+      if(transaction.status == 'confirmed'){
+        $('#payment-form').submit();
+      }
+    }});
+</script>
+{% endblock %}
