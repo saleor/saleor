@@ -23,27 +23,6 @@ def ensure_attribute_slugs_are_unique_or_fix(apps, schema_editor):
         attr.save(update_fields=["slug"])
 
 
-def migrate_attributes_to_list(model_name):
-    """Migrate HStore attributes configuration to JSONB with a list of values."""
-
-    def make_migration(apps, schema):
-        Model = apps.get_model("product", model_name)
-
-        for instance in Model.objects.all():
-            new_attributes = {}
-
-            for k, v in instance.attributes.items():
-                if not isinstance(v, list):
-                    new_attributes[k] = [v]
-                else:
-                    new_attributes[k] = v
-
-            instance.attributes = new_attributes
-            instance.save(update_fields=["attributes"])
-
-    return make_migration
-
-
 def remove_duplicates_products_in_collections(apps, schema_editor):
     """Remove any duplicated M2M, and keep only one of them.
 
@@ -106,11 +85,6 @@ PRODUCT_TYPE_UNIQUE_SLUGS = [
     migrations.RunPython(ensure_attribute_slugs_are_unique_or_fix)
 ]
 
-ATTRIBUTE_MULTIPLE_VALUES = [
-    migrations.RunPython(migrate_attributes_to_list("Product")),
-    migrations.RunPython(migrate_attributes_to_list("ProductVariant")),
-]
-
 M2M_UNIQUE_TOGETHER = [migrations.RunPython(remove_duplicates_products_in_collections)]
 
 SORTING_NULLABLE_LOGIC = [
@@ -125,8 +99,5 @@ class Migration(migrations.Migration):
     dependencies = [("product", "0101_auto_20190719_0839")]
 
     operations = (
-        PRODUCT_TYPE_UNIQUE_SLUGS
-        + ATTRIBUTE_MULTIPLE_VALUES
-        + M2M_UNIQUE_TOGETHER
-        + SORTING_NULLABLE_LOGIC
+        PRODUCT_TYPE_UNIQUE_SLUGS + M2M_UNIQUE_TOGETHER + SORTING_NULLABLE_LOGIC
     )
