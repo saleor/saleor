@@ -101,7 +101,7 @@ For PWA, single-page Storefront 2.0 go to the [saleor-storefront](https://github
 
 ## Dashboard 2.0
 
-For Dashboard 2.0 go to the [saleor-dashboard](https://github.com/mirumee/saleor-storefront) repository.
+For Dashboard 2.0 go to the [saleor-dashboard](https://github.com/mirumee/saleor-dashboard) repository.
 
 [View Dashboard 2.0 demo](https://demo.getsaleor.com/dashboard/next/)
 
