@@ -22,7 +22,7 @@ PAYMENT_METHOD_CARD_SIMPLE = "pm_card_pl"
 PAYMENT_METHOD_CARD_3D_SECURE = "pm_card_threeDSecure2Required"
 
 # Set to True if recording new cassette with sandbox using credentials in env
-RECORD = False
+RECORD = True
 
 
 @pytest.fixture()
@@ -148,6 +148,24 @@ def test_capture(stripe_authorized_payment, sandbox_gateway_config):
     assert response.is_success
     assert isclose(response.amount, TRANSACTION_AMOUNT)
     assert response.currency == TRANSACTION_CURRENCY
+
+
+@pytest.mark.integration
+@pytest.mark.vcr(filter_headers=["authorization"])
+def test_capture_3d_secure(stripe_payment, sandbox_gateway_config):
+    PAYMENT_INTENT = "pi_1F6YmgIUmJaD6Oqv77HUh6qq"
+    ERROR = (
+        "This PaymentIntent could not be captured because it has a status of requires_action."
+        " Only a PaymentIntent with one of the following statuses may be captured: requires_capture."
+    )
+    payment_info = create_payment_information(stripe_payment, PAYMENT_INTENT)
+    response = capture(payment_info, sandbox_gateway_config)
+    assert response.error == ERROR
+    assert response.kind == TransactionKind.CAPTURE
+    assert isclose(response.amount, TRANSACTION_AMOUNT)
+    assert response.currency == TRANSACTION_CURRENCY
+    assert not response.is_success
+    assert response.action_required
 
 
 @pytest.mark.integration

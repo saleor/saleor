@@ -68,7 +68,7 @@ def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
         intent = client.PaymentIntent.retrieve(id=payment_information.token)
         capture = intent.capture()
         response = GatewayResponse(
-            is_success=capture.status == "succeeded",
+            is_success=capture.status in ("succeeded", "requires_action"),
             action_required=False,
             transaction_id=intent.id,
             amount=get_amount_from_stripe(intent.amount, intent.currency),
@@ -78,9 +78,12 @@ def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
             raw_response=capture,
         )
     except stripe.error.StripeError as exc:
+        action_required = False
+        if intent:
+            action_required = intent.status == "requires_action"
         response = GatewayResponse(
             is_success=False,
-            action_required=False,
+            action_required=action_required,
             transaction_id=payment_information.token,
             amount=payment_information.amount,
             currency=payment_information.currency,
