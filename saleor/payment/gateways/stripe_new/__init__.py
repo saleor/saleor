@@ -1,9 +1,15 @@
-from typing import Dict
+from typing import Dict, List
 
 import stripe
 
 from ... import TransactionKind
-from ...interface import GatewayConfig, GatewayResponse, PaymentData
+from ...interface import (
+    CustomerSource,
+    CreditCardInfo,
+    GatewayConfig,
+    GatewayResponse,
+    PaymentData,
+)
 from .forms import StripePaymentModalForm
 from .utils import (
     get_amount_for_stripe,
@@ -27,6 +33,8 @@ def authorize(
     client = _get_client(**config.connection_params)
     currency = get_currency_for_stripe(payment_information.currency)
     stripe_amount = get_amount_for_stripe(payment_information.amount, currency)
+    future_use = "off_session" if config.store_customer else "on_session"
+    customer_id = PaymentData.customer_id if payment_information.reuse_source else None
 
     try:
         intent = client.PaymentIntent.create(
@@ -36,7 +44,12 @@ def authorize(
             confirmation_method="manual",
             confirm=True,
             capture_method="automatic" if config.auto_capture else "manual",
+            setup_future_usage=future_use,
+            customer=customer_id,
         )
+        if config.store_customer and not customer_id:
+            customer = client.Customer.create(payment_method=intent.payment_method)
+            customer_id = customer.id
         response = GatewayResponse(
             is_success=intent.status
             in ("succeeded", "requires_capture", "requires_action"),
@@ -47,6 +60,7 @@ def authorize(
             error=None,
             kind=kind,
             raw_response=intent,
+            customer_id=customer_id,
         )
     except stripe.error.StripeError as exc:
         response = GatewayResponse(
@@ -58,12 +72,14 @@ def authorize(
             error=exc.user_message,
             kind=kind,
             raw_response=exc.json_body or {},
+            customer_id=customer_id,
         )
     return response
 
 
 def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     client = _get_client(**config.connection_params)
+    intent = None
     try:
         intent = client.PaymentIntent.retrieve(id=payment_information.token)
         capture = intent.capture()
@@ -84,6 +100,35 @@ def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
         response = GatewayResponse(
             is_success=False,
             action_required=action_required,
+            transaction_id=payment_information.token,
+            amount=payment_information.amount,
+            currency=payment_information.currency,
+            error=exc.user_message,
+            kind=TransactionKind.CAPTURE,
+            raw_response=exc.json_body or {},
+        )
+    return response
+
+
+def confirm(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
+    client = _get_client(**config.connection_params)
+    try:
+        intent = client.PaymentIntent(id=payment_information.token)
+        intent.confirm()
+        response = GatewayResponse(
+            is_success=intent.status in ("succeeded"),
+            action_required=False,
+            transaction_id=intent.id,
+            amount=get_amount_from_stripe(intent.amount, intent.currency),
+            currency=get_currency_from_stripe(intent.currency),
+            error=None,
+            kind=TransactionKind.CAPTURE,
+            raw_response=capture,
+        )
+    except stripe.error.StripeError as exc:
+        response = GatewayResponse(
+            is_success=False,
+            action_required=False,
             transaction_id=payment_information.token,
             amount=payment_information.amount,
             currency=payment_information.currency,
@@ -152,6 +197,26 @@ def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResp
             raw_response=exc.json_body or {},
         )
     return response
+
+
+def list_client_sources(
+    config: GatewayConfig, customer_id: str
+) -> List[CustomerSource]:
+    client = _get_client(**config.connection_params)
+    cards = client.PaymentMethod.list(customer=customer_id, type="card")["data"]
+    return [
+        CustomerSource(
+            id=c.id,
+            gateway="stripe",
+            credit_card_info=CreditCardInfo(
+                exp_year=c.card.exp_year,
+                exp_month=c.card.exp_month,
+                last_4=c.card.last4,
+                name_on_card=None,
+            ),
+        )
+        for c in cards
+    ]
 
 
 def process_payment(

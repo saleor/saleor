@@ -30,6 +30,7 @@ class OperationType(Enum):
     CAPTURE = "capture"
     VOID = "void"
     REFUND = "refund"
+    CONFIRM = "confirm"
 
 
 class TransactionError(Enum):

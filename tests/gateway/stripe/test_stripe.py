@@ -9,10 +9,12 @@ from saleor.payment.gateways.stripe_new import (
     TransactionKind,
     authorize,
     capture,
+    confirm,
+    list_client_sources,
     refund,
     void,
 )
-from saleor.payment.interface import GatewayConfig
+from saleor.payment.interface import CreditCardInfo, CustomerSource, GatewayConfig
 from saleor.payment.utils import create_payment_information
 
 TRANSACTION_AMOUNT = Decimal(42.42)
@@ -122,6 +124,36 @@ def test_authorize_without_capture(stripe_payment, sandbox_gateway_config):
     assert isclose(response.amount, TRANSACTION_AMOUNT)
     assert response.currency == TRANSACTION_CURRENCY
     assert response.is_success is True
+
+
+@pytest.mark.integration
+@pytest.mark.vcr(filter_headers=["authorization"])
+def test_authorize_and_save_customer_id(payment_dummy, sandbox_gateway_config):
+    CUSTOMER_ID = "cus_FbquUfgBnLdlsY"  # retrieved from sandbox
+    payment = payment_dummy
+
+    payment_info = create_payment_information(payment, PAYMENT_METHOD_CARD_SIMPLE)
+
+    sandbox_gateway_config.store_customer = True
+    response = authorize(payment_info, sandbox_gateway_config)
+    assert not response.error
+    assert response.customer_id == CUSTOMER_ID
+
+
+@pytest.mark.integration
+@pytest.mark.vcr(filter_headers=["authorization"])
+def test_authorize_with_customer_id(payment_dummy, sandbox_gateway_config):
+    CUSTOMER_ID = "cus_FbquUfgBnLdlsY"  # retrieved from sandbox
+    payment = payment_dummy
+
+    payment_info = create_payment_information(payment, "pm_card_visa")
+    payment_info.amount = TRANSACTION_AMOUNT
+    payment_info.customer_id = CUSTOMER_ID
+    payment_info.reuse_source = True
+
+    response = authorize(payment_info, sandbox_gateway_config)
+    assert not response.error
+    assert response.is_success
 
 
 @pytest.fixture()
@@ -256,3 +288,50 @@ def test_void_error_response(stripe_payment, sandbox_gateway_config):
     assert not response.is_success
     assert response.amount == stripe_payment.total
     assert response.currency == stripe_payment.currency
+
+
+@pytest.mark.integration
+@pytest.mark.vcr(filter_headers=["authorization"])
+def test_confirm__intent(stripe_payment, sandbox_gateway_config):
+    PAYMENT_INTENT = (
+        "pi_1F6bslIUmJaD6Oqv1MNDaBSv"
+    )  # PI with status "requires_confirmation"
+    payment_info = create_payment_information(stripe_payment, PAYMENT_INTENT)
+    response = confirm(payment_info, sandbox_gateway_config)
+    assert not response.error
+    assert response.kind == TransactionKind.CAPTURE
+    assert isclose(response.amount, 45.0)
+    assert response.currency == TRANSACTION_CURRENCY
+    assert response.is_success
+    assert not response.action_required
+
+
+@pytest.mark.integration
+@pytest.mark.vcr(filter_headers=["authorization"])
+def test_confirm_error_response(stripe_payment, sandbox_gateway_config):
+    INVALID_INTENT = "THIS_INTENT_DOES_NOT_EXISTS"
+    payment_info = create_payment_information(stripe_payment, INVALID_INTENT)
+    response = confirm(payment_info, sandbox_gateway_config)
+
+    assert response.error == "No such payment_intent: " + INVALID_INTENT
+    assert response.transaction_id == INVALID_INTENT
+    assert response.kind == TransactionKind.CAPTURE
+    assert not response.is_success
+    assert response.amount == stripe_payment.total
+    assert response.currency == stripe_payment.currency
+
+
+@pytest.mark.integration
+@pytest.mark.vcr(filter_headers=["authorization"])
+def test_list_customer_sources(sandbox_gateway_config):
+    CUSTOMER_ID = "cus_FbquUfgBnLdlsY"  # retrieved from sandbox
+    expected_credit_card = CreditCardInfo(
+        last_4="0005", exp_year=2020, exp_month=8, name_on_card=None
+    )
+    expected_customer_source = CustomerSource(
+        id="pm_1F6dCWIUmJaD6OqvCtcAnPSq",
+        gateway="stripe",
+        credit_card_info=expected_credit_card,
+    )
+    sources = list_client_sources(sandbox_gateway_config, CUSTOMER_ID)
+    assert sources == [expected_customer_source]
