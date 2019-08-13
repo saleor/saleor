@@ -1,15 +1,13 @@
-from urllib.parse import urlparse
-
 import graphene
-from django.conf import settings
 from django.contrib.auth import password_validation
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
-from django.http.request import validate_host
 from graphql_jwt.exceptions import PermissionDenied
 
-from ....account import emails, events as account_events, models
+from ....account import events as account_events, models
+from ....account.emails import send_user_password_reset_email
+from ....core.utils.url import validate_storefront_url
 from ....dashboard.emails import send_set_password_customer_email
 from ...account.i18n import I18nMixin
 from ...account.types import Address, AddressInput, User
@@ -26,13 +24,6 @@ from ...core.mutations import (
 BILLING_ADDRESS_FIELD = "default_billing_address"
 SHIPPING_ADDRESS_FIELD = "default_shipping_address"
 INVALID_TOKEN = "Invalid or expired token."
-
-
-def send_user_password_reset_email(redirect_url, user):
-    token = default_token_generator.make_token(user)
-    emails.send_password_reset_email_with_url.delay(
-        redirect_url, user.email, token, user.pk
-    )
 
 
 def can_edit_address(user, address):
@@ -101,8 +92,8 @@ class RequestPasswordReset(BaseMutation):
         redirect_url = graphene.String(
             required=True,
             description=(
-                "Url of storefront view which allow user reset password, "
-                "sent by email. Url in RFC 1808 format.",
+                "URL of a view where users should be redirected to "
+                "reset the password. URL in RFC 1808 format.",
             ),
         )
 
@@ -113,15 +104,8 @@ class RequestPasswordReset(BaseMutation):
     def perform_mutation(cls, _root, info, **data):
         email = data["email"]
         redirect_url = data["redirect_url"]
+        validate_storefront_url(redirect_url)
 
-        parsed_url = urlparse(redirect_url)
-        if not validate_host(parsed_url.netloc, settings.ALLOWED_STOREFRONT_HOSTS):
-            raise ValidationError(
-                {
-                    "redirectUrl": "%s this is not valid storefront address."
-                    % parsed_url.netloc
-                }
-            )
         try:
             user = models.User.objects.get(email=email)
         except ObjectDoesNotExist:
