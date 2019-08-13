@@ -69,6 +69,24 @@ def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
     )
 
 
+def confirm(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
+    """Perform confirm transaction."""
+    error = None
+    success = dummy_success()
+    if not success:
+        error = "Unable to process capture"
+
+    return GatewayResponse(
+        is_success=success,
+        action_required=False,
+        kind=TransactionKind.CAPTURE,
+        amount=payment_information.amount,
+        currency=payment_information.currency,
+        transaction_id=payment_information.token,
+        error=error,
+    )
+
+
 def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     error = None
     success = dummy_success()

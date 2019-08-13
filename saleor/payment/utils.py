@@ -374,7 +374,7 @@ def validate_gateway_response(response: GatewayResponse):
 def _gateway_postprocess(transaction, payment):
     transaction_kind = transaction.kind
 
-    if transaction_kind == TransactionKind.CAPTURE:
+    if transaction_kind in {TransactionKind.CAPTURE, TransactionKind.CONFIRM}:
         payment.captured_amount += transaction.amount
 
         # Set payment charge status to fully charged
@@ -401,6 +401,15 @@ def _gateway_postprocess(transaction, payment):
             payment.is_active = False
         changed_fields += ["charge_status", "is_active"]
         payment.save(update_fields=changed_fields)
+    elif transaction_kind == TransactionKind.CONFIRM:
+        payment.captured_amount += transaction.amount
+        payment.charge_status = ChargeStatus.PARTIALLY_CHARGED
+        if payment.get_charge_amount() <= 0:
+            payment.charge_status = ChargeStatus.FULLY_CHARGED
+        payment.save(update_fields=["charge_status", "captured_amount"])
+        order = payment.order
+        if order and order.is_fully_paid():
+            handle_fully_paid_order(order)
 
 
 @require_active_payment
@@ -475,6 +484,28 @@ def gateway_void(payment) -> Transaction:
 
     transaction = call_gateway(
         operation_type=OperationType.VOID, payment=payment, payment_token=payment_token
+    )
+
+    _gateway_postprocess(transaction, payment)
+    return transaction
+
+
+@require_active_payment
+def gateway_confirm(payment) -> Transaction:
+    if not payment.can_void():
+        raise PaymentError("Only pre-authorized transactions can be voided.")
+
+    auth_transaction = payment.transactions.filter(
+        kind=TransactionKind.AUTH, is_success=True
+    ).first()
+    if auth_transaction is None:
+        raise PaymentError("Cannot void unauthorized transaction")
+    payment_token = auth_transaction.token
+
+    transaction = call_gateway(
+        operation_type=OperationType.CONFIRM,
+        payment=payment,
+        payment_token=payment_token,
     )
 
     _gateway_postprocess(transaction, payment)

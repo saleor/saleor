@@ -64,6 +64,7 @@ class TransactionKind:
     CAPTURE = "capture"
     VOID = "void"
     REFUND = "refund"
+    CONFIRM = "confirm"
     # FIXME we could use another status like WAITING_FOR_AUTH for transactions
     # Which were authorized, but needs to be confirmed manually by staff
     # eg. Braintree with "submit_for_settlement" enabled
@@ -72,6 +73,7 @@ class TransactionKind:
         (REFUND, pgettext_lazy("transaction kind", "Refund")),
         (CAPTURE, pgettext_lazy("transaction kind", "Capture")),
         (VOID, pgettext_lazy("transaction kind", "Void")),
+        (CONFIRM, pgettext_lazy("transaction kind", "Confirm")),
     ]
 
 

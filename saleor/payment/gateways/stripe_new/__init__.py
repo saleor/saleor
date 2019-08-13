@@ -89,12 +89,12 @@ def confirm(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
         intent.confirm()
         response = _success_response(
             intent=intent,
-            kind=TransactionKind.CAPTURE,
+            kind=TransactionKind.CONFIRM,
             success=intent.status == "succeeded",
         )
     except stripe.error.StripeError as exc:
         response = _error_response(
-            kind=TransactionKind.CAPTURE, exc=exc, payment_info=payment_information
+            kind=TransactionKind.CONFIRM, exc=exc, payment_info=payment_information
         )
     return response
 
