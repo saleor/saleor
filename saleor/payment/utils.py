@@ -58,6 +58,8 @@ def get_gateway_operation_func(gateway, operation_type):
         return gateway.void
     if operation_type == OperationType.REFUND:
         return gateway.refund
+    if operation_type == OperationType.CONFIRM:
+        return gateway.confirm
 
 
 def create_payment_information(
