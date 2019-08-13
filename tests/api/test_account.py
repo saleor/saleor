@@ -1344,7 +1344,7 @@ def test_staff_update_errors(staff_user, customer_user, admin_user):
 
 SET_PASSWORD_MUTATION = """
     mutation SetPassword($email: String!, $token: String!, $password: String!) {
-        setPassword(email: $email, input: {token: $token, password: $password}) {
+        setPassword(email: $email, token: $token, password: $password) {
             errors {
                 field
                 message
@@ -1352,6 +1352,7 @@ SET_PASSWORD_MUTATION = """
             user {
                 id
             }
+            token
         }
     }
 """
@@ -1366,6 +1367,7 @@ def test_set_password(user_api_client, customer_user):
     content = get_graphql_content(response)
     data = content["data"]["setPassword"]
     assert data["user"]["id"]
+    assert data["token"]
 
     customer_user.refresh_from_db()
     assert customer_user.check_password(password)
