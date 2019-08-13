@@ -16,6 +16,7 @@ from .utils import (
     get_amount_from_stripe,
     get_currency_for_stripe,
     get_currency_from_stripe,
+    shipping_to_stripe_dict,
 )
 
 
@@ -36,6 +37,11 @@ def authorize(
     stripe_amount = get_amount_for_stripe(payment_information.amount, currency)
     future_use = "off_session" if config.store_customer else "on_session"
     customer_id = PaymentData.customer_id if payment_information.reuse_source else None
+    shipping = (
+        shipping_to_stripe_dict(payment_information.shipping)
+        if payment_information.shipping
+        else None
+    )
 
     try:
         intent = client.PaymentIntent.create(
@@ -47,6 +53,7 @@ def authorize(
             capture_method=capture_method,
             setup_future_usage=future_use,
             customer=customer_id,
+            shipping=shipping,
         )
         if config.store_customer and not customer_id:
             customer = client.Customer.create(payment_method=intent.payment_method)
@@ -55,6 +62,7 @@ def authorize(
         response = _success_response(
             intent=intent, kind=kind, success=success, customer_id=customer_id
         )
+        response = fill_card_details(intent, response)
     except stripe.error.StripeError as exc:
         response = _error_response(kind=kind, exc=exc, payment_info=payment_information)
     return response
@@ -71,6 +79,7 @@ def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
             kind=TransactionKind.CAPTURE,
             success=capture.status in ("succeeded", "requires_action"),
         )
+        response = fill_card_details(intent, response)
     except stripe.error.StripeError as exc:
         action_required = intent.status == "requires_action" if intent else False
         response = _error_response(
@@ -219,3 +228,14 @@ def _success_response(
         raw_response=raw_response or intent,
         customer_id=customer_id,
     )
+
+
+def fill_card_details(intent: stripe.PaymentIntent, response: GatewayResponse):
+    card = intent.charges["data"][-1]["payment_method_details"]["card"]
+    response.card_info = CreditCardInfo(
+        last_4=card["last4"],
+        exp_year=card["exp_year"],
+        exp_month=card["exp_month"],
+        brand=card["brand"],
+    )
+    return response
