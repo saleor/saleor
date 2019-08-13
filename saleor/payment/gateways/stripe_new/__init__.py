@@ -31,6 +31,7 @@ def authorize(
 ) -> GatewayResponse:
     kind = TransactionKind.CAPTURE if config.auto_capture else TransactionKind.AUTH
     client = _get_client(**config.connection_params)
+    capture_method = "automatic" if config.auto_capture else "manual"
     currency = get_currency_for_stripe(payment_information.currency)
     stripe_amount = get_amount_for_stripe(payment_information.amount, currency)
     future_use = "off_session" if config.store_customer else "on_session"
@@ -43,37 +44,19 @@ def authorize(
             currency=currency,
             confirmation_method="manual",
             confirm=True,
-            capture_method="automatic" if config.auto_capture else "manual",
+            capture_method=capture_method,
             setup_future_usage=future_use,
             customer=customer_id,
         )
         if config.store_customer and not customer_id:
             customer = client.Customer.create(payment_method=intent.payment_method)
             customer_id = customer.id
-        response = GatewayResponse(
-            is_success=intent.status
-            in ("succeeded", "requires_capture", "requires_action"),
-            action_required=intent.status == "requires_action",
-            transaction_id=intent.id,
-            amount=get_amount_from_stripe(intent.amount, currency),
-            currency=get_currency_from_stripe(intent.currency),
-            error=None,
-            kind=kind,
-            raw_response=intent,
-            customer_id=customer_id,
+        success = intent.status in ("succeeded", "requires_capture", "requires_action")
+        response = _success_response(
+            intent=intent, kind=kind, success=success, customer_id=customer_id
         )
     except stripe.error.StripeError as exc:
-        response = GatewayResponse(
-            is_success=False,
-            action_required=False,
-            transaction_id=payment_information.token,
-            amount=payment_information.amount,
-            currency=payment_information.currency,
-            error=exc.user_message,
-            kind=kind,
-            raw_response=exc.json_body or {},
-            customer_id=customer_id,
-        )
+        response = _error_response(kind=kind, exc=exc, payment_info=payment_information)
     return response
 
 
@@ -83,29 +66,18 @@ def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
     try:
         intent = client.PaymentIntent.retrieve(id=payment_information.token)
         capture = intent.capture()
-        response = GatewayResponse(
-            is_success=capture.status in ("succeeded", "requires_action"),
-            action_required=False,
-            transaction_id=intent.id,
-            amount=get_amount_from_stripe(intent.amount, intent.currency),
-            currency=get_currency_from_stripe(intent.currency),
-            error=None,
+        response = _success_response(
+            intent=intent,
             kind=TransactionKind.CAPTURE,
-            raw_response=capture,
+            success=capture.status in ("succeeded", "requires_action"),
         )
     except stripe.error.StripeError as exc:
-        action_required = False
-        if intent:
-            action_required = intent.status == "requires_action"
-        response = GatewayResponse(
-            is_success=False,
-            action_required=action_required,
-            transaction_id=payment_information.token,
-            amount=payment_information.amount,
-            currency=payment_information.currency,
-            error=exc.user_message,
+        action_required = intent.status == "requires_action" if intent else False
+        response = _error_response(
             kind=TransactionKind.CAPTURE,
-            raw_response=exc.json_body or {},
+            exc=exc,
+            payment_info=payment_information,
+            action_required=action_required,
         )
     return response
 
@@ -115,26 +87,14 @@ def confirm(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
     try:
         intent = client.PaymentIntent(id=payment_information.token)
         intent.confirm()
-        response = GatewayResponse(
-            is_success=intent.status in ("succeeded"),
-            action_required=False,
-            transaction_id=intent.id,
-            amount=get_amount_from_stripe(intent.amount, intent.currency),
-            currency=get_currency_from_stripe(intent.currency),
-            error=None,
+        response = _success_response(
+            intent=intent,
             kind=TransactionKind.CAPTURE,
-            raw_response=capture,
+            success=intent.status == "succeeded",
         )
     except stripe.error.StripeError as exc:
-        response = GatewayResponse(
-            is_success=False,
-            action_required=False,
-            transaction_id=payment_information.token,
-            amount=payment_information.amount,
-            currency=payment_information.currency,
-            error=exc.user_message,
-            kind=TransactionKind.CAPTURE,
-            raw_response=exc.json_body or {},
+        response = _error_response(
+            kind=TransactionKind.CAPTURE, exc=exc, payment_info=payment_information
         )
     return response
 
@@ -146,26 +106,16 @@ def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayRe
     try:
         intent = client.PaymentIntent.retrieve(id=payment_information.token)
         refund = intent["charges"]["data"][0].refund(amount=stripe_amount)
-        response = GatewayResponse(
-            is_success=refund.status == "succeeded",
-            action_required=False,
-            transaction_id=intent.id,
+        response = _success_response(
+            intent=intent,
+            kind=TransactionKind.REFUND,
+            success=refund.status == "succeeded",
             amount=payment_information.amount,
             currency=get_currency_from_stripe(refund.currency),
-            error=None,
-            kind=TransactionKind.REFUND,
-            raw_response=refund,
         )
     except stripe.error.StripeError as exc:
-        response = GatewayResponse(
-            is_success=False,
-            action_required=False,
-            transaction_id=payment_information.token,
-            amount=payment_information.amount,
-            currency=payment_information.currency,
-            error=exc.user_message,
-            kind=TransactionKind.REFUND,
-            raw_response=exc.json_body or {},
+        response = _error_response(
+            kind=TransactionKind.REFUND, exc=exc, payment_info=payment_information
         )
     return response
 
@@ -175,26 +125,15 @@ def void(payment_information: PaymentData, config: GatewayConfig) -> GatewayResp
     try:
         intent = client.PaymentIntent.retrieve(id=payment_information.token)
         refund = intent["charges"]["data"][0].refund()
-        response = GatewayResponse(
-            is_success=refund.status == "succeeded",
-            action_required=False,
-            transaction_id=intent.id,
-            amount=get_amount_from_stripe(intent.amount, intent.currency),
-            currency=get_currency_from_stripe(refund.currency),
-            error=None,
+        response = _success_response(
+            intent=intent,
             kind=TransactionKind.VOID,
+            currency=get_currency_from_stripe(refund.currency),
             raw_response=refund,
         )
     except stripe.error.StripeError as exc:
-        response = GatewayResponse(
-            is_success=False,
-            action_required=False,
-            transaction_id=payment_information.token,
-            amount=payment_information.amount,
-            currency=payment_information.currency,
-            error=exc.user_message,
-            kind=TransactionKind.VOID,
-            raw_response=exc.json_body or {},
+        response = _error_response(
+            kind=TransactionKind.VOID, exc=exc, payment_info=payment_information
         )
     return response
 
@@ -238,3 +177,45 @@ def create_form(
 def _get_client(**connection_params):
     stripe.api_key = connection_params.get("secret_key")
     return stripe
+
+
+def _error_response(
+    kind: TransactionKind,
+    exc: Exception,
+    payment_info: PaymentData,
+    action_required: bool = False,
+) -> GatewayResponse:
+    return GatewayResponse(
+        is_success=False,
+        action_required=action_required,
+        transaction_id=payment_info.token,
+        amount=payment_info.amount,
+        currency=payment_info.currency,
+        error=exc.user_message,
+        kind=kind,
+        raw_response=exc.json_body or {},
+        customer_id=payment_info.customer_id,
+    )
+
+
+def _success_response(
+    intent: stripe.PaymentIntent,
+    kind: TransactionKind,
+    success: bool = True,
+    amount=None,
+    currency=None,
+    customer_id=None,
+    raw_response=None,
+):
+    currency = currency or get_currency_from_stripe(intent.currency)
+    return GatewayResponse(
+        is_success=success,
+        action_required=intent.status == "requires_action",
+        transaction_id=intent.id,
+        amount=amount or get_amount_from_stripe(intent.amount, currency),
+        currency=currency,
+        error=None,
+        kind=kind,
+        raw_response=raw_response or intent,
+        customer_id=customer_id,
+    )
