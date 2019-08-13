@@ -16,9 +16,11 @@ from ...account.types import Address, AddressInput, User
 from ...core.mutations import (
     BaseMutation,
     ClearMetaBaseMutation,
+    CreateToken,
     ModelDeleteMutation,
     ModelMutation,
     UpdateMetaBaseMutation,
+    validation_error_to_error_type,
 )
 
 BILLING_ADDRESS_FIELD = "default_billing_address"
@@ -46,22 +48,12 @@ def can_edit_address(user, address):
     )
 
 
-class SetPasswordInput(graphene.InputObjectType):
-    token = graphene.String(
-        description="A one-time token required to set the password.", required=True
-    )
-    password = graphene.String(description="Password", required=True)
-
-
-class SetPassword(BaseMutation):
+class SetPassword(CreateToken):
     user = graphene.Field(User, description="An user instance with new password.")
 
     class Arguments:
-        email = graphene.String(
-            required=True, description="Email of a user to set password whom."
-        )
-        input = SetPasswordInput(
-            description="Fields required to set password.", required=True
+        token = graphene.String(
+            description="A one-time token required to set the password.", required=True
         )
 
     class Meta:
@@ -71,11 +63,20 @@ class SetPassword(BaseMutation):
         )
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
+    def mutate(cls, root, info, **data):
         email = data["email"]
-        token = data["input"]["token"]
-        password = data["input"]["password"]
+        password = data["password"]
+        token = data["token"]
 
+        try:
+            cls._set_password_for_user(email, password, token)
+        except ValidationError as e:
+            errors = validation_error_to_error_type(e)
+            return cls(errors=errors)
+        return super().mutate(root, info, **data)
+
+    @classmethod
+    def _set_password_for_user(cls, email, password, token):
         try:
             user = models.User.objects.get(email=email)
         except ObjectDoesNotExist:
@@ -86,11 +87,9 @@ class SetPassword(BaseMutation):
             password_validation.validate_password(password, user)
         except ValidationError as error:
             raise ValidationError({"password": error.messages})
-
         user.set_password(password)
         user.save(update_fields=["password"])
         account_events.customer_password_reset_event(user=user)
-        return cls(user=user)
 
 
 class RequestPasswordReset(BaseMutation):
