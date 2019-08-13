@@ -8,6 +8,7 @@ from ...payment import PaymentError, models
 from ...payment.utils import (
     create_payment,
     gateway_capture,
+    gateway_confirm,
     gateway_refund,
     gateway_void,
 )
@@ -171,3 +172,24 @@ class PaymentVoid(BaseMutation):
         except PaymentError as e:
             raise ValidationError(str(e))
         return PaymentVoid(payment=payment)
+
+
+class PaymentSecureConfirm(BaseMutation):
+    payment = graphene.Field(Payment, description="Updated payment")
+
+    class Arguments:
+        payment_id = graphene.ID(required=True, description="Payment ID")
+
+    class Meta:
+        description = "Confirms payment in two step process like 3D secure"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, payment_id):
+        payment = cls.get_node_or_error(
+            info, payment_id, field="payment_id", only_type=Payment
+        )
+        try:
+            gateway_confirm(payment)
+        except PaymentError as e:
+            raise ValidationError(str(e))
+        return PaymentSecureConfirm(payment=payment)

@@ -188,7 +188,7 @@ def test_capture_3d_secure(stripe_payment, sandbox_gateway_config):
     PAYMENT_INTENT = "pi_1F6YmgIUmJaD6Oqv77HUh6qq"
     ERROR = (
         "This PaymentIntent could not be captured because it"
-        "has a status of requires_action."
+        " has a status of requires_action."
         " Only a PaymentIntent with one of the following "
         "statuses may be captured: requires_capture."
     )
@@ -301,7 +301,7 @@ def test_confirm__intent(stripe_payment, sandbox_gateway_config):
     payment_info = create_payment_information(stripe_payment, PAYMENT_INTENT)
     response = confirm(payment_info, sandbox_gateway_config)
     assert not response.error
-    assert response.kind == TransactionKind.CAPTURE
+    assert response.kind == TransactionKind.CONFIRM
     assert isclose(response.amount, 45.0)
     assert response.currency == TRANSACTION_CURRENCY
     assert response.is_success
@@ -317,7 +317,7 @@ def test_confirm_error_response(stripe_payment, sandbox_gateway_config):
 
     assert response.error == "No such payment_intent: " + INVALID_INTENT
     assert response.transaction_id == INVALID_INTENT
-    assert response.kind == TransactionKind.CAPTURE
+    assert response.kind == TransactionKind.CONFIRM
     assert not response.is_success
     assert response.amount == stripe_payment.total
     assert response.currency == stripe_payment.currency
