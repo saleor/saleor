@@ -10,6 +10,8 @@ from saleor.payment.gateways.stripe_new import (
     authorize,
     capture,
     confirm,
+    _get_client,
+    get_client_token,
     list_client_sources,
     refund,
     void,
@@ -342,3 +344,11 @@ def test_list_customer_sources(sandbox_gateway_config):
     )
     sources = list_client_sources(sandbox_gateway_config, CUSTOMER_ID)
     assert sources == [expected_customer_source]
+
+
+def test_get_client(gateway_config):
+    assert _get_client(**gateway_config.connection_params).api_key == "secret"
+
+
+def test_get_client_token():
+    assert get_client_token() is None
