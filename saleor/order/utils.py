@@ -111,17 +111,17 @@ def update_voucher_discount(func):
         if kwargs.pop("update_voucher_discount", True):
             order = args[0]
             try:
-                discount_amount = get_voucher_discount_for_order(order)
+                discount = get_voucher_discount_for_order(order)
             except NotApplicable:
-                discount_amount = zero_money()
-            order.discount_amount = discount_amount
+                discount = zero_money()
+            order.discount = discount
         return func(*args, **kwargs)
 
     return decorator
 
 
 @update_voucher_discount
-def recalculate_order(order, **kwargs):
+def recalculate_order(order: Order, **kwargs):
     """Recalculate and assign total price of order.
 
     Total price is a sum of items in order and order shipping price minus
@@ -135,9 +135,9 @@ def recalculate_order(order, **kwargs):
     prices = [line.get_total() for line in lines]
     total = sum(prices, order.shipping_price)
     # discount amount can't be greater than order total
-    order.discount_amount = min(order.discount_amount, total.gross)
-    if order.discount_amount:
-        total -= order.discount_amount
+    order.discount_amount = min(order.discount_amount, total.gross.amount)
+    if order.discount:
+        total -= order.discount
     order.total = total
     order.save()
     recalculate_order_weight(order)
@@ -157,11 +157,17 @@ def update_order_prices(order, discounts):
     """Update prices in order with given discounts and proper taxes."""
     manager = get_extensions_manager()
     for line in order:
-        if line.variant:
+        if line.variant:  # type: OrderLine
             unit_price = line.variant.get_price(discounts)
-            line.unit_price_net = unit_price
-            line.unit_price_gross = unit_price
-            line.save(update_fields=["unit_price_net", "unit_price_gross"])
+            unit_price = TaxedMoney(unit_price, unit_price)
+            line.unit_price = unit_price
+            line.save(
+                update_fields=[
+                    "currency",
+                    "unit_price_net_amount",
+                    "unit_price_gross_amount",
+                ]
+            )
 
             price = manager.calculate_order_line_unit(line)
             if price != line.unit_price:
@@ -282,6 +288,7 @@ def add_variant_to_order(
         line.save(update_fields=["quantity"])
     except OrderLine.DoesNotExist:
         unit_price = variant.get_price(discounts)
+        unit_price = TaxedMoney(net=unit_price, gross=unit_price)
         product_name = variant.display_product()
         translated_product_name = variant.display_product(translated=True)
         if translated_product_name == product_name:
@@ -292,16 +299,21 @@ def add_variant_to_order(
             product_sku=variant.sku,
             is_shipping_required=variant.is_shipping_required(),
             quantity=quantity,
-            unit_price_net=unit_price,
-            unit_price_gross=unit_price,
+            unit_price=unit_price,
             variant=variant,
         )
         manager = get_extensions_manager()
         unit_price = manager.calculate_order_line_unit(line)
-        line.unit_price_net = unit_price.net
-        line.unit_price_gross = unit_price.gross
+        line.unit_price = unit_price
         line.tax_rate = unit_price.tax / unit_price.net
-        line.save(update_fields=["unit_price_net", "unit_price_gross", "tax_rate"])
+        line.save(
+            update_fields=[
+                "currency",
+                "unit_price_net_amount",
+                "unit_price_gross_amount",
+                "tax_rate",
+            ]
+        )
 
     if variant.track_inventory and track_inventory:
         allocate_stock(variant, quantity)
@@ -320,9 +332,9 @@ def add_gift_card_to_order(order, gift_card, total_price_left):
             total_price_left = zero_money(total_price_left.currency)
         else:
             total_price_left = total_price_left - gift_card.current_balance
-            gift_card.current_balance = 0
+            gift_card.current_balance_amount = 0
         gift_card.last_used_on = timezone.now()
-        gift_card.save(update_fields=["current_balance", "last_used_on"])
+        gift_card.save(update_fields=["current_balance_amount", "last_used_on"])
     return total_price_left
 
 

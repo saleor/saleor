@@ -15,9 +15,11 @@ from ...product.tasks import update_products_minimal_variant_prices_of_discount_
 from ..forms import AjaxSelect2MultipleChoiceField
 
 MinAmountSpent = MoneyField(
-    min_value=zero_money(),
+    available_currencies=settings.AVAILABLE_CURRENCIES,
+    min_values=[zero_money()],
+    max_digits=settings.DEFAULT_MAX_DIGITS,
+    decimal_places=settings.DEFAULT_DECIMAL_PLACES,
     required=False,
-    currency=settings.DEFAULT_CURRENCY,
     label=pgettext_lazy(
         "Lowest value for order to be able to use the voucher",
         "Apply only if the purchase value is greater than or equal to",
@@ -87,12 +89,13 @@ class VoucherForm(forms.ModelForm):
     class Meta:
         model = Voucher
         exclude = [
-            "min_amount_spent",
+            "min_spent",
             "countries",
             "products",
             "collections",
             "categories",
             "used",
+            "currency",
         ]
         labels = {
             "type": pgettext_lazy("Discount type", "Discount type"),
@@ -121,8 +124,26 @@ class VoucherForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
 
-class ShippingVoucherForm(forms.ModelForm):
-    min_amount_spent = MinAmountSpent
+class MinSpentVoucherBaseForm(forms.ModelForm):
+    min_spent = MinAmountSpent
+
+    def __init__(self, *args, **kwargs):
+        instance = kwargs["instance"]
+        initial = kwargs.setdefault("initial", {})
+        if instance.min_spent:
+            initial.setdefault("min_spent", instance.min_spent)
+        super().__init__(*args, **kwargs)
+
+    def save(self, commit=True):
+        min_spent = self.cleaned_data["min_spent"]
+        if min_spent is not None:
+            if not min_spent.currency:
+                min_spent.currency = settings.DEFAULT_CURRENCY
+            self.instance.min_spent = min_spent
+        return super().save(commit=commit)
+
+
+class ShippingVoucherForm(MinSpentVoucherBaseForm):
     countries = forms.MultipleChoiceField(
         choices=countries,
         required=False,
@@ -134,15 +155,13 @@ class ShippingVoucherForm(forms.ModelForm):
 
     class Meta:
         model = Voucher
-        fields = ["countries", "min_amount_spent", "min_checkout_items_quantity"]
+        fields = ["countries", "min_checkout_items_quantity"]
 
 
-class EntireOrderVoucherForm(forms.ModelForm):
-    min_amount_spent = MinAmountSpent
-
+class EntireOrderVoucherForm(MinSpentVoucherBaseForm):
     class Meta:
         model = Voucher
-        fields = ["min_amount_spent", "min_checkout_items_quantity"]
+        fields = ["min_spent", "min_checkout_items_quantity"]
 
     def save(self, commit=True):
         self.instance.category = None
@@ -151,9 +170,8 @@ class EntireOrderVoucherForm(forms.ModelForm):
         return super().save(commit)
 
 
-class CommonVoucherForm(forms.ModelForm):
+class CommonVoucherForm(MinSpentVoucherBaseForm):
     use_required_attribute = False
-    min_amount_spent = MinAmountSpent
     apply_once_per_order = forms.BooleanField(
         required=False,
         label=pgettext_lazy(
@@ -192,7 +210,6 @@ class SpecificProductVoucherForm(CommonVoucherForm):
             "collections",
             "categories",
             "apply_once_per_order",
-            "min_amount_spent",
             "min_checkout_items_quantity",
         ]
         labels = {
@@ -219,12 +236,7 @@ class ProductVoucherForm(CommonVoucherForm):
 
     class Meta:
         model = Voucher
-        fields = [
-            "products",
-            "apply_once_per_order",
-            "min_amount_spent",
-            "min_checkout_items_quantity",
-        ]
+        fields = ["products", "apply_once_per_order", "min_checkout_items_quantity"]
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -235,12 +247,7 @@ class ProductVoucherForm(CommonVoucherForm):
 class CollectionVoucherForm(CommonVoucherForm):
     class Meta:
         model = Voucher
-        fields = [
-            "collections",
-            "apply_once_per_order",
-            "min_amount_spent",
-            "min_checkout_items_quantity",
-        ]
+        fields = ["collections", "apply_once_per_order", "min_checkout_items_quantity"]
         labels = {"collections": pgettext_lazy("Collections", "Collections")}
 
     def __init__(self, *args, **kwargs):
@@ -257,9 +264,4 @@ class CategoryVoucherForm(CommonVoucherForm):
 
     class Meta:
         model = Voucher
-        fields = [
-            "categories",
-            "apply_once_per_order",
-            "min_amount_spent",
-            "min_checkout_items_quantity",
-        ]
+        fields = ["categories", "apply_once_per_order", "min_checkout_items_quantity"]

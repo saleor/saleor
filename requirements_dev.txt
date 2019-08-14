@@ -27,7 +27,7 @@ idna==2.8
 importlib-metadata==0.19
 isort==4.3.21
 jinja2==2.10.1
-lazy-object-proxy==1.4.1
+lazy-object-proxy==1.4.2
 markupsafe==1.1.1
 mccabe==0.6.1
 more-itertools==7.2.0
@@ -52,7 +52,7 @@ pytest-forked==1.0.2
 pytest-mock==1.10.4
 pytest-vcr==1.0.2
 pytest-xdist==1.29.0
-pytest==5.1.0
+pytest==5.1.1
 python-slugify==1.2.6
 pytz==2019.2
 pyyaml==5.1.2

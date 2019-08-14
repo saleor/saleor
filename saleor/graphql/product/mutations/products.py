@@ -439,8 +439,7 @@ class ProductInput(graphene.InputObjectType):
     )
     base_price = Decimal(description="Product price.")
     tax_rate = TaxRateType(
-        description="Tax rate.",
-        deprecation_reason=("taxRate is deprecated, Use taxCode"),
+        description="Tax rate.", deprecation_reason="taxRate is deprecated, Use taxCode"
     )
     tax_code = graphene.String(description="Tax rate for enabled tax gateway")
     seo = SeoInput(description="Search engine optimization fields.")
@@ -498,10 +497,10 @@ class ProductCreate(ModelMutation):
         # from the schema, only "basePrice" should be used here.
         price = data.get("base_price", data.get("price"))
         if price is not None:
-            cleaned_input["price"] = price
-            if instance.minimal_variant_price is None:
+            cleaned_input["price_amount"] = price
+            if instance.minimal_variant_price_amount is None:
                 # Set the default "minimal_variant_price" to the "price"
-                cleaned_input["minimal_variant_price"] = price
+                cleaned_input["minimal_variant_price_amount"] = price
 
         # FIXME  tax_rate logic should be dropped after we remove tax_rate from input
         tax_rate = cleaned_input.pop("tax_rate", "")
@@ -657,8 +656,21 @@ class ProductVariantInput(graphene.InputObjectType):
         required=False,
         description="List of attributes specific to this variant.",
     )
-    cost_price = Decimal(description="Cost price of the variant.")
-    price_override = Decimal(description="Special price of the particular variant.")
+    cost_price = Decimal(
+        description=(
+            "Deprecated: use costPriceAmount instead.\n" "Cost price of the variant."
+        )
+    )
+    cost_price_amount = Decimal(description="Cost price of the variant.")
+    price_override = Decimal(
+        description=(
+            "Deprecated: use priceOverrideAmount instead.\n"
+            "Special price of the particular variant."
+        )
+    )
+    price_override_amount = Decimal(
+        description="Special price of the particular variant."
+    )
     sku = graphene.String(description="Stock keeping unit.")
     quantity = graphene.Int(
         description="The total quantity of this variant available for sale."
@@ -728,6 +740,15 @@ class ProductVariantCreate(ModelMutation):
 
     @classmethod
     def clean_input(cls, info, instance, data):
+
+        cost_price_amount = data.pop("cost_price", None)
+        if cost_price_amount is not None:
+            data["cost_price_amount"] = cost_price_amount
+
+        price_override_amount = data.pop("price_override", None)
+        if price_override_amount is not None:
+            data["price_override_amount"] = price_override_amount
+
         cleaned_input = super().clean_input(info, instance, data)
 
         # Attributes are provided as list of `AttributeValueInput` objects.
@@ -747,6 +768,7 @@ class ProductVariantCreate(ModelMutation):
                 raise ValidationError({"attributes": str(e)})
             else:
                 cleaned_input["attributes"] = attributes
+
         return cleaned_input
 
     @classmethod
