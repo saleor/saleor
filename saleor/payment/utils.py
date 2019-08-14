@@ -346,6 +346,8 @@ def call_gateway(operation_type, payment, payment_token, **extra_params):
         # Attempt to get errors from response, if none raise a generic one
         raise PaymentError(payment_transaction.error or GENERIC_TRANSACTION_ERROR)
 
+    if gateway_response.card_info:
+        update_card_details(payment, gateway_response)
     return payment_transaction
 
 
@@ -401,15 +403,6 @@ def _gateway_postprocess(transaction, payment):
             payment.is_active = False
         changed_fields += ["charge_status", "is_active"]
         payment.save(update_fields=changed_fields)
-    elif transaction_kind == TransactionKind.CONFIRM:
-        payment.captured_amount += transaction.amount
-        payment.charge_status = ChargeStatus.PARTIALLY_CHARGED
-        if payment.get_charge_amount() <= 0:
-            payment.charge_status = ChargeStatus.FULLY_CHARGED
-        payment.save(update_fields=["charge_status", "captured_amount"])
-        order = payment.order
-        if order and order.is_fully_paid():
-            handle_fully_paid_order(order)
 
 
 @require_active_payment
@@ -575,3 +568,13 @@ def retrieve_customer_sources(gateway_name, customer_id):
     """Fetch all customer payment sources stored in gateway."""
     gateway, config = get_payment_gateway(gateway_name)
     return gateway.list_client_sources(config, customer_id)
+
+
+def update_card_details(payment, gateway_response):
+    payment.cc_brand = gateway_response.card_info.brand or ""
+    payment.cc_last_digits = gateway_response.card_info.last_4
+    payment.cc_exp_year = gateway_response.card_info.exp_year
+    payment.cc_exp_month = gateway_response.card_info.exp_month
+    payment.save(
+        update_fields=["cc_brand", "cc_last_digits", "cc_exp_year", "cc_exp_month"]
+    )
