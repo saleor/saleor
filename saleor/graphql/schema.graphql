@@ -228,6 +228,7 @@ input AttributeFilterInput {
   filterableInDashboard: Boolean
   availableInGrid: Boolean
   search: String
+  ids: [ID]
 }
 
 input AttributeInput {
