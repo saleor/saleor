@@ -2449,3 +2449,50 @@ def test_product_type_filter_unassigned_attributes(
 
     _, attribute_id = graphene.Node.from_global_id(found_attributes[0]["node"]["id"])
     assert attribute_id == str(expected_attribute.pk)
+
+
+QUERY_FILTER_PRODUCT_TYPES = """
+    query($filters: ProductTypeFilterInput) {
+      productTypes(first: 10, filter: $filters) {
+        edges {
+          node {
+            name
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "search, expected_names",
+    (
+        ("", ["The best juices", "The best beers", "The worst beers"]),
+        ("best", ["The best juices", "The best beers"]),
+        ("worst", ["The worst beers"]),
+        ("average", []),
+    ),
+)
+def test_filter_product_types_by_custom_search_value(
+    api_client, search, expected_names
+):
+    query = QUERY_FILTER_PRODUCT_TYPES
+
+    ProductType.objects.bulk_create(
+        [
+            ProductType(name="The best juices"),
+            ProductType(name="The best beers"),
+            ProductType(name="The worst beers"),
+        ]
+    )
+
+    variables = {"filters": {"search": search}}
+
+    results = get_graphql_content(api_client.post_graphql(query, variables))["data"][
+        "productTypes"
+    ]["edges"]
+
+    assert len(results) == len(expected_names)
+    matched_names = sorted([result["node"]["name"] for result in results])
+
+    assert matched_names == sorted(expected_names)
