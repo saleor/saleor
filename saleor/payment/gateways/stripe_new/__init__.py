@@ -101,6 +101,7 @@ def confirm(payment_information: PaymentData, config: GatewayConfig) -> GatewayR
             kind=TransactionKind.CONFIRM,
             success=intent.status == "succeeded",
         )
+        response = fill_card_details(intent, response)
     except stripe.error.StripeError as exc:
         response = _error_response(
             kind=TransactionKind.CONFIRM, exc=exc, payment_info=payment_information
@@ -231,6 +232,10 @@ def _success_response(
 
 
 def fill_card_details(intent: stripe.PaymentIntent, response: GatewayResponse):
+    charges = intent.charges["data"]
+    if not charges:
+        return response
+
     card = intent.charges["data"][-1]["payment_method_details"]["card"]
     response.card_info = CreditCardInfo(
         last_4=card["last4"],

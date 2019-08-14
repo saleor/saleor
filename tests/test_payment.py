@@ -13,7 +13,12 @@ from saleor.payment import (
     TransactionKind,
     get_payment_gateway,
 )
-from saleor.payment.interface import GatewayConfig, GatewayResponse, TokenConfig
+from saleor.payment.interface import (
+    GatewayConfig,
+    GatewayResponse,
+    TokenConfig,
+    CreditCardInfo,
+)
 from saleor.payment.models import Payment
 from saleor.payment.utils import (
     ALLOWED_GATEWAY_KINDS,
@@ -41,7 +46,14 @@ EXAMPLE_ERROR = "Example dummy error"
 
 
 @pytest.fixture
-def gateway_response(settings):
+def card_details():
+    return CreditCardInfo(
+        last_4="1234", exp_year=2020, exp_month=8, brand="visa", name_on_card="Joe Doe"
+    )
+
+
+@pytest.fixture
+def gateway_response(settings, card_details):
     return GatewayResponse(
         is_success=True,
         action_required=False,
@@ -54,6 +66,7 @@ def gateway_response(settings):
             "credit_card_four": "1234",
             "transaction-id": "transaction-token",
         },
+        card_info=card_details,
     )
 
 
@@ -85,7 +98,7 @@ def transaction_token():
 
 
 @pytest.fixture
-def dummy_response(payment_dummy, transaction_data, transaction_token):
+def dummy_response(payment_dummy, transaction_data, transaction_token, card_details):
     return GatewayResponse(
         is_success=True,
         action_required=False,
@@ -95,6 +108,7 @@ def dummy_response(payment_dummy, transaction_data, transaction_token):
         currency=payment_dummy.currency,
         kind=TransactionKind.AUTH,
         raw_response=None,
+        card_info=card_details,
     )
 
 
@@ -360,6 +374,10 @@ def test_gateway_capture(
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.captured_amount == payment.total
+    assert payment.cc_brand == dummy_response.card_info.brand
+    assert payment.cc_exp_month == dummy_response.card_info.exp_month
+    assert payment.cc_exp_year == dummy_response.card_info.exp_year
+    assert payment.cc_last_digits == dummy_response.card_info.last_4
     mock_handle_fully_paid_order.assert_called_once_with(payment.order)
 
 

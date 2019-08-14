@@ -27,7 +27,7 @@ CARD_SIMPLE_DETAILS = CreditCardInfo(
 PAYMENT_METHOD_CARD_3D_SECURE = "pm_card_threeDSecure2Required"
 
 # Set to True if recording new cassette with sandbox using credentials in env
-RECORD = True
+RECORD = False
 
 
 @pytest.fixture()
