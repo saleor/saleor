@@ -83,10 +83,11 @@ class BaseDiscountCatalogueMutation(BaseMutation):
 class VoucherInput(graphene.InputObjectType):
     type = VoucherTypeEnum(
         description=(
-            "Voucher type: PRODUCT, CATEGORY SHIPPING or ENTIRE_ORDER. "
-            "Deprecated fields: "
-            "PRODUCT, COLLECTION, CATEGORY use SPECIFIC_PRODUCT instead. "
-            "VALUE use ENTIRE_ORDER instead."
+            "Voucher type: PRODUCT, CATEGORY SHIPPING or ENTIRE_ORDER.\n"
+            "Deprecated fields:\n"
+            "\t1. PRODUCT, COLLECTION, CATEGORY use SPECIFIC_PRODUCT instead. "
+            "VALUE use ENTIRE_ORDER instead.\n"
+            "\t2. minAmountSpent use minSpentAmount instead"
         )
     )
     name = graphene.String(description="Voucher name.")
@@ -115,6 +116,12 @@ class VoucherInput(graphene.InputObjectType):
         name="categories",
     )
     min_amount_spent = Decimal(
+        description=(
+            "Deprecated: use minSpentAmount instead."
+            "Min purchase amount required to apply the voucher."
+        )
+    )
+    min_spent_amount = Decimal(
         description="Min purchase amount required to apply the voucher."
     )
     min_checkout_items_quantity = graphene.Int(
@@ -156,6 +163,11 @@ class VoucherCreate(ModelMutation):
         voucher_type = data.get("type", None)
         if voucher_type == VoucherTypeEnum.VALUE:
             data["type"] = VoucherTypeEnum.ENTIRE_ORDER.value
+
+        min_spent_amount = data.pop("min_amount_spent", None)
+        if min_spent_amount is not None:
+            data["min_spent_amount"] = min_spent_amount
+
         cleaned_input = super().clean_input(info, instance, data)
         return cleaned_input
 

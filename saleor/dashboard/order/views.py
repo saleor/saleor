@@ -10,7 +10,7 @@ from django.template.context_processors import csrf
 from django.template.response import TemplateResponse
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django.views.decorators.http import require_POST
-from django_prices.templatetags import prices_i18n
+from django_prices.templatetags import prices
 
 from ...core.exceptions import InsufficientStock
 from ...core.utils import get_paginator_items
@@ -189,7 +189,7 @@ def capture_payment(request, order_pk, payment_pk):
     if form.is_valid() and form.capture(request.user):
         msg = pgettext_lazy(
             "Dashboard message related to a payment", "Captured %(amount)s"
-        ) % {"amount": prices_i18n.amount(amount)}
+        ) % {"amount": prices.amount(amount)}
         events.payment_captured_event(
             order=order, user=request.user, amount=amount.amount, payment=payment
         )
@@ -216,7 +216,7 @@ def refund_payment(request, order_pk, payment_pk):
         amount = form.cleaned_data["amount"]
         msg = pgettext_lazy(
             "Dashboard message related to a payment", "Refunded %(amount)s"
-        ) % {"amount": prices_i18n.amount(payment.get_captured_amount())}
+        ) % {"amount": prices.amount(payment.get_captured_amount())}
         events.payment_refunded_event(
             order=order, user=request.user, amount=amount, payment=payment
         )
@@ -733,7 +733,7 @@ def change_fulfillment_tracking(request, order_pk, fulfillment_pk):
 def ajax_order_shipping_methods_list(request, order_pk):
     order = get_object_or_404(Order, pk=order_pk)
     queryset = ShippingMethod.objects.prefetch_related("shipping_zone").order_by(
-        "name", "price"
+        "name", "price_amount"
     )
 
     if order.shipping_address:

@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock, Mock
 
 import pytest
+from prices import Money
 
 from saleor.product.models import Attribute, AttributeValue, Product, ProductType
 from saleor.product.tasks import _update_variants_names
@@ -14,7 +15,10 @@ from saleor.product.utils.attributes import (
 @pytest.fixture()
 def product_with_no_attributes(product_type, category):
     product = Product.objects.create(
-        name="Test product", price="10.00", product_type=product_type, category=category
+        name="Test product",
+        price=Money(10, "USD"),
+        product_type=product_type,
+        category=category,
     )
     return product
 

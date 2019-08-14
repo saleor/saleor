@@ -157,7 +157,7 @@ class AvataxPlugin(BasePlugin):
         total_gross = Money(amount=total_net + tax, currency=currency)
         total_net = Money(amount=total_net, currency=currency)
         total = TaxedMoney(net=total_net, gross=total_gross)
-        voucher_amount = checkout.discount_amount
+        voucher_amount = checkout.discount
         if voucher_amount:
             total -= voucher_amount
         return max(total, zero_taxed_money(total.currency))

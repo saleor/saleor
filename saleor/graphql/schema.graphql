@@ -519,7 +519,8 @@ type Checkout implements Node {
   shippingAddress: Address
   shippingMethod: ShippingMethod
   note: String!
-  discountAmount: Money
+  discountAmount: Money @deprecated(reason: "Use discount instead.")
+  discount: Money
   discountName: String
   translatedDiscountName: String
   voucherCode: String
@@ -2014,12 +2015,12 @@ type Order implements Node {
   billingAddress: Address
   shippingAddress: Address
   shippingMethod: ShippingMethod
-  shippingPrice: TaxedMoney
   shippingMethodName: String
+  shippingPrice: TaxedMoney
   token: String!
   voucher: Voucher
   giftCards: [GiftCard]
-  discountAmount: Money
+  discount: Money
   discountName: String!
   translatedDiscountName: String!
   displayGrossPrices: Boolean!
@@ -2044,6 +2045,7 @@ type Order implements Node {
   totalBalance: Money!
   userEmail: String
   isShippingRequired: Boolean!
+  discountAmount: Money!
 }
 
 enum OrderAction {
@@ -2877,7 +2879,9 @@ type ProductVariantCreate {
 input ProductVariantCreateInput {
   attributes: [AttributeValueInput]!
   costPrice: Decimal
+  costPriceAmount: Decimal
   priceOverride: Decimal
+  priceOverrideAmount: Decimal
   sku: String
   quantity: Int
   trackInventory: Boolean
@@ -2893,7 +2897,9 @@ type ProductVariantDelete {
 input ProductVariantInput {
   attributes: [AttributeValueInput]
   costPrice: Decimal
+  costPriceAmount: Decimal
   priceOverride: Decimal
+  priceOverrideAmount: Decimal
   sku: String
   quantity: Int
   trackInventory: Boolean
@@ -3154,8 +3160,11 @@ type ShippingPriceDelete {
 input ShippingPriceInput {
   name: String
   price: Decimal
+  priceAmount: Decimal
   minimumOrderPrice: Decimal
+  minimumOrderPriceAmount: Decimal
   maximumOrderPrice: Decimal
+  maximumOrderPriceAmount: Decimal
   minimumOrderWeight: WeightScalar
   maximumOrderWeight: WeightScalar
   type: ShippingMethodTypeEnum
@@ -3605,13 +3614,14 @@ type Voucher implements Node {
   applyOncePerCustomer: Boolean!
   discountValueType: DiscountValueTypeEnum!
   discountValue: Float!
-  minAmountSpent: Money
+  minSpent: Money
   minCheckoutItemsQuantity: Int
   categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   countries: [CountryDisplay]
   translation(languageCode: LanguageCodeEnum!): VoucherTranslation
+  minAmountSpent: Money @deprecated(reason: "Use the minAmount field instead.")
 }
 
 type VoucherAddCatalogues {
@@ -3671,6 +3681,7 @@ input VoucherInput {
   collections: [ID]
   categories: [ID]
   minAmountSpent: Decimal
+  minSpentAmount: Decimal
   minCheckoutItemsQuantity: Int
   countries: [String]
   applyOncePerOrder: Boolean

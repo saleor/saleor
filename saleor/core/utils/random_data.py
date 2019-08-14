@@ -14,12 +14,11 @@ from django.utils import timezone
 from faker import Factory
 from faker.providers import BaseProvider
 from measurement.measures import Weight
-from prices import Money
+from prices import Money, TaxedMoney
 
 from ...account.models import Address, User
 from ...account.utils import store_user_address
 from ...checkout import AddressType
-from ...core.utils.json_serializer import object_hook
 from ...core.weight import zero_weight
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
@@ -190,13 +189,12 @@ def create_products(products_data, placeholder_dir, create_images):
         # We are skipping products without images
         if pk not in IMAGES_MAPPING:
             continue
+
         defaults = product["fields"]
+        set_field_as_money(defaults, "price")
         defaults["weight"] = get_weight(defaults["weight"])
         defaults["category_id"] = defaults.pop("category")
         defaults["product_type_id"] = defaults.pop("product_type")
-        defaults["price"] = get_in_default_currency(
-            defaults, "price", settings.DEFAULT_CURRENCY
-        )
         defaults["attributes"] = json.loads(defaults["attributes"])
         product, _ = Product.objects.update_or_create(pk=pk, defaults=defaults)
 
@@ -217,19 +215,15 @@ def create_product_variants(variants_data):
             continue
         defaults["product_id"] = product_id
         defaults["attributes"] = json.loads(defaults["attributes"])
-        defaults["price_override"] = get_in_default_currency(
-            defaults, "price_override", settings.DEFAULT_CURRENCY
-        )
-        defaults["cost_price"] = get_in_default_currency(
-            defaults, "cost_price", settings.DEFAULT_CURRENCY
-        )
+        set_field_as_money(defaults, "price_override")
+        set_field_as_money(defaults, "cost_price")
         ProductVariant.objects.update_or_create(pk=pk, defaults=defaults)
 
 
-def get_in_default_currency(defaults, field, currency):
-    if field in defaults and defaults[field] is not None:
-        return Money(defaults[field].amount, currency)
-    return None
+def set_field_as_money(defaults, field):
+    amount_field = f"{field}_amount"
+    if amount_field in defaults and defaults[amount_field] is not None:
+        defaults[field] = Money(defaults[amount_field], settings.DEFAULT_CURRENCY)
 
 
 def create_products_by_schema(placeholder_dir, create_images):
@@ -237,7 +231,7 @@ def create_products_by_schema(placeholder_dir, create_images):
         settings.PROJECT_ROOT, "saleor", "static", "populatedb_data.json"
     )
     with open(path) as f:
-        db_items = json.load(f, object_hook=object_hook)
+        db_items = json.load(f)
     types = defaultdict(list)
     # Sort db objects by its model
     for item in db_items:
@@ -369,6 +363,7 @@ def create_order_lines(order, discounts, how_many=10):
         variant.quantity += quantity
         variant.quantity_allocated += quantity
         unit_price = variant.get_price(discounts)
+        unit_price = TaxedMoney(net=unit_price, gross=unit_price)
         lines.append(
             OrderLine(
                 order=order,
@@ -377,8 +372,7 @@ def create_order_lines(order, discounts, how_many=10):
                 is_shipping_required=variant.is_shipping_required(),
                 quantity=quantity,
                 variant=variant,
-                unit_price_net=unit_price,
-                unit_price_gross=unit_price,
+                unit_price=unit_price,
                 tax_rate=0,
             )
         )
@@ -387,11 +381,11 @@ def create_order_lines(order, discounts, how_many=10):
     manager = get_extensions_manager()
     for line in lines:
         unit_price = manager.calculate_order_line_unit(line)
-        line.unit_price_net = unit_price.net
-        line.unit_price_gross = unit_price.gross
+        line.unit_price = unit_price
         line.tax_rate = unit_price.tax / unit_price.net
     OrderLine.objects.bulk_update(
-        lines, ["unit_price_net", "unit_price_gross", "tax_rate"]
+        lines,
+        ["unit_price_net_amount", "unit_price_gross_amount", "currency", "tax_rate"],
     )
     return lines
 
@@ -495,8 +489,8 @@ def create_shipping_zone(shipping_methods_names, countries, shipping_zone_name):
                     if random.randint(0, 1)
                     else ShippingMethodType.WEIGHT_BASED
                 ),
-                minimum_order_price=0,
-                maximum_order_price=None,
+                minimum_order_price=Money(0, settings.DEFAULT_CURRENCY),
+                maximum_order_price_amount=None,
                 minimum_order_weight=0,
                 maximum_order_weight=None,
             )
@@ -819,7 +813,7 @@ def create_vouchers():
             "name": "Big order discount",
             "discount_value_type": DiscountValueType.FIXED,
             "discount_value": 25,
-            "min_amount_spent": 200,
+            "min_spent": Money(200, settings.DEFAULT_CURRENCY),
         },
     )
     if created:
@@ -834,7 +828,11 @@ def create_gift_card():
     )
     gift_card, created = GiftCard.objects.get_or_create(
         code="Gift_card_10",
-        defaults={"user": user, "initial_balance": 10, "current_balance": 10},
+        defaults={
+            "user": user,
+            "initial_balance": Money(10, settings.DEFAULT_CURRENCY),
+            "current_balance": Money(10, settings.DEFAULT_CURRENCY),
+        },
     )
     if created:
         yield "Gift card #%d" % gift_card.id

@@ -11,11 +11,29 @@ from .types import ShippingMethod, ShippingZone
 
 class ShippingPriceInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the shipping method.")
-    price = Decimal(description="Shipping price of the shipping method.")
+    price = Decimal(
+        description=(
+            "Deprecated: use priceAmount instead.\n"
+            "Shipping price of the shipping method."
+        )
+    )
+    price_amount = Decimal(description="Shipping price of the shipping method.")
     minimum_order_price = Decimal(
+        description=(
+            "deprecated: use minimumOrderPriceAmount instead.\n"
+            "Minimum order price to use this shipping method"
+        )
+    )
+    minimum_order_price_amount = Decimal(
         description="Minimum order price to use this shipping method"
     )
     maximum_order_price = Decimal(
+        description=(
+            "deprecated: use maximumOrderPriceAmount instead.\n"
+            "Maximum order price to use this shipping method"
+        )
+    )
+    maximum_order_price_amount = Decimal(
         description="Maximum order price to use this shipping method"
     )
     minimum_order_weight = WeightScalar(
@@ -103,12 +121,28 @@ class ShippingZoneDelete(ModelDeleteMutation):
 class ShippingPriceMixin:
     @classmethod
     def clean_input(cls, info, instance, data):
+        price_amount = data.pop("price", None)
+        if price_amount is not None:
+            data["price_amount"] = price_amount
+
         cleaned_input = super().clean_input(info, instance, data)
+
         cleaned_type = cleaned_input.get("type")
         if cleaned_type:
             if cleaned_type == ShippingMethodTypeEnum.PRICE.value:
-                min_price = cleaned_input.get("minimum_order_price")
-                max_price = cleaned_input.get("maximum_order_price")
+                min_price = cleaned_input.pop("minimum_order_price", None)
+                max_price = cleaned_input.pop("maximum_order_price", None)
+
+                if min_price is not None:
+                    cleaned_input["minimum_order_price_amount"] = min_price
+                else:
+                    min_price = cleaned_input.get("minimum_order_price_amount")
+
+                if max_price is not None:
+                    cleaned_input["maximum_order_price_amount"] = max_price
+                else:
+                    max_price = cleaned_input.get("maximum_order_price_amount")
+
                 if (
                     min_price is not None
                     and max_price is not None

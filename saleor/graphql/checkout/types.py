@@ -9,7 +9,7 @@ from ...core.taxes import zero_taxed_money
 from ..core.connection import CountableDjangoObjectType
 from ..core.resolvers import resolve_meta, resolve_private_meta
 from ..core.types.meta import MetadataObjectType
-from ..core.types.money import TaxedMoney
+from ..core.types.money import Money, TaxedMoney
 from ..giftcard.types import GiftCard
 from ..payment.enums import PaymentGatewayEnum
 from ..shipping.types import ShippingMethod
@@ -88,6 +88,7 @@ class Checkout(MetadataObjectType, CountableDjangoObjectType):
             "shipping costs, and discounts included."
         ),
     )
+    discount_amount = graphene.Field(Money, deprecation_reason="Use discount instead.")
 
     class Meta:
         only_fields = [
@@ -106,6 +107,7 @@ class Checkout(MetadataObjectType, CountableDjangoObjectType):
             "translated_discount_name",
             "user",
             "voucher_code",
+            "discount",
         ]
         description = "Checkout object"
         model = models.Checkout
@@ -165,9 +167,13 @@ class Checkout(MetadataObjectType, CountableDjangoObjectType):
 
     @staticmethod
     @permission_required("order.manage_orders")
-    def resolve_private_meta(root, _info):
+    def resolve_private_meta(root: models.Checkout, _info):
         return resolve_private_meta(root, _info)
 
     @staticmethod
-    def resolve_meta(root, _info):
+    def resolve_meta(root: models.Checkout, _info):
         return resolve_meta(root, _info)
+
+    @staticmethod
+    def resolve_discount_amount(root: models.Checkout, _info):
+        return root.discount

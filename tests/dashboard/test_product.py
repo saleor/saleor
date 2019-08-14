@@ -218,7 +218,8 @@ def test_view_product_create(admin_client, product_type, category):
     data = {
         "name": "Product",
         "description": "This is product description.",
-        "price": 10,
+        "price_0": 10,
+        "price_1": "USD",
         "category": category.pk,
         "variant-sku": "123",
         "variant-quantity": 2,
@@ -239,7 +240,8 @@ def test_view_product_edit(admin_client, product):
     data = {
         "name": "Product second name",
         "description": "Product description.",
-        "price": 10,
+        "price_0": 10,
+        "price_1": product.price.currency,
         "category": product.category.pk,
         "variant-sku": "123",
         "variant-quantity": 10,
@@ -1061,7 +1063,8 @@ def test_product_form_change_attributes(db, product, color_attribute):
     new_author = "Main Tester"
     data = {
         "name": product.name,
-        "price": product.price.amount,
+        "price_0": product.price.amount,
+        "price_1": product.price.currency,
         "category": product.category.pk,
         "description": "description",
         "attribute-{}-{}".format(text_attribute.slug, text_attribute.pk): new_author,
@@ -1085,7 +1088,8 @@ def test_product_form_assign_collection_to_product(product):
     collection = Collection.objects.create(name="test_collections")
     data = {
         "name": product.name,
-        "price": product.price.amount,
+        "price_0": product.price.amount,
+        "price_1": product.price.currency,
         "category": product.category.pk,
         "description": "description",
         "collections": [collection.pk],
@@ -1115,7 +1119,8 @@ def test_product_form_sanitize_product_description(product_type, category, setti
         '<p><a href="www.mirumee.com">link</a></p>'
         "<p>an <script>evil()</script>example</p>"
     )
-    data["price"] = 20
+    data["price_0"] = 20
+    data["price_1"] = "USD"
 
     form = ProductForm(data, instance=product)
     assert form.is_valid()
@@ -1138,7 +1143,8 @@ def test_product_form_seo_description(unavailable_product):
         "HTML <b>shouldn't be removed</b> since it's a simple text field."
     )
     data = model_to_dict(unavailable_product)
-    data["price"] = 20
+    data["price_0"] = 20
+    data["price_1"] = "USD"
     data["description"] = "a description"
     data["seo_description"] = seo_description
 
@@ -1165,11 +1171,13 @@ def test_product_form_seo_description_too_long(unavailable_product):
     )
 
     data = model_to_dict(unavailable_product)
-    data["price"] = 20
+    data["price_0"] = 20
+    data["price_1"] = "USD"
     data["description"] = description
 
     form = ProductForm(data, instance=unavailable_product)
-    assert form.is_valid()
+    form.is_valid()
+    assert form.errors == {}
 
     form.save()
     new_seo_description = unavailable_product.seo_description

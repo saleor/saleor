@@ -100,7 +100,7 @@ def validate_voucher_in_order(order):
 
 
 def validate_voucher(voucher, total_price, quantity, customer_email):
-    voucher.validate_min_amount_spent(total_price)
+    voucher.validate_min_spent(total_price)
     voucher.validate_min_checkout_items_quantity(quantity)
     if voucher.apply_once_per_customer:
         voucher.validate_once_per_customer(customer_email)

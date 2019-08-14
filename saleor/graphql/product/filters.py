@@ -68,9 +68,9 @@ def filter_products_by_attributes(qs, filter_value):
 
 def filter_products_by_price(qs, price_lte=None, price_gte=None):
     if price_lte:
-        qs = qs.filter(price__lte=price_lte)
+        qs = qs.filter(price_amount__lte=price_lte)
     if price_gte:
-        qs = qs.filter(price__gte=price_gte)
+        qs = qs.filter(price_amount__gte=price_gte)
     return qs
 
 
@@ -78,9 +78,9 @@ def filter_products_by_minimal_price(
     qs, minimal_price_lte=None, minimal_price_gte=None
 ):
     if minimal_price_lte:
-        qs = qs.filter(minimal_variant_price__lte=minimal_price_lte)
+        qs = qs.filter(minimal_variant_price_amount__lte=minimal_price_lte)
     if minimal_price_gte:
-        qs = qs.filter(minimal_variant_price__gte=minimal_price_gte)
+        qs = qs.filter(minimal_variant_price_amount__gte=minimal_price_gte)
     return qs
 
 
@@ -187,9 +187,13 @@ class ProductFilter(django_filters.FilterSet):
     is_published = django_filters.BooleanFilter()
     collections = GlobalIDMultipleChoiceFilter(method=filter_collections)
     categories = GlobalIDMultipleChoiceFilter(method=filter_categories)
-    price = ObjectTypeFilter(input_class=PriceRangeInput, method=filter_price)
+    price = ObjectTypeFilter(
+        input_class=PriceRangeInput, method=filter_price, field_name="price_amount"
+    )
     minimal_price = ObjectTypeFilter(
-        input_class=PriceRangeInput, method=filter_minimal_price
+        input_class=PriceRangeInput,
+        method=filter_minimal_price,
+        field_name="minimal_price_amount",
     )
     attributes = ListObjectTypeFilter(
         input_class=AttributeInput, method=filter_attributes

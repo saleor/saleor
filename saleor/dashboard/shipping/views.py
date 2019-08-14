@@ -106,7 +106,7 @@ def shipping_method_add(request, shipping_zone_pk, type):
     form = get_shipping_form(shipping_method.type)
     form = form(request.POST or None, instance=shipping_method)
     if form.is_valid():
-        shipping_method = form.save()
+        form.save()
         msg = pgettext_lazy(
             "Dashboard message", "Added shipping method for %(zone_name)s shipping zone"
         ) % {"zone_name": shipping_zone}
