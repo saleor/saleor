@@ -14,10 +14,10 @@ from saleor.payment import (
     get_payment_gateway,
 )
 from saleor.payment.interface import (
+    CreditCardInfo,
     GatewayConfig,
     GatewayResponse,
     TokenConfig,
-    CreditCardInfo,
 )
 from saleor.payment.models import Payment
 from saleor.payment.utils import (

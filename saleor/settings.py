@@ -606,7 +606,6 @@ DUMMY = "dummy"
 BRAINTREE = "braintree"
 RAZORPAY = "razorpay"
 STRIPE = "stripe"
-STRIPE_NEW = "stripe_new"
 
 CHECKOUT_PAYMENT_GATEWAYS = {
     DUMMY: pgettext_lazy("Payment method name", "Dummy gateway")
