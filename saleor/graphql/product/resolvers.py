@@ -17,6 +17,7 @@ from .filters import (
 )
 
 PRODUCT_SEARCH_FIELDS = ("name", "description")
+PRODUCT_TYPE_SEARCH_FIELDS = ("name",)
 CATEGORY_SEARCH_FIELDS = ("name", "slug", "description", "parent__name")
 COLLECTION_SEARCH_FIELDS = ("name", "slug")
 ATTRIBUTES_SEARCH_FIELDS = ("name", "slug")
@@ -140,8 +141,9 @@ def resolve_products(
     return gql_optimizer.query(qs, info)
 
 
-def resolve_product_types(info):
+def resolve_product_types(info, query):
     qs = models.ProductType.objects.all()
+    qs = filter_by_query_param(qs, query, PRODUCT_TYPE_SEARCH_FIELDS)
     qs = qs.order_by("name")
     return gql_optimizer.query(qs, info)
 
