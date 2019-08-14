@@ -6,7 +6,8 @@ from ....checkout import AddressType
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import BaseMutation, ModelMutation
-from .base import BaseCustomerCreate, UserAddressInput, send_user_password_reset_email
+from .base import BaseCustomerCreate, UserAddressInput
+from .deprecated_staff import send_user_password_reset_email
 
 
 class CustomerRegisterInput(graphene.InputObjectType):
