@@ -1755,6 +1755,27 @@ def test_filter_attributes_if_available_in_grid(
     assert attributes[0]["node"]["slug"] == "size"
 
 
+def test_filter_attributes_by_global_id_list(api_client, attribute_list):
+    global_ids = [
+        graphene.Node.to_global_id("Attribute", attribute.pk)
+        for attribute in attribute_list[:2]
+    ]
+    variables = {"filters": {"ids": global_ids}}
+
+    expected_slugs = sorted([attribute_list[0].slug, attribute_list[1].slug])
+
+    attributes = get_graphql_content(
+        api_client.post_graphql(ATTRIBUTES_FILTER_QUERY, variables)
+    )["data"]["attributes"]["edges"]
+
+    assert len(attributes) == 2
+    received_slugs = sorted(
+        [attributes[0]["node"]["slug"], attributes[1]["node"]["slug"]]
+    )
+
+    assert received_slugs == expected_slugs
+
+
 ATTRIBUTES_SORT_QUERY = """
     query($sortBy: AttributeSortingInput) {
       attributes(first: 10, sortBy: $sortBy) {
