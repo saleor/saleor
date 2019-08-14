@@ -3,11 +3,11 @@ from math import isclose
 
 from django_countries import countries
 
-from saleor.payment.gateways.stripe_new.utils import (
+from saleor.payment.gateways.stripe.utils import (
     get_amount_for_stripe,
     get_amount_from_stripe,
-    get_currency_from_stripe,
     get_currency_for_stripe,
+    get_currency_from_stripe,
     get_payment_billing_fullname,
     shipping_to_stripe_dict,
 )

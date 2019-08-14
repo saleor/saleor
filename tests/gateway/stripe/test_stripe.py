@@ -1,16 +1,16 @@
+import os
 from decimal import Decimal
 from math import isclose
-import os
 
 import pytest
 
 from saleor.payment import ChargeStatus
-from saleor.payment.gateways.stripe_new import (
+from saleor.payment.gateways.stripe import (
     TransactionKind,
+    _get_client,
     authorize,
     capture,
     confirm,
-    _get_client,
     get_client_token,
     list_client_sources,
     refund,
@@ -35,7 +35,7 @@ RECORD = False
 @pytest.fixture()
 def gateway_config():
     return GatewayConfig(
-        gateway_name="stripe_new",
+        gateway_name="stripe",
         auto_capture=True,
         template_path="template.html",
         connection_params={
