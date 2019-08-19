@@ -68,7 +68,10 @@ class Checkout(ModelWithMetadata):
     )
     note = models.TextField(blank=True, default="")
 
-    currency = models.CharField(max_length=3, default=settings.DEFAULT_CURRENCY)
+    currency = models.CharField(
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+        default=settings.DEFAULT_CURRENCY,
+    )
 
     discount_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
@@ -107,13 +110,13 @@ class Checkout(ModelWithMetadata):
         return (
             self.shipping_method.get_total()
             if self.shipping_method and self.is_shipping_required()
-            else zero_money()
+            else zero_money(self.currency)
         )
 
     def get_subtotal(self, discounts=None):
         """Return the total cost of the checkout prior to shipping."""
         subtotals = (line.get_total(discounts) for line in self)
-        return sum(subtotals, zero_money(currency=settings.DEFAULT_CURRENCY))
+        return sum(subtotals, zero_money(currency=self.currency))
 
     def get_total(self, discounts=None):
         """Return the total cost of the checkout."""

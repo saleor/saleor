@@ -72,7 +72,10 @@ class Voucher(models.Model):
 
     # not mandatory fields, usage depends on type
     countries = CountryField(multiple=True, blank=True)
-    currency = models.CharField(max_length=10, default=settings.DEFAULT_CURRENCY)
+    currency = models.CharField(
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+        default=settings.DEFAULT_CURRENCY,
+    )
     min_spent_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
@@ -144,14 +147,13 @@ class Voucher(models.Model):
         return price - after_discount
 
     def validate_min_spent(self, value: Money):
-        min_spent = self.min_spent
-        if min_spent and value < min_spent:
+        if self.min_spent and value < self.min_spent:
             msg = pgettext(
                 "Voucher not applicable",
                 "This offer is only valid for orders over %(amount)s.",
             )
             raise NotApplicable(
-                msg % {"amount": amount(min_spent)}, min_spent=min_spent
+                msg % {"amount": amount(self.min_spent)}, min_spent=self.min_spent
             )
 
     def validate_min_checkout_items_quantity(self, quantity):

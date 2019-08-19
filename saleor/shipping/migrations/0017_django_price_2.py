@@ -25,6 +25,9 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="shippingmethod",
             name="currency",
-            field=models.CharField(default=settings.DEFAULT_CURRENCY, max_length=10),
+            field=models.CharField(
+                default=settings.DEFAULT_CURRENCY,
+                max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+            ),
         ),
     ]

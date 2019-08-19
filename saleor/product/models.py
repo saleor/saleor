@@ -194,7 +194,10 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
         Category, related_name="products", on_delete=models.CASCADE
     )
 
-    currency = models.CharField(max_length=10, default=settings.DEFAULT_CURRENCY)
+    currency = models.CharField(
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+        default=settings.DEFAULT_CURRENCY,
+    )
 
     price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
@@ -209,6 +212,7 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
     minimal_variant_price = MoneyField(
         amount_field="minimal_variant_price_amount", currency_field="currency"
     )
+
     attributes = FilterableJSONBField(
         default=dict, blank=True, validators=[validate_attribute_json]
     )
@@ -353,7 +357,10 @@ class ProductVariant(ModelWithMetadata):
     sku = models.CharField(max_length=32, unique=True)
     name = models.CharField(max_length=255, blank=True)
     currency = models.CharField(
-        max_length=10, default=settings.DEFAULT_CURRENCY, blank=True, null=True
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+        default=settings.DEFAULT_CURRENCY,
+        blank=True,
+        null=True,
     )
     price_override_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,

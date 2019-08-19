@@ -25,13 +25,19 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="product",
             name="currency",
-            field=models.CharField(default=settings.DEFAULT_CURRENCY, max_length=10),
+            field=models.CharField(
+                default=settings.DEFAULT_CURRENCY,
+                max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+            ),
         ),
         migrations.AddField(
             model_name="productvariant",
             name="currency",
             field=models.CharField(
-                blank=True, default=settings.DEFAULT_CURRENCY, max_length=10, null=True
+                blank=True,
+                default=settings.DEFAULT_CURRENCY,
+                max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+                null=True,
             ),
         ),
     ]

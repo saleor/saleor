@@ -260,7 +260,7 @@ def get_order_lines_data(order: "Order") -> List[Dict[str, str]]:
             item_code=line.variant.sku,
             description=line.variant.product.plain_text_description,
         )
-    if order.discount_amount and order.discount_amount:
+    if order.discount_amount:
         append_line_to_data(
             data=data,
             quantity=1,

@@ -113,7 +113,7 @@ def update_voucher_discount(func):
             try:
                 discount = get_voucher_discount_for_order(order)
             except NotApplicable:
-                discount = zero_money()
+                discount = zero_money(order.currency)
             order.discount = discount
         return func(*args, **kwargs)
 
@@ -156,8 +156,8 @@ def recalculate_order_weight(order):
 def update_order_prices(order, discounts):
     """Update prices in order with given discounts and proper taxes."""
     manager = get_extensions_manager()
-    for line in order:
-        if line.variant:  # type: OrderLine
+    for line in order:  # type: OrderLine
+        if line.variant:
             unit_price = line.variant.get_price(discounts)
             unit_price = TaxedMoney(unit_price, unit_price)
             line.unit_price = unit_price
