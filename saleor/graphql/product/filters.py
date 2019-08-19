@@ -223,6 +223,7 @@ class ProductTypeFilter(django_filters.FilterSet):
 class AttributeFilter(django_filters.FilterSet):
     # Search by attribute name and slug
     search = django_filters.CharFilter(method=filter_attributes_search)
+    ids = GlobalIDMultipleChoiceFilter(field_name="id")
 
     class Meta:
         model = Attribute
