@@ -48,7 +48,7 @@ def resolve_staff_users(info, query):
     return gql_optimizer.query(qs, info)
 
 
-def resolve_address_validator(
+def resolve_address_validation_rules(
     info,
     country_code: str,
     country_area: Optional[str],
