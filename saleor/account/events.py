@@ -25,6 +25,10 @@ def customer_password_reset_event(*, user: UserType) -> Optional[CustomerEvent]:
     return CustomerEvent.objects.create(user=user, type=CustomerEvents.PASSWORD_RESET)
 
 
+def customer_password_change_event(*, user: UserType) -> Optional[CustomerEvent]:
+    return CustomerEvent.objects.create(user=user, type=CustomerEvents.PASSWORD_CHANGE)
+
+
 def customer_placed_order_event(
     *, user: UserType, order: Order
 ) -> Optional[CustomerEvent]:
