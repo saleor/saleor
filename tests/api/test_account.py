@@ -1796,7 +1796,7 @@ def test_set_default_address(
 def test_address_validator(user_api_client):
     query = """
     query getValidator(
-        $country_code: CountryCode, $country_area: String, $city_area: String) {
+        $country_code: CountryCode!, $country_area: String, $city_area: String) {
         addressValidationRules(
                 countryCode: $country_code,
                 countryArea: $country_area,
@@ -1822,42 +1822,10 @@ def test_address_validator(user_api_client):
     assert matcher.match("00-123")
 
 
-def test_address_validator_uses_geip_when_country_code_missing(
-    user_api_client, monkeypatch
-):
-    query = """
-    query getValidator(
-        $country_code: CountryCode, $country_area: String, $city_area: String) {
-        addressValidationRules(
-                countryCode: $country_code,
-                countryArea: $country_area,
-                cityArea: $city_area) {
-            countryCode,
-            countryName
-        }
-    }
-    """
-    variables = {"country_code": None, "country_area": None, "city_area": None}
-    mock_country_by_ip = Mock(return_value=Mock(code="US"))
-    monkeypatch.setattr(
-        "saleor.graphql.account.resolvers.get_client_ip",
-        lambda request: Mock(return_value="127.0.0.1"),
-    )
-    monkeypatch.setattr(
-        "saleor.graphql.account.resolvers.get_country_by_ip", mock_country_by_ip
-    )
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    assert mock_country_by_ip.called
-    data = content["data"]["addressValidationRules"]
-    assert data["countryCode"] == "US"
-    assert data["countryName"] == "UNITED STATES"
-
-
 def test_address_validator_with_country_area(user_api_client):
     query = """
     query getValidator(
-        $country_code: CountryCode, $country_area: String, $city_area: String) {
+        $country_code: CountryCode!, $country_area: String, $city_area: String) {
         addressValidationRules(
                 countryCode: $country_code,
                 countryArea: $country_area,
