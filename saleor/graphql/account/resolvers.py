@@ -13,6 +13,7 @@ from ...payment.utils import (
 )
 from ..utils import filter_by_query_param
 from .types import AddressValidationData, ChoiceValue
+from .utils import get_allowed_fields_camel_case, get_required_fields_camel_case
 
 USER_SEARCH_FIELDS = (
     "email",
@@ -66,8 +67,8 @@ def resolve_address_validator(
         country_name=rules.country_name,
         address_format=rules.address_format,
         address_latin_format=rules.address_latin_format,
-        allowed_fields=rules.allowed_fields,
-        required_fields=rules.required_fields,
+        allowed_fields=get_allowed_fields_camel_case(rules.allowed_fields),
+        required_fields=get_required_fields_camel_case(rules.required_fields),
         upper_fields=rules.upper_fields,
         country_area_type=rules.country_area_type,
         country_area_choices=[
