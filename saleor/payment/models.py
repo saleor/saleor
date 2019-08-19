@@ -184,6 +184,9 @@ class Payment(models.Model):
             and self.gateway != CustomPaymentChoices.MANUAL
         )
 
+    def can_confirm(self):
+        return self.is_active and self.not_charged
+
 
 class Transaction(models.Model):
     """Represents a single payment operation.

@@ -468,39 +468,25 @@ def gateway_void(payment) -> Transaction:
     if not payment.can_void():
         raise PaymentError("Only pre-authorized transactions can be voided.")
 
-    auth_transaction = payment.transactions.filter(
-        kind=TransactionKind.AUTH, is_success=True
-    ).first()
-    if auth_transaction is None:
-        raise PaymentError("Cannot void unauthorized transaction")
-    payment_token = auth_transaction.token
-
+    payment_token = get_payment_token(payment)
     transaction = call_gateway(
         operation_type=OperationType.VOID, payment=payment, payment_token=payment_token
     )
-
     _gateway_postprocess(transaction, payment)
     return transaction
 
 
 @require_active_payment
 def gateway_confirm(payment) -> Transaction:
-    if not payment.can_void():
-        raise PaymentError("Only pre-authorized transactions can be voided.")
+    if not payment.can_confirm():
+        raise PaymentError("Only active and not paid payments can be confirmed.")
 
-    auth_transaction = payment.transactions.filter(
-        kind=TransactionKind.AUTH, is_success=True
-    ).first()
-    if auth_transaction is None:
-        raise PaymentError("Cannot void unauthorized transaction")
-    payment_token = auth_transaction.token
-
+    payment_token = get_payment_token(payment)
     transaction = call_gateway(
         operation_type=OperationType.CONFIRM,
         payment=payment,
         payment_token=payment_token,
     )
-
     _gateway_postprocess(transaction, payment)
     return transaction
 
@@ -578,3 +564,12 @@ def update_card_details(payment, gateway_response):
     payment.save(
         update_fields=["cc_brand", "cc_last_digits", "cc_exp_year", "cc_exp_month"]
     )
+
+
+def get_payment_token(payment: Payment):
+    auth_transaction = payment.transactions.filter(
+        kind=TransactionKind.AUTH, is_success=True
+    ).first()
+    if auth_transaction is None:
+        raise PaymentError("Cannot process unauthorized transaction")
+    return auth_transaction.token

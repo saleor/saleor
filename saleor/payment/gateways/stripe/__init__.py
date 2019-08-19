@@ -222,14 +222,12 @@ def _success_response(
 
 def fill_card_details(intent: stripe.PaymentIntent, response: GatewayResponse):
     charges = intent.charges["data"]
-    if not charges:
-        return response
-
-    card = intent.charges["data"][-1]["payment_method_details"]["card"]
-    response.card_info = CreditCardInfo(
-        last_4=card["last4"],
-        exp_year=card["exp_year"],
-        exp_month=card["exp_month"],
-        brand=card["brand"],
-    )
+    if charges:
+        card = intent.charges["data"][-1]["payment_method_details"]["card"]
+        response.card_info = CreditCardInfo(
+            last_4=card["last4"],
+            exp_year=card["exp_year"],
+            exp_month=card["exp_month"],
+            brand=card["brand"],
+        )
     return response
