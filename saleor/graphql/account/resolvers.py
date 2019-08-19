@@ -1,11 +1,11 @@
 from itertools import chain
+from typing import Optional
 
 import graphene_django_optimizer as gql_optimizer
 from django.db.models import Q
 from i18naddress import get_validation_rules
 
 from ...account import models
-from ...core.utils import get_client_ip, get_country_by_ip
 from ...payment.utils import (
     fetch_customer_id,
     list_enabled_gateways,
@@ -47,17 +47,17 @@ def resolve_staff_users(info, query):
     return gql_optimizer.query(qs, info)
 
 
-def resolve_address_validator(info, country_code, country_area, city_area):
-    if not country_code:
-        client_ip = get_client_ip(info.context)
-        country = get_country_by_ip(client_ip)
-        if country:
-            country_code = country.code
-        else:
-            return None
+def resolve_address_validator(
+    info,
+    country_code: str,
+    country_area: Optional[str],
+    city: Optional[str],
+    city_area: Optional[str],
+):
     params = {
         "country_code": country_code,
         "country_area": country_area,
+        "city": city,
         "city_area": city_area,
     }
     rules = get_validation_rules(params)
