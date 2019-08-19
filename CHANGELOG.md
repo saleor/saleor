@@ -52,6 +52,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Remove dashboard 2.0 files - #4631 by @dominik-zeglen
 - Refactoring of password recovery system - #4617 by @fowczarek
 - Added capability to filter attributes per global ID - #4640 by @NyanKiyoshi.
+- Add mutation for change authenticated user password - #4656 by @fowczarek
 
 ## 2.8.0
 

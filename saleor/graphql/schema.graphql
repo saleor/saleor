@@ -1949,6 +1949,7 @@ type Mutations {
   checkoutClearPrivateMetadata(id: ID!, input: MetaPath!): CheckoutClearStoredPrivateMeta
   requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
   setPassword(token: String!, email: String!, password: String!): SetPassword
+  passwordChange(newPassword: String!, oldPassword: String!): PasswordChange
   userUpdateMetadata(id: ID!, input: MetaInput!): UserUpdateMeta
   userClearStoredMetadata(id: ID!, input: MetaPath!): UserClearStoredMeta
   accountAddressCreate(input: AddressInput!, type: AddressTypeEnum): AccountAddressCreate
@@ -2340,6 +2341,11 @@ input PageTranslationInput {
 type PageUpdate {
   errors: [Error!]
   page: Page
+}
+
+type PasswordChange {
+  errors: [Error!]
+  user: User
 }
 
 type PasswordReset {
