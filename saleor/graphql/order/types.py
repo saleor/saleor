@@ -327,7 +327,7 @@ class Order(CountableDjangoObjectType):
         description="Returns True, if order requires shipping.", required=True
     )
     discount_amount = graphene.Field(
-        Money, description="Deprecated: use discount instead.", required=True
+        Money, deprecation_reason="Deprecated: use discount instead.", required=True
     )
 
     class Meta:

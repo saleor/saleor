@@ -17,7 +17,7 @@ from ..account.forms import get_address_form
 from ..account.models import Address, User
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
-from ..core.taxes import quantize_price, zero_money, zero_taxed_money
+from ..core.taxes import quantize_price, zero_taxed_money
 from ..core.utils import to_local_currency
 from ..core.utils.promo_code import (
     InvalidPromoCode,
@@ -963,7 +963,7 @@ def remove_voucher_from_checkout(checkout: Checkout):
     checkout.voucher_code = None
     checkout.discount_name = None
     checkout.translated_discount_name = None
-    checkout.discount = zero_money()
+    checkout.discount_amount = 0
     checkout.save(
         update_fields=[
             "voucher_code",

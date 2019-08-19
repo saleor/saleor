@@ -164,6 +164,7 @@ class VoucherCreate(ModelMutation):
         if voucher_type == VoucherTypeEnum.VALUE:
             data["type"] = VoucherTypeEnum.ENTIRE_ORDER.value
 
+        # Deprecated field
         min_spent_amount = data.pop("min_amount_spent", None)
         if min_spent_amount is not None:
             data["min_spent_amount"] = min_spent_amount

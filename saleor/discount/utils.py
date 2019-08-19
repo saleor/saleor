@@ -111,7 +111,7 @@ def get_products_voucher_discount(voucher, prices):
     if voucher.apply_once_per_order:
         return voucher.get_discount_amount_for(min(prices))
     discounts = (voucher.get_discount_amount_for(price) for price in prices)
-    total_amount = sum(discounts, zero_money())
+    total_amount = sum(discounts, zero_money(voucher.currency))
     return total_amount
 
 

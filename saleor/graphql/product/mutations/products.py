@@ -656,21 +656,8 @@ class ProductVariantInput(graphene.InputObjectType):
         required=False,
         description="List of attributes specific to this variant.",
     )
-    cost_price = Decimal(
-        description=(
-            "Deprecated: use costPriceAmount instead.\n" "Cost price of the variant."
-        )
-    )
-    cost_price_amount = Decimal(description="Cost price of the variant.")
-    price_override = Decimal(
-        description=(
-            "Deprecated: use priceOverrideAmount instead.\n"
-            "Special price of the particular variant."
-        )
-    )
-    price_override_amount = Decimal(
-        description="Special price of the particular variant."
-    )
+    cost_price = Decimal(description="Cost price of the variant.")
+    price_override = Decimal(description="Special price of the particular variant.")
     sku = graphene.String(description="Stock keeping unit.")
     quantity = graphene.Int(
         description="The total quantity of this variant available for sale."
@@ -740,16 +727,15 @@ class ProductVariantCreate(ModelMutation):
 
     @classmethod
     def clean_input(cls, info, instance, data):
-
-        cost_price_amount = data.pop("cost_price", None)
-        if cost_price_amount is not None:
-            data["cost_price_amount"] = cost_price_amount
-
-        price_override_amount = data.pop("price_override", None)
-        if price_override_amount is not None:
-            data["price_override_amount"] = price_override_amount
-
         cleaned_input = super().clean_input(info, instance, data)
+
+        cost_price_amount = cleaned_input.pop("cost_price", None)
+        if cost_price_amount is not None:
+            cleaned_input["cost_price_amount"] = cost_price_amount
+
+        price_override_amount = cleaned_input.pop("price_override", None)
+        if price_override_amount is not None:
+            cleaned_input["price_override_amount"] = price_override_amount
 
         # Attributes are provided as list of `AttributeValueInput` objects.
         # We need to transform them into the format they're stored in the

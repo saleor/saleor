@@ -22,6 +22,9 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="giftcard",
             name="currency",
-            field=models.CharField(default=settings.DEFAULT_CURRENCY, max_length=3),
+            field=models.CharField(
+                default=settings.DEFAULT_CURRENCY,
+                max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+            ),
         ),
     ]
