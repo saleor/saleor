@@ -114,6 +114,41 @@ class RequestPasswordReset(BaseMutation):
         return RequestPasswordReset()
 
 
+class PasswordChange(BaseMutation):
+    user = graphene.Field(User, description="An user instance with new password.")
+
+    class Arguments:
+        old_password = graphene.String(
+            required=True, description="Current user password."
+        )
+        new_password = graphene.String(required=True, description="New user password.")
+
+    class Meta:
+        description = "Change the password of the logged in user."
+
+    @classmethod
+    def check_permissions(cls, user):
+        return user.is_authenticated
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        user = info.context.user
+        old_password = data["old_password"]
+        new_password = data["new_password"]
+
+        if not user.check_password(old_password):
+            raise ValidationError({"old_password": "Old password isn't valid."})
+        try:
+            password_validation.validate_password(new_password, user)
+        except ValidationError as error:
+            raise ValidationError({"new_password": error.messages})
+
+        user.set_password(new_password)
+        user.save(update_fields=["password"])
+        account_events.customer_password_change_event(user=user)
+        return PasswordChange(user=user)
+
+
 class BaseAddressUpdate(ModelMutation):
     """Base mutation for address update used by staff and account."""
 

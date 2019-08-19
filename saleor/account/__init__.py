@@ -8,6 +8,7 @@ class CustomerEvents:
     ACCOUNT_CREATED = "account_created"
     PASSWORD_RESET_LINK_SENT = "password_reset_link_sent"
     PASSWORD_RESET = "password_reset"
+    PASSWORD_CHANGE = "password_change"
 
     # Order related events
     PLACED_ORDER = "placed_order"  # created an order
