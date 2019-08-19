@@ -1868,6 +1868,28 @@ def test_address_validator_with_country_area(user_api_client):
     assert not data["cityAreaChoices"]
 
 
+def test_address_validator_fields_in_camel_case(user_api_client):
+    query = """
+    query getValidator(
+        $country_code: CountryCode!) {
+        addressValidationRules(countryCode: $country_code) {
+            requiredFields
+            allowedFields
+        }
+    }
+    """
+    variables = {"country_code": "PL"}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["addressValidationRules"]
+    required_fields = data["requiredFields"]
+    allowed_fields = data["allowedFields"]
+    assert "streetAddress1" in required_fields
+    assert "streetAddress2" not in required_fields
+    assert "streetAddress1" in allowed_fields
+    assert "streetAddress2" in allowed_fields
+
+
 CUSTOMER_PASSWORD_RESET_MUTATION = """
     mutation CustomerPasswordReset($email: String!) {
         customerPasswordReset(input: {email: $email}) {
