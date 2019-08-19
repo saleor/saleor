@@ -1793,7 +1793,7 @@ def test_set_default_address(
     assert data["user"]["defaultShippingAddress"]["id"] == address_id
 
 
-def test_address_validator(user_api_client):
+def test_address_validation_rules(user_api_client):
     query = """
     query getValidator(
         $country_code: CountryCode!, $country_area: String, $city_area: String) {
@@ -1822,7 +1822,7 @@ def test_address_validator(user_api_client):
     assert matcher.match("00-123")
 
 
-def test_address_validator_with_country_area(user_api_client):
+def test_address_validation_rules_with_country_area(user_api_client):
     query = """
     query getValidator(
         $country_code: CountryCode!, $country_area: String, $city_area: String) {
@@ -1868,7 +1868,7 @@ def test_address_validator_with_country_area(user_api_client):
     assert not data["cityAreaChoices"]
 
 
-def test_address_validator_fields_in_camel_case(user_api_client):
+def test_address_validation_rules_fields_in_camel_case(user_api_client):
     query = """
     query getValidator(
         $country_code: CountryCode!) {

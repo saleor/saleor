@@ -48,7 +48,11 @@ from .mutations.staff import (
     UserClearStoredPrivateMeta,
     UserUpdatePrivateMeta,
 )
-from .resolvers import resolve_address_validator, resolve_customers, resolve_staff_users
+from .resolvers import (
+    resolve_address_validation_rules,
+    resolve_customers,
+    resolve_staff_users,
+)
 from .types import AddressValidationData, User
 
 
@@ -92,7 +96,7 @@ class AccountQueries(graphene.ObjectType):
     def resolve_address_validation_rules(
         self, info, country_code, country_area=None, city=None, city_area=None
     ):
-        return resolve_address_validator(
+        return resolve_address_validation_rules(
             info,
             country_code,
             country_area=country_area,
