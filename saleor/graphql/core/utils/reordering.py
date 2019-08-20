@@ -12,8 +12,10 @@ __all__ = ["perform_reordering"]
 
 @dataclass(frozen=True)
 class FinalSortOrder:
-    """Describes a final sort order value for a given PK. This is needed to tell django
-    which objects and values to associate and update."""
+    """Describe a final sort order value for a given PK.
+
+    This is needed to tell django which objects and values to associate and update.
+    """
 
     pk: int
     sort_order: int
@@ -58,11 +60,12 @@ class Reordering:
         return ordering_map
 
     def calculate_new_sort_order(self, pk, move) -> Tuple[int, int, int]:
-        """Returns the proper sort order for the current operation to properly
-        move the node in a given direction with by amount.
+        """Return the proper sort order for the current operation.
 
-        This ensures the new sort order is not biased from gaps between
-        the sort orders."""
+        Allows to properly move the node in a given direction with by amount.
+
+        This ensures the new sort order is not biased from gaps between the sort orders.
+        """
 
         # Retrieve the position of the node to move
         node_pos = self.ordered_pks.index(pk)
@@ -153,7 +156,9 @@ class Reordering:
 
 
 def perform_reordering(qs: QuerySet, operations: Dict[int, int], field: str = "moves"):
-    """This utility takes a set of operations containing a node
+    """Perform reordering over given operations on a queryset.
+
+    This utility takes a set of operations containing a node
     and a relative sort order. It then converts the relative sorting
     to an absolute sorting.
 

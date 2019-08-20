@@ -297,7 +297,7 @@ class AttributeAssign(BaseMutation):
 
     @classmethod
     def get_operations(cls, info, operations: List[AttributeAssignInput]):
-        """Resolves all passed global ids into integer PKs of the Attribute type."""
+        """Resolve all passed global ids into integer PKs of the Attribute type."""
         product_attrs_pks = []
         variant_attrs_pks = []
 
@@ -363,8 +363,7 @@ class AttributeAssign(BaseMutation):
 
     @classmethod
     def clean_operations(cls, product_type, product_attrs_pks, variant_attrs_pks):
-        """Ensures the requested attributes are not already assigned
-        to that product type."""
+        """Ensure the attributes are not already assigned to the product type."""
         cls.check_product_operations_are_assignable(product_attrs_pks)
         cls.check_operations_not_assigned_already(
             product_type, product_attrs_pks, variant_attrs_pks

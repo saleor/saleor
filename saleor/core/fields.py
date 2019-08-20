@@ -28,13 +28,16 @@ class SanitizedJSONField(JSONField):
 
 
 class FilterableJSONBField(jsonb.JSONField):
-    """This only redefine the JSONB field of django to register a custom lookup key
+    """A JSONB field with filtering support over numerical keys.
+
+    This only redefine the JSONB field of django to register a custom lookup key
     that allow us to filter JSONB field by key value no matter what. Where django's
     behavior is to filter by key index position if the lookup value is a string number.
 
     This is a temporary fix waiting for a fix from django.
 
-    Refer to https://code.djangoproject.com/ticket/30566."""
+    Refer to https://code.djangoproject.com/ticket/30566.
+    """
 
     _FROM_KEY_LOOKUP = "from_key_"
     _FROM_KEY_LOOKUP_LEN = len(_FROM_KEY_LOOKUP)
