@@ -743,8 +743,7 @@ def get_checkout_context(checkout, discounts, currency=None, shipping_range=None
         start=checkout_subtotal, stop=checkout_subtotal
     )
     if shipping_required and shipping_range:
-        total_with_shipping = shipping_range + checkout_subtotal.net
-
+        total_with_shipping = shipping_range + checkout_subtotal
     context = {
         "checkout": checkout,
         "checkout_are_taxes_handled": manager.taxes_are_enabled(),
