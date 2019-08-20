@@ -21,6 +21,7 @@ from ..account.types import User
 from ..utils import get_nodes
 from .types import Error, MetaInput, MetaPath, Upload
 from .utils import from_global_id_strict_type, snake_to_camel_case
+from .utils.error_codes import get_error_code_from_error
 
 registry = get_global_registry()
 
@@ -47,16 +48,24 @@ def validation_error_to_error_type(validation_error: ValidationError) -> list:
     err_list = []
     if hasattr(validation_error, "error_dict"):
         # convert field errors
-        for field, field_errors in validation_error.message_dict.items():
+        for field, field_errors in validation_error.error_dict.items():
             for err in field_errors:
                 field = (
                     None if field == NON_FIELD_ERRORS else snake_to_camel_case(field)
                 )
-                err_list.append(Error(field=field, message=err))
+                err_list.append(
+                    Error(
+                        field=field,
+                        message=err.messages[0],
+                        code=get_error_code_from_error(err),
+                    )
+                )
     else:
         # convert non-field errors
         for err in validation_error.error_list:
-            err_list.append(Error(message=err.message))
+            err_list.append(
+                Error(message=err.message, code=get_error_code_from_error(err))
+            )
     return err_list
 
 

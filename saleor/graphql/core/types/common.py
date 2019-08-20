@@ -2,7 +2,7 @@ import graphene
 
 from ....product.templatetags.product_images import get_thumbnail
 from ...translations.enums import LanguageCodeEnum
-from ..enums import PermissionEnum
+from ..enums import ErrorCode, PermissionEnum
 from .money import VAT
 
 
@@ -20,6 +20,7 @@ class Error(graphene.ObjectType):
         required=False,
     )
     message = graphene.String(description="The error message.")
+    code = ErrorCode(description="The error code.")
 
     class Meta:
         description = "Represents an error in the input of a mutation."
