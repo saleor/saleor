@@ -145,7 +145,7 @@ class PasswordChange(BaseMutation):
 
         user.set_password(new_password)
         user.save(update_fields=["password"])
-        account_events.customer_password_change_event(user=user)
+        account_events.customer_password_changed_event(user=user)
         return PasswordChange(user=user)
 
 

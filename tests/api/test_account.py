@@ -1501,7 +1501,7 @@ def test_password_change(user_api_client):
     assert customer_user.check_password(new_password)
 
     password_change_event = account_events.CustomerEvent.objects.get()
-    assert password_change_event.type == account_events.CustomerEvents.PASSWORD_CHANGE
+    assert password_change_event.type == account_events.CustomerEvents.PASSWORD_CHANGED
     assert password_change_event.user == customer_user
 
 
