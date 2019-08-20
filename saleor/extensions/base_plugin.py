@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from ..product.models import Product
     from ..account.models import Address
     from ..order.models import OrderLine, Order
+    from ..payment.interface import GatewayConfig, GatewayResponse, PaymentData
 
 
 class BasePlugin:
@@ -135,6 +136,11 @@ class BasePlugin:
         self, obj: Union["Product", "ProductType"], country: Country, previous_value
     ) -> Decimal:
         return NotImplemented
+
+    def authorize_payment(
+        self, payment_information: PaymentData, config: GatewayConfig, previous_value
+    ) -> GatewayResponse:
+        pass
 
     @classmethod
     def _update_config_items(
