@@ -50,11 +50,7 @@ def send_password_reset_email_with_url(redirect_url, recipient_email, token, use
     _send_password_reset_email(reset_url, recipient_email, user_id)
 
 
-@app.task
-def send_account_delete_confirmation_email(token, recipient_email):
-    delete_url = build_absolute_uri(
-        reverse("account:delete-confirm", kwargs={"token": token})
-    )
+def _send_account_delete_confirmation_email(recipient_email, delete_url):
     ctx = get_email_base_context()
     ctx["delete_url"] = delete_url
     send_templated_mail(
@@ -63,3 +59,23 @@ def send_account_delete_confirmation_email(token, recipient_email):
         recipient_list=[recipient_email],
         context=ctx,
     )
+
+
+@app.task
+def send_account_delete_confirmation_email(token, recipient_email):
+    delete_url = build_absolute_uri(
+        reverse("account:delete-confirm", kwargs={"token": token})
+    )
+    _send_account_delete_confirmation_email(recipient_email, delete_url)
+
+
+@app.task
+def send_account_delete_confirmation_email_with_url(
+    token, recipient_email, redirect_url
+):
+    params = urlencode({"token": token})
+    delete_url = "%(redirect_url)s?%(params)s" % {
+        "redirect_url": redirect_url,
+        "params": params,
+    }
+    _send_account_delete_confirmation_email(recipient_email, delete_url)
