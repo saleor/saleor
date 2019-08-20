@@ -49,10 +49,8 @@ def validation_error_to_error_type(validation_error: ValidationError) -> list:
     if hasattr(validation_error, "error_dict"):
         # convert field errors
         for field, field_errors in validation_error.error_dict.items():
+            field = None if field == NON_FIELD_ERRORS else snake_to_camel_case(field)
             for err in field_errors:
-                field = (
-                    None if field == NON_FIELD_ERRORS else snake_to_camel_case(field)
-                )
                 err_list.append(
                     Error(
                         field=field,
