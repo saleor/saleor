@@ -1382,6 +1382,32 @@ type DraftOrderUpdate {
 type Error {
   field: String
   message: String
+  code: ErrorCode
+}
+
+enum ErrorCode {
+  UNKNOWN
+  INVALID
+  LIMIT_VALUE
+  MAX_VALUE
+  MIN_VALUE
+  MIN_LENGTH
+  MAX_LENGTH
+  MAX_DIGITS
+  MAX_DECIMAL_PLACES
+  MAX_WHOLE_DIGITS
+  INVALID_EXTENSION
+  NULL_CHARACTERS_NOT_ALLOWED
+  OVERFLOW
+  MISSING
+  EMPTY
+  CONTRADICTION
+  INVALID_IMAGE
+  INVALID_CHOICE
+  INVALID_LIST
+  INCOMPLETE
+  INVALID_DATE
+  INVALID_TIME
 }
 
 type Fulfillment implements Node {
