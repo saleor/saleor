@@ -26,8 +26,10 @@ def _resolve_attributes_input(
     attributes_map_by_slug: attribute_map_type,
     attributes_map_by_id: attribute_map_type,
 ) -> attribute_input_type:
-    """This resolves a raw GraphQL input to proper attribute. Its job is to ensure
-    a backward compatibility with passing attributes by slug."""
+    """Resolve a raw GraphQL input to proper attribute.
+
+    Its job is to ensure a backward compatibility with passing attributes by slug.
+    """
 
     resolved_input = []  # type: List[ResolvedAttributeInput]
 
