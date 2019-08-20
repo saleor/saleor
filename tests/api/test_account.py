@@ -965,8 +965,8 @@ def test_logged_customer_update_anonymous_user(api_client, query):
 
 
 ACCOUNT_REQUEST_DELETION_MUTATION = """
-    mutation accountRequestDeletion {
-        accountRequestDeletion {
+    mutation accountRequestDeletion($redirectUrl: String!) {
+        accountRequestDeletion(redirectUrl: $redirectUrl) {
             errors {
                 field
                 message
@@ -976,20 +976,91 @@ ACCOUNT_REQUEST_DELETION_MUTATION = """
 """
 
 
-@patch("saleor.account.emails.send_account_delete_confirmation_email.delay")
+@patch("saleor.account.emails.send_account_delete_confirmation_email_with_url.delay")
 def test_account_request_deletion(
-    send_account_delete_confirmation_email_mock, user_api_client
+    send_account_delete_confirmation_email_with_url_mock, user_api_client
 ):
     user = user_api_client.user
-
-    response = user_api_client.post_graphql(ACCOUNT_REQUEST_DELETION_MUTATION)
+    variables = {"redirectUrl": "https://www.example.com"}
+    response = user_api_client.post_graphql(
+        ACCOUNT_REQUEST_DELETION_MUTATION, variables
+    )
     content = get_graphql_content(response)
     data = content["data"]["accountRequestDeletion"]
-
     assert not data["errors"]
-    send_account_delete_confirmation_email_mock.assert_called_once_with(
-        str(user.token), user.email
+    send_account_delete_confirmation_email_with_url_mock.assert_called_once_with(
+        str(user.token), user.email, ANY
     )
+    url = send_account_delete_confirmation_email_with_url_mock.mock_calls[0][1][2]
+    url_validator = URLValidator()
+    url_validator(url)
+
+
+@patch("saleor.account.emails.send_account_delete_confirmation_email_with_url.delay")
+def test_account_request_deletion_anonymous_user(
+    send_account_delete_confirmation_email_with_url_mock, api_client
+):
+    variables = {"redirectUrl": "https://www.example.com"}
+    response = api_client.post_graphql(ACCOUNT_REQUEST_DELETION_MUTATION, variables)
+    assert_no_permission(response)
+    send_account_delete_confirmation_email_with_url_mock.assert_not_called()
+
+
+@patch("saleor.account.emails.send_account_delete_confirmation_email_with_url.delay")
+def test_account_request_deletion_storefront_hosts_not_allowed(
+    send_account_delete_confirmation_email_with_url_mock, user_api_client
+):
+    variables = {"redirectUrl": "https://www.fake.com"}
+    response = user_api_client.post_graphql(
+        ACCOUNT_REQUEST_DELETION_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["accountRequestDeletion"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "redirectUrl"
+    send_account_delete_confirmation_email_with_url_mock.assert_not_called()
+
+
+@patch("saleor.account.emails.send_account_delete_confirmation_email_with_url.delay")
+def test_account_request_deletion_all_storefront_hosts_allowed(
+    send_account_delete_confirmation_email_with_url_mock, user_api_client, settings
+):
+    user = user_api_client.user
+    settings.ALLOWED_STOREFRONT_HOSTS = ["*"]
+    variables = {"redirectUrl": "https://www.test.com"}
+    response = user_api_client.post_graphql(
+        ACCOUNT_REQUEST_DELETION_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["accountRequestDeletion"]
+    assert not data["errors"]
+    send_account_delete_confirmation_email_with_url_mock.assert_called_once_with(
+        str(user.token), user.email, ANY
+    )
+    url = send_account_delete_confirmation_email_with_url_mock.mock_calls[0][1][2]
+    url_validator = URLValidator()
+    url_validator(url)
+
+
+@patch("saleor.account.emails.send_account_delete_confirmation_email_with_url.delay")
+def test_account_request_deletion_subdomain(
+    send_account_delete_confirmation_email_with_url_mock, user_api_client, settings
+):
+    user = user_api_client.user
+    settings.ALLOWED_STOREFRONT_HOSTS = [".example.com"]
+    variables = {"redirectUrl": "https://sub.example.com"}
+    response = user_api_client.post_graphql(
+        ACCOUNT_REQUEST_DELETION_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["accountRequestDeletion"]
+    assert not data["errors"]
+    send_account_delete_confirmation_email_with_url_mock.assert_called_once_with(
+        str(user.token), user.email, ANY
+    )
+    url = send_account_delete_confirmation_email_with_url_mock.mock_calls[0][1][2]
+    url_validator = URLValidator()
+    url_validator(url)
 
 
 ACCOUNT_DELETE_MUTATION = """
@@ -1059,15 +1130,6 @@ def test_account_delete_other_customer_token(user_api_client):
     assert data["errors"][0]["message"] == "Invalid or expired token."
     assert User.objects.filter(pk=user.id).exists()
     assert User.objects.filter(pk=other_user.id).exists()
-
-
-@patch("saleor.account.emails.send_account_delete_confirmation_email.delay")
-def test_account_request_deletion_anonymous_user(
-    send_account_delete_confirmation_email_mock, api_client
-):
-    response = api_client.post_graphql(ACCOUNT_REQUEST_DELETION_MUTATION, {})
-    assert_no_permission(response)
-    send_account_delete_confirmation_email_mock.assert_not_called()
 
 
 @patch(
@@ -1996,7 +2058,7 @@ def test_account_reset_password_storefront_hosts_not_allowed(
 
 
 @patch("saleor.account.emails._send_password_reset_email")
-def test_account_reset_password_all_storefront_hosts_not_allowed(
+def test_account_reset_password_all_storefront_hosts_allowed(
     send_password_reset_email_mock, user_api_client, customer_user, settings
 ):
     settings.ALLOWED_STOREFRONT_HOSTS = ["*"]
