@@ -13,9 +13,11 @@ from .availability import get_product_availability
 
 
 def _attributes_to_single(attributes: Dict[str, List[str]]) -> Dict[str, str]:
-    """This converts nested attributes to a flat attribute ({attr_pk: val_pk}).
+    """Convert nested attributes to a flat attribute ({attr_pk: val_pk}).
+
     This is used for backward compatibility between the storefront 1.0
-    and dashboard 2.0's new attribute mechanism."""
+    and dashboard 2.0's new attribute mechanism.
+    """
 
     new_attributes = {}
 
