@@ -141,6 +141,28 @@ class ProductType(ModelWithMetadata):
 
 
 class ProductsQueryset(PublishedQuerySet):
+    def create(self, **kwargs):
+        """Create a product.
+
+        In the case of absent "minimal_variant_price" make it default to the "price"
+        """
+        if "minimal_variant_price" not in kwargs:
+            kwargs["minimal_variant_price"] = kwargs.get("price")
+        return super().create(**kwargs)
+
+    def bulk_create(self, objs, batch_size=None, ignore_conflicts=False):
+        """Insert each of the product instances into the database.
+
+        Make sure every product has "minimal_variant_price" set. Otherwise
+        make it default to the "price".
+        """
+        for obj in objs:
+            if obj.minimal_variant_price is None:
+                obj.minimal_variant_price = obj.price
+        return super().bulk_create(
+            objs, batch_size=batch_size, ignore_conflicts=ignore_conflicts
+        )
+
     def collection_sorted(self, user):
         qs = self.visible_to_user(user).prefetch_related(
             "collections__products__collectionproduct"
@@ -165,6 +187,11 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
         Category, related_name="products", on_delete=models.CASCADE
     )
     price = MoneyField(
+        currency=settings.DEFAULT_CURRENCY,
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+    )
+    minimal_variant_price = MoneyField(
         currency=settings.DEFAULT_CURRENCY,
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
@@ -206,6 +233,14 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
 
     def __str__(self):
         return self.name
+
+    def save(
+        self, force_insert=False, force_update=False, using=None, update_fields=None
+    ):
+        # Make sure the "minimal_variant_price" is set
+        if self.minimal_variant_price is None:
+            self.minimal_variant_price = self.price
+        return super().save(force_insert, force_update, using, update_fields)
 
     @property
     def plain_text_description(self):
@@ -267,6 +302,40 @@ class ProductTranslation(SeoModelTranslation):
         )
 
 
+class ProductVariantQueryset(models.QuerySet):
+    def create(self, **kwargs):
+        """Create a product's variant.
+
+        After the creation update the "minimal_variant_price" of the product.
+        """
+        variant = super().create(**kwargs)
+
+        from .tasks import update_product_minimal_variant_price_task
+
+        update_product_minimal_variant_price_task.delay(variant.product_id)
+        return variant
+
+    def bulk_create(self, objs, batch_size=None, ignore_conflicts=False):
+        """Insert each of the product's variant instances into the database.
+
+        After the creation update the "minimal_variant_price" of all the products.
+        """
+        variants = super().bulk_create(
+            objs, batch_size=batch_size, ignore_conflicts=ignore_conflicts
+        )
+        product_ids = set()
+        for obj in objs:
+            product_ids.add(obj.product_id)
+        product_ids = list(product_ids)
+
+        from .tasks import update_products_minimal_variant_prices_of_catalogues_task
+
+        update_products_minimal_variant_prices_of_catalogues_task.delay(
+            product_ids=product_ids
+        )
+        return variants
+
+
 class ProductVariant(ModelWithMetadata):
     sku = models.CharField(max_length=32, unique=True)
     name = models.CharField(max_length=255, blank=True)
@@ -301,6 +370,8 @@ class ProductVariant(ModelWithMetadata):
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, blank=True, null=True
     )
+
+    objects = ProductVariantQueryset.as_manager()
     translated = TranslationProxy()
 
     class Meta:

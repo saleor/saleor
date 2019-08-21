@@ -74,6 +74,16 @@ def filter_products_by_price(qs, price_lte=None, price_gte=None):
     return qs
 
 
+def filter_products_by_minimal_price(
+    qs, minimal_price_lte=None, minimal_price_gte=None
+):
+    if minimal_price_lte:
+        qs = qs.filter(minimal_variant_price__lte=minimal_price_lte)
+    if minimal_price_gte:
+        qs = qs.filter(minimal_variant_price__gte=minimal_price_gte)
+    return qs
+
+
 def filter_products_by_categories(qs, categories):
     categories = [
         category.get_descendants(include_self=True) for category in categories
@@ -129,6 +139,13 @@ def filter_price(qs, _, value):
     return qs
 
 
+def filter_minimal_price(qs, _, value):
+    qs = filter_products_by_minimal_price(
+        qs, minimal_price_lte=value.get("lte"), minimal_price_gte=value.get("gte")
+    )
+    return qs
+
+
 def filter_stock_availability(qs, _, value):
     if value:
         qs = filter_products_by_stock_availability(qs, value)
@@ -171,6 +188,9 @@ class ProductFilter(django_filters.FilterSet):
     collections = GlobalIDMultipleChoiceFilter(method=filter_collections)
     categories = GlobalIDMultipleChoiceFilter(method=filter_categories)
     price = ObjectTypeFilter(input_class=PriceRangeInput, method=filter_price)
+    minimal_price = ObjectTypeFilter(
+        input_class=PriceRangeInput, method=filter_minimal_price
+    )
     attributes = ListObjectTypeFilter(
         input_class=AttributeInput, method=filter_attributes
     )

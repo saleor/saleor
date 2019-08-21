@@ -330,25 +330,35 @@ def test_products_query_with_filter_collection(
 
 
 @pytest.mark.parametrize(
-    "filter",
-    ({"price": {"gte": 5.0, "lte": 9.0}}, {"isPublished": False}, {"search": "Juice1"}),
+    "products_filter",
+    [
+        {"price": {"gte": 5.0, "lte": 9.0}},
+        {"minimalPrice": {"gte": 1.0, "lte": 2.0}},
+        {"isPublished": False},
+        {"search": "Juice1"},
+    ],
 )
 def test_products_query_with_filter(
-    filter,
+    products_filter,
     query_products_with_filter,
     staff_api_client,
     product,
     permission_manage_products,
 ):
+    assert product.price == Money("10.00", "USD")
+    assert product.minimal_variant_price == Money("10.00", "USD")
+    assert product.is_published is True
+    assert "Juice1" not in product.name
 
     second_product = product
     second_product.id = None
     second_product.name = "Apple Juice1"
     second_product.price = Money("6.00", "USD")
-    second_product.is_published = filter.get("isPublished", True)
+    second_product.minimal_variant_price = Money("1.99", "USD")
+    second_product.is_published = products_filter.get("isPublished", True)
     second_product.save()
 
-    variables = {"filter": filter}
+    variables = {"filter": products_filter}
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(query_products_with_filter, variables)
     content = get_graphql_content(response)
@@ -585,12 +595,14 @@ def test_filter_products_by_collections(user_api_client, collection, product):
 def test_sort_products(user_api_client, product):
     # set price and update date of the first product
     product.price = Money("10.00", "USD")
+    product.minimal_variant_price = Money("10.00", "USD")
     product.updated_at = datetime.utcnow()
     product.save()
 
     # Create the second product with higher price and date
     product.pk = None
     product.price = Money("20.00", "USD")
+    product.minimal_variant_price = Money("20.00", "USD")
     product.updated_at = datetime.utcnow()
     product.save()
 
@@ -607,6 +619,13 @@ def test_sort_products(user_api_client, product):
                                 }
                             }
                         }
+                        priceRange {
+                            start {
+                                gross {
+                                    amount
+                                }
+                            }
+                        }
                     }
                     updatedAt
                 }
@@ -615,32 +634,65 @@ def test_sort_products(user_api_client, product):
     }
     """
 
-    def _get_node_price(data, node):
-        return data["data"]["products"]["edges"][node]["node"]["pricing"][
-            "priceRangeUndiscounted"
-        ]["start"]["gross"]["amount"]
-
+    # Test sorting by PRICE, ascending
     asc_price_query = query % {"sort_by_product_order": "{field: PRICE, direction:ASC}"}
     response = user_api_client.post_graphql(asc_price_query)
     content = get_graphql_content(response)
+    edges = content["data"]["products"]["edges"]
+    price1 = edges[0]["node"]["pricing"]["priceRangeUndiscounted"]["start"]["gross"][
+        "amount"
+    ]
+    price2 = edges[1]["node"]["pricing"]["priceRangeUndiscounted"]["start"]["gross"][
+        "amount"
+    ]
+    assert price1 < price2
 
-    assert _get_node_price(content, 0) < _get_node_price(content, 1)
-
+    # Test sorting by PRICE, descending
     desc_price_query = query % {
         "sort_by_product_order": "{field: PRICE, direction:DESC}"
     }
     response = user_api_client.post_graphql(desc_price_query)
     content = get_graphql_content(response)
-    assert _get_node_price(content, 0) > _get_node_price(content, 1)
+    edges = content["data"]["products"]["edges"]
+    price1 = edges[0]["node"]["pricing"]["priceRangeUndiscounted"]["start"]["gross"][
+        "amount"
+    ]
+    price2 = edges[1]["node"]["pricing"]["priceRangeUndiscounted"]["start"]["gross"][
+        "amount"
+    ]
+    assert price1 > price2
 
+    # Test sorting by MINIMAL_PRICE, ascending
+    asc_price_query = query % {
+        "sort_by_product_order": "{field: MINIMAL_PRICE, direction:ASC}"
+    }
+    response = user_api_client.post_graphql(asc_price_query)
+    content = get_graphql_content(response)
+    edges = content["data"]["products"]["edges"]
+    price1 = edges[0]["node"]["pricing"]["priceRange"]["start"]["gross"]["amount"]
+    price2 = edges[1]["node"]["pricing"]["priceRange"]["start"]["gross"]["amount"]
+    assert price1 < price2
+
+    # Test sorting by MINIMAL_PRICE, descending
+    desc_price_query = query % {
+        "sort_by_product_order": "{field: MINIMAL_PRICE, direction:DESC}"
+    }
+    response = user_api_client.post_graphql(desc_price_query)
+    content = get_graphql_content(response)
+    edges = content["data"]["products"]["edges"]
+    price1 = edges[0]["node"]["pricing"]["priceRange"]["start"]["gross"]["amount"]
+    price2 = edges[1]["node"]["pricing"]["priceRange"]["start"]["gross"]["amount"]
+    assert price1 > price2
+
+    # Test sorting by DATE, ascending
     asc_date_query = query % {"sort_by_product_order": "{field: DATE, direction:ASC}"}
     response = user_api_client.post_graphql(asc_date_query)
     content = get_graphql_content(response)
-    # parse_datetime
     date_0 = content["data"]["products"]["edges"][0]["node"]["updatedAt"]
     date_1 = content["data"]["products"]["edges"][1]["node"]["updatedAt"]
     assert parse_datetime(date_0) < parse_datetime(date_1)
 
+    # Test sorting by DATE, descending
     desc_date_query = query % {"sort_by_product_order": "{field: DATE, direction:DESC}"}
     response = user_api_client.post_graphql(desc_date_query)
     content = get_graphql_content(response)
@@ -728,7 +780,7 @@ def test_create_product(
     product_is_published = True
     product_charge_taxes = True
     product_tax_rate = "STANDARD"
-    product_price = 22.33
+    product_price = "22.33"
 
     # Mock tax interface with fake response from tax gateway
     monkeypatch.setattr(
@@ -776,6 +828,7 @@ def test_create_product(
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
+    assert str(data["product"]["basePrice"]["amount"]) == product_price
     values = (
         data["product"]["attributes"][0]["values"][0]["slug"],
         data["product"]["attributes"][1]["values"][0]["slug"],
@@ -1051,6 +1104,7 @@ def test_update_product(
     product_charge_taxes = True
     product_tax_rate = "STANDARD"
     product_price = "33.12"
+    assert str(product.price.amount) == "10.00"
 
     # Mock tax interface with fake response from tax gateway
     monkeypatch.setattr(
@@ -1084,6 +1138,7 @@ def test_update_product(
     assert data["product"]["isPublished"] == product_is_published
     assert data["product"]["chargeTaxes"] == product_charge_taxes
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
+    assert str(data["product"]["basePrice"]["amount"]) == product_price
     assert not data["product"]["category"]["name"] == category.name
 
     attributes = data["product"]["attributes"]

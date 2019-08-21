@@ -416,7 +416,7 @@ def test_product_filter_product_exists(authorized_client, product, category):
     url = reverse(
         "product:category", kwargs={"slug": category.slug, "category_id": category.pk}
     )
-    data = {"price_min": [""], "price_max": ["20"]}
+    data = {"minimal_variant_price_min": [""], "minimal_variant_price_max": ["20"]}
 
     response = authorized_client.get(url, data)
 
@@ -491,7 +491,7 @@ def test_product_filter_product_does_not_exist(authorized_client, product, categ
     url = reverse(
         "product:category", kwargs={"slug": category.slug, "category_id": category.pk}
     )
-    data = {"price_min": ["20"], "price_max": [""]}
+    data = {"minimal_variant_price_min": ["20"], "minimal_variant_price_max": [""]}
 
     response = authorized_client.get(url, data)
 
@@ -500,7 +500,9 @@ def test_product_filter_product_does_not_exist(authorized_client, product, categ
 
 def test_product_filter_form(authorized_client, product, category):
     products = (
-        models.Product.objects.all().filter(category__name=category).order_by("-price")
+        models.Product.objects.all()
+        .filter(category__name=category)
+        .order_by("-minimal_variant_price")
     )
     url = reverse(
         "product:category", kwargs={"slug": category.slug, "category_id": category.pk}
@@ -508,7 +510,7 @@ def test_product_filter_form(authorized_client, product, category):
 
     response = authorized_client.get(url)
 
-    assert "price" in response.context["filter_set"].form.fields.keys()
+    assert "minimal_variant_price" in response.context["filter_set"].form.fields.keys()
     assert "sort_by" in response.context["filter_set"].form.fields.keys()
     assert list(response.context["filter_set"].qs) == list(products)
 
@@ -519,12 +521,12 @@ def test_product_filter_sorted_by_price_descending(
     products = (
         models.Product.objects.all()
         .filter(category__name=category, is_published=True)
-        .order_by("-price")
+        .order_by("-minimal_variant_price")
     )
     url = reverse(
         "product:category", kwargs={"slug": category.slug, "category_id": category.pk}
     )
-    data = {"sort_by": "-price"}
+    data = {"sort_by": "-minimal_variant_price"}
 
     response = authorized_client.get(url, data)
 
@@ -853,6 +855,8 @@ def test_product_json_deserialization(category, product_type):
             "description": "Future almost cup national",
             "category": {category_pk},
             "price": {{"_type": "Money", "amount": "35.98", "currency": "USD"}},
+            "minimal_variant_price":
+                {{"_type": "Money", "amount": "35.98", "currency": "USD"}},
             "publication_date": null,
             "is_published": true,
             "attributes": "{{\\"9\\": \\"24\\", \\"10\\": \\"26\\"}}",
