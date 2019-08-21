@@ -115,7 +115,7 @@ class RequestPasswordReset(BaseMutation):
 
 
 class PasswordChange(BaseMutation):
-    user = graphene.Field(User, description="An user instance with new password.")
+    user = graphene.Field(User, description="A user instance with a new password.")
 
     class Arguments:
         old_password = graphene.String(
