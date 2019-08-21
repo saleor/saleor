@@ -1,4 +1,5 @@
 import graphene
+from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 
 from ....account import emails, events as account_events, models, utils
@@ -97,8 +98,9 @@ class AccountRequestDeletion(BaseMutation):
         user = info.context.user
         redirect_url = data["redirect_url"]
         validate_storefront_url(redirect_url)
+        token = default_token_generator.make_token(user)
         emails.send_account_delete_confirmation_email_with_url.delay(
-            str(user.token), user.email, redirect_url
+            token, user.email, redirect_url
         )
         return AccountRequestDeletion()
 
@@ -133,7 +135,7 @@ class AccountDelete(ModelDeleteMutation):
         cls.clean_instance(info, user)
 
         token = data.pop("token")
-        if str(user.token) != token:
+        if not default_token_generator.check_token(user, token):
             raise ValidationError({"token": INVALID_TOKEN})
 
         db_id = user.id

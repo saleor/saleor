@@ -981,6 +981,7 @@ def test_account_request_deletion(
     send_account_delete_confirmation_email_with_url_mock, user_api_client
 ):
     user = user_api_client.user
+    token = default_token_generator.make_token(user)
     variables = {"redirectUrl": "https://www.example.com"}
     response = user_api_client.post_graphql(
         ACCOUNT_REQUEST_DELETION_MUTATION, variables
@@ -989,7 +990,7 @@ def test_account_request_deletion(
     data = content["data"]["accountRequestDeletion"]
     assert not data["errors"]
     send_account_delete_confirmation_email_with_url_mock.assert_called_once_with(
-        str(user.token), user.email, ANY
+        token, user.email, ANY
     )
     url = send_account_delete_confirmation_email_with_url_mock.mock_calls[0][1][2]
     url_validator = URLValidator()
@@ -1026,6 +1027,7 @@ def test_account_request_deletion_all_storefront_hosts_allowed(
     send_account_delete_confirmation_email_with_url_mock, user_api_client, settings
 ):
     user = user_api_client.user
+    token = default_token_generator.make_token(user)
     settings.ALLOWED_STOREFRONT_HOSTS = ["*"]
     variables = {"redirectUrl": "https://www.test.com"}
     response = user_api_client.post_graphql(
@@ -1035,7 +1037,7 @@ def test_account_request_deletion_all_storefront_hosts_allowed(
     data = content["data"]["accountRequestDeletion"]
     assert not data["errors"]
     send_account_delete_confirmation_email_with_url_mock.assert_called_once_with(
-        str(user.token), user.email, ANY
+        token, user.email, ANY
     )
     url = send_account_delete_confirmation_email_with_url_mock.mock_calls[0][1][2]
     url_validator = URLValidator()
@@ -1047,6 +1049,7 @@ def test_account_request_deletion_subdomain(
     send_account_delete_confirmation_email_with_url_mock, user_api_client, settings
 ):
     user = user_api_client.user
+    token = default_token_generator.make_token(user)
     settings.ALLOWED_STOREFRONT_HOSTS = [".example.com"]
     variables = {"redirectUrl": "https://sub.example.com"}
     response = user_api_client.post_graphql(
@@ -1056,7 +1059,7 @@ def test_account_request_deletion_subdomain(
     data = content["data"]["accountRequestDeletion"]
     assert not data["errors"]
     send_account_delete_confirmation_email_with_url_mock.assert_called_once_with(
-        str(user.token), user.email, ANY
+        token, user.email, ANY
     )
     url = send_account_delete_confirmation_email_with_url_mock.mock_calls[0][1][2]
     url_validator = URLValidator()
@@ -1077,7 +1080,7 @@ ACCOUNT_DELETE_MUTATION = """
 
 def test_account_delete(user_api_client):
     user = user_api_client.user
-    token = user.token
+    token = default_token_generator.make_token(user)
     variables = {"token": token}
 
     response = user_api_client.post_graphql(ACCOUNT_DELETE_MUTATION, variables)
