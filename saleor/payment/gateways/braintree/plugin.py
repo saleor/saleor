@@ -112,6 +112,23 @@ class BraintreeGatewayPlugin(BasePlugin):
             )
             self.active = GATEWAY_NAME in settings.CHECKOUT_PAYMENT_GATEWAYS
 
+    @classmethod
+    def _get_default_configuration(cls):
+        defaults = {
+            "name": cls.PLUGIN_NAME,
+            "description": "",
+            "active": False,
+            "configuration": [
+                {"name": "Public API key", "value": ""},
+                {"name": "Secret API key", "value": ""},
+                {"name": "Use sandbox", "value": True},
+                {"name": "Merchant ID", "value": ""},
+                {"name": "Store customers card", "value": False},
+                {"name": "Automatic payment capture", "value": True},
+            ],
+        }
+        return defaults
+
     def _get_gateway_config(self):
         return self.config
 
