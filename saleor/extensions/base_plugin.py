@@ -143,38 +143,38 @@ class BasePlugin:
         return NotImplemented
 
     def authorize_payment(
-        self, payment_information: PaymentData, previous_value
-    ) -> GatewayResponse:
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
         pass
 
     def capture_payment(
-        self, payment_information: PaymentData, previous_value
-    ) -> GatewayResponse:
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
         pass
 
     def refund_payment(
-        self, payment_information: PaymentData, previous_value
-    ) -> GatewayResponse:
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
         pass
 
     def void_payment(
-        self, payment_information: PaymentData, previous_value
-    ) -> GatewayResponse:
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
         pass
 
     def confirm_payment(
-        self, payment_information: PaymentData, previous_value
-    ) -> GatewayResponse:
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
         pass
 
     def process_payment(
-        self, payment_information: PaymentData, previous_value
-    ) -> GatewayResponse:
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
         pass
 
     def list_payment_sources(
         self, customer_id: str, previous_value
-    ) -> List[CustomerSource]:
+    ) -> List["CustomerSource"]:
         pass
 
     @classmethod

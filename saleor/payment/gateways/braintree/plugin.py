@@ -16,11 +16,10 @@ from . import (
     void,
 )
 
+GATEWAY_NAME = "braintree"
+
 if TYPE_CHECKING:
     from . import GatewayResponse, PaymentData, CustomerSource
-
-
-GATEWAY_NAME = "braintree"
 
 
 class BraintreeGatewayPlugin(BasePlugin):
@@ -133,33 +132,33 @@ class BraintreeGatewayPlugin(BasePlugin):
         return self.config
 
     def authorize_payment(
-        self, payment_information: PaymentData, previous_value
-    ) -> GatewayResponse:
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
         return authorize(payment_information, self._get_gateway_config())
 
     def capture_payment(
-        self, payment_information: PaymentData, previous_value
-    ) -> GatewayResponse:
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
         return capture(payment_information, self._get_gateway_config())
 
     def refund_payment(
-        self, payment_information: PaymentData, previous_value
-    ) -> GatewayResponse:
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
         return refund(payment_information, self._get_gateway_config())
 
     def void_payment(
-        self, payment_information: PaymentData, previous_value
-    ) -> GatewayResponse:
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
         return void(payment_information, self._get_gateway_config())
 
     def process_payment(
-        self, payment_information: PaymentData, previous_value
-    ) -> GatewayResponse:
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
         return process_payment(payment_information, self._get_gateway_config())
 
     def list_payment_sources(
         self, customer_id: str, previous_value
-    ) -> List[CustomerSource]:
+    ) -> List["CustomerSource"]:
         sources = list_client_sources(self._get_gateway_config(), customer_id)
         previous_value.extend(sources)
         return previous_value
