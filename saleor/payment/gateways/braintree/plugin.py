@@ -5,10 +5,21 @@ from django.utils.translation import pgettext_lazy
 from saleor.extensions import ConfigurationTypeField
 from saleor.extensions.base_plugin import BasePlugin
 
-from . import authorize, capture, list_client_sources, process_payment, refund, void
+from . import (
+    GatewayConfig,
+    authorize,
+    capture,
+    list_client_sources,
+    process_payment,
+    refund,
+    void,
+)
 
 if TYPE_CHECKING:
-    from . import GatewayResponse, PaymentData, GatewayConfig, CustomerSource
+    from . import GatewayResponse, PaymentData, CustomerSource
+
+
+GATEWAY_NAME = "braintree"
 
 
 class BraintreeGatewayPlugin(BasePlugin):
@@ -70,8 +81,27 @@ class BraintreeGatewayPlugin(BasePlugin):
         defaults = None
         return defaults
 
+    def _initialize_plugin_configuration(self):
+        super()._initialize_plugin_configuration()
+
+        if self._cached_config and self._cached_config.configuration:
+            configuration = self._cached_config.configuration
+
+            self.config = GatewayConfig(
+                gateway_name=GATEWAY_NAME,
+                auto_capture=configuration["Automatic payment capture"],
+                connection_params={
+                    "sandbox_mode": configuration["Use sandbox"],
+                    "merchant_id": configuration["Merchant ID"],
+                    "public_key": configuration["Public API key"],
+                    "private_key": configuration["Secret API key"],
+                },
+                template_path="",
+                store_customer=configuration["Store customers card"],
+            )
+
     def _get_gateway_config(self):
-        return GatewayConfig()
+        return self.config
 
     def authorize_payment(
         self, payment_information: PaymentData, previous_value
