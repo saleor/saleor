@@ -1,6 +1,13 @@
 from ..celeryconf import app
-from .models import Attribute, ProductType, ProductVariant
+from ..discount.models import Sale
+from .models import Attribute, Product, ProductType, ProductVariant
 from .utils.attributes import get_name_from_attributes
+from .utils.variant_prices import (
+    update_product_minimal_variant_price,
+    update_products_minimal_variant_prices,
+    update_products_minimal_variant_prices_of_catalogues,
+    update_products_minimal_variant_prices_of_discount,
+)
 
 
 def _update_variants_names(instance, saved_attributes):
@@ -31,3 +38,30 @@ def update_variants_names(product_type_pk, saved_attributes_ids):
     instance = ProductType.objects.get(pk=product_type_pk)
     saved_attributes = Attribute.objects.filter(pk__in=saved_attributes_ids)
     return _update_variants_names(instance, saved_attributes)
+
+
+@app.task
+def update_product_minimal_variant_price_task(product_pk):
+    product = Product.objects.get(pk=product_pk)
+    update_product_minimal_variant_price(product)
+
+
+@app.task
+def update_products_minimal_variant_prices_of_catalogues_task(
+    product_ids=None, category_ids=None, collection_ids=None
+):
+    update_products_minimal_variant_prices_of_catalogues(
+        product_ids, category_ids, collection_ids
+    )
+
+
+@app.task
+def update_products_minimal_variant_prices_of_discount_task(discount_pk):
+    discount = Sale.objects.get(pk=discount_pk)
+    update_products_minimal_variant_prices_of_discount(discount)
+
+
+@app.task
+def update_all_products_minimal_variant_prices_task():
+    products = Product.objects.iterator()
+    update_products_minimal_variant_prices(products)

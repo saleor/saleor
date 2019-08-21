@@ -196,10 +196,12 @@ class ProductQueries(graphene.ObjectType):
             graphene.ID, description="Filter products by collections."
         ),
         price_lte=graphene.Float(
-            description="Filter by price less than or equal to the given value."
+            description="""DEPRECATED: Use the "filter" input.
+            Filter by price less than or equal to the given value."""
         ),
         price_gte=graphene.Float(
-            description="Filter by price greater than or equal to the given value."
+            description="""DEPRECATED: Use the "filter" input.
+            Filter by price greater than or equal to the given value."""
         ),
         sort_by=graphene.Argument(ProductOrder, description="Sort products."),
         stock_availability=graphene.Argument(
