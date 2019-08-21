@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, List
 
+from django.conf import settings
 from django.utils.translation import pgettext_lazy
 
 from saleor.extensions import ConfigurationTypeField
@@ -99,6 +100,17 @@ class BraintreeGatewayPlugin(BasePlugin):
                 template_path="",
                 store_customer=configuration["Store customers card"],
             )
+        else:
+            # This should be removed after we drop payment configs in settings
+            gateway_config = settings.PAYMENT_GATEWAYS[GATEWAY_NAME]["config"]
+            self.config = GatewayConfig(
+                gateway_name=GATEWAY_NAME,
+                auto_capture=gateway_config["auto_capture"],
+                template_path=gateway_config["template_path"],
+                connection_params=gateway_config["connection_params"],
+                store_customer=gateway_config["store_card"],
+            )
+            self.active = GATEWAY_NAME in settings.CHECKOUT_PAYMENT_GATEWAYS
 
     def _get_gateway_config(self):
         return self.config
