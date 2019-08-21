@@ -9,7 +9,7 @@ from saleor.graphql.discount.enums import DiscountValueTypeEnum
 from tests.api.utils import get_graphql_content
 
 
-def test_ProductCreate_sets_minimal_variant_price(
+def test_product_create_sets_minimal_variant_price(
     staff_api_client, product_type, category, permission_manage_products
 ):
     query = """
@@ -65,7 +65,7 @@ def test_ProductCreate_sets_minimal_variant_price(
     "saleor.graphql.product.mutations.products"
     ".update_product_minimal_variant_price_task"
 )
-def test_ProductUpdate_updates_minimal_variant_price(
+def test_product_update_updates_minimal_variant_price(
     mock_update_product_minimal_variant_price_task,
     staff_api_client,
     product,
@@ -117,7 +117,7 @@ def test_ProductUpdate_updates_minimal_variant_price(
     "saleor.graphql.product.mutations.products"
     ".update_product_minimal_variant_price_task"
 )
-def test_ProductVariantCreate_updates_minimal_variant_price(
+def test_product_variant_create_updates_minimal_variant_price(
     mock_update_product_minimal_variant_price_task,
     staff_api_client,
     product,
@@ -177,7 +177,7 @@ def test_ProductVariantCreate_updates_minimal_variant_price(
     "saleor.graphql.product.mutations.products"
     ".update_product_minimal_variant_price_task"
 )
-def test_ProductVariantUpdate_updates_minimal_variant_price(
+def test_product_variant_update_updates_minimal_variant_price(
     mock_update_product_minimal_variant_price_task,
     staff_api_client,
     product,
@@ -226,7 +226,7 @@ def test_ProductVariantUpdate_updates_minimal_variant_price(
     "saleor.graphql.product.mutations.products."
     "update_product_minimal_variant_price_task"
 )
-def test_ProductVariantDelete_updates_minimal_variant_price(
+def test_product_variant_delete_updates_minimal_variant_price(
     mock_update_product_minimal_variant_price_task,
     staff_api_client,
     product,
@@ -260,7 +260,7 @@ def test_ProductVariantDelete_updates_minimal_variant_price(
     )
 
 
-def test_CategoryDelete_also_deletes_products(
+def test_category_delete_also_deletes_products(
     staff_api_client, product, category, permission_manage_products
 ):
     # Making sure the products associated with the category are deleted otherwise
@@ -296,7 +296,7 @@ def test_CategoryDelete_also_deletes_products(
     "saleor.graphql.product.mutations.products"
     ".update_products_minimal_variant_prices_of_catalogues_task"
 )
-def test_CollectionAddProducts_updates_minimal_variant_price(
+def test_collection_add_products_updates_minimal_variant_price(
     mock_update_minimal_variant_prices_task,
     staff_api_client,
     sale,
@@ -340,7 +340,7 @@ def test_CollectionAddProducts_updates_minimal_variant_price(
     "saleor.graphql.product.mutations"
     ".products.update_products_minimal_variant_prices_of_catalogues_task"
 )
-def test_CollectionRemoveProducts_updates_minimal_variant_price(
+def test_collection_remove_products_updates_minimal_variant_price(
     mock_update_minimal_variant_prices_task,
     staff_api_client,
     sale,
@@ -385,7 +385,7 @@ def test_CollectionRemoveProducts_updates_minimal_variant_price(
     "saleor.graphql.discount.mutations"
     ".update_products_minimal_variant_prices_of_discount_task"
 )
-def test_SaleCreate_updates_products_minimal_variant_prices(
+def test_sale_create_updates_products_minimal_variant_prices(
     mock_update_minimal_variant_prices_task,
     staff_api_client,
     permission_manage_discounts,
@@ -436,7 +436,7 @@ def test_SaleCreate_updates_products_minimal_variant_prices(
     "saleor.graphql.discount.mutations"
     ".update_products_minimal_variant_prices_of_discount_task"
 )
-def test_SaleUpdate_updates_products_minimal_variant_prices(
+def test_sale_update_updates_products_minimal_variant_prices(
     mock_update_minimal_variant_prices_task,
     staff_api_client,
     sale,
@@ -471,7 +471,7 @@ def test_SaleUpdate_updates_products_minimal_variant_prices(
     "saleor.graphql.discount.mutations"
     ".update_products_minimal_variant_prices_of_discount_task"
 )
-def test_SaleDelete_updates_products_minimal_variant_prices(
+def test_sale_delete_updates_products_minimal_variant_prices(
     mock_update_minimal_variant_prices_task,
     staff_api_client,
     sale,
@@ -506,7 +506,7 @@ def test_SaleDelete_updates_products_minimal_variant_prices(
     "saleor.graphql.discount.mutations"
     ".update_products_minimal_variant_prices_of_catalogues_task"
 )
-def test_SaleAddCatalogues_updates_products_minimal_variant_prices(
+def test_sale_add_catalogues_updates_products_minimal_variant_prices(
     mock_update_minimal_variant_prices_task,
     staff_api_client,
     sale,
@@ -557,7 +557,7 @@ def test_SaleAddCatalogues_updates_products_minimal_variant_prices(
     "saleor.graphql.discount.mutations"
     ".update_products_minimal_variant_prices_of_catalogues_task"
 )
-def test_SaleRemoveCatalogues_updates_products_minimal_variant_prices(
+def test_sale_remove_catalogues_updates_products_minimal_variant_prices(
     mock_update_minimal_variant_prices_task,
     staff_api_client,
     sale,
