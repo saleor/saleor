@@ -53,6 +53,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Refactoring of password recovery system - #4617 by @fowczarek
 - Added capability to filter attributes per global ID - #4640 by @NyanKiyoshi.
 - Added capability to search product types by value (through the name) - #4647 by @NyanKiyoshi.
+- Add mutation to change the authenticated user's password - #4656 by @fowczarek
 
 ## 2.8.0
 
