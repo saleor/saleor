@@ -143,8 +143,8 @@ type AssignNavigation {
 
 type Attribute implements Node {
   id: ID!
-  productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
-  productVariantTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
+  productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
+  productVariantTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
   privateMeta: [MetaStore]!
   meta: [MetaStore]!
   inputType: AttributeInputTypeEnum
@@ -970,7 +970,6 @@ enum CountryCode {
   LT
   LU
   MO
-  MK
   MG
   MW
   MY
@@ -1004,6 +1003,7 @@ enum CountryCode {
   NU
   NF
   KP
+  MK
   MP
   NO
   OM

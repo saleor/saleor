@@ -1604,10 +1604,12 @@ def test_try_payment_action_generates_event(order, staff_user, payment_dummy):
     def _test_operation():
         raise PaymentError(message)
 
-    with pytest.raises(ValidationError, message={"payment": message}):
+    with pytest.raises(ValidationError) as exc:
         try_payment_action(
             order=order, user=staff_user, payment=payment_dummy, func=_test_operation
         )
+
+    assert exc.value.args[0] == {"payment": message}
 
     error_event = OrderEvent.objects.get()  # type: OrderEvent
     assert error_event.type == order_events.OrderEvents.PAYMENT_FAILED
