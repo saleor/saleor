@@ -6,15 +6,17 @@
 # Translators:
 # Pedro Santos <pmachado88@gmail.com>, 2019
 # Carlos Fontinha <prisma.portatil@gmail.com>, 2019
+# Lambda Technologies <geral@lambda.pt>, 2019
+# Patryk Zawadzki <patrys@room-303.com>, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-17 04:57-0500\n"
+"POT-Creation-Date: 2019-07-29 11:49-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Carlos Fontinha <prisma.portatil@gmail.com>, 2019\n"
+"Last-Translator: Patryk Zawadzki <patrys@room-303.com>, 2019\n"
 "Language-Team: Portuguese (https://www.transifex.com/mirumee/teams/34782/pt/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -267,17 +269,17 @@ msgctxt "Address form"
 msgid "This value is invalid for selected country"
 msgstr "Este valor é inválido para o país selecionado"
 
-#: saleor/account/models.py:164
+#: saleor/account/models.py:163
 msgctxt "Permission description"
 msgid "Manage customers."
 msgstr "Gerir clientes."
 
-#: saleor/account/models.py:166
+#: saleor/account/models.py:165
 msgctxt "Permission description"
 msgid "Manage staff."
 msgstr "Gerir equipa."
 
-#: saleor/account/models.py:169
+#: saleor/account/models.py:168
 msgctxt "Permission description"
 msgid "Impersonate customers."
 msgstr "Representar clientes."
@@ -354,34 +356,34 @@ msgctxt "Type of address used to fulfill order"
 msgid "Shipping"
 msgstr "Entrega"
 
-#: saleor/checkout/forms.py:44
+#: saleor/checkout/forms.py:43
 msgctxt "Add to checkout form field label"
 msgid "Quantity"
 msgstr "Quantidade"
 
-#: saleor/checkout/forms.py:49
+#: saleor/checkout/forms.py:48
 msgctxt "Add to checkout form error"
 msgid "Sorry. This product is currently not available."
 msgstr ""
 "As nossas desculpas. Presentemente, este artigo não se encontra disponível."
 
-#: saleor/checkout/forms.py:53
+#: saleor/checkout/forms.py:52
 msgctxt "Add to checkout form error"
 msgid "Sorry. This product is currently out of stock."
 msgstr "As nossas desculpas. Este artigo encontra-se atualmente esgotado."
 
-#: saleor/checkout/forms.py:57
+#: saleor/checkout/forms.py:56
 #, python-format
 msgctxt "Add to checkout form error"
 msgid "Sorry. You can't add more than %d times this item."
 msgstr ""
 
-#: saleor/checkout/forms.py:60
+#: saleor/checkout/forms.py:59
 msgctxt "Add to checkout form error"
 msgid "Oops. We could not find that product."
 msgstr "Não foi possível encontrar o artigo pretendido."
 
-#: saleor/checkout/forms.py:64
+#: saleor/checkout/forms.py:63
 #, python-format
 msgctxt "Add to checkout form error"
 msgid "Only %d remaining in stock."
@@ -389,57 +391,57 @@ msgid_plural "Only %d remaining in stock."
 msgstr[0] ""
 msgstr[1] ""
 
-#: saleor/checkout/forms.py:189
+#: saleor/checkout/forms.py:188
 msgctxt "Country form field label"
 msgid "Country"
 msgstr "País"
 
-#: saleor/checkout/forms.py:218 saleor/checkout/forms.py:231
+#: saleor/checkout/forms.py:219 saleor/checkout/forms.py:232
 msgctxt "Address form field label"
 msgid "Email"
 msgstr "Email"
 
-#: saleor/checkout/forms.py:246
+#: saleor/checkout/forms.py:247
 msgctxt "Shipping addresses form choice"
 msgid "Enter a new address"
 msgstr "Insira a sua nova morada"
 
-#: saleor/checkout/forms.py:251
+#: saleor/checkout/forms.py:252
 msgctxt "Shipping addresses form field label"
 msgid "Address"
 msgstr "Endereço"
 
-#: saleor/checkout/forms.py:272
+#: saleor/checkout/forms.py:273
 msgctxt "Billing addresses form choice"
 msgid "Enter a new address"
 msgstr "Insira seu novo endereço"
 
-#: saleor/checkout/forms.py:276
+#: saleor/checkout/forms.py:277
 msgctxt "Billing addresses form choice"
 msgid "Same as shipping"
 msgstr "Mesmo que o transporte"
 
-#: saleor/checkout/forms.py:281
+#: saleor/checkout/forms.py:282
 msgctxt "Billing addresses form field label"
 msgid "Address"
 msgstr "Endereço"
 
-#: saleor/checkout/forms.py:314
+#: saleor/checkout/forms.py:315
 msgctxt "Shipping method form field label"
 msgid "Shipping method"
 msgstr "Método de envio"
 
-#: saleor/checkout/forms.py:361
+#: saleor/checkout/forms.py:362
 msgctxt "Voucher form error"
 msgid "Discount code incorrect or expired"
 msgstr "O código de desconto está incorreto ou encontra-se expirado"
 
-#: saleor/checkout/forms.py:374
+#: saleor/checkout/forms.py:375
 msgctxt "Checkout discount form label for voucher field"
 msgid "Gift card or discount code"
 msgstr "Cartão de presente ou código de desconto"
 
-#: saleor/checkout/utils.py:212
+#: saleor/checkout/utils.py:218
 msgctxt "Checkout warning message"
 msgid ""
 "Sorry. We don't have that many items in stock. Quantity was set to maximum "
@@ -448,32 +450,32 @@ msgstr ""
 "As nossas desculpas. Não temos itens o suficiente em armazém. Quantidade foi"
 " ajustado para o máximo disponível no momento."
 
-#: saleor/checkout/utils.py:753
+#: saleor/checkout/utils.py:776
 msgctxt "Voucher not applicable"
 msgid "Your order does not require shipping."
 msgstr "O seu pedido não requer transporte."
 
-#: saleor/checkout/utils.py:759
+#: saleor/checkout/utils.py:782
 msgctxt "Voucher not applicable"
 msgid "Please select a shipping method first."
 msgstr "Por favor, selecione primeiro, um método de envio."
 
-#: saleor/checkout/utils.py:767
+#: saleor/checkout/utils.py:790
 msgctxt "Voucher not applicable"
 msgid "This offer is not valid in your country."
 msgstr "Esta promoção não é valida em seu pais."
 
-#: saleor/checkout/utils.py:795
+#: saleor/checkout/utils.py:818
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid for selected items."
 msgstr "Esta oferta é válida apenas para os itens selecionados."
 
-#: saleor/checkout/utils.py:986
+#: saleor/checkout/utils.py:1034
 msgctxt "Voucher not applicable"
 msgid "Voucher expired in meantime. Order placement aborted."
 msgstr "Voucher expirado. Pedido foi anulado."
 
-#: saleor/checkout/utils.py:1050
+#: saleor/checkout/utils.py:1098
 msgctxt "Gift card not applicable"
 msgid "Gift card has expired. Order placement cancelled."
 msgstr ""
@@ -492,6 +494,12 @@ msgstr "Por favor, verifique o seu checkout."
 #, python-format
 msgctxt "Checkout warning"
 msgid "Unable to calculate taxes - %s"
+msgstr ""
+
+#: saleor/core/fields.py:10
+msgid ""
+"A JSON field that runs a given sanitization method before saving into the "
+"database."
 msgstr ""
 
 #: saleor/core/filters.py:27
@@ -632,7 +640,7 @@ msgctxt "VAT rate type"
 msgid "wine"
 msgstr "vinho"
 
-#: saleor/core/views.py:50
+#: saleor/core/views.py:51
 msgctxt "Impersonation message"
 msgid "You are now logged as {}"
 msgstr "Encontra-se ligado como {}"
@@ -1014,7 +1022,7 @@ msgctxt "storefront message"
 msgid "The order is now assigned to your account"
 msgstr "O pedido foi vinculado à sua conta"
 
-#: saleor/page/models.py:31
+#: saleor/page/models.py:37
 msgctxt "Permission description"
 msgid "Manage pages."
 msgstr "Gerenciar páginas."
@@ -1134,7 +1142,7 @@ msgctxt "Stripe payment gateway description"
 msgid "Total payment"
 msgstr "Pagamento total"
 
-#: saleor/payment/utils.py:279
+#: saleor/payment/utils.py:277
 msgctxt "Mark order as paid validation error"
 msgid "Orders with payments can not be manually marked as paid."
 msgstr ""
@@ -1205,18 +1213,18 @@ msgctxt "Currency amount"
 msgid "Price"
 msgstr "Preço"
 
-#: saleor/product/forms.py:26
+#: saleor/product/forms.py:27
 #, python-format
 msgctxt "Variant choice field label"
 msgid "%(variant_label)s - %(price)s"
 msgstr "%(variant_label)s - %(price)s"
 
-#: saleor/product/models.py:153
+#: saleor/product/models.py:160
 msgctxt "Permission description"
 msgid "Manage products."
 msgstr "Gerenciar produtos."
 
-#: saleor/product/models.py:369
+#: saleor/product/models.py:384
 msgctxt "File as a digital product"
 msgid "digital_product"
 msgstr ""
@@ -1226,180 +1234,184 @@ msgctxt "Search form label"
 msgid "Query"
 msgstr "Pesquisa"
 
-#: saleor/settings.py:61
+#: saleor/settings.py:62
 msgid "Arabic"
 msgstr "Árabe"
 
-#: saleor/settings.py:62
+#: saleor/settings.py:63
 msgid "Azerbaijani"
 msgstr ""
 
-#: saleor/settings.py:63
+#: saleor/settings.py:64
 msgid "Bulgarian"
 msgstr "Búlgaro"
 
-#: saleor/settings.py:64
+#: saleor/settings.py:65
 msgid "Bengali"
 msgstr ""
 
-#: saleor/settings.py:65
+#: saleor/settings.py:66
 msgid "Catalan"
 msgstr "Catalão"
 
-#: saleor/settings.py:66
+#: saleor/settings.py:67
 msgid "Czech"
 msgstr "Checo"
 
-#: saleor/settings.py:67
+#: saleor/settings.py:68
 msgid "Danish"
 msgstr "Dinamarquês"
 
-#: saleor/settings.py:68
+#: saleor/settings.py:69
 msgid "German"
 msgstr "Alemão"
 
-#: saleor/settings.py:69
+#: saleor/settings.py:70
+msgid "Greek"
+msgstr ""
+
+#: saleor/settings.py:71
 msgid "English"
 msgstr "Inglês"
 
-#: saleor/settings.py:70
+#: saleor/settings.py:72
 msgid "Spanish"
 msgstr "Espanhol"
 
-#: saleor/settings.py:71
+#: saleor/settings.py:73
 msgid "Colombian Spanish"
 msgstr ""
 
-#: saleor/settings.py:72
+#: saleor/settings.py:74
 msgid "Estonian"
 msgstr "Estoniano"
 
-#: saleor/settings.py:73
+#: saleor/settings.py:75
 msgid "Persian"
 msgstr "Persa"
 
-#: saleor/settings.py:74
+#: saleor/settings.py:76
 msgid "French"
 msgstr "Francês"
 
-#: saleor/settings.py:75
+#: saleor/settings.py:77
 msgid "Hindi"
 msgstr "Hindi"
 
-#: saleor/settings.py:76
+#: saleor/settings.py:78
 msgid "Hungarian"
 msgstr "Húngaro"
 
-#: saleor/settings.py:77
+#: saleor/settings.py:79
 msgid "Armenian"
 msgstr ""
 
-#: saleor/settings.py:78
+#: saleor/settings.py:80
 msgid "Indonesian"
 msgstr "Indonésio"
 
-#: saleor/settings.py:79
+#: saleor/settings.py:81
 msgid "Icelandic"
 msgstr ""
 
-#: saleor/settings.py:80
+#: saleor/settings.py:82
 msgid "Italian"
 msgstr "Italiano"
 
-#: saleor/settings.py:81
+#: saleor/settings.py:83
 msgid "Japanese"
 msgstr "Japonês"
 
-#: saleor/settings.py:82
+#: saleor/settings.py:84
 msgid "Korean"
 msgstr "Coreano"
 
-#: saleor/settings.py:83
+#: saleor/settings.py:85
 msgid "Lithuanian"
 msgstr ""
 
-#: saleor/settings.py:84
+#: saleor/settings.py:86
 msgid "Mongolian"
 msgstr "Mongol"
 
-#: saleor/settings.py:85
+#: saleor/settings.py:87
 msgid "Norwegian"
 msgstr "Norueguês"
 
-#: saleor/settings.py:86
+#: saleor/settings.py:88
 msgid "Dutch"
 msgstr "Holandês"
 
-#: saleor/settings.py:87
+#: saleor/settings.py:89
 msgid "Polish"
 msgstr "Polaco"
 
-#: saleor/settings.py:88
+#: saleor/settings.py:90
 msgid "Portuguese"
 msgstr ""
 
-#: saleor/settings.py:89
+#: saleor/settings.py:91
 msgid "Brazilian Portuguese"
 msgstr "Português Brasileiro"
 
-#: saleor/settings.py:90
+#: saleor/settings.py:92
 msgid "Romanian"
 msgstr "Romena"
 
-#: saleor/settings.py:91
+#: saleor/settings.py:93
 msgid "Russian"
 msgstr "Russo"
 
-#: saleor/settings.py:92
+#: saleor/settings.py:94
 msgid "Slovak"
 msgstr "Eslovaco"
 
-#: saleor/settings.py:93
+#: saleor/settings.py:95
 msgid "Albanian"
 msgstr ""
 
-#: saleor/settings.py:94
+#: saleor/settings.py:96
 msgid "Serbian"
 msgstr "Sérvio"
 
-#: saleor/settings.py:95
+#: saleor/settings.py:97
 msgid "Swahili"
 msgstr ""
 
-#: saleor/settings.py:96
+#: saleor/settings.py:98
 msgid "Swedish"
 msgstr "Sueco"
 
-#: saleor/settings.py:97
+#: saleor/settings.py:99
 msgid "Thai"
 msgstr "Tailandês"
 
-#: saleor/settings.py:98
+#: saleor/settings.py:100
 msgid "Turkish"
 msgstr "Turco"
 
-#: saleor/settings.py:99
+#: saleor/settings.py:101
 msgid "Ukrainian"
 msgstr "Ucraniano"
 
-#: saleor/settings.py:100
+#: saleor/settings.py:102
 msgid "Vietnamese"
 msgstr "Vietinamita"
 
-#: saleor/settings.py:101
+#: saleor/settings.py:103
 msgid "Simplified Chinese"
 msgstr "Chinês simplificado"
 
-#: saleor/settings.py:102
+#: saleor/settings.py:104
 msgid "Traditional Chinese"
 msgstr "Chinês tradicional"
 
-#: saleor/settings.py:336
+#: saleor/settings.py:350
 msgctxt "Name of political and economical union of european countries"
 msgid "European Union"
 msgstr "União Europeia"
 
-#: saleor/settings.py:594
+#: saleor/settings.py:608
 msgctxt "Payment method name"
 msgid "Dummy gateway"
 msgstr "gateway teste"
@@ -1414,40 +1426,40 @@ msgctxt "Type of shipping"
 msgid "Weight based shipping"
 msgstr "Frete baseado no peso"
 
-#: saleor/shipping/models.py:43
-#, python-format
-msgctxt "Number of countries shipping zone apply to"
-msgid "%(num_of_countries)d countries"
-msgstr "%(num_of_countries)d países"
-
-#: saleor/shipping/models.py:60
-msgctxt "Permission description"
-msgid "Manage shipping."
-msgstr "Gerir entregas"
-
-#: saleor/shipping/utils.py:51
+#: saleor/shipping/models.py:53
 #, python-format
 msgctxt "Applies to orders more expensive than the min value"
 msgid "%(min_price)s and up"
 msgstr "%(min_price)s até"
 
-#: saleor/shipping/utils.py:55
+#: saleor/shipping/models.py:57
 #, python-format
 msgctxt "Applies to order valued within this price range"
 msgid "%(min_price)s to %(max_price)s"
 msgstr "%(min_price)s a %(max_price)s"
 
-#: saleor/shipping/utils.py:69
+#: saleor/shipping/models.py:71
 #, python-format
 msgctxt "Applies to orders heavier than the threshold"
 msgid "%(min_weight)s and up"
 msgstr "%(min_weight)s até"
 
-#: saleor/shipping/utils.py:73
+#: saleor/shipping/models.py:75
 #, python-format
 msgctxt "Applies to orders of total weight within this range"
 msgid "%(min_weight)s to %(max_weight)s"
 msgstr "%(min_weight)s a %(max_weight)s"
+
+#: saleor/shipping/models.py:98
+#, python-format
+msgctxt "Number of countries shipping zone apply to"
+msgid "%(num_of_countries)d countries"
+msgstr "%(num_of_countries)d países"
+
+#: saleor/shipping/models.py:115
+msgctxt "Permission description"
+msgid "Manage shipping."
+msgstr "Gerir entregas"
 
 #: saleor/site/models.py:49
 msgctxt "Permission description"
@@ -1522,8 +1534,8 @@ msgstr "Novo endereço"
 #: templates/account/address_edit.html:16 templates/account/details.html:16
 #: templates/account/password_change.html:7 templates/checkout/index.html:11
 #: templates/order/details.html:18 templates/order/payment.html:18
-#: templates/order/payment/details.html:12 templates/page/details.html:27
-#: templates/product/details.html:45
+#: templates/order/payment/details.html:12 templates/page/details.html:28
+#: templates/product/details.html:46
 msgctxt "Main navigation item"
 msgid "Home"
 msgstr "Início"
@@ -1899,7 +1911,7 @@ msgstr "Sair"
 #: templates/base.html:101 templates/base.html:245
 msgctxt "Main navigation item"
 msgid "Register"
-msgstr "Registro"
+msgstr "Registo"
 
 #: templates/base.html:105 templates/base.html:250
 msgctxt "Main navigation item"
@@ -5775,7 +5787,7 @@ msgid ""
 "                  "
 msgstr ""
 "\n"
-"                   valor_imposto = (% imposto * preço) / (1 + % imposto)\n"
+"                   valor_imposto = (%% imposto * preço) / (1 + %% imposto)\n"
 "                  "
 
 #: templates/dashboard/taxes/form.html:64
@@ -6255,7 +6267,7 @@ msgctxt "Payment form (Razorpay) secondary action"
 msgid "Change payment"
 msgstr "Mudar método de pagamento"
 
-#: templates/page/details.html:41
+#: templates/page/details.html:42
 msgctxt "Unavailable page detail text"
 msgid ""
 "\n"
@@ -6268,7 +6280,7 @@ msgstr ""
 "        Você está visualizando uma página que não se encontra visível na loja.\n"
 "      "
 
-#: templates/page/details.html:48
+#: templates/page/details.html:49
 #, python-format
 msgctxt "Unpublished page details text"
 msgid ""
@@ -6309,7 +6321,7 @@ msgctxt "product price range"
 msgid "from"
 msgstr "de"
 
-#: templates/product/details.html:62
+#: templates/product/details.html:63
 #, python-format
 msgctxt "Product details text"
 msgid ""
@@ -6319,34 +6331,34 @@ msgstr ""
 "<strong>Atenção!</strong> Você está visualizando um produto que se tornará "
 "visível em <strong>%(date)s</strong>."
 
-#: templates/product/details.html:124
+#: templates/product/details.html:125
 msgctxt "Product details link text"
 msgid "Edit in dashboard"
 msgstr "Editar no painel"
 
-#: templates/product/details.html:150
+#: templates/product/details.html:151
 #, python-format
 msgctxt "Product details page vat rate value"
 msgid "including %(tax_rate)s%% VAT"
 msgstr "Incluindo%(tax_rate)s%% de ICMS"
 
-#: templates/product/details.html:154
+#: templates/product/details.html:155
 #, python-format
 msgctxt "Product details page vat rate value"
 msgid "excluding %(tax_rate)s%% VAT"
 msgstr "Excluindo %(tax_rate)s%% de ICMS"
 
-#: templates/product/details.html:178
+#: templates/product/details.html:179
 msgctxt "Product details primary action"
 msgid "Add to cart"
 msgstr "Adicionar ao carrinho"
 
-#: templates/product/details.html:190
+#: templates/product/details.html:191
 msgctxt "Product details text"
 msgid "This product is currently <strong>unavailable</strong>."
 msgstr "Este produto está atualmente <strong> indisponível</strong>."
 
-#: templates/product/details.html:194
+#: templates/product/details.html:195
 msgctxt "Product details title"
 msgid "Description"
 msgstr "Descrição"
