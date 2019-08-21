@@ -142,8 +142,7 @@ class ProductType(ModelWithMetadata):
 
 class ProductsQueryset(PublishedQuerySet):
     def create(self, **kwargs):
-        """
-        Create a product.
+        """Create a product.
 
         In the case of absent "minimal_variant_price" make it default to the "price"
         """
@@ -152,8 +151,7 @@ class ProductsQueryset(PublishedQuerySet):
         return super().create(**kwargs)
 
     def bulk_create(self, objs, batch_size=None, ignore_conflicts=False):
-        """
-        Insert each of the product instances into the database.
+        """Insert each of the product instances into the database.
 
         Make sure every product has "minimal_variant_price" set. Otherwise
         make it default to the "price".
@@ -306,8 +304,7 @@ class ProductTranslation(SeoModelTranslation):
 
 class ProductVariantQueryset(models.QuerySet):
     def create(self, **kwargs):
-        """
-        Create a product's variant.
+        """Create a product's variant.
 
         After the creation update the "minimal_variant_price" of the product.
         """
@@ -319,8 +316,7 @@ class ProductVariantQueryset(models.QuerySet):
         return variant
 
     def bulk_create(self, objs, batch_size=None, ignore_conflicts=False):
-        """
-        Insert each of the product's variant instances into the database.
+        """Insert each of the product's variant instances into the database.
 
         After the creation update the "minimal_variant_price" of all the products.
         """
