@@ -1,5 +1,7 @@
 from decimal import Decimal
+from unittest.mock import patch
 
+from django.core.management import call_command
 from django.urls import reverse
 from prices import Money
 
@@ -296,3 +298,17 @@ def test_dashboard_sale_of_collection_create_view_updates_minimal_variant_price(
 
     product.refresh_from_db()
     assert product.minimal_variant_price == Decimal("0.5") * old_minimal_variant_price
+
+
+@patch(
+    "saleor.product.management.commands"
+    ".update_all_products_minimal_variant_prices"
+    ".update_product_minimal_variant_price"
+)
+def test_management_commmand_update_all_products_minimal_variant_price(
+    mock_update_product_minimal_variant_price, product_list
+):
+    call_command("update_all_products_minimal_variant_prices")
+    call_args_list = mock_update_product_minimal_variant_price.call_args_list
+    for (args, kwargs), product in zip(call_args_list, product_list):
+        assert args[0] == product

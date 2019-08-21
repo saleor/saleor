@@ -118,6 +118,7 @@ stripe==2.35.0
 sympy==1.4
 text-unidecode==1.2
 tinycss2==1.0.2
+tqdm==4.33.0
 typing==3.7.4
 urllib3==1.25.3
 uwsgi==2.0.18 ; platform_system != 'Windows'
