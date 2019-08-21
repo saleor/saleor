@@ -1868,6 +1868,7 @@ type Mutations {
   paymentCapture(amount: Decimal, paymentId: ID!): PaymentCapture
   paymentRefund(amount: Decimal, paymentId: ID!): PaymentRefund
   paymentVoid(paymentId: ID!): PaymentVoid
+  paymentSecureConfirm(paymentId: ID!): PaymentSecureConfirm
   pageCreate(input: PageInput!): PageCreate
   pageDelete(id: ID!): PageDelete
   pageBulkDelete(ids: [ID]!): PageBulkDelete
@@ -2407,6 +2408,11 @@ input PaymentInput {
 }
 
 type PaymentRefund {
+  errors: [Error!]
+  payment: Payment
+}
+
+type PaymentSecureConfirm {
   errors: [Error!]
   payment: Payment
 }
@@ -3425,6 +3431,7 @@ enum TransactionKind {
   REFUND
   CAPTURE
   VOID
+  CONFIRM
 }
 
 union TranslatableItem = Product | Category | Collection | Attribute | AttributeValue | ProductVariant | Page | ShippingMethod | Sale | Voucher | MenuItem
