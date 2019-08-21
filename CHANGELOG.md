@@ -55,6 +55,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added capability to search product types by value (through the name) - #4647 by @NyanKiyoshi.
 - Add mutation to change the authenticated user's password - #4656 by @fowczarek
 - Add an functionality to sort products by their "minimal variant price" - #4416 by @derenio
+- New stripe gateway implementation based on Stripe PaymentIntents API - #4606 by @salwator
 
 ## 2.8.0
 

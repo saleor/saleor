@@ -27,10 +27,10 @@ from saleor.payment.gateways.braintree.errors import (
 )
 from saleor.payment.gateways.braintree.forms import BraintreePaymentForm
 from saleor.payment.interface import (
+    CreditCardInfo,
+    CustomerSource,
     GatewayConfig,
     TokenConfig,
-    CustomerSource,
-    CreditCardInfo,
 )
 from saleor.payment.utils import create_payment_information
 
