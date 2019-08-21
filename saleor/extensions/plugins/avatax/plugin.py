@@ -106,6 +106,9 @@ class AvataxPlugin(BasePlugin):
             self.config = AvataxConfiguration(
                 username_or_account=settings.AVATAX_USERNAME_OR_ACCOUNT,
                 password_or_license=settings.AVATAX_PASSWORD_OR_LICENSE,
+                use_sandbox=settings.AVATAX_USE_SANDBOX,
+                autocommit=settings.AVATAX_AUTOCOMMIT,
+                company_name=settings.AVATAX_COMPANY_NAME,
             )
             self.active = (
                 settings.AVATAX_USERNAME_OR_ACCOUNT
