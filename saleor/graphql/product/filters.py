@@ -22,6 +22,17 @@ from .enums import (
 from .types.attributes import AttributeInput
 
 
+def filter_fields_containing_value(*search_fields: str):
+    """Create a icontains filters through given fields on a given query set object."""
+
+    def _filter_qs(qs, _, value):
+        if value:
+            qs = filter_by_query_param(qs, value, search_fields)
+        return qs
+
+    return _filter_qs
+
+
 def filter_products_by_attributes(qs, filter_value):
     attributes = Attribute.objects.prefetch_related("values")
     attributes_map = {attribute.slug: attribute.pk for attribute in attributes}
@@ -139,13 +150,6 @@ def filter_collection_publish(qs, _, value):
     return qs
 
 
-def filter_collection_search(qs, _, value):
-    search_fields = ("name", "slug")
-    if value:
-        qs = filter_by_query_param(qs, value, search_fields)
-    return qs
-
-
 def filter_product_type_configurable(qs, _, value):
     if value == ProductTypeConfigurable.CONFIGURABLE:
         qs = qs.filter(has_variants=True)
@@ -159,13 +163,6 @@ def filter_product_type(qs, _, value):
         qs = qs.filter(is_digital=True)
     elif value == ProductTypeEnum.SHIPPABLE:
         qs = qs.filter(is_shipping_required=True)
-    return qs
-
-
-def filter_attributes_search(qs, _, value):
-    search_fields = ("name", "slug")
-    if value:
-        qs = filter_by_query_param(qs, value, search_fields)
     return qs
 
 
@@ -201,7 +198,9 @@ class CollectionFilter(django_filters.FilterSet):
     published = EnumFilter(
         input_class=CollectionPublished, method=filter_collection_publish
     )
-    search = django_filters.CharFilter(method=filter_collection_search)
+    search = django_filters.CharFilter(
+        method=filter_fields_containing_value("slug", "name")
+    )
 
     class Meta:
         model = Collection
@@ -209,6 +208,8 @@ class CollectionFilter(django_filters.FilterSet):
 
 
 class ProductTypeFilter(django_filters.FilterSet):
+    search = django_filters.CharFilter(method=filter_fields_containing_value("name"))
+
     configurable = EnumFilter(
         input_class=ProductTypeConfigurable, method=filter_product_type_configurable
     )
@@ -217,12 +218,14 @@ class ProductTypeFilter(django_filters.FilterSet):
 
     class Meta:
         model = ProductType
-        fields = ["configurable", "product_type"]
+        fields = ["search", "configurable", "product_type"]
 
 
 class AttributeFilter(django_filters.FilterSet):
     # Search by attribute name and slug
-    search = django_filters.CharFilter(method=filter_attributes_search)
+    search = django_filters.CharFilter(
+        method=filter_fields_containing_value("slug", "name")
+    )
     ids = GlobalIDMultipleChoiceFilter(field_name="id")
 
     class Meta:
