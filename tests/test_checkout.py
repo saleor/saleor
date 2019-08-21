@@ -22,6 +22,7 @@ from saleor.checkout.utils import (
     create_order,
     get_checkout_context,
     get_prices_of_products_in_discounted_categories,
+    get_shipping_price_estimate,
     get_voucher_discount_for_checkout,
     get_voucher_for_checkout,
     is_valid_shipping_method,
@@ -1403,6 +1404,30 @@ def test_get_checkout_context(checkout_with_voucher):
     data = get_checkout_context(checkout_with_voucher, discounts=None)
 
     assert data == expected_data
+
+
+def test_get_checkout_context_with_shipping_range(
+    checkout_with_voucher, shipping_method, address, monkeypatch
+):
+    checkout_with_voucher.shipping_method = shipping_method
+    checkout_with_voucher.shipping_address = address
+    line_price = TaxedMoney(net=Money("30.00", "USD"), gross=Money("45.00", "USD"))
+
+    monkeypatch.setattr(
+        ExtensionsManager, "calculate_checkout_subtotal", Mock(return_value=line_price)
+    )
+
+    shipping_range = get_shipping_price_estimate(
+        checkout_with_voucher, discounts=None, country_code="US"
+    )
+    expected_total_with_shipping = TaxedMoneyRange(start=line_price, stop=line_price)
+    expected_total_with_shipping += shipping_range
+
+    data = get_checkout_context(
+        checkout_with_voucher, discounts=None, shipping_range=shipping_range
+    )
+
+    assert data["total_with_shipping"] == expected_total_with_shipping
 
 
 def test_change_address_in_checkout(checkout, address):

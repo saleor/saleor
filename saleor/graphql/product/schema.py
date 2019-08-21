@@ -216,6 +216,7 @@ class ProductQueries(graphene.ObjectType):
     product_types = FilterInputConnectionField(
         ProductType,
         filter=ProductTypeFilterInput(),
+        query=graphene.String(description=DESCRIPTIONS["product_type"]),
         description="List of the shop's product types.",
     )
     product_variant = graphene.Field(
@@ -271,8 +272,8 @@ class ProductQueries(graphene.ObjectType):
     def resolve_product_type(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, ProductType)
 
-    def resolve_product_types(self, info, **_kwargs):
-        return resolve_product_types(info)
+    def resolve_product_types(self, info, query=None, **_kwargs):
+        return resolve_product_types(info, query)
 
     def resolve_product_variant(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, ProductVariant)
