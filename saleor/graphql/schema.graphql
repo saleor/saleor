@@ -143,8 +143,8 @@ type AssignNavigation {
 
 type Attribute implements Node {
   id: ID!
-  productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
-  productVariantTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
+  productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
+  productVariantTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
   privateMeta: [MetaStore]!
   meta: [MetaStore]!
   inputType: AttributeInputTypeEnum
@@ -970,7 +970,6 @@ enum CountryCode {
   LT
   LU
   MO
-  MK
   MG
   MW
   MY
@@ -1004,6 +1003,7 @@ enum CountryCode {
   NU
   NF
   KP
+  MK
   MP
   NO
   OM
@@ -2755,6 +2755,7 @@ enum ProductTypeEnum {
 }
 
 input ProductTypeFilterInput {
+  search: String
   configurable: ProductTypeConfigurable
   productType: ProductTypeEnum
 }
@@ -2932,7 +2933,7 @@ type Query {
   product(id: ID!): Product
   products(filter: ProductFilterInput, attributes: [AttributeScalar], categories: [ID], collections: [ID], priceLte: Float, priceGte: Float, sortBy: ProductOrder, stockAvailability: StockAvailability, query: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   productType(id: ID!): ProductType
-  productTypes(filter: ProductTypeFilterInput, before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
+  productTypes(filter: ProductTypeFilterInput, query: String, before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
   productVariant(id: ID!): ProductVariant
   productVariants(ids: [ID], before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   reportProductSales(period: ReportingPeriod!, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
