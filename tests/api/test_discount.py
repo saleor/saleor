@@ -5,7 +5,6 @@ import graphene
 import pytest
 from django.utils import timezone
 from django_countries import countries
-from freezegun import freeze_time
 
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import Sale, Voucher
@@ -177,7 +176,6 @@ mutation  voucherCreate(
 """
 
 
-@freeze_time("2010-05-31 12:00:01")
 def test_create_voucher(staff_api_client, permission_manage_discounts):
     start_date = timezone.now() - timedelta(days=365)
     end_date = timezone.now() + timedelta(days=365)
@@ -213,7 +211,6 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
     assert voucher.usage_limit == 3
 
 
-@freeze_time("2010-05-31 12:00:01")
 def test_create_voucher_with_empty_code(staff_api_client, permission_manage_discounts):
     start_date = timezone.now() - timedelta(days=365)
     end_date = timezone.now() + timedelta(days=365)
@@ -238,7 +235,6 @@ def test_create_voucher_with_empty_code(staff_api_client, permission_manage_disc
     assert data["code"] != ""
 
 
-@freeze_time("2010-05-31 12:00:01")
 def test_create_voucher_with_deprecated_type(
     staff_api_client, permission_manage_discounts
 ):
@@ -266,7 +262,6 @@ def test_create_voucher_with_deprecated_type(
     assert data["type"] == VoucherTypeEnum.ENTIRE_ORDER.name
 
 
-@freeze_time("2010-05-31 12:00:01")
 def test_create_voucher_with_existing_gift_card_code(
     staff_api_client, gift_card, permission_manage_discounts
 ):
@@ -294,7 +289,6 @@ def test_create_voucher_with_existing_gift_card_code(
     assert errors[0]["field"] == "promoCode"
 
 
-@freeze_time("2010-05-31 12:00:01")
 def test_create_voucher_with_existing_voucher_code(
     staff_api_client, voucher_shipping_type, permission_manage_discounts
 ):
@@ -552,7 +546,6 @@ def test_voucher_remove_no_catalogues(
     assert voucher.collections.exists()
 
 
-@freeze_time("2010-05-31 12:00:01")
 def test_create_sale(staff_api_client, permission_manage_discounts):
     query = """
     mutation  saleCreate(
@@ -793,7 +786,6 @@ def test_sale_remove_no_catalogues(
     assert sale.collections.exists()
 
 
-@freeze_time("2019-05-31 12:00:01")
 @pytest.mark.parametrize(
     "voucher_filter, start_date, end_date, count",
     [
@@ -991,7 +983,6 @@ def test_query_vouchers_with_filter_search(
     assert len(data) == count
 
 
-@freeze_time("2019-05-31 12:00:01")
 @pytest.mark.parametrize(
     "sale_filter, start_date, end_date, count",
     [

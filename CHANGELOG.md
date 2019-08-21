@@ -52,6 +52,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Remove dashboard 2.0 files - #4631 by @dominik-zeglen
 - Refactoring of password recovery system - #4617 by @fowczarek
 - Added capability to filter attributes per global ID - #4640 by @NyanKiyoshi.
+- Added capability to search product types by value (through the name) - #4647 by @NyanKiyoshi.
 - New stripe gateway implementation based on Stripe PaymentIntents API - #4606 by @salwator
 
 ## 2.8.0
