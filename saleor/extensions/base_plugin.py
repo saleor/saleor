@@ -13,7 +13,12 @@ if TYPE_CHECKING:
     from ..product.models import Product
     from ..account.models import Address
     from ..order.models import OrderLine, Order
-    from ..payment.interface import GatewayConfig, GatewayResponse, PaymentData
+    from ..payment.interface import (
+        CustomerSource,
+        GatewayConfig,
+        GatewayResponse,
+        PaymentData,
+    )
 
 
 class BasePlugin:
@@ -138,8 +143,38 @@ class BasePlugin:
         return NotImplemented
 
     def authorize_payment(
-        self, payment_information: PaymentData, config: GatewayConfig, previous_value
+        self, payment_information: PaymentData, previous_value
     ) -> GatewayResponse:
+        pass
+
+    def capture_payment(
+        self, payment_information: PaymentData, previous_value
+    ) -> GatewayResponse:
+        pass
+
+    def refund_payment(
+        self, payment_information: PaymentData, previous_value
+    ) -> GatewayResponse:
+        pass
+
+    def void_payment(
+        self, payment_information: PaymentData, previous_value
+    ) -> GatewayResponse:
+        pass
+
+    def confirm_payment(
+        self, payment_information: PaymentData, previous_value
+    ) -> GatewayResponse:
+        pass
+
+    def process_payment(
+        self, payment_information: PaymentData, previous_value
+    ) -> GatewayResponse:
+        pass
+
+    def list_payment_sources(
+        self, customer_id: str, previous_value
+    ) -> List[CustomerSource]:
         pass
 
     @classmethod
