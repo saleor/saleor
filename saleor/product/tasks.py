@@ -48,7 +48,7 @@ def update_product_minimal_variant_price_task(product_pk):
 
 @app.task
 def update_products_minimal_variant_prices_of_catalogues_task(
-    product_ids=[], category_ids=[], collection_ids=[]
+    product_ids=None, category_ids=None, collection_ids=None
 ):
     update_products_minimal_variant_prices_of_catalogues(
         product_ids, category_ids, collection_ids
