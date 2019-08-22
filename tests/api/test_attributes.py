@@ -1381,11 +1381,7 @@ def test_retrieve_product_attributes_input_type(
     ),
 )
 def test_retrieving_the_restricted_attributes_restricted(
-    staff_api_client,
-    color_attribute,
-    permission_manage_products,
-    attribute,
-    expected_value,
+    api_client, color_attribute, attribute, expected_value
 ):
     """Checks if the attributes are restricted and if their default value
     is the expected one."""
@@ -1406,9 +1402,9 @@ def test_retrieving_the_restricted_attributes_restricted(
         % attribute
     )
 
-    found_attributes = get_graphql_content(
-        staff_api_client.post_graphql(query, permissions=[permission_manage_products])
-    )["data"]["attributes"]["edges"]
+    found_attributes = get_graphql_content(api_client.post_graphql(query))["data"][
+        "attributes"
+    ]["edges"]
 
     assert len(found_attributes) == 1
     assert found_attributes[0]["node"][attribute] == expected_value

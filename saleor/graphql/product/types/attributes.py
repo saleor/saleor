@@ -154,36 +154,6 @@ class Attribute(CountableDjangoObjectType, MetadataObjectType):
     def resolve_meta(root, _info):
         return resolve_meta(root, _info)
 
-    @staticmethod
-    @permission_required("product.manage_products")
-    def resolve_value_required(root: models.Attribute, *_args):
-        return root.value_required
-
-    @staticmethod
-    @permission_required("product.manage_products")
-    def resolve_visible_in_storefront(root: models.Attribute, *_args):
-        return root.visible_in_storefront
-
-    @staticmethod
-    @permission_required("product.manage_products")
-    def resolve_filterable_in_storefront(root: models.Attribute, *_args):
-        return root.filterable_in_storefront
-
-    @staticmethod
-    @permission_required("product.manage_products")
-    def resolve_filterable_in_dashboard(root: models.Attribute, *_args):
-        return root.filterable_in_dashboard
-
-    @staticmethod
-    @permission_required("product.manage_products")
-    def resolve_storefront_search_position(root: models.Attribute, *_args):
-        return root.storefront_search_position
-
-    @staticmethod
-    @permission_required("product.manage_products")
-    def resolve_available_in_grid(root: models.Attribute, *_args):
-        return root.available_in_grid
-
 
 class SelectedAttribute(graphene.ObjectType):
     attribute = graphene.Field(
