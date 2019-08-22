@@ -18,7 +18,7 @@ def send_user_password_reset_email(user, site):
         "domain": site.domain,
         "protocol": "https" if settings.ENABLE_SSL else "http",
     }
-    emails.send_password_reset_email.delay(context, user.email, user.pk)
+    emails.send_password_reset_email.delay(user.email, context, user.pk)
 
 
 class PasswordReset(BaseMutation):

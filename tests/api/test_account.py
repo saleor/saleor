@@ -976,7 +976,7 @@ ACCOUNT_REQUEST_DELETION_MUTATION = """
 """
 
 
-@patch("saleor.account.emails.send_account_delete_confirmation_email_with_url.delay")
+@patch("saleor.account.emails._send_account_delete_confirmation_email_with_url.delay")
 def test_account_request_deletion(
     send_account_delete_confirmation_email_with_url_mock, user_api_client
 ):
@@ -990,14 +990,14 @@ def test_account_request_deletion(
     data = content["data"]["accountRequestDeletion"]
     assert not data["errors"]
     send_account_delete_confirmation_email_with_url_mock.assert_called_once_with(
-        token, user.email, ANY
+        user.email, ANY, token
     )
-    url = send_account_delete_confirmation_email_with_url_mock.mock_calls[0][1][2]
+    url = send_account_delete_confirmation_email_with_url_mock.mock_calls[0][1][1]
     url_validator = URLValidator()
     url_validator(url)
 
 
-@patch("saleor.account.emails.send_account_delete_confirmation_email_with_url.delay")
+@patch("saleor.account.emails._send_account_delete_confirmation_email_with_url.delay")
 def test_account_request_deletion_anonymous_user(
     send_account_delete_confirmation_email_with_url_mock, api_client
 ):
@@ -1007,7 +1007,7 @@ def test_account_request_deletion_anonymous_user(
     send_account_delete_confirmation_email_with_url_mock.assert_not_called()
 
 
-@patch("saleor.account.emails.send_account_delete_confirmation_email_with_url.delay")
+@patch("saleor.account.emails._send_account_delete_confirmation_email_with_url.delay")
 def test_account_request_deletion_storefront_hosts_not_allowed(
     send_account_delete_confirmation_email_with_url_mock, user_api_client
 ):
@@ -1022,7 +1022,7 @@ def test_account_request_deletion_storefront_hosts_not_allowed(
     send_account_delete_confirmation_email_with_url_mock.assert_not_called()
 
 
-@patch("saleor.account.emails.send_account_delete_confirmation_email_with_url.delay")
+@patch("saleor.account.emails._send_account_delete_confirmation_email_with_url.delay")
 def test_account_request_deletion_all_storefront_hosts_allowed(
     send_account_delete_confirmation_email_with_url_mock, user_api_client, settings
 ):
@@ -1037,14 +1037,14 @@ def test_account_request_deletion_all_storefront_hosts_allowed(
     data = content["data"]["accountRequestDeletion"]
     assert not data["errors"]
     send_account_delete_confirmation_email_with_url_mock.assert_called_once_with(
-        token, user.email, ANY
+        user.email, ANY, token
     )
-    url = send_account_delete_confirmation_email_with_url_mock.mock_calls[0][1][2]
+    url = send_account_delete_confirmation_email_with_url_mock.mock_calls[0][1][1]
     url_validator = URLValidator()
     url_validator(url)
 
 
-@patch("saleor.account.emails.send_account_delete_confirmation_email_with_url.delay")
+@patch("saleor.account.emails._send_account_delete_confirmation_email_with_url.delay")
 def test_account_request_deletion_subdomain(
     send_account_delete_confirmation_email_with_url_mock, user_api_client, settings
 ):
@@ -1059,9 +1059,9 @@ def test_account_request_deletion_subdomain(
     data = content["data"]["accountRequestDeletion"]
     assert not data["errors"]
     send_account_delete_confirmation_email_with_url_mock.assert_called_once_with(
-        token, user.email, ANY
+        user.email, ANY, token
     )
-    url = send_account_delete_confirmation_email_with_url_mock.mock_calls[0][1][2]
+    url = send_account_delete_confirmation_email_with_url_mock.mock_calls[0][1][1]
     url_validator = URLValidator()
     url_validator(url)
 
@@ -1505,7 +1505,7 @@ def test_deprecated_password_reset_email(
     assert data == {"errors": []}
     assert send_password_reset_mock.call_count == 1
     send_password_reset_mock.assert_called_once_with(
-        ANY, customer_user.email, customer_user.pk
+        customer_user.email, ANY, customer_user.pk
     )
 
 
@@ -1981,7 +1981,7 @@ def test_deprecated_account_reset_password(
     response = user_api_client.post_graphql(CUSTOMER_PASSWORD_RESET_MUTATION, variables)
     get_graphql_content(response)
     assert send_password_reset_mock.called
-    assert send_password_reset_mock.mock_calls[0][1][1] == customer_user.email
+    assert send_password_reset_mock.mock_calls[0][1][0] == customer_user.email
 
 
 REQUEST_PASSWORD_RESET_MUTATION = """
@@ -2007,9 +2007,9 @@ def test_account_reset_password(
     assert not data["errors"]
     assert send_password_reset_email_mock.called
     send_password_reset_email_mock.assert_called_once_with(
-        ANY, user_api_client.user.email, user_api_client.user.pk
+        user_api_client.user.email, ANY, user_api_client.user.pk
     )
-    url = send_password_reset_email_mock.mock_calls[0][1][0]
+    url = send_password_reset_email_mock.mock_calls[0][1][1]
     url_validator = URLValidator()
     url_validator(url)
 
@@ -2026,9 +2026,9 @@ def test_request_password_reset_email_for_staff(
     assert not data["errors"]
     assert send_password_reset_email_mock.call_count == 1
     send_password_reset_email_mock.assert_called_once_with(
-        ANY, staff_api_client.user.email, staff_api_client.user.pk
+        staff_api_client.user.email, ANY, staff_api_client.user.pk
     )
-    url = send_password_reset_email_mock.mock_calls[0][1][0]
+    url = send_password_reset_email_mock.mock_calls[0][1][1]
     url_validator = URLValidator()
     url_validator(url)
 
@@ -2072,9 +2072,9 @@ def test_account_reset_password_all_storefront_hosts_allowed(
     assert not data["errors"]
     assert send_password_reset_email_mock.called
     send_password_reset_email_mock.assert_called_once_with(
-        ANY, user_api_client.user.email, user_api_client.user.pk
+        user_api_client.user.email, ANY, user_api_client.user.pk
     )
-    url = send_password_reset_email_mock.mock_calls[0][1][0]
+    url = send_password_reset_email_mock.mock_calls[0][1][1]
     url_validator = URLValidator()
     url_validator(url)
 
@@ -2091,9 +2091,9 @@ def test_account_reset_password_subdomain(
     assert not data["errors"]
     assert send_password_reset_email_mock.called
     send_password_reset_email_mock.assert_called_once_with(
-        ANY, user_api_client.user.email, user_api_client.user.pk
+        user_api_client.user.email, ANY, user_api_client.user.pk
     )
-    url = send_password_reset_email_mock.mock_calls[0][1][0]
+    url = send_password_reset_email_mock.mock_calls[0][1][1]
     url_validator = URLValidator()
     url_validator(url)
 

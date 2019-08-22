@@ -98,10 +98,7 @@ class AccountRequestDeletion(BaseMutation):
         user = info.context.user
         redirect_url = data["redirect_url"]
         validate_storefront_url(redirect_url)
-        token = default_token_generator.make_token(user)
-        emails.send_account_delete_confirmation_email_with_url.delay(
-            token, user.email, redirect_url
-        )
+        emails.send_account_delete_confirmation_email_with_url(redirect_url, user)
         return AccountRequestDeletion()
 
 
