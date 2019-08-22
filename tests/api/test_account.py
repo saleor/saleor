@@ -1793,10 +1793,10 @@ def test_set_default_address(
     assert data["user"]["defaultShippingAddress"]["id"] == address_id
 
 
-def test_address_validator(user_api_client):
+def test_address_validation_rules(user_api_client):
     query = """
     query getValidator(
-        $country_code: CountryCode, $country_area: String, $city_area: String) {
+        $country_code: CountryCode!, $country_area: String, $city_area: String) {
         addressValidationRules(
                 countryCode: $country_code,
                 countryArea: $country_area,
@@ -1822,42 +1822,10 @@ def test_address_validator(user_api_client):
     assert matcher.match("00-123")
 
 
-def test_address_validator_uses_geip_when_country_code_missing(
-    user_api_client, monkeypatch
-):
+def test_address_validation_rules_with_country_area(user_api_client):
     query = """
     query getValidator(
-        $country_code: CountryCode, $country_area: String, $city_area: String) {
-        addressValidationRules(
-                countryCode: $country_code,
-                countryArea: $country_area,
-                cityArea: $city_area) {
-            countryCode,
-            countryName
-        }
-    }
-    """
-    variables = {"country_code": None, "country_area": None, "city_area": None}
-    mock_country_by_ip = Mock(return_value=Mock(code="US"))
-    monkeypatch.setattr(
-        "saleor.graphql.account.resolvers.get_client_ip",
-        lambda request: Mock(return_value="127.0.0.1"),
-    )
-    monkeypatch.setattr(
-        "saleor.graphql.account.resolvers.get_country_by_ip", mock_country_by_ip
-    )
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    assert mock_country_by_ip.called
-    data = content["data"]["addressValidationRules"]
-    assert data["countryCode"] == "US"
-    assert data["countryName"] == "UNITED STATES"
-
-
-def test_address_validator_with_country_area(user_api_client):
-    query = """
-    query getValidator(
-        $country_code: CountryCode, $country_area: String, $city_area: String) {
+        $country_code: CountryCode!, $country_area: String, $city_area: String) {
         addressValidationRules(
                 countryCode: $country_code,
                 countryArea: $country_area,
@@ -1898,6 +1866,28 @@ def test_address_validator_with_country_area(user_api_client):
     assert data["cityChoices"]
     assert data["cityAreaType"] == "city"
     assert not data["cityAreaChoices"]
+
+
+def test_address_validation_rules_fields_in_camel_case(user_api_client):
+    query = """
+    query getValidator(
+        $country_code: CountryCode!) {
+        addressValidationRules(countryCode: $country_code) {
+            requiredFields
+            allowedFields
+        }
+    }
+    """
+    variables = {"country_code": "PL"}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["addressValidationRules"]
+    required_fields = data["requiredFields"]
+    allowed_fields = data["allowedFields"]
+    assert "streetAddress1" in required_fields
+    assert "streetAddress2" not in required_fields
+    assert "streetAddress1" in allowed_fields
+    assert "streetAddress2" in allowed_fields
 
 
 CUSTOMER_PASSWORD_RESET_MUTATION = """

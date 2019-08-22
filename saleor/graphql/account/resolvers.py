@@ -1,11 +1,11 @@
 from itertools import chain
+from typing import Optional
 
 import graphene_django_optimizer as gql_optimizer
 from django.db.models import Q
 from i18naddress import get_validation_rules
 
 from ...account import models
-from ...core.utils import get_client_ip, get_country_by_ip
 from ...payment.utils import (
     fetch_customer_id,
     list_enabled_gateways,
@@ -13,6 +13,7 @@ from ...payment.utils import (
 )
 from ..utils import filter_by_query_param
 from .types import AddressValidationData, ChoiceValue
+from .utils import get_allowed_fields_camel_case, get_required_fields_camel_case
 
 USER_SEARCH_FIELDS = (
     "email",
@@ -47,17 +48,17 @@ def resolve_staff_users(info, query):
     return gql_optimizer.query(qs, info)
 
 
-def resolve_address_validator(info, country_code, country_area, city_area):
-    if not country_code:
-        client_ip = get_client_ip(info.context)
-        country = get_country_by_ip(client_ip)
-        if country:
-            country_code = country.code
-        else:
-            return None
+def resolve_address_validation_rules(
+    info,
+    country_code: str,
+    country_area: Optional[str],
+    city: Optional[str],
+    city_area: Optional[str],
+):
     params = {
         "country_code": country_code,
         "country_area": country_area,
+        "city": city,
         "city_area": city_area,
     }
     rules = get_validation_rules(params)
@@ -66,8 +67,8 @@ def resolve_address_validator(info, country_code, country_area, city_area):
         country_name=rules.country_name,
         address_format=rules.address_format,
         address_latin_format=rules.address_latin_format,
-        allowed_fields=rules.allowed_fields,
-        required_fields=rules.required_fields,
+        allowed_fields=get_allowed_fields_camel_case(rules.allowed_fields),
+        required_fields=get_required_fields_camel_case(rules.required_fields),
         upper_fields=rules.upper_fields,
         country_area_type=rules.country_area_type,
         country_area_choices=[
