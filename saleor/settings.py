@@ -679,9 +679,13 @@ GRAPHENE = {
 
 EXTENSIONS_MANAGER = "saleor.extensions.manager.ExtensionsManager"
 
-PLUGINS = os.environ.get(
-    "PLUGINS", ["saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin"]
-)
+PAYMENT_PLUGINS = [
+    "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
+    "saleor.payment.gateways.stripe.plugin.StripeGatewayPlugin",
+    "saleor.payment.gateways.braintree.plugin.BraintreeGatewayPlugin",
+]
+PLUGINS = os.environ.get("PLUGINS", [])
+PLUGINS += PAYMENT_PLUGINS
 
 # Whether DraftJS should be used be used instead of HTML
 # True to use DraftJS (JSON based), for the 2.0 dashboard
