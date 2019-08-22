@@ -168,6 +168,8 @@ ERROR_CODES = (
 def get_error_code_from_error(error):
     """Return valid error code or UNKNOWN for unknown error code."""
     code = error.code
+    if isinstance(code, Enum):
+        code = code.value
     if code not in ERROR_CODES:
         return ERROR_CODE_UNKNOWN
     return code
