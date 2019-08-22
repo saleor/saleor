@@ -7,6 +7,7 @@ from django.utils.http import urlsafe_base64_encode
 
 from ....account import emails, models
 from ...core.mutations import BaseMutation
+from ...core.utils.error_codes import AccountErrorCode
 
 
 def send_user_password_reset_email(user, site):
@@ -37,7 +38,14 @@ class PasswordReset(BaseMutation):
         try:
             user = models.User.objects.get(email=email)
         except ObjectDoesNotExist:
-            raise ValidationError({"email": "User with this email doesn't exist"})
+            raise ValidationError(
+                {
+                    "email": ValidationError(
+                        "User with this email doesn't exist",
+                        code=AccountErrorCode.USER_DOES_NOT_EXIST,
+                    )
+                }
+            )
         site = info.context.site
         send_user_password_reset_email(user, site)
         return PasswordReset()

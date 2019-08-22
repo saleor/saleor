@@ -6,6 +6,7 @@ from ....checkout import AddressType
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import BaseMutation, ModelMutation
+from ...core.utils.error_codes import AccountErrorCode
 from .base import BaseCustomerCreate, UserAddressInput
 from .deprecated_staff import send_user_password_reset_email
 
@@ -137,7 +138,14 @@ class CustomerSetDefaultAddress(BaseMutation):
         user = info.context.user
 
         if address not in user.addresses.all():
-            raise ValidationError({"id": "The address doesn't belong to that user."})
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "The address doesn't belong to that user.",
+                        code=AccountErrorCode.NOT_USERS_ADDRESS,
+                    )
+                }
+            )
 
         if data.get("type") == AddressTypeEnum.BILLING.value:
             address_type = AddressType.BILLING
@@ -173,7 +181,14 @@ class CustomerPasswordReset(BaseMutation):
         try:
             user = models.User.objects.get(email=email)
         except ObjectDoesNotExist:
-            raise ValidationError({"email": "User with this email doesn't exist"})
+            raise ValidationError(
+                {
+                    "email": ValidationError(
+                        "User with this email doesn't exist",
+                        code=AccountErrorCode.USER_DOES_NOT_EXIST,
+                    )
+                }
+            )
         site = info.context.site
         send_user_password_reset_email(user, site)
         return CustomerPasswordReset()

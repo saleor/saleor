@@ -15,6 +15,7 @@ from ...core.mutations import (
     UpdateMetaBaseMutation,
 )
 from ...core.utils import from_global_id_strict_type
+from ...core.utils.error_codes import AttributeErrorCode, CommonErrorCode
 from ...core.utils.reordering import perform_reordering
 from ...product.types import ProductType
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
@@ -116,12 +117,23 @@ class AttributeMixin:
                     "Value %s already exists within this attribute."
                     % value_data["name"]
                 )
-                raise ValidationError({cls.ATTRIBUTE_VALUES_FIELD: msg})
+                raise ValidationError(
+                    {
+                        cls.ATTRIBUTE_VALUES_FIELD: ValidationError(
+                            msg, code=AttributeErrorCode.ATTRIBUTE_ALREADY_EXISTS
+                        )
+                    }
+                )
 
         new_slugs = [slugify(value_data["name"]) for value_data in values_input]
         if len(set(new_slugs)) != len(new_slugs):
             raise ValidationError(
-                {cls.ATTRIBUTE_VALUES_FIELD: "Provided values are not unique."}
+                {
+                    cls.ATTRIBUTE_VALUES_FIELD: ValidationError(
+                        "Provided values are not unique.",
+                        code=AttributeErrorCode.ATTRIBUTE_VALUES_NOT_UNIQUE,
+                    )
+                }
             )
 
     @classmethod
@@ -143,11 +155,10 @@ class AttributeMixin:
             try:
                 attribute_value.full_clean()
             except ValidationError as validation_errors:
-                for field in validation_errors.message_dict:
+                for field, err in validation_errors.error_dict.items():
                     if field == "attribute":
                         continue
-                    for msg in validation_errors.message_dict[field]:
-                        raise ValidationError({cls.ATTRIBUTE_VALUES_FIELD: msg})
+                    raise ValidationError({cls.ATTRIBUTE_VALUES_FIELD: err})
         cls.check_values_are_unique(values_input, attribute)
 
     @classmethod
@@ -156,7 +167,14 @@ class AttributeMixin:
         if input_slug is None:
             cleaned_input["slug"] = slugify(cleaned_input["name"])
         elif input_slug == "":
-            raise ValidationError({"slug": "The attribute's slug cannot be blank."})
+            raise ValidationError(
+                {
+                    "slug": ValidationError(
+                        "The attribute's slug cannot be blank.",
+                        code=AttributeErrorCode.ATTRIBUTE_SLUG_BLANK,
+                    )
+                }
+            )
 
         query = models.Attribute.objects.filter(slug=cleaned_input["slug"])
 
@@ -164,7 +182,14 @@ class AttributeMixin:
             query = query.exclude(pk=instance.pk)
 
         if query.exists():
-            raise ValidationError({"slug": "This attribute's slug already exists."})
+            raise ValidationError(
+                {
+                    "slug": ValidationError(
+                        "This attribute's slug already exists.",
+                        code=AttributeErrorCode.ATTRIBUTE_SLUG_ALREADY_EXISTS,
+                    )
+                }
+            )
 
         return cleaned_input
 
@@ -239,7 +264,13 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
         for value in remove_values:
             if value.attribute != instance:
                 msg = "Value %s does not belong to this attribute." % value
-                raise ValidationError({"remove_values": msg})
+                raise ValidationError(
+                    {
+                        "remove_values": ValidationError(
+                            msg, code=AttributeErrorCode.ATTRIBUTE_BAD_VALUE
+                        )
+                    }
+                )
         return remove_values
 
     @classmethod
@@ -323,8 +354,9 @@ class AttributeAssign(BaseMutation):
             msg = ", ".join([f"{name} ({slug})" for name, slug in invalid_attributes])
             raise ValidationError(
                 {
-                    "operations": (
-                        f"{msg} have already been assigned to this product type."
+                    "operations": ValidationError(
+                        (f"{msg} have already been assigned to this product type."),
+                        code=AttributeErrorCode.ATTRIBUTE_ALREADY_ASSIGNED,
                     )
                 }
             )
@@ -338,10 +370,13 @@ class AttributeAssign(BaseMutation):
         if is_not_assignable_to_variant:
             raise ValidationError(
                 {
-                    "operations": (
-                        f"Attributes having for input types "
-                        f"{AttributeInputType.NON_ASSIGNABLE_TO_VARIANTS} "
-                        f"cannot be assigned as variant attributes"
+                    "operations": ValidationError(
+                        (
+                            f"Attributes having for input types "
+                            f"{AttributeInputType.NON_ASSIGNABLE_TO_VARIANTS} "
+                            f"cannot be assigned as variant attributes"
+                        ),
+                        code=AttributeErrorCode.ATTRIBUTE_NON_ASSIGNABLE,
                     )
                 }
             )
@@ -354,7 +389,12 @@ class AttributeAssign(BaseMutation):
 
         if contains_restricted_attributes:
             raise ValidationError(
-                {"operations": ("Cannot assign variant only attributes.")}
+                {
+                    "operations": ValidationError(
+                        "Cannot assign variant only attributes.",
+                        code=AttributeErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED,
+                    )
+                }
             )
 
     @classmethod
@@ -387,7 +427,12 @@ class AttributeAssign(BaseMutation):
 
         if variant_attrs_pks and not product_type.has_variants:
             raise ValidationError(
-                {"operations": "Variants are disabled in this product type."}
+                {
+                    "operations": ValidationError(
+                        "Variants are disabled in this product type.",
+                        code=AttributeErrorCode.ATTRIBUTE_DISABLED_VARIANTS,
+                    )
+                }
             )
 
         # Ensure the attribute are assignable
@@ -496,7 +541,14 @@ def validate_value_is_unique(attribute: models.Attribute, value: models.Attribut
     """Check if the attribute value is unique within the attribute it belongs to."""
     duplicated_values = attribute.values.exclude(pk=value.pk).filter(slug=value.slug)
     if duplicated_values.exists():
-        raise ValidationError({"name": f"Value with slug {value.slug} already exists."})
+        raise ValidationError(
+            {
+                "name": ValidationError(
+                    f"Value with slug {value.slug} already exists.",
+                    code=AttributeErrorCode.ATTRIBUTE_SLUG_ALREADY_EXISTS,
+                )
+            }
+        )
 
 
 class AttributeValueCreate(ModelMutation):
@@ -635,8 +687,9 @@ class ProductTypeReorderAttributes(BaseMutation):
         except ObjectDoesNotExist:
             raise ValidationError(
                 {
-                    "product_type_id": (
-                        f"Couldn't resolve to a product type: {product_type_id}"
+                    "product_type_id": ValidationError(
+                        (f"Couldn't resolve to a product type: {product_type_id}"),
+                        code=CommonErrorCode.DOES_NOT_EXIST,
                     )
                 }
             )
@@ -654,7 +707,12 @@ class ProductTypeReorderAttributes(BaseMutation):
                 m2m_info = attributes_m2m.get(attribute_id=int(attribute_pk))
             except ObjectDoesNotExist:
                 raise ValidationError(
-                    {"moves": f"Couldn't resolve to an attribute: {move_info.id}"}
+                    {
+                        "moves": ValidationError(
+                            f"Couldn't resolve to an attribute: {move_info.id}",
+                            code=CommonErrorCode.DOES_NOT_EXIST,
+                        )
+                    }
                 )
             operations[m2m_info.pk] = move_info.sort_order
 
@@ -692,7 +750,12 @@ class AttributeReorderValues(BaseMutation):
             attribute = models.Attribute.objects.prefetch_related("values").get(pk=pk)
         except ObjectDoesNotExist:
             raise ValidationError(
-                {"attribute_id": (f"Couldn't resolve to an attribute: {attribute_id}")}
+                {
+                    "attribute_id": ValidationError(
+                        f"Couldn't resolve to an attribute: {attribute_id}",
+                        code=CommonErrorCode.DOES_NOT_EXIST,
+                    )
+                }
             )
 
         values_m2m = attribute.values
@@ -708,7 +771,12 @@ class AttributeReorderValues(BaseMutation):
                 m2m_info = values_m2m.get(pk=int(value_pk))
             except ObjectDoesNotExist:
                 raise ValidationError(
-                    {"moves": f"Couldn't resolve to an attribute value: {move_info.id}"}
+                    {
+                        "moves": ValidationError(
+                            f"Couldn't resolve to an attribute value: {move_info.id}",
+                            code=CommonErrorCode.DOES_NOT_EXIST,
+                        )
+                    }
                 )
             operations[m2m_info.pk] = move_info.sort_order
 

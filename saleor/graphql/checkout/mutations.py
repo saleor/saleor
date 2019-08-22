@@ -41,6 +41,7 @@ from ..core.mutations import (
     UpdateMetaBaseMutation,
 )
 from ..core.utils import from_global_id_strict_type
+from ..core.utils.error_codes import CheckoutErrorCode, CommonErrorCode
 from ..order.types import Order
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
@@ -59,12 +60,16 @@ def clean_shipping_method(
         return True
 
     if not checkout.is_shipping_required():
-        raise ValidationError("This checkout does not requires shipping.")
+        raise ValidationError(
+            "This checkout does not requires shipping.",
+            code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED,
+        )
 
     if not checkout.shipping_address:
         raise ValidationError(
             "Cannot choose a shipping method for a checkout without the "
-            "shipping address."
+            "shipping address.",
+            code=CheckoutErrorCode.SHIPPING_ADDRESS_NOT_SET,
         )
 
     valid_methods = get_valid_shipping_methods_for_checkout(checkout, discounts)
@@ -89,13 +94,21 @@ def check_lines_quantity(variants, quantities):
     for variant, quantity in zip(variants, quantities):
         if quantity < 1:
             raise ValidationError(
-                {"quantity": "The quantity should be higher than zero."}
+                {
+                    "quantity": ValidationError(
+                        "The quantity should be higher than zero.",
+                        code=CommonErrorCode.POSITIVE_NUMBER_REQUIRED,
+                    )
+                }
             )
         if quantity > settings.MAX_CHECKOUT_LINE_QUANTITY:
             raise ValidationError(
                 {
-                    "quantity": "Cannot add more than %d times this item."
-                    "" % settings.MAX_CHECKOUT_LINE_QUANTITY
+                    "quantity": ValidationError(
+                        "Cannot add more than %d times this item."
+                        "" % settings.MAX_CHECKOUT_LINE_QUANTITY,
+                        code=CheckoutErrorCode.QUANTITY_GREATER_THAN_LIMIT,
+                    )
                 }
             )
         try:
@@ -109,7 +122,7 @@ def check_lines_quantity(variants, quantities):
                     "item_name": e.item.display_product(),
                 }
             )
-            raise ValidationError({"quantity": message})
+            raise ValidationError({"quantity": ValidationError(message, code=e.code)})
 
 
 class CheckoutLineInput(graphene.InputObjectType):
@@ -249,7 +262,9 @@ class CheckoutCreate(ModelMutation, I18nMixin):
                 try:
                     add_variant_to_checkout(instance, variant, quantity)
                 except InsufficientStock as exc:
-                    raise ValidationError(f"Insufficient product stock: {exc.item}")
+                    raise ValidationError(
+                        f"Insufficient product stock: {exc.item}", code=exc.code
+                    )
 
         # Save provided addresses and associate them to the checkout
         cls.save_addresses(instance, cleaned_input)
@@ -317,7 +332,9 @@ class CheckoutLinesAdd(BaseMutation):
                         checkout, variant, quantity, replace=replace
                     )
                 except InsufficientStock as exc:
-                    raise ValidationError(f"Insufficient product stock: {exc.item}")
+                    raise ValidationError(
+                        f"Insufficient product stock: {exc.item}", code=exc.code
+                    )
 
         recalculate_checkout_discount(checkout, info.context.discounts)
 
@@ -428,11 +445,23 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             ).get(pk=pk)
         except ObjectDoesNotExist:
             raise ValidationError(
-                {"checkout_id": f"Couldn't resolve to a node: {checkout_id}"}
+                {
+                    "checkout_id": ValidationError(
+                        f"Couldn't resolve to a node: {checkout_id}",
+                        code=CommonErrorCode.DOES_NOT_EXIST,
+                    )
+                }
             )
 
         if not checkout.is_shipping_required():
-            raise ValidationError({"shipping_address": ERROR_DOES_NOT_SHIP})
+            raise ValidationError(
+                {
+                    "shipping_address": ValidationError(
+                        ERROR_DOES_NOT_SHIP,
+                        code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED,
+                    )
+                }
+            )
 
         shipping_address = cls.validate_address(
             shipping_address, instance=checkout.shipping_address
@@ -520,11 +549,23 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             ).get(pk=pk)
         except ObjectDoesNotExist:
             raise ValidationError(
-                {"checkout_id": f"Couldn't resolve to a node: {checkout_id}"}
+                {
+                    "checkout_id": ValidationError(
+                        f"Couldn't resolve to a node: {checkout_id}",
+                        code=CommonErrorCode.DOES_NOT_EXIST,
+                    )
+                }
             )
 
         if not checkout.is_shipping_required():
-            raise ValidationError({"shipping_method": ERROR_DOES_NOT_SHIP})
+            raise ValidationError(
+                {
+                    "shipping_method": ValidationError(
+                        ERROR_DOES_NOT_SHIP,
+                        code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED,
+                    )
+                }
+            )
 
         shipping_method = cls.get_node_or_error(
             info,
@@ -539,7 +580,12 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
         if not shipping_method_is_valid:
             raise ValidationError(
-                {"shipping_method": "This shipping method is not applicable."}
+                {
+                    "shipping_method": ValidationError(
+                        "This shipping method is not applicable.",
+                        code=CheckoutErrorCode.SHIPPING_METHOD_NOT_APPLICABLE,
+                    )
+                }
             )
 
         checkout.shipping_method = shipping_method
@@ -587,12 +633,18 @@ class CheckoutComplete(BaseMutation):
                     discounts=info.context.discounts,
                 )
             except InsufficientStock as e:
-                raise ValidationError(f"Insufficient product stock: {e.item}")
+                raise ValidationError(
+                    f"Insufficient product stock: {e.item}", code=e.code
+                )
             except voucher_model.NotApplicable:
-                raise ValidationError("Voucher not applicable")
+                raise ValidationError(
+                    "Voucher not applicable",
+                    code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE,
+                )
             except TaxError as tax_error:
                 return ValidationError(
-                    "Unable to calculate taxes - %s" % str(tax_error)
+                    "Unable to calculate taxes - %s" % str(tax_error),
+                    code=CheckoutErrorCode.TAX_ERROR,
                 )
 
         billing_address = order_data["billing_address"]
@@ -617,7 +669,7 @@ class CheckoutComplete(BaseMutation):
 
         except PaymentError as e:
             abort_order_data(order_data)
-            raise ValidationError(str(e))
+            raise ValidationError(str(e), code=CommonErrorCode.PAYMENT_ERROR)
 
         if txn.customer_id and user.is_authenticated:
             store_customer_id(user, payment.gateway, txn.customer_id)
@@ -659,14 +711,24 @@ class CheckoutUpdateVoucher(BaseMutation):
                 )
             except voucher_model.Voucher.DoesNotExist:
                 raise ValidationError(
-                    {"voucher_code": "Voucher with given code does not exist."}
+                    {
+                        "voucher_code": ValidationError(
+                            "Voucher with given code does not exist.",
+                            code=CommonErrorCode.DOES_NOT_EXIST,
+                        )
+                    }
                 )
 
             try:
                 add_voucher_to_checkout(checkout, voucher)
             except voucher_model.NotApplicable:
                 raise ValidationError(
-                    {"voucher_code": "Voucher is not applicable to that checkout."}
+                    {
+                        "voucher_code": ValidationError(
+                            "Voucher is not applicable to that checkout.",
+                            code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE,
+                        )
+                    }
                 )
         else:
             existing_voucher = get_voucher_for_checkout(checkout)

@@ -32,7 +32,7 @@ class BraintreePaymentForm(forms.Form):
                 "payment error",
                 "Unable to process transaction. Please try again in a moment",
             )
-            raise ValidationError(msg)
+            raise ValidationError(msg, code="payment_error")
         return cleaned_data
 
     def get_payment_token(self):

@@ -6,6 +6,7 @@ from ....order import events, models
 from ....order.emails import send_fulfillment_confirmation_to_customer
 from ....order.utils import cancel_fulfillment, fulfill_order_line, update_order_status
 from ...core.mutations import BaseMutation
+from ...core.utils.error_codes import CommonErrorCode, OrderErrorCode
 from ...order.types import Fulfillment, Order
 from ..types import OrderLine
 
@@ -67,7 +68,13 @@ class FulfillmentCreate(BaseMutation):
                     "quantity": order_line.quantity_unfulfilled,
                     "order_line": order_line,
                 }
-                raise ValidationError({"order_line_id": msg})
+                raise ValidationError(
+                    {
+                        "order_line_id": ValidationError(
+                            msg, code=OrderErrorCode.FULFILL_ORDER_LINE
+                        )
+                    }
+                )
 
     @classmethod
     def clean_input(cls, data):
@@ -81,7 +88,14 @@ class FulfillmentCreate(BaseMutation):
         cls.clean_lines(order_lines, quantities)
 
         if sum(quantities) <= 0:
-            raise ValidationError({"lines": "Total quantity must be larger than 0."})
+            raise ValidationError(
+                {
+                    "lines": ValidationError(
+                        "Total quantity must be larger than 0.",
+                        code=CommonErrorCode.POSITIVE_NUMBER_REQUIRED,
+                    )
+                }
+            )
 
         data["order_lines"] = order_lines
         data["quantities"] = quantities
@@ -183,7 +197,13 @@ class FulfillmentCancel(BaseMutation):
                 "Cancel fulfillment mutation error",
                 "This fulfillment can't be canceled",
             )
-            raise ValidationError({"fulfillment": err_msg})
+            raise ValidationError(
+                {
+                    "fulfillment": ValidationError(
+                        err_msg, code=OrderErrorCode.CANNOT_CANCEL_FULFILLMENT
+                    )
+                }
+            )
 
         order = fulfillment.order
         cancel_fulfillment(info.context.user, fulfillment, restock)

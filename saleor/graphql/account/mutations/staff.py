@@ -25,6 +25,7 @@ from ...core.mutations import (
 )
 from ...core.types import Upload
 from ...core.utils import validate_image_file
+from ...core.utils.error_codes import AccountErrorCode
 from ..utils import CustomerDeleteMixin, StaffDeleteMixin, UserDeleteMixin
 from .base import (
     BaseAddressDelete,
@@ -210,11 +211,21 @@ class StaffUpdate(StaffCreate):
         if not is_active:
             if user == instance:
                 raise ValidationError(
-                    {"is_active": "Cannot deactivate your own account."}
+                    {
+                        "is_active": ValidationError(
+                            "Cannot deactivate your own account.",
+                            code=AccountErrorCode.DEACTIVATE_OWN_ACCOUNT,
+                        )
+                    }
                 )
             elif instance.is_superuser:
                 raise ValidationError(
-                    {"is_active": "Cannot deactivate superuser's account."}
+                    {
+                        "is_active": ValidationError(
+                            "Cannot deactivate superuser's account.",
+                            code=AccountErrorCode.DEACTIVATE_SUPERUSER_ACCOUNT,
+                        )
+                    }
                 )
 
     @classmethod
@@ -318,7 +329,12 @@ class AddressSetDefault(BaseMutation):
 
         if not user.addresses.filter(pk=address.pk).exists():
             raise ValidationError(
-                {"address_id": "The address doesn't belong to that user."}
+                {
+                    "address_id": ValidationError(
+                        "The address doesn't belong to that user.",
+                        code=AccountErrorCode.NOT_USERS_ADDRESS,
+                    )
+                }
             )
 
         if data.get("type") == AddressTypeEnum.BILLING.value:

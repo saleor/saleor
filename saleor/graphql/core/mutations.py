@@ -21,7 +21,7 @@ from ..account.types import User
 from ..utils import get_nodes
 from .types import Error, MetaInput, MetaPath, Upload
 from .utils import from_global_id_strict_type, snake_to_camel_case
-from .utils.error_codes import get_error_code_from_error
+from .utils.error_codes import CommonErrorCode, get_error_code_from_error
 
 registry = get_global_registry()
 
@@ -62,7 +62,7 @@ def validation_error_to_error_type(validation_error: ValidationError) -> list:
         # convert non-field errors
         for err in validation_error.error_list:
             err_list.append(
-                Error(message=err.message, code=get_error_code_from_error(err))
+                Error(message=err.messages[0], code=get_error_code_from_error(err))
             )
     return err_list
 
@@ -143,11 +143,18 @@ class BaseMutation(graphene.Mutation):
 
             node = cls.get_node_by_pk(info, graphene_type=only_type, pk=pk, qs=qs)
         except (AssertionError, GraphQLError) as e:
-            raise ValidationError({field: str(e)})
+            raise ValidationError(
+                {field: ValidationError(str(e), code=CommonErrorCode.GRAPHQL_ERROR)}
+            )
         else:
             if node is None:
                 raise ValidationError(
-                    {field: "Couldn't resolve to a node: %s" % node_id}
+                    {
+                        field: ValidationError(
+                            "Couldn't resolve to a node: %s" % node_id,
+                            code=CommonErrorCode.DOES_NOT_EXIST,
+                        )
+                    }
                 )
         return node
 
@@ -156,7 +163,9 @@ class BaseMutation(graphene.Mutation):
         try:
             instances = get_nodes(ids, only_type, qs=qs)
         except GraphQLError as e:
-            raise ValidationError({field: str(e)})
+            raise ValidationError(
+                {field: ValidationError(str(e), code=CommonErrorCode.GRAPHQL_ERROR)}
+            )
         return instances
 
     @classmethod
