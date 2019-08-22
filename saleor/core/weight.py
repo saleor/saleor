@@ -21,6 +21,8 @@ from django.template.loader import render_to_string
 from django.utils.translation import pgettext_lazy
 from measurement.measures import Weight
 
+from ..graphql.core.utils.error_codes import CommonErrorCode
+
 
 class WeightUnits:
     KILOGRAM = "kg"
@@ -98,7 +100,8 @@ class WeightField(forms.FloatField):
                 raise Exception("%r is not a valid weight." % (weight,))
             if weight.unit != unit:
                 raise forms.ValidationError(
-                    "Invalid unit: %r (expected %r)." % (weight.unit, unit)
+                    "Invalid unit: %r (expected %r)." % (weight.unit, unit),
+                    code=CommonErrorCode.INVALID_WEIGHT_UNIT,
                 )
             super().validate(weight.value)
 

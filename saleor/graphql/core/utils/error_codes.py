@@ -35,6 +35,8 @@ DJANGO_PASSWORD_VALIDATION_ERROR_CODES = [
     "password_too_similar",
 ]
 
+DJANGO_MODEL_FIELDS_ERROR_CODES = ["blank", "null", "unique", "unique_for_date"]
+
 
 class AccountErrorCode(Enum):
     ACTIVATE_OWN_ACCOUNT = "activate_own_account"
@@ -47,6 +49,7 @@ class AccountErrorCode(Enum):
     DELETE_STUFF_ACCOUNT = "delete_stuff_account"
     DELETE_SUPERUSER_ACCOUNT = "delete_superuser_account"
     INVALID_COUNTRY = "invalid_country"
+    INVALID_PASSWORD = "invalid_password"
     INVALID_PHONE_NUMBER = "invalid_phone_number"
     INVALID_USER_TOKEN = "invalid_user_token"
     NOT_USERS_ADDRESS = "not_users_address"
@@ -103,6 +106,7 @@ class CommonErrorCode(Enum):
     INCORRECT_VALUE = "incorrect_value"
     INVALID_FILE_TYPE = "invalid_file_type"
     INVALID_STOREFRONT_URL = "invalid_storefront_url"
+    INVALID_WEIGHT_UNIT = "invalid_weight_unit"
     MISSING_VALUE = "missing_value"
     NON_BLANK_VALUE_REQUIRED = "non_blank_value_required"
     PARTIAL_PAYMENT_NOT_ALLOWED = "partial_payment_not_allowed"
@@ -163,6 +167,7 @@ ERROR_CODES = (
     + DJANGO_VALIDATORS_ERROR_CODES
     + DJANGO_FORM_FIELDS_ERROR_CODES
     + DJANGO_PASSWORD_VALIDATION_ERROR_CODES
+    + DJANGO_MODEL_FIELDS_ERROR_CODES
     + saleor_error_codes
 )
 

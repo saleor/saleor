@@ -179,7 +179,7 @@ class PaymentVoid(BaseMutation):
         try:
             gateway_void(payment)
         except PaymentError as e:
-            raise ValidationError(str(e), CommonErrorCode.PAYMENT_ERROR)
+            raise ValidationError(str(e), code=CommonErrorCode.PAYMENT_ERROR)
         return PaymentVoid(payment=payment)
 
 
@@ -200,5 +200,5 @@ class PaymentSecureConfirm(BaseMutation):
         try:
             gateway_confirm(payment)
         except PaymentError as e:
-            raise ValidationError(str(e))
+            raise ValidationError(str(e), code=CommonErrorCode.PAYMENT_ERROR)
         return PaymentSecureConfirm(payment=payment)
