@@ -9,6 +9,7 @@ from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..core.enums import WeightUnitsEnum
 from ..core.mutations import BaseMutation
+from ..core.utils.error_codes import CommonErrorCode
 from ..product.types import Collection
 from .types import AuthorizationKey, AuthorizationKeyType, Shop
 
@@ -129,7 +130,8 @@ class ShopFetchTaxRates(BaseMutation):
         if not settings.VATLAYER_ACCESS_KEY:
             raise ValidationError(
                 "Could not fetch tax rates. Make sure you have supplied a "
-                "valid API Access Key."
+                "valid API Access Key.",
+                code=CommonErrorCode.CANNOT_FETCH_TAX_RATES,
             )
         call_command("get_vat_rates")
         return ShopFetchTaxRates(shop=Shop())
@@ -185,7 +187,14 @@ class AuthorizationKeyAdd(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, key_type, **data):
         if site_models.AuthorizationKey.objects.filter(name=key_type).exists():
-            raise ValidationError({"key_type": "Authorization key already exists."})
+            raise ValidationError(
+                {
+                    "key_type": ValidationError(
+                        "Authorization key already exists.",
+                        code=CommonErrorCode.AUTHORIZATION_KEY_ALREADY_EXISTS,
+                    )
+                }
+            )
 
         site_settings = info.context.site.settings
         instance = site_models.AuthorizationKey(
@@ -219,7 +228,14 @@ class AuthorizationKeyDelete(BaseMutation):
                 name=key_type, site_settings=site_settings
             )
         except site_models.AuthorizationKey.DoesNotExist:
-            raise ValidationError({"key_type": "Couldn't resolve authorization key"})
+            raise ValidationError(
+                {
+                    "key_type": ValidationError(
+                        "Couldn't resolve authorization key",
+                        code=CommonErrorCode.DOES_NOT_EXIST,
+                    )
+                }
+            )
 
         instance.delete()
         return AuthorizationKeyDelete(authorization_key=instance, shop=Shop())

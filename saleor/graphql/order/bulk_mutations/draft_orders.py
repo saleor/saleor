@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 
 from ....order import OrderStatus, models
 from ...core.mutations import ModelBulkDeleteMutation
+from ...core.utils.error_codes import OrderErrorCode
 
 
 class DraftOrderBulkDelete(ModelBulkDeleteMutation):
@@ -19,7 +20,14 @@ class DraftOrderBulkDelete(ModelBulkDeleteMutation):
     @classmethod
     def clean_instance(cls, info, instance):
         if instance.status != OrderStatus.DRAFT:
-            raise ValidationError({"id": "Cannot delete non-draft orders."})
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Cannot delete non-draft orders.",
+                        code=OrderErrorCode.DELETE_NON_DRAFT_ORDER,
+                    )
+                }
+            )
 
 
 class DraftOrderLinesBulkDelete(ModelBulkDeleteMutation):
@@ -36,4 +44,11 @@ class DraftOrderLinesBulkDelete(ModelBulkDeleteMutation):
     @classmethod
     def clean_instance(cls, _info, instance):
         if instance.order.status != OrderStatus.DRAFT:
-            raise ValidationError({"id": "Cannot delete line for non-draft orders."})
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Cannot delete line for non-draft orders.",
+                        code=OrderErrorCode.DELETE_LINE_NON_DRAFT_ORDER,
+                    )
+                }
+            )

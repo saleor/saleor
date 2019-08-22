@@ -20,6 +20,7 @@ from ...core.mutations import (
     UpdateMetaBaseMutation,
     validation_error_to_error_type,
 )
+from ...core.utils.error_codes import AccountErrorCode
 
 BILLING_ADDRESS_FIELD = "default_billing_address"
 SHIPPING_ADDRESS_FIELD = "default_shipping_address"
@@ -71,13 +72,25 @@ class SetPassword(CreateToken):
         try:
             user = models.User.objects.get(email=email)
         except ObjectDoesNotExist:
-            raise ValidationError({"email": "User doesn't exist"})
+            raise ValidationError(
+                {
+                    "email": ValidationError(
+                        "User doesn't exist", code=AccountErrorCode.USER_DOES_NOT_EXIST
+                    )
+                }
+            )
         if not default_token_generator.check_token(user, token):
-            raise ValidationError({"token": INVALID_TOKEN})
+            raise ValidationError(
+                {
+                    "token": ValidationError(
+                        INVALID_TOKEN, code=AccountErrorCode.INVALID_USER_TOKEN
+                    )
+                }
+            )
         try:
             password_validation.validate_password(password, user)
         except ValidationError as error:
-            raise ValidationError({"password": error.messages})
+            raise ValidationError({"password": error})
         user.set_password(password)
         user.save(update_fields=["password"])
         account_events.customer_password_reset_event(user=user)
@@ -109,7 +122,14 @@ class RequestPasswordReset(BaseMutation):
         try:
             user = models.User.objects.get(email=email)
         except ObjectDoesNotExist:
-            raise ValidationError({"email": "User with this email doesn't exist"})
+            raise ValidationError(
+                {
+                    "email": ValidationError(
+                        "User with this email doesn't exist",
+                        code=AccountErrorCode.USER_DOES_NOT_EXIST,
+                    )
+                }
+            )
         send_user_password_reset_email_with_url(redirect_url, user)
         return RequestPasswordReset()
 

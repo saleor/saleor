@@ -18,6 +18,7 @@ from ..checkout.types import Checkout
 from ..core.mutations import BaseMutation
 from ..core.scalars import Decimal
 from ..core.utils import from_global_id_strict_type
+from ..core.utils.error_codes import CheckoutErrorCode, CommonErrorCode
 from .enums import PaymentGatewayEnum
 from .types import Payment
 
@@ -77,7 +78,12 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             billing_address = cls.validate_address(data["billing_address"])
         if billing_address is None:
             raise ValidationError(
-                {"billing_address": "No billing address associated with this checkout."}
+                {
+                    "billing_address": ValidationError(
+                        "No billing address associated with this checkout.",
+                        code=CheckoutErrorCode.BILLING_ADDRESS_NOT_SET,
+                    )
+                }
             )
 
         checkout_total = (
@@ -91,8 +97,11 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         if amount < checkout_total.gross.amount:
             raise ValidationError(
                 {
-                    "amount": "Partial payments are not allowed, amount should be "
-                    "equal checkout's total."
+                    "amount": ValidationError(
+                        "Partial payments are not allowed, amount should be "
+                        "equal checkout's total.",
+                        code=CommonErrorCode.PARTIAL_PAYMENT_NOT_ALLOWED,
+                    )
                 }
             )
 
@@ -131,7 +140,7 @@ class PaymentCapture(BaseMutation):
         try:
             gateway_capture(payment, amount)
         except PaymentError as e:
-            raise ValidationError(str(e))
+            raise ValidationError(str(e), code=CommonErrorCode.PAYMENT_ERROR)
         return PaymentCapture(payment=payment)
 
 
@@ -148,7 +157,7 @@ class PaymentRefund(PaymentCapture):
         try:
             gateway_refund(payment, amount=amount)
         except PaymentError as e:
-            raise ValidationError(str(e))
+            raise ValidationError(str(e), code=CommonErrorCode.PAYMENT_ERROR)
         return PaymentRefund(payment=payment)
 
 
@@ -170,7 +179,7 @@ class PaymentVoid(BaseMutation):
         try:
             gateway_void(payment)
         except PaymentError as e:
-            raise ValidationError(str(e))
+            raise ValidationError(str(e), CommonErrorCode.PAYMENT_ERROR)
         return PaymentVoid(payment=payment)
 
 

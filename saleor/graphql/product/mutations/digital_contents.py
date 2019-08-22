@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from ....product import models
 from ...core.mutations import BaseMutation, ModelMutation
 from ...core.types import Upload
+from ...core.utils.error_codes import DigitalContentErrorCode
 from ...decorators import permission_required
 from ..types import DigitalContent, ProductVariant
 
@@ -77,7 +78,10 @@ class DigitalContentCreate(BaseMutation):
             missing_fields = set(required_fields).difference(set(data))
             if missing_fields:
                 msg += "{}, " * len(missing_fields)
-                raise ValidationError(msg.format(*missing_fields))
+                raise ValidationError(
+                    msg.format(*missing_fields),
+                    code=DigitalContentErrorCode.MISSING_CONFIGURATION_FIELDS,
+                )
 
         return data
 
@@ -165,7 +169,10 @@ class DigitalContentUpdate(BaseMutation):
             missing_fields = set(required_fields).difference(set(data))
             if missing_fields:
                 msg += "{}, " * len(missing_fields)
-                raise ValidationError(msg.format(*missing_fields))
+                raise ValidationError(
+                    msg.format(*missing_fields),
+                    code=DigitalContentErrorCode.MISSING_CONFIGURATION_FIELDS,
+                )
 
         return data
 
@@ -178,7 +185,13 @@ class DigitalContentUpdate(BaseMutation):
 
         if not hasattr(variant, "digital_content"):
             msg = "Variant %s doesn't have any digital content" % variant.id
-            raise ValidationError({"variantId": msg})
+            raise ValidationError(
+                {
+                    "variantId": ValidationError(
+                        msg, code=DigitalContentErrorCode.VARIANT_NO_DIGITAL_CONTENT
+                    )
+                }
+            )
 
         clean_input = cls.clean_input(info, data.get("input"))
 

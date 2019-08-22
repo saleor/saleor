@@ -18,6 +18,7 @@ from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import Decimal
+from ...core.utils.error_codes import OrderErrorCode
 from ...product.types import ProductVariant
 from ..types import Order, OrderLine
 from ..utils import validate_draft_order
@@ -288,7 +289,14 @@ class DraftOrderLinesCreate(BaseMutation):
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         if order.status != OrderStatus.DRAFT:
-            raise ValidationError({"id": "Only draft orders can be edited."})
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Only draft orders can be edited.",
+                        code=OrderErrorCode.EDIT_NON_DRAFT_ORDER,
+                    )
+                }
+            )
 
         lines_to_add = []
         for input_line in data.get("input"):
@@ -302,7 +310,12 @@ class DraftOrderLinesCreate(BaseMutation):
                     lines_to_add.append((quantity, variant))
             else:
                 raise ValidationError(
-                    {"quantity": "Ensure this value is greater than or equal to 1."}
+                    {
+                        "quantity": ValidationError(
+                            "Ensure this value is greater than or equal to 1.",
+                            code=OrderErrorCode.QUANTITY_LESS_THAN_ONE,
+                        )
+                    }
                 )
 
         # Add the lines
@@ -338,7 +351,14 @@ class DraftOrderLineDelete(BaseMutation):
         line = cls.get_node_or_error(info, id, only_type=OrderLine)
         order = line.order
         if order.status != OrderStatus.DRAFT:
-            raise ValidationError({"id": "Only draft orders can be edited."})
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Only draft orders can be edited.",
+                        code=OrderErrorCode.EDIT_NON_DRAFT_ORDER,
+                    )
+                }
+            )
 
         db_id = line.id
         delete_order_line(line)
@@ -372,12 +392,24 @@ class DraftOrderLineUpdate(ModelMutation):
         instance.old_quantity = instance.quantity
         cleaned_input = super().clean_input(info, instance, data)
         if instance.order.status != OrderStatus.DRAFT:
-            raise ValidationError({"id": "Only draft orders can be edited."})
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "Only draft orders can be edited.",
+                        code=OrderErrorCode.EDIT_NON_DRAFT_ORDER,
+                    )
+                }
+            )
 
         quantity = data["quantity"]
         if quantity <= 0:
             raise ValidationError(
-                {"quantity": "Ensure this value is greater than or equal to 1."}
+                {
+                    "quantity": ValidationError(
+                        "Ensure this value is greater than or equal to 1.",
+                        code=OrderErrorCode.QUANTITY_LESS_THAN_ONE,
+                    )
+                }
             )
         return cleaned_input
 

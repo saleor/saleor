@@ -5,6 +5,7 @@ from ...dashboard.shipping.forms import default_shipping_zone_exists
 from ...shipping import models
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import Decimal, WeightScalar
+from ..core.utils.error_codes import ShippingErrorCode
 from .enums import ShippingMethodTypeEnum
 from .types import ShippingMethod, ShippingZone
 
@@ -52,7 +53,12 @@ class ShippingZoneMixin:
         if default:
             if default_shipping_zone_exists(instance.pk):
                 raise ValidationError(
-                    {"default": "Default shipping zone already exists."}
+                    {
+                        "default": ValidationError(
+                            "Default shipping zone already exists.",
+                            code=ShippingErrorCode.DEFAULT_SHIPPING_ZONE_ALREADY_EXISTS,
+                        )
+                    }
                 )
             elif cleaned_input.get("countries"):
                 cleaned_input["countries"] = []
@@ -129,9 +135,12 @@ class ShippingPriceMixin:
                 ):
                     raise ValidationError(
                         {
-                            "maximum_order_price": (
-                                "Maximum order price should be larger than "
-                                "the minimum order price."
+                            "maximum_order_price": ValidationError(
+                                (
+                                    "Maximum order price should be larger than "
+                                    "the minimum order price."
+                                ),
+                                code=ShippingErrorCode.MAX_LESS_THAN_MIN,
                             )
                         }
                     )
@@ -145,9 +154,12 @@ class ShippingPriceMixin:
                 ):
                     raise ValidationError(
                         {
-                            "maximum_order_weight": (
-                                "Maximum order weight should be larger than the "
-                                "minimum order weight."
+                            "maximum_order_weight": ValidationError(
+                                (
+                                    "Maximum order weight should be larger than the "
+                                    "minimum order weight."
+                                ),
+                                code=ShippingErrorCode.MAX_LESS_THAN_MIN,
                             )
                         }
                     )
