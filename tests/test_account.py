@@ -409,7 +409,7 @@ def test_view_account_delete(
     response = authorized_client.post(url)
     assert response.status_code == 302
     send_confirmation_mock.assert_called_once_with(
-        str(customer_user.token), customer_user.email
+        customer_user.email, str(customer_user.token)
     )
 
 

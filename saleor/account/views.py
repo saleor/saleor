@@ -157,7 +157,7 @@ def address_delete(request, pk):
 @require_POST
 def account_delete(request):
     user = request.user
-    send_account_delete_confirmation_email.delay(str(user.token), user.email)
+    send_account_delete_confirmation_email.delay(user.email, str(user.token))
     messages.success(
         request,
         pgettext(
