@@ -65,6 +65,8 @@ class CheckoutErrorCode(Enum):
     INSUFFICIENT_STOCK = "insufficient_stock"
     SHIPPING_METHOD_NOT_APPLICABLE = "shipping_method_not_applicable"
     TAX_ERROR = "tax_error"
+    INVALID_PROMO_CODE = "invalid_promo_code"
+    PROMO_CODE_ALREADY_EXISTS = "promo_code_already_exists"
 
 
 class MenuErrorCode(Enum):
