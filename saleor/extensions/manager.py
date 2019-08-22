@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, List, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 from django.conf import settings
 from django.utils.module_loading import import_string
@@ -15,6 +15,7 @@ if TYPE_CHECKING:
     from ..product.models import Product
     from ..account.models import Address
     from ..order.models import OrderLine, Order
+    from ..payment.interface import PaymentData, GatewayResponse, CustomerSource
 
 
 class ExtensionsManager:
@@ -178,7 +179,60 @@ class ExtensionsManager:
             "postprocess_order_creation", default_value, order
         )
 
+    def authorize_payment(
+        self, gateway: str, payment_information: "PaymentData"
+    ) -> "GatewayResponse":
+        method_name = "authorize_payment"
+        return self.__run_payment_method(gateway, method_name, payment_information)
+
+    def capture_payment(
+        self, gateway: str, payment_information: "PaymentData"
+    ) -> "GatewayResponse":
+        method_name = "capture_payment"
+        return self.__run_payment_method(gateway, method_name, payment_information)
+
+    def refund_payment(
+        self, gateway: str, payment_information: "PaymentData"
+    ) -> "GatewayResponse":
+        method_name = "refund_payment"
+        return self.__run_payment_method(gateway, method_name, payment_information)
+
+    def void_payment(
+        self, gateway: str, payment_information: "PaymentData"
+    ) -> "GatewayResponse":
+        method_name = "void_payment"
+        return self.__run_payment_method(gateway, method_name, payment_information)
+
+    def confirm_payment(
+        self, gateway: str, payment_information: "PaymentData"
+    ) -> "GatewayResponse":
+        method_name = "confirm_payment"
+        return self.__run_payment_method(gateway, method_name, payment_information)
+
+    def process_payment(
+        self, gateway: str, payment_information: "PaymentData"
+    ) -> "GatewayResponse":
+        method_name = "process_payment"
+        return self.__run_payment_method(gateway, method_name, payment_information)
+
+    def list_payment_sources(self, customer_id: str) -> List["CustomerSource"]:
+        default_value = []
+        return self.__run_method_on_plugins(
+            "list_payment_sources", default_value, customer_id=customer_id
+        )
+
+    def __run_payment_method(
+        self, gateway_name: str, method_name: str, payment_information: "PaymentData"
+    ) -> Optional["GatewayResposne"]:
+        default_value = None
+        gtw = self.get_plugin(gateway_name)
+        if gtw is not None and gtw.active:
+            return self.__run_method_on_single_plugin(
+                gtw, method_name, default_value, payment_information=payment_information
+            )
+
     # FIXME these methods should be more generic
+
     def assign_tax_code_to_object_meta(
         self, obj: Union["Product", "ProductType"], tax_code: str
     ):
@@ -211,11 +265,16 @@ class ExtensionsManager:
                     plugin_configuration, cleaned_data
                 )
 
-    def get_plugin_configuration(self, plugin_name) -> "PluginConfiguration":
-        plugin_configurations_qs = PluginConfiguration.objects.all()
+    def get_plugin(self, plugin_name: str) -> Optional["BasePlugin"]:
         for plugin in self.plugins:
             if plugin.PLUGIN_NAME == plugin_name:
-                return plugin.get_plugin_configuration(plugin_configurations_qs)
+                return plugin
+
+    def get_plugin_configuration(self, plugin_name) -> Optional["PluginConfiguration"]:
+        plugin = self.get_plugin(plugin_name)
+        if plugin is not None:
+            plugin_configurations_qs = PluginConfiguration.objects.all()
+            return plugin.get_plugin_configuration(plugin_configurations_qs)
 
     def get_plugin_configurations(self) -> List["PluginConfiguration"]:
         plugin_configuration_ids = []
