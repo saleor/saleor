@@ -6,6 +6,7 @@ from prices import TaxedMoney
 from saleor.account.models import Address
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
+from saleor.graphql.core.utils.error_codes import CheckoutErrorCode
 from saleor.order.models import Order
 from tests.api.utils import get_graphql_content
 
@@ -111,7 +112,11 @@ def test_checkout_update_shipping_address(
     data = content["data"]["checkoutShippingAddressUpdate"]
 
     assert data["errors"] == [
-        {"field": "shippingAddress", "message": "This checkout doesn't need shipping"}
+        {
+            "field": "shippingAddress",
+            "message": "This checkout doesn't need shipping",
+            "code": CheckoutErrorCode.SHIPPING_NOT_REQUIRED.name,
+        }
     ]
 
     # Ensure the address was unchanged

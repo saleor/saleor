@@ -15,6 +15,11 @@ from saleor.graphql.checkout.mutations import (
     update_checkout_shipping_method_if_invalid,
 )
 from saleor.graphql.core.utils import str_to_enum
+from saleor.graphql.core.utils.error_codes import (
+    AccountErrorCode,
+    CheckoutErrorCode,
+    CommonErrorCode,
+)
 from saleor.order.models import Order
 from saleor.payment import PaymentError
 from saleor.payment.models import Transaction
@@ -101,6 +106,7 @@ MUTATION_CHECKOUT_CREATE = """
         errors {
           field
           message
+          code
         }
       }
     }
@@ -151,15 +157,32 @@ def test_checkout_create(api_client, variant, graphql_address_data):
 
 
 @pytest.mark.parametrize(
-    "quantity, expected_error_message",
+    "quantity, expected_error_message, error_code",
     (
-        (-1, "The quantity should be higher than zero."),
-        (0, "The quantity should be higher than zero."),
-        (51, "Cannot add more than 50 times this item."),
+        (
+            -1,
+            "The quantity should be higher than zero.",
+            CommonErrorCode.POSITIVE_NUMBER_REQUIRED,
+        ),
+        (
+            0,
+            "The quantity should be higher than zero.",
+            CommonErrorCode.POSITIVE_NUMBER_REQUIRED,
+        ),
+        (
+            51,
+            "Cannot add more than 50 times this item.",
+            CheckoutErrorCode.QUANTITY_GREATER_THAN_LIMIT,
+        ),
     ),
 )
 def test_checkout_create_cannot_add_invalid_quantities(
-    api_client, variant, graphql_address_data, quantity, expected_error_message
+    api_client,
+    variant,
+    graphql_address_data,
+    quantity,
+    expected_error_message,
+    error_code,
 ):
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
@@ -177,7 +200,11 @@ def test_checkout_create_cannot_add_invalid_quantities(
     content = get_graphql_content(response)["data"]["checkoutCreate"]
     assert content["errors"]
     assert content["errors"] == [
-        {"field": "quantity", "message": expected_error_message}
+        {
+            "field": "quantity",
+            "message": expected_error_message,
+            "code": error_code.name,
+        }
     ]
 
 
@@ -756,7 +783,8 @@ MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE = """
             },
             errors {
                 field,
-                message
+                message,
+                code
             }
         }
     }"""
@@ -820,7 +848,11 @@ def test_checkout_shipping_address_with_invalid_phone_number_returns_error(
         )
     )["data"]["checkoutShippingAddressUpdate"]
     assert response["errors"] == [
-        {"field": "phone", "message": "'+33600000' is not a valid phone number."}
+        {
+            "field": "phone",
+            "message": "'+33600000' is not a valid phone number.",
+            "code": AccountErrorCode.INVALID_PHONE_NUMBER.name,
+        }
     ]
 
 
@@ -883,6 +915,7 @@ def test_checkout_shipping_address_update_invalid_country_code(
     data = content["data"]["checkoutShippingAddressUpdate"]
     assert data["errors"][0]["message"] == "Invalid country code."
     assert data["errors"][0]["field"] == "country"
+    assert data["errors"][0]["code"] == AccountErrorCode.INVALID_COUNTRY.name
 
 
 def test_checkout_billing_address_update(
@@ -941,6 +974,7 @@ CHECKOUT_EMAIL_UPDATE_MUTATION = """
             errors {
                 field,
                 message
+                code
             }
         }
     }
