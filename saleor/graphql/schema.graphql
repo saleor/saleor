@@ -143,8 +143,8 @@ type AssignNavigation {
 
 type Attribute implements Node {
   id: ID!
-  productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
-  productVariantTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
+  productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
+  productVariantTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
   privateMeta: [MetaStore]!
   meta: [MetaStore]!
   inputType: AttributeInputTypeEnum
@@ -971,6 +971,7 @@ enum CountryCode {
   LT
   LU
   MO
+  MK
   MG
   MW
   MY
@@ -1004,7 +1005,6 @@ enum CountryCode {
   NU
   NF
   KP
-  MK
   MP
   NO
   OM
@@ -1400,6 +1400,7 @@ enum ErrorCode {
   ATTRIBUTE_VALUES_NOT_UNIQUE
   AUTHORIZATION_KEY_ALREADY_EXISTS
   BILLING_ADDRESS_NOT_SET
+  BLANK
   CANNOT_ASSIGN_NODE
   CANNOT_CANCEL_FULFILLMENT
   CANNOT_CANCEL_ORDER
@@ -1434,12 +1435,14 @@ enum ErrorCode {
   INVALID_IMAGE
   INVALID_LIST
   INVALID_MENU_ITEM
+  INVALID_PASSWORD
   INVALID_PHONE_NUMBER
   INVALID_PROMO_CODE
   INVALID_SHIPPING_METHOD
   INVALID_STOREFRONT_URL
   INVALID_TIME
   INVALID_USER_TOKEN
+  INVALID_WEIGHT_UNIT
   LIMIT_VALUE
   MAX_DECIMAL_PLACES
   MAX_DIGITS
@@ -1456,6 +1459,7 @@ enum ErrorCode {
   NON_BLANK_VALUE_REQUIRED
   NOT_PRODUCTS_IMAGE
   NOT_USERS_ADDRESS
+  NULL
   NULL_CHARACTERS_NOT_ALLOWED
   ORDER_INVALID_SHIPPING_METHOD
   ORDER_NO_PAYMENT
@@ -1482,6 +1486,8 @@ enum ErrorCode {
   SHIPPING_NOT_REQUIRED
   TAX_ERROR
   TOO_MANY_ITEMS
+  UNIQUE
+  UNIQUE_FOR_DATE
   UNKNOWN
   USER_DOES_NOT_EXIST
   VALUE_ERROR

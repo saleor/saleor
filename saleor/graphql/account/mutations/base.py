@@ -157,11 +157,18 @@ class PasswordChange(BaseMutation):
         new_password = data["new_password"]
 
         if not user.check_password(old_password):
-            raise ValidationError({"old_password": "Old password isn't valid."})
+            raise ValidationError(
+                {
+                    "old_password": ValidationError(
+                        "Old password isn't valid.",
+                        code=AccountErrorCode.INVALID_PASSWORD,
+                    )
+                }
+            )
         try:
             password_validation.validate_password(new_password, user)
         except ValidationError as error:
-            raise ValidationError({"new_password": error.messages})
+            raise ValidationError({"new_password": error})
 
         user.set_password(new_password)
         user.save(update_fields=["password"])

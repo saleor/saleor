@@ -246,6 +246,7 @@ def test_checkout_create_required_email(api_client, variant):
     assert errors
     assert errors[0]["field"] == "email"
     assert errors[0]["message"] == "This field cannot be blank."
+    assert errors[0]["code"] == "BLANK"
 
 
 def test_checkout_create_default_email_for_logged_in_customer(user_api_client, variant):
@@ -1008,6 +1009,7 @@ def test_checkout_email_update_validation(user_api_client, checkout_with_item):
     assert errors
     assert errors[0]["field"] == "email"
     assert errors[0]["message"] == "This field cannot be blank."
+    assert errors[0]["code"] == "BLANK"
 
 
 MUTATION_CHECKOUT_COMPLETE = """
