@@ -61,5 +61,5 @@ WeightUnitsEnum = graphene.Enum(
 )
 
 ErrorCode = graphene.Enum(
-    "ErrorCode", [(str_to_enum(code), code) for code in ERROR_CODES]
+    "ErrorCode", [(str_to_enum(code), code) for code in sorted(ERROR_CODES)]
 )
