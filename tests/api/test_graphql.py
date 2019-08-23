@@ -69,7 +69,8 @@ def test_real_query(user_api_client, product):
             __typename
         }
         products(first: $first, sortBy: $sortBy, categories:[$categoryId],
-            attributes: $attributesFilter, priceGte: $minPrice, priceLte: $maxPrice) {
+            attributes: $attributesFilter,
+            filter: {price: {gte: $minPrice, lte: $maxPrice}}) {
 
             ...ProductListFragmentQuery
             __typename
