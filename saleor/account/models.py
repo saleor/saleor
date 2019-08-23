@@ -1,5 +1,3 @@
-import uuid
-
 from django.conf import settings
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -128,10 +126,6 @@ class UserManager(BaseUserManager):
         return self.get_queryset().filter(is_staff=True)
 
 
-def get_token():
-    return str(uuid.uuid4())
-
-
 class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
     email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=256, blank=True)
@@ -140,7 +134,6 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
         Address, blank=True, related_name="user_addresses"
     )
     is_staff = models.BooleanField(default=False)
-    token = models.UUIDField(default=get_token, editable=False, unique=True)
     is_active = models.BooleanField(default=True)
     note = models.TextField(null=True, blank=True)
     date_joined = models.DateTimeField(default=timezone.now, editable=False)
