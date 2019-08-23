@@ -860,10 +860,6 @@ class ProductTypeInput(graphene.InputObjectType):
         description="Determines if products are digital.", required=False
     )
     weight = WeightScalar(description="Weight of the ProductType items.")
-    tax_rate = TaxRateType(
-        description="Tax rate.",
-        deprecation_reason=("taxRate is deprecated, Use taxCode"),
-    )
     tax_code = graphene.String(description="Tax rate for enabled tax gateway")
 
 
