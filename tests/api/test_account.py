@@ -1124,7 +1124,8 @@ def test_account_delete_staff_user(staff_api_client):
 def test_account_delete_other_customer_token(user_api_client):
     user = user_api_client.user
     other_user = User.objects.create(email="temp@example.com")
-    variables = {"token": other_user.token}
+    token = default_token_generator.make_token(other_user)
+    variables = {"token": token}
 
     response = user_api_client.post_graphql(ACCOUNT_DELETE_MUTATION, variables)
     content = get_graphql_content(response)

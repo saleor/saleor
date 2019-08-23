@@ -3480,7 +3480,6 @@ type User implements Node {
   firstName: String!
   lastName: String!
   isStaff: Boolean!
-  token: UUID!
   isActive: Boolean!
   note: String
   dateJoined: DateTime!

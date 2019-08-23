@@ -58,6 +58,12 @@ def send_account_delete_confirmation_email_with_url(redirect_url, user):
     )
 
 
+def send_account_delete_confirmation_email(user):
+    """Trigger sending a account delete email for the given user."""
+    token = default_token_generator.make_token(user)
+    _send_account_delete_confirmation_email.delay(user.email, token)
+
+
 @app.task
 def _send_account_delete_confirmation_email_with_url(
     recipient_email, redirect_url, token
@@ -71,14 +77,14 @@ def _send_account_delete_confirmation_email_with_url(
 
 
 @app.task
-def send_account_delete_confirmation_email(recipient_email, token):
+def _send_account_delete_confirmation_email(recipient_email, token):
     delete_url = build_absolute_uri(
         reverse("account:delete-confirm", kwargs={"token": token})
     )
-    _send_account_delete_confirmation_email(recipient_email, delete_url)
+    _send_delete_confirmation_email(recipient_email, delete_url)
 
 
-def _send_account_delete_confirmation_email(recipient_email, delete_url):
+def _send_delete_confirmation_email(recipient_email, delete_url):
     ctx = get_email_base_context()
     ctx["delete_url"] = delete_url
     send_templated_mail(
