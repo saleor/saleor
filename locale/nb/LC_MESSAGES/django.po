@@ -6,6 +6,7 @@
 # Translators:
 # Joachim Lindbo <jlindbo@icloud.com>, 2019
 # Magnus Lund <mgnusl@gmail.com>, 2019
+# Håkon Kristiansen <hakon@kristiansen.net>, 2019
 # 
 #, fuzzy
 msgid ""
@@ -25,57 +26,57 @@ msgstr ""
 #: saleor/account/__init__.py:28
 msgctxt "Event from a customer that got their account created"
 msgid "The account account was created"
-msgstr ""
+msgstr "Kontoen ble opprettet"
 
 #: saleor/account/__init__.py:35
 msgctxt "Event from a customer that got the password reset link sent by email"
 msgid "Password reset link was sent to the customer"
-msgstr ""
+msgstr "Link for fornyelse av passord ble sendt til kunde"
 
 #: saleor/account/__init__.py:42
 msgctxt "Event from a customer that reset their password"
 msgid "The account password was reset"
-msgstr ""
+msgstr "Passordet til kontoen ble endret"
 
 #: saleor/account/__init__.py:48
 msgctxt "Event from a customer that placed an order"
 msgid "An order was placed"
-msgstr ""
+msgstr "En ordre ble plassert"
 
 #: saleor/account/__init__.py:55
 msgctxt "Event from a customer that added a note to one of their orders"
 msgid "A note was added"
-msgstr ""
+msgstr "Et notat ble lagt til"
 
 #: saleor/account/__init__.py:62
 msgctxt "Event from a customer that downloaded an ordered digital good"
 msgid "A digital good was downloaded"
-msgstr ""
+msgstr "Et digitalt gode ble nedlastet"
 
 #: saleor/account/__init__.py:69
 msgctxt "Event from a staff user that deleted a customer"
 msgid "A customer was deleted"
-msgstr ""
+msgstr "En kunde ble slettet"
 
 #: saleor/account/__init__.py:76
 msgctxt "Event from a staff user assigned a new name to a customer"
 msgid "A customer's name was edited"
-msgstr ""
+msgstr "Navnet på en kunde ble redigert"
 
 #: saleor/account/__init__.py:83
 msgctxt "Event from a staff user assigned a new email address to a customer"
 msgid "A customer's email address was edited"
-msgstr ""
+msgstr "E-postadressen til en kunde ble redigert"
 
 #: saleor/account/__init__.py:90
 msgctxt "Event from a staff user assigned a new email address to a customer"
 msgid "A note was added to the customer"
-msgstr ""
+msgstr "Et notat ble lagt til på kunden"
 
 #: saleor/account/forms.py:71
 msgctxt "Form field"
 msgid "Email"
-msgstr "Epost"
+msgstr "E-post"
 
 #: saleor/account/forms.py:83
 msgctxt "Password"
@@ -85,12 +86,12 @@ msgstr "Passord"
 #: saleor/account/forms.py:86
 msgctxt "Email"
 msgid "Email"
-msgstr "Epost"
+msgstr "E-post"
 
 #: saleor/account/forms.py:89
 msgctxt "Registration error"
 msgid "This email has already been registered."
-msgstr "Denne eposten er allerede registrert"
+msgstr "Denne e-posten er allerede registrert"
 
 #: saleor/account/forms.py:147
 msgctxt "Customer form: Given name field"
