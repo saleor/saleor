@@ -397,10 +397,6 @@ class CategoryClearPrivateMeta(ClearMetaBaseMutation):
 
 class AttributeValueInput(InputObjectType):
     id = graphene.ID(description="ID of an attribute")
-    name = graphene.String(
-        description="Slug of an attribute",
-        deprecation_reason="name is deprecated, use id instead",
-    )
     slug = graphene.String(description="Slug of an attribute.")
     values = graphene.List(
         graphene.String,
