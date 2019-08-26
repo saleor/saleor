@@ -111,7 +111,8 @@ def test_price_shipping_method_form(shipping_method, min_price, max_price, resul
 def test_weight_shipping_method_form(min_weight, max_weight, result):
     data = {
         "name": "Name",
-        "price": 10,
+        "price_0": 10,
+        "price_1": "USD",
         "minimum_order_weight": min_weight,
         "maximum_order_weight": max_weight,
     }

@@ -249,9 +249,7 @@ class WeightShippingMethodForm(MoneyModelForm):
         self.fields["minimum_order_weight"].widget.attrs["placeholder"] = "0"
 
     def clean_minimum_order_weight(self):
-        return self.cleaned_data["minimum_order_weight"] or zero_money(
-            currency=self.instance.currency
-        )
+        return self.cleaned_data["minimum_order_weight"] or 0
 
     def clean(self):
         data = super().clean()

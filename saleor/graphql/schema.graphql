@@ -2879,9 +2879,7 @@ type ProductVariantCreate {
 input ProductVariantCreateInput {
   attributes: [AttributeValueInput]!
   costPrice: Decimal
-  costPriceAmount: Decimal
   priceOverride: Decimal
-  priceOverrideAmount: Decimal
   sku: String
   quantity: Int
   trackInventory: Boolean
@@ -2897,9 +2895,7 @@ type ProductVariantDelete {
 input ProductVariantInput {
   attributes: [AttributeValueInput]
   costPrice: Decimal
-  costPriceAmount: Decimal
   priceOverride: Decimal
-  priceOverrideAmount: Decimal
   sku: String
   quantity: Int
   trackInventory: Boolean
@@ -3160,11 +3156,8 @@ type ShippingPriceDelete {
 input ShippingPriceInput {
   name: String
   price: Decimal
-  priceAmount: Decimal
   minimumOrderPrice: Decimal
-  minimumOrderPriceAmount: Decimal
   maximumOrderPrice: Decimal
-  maximumOrderPriceAmount: Decimal
   minimumOrderWeight: WeightScalar
   maximumOrderWeight: WeightScalar
   type: ShippingMethodTypeEnum
@@ -3681,7 +3674,6 @@ input VoucherInput {
   collections: [ID]
   categories: [ID]
   minAmountSpent: Decimal
-  minSpentAmount: Decimal
   minCheckoutItemsQuantity: Int
   countries: [String]
   applyOncePerOrder: Boolean
