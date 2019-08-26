@@ -57,6 +57,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add an functionality to sort products by their "minimal variant price" - #4416 by @derenio
 - New stripe gateway implementation based on Stripe PaymentIntents API - #4606 by @salwator
 - Change AddressValidationRules API - #4655 by @Kwaidan00
+- Refactor account deletion mutations - #4668 by @fowczarek
 
 ## 2.8.0
 
