@@ -46,7 +46,6 @@ class AccountErrorCode(Enum):
     DELETE_NON_STAFF_USER = "delete_non_staff_user"
     DELETE_OWN_ACCOUNT = "delete_own_account"
     DELETE_STAFF_ACCOUNT = "delete_staff_account"
-    DELETE_STUFF_ACCOUNT = "delete_stuff_account"
     DELETE_SUPERUSER_ACCOUNT = "delete_superuser_account"
     INVALID_COUNTRY = "invalid_country"
     INVALID_PASSWORD = "invalid_password"
