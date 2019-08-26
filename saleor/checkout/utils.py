@@ -1219,6 +1219,6 @@ def clean_checkout(checkout: Checkout, discounts):
 
     if not is_fully_paid(checkout, discounts):
         raise ValidationError(
-            "Provided payment methods can not cover the checkout's total " "amount",
+            "Provided payment methods can not cover the checkout's total amount",
             code=CheckoutErrorCode.CHECKOUT_NOT_FULLY_PAID,
         )
