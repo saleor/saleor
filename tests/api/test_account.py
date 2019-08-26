@@ -1482,7 +1482,7 @@ def test_set_password_invalid_password(user_api_client, customer_user, settings)
     assert errors[1]["message"] == "This password is entirely numeric."
 
 
-@patch("saleor.account.emails.send_password_reset_email.delay")
+@patch("saleor.account.emails._send_user_password_reset_email.delay")
 def test_deprecated_password_reset_email(
     send_password_reset_mock, staff_api_client, customer_user, permission_manage_users
 ):
@@ -1510,7 +1510,7 @@ def test_deprecated_password_reset_email(
     )
 
 
-@patch("saleor.account.emails.send_password_reset_email.delay")
+@patch("saleor.account.emails._send_user_password_reset_email.delay")
 def test_password_reset_email_non_existing_user(
     send_password_reset_mock, staff_api_client, permission_manage_users
 ):
