@@ -84,7 +84,7 @@ def test_user_error_nonexistent_id(schema_context):
     assert user_errors
     assert user_errors[0]["field"] == "productId"
     assert user_errors[0]["message"] == "Couldn't resolve to a node"
-    assert user_errors[0]["code"] == CommonErrorCode.DOES_NOT_EXIST.name
+    assert user_errors[0]["code"] == CommonErrorCode.OBJECT_DOES_NOT_EXIST.name
 
 
 def test_user_error_id_of_different_type(product, schema_context):

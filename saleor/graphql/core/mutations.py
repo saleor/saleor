@@ -152,7 +152,7 @@ class BaseMutation(graphene.Mutation):
                     {
                         field: ValidationError(
                             "Couldn't resolve to a node: %s" % node_id,
-                            code=CommonErrorCode.DOES_NOT_EXIST,
+                            code=CommonErrorCode.OBJECT_DOES_NOT_EXIST,
                         )
                     }
                 )

@@ -11,7 +11,7 @@ from ...giftcard import models
 from ...giftcard.utils import activate_gift_card, deactivate_gift_card
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.scalars import Decimal
-from ..core.utils.error_codes import AccountErrorCode
+from ..core.utils.error_codes import CommonErrorCode
 from .types import GiftCard
 
 
@@ -64,7 +64,7 @@ class GiftCardCreate(ModelMutation):
                     {
                         "email": ValidationError(
                             "Customer with this email doesn't exist.",
-                            code=AccountErrorCode.USER_DOES_NOT_EXIST,
+                            code=CommonErrorCode.OBJECT_DOES_NOT_EXIST,
                         )
                     }
                 )

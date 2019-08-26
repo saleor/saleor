@@ -26,7 +26,7 @@ from saleor.graphql.account.mutations.staff import (
 )
 from saleor.graphql.core.enums import PermissionEnum
 from saleor.graphql.core.utils import str_to_enum
-from saleor.graphql.core.utils.error_codes import AccountErrorCode
+from saleor.graphql.core.utils.error_codes import AccountErrorCode, CommonErrorCode
 from saleor.order.models import FulfillmentStatus, Order
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image
@@ -1656,7 +1656,7 @@ def test_set_password_invalid_email(user_api_client):
     errors = content["data"]["setPassword"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "email"
-    assert errors[0]["code"] == AccountErrorCode.USER_DOES_NOT_EXIST.name
+    assert errors[0]["code"] == CommonErrorCode.OBJECT_DOES_NOT_EXIST.name
 
 
 def test_set_password_invalid_password(user_api_client, customer_user, settings):
@@ -1736,7 +1736,7 @@ def test_password_reset_email_non_existing_user(
         {
             "field": "email",
             "message": "User with this email doesn't exist",
-            "code": AccountErrorCode.USER_DOES_NOT_EXIST.name,
+            "code": CommonErrorCode.OBJECT_DOES_NOT_EXIST.name,
         }
     ]
     send_password_reset_mock.assert_not_called()
