@@ -100,6 +100,7 @@ class CommonErrorCode(Enum):
     INVALID_STOREFRONT_URL = "invalid_storefront_url"
     INVALID_TOKEN = "invalid_token"
     INVALID_WEIGHT_UNIT = "invalid_weight_unit"
+    MAX_LESS_THAN_MIN = "max_less_than_min"
     MISSING_VALUE = "missing_value"
     NON_BLANK_VALUE_REQUIRED = "non_blank_value_required"
     OBJECT_ALREADY_EXISTS = "object_already_exists"
@@ -129,10 +130,6 @@ class ProductErrorCode(Enum):
     NOT_PRODUCTS_IMAGE = "not_products_image"
 
 
-class ShippingErrorCode(Enum):
-    MAX_LESS_THAN_MIN = "max_less_than_min"
-
-
 SALEOR_ERROR_CODE_ENUMS = [
     AccountErrorCode,
     CheckoutErrorCode,
@@ -142,7 +139,6 @@ SALEOR_ERROR_CODE_ENUMS = [
     AttributeErrorCode,
     DigitalContentErrorCode,
     ProductErrorCode,
-    ShippingErrorCode,
 ]
 
 saleor_error_codes = []
