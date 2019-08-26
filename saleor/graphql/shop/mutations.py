@@ -191,7 +191,7 @@ class AuthorizationKeyAdd(BaseMutation):
                 {
                     "key_type": ValidationError(
                         "Authorization key already exists.",
-                        code=CommonErrorCode.AUTHORIZATION_KEY_ALREADY_EXISTS,
+                        code=CommonErrorCode.OBJECT_ALREADY_EXISTS,
                     )
                 }
             )

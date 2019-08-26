@@ -143,8 +143,8 @@ type AssignNavigation {
 
 type Attribute implements Node {
   id: ID!
-  productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
-  productVariantTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
+  productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
+  productVariantTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
   privateMeta: [MetaStore]!
   meta: [MetaStore]!
   inputType: AttributeInputTypeEnum
@@ -971,7 +971,6 @@ enum CountryCode {
   LT
   LU
   MO
-  MK
   MG
   MW
   MY
@@ -1005,6 +1004,7 @@ enum CountryCode {
   NU
   NF
   KP
+  MK
   MP
   NO
   OM
@@ -1390,15 +1390,12 @@ enum ErrorCode {
   ACTIVATE_SUPERUSER_ACCOUNT
   ASSIGN_MENU_ITEM_TO_ITSELF
   ATTRIBUTE_ALREADY_ASSIGNED
-  ATTRIBUTE_ALREADY_EXISTS
   ATTRIBUTE_BAD_VALUE
   ATTRIBUTE_CANNOT_BE_ASSIGNED
   ATTRIBUTE_DISABLED_VARIANTS
   ATTRIBUTE_NON_ASSIGNABLE
-  ATTRIBUTE_SLUG_ALREADY_EXISTS
   ATTRIBUTE_SLUG_BLANK
   ATTRIBUTE_VALUES_NOT_UNIQUE
-  AUTHORIZATION_KEY_ALREADY_EXISTS
   BILLING_ADDRESS_NOT_SET
   BLANK
   CANNOT_ASSIGN_NODE
@@ -1410,7 +1407,6 @@ enum ErrorCode {
   CONTRADICTION
   DEACTIVATE_OWN_ACCOUNT
   DEACTIVATE_SUPERUSER_ACCOUNT
-  DEFAULT_SHIPPING_ZONE_ALREADY_EXISTS
   DELETE_LINE_NON_DRAFT_ORDER
   DELETE_NON_DRAFT_ORDER
   DELETE_NON_STAFF_USER
@@ -1461,6 +1457,7 @@ enum ErrorCode {
   NOT_USERS_ADDRESS
   NULL
   NULL_CHARACTERS_NOT_ALLOWED
+  OBJECT_ALREADY_EXISTS
   ORDER_INVALID_SHIPPING_METHOD
   ORDER_NO_PAYMENT
   ORDER_NO_SHIPPING_ADDRESS
@@ -1473,8 +1470,6 @@ enum ErrorCode {
   PASSWORD_TOO_SIMILAR
   PAYMENT_ERROR
   POSITIVE_NUMBER_REQUIRED
-  PRODUCT_ALREADY_EXISTS
-  PROMO_CODE_ALREADY_EXISTS
   QUANTITY_GREATER_THAN_LIMIT
   QUANTITY_LESS_THAN_ONE
   REFUND_MANUAL_PAYMENT
