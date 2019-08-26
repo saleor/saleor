@@ -30,7 +30,11 @@ from ...product.tasks import (
 )
 from ...product.thumbnails import create_product_thumbnails
 from ...product.utils.attributes import get_name_from_attributes
-from ..forms import ModelChoiceOrCreationField, OrderedModelMultipleChoiceField
+from ..forms import (
+    ModelChoiceOrCreationField,
+    MoneyModelForm,
+    OrderedModelMultipleChoiceField,
+)
 from ..seo.fields import SeoDescriptionField, SeoTitleField
 from ..seo.utils import prepare_seo_description
 from ..widgets import RichTextEditorWidget
@@ -240,7 +244,7 @@ class AttributesMixin:
         return attributes
 
 
-class ProductForm(forms.ModelForm, AttributesMixin):
+class ProductForm(MoneyModelForm, AttributesMixin):
     tax_rate = forms.ChoiceField(
         required=False, label=pgettext_lazy("Product tax rate type", "Tax rate")
     )
@@ -333,8 +337,6 @@ class ProductForm(forms.ModelForm, AttributesMixin):
                 "placeholder"
             ] = product_type.weight.value
 
-        if self.instance.pk is not None:
-            self.fields["price"].initial = self.instance.price
         self.fields["price"].required = True
 
     def clean_seo_description(self):
@@ -349,11 +351,6 @@ class ProductForm(forms.ModelForm, AttributesMixin):
         attributes = self.get_saved_attributes()
         self.instance.attributes = attributes
 
-        price = self.cleaned_data["price"]
-        if not price.currency:
-            price.currency = settings.DEFAULT_CURRENCY
-        self.instance.price = price
-
         instance = super().save()
         instance.collections.clear()
 
@@ -363,8 +360,7 @@ class ProductForm(forms.ModelForm, AttributesMixin):
         return instance
 
 
-class ProductVariantForm(forms.ModelForm, AttributesMixin):
-    MONEY_FIELDS = ("price_override", "cost_price")
+class ProductVariantForm(MoneyModelForm, AttributesMixin):
     model_attributes_field = "attributes"
     weight = WeightField(
         required=False,
@@ -438,10 +434,6 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
                 or self.instance.product.product_type.weight.value
             )
 
-        if self.instance.pk is not None:
-            for field in self.MONEY_FIELDS:
-                self.fields[field].initial = getattr(self.instance, field)
-
     def save(self, commit=True):
         assert commit is True, "Commit is required"
 
@@ -451,13 +443,6 @@ class ProductVariantForm(forms.ModelForm, AttributesMixin):
             "values__translations"
         )
         self.instance.name = get_name_from_attributes(self.instance, attrs)
-
-        for field in self.MONEY_FIELDS:
-            money_input = self.cleaned_data[field]
-            if money_input is not None:
-                if not money_input.currency:
-                    money_input.currency = settings.DEFAULT_CURRENCY
-                setattr(self.instance, field, money_input)
 
         super().save(commit=commit)
 

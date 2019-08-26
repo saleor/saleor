@@ -2,13 +2,14 @@ from django import forms
 from django.conf import settings
 from django.utils.translation import pgettext_lazy
 from django_prices.forms import MoneyField
-from prices import Money
 
 from ...account.i18n import COUNTRY_CHOICES
+from ...core.taxes import zero_money
 from ...core.weight import WeightField
 from ...shipping import ShippingMethodType
 from ...shipping.models import ShippingMethod, ShippingZone
 from ...site.models import SiteSettings
+from ..forms import MoneyModelForm
 
 
 def currently_used_countries(zone_pk=None):
@@ -132,7 +133,7 @@ class ShippingZoneForm(forms.ModelForm):
         return data
 
 
-class ShippingMethodForm(forms.ModelForm):
+class ShippingMethodForm(MoneyModelForm):
     price = MoneyField(
         required=False,
         label=pgettext_lazy("Currency amount", "Price"),
@@ -154,7 +155,7 @@ class ShippingMethodForm(forms.ModelForm):
         }
 
 
-class PriceShippingMethodForm(forms.ModelForm):
+class PriceShippingMethodForm(MoneyModelForm):
     price = MoneyField(
         required=False,
         label=pgettext_lazy("Currency amount", "Price"),
@@ -200,7 +201,9 @@ class PriceShippingMethodForm(forms.ModelForm):
         self.fields["minimum_order_price"].widget.attrs["placeholder"] = "0"
 
     def clean_minimum_order_price(self):
-        return self.cleaned_data["minimum_order_price"] or 0
+        return self.cleaned_data["minimum_order_price"] or zero_money(
+            self.instance.currency
+        )
 
     def clean(self):
         data = super().clean()
@@ -217,17 +220,8 @@ class PriceShippingMethodForm(forms.ModelForm):
             )
         return data
 
-    def save(self, commit=True):
-        for k, v in self.cleaned_data.items():
-            if not isinstance(v, Money):
-                continue
-            if not v.currency:
-                v.currency = settings.DEFAULT_CURRENCY
-            setattr(self.instance, k, v)
-        return super().save(commit=commit)
 
-
-class WeightShippingMethodForm(forms.ModelForm):
+class WeightShippingMethodForm(MoneyModelForm):
     minimum_order_weight = WeightField(
         required=False,
         label=pgettext_lazy(
@@ -255,7 +249,9 @@ class WeightShippingMethodForm(forms.ModelForm):
         self.fields["minimum_order_weight"].widget.attrs["placeholder"] = "0"
 
     def clean_minimum_order_weight(self):
-        return self.cleaned_data["minimum_order_weight"] or 0
+        return self.cleaned_data["minimum_order_weight"] or zero_money(
+            currency=self.instance.currency
+        )
 
     def clean(self):
         data = super().clean()

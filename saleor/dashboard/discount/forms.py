@@ -12,7 +12,7 @@ from ...discount import DiscountValueType
 from ...discount.models import Sale, Voucher
 from ...product.models import Category, Product
 from ...product.tasks import update_products_minimal_variant_prices_of_discount_task
-from ..forms import AjaxSelect2MultipleChoiceField
+from ..forms import AjaxSelect2MultipleChoiceField, MoneyModelForm
 
 MinAmountSpent = MoneyField(
     available_currencies=settings.AVAILABLE_CURRENCIES,
@@ -124,23 +124,8 @@ class VoucherForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
 
-class MinSpentVoucherBaseForm(forms.ModelForm):
+class MinSpentVoucherBaseForm(MoneyModelForm):
     min_spent = MinAmountSpent
-
-    def __init__(self, *args, **kwargs):
-        instance = kwargs["instance"]
-        initial = kwargs.setdefault("initial", {})
-        if instance.min_spent:
-            initial.setdefault("min_spent", instance.min_spent)
-        super().__init__(*args, **kwargs)
-
-    def save(self, commit=True):
-        min_spent = self.cleaned_data["min_spent"]
-        if min_spent is not None:
-            if not min_spent.currency:
-                min_spent.currency = settings.DEFAULT_CURRENCY
-            self.instance.min_spent = min_spent
-        return super().save(commit=commit)
 
 
 class ShippingVoucherForm(MinSpentVoucherBaseForm):
