@@ -375,14 +375,6 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
     url = graphene.String(
         description="The storefront URL for the product.", required=True
     )
-    thumbnail_url = graphene.String(
-        description="The URL of a main thumbnail for a product.",
-        size=graphene.Argument(graphene.Int, description="Size of thumbnail"),
-        deprecation_reason=(
-            """thumbnailUrl is deprecated, use
-         thumbnail instead"""
-        ),
-    )
     thumbnail = graphene.Field(
         Image,
         description="The main thumbnail for a product.",
@@ -411,13 +403,6 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
     minimal_variant_price = graphene.Field(
         Money, description="The price of the cheapest variant (including discounts)."
     )
-    tax_rate = TaxRateType(
-        description="A type of tax rate.",
-        deprecation_reason=(
-            "taxRate is deprecated. Use taxType to obtain taxCode for given tax gateway"
-        ),
-    )
-
     tax_type = graphene.Field(
         TaxType, description="A type of tax. Assigned by enabled tax gateway"
     )
@@ -448,9 +433,6 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
             lambda: Collection, description="List of collections for the product"
         ),
         model_field="collections",
-    )
-    available_on = graphene.Date(
-        deprecation_reason=("availableOn is deprecated, use publicationDate instead")
     )
     translation = graphene.Field(
         ProductTranslation,
@@ -487,27 +469,9 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
         ]
 
     @staticmethod
-    def resolve_tax_rate(root: models.Product, _info, **_kwargs):
-        # FIXME this resolver should be dropped after we drop tax_rate from API
-        if not hasattr(root, "meta"):
-            return None
-        tax = root.meta.get("taxes", {}).get("vatlayer", {})
-        return tax.get("code")
-
-    @staticmethod
     def resolve_tax_type(root: models.Product, info):
         tax_data = info.context.extensions.get_tax_code_from_object_meta(root)
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
-
-    @staticmethod
-    @gql_optimizer.resolver_hints(prefetch_related="images")
-    def resolve_thumbnail_url(root: models.Product, info, *, size=None):
-        if not size:
-            size = 255
-        url = get_product_image_thumbnail(
-            root.get_first_image(), size, method="thumbnail"
-        )
-        return info.context.build_absolute_uri(url)
 
     @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related="images")
@@ -608,10 +572,6 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
     @staticmethod
     def resolve_collections(root: models.Product, *_args):
         return root.collections.all()
-
-    @staticmethod
-    def resolve_available_on(root: models.Product, *_args):
-        return root.publication_date
 
     @classmethod
     def get_node(cls, info, pk):
