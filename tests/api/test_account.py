@@ -26,7 +26,7 @@ from saleor.graphql.account.mutations.staff import (
 )
 from saleor.graphql.core.enums import PermissionEnum
 from saleor.graphql.core.utils import str_to_enum
-from saleor.graphql.core.utils.error_codes import AccountErrorCode, CommonErrorCode
+from saleor.graphql.core.utils.error_codes import CommonErrorCode
 from saleor.order.models import FulfillmentStatus, Order
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image
@@ -1646,7 +1646,7 @@ def test_set_password_invalid_token(user_api_client, customer_user):
     content = get_graphql_content(response)
     errors = content["data"]["setPassword"]["errors"]
     assert errors[0]["message"] == INVALID_TOKEN
-    assert errors[0]["code"] == AccountErrorCode.INVALID_USER_TOKEN.name
+    assert errors[0]["code"] == CommonErrorCode.INVALID_TOKEN.name
 
 
 def test_set_password_invalid_email(user_api_client):

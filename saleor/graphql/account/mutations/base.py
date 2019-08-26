@@ -83,7 +83,7 @@ class SetPassword(CreateToken):
             raise ValidationError(
                 {
                     "token": ValidationError(
-                        INVALID_TOKEN, code=AccountErrorCode.INVALID_USER_TOKEN
+                        INVALID_TOKEN, code=CommonErrorCode.INVALID_TOKEN
                     )
                 }
             )

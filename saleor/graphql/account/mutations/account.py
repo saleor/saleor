@@ -8,7 +8,7 @@ from ....core.utils.url import validate_storefront_url
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.utils.error_codes import AccountErrorCode
+from ...core.utils.error_codes import AccountErrorCode, CommonErrorCode
 from .base import (
     INVALID_TOKEN,
     BaseAddressDelete,
@@ -140,7 +140,7 @@ class AccountDelete(ModelDeleteMutation):
             raise ValidationError(
                 {
                     "token": ValidationError(
-                        INVALID_TOKEN, code=AccountErrorCode.INVALID_USER_TOKEN
+                        INVALID_TOKEN, code=CommonErrorCode.INVALID_TOKEN
                     )
                 }
             )
