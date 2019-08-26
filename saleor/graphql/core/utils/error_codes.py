@@ -62,7 +62,6 @@ class CheckoutErrorCode(Enum):
     INSUFFICIENT_STOCK = "insufficient_stock"
     INVALID_PROMO_CODE = "invalid_promo_code"
     INVALID_SHIPPING_METHOD = "invalid_shipping_method"
-    PROMO_CODE_ALREADY_EXISTS = "promo_code_already_exists"
     QUANTITY_GREATER_THAN_LIMIT = "quantity_greater_than_limit"
     SHIPPING_ADDRESS_NOT_SET = "shipping_address_not_set"
     SHIPPING_METHOD_NOT_APPLICABLE = "shipping_method_not_applicable"
@@ -99,7 +98,6 @@ class OrderErrorCode(Enum):
 
 
 class CommonErrorCode(Enum):
-    AUTHORIZATION_KEY_ALREADY_EXISTS = "authorization_key_already_exists"
     CANNOT_FETCH_TAX_RATES = "cannot_fetch_tax_rates"
     DOES_NOT_EXIST = "does_not_exist"
     GRAPHQL_ERROR = "graphql_error"
@@ -109,6 +107,7 @@ class CommonErrorCode(Enum):
     INVALID_WEIGHT_UNIT = "invalid_weight_unit"
     MISSING_VALUE = "missing_value"
     NON_BLANK_VALUE_REQUIRED = "non_blank_value_required"
+    OBJECT_ALREADY_EXISTS = "object_already_exists"
     PARTIAL_PAYMENT_NOT_ALLOWED = "partial_payment_not_allowed"
     PAYMENT_ERROR = "payment_error"
     POSITIVE_NUMBER_REQUIRED = "positive_number_required"
@@ -118,12 +117,10 @@ class CommonErrorCode(Enum):
 
 class AttributeErrorCode(Enum):
     ATTRIBUTE_ALREADY_ASSIGNED = "attribute_already_assigned"
-    ATTRIBUTE_ALREADY_EXISTS = "attribute_already_exists"
     ATTRIBUTE_BAD_VALUE = "attribute_bad_value"
     ATTRIBUTE_CANNOT_BE_ASSIGNED = "attribute_cannot_be_assigned"
     ATTRIBUTE_DISABLED_VARIANTS = "attribute_disabled_variants"
     ATTRIBUTE_NON_ASSIGNABLE = "attribute_non_assignable"
-    ATTRIBUTE_SLUG_ALREADY_EXISTS = "attribute_slug_already_exists"
     ATTRIBUTE_SLUG_BLANK = "attribute_slug_blank"
     ATTRIBUTE_VALUES_NOT_UNIQUE = "attribute_values_not_unique"
 
@@ -135,11 +132,9 @@ class DigitalContentErrorCode(Enum):
 
 class ProductErrorCode(Enum):
     NOT_PRODUCTS_IMAGE = "not_products_image"
-    PRODUCT_ALREADY_EXISTS = "product_already_exists"
 
 
 class ShippingErrorCode(Enum):
-    DEFAULT_SHIPPING_ZONE_ALREADY_EXISTS = "default_shipping_zone_already_exists"
     MAX_LESS_THAN_MIN = "max_less_than_min"
 
 

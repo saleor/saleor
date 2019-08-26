@@ -756,7 +756,7 @@ class ProductCreate(ModelMutation):
                     {
                         "sku": ValidationError(
                             "Product with this SKU already exists.",
-                            code=ProductErrorCode.PRODUCT_ALREADY_EXISTS,
+                            code=CommonErrorCode.OBJECT_ALREADY_EXISTS,
                         )
                     }
                 )
@@ -832,7 +832,7 @@ class ProductUpdate(ProductCreate):
                 {
                     "sku": ValidationError(
                         "Product with this SKU already exists.",
-                        code=ProductErrorCode.PRODUCT_ALREADY_EXISTS,
+                        code=CommonErrorCode.OBJECT_ALREADY_EXISTS,
                     )
                 }
             )

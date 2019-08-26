@@ -1656,7 +1656,7 @@ def test_set_password_invalid_email(user_api_client):
     errors = content["data"]["setPassword"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "email"
-    assert errors[0]["code"] == AccountErrorCode.NOT_USERS_ADDRESS.name
+    assert errors[0]["code"] == AccountErrorCode.USER_DOES_NOT_EXIST.name
 
 
 def test_set_password_invalid_password(user_api_client, customer_user, settings):

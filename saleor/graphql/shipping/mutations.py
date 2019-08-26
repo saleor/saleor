@@ -5,7 +5,7 @@ from ...dashboard.shipping.forms import default_shipping_zone_exists
 from ...shipping import models
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import Decimal, WeightScalar
-from ..core.utils.error_codes import ShippingErrorCode
+from ..core.utils.error_codes import CommonErrorCode, ShippingErrorCode
 from .enums import ShippingMethodTypeEnum
 from .types import ShippingMethod, ShippingZone
 
@@ -56,7 +56,7 @@ class ShippingZoneMixin:
                     {
                         "default": ValidationError(
                             "Default shipping zone already exists.",
-                            code=ShippingErrorCode.DEFAULT_SHIPPING_ZONE_ALREADY_EXISTS,
+                            code=CommonErrorCode.OBJECT_ALREADY_EXISTS,
                         )
                     }
                 )
