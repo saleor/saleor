@@ -965,8 +965,8 @@ def test_logged_customer_update_anonymous_user(api_client, query):
 
 
 ACCOUNT_REQUEST_DELETION_MUTATION = """
-    mutation accountRequestDeletion {
-        accountRequestDeletion {
+    mutation accountRequestDeletion($redirectUrl: String!) {
+        accountRequestDeletion(redirectUrl: $redirectUrl) {
             errors {
                 field
                 message
@@ -976,20 +976,94 @@ ACCOUNT_REQUEST_DELETION_MUTATION = """
 """
 
 
-@patch("saleor.account.emails.send_account_delete_confirmation_email.delay")
+@patch("saleor.account.emails._send_account_delete_confirmation_email_with_url.delay")
 def test_account_request_deletion(
-    send_account_delete_confirmation_email_mock, user_api_client
+    send_account_delete_confirmation_email_with_url_mock, user_api_client
 ):
     user = user_api_client.user
-
-    response = user_api_client.post_graphql(ACCOUNT_REQUEST_DELETION_MUTATION)
+    token = default_token_generator.make_token(user)
+    variables = {"redirectUrl": "https://www.example.com"}
+    response = user_api_client.post_graphql(
+        ACCOUNT_REQUEST_DELETION_MUTATION, variables
+    )
     content = get_graphql_content(response)
     data = content["data"]["accountRequestDeletion"]
-
     assert not data["errors"]
-    send_account_delete_confirmation_email_mock.assert_called_once_with(
-        str(user.token), user.email
+    send_account_delete_confirmation_email_with_url_mock.assert_called_once_with(
+        user.email, ANY, token
     )
+    url = send_account_delete_confirmation_email_with_url_mock.mock_calls[0][1][1]
+    url_validator = URLValidator()
+    url_validator(url)
+
+
+@patch("saleor.account.emails._send_account_delete_confirmation_email_with_url.delay")
+def test_account_request_deletion_anonymous_user(
+    send_account_delete_confirmation_email_with_url_mock, api_client
+):
+    variables = {"redirectUrl": "https://www.example.com"}
+    response = api_client.post_graphql(ACCOUNT_REQUEST_DELETION_MUTATION, variables)
+    assert_no_permission(response)
+    send_account_delete_confirmation_email_with_url_mock.assert_not_called()
+
+
+@patch("saleor.account.emails._send_account_delete_confirmation_email_with_url.delay")
+def test_account_request_deletion_storefront_hosts_not_allowed(
+    send_account_delete_confirmation_email_with_url_mock, user_api_client
+):
+    variables = {"redirectUrl": "https://www.fake.com"}
+    response = user_api_client.post_graphql(
+        ACCOUNT_REQUEST_DELETION_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["accountRequestDeletion"]
+    assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "redirectUrl"
+    send_account_delete_confirmation_email_with_url_mock.assert_not_called()
+
+
+@patch("saleor.account.emails._send_account_delete_confirmation_email_with_url.delay")
+def test_account_request_deletion_all_storefront_hosts_allowed(
+    send_account_delete_confirmation_email_with_url_mock, user_api_client, settings
+):
+    user = user_api_client.user
+    token = default_token_generator.make_token(user)
+    settings.ALLOWED_STOREFRONT_HOSTS = ["*"]
+    variables = {"redirectUrl": "https://www.test.com"}
+    response = user_api_client.post_graphql(
+        ACCOUNT_REQUEST_DELETION_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["accountRequestDeletion"]
+    assert not data["errors"]
+    send_account_delete_confirmation_email_with_url_mock.assert_called_once_with(
+        user.email, ANY, token
+    )
+    url = send_account_delete_confirmation_email_with_url_mock.mock_calls[0][1][1]
+    url_validator = URLValidator()
+    url_validator(url)
+
+
+@patch("saleor.account.emails._send_account_delete_confirmation_email_with_url.delay")
+def test_account_request_deletion_subdomain(
+    send_account_delete_confirmation_email_with_url_mock, user_api_client, settings
+):
+    user = user_api_client.user
+    token = default_token_generator.make_token(user)
+    settings.ALLOWED_STOREFRONT_HOSTS = [".example.com"]
+    variables = {"redirectUrl": "https://sub.example.com"}
+    response = user_api_client.post_graphql(
+        ACCOUNT_REQUEST_DELETION_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["accountRequestDeletion"]
+    assert not data["errors"]
+    send_account_delete_confirmation_email_with_url_mock.assert_called_once_with(
+        user.email, ANY, token
+    )
+    url = send_account_delete_confirmation_email_with_url_mock.mock_calls[0][1][1]
+    url_validator = URLValidator()
+    url_validator(url)
 
 
 ACCOUNT_DELETE_MUTATION = """
@@ -1006,7 +1080,7 @@ ACCOUNT_DELETE_MUTATION = """
 
 def test_account_delete(user_api_client):
     user = user_api_client.user
-    token = user.token
+    token = default_token_generator.make_token(user)
     variables = {"token": token}
 
     response = user_api_client.post_graphql(ACCOUNT_DELETE_MUTATION, variables)
@@ -1050,7 +1124,8 @@ def test_account_delete_staff_user(staff_api_client):
 def test_account_delete_other_customer_token(user_api_client):
     user = user_api_client.user
     other_user = User.objects.create(email="temp@example.com")
-    variables = {"token": other_user.token}
+    token = default_token_generator.make_token(other_user)
+    variables = {"token": token}
 
     response = user_api_client.post_graphql(ACCOUNT_DELETE_MUTATION, variables)
     content = get_graphql_content(response)
@@ -1059,15 +1134,6 @@ def test_account_delete_other_customer_token(user_api_client):
     assert data["errors"][0]["message"] == "Invalid or expired token."
     assert User.objects.filter(pk=user.id).exists()
     assert User.objects.filter(pk=other_user.id).exists()
-
-
-@patch("saleor.account.emails.send_account_delete_confirmation_email.delay")
-def test_account_request_deletion_anonymous_user(
-    send_account_delete_confirmation_email_mock, api_client
-):
-    response = api_client.post_graphql(ACCOUNT_REQUEST_DELETION_MUTATION, {})
-    assert_no_permission(response)
-    send_account_delete_confirmation_email_mock.assert_not_called()
 
 
 @patch(
@@ -1416,7 +1482,7 @@ def test_set_password_invalid_password(user_api_client, customer_user, settings)
     assert errors[1]["message"] == "This password is entirely numeric."
 
 
-@patch("saleor.account.emails.send_password_reset_email.delay")
+@patch("saleor.account.emails._send_user_password_reset_email.delay")
 def test_deprecated_password_reset_email(
     send_password_reset_mock, staff_api_client, customer_user, permission_manage_users
 ):
@@ -1440,11 +1506,11 @@ def test_deprecated_password_reset_email(
     assert data == {"errors": []}
     assert send_password_reset_mock.call_count == 1
     send_password_reset_mock.assert_called_once_with(
-        ANY, customer_user.email, customer_user.pk
+        customer_user.email, ANY, customer_user.pk
     )
 
 
-@patch("saleor.account.emails.send_password_reset_email.delay")
+@patch("saleor.account.emails._send_user_password_reset_email.delay")
 def test_password_reset_email_non_existing_user(
     send_password_reset_mock, staff_api_client, permission_manage_users
 ):
@@ -1916,7 +1982,7 @@ def test_deprecated_account_reset_password(
     response = user_api_client.post_graphql(CUSTOMER_PASSWORD_RESET_MUTATION, variables)
     get_graphql_content(response)
     assert send_password_reset_mock.called
-    assert send_password_reset_mock.mock_calls[0][1][1] == customer_user.email
+    assert send_password_reset_mock.mock_calls[0][1][0] == customer_user.email
 
 
 REQUEST_PASSWORD_RESET_MUTATION = """
@@ -1942,9 +2008,9 @@ def test_account_reset_password(
     assert not data["errors"]
     assert send_password_reset_email_mock.called
     send_password_reset_email_mock.assert_called_once_with(
-        ANY, user_api_client.user.email, user_api_client.user.pk
+        user_api_client.user.email, ANY, user_api_client.user.pk
     )
-    url = send_password_reset_email_mock.mock_calls[0][1][0]
+    url = send_password_reset_email_mock.mock_calls[0][1][1]
     url_validator = URLValidator()
     url_validator(url)
 
@@ -1961,9 +2027,9 @@ def test_request_password_reset_email_for_staff(
     assert not data["errors"]
     assert send_password_reset_email_mock.call_count == 1
     send_password_reset_email_mock.assert_called_once_with(
-        ANY, staff_api_client.user.email, staff_api_client.user.pk
+        staff_api_client.user.email, ANY, staff_api_client.user.pk
     )
-    url = send_password_reset_email_mock.mock_calls[0][1][0]
+    url = send_password_reset_email_mock.mock_calls[0][1][1]
     url_validator = URLValidator()
     url_validator(url)
 
@@ -1996,7 +2062,7 @@ def test_account_reset_password_storefront_hosts_not_allowed(
 
 
 @patch("saleor.account.emails._send_password_reset_email")
-def test_account_reset_password_all_storefront_hosts_not_allowed(
+def test_account_reset_password_all_storefront_hosts_allowed(
     send_password_reset_email_mock, user_api_client, customer_user, settings
 ):
     settings.ALLOWED_STOREFRONT_HOSTS = ["*"]
@@ -2007,9 +2073,9 @@ def test_account_reset_password_all_storefront_hosts_not_allowed(
     assert not data["errors"]
     assert send_password_reset_email_mock.called
     send_password_reset_email_mock.assert_called_once_with(
-        ANY, user_api_client.user.email, user_api_client.user.pk
+        user_api_client.user.email, ANY, user_api_client.user.pk
     )
-    url = send_password_reset_email_mock.mock_calls[0][1][0]
+    url = send_password_reset_email_mock.mock_calls[0][1][1]
     url_validator = URLValidator()
     url_validator(url)
 
@@ -2026,9 +2092,9 @@ def test_account_reset_password_subdomain(
     assert not data["errors"]
     assert send_password_reset_email_mock.called
     send_password_reset_email_mock.assert_called_once_with(
-        ANY, user_api_client.user.email, user_api_client.user.pk
+        user_api_client.user.email, ANY, user_api_client.user.pk
     )
-    url = send_password_reset_email_mock.mock_calls[0][1][0]
+    url = send_password_reset_email_mock.mock_calls[0][1][1]
     url_validator = URLValidator()
     url_validator(url)
 

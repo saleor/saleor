@@ -135,7 +135,7 @@ class PasswordResetForm(django_forms.PasswordResetForm, FormWithReCaptcha):
         # error "'User' is not JSON serializable". Since it's not used in our
         # template, we remove it from the context.
         user = context.pop("user")
-        emails.send_password_reset_email.delay(context, to_email, user.pk)
+        emails.send_user_password_reset_email(to_email, context, user.pk)
 
 
 class NameForm(forms.ModelForm):

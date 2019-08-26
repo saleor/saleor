@@ -1959,7 +1959,7 @@ type Mutations {
   accountSetDefaultAddress(id: ID!, type: AddressTypeEnum!): AccountSetDefaultAddress
   accountRegister(input: AccountRegisterInput!): AccountRegister
   accountUpdate(input: AccountInput!): AccountUpdate
-  accountRequestDeletion: AccountRequestDeletion
+  accountRequestDeletion(redirectUrl: String!): AccountRequestDeletion
   accountDelete(token: String!): AccountDelete
   customerPasswordReset(input: CustomerPasswordResetInput!): CustomerPasswordReset
   customerAddressCreate(input: AddressInput!, type: AddressTypeEnum): CustomerAddressCreate
@@ -3480,7 +3480,6 @@ type User implements Node {
   firstName: String!
   lastName: String!
   isStaff: Boolean!
-  token: UUID!
   isActive: Boolean!
   note: String
   dateJoined: DateTime!
