@@ -183,11 +183,6 @@ class Fulfillment(CountableDjangoObjectType):
 
 
 class OrderLine(CountableDjangoObjectType):
-    thumbnail_url = graphene.String(
-        description="The URL of a main thumbnail for the ordered product.",
-        size=graphene.Int(description="Size of the image"),
-        deprecation_reason="thumbnailUrl is deprecated, use thumbnail instead",
-    )
     thumbnail = graphene.Field(
         Image,
         description="The main thumbnail for the ordered product.",
@@ -219,20 +214,6 @@ class OrderLine(CountableDjangoObjectType):
             "tax_rate",
             "translated_product_name",
         ]
-
-    @staticmethod
-    @gql_optimizer.resolver_hints(
-        prefetch_related=["variant__images", "variant__product__images"]
-    )
-    def resolve_thumbnail_url(root: models.OrderLine, info, size=None):
-        if not root.variant_id:
-            return None
-        if not size:
-            size = 255
-        url = get_product_image_thumbnail(
-            root.variant.get_first_image(), size, method="thumbnail"
-        )
-        return info.context.build_absolute_uri(url)
 
     @staticmethod
     @gql_optimizer.resolver_hints(
