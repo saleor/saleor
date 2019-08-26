@@ -127,7 +127,7 @@ class AccountDelete(ModelDeleteMutation):
         if instance.is_staff:
             raise ValidationError(
                 "Cannot delete a staff account.",
-                code=AccountErrorCode.DELETE_STUFF_ACCOUNT,
+                code=AccountErrorCode.DELETE_STAFF_ACCOUNT,
             )
 
     @classmethod
