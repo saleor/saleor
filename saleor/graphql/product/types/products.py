@@ -730,9 +730,6 @@ class Collection(CountableDjangoObjectType, MetadataObjectType):
     background_image = graphene.Field(
         Image, size=graphene.Int(description="Size of the image")
     )
-    published_date = graphene.Date(
-        deprecation_reason=("publishedDate is deprecated, use publicationDate instead")
-    )
     translation = graphene.Field(
         CollectionTranslation,
         language_code=graphene.Argument(
@@ -779,10 +776,6 @@ class Collection(CountableDjangoObjectType, MetadataObjectType):
             return root.prefetched_products
         qs = root.products.collection_sorted(info.context.user)
         return gql_optimizer.query(qs, info)
-
-    @staticmethod
-    def resolve_published_date(root: models.Collection, *_args):
-        return root.publication_date
 
     @classmethod
     def get_node(cls, info, id):
