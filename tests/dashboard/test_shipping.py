@@ -185,7 +185,8 @@ def test_shipping_method_add(admin_client, shipping_zone):
     )
     data = {
         "name": "DHL",
-        "price": "50",
+        "price_0": "50",
+        "price_1": "USD",
         "shipping_zone": shipping_zone.pk,
         "type": ShippingMethodType.PRICE_BASED,
     }

@@ -36,6 +36,7 @@ def test_voucher_shipping_add(admin_client):
         "discount_value": "15.99",
         "discount_value_type": DiscountValueType.FIXED,
         "shipping-min_spent_0": "59.99",
+        "shipping-min_spent_1": "USD",
     }
     response = admin_client.post(url, data, follow=True)
     assert response.status_code == 200
@@ -271,6 +272,7 @@ def test_voucher_form_min_spent_amount_is_changed_on_edit(
         "category-min_spent_1": "USD",
         "collection-min_spent_1": "USD",
         "value-min_spent_1": "USD",
+        "entire_order-min_spent_1": "USD",
     }
 
     data["{}-min_spent_0".format(voucher_type)] = "800"
