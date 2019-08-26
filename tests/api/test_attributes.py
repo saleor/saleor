@@ -777,7 +777,6 @@ CREATE_ATTRIBUTE_VALUE_QUERY = """
             name
             type
             slug
-            value
         }
     }
 }
@@ -803,7 +802,6 @@ def test_create_attribute_value(
     attr_data = data["attributeValue"]
     assert attr_data["name"] == name
     assert attr_data["slug"] == slugify(name)
-    assert attr_data["value"] == value
     assert attr_data["type"] == "STRING"
     assert name in [value["name"] for value in data["attribute"]["values"]]
 
@@ -842,7 +840,6 @@ mutation updateChoice(
         attributeValue {
             name
             slug
-            value
         }
         attribute {
             values {
@@ -890,23 +887,6 @@ def test_update_attribute_value_name_not_unique(
     assert data["errors"]
     assert data["errors"][0]["message"]
     assert data["errors"][0]["field"] == "name"
-
-
-def test_update_same_attribute_value(
-    staff_api_client, pink_attribute_value, permission_manage_products
-):
-    query = UPDATE_ATTRIBUTE_VALUE_QUERY
-    value = pink_attribute_value
-    node_id = graphene.Node.to_global_id("AttributeValue", value.id)
-    attr_value = "#BLUE"
-    variables = {"name": value.name, "value": attr_value, "id": node_id}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["attributeValueUpdate"]
-    assert not data["errors"]
-    assert data["attributeValue"]["value"] == attr_value
 
 
 def test_delete_attribute_value(
@@ -1015,7 +995,7 @@ def test_resolve_assigned_attribute_without_values(api_client, product_type, pro
                     slug
                   }
                   values {
-                    value
+                    name
                   }
                 }
                 variants {
@@ -1024,7 +1004,7 @@ def test_resolve_assigned_attribute_without_values(api_client, product_type, pro
                       slug
                     }
                     values {
-                      value
+                      name
                     }
                   }
                 }
