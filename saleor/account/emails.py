@@ -11,14 +11,19 @@ from ..core.emails import get_email_base_context
 from ..core.utils import build_absolute_uri
 
 
-def send_user_password_reset_email(redirect_url, user):
+def send_user_password_reset_email_with_url(redirect_url, user):
     """Trigger sending a password reset email for the given user."""
     token = default_token_generator.make_token(user)
-    send_password_reset_email_with_url.delay(user.email, redirect_url, user.pk, token)
+    _send_password_reset_email_with_url.delay(user.email, redirect_url, user.pk, token)
+
+
+def send_user_password_reset_email(recipient_email, context, user_id):
+    """Trigger sending a password reset email for the given user."""
+    _send_user_password_reset_email.delay(recipient_email, context, user_id)
 
 
 @app.task
-def send_password_reset_email(recipient_email, context, user_id):
+def _send_user_password_reset_email(recipient_email, context, user_id):
     reset_url = build_absolute_uri(
         reverse(
             "account:reset-password-confirm",
@@ -29,7 +34,7 @@ def send_password_reset_email(recipient_email, context, user_id):
 
 
 @app.task
-def send_password_reset_email_with_url(recipient_email, redirect_url, user_id, token):
+def _send_password_reset_email_with_url(recipient_email, redirect_url, user_id, token):
     params = urlencode({"email": recipient_email, "token": token})
     reset_url = "%(redirect_url)s?%(params)s" % {
         "redirect_url": redirect_url,

@@ -6,7 +6,7 @@ from django.db import transaction
 from graphql_jwt.exceptions import PermissionDenied
 
 from ....account import events as account_events, models
-from ....account.emails import send_user_password_reset_email
+from ....account.emails import send_user_password_reset_email_with_url
 from ....core.utils.url import validate_storefront_url
 from ....dashboard.emails import send_set_password_customer_email
 from ...account.i18n import I18nMixin
@@ -110,7 +110,7 @@ class RequestPasswordReset(BaseMutation):
             user = models.User.objects.get(email=email)
         except ObjectDoesNotExist:
             raise ValidationError({"email": "User with this email doesn't exist"})
-        send_user_password_reset_email(redirect_url, user)
+        send_user_password_reset_email_with_url(redirect_url, user)
         return RequestPasswordReset()
 
 
