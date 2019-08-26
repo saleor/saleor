@@ -134,8 +134,6 @@ class ShippingErrorCode(Enum):
     MAX_LESS_THAN_MIN = "max_less_than_min"
 
 
-ERROR_CODE_UNKNOWN = "unknown"
-
 SALEOR_ERROR_CODE_ENUMS = [
     AccountErrorCode,
     CheckoutErrorCode,
@@ -154,8 +152,7 @@ for enum in SALEOR_ERROR_CODE_ENUMS:
 
 
 ERROR_CODES = (
-    [ERROR_CODE_UNKNOWN]
-    + DJANGO_VALIDATORS_ERROR_CODES
+    DJANGO_VALIDATORS_ERROR_CODES
     + DJANGO_FORM_FIELDS_ERROR_CODES
     + DJANGO_PASSWORD_VALIDATION_ERROR_CODES
     + DJANGO_MODEL_FIELDS_ERROR_CODES
@@ -169,5 +166,5 @@ def get_error_code_from_error(error):
     if isinstance(code, Enum):
         code = code.value
     if code not in ERROR_CODES:
-        return ERROR_CODE_UNKNOWN
+        return "null"
     return code
