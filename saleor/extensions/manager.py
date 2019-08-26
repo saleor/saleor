@@ -6,6 +6,7 @@ from django.utils.module_loading import import_string
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
+from ..core.payments import PaymentInterface
 from ..core.taxes import TaxType, quantize_price
 from .models import PluginConfiguration
 
@@ -18,7 +19,7 @@ if TYPE_CHECKING:
     from ..payment.interface import PaymentData, GatewayResponse, CustomerSource
 
 
-class ExtensionsManager:
+class ExtensionsManager(PaymentInterface):
     """Base manager for handling plugins logic."""
 
     plugins = None
