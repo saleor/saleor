@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 
-from ..core.utils.error_codes import OrderErrorCode
+from ..core.utils.error_codes import CommonErrorCode, OrderErrorCode
 
 
 def validate_total_quantity(order):
@@ -41,7 +41,7 @@ def validate_order_lines(order):
                 {
                     "lines": ValidationError(
                         "Could not create orders with non-existing products.",
-                        code=OrderErrorCode.VARIANT_DOES_NOT_EXIST,
+                        code=CommonErrorCode.OBJECT_DOES_NOT_EXIST,
                     )
                 }
             )

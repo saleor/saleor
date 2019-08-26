@@ -232,7 +232,7 @@ class AuthorizationKeyDelete(BaseMutation):
                 {
                     "key_type": ValidationError(
                         "Couldn't resolve authorization key",
-                        code=CommonErrorCode.DOES_NOT_EXIST,
+                        code=CommonErrorCode.OBJECT_DOES_NOT_EXIST,
                     )
                 }
             )

@@ -20,7 +20,7 @@ from ...core.mutations import (
     UpdateMetaBaseMutation,
     validation_error_to_error_type,
 )
-from ...core.utils.error_codes import AccountErrorCode
+from ...core.utils.error_codes import AccountErrorCode, CommonErrorCode
 
 BILLING_ADDRESS_FIELD = "default_billing_address"
 SHIPPING_ADDRESS_FIELD = "default_shipping_address"
@@ -75,7 +75,7 @@ class SetPassword(CreateToken):
             raise ValidationError(
                 {
                     "email": ValidationError(
-                        "User doesn't exist", code=AccountErrorCode.USER_DOES_NOT_EXIST
+                        "User doesn't exist", code=CommonErrorCode.OBJECT_DOES_NOT_EXIST
                     )
                 }
             )
@@ -126,7 +126,7 @@ class RequestPasswordReset(BaseMutation):
                 {
                     "email": ValidationError(
                         "User with this email doesn't exist",
-                        code=AccountErrorCode.USER_DOES_NOT_EXIST,
+                        code=CommonErrorCode.OBJECT_DOES_NOT_EXIST,
                     )
                 }
             )

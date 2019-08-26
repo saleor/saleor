@@ -53,7 +53,6 @@ class AccountErrorCode(Enum):
     INVALID_PHONE_NUMBER = "invalid_phone_number"
     INVALID_USER_TOKEN = "invalid_user_token"
     NOT_USERS_ADDRESS = "not_users_address"
-    USER_DOES_NOT_EXIST = "user_does_not_exist"
 
 
 class CheckoutErrorCode(Enum):
@@ -93,13 +92,11 @@ class OrderErrorCode(Enum):
     ORDER_NO_SHIPPING_ADDRESS = "order_no_shipping_address"
     QUANTITY_LESS_THAN_ONE = "quantity_less_than_one"
     REFUND_MANUAL_PAYMENT = "refund_manual_payment"
-    VARIANT_DOES_NOT_EXIST = "variant_does_not_exist"
     VOID_INACTIVE_PAYMENT = "void_inactive_payment"
 
 
 class CommonErrorCode(Enum):
     CANNOT_FETCH_TAX_RATES = "cannot_fetch_tax_rates"
-    DOES_NOT_EXIST = "does_not_exist"
     GRAPHQL_ERROR = "graphql_error"
     INCORRECT_VALUE = "incorrect_value"
     INVALID_FILE_TYPE = "invalid_file_type"
@@ -108,6 +105,7 @@ class CommonErrorCode(Enum):
     MISSING_VALUE = "missing_value"
     NON_BLANK_VALUE_REQUIRED = "non_blank_value_required"
     OBJECT_ALREADY_EXISTS = "object_already_exists"
+    OBJECT_DOES_NOT_EXIST = "object_does_not_exist"
     PARTIAL_PAYMENT_NOT_ALLOWED = "partial_payment_not_allowed"
     PAYMENT_ERROR = "payment_error"
     POSITIVE_NUMBER_REQUIRED = "positive_number_required"

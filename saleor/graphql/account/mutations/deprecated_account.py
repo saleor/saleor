@@ -6,7 +6,7 @@ from ....checkout import AddressType
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import BaseMutation, ModelMutation
-from ...core.utils.error_codes import AccountErrorCode
+from ...core.utils.error_codes import AccountErrorCode, CommonErrorCode
 from .base import BaseCustomerCreate, UserAddressInput
 from .deprecated_staff import send_user_password_reset_email
 
@@ -185,7 +185,7 @@ class CustomerPasswordReset(BaseMutation):
                 {
                     "email": ValidationError(
                         "User with this email doesn't exist",
-                        code=AccountErrorCode.USER_DOES_NOT_EXIST,
+                        code=CommonErrorCode.OBJECT_DOES_NOT_EXIST,
                     )
                 }
             )
