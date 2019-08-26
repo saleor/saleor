@@ -135,8 +135,12 @@ def test_real_query(user_api_client, product):
             ...ProductPriceFragmentQuery
             __typename
         }
-        thumbnailUrl1x: thumbnailUrl(size: 255)
-        thumbnailUrl2x: thumbnailUrl(size: 510)
+        thumbnailUrl1x: thumbnail(size: 255){
+            url
+        }
+        thumbnailUrl2x:     thumbnail(size: 510){
+            url
+        }
         url
         __typename
     }
