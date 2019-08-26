@@ -897,9 +897,9 @@ def test_view_edit_discount(admin_client, draft_order, settings):
     assert get_redirect_location(response) == redirect_url
 
     draft_order.refresh_from_db()
-    discount_amount = Money(discount_value, settings.DEFAULT_CURRENCY)
-    assert draft_order.discount_amount == discount_amount
-    assert draft_order.total == total_before - discount_amount
+    discount = Money(discount_value, settings.DEFAULT_CURRENCY)
+    assert draft_order.discount == discount
+    assert draft_order.total == total_before - discount
 
 
 def test_update_order_with_user_addresses(order):
@@ -994,17 +994,17 @@ def test_view_order_voucher_edit(admin_client, draft_order, settings, voucher):
     assert get_redirect_location(response) == redirect_url
 
     draft_order.refresh_from_db()
-    discount_amount = Money(voucher.discount_value, settings.DEFAULT_CURRENCY)
-    assert draft_order.discount_amount == discount_amount
-    assert draft_order.total == total_before - discount_amount
+    discount = Money(voucher.discount_value, settings.DEFAULT_CURRENCY)
+    assert draft_order.discount == discount
+    assert draft_order.total == total_before - discount
 
 
 def test_view_order_voucher_remove(admin_client, draft_order, settings, voucher):
     increase_voucher_usage(voucher)
     draft_order.voucher = voucher
-    discount_amount = Money(voucher.discount_value, settings.DEFAULT_CURRENCY)
-    draft_order.discount_amount = discount_amount
-    draft_order.total -= discount_amount
+    discount = Money(voucher.discount_value, settings.DEFAULT_CURRENCY)
+    draft_order.discount = discount
+    draft_order.total -= discount
     draft_order.save()
     total_before = draft_order.total
     url = reverse("dashboard:order-voucher-remove", kwargs={"order_pk": draft_order.pk})
@@ -1019,8 +1019,8 @@ def test_view_order_voucher_remove(admin_client, draft_order, settings, voucher)
     assert get_redirect_location(response) == redirect_url
 
     draft_order.refresh_from_db()
-    assert draft_order.discount_amount == zero_money()
-    assert draft_order.total == total_before + discount_amount
+    assert draft_order.discount == zero_money()
+    assert draft_order.total == total_before + discount
 
 
 def test_view_mark_order_as_paid(admin_client, order_with_lines):

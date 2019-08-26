@@ -115,7 +115,7 @@ class ExtensionsManager:
             "calculate_checkout_line_total", default_value, checkout_line, discounts
         )
 
-    def calculate_order_line_unit(self, order_line: "OrderLine"):
+    def calculate_order_line_unit(self, order_line: "OrderLine") -> TaxedMoney:
         unit_price = order_line.unit_price
         default_value = quantize_price(unit_price, unit_price.currency)
         return self.__run_method_on_plugins(

@@ -7,17 +7,17 @@ from uuid import UUID
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from django.db.models import Sum
+from django.db.models import Max, Min, Sum
 from django.utils import timezone
 from django.utils.encoding import smart_text
 from django.utils.translation import get_language, pgettext, pgettext_lazy
-from prices import MoneyRange, TaxedMoneyRange
+from prices import Money, MoneyRange, TaxedMoneyRange
 
 from ..account.forms import get_address_form
 from ..account.models import Address, User
 from ..account.utils import store_user_address
 from ..core.exceptions import InsufficientStock
-from ..core.taxes import quantize_price, zero_money, zero_taxed_money
+from ..core.taxes import quantize_price, zero_taxed_money
 from ..core.utils import to_local_currency
 from ..core.utils.promo_code import (
     InvalidPromoCode,
@@ -820,7 +820,7 @@ def _get_products_voucher_discount(checkout, voucher, discounts=None):
     return get_products_voucher_discount(voucher, prices)
 
 
-def get_voucher_discount_for_checkout(voucher, checkout, discounts=None):
+def get_voucher_discount_for_checkout(voucher, checkout, discounts=None) -> Money:
     """Calculate discount value depending on voucher and discount types.
 
     Raise NotApplicable if voucher of given type cannot be applied.
@@ -872,7 +872,7 @@ def recalculate_checkout_discount(checkout, discounts):
         else:
             manager = get_extensions_manager()
             subtotal = manager.calculate_checkout_subtotal(checkout, discounts).gross
-            checkout.discount_amount = min(discount, subtotal)
+            checkout.discount = min(discount, subtotal)
             checkout.discount_name = str(voucher)
             checkout.translated_discount_name = (
                 voucher.translated.name
@@ -884,6 +884,7 @@ def recalculate_checkout_discount(checkout, discounts):
                     "translated_discount_name",
                     "discount_amount",
                     "discount_name",
+                    "currency",
                 ]
             )
     else:
@@ -925,13 +926,13 @@ def add_voucher_to_checkout(checkout: Checkout, voucher: Voucher, discounts=None
 
     Raise NotApplicable if voucher of given type cannot be applied.
     """
-    discount_amount = get_voucher_discount_for_checkout(voucher, checkout, discounts)
+    discount = get_voucher_discount_for_checkout(voucher, checkout, discounts)
     checkout.voucher_code = voucher.code
     checkout.discount_name = voucher.name
     checkout.translated_discount_name = (
         voucher.translated.name if voucher.translated.name != voucher.name else ""
     )
-    checkout.discount_amount = discount_amount
+    checkout.discount = discount
     checkout.save(
         update_fields=[
             "voucher_code",
@@ -962,13 +963,14 @@ def remove_voucher_from_checkout(checkout: Checkout):
     checkout.voucher_code = None
     checkout.discount_name = None
     checkout.translated_discount_name = None
-    checkout.discount_amount = zero_money()
+    checkout.discount_amount = 0
     checkout.save(
         update_fields=[
             "voucher_code",
             "discount_name",
             "translated_discount_name",
             "discount_amount",
+            "currency",
         ]
     )
 
@@ -1006,13 +1008,18 @@ def get_shipping_price_estimate(checkout: Checkout, discounts, country_code):
     if shipping_methods is None:
         return None
 
-    shipping_methods = shipping_methods.values_list("price", flat=True)
+    min_price_amount, max_price_amount = shipping_methods.aggregate(
+        price_amount_min=Min("price_amount"), price_amount_max=Max("price_amount")
+    ).values()
 
-    if not shipping_methods:
+    if min_price_amount is None:
         return None
 
     manager = get_extensions_manager()
-    prices = MoneyRange(start=min(shipping_methods), stop=max(shipping_methods))
+    prices = MoneyRange(
+        start=Money(min_price_amount, checkout.currency),
+        stop=Money(max_price_amount, checkout.currency),
+    )
     return manager.apply_taxes_to_shipping_price_range(prices, country_code)
 
 
@@ -1045,7 +1052,7 @@ def _get_voucher_data_for_order(checkout):
         add_voucher_usage_by_customer(voucher, checkout.get_customer_email())
     return {
         "voucher": voucher,
-        "discount_amount": checkout.discount_amount,
+        "discount": checkout.discount,
         "discount_name": checkout.discount_name,
         "translated_discount_name": checkout.translated_discount_name,
     }
@@ -1177,7 +1184,7 @@ def prepare_order_data(*, checkout: Checkout, tracking_code: str, discounts) -> 
     order_data["total_price_left"] = (
         manager.calculate_checkout_subtotal(checkout, discounts)
         + shipping_total
-        - checkout.discount_amount
+        - checkout.discount
     ).gross
 
     manager.preprocess_order_creation(checkout, discounts)

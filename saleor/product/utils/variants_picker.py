@@ -2,7 +2,7 @@ from collections import defaultdict
 from decimal import Decimal
 from typing import Dict, Iterable, List
 
-from django_prices.templatetags import prices_i18n
+from django_prices.templatetags import prices
 
 from ...core.taxes import display_gross_prices
 from ...core.utils import to_local_currency
@@ -135,9 +135,9 @@ def price_as_dict(price):
     return {
         "currency": price.currency,
         "gross": price.gross.amount,
-        "grossLocalized": prices_i18n.amount(price.gross),
+        "grossLocalized": prices.amount(price.gross),
         "net": price.net.amount,
-        "netLocalized": prices_i18n.amount(price.net),
+        "netLocalized": prices.amount(price.net),
     }
 
 

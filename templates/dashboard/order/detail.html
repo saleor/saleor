@@ -424,7 +424,7 @@
                   {% endif %}
                   <p>{% price order.total.tax %}</p>
                   {% if order.is_draft or order.discount_amount %}
-                    <p>{% discount_as_negative order.discount_amount html=True %}</p>
+                    <p>{% discount_as_negative order.discount html=True %}</p>
                   {% endif %}
                   <p><strong>{% price order.total.gross %}</strong></p>
                 </td>

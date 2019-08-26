@@ -15,7 +15,7 @@ from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField
-from django_prices.templatetags import prices_i18n
+from django_prices.templatetags import prices
 from draftjs_sanitizer import clean_draft_js
 from measurement.measures import Weight
 from mptt.managers import TreeManager
@@ -141,13 +141,20 @@ class ProductType(ModelWithMetadata):
 
 
 class ProductsQueryset(PublishedQuerySet):
+    MINIMAL_PRICE_FIELDS = {"minimal_variant_price_amount", "minimal_variant_price"}
+
     def create(self, **kwargs):
         """Create a product.
 
         In the case of absent "minimal_variant_price" make it default to the "price"
         """
-        if "minimal_variant_price" not in kwargs:
-            kwargs["minimal_variant_price"] = kwargs.get("price")
+        if not kwargs.keys() & self.MINIMAL_PRICE_FIELDS:
+            minimal_amount = None
+            if "price" in kwargs:
+                minimal_amount = kwargs["price"].amount
+            elif "price_amount" in kwargs:
+                minimal_amount = kwargs["price_amount"]
+            kwargs["minimal_variant_price_amount"] = minimal_amount
         return super().create(**kwargs)
 
     def bulk_create(self, objs, batch_size=None, ignore_conflicts=False):
@@ -157,8 +164,8 @@ class ProductsQueryset(PublishedQuerySet):
         make it default to the "price".
         """
         for obj in objs:
-            if obj.minimal_variant_price is None:
-                obj.minimal_variant_price = obj.price
+            if obj.minimal_variant_price_amount is None:
+                obj.minimal_variant_price_amount = obj.price.amount
         return super().bulk_create(
             objs, batch_size=batch_size, ignore_conflicts=ignore_conflicts
         )
@@ -186,16 +193,26 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
     category = models.ForeignKey(
         Category, related_name="products", on_delete=models.CASCADE
     )
-    price = MoneyField(
-        currency=settings.DEFAULT_CURRENCY,
+
+    currency = models.CharField(
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+        default=settings.DEFAULT_CURRENCY,
+    )
+
+    price_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+    )
+    price = MoneyField(amount_field="price_amount", currency_field="currency")
+
+    minimal_variant_price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
     )
     minimal_variant_price = MoneyField(
-        currency=settings.DEFAULT_CURRENCY,
-        max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        amount_field="minimal_variant_price_amount", currency_field="currency"
     )
+
     attributes = FilterableJSONBField(
         default=dict, blank=True, validators=[validate_attribute_json]
     )
@@ -237,9 +254,9 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
     def save(
         self, force_insert=False, force_update=False, using=None, update_fields=None
     ):
-        # Make sure the "minimal_variant_price" is set
-        if self.minimal_variant_price is None:
-            self.minimal_variant_price = self.price
+        # Make sure the "minimal_variant_price_amount" is set
+        if self.minimal_variant_price_amount is None:
+            self.minimal_variant_price_amount = self.price_amount
         return super().save(force_insert, force_update, using, update_fields)
 
     @property
@@ -339,12 +356,20 @@ class ProductVariantQueryset(models.QuerySet):
 class ProductVariant(ModelWithMetadata):
     sku = models.CharField(max_length=32, unique=True)
     name = models.CharField(max_length=255, blank=True)
-    price_override = MoneyField(
-        currency=settings.DEFAULT_CURRENCY,
+    currency = models.CharField(
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+        default=settings.DEFAULT_CURRENCY,
+        blank=True,
+        null=True,
+    )
+    price_override_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         blank=True,
         null=True,
+    )
+    price_override = MoneyField(
+        amount_field="price_override_amount", currency_field="currency"
     )
     product = models.ForeignKey(
         Product, related_name="variants", on_delete=models.CASCADE
@@ -360,13 +385,13 @@ class ProductVariant(ModelWithMetadata):
     quantity_allocated = models.IntegerField(
         validators=[MinValueValidator(0)], default=Decimal(0)
     )
-    cost_price = MoneyField(
-        currency=settings.DEFAULT_CURRENCY,
+    cost_price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         blank=True,
         null=True,
     )
+    cost_price = MoneyField(amount_field="cost_price_amount", currency_field="currency")
     weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, blank=True, null=True
     )
@@ -449,11 +474,7 @@ class ProductVariant(ModelWithMetadata):
 
     def get_ajax_label(self, discounts=None):
         price = self.get_price(discounts)
-        return "%s, %s, %s" % (
-            self.sku,
-            self.display_product(),
-            prices_i18n.amount(price),
-        )
+        return "%s, %s, %s" % (self.sku, self.display_product(), prices.amount(price))
 
 
 class ProductVariantTranslation(models.Model):

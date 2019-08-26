@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.template import Library
 from django.utils.translation import npgettext_lazy, pgettext_lazy
-from django_prices.templatetags import prices_i18n
+from django_prices.templatetags import prices
 from prices import Money
 
 from ...order import events
@@ -59,15 +59,13 @@ def display_order_event(order_event: OrderEvent):
         amount = get_money_from_params(params["amount"])
         return pgettext_lazy(
             "Dashboard message related to an order",
-            "Successfully refunded: %(amount)s"
-            % {"amount": prices_i18n.amount(amount)},
+            "Successfully refunded: %(amount)s" % {"amount": prices.amount(amount)},
         )
     if event_type == events.OrderEvents.PAYMENT_CAPTURED:
         amount = get_money_from_params(params["amount"])
         return pgettext_lazy(
             "Dashboard message related to an order",
-            "Successfully captured: %(amount)s"
-            % {"amount": prices_i18n.amount(amount)},
+            "Successfully captured: %(amount)s" % {"amount": prices.amount(amount)},
         )
     if event_type == events.OrderEvents.ORDER_MARKED_AS_PAID:
         return pgettext_lazy(

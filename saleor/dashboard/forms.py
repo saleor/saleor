@@ -1,8 +1,49 @@
 import json
+from typing import Optional
 
 from django import forms
+from django.conf import settings
 from django.core.exceptions import ValidationError
+from django.db import models
+from django_prices.forms import MoneyField
 from draftjs_sanitizer import SafeJSONEncoder
+from prices import Money
+
+
+def set_initial_money(instance: models.Model, field_name: str, field: MoneyField):
+    money_field = getattr(instance, field_name)  # type: Optional[Money]
+    if money_field is None:
+        value = [None, settings.DEFAULT_CURRENCY]
+    else:
+        value = [money_field.amount, money_field.currency]
+        if not money_field.currency:
+            value[1] = settings.DEFAULT_CURRENCY
+
+    field.initial = value
+
+
+class MoneyModelForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self._money_fields = {
+            field_name: field
+            for field_name, field in self.fields.items()
+            if isinstance(field, MoneyField)
+        }
+
+        for field_name, field in self._money_fields.items():
+            set_initial_money(self.instance, field_name, field)
+
+    def save(self, commit=True):
+        for field_name, field in self._money_fields.items():
+            value = self.cleaned_data[field_name]  # type: Money
+            if value is None:
+                # Preserve the currency value
+                setattr(self.instance, f"{field_name}_amount", None)
+            else:
+                setattr(self.instance, field_name, value)
+
+        return super(MoneyModelForm, self).save(commit=commit)
 
 
 class ModelChoiceOrCreationField(forms.ModelChoiceField):

@@ -393,7 +393,7 @@ def test_calculate_checkout_total(
     checkout_with_item.save()
     voucher_amount = Money(voucher_amount, "USD")
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
-    checkout_with_item.discount_amount = voucher_amount
+    checkout_with_item.discount = voucher_amount
     checkout_with_item.save()
     line = checkout_with_item.lines.first()
     product = line.variant.product

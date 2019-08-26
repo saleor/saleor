@@ -519,7 +519,8 @@ type Checkout implements Node {
   shippingAddress: Address
   shippingMethod: ShippingMethod
   note: String!
-  discountAmount: Money
+  discountAmount: Money @deprecated(reason: "Use discount instead.")
+  discount: Money
   discountName: String
   translatedDiscountName: String
   voucherCode: String
@@ -2014,12 +2015,12 @@ type Order implements Node {
   billingAddress: Address
   shippingAddress: Address
   shippingMethod: ShippingMethod
-  shippingPrice: TaxedMoney
   shippingMethodName: String
+  shippingPrice: TaxedMoney
   token: String!
   voucher: Voucher
   giftCards: [GiftCard]
-  discountAmount: Money
+  discount: Money
   discountName: String!
   translatedDiscountName: String!
   displayGrossPrices: Boolean!
@@ -2044,6 +2045,7 @@ type Order implements Node {
   totalBalance: Money!
   userEmail: String
   isShippingRequired: Boolean!
+  discountAmount: Money! @deprecated(reason: "Deprecated: use discount instead.")
 }
 
 enum OrderAction {
@@ -3605,13 +3607,14 @@ type Voucher implements Node {
   applyOncePerCustomer: Boolean!
   discountValueType: DiscountValueTypeEnum!
   discountValue: Float!
-  minAmountSpent: Money
+  minSpent: Money
   minCheckoutItemsQuantity: Int
   categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   countries: [CountryDisplay]
   translation(languageCode: LanguageCodeEnum!): VoucherTranslation
+  minAmountSpent: Money @deprecated(reason: "Use the minSpent field instead.")
 }
 
 type VoucherAddCatalogues {

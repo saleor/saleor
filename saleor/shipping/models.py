@@ -10,7 +10,7 @@ from django_countries.fields import CountryField
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField
 from measurement.measures import Weight
-from prices import MoneyRange
+from prices import Money, MoneyRange
 
 from ..core.utils import format_money
 from ..core.utils.json_serializer import CustomJsonEncoder
@@ -33,12 +33,12 @@ def _applicable_weight_based_methods(weight, qs):
     return qs.filter(min_weight_matched & (no_weight_limit | max_weight_matched))
 
 
-def _applicable_price_based_methods(price, qs):
+def _applicable_price_based_methods(price: Money, qs):
     """Return price based shipping methods that are applicable for the given total."""
     qs = qs.price_based()
-    min_price_matched = Q(minimum_order_price__lte=price)
-    no_price_limit = Q(maximum_order_price__isnull=True)
-    max_price_matched = Q(maximum_order_price__gte=price)
+    min_price_matched = Q(minimum_order_price_amount__lte=price.amount)
+    no_price_limit = Q(maximum_order_price_amount__isnull=True)
+    max_price_matched = Q(maximum_order_price_amount__gte=price.amount)
     return qs.filter(min_price_matched & (no_price_limit | max_price_matched))
 
 
@@ -120,7 +120,7 @@ class ShippingMethodQueryset(models.QuerySet):
     def weight_based(self):
         return self.filter(type=ShippingMethodType.WEIGHT_BASED)
 
-    def applicable_shipping_methods(self, price, weight, country_code):
+    def applicable_shipping_methods(self, price: Money, weight, country_code):
         """Return the ShippingMethods that can be used on an order with shipment.
 
         It is based on the given country code, and by shipping methods that are
@@ -131,18 +131,19 @@ class ShippingMethodQueryset(models.QuerySet):
         qs = self.filter(
             shipping_zone__countries__contains=country_code,
             shipping_zone__default=False,
+            currency=price.currency,
         )
         if not qs.exists():
             # Otherwise default shipping zone should be used
-            qs = self.filter(shipping_zone__default=True)
+            qs = self.filter(shipping_zone__default=True, currency=price.currency)
 
-        qs = qs.prefetch_related("shipping_zone").order_by("price")
+        qs = qs.prefetch_related("shipping_zone").order_by("price_amount")
         price_based_methods = _applicable_price_based_methods(price, qs)
         weight_based_methods = _applicable_weight_based_methods(weight, qs)
         return price_based_methods | weight_based_methods
 
     def applicable_shipping_methods_for_instance(
-        self, instance: Union["Checkout", "Order"], price, country_code=None
+        self, instance: Union["Checkout", "Order"], price: Money, country_code=None
     ):
         if not instance.is_shipping_required():
             return None
@@ -159,30 +160,41 @@ class ShippingMethodQueryset(models.QuerySet):
 class ShippingMethod(models.Model):
     name = models.CharField(max_length=100)
     type = models.CharField(max_length=30, choices=ShippingMethodType.CHOICES)
-    price = MoneyField(
-        currency=settings.DEFAULT_CURRENCY,
+    currency = models.CharField(
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+        default=settings.DEFAULT_CURRENCY,
+    )
+    price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=0,
     )
+    price = MoneyField(amount_field="price_amount", currency_field="currency")
     shipping_zone = models.ForeignKey(
         ShippingZone, related_name="shipping_methods", on_delete=models.CASCADE
     )
-    minimum_order_price = MoneyField(
-        currency=settings.DEFAULT_CURRENCY,
+
+    minimum_order_price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=0,
+        blank=True,
+        null=True,
+    )
+    minimum_order_price = MoneyField(
+        amount_field="minimum_order_price_amount", currency_field="currency"
+    )
+
+    maximum_order_price_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         blank=True,
         null=True,
     )
     maximum_order_price = MoneyField(
-        currency=settings.DEFAULT_CURRENCY,
-        max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        blank=True,
-        null=True,
+        amount_field="maximum_order_price_amount", currency_field="currency"
     )
+
     minimum_order_weight = MeasurementField(
         measurement=Weight,
         unit_choices=WeightUnits.CHOICES,
@@ -193,6 +205,7 @@ class ShippingMethod(models.Model):
     maximum_order_weight = MeasurementField(
         measurement=Weight, unit_choices=WeightUnits.CHOICES, blank=True, null=True
     )
+
     meta = JSONField(blank=True, default=dict, encoder=CustomJsonEncoder)
 
     objects = ShippingMethodQueryset.as_manager()

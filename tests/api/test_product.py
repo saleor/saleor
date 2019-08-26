@@ -1993,11 +1993,9 @@ def test_product_variant_price(
     product.price = Money(amount=product_price, currency="USD")
     product.save()
     if variant_override is not None:
-        product.variants.update(
-            price_override=Money(amount=variant_override, currency="USD")
-        )
+        product.variants.update(price_override_amount=variant_override, currency="USD")
     else:
-        product.variants.update(price_override=None)
+        product.variants.update(price_override_amount=None)
     # Drop other variants
     # product.variants.exclude(id=variant.pk).delete()
 
@@ -2094,13 +2092,13 @@ def test_report_product_sales(
     line_a = order_with_lines.lines.get(product_sku=node_a["sku"])
     assert node_a["quantityOrdered"] == line_a.quantity
     amount = str(node_a["revenue"]["gross"]["amount"])
-    assert Decimal(amount) == line_a.quantity * line_a.unit_price_gross.amount
+    assert Decimal(amount) == line_a.quantity * line_a.unit_price_gross_amount
 
     node_b = edges[1]["node"]
     line_b = order_with_lines.lines.get(product_sku=node_b["sku"])
     assert node_b["quantityOrdered"] == line_b.quantity
     amount = str(node_b["revenue"]["gross"]["amount"])
-    assert Decimal(amount) == line_b.quantity * line_b.unit_price_gross.amount
+    assert Decimal(amount) == line_b.quantity * line_b.unit_price_gross_amount
 
 
 def test_variant_revenue_permissions(

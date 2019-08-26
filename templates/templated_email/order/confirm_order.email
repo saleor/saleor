@@ -18,7 +18,7 @@ Thank you for your order. Below is the list of ordered products. To see your pay
 {% trans "Subtotal" context "Order confirmation e-mail table header" %}:           {% price order.get_subtotal display_gross=order.display_gross_prices html=False %}
 {% trans "Shipping" context "Order confirmation e-mail table header" %}:           {% price order.shipping_price display_gross=order.display_gross_prices html=False %}
 {% if order.display_gross_prices %}{% trans "Taxes (included)" context "Order confirmation e-mail table header" %}{% else %}{% trans "Taxes" context "Order confirmation e-mail table header" %}{% endif %}:              {% price order.total.tax html=False %}
-{% if order.discount_amount %}{% trans "Discount:" context "Order confirmation e-mail table header" %}           {% discount_as_negative order.discount_amount %}{% endif %}
+{% if order.discount_amount %}{% trans "Discount:" context "Order confirmation e-mail table header" %}           {% discount_as_negative order.discount %}{% endif %}
 {% trans "Total" context "Order confirmation e-mail table header" %}:              {% price order.total.gross html=False %}
 
 {% trans "Billing address" context "Order confirmation e-mail billing address" %}
