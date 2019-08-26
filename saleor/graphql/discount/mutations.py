@@ -116,12 +116,6 @@ class VoucherInput(graphene.InputObjectType):
         name="categories",
     )
     min_amount_spent = Decimal(
-        description=(
-            "Deprecated: use minSpentAmount instead."
-            "Min purchase amount required to apply the voucher."
-        )
-    )
-    min_spent_amount = Decimal(
         description="Min purchase amount required to apply the voucher."
     )
     min_checkout_items_quantity = graphene.Int(
@@ -164,12 +158,11 @@ class VoucherCreate(ModelMutation):
         if voucher_type == VoucherTypeEnum.VALUE:
             data["type"] = VoucherTypeEnum.ENTIRE_ORDER.value
 
-        # Deprecated field
-        min_spent_amount = data.pop("min_amount_spent", None)
-        if min_spent_amount is not None:
-            data["min_spent_amount"] = min_spent_amount
-
         cleaned_input = super().clean_input(info, instance, data)
+
+        min_spent_amount = cleaned_input.pop("min_amount_spent", None)
+        if min_spent_amount is not None:
+            cleaned_input["min_spent_amount"] = min_spent_amount
         return cleaned_input
 
 

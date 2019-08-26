@@ -41,7 +41,6 @@ class MoneyModelForm(forms.ModelForm):
                 # Preserve the currency value
                 setattr(self.instance, f"{field_name}_amount", None)
             else:
-                print(field_name, field_name, value)
                 setattr(self.instance, field_name, value)
 
         return super(MoneyModelForm, self).save(commit=commit)
