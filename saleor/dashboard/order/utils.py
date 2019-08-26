@@ -80,7 +80,7 @@ def get_prices_of_discounted_products(order, discounted_products):
     if discounted_products:
         for line in order:
             if line.variant.product in discounted_products:
-                line_prices.extend([line.unit_price_gross] * line.quantity)
+                line_prices.extend([line.unit_price_gross_amount] * line.quantity)
     return line_prices
 
 
@@ -93,7 +93,7 @@ def get_prices_of_products_in_discounted_collections(order, discounted_collectio
                 continue
             product_collections = line.variant.product.collections.all()
             if set(product_collections).intersection(discounted_collections):
-                line_prices.extend([line.unit_price_gross] * line.quantity)
+                line_prices.extend([line.unit_price_gross_amount] * line.quantity)
     return line_prices
 
 
@@ -113,7 +113,7 @@ def get_prices_of_products_in_discounted_categories(order, discounted_categories
                 continue
             product_category = line.variant.product.category
             if product_category in discounted_categories:
-                line_prices.extend([line.unit_price_gross] * line.quantity)
+                line_prices.extend([line.unit_price_gross_amount] * line.quantity)
     return line_prices
 
 
@@ -144,7 +144,7 @@ def get_voucher_discount_for_order(order):
     Raise NotApplicable if voucher of given type cannot be applied.
     """
     if not order.voucher:
-        return zero_money()
+        return zero_money(order.currency)
     validate_voucher_in_order(order)
     subtotal = order.get_subtotal()
     if order.voucher.type == VoucherType.ENTIRE_ORDER:

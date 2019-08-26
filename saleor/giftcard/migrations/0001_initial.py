@@ -3,7 +3,6 @@
 import datetime
 
 import django.db.models.deletion
-import django_prices.models
 from django.conf import settings
 from django.db import migrations, models
 
@@ -35,15 +34,11 @@ class Migration(migrations.Migration):
                 ("is_active", models.BooleanField(default=True)),
                 (
                     "initial_balance",
-                    django_prices.models.MoneyField(
-                        currency="USD", decimal_places=2, max_digits=12
-                    ),
+                    models.DecimalField(decimal_places=2, max_digits=12),
                 ),
                 (
                     "current_balance",
-                    django_prices.models.MoneyField(
-                        currency="USD", decimal_places=2, max_digits=12
-                    ),
+                    models.DecimalField(decimal_places=2, max_digits=12),
                 ),
                 (
                     "user",

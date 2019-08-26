@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 import uuid
 
 import django.core.validators
-import django_prices.models
 from django.conf import settings
 from django.db import migrations, models
 
@@ -63,12 +62,7 @@ class Migration(migrations.Migration):
                 ("checkout_data", models.TextField(null=True, editable=False)),
                 (
                     "total",
-                    django_prices.models.MoneyField(
-                        default=0,
-                        currency=settings.DEFAULT_CURRENCY,
-                        max_digits=12,
-                        decimal_places=2,
-                    ),
+                    models.DecimalField(default=0, max_digits=12, decimal_places=2),
                 ),
                 ("quantity", models.PositiveIntegerField(default=0)),
                 (

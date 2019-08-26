@@ -75,7 +75,7 @@ class VatlayerPlugin(BasePlugin):
         return (
             self.calculate_checkout_subtotal(checkout, discounts, previous_value)
             + self.calculate_checkout_shipping(checkout, discounts, taxed_zero)
-            - checkout.discount_amount
+            - checkout.discount
         )
 
     def calculate_checkout_subtotal(
@@ -187,7 +187,7 @@ class VatlayerPlugin(BasePlugin):
         country = address.country if address else None
         variant = order_line.variant
         return self.__apply_taxes_to_product(
-            variant.product, order_line.unit_price_net, country
+            variant.product, order_line.unit_price, country
         )
 
     def get_tax_rate_type_choices(

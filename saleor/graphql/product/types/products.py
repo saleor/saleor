@@ -301,7 +301,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
 
     @staticmethod
     @gql_optimizer.resolver_hints(
-        prefetch_related=("product",), only=["price_override"]
+        prefetch_related=("product",), only=["price_override_amount", "currency"]
     )
     def resolve_pricing(root: models.ProductVariant, info):
         context = info.context
@@ -527,7 +527,7 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
     @staticmethod
     @gql_optimizer.resolver_hints(
         prefetch_related=("variants", "collections"),
-        only=["publication_date", "charge_taxes", "price", "meta"],
+        only=["publication_date", "charge_taxes", "price_amount", "currency", "meta"],
     )
     def resolve_pricing(root: models.Product, info):
         context = info.context
@@ -554,7 +554,7 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
     @staticmethod
     @gql_optimizer.resolver_hints(
         prefetch_related=("variants", "collections"),
-        only=["publication_date", "charge_taxes", "price", "meta"],
+        only=["publication_date", "charge_taxes", "price_amount", "currency", "meta"],
     )
     def resolve_price(root: models.Product, info):
         price_range = root.get_price_range(info.context.discounts)

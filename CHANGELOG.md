@@ -58,6 +58,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - New stripe gateway implementation based on Stripe PaymentIntents API - #4606 by @salwator
 - Change AddressValidationRules API - #4655 by @Kwaidan00
 - Refactor account deletion mutations - #4668 by @fowczarek
+- Upgraded django-prices from v1 to v2.1. Currency codes are now locked at 3 characters max by default for consistency. - #4639 by @NyanKiyoshi
 
 ## 2.8.0
 

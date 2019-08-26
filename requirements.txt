@@ -6,12 +6,12 @@ babel==2.7.0
 beautifulsoup4==4.7.1
 billiard==3.6.1.0
 bleach==2.1.4
-boto3==1.9.210
-botocore==1.12.210
+boto3==1.9.213
+botocore==1.12.213
 braintree==3.49.0
 cachetools==3.1.1
 cairocffi==1.0.2
-cairosvg==2.4.0
+cairosvg==2.4.1
 celery[redis]==4.3.0
 certifi==2019.6.16
 cffi==1.12.3
@@ -36,7 +36,7 @@ django-mptt==0.10.0
 django-phonenumber-field==2.4.0
 django-prices-openexchangerates==1.0.1
 django-prices-vatlayer==1.0.2
-django-prices==1.0.4
+django-prices==2.1.0
 django-recaptcha==1.5.0
 django-redis==4.10.0
 django-render-block==0.6
@@ -50,7 +50,7 @@ docutils==0.15.2
 draftjs-sanitizer==1.0.0
 elasticsearch-dsl==6.0.1
 elasticsearch==6.3.1
-faker==2.0.0
+faker==2.0.1
 freezegun==0.3.12
 google-api-core==1.14.2
 google-auth==1.6.3
@@ -101,24 +101,24 @@ python-dateutil==2.8.0 ; python_version >= '2.7'
 python3-openid==3.1.0 ; python_version >= '3.0'
 pytz==2019.2
 razorpay==1.2.0
-redis==3.3.7
+redis==3.3.8
 requests-oauthlib==1.2.0
 requests==2.22.0
 rsa==4.0
 rx==1.6.1
 s3transfer==0.2.1
-sentry-sdk==0.11.0
+sentry-sdk==0.11.1
 singledispatch==3.4.0.3
 six==1.12.0
 social-auth-app-django==3.1.0
 social-auth-core==3.2.0
 soupsieve==1.9.3
 sqlparse==0.3.0
-stripe==2.35.0
+stripe==2.35.1
 sympy==1.4
 text-unidecode==1.2
 tinycss2==1.0.2
-tqdm==4.33.0
+tqdm==4.34.0
 typing==3.7.4
 urllib3==1.25.3
 uwsgi==2.0.18 ; platform_system != 'Windows'
