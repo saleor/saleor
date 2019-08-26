@@ -267,7 +267,7 @@ class MenuItemMove(BaseMutation):
                     {
                         "parent": ValidationError(
                             "Cannot assign a node to itself.",
-                            code=MenuErrorCode.ASSIGN_MENU_ITEM_TO_ITSELF,
+                            code=MenuErrorCode.CANNOT_ASSIGN_NODE,
                         )
                     }
                 )
@@ -285,7 +285,7 @@ class MenuItemMove(BaseMutation):
                                 "Cannot assign a node as child of "
                                 "one of its descendants."
                             ),
-                            code=MenuErrorCode.CANNOT_ASSIGN_NOTE,
+                            code=MenuErrorCode.CANNOT_ASSIGN_NODE,
                         )
                     }
                 )
