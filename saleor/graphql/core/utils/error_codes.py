@@ -50,7 +50,6 @@ class AccountErrorCode(Enum):
     INVALID_COUNTRY = "invalid_country"
     INVALID_PASSWORD = "invalid_password"
     INVALID_PHONE_NUMBER = "invalid_phone_number"
-    INVALID_USER_TOKEN = "invalid_user_token"
     NOT_USERS_ADDRESS = "not_users_address"
 
 
@@ -99,6 +98,7 @@ class CommonErrorCode(Enum):
     INCORRECT_VALUE = "incorrect_value"
     INVALID_FILE_TYPE = "invalid_file_type"
     INVALID_STOREFRONT_URL = "invalid_storefront_url"
+    INVALID_TOKEN = "invalid_token"
     INVALID_WEIGHT_UNIT = "invalid_weight_unit"
     MISSING_VALUE = "missing_value"
     NON_BLANK_VALUE_REQUIRED = "non_blank_value_required"
