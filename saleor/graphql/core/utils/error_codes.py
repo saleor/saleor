@@ -117,7 +117,6 @@ class AttributeErrorCode(Enum):
     ATTRIBUTE_CANNOT_BE_ASSIGNED = "attribute_cannot_be_assigned"
     ATTRIBUTE_DISABLED_VARIANTS = "attribute_disabled_variants"
     ATTRIBUTE_NON_ASSIGNABLE = "attribute_non_assignable"
-    ATTRIBUTE_SLUG_BLANK = "attribute_slug_blank"
     ATTRIBUTE_VALUES_NOT_UNIQUE = "attribute_values_not_unique"
 
 
