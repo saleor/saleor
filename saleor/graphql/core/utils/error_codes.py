@@ -71,8 +71,7 @@ class CheckoutErrorCode(Enum):
 
 
 class MenuErrorCode(Enum):
-    ASSIGN_MENU_ITEM_TO_ITSELF = "assign_menu_item_to_itself"
-    CANNOT_ASSIGN_NOTE = "cannot_assign_node"
+    CANNOT_ASSIGN_NODE = "cannot_assign_node"
     INVALID_MENU_ITEM = "invalid_menu_item"
     NO_MENU_ITEM_PROVIDED = "no_item_provided"
     TOO_MANY_MENU_ITEMS = "too_many_items"
