@@ -299,7 +299,7 @@ class AttributeAssign(BaseMutation):
 
         for operation in operations:
             pk = from_global_id_strict_type(
-                info, operation.id, only_type=Attribute, field="operations"
+                operation.id, only_type=Attribute, field="operations"
             )
             if operation.type == AttributeTypeEnum.PRODUCT:
                 product_attrs_pks.append(pk)
@@ -438,7 +438,7 @@ class AttributeUnassign(BaseMutation):
         # Resolve all the passed IDs to ints
         attribute_pks = [
             from_global_id_strict_type(
-                info, attribute_id, only_type=Attribute, field="attribute_id"
+                attribute_id, only_type=Attribute, field="attribute_id"
             )
             for attribute_id in attribute_ids
         ]
@@ -620,7 +620,7 @@ class ProductTypeReorderAttributes(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, product_type_id, type, moves):
         pk = from_global_id_strict_type(
-            info, product_type_id, only_type=ProductType, field="product_type_id"
+            product_type_id, only_type=ProductType, field="product_type_id"
         )
 
         if type == AttributeTypeEnum.PRODUCT:
@@ -647,7 +647,7 @@ class ProductTypeReorderAttributes(BaseMutation):
         # Resolve the attributes
         for move_info in moves:
             attribute_pk = from_global_id_strict_type(
-                info, move_info.id, only_type=Attribute, field="moves"
+                move_info.id, only_type=Attribute, field="moves"
             )
 
             try:
@@ -685,7 +685,7 @@ class AttributeReorderValues(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, attribute_id, moves):
         pk = from_global_id_strict_type(
-            info, attribute_id, only_type=Attribute, field="attribute_id"
+            attribute_id, only_type=Attribute, field="attribute_id"
         )
 
         try:
@@ -701,7 +701,7 @@ class AttributeReorderValues(BaseMutation):
         # Resolve the values
         for move_info in moves:
             value_pk = from_global_id_strict_type(
-                info, move_info.id, only_type=AttributeValue, field="moves"
+                move_info.id, only_type=AttributeValue, field="moves"
             )
 
             try:

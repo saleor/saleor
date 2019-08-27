@@ -6,7 +6,6 @@ from unittest.mock import Mock, patch
 import graphene
 import pytest
 from django.utils.dateparse import parse_datetime
-from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from graphql_relay import to_global_id
 from prices import Money
@@ -27,6 +26,7 @@ from saleor.product.models import (
     ProductVariant,
 )
 from saleor.product.tasks import update_variants_names
+from saleor.product.utils.attributes import associate_attribute_values_to_instance
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image, create_pdf_file_with_image_ext
 
@@ -256,8 +256,8 @@ def test_products_query_with_filter_attributes(
     second_product = product
     second_product.id = None
     second_product.product_type = product_type
-    second_product.attributes = {smart_text(attribute.pk): [smart_text(attr_value.pk)]}
     second_product.save()
+    associate_attribute_values_to_instance(second_product, attribute, attr_value)
 
     variables = {
         "filter": {"attributes": [{"slug": attribute.slug, "value": attr_value.slug}]}
@@ -559,10 +559,13 @@ def test_filter_products_by_attributes(user_api_client, product):
     """ % {
         "filter_by": filter_by
     }
+
     response = user_api_client.post_graphql(query)
     content = get_graphql_content(response)
-    product_data = content["data"]["products"]["edges"][0]["node"]
-    assert product_data["name"] == product.name
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["name"] == product.name
 
 
 def test_filter_products_by_categories(user_api_client, categories_tree, product):
@@ -1281,6 +1284,128 @@ def test_update_product_can_only_assign_multiple_values_to_valid_input_types(
         staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
     )["data"]["productUpdate"]
     assert not data["errors"]
+
+
+def test_update_product_with_existing_attribute_value(
+    staff_api_client, product, permission_manage_products, color_attribute
+):
+    """Ensure assigning an existing value to a product doesn't create a new
+    attribute value."""
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    expected_attribute_values_count = color_attribute.values.count()
+    color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.id)
+    color = color_attribute.values.only("name").first()
+
+    # Try to assign multiple values from an attribute that does not support such things
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product.pk),
+        "attributes": [{"id": color_attribute_id, "values": [color.name]}],
+    }
+
+    data = get_graphql_content(
+        staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
+    )["data"]["productUpdate"]
+    assert not data["errors"]
+
+    assert (
+        color_attribute.values.count() == expected_attribute_values_count
+    ), "A new attribute value shouldn't have been created"
+
+
+def test_update_product_without_supplying_required_product_attribute(
+    staff_api_client, product, permission_manage_products, color_attribute
+):
+    """Ensure assigning an existing value to a product doesn't create a new
+    attribute value."""
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    product_type = product.product_type
+
+    # Create and assign a new attribute requiring a value to be always supplied
+    required_attribute = Attribute.objects.create(
+        name="Required One", slug="required-one", value_required=True
+    )
+    product_type.product_attributes.add(required_attribute)
+
+    # Try to assign multiple values from an attribute that does not support such things
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product.pk),
+        "attributes": [{"slug": color_attribute.slug, "values": ["Blue"]}],
+    }
+
+    data = get_graphql_content(
+        staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
+    )["data"]["productUpdate"]
+    assert data["errors"] == [
+        {
+            "field": "attributes",
+            "message": (
+                "All attributes flagged as having a value required must be supplied."
+            ),
+        }
+    ]
+
+
+@pytest.mark.parametrize(
+    "attributes_input, expected_message",
+    (
+        (
+            [{"id": "QXR0cmlidXRlOjA=", "values": ["hello"]}],  # no such ID (id=0)
+            "Could not resolve to a node: ids=['QXR0cmlidXRlOjA='] and slugs=[]",
+        ),
+        (
+            [{"slug": "Oopsie.", "values": ["hello"]}],  # no such slug
+            "Could not resolve to a node: ids=[] and slugs=['Oopsie.']",
+        ),
+    ),
+)
+def test_update_product_with_non_existing_attribute(
+    staff_api_client,
+    product,
+    permission_manage_products,
+    color_attribute,
+    attributes_input,
+    expected_message,
+):
+    """Ensure assigning an existing value to a product doesn't create a new
+    attribute value."""
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # Try to assign multiple values from an attribute that does not support such things
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product.pk),
+        "attributes": attributes_input,
+    }
+
+    data = get_graphql_content(
+        staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
+    )["data"]["productUpdate"]
+    assert data["errors"] == [{"field": "attributes", "message": expected_message}]
+
+
+def test_update_product_with_no_attribute_slug_or_id(
+    staff_api_client, product, permission_manage_products, color_attribute
+):
+    """Ensure only supplying values triggers a validation error."""
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # Try to assign multiple values from an attribute that does not support such things
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product.pk),
+        "attributes": [{"values": ["Oopsie!"]}],
+    }
+
+    data = get_graphql_content(
+        staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
+    )["data"]["productUpdate"]
+    assert data["errors"] == [
+        {"field": "attributes", "message": "You must whether supply an ID or a slug"}
+    ]
 
 
 def test_update_product_without_variants(
