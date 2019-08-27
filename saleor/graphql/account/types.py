@@ -153,6 +153,33 @@ class CustomerEvent(CountableDjangoObjectType):
         return None
 
 
+class Bot(CountableDjangoObjectType):
+    permissions = graphene.List(
+        PermissionDisplay, description="List of bot's permissions."
+    )
+    created = graphene.DateTime(description="Created date")
+    is_active = graphene.Boolean()
+    name = graphene.String()
+
+    class Meta:
+        description = "Represents bot data."
+        interfaces = [relay.Node]
+        model = models.Bot
+        permissions = ("account.manage_bots",)
+        only_fields = ["name" "permissions", "created", "is_active", "auth_token", "id"]
+
+    @staticmethod
+    def resolve_permissions(root: models.Bot, _info, **_kwargs):
+        permissions = root.permissions.prefetch_related("content_type").order_by(
+            "codename"
+        )
+        return format_permissions_for_display(permissions)
+
+    @staticmethod
+    def resolve_auth_token(root: models.Bot, _info, **_kwargs):
+        return "*" * 6 + root.auth_token[-4:]
+
+
 class User(MetadataObjectType, CountableDjangoObjectType):
     addresses = gql_optimizer.field(
         graphene.List(Address, description="List of all user's addresses."),

@@ -6,7 +6,7 @@ from ..core.types import FilterInputObjectType
 from ..descriptions import DESCRIPTIONS
 from .bulk_mutations import CustomerBulkDelete, StaffBulkDelete, UserBulkSetActive
 from .enums import CountryCodeEnum
-from .filters import CustomerFilter, StaffUserFilter
+from .filters import BotUserFilter, CustomerFilter, StaffUserFilter
 from .mutations.account import (
     AccountAddressCreate,
     AccountAddressDelete,
@@ -24,6 +24,7 @@ from .mutations.base import (
     UserClearStoredMeta,
     UserUpdateMeta,
 )
+from .mutations.bot import BotCreate, BotDelete, BotUpdate
 from .mutations.deprecated_account import (
     CustomerAddressCreate,
     CustomerPasswordReset,
@@ -48,8 +49,13 @@ from .mutations.staff import (
     UserClearStoredPrivateMeta,
     UserUpdatePrivateMeta,
 )
-from .resolvers import resolve_address_validator, resolve_customers, resolve_staff_users
-from .types import AddressValidationData, User
+from .resolvers import (
+    resolve_address_validator,
+    resolve_bots,
+    resolve_customers,
+    resolve_staff_users,
+)
+from .types import AddressValidationData, Bot, User
 
 
 class CustomerFilterInput(FilterInputObjectType):
@@ -60,6 +66,11 @@ class CustomerFilterInput(FilterInputObjectType):
 class StaffUserInput(FilterInputObjectType):
     class Meta:
         filterset_class = StaffUserFilter
+
+
+class BotUserInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = BotUserFilter
 
 
 class AccountQueries(graphene.ObjectType):
@@ -82,10 +93,18 @@ class AccountQueries(graphene.ObjectType):
         description="List of the shop's staff users.",
         query=graphene.String(description=DESCRIPTIONS["user"]),
     )
+    bots = FilterInputConnectionField(
+        Bot, filter=BotUserInput(), description="List of the bots"
+    )
+    bot = graphene.Field(
+        Bot,
+        id=graphene.Argument(graphene.ID, required=True),
+        description="Lookup a bot by ID.",
+    )
     user = graphene.Field(
         User,
         id=graphene.Argument(graphene.ID, required=True),
-        description="Lookup an user by ID.",
+        description="Lookup a user by ID.",
     )
 
     def resolve_address_validation_rules(
@@ -97,6 +116,14 @@ class AccountQueries(graphene.ObjectType):
             country_area=country_area,
             city_area=city_area,
         )
+
+    @permission_required("account.manage_bots")
+    def resolve_bots(self, info, **_kwargs):
+        return resolve_bots(info)
+
+    @permission_required("account.manage_bots")
+    def resolve_bot(self, info, id):
+        return graphene.Node.get_node_from_global_id(info, id, Bot)
 
     @permission_required("account.manage_users")
     def resolve_customers(self, info, query=None, **_kwargs):
@@ -166,6 +193,10 @@ class AccountMutations(graphene.ObjectType):
 
     user_update_private_metadata = UserUpdatePrivateMeta.Field()
     user_clear_stored_private_metadata = UserClearStoredPrivateMeta.Field()
+
+    bot_create = BotCreate.Field()
+    bot_update = BotUpdate.Field()
+    bot_delete = BotDelete.Field()
 
     # Staff deprecated mutation
     password_reset = PasswordReset.Field()
