@@ -47,6 +47,11 @@ def resolve_staff_users(info, query):
     return gql_optimizer.query(qs, info)
 
 
+def resolve_bots(info):
+    qs = models.Bot.objects.all()
+    return gql_optimizer.query(qs, info)
+
+
 def resolve_address_validator(info, country_code, country_area, city_area):
     if not country_code:
         client_ip = get_client_ip(info.context)

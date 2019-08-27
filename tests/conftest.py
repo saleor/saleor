@@ -425,6 +425,11 @@ def permission_manage_plugins():
 
 
 @pytest.fixture
+def permission_manage_bots():
+    return Permission.objects.get(codename="manage_bots")
+
+
+@pytest.fixture
 def product_type(color_attribute, size_attribute):
     product_type = ProductType.objects.create(
         name="Default Type", has_variants=True, is_shipping_required=True
