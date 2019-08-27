@@ -43,7 +43,8 @@ class StripeGatewayPlugin(BasePlugin):
             "type": ConfigurationTypeField.BOOLEAN,
             "help_text": pgettext_lazy(
                 "Plugin help text",
-                "Determines if Saleor should store cards on payments in Stripe customer.",
+                "Determines if Saleor should store cards on payments"
+                "in Stripe customer.",
             ),
             "label": pgettext_lazy("Plugin label", "Store customers card"),
         },

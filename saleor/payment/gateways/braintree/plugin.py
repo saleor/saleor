@@ -58,7 +58,8 @@ class BraintreeGatewayPlugin(BasePlugin):
             "type": ConfigurationTypeField.BOOLEAN,
             "help_text": pgettext_lazy(
                 "Plugin help text",
-                "Determines if Saleor should store cards on payments in Braintree customer.",
+                "Determines if Saleor should store cards on payments"
+                " in Braintree customer.",
             ),
             "label": pgettext_lazy("Plugin label", "Store customers card"),
         },
