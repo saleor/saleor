@@ -643,9 +643,9 @@ class CheckoutUpdateVoucher(BaseMutation):
 
     class Meta:
         description = (
-            "DEPRECATED: Use CheckoutAddPromoCode or CheckoutRemovePromoCode instead. "
-            "Adds voucher to the checkout. Query it without voucher_code "
-            "field to remove voucher from checkout."
+            "DEPRECATED: Will be removed in Saleor 2.10, use CheckoutAddPromoCode "
+            "or CheckoutRemovePromoCode instead. Adds voucher to the checkout. Query "
+            "it without voucher_code field to remove voucher from checkout."
         )
 
     @classmethod

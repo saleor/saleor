@@ -192,7 +192,9 @@ class SelectedAttribute(graphene.ObjectType):
         AttributeValue,
         default_value=None,
         description="The value or the first value of an attribute.",
-        deprecation_reason="Use values instead.",
+        deprecation_reason=(
+            "DEPRECATED: Will be removed in Saleor 2.10, use values instead."
+        ),
     )
     values = graphene.List(
         AttributeValue, description="Values of an attribute.", required=True
