@@ -5,6 +5,7 @@ import random
 import unicodedata
 import uuid
 from collections import defaultdict
+from typing import Type, Union
 from unittest.mock import patch
 
 from django.conf import settings
@@ -38,15 +39,21 @@ from ...payment.utils import (
     gateway_void,
 )
 from ...product.models import (
+    AssignedProductAttribute,
+    AssignedVariantAttribute,
     Attribute,
+    AttributeProduct,
     AttributeValue,
+    AttributeVariant,
     Category,
     Collection,
+    CollectionProduct,
     Product,
     ProductImage,
     ProductType,
     ProductVariant,
 )
+from ...product.tasks import update_products_minimal_variant_prices_of_discount_task
 from ...product.thumbnails import (
     create_category_background_image_thumbnails,
     create_collection_background_image_thumbnails,
@@ -151,28 +158,27 @@ def create_collections(data, placeholder_dir):
     for collection in data:
         pk = collection["pk"]
         defaults = collection["fields"]
-        products_in_collection = defaults.pop("products")
         image_name = COLLECTION_IMAGES[pk]
         background_image = get_image(placeholder_dir, image_name)
         defaults["background_image"] = background_image
-        collection = Collection.objects.update_or_create(pk=pk, defaults=defaults)[0]
+        Collection.objects.update_or_create(pk=pk, defaults=defaults)
         create_collection_background_image_thumbnails.delay(pk)
-        collection.products.set(Product.objects.filter(pk__in=products_in_collection))
+
+
+def assign_products_to_collections(associations: list):
+    for value in associations:
+        pk = value["pk"]
+        defaults = value["fields"]
+        defaults["collection_id"] = defaults.pop("collection")
+        defaults["product_id"] = defaults.pop("product")
+        CollectionProduct.objects.update_or_create(pk=pk, defaults=defaults)
 
 
 def create_attributes(attributes_data):
     for attribute in attributes_data:
         pk = attribute["pk"]
         defaults = attribute["fields"]
-        product_type_id = defaults.pop("product_type")
-        product_variant_type_id = defaults.pop("product_variant_type")
         attr, _ = Attribute.objects.update_or_create(pk=pk, defaults=defaults)
-
-        if product_type_id:
-            attr.product_types.add(product_type_id)
-
-        if product_variant_type_id:
-            attr.product_variant_types.add(product_variant_type_id)
 
 
 def create_attributes_values(values_data):
@@ -195,7 +201,6 @@ def create_products(products_data, placeholder_dir, create_images):
         defaults["weight"] = get_weight(defaults["weight"])
         defaults["category_id"] = defaults.pop("category")
         defaults["product_type_id"] = defaults.pop("product_type")
-        defaults["attributes"] = json.loads(defaults["attributes"])
         product, _ = Product.objects.update_or_create(pk=pk, defaults=defaults)
 
         if create_images:
@@ -214,10 +219,49 @@ def create_product_variants(variants_data):
         if product_id not in IMAGES_MAPPING:
             continue
         defaults["product_id"] = product_id
-        defaults["attributes"] = json.loads(defaults["attributes"])
         set_field_as_money(defaults, "price_override")
         set_field_as_money(defaults, "cost_price")
         ProductVariant.objects.update_or_create(pk=pk, defaults=defaults)
+
+
+def assign_attributes_to_product_types(
+    association_model: Union[Type[AttributeProduct], Type[AttributeVariant]],
+    attributes: list,
+):
+    for value in attributes:
+        pk = value["pk"]
+        defaults = value["fields"]
+        defaults["attribute_id"] = defaults.pop("attribute")
+        defaults["product_type_id"] = defaults.pop("product_type")
+        association_model.objects.update_or_create(pk=pk, defaults=defaults)
+
+
+def assign_attributes_to_products(product_attributes):
+    for value in product_attributes:
+        pk = value["pk"]
+        defaults = value["fields"]
+        defaults["product_id"] = defaults.pop("product")
+        defaults["assignment_id"] = defaults.pop("assignment")
+        assigned_values = defaults.pop("values")
+        assoc, created = AssignedProductAttribute.objects.update_or_create(
+            pk=pk, defaults=defaults
+        )
+        if created:
+            assoc.values.set(AttributeValue.objects.filter(pk__in=assigned_values))
+
+
+def assign_attributes_to_variants(variant_attributes):
+    for value in variant_attributes:
+        pk = value["pk"]
+        defaults = value["fields"]
+        defaults["variant_id"] = defaults.pop("variant")
+        defaults["assignment_id"] = defaults.pop("assignment")
+        assigned_values = defaults.pop("values")
+        assoc, created = AssignedVariantAttribute.objects.update_or_create(
+            pk=pk, defaults=defaults
+        )
+        if created:
+            assoc.values.set(AttributeValue.objects.filter(pk__in=assigned_values))
 
 
 def set_field_as_money(defaults, field):
@@ -250,9 +294,22 @@ def create_products_by_schema(placeholder_dir, create_images):
         create_images=create_images,
     )
     create_product_variants(variants_data=types["product.productvariant"])
+    assign_attributes_to_product_types(
+        AttributeProduct, attributes=types["product.attributeproduct"]
+    )
+    assign_attributes_to_product_types(
+        AttributeVariant, attributes=types["product.attributevariant"]
+    )
+    assign_attributes_to_products(
+        product_attributes=types["product.assignedproductattribute"]
+    )
+    assign_attributes_to_variants(
+        variant_attributes=types["product.assignedvariantattribute"]
+    )
     create_collections(
         data=types["product.collection"], placeholder_dir=placeholder_dir
     )
+    assign_products_to_collections(associations=types["product.collectionproduct"])
 
 
 class SaleorProvider(BaseProvider):
@@ -473,6 +530,7 @@ def create_orders(how_many=10):
 def create_product_sales(how_many=5):
     for dummy in range(how_many):
         sale = create_fake_sale()
+        update_products_minimal_variant_prices_of_discount_task.delay(sale.pk)
         yield "Sale: %s" % (sale,)
 
 

@@ -188,9 +188,10 @@ def test_create_product_variant_not_all_attributes(
     )
     content = get_graphql_content(response)
     assert content["data"]["productVariantCreate"]["errors"]
-    assert content["data"]["productVariantCreate"]["errors"][0]["field"] == (
-        "attributes:color"
-    )
+    assert content["data"]["productVariantCreate"]["errors"][0] == {
+        "field": "attributes",
+        "message": "All attributes must take a value",
+    }
     assert not product.variants.filter(sku=sku).exists()
 
 
@@ -336,6 +337,26 @@ def test_update_product_variant(staff_api_client, product, permission_manage_pro
     assert data["sku"] == sku
 
 
+QUERY_UPDATE_VARIANT_ATTRIBUTES = """
+    mutation updateVariant (
+        $id: ID!,
+        $sku: String!,
+        $attributes: [AttributeValueInput]!) {
+            productVariantUpdate(
+                id: $id,
+                input: {
+                    sku: $sku,
+                    attributes: $attributes
+                }) {
+                errors {
+                    field
+                    message
+                }
+            }
+        }
+"""
+
+
 def test_update_product_variant_not_all_attributes(
     staff_api_client, product, product_type, color_attribute, permission_manage_products
 ):
@@ -343,25 +364,7 @@ def test_update_product_variant_not_all_attributes(
     be provided) raises an error. We expect the color attribute
     to be flagged as missing."""
 
-    query = """
-        mutation updateVariant (
-            $id: ID!,
-            $sku: String!,
-            $attributes: [AttributeValueInput]!) {
-                productVariantUpdate(
-                    id: $id,
-                    input: {
-                        sku: $sku,
-                        attributes: $attributes
-                    }) {
-                    errors {
-                        field
-                        message
-                    }
-                }
-            }
-
-    """
+    query = QUERY_UPDATE_VARIANT_ATTRIBUTES
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     sku = "test sku"
@@ -382,11 +385,59 @@ def test_update_product_variant_not_all_attributes(
     )
     variant.refresh_from_db()
     content = get_graphql_content(response)
-    assert content["data"]["productVariantUpdate"]["errors"]
-    assert content["data"]["productVariantUpdate"]["errors"][0]["field"] == (
-        "attributes:color"
-    )
+    assert len(content["data"]["productVariantUpdate"]["errors"]) == 1
+    assert content["data"]["productVariantUpdate"]["errors"][0] == {
+        "field": "attributes",
+        "message": "All attributes must take a value",
+    }
     assert not product.variants.filter(sku=sku).exists()
+
+
+@pytest.mark.parametrize(
+    "values, message",
+    (
+        ([], "size expects a value but none were given"),
+        (["one", "two"], "A variant attribute cannot take more than one value"),
+        (["   "], "Attribute values cannot be blank"),
+    ),
+)
+def test_update_product_variant_requires_values(
+    staff_api_client, variant, product_type, permission_manage_products, values, message
+):
+    """Ensures updating a variant with invalid values raise an error.
+
+    - No values
+    - Blank value
+    - More than one value
+    """
+
+    sku = "updated"
+
+    query = QUERY_UPDATE_VARIANT_ATTRIBUTES
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    attr_id = graphene.Node.to_global_id(
+        "Attribute", product_type.variant_attributes.first().id
+    )
+
+    variables = {
+        "id": variant_id,
+        "attributes": [{"id": attr_id, "values": values}],
+        "sku": sku,
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    variant.refresh_from_db()
+    content = get_graphql_content(response)
+    assert (
+        len(content["data"]["productVariantUpdate"]["errors"]) == 1
+    ), f"expected: {message}"
+    assert content["data"]["productVariantUpdate"]["errors"][0] == {
+        "field": "attributes",
+        "message": message,
+    }
+    assert not variant.product.variants.filter(sku=sku).exists()
 
 
 def test_delete_variant(staff_api_client, product, permission_manage_products):

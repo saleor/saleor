@@ -1,11 +1,13 @@
-import functools
-import operator
 from collections import defaultdict
 
 import django_filters
-from django.db.models import Q, Sum
+from django.db.models import Sum
 from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 
+from ...product.filters import (
+    T_PRODUCT_FILTER_QUERIES,
+    filter_products_by_attributes_values,
+)
 from ...product.models import Attribute, Category, Collection, Product, ProductType
 from ...search.backends import picker
 from ..core.filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
@@ -33,7 +35,7 @@ def filter_fields_containing_value(*search_fields: str):
     return _filter_qs
 
 
-def filter_products_by_attributes(qs, filter_value):
+def _clean_product_attributes_filter_input(filter_value) -> T_PRODUCT_FILTER_QUERIES:
     attributes = Attribute.objects.prefetch_related("values")
     attributes_map = {attribute.slug: attribute.pk for attribute in attributes}
     values_map = {
@@ -41,6 +43,7 @@ def filter_products_by_attributes(qs, filter_value):
         for attr in attributes
     }
     queries = defaultdict(list)
+
     # Convert attribute:value pairs into a dictionary where
     # attributes are keys and values are grouped in lists
     for attr_name, val_slug in filter_value:
@@ -49,21 +52,13 @@ def filter_products_by_attributes(qs, filter_value):
         attr_pk = attributes_map[attr_name]
         attr_val_pk = values_map[attr_name].get(val_slug, val_slug)
         queries[attr_pk].append(attr_val_pk)
-    # Combine filters of the same attribute with OR operator
-    # and then combine full query with AND operator.
-    combine_and = [
-        functools.reduce(
-            operator.or_,
-            [
-                Q(**{f"variants__attributes__from_key_{key}__has_key": str(v)})
-                | Q(**{f"attributes__from_key_{key}__has_key": str(v)})
-                for v in values
-            ],
-        )
-        for key, values in queries.items()
-    ]
-    query = functools.reduce(operator.and_, combine_and)
-    return qs.filter(query).distinct()
+
+    return queries
+
+
+def filter_products_by_attributes(qs, filter_value):
+    queries = _clean_product_attributes_filter_input(filter_value)
+    return filter_products_by_attributes_values(qs, queries)
 
 
 def filter_products_by_price(qs, price_lte=None, price_gte=None):

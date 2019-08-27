@@ -4,7 +4,6 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.postgres.fields import JSONField
-from django.core import exceptions
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import F, Q
@@ -24,8 +23,8 @@ from prices import MoneyRange
 from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
+from ..core.db.fields import SanitizedJSONField
 from ..core.exceptions import InsufficientStock
-from ..core.fields import FilterableJSONBField, SanitizedJSONField
 from ..core.models import (
     ModelWithMetadata,
     PublishableModel,
@@ -40,28 +39,6 @@ from ..discount import DiscountInfo
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel, SeoModelTranslation
 from . import AttributeInputType
-
-
-def validate_attribute_json(value):
-    for k, values in value.items():
-        if not isinstance(k, str):
-            raise exceptions.ValidationError(
-                f"The key {k!r} should be of type str (got {type(k)})",
-                params={"k": k, "values": values},
-            )
-        if not isinstance(values, list):
-            raise exceptions.ValidationError(
-                f"The values of {k!r} should be of type list (got {type(values)})",
-                params={"k": k, "values": values},
-            )
-
-        for value_pk in values:
-            if not isinstance(value_pk, str):
-                raise exceptions.ValidationError(
-                    f"The values inside {value_pk!r} should be of type str "
-                    f"(got {type(value_pk)})",
-                    params={"k": k, "values": values, "value_pk": value_pk},
-                )
 
 
 class Category(MPTTModel, ModelWithMetadata, SeoModel):
@@ -211,10 +188,6 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
     )
     minimal_variant_price = MoneyField(
         amount_field="minimal_variant_price_amount", currency_field="currency"
-    )
-
-    attributes = FilterableJSONBField(
-        default=dict, blank=True, validators=[validate_attribute_json]
     )
     updated_at = models.DateTimeField(auto_now=True, null=True)
     charge_taxes = models.BooleanField(default=True)
@@ -373,9 +346,6 @@ class ProductVariant(ModelWithMetadata):
     )
     product = models.ForeignKey(
         Product, related_name="variants", on_delete=models.CASCADE
-    )
-    attributes = FilterableJSONBField(
-        default=dict, blank=True, validators=[validate_attribute_json]
     )
     images = models.ManyToManyField("ProductImage", through="VariantImage")
     track_inventory = models.BooleanField(default=True)
@@ -548,6 +518,68 @@ class DigitalContentUrl(models.Model):
         return build_absolute_uri(url)
 
 
+class BaseAttributeQuerySet(models.QuerySet):
+    @staticmethod
+    def user_has_access_to_all(user):
+        return user.is_active and user.has_perm("product.manage_products")
+
+    def get_public_attributes(self):
+        raise NotImplementedError
+
+    def get_visible_to_user(self, user):
+        if self.user_has_access_to_all(user):
+            return self.all()
+        return self.get_public_attributes()
+
+
+class AssignedProductAttribute(models.Model):
+    """Associate a product type attribute and selected values to a given product."""
+
+    product = models.ForeignKey(
+        Product, related_name="attributes", on_delete=models.CASCADE
+    )
+    assignment = models.ForeignKey(
+        "AttributeProduct", on_delete=models.CASCADE, related_name="productassignments"
+    )
+    values = models.ManyToManyField("AttributeValue")
+
+    class Meta:
+        unique_together = (("product", "assignment"),)
+
+    @property
+    def attribute(self):
+        """Return the attribute assigned to this relation."""
+        return self.assignment.attribute
+
+
+class AssignedVariantAttribute(models.Model):
+    """Associate a product type attribute and selected values to a given variant."""
+
+    variant = models.ForeignKey(
+        ProductVariant, related_name="attributes", on_delete=models.CASCADE
+    )
+    assignment = models.ForeignKey(
+        "AttributeVariant", on_delete=models.CASCADE, related_name="variantassignments"
+    )
+    values = models.ManyToManyField("AttributeValue")
+
+    class Meta:
+        unique_together = (("variant", "assignment"),)
+
+    @property
+    def attribute(self):
+        return self.assignment.attribute
+
+    @property
+    def attribute_pk(self):
+        return self.assignment.attribute_id
+
+
+class AssociatedAttributeQuerySet(BaseAttributeQuerySet):
+    def get_public_attributes(self):
+        return self.filter(attribute__visible_in_storefront=True)
+
+
 class AttributeProduct(SortableModel):
     attribute = models.ForeignKey(
         "Attribute", related_name="attributeproduct", on_delete=models.CASCADE
@@ -555,9 +587,19 @@ class AttributeProduct(SortableModel):
     product_type = models.ForeignKey(
         ProductType, related_name="attributeproduct", on_delete=models.CASCADE
     )
+    assigned_products = models.ManyToManyField(
+        Product,
+        blank=True,
+        through=AssignedProductAttribute,
+        through_fields=["assignment", "product"],
+        related_name="attributesrelated",
+    )
+
+    objects = AssociatedAttributeQuerySet.as_manager()
 
     class Meta:
         unique_together = (("attribute", "product_type"),)
+        ordering = ("sort_order",)
 
     def get_ordering_queryset(self):
         return self.product_type.attributeproduct.all()
@@ -570,15 +612,25 @@ class AttributeVariant(SortableModel):
     product_type = models.ForeignKey(
         ProductType, related_name="attributevariant", on_delete=models.CASCADE
     )
+    assigned_variants = models.ManyToManyField(
+        ProductVariant,
+        blank=True,
+        through=AssignedVariantAttribute,
+        through_fields=["assignment", "variant"],
+        related_name="attributesrelated",
+    )
+
+    objects = AssociatedAttributeQuerySet.as_manager()
 
     class Meta:
         unique_together = (("attribute", "product_type"),)
+        ordering = ("sort_order",)
 
     def get_ordering_queryset(self):
         return self.product_type.attributevariant.all()
 
 
-class AttributeQuerySet(models.QuerySet):
+class AttributeQuerySet(BaseAttributeQuerySet):
     def get_unassigned_attributes(self, product_type_pk: int):
         return self.exclude(
             Q(attributeproduct__product_type_id=product_type_pk)
@@ -591,17 +643,8 @@ class AttributeQuerySet(models.QuerySet):
             | Q(attributevariant__product_type_id=product_type_pk)
         )
 
-    @staticmethod
-    def user_has_access_to_all(user):
-        return user.is_active and user.has_perm("product.manage_products")
-
     def get_public_attributes(self):
         return self.filter(visible_in_storefront=True)
-
-    def get_visible_to_user(self, user):
-        if self.user_has_access_to_all(user):
-            return self.all()
-        return self.get_public_attributes()
 
     def _get_sorted_m2m_field(self, m2m_field_name: str, asc: bool):
         sort_order_field = F(f"{m2m_field_name}__sort_order")
