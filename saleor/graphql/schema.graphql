@@ -516,7 +516,7 @@ type Checkout implements Node {
   shippingAddress: Address
   shippingMethod: ShippingMethod
   note: String!
-  discountAmount: Money @deprecated(reason: "Use discount instead.")
+  discountAmount: Money @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, use discount instead.")
   discount: Money
   discountName: String
   translatedDiscountName: String
@@ -2041,7 +2041,7 @@ type Order implements Node {
   totalBalance: Money!
   userEmail: String
   isShippingRequired: Boolean!
-  discountAmount: Money! @deprecated(reason: "Deprecated: use discount instead.")
+  discountAmount: Money! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, use discount instead.")
 }
 
 enum OrderAction {
@@ -2495,11 +2495,11 @@ type Product implements Node {
   meta: [MetaStore]!
   url: String!
   thumbnail(size: Int): Image
-  availability: ProductPricingInfo @deprecated(reason: "Has been renamed to 'pricing'.")
+  availability: ProductPricingInfo @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, Has been renamed to 'pricing'.")
   pricing: ProductPricingInfo
   isAvailable: Boolean
   basePrice: Money
-  price: Money @deprecated(reason: "Has been replaced by 'basePrice'")
+  price: Money @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, has been replaced by 'basePrice'")
   minimalVariantPrice: Money
   taxType: TaxType
   attributes: [SelectedAttribute!]!
@@ -2664,7 +2664,7 @@ enum ProductOrderField {
 }
 
 type ProductPricingInfo {
-  available: Boolean @deprecated(reason: "This has been moved to the parent type as 'is_available'.")
+  available: Boolean @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, this has been moved to the parent type as 'is_available'.")
   onSale: Boolean
   discount: TaxedMoney
   discountLocalCurrency: TaxedMoney
@@ -2816,8 +2816,8 @@ type ProductVariant implements Node {
   meta: [MetaStore]!
   stockQuantity: Int!
   priceOverride: Money
-  price: Money @deprecated(reason: "Has been replaced by 'pricing.price_undiscounted'")
-  availability: VariantPricingInfo @deprecated(reason: "Has been renamed to 'pricing'.")
+  price: Money @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, has been replaced by 'pricing.price_undiscounted'")
+  availability: VariantPricingInfo @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, has been renamed to 'pricing'.")
   pricing: VariantPricingInfo
   isAvailable: Boolean
   attributes: [SelectedAttribute!]!
@@ -3083,7 +3083,7 @@ type SaleUpdate {
 
 type SelectedAttribute {
   attribute: Attribute!
-  value: AttributeValue @deprecated(reason: "Use values instead.")
+  value: AttributeValue @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, use values instead.")
   values: [AttributeValue]!
 }
 
@@ -3565,7 +3565,7 @@ type VariantImageUnassign {
 }
 
 type VariantPricingInfo {
-  available: Boolean @deprecated(reason: "This has been moved to the parent type as 'is_available'.")
+  available: Boolean @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, this has been moved to the parent type as 'is_available'.")
   onSale: Boolean
   discount: TaxedMoney
   discountLocalCurrency: TaxedMoney
@@ -3599,7 +3599,7 @@ type Voucher implements Node {
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   countries: [CountryDisplay]
   translation(languageCode: LanguageCodeEnum!): VoucherTranslation
-  minAmountSpent: Money @deprecated(reason: "Use the minSpent field instead.")
+  minAmountSpent: Money @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, use the minSpent field instead.")
 }
 
 type VoucherAddCatalogues {
