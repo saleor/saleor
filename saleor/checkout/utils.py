@@ -135,78 +135,6 @@ def get_prices_of_discounted_specific_product(lines, voucher, discounts=None):
     return line_prices
 
 
-def get_prices_of_discounted_products(checkout, discounted_products, discounts=None):
-    """Get prices of variants belonging to the discounted products."""
-    # If there's no discounted_products,
-    # it means that all products are discounted
-    line_prices = []
-    if discounted_products:
-        manager = get_extensions_manager()
-        for line in checkout:
-            if line.variant.product in discounted_products:
-                line_total = manager.calculate_checkout_line_total(
-                    line, discounts or []
-                ).gross
-                line_unit_price = quantize_price(
-                    (line_total / line.quantity), line_total.currency
-                )
-                line_prices.extend([line_unit_price] * line.quantity)
-    return line_prices
-
-
-def get_prices_of_products_in_discounted_collections(
-    checkout, discounted_collections, discounts=None
-):
-    """Get prices of variants belonging to the discounted collections."""
-    # If there's no discounted collections,
-    # it means that all of them are discounted
-    line_prices = []
-    if discounted_collections:
-        manager = get_extensions_manager()
-        for line in checkout:
-            if not line.variant:
-                continue
-            product_collections = line.variant.product.collections.all()
-            if set(product_collections).intersection(discounted_collections):
-                line_total = manager.calculate_checkout_line_total(
-                    line, discounts or []
-                ).gross
-                line_unit_price = quantize_price(
-                    (line_total / line.quantity), line_total.currency
-                )
-                line_prices.extend([line_unit_price] * line.quantity)
-    return line_prices
-
-
-def get_prices_of_products_in_discounted_categories(
-    checkout, discounted_categories, discounts=None
-):
-    """Get prices of variants belonging to the discounted categories.
-
-    Product must be assigned directly to the discounted category, assigning
-    product to child category won't work.
-    """
-    # If there's no discounted collections,
-    # it means that all of them are discounted
-    line_prices = []
-    if discounted_categories:
-        discounted_categories = set(discounted_categories)
-        for line in checkout:
-            if not line.variant:
-                continue
-            manager = get_extensions_manager()
-            product_category = line.variant.product.category
-            if product_category in discounted_categories:
-                line_total = manager.calculate_checkout_line_total(
-                    line, discounts or []
-                ).gross
-                line_unit_price = quantize_price(
-                    (line_total / line.quantity), line_total.currency
-                )
-                line_prices.extend([line_unit_price] * line.quantity)
-    return line_prices
-
-
 def check_product_availability_and_warn(request, checkout):
     """Warn if checkout contains any lines that cannot be fulfilled."""
     if contains_unavailable_variants(checkout):
@@ -800,18 +728,6 @@ def _get_products_voucher_discount(checkout, voucher, discounts=None):
     prices = None
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
         prices = get_prices_of_discounted_specific_product(checkout, voucher, discounts)
-    elif voucher.type == VoucherType.PRODUCT:
-        prices = get_prices_of_discounted_products(
-            checkout, voucher.products.all(), discounts
-        )
-    elif voucher.type == VoucherType.COLLECTION:
-        prices = get_prices_of_products_in_discounted_collections(
-            checkout, voucher.collections.all(), discounts
-        )
-    elif voucher.type == VoucherType.CATEGORY:
-        prices = get_prices_of_products_in_discounted_categories(
-            checkout, voucher.categories.all(), discounts
-        )
     if not prices:
         msg = pgettext(
             "Voucher not applicable", "This offer is only valid for selected items."
@@ -832,12 +748,7 @@ def get_voucher_discount_for_checkout(voucher, checkout, discounts=None) -> Mone
         return voucher.get_discount_amount_for(subtotal)
     if voucher.type == VoucherType.SHIPPING:
         return _get_shipping_voucher_discount_for_checkout(voucher, checkout, discounts)
-    if voucher.type in (
-        VoucherType.PRODUCT,
-        VoucherType.COLLECTION,
-        VoucherType.CATEGORY,
-        VoucherType.SPECIFIC_PRODUCT,
-    ):
+    if voucher.type == VoucherType.SPECIFIC_PRODUCT:
         return _get_products_voucher_discount(checkout, voucher, discounts)
     raise NotImplementedError("Unknown discount type")
 

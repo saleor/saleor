@@ -154,10 +154,6 @@ class VoucherCreate(ModelMutation):
             data["code"] = generate_promo_code()
         elif not is_available_promo_code(code):
             raise PromoCodeAlreadyExists()
-        voucher_type = data.get("type", None)
-        if voucher_type == VoucherTypeEnum.VALUE:
-            data["type"] = VoucherTypeEnum.ENTIRE_ORDER.value
-
         cleaned_input = super().clean_input(info, instance, data)
 
         min_spent_amount = cleaned_input.pop("min_amount_spent", None)
