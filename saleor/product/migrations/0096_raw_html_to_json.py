@@ -3,7 +3,7 @@ from django.db import migrations
 from draftjs_sanitizer import clean_draft_js
 from html_to_draftjs import html_to_draftjs
 
-from ...core.fields import SanitizedJSONField
+from ...core.db.fields import SanitizedJSONField
 from ...core.utils.draftjs import json_content_to_raw_text
 
 

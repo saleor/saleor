@@ -6,6 +6,7 @@ from graphene import relay
 from graphql_jwt.decorators import permission_required
 
 from ....product import models
+from ....product.utils.attributes import T_ASSIGNMENT_REL
 from ...core.connection import CountableDjangoObjectType
 from ...core.resolvers import resolve_meta, resolve_private_meta
 from ...core.types import MetadataObjectType
@@ -204,6 +205,10 @@ class SelectedAttribute(graphene.ObjectType):
 
     class Meta:
         description = "Represents a custom attribute."
+
+    @staticmethod
+    def resolve_value(root: T_ASSIGNMENT_REL, _info):
+        return root.values.first()
 
 
 class AttributeInput(graphene.InputObjectType):

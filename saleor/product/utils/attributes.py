@@ -1,70 +1,66 @@
-from collections import defaultdict
-from typing import List
+from typing import Union
+
+from ..models import (
+    AssignedProductAttribute,
+    AssignedVariantAttribute,
+    Attribute,
+    AttributeValue,
+    Product,
+    ProductVariant,
+)
+
+T_ASSIGNMENT_REL = Union[AssignedProductAttribute, AssignedVariantAttribute]
 
 
-def get_product_attributes_data(product):
-    """Return the attributes associated with the product.
-
-    It is returned as a dict of Attribute: AttributeValue values.
-    """
-    attributes = product.product_type.product_attributes.exclude(
-        visible_in_storefront=False
-    ).product_attributes_sorted()
-
-    attributes_map = {attribute.pk: attribute.translated for attribute in attributes}
-    values_map = get_attributes_display_map(product, attributes)
-    product_attributes = {}
-
-    for attr_pk, value_obj in values_map.items():
-        key = attributes_map[attr_pk]
-        if not isinstance(value_obj, str):
-            value_obj = value_obj.translated
-        product_attributes[key] = value_obj
-
-    return product_attributes
-
-
-def get_name_from_attributes(variant, attributes):
+def generate_name_for_variant(variant: ProductVariant) -> str:
     """Generate ProductVariant's name based on its attributes."""
-    values = get_attributes_display_map(variant, attributes)
-    return generate_name_from_values(values)
+    attributes_display = []
+
+    for attribute_rel in variant.attributes.all():  # type: AssignedVariantAttribute
+        values_qs = attribute_rel.values.all()  # FIXME: this should be sorted
+        translated_values = [str(value.translated) for value in values_qs]
+        attributes_display.append(", ".join(translated_values))
+
+    return " / ".join(attributes_display)
 
 
-def get_attributes_display_map(obj, attributes):
-    """Return attributes associated with an object, as dict of AttrPK: AttributeValue.
-
-    Args:
-        obj: The variant or product.
-        attributes: Attribute Iterable
-
-    """
-    display_map = defaultdict(str)
-    for attribute in attributes:
-        attribute_values = obj.attributes.get(str(attribute.pk))  # type: List
-        if attribute_values:
-            choices = {str(a.pk): a.translated for a in attribute.values.all()}
-            for value in attribute_values:
-                current_display_value = display_map[attribute.pk]
-                if not current_display_value:
-                    current_display_value = choices[value]
-                else:
-                    current_display_value = f"{current_display_value}, {choices[value]}"
-                display_map[attribute.pk] = current_display_value
-    return display_map
-
-
-def generate_name_from_values(attributes_dict):
-    """Generate name from AttributeValues.
-
-    Attributes dict is sorted, as attributes order should be kept within each save.
-
-    Args:
-        attributes_dict: dict of attribute_pk: AttributeValue values
-
-    """
-    return " / ".join(
-        str(attribute_value)
-        for attribute_pk, attribute_value in sorted(
-            attributes_dict.items(), key=lambda x: x[0]
+def _associate_attribute_to_instance(
+    instance: Union[Product, ProductVariant], attribute_pk: Attribute
+) -> T_ASSIGNMENT_REL:
+    """Associate a given attribute to an instance."""
+    if isinstance(instance, Product):
+        attribute_rel = instance.product_type.attributeproduct.get(
+            attribute_id=attribute_pk
         )
-    )
+
+        assignment, _ = AssignedProductAttribute.objects.get_or_create(
+            product=instance, assignment=attribute_rel
+        )
+    elif isinstance(instance, ProductVariant):
+        attribute_rel = instance.product.product_type.attributevariant.get(
+            attribute_id=attribute_pk
+        )
+
+        assignment, _ = AssignedVariantAttribute.objects.get_or_create(
+            variant=instance, assignment=attribute_rel
+        )
+    else:
+        raise AssertionError(f"{instance.__class__.__name__} is unsupported")
+
+    return assignment
+
+
+def associate_attribute_values_to_instance(
+    instance: Union[Product, ProductVariant],
+    attribute: Attribute,
+    *values: AttributeValue,
+) -> T_ASSIGNMENT_REL:
+    """Assign given attribute values to a product or variant.
+
+    Note: be award this function invokes the ``set`` method on the instance's
+    attribute association. Meaning any values already assigned or concurrently
+    assigned will be overridden by this call.
+    """
+    assignment = _associate_attribute_to_instance(instance, attribute.pk)
+    assignment.values.set(values)
+    return assignment

@@ -30,10 +30,13 @@ def products_with_details(user):
         "category__translations",
         "collections__translations",
         "images",
-        "variants__variant_images__image",
-        "attributes__values__translations",
         "product_type__product_attributes__translations",
         "product_type__product_attributes__values__translations",
+        "attributes__values__translations",
+        "attributes__assignment__attribute__translations",
+        "variants__variant_images__image",
+        "variants__attributes__values__translations",
+        "variants__attributes__assignment__attribute__translations",
     )
     return products
 
