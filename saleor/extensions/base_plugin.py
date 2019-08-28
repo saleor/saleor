@@ -147,6 +147,14 @@ class BasePlugin:
                     config_item.update([("value", new_value)])
 
     @classmethod
+    def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
+        """Validate if provided configuration is correct.
+
+        Raise django.core.exceptions.ValidationError in the other cases
+        """
+        return
+
+    @classmethod
     def save_plugin_configuration(
         cls, plugin_configuration: "PluginConfiguration", cleaned_data
     ):
@@ -156,6 +164,7 @@ class BasePlugin:
             cls._update_config_items(configuration_to_update, current_config)
         if "active" in cleaned_data:
             plugin_configuration.active = cleaned_data["active"]
+        cls.validate_plugin_configuration(plugin_configuration)
         plugin_configuration.save()
         return plugin_configuration
 
