@@ -59,6 +59,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Change AddressValidationRules API - #4655 by @Kwaidan00
 - Refactor account deletion mutations - #4668 by @fowczarek
 - Upgraded django-prices from v1 to v2.1. Currency codes are now locked at 3 characters max by default for consistency. - #4639 by @NyanKiyoshi
+- Fix - dynamic settings - Append description to fields returned from pluginConfigurationUpdate mutation - #4692 by @korycins
 
 ## 2.8.0
 
