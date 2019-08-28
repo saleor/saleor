@@ -28,6 +28,12 @@ def checkout_with_digital_item(checkout, digital_content):
     return checkout
 
 
+@pytest.fixture(autouse=True)
+def enable_dummy_gateway(settings):
+    settings.PLUGINS = ["saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin", ]
+    return settings
+
+
 @pytest.mark.parametrize("with_shipping_address", (True, False))
 def test_create_checkout(
     api_client, digital_content, graphql_address_data, with_shipping_address
