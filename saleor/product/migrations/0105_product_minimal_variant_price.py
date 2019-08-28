@@ -11,7 +11,7 @@ def populate_product_minimal_variant_price(apps, schema_editor):
         # depends on models' methods and we would have to copy all the code into
         # this migration. Instead we should manually run the management command:
         # - "update_all_products_minimal_variant_prices"
-        product.minimal_variant_price_amount = product.price_amount
+        product.minimal_variant_price_amount = product.price
         product.save(update_fields=["minimal_variant_price_amount"])
 
 
