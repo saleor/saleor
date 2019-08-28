@@ -1912,7 +1912,7 @@ type Mutations {
   giftCardCreate(input: GiftCardCreateInput!): GiftCardCreate
   giftCardDeactivate(id: ID!): GiftCardDeactivate
   giftCardUpdate(id: ID!, input: GiftCardUpdateInput!): GiftCardUpdate
-  pluginConfigurationUpdate(id: ID!, input: PluginConfigurationUpdateInput!): PluginConfigurationUpdate
+  pluginUpdate(id: ID!, input: PluginUpdateInput!): PluginUpdate
   saleCreate(input: SaleInput!): SaleCreate
   saleDelete(id: ID!): SaleDelete
   saleBulkDelete(ids: [ID]!): SaleBulkDelete
@@ -2450,7 +2450,7 @@ enum PermissionEnum {
   MANAGE_TRANSLATIONS
 }
 
-type PluginConfiguration implements Node {
+type Plugin implements Node {
   name: String!
   description: String!
   active: Boolean!
@@ -2458,23 +2458,23 @@ type PluginConfiguration implements Node {
   id: ID!
 }
 
-type PluginConfigurationCountableConnection {
+type PluginCountableConnection {
   pageInfo: PageInfo!
-  edges: [PluginConfigurationCountableEdge!]!
+  edges: [PluginCountableEdge!]!
   totalCount: Int
 }
 
-type PluginConfigurationCountableEdge {
-  node: PluginConfiguration!
+type PluginCountableEdge {
+  node: Plugin!
   cursor: String!
 }
 
-type PluginConfigurationUpdate {
+type PluginUpdate {
   errors: [Error!]
-  pluginConfiguration: PluginConfiguration
+  plugin: Plugin
 }
 
-input PluginConfigurationUpdateInput {
+input PluginUpdateInput {
   active: Boolean
   configuration: [ConfigurationItemInput]
 }
@@ -2965,8 +2965,8 @@ type Query {
   menuItems(query: String, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
   giftCard(id: ID!): GiftCard
   giftCards(before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
-  pluginConfiguration(id: ID!): PluginConfiguration
-  pluginConfigurations(before: String, after: String, first: Int, last: Int): PluginConfigurationCountableConnection
+  plugin(id: ID!): Plugin
+  plugins(before: String, after: String, first: Int, last: Int): PluginCountableConnection
   sale(id: ID!): Sale
   sales(filter: SaleFilterInput, query: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection
   voucher(id: ID!): Voucher
