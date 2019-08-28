@@ -80,6 +80,7 @@ def site_settings(db, settings):
     return obj
 
 
+
 @pytest.fixture
 def checkout(db):
     return Checkout.objects.create()

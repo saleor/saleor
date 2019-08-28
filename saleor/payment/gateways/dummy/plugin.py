@@ -15,7 +15,8 @@ if TYPE_CHECKING:
 
 
 class DummyGatewayPlugin(BasePlugin):
-    PLUGIN_NAME = "Dummy Gateway"
+    #PLUGIN_NAME = "DUMMY_GATEWAY"
+    PLUGIN_NAME = GATEWAY_NAME
     CONFIG_STRUCTURE = {
         "Store customers card": {
             "type": ConfigurationTypeField.BOOLEAN,
