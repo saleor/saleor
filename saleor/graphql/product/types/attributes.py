@@ -3,12 +3,12 @@ import re
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from graphene import relay
-from graphql_jwt.decorators import permission_required
 
 from ....product import models
 from ...core.connection import CountableDjangoObjectType
 from ...core.resolvers import resolve_meta, resolve_private_meta
 from ...core.types import MetadataObjectType
+from ...decorators import permission_required
 from ...translations.enums import LanguageCodeEnum
 from ...translations.resolvers import resolve_translation
 from ...translations.types import AttributeTranslation, AttributeValueTranslation

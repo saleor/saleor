@@ -2,7 +2,7 @@ import graphene
 import graphene_django_optimizer as gql_optimizer
 from django.contrib.auth import get_user_model
 from graphene import relay
-from graphql_jwt.decorators import login_required, permission_required
+from graphql_jwt.decorators import login_required
 
 from ...account import models
 from ...checkout.utils import get_user_checkout
@@ -14,6 +14,7 @@ from ..core.fields import PrefetchingConnectionField
 from ..core.resolvers import resolve_meta, resolve_private_meta
 from ..core.types import CountryDisplay, Image, MetadataObjectType, PermissionDisplay
 from ..core.utils import get_node_optimized
+from ..decorators import permission_required
 from ..utils import format_permissions_for_display
 from .enums import CustomerEventsEnum
 

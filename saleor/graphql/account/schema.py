@@ -1,8 +1,9 @@
 import graphene
-from graphql_jwt.decorators import login_required, permission_required
+from graphql_jwt.decorators import login_required
 
 from ..core.fields import FilterInputConnectionField
 from ..core.types import FilterInputObjectType
+from ..decorators import permission_required
 from ..descriptions import DESCRIPTIONS
 from .bulk_mutations import CustomerBulkDelete, StaffBulkDelete, UserBulkSetActive
 from .enums import CountryCodeEnum
