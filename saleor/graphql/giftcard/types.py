@@ -1,8 +1,8 @@
 import graphene
-from graphql_jwt.decorators import permission_required
 
 from ...giftcard import models
 from ..core.connection import CountableDjangoObjectType
+from ..decorators import permission_required
 
 
 class GiftCard(CountableDjangoObjectType):

@@ -1,8 +1,8 @@
 import graphene
-from graphql_jwt.decorators import permission_required
 
 from ..core.enums import ReportingPeriod
 from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
+from ..decorators import permission_required
 from ..descriptions import DESCRIPTIONS
 from ..translations.mutations import (
     AttributeTranslate,

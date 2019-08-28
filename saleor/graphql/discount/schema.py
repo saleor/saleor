@@ -1,8 +1,8 @@
 import graphene
-from graphql_jwt.decorators import permission_required
 
 from ..core.fields import FilterInputConnectionField
 from ..core.types import FilterInputObjectType
+from ..decorators import permission_required
 from ..translations.mutations import SaleTranslate, VoucherTranslate
 from .bulk_mutations import SaleBulkDelete, VoucherBulkDelete
 from .filters import SaleFilter, VoucherFilter
