@@ -48,7 +48,7 @@ def test_query_plugin_configurations(
     settings.PLUGINS = ["tests.api.test_extensions.PluginSample"]
     query = """
         {
-          pluginConfigurations(first:1){
+          plugins(first:1){
             edges{
               node{
                 name
@@ -71,7 +71,7 @@ def test_query_plugin_configurations(
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
 
-    plugins = content["data"]["pluginConfigurations"]["edges"]
+    plugins = content["data"]["plugins"]["edges"]
 
     assert len(plugins) == 1
     plugin = plugins[0]["node"]
@@ -110,13 +110,11 @@ def test_query_plugin_configuration(
     settings.PLUGINS = ["tests.api.test_extensions.PluginSample"]
     manager = get_extensions_manager()
     plugin_configuration = manager.get_plugin_configuration("PluginSample")
-    configuration_id = graphene.Node.to_global_id(
-        "PluginConfiguration", plugin_configuration.pk
-    )
+    configuration_id = graphene.Node.to_global_id("Plugin", plugin_configuration.pk)
 
     query = """
-    query pluginConfiguration($id: ID!){
-      pluginConfiguration(id:$id){
+    query plugin($id: ID!){
+      plugin(id:$id){
         name
         description
         active
@@ -134,7 +132,7 @@ def test_query_plugin_configuration(
     staff_api_client.user.user_permissions.add(permission_manage_plugins)
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-    plugin = content["data"]["pluginConfiguration"]
+    plugin = content["data"]["plugin"]
     assert plugin["name"] == plugin_configuration.name
     assert plugin["active"] == plugin_configuration.active
     assert plugin["description"] == plugin_configuration.description
@@ -168,13 +166,13 @@ def test_plugin_configuration_update(
     updated_configuration_item,
 ):
     query = """
-        mutation pluginConfigurationUpdate(
+        mutation pluginUpdate(
             $id: ID!, $active: Boolean, $configuration: [ConfigurationItemInput]){
-            pluginConfigurationUpdate(
+            pluginUpdate(
                 id:$id,
                 input:{active: $active, configuration: $configuration}
             ){
-            pluginConfiguration{
+            plugin{
               name
               active
               configuration{
@@ -196,7 +194,7 @@ def test_plugin_configuration_update(
     manager = get_extensions_manager()
     plugin = manager.get_plugin_configuration(plugin_name="PluginSample")
     old_configuration = plugin.configuration
-    plugin_id = graphene.Node.to_global_id("PluginConfiguration", plugin.pk)
+    plugin_id = graphene.Node.to_global_id("Plugin", plugin.pk)
     variables = {
         "id": plugin_id,
         "active": active,
