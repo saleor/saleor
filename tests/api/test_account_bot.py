@@ -1,4 +1,5 @@
 import graphene
+import pytest
 
 from saleor.account.models import Bot
 from saleor.graphql.core.enums import PermissionEnum
@@ -115,9 +116,10 @@ def test_bot_update_mutation(
     assert bot_data["isActive"] == bot.is_active
     assert bot.is_active is False
     assert bot_data["authToken"] == "*" * 6 + bot.auth_token[-4:]
-    assert set(bot.permissions.all()) == set(
-        [permission_manage_products, permission_manage_users]
-    )
+    assert set(bot.permissions.all()) == {
+        permission_manage_products,
+        permission_manage_users,
+    }
 
 
 def test_bot_update_no_permission(bot, staff_api_client, staff_user):
@@ -132,35 +134,149 @@ def test_bot_update_no_permission(bot, staff_api_client, staff_user):
     assert_no_permission(response)
 
 
-# def test_bots_query()
-# {
-#   bots(first:5){
-#     edges{
-#       node{
-#         id
-#         authToken
-#         isActive
-#         permissions{
-#           name
-#           code
-#         }
-#         name
-#       }
-#     }
-#   }
-# }
+@pytest.fixture
+def query_bots_with_filter():
+    query = """
+    query ($filter: BotUserInput ){
+        bots(first: 5, filter: $filter){
+            edges{
+                node{
+                    id
+                    authToken
+                    isActive
+                    permissions{
+                        name
+                        code
+                    }
+                    name
+                }
+            }
+        }
+    }
+    """
+    return query
 
 
-# {
-#   bot(id:"Qm90OjE="){
-#     id
-#     authToken
-#     created
-#     isActive
-#     permissions{
-#       code
-#       name
-#     }
-#     name
-#   }
-# }
+@pytest.mark.parametrize("bot_filter, count", (({"search": "Sample"}, 1), ({}, 2)))
+def test_bots_query(
+    query_bots_with_filter,
+    staff_api_client,
+    permission_manage_bots,
+    bot,
+    bot_filter,
+    count,
+):
+    Bot.objects.create(name="Simple bot")
+
+    variables = {"filter": bot_filter}
+    response = staff_api_client.post_graphql(
+        query_bots_with_filter, variables, permissions=[permission_manage_bots]
+    )
+    content = get_graphql_content(response)
+
+    bots_data = content["data"]["bots"]["edges"]
+    for bot_data in bots_data:
+        token = bot_data["node"]["authToken"]
+        assert token.startswith("*" * 6)
+        assert len(token) == 10
+    assert len(bots_data) == count
+
+
+def test_bots_query_no_permission(
+    query_bots_with_filter,
+    staff_api_client,
+    permission_manage_users,
+    permission_manage_staff,
+    bot,
+):
+    variables = {"filter": {}}
+    response = staff_api_client.post_graphql(
+        query_bots_with_filter, variables, permissions=[]
+    )
+    assert_no_permission(response)
+
+    response = staff_api_client.post_graphql(
+        query_bots_with_filter,
+        variables,
+        permissions=[permission_manage_users, permission_manage_staff],
+    )
+    assert_no_permission(response)
+
+
+@pytest.fixture
+def query_bot():
+    query = """
+    query ($id: ID! ){
+        bot(id: $id){
+            id
+            authToken
+            created
+            isActive
+            permissions{
+                code
+                name
+            }
+            name
+        }
+    }
+    """
+    return query
+
+
+def test_bot_query(
+    query_bot, staff_api_client, permission_manage_bots, permission_manage_staff, bot
+):
+    bot.permissions.add(permission_manage_staff)
+
+    id = graphene.Node.to_global_id("Bot", bot.id)
+    variables = {"id": id}
+    response = staff_api_client.post_graphql(
+        query_bot, variables, permissions=[permission_manage_bots]
+    )
+    content = get_graphql_content(response)
+
+    bot_data = content["data"]["bot"]
+    assert bot_data["authToken"] == "*" * 6 + bot.auth_token[-4:]
+    assert bot_data["isActive"] == bot.is_active
+    assert bot_data["permissions"] == [
+        {"code": "MANAGE_STAFF", "name": "Manage staff."}
+    ]
+
+
+def test_bot_query_no_permission(
+    query_bot, staff_api_client, permission_manage_staff, permission_manage_users, bot
+):
+    bot.permissions.add(permission_manage_staff)
+
+    id = graphene.Node.to_global_id("Bot", bot.id)
+    variables = {"id": id}
+    response = staff_api_client.post_graphql(query_bot, variables, permissions=[])
+    assert_no_permission(response)
+
+    response = staff_api_client.post_graphql(
+        query_bot,
+        variables,
+        permissions=[permission_manage_users, permission_manage_staff],
+    )
+    assert_no_permission(response)
+
+
+def test_bot_with_access_to_resources(
+    bot_api_client, bot, permission_manage_orders, order_with_lines
+):
+    query = """
+      query {
+        orders(first: 5) {
+          edges {
+            node {
+              id
+            }
+          }
+        }
+      }
+    """
+    response = bot_api_client.post_graphql(query)
+    assert_no_permission(response)
+    bot.permissions.add(permission_manage_orders)
+    response = bot_api_client.post_graphql(query)
+    get_graphql_content(response)

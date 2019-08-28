@@ -19,16 +19,22 @@ class ApiClient(Client):
     """GraphQL API client."""
 
     def __init__(self, *args, **kwargs):
-        user = kwargs.pop("user")
+        user = kwargs.pop("user", AnonymousUser())
+        bot = kwargs.pop("bot", None)
         self.user = user
+        self.bot_token = None
         if not user.is_anonymous:
             self.token = get_token(user)
+        elif bot:
+            self.bot_token = bot.auth_token
         super().__init__(*args, **kwargs)
 
     def _base_environ(self, **request):
         environ = super()._base_environ(**request)
         if not self.user.is_anonymous:
             environ.update({"HTTP_AUTHORIZATION": "JWT %s" % self.token})
+        elif self.bot_token:
+            environ.update({"HTTP_AUTHORIZATION": "Bearer %s" % self.bot_token})
         return environ
 
     def post(self, data=None, **kwargs):
@@ -83,6 +89,11 @@ class ApiClient(Client):
             assert_no_permission(response)
             self.user.user_permissions.add(*permissions)
         return super().post(API_PATH, *args, **kwargs)
+
+
+@pytest.fixture
+def bot_api_client(bot):
+    return ApiClient(bot=bot)
 
 
 @pytest.fixture
