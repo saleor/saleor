@@ -104,24 +104,10 @@ class Voucher(models.Model):
             return pgettext("Voucher type", "%(discount)s off shipping") % {
                 "discount": discount
             }
-        if self.type == VoucherType.PRODUCT:
-            products = len(self.products.all())
-            if products:
-                return pgettext(
-                    "Voucher type", "%(discount)s off %(product_num)d products"
-                ) % {"discount": discount, "product_num": products}
-        if self.type == VoucherType.COLLECTION:
-            collections = len(self.collections.all())
-            if collections:
-                return pgettext(
-                    "Voucher type", "%(discount)s off %(collections_num)d collections"
-                ) % {"discount": discount, "collections_num": collections}
-        if self.type == VoucherType.CATEGORY:
-            categories = len(self.categories.all())
-            if categories:
-                return pgettext(
-                    "Voucher type", "%(discount)s off %(categories_num)d categories"
-                ) % {"discount": discount, "categories_num": categories}
+        if self.type == VoucherType.SPECIFIC_PRODUCT:
+            return pgettext("Voucher type", "%(discount)s off specific products") % {
+                "discount": discount
+            }
         return pgettext("Voucher type", "%(discount)s off") % {"discount": discount}
 
     @property

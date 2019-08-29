@@ -294,18 +294,6 @@ def test_checkout_counter(monkeypatch):
     assert ret == {"checkout_counter": 4}
 
 
-def test_get_prices_of_discounted_products(checkout_with_item):
-    discounted_line = checkout_with_item.lines.first()
-    discounted_product = discounted_line.variant.product
-    prices = utils.get_prices_of_discounted_products(
-        checkout_with_item, [discounted_product]
-    )
-    excepted_value = [
-        discounted_line.variant.get_price() for item in range(discounted_line.quantity)
-    ]
-    assert list(prices) == excepted_value
-
-
 def test_get_prices_of_discounted_specific_product(
     checkout_with_item, collection, voucher_specific_product_type
 ):
@@ -676,20 +664,6 @@ def test_checkout_line_state(product, checkout_with_single_item):
     line.__setstate__((variant, 2))
 
     assert line.quantity == 2
-
-
-def test_get_prices_of_products_in_discounted_collections(
-    collection, product, checkout_with_item
-):
-    discounted_line = checkout_with_item.lines.first()
-    assert discounted_line.variant.product == product
-    product.collections.add(collection)
-    result = utils.get_prices_of_products_in_discounted_collections(
-        checkout_with_item, [collection]
-    )
-    assert list(result) == [
-        discounted_line.variant.get_price() for item in range(discounted_line.quantity)
-    ]
 
 
 def test_update_view_must_be_ajax(customer_user, rf):

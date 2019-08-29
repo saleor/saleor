@@ -345,7 +345,7 @@ def test_checkout_add_products_voucher_code_checkout_with_sale(
     checkout = checkout_with_item
     product = checkout.lines.first().variant.product
     voucher = voucher_percentage
-    voucher.type = VoucherType.PRODUCT
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
     voucher.save()
     voucher.products.add(product)
 
@@ -367,7 +367,7 @@ def test_checkout_add_collection_voucher_code_checkout_with_sale(
     voucher = voucher_percentage
     product = checkout.lines.first().variant.product
     product.collections.add(collection)
-    voucher.type = VoucherType.COLLECTION
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
     voucher.save()
     voucher.collections.add(collection)
 
@@ -388,7 +388,7 @@ def test_checkout_add_category_code_checkout_with_sale(
     checkout = checkout_with_item
     category = checkout.lines.first().variant.product.category
     voucher = voucher_percentage
-    voucher.type = VoucherType.CATEGORY
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
     voucher.save()
     voucher.categories.add(category)
 
