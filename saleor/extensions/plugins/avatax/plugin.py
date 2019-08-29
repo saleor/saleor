@@ -433,9 +433,10 @@ class AvataxPlugin(BasePlugin):
 
         if plugin_configuration.active and missing_fields:
             error_msg = (
-                "To enable a plugin, you need to provide values for the following fields: "
+                "To enable a plugin, you need to provide values for the "
+                "following fields: "
             )
-            raise ValidationError({"active": error_msg + ", ".join(missing_fields)})
+            raise ValidationError({"Avatax": error_msg + ", ".join(missing_fields)})
 
     @classmethod
     def _get_default_configuration(cls):
