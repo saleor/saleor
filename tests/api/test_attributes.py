@@ -1,4 +1,5 @@
 from typing import Union
+from unittest import mock
 
 import graphene
 import pytest
@@ -7,8 +8,10 @@ from django.db.models import Q
 from django.template.defaultfilters import slugify
 from graphene.utils.str_converters import to_camel_case
 
+from saleor.core.taxes import zero_money
 from saleor.graphql.core.utils import snake_to_camel_case
 from saleor.graphql.product.enums import AttributeTypeEnum, AttributeValueType
+from saleor.graphql.product.filters import filter_attributes_by_product_types
 from saleor.graphql.product.mutations.attributes import validate_value_is_unique
 from saleor.graphql.product.types.attributes import resolve_attribute_value_type
 from saleor.product import AttributeInputType
@@ -19,6 +22,7 @@ from saleor.product.models import (
     AttributeValue,
     AttributeVariant,
     Category,
+    Collection,
     Product,
     ProductType,
     ProductVariant,
@@ -311,11 +315,89 @@ def test_resolve_attribute_values_non_assigned_to_node(
     assert variant_attributes[0]["value"] is None
 
 
-def test_attributes_in_category_query(user_api_client, product):
-    category = Category.objects.first()
+def test_attributes_filter_by_product_type_with_empty_value():
+    """Ensure passing an empty or null value is ignored and the queryset is simply
+    returned without any modification.
+    """
+
+    qs = Attribute.objects.all()
+
+    assert filter_attributes_by_product_types(qs, "...", "") is qs
+    assert filter_attributes_by_product_types(qs, "...", None) is qs
+
+
+def test_attributes_filter_by_product_type_with_unsupported_field():
+    """Ensure using an unknown field to filter attributes by raises a NotImplemented
+    exception.
+    """
+
+    qs = Attribute.objects.all()
+
+    with pytest.raises(NotImplementedError) as exc:
+        filter_attributes_by_product_types(qs, "in_space", "a-value")
+
+    assert exc.value.args == ("Filtering by in_space is unsupported",)
+
+
+def test_attributes_filter_by_non_existing_category_id():
+    """Ensure using a non-existing category ID returns an empty query set."""
+
+    category_id = graphene.Node.to_global_id("Category", -1)
+    mocked_qs = mock.MagicMock()
+    qs = filter_attributes_by_product_types(mocked_qs, "in_category", category_id)
+    assert qs == mocked_qs.none.return_value
+
+
+@pytest.mark.parametrize("test_deprecated_filter", [True, False])
+@pytest.mark.parametrize("tested_field", ["inCategory", "inCollection"])
+def test_attributes_in_collection_query(
+    user_api_client,
+    product_type,
+    category,
+    collection,
+    collection_with_products,
+    test_deprecated_filter,
+    tested_field,
+):
+    if "Collection" in tested_field:
+        filtered_by_node_id = graphene.Node.to_global_id("Collection", collection.pk)
+    elif "Category" in tested_field:
+        filtered_by_node_id = graphene.Node.to_global_id("Category", category.pk)
+    else:
+        raise AssertionError(tested_field)
+    expected_qs = Attribute.objects.filter(
+        Q(attributeproduct__product_type_id=product_type.pk)
+        | Q(attributevariant__product_type_id=product_type.pk)
+    )
+
+    # Create another product type and attribute that shouldn't get matched
+    other_category = Category.objects.create(name="Other Category", slug="other-cat")
+    other_attribute = Attribute.objects.create(name="Other", slug="other")
+    other_product_type = ProductType.objects.create(
+        name="Other type", has_variants=True, is_shipping_required=True
+    )
+    other_product_type.product_attributes.add(other_attribute)
+    other_product = Product.objects.create(
+        name=f"Another Product",
+        product_type=other_product_type,
+        category=other_category,
+        price=zero_money(),
+        is_published=True,
+    )
+
+    # Create another collection with products but shouldn't get matched
+    # as we don't look for this other collection
+    other_collection = Collection.objects.create(
+        name="Other Collection",
+        slug="other-collection",
+        is_published=True,
+        description="Description",
+    )
+    other_collection.products.add(other_product)
+
     query = """
-    query {
-        attributes(inCategory: "%(category_id)s", first: 20) {
+    query($nodeID: ID!) {
+        attributes(first: 20, %(filter_input)s) {
             edges {
                 node {
                     id
@@ -325,43 +407,21 @@ def test_attributes_in_category_query(user_api_client, product):
             }
         }
     }
-    """ % {
-        "category_id": graphene.Node.to_global_id("Category", category.id)
-    }
-    response = user_api_client.post_graphql(query)
-    content = get_graphql_content(response)
+    """
+
+    if test_deprecated_filter:
+        query = query % {"filter_input": f"{tested_field}: $nodeID"}
+    else:
+        query = query % {"filter_input": "filter: { %s: $nodeID }" % tested_field}
+
+    variables = {"nodeID": filtered_by_node_id}
+    content = get_graphql_content(user_api_client.post_graphql(query, variables))
     attributes_data = content["data"]["attributes"]["edges"]
-    assert len(attributes_data) == Attribute.objects.count()
 
+    flat_attributes_data = [attr["node"]["slug"] for attr in attributes_data]
+    expected_flat_attributes_data = list(expected_qs.values_list("slug", flat=True))
 
-def test_attributes_in_collection_query(user_api_client, collection):
-    product_types = set(
-        collection.products.all().values_list("product_type_id", flat=True)
-    )
-    expected_attrs = Attribute.objects.filter(
-        Q(attributeproduct__product_type_id__in=product_types)
-        | Q(attributevariant__product_type_id__in=product_types)
-    )
-
-    query = """
-    query {
-        attributes(inCollection: "%(collection_id)s", first: 20) {
-            edges {
-                node {
-                    id
-                    name
-                    slug
-                }
-            }
-        }
-    }
-    """ % {
-        "collection_id": graphene.Node.to_global_id("Collection", collection.pk)
-    }
-    response = user_api_client.post_graphql(query)
-    content = get_graphql_content(response)
-    attributes_data = content["data"]["attributes"]["edges"]
-    assert len(attributes_data) == len(expected_attrs)
+    assert flat_attributes_data == expected_flat_attributes_data
 
 
 CREATE_ATTRIBUTES_QUERY = """
