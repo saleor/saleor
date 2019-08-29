@@ -1,5 +1,5 @@
 from decimal import Decimal
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from django.urls import reverse
@@ -13,6 +13,7 @@ from saleor.core.weight import zero_weight
 from saleor.discount.utils import validate_voucher_in_order
 from saleor.order import FulfillmentStatus, OrderStatus, events as order_events, models
 from saleor.order.models import Fulfillment, Order
+from saleor.order.templatetags.order_lines import display_translated_order_line_name
 from saleor.order.utils import (
     add_variant_to_order,
     automatically_fulfill_digital_lines,
@@ -720,3 +721,32 @@ def test_get_voucher_discount_for_order_voucher_validation(
     mock_validate_voucher.assert_called_once_with(
         voucher, subtotal.gross, quantity, customer_email
     )
+
+
+@pytest.mark.parametrize(
+    "product_name, variant_name, translated_product_name, translated_variant_name,"
+    "expected_display_name",
+    [
+        ("product", "variant", "", "", "product (variant)"),
+        ("product", "", "", "", "product"),
+        ("product", "", "productPL", "", "productPL"),
+        ("product", "variant", "productPL", "", "productPL (variant)"),
+        ("product", "variant", "productPL", "variantPl", "productPL (variantPl)"),
+        ("product", "variant", "", "variantPl", "product (variantPl)"),
+    ],
+)
+def test_display_translated_order_line_name(
+    product_name,
+    variant_name,
+    translated_product_name,
+    translated_variant_name,
+    expected_display_name,
+):
+    order_line = MagicMock(
+        product_name=product_name,
+        variant_name=variant_name,
+        translated_product_name=translated_product_name,
+        translated_variant_name=translated_variant_name,
+    )
+    display_name = display_translated_order_line_name(order_line)
+    assert display_name == expected_display_name
