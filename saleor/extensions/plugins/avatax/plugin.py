@@ -436,7 +436,7 @@ class AvataxPlugin(BasePlugin):
                 "To enable a plugin, you need to provide values for the "
                 "following fields: "
             )
-            raise ValidationError({"Avatax": error_msg + ", ".join(missing_fields)})
+            raise ValidationError(error_msg + ", ".join(missing_fields))
 
     @classmethod
     def _get_default_configuration(cls):
