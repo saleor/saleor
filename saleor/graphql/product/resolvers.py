@@ -1,10 +1,14 @@
+from typing import TYPE_CHECKING, Optional
+
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from django.db.models import Q, Sum
+from graphql import GraphQLError
 
 from ...order import OrderStatus
 from ...product import models
 from ...search.backends import picker
+from ..core.utils import from_global_id_strict_type
 from ..utils import filter_by_period, filter_by_query_param, get_database_id, get_nodes
 from .enums import AttributeSortField, OrderDirection
 from .filters import (
@@ -16,6 +20,9 @@ from .filters import (
     filter_products_by_stock_availability,
     sort_qs,
 )
+
+if TYPE_CHECKING:
+    from ..product.types import ProductOrder  # noqa
 
 PRODUCT_SEARCH_FIELDS = ("name", "description")
 PRODUCT_TYPE_SEARCH_FIELDS = ("name",)
@@ -102,6 +109,29 @@ def resolve_digital_contents(info):
     return gql_optimizer.query(qs, info)
 
 
+def sort_products(qs: models.ProductsQueryset, sort_by: Optional["ProductOrder"]):
+    if sort_by is None:
+        return qs
+
+    # Check if one of the required fields was provided
+    if sort_by.field and sort_by.attribute_id:
+        raise GraphQLError(
+            ("You must provide either `field` or `attributeId` to sort the products.")
+        )
+
+    direction = sort_by.direction
+    sorting_field = sort_by.field
+
+    if sort_by.attribute_id:
+        is_ascending = direction == OrderDirection.ASC
+        attribute_pk = from_global_id_strict_type(sort_by.attribute_id, "Attribute")
+        qs = qs.sort_by_attribute(attribute_pk, ascending=is_ascending)
+    else:
+        qs = qs.order_by(f"{direction}{sorting_field}")
+
+    return qs
+
+
 def resolve_products(
     info,
     attributes=None,
@@ -119,6 +149,7 @@ def resolve_products(
 
     user = info.context.user
     qs = models.Product.objects.visible_to_user(user)
+    qs = sort_products(qs, sort_by)
 
     if query:
         search = picker.pick_backend()
@@ -140,7 +171,6 @@ def resolve_products(
 
     qs = filter_products_by_price(qs, price_lte, price_gte)
     qs = filter_products_by_minimal_price(qs, minimal_price_lte, minimal_price_gte)
-    qs = sort_qs(qs, sort_by)
     qs = qs.distinct()
 
     return gql_optimizer.query(qs, info)
