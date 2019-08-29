@@ -2,6 +2,7 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any, List, Union
 
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django_countries.fields import Country
 from django_prices_vatlayer.utils import get_tax_rate_types
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
@@ -22,6 +23,7 @@ if TYPE_CHECKING:
     from ....product.models import Product
     from ....account.models import Address
     from ....order.models import OrderLine, Order
+    from ...models import PluginConfiguration
 
 
 class VatlayerPlugin(BasePlugin):
@@ -319,6 +321,14 @@ class VatlayerPlugin(BasePlugin):
         rate_name = self.__get_tax_code_from_object_meta(obj).code
         tax = taxes.get(rate_name) or taxes.get(DEFAULT_TAX_RATE_NAME)
         return Decimal(tax["value"])
+
+    @classmethod
+    def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
+        """Validate if provided configuration is correct."""
+        if not settings.VATLAYER_ACCESS_KEY and plugin_configuration.active:
+            raise ValidationError(
+                "Cannot be enabled without provided 'settings.VATLAYER_ACCESS_KEY'"
+            )
 
     @classmethod
     def _get_default_configuration(cls):
