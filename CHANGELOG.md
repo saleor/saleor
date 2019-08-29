@@ -56,6 +56,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add mutation to change the authenticated user's password - #4656 by @fowczarek
 - Add an functionality to sort products by their "minimal variant price" - #4416 by @derenio
 - New stripe gateway implementation based on Stripe PaymentIntents API - #4606 by @salwator
+- Service (bot) accounts - backend support - #4689 by @korycins
 
 ## 2.8.0
 
