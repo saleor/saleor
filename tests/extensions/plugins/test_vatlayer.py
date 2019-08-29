@@ -4,7 +4,7 @@ from unittest.mock import Mock
 from urllib.parse import urlparse
 
 import pytest
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.urls import reverse
 from django_countries.fields import Country
 from django_prices_vatlayer.models import VAT
@@ -531,6 +531,14 @@ def test_save_plugin_configuration(vatlayer, settings):
 
     configuration.refresh_from_db()
     assert not configuration.active
+
+
+def test_save_plugin_configuration_cannot_be_enabled_without_config(settings):
+    settings.PLUGINS = ["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+    manager = get_extensions_manager()
+    manager.get_plugin_configuration("Vatlayer")
+    with pytest.raises(ValidationError):
+        manager.save_plugin_configuration("Vatlayer", {"active": True})
 
 
 def test_show_taxes_on_storefront(vatlayer, settings):
