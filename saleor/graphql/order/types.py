@@ -208,11 +208,13 @@ class OrderLine(CountableDjangoObjectType):
             "id",
             "is_shipping_required",
             "product_name",
+            "variant_name",
             "product_sku",
             "quantity",
             "quantity_fulfilled",
             "tax_rate",
             "translated_product_name",
+            "translated_variant_name",
         ]
 
     @staticmethod

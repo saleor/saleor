@@ -1028,13 +1028,20 @@ def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine
 
     quantity = checkout_line.quantity
     variant = checkout_line.variant
+    product = variant.product
     variant.check_quantity(quantity)
 
-    product_name = variant.display_product()
-    translated_product_name = variant.display_product(translated=True)
+    product_name = str(product)
+    variant_name = str(variant)
+
+    translated_product_name = str(product.translated)
+    translated_variant_name = str(variant.translated)
 
     if translated_product_name == product_name:
         translated_product_name = ""
+
+    if translated_variant_name == variant_name:
+        translated_variant_name = ""
 
     manager = get_extensions_manager()
     total_line_price = manager.calculate_checkout_line_total(checkout_line, discounts)
@@ -1043,7 +1050,9 @@ def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine
     )
     line = OrderLine(
         product_name=product_name,
+        variant_name=variant_name,
         translated_product_name=translated_product_name,
+        translated_variant_name=translated_variant_name,
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
         quantity=quantity,

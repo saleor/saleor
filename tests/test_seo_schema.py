@@ -31,12 +31,12 @@ def test_get_product_data_with_image(order_with_lines, product_with_image):
     line = order_with_lines.lines.first()
     variant = product_with_image.variants.first()
     line.variant = variant
-    line.product_name = variant.display_product()
+    line.product_name = str(variant)
     line.save()
     organization = get_organization()
     result = get_product_data(line, organization)
     assert "image" in result["itemOffered"]
-    assert result["itemOffered"]["name"] == variant.display_product()
+    assert result["itemOffered"]["name"] == str(variant)
 
 
 def test_get_order_confirmation_markup(order_with_lines):
