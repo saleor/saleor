@@ -439,6 +439,13 @@ class AvataxPlugin(BasePlugin):
             raise ValidationError(error_msg + ", ".join(missing_fields))
 
     @classmethod
+    def _hide_secret_configuration_fields(cls, configuration):
+        for field in configuration:
+            if field.get("name") == "Password or license" and field.get("value"):
+                # We don't want to share our secret data
+                field["value"] = "*" * 6
+
+    @classmethod
     def _get_default_configuration(cls):
         defaults = {
             "name": cls.PLUGIN_NAME,
