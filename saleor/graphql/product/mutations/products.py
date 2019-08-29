@@ -18,7 +18,6 @@ from ....product.thumbnails import (
     create_product_thumbnails,
 )
 from ....product.utils.attributes import get_name_from_attributes
-from ...core.enums import TaxRateType
 from ...core.mutations import (
     BaseMutation,
     ClearMetaBaseMutation,
@@ -398,10 +397,6 @@ class CategoryClearPrivateMeta(ClearMetaBaseMutation):
 
 class AttributeValueInput(InputObjectType):
     id = graphene.ID(description="ID of an attribute")
-    name = graphene.String(
-        description="Slug of an attribute",
-        deprecation_reason="name is deprecated, use id instead",
-    )
     slug = graphene.String(description="Slug of an attribute.")
     values = graphene.List(
         graphene.String,
@@ -433,14 +428,7 @@ class ProductInput(graphene.InputObjectType):
         description="Determines if product is visible to customers."
     )
     name = graphene.String(description="Product name.")
-    price = Decimal(
-        description="""
-        Product price. Note: this field is deprecated, use basePrice instead."""
-    )
     base_price = Decimal(description="Product price.")
-    tax_rate = TaxRateType(
-        description="Tax rate.", deprecation_reason="taxRate is deprecated, Use taxCode"
-    )
     tax_code = graphene.String(description="Tax rate for enabled tax gateway")
     seo = SeoInput(description="Search engine optimization fields.")
     weight = WeightScalar(description="Weight of the Product.", required=False)
@@ -860,10 +848,6 @@ class ProductTypeInput(graphene.InputObjectType):
         description="Determines if products are digital.", required=False
     )
     weight = WeightScalar(description="Weight of the ProductType items.")
-    tax_rate = TaxRateType(
-        description="Tax rate.",
-        deprecation_reason=("taxRate is deprecated, Use taxCode"),
-    )
     tax_code = graphene.String(description="Tax rate for enabled tax gateway")
 
 

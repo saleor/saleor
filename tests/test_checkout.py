@@ -21,7 +21,6 @@ from saleor.checkout.utils import (
     clear_shipping_method,
     create_order,
     get_checkout_context,
-    get_prices_of_products_in_discounted_categories,
     get_shipping_price_estimate,
     get_voucher_discount_for_checkout,
     get_voucher_for_checkout,
@@ -37,7 +36,6 @@ from saleor.discount.models import NotApplicable, Voucher
 from saleor.extensions.manager import ExtensionsManager, get_extensions_manager
 from saleor.order import OrderEvents, OrderEventsEmails
 from saleor.order.models import OrderEvent
-from saleor.product.models import Category
 from saleor.shipping.models import ShippingZone
 
 from .utils import get_redirect_location
@@ -889,7 +887,7 @@ def test_get_voucher_discount_for_checkout_voucher_validation(
         ("99", 9, 10, DiscountValueType.PERCENTAGE, 100, 10),
     ],
 )
-def test_get_discount_for_checkout_value_voucher_not_applicable(
+def test_get_discount_for_checkout_entire_order_voucher_not_applicable(
     total,
     total_quantity,
     discount_value,
@@ -1186,57 +1184,6 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
     assert str(e.value) == error_msg
 
 
-def test_get_discount_for_checkout_product_voucher_not_applicable(monkeypatch):
-    discounts = []
-
-    monkeypatch.setattr(
-        ExtensionsManager,
-        "calculate_checkout_subtotal",
-        Mock(return_value=TaxedMoney(net=Money("1", "USD"), gross=Money("1", "USD"))),
-    )
-    monkeypatch.setattr(
-        "saleor.checkout.utils.get_prices_of_discounted_products",
-        lambda checkout, discounts, product: [],
-    )
-    voucher = Voucher(
-        code="unique",
-        type=VoucherType.PRODUCT,
-        discount_value_type=DiscountValueType.FIXED,
-        discount_value=10,
-    )
-    voucher.save()
-    checkout = Mock()
-
-    with pytest.raises(NotApplicable) as e:
-        get_voucher_discount_for_checkout(voucher, checkout, discounts)
-    assert str(e.value) == "This offer is only valid for selected items."
-
-
-def test_get_discount_for_checkout_collection_voucher_not_applicable(monkeypatch):
-    discounts = []
-    monkeypatch.setattr(
-        ExtensionsManager,
-        "calculate_checkout_subtotal",
-        Mock(return_value=TaxedMoney(net=Money("1", "USD"), gross=Money("1", "USD"))),
-    )
-    monkeypatch.setattr(
-        "saleor.checkout.utils.get_prices_of_products_in_discounted_collections",  # noqa
-        lambda checkout, discounts, product: [],
-    )
-    voucher = Voucher(
-        code="unique",
-        type=VoucherType.COLLECTION,
-        discount_value_type=DiscountValueType.FIXED,
-        discount_value=10,
-    )
-    voucher.save()
-    checkout = Mock()
-
-    with pytest.raises(NotApplicable) as e:
-        get_voucher_discount_for_checkout(voucher, checkout, discounts)
-    assert str(e.value) == "This offer is only valid for selected items."
-
-
 def test_checkout_voucher_form_invalid_voucher_code(
     monkeypatch, request_checkout_with_item
 ):
@@ -1503,23 +1450,6 @@ def test_change_address_in_checkout_from_user_address_to_other(
     assert checkout.shipping_address == other_address
     assert checkout.billing_address == other_address
     assert Address.objects.filter(id=address_id).exists()
-
-
-def test_get_prices_of_products_in_discounted_categories(checkout_with_item, category):
-    lines = checkout_with_item.lines.all()
-    discounted_lines = get_prices_of_products_in_discounted_categories(
-        checkout_with_item, [category]
-    )
-    assert [
-        line.variant.get_price() for line in lines for item in range(line.quantity)
-    ] == discounted_lines
-
-    discounted_category = Category.objects.create(name="discounted", slug="discounted")
-    discounted_lines = get_prices_of_products_in_discounted_categories(
-        checkout_with_item, [discounted_category]
-    )
-    # None of the lines are belongs to the discounted category
-    assert not discounted_lines
 
 
 def test_add_voucher_to_checkout(checkout_with_item, voucher):

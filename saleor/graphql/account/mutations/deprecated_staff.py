@@ -27,8 +27,8 @@ class PasswordReset(BaseMutation):
 
     class Meta:
         description = (
-            "DEPRECATED: Use RequestPasswordReset instead."
-            "Sends an email with the account password change link to customer."
+            "DEPRECATED: Will be removed in Saleor 2.10, use RequestPasswordReset "
+            "instead. Sends an email with the account password change link to customer."
         )
         permissions = ("account.manage_users",)
 

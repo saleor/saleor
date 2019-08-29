@@ -103,7 +103,11 @@ class Voucher(CountableDjangoObjectType):
     )
     type = VoucherTypeEnum(description="Determines a type of voucher", required=True)
     min_amount_spent = graphene.Field(
-        types.Money, deprecation_reason="Use the minSpent field instead."
+        types.Money,
+        deprecation_reason=(
+            "DEPRECATED: Will be removed in Saleor 2.10, "
+            "use the minSpent field instead."
+        ),
     )
 
     class Meta:
