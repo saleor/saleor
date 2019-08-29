@@ -3,7 +3,9 @@ import pytest
 
 from saleor.account.models import Bot
 from saleor.graphql.core.enums import PermissionEnum
-from tests.api.utils import assert_no_permission, get_graphql_content
+
+from .conftest import ApiClient
+from .utils import assert_no_permission, get_graphql_content
 
 BOT_CREATE_MUTATION = """
     mutation BotCreate(
@@ -284,3 +286,37 @@ def test_bot_with_access_to_resources(
     bot.permissions.add(permission_manage_orders)
     response = bot_api_client.post_graphql(query)
     get_graphql_content(response)
+
+
+@pytest.fixture
+def query_bot_valid_token():
+    query = """
+        query {
+            botValidToken
+        }
+    """
+    return query
+
+
+def test_bot_valid_token(bot_api_client, bot, query_bot_valid_token):
+    response = bot_api_client.post_graphql(query_bot_valid_token)
+    content = get_graphql_content(response)
+    valid_token = content["data"]["botValidToken"]
+    assert valid_token
+
+
+def test_bot_empty_token(bot, query_bot_valid_token):
+    api = ApiClient()
+    response = api.post_graphql(query_bot_valid_token)
+    content = get_graphql_content(response)
+    valid_token = content["data"]["botValidToken"]
+    assert valid_token is False
+
+
+def test_bot_invalid_token(bot_api_client, bot, query_bot_valid_token):
+    bot.auth_token = "12345"
+    bot.save()
+    response = bot_api_client.post_graphql(query_bot_valid_token)
+    content = get_graphql_content(response)
+    valid_token = content["data"]["botValidToken"]
+    assert valid_token is False
