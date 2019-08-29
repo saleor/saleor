@@ -41,10 +41,10 @@ def from_global_id_strict_type(
     try:
         _type, _id = graphene.Node.from_global_id(global_id)
     except (binascii.Error, UnicodeDecodeError) as exc:
-        raise ValidationError({field: f"Invalid base64 global ID"}) from exc
+        raise ValidationError({field: f"Couldn't resolve to a node"}) from exc
 
     if str(_type) != str(only_type):
-        raise ValidationError({field: f"Must receive a {only_type} id."})
+        raise ValidationError({field: f"Must receive a {only_type} id"})
     return _id
 
 

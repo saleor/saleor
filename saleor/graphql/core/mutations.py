@@ -106,18 +106,18 @@ class BaseMutation(graphene.Mutation):
         cls._meta.fields.update(fields)
 
     @classmethod
-    def get_node_by_id(
-        cls, info, graphene_type: ObjectType, node_id: Union[int, str], qs=None
+    def get_node_by_pk(
+        cls, info, graphene_type: ObjectType, pk: Union[int, str], qs=None
     ):
         """Attempt to resolve a node from the given internal ID.
 
         Whether by using the provided query set object or by calling type's get_node().
         """
         if qs is not None:
-            return qs.filter(pk=node_id).first()
+            return qs.filter(pk=pk).first()
         get_node = getattr(graphene_type, "get_node", None)
         if get_node:
-            return get_node(info, node_id)
+            return get_node(info, pk)
         return None
 
     @classmethod
@@ -127,19 +127,15 @@ class BaseMutation(graphene.Mutation):
 
         try:
             if only_type is not None:
-                internal_id = from_global_id_strict_type(
-                    node_id, only_type, field=field
-                )
+                pk = from_global_id_strict_type(node_id, only_type, field=field)
             else:
                 # FIXME: warn when supplied only_type is None?
-                only_type, internal_id = graphene.Node.from_global_id(node_id)
+                only_type, pk = graphene.Node.from_global_id(node_id)
 
             if isinstance(only_type, str):
                 only_type = info.schema.get_type(only_type).graphene_type
 
-            node = cls.get_node_by_id(
-                info, graphene_type=only_type, node_id=internal_id, qs=qs
-            )
+            node = cls.get_node_by_pk(info, graphene_type=only_type, pk=pk, qs=qs)
         except (AssertionError, GraphQLError) as e:
             raise ValidationError({field: str(e)})
         else:
