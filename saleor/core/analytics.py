@@ -40,10 +40,7 @@ def _report(client_id, payloads, extra_headers=None, **extra_data):
 def get_order_payloads(order):
     items = [
         ga.item(
-            ol.product_name,
-            ol.unit_price.gross,
-            quantity=ol.quantity,
-            item_id=ol.product_sku,
+            str(ol), ol.unit_price.gross, quantity=ol.quantity, item_id=ol.product_sku
         )
         for ol in order
     ]

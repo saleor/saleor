@@ -68,7 +68,9 @@ def test_add_variant_to_order_adds_line_for_new_variant(
     assert line.product_sku == variant.sku
     assert line.quantity == 1
     assert line.unit_price == TaxedMoney(net=Money(10, "USD"), gross=Money(10, "USD"))
-    assert line.translated_product_name == variant.display_product(translated=True)
+    assert line.translated_product_name == str(variant.product.translated)
+    assert line.variant_name == str(variant)
+    assert line.product_name == str(variant.product)
 
 
 @pytest.mark.parametrize("track_inventory", (True, False))

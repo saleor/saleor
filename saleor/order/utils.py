@@ -289,13 +289,20 @@ def add_variant_to_order(
     except OrderLine.DoesNotExist:
         unit_price = variant.get_price(discounts)
         unit_price = TaxedMoney(net=unit_price, gross=unit_price)
-        product_name = variant.display_product()
-        translated_product_name = variant.display_product(translated=True)
+        product = variant.product
+        product_name = str(product)
+        variant_name = str(variant)
+        translated_product_name = str(product.translated)
+        translated_variant_name = str(variant.translated)
         if translated_product_name == product_name:
             translated_product_name = ""
+        if translated_variant_name == variant_name:
+            translated_variant_name = ""
         line = order.lines.create(
             product_name=product_name,
+            variant_name=variant_name,
             translated_product_name=translated_product_name,
+            translated_variant_name=translated_variant_name,
             product_sku=variant.sku,
             is_shipping_required=variant.is_shipping_required(),
             quantity=quantity,
