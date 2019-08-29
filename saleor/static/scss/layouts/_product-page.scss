@@ -94,11 +94,13 @@
         text-indent: 0;
         margin: 0;
         img {
-          width: 60px;
+          border: 1px solid $light-gray;
+          padding: 10px;
+          width: 80px;
         }
         &.active {
           img {
-            opacity: 0.5;
+            box-shadow: 0 2px 0 0 $light-turquoise;
           }
         }
       }

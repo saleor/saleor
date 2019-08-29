@@ -1,92 +1,85 @@
+{% extends "dashboard/order/pdf/base_pdf.html" %}
+
 {% load i18n static %}
 {% load render_bundle from webpack_loader %}
 {% load shop %}
 
-<html>
-<head>
-  <title>Packing slip</title>
-  {% render_bundle 'document' 'css' %}
-</head>
-<body>
-<header>
-  <div style="float:left">
-    <img src="{% static 'images/logo-document.svg' %}">
-  </div>
-  <div
-      style="float:right">{{ order.created }}<br>{% trans "Order ID:" context "Packing slip header" %} {{ order.id }}
-  </div>
-</header>
+{% block title %}
+  {% blocktrans trimmed context "Packing slips title" with fulfillment=fulfillment %}
+    Packing Slips for Fulfillment #{{ fulfillment }}
+  {% endblocktrans %}
+{% endblock %}
 
-<h2>{% trans "Packing Slips" context "Packing slips header" %}</h2>
-<table width="100%" border="1" cellspacing="0">
-  <thead>
-    <tr>
-      {% if order.shipping_address %}
-        <th align="left" width="50%">
-          {% trans "Shipping Details" context "Packing slip shipping details" %}
-        </th>
-      {% endif %}
-      <th align="left"{% if order.shipping_address %} width="50%"{% endif %}>
-        {% trans "Billing Details" context "Packing slip shipping details" %}
-      </th>
-    </tr>
-    </thead>
-  <tbody>
-  <tr>
-    {% if order.shipping_address %}
-      <td valign="top">
-        {% with order.shipping_address as address %}
-          <h2>
-            {% trans "Shipping address" context "Packing slip shipping address" %}
-          </h2>
-          {% include 'dashboard/includes/_address.html' with address=address only %}
-        {% endwith %}
-      </td>
-    {% endif %}
-    <td valign="top">
-      {% with order.billing_address as address %}
-        <h2>
-          {% trans "Billing address" context "Packing slip billing address" %}
-        </h2>
-        {% include 'dashboard/includes/_address.html' with address=address only %}
-      {% endwith %}
-    </td>
-  </tr>
-  </tbody>
-</table>
-
-<h2>{% trans "Items Ordered" context "Order invoice" %}</h2>
-{% if order %}
-  <table class="bordered data-table">
+{% block content %}
+  <h2>{% trans "Packing Slips" context "Packing slips header" %}</h2>
+  <table width="100%" border="1" cellspacing="0">
     <thead>
       <tr>
-        <th class="wide">
-          {% trans "Item" context "Order table header" %}
-        </th>
-        <th>
-          {% trans "SKU" context "Order table header" %}
-        </th>
-        <th class="right-align">
-          {% trans "Quantity" context "Order table header" %}
+        {% if order.shipping_address %}
+          <th align="left" width="50%">
+            {% trans "Shipping Details" context "Packing slip shipping details" %}
+          </th>
+        {% endif %}
+        <th align="left"{% if order.shipping_address %} width="50%"{% endif %}>
+          {% trans "Billing Details" context "Packing slip shipping details" %}
         </th>
       </tr>
-    </thead>
+      </thead>
     <tbody>
-      {% for line in fulfillment %}
-        <tr>
-          <td>
-            {{ line.order_line.product_name }}<br>
-          </td>
-          <td>
-            {{ line.order_line.product_sku }}
-          </td>
-          <td class="right-align">
-            {{ line.quantity }}
-          </td>
-        </tr>
-      {% endfor %}
+    <tr>
+      {% if order.shipping_address %}
+        <td valign="top">
+          {% with order.shipping_address as address %}
+            <h2>
+              {% trans "Shipping address" context "Packing slip shipping address" %}
+            </h2>
+            {% include "dashboard/includes/_address.html" with address=address only %}
+          {% endwith %}
+        </td>
+      {% endif %}
+      <td valign="top">
+        {% with order.billing_address as address %}
+          <h2>
+            {% trans "Billing address" context "Packing slip billing address" %}
+          </h2>
+          {% include "dashboard/includes/_address.html" with address=address only %}
+        {% endwith %}
+      </td>
+    </tr>
     </tbody>
   </table>
-{% endif %}
-</body>
-</html>
+
+  <h2>{% trans "Items Ordered" context "Order invoice" %}</h2>
+  {% if order %}
+    <table class="bordered data-table">
+      <thead>
+        <tr>
+          <th class="wide">
+            {% trans "Item" context "Order table header" %}
+          </th>
+          <th>
+            {% trans "SKU" context "Order table header" %}
+          </th>
+          <th class="right-align">
+            {% trans "Quantity" context "Order table header" %}
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for line in fulfillment %}
+          <tr>
+            <td>
+              {{ line.order_line.product_name }}<br>
+            </td>
+            <td>
+              {{ line.order_line.product_sku }}
+            </td>
+            <td class="right-align">
+              {{ line.quantity }}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% endif %}
+{% endblock %}

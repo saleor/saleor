@@ -4,9 +4,10 @@
 {% load i18n_address_tags %}
 {% load materializecss %}
 {% load price from taxed_prices %}
-{% load staticfiles %}
+{% load static %}
 {% load status %}
 {% load voucher %}
+{% load orders %}
 
 {% block title %}
   {{ order }} - {% trans "Orders" context "Dashboard orders list" %} - {{ block.super }}
@@ -108,7 +109,7 @@
             {% trans "Payments" context "Order summary card header" %}
           </h5>
           {% if payment %}
-            {% render_status payment.status payment.get_status_display %}
+            {% render_status payment.charge_status payment.get_charge_status_display %}
           {% else %}
             <span class="label">
               {% trans "N/A" context "Payment status not available" %}
@@ -126,7 +127,7 @@
                 </td>
                 <td class="right-align">
                   <strong>
-                    {% price balance %}
+                    {% price order.total_balance %}
                   </strong>
                 </td>
               </tr>
@@ -137,8 +138,8 @@
                   {% trans "Preauthorized amount" context "Order summary card header" %}
                 </td>
                 <td class="right-align">
-                  {% if preauthorized.gross %}
-                    {% price preauthorized.gross %}
+                  {% if order.total_authorized %}
+                    {% price order.total_authorized %}
                   {% else %}
                     {% trans "N/A" context "Preauthorized amount not available" %}
                   {% endif %}
@@ -149,30 +150,31 @@
                   {% trans "Captured amount" context "Order summary card header" %}
                 </td>
                 <td class="right-align">
-                  {% price captured %}
+                  {% price order.total_captured %}
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
         {% if not order.is_draft %}
-          {% if can_capture or can_refund or can_release or can_mark_as_paid %}
+          {% if order.can_capture or order.can_refund or order.can_void or order.can_mark_as_paid %}
             <div class="data-table-action">
-              {% if can_capture %}
+              {% if order.can_capture %}
                 <a href="#base-modal" data-href="{% url 'dashboard:capture-payment' order_pk=order.pk payment_pk=payment.pk %}" class="btn-flat modal-trigger-custom waves-effect">
                   {% trans "Capture" context "Order summary card action" %}
                 </a>
-              {% elif can_refund %}
+              {% endif %}
+              {% if order.can_refund %}
                 <a href="#base-modal" data-href="{% url 'dashboard:refund-payment' order_pk=order.pk payment_pk=payment.pk %}" class="btn-flat modal-trigger-custom waves-effect">
                   {% trans "Refund" context "Order summary card action" %}
                 </a>
               {% endif %}
-              {% if can_release %}
-                <a href="#base-modal" data-href="{% url 'dashboard:release-payment' order_pk=order.pk payment_pk=payment.pk %}" class="btn-flat modal-trigger-custom waves-effect">
-                  {% trans "Release" context "Order summary card action" %}
+              {% if order.can_void %}
+                <a href="#base-modal" data-href="{% url 'dashboard:void-payment' order_pk=order.pk payment_pk=payment.pk %}" class="btn-flat modal-trigger-custom waves-effect">
+                  {% trans "Void" context "Order summary card action" %}
                 </a>
               {% endif %}
-              {% if can_mark_as_paid %}
+              {% if order.can_mark_as_paid %}
                 <a href="#base-modal" data-href="{% url 'dashboard:order-mark-as-paid' order_pk=order.pk %}" class="btn-flat modal-trigger-custom waves-effect">
                   {% trans "Mark as paid" context "Order detail action" %}
                 </a>
@@ -198,6 +200,9 @@
               </span>
               {% if order.user %}
                 <a href="{% url 'dashboard:customer-details' pk=order.user.pk %}">{{ order.user }}</a>
+                {% if order.user.get_full_name != order.user.email %}
+                  <p>{{ order.user.get_full_name|truncatechars:80 }}</p>
+                {% endif %}
                 {% if order.user.note %}
                   <p>{{ order.user.note|truncatechars:80 }}</p>
                 {% endif %}
@@ -337,6 +342,7 @@
                   <p>
                     {% trans "Subtotal" context "Order subtotal" %}
                   </p>
+                  {% if order.is_shipping_required or order.shipping_method %}
                   <p>
                     {% if order.is_draft %}
                       <a href="#base-modal" data-href="{% url 'dashboard:order-shipping-edit' order_pk=order.pk %}"
@@ -359,6 +365,7 @@
                       {% endif %}
                     {% endif %}
                   </p>
+                  {% endif %}
                   <p>
                     {% if order.display_gross_prices %}
                       {% trans "Taxes (included)" context "Order total taxes" %}
@@ -410,12 +417,14 @@
                   <p>
                     {% price order.get_subtotal display_gross=order.display_gross_prices %}
                   </p>
+                  {% if order.is_shipping_required or order.shipping_method %}
                   <p>
                     {% price order.shipping_price display_gross=order.display_gross_prices %}
                   </p>
+                  {% endif %}
                   <p>{% price order.total.tax %}</p>
                   {% if order.is_draft or order.discount_amount %}
-                    <p>{% discount_as_negative order.discount_amount html=True %}</p>
+                    <p>{% discount_as_negative order.discount html=True %}</p>
                   {% endif %}
                   <p><strong>{% price order.total.gross %}</strong></p>
                 </td>
@@ -580,9 +589,6 @@
                   {% trans "Payment status" context "Payment history table header" %}
                 </th>
                 <th>
-                  {% trans "Fraud status" context "Payment history table header" %}
-                </th>
-                <th>
                   {% trans "Amount" context "Payment history table header" %}
                 </th>
               </tr>
@@ -599,13 +605,10 @@
                     {{ payment.created }}
                   </td>
                   <td>
-                    {% render_status payment.status payment.get_status_display %}
+                    {% render_status payment.charge_status payment.get_charge_status_display %}
                   </td>
                   <td>
-                    {% render_status payment.fraud_status payment.get_fraud_status_display %}
-                  </td>
-                  <td>
-                    {{ payment.total|currencyfmt:payment.currency }}
+                    {% price payment.get_total %}
                   </td>
                 </tr>
               {% endfor %}
@@ -626,7 +629,7 @@
         {% for event in events %}
           <li class="event" data-date="{{ event.date }}">
             <div class="content">
-              {{ event.get_event_display|default:"" }}{% if event.user %} by {{ event.user }}{% endif %}
+              {% display_order_event event %}{% if event.user %} by {{ event.user }}{% endif %}
             </div>
           </li>
         {% endfor %}

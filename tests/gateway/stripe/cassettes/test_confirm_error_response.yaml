@@ -1,0 +1,68 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Idempotency-Key:
+      - 65ce06a3-1e17-4495-a81d-5206e03546a1
+      User-Agent:
+      - Stripe/v1 PythonBindings/2.33.0
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version": "2.33.0", "lang": "python", "publisher": "stripe", "httplib":
+        "requests", "lang_version": "3.7.4", "platform": "Darwin-18.7.0-x86_64-i386-64bit",
+        "uname": "Darwin mbp-jakub.lan 18.7.0 Darwin Kernel Version 18.7.0: Thu Jun
+        20 18:42:21 PDT 2019; root:xnu-4903.270.47~4/RELEASE_X86_64 x86_64 i386"}'
+    method: POST
+    uri: https://api.stripe.com/v1/payment_intents/THIS_INTENT_DOES_NOT_EXISTS/confirm
+  response:
+    body:
+      string: "{\n  \"error\": {\n    \"code\": \"resource_missing\",\n    \"doc_url\"\
+        : \"https://stripe.com/docs/error-codes/resource-missing\",\n    \"message\"\
+        : \"No such payment_intent: THIS_INTENT_DOES_NOT_EXISTS\",\n    \"param\"\
+        : \"intent\",\n    \"type\": \"invalid_request_error\"\n  }\n}\n"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '253'
+      Content-Type:
+      - application/json
+      Date:
+      - Mon, 12 Aug 2019 12:42:33 GMT
+      Server:
+      - nginx
+      Strict-Transport-Security:
+      - max-age=31556926; includeSubDomains; preload
+      access-control-allow-credentials:
+      - 'true'
+      access-control-allow-methods:
+      - GET, POST, HEAD, OPTIONS, DELETE
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Request-Id, Stripe-Manage-Version, X-Stripe-External-Auth-Required, X-Stripe-Privileged-Session-Required
+      access-control-max-age:
+      - '300'
+      cache-control:
+      - no-cache, no-store
+      idempotency-key:
+      - 65ce06a3-1e17-4495-a81d-5206e03546a1
+      original-request:
+      - req_RnWTTJZjPLfv56
+      request-id:
+      - req_RnWTTJZjPLfv56
+      stripe-version:
+      - '2019-05-16'
+    status:
+      code: 404
+      message: Not Found
+version: 1

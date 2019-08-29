@@ -5,18 +5,13 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('checkout', '0012_remove_cartline_data'),
-    ]
+    dependencies = [("checkout", "0012_remove_cartline_data")]
 
     operations = [
         migrations.RenameField(
-            model_name='cartline',
-            old_name='data_new',
-            new_name='data',
+            model_name="cartline", old_name="data_new", new_name="data"
         ),
         migrations.AlterUniqueTogether(
-            name='cartline',
-            unique_together={('cart', 'variant', 'data')},
+            name="cartline", unique_together={("cart", "variant", "data")}
         ),
     ]

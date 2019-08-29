@@ -7,13 +7,6 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('order', '0019_auto_20171109_1423'),
-    ]
+    dependencies = [("order", "0019_auto_20171109_1423")]
 
-    operations = [
-        migrations.RenameModel(
-            old_name='OrderedItem',
-            new_name='OrderLine',
-        ),
-    ]
+    operations = [migrations.RenameModel(old_name="OrderedItem", new_name="OrderLine")]

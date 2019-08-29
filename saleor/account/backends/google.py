@@ -1,7 +1,7 @@
 from social_core.backends.google import GoogleOAuth2
 
-from . import BaseBackend
 from ...site import AuthenticationBackends
+from . import BaseBackend
 
 
 class CustomGoogleOAuth2(BaseBackend, GoogleOAuth2):

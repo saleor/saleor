@@ -1,7 +1,7 @@
 {% extends "dashboard/base.html" %}
 {% load i18n %}
 {% load materializecss %}
-{% load staticfiles %}
+{% load static %}
 {% load utils %}
 
 {% block title %}
@@ -42,7 +42,7 @@
               <thead>
                 <tr>
                   {% trans "Name" context "Dashboard product types list table header name" as label %}
-                  {% sorting_header 'name' label is_wide=True %}
+                  {% sorting_header 'name' label %}
 
                   <th>
                     {% trans "Product attributes" context "Product type item list text" %}
@@ -60,14 +60,14 @@
                   </td>
                   <td>
                     {% if product_attributes %}
-                      {{ product_attributes|join:", " }}
+                      {{ product_attributes.product_attributes_sorted|join:", " }}
                     {% else %}
                       -
                     {% endif %}
                   </td>
                   <td>
                     {% if variant_attributes %}
-                      {{ variant_attributes|join:", " }}
+                      {{ variant_attributes.variant_attributes_sorted|join:", " }}
                     {% else %}
                       -
                     {% endif %}

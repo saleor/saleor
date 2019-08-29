@@ -2,7 +2,7 @@
 {% load materializecss %}
 {% load i18n %}
 {% load mptt_tags %}
-{% load staticfiles %}
+{% load static %}
 
 {% block title %}
   {% if category.pk %}
@@ -100,6 +100,9 @@
                 </div>
                 <div class="row">
                   {{ form.background_image|materializecss }}
+                </div>
+                <div class="row">
+                  {{ form.background_image_alt|materializecss }}
                 </div>
                 {% include "dashboard/includes/_google_preview.html" with object=category form=form %}
               </div>

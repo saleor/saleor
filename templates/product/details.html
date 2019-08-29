@@ -4,11 +4,13 @@
 {% load build_absolute_uri from urls %}
 {% load get_object_properties from attributes %}
 {% load get_thumbnail from product_images %}
+{% load get_product_image_thumbnail from product_images %}
 {% load i18n %}
 {% load markdown from markdown %}
 {% load placeholder %}
-{% load staticfiles %}
+{% load static %}
 {% load taxed_prices %}
+{% load format_content from content_formatting %}
 
 {% block title %}
   {% if product.seo_title %}
@@ -27,7 +29,7 @@
   <meta property="og:url" content="{{ product_url }}">
   <link rel="canonical" href="{{ product_url }}">
 
-  {% get_thumbnail product.get_first_image size=510 method="thumbnail" as product_image %}
+  {% get_product_image_thumbnail product.get_first_image size=510 method="thumbnail" as product_image %}
   {% if product_image %}
     <meta property="og:image" content="{{ product_image }}" />
     <meta property="og:image:width" content="510">
@@ -58,7 +60,7 @@
 {% block content %}
   {% if not is_visible %}
     <div class="alert alert-warning" role="alert">
-      {% blocktrans trimmed with date=product.available_on|date context "Product details text" %}
+      {% blocktrans trimmed with date=product.publication_date|date context "Product details text" %}
         <strong>Warning!</strong>
         You are previewing a product that will become visible on <strong>{{ date }}</strong>.
       {% endblocktrans %}
@@ -130,7 +132,7 @@
         {% else %}
           <h2 class="product__info__price">
             <span>{% price_range availability.price_range %}</span>
-            {% if availability.discount %}
+            {% if availability.on_sale %}
               <small class="product__info__price__undiscounted">
                 {% price availability.price_range_undiscounted %}
               </small>
@@ -142,9 +144,9 @@
                 {% price availability.price_range_local_currency %}
               </small>
             {% endif %}
-            {% if request.taxes %}
+            {% if request.extensions.show_taxes_on_storefront %}
               <small>
-                {% tax_rate request.taxes product.tax_rate as tax_rate %}
+                {% tax_rate request product as tax_rate %}
                 {% if site.settings.display_gross_prices %}
                   {% blocktrans trimmed with tax_rate=tax_rate context "Product details page vat rate value" %}
                     including {{ tax_rate }}% VAT
@@ -163,9 +165,9 @@
         {% block orderform %}
           {% if show_variant_picker %}
             {% csrf_token %}
-            <div id="variant-picker" data-variant-picker-data="{{ variant_picker_data }}" data-action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}"></div>
+            <div id="variant-picker" data-variant-picker-data="{{ variant_picker_data }}" data-action="{% url 'product:add-to-checkout' product_id=product.pk slug=product.get_slug %}"></div>
           {% else %}
-            <form id="product-form" role="form" class="product-form clearfix" method="post" action="{% url 'product:add-to-cart' product_id=product.pk slug=product.get_slug %}" novalidate>
+            <form id="product-form" role="form" class="product-form clearfix" method="post" action="{% url 'product:add-to-checkout' product_id=product.pk slug=product.get_slug %}" novalidate>
               {% csrf_token %}
               {% bootstrap_field form.variant %}
               <div class="product__info__quantity">
@@ -173,7 +175,7 @@
               </div>
 
               <div class="form-group product__info__button">
-                <button class="btn primary">
+                <button class="btn btn-primary">
                   {% trans "Add to cart" context "Product details primary action" %}
                 </button>
               </div>
@@ -192,14 +194,14 @@
       <div class="product__info__description">
         <h3>{% trans "Description" context "Product details title" %}</h3>
         <hr>
-        {{ product.translated.description|safe }}
+        {% format_content content_json=description_json content_html=description_html %}
       </div>
       <hr>
       <table>
         {% for attribute, value in product_attributes.items %}
           <tr>
             <td>{{ attribute.translated }}:</td>
-            <td><strong>{{ value.translated }}</strong></td>
+            <td><strong>{{ value }}</strong></td>
           </tr>
         {% endfor %}
       </table>

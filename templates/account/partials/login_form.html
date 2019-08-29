@@ -1,6 +1,6 @@
 {% load bootstrap_form from bootstrap4 %}
 {% load i18n %}
-{% load staticfiles %}
+{% load static %}
 
 <form method="post" action="{% url 'account:login' %}" novalidate>
   {% csrf_token %}
@@ -12,7 +12,7 @@
   </fieldset>
   <div class="row login__btn-group">
     <div class="col-sm-12">
-      <button class="btn primary narrow">
+      <button class="btn btn-primary narrow">
         {% trans "Log in" context "Login form primary action" %}
       </button>
       <a rel="nofollow" class="link--styled" href="{% url 'account:reset-password' %}">

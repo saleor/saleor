@@ -4,7 +4,7 @@
 @import "components/breadcrumbs";
 @import "components/buttons";
 @import "components/cards";
-@import "components/cart-dropdown";
+@import "components/checkout-dropdown";
 @import "components/filters";
 @import "components/footer";
 @import "components/forms";
@@ -19,12 +19,12 @@
 @import "components/language-picker";
 
 @import "layouts/account";
-@import "layouts/cart";
 @import "layouts/checkout";
 @import "layouts/home";
 @import "layouts/login";
 @import "layouts/no-results";
 @import "layouts/order-details";
+@import "layouts/payment";
 @import "layouts/product-list";
 @import "layouts/product-page";
 @import "layouts/styleguide";

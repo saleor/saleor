@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('order', '0059_auto_20180913_0841'),
-    ]
+    dependencies = [("order", "0059_auto_20180913_0841")]
 
     operations = [
         migrations.AlterField(
-            model_name='orderline',
-            name='translated_product_name',
-            field=models.CharField(blank=True, default='', max_length=386),
-        ),
+            model_name="orderline",
+            name="translated_product_name",
+            field=models.CharField(blank=True, default="", max_length=386),
+        )
     ]

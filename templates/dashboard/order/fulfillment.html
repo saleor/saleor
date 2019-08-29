@@ -4,7 +4,7 @@
 {% load i18n %}
 {% load i18n_address_tags %}
 {% load materializecss %}
-{% load staticfiles %}
+{% load static %}
 {% load status %}
 
 {% block title %}
@@ -108,6 +108,9 @@
                     </div>
                     <label for="{{ line_form.quantity.auto_id }}">
                       {% for error in line_form.quantity.errors %}
+                        <p class="help-block materialize-red-text">{{ error }}</p>
+                      {% endfor %}
+                      {% for error in formset.non_form_errors %}
                         <p class="help-block materialize-red-text">{{ error }}</p>
                       {% endfor %}
                       {% if line_form.quantity.help_text %}

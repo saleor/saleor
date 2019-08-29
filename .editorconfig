@@ -9,8 +9,9 @@ trim_trailing_whitespace = true
 
 [*.py]
 indent_size = 4
+continuation_indent_size = 8
 combine_as_imports = true
-max_line_length = 79
+max_line_length = 88
 multi_line_output = 4
 quote_type = single
 

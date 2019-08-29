@@ -1,15 +1,11 @@
 from __future__ import unicode_literals
 
-from django.db import migrations
 from django.contrib.postgres.operations import HStoreExtension
+from django.db import migrations
 
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('product', '0020_attribute_data_to_class'),
-    ]
+    dependencies = [("product", "0020_attribute_data_to_class")]
 
-    operations = [
-        HStoreExtension(),
-    ]
+    operations = [HStoreExtension()]

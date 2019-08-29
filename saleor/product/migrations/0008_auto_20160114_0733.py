@@ -7,23 +7,33 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('product', '0007_auto_20160112_1025'),
-    ]
+    dependencies = [("product", "0007_auto_20160112_1025")]
 
     operations = [
-        migrations.RemoveField(
-            model_name='discount',
-            name='discount',
+        migrations.RemoveField(model_name="discount", name="discount"),
+        migrations.AddField(
+            model_name="discount",
+            name="type",
+            field=models.CharField(
+                choices=[
+                    ("fixed", "Fixed amount"),
+                    ("percentage", "Percentage discount"),
+                ],
+                default="fixed",
+                max_length=10,
+            ),
         ),
         migrations.AddField(
-            model_name='discount',
-            name='type',
-            field=models.CharField(choices=[('fixed', 'Fixed amount'), ('percentage', 'Percentage discount')], default='fixed', max_length=10),
-        ),
-        migrations.AddField(
-            model_name='discount',
-            name='value',
-            field=models.DecimalField(decimal_places=2, default=0, help_text='Value for a discount. It could be fixed amount or percentage value in range 0-100', max_digits=12),
+            model_name="discount",
+            name="value",
+            field=models.DecimalField(
+                decimal_places=2,
+                default=0,
+                help_text=(
+                    "Value for a discount. It could be fixed amount or "
+                    "percentage value in range 0-100"
+                ),
+                max_digits=12,
+            ),
         ),
     ]
