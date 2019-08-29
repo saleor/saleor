@@ -327,7 +327,7 @@ class VatlayerPlugin(BasePlugin):
         """Validate if provided configuration is correct."""
         if not settings.VATLAYER_ACCESS_KEY and plugin_configuration.active:
             raise ValidationError(
-                "Cannot be enabled without provided " "'settings.VATLAYER_ACCESS_KEY'"
+                "Cannot be enabled without provided 'settings.VATLAYER_ACCESS_KEY'"
             )
 
     @classmethod
