@@ -6,7 +6,7 @@ from django.utils.module_loading import import_string
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from ..core.payments import PaymentInterface
+from ..core.payments import Gateway, PaymentInterface
 from ..core.taxes import TaxType, quantize_price
 from .models import PluginConfiguration
 
@@ -223,12 +223,12 @@ class ExtensionsManager(PaymentInterface):
         )
 
     def __run_payment_method(
-        self, gateway: str, method_name: str, payment_information: "PaymentData"
+        self, gateway: Gateway, method_name: str, payment_information: "PaymentData"
     ) -> Optional["GatewayResposne"]:
         default_value = None
         gateway_name = gateway.value
         gtw = self.get_plugin(gateway_name)
-        if gtw is not None and gtw.active:
+        if gtw is not None:
             return self.__run_method_on_single_plugin(
                 gtw, method_name, default_value, payment_information=payment_information
             )
