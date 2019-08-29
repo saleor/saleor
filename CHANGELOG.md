@@ -84,6 +84,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added product variant bulk create mutation - #4735 by @fowczarek
 - Added product variant bulk create mutation - #4749 by @fowczarek
 - availablePaymentGateways extended with configuration data in GraphQL schema - #4774 by @salwator
+- Fixed the inability of filtering attributes using `inCategory` and `inCollection` and deprecated those fields to use `filter { inCollection: ..., inCategory: ... }` instead - #4700 by @NyanKiyoshi & @khalibloo
 
 ## 2.8.0
 
