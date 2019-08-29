@@ -6,36 +6,38 @@ from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
 from ...core.utils import get_paginator_items
+from ...menu.utils import get_menus_that_need_update, update_menus
 from ...page.models import Page
-from ..menu.utils import get_menus_that_needs_update, update_menus
 from ..views import staff_member_required
 from .filters import PageFilter
 from .forms import PageForm
 
 
 @staff_member_required
-@permission_required('page.manage_pages')
+@permission_required("page.manage_pages")
 def page_list(request):
     pages = Page.objects.all()
     pages_filter = PageFilter(request.GET, queryset=pages)
     pages = get_paginator_items(
-        pages_filter.qs, settings.DASHBOARD_PAGINATE_BY,
-        request.GET.get('page'))
+        pages_filter.qs, settings.DASHBOARD_PAGINATE_BY, request.GET.get("page")
+    )
     ctx = {
-        'pages': pages, 'filter_set': pages_filter,
-        'is_empty': not pages_filter.queryset.exists()}
-    return TemplateResponse(request, 'dashboard/page/list.html', ctx)
+        "pages": pages,
+        "filter_set": pages_filter,
+        "is_empty": not pages_filter.queryset.exists(),
+    }
+    return TemplateResponse(request, "dashboard/page/list.html", ctx)
 
 
 @staff_member_required
-@permission_required('page.manage_pages')
+@permission_required("page.manage_pages")
 def page_update(request, pk):
     page = get_object_or_404(Page, pk=pk)
     return _page_edit(request, page)
 
 
 @staff_member_required
-@permission_required('page.manage_pages')
+@permission_required("page.manage_pages")
 def page_add(request):
     page = Page()
     return _page_edit(request, page)
@@ -45,34 +47,32 @@ def _page_edit(request, page):
     form = PageForm(request.POST or None, instance=page)
     if form.is_valid():
         form.save()
-        msg = pgettext_lazy('Dashboard message', 'Saved page')
+        msg = pgettext_lazy("Dashboard message", "Saved page")
         messages.success(request, msg)
-        return redirect('dashboard:page-details', pk=page.pk)
-    ctx = {
-        'page': page, 'form': form}
-    return TemplateResponse(request, 'dashboard/page/form.html', ctx)
+        return redirect("dashboard:page-details", pk=page.pk)
+    ctx = {"page": page, "form": form}
+    return TemplateResponse(request, "dashboard/page/form.html", ctx)
 
 
 @staff_member_required
-@permission_required('page.manage_pages')
+@permission_required("page.manage_pages")
 def page_delete(request, pk):
     page = get_object_or_404(Page, pk=pk)
     if request.POST:
-        menus = get_menus_that_needs_update(page=page)
+        menus = get_menus_that_need_update(page=page)
         page.delete()
         if menus:
             update_menus(menus)
-        msg = pgettext_lazy(
-            'Dashboard message', 'Removed page %s') % (page.title,)
+        msg = pgettext_lazy("Dashboard message", "Removed page %s") % (page.title,)
         messages.success(request, msg)
-        return redirect('dashboard:page-list')
-    ctx = {'page': page}
-    return TemplateResponse(request, 'dashboard/page/modal_delete.html', ctx)
+        return redirect("dashboard:page-list")
+    ctx = {"page": page}
+    return TemplateResponse(request, "dashboard/page/modal_delete.html", ctx)
 
 
 @staff_member_required
-@permission_required('page.manage_pages')
+@permission_required("page.manage_pages")
 def page_details(request, pk):
     page = get_object_or_404(Page, pk=pk)
-    ctx = {'page': page}
-    return TemplateResponse(request, 'dashboard/page/detail.html', ctx)
+    ctx = {"page": page}
+    return TemplateResponse(request, "dashboard/page/detail.html", ctx)

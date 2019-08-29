@@ -121,9 +121,12 @@
           <a class="btn-flat waves-effect" href="{% url 'dashboard:configure-taxes' %}">
             {% trans "Configure taxes" context "Site settings configure taxes action" %}
           </a>
-          <a class="btn-flat waves-effect load-action" href="{% url 'dashboard:fetch-tax-rates' %}">
-            {% trans "Fetch tax rates" context "Site settings fetch tax rates action" %}
-          </a>
+          <form method="POST" action="{% url 'dashboard:fetch-tax-rates' %}" style="display: inline">
+            <button type="submit" class="btn-flat waves-effect">
+              {% csrf_token %}
+              {% trans "Fetch tax rates" context "Site settings fetch tax rates action" %}
+            </button>
+          </form>
         </div>
       </div>
     </div>

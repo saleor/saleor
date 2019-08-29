@@ -7,17 +7,25 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('discount', '0005_auto_20170919_0839'),
-    ]
+    dependencies = [("discount", "0005_auto_20170919_0839")]
 
     operations = [
         migrations.AlterModelOptions(
-            name='sale',
-            options={'permissions': (('view_sale', 'Can view sales'), ('edit_sale', 'Can edit sales'))},
+            name="sale",
+            options={
+                "permissions": (
+                    ("view_sale", "Can view sales"),
+                    ("edit_sale", "Can edit sales"),
+                )
+            },
         ),
         migrations.AlterModelOptions(
-            name='voucher',
-            options={'permissions': (('view_voucher', 'Can view vouchers'), ('edit_voucher', 'Can edit vouchers'))},
+            name="voucher",
+            options={
+                "permissions": (
+                    ("view_voucher", "Can view vouchers"),
+                    ("edit_voucher", "Can edit vouchers"),
+                )
+            },
         ),
     ]

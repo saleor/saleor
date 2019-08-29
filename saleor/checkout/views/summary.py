@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.db import transaction
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext
@@ -6,124 +7,140 @@ from django.utils.translation import pgettext
 from ...account.models import Address
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
-from ...order import OrderEvents, OrderEventsEmails
-from ...order.emails import send_order_confirmation
-from ..forms import CartNoteForm
+from ...core.taxes import TaxError
+from ...discount.models import NotApplicable
+from ..forms import CheckoutNoteForm
 from ..utils import (
-    create_order, get_cart_data_for_checkout, get_taxes_for_cart,
-    update_billing_address_in_anonymous_cart, update_billing_address_in_cart,
-    update_billing_address_in_cart_with_shipping)
+    create_order,
+    get_checkout_context,
+    prepare_order_data,
+    update_billing_address_in_anonymous_checkout,
+    update_billing_address_in_checkout,
+    update_billing_address_in_checkout_with_shipping,
+)
 
 
-def handle_order_placement(request, cart):
+@transaction.atomic()
+def _handle_order_placement(request, checkout):
     """Try to create an order and redirect the user as necessary.
 
-    This is a helper function.
+    This function creates an order from checkout and performs post-create actions
+    such as removing the checkout instance, sending order notification email
+    and creating order history events.
     """
     try:
-        order = create_order(
-            cart=cart,
+        # Run checks an prepare the data for order creation
+        order_data = prepare_order_data(
+            checkout=checkout,
             tracking_code=analytics.get_client_id(request),
             discounts=request.discounts,
-            taxes=get_taxes_for_cart(cart, request.taxes))
+        )
     except InsufficientStock:
-        return redirect('cart:index')
+        return redirect("checkout:index")
+    except NotApplicable:
+        messages.warning(
+            request, pgettext("Checkout warning", "Please review your checkout.")
+        )
+        return redirect("checkout:summary")
+    except TaxError as tax_error:
+        messages.warning(
+            request,
+            pgettext(
+                "Checkout warning", "Unable to calculate taxes - %s" % str(tax_error)
+            ),
+        )
+        return redirect("checkout:summary")
 
-    # happens when a voucher is now invalid
-    if not order:
-        msg = pgettext('Checkout warning', 'Please review your checkout.')
-        messages.warning(request, msg)
-        return redirect('checkout:summary')
+    # Push the order data into the database
+    order = create_order(checkout=checkout, order_data=order_data, user=request.user)
 
-    cart.delete()
-    order.events.create(type=OrderEvents.PLACED.value)
-    send_order_confirmation.delay(order.pk)
-    order.events.create(
-        type=OrderEvents.EMAIL_SENT.value,
-        parameters={
-            'email': order.get_user_current_email(),
-            'email_type': OrderEventsEmails.ORDER.value})
-    return redirect('order:payment', token=order.token)
+    # remove checkout after order is created
+    checkout.delete()
+
+    # Redirect the user to the payment page
+    return redirect("order:payment", token=order.token)
 
 
-def summary_with_shipping_view(request, cart):
+def summary_with_shipping_view(request, checkout):
     """Display order summary with billing forms for a logged in user.
 
     Will create an order if all data is valid.
     """
-    note_form = CartNoteForm(request.POST or None, instance=cart)
+    note_form = CheckoutNoteForm(request.POST or None, instance=checkout)
     if note_form.is_valid():
         note_form.save()
 
     user_addresses = (
-        cart.user.addresses.all() if cart.user else Address.objects.none())
+        checkout.user.addresses.all() if checkout.user else Address.objects.none()
+    )
 
-    addresses_form, address_form, updated = (
-        update_billing_address_in_cart_with_shipping(
-            cart, user_addresses, request.POST or None, request.country))
+    addresses_form, address_form, updated = update_billing_address_in_checkout_with_shipping(  # noqa
+        checkout, user_addresses, request.POST or None, request.country
+    )
 
     if updated:
-        return handle_order_placement(request, cart)
+        return _handle_order_placement(request, checkout)
 
-    taxes = get_taxes_for_cart(cart, request.taxes)
-    ctx = get_cart_data_for_checkout(cart, request.discounts, taxes)
-    ctx.update({
-        'additional_addresses': user_addresses,
-        'address_form': address_form,
-        'addresses_form': addresses_form,
-        'note_form': note_form})
-    return TemplateResponse(request, 'checkout/summary.html', ctx)
+    ctx = get_checkout_context(checkout, request.discounts)
+    ctx.update(
+        {
+            "additional_addresses": user_addresses,
+            "address_form": address_form,
+            "addresses_form": addresses_form,
+            "note_form": note_form,
+        }
+    )
+    return TemplateResponse(request, "checkout/summary.html", ctx)
 
 
-def anonymous_summary_without_shipping(request, cart):
+def anonymous_summary_without_shipping(request, checkout):
     """Display order summary with billing forms for an unauthorized user.
 
     Will create an order if all data is valid.
     """
-    note_form = CartNoteForm(request.POST or None, instance=cart)
+    note_form = CheckoutNoteForm(request.POST or None, instance=checkout)
     if note_form.is_valid():
         note_form.save()
 
-    user_form, address_form, updated = (
-        update_billing_address_in_anonymous_cart(
-            cart, request.POST or None, request.country))
+    user_form, address_form, updated = update_billing_address_in_anonymous_checkout(
+        checkout, request.POST or None, request.country
+    )
 
     if updated:
-        return handle_order_placement(request, cart)
+        return _handle_order_placement(request, checkout)
 
-    taxes = get_taxes_for_cart(cart, request.taxes)
-    ctx = get_cart_data_for_checkout(cart, request.discounts, taxes)
-    ctx.update({
-        'address_form': address_form,
-        'note_form': note_form,
-        'user_form': user_form})
-    return TemplateResponse(
-        request, 'checkout/summary_without_shipping.html', ctx)
+    ctx = get_checkout_context(checkout, request.discounts)
+    ctx.update(
+        {"address_form": address_form, "note_form": note_form, "user_form": user_form}
+    )
+    return TemplateResponse(request, "checkout/summary_without_shipping.html", ctx)
 
 
-def summary_without_shipping(request, cart):
+def summary_without_shipping(request, checkout):
     """Display order summary for cases where shipping is not required.
 
     Will create an order if all data is valid.
     """
-    note_form = CartNoteForm(request.POST or None, instance=cart)
+    note_form = CheckoutNoteForm(request.POST or None, instance=checkout)
     if note_form.is_valid():
         note_form.save()
 
-    user_addresses = cart.user.addresses.all()
+    user_addresses = checkout.user.addresses.all()
 
-    addresses_form, address_form, updated = update_billing_address_in_cart(
-        cart, user_addresses, request.POST or None, request.country)
+    addresses_form, address_form, updated = update_billing_address_in_checkout(
+        checkout, user_addresses, request.POST or None, request.country
+    )
 
     if updated:
-        return handle_order_placement(request, cart)
+        return _handle_order_placement(request, checkout)
 
-    taxes = get_taxes_for_cart(cart, request.taxes)
-    ctx = get_cart_data_for_checkout(cart, request.discounts, taxes)
-    ctx.update({
-        'additional_addresses': user_addresses,
-        'address_form': address_form,
-        'addresses_form': addresses_form,
-        'note_form': note_form})
-    return TemplateResponse(
-        request, 'checkout/summary_without_shipping.html', ctx)
+    ctx = get_checkout_context(checkout, request.discounts)
+    ctx.update(
+        {
+            "additional_addresses": user_addresses,
+            "address_form": address_form,
+            "addresses_form": addresses_form,
+            "note_form": note_form,
+        }
+    )
+    return TemplateResponse(request, "checkout/summary_without_shipping.html", ctx)

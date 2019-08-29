@@ -1,23 +1,30 @@
-import decimal
-
 import graphene
+import graphene_django_optimizer as gql_optimizer
 from graphene import relay
-from graphene.types import Scalar
-from graphene_django import DjangoObjectType
-from measurement.measures import Weight
 
-from ...core.weight import convert_weight, get_default_weight_unit
-from ...shipping import ShippingMethodType, models
-from ..core.types.common import CountableDjangoObjectType, CountryDisplay
-from ..core.types.money import MoneyRange
-
-ShippingMethodTypeEnum = graphene.Enum(
-    'ShippingMethodTypeEnum',
-    [(code.upper(), code) for code, name in ShippingMethodType.CHOICES])
+from ...shipping import models
+from ..core.connection import CountableDjangoObjectType
+from ..core.types import CountryDisplay, MoneyRange
+from ..translations.enums import LanguageCodeEnum
+from ..translations.resolvers import resolve_translation
+from ..translations.types import ShippingMethodTranslation
+from .enums import ShippingMethodTypeEnum
 
 
-class ShippingMethod(DjangoObjectType):
-    type = ShippingMethodTypeEnum(description='Type of the shipping method.')
+class ShippingMethod(CountableDjangoObjectType):
+    type = ShippingMethodTypeEnum(description="Type of the shipping method.")
+    translation = graphene.Field(
+        ShippingMethodTranslation,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            description="A language code to return the translation for.",
+            required=True,
+        ),
+        description=(
+            "Returns translated Shipping Method fields " "for the given language code."
+        ),
+        resolver=resolve_translation,
+    )
 
     class Meta:
         description = """
@@ -26,20 +33,34 @@ class ShippingMethod(DjangoObjectType):
             They are directly exposed to the customers."""
         model = models.ShippingMethod
         interfaces = [relay.Node]
-        exclude_fields = ['shipping_zone', 'orders']
+        only_fields = [
+            "id",
+            "maximum_order_price",
+            "maximum_order_weight",
+            "minimum_order_price",
+            "minimum_order_weight",
+            "name",
+            "price",
+        ]
 
 
 class ShippingZone(CountableDjangoObjectType):
     price_range = graphene.Field(
-        MoneyRange, description='Lowest and highest prices for the shipping.')
+        MoneyRange, description="Lowest and highest prices for the shipping."
+    )
     countries = graphene.List(
-        CountryDisplay,
-        description='List of countries available for the method.')
-    shipping_methods = graphene.List(
-        ShippingMethod,
-        description=(
-            'List of shipping methods available for orders'
-            ' shipped to countries within this shipping zone.'))
+        CountryDisplay, description="List of countries available for the method."
+    )
+    shipping_methods = gql_optimizer.field(
+        graphene.List(
+            ShippingMethod,
+            description=(
+                "List of shipping methods available for orders"
+                " shipped to countries within this shipping zone."
+            ),
+        ),
+        model_field="shipping_methods",
+    )
 
     class Meta:
         description = """
@@ -48,45 +69,19 @@ class ShippingZone(CountableDjangoObjectType):
             and are never exposed to the customers directly."""
         model = models.ShippingZone
         interfaces = [relay.Node]
-        filter_fields = {
-            'name': ['icontains'],
-            'countries': ['icontains'],
-            'shipping_methods__price': ['gte', 'lte']}
+        only_fields = ["default", "id", "name"]
 
-    def resolve_price_range(self, info):
-        return self.price_range
+    @staticmethod
+    def resolve_price_range(root: models.ShippingZone, *_args):
+        return root.price_range
 
-    def resolve_countries(self, info):
+    @staticmethod
+    def resolve_countries(root: models.ShippingZone, *_args):
         return [
             CountryDisplay(code=country.code, country=country.name)
-            for country in self.countries]
-
-    def resolve_shipping_methods(self, info):
-        return self.shipping_methods.all()
-
-
-class WeightScalar(Scalar):
-    @staticmethod
-    def parse_value(value):
-        """Excepts value to be a string "amount unit"
-        separated by a single space.
-        """
-        try:
-            value = decimal.Decimal(value)
-        except decimal.DecimalException:
-            return None
-        default_unit = get_default_weight_unit()
-        return Weight(**{default_unit: value})
+            for country in root.countries
+        ]
 
     @staticmethod
-    def serialize(weight):
-        if isinstance(weight, Weight):
-            default_unit = get_default_weight_unit()
-            if weight.unit != default_unit:
-                weight = convert_weight(weight, default_unit)
-            return str(weight)
-        return None
-
-    @staticmethod
-    def parse_literal(node):
-        return node
+    def resolve_shipping_methods(root: models.ShippingZone, *_args):
+        return root.shipping_methods.all()

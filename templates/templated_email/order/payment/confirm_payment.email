@@ -5,17 +5,12 @@
 {% endblock %}
 
 {% block plain %}
+{% include 'templated_email/shared/_header.email' %}
 {% blocktrans context "Payment confirmation email text" %}
-Hi!
-
 Thank you for your payment. To see your payment details please visit:
 {{ order_details_url }}
-
-This is an automatically generated email, please do not reply.
-
-Sincerely,
-{{ site_name }}
 {% endblocktrans %}
+{% include 'templated_email/shared/_footer.email' %}
 {% endblock %}
 
 {% block html %}

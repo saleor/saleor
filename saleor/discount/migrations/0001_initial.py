@@ -9,20 +9,42 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-        ('product', '0010_auto_20160129_0826'),
-    ]
+    dependencies = [("product", "0010_auto_20160129_0826")]
 
     operations = [
         migrations.CreateModel(
-            name='Sale',
+            name="Sale",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=255)),
-                ('type', models.CharField(choices=[('fixed', 'Fixed amount'), ('percentage', 'Percentage discount')], default='fixed', max_length=10)),
-                ('value', models.DecimalField(decimal_places=2, default=0, max_digits=12)),
-                ('categories', models.ManyToManyField(blank=True, to='product.Category')),
-                ('products', models.ManyToManyField(blank=True, to='product.Product')),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=255)),
+                (
+                    "type",
+                    models.CharField(
+                        choices=[
+                            ("fixed", "Fixed amount"),
+                            ("percentage", "Percentage discount"),
+                        ],
+                        default="fixed",
+                        max_length=10,
+                    ),
+                ),
+                (
+                    "value",
+                    models.DecimalField(decimal_places=2, default=0, max_digits=12),
+                ),
+                (
+                    "categories",
+                    models.ManyToManyField(blank=True, to="product.Category"),
+                ),
+                ("products", models.ManyToManyField(blank=True, to="product.Product")),
             ],
-        ),
+        )
     ]

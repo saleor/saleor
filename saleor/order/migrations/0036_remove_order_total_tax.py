@@ -5,13 +5,6 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('order', '0035_auto_20180221_1057'),
-    ]
+    dependencies = [("order", "0035_auto_20180221_1057")]
 
-    operations = [
-        migrations.RemoveField(
-            model_name='order',
-            name='total_tax',
-        ),
-    ]
+    operations = [migrations.RemoveField(model_name="order", name="total_tax")]

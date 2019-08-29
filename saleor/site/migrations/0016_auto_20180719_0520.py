@@ -5,13 +5,11 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('site', '0015_sitesettings_handle_stock_by_default'),
-    ]
+    dependencies = [("site", "0015_sitesettings_handle_stock_by_default")]
 
     operations = [
         migrations.AlterModelOptions(
-            name='sitesettings',
-            options={'permissions': (('manage_settings', 'Manage settings.'),)},
-        ),
+            name="sitesettings",
+            options={"permissions": (("manage_settings", "Manage settings."),)},
+        )
     ]

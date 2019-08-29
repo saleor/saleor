@@ -7,18 +7,13 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('product', '0017_remove_stock_location'),
-    ]
+    dependencies = [("product", "0017_remove_stock_location")]
 
     operations = [
         migrations.RenameField(
-            model_name='stock',
-            old_name='location_link',
-            new_name='location',
+            model_name="stock", old_name="location_link", new_name="location"
         ),
         migrations.AlterUniqueTogether(
-            name='stock',
-            unique_together=set([('variant', 'location')]),
+            name="stock", unique_together=set([("variant", "location")])
         ),
     ]

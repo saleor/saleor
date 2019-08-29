@@ -2,25 +2,27 @@
 
 import datetime
 
+import django.db.models.deletion
 from django.db import migrations, models
 from django.db.models import Q
 from django.utils.text import slugify
-import django.db.models.deletion
 
 
 def copy_featured_products_to_homepade_collection(apps, schema_editor):
-    SiteSettings = apps.get_model('site', 'SiteSettings')
-    Collection = apps.get_model('product', 'Collection')
-    Product = apps.get_model('product', 'Product')
+    SiteSettings = apps.get_model("site", "SiteSettings")
+    Collection = apps.get_model("product", "Collection")
+    Product = apps.get_model("product", "Product")
 
     today = datetime.date.today()
     homepage_products = list(
         Product.objects.filter(
             Q(available_on__lte=today) | Q(available_on__isnull=True),
-            is_published=True, is_featured=True))
+            is_published=True,
+            is_featured=True,
+        )
+    )
     if homepage_products:
-        homepage_collection = Collection(
-            name='Homepage collection for migration')
+        homepage_collection = Collection(name="Homepage collection for migration")
         homepage_collection.slug = slugify(homepage_collection.name)
         homepage_collection.save()
         homepage_collection.products.add(*homepage_products)
@@ -33,18 +35,24 @@ def copy_featured_products_to_homepade_collection(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('product', '0066_auto_20180803_0528'),
-        ('site', '0017_auto_20180803_0528'),
+        ("product", "0066_auto_20180803_0528"),
+        ("site", "0017_auto_20180803_0528"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='sitesettings',
-            name='homepage_collection',
+            model_name="sitesettings",
+            name="homepage_collection",
             field=models.ForeignKey(
-                blank=True, null=True,
+                blank=True,
+                null=True,
                 on_delete=django.db.models.deletion.SET_NULL,
-                related_name='+', to='product.Collection'),),
+                related_name="+",
+                to="product.Collection",
+            ),
+        ),
         migrations.RunPython(
             copy_featured_products_to_homepade_collection,
-            lambda app, schema_editor: None)]
+            lambda app, schema_editor: None,
+        ),
+    ]

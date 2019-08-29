@@ -2,20 +2,19 @@ from django_elasticsearch_dsl import DocType, Index, fields
 from elasticsearch_dsl import analyzer, token_filter
 
 from ..account.models import User
+from ..account.utils import get_user_first_name, get_user_last_name
 from ..order.models import Order
 from ..product.models import Product
 
-storefront = Index('storefront')
+storefront = Index("storefront")
 storefront.settings(number_of_shards=1, number_of_replicas=0)
 
 
-partial_words = token_filter(
-    'partial_words', 'edge_ngram', min_gram=3, max_gram=15)
+partial_words = token_filter("partial_words", "edge_ngram", min_gram=3, max_gram=15)
 title_analyzer = analyzer(
-    'title_analyzer',
-    tokenizer='standard',
-    filter=[partial_words, 'lowercase'])
-email_analyzer = analyzer('email_analyzer', tokenizer='uax_url_email')
+    "title_analyzer", tokenizer="standard", filter=[partial_words, "lowercase"]
+)
+email_analyzer = analyzer("email_analyzer", tokenizer="uax_url_email")
 
 
 @storefront.doc_type
@@ -27,10 +26,10 @@ class ProductDocument(DocType):
 
     class Meta:
         model = Product
-        fields = ['name', 'description', 'is_published']
+        fields = ["name", "description", "is_published"]
 
 
-users = Index('users')
+users = Index("users")
 users.settings(number_of_shards=1, number_of_replicas=0)
 
 
@@ -44,35 +43,41 @@ class UserDocument(DocType):
         return instance.email
 
     def prepare_first_name(self, instance):
-        address = instance.default_billing_address
-        if address:
-            return address.first_name
-        return None
+        return get_user_first_name(instance)
 
     def prepare_last_name(self, instance):
-        address = instance.default_billing_address
-        if address:
-            return address.last_name
-        return None
+        return get_user_last_name(instance)
 
     class Meta:
         model = User
-        fields = ['email']
+        fields = ["email"]
 
 
-orders = Index('orders')
+orders = Index("orders")
 orders.settings(number_of_shards=1, number_of_replicas=0)
 
 
 @orders.doc_type
 class OrderDocument(DocType):
     user = fields.StringField(analyzer=email_analyzer)
+    first_name = fields.StringField()
+    last_name = fields.StringField()
 
     def prepare_user(self, instance):
         if instance.user:
             return instance.user.email
         return instance.user_email
 
+    def prepare_first_name(self, instance):
+        if instance.user:
+            return get_user_first_name(instance.user)
+        return None
+
+    def prepare_last_name(self, instance):
+        if instance.user:
+            return get_user_last_name(instance.user)
+        return None
+
     class Meta:
         model = Order
-        fields = ['user_email', 'discount_name']
+        fields = ["user_email", "discount_name"]

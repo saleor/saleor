@@ -5,13 +5,6 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('menu', '0008_menu_json_content_new'),
-    ]
+    dependencies = [("menu", "0008_menu_json_content_new")]
 
-    operations = [
-        migrations.RemoveField(
-            model_name='menu',
-            name='json_content',
-        ),
-    ]
+    operations = [migrations.RemoveField(model_name="menu", name="json_content")]

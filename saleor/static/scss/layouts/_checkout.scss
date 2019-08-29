@@ -1,10 +1,11 @@
 .checkout {
   margin-bottom: $global-margin * 5;
-  h2, h3 {
+  h2,
+  h3 {
     text-transform: uppercase;
     margin: 0 0 $global-margin * 2 0;
   }
-  hr {
+  hr:not(.margin-default) {
     margin: $global-margin * 3 0 $global-margin * 2;
   }
   .primary {
@@ -18,7 +19,7 @@
     padding: $global-padding * 1.5 0 $global-padding;
     margin-bottom: $global-margin;
     @include media-breakpoint-down(sm) {
-        padding: $global-padding 0;
+      padding: $global-padding 0;
       & ~ .maincontent {
         margin-top: 0;
       }
@@ -29,14 +30,13 @@
     svg {
       vertical-align: baseline;
       margin-right: $global-margin;
+      padding-bottom: 2px;
+      width: 113px;
       @include media-breakpoint-down(sm) {
-        max-height: 25px;
-        width: auto;
+        max-height: 34px;
         vertical-align: text-bottom;
         margin-right: 0;
-      }
-      path {
-        fill: $body-color;
+        padding-bottom: 5px;
       }
     }
     h1 {
@@ -87,10 +87,20 @@
       border-top: 1px solid $gray;
       padding-top: $global-padding;
       .input-btn {
-          .btn-voucher-remove {
-            position: relative;
-          }
+        input {
+          border-radius: 12px;
         }
+        .btn {
+          height: calc(2.25rem + 2px);
+          padding: $global-padding / 2;
+        }
+        .btn-voucher-remove {
+          position: relative;
+        }
+      }
+      input {
+        padding: $global-padding;
+      }
     }
     &__tittle {
       margin-bottom: $global-margin * 2;
@@ -147,6 +157,81 @@
       }
     }
   }
+  &__new-address {
+    grid-column-end: span 2;
+    @include media-breakpoint-down(md) {
+      grid-column-end: span 1;
+    }
+    &-container {
+      grid-column-end: span 2;
+      @include media-breakpoint-down(md) {
+        grid-column-end: span 1;
+      }
+    }
+  }
+  &__shipping {
+    .btn {
+      grid-column-start: 2;
+      width: 100%;
+      @include media-breakpoint-down(md) {
+        grid-column-start: 1;
+      }
+    }
+  }
+  &__shipping-methods {
+    p {
+      margin: $global-margin * 2 0;
+    }
+    .address {
+      width: calc(50% - #{$global-margin});
+    }
+    .btn {
+      grid-column-start: 2;
+      width: 100%;
+      @include media-breakpoint-down(md) {
+        grid-column-start: 1;
+      }
+    }
+    &-form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-column-gap: $global-margin * 2;
+      grid-row-gap: $global-margin;
+      @include media-breakpoint-down(md) {
+        grid-template-columns: 1fr;
+      }
+      label {
+        cursor: pointer;
+        display: block;
+        margin: 0;
+      }
+      .btn {
+        @include media-breakpoint-down(md) {
+          width: 100%;
+        }
+      }
+    }
+  }
+  &__payment {
+    h3 {
+      margin: $global-margin * 2 0 $global-margin;
+    }
+    &-form {
+      label {
+        cursor: pointer;
+        display: block;
+        margin: 0;
+      }
+      .btn {
+        @include media-breakpoint-down(md) {
+          width: 100%;
+        }
+      }
+      &__choice {
+        margin-bottom: $global-margin;
+      }
+    }
+  }
   &__payments {
     &-card-expiry-slash {
       pointer-events: none;
@@ -156,5 +241,146 @@
   }
   &__street_address_2 {
     padding-top: $global-padding * 2;
+  }
+  &__addresses {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-column-gap: $global-margin * 2;
+    &--full-width {
+      grid-template-columns: 1fr;
+    }
+    @include media-breakpoint-down(md) {
+      grid-template-columns: 1fr;
+    }
+    &-panel {
+      label {
+        cursor: pointer;
+        display: block;
+        margin-right: 0;
+      }
+    }
+  }
+  &__billing {
+    &-form {
+      p {
+        margin: $global-margin * 2 0;
+      }
+    }
+  }
+}
+
+.checkout-preview {
+  h3 {
+    color: $skull-gray;
+  }
+  &__line {
+    &.last {
+      border-bottom-color: $skull-gray;
+    }
+    .col-5 {
+      margin-top: $global-margin / 2;
+      @include media-breakpoint-down(sm) {
+        text-align: right;
+      }
+    }
+    &__product {
+      a {
+        transition: 0.3s;
+        &:hover {
+          color: $skull-gray;
+        }
+        p {
+          display: inline-block;
+          margin-top: $global-margin / 2;
+          margin-bottom: 0;
+          line-height: 1rem;
+          small {
+            color: $skull-gray;
+          }
+        }
+        img {
+          vertical-align: top;
+          margin-right: $global-margin;
+        }
+      }
+    }
+    &__quantity {
+      @include media-breakpoint-down(sm) {
+        margin-bottom: $global-margin / 2;
+      }
+      form {
+        display: inline-block;
+        input {
+          width: 62px;
+          margin-right: 10px;
+        }
+      }
+      &-error {
+        display: block;
+      }
+      img {
+        max-width: 18px;
+      }
+    }
+  }
+  &__total {
+    padding-top: $global-padding;
+    margin-bottom: $global-margin;
+    p {
+      margin-bottom: 0;
+    }
+    &__subtotal {
+      color: $skull-gray;
+      @include media-breakpoint-up(sm) {
+        padding-left: calc(60px + #{$global-padding} * 2);
+      }
+      &--shipping {
+        color: $body-color;
+      }
+    }
+  }
+  &__delivery-info {
+    p {
+      margin-bottom: 0;
+      color: $body-color;
+      display: inline-block;
+    }
+    &__price {
+      text-transform: uppercase;
+    }
+  }
+  &__empty {
+    text-align: center;
+    img {
+      margin: $global-margin * 2 0;
+    }
+    .btn {
+      margin: $global-margin * 2 0 $global-margin * 5;
+    }
+  }
+  &__submit {
+    @media (max-width: 370px) {
+      width: 100%;
+    }
+  }
+  &__clear {
+    @media (max-width: 400px) {
+      margin-top: $global-margin;
+    }
+    @media (min-width: 470px) {
+      margin-right: $global-margin;
+    }
+    @media (max-width: 370px) {
+      width: 100%;
+    }
+    margin-right: $global-margin;
+  }
+  &-item-delete {
+    cursor: pointer;
+    display: inline-block;
+    margin-left: $global-margin / 2;
+    svg {
+      vertical-align: text-top;
+    }
   }
 }

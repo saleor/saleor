@@ -5,9 +5,8 @@
 {% endblock %}
 
 {% block plain %}
+{% include 'templated_email/shared/_header.email' %}
 {% blocktrans context "Account delete reset e-mail text" %}
-Hi!
-
 You're receiving this e-mail because you or someone else has requested a deletion of your user account at {{ domain }}.
 Click the link below to delete your account.
 
@@ -16,12 +15,7 @@ Please note that this action is permanent and cannot be reversed.
 
 {{ delete_url }}
 
-This is an automatically generated email, please do not reply.
-
-{% blocktrans context "Account delete reset e-mail text" %}
-Sincerely,
-{{ site_name }}
-{% endblocktrans %}
+{% include 'templated_email/shared/_footer.email' %}
 {% endblock %}
 
 {% block html %}

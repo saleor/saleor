@@ -11,7 +11,10 @@
 !.github
 !.gitignore
 !.nvmrc
+!.npmrc
+!.plop
 !.pylintrc
+!.testcafe
 !.travis*
 !.tx
 *.css
@@ -33,3 +36,6 @@ dist/
 webpack-bundle.json
 /templates/templated_email/compiled/*
 !/templates/templated_email/compiled/.gitkeep
+
+# Exported results file
+django-queries-results.html

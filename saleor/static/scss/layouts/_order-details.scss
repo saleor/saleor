@@ -43,9 +43,7 @@
 }
 
 .order-notes {
-  &__header {
-    margin-top: 2 * $global-margin;
-  }
+  margin-top: 2 * $global-margin;
   > p {
     white-space: pre-wrap;
   }

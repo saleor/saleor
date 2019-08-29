@@ -3,6 +3,7 @@ import html
 
 from django.core.validators import MaxLengthValidator
 from django.db import migrations, models
+
 from saleor.core.utils.text import strip_html_and_truncate
 
 
@@ -16,7 +17,7 @@ def to_seo_friendly(text):
 
 
 def assign_seo_descriptions(apps, schema_editor):
-    Product = apps.get_model('product', 'Product')
+    Product = apps.get_model("product", "Product")
     for product in Product.objects.all():
         if product.seo_description is None:
             product.seo_description = to_seo_friendly(product.description)
@@ -25,18 +26,19 @@ def assign_seo_descriptions(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('product', '0052_slug_field_length'),
-    ]
+    dependencies = [("product", "0052_slug_field_length")]
 
     operations = [
         migrations.AddField(
-            model_name='product',
-            name='seo_description',
+            model_name="product",
+            name="seo_description",
             field=models.CharField(
-                blank=True, null=True, max_length=300,
-                validators=[MaxLengthValidator(300)]),
+                blank=True,
+                null=True,
+                max_length=300,
+                validators=[MaxLengthValidator(300)],
+            ),
             preserve_default=False,
         ),
-        migrations.RunPython(assign_seo_descriptions)
+        migrations.RunPython(assign_seo_descriptions),
     ]

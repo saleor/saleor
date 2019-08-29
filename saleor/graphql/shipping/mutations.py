@@ -1,193 +1,231 @@
 import graphene
+from django.core.exceptions import ValidationError
 
 from ...dashboard.shipping.forms import default_shipping_zone_exists
 from ...shipping import models
-from ..core.mutations import ModelDeleteMutation, ModelMutation
-from ..core.types.common import Decimal
-from .types import ShippingMethodTypeEnum, ShippingZone, WeightScalar
+from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
+from ..core.scalars import Decimal, WeightScalar
+from .enums import ShippingMethodTypeEnum
+from .types import ShippingMethod, ShippingZone
 
 
 class ShippingPriceInput(graphene.InputObjectType):
-    name = graphene.String(
-        description='Name of the shipping method. Visible to customers')
-    price = Decimal(description='Shipping price of the shipping method.')
+    name = graphene.String(description="Name of the shipping method.")
+    price = Decimal(description="Shipping price of the shipping method.")
     minimum_order_price = Decimal(
-        description='Minimum order price to use this shipping method',
-        required=False)
+        description="Minimum order price to use this shipping method"
+    )
     maximum_order_price = Decimal(
-        description='Maximum order price to use this shipping method',
-        required=False)
+        description="Maximum order price to use this shipping method"
+    )
     minimum_order_weight = WeightScalar(
-        description='Minimum order weight to use this shipping method',
-        required=False)
+        description="Minimum order weight to use this shipping method"
+    )
     maximum_order_weight = WeightScalar(
-        description='Maximum order weight to use this shipping method',
-        required=False)
-    type = ShippingMethodTypeEnum(
-        description='Shipping type: price or weight based.')
+        description="Maximum order weight to use this shipping method"
+    )
+    type = ShippingMethodTypeEnum(description="Shipping type: price or weight based.")
     shipping_zone = graphene.ID(
-        description='Shipping zone this method belongs to.',
-        name='shippingZone')
+        description="Shipping zone this method belongs to.", name="shippingZone"
+    )
 
 
 class ShippingZoneInput(graphene.InputObjectType):
     name = graphene.String(
-        description='Shipping zone\'s name. Visible only to the staff.')
+        description="Shipping zone's name. Visible only to the staff."
+    )
     countries = graphene.List(
-        graphene.String,
-        description='List of countries in this shipping zone.')
+        graphene.String, description="List of countries in this shipping zone."
+    )
     default = graphene.Boolean(
         description="""
             Is default shipping zone, that will be used
-            for countries not covered by other zones.""")
+            for countries not covered by other zones."""
+    )
 
 
-class ShippingZoneMixin(object):
-
+class ShippingZoneMixin:
     @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
-        default = cleaned_input.get('default')
-        if default is not None:
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
+        default = cleaned_input.get("default")
+        if default:
             if default_shipping_zone_exists(instance.pk):
-                cls.add_error(
-                    errors, 'default', 'Default shipping zone already exists.')
-            elif cleaned_input.get('countries'):
-                cleaned_input['countries'] = []
+                raise ValidationError(
+                    {"default": "Default shipping zone already exists."}
+                )
+            elif cleaned_input.get("countries"):
+                cleaned_input["countries"] = []
         else:
-            cleaned_input['default'] = False
+            cleaned_input["default"] = False
         return cleaned_input
 
 
 class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):
-    shipping_zone = graphene.Field(
-        ShippingZone, description='Created shipping zone.')
+    shipping_zone = graphene.Field(ShippingZone, description="Created shipping zone.")
 
     class Arguments:
         input = ShippingZoneInput(
-            description='Fields required to create a shipping zone.',
-            required=True)
+            description="Fields required to create a shipping zone.", required=True
+        )
 
     class Meta:
-        description = 'Creates a new shipping zone.'
+        description = "Creates a new shipping zone."
         model = models.ShippingZone
-
-    @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('shipping.manage_shipping')
+        permissions = ("shipping.manage_shipping",)
 
 
 class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
-    shipping_zone = graphene.Field(
-        ShippingZone, description='Updated shipping zone.')
+    shipping_zone = graphene.Field(ShippingZone, description="Updated shipping zone.")
 
     class Arguments:
-        id = graphene.ID(
-            description='ID of a shipping zone to update.', required=True)
+        id = graphene.ID(description="ID of a shipping zone to update.", required=True)
         input = ShippingZoneInput(
-            description='Fields required to update a shipping zone.',
-            required=True)
+            description="Fields required to update a shipping zone.", required=True
+        )
 
     class Meta:
-        description = 'Updates a new shipping zone.'
+        description = "Updates a new shipping zone."
         model = models.ShippingZone
-
-    @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('shipping.manage_shipping')
+        permissions = ("shipping.manage_shipping",)
 
 
 class ShippingZoneDelete(ModelDeleteMutation):
     class Arguments:
-        id = graphene.ID(
-            required=True, description='ID of a shipping zone to delete.')
+        id = graphene.ID(required=True, description="ID of a shipping zone to delete.")
 
     class Meta:
-        description = 'Deletes a shipping zone.'
+        description = "Deletes a shipping zone."
         model = models.ShippingZone
+        permissions = ("shipping.manage_shipping",)
 
+
+class ShippingPriceMixin:
     @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('shipping.manage_shipping')
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
 
+        # Rename the price field to price_amount (the model's)
+        price_amount = cleaned_input.pop("price", None)
+        if price_amount is not None:
+            cleaned_input["price_amount"] = price_amount
 
-class ShippingPriceMixin(object):
+        cleaned_type = cleaned_input.get("type")
+        if cleaned_type:
+            if cleaned_type == ShippingMethodTypeEnum.PRICE.value:
+                min_price = cleaned_input.pop("minimum_order_price", None)
+                max_price = cleaned_input.pop("maximum_order_price", None)
 
-    @classmethod
-    def clean_input(cls, info, instance, input, errors):
-        cleaned_input = super().clean_input(info, instance, input, errors)
-        type = cleaned_input.get('type')
-        if not type:
-            return cleaned_input
+                if min_price is not None:
+                    cleaned_input["minimum_order_price_amount"] = min_price
 
-        if type == ShippingMethodTypeEnum.PRICE.value:
-            min_price = cleaned_input.get('minimum_order_price')
-            max_price = cleaned_input.get('maximum_order_price')
-            if min_price is None:
-                cls.add_error(
-                    errors, 'minimum_order_price',
-                    'Minimum order price is required'
-                    ' for Price Based shipping.')
-            elif max_price is not None and max_price <= min_price:
-                cls.add_error(
-                    errors, 'maximum_order_price',
-                    'Maximum order price should be larger than the minimum.')
-        else:
-            min_weight = cleaned_input.get('minimum_order_weight')
-            max_weight = cleaned_input.get('maximum_order_weight')
-            if min_weight is None:
-                cls.add_error(
-                    errors, 'minimum_order_weight',
-                    'Minimum order weight is required for'
-                    ' Weight Based shipping.')
-            elif max_weight is not None and max_weight <= min_weight:
-                cls.add_error(
-                    errors, 'maximum_order_weight',
-                    'Maximum order weight should be larger than the minimum.')
+                if max_price is not None:
+                    cleaned_input["maximum_order_price_amount"] = max_price
+
+                if (
+                    min_price is not None
+                    and max_price is not None
+                    and max_price <= min_price
+                ):
+                    raise ValidationError(
+                        {
+                            "maximum_order_price": (
+                                "Maximum order price should be larger than "
+                                "the minimum order price."
+                            )
+                        }
+                    )
+            else:
+                min_weight = cleaned_input.get("minimum_order_weight")
+                max_weight = cleaned_input.get("maximum_order_weight")
+                if (
+                    min_weight is not None
+                    and max_weight is not None
+                    and max_weight <= min_weight
+                ):
+                    raise ValidationError(
+                        {
+                            "maximum_order_weight": (
+                                "Maximum order weight should be larger than the "
+                                "minimum order weight."
+                            )
+                        }
+                    )
         return cleaned_input
 
 
 class ShippingPriceCreate(ShippingPriceMixin, ModelMutation):
+    shipping_zone = graphene.Field(
+        ShippingZone,
+        description="A shipping zone to which the shipping method belongs.",
+    )
+
     class Arguments:
         input = ShippingPriceInput(
-            description='Fields required to create a shipping price',
-            required=True)
+            description="Fields required to create a shipping price", required=True
+        )
 
     class Meta:
-        description = 'Creates a new shipping price.'
+        description = "Creates a new shipping price."
         model = models.ShippingMethod
+        permissions = ("shipping.manage_shipping",)
 
     @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('shipping.manage_shipping')
+    def success_response(cls, instance):
+        response = super().success_response(instance)
+        response.shipping_zone = instance.shipping_zone
+        return response
 
 
 class ShippingPriceUpdate(ShippingPriceMixin, ModelMutation):
+    shipping_zone = graphene.Field(
+        ShippingZone,
+        description="A shipping zone to which the shipping method belongs.",
+    )
+
     class Arguments:
-        id = graphene.ID(
-            description='ID of a shipping price to update.', required=True)
+        id = graphene.ID(description="ID of a shipping price to update.", required=True)
         input = ShippingPriceInput(
-            description='Fields required to update a shipping price',
-            required=True)
+            description="Fields required to update a shipping price", required=True
+        )
 
     class Meta:
-        description = 'Updates a new shipping price.'
+        description = "Updates a new shipping price."
         model = models.ShippingMethod
+        permissions = ("shipping.manage_shipping",)
 
     @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('shipping.manage_shipping')
+    def success_response(cls, instance):
+        response = super().success_response(instance)
+        response.shipping_zone = instance.shipping_zone
+        return response
 
 
-class ShippingPriceDelete(ModelDeleteMutation):
+class ShippingPriceDelete(BaseMutation):
+    shipping_method = graphene.Field(
+        ShippingMethod, description="A shipping method to delete."
+    )
+    shipping_zone = graphene.Field(
+        ShippingZone,
+        description="A shipping zone to which the shipping method belongs.",
+    )
+
     class Arguments:
-        id = graphene.ID(
-            required=True, description='ID of a shipping price to delete.')
+        id = graphene.ID(required=True, description="ID of a shipping price to delete.")
 
     class Meta:
-        description = 'Deletes a shipping price.'
-        model = models.ShippingMethod
+        description = "Deletes a shipping price."
+        permissions = ("shipping.manage_shipping",)
 
     @classmethod
-    def user_is_allowed(cls, user, input):
-        return user.has_perm('shipping.manage_shipping')
+    def perform_mutation(cls, _root, info, **data):
+        shipping_method = cls.get_node_or_error(
+            info, data.get("id"), only_type=ShippingMethod
+        )
+        shipping_method_id = shipping_method.id
+        shipping_zone = shipping_method.shipping_zone
+        shipping_method.delete()
+        shipping_method.id = shipping_method_id
+        return ShippingPriceDelete(
+            shipping_method=shipping_method, shipping_zone=shipping_zone
+        )

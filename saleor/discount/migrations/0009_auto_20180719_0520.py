@@ -5,17 +5,14 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('discount', '0008_sale_collections'),
-    ]
+    dependencies = [("discount", "0008_sale_collections")]
 
     operations = [
         migrations.AlterModelOptions(
-            name='sale',
-            options={'permissions': (('manage_discounts', 'Manage sales and vouchers.'),)},
+            name="sale",
+            options={
+                "permissions": (("manage_discounts", "Manage sales and vouchers."),)
+            },
         ),
-        migrations.AlterModelOptions(
-            name='voucher',
-            options={},
-        ),
+        migrations.AlterModelOptions(name="voucher", options={}),
     ]

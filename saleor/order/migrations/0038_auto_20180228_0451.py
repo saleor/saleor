@@ -4,9 +4,10 @@ from django.db import migrations
 
 
 def populate_orders_shipping_price_net(apps, schema_editor):
-    Order = apps.get_model('order', 'Order')
+    Order = apps.get_model("order", "Order")
     orders_with_shipping_price_gross = Order.objects.filter(
-        shipping_price_gross__isnull=False).iterator()
+        shipping_price_gross__isnull=False
+    ).iterator()
 
     for order in orders_with_shipping_price_gross:
         # At the time of writing this migration we lack information to reliably
@@ -17,12 +18,10 @@ def populate_orders_shipping_price_net(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('order', '0037_auto_20180228_0450'),
-    ]
+    dependencies = [("order", "0037_auto_20180228_0450")]
 
     operations = [
         migrations.RunPython(
-            populate_orders_shipping_price_net,
-            migrations.RunPython.noop),
+            populate_orders_shipping_price_net, migrations.RunPython.noop
+        )
     ]

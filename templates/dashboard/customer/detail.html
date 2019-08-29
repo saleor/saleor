@@ -2,7 +2,7 @@
 {% load i18n %}
 {% load materializecss %}
 {% load price from taxed_prices %}
-{% load staticfiles %}
+{% load static %}
 {% load status %}
 
 {% block title %}
@@ -42,8 +42,13 @@
       <div class="card">
         <div class="card-content">
           <span class="card-title">
-            {{ customer.email }}
+            {{ customer.get_full_name }}
           </span>
+          {% if customer.get_full_name != customer.email %}
+            <p>
+              {{ customer.email }}
+            </p>
+          {% endif %}
           <div class="row">
             {% if customer.date_joined %}
               <div class="col s12 m4 l12">

@@ -28,7 +28,7 @@
             float: right;
             cursor: pointer;
           }
-          svg:hover path{
+          svg:hover path {
             fill: $darken-blue;
           }
         }
@@ -54,5 +54,12 @@
         text-align: center;
       }
     }
+  }
+}
+
+.card {
+  border-radius: 12px;
+  &-default {
+    background-color: $light-gray;
   }
 }

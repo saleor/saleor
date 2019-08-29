@@ -2,8 +2,8 @@
 {% load i18n %}
 {% load materializecss %}
 {% load price from taxed_prices %}
-{% load get_thumbnail from product_images %}
-{% load staticfiles %}
+{% load get_product_image_thumbnail from product_images %}
+{% load static %}
 
 {% block title %}
   {% trans "Search results" context "Search page title" %} - {{ block.super }}
@@ -27,8 +27,8 @@
           {% for product in products %}
             <li class="collection-item avatar list-item">
               <a href="{% url 'dashboard:product-details' pk=product.pk %}">
-                <img src="{% get_thumbnail product.get_first_image size=60 method="thumbnail" %}"
-                     srcset="{% get_thumbnail product.get_first_image size=60 method="thumbnail" %} 1x, {% get_thumbnail product.get_first_image size=120 method="thumbnail" %} 2x"
+                <img src="{% get_product_image_thumbnail product.get_first_image size=60 method="thumbnail" %}"
+                     srcset="{% get_product_image_thumbnail product.get_first_image size=60 method="thumbnail" %} 1x, {% get_product_image_thumbnail product.get_first_image size=120 method="thumbnail" %} 2x"
                      class="circle" alt="{{ product.name }}">
                 <span class="list-item-name">
                   {{ product.name }}

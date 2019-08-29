@@ -1,0 +1,42 @@
+{% load i18n static %}
+{% load price from taxed_prices %}
+{% load discount_as_negative from voucher %}
+{% load render_bundle from webpack_loader %}
+
+<html lang="{{ LANGUAGE_CODE }}">
+  <head>
+    <title>{% block title %}{% endblock %}</title>
+    {% render_bundle "document" "css" %}
+    <style>
+      @page {
+        @bottom-center {
+          content: "{{ site.name }}";
+        }
+
+        @bottom-right {
+          content:
+            {% blocktrans trimmed context "Order PDF footer page counter" %}
+              "Page " counter(page) "/" counter(pages)
+            {% endblocktrans %};
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <header>
+      <div style="float: left">
+        <img alt="logo" src="{% static "images/logo-light.svg" %}" />
+      </div>
+
+      <div style="float: right">
+        {{ order.created }}<br />
+        {% blocktrans trimmed context "Order PDF header" with order_id=order.id %}
+          Order #{{ order_id }}
+        {% endblocktrans %}
+      </div>
+    </header>
+
+    {% block content %}{% endblock %}
+  </body>
+</html>

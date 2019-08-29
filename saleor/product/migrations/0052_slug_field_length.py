@@ -5,24 +5,18 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('product', '0051_auto_20180202_1106'),
-    ]
+    dependencies = [("product", "0051_auto_20180202_1106")]
 
     operations = [
         migrations.AlterField(
-            model_name='attributechoicevalue',
-            name='slug',
+            model_name="attributechoicevalue",
+            name="slug",
             field=models.SlugField(max_length=100),
         ),
         migrations.AlterField(
-            model_name='category',
-            name='slug',
-            field=models.SlugField(max_length=128),
+            model_name="category", name="slug", field=models.SlugField(max_length=128)
         ),
         migrations.AlterField(
-            model_name='collection',
-            name='slug',
-            field=models.SlugField(max_length=128),
+            model_name="collection", name="slug", field=models.SlugField(max_length=128)
         ),
     ]
