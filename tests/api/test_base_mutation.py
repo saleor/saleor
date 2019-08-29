@@ -81,7 +81,7 @@ def test_user_error_nonexistent_id(schema_context):
     user_errors = result.data["test"]["errors"]
     assert user_errors
     assert user_errors[0]["field"] == "productId"
-    assert "Invalid base64 global ID" in user_errors[0]["message"]
+    assert user_errors[0]["message"] == "Couldn't resolve to a node"
 
 
 def test_user_error_id_of_different_type(product, schema_context):
@@ -109,7 +109,7 @@ def test_user_error_id_of_different_type(product, schema_context):
     user_errors = result.data["test"]["errors"]
     assert user_errors
     assert user_errors[0]["field"] == "productId"
-    assert user_errors[0]["message"] == "Must receive a Product id."
+    assert user_errors[0]["message"] == "Must receive a Product id"
 
 
 def test_get_node_or_error_returns_null_for_empty_id():
