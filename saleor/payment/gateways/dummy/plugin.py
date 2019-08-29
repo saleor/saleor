@@ -15,7 +15,6 @@ if TYPE_CHECKING:
 
 
 class DummyGatewayPlugin(BasePlugin):
-    #PLUGIN_NAME = "DUMMY_GATEWAY"
     PLUGIN_NAME = GATEWAY_NAME
     CONFIG_STRUCTURE = {
         "Store customers card": {

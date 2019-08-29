@@ -51,9 +51,7 @@ def test_process_payment(gateway, payment_txn_preauth):
     )
     gateway.plugin_manager.process_payment.return_value = PROCESS_PAYMENT_RESPONSE
 
-    transaction = gateway.process_payment(
-        payment=payment_txn_preauth, token=TOKEN
-    )
+    transaction = gateway.process_payment(payment=payment_txn_preauth, token=TOKEN)
 
     gateway.plugin_manager.process_payment.assert_called_once_with(
         USED_GATEWAY, PAYMENT_DATA
@@ -71,9 +69,7 @@ def test_store_source_when_processing_payment(gateway, payment_txn_preauth):
     gateway.plugin_manager.process_payment.return_value = PROCESS_PAYMENT_RESPONSE
 
     transaction = gateway.process_payment(
-        payment=payment_txn_preauth,
-        token=TOKEN,
-        store_source=True,
+        payment=payment_txn_preauth, token=TOKEN, store_source=True
     )
 
     gateway.plugin_manager.process_payment.assert_called_once_with(

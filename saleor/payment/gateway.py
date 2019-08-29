@@ -7,7 +7,12 @@ from ..extensions.manager import get_extensions_manager
 
 from . import GatewayError, TransactionKind
 from .models import Payment, Transaction
-from .utils import create_payment_information, create_transaction, validate_gateway_response, _gateway_postprocess
+from .utils import (
+    create_payment_information,
+    create_transaction,
+    validate_gateway_response,
+    _gateway_postprocess,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +54,6 @@ def _get_gateway(payment: Payment) -> Gateway:
     try:
         gateway = Gateway(payment.gateway)
     except AttributeError:
-        raise ImproperlyConfigured(
-            "Payment gateway %s is not configured." % gateway)
+        raise ImproperlyConfigured("Payment gateway %s is not configured." % gateway)
 
     return gateway
