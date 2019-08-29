@@ -157,7 +157,9 @@ def query_bots_with_filter():
     return query
 
 
-@pytest.mark.parametrize("bot_filter, count", (({"search": "Sample"}, 1), ({}, 2)))
+@pytest.mark.parametrize(
+    "bot_filter, count", (({"search": "Sample"}, 1), ({"isActive": False}, 1), ({}, 2))
+)
 def test_bots_query(
     query_bots_with_filter,
     staff_api_client,
@@ -166,7 +168,9 @@ def test_bots_query(
     bot_filter,
     count,
 ):
-    Bot.objects.create(name="Simple bot")
+    second_bot = Bot.objects.create(name="Simple bot")
+    second_bot.is_active = False
+    second_bot.save()
 
     variables = {"filter": bot_filter}
     response = staff_api_client.post_graphql(

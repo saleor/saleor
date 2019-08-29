@@ -70,7 +70,7 @@ def filter_search(qs, _, value):
 
 
 def filter_bot_search(qs, _, value):
-    search_fields = ("name", "is_active")
+    search_fields = ("name",)
     if value:
         qs = filter_by_query_param(qs, value, search_fields)
     return qs
@@ -104,10 +104,11 @@ class CustomerFilter(django_filters.FilterSet):
 
 class BotUserFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(method=filter_bot_search)
+    is_active = django_filters.BooleanFilter()
 
     class Meta:
         model = Bot
-        fields = ["search"]
+        fields = ["search", "is_active"]
 
 
 class StaffUserFilter(django_filters.FilterSet):

@@ -154,7 +154,7 @@ class CustomerEvent(CountableDjangoObjectType):
         return None
 
 
-class Bot(CountableDjangoObjectType):
+class Bot(MetadataObjectType, CountableDjangoObjectType):
     permissions = graphene.List(
         PermissionDisplay, description="List of bot's permissions."
     )
@@ -179,6 +179,10 @@ class Bot(CountableDjangoObjectType):
     @staticmethod
     def resolve_auth_token(root: models.Bot, _info, **_kwargs):
         return "*" * 6 + root.auth_token[-4:]
+
+    @staticmethod
+    def resolve_meta(root, _info):
+        return resolve_meta(root, _info)
 
 
 class User(MetadataObjectType, CountableDjangoObjectType):

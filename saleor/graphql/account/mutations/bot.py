@@ -4,7 +4,12 @@ from saleor.core.permissions import get_permissions
 
 from ....account import models
 from ...core.enums import PermissionEnum
-from ...core.mutations import ModelDeleteMutation, ModelMutation
+from ...core.mutations import (
+    ClearMetaBaseMutation,
+    ModelDeleteMutation,
+    ModelMutation,
+    UpdateMetaBaseMutation,
+)
 
 
 class BotInput(graphene.InputObjectType):
@@ -77,3 +82,19 @@ class BotDelete(ModelDeleteMutation):
         description = "Deletes a bot"
         model = models.Bot
         permissions = ("account.manage_bots",)
+
+
+class BotUpdatePrivateMeta(UpdateMetaBaseMutation):
+    class Meta:
+        description = "Updates private metadata for bot."
+        permissions = ("account.manage_bots",)
+        model = models.Bot
+        public = False
+
+
+class BotClearStoredPrivateMeta(ClearMetaBaseMutation):
+    class Meta:
+        description = "Clear stored metadata value."
+        model = models.Bot
+        permissions = ("account.manage_bots",)
+        public = False
