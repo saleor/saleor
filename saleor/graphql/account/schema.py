@@ -25,7 +25,13 @@ from .mutations.base import (
     UserClearStoredMeta,
     UserUpdateMeta,
 )
-from .mutations.bot import BotCreate, BotDelete, BotUpdate
+from .mutations.bot import (
+    BotClearStoredPrivateMeta,
+    BotCreate,
+    BotDelete,
+    BotUpdate,
+    BotUpdatePrivateMeta,
+)
 from .mutations.deprecated_account import (
     CustomerAddressCreate,
     CustomerPasswordReset,
@@ -198,6 +204,9 @@ class AccountMutations(graphene.ObjectType):
     bot_create = BotCreate.Field()
     bot_update = BotUpdate.Field()
     bot_delete = BotDelete.Field()
+
+    bot_update_private_metadata = BotUpdatePrivateMeta.Field()
+    bot_clear_stored_private_metadata = BotClearStoredPrivateMeta.Field()
 
     # Staff deprecated mutation
     password_reset = PasswordReset.Field()

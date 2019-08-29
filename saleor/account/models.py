@@ -1,4 +1,5 @@
 import uuid
+from typing import Set
 
 from django.conf import settings
 from django.contrib.auth.models import (
@@ -191,8 +192,8 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
         return self.email
 
 
-class Bot(models.Model):
-    name = models.CharField(max_length=128)
+class Bot(ModelWithMetadata):
+    name = models.CharField(max_length=60)
     auth_token = models.CharField(default=generate_token, unique=True, max_length=30)
     created = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
@@ -210,7 +211,7 @@ class Bot(models.Model):
             ("manage_bots", pgettext_lazy("Permission description", "Manage bots")),
         )
 
-    def _get_permissions(self):
+    def _get_permissions(self) -> Set[str]:
         """Return the permissions of the bot."""
         if not self.is_active:
             return set()
@@ -218,12 +219,18 @@ class Bot(models.Model):
         if not hasattr(self, perm_cache_name):
             perms = self.permissions.all()
             perms = perms.values_list("content_type__app_label", "codename").order_by()
-            setattr(self, perm_cache_name, {"%s.%s" % (ct, name) for ct, name in perms})
+            setattr(self, perm_cache_name, {f"{ct}.{name}" for ct, name in perms})
         return getattr(self, perm_cache_name)
 
     def has_perms(self, perm_list):
         """Return True if the bot has each of the specified permissions."""
-        return all(self.has_perm(perm) for perm in perm_list)
+        wanted_perms = set(perm_list)
+        actual_perms = self._get_permissions()
+
+        if not self.is_active:
+            return False
+
+        return (wanted_perms & actual_perms) == wanted_perms
 
     def has_perm(self, perm):
         """Return True if the bot has the specified permission."""

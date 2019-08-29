@@ -412,8 +412,15 @@ type Bot implements Node {
   authToken: String!
   created: DateTime
   isActive: Boolean
+  privateMeta: [MetaStore]!
+  meta: [MetaStore]!
   permissions: [PermissionDisplay]
   name: String
+}
+
+type BotClearStoredPrivateMeta {
+  errors: [Error!]
+  bot: Bot
 }
 
 type BotCountableConnection {
@@ -449,8 +456,14 @@ type BotUpdate {
   bot: Bot
 }
 
+type BotUpdatePrivateMeta {
+  errors: [Error!]
+  bot: Bot
+}
+
 input BotUserInput {
   search: String
+  isActive: Boolean
 }
 
 input CatalogueInput {
@@ -2032,6 +2045,8 @@ type Mutations {
   botCreate(input: BotInput!): BotCreate
   botUpdate(id: ID!, input: BotInput!): BotUpdate
   botDelete(id: ID!): BotDelete
+  botUpdatePrivateMetadata(id: ID!, input: MetaInput!): BotUpdatePrivateMeta
+  botClearStoredPrivateMetadata(id: ID!, input: MetaPath!): BotClearStoredPrivateMeta
   passwordReset(email: String!): PasswordReset
 }
 
