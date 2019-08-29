@@ -44,7 +44,6 @@ def get_output_fields(model, return_field_name):
 
 
 def get_error_fields(error_type_class, error_type_field):
-    """ """
     return {
         error_type_field: graphene.Field(
             graphene.List(
