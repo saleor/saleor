@@ -108,6 +108,10 @@ class AccountQueries(graphene.ObjectType):
         id=graphene.Argument(graphene.ID, required=True),
         description="Lookup a bot by ID.",
     )
+    bot_valid_token = graphene.Field(
+        graphene.Boolean, description="Authenticated bot data."
+    )
+
     user = graphene.Field(
         User,
         id=graphene.Argument(graphene.ID, required=True),
@@ -135,6 +139,13 @@ class AccountQueries(graphene.ObjectType):
     @permission_required("account.manage_users")
     def resolve_customers(self, info, query=None, **_kwargs):
         return resolve_customers(info, query=query)
+
+    def resolve_bot_valid_token(self, info):
+        if not hasattr(info.context, "bot"):
+            return False
+        elif not info.context.bot:
+            return False
+        return True
 
     @login_required
     def resolve_me(self, info):

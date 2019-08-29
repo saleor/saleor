@@ -3045,6 +3045,7 @@ type Query {
   staffUsers(filter: StaffUserInput, query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
   bots(filter: BotUserInput, before: String, after: String, first: Int, last: Int): BotCountableConnection
   bot(id: ID!): Bot
+  botValidToken: Boolean
   user(id: ID!): User
   node(id: ID!): Node
 }
