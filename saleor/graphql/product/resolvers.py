@@ -1,10 +1,15 @@
+from typing import TYPE_CHECKING, Optional, Union
+
 import graphene
 import graphene_django_optimizer as gql_optimizer
-from django.db.models import Q, Sum
+from django.db.models import Case, F, IntegerField, Q, QuerySet, Sum, When
+from graphql import GraphQLError
 
+from ...core.utils.operators import xor_none
 from ...order import OrderStatus
 from ...product import models
 from ...search.backends import picker
+from ..core.utils import from_global_id_strict_type
 from ..utils import filter_by_period, filter_by_query_param, get_database_id, get_nodes
 from .enums import AttributeSortField, OrderDirection
 from .filters import (
@@ -16,6 +21,9 @@ from .filters import (
     filter_products_by_stock_availability,
     sort_qs,
 )
+
+if TYPE_CHECKING:
+    from ..product.types import ProductOrder  # noqa
 
 PRODUCT_SEARCH_FIELDS = ("name", "description")
 PRODUCT_TYPE_SEARCH_FIELDS = ("name",)
@@ -102,6 +110,81 @@ def resolve_digital_contents(info):
     return gql_optimizer.query(qs, info)
 
 
+def sort_products_by_attribute(
+    qs: QuerySet, attribute_pk: Union[int, str], direction: str
+) -> QuerySet:
+
+    # - Annotate the query with the attribute values if the product has such attribute
+    # - Annotate with the product PK if its product type is associated to the attribute
+    #
+    # This allows us to sort by attribute values (name) and put the products having
+    # this attribute in their product type but no values for it at the bottom
+    # of the products containing a values.
+    # The other products having no such attribute will have `attr_values` and
+    # `has_attr_in_product_type` set to `null` and will be put last.
+    qs = qs.annotate(
+        attr_values=Case(
+            When(
+                Q(attributes__assignment__attribute__pk=attribute_pk),
+                then=F("attributes__values__name"),
+            ),
+            default=None,
+        ),
+        has_attr_in_product_type=Case(
+            When(Q(product_type__product_attributes__pk=attribute_pk), then=F("pk")),
+            default=None,
+            output_field=IntegerField(),
+        ),
+    )
+
+    if direction == "":
+        # order by ASC:
+        # 1. We order the product by their attributes values if they have such attribute
+        # 2. If not, we order by PK if they have such attribute in their product type
+        # 3. If they don't have such attribute in their PT, we order them by name
+        #    and they will be always last
+        qs = qs.order_by(
+            "attr_values", F("has_attr_in_product_type").asc(nulls_last=True), "name"
+        )
+    else:
+        # order by DESC:
+        # 1. We order by PK if they have such attribute in their product type
+        # 2. Then we order them by their attributes values in descending order
+        #    if they have such attribute
+        # 3. If they don't have such attribute in their PT, we order them by name
+        #    in descending order and they will be always last
+        qs = qs.order_by(
+            F("has_attr_in_product_type").desc(nulls_last=True), "-attr_values", "-name"
+        )
+
+    return qs
+
+
+def sort_products(qs: QuerySet, sort_by: Optional["ProductOrder"]):
+    if sort_by is None:
+        return qs
+
+    # Check if one of the required fields was provided
+    if not xor_none(sort_by.field, sort_by.attribute_id):
+        raise GraphQLError(
+            (
+                "You must provide a field or an attributeId to sort by, "
+                "and only one of them."
+            )
+        )
+
+    direction = sort_by.direction
+    sorting_field = sort_by.field
+
+    if sort_by.attribute_id:
+        attribute_pk = from_global_id_strict_type(sort_by.attribute_id, "Attribute")
+        qs = sort_products_by_attribute(qs, attribute_pk, direction)
+    else:
+        qs = qs.order_by(f"{direction}{sorting_field}")
+
+    return qs
+
+
 def resolve_products(
     info,
     attributes=None,
@@ -140,7 +223,7 @@ def resolve_products(
 
     qs = filter_products_by_price(qs, price_lte, price_gte)
     qs = filter_products_by_minimal_price(qs, minimal_price_lte, minimal_price_gte)
-    qs = sort_qs(qs, sort_by)
+    qs = sort_products(qs, sort_by)
     qs = qs.distinct()
 
     return gql_optimizer.query(qs, info)

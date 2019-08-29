@@ -704,6 +704,10 @@ def test_sort_products(user_api_client, product):
     assert parse_datetime(date_0) > parse_datetime(date_1)
 
 
+def test_sort_products_by_attribute():
+    pass
+
+
 def test_create_product(
     staff_api_client,
     product_type,
