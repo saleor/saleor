@@ -22,6 +22,17 @@ from .enums import (
 from .types.attributes import AttributeInput
 
 
+def filter_fields_containing_value(*search_fields: str):
+    """Create a icontains filters through given fields on a given query set object."""
+
+    def _filter_qs(qs, _, value):
+        if value:
+            qs = filter_by_query_param(qs, value, search_fields)
+        return qs
+
+    return _filter_qs
+
+
 def filter_products_by_attributes(qs, filter_value):
     attributes = Attribute.objects.prefetch_related("values")
     attributes_map = {attribute.slug: attribute.pk for attribute in attributes}
@@ -57,9 +68,19 @@ def filter_products_by_attributes(qs, filter_value):
 
 def filter_products_by_price(qs, price_lte=None, price_gte=None):
     if price_lte:
-        qs = qs.filter(price__lte=price_lte)
+        qs = qs.filter(price_amount__lte=price_lte)
     if price_gte:
-        qs = qs.filter(price__gte=price_gte)
+        qs = qs.filter(price_amount__gte=price_gte)
+    return qs
+
+
+def filter_products_by_minimal_price(
+    qs, minimal_price_lte=None, minimal_price_gte=None
+):
+    if minimal_price_lte:
+        qs = qs.filter(minimal_variant_price_amount__lte=minimal_price_lte)
+    if minimal_price_gte:
+        qs = qs.filter(minimal_variant_price_amount__gte=minimal_price_gte)
     return qs
 
 
@@ -118,6 +139,13 @@ def filter_price(qs, _, value):
     return qs
 
 
+def filter_minimal_price(qs, _, value):
+    qs = filter_products_by_minimal_price(
+        qs, minimal_price_lte=value.get("lte"), minimal_price_gte=value.get("gte")
+    )
+    return qs
+
+
 def filter_stock_availability(qs, _, value):
     if value:
         qs = filter_products_by_stock_availability(qs, value)
@@ -139,13 +167,6 @@ def filter_collection_publish(qs, _, value):
     return qs
 
 
-def filter_collection_search(qs, _, value):
-    search_fields = ("name", "slug")
-    if value:
-        qs = filter_by_query_param(qs, value, search_fields)
-    return qs
-
-
 def filter_product_type_configurable(qs, _, value):
     if value == ProductTypeConfigurable.CONFIGURABLE:
         qs = qs.filter(has_variants=True)
@@ -162,18 +183,18 @@ def filter_product_type(qs, _, value):
     return qs
 
 
-def filter_attributes_search(qs, _, value):
-    search_fields = ("name", "slug")
-    if value:
-        qs = filter_by_query_param(qs, value, search_fields)
-    return qs
-
-
 class ProductFilter(django_filters.FilterSet):
     is_published = django_filters.BooleanFilter()
     collections = GlobalIDMultipleChoiceFilter(method=filter_collections)
     categories = GlobalIDMultipleChoiceFilter(method=filter_categories)
-    price = ObjectTypeFilter(input_class=PriceRangeInput, method=filter_price)
+    price = ObjectTypeFilter(
+        input_class=PriceRangeInput, method=filter_price, field_name="price_amount"
+    )
+    minimal_price = ObjectTypeFilter(
+        input_class=PriceRangeInput,
+        method=filter_minimal_price,
+        field_name="minimal_price_amount",
+    )
     attributes = ListObjectTypeFilter(
         input_class=AttributeInput, method=filter_attributes
     )
@@ -201,7 +222,9 @@ class CollectionFilter(django_filters.FilterSet):
     published = EnumFilter(
         input_class=CollectionPublished, method=filter_collection_publish
     )
-    search = django_filters.CharFilter(method=filter_collection_search)
+    search = django_filters.CharFilter(
+        method=filter_fields_containing_value("slug", "name")
+    )
 
     class Meta:
         model = Collection
@@ -209,6 +232,8 @@ class CollectionFilter(django_filters.FilterSet):
 
 
 class ProductTypeFilter(django_filters.FilterSet):
+    search = django_filters.CharFilter(method=filter_fields_containing_value("name"))
+
     configurable = EnumFilter(
         input_class=ProductTypeConfigurable, method=filter_product_type_configurable
     )
@@ -217,12 +242,15 @@ class ProductTypeFilter(django_filters.FilterSet):
 
     class Meta:
         model = ProductType
-        fields = ["configurable", "product_type"]
+        fields = ["search", "configurable", "product_type"]
 
 
 class AttributeFilter(django_filters.FilterSet):
     # Search by attribute name and slug
-    search = django_filters.CharFilter(method=filter_attributes_search)
+    search = django_filters.CharFilter(
+        method=filter_fields_containing_value("slug", "name")
+    )
+    ids = GlobalIDMultipleChoiceFilter(field_name="id")
 
     class Meta:
         model = Attribute

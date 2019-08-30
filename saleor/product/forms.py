@@ -3,7 +3,7 @@ import json
 from django import forms
 from django.utils.encoding import smart_text
 from django.utils.translation import pgettext_lazy
-from django_prices.templatetags.prices_i18n import amount
+from django_prices.templatetags.prices import amount
 from draftjs_sanitizer import SafeJSONEncoder
 
 from ..checkout.forms import AddToCheckoutForm

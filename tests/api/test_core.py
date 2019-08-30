@@ -97,8 +97,9 @@ def test_mutation_returns_error_field_in_camel_case(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
-    error = content["data"]["productVariantUpdate"]["errors"][0]
-    assert error["field"] == "costPrice"
+    errors = content["data"]["productVariantUpdate"]["errors"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "costPriceAmount"
 
 
 def test_reporting_period_to_date():
@@ -270,11 +271,10 @@ def test_mutation_invalid_permission_in_meta(_mocked, should_fail, permissions_v
         _run_test()
         return
 
-    with pytest.raises(
-        ImproperlyConfigured,
-        message="Permissions should be a tuple or a string in Meta",
-    ):
+    with pytest.raises(ImproperlyConfigured) as exc:
         _run_test()
+
+    assert exc.value.args[0] == "Permissions should be a tuple or a string in Meta"
 
 
 MUTATION_TOKEN_VERIFY = """

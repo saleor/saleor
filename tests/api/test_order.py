@@ -196,7 +196,7 @@ def test_order_query(
     assert len(order_data["payments"]) == order.payments.count()
 
     expected_methods = ShippingMethod.objects.applicable_shipping_methods(
-        price=order.get_subtotal().gross.amount,
+        price=order.get_subtotal().gross,
         weight=order.get_total_weight(),
         country_code=order.shipping_address.country.code,
     )
@@ -254,7 +254,9 @@ def test_order_query_gift_cards(
     gift_card_data = content["data"]["order"]["giftCards"][0]
 
     assert gift_card.display_code == gift_card_data["displayCode"]
-    assert gift_card.current_balance == gift_card_data["currentBalance"]["amount"]
+    assert (
+        gift_card.current_balance.amount == gift_card_data["currentBalance"]["amount"]
+    )
 
 
 def test_order_query_draft_excluded(staff_api_client, permission_manage_orders, orders):
@@ -478,6 +480,9 @@ def test_draft_order_create(
                     }
                     order {
                         discountAmount {
+                            amount
+                        }
+                        discount {
                             amount
                         }
                         discountName
@@ -1604,10 +1609,12 @@ def test_try_payment_action_generates_event(order, staff_user, payment_dummy):
     def _test_operation():
         raise PaymentError(message)
 
-    with pytest.raises(ValidationError, message={"payment": message}):
+    with pytest.raises(ValidationError) as exc:
         try_payment_action(
             order=order, user=staff_user, payment=payment_dummy, func=_test_operation
         )
+
+    assert exc.value.args[0] == {"payment": message}
 
     error_event = OrderEvent.objects.get()  # type: OrderEvent
     assert error_event.type == order_events.OrderEvents.PAYMENT_FAILED

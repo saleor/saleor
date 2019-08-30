@@ -29,8 +29,8 @@ SORT_BY_FIELDS_LABELS_VOUCHER = {
     "start_date": pgettext_lazy("Voucher list sorting option", "start_date"),
     "end_date": pgettext_lazy("Voucher list sorting option", "end_date"),
     "used": pgettext_lazy("Voucher list sorting option", "used"),
-    "min_amount_spent": pgettext_lazy(
-        "Voucher list sorting option", "min_amount_spent"
+    "min_spent_amount": pgettext_lazy(
+        "Voucher list sorting option", "min_spent_amount"
     ),
 }
 
@@ -115,9 +115,9 @@ class VoucherFilter(SortedFilterSet):
         widget=DateRangeWidget,
         method=filter_by_date_range,
     )
-    min_amount_spent = RangeFilter(
+    min_spent_amount = RangeFilter(
         label=pgettext_lazy("Voucher list sorting filter", "Minimum amount spent"),
-        field_name="min_amount_spent",
+        field_name="min_spent_amount",
     )
     sort_by = OrderingFilter(
         label=pgettext_lazy("Voucher list sorting filter label", "Sort by"),

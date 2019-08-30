@@ -3,7 +3,6 @@
 from __future__ import unicode_literals
 
 import django.db.models.deletion
-import django_prices.models
 from django.conf import settings
 from django.db import migrations, models
 
@@ -98,9 +97,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="order",
             name="discount_amount",
-            field=django_prices.models.MoneyField(
+            field=models.DecimalField(
                 blank=True,
-                currency=settings.DEFAULT_CURRENCY,
                 decimal_places=2,
                 max_digits=12,
                 null=True,
@@ -129,9 +127,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="order",
             name="total_net",
-            field=django_prices.models.MoneyField(
+            field=models.DecimalField(
                 blank=True,
-                currency=settings.DEFAULT_CURRENCY,
                 decimal_places=2,
                 max_digits=12,
                 null=True,
@@ -141,9 +138,8 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="order",
             name="total_tax",
-            field=django_prices.models.MoneyField(
+            field=models.DecimalField(
                 blank=True,
-                currency=settings.DEFAULT_CURRENCY,
                 decimal_places=2,
                 max_digits=12,
                 null=True,

@@ -4,6 +4,7 @@
 # Mirumee Software <hello@mirumee.com>, 2017.
 # 
 # Translators:
+# Maxim <astra1@users.noreply.github.com>, 2018
 # danSamara <dan.samara@gmail.com>, 2018
 # Никита Евстропов <evstropov.n@gmail.com>, 2018
 # Eugene <eugene.mechanism@gmail.com>, 2018
@@ -13,20 +14,20 @@
 # Dmitriy D, 2019
 # Kirill Makhonin <kroks.rus@gmail.com>, 2019
 # Дмитрий К <kriv@sngy.ru>, 2019
-# Maxim <astra1@users.noreply.github.com>, 2019
 # Weronika Terpilowska <weronika@mirumee.com>, 2019
 # Optimus Prime <thebadfatrat@gmail.com>, 2019
 # Evgeny Semenov, 2019
 # Dmitry Srokin <beeduino@gmail.com>, 2019
+# Denis Eliseev <d.a.eliseev@gmail.com>, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-07-17 04:57-0500\n"
+"POT-Creation-Date: 2019-07-29 11:49-0500\n"
 "PO-Revision-Date: 2017-02-09 15:43+0000\n"
-"Last-Translator: Dmitry Srokin <beeduino@gmail.com>, 2019\n"
+"Last-Translator: Denis Eliseev <d.a.eliseev@gmail.com>, 2019\n"
 "Language-Team: Russian (https://www.transifex.com/mirumee/teams/34782/ru/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
@@ -62,7 +63,7 @@ msgid_plural "Found %(counter)d matching categories"
 msgstr[0] "Найдена %(counter)d категория"
 msgstr[1] "Найдено %(counter)d категории"
 msgstr[2] "Найдено %(counter)d категорий"
-msgstr[3] "Найдено %(counter)d категории"
+msgstr[3] "Найдено %(counter)d категорий"
 
 #: saleor/dashboard/category/forms.py:27
 #: saleor/dashboard/collection/forms.py:26
@@ -162,7 +163,7 @@ msgstr[3] "Найдено %(counter)d совпадающих коллекций"
 #: saleor/dashboard/collection/forms.py:19
 msgctxt "Products selection"
 msgid "Products"
-msgstr "Товары"
+msgstr "Продукты"
 
 #: saleor/dashboard/collection/forms.py:28
 msgctxt "Background image of a collection"
@@ -282,7 +283,7 @@ msgid ""
 "storefront."
 msgstr ""
 "Вы не можете удалить свою учётную запись через панель управления, "
-"пожалуйста, попробуйте это сделать через онлайн-магазин"
+"пожалуйста, попробуйте это сделать через онлайн-магазин."
 
 #: saleor/dashboard/customer/forms.py:38
 msgctxt "Edit customer details in order form error"
@@ -573,7 +574,7 @@ msgstr "лимит использования"
 #: saleor/dashboard/discount/forms.py:97
 msgctxt "Voucher: discount with"
 msgid "Minimal quantity of products"
-msgstr "Минимальное количество товара"
+msgstr "Минимальное количество продуктов"
 
 #: saleor/dashboard/discount/forms.py:99
 msgctxt "Voucher date restrictions"
@@ -612,12 +613,12 @@ msgid ""
 "order."
 msgstr ""
 "Если не отмечено, скидка будет применена к каждой подходящей позиции в "
-"заказе"
+"заказе."
 
 #: saleor/dashboard/discount/forms.py:171
 msgctxt "Products that can be discounted with the voucher"
 msgid "Products"
-msgstr "Товары"
+msgstr "Продукты"
 
 #: saleor/dashboard/discount/forms.py:178
 msgctxt "Categories that can be discounted with the voucher"
@@ -632,7 +633,7 @@ msgstr "Коллекции"
 #: saleor/dashboard/discount/forms.py:211
 msgctxt "Product"
 msgid "Products"
-msgstr "Товары"
+msgstr "Продукты"
 
 #: saleor/dashboard/discount/forms.py:238
 msgctxt "Collections"
@@ -754,14 +755,14 @@ msgstr "URL"
 #: saleor/dashboard/menu/forms.py:73
 msgctxt "Menu item form error"
 msgid "Maximum nesting level for menu items equals to 2."
-msgstr "Максимальный уровень вложенности для меню равен 2 уровням"
+msgstr "Максимальный уровень вложенности для меню равен 2."
 
 #: saleor/dashboard/menu/forms.py:83
 msgctxt "Menu item form error"
 msgid "A single menu item can't point to both an internal link and URL."
 msgstr ""
 "Элемент меню не может указывать одновременно на внутренний адрес и внешний "
-"URL"
+"URL."
 
 #: saleor/dashboard/menu/forms.py:92
 msgctxt "Menu item form error"
@@ -769,71 +770,71 @@ msgid "A single menu item must point to an internal link or URL."
 msgstr ""
 "Каждый элемент меню должен указывать на внутреннюю или внешнюю ссылку."
 
-#: saleor/dashboard/menu/utils.py:110
+#: saleor/dashboard/menu/utils.py:11
 #, python-format
 msgctxt "Menu item page hidden status"
 msgid ""
 "%(menu_item_name)s is hidden (will become visible on %(available_on_date)s)"
 msgstr "%(menu_item_name)s скрыто (отобразится %(available_on_date)s)"
 
-#: saleor/dashboard/menu/utils.py:123
+#: saleor/dashboard/menu/utils.py:24
 #, python-format
 msgctxt "Menu item published status"
 msgid "%(menu_item_name)s (Not published)"
 msgstr "%(menu_item_name)s (не опубликовано)"
 
-#: saleor/dashboard/menu/views.py:34
+#: saleor/dashboard/menu/views.py:35
 msgctxt "Dashboard message"
 msgid "Updated storefront menus"
 msgstr "Меню обновлены"
 
-#: saleor/dashboard/menu/views.py:53
+#: saleor/dashboard/menu/views.py:54
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added menu %s"
 msgstr "Меню %s добавлено"
 
-#: saleor/dashboard/menu/views.py:67
+#: saleor/dashboard/menu/views.py:68
 #, python-format
 msgctxt "Dashboard message"
 msgid "Updated menu %s"
 msgstr "Меню %s удалено"
 
-#: saleor/dashboard/menu/views.py:101
+#: saleor/dashboard/menu/views.py:102
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed menu %s"
 msgstr "Меню %s удалено"
 
-#: saleor/dashboard/menu/views.py:122
+#: saleor/dashboard/menu/views.py:123
 #, python-format
 msgctxt "Dashboard message"
 msgid "Added menu item %s"
 msgstr "Элемент меню %s добавлен"
 
-#: saleor/dashboard/menu/views.py:144
+#: saleor/dashboard/menu/views.py:145
 #, python-format
 msgctxt "Dashboard message"
 msgid "Saved menu item %s"
 msgstr "Элемент меню %s сохранён"
 
-#: saleor/dashboard/menu/views.py:159
+#: saleor/dashboard/menu/views.py:160
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed menu item %s"
 msgstr "Элемент меню %s удалён"
 
-#: saleor/dashboard/menu/views.py:245
+#: saleor/dashboard/menu/views.py:246
 msgctxt "Link object type group description"
 msgid "Collection"
 msgstr "Коллекция"
 
-#: saleor/dashboard/menu/views.py:251
+#: saleor/dashboard/menu/views.py:252
 msgctxt "Link object type group description"
 msgid "Category"
 msgstr "Категория"
 
-#: saleor/dashboard/menu/views.py:257
+#: saleor/dashboard/menu/views.py:258
 msgctxt "Link object type group description"
 msgid "Page"
 msgstr "Страница"
@@ -911,7 +912,7 @@ msgstr "Отправить электронное письмо с подтвер
 #: saleor/dashboard/order/forms.py:72
 msgctxt "Create draft order form error"
 msgid "Could not create order without any products"
-msgstr "Нельзя создать заказ без товаров"
+msgstr "Нельзя создать заказ без продуктов"
 
 #: saleor/dashboard/order/forms.py:89
 msgctxt "Create draft order form error"
@@ -1102,7 +1103,7 @@ msgid_plural "%(quantity)d items remaining to fulfill."
 msgstr[0] "%(quantity)d товар осталось пополнить"
 msgstr[1] "%(quantity)d товара осталось пополнить"
 msgstr[2] "%(quantity)d товаров осталось пополнить"
-msgstr[3] "%(quantity)d товаров осталось пополнить"
+msgstr[3] "%(quantity)d товаров осталось пополнить."
 
 #: saleor/dashboard/order/utils.py:136
 msgctxt "Voucher not applicable"
@@ -1455,7 +1456,7 @@ msgstr "Атрибуты продукта"
 #: saleor/dashboard/product/filters.py:121
 msgctxt "Product type list filter label"
 msgid "Variant attributes"
-msgstr "Варианты атрибута"
+msgstr "Атрибуты варианта"
 
 #: saleor/dashboard/product/filters.py:134
 #, python-format
@@ -1465,12 +1466,12 @@ msgid_plural "Found %(counter)d matching product types"
 msgstr[0] "Найден %(counter)d совпадающая категория товара"
 msgstr[1] "Найдено %(counter)d совпадающие категории товара"
 msgstr[2] "Найдено %(counter)d совпадающих категорий товара"
-msgstr[3] "Найдено %(counter)d совпадающих категорий товара"
+msgstr[3] "Найдено %(counter)d совпадающих категорий продуктов"
 
 #: saleor/dashboard/product/forms.py:46
 msgctxt "Help text in rich-text editor field"
 msgid "Select text to enable text-formatting tools."
-msgstr "Выберите текст для включения инструментов форматирования текста"
+msgstr "Выберите текст для показа инструментов форматирования."
 
 #: saleor/dashboard/product/forms.py:63
 msgctxt "Product type form label"
@@ -1493,7 +1494,7 @@ msgid ""
 "Default weight that will be used for calculating shipping price for products"
 " of that type."
 msgstr ""
-"Вес по умолчанию для расчёта цены доставки для товаров данной категории."
+"Вес по умолчанию для расчёта цены доставки для продуктов данной категории."
 
 #: saleor/dashboard/product/forms.py:85
 msgctxt "Product type attributes"
@@ -1518,17 +1519,18 @@ msgstr "Доставка обязательна"
 #: saleor/dashboard/product/forms.py:144
 msgctxt "Product type form error"
 msgid "Product variants are disabled."
-msgstr "Варианты продукта выключены"
+msgstr "Варианты продукта выключены."
 
 #: saleor/dashboard/product/forms.py:150
 msgctxt "Product type form error"
 msgid "A single attribute can't belong to both a product and its variant."
-msgstr "Один и тот же атрибут не может принадлежать и продукту и варианту "
+msgstr "Один и тот же атрибут не может принадлежать и продукту и варианту."
 
 #: saleor/dashboard/product/forms.py:171
 msgctxt "Product type form error"
 msgid "Some products of this type have more than one variant."
-msgstr "Некоторые товары данной категории могут иметь больше одного варианта."
+msgstr ""
+"Некоторые продукты данной категории могут иметь больше одного варианта."
 
 #: saleor/dashboard/product/forms.py:237
 msgctxt "Product tax rate type"
@@ -1552,7 +1554,7 @@ msgid ""
 "value used on the ProductType."
 msgstr ""
 "Значение веса для расчёта стоимости доставки, пустое значение означает вес "
-"по умолчанию для данной категории товара"
+"по умолчанию для данного типа продуктов."
 
 #: saleor/dashboard/product/forms.py:268
 #: saleor/dashboard/shipping/forms.py:138
@@ -1563,7 +1565,7 @@ msgstr "Цена"
 #: saleor/dashboard/product/forms.py:270
 msgctxt "Availability date"
 msgid "Publish product on"
-msgstr "Опубликовать товар"
+msgstr "Опубликовать продукт"
 
 #: saleor/dashboard/product/forms.py:272
 msgctxt "Product published toggle"
@@ -1597,7 +1599,7 @@ msgid ""
 "Product or ProductType will be used."
 msgstr ""
 "Значение веса для расчёта стоимости доставки, пустое значение означает вес "
-"по умолчанию для данного товара или для данной категории товаров"
+"по умолчанию для данного продукта или для данного типа продуктов."
 
 #: saleor/dashboard/product/forms.py:361
 msgctxt "SKU"
@@ -1627,7 +1629,7 @@ msgstr "Отслеживание запасов товара"
 #: saleor/dashboard/product/forms.py:372
 msgctxt "product variant handle stock field help text"
 msgid "Automatically track this product's inventory"
-msgstr "Автоматически отслеживать запасы этого товара"
+msgstr "Автоматически отслеживать запасы этих продуктов"
 
 #: saleor/dashboard/product/forms.py:389
 msgctxt "Override price"
@@ -1680,7 +1682,7 @@ msgstr "Обновлен продукт %s"
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed product %s"
-msgstr "Товар %s удалён"
+msgstr "Продукт %s удалён"
 
 #: saleor/dashboard/product/views.py:205
 #, python-format
@@ -1708,7 +1710,7 @@ msgstr "Обновлен тип продукта %s"
 #, python-format
 msgctxt "Dashboard message"
 msgid "Removed product type %s"
-msgstr "Категория товара %s удалена"
+msgstr "Удалён тип продуктов %s"
 
 #: saleor/dashboard/product/views.py:341 saleor/dashboard/product/views.py:358
 #, python-format
@@ -1856,7 +1858,7 @@ msgstr "Страны"
 #: saleor/dashboard/shipping/forms.py:59
 msgctxt "Countries field help text"
 msgid "Each country might be included in only one shipping zone."
-msgstr "Каждая страна может быть включена только в одну область доставки"
+msgstr "Каждая страна может быть включена только в одну область доставки."
 
 #: saleor/dashboard/shipping/forms.py:63
 msgctxt "Help text for ShippingZone name"
@@ -1872,12 +1874,12 @@ msgid ""
 "listed in your other shipping zones."
 msgstr ""
 "При выборе данная зона будет включать в себя все страны, не представленные в"
-" других зонах доставки"
+" других зонах доставки."
 
 #: saleor/dashboard/shipping/forms.py:98
 msgctxt "ShippingZone  with \"default\" option selected already exists"
 msgid "Default ShippingZone already exists."
-msgstr "Зона доставки по умолчанию уже существует"
+msgstr "Зона доставки по умолчанию уже существует."
 
 #: saleor/dashboard/shipping/forms.py:113
 #, python-format
@@ -1890,7 +1892,7 @@ msgstr ""
 #: saleor/dashboard/shipping/forms.py:125
 msgctxt "ShippingZone field error"
 msgid "This field is required."
-msgstr "Это поле обязательно"
+msgstr "Это поле обязательно."
 
 #: saleor/dashboard/shipping/forms.py:137
 msgctxt "Shipping Method name"
@@ -1921,7 +1923,7 @@ msgstr "Без ограничения"
 #: saleor/dashboard/shipping/forms.py:223
 msgctxt "Price shipping method form error"
 msgid "Maximum order price should be larger than the minimum order price."
-msgstr "Максимальная сумма заказа должна превышать минимальную"
+msgstr "Максимальная сумма заказа должна превышать минимальную."
 
 #: saleor/dashboard/shipping/forms.py:191
 msgctxt "Minimum order weight to use this shipping method"
@@ -1995,7 +1997,7 @@ msgstr "Текст заголовка"
 #: saleor/dashboard/sites/forms.py:32
 msgctxt "Inventory tracking by default settings toggle label"
 msgid "Enable inventory tracking for newly created products"
-msgstr "Включить отслеживание запасов для вновь созданных товаров"
+msgstr "Включить отслеживание запасов для вновь созданных продуктов"
 
 #: saleor/dashboard/sites/forms.py:35
 msgctxt "Default weight unit"
@@ -2008,8 +2010,8 @@ msgid ""
 "This will set the default value of stock handling on product and variant "
 "creation"
 msgstr ""
-"Будет установлено значение запасов по умолчанию для товара и создания "
-"вариаций"
+"Это установит значение по умолчанию для обработки запасов при создании "
+"продукта и варианта."
 
 #: saleor/dashboard/sites/forms.py:52
 msgctxt "Key for chosen authorization method"
@@ -2130,7 +2132,7 @@ msgstr[3] "Найдено %(counter)d совпадающих стран"
 #: saleor/dashboard/taxes/forms.py:18
 msgctxt "Include taxes in prices"
 msgid "All products prices are entered with tax included"
-msgstr "Все цены на товары включают в себя сумму налога"
+msgstr "Все цены на продукты включают в себя сумму налога"
 
 #: saleor/dashboard/taxes/forms.py:22
 msgctxt "Display gross prices"
@@ -2201,7 +2203,7 @@ msgstr "Подтверждение заказа"
 #: saleor/dashboard/templatetags/orders.py:49
 msgctxt "Dashboard message related to an order"
 msgid "Order placed from draft order"
-msgstr ""
+msgstr "Заказ размещен из черновика"
 
 #: saleor/dashboard/templatetags/orders.py:54
 #, python-format
@@ -2236,10 +2238,10 @@ msgstr "Заказ был отменен"
 msgctxt "Dashboard message related to an order"
 msgid "We restocked %(quantity)d item"
 msgid_plural "We restocked %(quantity)d items"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
-msgstr[3] ""
+msgstr[0] "Мы пополнили %(quantity)d позицию"
+msgstr[1] "Мы пополнили %(quantity)d позиций"
+msgstr[2] "Мы пополнили %(quantity)d позиций"
+msgstr[3] "Мы пополнили %(quantity)d позиций"
 
 #: saleor/dashboard/templatetags/orders.py:88
 #, python-format
@@ -2256,7 +2258,7 @@ msgstr "Пополнение #%(fulfillment)s было отменено %(user_n
 #: saleor/dashboard/templatetags/orders.py:98
 msgctxt "Dashboard message related to an order"
 msgid "Fulfilled some items"
-msgstr ""
+msgstr "Выполнено несколько позиций"
 
 #: saleor/dashboard/templatetags/orders.py:102
 msgctxt "Dashboard message related to an order"
@@ -2288,34 +2290,34 @@ msgstr ""
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "The draft was created by %(user_name)s"
-msgstr ""
+msgstr "Черновик был создан %(user_name)s"
 
 #: saleor/dashboard/templatetags/orders.py:133
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "%(user_name)s added some products"
-msgstr ""
+msgstr "%(user_name)s добавил некоторые продукты"
 
 #: saleor/dashboard/templatetags/orders.py:138
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "%(user_name)s removed some products"
-msgstr ""
+msgstr "%(user_name)s удалил продукты"
 
 #: saleor/dashboard/templatetags/orders.py:143
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "%(user_name)s placed the order by bypassing oversold items"
-msgstr ""
+msgstr "%(user_name)s разместил заказ в обход перепроданных товаров"
 
 #: saleor/dashboard/templatetags/orders.py:148
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "The order address was updated by %(user_name)s"
-msgstr ""
+msgstr "Адрес заказа был обновлен %(user_name)s"
 
 #: saleor/dashboard/templatetags/orders.py:153
 #, python-format
 msgctxt "Dashboard message related to an order"
 msgid "The payment was failed by %(user_name)s"
-msgstr ""
+msgstr "Платеж был отклонен %(user_name)s"

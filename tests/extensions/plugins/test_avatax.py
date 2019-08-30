@@ -1,6 +1,7 @@
 from unittest.mock import Mock
 
 import pytest
+from django.core.exceptions import ValidationError
 from prices import Money, TaxedMoney
 
 from saleor.checkout.utils import add_variant_to_checkout
@@ -122,7 +123,7 @@ def test_calculate_checkout_total(
 
     voucher_amount = Money(voucher_amount, "USD")
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
-    checkout_with_item.discount_amount = voucher_amount
+    checkout_with_item.discount = voucher_amount
     checkout_with_item.save()
     line = checkout_with_item.lines.first()
     product = line.variant.product
@@ -385,10 +386,26 @@ def test_save_plugin_configuration(settings):
     settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
     manager = get_extensions_manager()
     configuration = manager.get_plugin_configuration("Avalara")
+    manager.save_plugin_configuration(
+        "Avalara",
+        {
+            "configuration": [
+                {"name": "Username or account", "value": "test"},
+                {"name": "Password or license", "value": "test"},
+            ]
+        },
+    )
     manager.save_plugin_configuration("Avalara", {"active": True})
-
     configuration.refresh_from_db()
     assert configuration.active
+
+
+def test_save_plugin_configuration_cannot_be_enabled_without_config(settings):
+    settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
+    manager = get_extensions_manager()
+    manager.get_plugin_configuration("Avalara")
+    with pytest.raises(ValidationError):
+        manager.save_plugin_configuration("Avalara", {"active": True})
 
 
 def test_taxes_are_enabled(settings):

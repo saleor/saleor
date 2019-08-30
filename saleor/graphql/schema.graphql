@@ -143,8 +143,8 @@ type AssignNavigation {
 
 type Attribute implements Node {
   id: ID!
-  productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
-  productVariantTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
+  productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
+  productVariantTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
   privateMeta: [MetaStore]!
   meta: [MetaStore]!
   inputType: AttributeInputTypeEnum
@@ -228,6 +228,7 @@ input AttributeFilterInput {
   filterableInDashboard: Boolean
   availableInGrid: Boolean
   search: String
+  ids: [ID]
 }
 
 input AttributeInput {
@@ -321,7 +322,6 @@ type AttributeValue implements Node {
   name: String
   slug: String
   type: AttributeValueType
-  value: String @deprecated(reason: "This field is deprecated")
   translation(languageCode: LanguageCodeEnum!): AttributeValueTranslation
   inputType: AttributeInputTypeEnum
 }
@@ -339,7 +339,6 @@ type AttributeValueCreate {
 
 input AttributeValueCreateInput {
   name: String!
-  value: String
 }
 
 type AttributeValueDelete {
@@ -350,7 +349,6 @@ type AttributeValueDelete {
 
 input AttributeValueInput {
   id: ID
-  name: String
   slug: String
   values: [String]!
 }
@@ -518,7 +516,8 @@ type Checkout implements Node {
   shippingAddress: Address
   shippingMethod: ShippingMethod
   note: String!
-  discountAmount: Money
+  discountAmount: Money @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, use discount instead.")
+  discount: Money
   discountName: String
   translatedDiscountName: String
   voucherCode: String
@@ -694,7 +693,6 @@ type Collection implements Node {
   meta: [MetaStore]!
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   backgroundImage(size: Int): Image
-  publishedDate: Date @deprecated(reason: "publishedDate is deprecated, use publicationDate instead")
   translation(languageCode: LanguageCodeEnum!): CollectionTranslation
 }
 
@@ -969,7 +967,6 @@ enum CountryCode {
   LT
   LU
   MO
-  MK
   MG
   MW
   MY
@@ -1003,6 +1000,7 @@ enum CountryCode {
   NU
   NF
   KP
+  MK
   MP
   NO
   OM
@@ -1867,6 +1865,7 @@ type Mutations {
   paymentCapture(amount: Decimal, paymentId: ID!): PaymentCapture
   paymentRefund(amount: Decimal, paymentId: ID!): PaymentRefund
   paymentVoid(paymentId: ID!): PaymentVoid
+  paymentSecureConfirm(paymentId: ID!): PaymentSecureConfirm
   pageCreate(input: PageInput!): PageCreate
   pageDelete(id: ID!): PageDelete
   pageBulkDelete(ids: [ID]!): PageBulkDelete
@@ -1909,7 +1908,7 @@ type Mutations {
   giftCardCreate(input: GiftCardCreateInput!): GiftCardCreate
   giftCardDeactivate(id: ID!): GiftCardDeactivate
   giftCardUpdate(id: ID!, input: GiftCardUpdateInput!): GiftCardUpdate
-  pluginConfigurationUpdate(id: ID!, input: PluginConfigurationUpdateInput!): PluginConfigurationUpdate
+  pluginUpdate(id: ID!, input: PluginUpdateInput!): PluginUpdate
   saleCreate(input: SaleInput!): SaleCreate
   saleDelete(id: ID!): SaleDelete
   saleBulkDelete(ids: [ID]!): SaleBulkDelete
@@ -1946,8 +1945,9 @@ type Mutations {
   checkoutClearMetadata(id: ID!, input: MetaPath!): CheckoutClearStoredMeta
   checkoutUpdatePrivateMetadata(id: ID!, input: MetaInput!): CheckoutUpdatePrivateMeta
   checkoutClearPrivateMetadata(id: ID!, input: MetaPath!): CheckoutClearStoredPrivateMeta
-  requestPasswordReset(email: String!): RequestPasswordReset
-  setPassword(id: ID!, input: SetPasswordInput!): SetPassword
+  requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
+  setPassword(token: String!, email: String!, password: String!): SetPassword
+  passwordChange(newPassword: String!, oldPassword: String!): PasswordChange
   userUpdateMetadata(id: ID!, input: MetaInput!): UserUpdateMeta
   userClearStoredMetadata(id: ID!, input: MetaPath!): UserClearStoredMeta
   accountAddressCreate(input: AddressInput!, type: AddressTypeEnum): AccountAddressCreate
@@ -1956,7 +1956,7 @@ type Mutations {
   accountSetDefaultAddress(id: ID!, type: AddressTypeEnum!): AccountSetDefaultAddress
   accountRegister(input: AccountRegisterInput!): AccountRegister
   accountUpdate(input: AccountInput!): AccountUpdate
-  accountRequestDeletion: AccountRequestDeletion
+  accountRequestDeletion(redirectUrl: String!): AccountRequestDeletion
   accountDelete(token: String!): AccountDelete
   customerPasswordReset(input: CustomerPasswordResetInput!): CustomerPasswordReset
   customerAddressCreate(input: AddressInput!, type: AddressTypeEnum): CustomerAddressCreate
@@ -2011,12 +2011,12 @@ type Order implements Node {
   billingAddress: Address
   shippingAddress: Address
   shippingMethod: ShippingMethod
-  shippingPrice: TaxedMoney
   shippingMethodName: String
+  shippingPrice: TaxedMoney
   token: String!
   voucher: Voucher
   giftCards: [GiftCard]
-  discountAmount: Money
+  discount: Money
   discountName: String!
   translatedDiscountName: String!
   displayGrossPrices: Boolean!
@@ -2041,6 +2041,7 @@ type Order implements Node {
   totalBalance: Money!
   userEmail: String
   isShippingRequired: Boolean!
+  discountAmount: Money! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, use discount instead.")
 }
 
 enum OrderAction {
@@ -2182,7 +2183,6 @@ type OrderLine implements Node {
   quantityFulfilled: Int!
   taxRate: Float!
   digitalContentUrl: DigitalContentUrl
-  thumbnailUrl(size: Int): String @deprecated(reason: "thumbnailUrl is deprecated, use thumbnail instead")
   thumbnail(size: Int): Image
   unitPrice: TaxedMoney
   variant: ProductVariant
@@ -2260,8 +2260,6 @@ type Page implements Node {
   content: String!
   contentJson: JSONString!
   created: DateTime!
-  availableOn: Date @deprecated(reason: "availableOn is deprecated, use publicationDate instead")
-  isVisible: Boolean @deprecated(reason: "isVisible is deprecated, use isPublished instead")
   translation(languageCode: LanguageCodeEnum!): PageTranslation
 }
 
@@ -2341,6 +2339,11 @@ type PageUpdate {
   page: Page
 }
 
+type PasswordChange {
+  errors: [Error!]
+  user: User
+}
+
 type PasswordReset {
   errors: [Error!]
 }
@@ -2404,6 +2407,11 @@ type PaymentRefund {
   payment: Payment
 }
 
+type PaymentSecureConfirm {
+  errors: [Error!]
+  payment: Payment
+}
+
 type PaymentSource {
   gateway: String!
   creditCardInfo: CreditCard
@@ -2435,7 +2443,7 @@ enum PermissionEnum {
   MANAGE_TRANSLATIONS
 }
 
-type PluginConfiguration implements Node {
+type Plugin implements Node {
   name: String!
   description: String!
   active: Boolean!
@@ -2443,23 +2451,23 @@ type PluginConfiguration implements Node {
   id: ID!
 }
 
-type PluginConfigurationCountableConnection {
+type PluginCountableConnection {
   pageInfo: PageInfo!
-  edges: [PluginConfigurationCountableEdge!]!
+  edges: [PluginCountableEdge!]!
   totalCount: Int
 }
 
-type PluginConfigurationCountableEdge {
-  node: PluginConfiguration!
+type PluginCountableEdge {
+  node: Plugin!
   cursor: String!
 }
 
-type PluginConfigurationUpdate {
+type PluginUpdate {
   errors: [Error!]
-  pluginConfiguration: PluginConfiguration
+  plugin: Plugin
 }
 
-input PluginConfigurationUpdateInput {
+input PluginUpdateInput {
   active: Boolean
   configuration: [ConfigurationItemInput]
 }
@@ -2486,14 +2494,13 @@ type Product implements Node {
   privateMeta: [MetaStore]!
   meta: [MetaStore]!
   url: String!
-  thumbnailUrl(size: Int): String @deprecated(reason: "thumbnailUrl is deprecated, use\\n         thumbnail instead")
   thumbnail(size: Int): Image
-  availability: ProductPricingInfo @deprecated(reason: "Has been renamed to 'pricing'.")
+  availability: ProductPricingInfo @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, Has been renamed to 'pricing'.")
   pricing: ProductPricingInfo
   isAvailable: Boolean
   basePrice: Money
-  price: Money @deprecated(reason: "Has been replaced by 'basePrice'")
-  taxRate: TaxRateType @deprecated(reason: "taxRate is deprecated. Use taxType to obtain taxCode for given tax gateway")
+  price: Money @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, has been replaced by 'basePrice'")
+  minimalVariantPrice: Money
   taxType: TaxType
   attributes: [SelectedAttribute!]!
   purchaseCost: MoneyRange
@@ -2502,7 +2509,6 @@ type Product implements Node {
   variants: [ProductVariant]
   images: [ProductImage]
   collections: [Collection]
-  availableOn: Date @deprecated(reason: "availableOn is deprecated, use publicationDate instead")
   translation(languageCode: LanguageCodeEnum!): ProductTranslation
   slug: String!
 }
@@ -2553,9 +2559,7 @@ input ProductCreateInput {
   descriptionJson: JSONString
   isPublished: Boolean
   name: String
-  price: Decimal
   basePrice: Decimal
-  taxRate: TaxRateType
   taxCode: String
   seo: SeoInput
   weight: WeightScalar
@@ -2579,6 +2583,7 @@ input ProductFilterInput {
   stockAvailability: StockAvailability
   productType: ID
   search: String
+  minimalPrice: PriceRangeInput
 }
 
 type ProductImage implements Node {
@@ -2637,9 +2642,7 @@ input ProductInput {
   descriptionJson: JSONString
   isPublished: Boolean
   name: String
-  price: Decimal
   basePrice: Decimal
-  taxRate: TaxRateType
   taxCode: String
   seo: SeoInput
   weight: WeightScalar
@@ -2656,11 +2659,12 @@ input ProductOrder {
 enum ProductOrderField {
   NAME
   PRICE
+  MINIMAL_PRICE
   DATE
 }
 
 type ProductPricingInfo {
-  available: Boolean @deprecated(reason: "This has been moved to the parent type as 'is_available'.")
+  available: Boolean @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, this has been moved to the parent type as 'is_available'.")
   onSale: Boolean
   discount: TaxedMoney
   discountLocalCurrency: TaxedMoney
@@ -2748,6 +2752,7 @@ enum ProductTypeEnum {
 }
 
 input ProductTypeFilterInput {
+  search: String
   configurable: ProductTypeConfigurable
   productType: ProductTypeEnum
 }
@@ -2760,7 +2765,6 @@ input ProductTypeInput {
   isShippingRequired: Boolean
   isDigital: Boolean
   weight: WeightScalar
-  taxRate: TaxRateType
   taxCode: String
 }
 
@@ -2812,8 +2816,8 @@ type ProductVariant implements Node {
   meta: [MetaStore]!
   stockQuantity: Int!
   priceOverride: Money
-  price: Money @deprecated(reason: "Has been replaced by 'pricing.price_undiscounted'")
-  availability: VariantPricingInfo @deprecated(reason: "Has been renamed to 'pricing'.")
+  price: Money @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, has been replaced by 'pricing.price_undiscounted'")
+  availability: VariantPricingInfo @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, has been renamed to 'pricing'.")
   pricing: VariantPricingInfo
   isAvailable: Boolean
   attributes: [SelectedAttribute!]!
@@ -2923,9 +2927,9 @@ type Query {
   collection(id: ID!): Collection
   collections(filter: CollectionFilterInput, query: String, before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   product(id: ID!): Product
-  products(filter: ProductFilterInput, attributes: [AttributeScalar], categories: [ID], collections: [ID], priceLte: Float, priceGte: Float, sortBy: ProductOrder, stockAvailability: StockAvailability, query: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  products(filter: ProductFilterInput, attributes: [AttributeScalar], categories: [ID], collections: [ID], sortBy: ProductOrder, stockAvailability: StockAvailability, query: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   productType(id: ID!): ProductType
-  productTypes(filter: ProductTypeFilterInput, before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
+  productTypes(filter: ProductTypeFilterInput, query: String, before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
   productVariant(id: ID!): ProductVariant
   productVariants(ids: [ID], before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   reportProductSales(period: ReportingPeriod!, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
@@ -2946,8 +2950,8 @@ type Query {
   menuItems(query: String, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
   giftCard(id: ID!): GiftCard
   giftCards(before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
-  pluginConfiguration(id: ID!): PluginConfiguration
-  pluginConfigurations(before: String, after: String, first: Int, last: Int): PluginConfigurationCountableConnection
+  plugin(id: ID!): Plugin
+  plugins(before: String, after: String, first: Int, last: Int): PluginCountableConnection
   sale(id: ID!): Sale
   sales(filter: SaleFilterInput, query: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection
   voucher(id: ID!): Voucher
@@ -2957,7 +2961,7 @@ type Query {
   checkouts(before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
   checkoutLine(id: ID): CheckoutLine
   checkoutLines(before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection
-  addressValidationRules(countryCode: CountryCode, countryArea: String, cityArea: String): AddressValidationData
+  addressValidationRules(countryCode: CountryCode!, countryArea: String, city: String, cityArea: String): AddressValidationData
   customers(filter: CustomerFilterInput, query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
   me: User
   staffUsers(filter: StaffUserInput, query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
@@ -3079,7 +3083,7 @@ type SaleUpdate {
 
 type SelectedAttribute {
   attribute: Attribute!
-  value: AttributeValue @deprecated(reason: "Use values instead.")
+  value: AttributeValue @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, use values instead.")
   values: [AttributeValue]!
 }
 
@@ -3089,13 +3093,9 @@ input SeoInput {
 }
 
 type SetPassword {
-  errors: [Error!]
+  token: String
+  errors: [Error]!
   user: User
-}
-
-input SetPasswordInput {
-  token: String!
-  password: String!
 }
 
 type ShippingMethod implements Node {
@@ -3418,6 +3418,7 @@ enum TransactionKind {
   REFUND
   CAPTURE
   VOID
+  CONFIRM
 }
 
 union TranslatableItem = Product | Category | Collection | Attribute | AttributeValue | ProductVariant | Page | ShippingMethod | Sale | Voucher | MenuItem
@@ -3466,7 +3467,6 @@ type User implements Node {
   firstName: String!
   lastName: String!
   isStaff: Boolean!
-  token: UUID!
   isActive: Boolean!
   note: String
   dateJoined: DateTime!
@@ -3565,7 +3565,7 @@ type VariantImageUnassign {
 }
 
 type VariantPricingInfo {
-  available: Boolean @deprecated(reason: "This has been moved to the parent type as 'is_available'.")
+  available: Boolean @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, this has been moved to the parent type as 'is_available'.")
   onSale: Boolean
   discount: TaxedMoney
   discountLocalCurrency: TaxedMoney
@@ -3592,13 +3592,14 @@ type Voucher implements Node {
   applyOncePerCustomer: Boolean!
   discountValueType: DiscountValueTypeEnum!
   discountValue: Float!
-  minAmountSpent: Money
+  minSpent: Money
   minCheckoutItemsQuantity: Int
   categories(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   collections(before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   countries: [CountryDisplay]
   translation(languageCode: LanguageCodeEnum!): VoucherTranslation
+  minAmountSpent: Money @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, use the minSpent field instead.")
 }
 
 type VoucherAddCatalogues {
@@ -3682,11 +3683,7 @@ type VoucherTranslation implements Node {
 }
 
 enum VoucherTypeEnum {
-  PRODUCT
-  COLLECTION
-  CATEGORY
   SHIPPING
-  VALUE
   ENTIRE_ORDER
   SPECIFIC_PRODUCT
 }

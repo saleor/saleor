@@ -147,6 +147,14 @@ class BasePlugin:
                     config_item.update([("value", new_value)])
 
     @classmethod
+    def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
+        """Validate if provided configuration is correct.
+
+        Raise django.core.exceptions.ValidationError in the other cases
+        """
+        return
+
+    @classmethod
     def save_plugin_configuration(
         cls, plugin_configuration: "PluginConfiguration", cleaned_data
     ):
@@ -156,7 +164,12 @@ class BasePlugin:
             cls._update_config_items(configuration_to_update, current_config)
         if "active" in cleaned_data:
             plugin_configuration.active = cleaned_data["active"]
+        cls.validate_plugin_configuration(plugin_configuration)
         plugin_configuration.save()
+        if plugin_configuration.configuration:
+            # Let's add a translated descriptions and labels
+            cls._append_config_structure(plugin_configuration.configuration)
+            cls._hide_secret_configuration_fields(plugin_configuration.configuration)
         return plugin_configuration
 
     @classmethod
@@ -165,8 +178,12 @@ class BasePlugin:
         return defaults
 
     @classmethod
+    def _hide_secret_configuration_fields(cls, configuration: List[dict]):
+        return
+
+    @classmethod
     def _append_config_structure(cls, configuration):
-        config_structure = getattr(cls, "CONFIG_STRUCTURE", {})
+        config_structure = getattr(cls, "CONFIG_STRUCTURE") or {}
         for coniguration_field in configuration:
 
             structure_to_add = config_structure.get(coniguration_field.get("name"))
@@ -183,4 +200,5 @@ class BasePlugin:
         if configuration.configuration:
             # Let's add a translated descriptions and labels
             cls._append_config_structure(configuration.configuration)
+            cls._hide_secret_configuration_fields(configuration.configuration)
         return configuration

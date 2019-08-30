@@ -187,19 +187,25 @@ class ProductQueries(graphene.ObjectType):
         Product,
         filter=ProductFilterInput(),
         attributes=graphene.List(
-            AttributeScalar, description="Filter products by attributes."
+            AttributeScalar,
+            description=(
+                'DEPRECATED: Will be removed in Saleor 2.10, use the "filter" input.',
+                "Filter products by attributes.",
+            ),
         ),
         categories=graphene.List(
-            graphene.ID, description="Filter products by category."
+            graphene.ID,
+            description=(
+                'DEPRECATED: Will be removed in Saleor 2.10, use the "filter" input.',
+                "Filter products by category.",
+            ),
         ),
         collections=graphene.List(
-            graphene.ID, description="Filter products by collections."
-        ),
-        price_lte=graphene.Float(
-            description="Filter by price less than or equal to the given value."
-        ),
-        price_gte=graphene.Float(
-            description="Filter by price greater than or equal to the given value."
+            graphene.ID,
+            description=(
+                'DEPRECATED: Will be removed in Saleor 2.10, use the "filter" input.',
+                "Filter products by collections.",
+            ),
         ),
         sort_by=graphene.Argument(ProductOrder, description="Sort products."),
         stock_availability=graphene.Argument(
@@ -216,6 +222,7 @@ class ProductQueries(graphene.ObjectType):
     product_types = FilterInputConnectionField(
         ProductType,
         filter=ProductTypeFilterInput(),
+        query=graphene.String(description=DESCRIPTIONS["product_type"]),
         description="List of the shop's product types.",
     )
     product_variant = graphene.Field(
@@ -271,8 +278,8 @@ class ProductQueries(graphene.ObjectType):
     def resolve_product_type(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, ProductType)
 
-    def resolve_product_types(self, info, **_kwargs):
-        return resolve_product_types(info)
+    def resolve_product_types(self, info, query=None, **_kwargs):
+        return resolve_product_types(info, query)
 
     def resolve_product_variant(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, ProductVariant)

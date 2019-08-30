@@ -46,10 +46,20 @@ All notable, unreleased changes to this project will be documented in this file.
 - Users cannot add multiple times the same product into a collection anymore - #4518 by @NyanKiyoshi
 - Enterprise-grade attributes management - #4351 by @dominik-zeglen and @NyanKiyoshi
 - Refetch attribute list after closing modal - #4615 by @dominik-zeglen
-- Add ability to toggle visible columns in product list - #4608 by @dominik-zeglen 
+- Add ability to toggle visible columns in product list - #4608 by @dominik-zeglen
 - Serialize empty URL as string when creating menu items - #4616 by @maarcingebala
 - Fix bulk actions - #4618 by @dominik-zeglen
 - Remove dashboard 2.0 files - #4631 by @dominik-zeglen
+- Refactoring of password recovery system - #4617 by @fowczarek
+- Added capability to filter attributes per global ID - #4640 by @NyanKiyoshi.
+- Added capability to search product types by value (through the name) - #4647 by @NyanKiyoshi.
+- Add mutation to change the authenticated user's password - #4656 by @fowczarek
+- Add an functionality to sort products by their "minimal variant price" - #4416 by @derenio
+- New stripe gateway implementation based on Stripe PaymentIntents API - #4606 by @salwator
+- Change AddressValidationRules API - #4655 by @Kwaidan00
+- Refactor account deletion mutations - #4668 by @fowczarek
+- Upgraded django-prices from v1 to v2.1. Currency codes are now locked at 3 characters max by default for consistency. - #4639 by @NyanKiyoshi
+- Drop deprecated fields from api - #4684 by@fowczarek
 
 ## 2.8.0
 

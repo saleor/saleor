@@ -8,6 +8,7 @@ from .product.resolvers import (
     CATEGORY_SEARCH_FIELDS,
     COLLECTION_SEARCH_FIELDS,
     PRODUCT_SEARCH_FIELDS,
+    PRODUCT_TYPE_SEARCH_FIELDS,
 )
 from .utils import generate_query_argument_description
 
@@ -20,6 +21,7 @@ DESCRIPTIONS = {
     "order": generate_query_argument_description(ORDER_SEARCH_FIELDS),
     "page": generate_query_argument_description(PAGE_SEARCH_FIELDS),
     "product": generate_query_argument_description(PRODUCT_SEARCH_FIELDS),
+    "product_type": generate_query_argument_description(PRODUCT_TYPE_SEARCH_FIELDS),
     "voucher": generate_query_argument_description(VOUCHER_SEARCH_FIELDS),
     "sale": generate_query_argument_description(SALE_SEARCH_FIELDS),
     "user": generate_query_argument_description(USER_SEARCH_FIELDS),

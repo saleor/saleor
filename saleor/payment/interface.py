@@ -4,6 +4,17 @@ from typing import Any, Dict, Optional
 
 
 @dataclass
+class CreditCardInfo:
+    """Uniform way to represent Credit Card information."""
+
+    last_4: str
+    exp_year: int
+    exp_month: int
+    brand: Optional[str] = None
+    name_on_card: Optional[str] = None
+
+
+@dataclass
 class GatewayResponse:
     """Dataclass for storing gateway response.
 
@@ -12,12 +23,14 @@ class GatewayResponse:
     """
 
     is_success: bool
+    action_required: bool
     kind: str
     amount: Decimal
     currency: str
     transaction_id: str
     error: Optional[str]
     customer_id: Optional[str] = None
+    card_info: Optional[CreditCardInfo] = None
     raw_response: Optional[Dict[str, str]] = None
 
 
@@ -78,16 +91,6 @@ class GatewayConfig:
     # a unified structure
     connection_params: Dict[str, Any]
     store_customer: bool = False
-
-
-@dataclass
-class CreditCardInfo:
-    """Uniform way to represent Credit Card information."""
-
-    last_4: str
-    exp_year: int
-    exp_month: int
-    name_on_card: Optional[str] = None
 
 
 @dataclass
