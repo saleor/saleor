@@ -30,7 +30,7 @@ def checkout_with_digital_item(checkout, digital_content):
 
 @pytest.fixture(autouse=True)
 def enable_dummy_gateway(settings):
-    settings.PLUGINS = ["saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin", ]
+    settings.PLUGINS = ["saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin"]
     return settings
 
 
