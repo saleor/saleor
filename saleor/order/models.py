@@ -408,7 +408,7 @@ class OrderLine(models.Model):
 
     def __str__(self):
         return (
-            "%s (%s)" % (self.product_name, self.variant_name)
+            f"{self.product_name} ({self.variant_name})"
             if self.variant_name
             else self.product_name
         )
