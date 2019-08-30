@@ -878,7 +878,14 @@ def test_view_attribute_create(admin_client, color_attribute):
     response = admin_client.post(url, data, follow=True)
 
     assert response.status_code == 200
-    assert Attribute.objects.count() == 2, "An attribute should have been created"
+
+    created_attribute = Attribute.objects.filter(slug="test").first()
+    assert created_attribute is not None, "An attribute should have been created"
+
+    assert created_attribute.name == "test"
+    assert (
+        created_attribute.visible_in_storefront is True
+    ), "The default value should have been used"
 
 
 def test_view_attribute_create_not_valid(admin_client, color_attribute):
@@ -902,6 +909,30 @@ def test_view_attribute_edit(color_attribute, admin_client):
     color_attribute.refresh_from_db()
     assert color_attribute.name == "new_name"
     assert color_attribute.slug == "new_slug"
+    assert (
+        color_attribute.visible_in_storefront is True
+    ), "The default value should have been used"
+
+
+def test_view_attribute_edit_with_product_type(product, admin_client):
+    old_attribute_count = Attribute.objects.count()
+    product_attribute = (
+        product.product_type.product_attributes.first()
+    )  # type: Attribute
+    url = reverse("dashboard:attribute-update", kwargs={"pk": product_attribute.pk})
+    data = {"name": "new_name", "slug": "new_slug"}
+
+    response = admin_client.post(url, data, follow=True)
+
+    assert response.status_code == 200
+    assert (
+        Attribute.objects.count() == old_attribute_count
+    ), "A new attribute shouldn't have been created"
+
+    product_attribute.refresh_from_db()
+    assert (
+        product_attribute.product_types.count() == 1
+    ), "Product type shouldn't have been unassigned"
 
 
 def test_view_attribute_delete(admin_client, color_attribute):
