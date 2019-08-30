@@ -186,30 +186,33 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
         return self.email
 
 
-class Bot(ModelWithMetadata):
+class ServiceAccount(ModelWithMetadata):
     name = models.CharField(max_length=60)
     auth_token = models.CharField(default=generate_token, unique=True, max_length=30)
     created = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
     permissions = models.ManyToManyField(
         Permission,
-        verbose_name=_("bot permissions"),
+        verbose_name=_("service account permissions"),
         blank=True,
-        help_text=_("Specific permissions for this bot."),
-        related_name="bot_set",
-        related_query_name="bot",
+        help_text=_("Specific permissions for this service."),
+        related_name="service_set",
+        related_query_name="service",
     )
 
     class Meta:
         permissions = (
-            ("manage_bots", pgettext_lazy("Permission description", "Manage bots")),
+            (
+                "manage_service_account",
+                pgettext_lazy("Permission description", "Manage service account"),
+            ),
         )
 
     def _get_permissions(self) -> Set[str]:
-        """Return the permissions of the bot."""
+        """Return the permissions of the service."""
         if not self.is_active:
             return set()
-        perm_cache_name = "_bot_perm_cache"
+        perm_cache_name = "_service_perm_cache"
         if not hasattr(self, perm_cache_name):
             perms = self.permissions.all()
             perms = perms.values_list("content_type__app_label", "codename").order_by()
@@ -217,7 +220,7 @@ class Bot(ModelWithMetadata):
         return getattr(self, perm_cache_name)
 
     def has_perms(self, perm_list):
-        """Return True if the bot has each of the specified permissions."""
+        """Return True if the service has each of the specified permissions."""
         wanted_perms = set(perm_list)
         actual_perms = self._get_permissions()
 
@@ -227,7 +230,7 @@ class Bot(ModelWithMetadata):
         return (wanted_perms & actual_perms) == wanted_perms
 
     def has_perm(self, perm):
-        """Return True if the bot has the specified permission."""
+        """Return True if the service has the specified permission."""
         if not self.is_active:
             return False
 

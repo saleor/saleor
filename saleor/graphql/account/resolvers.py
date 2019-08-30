@@ -48,8 +48,8 @@ def resolve_staff_users(info, query):
     return gql_optimizer.query(qs, info)
 
 
-def resolve_bots(info):
-    qs = models.Bot.objects.all()
+def resolve_service_accounts(info):
+    qs = models.ServiceAccount.objects.all()
     return gql_optimizer.query(qs, info)
 
 
