@@ -1,3 +1,4 @@
+from decimal import Decimal
 import logging
 
 from django.core.exceptions import ImproperlyConfigured
@@ -8,6 +9,8 @@ from ..extensions.manager import get_extensions_manager
 from . import GatewayError, TransactionKind, PaymentError
 from .models import Payment, Transaction
 from .utils import (
+    clean_authorize,
+    clean_capture,
     create_payment_information,
     create_transaction,
     validate_gateway_response,
@@ -74,10 +77,10 @@ class PaymentGateway:
 
     @raise_payment_error
     @payment_postprocess
-    @require_active_payment
     def authorize(
         self, payment: Payment, token: str, store_source: bool = False
     ) -> Transaction:
+        clean_authorize(payment)
         gateway = _get_gateway(payment)
         payment_data = create_payment_information(
             payment=payment, payment_token=token, store_source=store_source
@@ -93,12 +96,39 @@ class PaymentGateway:
             gateway_response=response,
         )
 
+    @raise_payment_error
+    @payment_postprocess
+    def capture(
+        self, payment: Payment, amount: Decimal = None, store_source: bool = False
+    ) -> Transaction:
+        if amount is None:
+            amount = payment.get_charge_amount()
+        clean_capture(payment, amount)
+        gateway = _get_gateway(payment)
+        token = _get_authorization_token(payment)
+        payment_data = create_payment_information(
+            payment=payment,
+            payment_token=token,
+            amount=amount,
+            store_source=store_source,
+        )
+        response, error = _fetch_gateway_response(
+            self.plugin_manager.capture_payment, gateway, payment_data
+        )
+        return create_transaction(
+            payment=payment,
+            kind=TransactionKind.CAPTURE,
+            payment_information=payment_data,
+            error_msg=error,
+            gateway_response=response,
+        )
+
 
 def _get_gateway(payment: Payment) -> Gateway:
     try:
         gateway = Gateway(payment.gateway)
     except AttributeError:
-        raise ImproperlyConfigured("Payment gateway %s is not configured." % gateway)
+        raise ImproperlyConfigured(f"Payment gateway {gateway} is not configured.")
 
     return gateway
 
@@ -117,3 +147,12 @@ def _fetch_gateway_response(fn, *args, **kwargs):
         error = ERROR_MSG
         response = None
     return response, error
+
+
+def _get_authorization_token(payment: Payment):
+    auth_transaction = payment.transactions.filter(
+        kind=TransactionKind.AUTH, is_success=True
+    ).first()
+    if auth_transaction is None:
+        raise PaymentError("Cannot capture unauthorized transaction")
+    return auth_transaction.token
