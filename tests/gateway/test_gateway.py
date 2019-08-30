@@ -31,6 +31,17 @@ AUTHORIZE_RESPONSE = GatewayResponse(
     error=None,
     raw_response=RAW_RESPONSE,
 )
+AUTHORIZE_RESPONSE = GatewayResponse(
+    is_success=True,
+    customer_id="test_customer",
+    action_required=False,
+    kind=TransactionKind.AUTH,
+    amount=Decimal(10.0),
+    currency="usd",
+    transaction_id="1234",
+    error=None,
+    raw_response=RAW_RESPONSE,
+)
 TOKEN = "token"
 USED_GATEWAY = Gateway.DUMMY
 
@@ -89,18 +100,36 @@ def test_store_source_when_processing_payment(gateway, payment_txn_preauth):
     assert transaction.customer_id == PROCESS_PAYMENT_RESPONSE.customer_id
 
 
-def test_authorize_payment(gateway, payment_txn_preauth):
+def test_authorize_payment(gateway, payment_dummy):
     PAYMENT_DATA = create_payment_information(
-        payment=payment_txn_preauth, payment_token=TOKEN
+        payment=payment_dummy, payment_token=TOKEN
     )
-    gateway.plugin_manager.authorize_payment.return_value = PROCESS_PAYMENT_RESPONSE
+    gateway.plugin_manager.authorize_payment.return_value = AUTHORIZE_RESPONSE
 
-    transaction = gateway.authorize(payment=payment_txn_preauth, token=TOKEN)
+    transaction = gateway.authorize(payment=payment_dummy, token=TOKEN)
 
     gateway.plugin_manager.authorize_payment.assert_called_once_with(
         USED_GATEWAY, PAYMENT_DATA
     )
     assert transaction.amount == AUTHORIZE_RESPONSE.amount
     assert transaction.kind == TransactionKind.AUTH
+    assert transaction.currency == "usd"
+    assert transaction.gateway_response == RAW_RESPONSE
+
+
+def test_capture_payment(gateway, payment_txn_preauth):
+    auth_transaction = payment_txn_preauth.transactions.get()
+    PAYMENT_DATA = create_payment_information(
+        payment=payment_txn_preauth, payment_token=auth_transaction.token
+    )
+    gateway.plugin_manager.capture_payment.return_value = PROCESS_PAYMENT_RESPONSE
+
+    transaction = gateway.capture(payment=payment_txn_preauth)
+
+    gateway.plugin_manager.capture_payment.assert_called_once_with(
+        USED_GATEWAY, PAYMENT_DATA
+    )
+    assert transaction.amount == PROCESS_PAYMENT_RESPONSE.amount
+    assert transaction.kind == TransactionKind.CAPTURE
     assert transaction.currency == "usd"
     assert transaction.gateway_response == RAW_RESPONSE
