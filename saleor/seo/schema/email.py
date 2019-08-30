@@ -16,7 +16,7 @@ def get_product_data(line, organization):
     line_name = str(line)
     if line.translated_product_name:
         line_name = (
-            "%s (%s)" % (line.translated_product_name, line.translated_variant_name)
+            f"{line.translated_product_name} ({line.translated_variant_name})"
             if line.translated_variant_name
             else line.translated_product_name
         )
