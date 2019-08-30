@@ -2176,7 +2176,9 @@ input OrderFilterInput {
 type OrderLine implements Node {
   id: ID!
   productName: String!
+  variantName: String!
   translatedProductName: String!
+  translatedVariantName: String!
   productSku: String!
   isShippingRequired: Boolean!
   quantity: Int!

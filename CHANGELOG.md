@@ -59,7 +59,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Change AddressValidationRules API - #4655 by @Kwaidan00
 - Refactor account deletion mutations - #4668 by @fowczarek
 - Upgraded django-prices from v1 to v2.1. Currency codes are now locked at 3 characters max by default for consistency. - #4639 by @NyanKiyoshi
-- Drop deprecated fields from api - #4684 by@fowczarek
+- Drop deprecated fields from api - #4684 by @fowczarek
+- Distinguish OrderLine product name and variant name - #4702 by @fowczarek
 
 ## 2.8.0
 
