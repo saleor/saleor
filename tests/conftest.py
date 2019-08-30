@@ -425,8 +425,8 @@ def permission_manage_plugins():
 
 
 @pytest.fixture
-def permission_manage_bots():
-    return Permission.objects.get(codename="manage_bots")
+def permission_manage_service_accounts():
+    return Permission.objects.get(codename="manage_service_account")
 
 
 @pytest.fixture

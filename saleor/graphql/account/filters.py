@@ -1,7 +1,7 @@
 import django_filters
 from django.db.models import Count, Sum
 
-from ...account.models import Bot, User
+from ...account.models import ServiceAccount, User
 from ..core.filters import EnumFilter, ObjectTypeFilter
 from ..core.types.common import DateRangeInput, IntRangeInput, PriceRangeInput
 from ..utils import filter_by_query_param
@@ -69,7 +69,7 @@ def filter_search(qs, _, value):
     return qs
 
 
-def filter_bot_search(qs, _, value):
+def filter_service_account_search(qs, _, value):
     search_fields = ("name",)
     if value:
         qs = filter_by_query_param(qs, value, search_fields)
@@ -102,12 +102,12 @@ class CustomerFilter(django_filters.FilterSet):
         ]
 
 
-class BotUserFilter(django_filters.FilterSet):
-    search = django_filters.CharFilter(method=filter_bot_search)
+class ServiceAccountFilter(django_filters.FilterSet):
+    search = django_filters.CharFilter(method=filter_service_account_search)
     is_active = django_filters.BooleanFilter()
 
     class Meta:
-        model = Bot
+        model = ServiceAccount
         fields = ["search", "is_active"]
 
 

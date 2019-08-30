@@ -1,19 +1,20 @@
 import graphene
 import pytest
 
-from saleor.account.models import Bot
+from saleor.account.models import ServiceAccount
 from saleor.graphql.core.enums import PermissionEnum
 
 from .conftest import ApiClient
 from .utils import assert_no_permission, get_graphql_content
 
-BOT_CREATE_MUTATION = """
-    mutation BotCreate(
+SERVICE_ACCOUNT_CREATE_MUTATION = """
+    mutation ServiceAccountCreate(
         $name: String, $is_active: Boolean $permissions: [PermissionEnum]){
-        botCreate(input:{name: $name, isActive: $is_active, permissions: $permissions})
+        serviceAccountCreate(input:
+            {name: $name, isActive: $is_active, permissions: $permissions})
         {
             authToken
-            bot{
+            serviceAccount{
                 authToken
                 permissions{
                     code
@@ -32,11 +33,14 @@ BOT_CREATE_MUTATION = """
     """
 
 
-def test_bot_create_mutation(
-    permission_manage_bots, permission_manage_products, staff_api_client, staff_user
+def test_service_account_create_mutation(
+    permission_manage_service_accounts,
+    permission_manage_products,
+    staff_api_client,
+    staff_user,
 ):
-    query = BOT_CREATE_MUTATION
-    staff_user.user_permissions.add(permission_manage_bots)
+    query = SERVICE_ACCOUNT_CREATE_MUTATION
+    staff_user.user_permissions.add(permission_manage_service_accounts)
 
     variables = {
         "name": "New integration",
@@ -45,19 +49,22 @@ def test_bot_create_mutation(
     }
     response = staff_api_client.post_graphql(query, variables=variables)
     content = get_graphql_content(response)
-    bot_data = content["data"]["botCreate"]["bot"]
-    auth_token = content["data"]["botCreate"]["authToken"]
-    bot = Bot.objects.get()
-    assert auth_token == bot.auth_token
-    assert bot_data["isActive"] == bot.is_active
-    assert bot_data["name"] == bot.name
-    assert list(bot.permissions.all()) == [permission_manage_products]
+    service_account_data = content["data"]["serviceAccountCreate"]["serviceAccount"]
+    auth_token = content["data"]["serviceAccountCreate"]["authToken"]
+    service_account = ServiceAccount.objects.get()
+    assert auth_token == service_account.auth_token
+    assert service_account_data["isActive"] == service_account.is_active
+    assert service_account_data["name"] == service_account.name
+    assert list(service_account.permissions.all()) == [permission_manage_products]
 
 
-def test_bot_create_mutation_no_permissions(
-    permission_manage_bots, permission_manage_products, staff_api_client, staff_user
+def test_service_account_create_mutation_no_permissions(
+    permission_manage_service_accounts,
+    permission_manage_products,
+    staff_api_client,
+    staff_user,
 ):
-    query = BOT_CREATE_MUTATION
+    query = SERVICE_ACCOUNT_CREATE_MUTATION
     variables = {
         "name": "New integration",
         "is_active": True,
@@ -67,10 +74,12 @@ def test_bot_create_mutation_no_permissions(
     assert_no_permission(response)
 
 
-BOT_UPDATE_MUTATION = """
-mutation BotUpdate($id: ID!, $is_active: Boolean, $permissions: [PermissionEnum]){
-    botUpdate(id: $id, input:{isActive: $is_active, permissions:$permissions}){
-        bot{
+SERVICE_ACCOUNT_UPDATE_MUTATION = """
+mutation ServiceAccountUpdate($id: ID!, $is_active: Boolean,
+                                $permissions: [PermissionEnum]){
+    serviceAccountUpdate(id: $id,
+        input:{isActive: $is_active, permissions:$permissions}){
+        serviceAccount{
             isActive
             id
             authToken
@@ -89,17 +98,17 @@ mutation BotUpdate($id: ID!, $is_active: Boolean, $permissions: [PermissionEnum]
 """
 
 
-def test_bot_update_mutation(
-    bot,
-    permission_manage_bots,
+def test_service_account_update_mutation(
+    service_account,
+    permission_manage_service_accounts,
     permission_manage_products,
     permission_manage_users,
     staff_api_client,
     staff_user,
 ):
-    query = BOT_UPDATE_MUTATION
-    staff_user.user_permissions.add(permission_manage_bots)
-    id = graphene.Node.to_global_id("Bot", bot.id)
+    query = SERVICE_ACCOUNT_UPDATE_MUTATION
+    staff_user.user_permissions.add(permission_manage_service_accounts)
+    id = graphene.Node.to_global_id("ServiceAccount", service_account.id)
 
     variables = {
         "id": id,
@@ -112,21 +121,25 @@ def test_bot_update_mutation(
     response = staff_api_client.post_graphql(query, variables=variables)
     content = get_graphql_content(response)
 
-    bot_data = content["data"]["botUpdate"]["bot"]
-    bot.refresh_from_db()
+    service_account_data = content["data"]["serviceAccountUpdate"]["serviceAccount"]
+    service_account.refresh_from_db()
 
-    assert bot_data["isActive"] == bot.is_active
-    assert bot.is_active is False
-    assert bot_data["authToken"] == "*" * 6 + bot.auth_token[-4:]
-    assert set(bot.permissions.all()) == {
+    assert service_account_data["isActive"] == service_account.is_active
+    assert service_account.is_active is False
+    assert (
+        service_account_data["authToken"] == "*" * 6 + service_account.auth_token[-4:]
+    )
+    assert set(service_account.permissions.all()) == {
         permission_manage_products,
         permission_manage_users,
     }
 
 
-def test_bot_update_no_permission(bot, staff_api_client, staff_user):
-    query = BOT_UPDATE_MUTATION
-    id = graphene.Node.to_global_id("Bot", bot.id)
+def test_service_account_update_no_permission(
+    service_account, staff_api_client, staff_user
+):
+    query = SERVICE_ACCOUNT_UPDATE_MUTATION
+    id = graphene.Node.to_global_id("ServiceAccount", service_account.id)
     variables = {
         "id": id,
         "is_active": False,
@@ -137,10 +150,10 @@ def test_bot_update_no_permission(bot, staff_api_client, staff_user):
 
 
 @pytest.fixture
-def query_bots_with_filter():
+def query_service_accounts_with_filter():
     query = """
-    query ($filter: BotUserInput ){
-        bots(first: 5, filter: $filter){
+    query ($filter: ServiceAccountFilterInput ){
+        serviceAccounts(first: 5, filter: $filter){
             edges{
                 node{
                     id
@@ -160,49 +173,52 @@ def query_bots_with_filter():
 
 
 @pytest.mark.parametrize(
-    "bot_filter, count", (({"search": "Sample"}, 1), ({"isActive": False}, 1), ({}, 2))
+    "service_account_filter, count",
+    (({"search": "Sample"}, 1), ({"isActive": False}, 1), ({}, 2)),
 )
-def test_bots_query(
-    query_bots_with_filter,
+def test_service_accounts_query(
+    query_service_accounts_with_filter,
     staff_api_client,
-    permission_manage_bots,
-    bot,
-    bot_filter,
+    permission_manage_service_accounts,
+    service_account,
+    service_account_filter,
     count,
 ):
-    second_bot = Bot.objects.create(name="Simple bot")
-    second_bot.is_active = False
-    second_bot.save()
+    second_service_account = ServiceAccount.objects.create(name="Simple service")
+    second_service_account.is_active = False
+    second_service_account.save()
 
-    variables = {"filter": bot_filter}
+    variables = {"filter": service_account_filter}
     response = staff_api_client.post_graphql(
-        query_bots_with_filter, variables, permissions=[permission_manage_bots]
+        query_service_accounts_with_filter,
+        variables,
+        permissions=[permission_manage_service_accounts],
     )
     content = get_graphql_content(response)
 
-    bots_data = content["data"]["bots"]["edges"]
-    for bot_data in bots_data:
-        token = bot_data["node"]["authToken"]
+    service_accounts_data = content["data"]["serviceAccounts"]["edges"]
+    for service_account_data in service_accounts_data:
+        token = service_account_data["node"]["authToken"]
         assert token.startswith("*" * 6)
         assert len(token) == 10
-    assert len(bots_data) == count
+    assert len(service_accounts_data) == count
 
 
-def test_bots_query_no_permission(
-    query_bots_with_filter,
+def test_service_accounts_query_no_permission(
+    query_service_accounts_with_filter,
     staff_api_client,
     permission_manage_users,
     permission_manage_staff,
-    bot,
+    service_account,
 ):
     variables = {"filter": {}}
     response = staff_api_client.post_graphql(
-        query_bots_with_filter, variables, permissions=[]
+        query_service_accounts_with_filter, variables, permissions=[]
     )
     assert_no_permission(response)
 
     response = staff_api_client.post_graphql(
-        query_bots_with_filter,
+        query_service_accounts_with_filter,
         variables,
         permissions=[permission_manage_users, permission_manage_staff],
     )
@@ -210,10 +226,10 @@ def test_bots_query_no_permission(
 
 
 @pytest.fixture
-def query_bot():
+def query_service_account():
     query = """
     query ($id: ID! ){
-        bot(id: $id){
+        serviceAccount(id: $id){
             id
             authToken
             created
@@ -229,46 +245,63 @@ def query_bot():
     return query
 
 
-def test_bot_query(
-    query_bot, staff_api_client, permission_manage_bots, permission_manage_staff, bot
+def test_service_account_query(
+    query_service_account,
+    staff_api_client,
+    permission_manage_service_accounts,
+    permission_manage_staff,
+    service_account,
 ):
-    bot.permissions.add(permission_manage_staff)
+    service_account.permissions.add(permission_manage_staff)
 
-    id = graphene.Node.to_global_id("Bot", bot.id)
+    id = graphene.Node.to_global_id("ServiceAccount", service_account.id)
     variables = {"id": id}
     response = staff_api_client.post_graphql(
-        query_bot, variables, permissions=[permission_manage_bots]
+        query_service_account,
+        variables,
+        permissions=[permission_manage_service_accounts],
     )
     content = get_graphql_content(response)
 
-    bot_data = content["data"]["bot"]
-    assert bot_data["authToken"] == "*" * 6 + bot.auth_token[-4:]
-    assert bot_data["isActive"] == bot.is_active
-    assert bot_data["permissions"] == [
+    service_account_data = content["data"]["serviceAccount"]
+    assert (
+        service_account_data["authToken"] == "*" * 6 + service_account.auth_token[-4:]
+    )
+    assert service_account_data["isActive"] == service_account.is_active
+    assert service_account_data["permissions"] == [
         {"code": "MANAGE_STAFF", "name": "Manage staff."}
     ]
 
 
-def test_bot_query_no_permission(
-    query_bot, staff_api_client, permission_manage_staff, permission_manage_users, bot
+def test_service_account_query_no_permission(
+    query_service_account,
+    staff_api_client,
+    permission_manage_staff,
+    permission_manage_users,
+    service_account,
 ):
-    bot.permissions.add(permission_manage_staff)
+    service_account.permissions.add(permission_manage_staff)
 
-    id = graphene.Node.to_global_id("Bot", bot.id)
+    id = graphene.Node.to_global_id("ServiceAccount", service_account.id)
     variables = {"id": id}
-    response = staff_api_client.post_graphql(query_bot, variables, permissions=[])
+    response = staff_api_client.post_graphql(
+        query_service_account, variables, permissions=[]
+    )
     assert_no_permission(response)
 
     response = staff_api_client.post_graphql(
-        query_bot,
+        query_service_account,
         variables,
         permissions=[permission_manage_users, permission_manage_staff],
     )
     assert_no_permission(response)
 
 
-def test_bot_with_access_to_resources(
-    bot_api_client, bot, permission_manage_orders, order_with_lines
+def test_service_account_with_access_to_resources(
+    service_account_api_client,
+    service_account,
+    permission_manage_orders,
+    order_with_lines,
 ):
     query = """
       query {
@@ -281,42 +314,52 @@ def test_bot_with_access_to_resources(
         }
       }
     """
-    response = bot_api_client.post_graphql(query)
+    response = service_account_api_client.post_graphql(query)
     assert_no_permission(response)
-    bot.permissions.add(permission_manage_orders)
-    response = bot_api_client.post_graphql(query)
+    service_account.permissions.add(permission_manage_orders)
+    response = service_account_api_client.post_graphql(query)
     get_graphql_content(response)
 
 
 @pytest.fixture
-def query_bot_valid_token():
+def query_service_account_valid_token():
     query = """
         query {
-            botValidToken
+            serviceAccountValidToken
         }
     """
     return query
 
 
-def test_bot_valid_token(bot_api_client, bot, query_bot_valid_token):
-    response = bot_api_client.post_graphql(query_bot_valid_token)
+def test_service_account_valid_token(
+    service_account_api_client, service_account, query_service_account_valid_token
+):
+    response = service_account_api_client.post_graphql(
+        query_service_account_valid_token
+    )
     content = get_graphql_content(response)
-    valid_token = content["data"]["botValidToken"]
+    valid_token = content["data"]["serviceAccountValidToken"]
     assert valid_token
 
 
-def test_bot_empty_token(bot, query_bot_valid_token):
+def test_service_account_empty_token(
+    service_account, query_service_account_valid_token
+):
     api = ApiClient()
-    response = api.post_graphql(query_bot_valid_token)
+    response = api.post_graphql(query_service_account_valid_token)
     content = get_graphql_content(response)
-    valid_token = content["data"]["botValidToken"]
+    valid_token = content["data"]["serviceAccountValidToken"]
     assert valid_token is False
 
 
-def test_bot_invalid_token(bot_api_client, bot, query_bot_valid_token):
-    bot.auth_token = "12345"
-    bot.save()
-    response = bot_api_client.post_graphql(query_bot_valid_token)
+def test_service_account_invalid_token(
+    service_account_api_client, service_account, query_service_account_valid_token
+):
+    service_account.auth_token = "12345"
+    service_account.save()
+    response = service_account_api_client.post_graphql(
+        query_service_account_valid_token
+    )
     content = get_graphql_content(response)
-    valid_token = content["data"]["botValidToken"]
+    valid_token = content["data"]["serviceAccountValidToken"]
     assert valid_token is False

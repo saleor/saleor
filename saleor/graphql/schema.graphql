@@ -404,65 +404,6 @@ enum AuthorizationKeyType {
   GOOGLE_OAUTH2
 }
 
-type Bot implements Node {
-  id: ID!
-  authToken: String!
-  created: DateTime
-  isActive: Boolean
-  privateMeta: [MetaStore]!
-  meta: [MetaStore]!
-  permissions: [PermissionDisplay]
-  name: String
-}
-
-type BotClearStoredPrivateMeta {
-  errors: [Error!]
-  bot: Bot
-}
-
-type BotCountableConnection {
-  pageInfo: PageInfo!
-  edges: [BotCountableEdge!]!
-  totalCount: Int
-}
-
-type BotCountableEdge {
-  node: Bot!
-  cursor: String!
-}
-
-type BotCreate {
-  errors: [Error!]
-  authToken: String
-  bot: Bot
-}
-
-type BotDelete {
-  errors: [Error!]
-  bot: Bot
-}
-
-input BotInput {
-  name: String
-  isActive: Boolean
-  permissions: [PermissionEnum]
-}
-
-type BotUpdate {
-  errors: [Error!]
-  bot: Bot
-}
-
-type BotUpdatePrivateMeta {
-  errors: [Error!]
-  bot: Bot
-}
-
-input BotUserInput {
-  search: String
-  isActive: Boolean
-}
-
 input CatalogueInput {
   products: [ID]
   categories: [ID]
@@ -2039,11 +1980,11 @@ type Mutations {
   userBulkSetActive(ids: [ID]!, isActive: Boolean!): UserBulkSetActive
   userUpdatePrivateMetadata(id: ID!, input: MetaInput!): UserUpdatePrivateMeta
   userClearStoredPrivateMetadata(id: ID!, input: MetaPath!): UserClearStoredPrivateMeta
-  botCreate(input: BotInput!): BotCreate
-  botUpdate(id: ID!, input: BotInput!): BotUpdate
-  botDelete(id: ID!): BotDelete
-  botUpdatePrivateMetadata(id: ID!, input: MetaInput!): BotUpdatePrivateMeta
-  botClearStoredPrivateMetadata(id: ID!, input: MetaPath!): BotClearStoredPrivateMeta
+  serviceAccountCreate(input: ServiceAccountInput!): ServiceAccountCreate
+  serviceAccountUpdate(id: ID!, input: ServiceAccountInput!): ServiceAccountUpdate
+  serviceAccountDelete(id: ID!): ServiceAccountDelete
+  serviceAccountUpdatePrivateMetadata(id: ID!, input: MetaInput!): ServiceAccountUpdatePrivateMeta
+  serviceAccountClearStoredPrivateMetadata(id: ID!, input: MetaPath!): ServiceAccountClearStoredPrivateMeta
   passwordReset(email: String!): PasswordReset
 }
 
@@ -2494,7 +2435,7 @@ type PermissionDisplay {
 enum PermissionEnum {
   MANAGE_USERS
   MANAGE_STAFF
-  MANAGE_BOTS
+  MANAGE_SERVICE_ACCOUNT
   IMPERSONATE_USERS
   MANAGE_DISCOUNTS
   MANAGE_GIFT_CARD
@@ -3030,9 +2971,9 @@ type Query {
   customers(filter: CustomerFilterInput, query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
   me: User
   staffUsers(filter: StaffUserInput, query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
-  bots(filter: BotUserInput, before: String, after: String, first: Int, last: Int): BotCountableConnection
-  bot(id: ID!): Bot
-  botValidToken: Boolean
+  serviceAccounts(filter: ServiceAccountFilterInput, before: String, after: String, first: Int, last: Int): ServiceAccountCountableConnection
+  serviceAccount(id: ID!): ServiceAccount
+  serviceAccountValidToken: Boolean
   user(id: ID!): User
   node(id: ID!): Node
 }
@@ -3158,6 +3099,65 @@ type SelectedAttribute {
 input SeoInput {
   title: String
   description: String
+}
+
+type ServiceAccount implements Node {
+  id: ID!
+  authToken: String!
+  created: DateTime
+  isActive: Boolean
+  privateMeta: [MetaStore]!
+  meta: [MetaStore]!
+  permissions: [PermissionDisplay]
+  name: String
+}
+
+type ServiceAccountClearStoredPrivateMeta {
+  errors: [Error!]
+  serviceAccount: ServiceAccount
+}
+
+type ServiceAccountCountableConnection {
+  pageInfo: PageInfo!
+  edges: [ServiceAccountCountableEdge!]!
+  totalCount: Int
+}
+
+type ServiceAccountCountableEdge {
+  node: ServiceAccount!
+  cursor: String!
+}
+
+type ServiceAccountCreate {
+  errors: [Error!]
+  authToken: String
+  serviceAccount: ServiceAccount
+}
+
+type ServiceAccountDelete {
+  errors: [Error!]
+  serviceAccount: ServiceAccount
+}
+
+input ServiceAccountFilterInput {
+  search: String
+  isActive: Boolean
+}
+
+input ServiceAccountInput {
+  name: String
+  isActive: Boolean
+  permissions: [PermissionEnum]
+}
+
+type ServiceAccountUpdate {
+  errors: [Error!]
+  serviceAccount: ServiceAccount
+}
+
+type ServiceAccountUpdatePrivateMeta {
+  errors: [Error!]
+  serviceAccount: ServiceAccount
 }
 
 type SetPassword {

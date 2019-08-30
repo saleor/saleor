@@ -3,22 +3,22 @@ from unittest.mock import Mock
 import pytest
 from django.urls import reverse
 
-from saleor.graphql.middleware import bot_middleware
+from saleor.graphql.middleware import service_account_middleware
 
 
 @pytest.mark.parametrize("path, should_accept", [("api", True), ("home", False)])
-def test_bot_middleware(bot, path, should_accept, rf):
+def test_service_account_middleware(service_account, path, should_accept, rf):
 
     # Retrieve sample request object
     request = rf.get(reverse("api"))
 
     request.path = reverse(path)
-    request.META = {"HTTP_AUTHORIZATION": f"Bearer {bot.auth_token}"}
+    request.META = {"HTTP_AUTHORIZATION": f"Bearer {service_account.auth_token}"}
 
-    middleware = bot_middleware(Mock())
+    middleware = service_account_middleware(Mock())
     middleware(request)
 
     if should_accept:
-        assert request.bot == bot
+        assert request.service == service_account
     else:
-        assert not hasattr(request, "bot")
+        assert not hasattr(request, "service")

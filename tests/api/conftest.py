@@ -8,7 +8,7 @@ from django.shortcuts import reverse
 from django.test.client import MULTIPART_CONTENT, Client
 from graphql_jwt.shortcuts import get_token
 
-from saleor.account.models import Bot, User
+from saleor.account.models import ServiceAccount, User
 
 from .utils import assert_no_permission
 
@@ -20,21 +20,21 @@ class ApiClient(Client):
 
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user", AnonymousUser())
-        bot = kwargs.pop("bot", None)
+        service_account = kwargs.pop("service_account", None)
         self.user = user
-        self.bot_token = None
+        self.service_token = None
         if not user.is_anonymous:
             self.token = get_token(user)
-        elif bot:
-            self.bot_token = bot.auth_token
+        elif service_account:
+            self.service_token = service_account.auth_token
         super().__init__(*args, **kwargs)
 
     def _base_environ(self, **request):
         environ = super()._base_environ(**request)
         if not self.user.is_anonymous:
             environ.update({"HTTP_AUTHORIZATION": "JWT %s" % self.token})
-        elif self.bot_token:
-            environ.update({"HTTP_AUTHORIZATION": "Bearer %s" % self.bot_token})
+        elif self.service_token:
+            environ.update({"HTTP_AUTHORIZATION": "Bearer %s" % self.service_token})
         return environ
 
     def post(self, data=None, **kwargs):
@@ -92,8 +92,8 @@ class ApiClient(Client):
 
 
 @pytest.fixture
-def bot_api_client(bot):
-    return ApiClient(bot=bot)
+def service_account_api_client(service_account):
+    return ApiClient(service_account=service_account)
 
 
 @pytest.fixture
@@ -144,5 +144,5 @@ def user_list_not_active(user_list):
 
 
 @pytest.fixture
-def bot(db):
-    return Bot.objects.create(name="Sample bot", is_active=True)
+def service_account(db):
+    return ServiceAccount.objects.create(name="Sample service account", is_active=True)
