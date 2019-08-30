@@ -1175,7 +1175,7 @@ def test_checkout_complete_does_not_delete_checkout_after_unsuccessful_payment(
     address,
     shipping_method,
 ):
-    expected_error ="Oops! Something went wrong." 
+    expected_error = "Oops! Something went wrong."
     mock_get_manager.process_payment.side_effect = error_side_effect
     expected_voucher_usage_count = voucher.used
     checkout = checkout_with_voucher

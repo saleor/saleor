@@ -38,30 +38,60 @@ def payment_postprocess(fn):
     return wrapped
 
 
+def require_active_payment(fn):
+    def wrapped(self, payment: Payment, *args, **kwargs):
+        if not payment.is_active:
+            raise PaymentError("This payment is no longer active.")
+        return fn(self, payment, *args, **kwargs)
+
+    return wrapped
+
+
 class PaymentGateway:
     def __init__(self):
         self.plugin_manager: PaymentInterface = get_extensions_manager()
 
     @raise_payment_error
     @payment_postprocess
+    @require_active_payment
     def process_payment(
         self, payment: Payment, token: str, store_source: bool = False
     ) -> Transaction:
+        gateway = _get_gateway(payment)
         payment_data = create_payment_information(
             payment=payment, payment_token=token, store_source=store_source
         )
-        gateway = _get_gateway(payment)
         response, error = _fetch_gateway_response(
             self.plugin_manager.process_payment, gateway, payment_data
         )
-        txn = create_transaction(
+        return create_transaction(
             payment=payment,
             kind=TransactionKind.CAPTURE,
             payment_information=payment_data,
             error_msg=error,
             gateway_response=response,
         )
-        return txn
+
+    @raise_payment_error
+    @payment_postprocess
+    @require_active_payment
+    def authorize(
+        self, payment: Payment, token: str, store_source: bool = False
+    ) -> Transaction:
+        gateway = _get_gateway(payment)
+        payment_data = create_payment_information(
+            payment=payment, payment_token=token, store_source=store_source
+        )
+        response, error = _fetch_gateway_response(
+            self.plugin_manager.authorize_payment, gateway, payment_data
+        )
+        return create_transaction(
+            payment=payment,
+            kind=TransactionKind.AUTH,
+            payment_information=payment_data,
+            error_msg=error,
+            gateway_response=response,
+        )
 
 
 def _get_gateway(payment: Payment) -> Gateway:
