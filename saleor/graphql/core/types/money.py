@@ -1,5 +1,5 @@
 import graphene
-from django_prices.templatetags import prices_i18n
+from django_prices.templatetags import prices
 
 from ..enums import TaxRateType
 
@@ -16,7 +16,7 @@ class Money(graphene.ObjectType):
 
     @staticmethod
     def resolve_localized(root, _info):
-        return prices_i18n.amount(root)
+        return prices.amount(root)
 
 
 class MoneyRange(graphene.ObjectType):

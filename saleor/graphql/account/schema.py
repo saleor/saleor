@@ -57,7 +57,7 @@ from .mutations.staff import (
     UserUpdatePrivateMeta,
 )
 from .resolvers import (
-    resolve_address_validator,
+    resolve_address_validation_rules,
     resolve_bots,
     resolve_customers,
     resolve_staff_users,
@@ -83,9 +83,10 @@ class BotUserInput(FilterInputObjectType):
 class AccountQueries(graphene.ObjectType):
     address_validation_rules = graphene.Field(
         AddressValidationData,
-        country_code=graphene.Argument(CountryCodeEnum, required=False),
-        country_area=graphene.String(required=False),
-        city_area=graphene.String(required=False),
+        country_code=graphene.Argument(CountryCodeEnum, required=True),
+        country_area=graphene.Argument(graphene.String),
+        city=graphene.Argument(graphene.String),
+        city_area=graphene.Argument(graphene.String),
     )
     customers = FilterInputConnectionField(
         User,
@@ -119,12 +120,13 @@ class AccountQueries(graphene.ObjectType):
     )
 
     def resolve_address_validation_rules(
-        self, info, country_code=None, country_area=None, city_area=None
+        self, info, country_code, country_area=None, city=None, city_area=None
     ):
-        return resolve_address_validator(
+        return resolve_address_validation_rules(
             info,
-            country_code=country_code,
+            country_code,
             country_area=country_area,
+            city=city,
             city_area=city_area,
         )
 

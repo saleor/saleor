@@ -159,6 +159,9 @@ mutation  voucherCreate(
             }
             voucher {
                 type
+                minSpent {
+                    amount
+                }
                 minAmountSpent {
                     amount
                 }
@@ -200,7 +203,7 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
     get_graphql_content(response)
     voucher = Voucher.objects.get()
     assert voucher.type == VoucherType.ENTIRE_ORDER
-    assert voucher.min_amount_spent.amount == Decimal("1.12")
+    assert voucher.min_spent_amount == Decimal("1.12")
     assert voucher.name == "test voucher"
     assert voucher.code == "testcode123"
     assert voucher.discount_value_type == DiscountValueType.FIXED
@@ -220,7 +223,7 @@ def test_create_voucher_with_empty_code(staff_api_client, permission_manage_disc
         "code": "",
         "discountValueType": DiscountValueTypeEnum.FIXED.name,
         "discountValue": 10.12,
-        "minAmountSpent": 1.12,
+        "minSpent": 1.12,
         "startDate": start_date.isoformat(),
         "endDate": end_date.isoformat(),
         "usageLimit": None,
@@ -233,33 +236,6 @@ def test_create_voucher_with_empty_code(staff_api_client, permission_manage_disc
     data = content["data"]["voucherCreate"]["voucher"]
     assert data["name"] == variables["name"]
     assert data["code"] != ""
-
-
-def test_create_voucher_with_deprecated_type(
-    staff_api_client, permission_manage_discounts
-):
-    start_date = timezone.now() - timedelta(days=365)
-    end_date = timezone.now() + timedelta(days=365)
-    variables = {
-        "name": "test voucher",
-        "type": VoucherTypeEnum.VALUE.name,
-        "code": "",
-        "discountValueType": DiscountValueTypeEnum.FIXED.name,
-        "discountValue": 10.12,
-        "minAmountSpent": 1.12,
-        "startDate": start_date.isoformat(),
-        "endDate": end_date.isoformat(),
-        "usageLimit": 0,
-    }
-
-    response = staff_api_client.post_graphql(
-        CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["voucherCreate"]["voucher"]
-    assert data["name"] == variables["name"]
-    assert data["code"] != ""
-    assert data["type"] == VoucherTypeEnum.ENTIRE_ORDER.name
 
 
 def test_create_voucher_with_existing_gift_card_code(

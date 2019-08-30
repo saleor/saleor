@@ -28,25 +28,26 @@ def test_shipping_get_ajax_label(shipping_zone):
 @pytest.mark.parametrize(
     "price, min_price, max_price, shipping_included",
     (
-        (money(10), money(10), money(20), True),  # price equal min price
-        (money(10), money(1), money(10), True),  # price equal max price
-        (money(9), money(10), money(15), False),  # price just below min price
-        (money(10), money(1), money(9), False),  # price just above max price
-        (money(10000000), money(1), None, True),  # no max price limit
-        (money(10), money(5), money(15), True),
+        (10, 10, 20, True),  # price equal min price
+        (10, 1, 10, True),  # price equal max price
+        (9, 10, 15, False),  # price just below min price
+        (10, 1, 9, False),  # price just above max price
+        (10000000, 1, None, True),  # no max price limit
+        (10, 5, 15, True),
     ),
 )  # regular case
 def test_applicable_shipping_methods_price(
     shipping_zone, price, min_price, max_price, shipping_included
 ):
     method = shipping_zone.shipping_methods.create(
-        minimum_order_price=min_price,
-        maximum_order_price=max_price,
+        minimum_order_price_amount=min_price,
+        maximum_order_price_amount=max_price,
+        currency="USD",
         type=ShippingMethodType.PRICE_BASED,
     )
     assert "PL" in shipping_zone.countries
     result = ShippingMethod.objects.applicable_shipping_methods(
-        price=price, weight=Weight(kg=0), country_code="PL"
+        price=Money(price, "USD"), weight=Weight(kg=0), country_code="PL"
     )
     assert (method in result) == shipping_included
 

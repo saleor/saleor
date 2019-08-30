@@ -255,16 +255,16 @@ def get_order_lines_data(order: "Order") -> List[Dict[str, str]]:
         append_line_to_data(
             data=data,
             quantity=line.quantity,
-            amount=line.unit_price_net.amount * line.quantity,
+            amount=line.unit_price_net_amount * line.quantity,
             tax_code=tax_code,
             item_code=line.variant.sku,
             description=line.variant.product.plain_text_description,
         )
-    if order.discount_amount and order.discount_amount.amount:
+    if order.discount_amount:
         append_line_to_data(
             data=data,
             quantity=1,
-            amount=order.discount_amount.amount * -1,
+            amount=order.discount_amount * -1,
             tax_code=COMMON_DISCOUNT_VOUCHER_CODE,
             item_code="Voucher",
             description=order.discount_name,

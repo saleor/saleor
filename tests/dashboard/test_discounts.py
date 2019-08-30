@@ -35,7 +35,8 @@ def test_voucher_shipping_add(admin_client):
         "type": VoucherType.SHIPPING,
         "discount_value": "15.99",
         "discount_value_type": DiscountValueType.FIXED,
-        "shipping-min_amount_spent": "59.99",
+        "shipping-min_spent_0": "59.99",
+        "shipping-min_spent_1": "USD",
     }
     response = admin_client.post(url, data, follow=True)
     assert response.status_code == 200
@@ -49,7 +50,7 @@ def test_voucher_shipping_add(admin_client):
     assert voucher.end_date.isoformat() == "2018-06-01T05:00:00+00:00"
     assert voucher.discount_value_type == DiscountValueType.FIXED
     assert voucher.discount_value == Decimal("15.99")
-    assert voucher.min_amount_spent == Money("59.99", "USD")
+    assert voucher.min_spent == Money("59.99", "USD")
 
 
 def test_view_sale_add(admin_client, category, collection):
@@ -102,22 +103,22 @@ def test_view_sale_add_requires_product_category_or_collection(
 
 
 @pytest.mark.parametrize(
-    "subtotal, discount_value, discount_type, min_amount_spent, expected_value",
+    "subtotal, discount_value, discount_type, min_spent_amount, expected_value",
     [
         ("100", 10, DiscountValueType.FIXED, None, 10),
         ("100.05", 10, DiscountValueType.PERCENTAGE, 100, 10),
     ],
 )
 def test_value_voucher_order_discount(
-    subtotal, discount_value, discount_type, min_amount_spent, expected_value
+    subtotal, discount_value, discount_type, min_spent_amount, expected_value
 ):
     voucher = Voucher(
         code="unique",
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=discount_type,
         discount_value=discount_value,
-        min_amount_spent=Money(min_amount_spent, "USD")
-        if min_amount_spent is not None
+        min_spent=Money(min_spent_amount, "USD")
+        if min_spent_amount is not None
         else None,
     )
     subtotal = Money(subtotal, "USD")
@@ -139,7 +140,7 @@ def test_shipping_voucher_order_discount(
         type=VoucherType.SHIPPING,
         discount_value_type=discount_type,
         discount_value=discount_value,
-        min_amount_spent=None,
+        min_spent_amount=None,
     )
     subtotal = Money(100, "USD")
     subtotal = TaxedMoney(net=subtotal, gross=subtotal)
@@ -154,7 +155,7 @@ def test_shipping_voucher_order_discount(
 
 
 @pytest.mark.parametrize(
-    "total, total_quantity, min_amount_spent, min_checkout_items_quantity,"
+    "total, total_quantity, min_spent_amount, min_checkout_items_quantity,"
     "voucher_type",
     [
         (99, 10, 100, 10, VoucherType.SHIPPING),
@@ -169,15 +170,15 @@ def test_shipping_voucher_order_discount(
     ],
 )
 def test_shipping_voucher_checkout_discount_not_applicable_returns_zero(
-    total, total_quantity, min_amount_spent, min_checkout_items_quantity, voucher_type
+    total, total_quantity, min_spent_amount, min_checkout_items_quantity, voucher_type
 ):
     voucher = Voucher(
         code="unique",
         type=voucher_type,
         discount_value_type=DiscountValueType.FIXED,
         discount_value=10,
-        min_amount_spent=(
-            Money(min_amount_spent, "USD") if min_amount_spent is not None else None
+        min_spent=(
+            Money(min_spent_amount, "USD") if min_spent_amount is not None else None
         ),
         min_checkout_items_quantity=min_checkout_items_quantity,
     )
@@ -199,7 +200,7 @@ def test_product_voucher_checkout_discount_raises_not_applicable(
     discounted_product = product_with_images
     voucher = Voucher(
         code="unique",
-        type=VoucherType.PRODUCT,
+        type=VoucherType.SPECIFIC_PRODUCT,
         discount_value_type=DiscountValueType.FIXED,
         discount_value=10,
     )
@@ -216,7 +217,7 @@ def test_category_voucher_checkout_discount_raises_not_applicable(order_with_lin
     discounted_collection = Collection.objects.create(name="Discounted", slug="discou")
     voucher = Voucher(
         code="unique",
-        type=VoucherType.COLLECTION,
+        type=VoucherType.SPECIFIC_PRODUCT,
         discount_value_type=DiscountValueType.FIXED,
         discount_value=10,
     )
@@ -243,9 +244,9 @@ def test_ajax_voucher_list(admin_client, voucher):
 
 
 @pytest.mark.parametrize(
-    "voucher_type", ["collection", "category", "product", "entire_order", "shipping"]
+    "voucher_type", ["specific_product", "entire_order", "shipping"]
 )
-def test_voucher_form_min_amount_spent_is_changed_on_edit(
+def test_voucher_form_min_spent_amount_is_changed_on_edit(
     admin_client, product, collection, voucher_type
 ):
     assert Voucher.objects.count() == 0
@@ -261,14 +262,10 @@ def test_voucher_form_min_amount_spent_is_changed_on_edit(
         "product-products": [product.pk],
         "category-categories": [product.category.pk],
         "collection-collections": [collection.pk],
-        "shipping-min_amount_spent": "400",
-        "product-min_amount_spent": "400",
-        "category-min_amount_spent": "400",
-        "collection-min_amount_spent": "400",
-        "value-min_amount_spent": "400",
     }
 
-    data["{}-min_amount_spent".format(voucher_type)] = "800"
+    data["{}-min_spent_0".format(voucher_type)] = "800"
+    data["{}-min_spent_1".format(voucher_type)] = "USD"
 
     response = admin_client.post(url, data, follow=True)
 
@@ -283,4 +280,4 @@ def test_voucher_form_min_amount_spent_is_changed_on_edit(
     assert voucher.end_date.isoformat() == "2019-06-01T05:00:00+00:00"
     assert voucher.discount_value_type == DiscountValueType.FIXED
     assert voucher.discount_value == Decimal("15.99")
-    assert voucher.min_amount_spent == Money("800", "USD")
+    assert voucher.min_spent == Money(800, "USD")

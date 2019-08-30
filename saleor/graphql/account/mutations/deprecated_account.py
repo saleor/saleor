@@ -24,7 +24,10 @@ class CustomerRegister(ModelMutation):
         )
 
     class Meta:
-        description = "DEPRECATED: Use AccountRegister instead. Register a new user."
+        description = (
+            "DEPRECATED: Will be removed in Saleor 2.10, "
+            "use AccountRegister instead. Register a new user."
+        )
         exclude = ["password"]
         model = models.User
 
@@ -44,7 +47,7 @@ class LoggedUserUpdate(BaseCustomerCreate):
 
     class Meta:
         description = (
-            "DEPRECATED: Use AccountUpdate instead. "
+            "DEPRECATED: Will be removed in Saleor 2.10, use AccountUpdate instead."
             "Updates data of the logged in user."
         )
         exclude = ["password"]
@@ -81,8 +84,8 @@ class CustomerAddressCreate(ModelMutation):
 
     class Meta:
         description = (
-            "DEPRECATED: Use AccountAddressCreate instead."
-            "Create a new address for the customer."
+            "DEPRECATED: Will be removed in Saleor 2.10, use AccountAddressCreate "
+            "instead. Create a new address for the customer."
         )
         model = models.Address
         exclude = ["user_addresses"]
@@ -120,8 +123,8 @@ class CustomerSetDefaultAddress(BaseMutation):
 
     class Meta:
         description = (
-            "DEPRECATED: Use AccountSetDefaultAddress instead."
-            "Sets a default address for the authenticated user."
+            "DEPRECATED: Will be removed in Saleor 2.10, use AccountSetDefaultAddress "
+            "instead. Sets a default address for the authenticated user."
         )
 
     @classmethod
@@ -160,8 +163,8 @@ class CustomerPasswordReset(BaseMutation):
 
     class Meta:
         description = (
-            "DEPRECATED: Use RequestPasswordReset instead."
-            "Resets the customer's password."
+            "DEPRECATED: Will be removed in Saleor 2.10, use RequestPasswordReset "
+            "instead. Resets the customer's password."
         )
 
     @classmethod

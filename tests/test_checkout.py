@@ -21,7 +21,6 @@ from saleor.checkout.utils import (
     clear_shipping_method,
     create_order,
     get_checkout_context,
-    get_prices_of_products_in_discounted_categories,
     get_shipping_price_estimate,
     get_voucher_discount_for_checkout,
     get_voucher_for_checkout,
@@ -37,7 +36,6 @@ from saleor.discount.models import NotApplicable, Voucher
 from saleor.extensions.manager import ExtensionsManager, get_extensions_manager
 from saleor.order import OrderEvents, OrderEventsEmails
 from saleor.order.models import OrderEvent
-from saleor.product.models import Category
 from saleor.shipping.models import ShippingZone
 
 from .utils import get_redirect_location
@@ -715,7 +713,7 @@ def test_create_order_with_gift_card(
     total_gross_without_gift_cards = (
         TaxedMoney(subtotal, subtotal)
         + TaxedMoney(shipping_price, shipping_price)
-        - checkout.discount_amount
+        - checkout.discount
     ).gross
     gift_cards_balance = checkout.get_total_gift_cards_balance()
 
@@ -744,7 +742,7 @@ def test_create_order_with_gift_card_partial_use(
 
     checkout_total = checkout.get_total()
     price_without_gift_card = TaxedMoney(net=checkout_total, gross=checkout_total)
-    gift_card_balance_before_order = gift_card_used.current_balance
+    gift_card_balance_before_order = gift_card_used.current_balance_amount
 
     checkout.gift_cards.add(gift_card_used)
     checkout.save()
@@ -758,12 +756,14 @@ def test_create_order_with_gift_card_partial_use(
     )
 
     gift_card_used.refresh_from_db()
+
+    expected_old_balance = (
+        price_without_gift_card.gross.amount + gift_card_used.current_balance_amount
+    )
+
     assert order.gift_cards.count() > 0
     assert order.total == zero_taxed_money()
-    assert (
-        gift_card_balance_before_order
-        == (price_without_gift_card + gift_card_used.current_balance).gross.amount
-    )
+    assert gift_card_balance_before_order == expected_old_balance
 
 
 def test_create_order_with_many_gift_cards(
@@ -782,8 +782,9 @@ def test_create_order_with_many_gift_cards(
 
     checkout_total = checkout.get_total()
     price_without_gift_card = TaxedMoney(net=checkout_total, gross=checkout_total)
-    gift_cards_balance_befor_order = (
-        gift_card_created_by_staff.current_balance + gift_card.current_balance
+    gift_cards_balance_before_order = (
+        gift_card_created_by_staff.current_balance.amount
+        + gift_card.current_balance.amount
     )
 
     checkout.gift_cards.add(gift_card_created_by_staff)
@@ -805,7 +806,7 @@ def test_create_order_with_many_gift_cards(
     assert gift_card_created_by_staff.current_balance == zero_price
     assert gift_card.current_balance == zero_price
     assert price_without_gift_card.gross.amount == (
-        gift_cards_balance_befor_order + order.total.gross.amount
+        gift_cards_balance_before_order + order.total.gross.amount
     )
 
 
@@ -826,7 +827,7 @@ def test_note_in_created_order(request_checkout_with_item, address, customer_use
 
 
 @pytest.mark.parametrize(
-    "total, min_amount_spent, total_quantity, min_checkout_items_quantity, "
+    "total, min_spent_amount, total_quantity, min_checkout_items_quantity, "
     "discount_value, discount_value_type, expected_value",
     [
         (20, 20, 2, 2, 50, DiscountValueType.PERCENTAGE, 10),
@@ -837,7 +838,7 @@ def test_note_in_created_order(request_checkout_with_item, address, customer_use
 )
 def test_get_discount_for_checkout_value_voucher(
     total,
-    min_amount_spent,
+    min_spent_amount,
     total_quantity,
     min_checkout_items_quantity,
     discount_value,
@@ -849,8 +850,8 @@ def test_get_discount_for_checkout_value_voucher(
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=discount_value_type,
         discount_value=discount_value,
-        min_amount_spent=(
-            Money(min_amount_spent, "USD") if min_amount_spent is not None else None
+        min_spent=(
+            Money(min_spent_amount, "USD") if min_spent_amount is not None else None
         ),
         min_checkout_items_quantity=min_checkout_items_quantity,
     )
@@ -876,7 +877,7 @@ def test_get_voucher_discount_for_checkout_voucher_validation(
 
 
 @pytest.mark.parametrize(
-    "total, total_quantity, discount_value, discount_type, min_amount_spent, "
+    "total, total_quantity, discount_value, discount_type, min_spent_amount, "
     "min_checkout_items_quantity",
     [
         ("99", 9, 10, DiscountValueType.FIXED, None, 10),
@@ -886,12 +887,12 @@ def test_get_voucher_discount_for_checkout_voucher_validation(
         ("99", 9, 10, DiscountValueType.PERCENTAGE, 100, 10),
     ],
 )
-def test_get_discount_for_checkout_value_voucher_not_applicable(
+def test_get_discount_for_checkout_entire_order_voucher_not_applicable(
     total,
     total_quantity,
     discount_value,
     discount_type,
-    min_amount_spent,
+    min_spent_amount,
     min_checkout_items_quantity,
 ):
     voucher = Voucher(
@@ -899,8 +900,8 @@ def test_get_discount_for_checkout_value_voucher_not_applicable(
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=discount_type,
         discount_value=discount_value,
-        min_amount_spent=(
-            Money(min_amount_spent, "USD") if min_amount_spent is not None else None
+        min_spent=(
+            Money(min_spent_amount, "USD") if min_spent_amount is not None else None
         ),
         min_checkout_items_quantity=min_checkout_items_quantity,
     )
@@ -943,7 +944,7 @@ def test_get_discount_for_checkout_specific_products_voucher(
 
 
 @pytest.mark.parametrize(
-    "total, total_quantity, discount_value, discount_type, min_amount_spent,"
+    "total, total_quantity, discount_value, discount_type, min_spent_amount,"
     "min_checkout_items_quantity",
     [
         ("99", 9, 10, DiscountValueType.FIXED, None, 10),
@@ -959,7 +960,7 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
     total_quantity,
     discount_value,
     discount_type,
-    min_amount_spent,
+    min_spent_amount,
     min_checkout_items_quantity,
 ):
     discounts = []
@@ -972,8 +973,8 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
         type=VoucherType.SPECIFIC_PRODUCT,
         discount_value_type=discount_type,
         discount_value=discount_value,
-        min_amount_spent=(
-            Money(min_amount_spent, "USD") if min_amount_spent is not None else None
+        min_spent=(
+            Money(min_spent_amount, "USD") if min_spent_amount is not None else None
         ),
         min_checkout_items_quantity=min_checkout_items_quantity,
     )
@@ -1071,7 +1072,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(monkeypatc
 
 @pytest.mark.parametrize(
     "is_shipping_required, shipping_method, discount_value, discount_type,"
-    "countries, min_amount_spent, min_checkout_items_quantity, subtotal,"
+    "countries, min_spent_amount, min_checkout_items_quantity, subtotal,"
     "total_quantity, error_msg",
     [
         (
@@ -1154,7 +1155,7 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
     discount_value,
     discount_type,
     countries,
-    min_amount_spent,
+    min_spent_amount,
     min_checkout_items_quantity,
     subtotal,
     total_quantity,
@@ -1172,8 +1173,8 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
         type=VoucherType.SHIPPING,
         discount_value_type=discount_type,
         discount_value=discount_value,
-        min_amount_spent=(
-            Money(min_amount_spent, "USD") if min_amount_spent is not None else None
+        min_spent=(
+            Money(min_spent_amount, "USD") if min_spent_amount is not None else None
         ),
         min_checkout_items_quantity=min_checkout_items_quantity,
         countries=countries,
@@ -1181,57 +1182,6 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
     with pytest.raises(NotApplicable) as e:
         get_voucher_discount_for_checkout(voucher, checkout)
     assert str(e.value) == error_msg
-
-
-def test_get_discount_for_checkout_product_voucher_not_applicable(monkeypatch):
-    discounts = []
-
-    monkeypatch.setattr(
-        ExtensionsManager,
-        "calculate_checkout_subtotal",
-        Mock(return_value=TaxedMoney(net=Money("1", "USD"), gross=Money("1", "USD"))),
-    )
-    monkeypatch.setattr(
-        "saleor.checkout.utils.get_prices_of_discounted_products",
-        lambda checkout, discounts, product: [],
-    )
-    voucher = Voucher(
-        code="unique",
-        type=VoucherType.PRODUCT,
-        discount_value_type=DiscountValueType.FIXED,
-        discount_value=10,
-    )
-    voucher.save()
-    checkout = Mock()
-
-    with pytest.raises(NotApplicable) as e:
-        get_voucher_discount_for_checkout(voucher, checkout, discounts)
-    assert str(e.value) == "This offer is only valid for selected items."
-
-
-def test_get_discount_for_checkout_collection_voucher_not_applicable(monkeypatch):
-    discounts = []
-    monkeypatch.setattr(
-        ExtensionsManager,
-        "calculate_checkout_subtotal",
-        Mock(return_value=TaxedMoney(net=Money("1", "USD"), gross=Money("1", "USD"))),
-    )
-    monkeypatch.setattr(
-        "saleor.checkout.utils.get_prices_of_products_in_discounted_collections",  # noqa
-        lambda checkout, discounts, product: [],
-    )
-    voucher = Voucher(
-        code="unique",
-        type=VoucherType.COLLECTION,
-        discount_value_type=DiscountValueType.FIXED,
-        discount_value=10,
-    )
-    voucher.save()
-    checkout = Mock()
-
-    with pytest.raises(NotApplicable) as e:
-        get_voucher_discount_for_checkout(voucher, checkout, discounts)
-    assert str(e.value) == "This offer is only valid for selected items."
 
 
 def test_checkout_voucher_form_invalid_voucher_code(
@@ -1247,7 +1197,7 @@ def test_checkout_voucher_form_invalid_voucher_code(
 def test_checkout_voucher_form_voucher_not_applicable(
     voucher, request_checkout_with_item
 ):
-    voucher.min_amount_spent = 200
+    voucher.min_spent = Money(200, "USD")
     voucher.save()
     form = CheckoutVoucherForm(
         {"voucher": voucher.code}, instance=request_checkout_with_item
@@ -1334,7 +1284,7 @@ def test_remove_voucher_from_checkout(checkout_with_voucher, voucher_translation
     assert not checkout.voucher_code
     assert not checkout.discount_name
     assert not checkout.translated_discount_name
-    assert checkout.discount_amount == zero_money()
+    assert checkout.discount == zero_money()
 
 
 def test_recalculate_checkout_discount(
@@ -1348,7 +1298,7 @@ def test_recalculate_checkout_discount(
     assert (
         checkout_with_voucher.translated_discount_name == voucher_translation_fr.name
     )  # noqa
-    assert checkout_with_voucher.discount_amount == Money("10.00", "USD")
+    assert checkout_with_voucher.discount == Money("10.00", "USD")
 
 
 def test_recalculate_checkout_discount_with_sale(
@@ -1356,7 +1306,7 @@ def test_recalculate_checkout_discount_with_sale(
 ):
     checkout = checkout_with_voucher_percentage
     recalculate_checkout_discount(checkout, [discount_info])
-    assert checkout.discount_amount == Money("1.50", "USD")
+    assert checkout.discount == Money("1.50", "USD")
     assert checkout.get_total(discounts=[discount_info]) == Money("13.50", "USD")
 
 
@@ -1364,14 +1314,14 @@ def test_recalculate_checkout_discount_voucher_not_applicable(
     checkout_with_voucher, voucher
 ):
     checkout = checkout_with_voucher
-    voucher.min_amount_spent = 100
-    voucher.save()
+    voucher.min_spent = Money(100, "USD")
+    voucher.save(update_fields=["min_spent_amount", "currency"])
 
     recalculate_checkout_discount(checkout_with_voucher, None)
 
     assert not checkout.voucher_code
     assert not checkout.discount_name
-    assert checkout.discount_amount == zero_money()
+    assert checkout.discount == zero_money()
 
 
 def test_recalculate_checkout_discount_expired_voucher(checkout_with_voucher, voucher):
@@ -1384,7 +1334,7 @@ def test_recalculate_checkout_discount_expired_voucher(checkout_with_voucher, vo
 
     assert not checkout.voucher_code
     assert not checkout.discount_name
-    assert checkout.discount_amount == zero_money()
+    assert checkout.discount == zero_money()
 
 
 def test_get_checkout_context(checkout_with_voucher):
@@ -1396,7 +1346,7 @@ def test_get_checkout_context(checkout_with_voucher):
         "checkout_lines": [(checkout_with_voucher.lines.first(), line_price)],
         "checkout_shipping_price": zero_taxed_money(),
         "checkout_subtotal": line_price,
-        "checkout_total": line_price - checkout_with_voucher.discount_amount,
+        "checkout_total": line_price - checkout_with_voucher.discount,
         "shipping_required": checkout_with_voucher.is_shipping_required(),
         "total_with_shipping": TaxedMoneyRange(start=line_price, stop=line_price),
     }
@@ -1502,23 +1452,6 @@ def test_change_address_in_checkout_from_user_address_to_other(
     assert Address.objects.filter(id=address_id).exists()
 
 
-def test_get_prices_of_products_in_discounted_categories(checkout_with_item, category):
-    lines = checkout_with_item.lines.all()
-    discounted_lines = get_prices_of_products_in_discounted_categories(
-        checkout_with_item, [category]
-    )
-    assert [
-        line.variant.get_price() for line in lines for item in range(line.quantity)
-    ] == discounted_lines
-
-    discounted_category = Category.objects.create(name="discounted", slug="discounted")
-    discounted_lines = get_prices_of_products_in_discounted_categories(
-        checkout_with_item, [discounted_category]
-    )
-    # None of the lines are belongs to the discounted category
-    assert not discounted_lines
-
-
 def test_add_voucher_to_checkout(checkout_with_item, voucher):
     assert checkout_with_item.voucher_code is None
     add_voucher_to_checkout(checkout_with_item, voucher)
@@ -1527,9 +1460,9 @@ def test_add_voucher_to_checkout(checkout_with_item, voucher):
 
 
 def test_add_voucher_to_checkout_fail(
-    checkout_with_item, voucher_with_high_min_amount_spent
+    checkout_with_item, voucher_with_high_min_spent_amount
 ):
     with pytest.raises(NotApplicable):
-        add_voucher_to_checkout(checkout_with_item, voucher_with_high_min_amount_spent)
+        add_voucher_to_checkout(checkout_with_item, voucher_with_high_min_spent_amount)
 
     assert checkout_with_item.voucher_code is None
