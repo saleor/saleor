@@ -125,7 +125,7 @@ class BasePricingInfo(graphene.ObjectType):
         description="Whether it is in stock and visible or not.",
         deprecation_reason=(
             "DEPRECATED: Will be removed in Saleor 2.10, "
-            "this has been moved to the parent type as 'is_available'."
+            "this has been moved to the parent type as 'isAvailable'."
         ),
     )
     on_sale = graphene.Boolean(description="Whether it is in sale or not.")
@@ -192,7 +192,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         description="Price of the product variant.",
         deprecation_reason=(
             "DEPRECATED: Will be removed in Saleor 2.10, "
-            "has been replaced by 'pricing.price_undiscounted'"
+            "has been replaced by 'pricing.priceUndiscounted'"
         ),
     )
     availability = graphene.Field(
