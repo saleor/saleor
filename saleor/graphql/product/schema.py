@@ -187,21 +187,25 @@ class ProductQueries(graphene.ObjectType):
         Product,
         filter=ProductFilterInput(),
         attributes=graphene.List(
-            AttributeScalar, description="Filter products by attributes."
+            AttributeScalar,
+            description=(
+                'DEPRECATED: Will be removed in Saleor 2.10, use the "filter" input.',
+                "Filter products by attributes.",
+            ),
         ),
         categories=graphene.List(
-            graphene.ID, description="Filter products by category."
+            graphene.ID,
+            description=(
+                'DEPRECATED: Will be removed in Saleor 2.10, use the "filter" input.',
+                "Filter products by category.",
+            ),
         ),
         collections=graphene.List(
-            graphene.ID, description="Filter products by collections."
-        ),
-        price_lte=graphene.Float(
-            description="""DEPRECATED: Use the "filter" input.
-            Filter by price less than or equal to the given value."""
-        ),
-        price_gte=graphene.Float(
-            description="""DEPRECATED: Use the "filter" input.
-            Filter by price greater than or equal to the given value."""
+            graphene.ID,
+            description=(
+                'DEPRECATED: Will be removed in Saleor 2.10, use the "filter" input.',
+                "Filter products by collections.",
+            ),
         ),
         sort_by=graphene.Argument(ProductOrder, description="Sort products."),
         stock_availability=graphene.Argument(

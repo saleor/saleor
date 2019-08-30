@@ -18,25 +18,19 @@ from saleor.discount.utils import (
 from saleor.product.models import Product, ProductVariant
 
 
-def get_min_amount_spent(min_amount_spent):
-    if min_amount_spent is not None:
-        return Money(min_amount_spent, "USD")
-    return None
-
-
 @pytest.mark.parametrize(
-    "min_amount_spent, value",
+    "min_spent_amount, value",
     [(Money(5, "USD"), Money(10, "USD")), (Money(10, "USD"), Money(10, "USD"))],
 )
-def test_valid_voucher_min_amount_spent(min_amount_spent, value):
+def test_valid_voucher_min_spent_amount(min_spent_amount, value):
     voucher = Voucher(
         code="unique",
         type=VoucherType.SHIPPING,
         discount_value_type=DiscountValueType.FIXED,
-        discount_value=Money(10, "USD"),
-        min_amount_spent=min_amount_spent,
+        discount=Money(10, "USD"),
+        min_spent=min_spent_amount,
     )
-    voucher.validate_min_amount_spent(value)
+    voucher.validate_min_spent(value)
 
 
 @pytest.mark.integration
@@ -96,7 +90,7 @@ def test_voucher_queryset_active(voucher):
         ([10, 10, 10], 5, DiscountValueType.FIXED, False, 15),
     ],
 )
-def test_products_voucher_checkout_discount_not(
+def test_specific_products_voucher_checkout_discount(
     monkeypatch,
     prices,
     discount_value,
@@ -107,14 +101,14 @@ def test_products_voucher_checkout_discount_not(
 ):
     discounts = []
     monkeypatch.setattr(
-        "saleor.checkout.utils.get_prices_of_discounted_products",
+        "saleor.checkout.utils.get_prices_of_discounted_specific_product",
         lambda lines, discounts, discounted_products: (
             Money(price, "USD") for price in prices
         ),
     )
     voucher = Voucher(
         code="unique",
-        type=VoucherType.PRODUCT,
+        type=VoucherType.SPECIFIC_PRODUCT,
         discount_value_type=discount_type,
         discount_value=discount_value,
         apply_once_per_order=apply_once_per_order,
@@ -210,7 +204,7 @@ def test_remove_voucher_usage_by_customer_not_exists(voucher):
 
 
 @pytest.mark.parametrize(
-    "total, min_amount_spent, total_quantity, min_checkout_items_quantity,"
+    "total, min_spent_amount, total_quantity, min_checkout_items_quantity,"
     "discount_value_type",
     [
         (20, 20, 2, 2, DiscountValueType.PERCENTAGE),
@@ -221,17 +215,18 @@ def test_remove_voucher_usage_by_customer_not_exists(voucher):
 )
 def test_validate_voucher(
     total,
-    min_amount_spent,
+    min_spent_amount,
     total_quantity,
     min_checkout_items_quantity,
     discount_value_type,
 ):
     voucher = Voucher.objects.create(
         code="unique",
+        currency="USD",
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=discount_value_type,
         discount_value=50,
-        min_amount_spent=get_min_amount_spent(min_amount_spent),
+        min_spent_amount=min_spent_amount,
         min_checkout_items_quantity=min_checkout_items_quantity,
     )
     total_price = Money(total, "USD")
@@ -239,7 +234,7 @@ def test_validate_voucher(
 
 
 @pytest.mark.parametrize(
-    "total, min_amount_spent, total_quantity, min_checkout_items_quantity, "
+    "total, min_spent_amount, total_quantity, min_checkout_items_quantity, "
     "discount_value, discount_value_type",
     [
         (20, 50, 2, 10, 50, DiscountValueType.PERCENTAGE),
@@ -249,7 +244,7 @@ def test_validate_voucher(
 )
 def test_validate_voucher_not_applicable(
     total,
-    min_amount_spent,
+    min_spent_amount,
     total_quantity,
     min_checkout_items_quantity,
     discount_value,
@@ -257,10 +252,11 @@ def test_validate_voucher_not_applicable(
 ):
     voucher = Voucher.objects.create(
         code="unique",
+        currency="USD",
         type=VoucherType.ENTIRE_ORDER,
         discount_value_type=discount_value_type,
         discount_value=discount_value,
-        min_amount_spent=get_min_amount_spent(min_amount_spent),
+        min_spent_amount=min_spent_amount,
         min_checkout_items_quantity=min_checkout_items_quantity,
     )
     total_price = Money(total, "USD")

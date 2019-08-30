@@ -16,11 +16,11 @@ class ConfigurationItem(graphene.ObjectType):
         description = "Stores information about single configuration field"
 
 
-class PluginConfiguration(CountableDjangoObjectType):
+class Plugin(CountableDjangoObjectType):
     configuration = graphene.List(ConfigurationItem)
 
     class Meta:
-        description = "Plugin configuration"
+        description = "Plugin"
         model = models.PluginConfiguration
         interfaces = [graphene.relay.Node]
         only_fields = ["name", "description", "active", "configuration"]

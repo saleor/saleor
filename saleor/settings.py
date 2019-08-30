@@ -8,7 +8,7 @@ import django_cache_url
 import sentry_sdk
 from django.contrib.messages import constants as messages
 from django.utils.translation import gettext_lazy as _, pgettext_lazy
-from django_prices.templatetags.prices_i18n import get_currency_fraction
+from django_prices.utils.formatting import get_currency_fraction
 from sentry_sdk.integrations.django import DjangoIntegration
 
 
@@ -349,7 +349,11 @@ DEFAULT_COUNTRY = os.environ.get("DEFAULT_COUNTRY", "US")
 DEFAULT_CURRENCY = os.environ.get("DEFAULT_CURRENCY", "USD")
 DEFAULT_DECIMAL_PLACES = get_currency_fraction(DEFAULT_CURRENCY)
 DEFAULT_MAX_DIGITS = 12
+DEFAULT_CURRENCY_CODE_LENGTH = 3
+
+# note: having multiple currencies is not supported yet
 AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
+
 COUNTRIES_OVERRIDE = {
     "EU": pgettext_lazy(
         "Name of political and economical union of european countries", "European Union"
@@ -598,10 +602,6 @@ RECAPTCHA_PRIVATE_KEY = os.environ.get("RECAPTCHA_PRIVATE_KEY")
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 if SENTRY_DSN:
     sentry_sdk.init(dsn=SENTRY_DSN, integrations=[DjangoIntegration()])
-
-
-SERIALIZATION_MODULES = {"json": "saleor.core.utils.json_serializer"}
-
 
 DUMMY = "dummy"
 BRAINTREE = "braintree"

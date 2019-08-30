@@ -74,62 +74,9 @@ def update_order_with_user_addresses(order):
     order.save(update_fields=["billing_address", "shipping_address"])
 
 
-def get_prices_of_discounted_products(order, discounted_products):
-    """Get prices of variants belonging to the discounted products."""
-    line_prices = []
-    if discounted_products:
-        for line in order:
-            if line.variant.product in discounted_products:
-                line_prices.extend([line.unit_price_gross] * line.quantity)
-    return line_prices
-
-
-def get_prices_of_products_in_discounted_collections(order, discounted_collections):
-    """Get prices of variants belonging to the discounted collections."""
-    line_prices = []
-    if discounted_collections:
-        for line in order:
-            if not line.variant:
-                continue
-            product_collections = line.variant.product.collections.all()
-            if set(product_collections).intersection(discounted_collections):
-                line_prices.extend([line.unit_price_gross] * line.quantity)
-    return line_prices
-
-
-def get_prices_of_products_in_discounted_categories(order, discounted_categories):
-    """Get prices of variants belonging to the discounted categories.
-
-    Product must be assigned directly to the discounted category, assigning
-    product to child category won't work.
-    """
-    # If there's no discounted collections,
-    # it means that all of them are discounted
-    line_prices = []
-    if discounted_categories:
-        discounted_categories = set(discounted_categories)
-        for line in order:
-            if not line.variant:
-                continue
-            product_category = line.variant.product.category
-            if product_category in discounted_categories:
-                line_prices.extend([line.unit_price_gross] * line.quantity)
-    return line_prices
-
-
 def get_products_voucher_discount_for_order(order, voucher):
     """Calculate products discount value for a voucher, depending on its type."""
     prices = None
-    if voucher.type == VoucherType.PRODUCT:
-        prices = get_prices_of_discounted_products(order, voucher.products.all())
-    elif voucher.type == VoucherType.COLLECTION:
-        prices = get_prices_of_products_in_discounted_collections(
-            order, voucher.collections.all()
-        )
-    elif voucher.type == VoucherType.CATEGORY:
-        prices = get_prices_of_products_in_discounted_categories(
-            order, voucher.categories.all()
-        )
     if not prices:
         msg = pgettext(
             "Voucher not applicable", "This offer is only valid for selected items."
@@ -144,19 +91,14 @@ def get_voucher_discount_for_order(order):
     Raise NotApplicable if voucher of given type cannot be applied.
     """
     if not order.voucher:
-        return zero_money()
+        return zero_money(order.currency)
     validate_voucher_in_order(order)
     subtotal = order.get_subtotal()
     if order.voucher.type == VoucherType.ENTIRE_ORDER:
         return order.voucher.get_discount_amount_for(subtotal.gross)
     if order.voucher.type == VoucherType.SHIPPING:
         return order.voucher.get_discount_amount_for(order.shipping_price)
-    if order.voucher.type in (
-        VoucherType.PRODUCT,
-        VoucherType.COLLECTION,
-        VoucherType.CATEGORY,
-        VoucherType.SPECIFIC_PRODUCT,
-    ):
+    if order.voucher.type == VoucherType.SPECIFIC_PRODUCT:
         return get_products_voucher_discount_for_order(order, order.voucher)
     raise NotImplementedError("Unknown discount type")
 

@@ -53,7 +53,9 @@ class Payment(models.Model):
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=Decimal("0.0"),
     )
-    currency = models.CharField(max_length=10)  # FIXME: add ISO4217 validator
+    currency = models.CharField(
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH
+    )  # FIXME: add ISO4217 validator
 
     checkout = models.ForeignKey(
         Checkout, null=True, related_name="payments", on_delete=models.SET_NULL
@@ -202,7 +204,7 @@ class Transaction(models.Model):
     token = models.CharField(max_length=128, blank=True, default="")
     kind = models.CharField(max_length=10, choices=TransactionKind.CHOICES)
     is_success = models.BooleanField(default=False)
-    currency = models.CharField(max_length=10)
+    currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
     amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,

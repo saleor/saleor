@@ -18,7 +18,7 @@ def send_user_password_reset_email(user, site):
         "domain": site.domain,
         "protocol": "https" if settings.ENABLE_SSL else "http",
     }
-    emails.send_password_reset_email.delay(context, user.email, user.pk)
+    emails.send_user_password_reset_email(user.email, context, user.pk)
 
 
 class PasswordReset(BaseMutation):
@@ -27,8 +27,8 @@ class PasswordReset(BaseMutation):
 
     class Meta:
         description = (
-            "DEPRECATED: Use RequestPasswordReset instead."
-            "Sends an email with the account password change link to customer."
+            "DEPRECATED: Will be removed in Saleor 2.10, use RequestPasswordReset "
+            "instead. Sends an email with the account password change link to customer."
         )
         permissions = ("account.manage_users",)
 

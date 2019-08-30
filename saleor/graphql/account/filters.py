@@ -18,7 +18,7 @@ def filter_date_joined(qs, _, value):
 
 
 def filter_money_spent(qs, _, value):
-    qs = qs.annotate(money_spent=Sum("orders__total_gross"))
+    qs = qs.annotate(money_spent=Sum("orders__total_gross_amount"))
     money_spent_lte, money_spent_gte = value.get("lte"), value.get("gte")
     if money_spent_lte:
         qs = qs.filter(money_spent__lte=money_spent_lte)

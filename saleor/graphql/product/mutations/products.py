@@ -18,7 +18,6 @@ from ....product.thumbnails import (
     create_product_thumbnails,
 )
 from ....product.utils.attributes import get_name_from_attributes
-from ...core.enums import TaxRateType
 from ...core.mutations import (
     BaseMutation,
     ClearMetaBaseMutation,
@@ -398,10 +397,6 @@ class CategoryClearPrivateMeta(ClearMetaBaseMutation):
 
 class AttributeValueInput(InputObjectType):
     id = graphene.ID(description="ID of an attribute")
-    name = graphene.String(
-        description="Slug of an attribute",
-        deprecation_reason="name is deprecated, use id instead",
-    )
     slug = graphene.String(description="Slug of an attribute.")
     values = graphene.List(
         graphene.String,
@@ -433,15 +428,7 @@ class ProductInput(graphene.InputObjectType):
         description="Determines if product is visible to customers."
     )
     name = graphene.String(description="Product name.")
-    price = Decimal(
-        description="""
-        Product price. Note: this field is deprecated, use basePrice instead."""
-    )
     base_price = Decimal(description="Product price.")
-    tax_rate = TaxRateType(
-        description="Tax rate.",
-        deprecation_reason=("taxRate is deprecated, Use taxCode"),
-    )
     tax_code = graphene.String(description="Tax rate for enabled tax gateway")
     seo = SeoInput(description="Search engine optimization fields.")
     weight = WeightScalar(description="Weight of the Product.", required=False)
@@ -498,10 +485,10 @@ class ProductCreate(ModelMutation):
         # from the schema, only "basePrice" should be used here.
         price = data.get("base_price", data.get("price"))
         if price is not None:
-            cleaned_input["price"] = price
-            if instance.minimal_variant_price is None:
+            cleaned_input["price_amount"] = price
+            if instance.minimal_variant_price_amount is None:
                 # Set the default "minimal_variant_price" to the "price"
-                cleaned_input["minimal_variant_price"] = price
+                cleaned_input["minimal_variant_price_amount"] = price
 
         # FIXME  tax_rate logic should be dropped after we remove tax_rate from input
         tax_rate = cleaned_input.pop("tax_rate", "")
@@ -730,6 +717,14 @@ class ProductVariantCreate(ModelMutation):
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
 
+        cost_price_amount = cleaned_input.pop("cost_price", None)
+        if cost_price_amount is not None:
+            cleaned_input["cost_price_amount"] = cost_price_amount
+
+        price_override_amount = cleaned_input.pop("price_override", None)
+        if price_override_amount is not None:
+            cleaned_input["price_override_amount"] = price_override_amount
+
         # Attributes are provided as list of `AttributeValueInput` objects.
         # We need to transform them into the format they're stored in the
         # `Product` model, which is HStore field that maps attribute's PK to
@@ -747,6 +742,7 @@ class ProductVariantCreate(ModelMutation):
                 raise ValidationError({"attributes": str(e)})
             else:
                 cleaned_input["attributes"] = attributes
+
         return cleaned_input
 
     @classmethod
@@ -852,10 +848,6 @@ class ProductTypeInput(graphene.InputObjectType):
         description="Determines if products are digital.", required=False
     )
     weight = WeightScalar(description="Weight of the ProductType items.")
-    tax_rate = TaxRateType(
-        description="Tax rate.",
-        deprecation_reason=("taxRate is deprecated, Use taxCode"),
-    )
     tax_code = graphene.String(description="Tax rate for enabled tax gateway")
 
 

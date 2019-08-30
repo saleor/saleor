@@ -124,7 +124,8 @@ class BasePricingInfo(graphene.ObjectType):
     available = graphene.Boolean(
         description="Whether it is in stock and visible or not.",
         deprecation_reason=(
-            "This has been moved to the parent type as 'is_available'."
+            "DEPRECATED: Will be removed in Saleor 2.10, "
+            "this has been moved to the parent type as 'is_available'."
         ),
     )
     on_sale = graphene.Boolean(description="Whether it is in sale or not.")
@@ -189,13 +190,19 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
     price = graphene.Field(
         Money,
         description="Price of the product variant.",
-        deprecation_reason=("Has been replaced by 'pricing.price_undiscounted'"),
+        deprecation_reason=(
+            "DEPRECATED: Will be removed in Saleor 2.10, "
+            "has been replaced by 'pricing.price_undiscounted'"
+        ),
     )
     availability = graphene.Field(
         VariantPricingInfo,
         description="""Informs about variant's availability in the
                storefront, current price and discounted price.""",
-        deprecation_reason="Has been renamed to 'pricing'.",
+        deprecation_reason=(
+            "DEPRECATED: Will be removed in Saleor 2.10, "
+            "has been renamed to 'pricing'."
+        ),
     )
     pricing = graphene.Field(
         VariantPricingInfo,
@@ -301,7 +308,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
 
     @staticmethod
     @gql_optimizer.resolver_hints(
-        prefetch_related=("product",), only=["price_override"]
+        prefetch_related=("product",), only=["price_override_amount", "currency"]
     )
     def resolve_pricing(root: models.ProductVariant, info):
         context = info.context
@@ -375,14 +382,6 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
     url = graphene.String(
         description="The storefront URL for the product.", required=True
     )
-    thumbnail_url = graphene.String(
-        description="The URL of a main thumbnail for a product.",
-        size=graphene.Argument(graphene.Int, description="Size of thumbnail"),
-        deprecation_reason=(
-            """thumbnailUrl is deprecated, use
-         thumbnail instead"""
-        ),
-    )
     thumbnail = graphene.Field(
         Image,
         description="The main thumbnail for a product.",
@@ -392,7 +391,10 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
         ProductPricingInfo,
         description="""Informs about product's availability in the
                storefront, current price and discounts.""",
-        deprecation_reason="Has been renamed to 'pricing'.",
+        deprecation_reason=(
+            "DEPRECATED: Will be removed in Saleor 2.10, "
+            "Has been renamed to 'pricing'."
+        ),
     )
     pricing = graphene.Field(
         ProductPricingInfo,
@@ -406,18 +408,14 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
     price = graphene.Field(
         Money,
         description="The product's default base price.",
-        deprecation_reason=("Has been replaced by 'basePrice'"),
+        deprecation_reason=(
+            "DEPRECATED: Will be removed in Saleor 2.10, "
+            "has been replaced by 'basePrice'"
+        ),
     )
     minimal_variant_price = graphene.Field(
         Money, description="The price of the cheapest variant (including discounts)."
     )
-    tax_rate = TaxRateType(
-        description="A type of tax rate.",
-        deprecation_reason=(
-            "taxRate is deprecated. Use taxType to obtain taxCode for given tax gateway"
-        ),
-    )
-
     tax_type = graphene.Field(
         TaxType, description="A type of tax. Assigned by enabled tax gateway"
     )
@@ -448,9 +446,6 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
             lambda: Collection, description="List of collections for the product"
         ),
         model_field="collections",
-    )
-    available_on = graphene.Date(
-        deprecation_reason=("availableOn is deprecated, use publicationDate instead")
     )
     translation = graphene.Field(
         ProductTranslation,
@@ -487,27 +482,9 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
         ]
 
     @staticmethod
-    def resolve_tax_rate(root: models.Product, _info, **_kwargs):
-        # FIXME this resolver should be dropped after we drop tax_rate from API
-        if not hasattr(root, "meta"):
-            return None
-        tax = root.meta.get("taxes", {}).get("vatlayer", {})
-        return tax.get("code")
-
-    @staticmethod
     def resolve_tax_type(root: models.Product, info):
         tax_data = info.context.extensions.get_tax_code_from_object_meta(root)
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
-
-    @staticmethod
-    @gql_optimizer.resolver_hints(prefetch_related="images")
-    def resolve_thumbnail_url(root: models.Product, info, *, size=None):
-        if not size:
-            size = 255
-        url = get_product_image_thumbnail(
-            root.get_first_image(), size, method="thumbnail"
-        )
-        return info.context.build_absolute_uri(url)
 
     @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related="images")
@@ -527,7 +504,7 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
     @staticmethod
     @gql_optimizer.resolver_hints(
         prefetch_related=("variants", "collections"),
-        only=["publication_date", "charge_taxes", "price", "meta"],
+        only=["publication_date", "charge_taxes", "price_amount", "currency", "meta"],
     )
     def resolve_pricing(root: models.Product, info):
         context = info.context
@@ -554,7 +531,7 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
     @staticmethod
     @gql_optimizer.resolver_hints(
         prefetch_related=("variants", "collections"),
-        only=["publication_date", "charge_taxes", "price", "meta"],
+        only=["publication_date", "charge_taxes", "price_amount", "currency", "meta"],
     )
     def resolve_price(root: models.Product, info):
         price_range = root.get_price_range(info.context.discounts)
@@ -608,10 +585,6 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
     @staticmethod
     def resolve_collections(root: models.Product, *_args):
         return root.collections.all()
-
-    @staticmethod
-    def resolve_available_on(root: models.Product, *_args):
-        return root.publication_date
 
     @classmethod
     def get_node(cls, info, pk):
@@ -730,9 +703,6 @@ class Collection(CountableDjangoObjectType, MetadataObjectType):
     background_image = graphene.Field(
         Image, size=graphene.Int(description="Size of the image")
     )
-    published_date = graphene.Date(
-        deprecation_reason=("publishedDate is deprecated, use publicationDate instead")
-    )
     translation = graphene.Field(
         CollectionTranslation,
         language_code=graphene.Argument(
@@ -779,10 +749,6 @@ class Collection(CountableDjangoObjectType, MetadataObjectType):
             return root.prefetched_products
         qs = root.products.collection_sorted(info.context.user)
         return gql_optimizer.query(qs, info)
-
-    @staticmethod
-    def resolve_published_date(root: models.Collection, *_args):
-        return root.publication_date
 
     @classmethod
     def get_node(cls, info, id):

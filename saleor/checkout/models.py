@@ -9,6 +9,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.encoding import smart_str
 from django_prices.models import MoneyField
+from prices import Money
 
 from ..account.models import Address
 from ..core.models import ModelWithMetadata
@@ -66,13 +67,20 @@ class Checkout(ModelWithMetadata):
         on_delete=models.SET_NULL,
     )
     note = models.TextField(blank=True, default="")
-    discount_amount = MoneyField(
-        currency=settings.DEFAULT_CURRENCY,
+
+    currency = models.CharField(
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+        default=settings.DEFAULT_CURRENCY,
+    )
+
+    discount_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=zero_money,
+        default=0,
     )
+    discount = MoneyField(amount_field="discount_amount", currency_field="currency")
     discount_name = models.CharField(max_length=255, blank=True, null=True)
+
     translated_discount_name = models.CharField(max_length=255, blank=True, null=True)
     voucher_code = models.CharField(max_length=12, blank=True, null=True)
     gift_cards = models.ManyToManyField(GiftCard, blank=True, related_name="checkouts")
@@ -102,29 +110,27 @@ class Checkout(ModelWithMetadata):
         return (
             self.shipping_method.get_total()
             if self.shipping_method and self.is_shipping_required()
-            else zero_money()
+            else zero_money(self.currency)
         )
 
     def get_subtotal(self, discounts=None):
         """Return the total cost of the checkout prior to shipping."""
         subtotals = (line.get_total(discounts) for line in self)
-        return sum(subtotals, zero_money(currency=settings.DEFAULT_CURRENCY))
+        return sum(subtotals, zero_money(currency=self.currency))
 
     def get_total(self, discounts=None):
         """Return the total cost of the checkout."""
-        total = (
-            self.get_subtotal(discounts)
-            + self.get_shipping_price()
-            - self.discount_amount
-        )
+        total = self.get_subtotal(discounts) + self.get_shipping_price() - self.discount
         return max(total, zero_money(total.currency))
 
     def get_total_gift_cards_balance(self):
         """Return the total balance of the gift cards assigned to the checkout."""
-        balance = self.gift_cards.aggregate(models.Sum("current_balance"))[
-            "current_balance__sum"
+        balance = self.gift_cards.aggregate(models.Sum("current_balance_amount"))[
+            "current_balance_amount__sum"
         ]
-        return balance or zero_money(currency=settings.DEFAULT_CURRENCY)
+        if balance is None:
+            return zero_money(currency=self.currency)
+        return Money(balance, self.currency)
 
     def get_total_weight(self):
         # Cannot use `sum` as it parses an empty Weight to an int
