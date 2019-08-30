@@ -1,8 +1,10 @@
 import graphene
+from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 
 from ....account import emails, events as account_events, models, utils
 from ....checkout import AddressType
+from ....core.utils.url import validate_storefront_url
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -73,6 +75,15 @@ class AccountUpdate(BaseCustomerCreate):
 
 
 class AccountRequestDeletion(BaseMutation):
+    class Arguments:
+        redirect_url = graphene.String(
+            required=True,
+            description=(
+                "URL of a view where users should be redirected to "
+                "delete their account. URL in RFC 1808 format.",
+            ),
+        )
+
     class Meta:
         description = (
             "Sends an email with the account removal link for the logged-in user."
@@ -85,7 +96,9 @@ class AccountRequestDeletion(BaseMutation):
     @classmethod
     def perform_mutation(cls, root, info, **data):
         user = info.context.user
-        emails.send_account_delete_confirmation_email.delay(str(user.token), user.email)
+        redirect_url = data["redirect_url"]
+        validate_storefront_url(redirect_url)
+        emails.send_account_delete_confirmation_email_with_url(redirect_url, user)
         return AccountRequestDeletion()
 
 
@@ -119,7 +132,7 @@ class AccountDelete(ModelDeleteMutation):
         cls.clean_instance(info, user)
 
         token = data.pop("token")
-        if str(user.token) != token:
+        if not default_token_generator.check_token(user, token):
             raise ValidationError({"token": INVALID_TOKEN})
 
         db_id = user.id

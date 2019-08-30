@@ -51,10 +51,6 @@ class AttributeValue(CountableDjangoObjectType):
     name = graphene.String(description=AttributeValueDescriptions.NAME)
     slug = graphene.String(description=AttributeValueDescriptions.SLUG)
     type = AttributeValueType(description=AttributeValueDescriptions.TYPE)
-    value = graphene.String(
-        description=AttributeValueDescriptions.VALUE,
-        deprecation_reason="This field is deprecated",
-    )
     translation = graphene.Field(
         AttributeValueTranslation,
         language_code=graphene.Argument(
@@ -196,7 +192,9 @@ class SelectedAttribute(graphene.ObjectType):
         AttributeValue,
         default_value=None,
         description="The value or the first value of an attribute.",
-        deprecation_reason="Use values instead.",
+        deprecation_reason=(
+            "DEPRECATED: Will be removed in Saleor 2.10, use values instead."
+        ),
     )
     values = graphene.List(
         AttributeValue, description="Values of an attribute.", required=True

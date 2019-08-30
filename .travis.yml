@@ -53,6 +53,8 @@ matrix:
       python: "3.6"
     - env: TOXENV=check_migrations
       python: "3.6"
+    - env: TOXENV=pydocstyle
+      python: "3.6"
   allow_failures:
     - python: "3.6"
       env: DJANGO="master"

@@ -104,11 +104,24 @@ class ShippingPriceMixin:
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
+
+        # Rename the price field to price_amount (the model's)
+        price_amount = cleaned_input.pop("price", None)
+        if price_amount is not None:
+            cleaned_input["price_amount"] = price_amount
+
         cleaned_type = cleaned_input.get("type")
         if cleaned_type:
             if cleaned_type == ShippingMethodTypeEnum.PRICE.value:
-                min_price = cleaned_input.get("minimum_order_price")
-                max_price = cleaned_input.get("maximum_order_price")
+                min_price = cleaned_input.pop("minimum_order_price", None)
+                max_price = cleaned_input.pop("maximum_order_price", None)
+
+                if min_price is not None:
+                    cleaned_input["minimum_order_price_amount"] = min_price
+
+                if max_price is not None:
+                    cleaned_input["maximum_order_price_amount"] = max_price
+
                 if (
                     min_price is not None
                     and max_price is not None

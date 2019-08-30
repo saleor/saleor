@@ -69,7 +69,8 @@ def test_real_query(user_api_client, product):
             __typename
         }
         products(first: $first, sortBy: $sortBy, categories:[$categoryId],
-            attributes: $attributesFilter, priceGte: $minPrice, priceLte: $maxPrice) {
+            attributes: $attributesFilter,
+            filter: {price: {gte: $minPrice, lte: $maxPrice}}) {
 
             ...ProductListFragmentQuery
             __typename
@@ -134,8 +135,12 @@ def test_real_query(user_api_client, product):
             ...ProductPriceFragmentQuery
             __typename
         }
-        thumbnailUrl1x: thumbnailUrl(size: 255)
-        thumbnailUrl2x: thumbnailUrl(size: 510)
+        thumbnailUrl1x: thumbnail(size: 255){
+            url
+        }
+        thumbnailUrl2x:     thumbnail(size: 510){
+            url
+        }
         url
         __typename
     }
@@ -216,32 +221,36 @@ def test_get_nodes(product_list):
     msg = "There is no node of type {} with pk {}".format(
         nonexistent_item.type, nonexistent_item.pk
     )
-    with pytest.raises(AssertionError, message=msg):
+    with pytest.raises(AssertionError) as exc:
         get_nodes(global_ids, Product)
+
+    assert exc.value.args == (msg,)
     global_ids.pop()
 
     # Raise an error if one of the node is of wrong type
     invalid_item = Mock(type="test", pk=123)
     invalid_item_global_id = to_global_id(invalid_item.type, invalid_item.pk)
     global_ids.append(invalid_item_global_id)
-    with pytest.raises(AssertionError, message="Must receive an Product id."):
+    with pytest.raises(AssertionError) as exc:
         get_nodes(global_ids, Product)
+
+    assert exc.value.args == ("Must receive an Product id.",)
 
     # Raise an error if no nodes were found
     global_ids = []
-    msg = "Could not resolve to a node with the global id list of {}.".format(
-        global_ids
-    )
-    with pytest.raises(Exception, message=msg):
+    msg = f"Could not resolve to a node with the global id list of '{global_ids}'."
+    with pytest.raises(Exception) as exc:
         get_nodes(global_ids, Product)
+
+    assert exc.value.args == (msg,)
 
     # Raise an error if pass wrong ids
     global_ids = ["a", "bb"]
-    msg = "Could not resolve to a node with the global id list of {}.".format(
-        global_ids
-    )
-    with pytest.raises(Exception, message=msg):
+    msg = f"Could not resolve to a node with the global id list of '{global_ids}'."
+    with pytest.raises(Exception) as exc:
         get_nodes(global_ids, Product)
+
+    assert exc.value.args == (msg,)
 
 
 @patch("saleor.product.models.Product.objects")

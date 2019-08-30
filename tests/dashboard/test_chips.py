@@ -55,7 +55,7 @@ class ModelMultipleChoiceFieldFilterSet(django_filters.FilterSet):
 
 class RangeFieldFilterSet(django_filters.FilterSet):
     price = django_filters.RangeFilter(
-        label="Price", field_name="price", widget=MoneyRangeWidget
+        label="Price", field_name="price_amount", widget=MoneyRangeWidget
     )
 
 

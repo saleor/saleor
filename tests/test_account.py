@@ -1,5 +1,4 @@
 import re
-import uuid
 from unittest.mock import patch
 from urllib.parse import urlencode
 
@@ -7,6 +6,7 @@ import i18naddress
 import pytest
 from captcha import constants as recaptcha_constants
 from captcha.client import RecaptchaResponse
+from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.forms import Form
@@ -401,25 +401,26 @@ def test_view_account_post_required(customer_user, authorized_client):
     assert response.status_code == 405
 
 
-@patch("saleor.account.views.send_account_delete_confirmation_email.delay")
+@patch("saleor.account.views.send_account_delete_confirmation_email")
 def test_view_account_delete(
     send_confirmation_mock, customer_user, authorized_client, staff_user
 ):
     url = reverse("account:delete")
     response = authorized_client.post(url)
     assert response.status_code == 302
-    send_confirmation_mock.assert_called_once_with(
-        str(customer_user.token), customer_user.email
-    )
+    send_confirmation_mock.assert_called_once_with(customer_user)
 
 
-def test_view_account_delete_confirm(customer_user, authorized_client):
+def test_view_account_delete_confirm(customer_user, staff_user, authorized_client):
     # Non existing token
-    url = reverse("account:delete-confirm", args=[str(uuid.uuid4())])
+    invalid_token = default_token_generator.make_token(staff_user)
+    url = reverse("account:delete-confirm", args=[invalid_token])
     response = authorized_client.get(url)
     assert response.status_code == 404
 
-    deletion_url = reverse("account:delete-confirm", args=[customer_user.token])
+    authorized_client.force_login(customer_user)
+    token = default_token_generator.make_token(customer_user)
+    deletion_url = reverse("account:delete-confirm", args=[token])
 
     # getting the page should not delete the user
     response = authorized_client.get(deletion_url)

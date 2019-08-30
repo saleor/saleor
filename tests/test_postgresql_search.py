@@ -2,6 +2,7 @@ from decimal import Decimal
 
 import pytest
 from django.urls import reverse
+from prices import Money
 
 from saleor.account.models import Address, User
 from saleor.order.models import Order
@@ -27,7 +28,7 @@ def named_products(category, product_type):
         product = Product.objects.create(
             name=name,
             description=description,
-            price=Decimal(6.6),
+            price=Money(Decimal(6.6), "USD"),
             product_type=product_type,
             category=category,
         )

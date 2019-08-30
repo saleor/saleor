@@ -1,0 +1,583 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - Stripe/v1 PythonBindings/2.33.0
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics": {"request_id": "req_SlIBaeBHbOzc6l", "request_duration_ms":
+        4}}'
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version": "2.33.0", "lang": "python", "publisher": "stripe", "httplib":
+        "requests", "lang_version": "3.7.4", "platform": "Darwin-18.7.0-x86_64-i386-64bit",
+        "uname": "Darwin mbp-jakub.lan 18.7.0 Darwin Kernel Version 18.7.0: Thu Jun
+        20 18:42:21 PDT 2019; root:xnu-4903.270.47~4/RELEASE_X86_64 x86_64 i386"}'
+    method: GET
+    uri: https://api.stripe.com/v1/payment_intents/pm_card_threeDSecure2Required
+  response:
+    body:
+      string: "{\n  \"error\": {\n    \"code\": \"resource_missing\",\n    \"doc_url\"\
+        : \"https://stripe.com/docs/error-codes/resource-missing\",\n    \"message\"\
+        : \"No such payment_intent: pm_card_threeDSecure2Required\",\n    \"param\"\
+        : \"intent\",\n    \"type\": \"invalid_request_error\"\n  }\n}\n"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '255'
+      Content-Type:
+      - application/json
+      Date:
+      - Mon, 12 Aug 2019 08:08:53 GMT
+      Server:
+      - nginx
+      Strict-Transport-Security:
+      - max-age=31556926; includeSubDomains; preload
+      access-control-allow-credentials:
+      - 'true'
+      access-control-allow-methods:
+      - GET, POST, HEAD, OPTIONS, DELETE
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Request-Id, Stripe-Manage-Version, X-Stripe-External-Auth-Required, X-Stripe-Privileged-Session-Required
+      access-control-max-age:
+      - '300'
+      cache-control:
+      - no-cache, no-store
+      request-id:
+      - req_Cl6yE27ywyI3ic
+      stripe-version:
+      - '2019-05-16'
+    status:
+      code: 404
+      message: Not Found
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - Stripe/v1 PythonBindings/2.33.0
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version": "2.33.0", "lang": "python", "publisher": "stripe", "httplib":
+        "requests", "lang_version": "3.7.4", "platform": "Darwin-18.7.0-x86_64-i386-64bit",
+        "uname": "Darwin mbp-jakub.lan 18.7.0 Darwin Kernel Version 18.7.0: Thu Jun
+        20 18:42:21 PDT 2019; root:xnu-4903.270.47~4/RELEASE_X86_64 x86_64 i386"}'
+    method: GET
+    uri: https://api.stripe.com/v1/payment_intents/pm_card_threeDSecure2Required
+  response:
+    body:
+      string: "{\n  \"error\": {\n    \"code\": \"resource_missing\",\n    \"doc_url\"\
+        : \"https://stripe.com/docs/error-codes/resource-missing\",\n    \"message\"\
+        : \"No such payment_intent: pm_card_threeDSecure2Required\",\n    \"param\"\
+        : \"intent\",\n    \"type\": \"invalid_request_error\"\n  }\n}\n"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '255'
+      Content-Type:
+      - application/json
+      Date:
+      - Mon, 12 Aug 2019 08:23:32 GMT
+      Server:
+      - nginx
+      Strict-Transport-Security:
+      - max-age=31556926; includeSubDomains; preload
+      access-control-allow-credentials:
+      - 'true'
+      access-control-allow-methods:
+      - GET, POST, HEAD, OPTIONS, DELETE
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Request-Id, Stripe-Manage-Version, X-Stripe-External-Auth-Required, X-Stripe-Privileged-Session-Required
+      access-control-max-age:
+      - '300'
+      cache-control:
+      - no-cache, no-store
+      request-id:
+      - req_hCmg0yerx8jBRP
+      stripe-version:
+      - '2019-05-16'
+    status:
+      code: 404
+      message: Not Found
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - Stripe/v1 PythonBindings/2.33.0
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version": "2.33.0", "lang": "python", "publisher": "stripe", "httplib":
+        "requests", "lang_version": "3.7.4", "platform": "Darwin-18.7.0-x86_64-i386-64bit",
+        "uname": "Darwin mbp-jakub.lan 18.7.0 Darwin Kernel Version 18.7.0: Thu Jun
+        20 18:42:21 PDT 2019; root:xnu-4903.270.47~4/RELEASE_X86_64 x86_64 i386"}'
+    method: GET
+    uri: https://api.stripe.com/v1/payment_intents/pi_1F6YmgIUmJaD6Oqv77HUh6qq
+  response:
+    body:
+      string: "{\n  \"id\": \"pi_1F6YmgIUmJaD6Oqv77HUh6qq\",\n  \"object\": \"payment_intent\"\
+        ,\n  \"amount\": 4242,\n  \"amount_capturable\": 0,\n  \"amount_received\"\
+        : 0,\n  \"application\": null,\n  \"application_fee_amount\": null,\n  \"\
+        canceled_at\": null,\n  \"cancellation_reason\": null,\n  \"capture_method\"\
+        : \"automatic\",\n  \"charges\": {\n    \"object\": \"list\",\n    \"data\"\
+        : [\n\n    ],\n    \"has_more\": false,\n    \"total_count\": 0,\n    \"url\"\
+        : \"/v1/charges?payment_intent=pi_1F6YmgIUmJaD6Oqv77HUh6qq\"\n  },\n  \"client_secret\"\
+        : \"pi_1F6YmgIUmJaD6Oqv77HUh6qq_secret_bMSADceQXpXF9OxcQSCg3VFWy\",\n  \"\
+        confirmation_method\": \"manual\",\n  \"created\": 1565598102,\n  \"currency\"\
+        : \"usd\",\n  \"customer\": null,\n  \"description\": null,\n  \"invoice\"\
+        : null,\n  \"last_payment_error\": null,\n  \"livemode\": false,\n  \"metadata\"\
+        : {\n  },\n  \"next_action\": {\n    \"type\": \"use_stripe_sdk\",\n    \"\
+        use_stripe_sdk\": {\n      \"type\": \"stripe_3ds2_fingerprint\",\n      \"\
+        three_d_secure_2_source\": \"src_1F6YmgIUmJaD6OqveLcx2w0n\",\n      \"directory_server_name\"\
+        : \"visa\",\n      \"server_transaction_id\": \"b25f81ed-c6f1-4667-9a0d-395096ffe51a\"\
+        ,\n      \"three_ds_method_url\": \"\",\n      \"three_ds_optimizations\"\
+        : \"\",\n      \"directory_server_encryption\": {\n        \"directory_server_id\"\
+        : \"A000000003\",\n        \"algorithm\": \"RSA\",\n        \"certificate\"\
+        : \"-----BEGIN CERTIFICATE-----\\nMIIFrjCCBJagAwIBAgIQB2rJmsHVwbONd36WP9QPrTANBgkqhkiG9w0BAQsFADBx\\\
+        nMQswCQYDVQQGEwJVUzENMAsGA1UEChMEVklTQTEvMC0GA1UECxMmVmlzYSBJbnRl\\ncm5hdGlvbmFsIFNlcnZpY2UgQXNzb2NpYXRpb24xIjAgBgNVBAMTGVZpc2EgZUNv\\\
+        nbW1lcmNlIElzc3VpbmcgQ0EwHhcNMTcxMTAyMjIyMzEwWhcNMjAxMTAzMDAyMzEw\\nWjCBoTEYMBYGA1UEBxMPSGlnaGxhbmRzIFJhbmNoMREwDwYDVQQIEwhDb2xvcmFk\\\
+        nbzELMAkGA1UEBhMCVVMxDTALBgNVBAoTBFZJU0ExLzAtBgNVBAsTJlZpc2EgSW50\\nZXJuYXRpb25hbCBTZXJ2aWNlIEFzc29jaWF0aW9uMSUwIwYDVQQDExwzZHMyLnJz\\\
+        nYS5lbmNyeXB0aW9uLnZpc2EuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIB\\nCgKCAQEAst+HGfPPsX3p6HHEQ9YzourlQj16Nscmm13Cp7cZe4dZB2oWnJqZ7oh/\\\
+        npEoEoOAxBw1x4NFgXKTKdHAeu3VBNVw8SwMTdIC+X16VV+3VIyPbUvJXFp3QoR8W\\nUwPB3F1Lb9SMFNS95boYDZKIOdPW0cP1dRi7pFugsBUZDCP/H3nFfBFHMCBoga+P\\\
+        n3AHGj5y8RVpv0hS9jaIsYjX+i58B61OGCB7D0AiADNZJuFzw2+xpNkt6NJJF66FP\\nO8qIh8xR2xGVDf7TtCbss/CugLRgSqKab9YRB8/TBTcy5bxj6O8HD6aL2zGLcMY9\\\
+        ndCobXxCodLEtMjJdVL8N+iZrsI2gtwIDAQABo4ICDzCCAgswEwYDVR0lBAwwCgYI\\nKwYBBQUHAwEwZQYIKwYBBQUHAQEEWTBXMCUGCCsGAQUFBzABhhlodHRwOi8vb2Nz\\\
+        ncC52aXNhLmNvbS9vY3NwMC4GCCsGAQUFBzAChiJodHRwOi8vZW5yb2xsLnZpc2Fj\\nYS5jb20vZWNvbW0uY2VyMB8GA1UdIwQYMBaAFN/DKlUuL0I6ekCdkqD3R3nXj4eK\\\
+        nMAwGA1UdEwEB/wQCMAAwgcoGA1UdHwSBwjCBvzAooCagJIYiaHR0cDovL0Vucm9s\\nbC52aXNhY2EuY29tL2VDb21tLmNybDCBkqCBj6CBjIaBiWxkYXA6Ly9FbnJvbGwu\\\
+        ndmlzYWNhLmNvbTozODkvY249VmlzYSBlQ29tbWVyY2UgSXNzdWluZyBDQSxjPVVT\\nLG91PVZpc2EgSW50ZXJuYXRpb25hbCBTZXJ2aWNlIEFzc29jaWF0aW9uLG89VklT\\\
+        nQT9jZXJ0aWZpY2F0ZVJldm9jYXRpb25MaXN0MA4GA1UdDwEB/wQEAwIFoDAnBgNV\\nHREEIDAeghwzZHMyLnJzYS5lbmNyeXB0aW9uLnZpc2EuY29tMB0GA1UdDgQWBBT8\\\
+        nm2pDtUtY13f/3NCOmexHavP5zDA5BgNVHSAEMjAwMC4GBWeBAwEBMCUwIwYIKwYB\\nBQUHAgEWF2h0dHA6Ly93d3cudmlzYS5jb20vcGtpMA0GCSqGSIb3DQEBCwUAA4IB\\\
+        nAQCcCUhU7KnHUDuLXqwSuzC8lWWCcEqPRgPPzY3mgBUg9ya0p+v7QF2BG77tpygK\\nE2yDPkOE8trzYeMi7TCuvKgZvUXDSOka8SId9QleMBlo2pzNi0vKKBG8+E7qmGaf\\\
+        netQHVaoFvhg24/e7y8q89VYNKfLXn8TWMUOJdTQoNP+4bHcCnBvWWUcI2LlyEog1\\n2FDSG8hgP3cpw+0B2Hace9BQGR7ZgTIJAANEHZ54QGOYdxZEcDS5IEpKZlN8INs/\\\
+        nNKJyCkqP09VA4NO/WHaGFAXtgoLmjlA9Kal+4ieJPKijVDxcHVv/uPSfVQJ0/vCa\\nudJGOXV9q4VteupwLxfOGW8w\\\
+        n-----END CERTIFICATE-----\\n\",\n        \"root_certificate_authorities\"\
+        : [\n          \"-----BEGIN CERTIFICATE-----\\nMIIDojCCAoqgAwIBAgIQE4Y1TR0/BvLB+WUF1ZAcYjANBgkqhkiG9w0BAQUFADBr\\\
+        nMQswCQYDVQQGEwJVUzENMAsGA1UEChMEVklTQTEvMC0GA1UECxMmVmlzYSBJbnRl\\ncm5hdGlvbmFsIFNlcnZpY2UgQXNzb2NpYXRpb24xHDAaBgNVBAMTE1Zpc2EgZUNv\\\
+        nbW1lcmNlIFJvb3QwHhcNMDIwNjI2MDIxODM2WhcNMjIwNjI0MDAxNjEyWjBrMQsw\\nCQYDVQQGEwJVUzENMAsGA1UEChMEVklTQTEvMC0GA1UECxMmVmlzYSBJbnRlcm5h\\\
+        ndGlvbmFsIFNlcnZpY2UgQXNzb2NpYXRpb24xHDAaBgNVBAMTE1Zpc2EgZUNvbW1l\\ncmNlIFJvb3QwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCvV95WHm6h\\\
+        n2mCxlCfLF9sHP4CFT8icttD0b0/Pmdjh28JIXDqsOTPHH2qLJj0rNfVIsZHBAk4E\\nlpF7sDPwsRROEW+1QK8bRaVK7362rPKgH1g/EkZgPI2h4H3PVz4zHvtH8aoVlwdV\\\
+        nZqW1LS7YgFmypw23RuwhY/81q6UCzyr0TP579ZRdhE2o8mCP2w4lPJ9zcc+U30rq\\n299yOIzzlr3xF7zSujtFWsan9sYXiwGd/BmoKoMWuDpI/k4+oKsGGelT84ATB+0t\\\
+        nvz8KPFUgOSwsAGl0lUq8ILKpeeUYiZGo3BxN77t+Nwtd/jmliFKMAGzsGHxBvfaL\\ndXe6YJ2E5/4tAgMBAAGjQjBAMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQD\\\
+        nAgEGMB0GA1UdDgQWBBQVOIMPPyw/cDMezUb+B4wg4NfDtzANBgkqhkiG9w0BAQUF\\nAAOCAQEAX/FBfXxcCLkr4NWSR/pnXKUTwwMhmytMiUbPWU3J/qVAtmPN3XEolWcR\\\
+        nzCSs00Rsca4BIGsDoo8Ytyk6feUWYFN4PMCvFYP3j1IzJL1kk5fui/fbGKhtcbP3\\nLBfQdCVp9/5rPJS+TUtBjE7ic9DjkCJzQ83z7+pzzkWKsKZJ/0x9nXGIxHYdkFsd\\\
+        n7v3M9+79YKWxehZx0RbQfBI8bGmX265fOZpwLwU8GUYEmSA20GBuYQa7FkKMcPcw\\n++DbZqMAAb3mLNqRX6BGi01qnD093QVG/na/oAo85ADmJ7f/hC3euiInlhBx6yLt\\\
+        n398znM/jra6O1I7mT1GvFpLgXPYHDw==\\n-----END CERTIFICATE-----\\n\"\n     \
+        \   ]\n      }\n    }\n  },\n  \"on_behalf_of\": null,\n  \"payment_method\"\
+        : \"pm_1F6YmgIUmJaD6Oqvca9az7XD\",\n  \"payment_method_options\": {\n    \"\
+        card\": {\n      \"request_three_d_secure\": \"automatic\"\n    }\n  },\n\
+        \  \"payment_method_types\": [\n    \"card\"\n  ],\n  \"receipt_email\": null,\n\
+        \  \"review\": null,\n  \"setup_future_usage\": null,\n  \"shipping\": null,\n\
+        \  \"source\": null,\n  \"statement_descriptor\": null,\n  \"statement_descriptor_suffix\"\
+        : null,\n  \"status\": \"requires_action\",\n  \"transfer_data\": null,\n\
+        \  \"transfer_group\": null\n}\n"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '5228'
+      Content-Type:
+      - application/json
+      Date:
+      - Mon, 12 Aug 2019 08:25:16 GMT
+      Server:
+      - nginx
+      Strict-Transport-Security:
+      - max-age=31556926; includeSubDomains; preload
+      access-control-allow-credentials:
+      - 'true'
+      access-control-allow-methods:
+      - GET, POST, HEAD, OPTIONS, DELETE
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Request-Id, Stripe-Manage-Version, X-Stripe-External-Auth-Required, X-Stripe-Privileged-Session-Required
+      access-control-max-age:
+      - '300'
+      cache-control:
+      - no-cache, no-store
+      request-id:
+      - req_yGWcSIBxhMMB7Y
+      stripe-version:
+      - '2019-05-16'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Idempotency-Key:
+      - f15f458b-3d84-4811-b245-149ca3b47c2b
+      User-Agent:
+      - Stripe/v1 PythonBindings/2.33.0
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics": {"request_id": "req_yGWcSIBxhMMB7Y", "request_duration_ms":
+        578}}'
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version": "2.33.0", "lang": "python", "publisher": "stripe", "httplib":
+        "requests", "lang_version": "3.7.4", "platform": "Darwin-18.7.0-x86_64-i386-64bit",
+        "uname": "Darwin mbp-jakub.lan 18.7.0 Darwin Kernel Version 18.7.0: Thu Jun
+        20 18:42:21 PDT 2019; root:xnu-4903.270.47~4/RELEASE_X86_64 x86_64 i386"}'
+    method: POST
+    uri: https://api.stripe.com/v1/payment_intents/pi_1F6YmgIUmJaD6Oqv77HUh6qq/capture
+  response:
+    body:
+      string: "{\n  \"error\": {\n    \"code\": \"payment_intent_unexpected_state\"\
+        ,\n    \"doc_url\": \"https://stripe.com/docs/error-codes/payment-intent-unexpected-state\"\
+        ,\n    \"message\": \"This PaymentIntent could not be captured because it\
+        \ has a status of requires_action. Only a PaymentIntent with one of the following\
+        \ statuses may be captured: requires_capture.\",\n    \"payment_intent\":\
+        \ {\n      \"id\": \"pi_1F6YmgIUmJaD6Oqv77HUh6qq\",\n      \"object\": \"\
+        payment_intent\",\n      \"amount\": 4242,\n      \"amount_capturable\": 0,\n\
+        \      \"amount_received\": 0,\n      \"application\": null,\n      \"application_fee_amount\"\
+        : null,\n      \"canceled_at\": null,\n      \"cancellation_reason\": null,\n\
+        \      \"capture_method\": \"automatic\",\n      \"charges\": {\n        \"\
+        object\": \"list\",\n        \"data\": [\n\n        ],\n        \"has_more\"\
+        : false,\n        \"total_count\": 0,\n        \"url\": \"/v1/charges?payment_intent=pi_1F6YmgIUmJaD6Oqv77HUh6qq\"\
+        \n      },\n      \"client_secret\": \"pi_1F6YmgIUmJaD6Oqv77HUh6qq_secret_bMSADceQXpXF9OxcQSCg3VFWy\"\
+        ,\n      \"confirmation_method\": \"manual\",\n      \"created\": 1565598102,\n\
+        \      \"currency\": \"usd\",\n      \"customer\": null,\n      \"description\"\
+        : null,\n      \"invoice\": null,\n      \"last_payment_error\": null,\n \
+        \     \"livemode\": false,\n      \"metadata\": {\n      },\n      \"next_action\"\
+        : {\n        \"type\": \"use_stripe_sdk\",\n        \"use_stripe_sdk\": {\n\
+        \          \"type\": \"stripe_3ds2_fingerprint\",\n          \"three_d_secure_2_source\"\
+        : \"src_1F6YmgIUmJaD6OqveLcx2w0n\",\n          \"directory_server_name\":\
+        \ \"visa\",\n          \"server_transaction_id\": \"b25f81ed-c6f1-4667-9a0d-395096ffe51a\"\
+        ,\n          \"three_ds_method_url\": \"\",\n          \"three_ds_optimizations\"\
+        : \"\",\n          \"directory_server_encryption\": {\n            \"directory_server_id\"\
+        : \"A000000003\",\n            \"algorithm\": \"RSA\",\n            \"certificate\"\
+        : \"-----BEGIN CERTIFICATE-----\\nMIIFrjCCBJagAwIBAgIQB2rJmsHVwbONd36WP9QPrTANBgkqhkiG9w0BAQsFADBx\\\
+        nMQswCQYDVQQGEwJVUzENMAsGA1UEChMEVklTQTEvMC0GA1UECxMmVmlzYSBJbnRl\\ncm5hdGlvbmFsIFNlcnZpY2UgQXNzb2NpYXRpb24xIjAgBgNVBAMTGVZpc2EgZUNv\\\
+        nbW1lcmNlIElzc3VpbmcgQ0EwHhcNMTcxMTAyMjIyMzEwWhcNMjAxMTAzMDAyMzEw\\nWjCBoTEYMBYGA1UEBxMPSGlnaGxhbmRzIFJhbmNoMREwDwYDVQQIEwhDb2xvcmFk\\\
+        nbzELMAkGA1UEBhMCVVMxDTALBgNVBAoTBFZJU0ExLzAtBgNVBAsTJlZpc2EgSW50\\nZXJuYXRpb25hbCBTZXJ2aWNlIEFzc29jaWF0aW9uMSUwIwYDVQQDExwzZHMyLnJz\\\
+        nYS5lbmNyeXB0aW9uLnZpc2EuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIB\\nCgKCAQEAst+HGfPPsX3p6HHEQ9YzourlQj16Nscmm13Cp7cZe4dZB2oWnJqZ7oh/\\\
+        npEoEoOAxBw1x4NFgXKTKdHAeu3VBNVw8SwMTdIC+X16VV+3VIyPbUvJXFp3QoR8W\\nUwPB3F1Lb9SMFNS95boYDZKIOdPW0cP1dRi7pFugsBUZDCP/H3nFfBFHMCBoga+P\\\
+        n3AHGj5y8RVpv0hS9jaIsYjX+i58B61OGCB7D0AiADNZJuFzw2+xpNkt6NJJF66FP\\nO8qIh8xR2xGVDf7TtCbss/CugLRgSqKab9YRB8/TBTcy5bxj6O8HD6aL2zGLcMY9\\\
+        ndCobXxCodLEtMjJdVL8N+iZrsI2gtwIDAQABo4ICDzCCAgswEwYDVR0lBAwwCgYI\\nKwYBBQUHAwEwZQYIKwYBBQUHAQEEWTBXMCUGCCsGAQUFBzABhhlodHRwOi8vb2Nz\\\
+        ncC52aXNhLmNvbS9vY3NwMC4GCCsGAQUFBzAChiJodHRwOi8vZW5yb2xsLnZpc2Fj\\nYS5jb20vZWNvbW0uY2VyMB8GA1UdIwQYMBaAFN/DKlUuL0I6ekCdkqD3R3nXj4eK\\\
+        nMAwGA1UdEwEB/wQCMAAwgcoGA1UdHwSBwjCBvzAooCagJIYiaHR0cDovL0Vucm9s\\nbC52aXNhY2EuY29tL2VDb21tLmNybDCBkqCBj6CBjIaBiWxkYXA6Ly9FbnJvbGwu\\\
+        ndmlzYWNhLmNvbTozODkvY249VmlzYSBlQ29tbWVyY2UgSXNzdWluZyBDQSxjPVVT\\nLG91PVZpc2EgSW50ZXJuYXRpb25hbCBTZXJ2aWNlIEFzc29jaWF0aW9uLG89VklT\\\
+        nQT9jZXJ0aWZpY2F0ZVJldm9jYXRpb25MaXN0MA4GA1UdDwEB/wQEAwIFoDAnBgNV\\nHREEIDAeghwzZHMyLnJzYS5lbmNyeXB0aW9uLnZpc2EuY29tMB0GA1UdDgQWBBT8\\\
+        nm2pDtUtY13f/3NCOmexHavP5zDA5BgNVHSAEMjAwMC4GBWeBAwEBMCUwIwYIKwYB\\nBQUHAgEWF2h0dHA6Ly93d3cudmlzYS5jb20vcGtpMA0GCSqGSIb3DQEBCwUAA4IB\\\
+        nAQCcCUhU7KnHUDuLXqwSuzC8lWWCcEqPRgPPzY3mgBUg9ya0p+v7QF2BG77tpygK\\nE2yDPkOE8trzYeMi7TCuvKgZvUXDSOka8SId9QleMBlo2pzNi0vKKBG8+E7qmGaf\\\
+        netQHVaoFvhg24/e7y8q89VYNKfLXn8TWMUOJdTQoNP+4bHcCnBvWWUcI2LlyEog1\\n2FDSG8hgP3cpw+0B2Hace9BQGR7ZgTIJAANEHZ54QGOYdxZEcDS5IEpKZlN8INs/\\\
+        nNKJyCkqP09VA4NO/WHaGFAXtgoLmjlA9Kal+4ieJPKijVDxcHVv/uPSfVQJ0/vCa\\nudJGOXV9q4VteupwLxfOGW8w\\\
+        n-----END CERTIFICATE-----\\n\",\n            \"root_certificate_authorities\"\
+        : [\n              \"-----BEGIN CERTIFICATE-----\\nMIIDojCCAoqgAwIBAgIQE4Y1TR0/BvLB+WUF1ZAcYjANBgkqhkiG9w0BAQUFADBr\\\
+        nMQswCQYDVQQGEwJVUzENMAsGA1UEChMEVklTQTEvMC0GA1UECxMmVmlzYSBJbnRl\\ncm5hdGlvbmFsIFNlcnZpY2UgQXNzb2NpYXRpb24xHDAaBgNVBAMTE1Zpc2EgZUNv\\\
+        nbW1lcmNlIFJvb3QwHhcNMDIwNjI2MDIxODM2WhcNMjIwNjI0MDAxNjEyWjBrMQsw\\nCQYDVQQGEwJVUzENMAsGA1UEChMEVklTQTEvMC0GA1UECxMmVmlzYSBJbnRlcm5h\\\
+        ndGlvbmFsIFNlcnZpY2UgQXNzb2NpYXRpb24xHDAaBgNVBAMTE1Zpc2EgZUNvbW1l\\ncmNlIFJvb3QwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCvV95WHm6h\\\
+        n2mCxlCfLF9sHP4CFT8icttD0b0/Pmdjh28JIXDqsOTPHH2qLJj0rNfVIsZHBAk4E\\nlpF7sDPwsRROEW+1QK8bRaVK7362rPKgH1g/EkZgPI2h4H3PVz4zHvtH8aoVlwdV\\\
+        nZqW1LS7YgFmypw23RuwhY/81q6UCzyr0TP579ZRdhE2o8mCP2w4lPJ9zcc+U30rq\\n299yOIzzlr3xF7zSujtFWsan9sYXiwGd/BmoKoMWuDpI/k4+oKsGGelT84ATB+0t\\\
+        nvz8KPFUgOSwsAGl0lUq8ILKpeeUYiZGo3BxN77t+Nwtd/jmliFKMAGzsGHxBvfaL\\ndXe6YJ2E5/4tAgMBAAGjQjBAMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQD\\\
+        nAgEGMB0GA1UdDgQWBBQVOIMPPyw/cDMezUb+B4wg4NfDtzANBgkqhkiG9w0BAQUF\\nAAOCAQEAX/FBfXxcCLkr4NWSR/pnXKUTwwMhmytMiUbPWU3J/qVAtmPN3XEolWcR\\\
+        nzCSs00Rsca4BIGsDoo8Ytyk6feUWYFN4PMCvFYP3j1IzJL1kk5fui/fbGKhtcbP3\\nLBfQdCVp9/5rPJS+TUtBjE7ic9DjkCJzQ83z7+pzzkWKsKZJ/0x9nXGIxHYdkFsd\\\
+        n7v3M9+79YKWxehZx0RbQfBI8bGmX265fOZpwLwU8GUYEmSA20GBuYQa7FkKMcPcw\\n++DbZqMAAb3mLNqRX6BGi01qnD093QVG/na/oAo85ADmJ7f/hC3euiInlhBx6yLt\\\
+        n398znM/jra6O1I7mT1GvFpLgXPYHDw==\\n-----END CERTIFICATE-----\\n\"\n     \
+        \       ]\n          }\n        }\n      },\n      \"on_behalf_of\": null,\n\
+        \      \"payment_method\": \"pm_1F6YmgIUmJaD6Oqvca9az7XD\",\n      \"payment_method_options\"\
+        : {\n        \"card\": {\n          \"request_three_d_secure\": \"automatic\"\
+        \n        }\n      },\n      \"payment_method_types\": [\n        \"card\"\
+        \n      ],\n      \"receipt_email\": null,\n      \"review\": null,\n    \
+        \  \"setup_future_usage\": null,\n      \"shipping\": null,\n      \"source\"\
+        : null,\n      \"statement_descriptor\": null,\n      \"statement_descriptor_suffix\"\
+        : null,\n      \"status\": \"requires_action\",\n      \"transfer_data\":\
+        \ null,\n      \"transfer_group\": null\n    },\n    \"type\": \"invalid_request_error\"\
+        \n  }\n}\n"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '5911'
+      Content-Type:
+      - application/json
+      Date:
+      - Mon, 12 Aug 2019 08:25:17 GMT
+      Server:
+      - nginx
+      Strict-Transport-Security:
+      - max-age=31556926; includeSubDomains; preload
+      access-control-allow-credentials:
+      - 'true'
+      access-control-allow-methods:
+      - GET, POST, HEAD, OPTIONS, DELETE
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Request-Id, Stripe-Manage-Version, X-Stripe-External-Auth-Required, X-Stripe-Privileged-Session-Required
+      access-control-max-age:
+      - '300'
+      cache-control:
+      - no-cache, no-store
+      idempotency-key:
+      - f15f458b-3d84-4811-b245-149ca3b47c2b
+      original-request:
+      - req_hnbGZ8bfUZTAuR
+      request-id:
+      - req_hnbGZ8bfUZTAuR
+      stripe-version:
+      - '2019-05-16'
+    status:
+      code: 400
+      message: Bad Request
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      User-Agent:
+      - Stripe/v1 PythonBindings/2.33.0
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version": "2.33.0", "lang": "python", "publisher": "stripe", "httplib":
+        "requests", "lang_version": "3.7.4", "platform": "Darwin-18.7.0-x86_64-i386-64bit",
+        "uname": "Darwin mbp-jakub.lan 18.7.0 Darwin Kernel Version 18.7.0: Thu Jun
+        20 18:42:21 PDT 2019; root:xnu-4903.270.47~4/RELEASE_X86_64 x86_64 i386"}'
+    method: GET
+    uri: https://api.stripe.com/v1/payment_intents/pi_1F6YmgIUmJaD6Oqv77HUh6qq
+  response:
+    body:
+      string: "{\n  \"id\": \"pi_1F6YmgIUmJaD6Oqv77HUh6qq\",\n  \"object\": \"payment_intent\"\
+        ,\n  \"amount\": 4242,\n  \"amount_capturable\": 0,\n  \"amount_received\"\
+        : 0,\n  \"application\": null,\n  \"application_fee_amount\": null,\n  \"\
+        canceled_at\": null,\n  \"cancellation_reason\": null,\n  \"capture_method\"\
+        : \"automatic\",\n  \"charges\": {\n    \"object\": \"list\",\n    \"data\"\
+        : [\n\n    ],\n    \"has_more\": false,\n    \"total_count\": 0,\n    \"url\"\
+        : \"/v1/charges?payment_intent=pi_1F6YmgIUmJaD6Oqv77HUh6qq\"\n  },\n  \"client_secret\"\
+        : \"pi_1F6YmgIUmJaD6Oqv77HUh6qq_secret_bMSADceQXpXF9OxcQSCg3VFWy\",\n  \"\
+        confirmation_method\": \"manual\",\n  \"created\": 1565598102,\n  \"currency\"\
+        : \"usd\",\n  \"customer\": null,\n  \"description\": null,\n  \"invoice\"\
+        : null,\n  \"last_payment_error\": null,\n  \"livemode\": false,\n  \"metadata\"\
+        : {\n  },\n  \"next_action\": {\n    \"type\": \"use_stripe_sdk\",\n    \"\
+        use_stripe_sdk\": {\n      \"type\": \"stripe_3ds2_fingerprint\",\n      \"\
+        three_d_secure_2_source\": \"src_1F6YmgIUmJaD6OqveLcx2w0n\",\n      \"directory_server_name\"\
+        : \"visa\",\n      \"server_transaction_id\": \"b25f81ed-c6f1-4667-9a0d-395096ffe51a\"\
+        ,\n      \"three_ds_method_url\": \"\",\n      \"three_ds_optimizations\"\
+        : \"\",\n      \"directory_server_encryption\": {\n        \"directory_server_id\"\
+        : \"A000000003\",\n        \"algorithm\": \"RSA\",\n        \"certificate\"\
+        : \"-----BEGIN CERTIFICATE-----\\nMIIFrjCCBJagAwIBAgIQB2rJmsHVwbONd36WP9QPrTANBgkqhkiG9w0BAQsFADBx\\\
+        nMQswCQYDVQQGEwJVUzENMAsGA1UEChMEVklTQTEvMC0GA1UECxMmVmlzYSBJbnRl\\ncm5hdGlvbmFsIFNlcnZpY2UgQXNzb2NpYXRpb24xIjAgBgNVBAMTGVZpc2EgZUNv\\\
+        nbW1lcmNlIElzc3VpbmcgQ0EwHhcNMTcxMTAyMjIyMzEwWhcNMjAxMTAzMDAyMzEw\\nWjCBoTEYMBYGA1UEBxMPSGlnaGxhbmRzIFJhbmNoMREwDwYDVQQIEwhDb2xvcmFk\\\
+        nbzELMAkGA1UEBhMCVVMxDTALBgNVBAoTBFZJU0ExLzAtBgNVBAsTJlZpc2EgSW50\\nZXJuYXRpb25hbCBTZXJ2aWNlIEFzc29jaWF0aW9uMSUwIwYDVQQDExwzZHMyLnJz\\\
+        nYS5lbmNyeXB0aW9uLnZpc2EuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIB\\nCgKCAQEAst+HGfPPsX3p6HHEQ9YzourlQj16Nscmm13Cp7cZe4dZB2oWnJqZ7oh/\\\
+        npEoEoOAxBw1x4NFgXKTKdHAeu3VBNVw8SwMTdIC+X16VV+3VIyPbUvJXFp3QoR8W\\nUwPB3F1Lb9SMFNS95boYDZKIOdPW0cP1dRi7pFugsBUZDCP/H3nFfBFHMCBoga+P\\\
+        n3AHGj5y8RVpv0hS9jaIsYjX+i58B61OGCB7D0AiADNZJuFzw2+xpNkt6NJJF66FP\\nO8qIh8xR2xGVDf7TtCbss/CugLRgSqKab9YRB8/TBTcy5bxj6O8HD6aL2zGLcMY9\\\
+        ndCobXxCodLEtMjJdVL8N+iZrsI2gtwIDAQABo4ICDzCCAgswEwYDVR0lBAwwCgYI\\nKwYBBQUHAwEwZQYIKwYBBQUHAQEEWTBXMCUGCCsGAQUFBzABhhlodHRwOi8vb2Nz\\\
+        ncC52aXNhLmNvbS9vY3NwMC4GCCsGAQUFBzAChiJodHRwOi8vZW5yb2xsLnZpc2Fj\\nYS5jb20vZWNvbW0uY2VyMB8GA1UdIwQYMBaAFN/DKlUuL0I6ekCdkqD3R3nXj4eK\\\
+        nMAwGA1UdEwEB/wQCMAAwgcoGA1UdHwSBwjCBvzAooCagJIYiaHR0cDovL0Vucm9s\\nbC52aXNhY2EuY29tL2VDb21tLmNybDCBkqCBj6CBjIaBiWxkYXA6Ly9FbnJvbGwu\\\
+        ndmlzYWNhLmNvbTozODkvY249VmlzYSBlQ29tbWVyY2UgSXNzdWluZyBDQSxjPVVT\\nLG91PVZpc2EgSW50ZXJuYXRpb25hbCBTZXJ2aWNlIEFzc29jaWF0aW9uLG89VklT\\\
+        nQT9jZXJ0aWZpY2F0ZVJldm9jYXRpb25MaXN0MA4GA1UdDwEB/wQEAwIFoDAnBgNV\\nHREEIDAeghwzZHMyLnJzYS5lbmNyeXB0aW9uLnZpc2EuY29tMB0GA1UdDgQWBBT8\\\
+        nm2pDtUtY13f/3NCOmexHavP5zDA5BgNVHSAEMjAwMC4GBWeBAwEBMCUwIwYIKwYB\\nBQUHAgEWF2h0dHA6Ly93d3cudmlzYS5jb20vcGtpMA0GCSqGSIb3DQEBCwUAA4IB\\\
+        nAQCcCUhU7KnHUDuLXqwSuzC8lWWCcEqPRgPPzY3mgBUg9ya0p+v7QF2BG77tpygK\\nE2yDPkOE8trzYeMi7TCuvKgZvUXDSOka8SId9QleMBlo2pzNi0vKKBG8+E7qmGaf\\\
+        netQHVaoFvhg24/e7y8q89VYNKfLXn8TWMUOJdTQoNP+4bHcCnBvWWUcI2LlyEog1\\n2FDSG8hgP3cpw+0B2Hace9BQGR7ZgTIJAANEHZ54QGOYdxZEcDS5IEpKZlN8INs/\\\
+        nNKJyCkqP09VA4NO/WHaGFAXtgoLmjlA9Kal+4ieJPKijVDxcHVv/uPSfVQJ0/vCa\\nudJGOXV9q4VteupwLxfOGW8w\\\
+        n-----END CERTIFICATE-----\\n\",\n        \"root_certificate_authorities\"\
+        : [\n          \"-----BEGIN CERTIFICATE-----\\nMIIDojCCAoqgAwIBAgIQE4Y1TR0/BvLB+WUF1ZAcYjANBgkqhkiG9w0BAQUFADBr\\\
+        nMQswCQYDVQQGEwJVUzENMAsGA1UEChMEVklTQTEvMC0GA1UECxMmVmlzYSBJbnRl\\ncm5hdGlvbmFsIFNlcnZpY2UgQXNzb2NpYXRpb24xHDAaBgNVBAMTE1Zpc2EgZUNv\\\
+        nbW1lcmNlIFJvb3QwHhcNMDIwNjI2MDIxODM2WhcNMjIwNjI0MDAxNjEyWjBrMQsw\\nCQYDVQQGEwJVUzENMAsGA1UEChMEVklTQTEvMC0GA1UECxMmVmlzYSBJbnRlcm5h\\\
+        ndGlvbmFsIFNlcnZpY2UgQXNzb2NpYXRpb24xHDAaBgNVBAMTE1Zpc2EgZUNvbW1l\\ncmNlIFJvb3QwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCvV95WHm6h\\\
+        n2mCxlCfLF9sHP4CFT8icttD0b0/Pmdjh28JIXDqsOTPHH2qLJj0rNfVIsZHBAk4E\\nlpF7sDPwsRROEW+1QK8bRaVK7362rPKgH1g/EkZgPI2h4H3PVz4zHvtH8aoVlwdV\\\
+        nZqW1LS7YgFmypw23RuwhY/81q6UCzyr0TP579ZRdhE2o8mCP2w4lPJ9zcc+U30rq\\n299yOIzzlr3xF7zSujtFWsan9sYXiwGd/BmoKoMWuDpI/k4+oKsGGelT84ATB+0t\\\
+        nvz8KPFUgOSwsAGl0lUq8ILKpeeUYiZGo3BxN77t+Nwtd/jmliFKMAGzsGHxBvfaL\\ndXe6YJ2E5/4tAgMBAAGjQjBAMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQD\\\
+        nAgEGMB0GA1UdDgQWBBQVOIMPPyw/cDMezUb+B4wg4NfDtzANBgkqhkiG9w0BAQUF\\nAAOCAQEAX/FBfXxcCLkr4NWSR/pnXKUTwwMhmytMiUbPWU3J/qVAtmPN3XEolWcR\\\
+        nzCSs00Rsca4BIGsDoo8Ytyk6feUWYFN4PMCvFYP3j1IzJL1kk5fui/fbGKhtcbP3\\nLBfQdCVp9/5rPJS+TUtBjE7ic9DjkCJzQ83z7+pzzkWKsKZJ/0x9nXGIxHYdkFsd\\\
+        n7v3M9+79YKWxehZx0RbQfBI8bGmX265fOZpwLwU8GUYEmSA20GBuYQa7FkKMcPcw\\n++DbZqMAAb3mLNqRX6BGi01qnD093QVG/na/oAo85ADmJ7f/hC3euiInlhBx6yLt\\\
+        n398znM/jra6O1I7mT1GvFpLgXPYHDw==\\n-----END CERTIFICATE-----\\n\"\n     \
+        \   ]\n      }\n    }\n  },\n  \"on_behalf_of\": null,\n  \"payment_method\"\
+        : \"pm_1F6YmgIUmJaD6Oqvca9az7XD\",\n  \"payment_method_options\": {\n    \"\
+        card\": {\n      \"request_three_d_secure\": \"automatic\"\n    }\n  },\n\
+        \  \"payment_method_types\": [\n    \"card\"\n  ],\n  \"receipt_email\": null,\n\
+        \  \"review\": null,\n  \"setup_future_usage\": null,\n  \"shipping\": null,\n\
+        \  \"source\": null,\n  \"statement_descriptor\": null,\n  \"statement_descriptor_suffix\"\
+        : null,\n  \"status\": \"requires_action\",\n  \"transfer_data\": null,\n\
+        \  \"transfer_group\": null\n}\n"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '5228'
+      Content-Type:
+      - application/json
+      Date:
+      - Mon, 12 Aug 2019 08:27:28 GMT
+      Server:
+      - nginx
+      Strict-Transport-Security:
+      - max-age=31556926; includeSubDomains; preload
+      access-control-allow-credentials:
+      - 'true'
+      access-control-allow-methods:
+      - GET, POST, HEAD, OPTIONS, DELETE
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Request-Id, Stripe-Manage-Version, X-Stripe-External-Auth-Required, X-Stripe-Privileged-Session-Required
+      access-control-max-age:
+      - '300'
+      cache-control:
+      - no-cache, no-store
+      request-id:
+      - req_c7qIdXAnmdlkOF
+      stripe-version:
+      - '2019-05-16'
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      Idempotency-Key:
+      - fe4d3f71-b892-4df4-bc1f-15bb55e892ad
+      User-Agent:
+      - Stripe/v1 PythonBindings/2.33.0
+      X-Stripe-Client-Telemetry:
+      - '{"last_request_metrics": {"request_id": "req_c7qIdXAnmdlkOF", "request_duration_ms":
+        674}}'
+      X-Stripe-Client-User-Agent:
+      - '{"bindings_version": "2.33.0", "lang": "python", "publisher": "stripe", "httplib":
+        "requests", "lang_version": "3.7.4", "platform": "Darwin-18.7.0-x86_64-i386-64bit",
+        "uname": "Darwin mbp-jakub.lan 18.7.0 Darwin Kernel Version 18.7.0: Thu Jun
+        20 18:42:21 PDT 2019; root:xnu-4903.270.47~4/RELEASE_X86_64 x86_64 i386"}'
+    method: POST
+    uri: https://api.stripe.com/v1/payment_intents/pi_1F6YmgIUmJaD6Oqv77HUh6qq/capture
+  response:
+    body:
+      string: "{\n  \"error\": {\n    \"code\": \"payment_intent_unexpected_state\"\
+        ,\n    \"doc_url\": \"https://stripe.com/docs/error-codes/payment-intent-unexpected-state\"\
+        ,\n    \"message\": \"This PaymentIntent could not be captured because it\
+        \ has a status of requires_action. Only a PaymentIntent with one of the following\
+        \ statuses may be captured: requires_capture.\",\n    \"payment_intent\":\
+        \ {\n      \"id\": \"pi_1F6YmgIUmJaD6Oqv77HUh6qq\",\n      \"object\": \"\
+        payment_intent\",\n      \"amount\": 4242,\n      \"amount_capturable\": 0,\n\
+        \      \"amount_received\": 0,\n      \"application\": null,\n      \"application_fee_amount\"\
+        : null,\n      \"canceled_at\": null,\n      \"cancellation_reason\": null,\n\
+        \      \"capture_method\": \"automatic\",\n      \"charges\": {\n        \"\
+        object\": \"list\",\n        \"data\": [\n\n        ],\n        \"has_more\"\
+        : false,\n        \"total_count\": 0,\n        \"url\": \"/v1/charges?payment_intent=pi_1F6YmgIUmJaD6Oqv77HUh6qq\"\
+        \n      },\n      \"client_secret\": \"pi_1F6YmgIUmJaD6Oqv77HUh6qq_secret_bMSADceQXpXF9OxcQSCg3VFWy\"\
+        ,\n      \"confirmation_method\": \"manual\",\n      \"created\": 1565598102,\n\
+        \      \"currency\": \"usd\",\n      \"customer\": null,\n      \"description\"\
+        : null,\n      \"invoice\": null,\n      \"last_payment_error\": null,\n \
+        \     \"livemode\": false,\n      \"metadata\": {\n      },\n      \"next_action\"\
+        : {\n        \"type\": \"use_stripe_sdk\",\n        \"use_stripe_sdk\": {\n\
+        \          \"type\": \"stripe_3ds2_fingerprint\",\n          \"three_d_secure_2_source\"\
+        : \"src_1F6YmgIUmJaD6OqveLcx2w0n\",\n          \"directory_server_name\":\
+        \ \"visa\",\n          \"server_transaction_id\": \"b25f81ed-c6f1-4667-9a0d-395096ffe51a\"\
+        ,\n          \"three_ds_method_url\": \"\",\n          \"three_ds_optimizations\"\
+        : \"\",\n          \"directory_server_encryption\": {\n            \"directory_server_id\"\
+        : \"A000000003\",\n            \"algorithm\": \"RSA\",\n            \"certificate\"\
+        : \"-----BEGIN CERTIFICATE-----\\nMIIFrjCCBJagAwIBAgIQB2rJmsHVwbONd36WP9QPrTANBgkqhkiG9w0BAQsFADBx\\\
+        nMQswCQYDVQQGEwJVUzENMAsGA1UEChMEVklTQTEvMC0GA1UECxMmVmlzYSBJbnRl\\ncm5hdGlvbmFsIFNlcnZpY2UgQXNzb2NpYXRpb24xIjAgBgNVBAMTGVZpc2EgZUNv\\\
+        nbW1lcmNlIElzc3VpbmcgQ0EwHhcNMTcxMTAyMjIyMzEwWhcNMjAxMTAzMDAyMzEw\\nWjCBoTEYMBYGA1UEBxMPSGlnaGxhbmRzIFJhbmNoMREwDwYDVQQIEwhDb2xvcmFk\\\
+        nbzELMAkGA1UEBhMCVVMxDTALBgNVBAoTBFZJU0ExLzAtBgNVBAsTJlZpc2EgSW50\\nZXJuYXRpb25hbCBTZXJ2aWNlIEFzc29jaWF0aW9uMSUwIwYDVQQDExwzZHMyLnJz\\\
+        nYS5lbmNyeXB0aW9uLnZpc2EuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIB\\nCgKCAQEAst+HGfPPsX3p6HHEQ9YzourlQj16Nscmm13Cp7cZe4dZB2oWnJqZ7oh/\\\
+        npEoEoOAxBw1x4NFgXKTKdHAeu3VBNVw8SwMTdIC+X16VV+3VIyPbUvJXFp3QoR8W\\nUwPB3F1Lb9SMFNS95boYDZKIOdPW0cP1dRi7pFugsBUZDCP/H3nFfBFHMCBoga+P\\\
+        n3AHGj5y8RVpv0hS9jaIsYjX+i58B61OGCB7D0AiADNZJuFzw2+xpNkt6NJJF66FP\\nO8qIh8xR2xGVDf7TtCbss/CugLRgSqKab9YRB8/TBTcy5bxj6O8HD6aL2zGLcMY9\\\
+        ndCobXxCodLEtMjJdVL8N+iZrsI2gtwIDAQABo4ICDzCCAgswEwYDVR0lBAwwCgYI\\nKwYBBQUHAwEwZQYIKwYBBQUHAQEEWTBXMCUGCCsGAQUFBzABhhlodHRwOi8vb2Nz\\\
+        ncC52aXNhLmNvbS9vY3NwMC4GCCsGAQUFBzAChiJodHRwOi8vZW5yb2xsLnZpc2Fj\\nYS5jb20vZWNvbW0uY2VyMB8GA1UdIwQYMBaAFN/DKlUuL0I6ekCdkqD3R3nXj4eK\\\
+        nMAwGA1UdEwEB/wQCMAAwgcoGA1UdHwSBwjCBvzAooCagJIYiaHR0cDovL0Vucm9s\\nbC52aXNhY2EuY29tL2VDb21tLmNybDCBkqCBj6CBjIaBiWxkYXA6Ly9FbnJvbGwu\\\
+        ndmlzYWNhLmNvbTozODkvY249VmlzYSBlQ29tbWVyY2UgSXNzdWluZyBDQSxjPVVT\\nLG91PVZpc2EgSW50ZXJuYXRpb25hbCBTZXJ2aWNlIEFzc29jaWF0aW9uLG89VklT\\\
+        nQT9jZXJ0aWZpY2F0ZVJldm9jYXRpb25MaXN0MA4GA1UdDwEB/wQEAwIFoDAnBgNV\\nHREEIDAeghwzZHMyLnJzYS5lbmNyeXB0aW9uLnZpc2EuY29tMB0GA1UdDgQWBBT8\\\
+        nm2pDtUtY13f/3NCOmexHavP5zDA5BgNVHSAEMjAwMC4GBWeBAwEBMCUwIwYIKwYB\\nBQUHAgEWF2h0dHA6Ly93d3cudmlzYS5jb20vcGtpMA0GCSqGSIb3DQEBCwUAA4IB\\\
+        nAQCcCUhU7KnHUDuLXqwSuzC8lWWCcEqPRgPPzY3mgBUg9ya0p+v7QF2BG77tpygK\\nE2yDPkOE8trzYeMi7TCuvKgZvUXDSOka8SId9QleMBlo2pzNi0vKKBG8+E7qmGaf\\\
+        netQHVaoFvhg24/e7y8q89VYNKfLXn8TWMUOJdTQoNP+4bHcCnBvWWUcI2LlyEog1\\n2FDSG8hgP3cpw+0B2Hace9BQGR7ZgTIJAANEHZ54QGOYdxZEcDS5IEpKZlN8INs/\\\
+        nNKJyCkqP09VA4NO/WHaGFAXtgoLmjlA9Kal+4ieJPKijVDxcHVv/uPSfVQJ0/vCa\\nudJGOXV9q4VteupwLxfOGW8w\\\
+        n-----END CERTIFICATE-----\\n\",\n            \"root_certificate_authorities\"\
+        : [\n              \"-----BEGIN CERTIFICATE-----\\nMIIDojCCAoqgAwIBAgIQE4Y1TR0/BvLB+WUF1ZAcYjANBgkqhkiG9w0BAQUFADBr\\\
+        nMQswCQYDVQQGEwJVUzENMAsGA1UEChMEVklTQTEvMC0GA1UECxMmVmlzYSBJbnRl\\ncm5hdGlvbmFsIFNlcnZpY2UgQXNzb2NpYXRpb24xHDAaBgNVBAMTE1Zpc2EgZUNv\\\
+        nbW1lcmNlIFJvb3QwHhcNMDIwNjI2MDIxODM2WhcNMjIwNjI0MDAxNjEyWjBrMQsw\\nCQYDVQQGEwJVUzENMAsGA1UEChMEVklTQTEvMC0GA1UECxMmVmlzYSBJbnRlcm5h\\\
+        ndGlvbmFsIFNlcnZpY2UgQXNzb2NpYXRpb24xHDAaBgNVBAMTE1Zpc2EgZUNvbW1l\\ncmNlIFJvb3QwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQCvV95WHm6h\\\
+        n2mCxlCfLF9sHP4CFT8icttD0b0/Pmdjh28JIXDqsOTPHH2qLJj0rNfVIsZHBAk4E\\nlpF7sDPwsRROEW+1QK8bRaVK7362rPKgH1g/EkZgPI2h4H3PVz4zHvtH8aoVlwdV\\\
+        nZqW1LS7YgFmypw23RuwhY/81q6UCzyr0TP579ZRdhE2o8mCP2w4lPJ9zcc+U30rq\\n299yOIzzlr3xF7zSujtFWsan9sYXiwGd/BmoKoMWuDpI/k4+oKsGGelT84ATB+0t\\\
+        nvz8KPFUgOSwsAGl0lUq8ILKpeeUYiZGo3BxN77t+Nwtd/jmliFKMAGzsGHxBvfaL\\ndXe6YJ2E5/4tAgMBAAGjQjBAMA8GA1UdEwEB/wQFMAMBAf8wDgYDVR0PAQH/BAQD\\\
+        nAgEGMB0GA1UdDgQWBBQVOIMPPyw/cDMezUb+B4wg4NfDtzANBgkqhkiG9w0BAQUF\\nAAOCAQEAX/FBfXxcCLkr4NWSR/pnXKUTwwMhmytMiUbPWU3J/qVAtmPN3XEolWcR\\\
+        nzCSs00Rsca4BIGsDoo8Ytyk6feUWYFN4PMCvFYP3j1IzJL1kk5fui/fbGKhtcbP3\\nLBfQdCVp9/5rPJS+TUtBjE7ic9DjkCJzQ83z7+pzzkWKsKZJ/0x9nXGIxHYdkFsd\\\
+        n7v3M9+79YKWxehZx0RbQfBI8bGmX265fOZpwLwU8GUYEmSA20GBuYQa7FkKMcPcw\\n++DbZqMAAb3mLNqRX6BGi01qnD093QVG/na/oAo85ADmJ7f/hC3euiInlhBx6yLt\\\
+        n398znM/jra6O1I7mT1GvFpLgXPYHDw==\\n-----END CERTIFICATE-----\\n\"\n     \
+        \       ]\n          }\n        }\n      },\n      \"on_behalf_of\": null,\n\
+        \      \"payment_method\": \"pm_1F6YmgIUmJaD6Oqvca9az7XD\",\n      \"payment_method_options\"\
+        : {\n        \"card\": {\n          \"request_three_d_secure\": \"automatic\"\
+        \n        }\n      },\n      \"payment_method_types\": [\n        \"card\"\
+        \n      ],\n      \"receipt_email\": null,\n      \"review\": null,\n    \
+        \  \"setup_future_usage\": null,\n      \"shipping\": null,\n      \"source\"\
+        : null,\n      \"statement_descriptor\": null,\n      \"statement_descriptor_suffix\"\
+        : null,\n      \"status\": \"requires_action\",\n      \"transfer_data\":\
+        \ null,\n      \"transfer_group\": null\n    },\n    \"type\": \"invalid_request_error\"\
+        \n  }\n}\n"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '5911'
+      Content-Type:
+      - application/json
+      Date:
+      - Mon, 12 Aug 2019 08:27:29 GMT
+      Server:
+      - nginx
+      Strict-Transport-Security:
+      - max-age=31556926; includeSubDomains; preload
+      access-control-allow-credentials:
+      - 'true'
+      access-control-allow-methods:
+      - GET, POST, HEAD, OPTIONS, DELETE
+      access-control-allow-origin:
+      - '*'
+      access-control-expose-headers:
+      - Request-Id, Stripe-Manage-Version, X-Stripe-External-Auth-Required, X-Stripe-Privileged-Session-Required
+      access-control-max-age:
+      - '300'
+      cache-control:
+      - no-cache, no-store
+      idempotency-key:
+      - fe4d3f71-b892-4df4-bc1f-15bb55e892ad
+      original-request:
+      - req_Mz0EtQrcPI5n32
+      request-id:
+      - req_Mz0EtQrcPI5n32
+      stripe-version:
+      - '2019-05-16'
+    status:
+      code: 400
+      message: Bad Request
+version: 1

@@ -58,6 +58,8 @@ def get_gateway_operation_func(gateway, operation_type):
         return gateway.void
     if operation_type == OperationType.REFUND:
         return gateway.refund
+    if operation_type == OperationType.CONFIRM:
+        return gateway.confirm
 
 
 def create_payment_information(
@@ -219,6 +221,7 @@ def create_transaction(
     if not gateway_response:
         gateway_response = GatewayResponse(
             kind=kind,
+            action_required=False,
             transaction_id=payment_information.token,
             is_success=False,
             amount=payment_information.amount,
@@ -343,6 +346,8 @@ def call_gateway(operation_type, payment, payment_token, **extra_params):
         # Attempt to get errors from response, if none raise a generic one
         raise PaymentError(payment_transaction.error or GENERIC_TRANSACTION_ERROR)
 
+    if gateway_response.card_info:
+        update_card_details(payment, gateway_response)
     return payment_transaction
 
 
@@ -371,7 +376,7 @@ def validate_gateway_response(response: GatewayResponse):
 def _gateway_postprocess(transaction, payment):
     transaction_kind = transaction.kind
 
-    if transaction_kind == TransactionKind.CAPTURE:
+    if transaction_kind in {TransactionKind.CAPTURE, TransactionKind.CONFIRM}:
         payment.captured_amount += transaction.amount
 
         # Set payment charge status to fully charged
@@ -463,17 +468,25 @@ def gateway_void(payment) -> Transaction:
     if not payment.can_void():
         raise PaymentError("Only pre-authorized transactions can be voided.")
 
-    auth_transaction = payment.transactions.filter(
-        kind=TransactionKind.AUTH, is_success=True
-    ).first()
-    if auth_transaction is None:
-        raise PaymentError("Cannot void unauthorized transaction")
-    payment_token = auth_transaction.token
-
+    payment_token = get_payment_token(payment)
     transaction = call_gateway(
         operation_type=OperationType.VOID, payment=payment, payment_token=payment_token
     )
+    _gateway_postprocess(transaction, payment)
+    return transaction
 
+
+@require_active_payment
+def gateway_confirm(payment) -> Transaction:
+    if not payment.can_confirm():
+        raise PaymentError("Only active and not paid payments can be confirmed.")
+
+    payment_token = get_payment_token(payment)
+    transaction = call_gateway(
+        operation_type=OperationType.CONFIRM,
+        payment=payment,
+        payment_token=payment_token,
+    )
     _gateway_postprocess(transaction, payment)
     return transaction
 
@@ -541,3 +554,22 @@ def retrieve_customer_sources(gateway_name, customer_id):
     """Fetch all customer payment sources stored in gateway."""
     gateway, config = get_payment_gateway(gateway_name)
     return gateway.list_client_sources(config, customer_id)
+
+
+def update_card_details(payment, gateway_response):
+    payment.cc_brand = gateway_response.card_info.brand or ""
+    payment.cc_last_digits = gateway_response.card_info.last_4
+    payment.cc_exp_year = gateway_response.card_info.exp_year
+    payment.cc_exp_month = gateway_response.card_info.exp_month
+    payment.save(
+        update_fields=["cc_brand", "cc_last_digits", "cc_exp_year", "cc_exp_month"]
+    )
+
+
+def get_payment_token(payment: Payment):
+    auth_transaction = payment.transactions.filter(
+        kind=TransactionKind.AUTH, is_success=True
+    ).first()
+    if auth_transaction is None:
+        raise PaymentError("Cannot process unauthorized transaction")
+    return auth_transaction.token

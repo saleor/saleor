@@ -11,12 +11,14 @@ from .filters import (
     filter_products_by_attributes,
     filter_products_by_categories,
     filter_products_by_collections,
+    filter_products_by_minimal_price,
     filter_products_by_price,
     filter_products_by_stock_availability,
     sort_qs,
 )
 
 PRODUCT_SEARCH_FIELDS = ("name", "description")
+PRODUCT_TYPE_SEARCH_FIELDS = ("name",)
 CATEGORY_SEARCH_FIELDS = ("name", "slug", "description", "parent__name")
 COLLECTION_SEARCH_FIELDS = ("name", "slug")
 ATTRIBUTES_SEARCH_FIELDS = ("name", "slug")
@@ -107,6 +109,8 @@ def resolve_products(
     collections=None,
     price_lte=None,
     price_gte=None,
+    minimal_price_lte=None,
+    minimal_price_gte=None,
     sort_by=None,
     stock_availability=None,
     query=None,
@@ -130,18 +134,21 @@ def resolve_products(
     if collections:
         collections = get_nodes(collections, "Collection", models.Collection)
         qs = filter_products_by_collections(qs, collections)
+
     if stock_availability:
         qs = filter_products_by_stock_availability(qs, stock_availability)
 
     qs = filter_products_by_price(qs, price_lte, price_gte)
+    qs = filter_products_by_minimal_price(qs, minimal_price_lte, minimal_price_gte)
     qs = sort_qs(qs, sort_by)
     qs = qs.distinct()
 
     return gql_optimizer.query(qs, info)
 
 
-def resolve_product_types(info):
+def resolve_product_types(info, query):
     qs = models.ProductType.objects.all()
+    qs = filter_by_query_param(qs, query, PRODUCT_TYPE_SEARCH_FIELDS)
     qs = qs.order_by("name")
     return gql_optimizer.query(qs, info)
 

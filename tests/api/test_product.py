@@ -120,7 +120,6 @@ def test_product_query(staff_api_client, product, permission_manage_products):
                         name
                         url
                         slug
-                        thumbnailUrl
                         thumbnail{
                             url
                             alt
@@ -330,25 +329,35 @@ def test_products_query_with_filter_collection(
 
 
 @pytest.mark.parametrize(
-    "filter",
-    ({"price": {"gte": 5.0, "lte": 9.0}}, {"isPublished": False}, {"search": "Juice1"}),
+    "products_filter",
+    [
+        {"price": {"gte": 5.0, "lte": 9.0}},
+        {"minimalPrice": {"gte": 1.0, "lte": 2.0}},
+        {"isPublished": False},
+        {"search": "Juice1"},
+    ],
 )
 def test_products_query_with_filter(
-    filter,
+    products_filter,
     query_products_with_filter,
     staff_api_client,
     product,
     permission_manage_products,
 ):
+    assert product.price == Money("10.00", "USD")
+    assert product.minimal_variant_price == Money("10.00", "USD")
+    assert product.is_published is True
+    assert "Juice1" not in product.name
 
     second_product = product
     second_product.id = None
     second_product.name = "Apple Juice1"
     second_product.price = Money("6.00", "USD")
-    second_product.is_published = filter.get("isPublished", True)
+    second_product.minimal_variant_price = Money("1.99", "USD")
+    second_product.is_published = products_filter.get("isPublished", True)
     second_product.save()
 
-    variables = {"filter": filter}
+    variables = {"filter": products_filter}
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(query_products_with_filter, variables)
     content = get_graphql_content(response)
@@ -585,12 +594,14 @@ def test_filter_products_by_collections(user_api_client, collection, product):
 def test_sort_products(user_api_client, product):
     # set price and update date of the first product
     product.price = Money("10.00", "USD")
+    product.minimal_variant_price = Money("10.00", "USD")
     product.updated_at = datetime.utcnow()
     product.save()
 
     # Create the second product with higher price and date
     product.pk = None
     product.price = Money("20.00", "USD")
+    product.minimal_variant_price = Money("20.00", "USD")
     product.updated_at = datetime.utcnow()
     product.save()
 
@@ -607,6 +618,13 @@ def test_sort_products(user_api_client, product):
                                 }
                             }
                         }
+                        priceRange {
+                            start {
+                                gross {
+                                    amount
+                                }
+                            }
+                        }
                     }
                     updatedAt
                 }
@@ -615,32 +633,65 @@ def test_sort_products(user_api_client, product):
     }
     """
 
-    def _get_node_price(data, node):
-        return data["data"]["products"]["edges"][node]["node"]["pricing"][
-            "priceRangeUndiscounted"
-        ]["start"]["gross"]["amount"]
-
+    # Test sorting by PRICE, ascending
     asc_price_query = query % {"sort_by_product_order": "{field: PRICE, direction:ASC}"}
     response = user_api_client.post_graphql(asc_price_query)
     content = get_graphql_content(response)
+    edges = content["data"]["products"]["edges"]
+    price1 = edges[0]["node"]["pricing"]["priceRangeUndiscounted"]["start"]["gross"][
+        "amount"
+    ]
+    price2 = edges[1]["node"]["pricing"]["priceRangeUndiscounted"]["start"]["gross"][
+        "amount"
+    ]
+    assert price1 < price2
 
-    assert _get_node_price(content, 0) < _get_node_price(content, 1)
-
+    # Test sorting by PRICE, descending
     desc_price_query = query % {
         "sort_by_product_order": "{field: PRICE, direction:DESC}"
     }
     response = user_api_client.post_graphql(desc_price_query)
     content = get_graphql_content(response)
-    assert _get_node_price(content, 0) > _get_node_price(content, 1)
+    edges = content["data"]["products"]["edges"]
+    price1 = edges[0]["node"]["pricing"]["priceRangeUndiscounted"]["start"]["gross"][
+        "amount"
+    ]
+    price2 = edges[1]["node"]["pricing"]["priceRangeUndiscounted"]["start"]["gross"][
+        "amount"
+    ]
+    assert price1 > price2
 
+    # Test sorting by MINIMAL_PRICE, ascending
+    asc_price_query = query % {
+        "sort_by_product_order": "{field: MINIMAL_PRICE, direction:ASC}"
+    }
+    response = user_api_client.post_graphql(asc_price_query)
+    content = get_graphql_content(response)
+    edges = content["data"]["products"]["edges"]
+    price1 = edges[0]["node"]["pricing"]["priceRange"]["start"]["gross"]["amount"]
+    price2 = edges[1]["node"]["pricing"]["priceRange"]["start"]["gross"]["amount"]
+    assert price1 < price2
+
+    # Test sorting by MINIMAL_PRICE, descending
+    desc_price_query = query % {
+        "sort_by_product_order": "{field: MINIMAL_PRICE, direction:DESC}"
+    }
+    response = user_api_client.post_graphql(desc_price_query)
+    content = get_graphql_content(response)
+    edges = content["data"]["products"]["edges"]
+    price1 = edges[0]["node"]["pricing"]["priceRange"]["start"]["gross"]["amount"]
+    price2 = edges[1]["node"]["pricing"]["priceRange"]["start"]["gross"]["amount"]
+    assert price1 > price2
+
+    # Test sorting by DATE, ascending
     asc_date_query = query % {"sort_by_product_order": "{field: DATE, direction:ASC}"}
     response = user_api_client.post_graphql(asc_date_query)
     content = get_graphql_content(response)
-    # parse_datetime
     date_0 = content["data"]["products"]["edges"][0]["node"]["updatedAt"]
     date_1 = content["data"]["products"]["edges"][1]["node"]["updatedAt"]
     assert parse_datetime(date_0) < parse_datetime(date_1)
 
+    # Test sorting by DATE, descending
     desc_date_query = query % {"sort_by_product_order": "{field: DATE, direction:DESC}"}
     response = user_api_client.post_graphql(desc_date_query)
     content = get_graphql_content(response)
@@ -728,7 +779,7 @@ def test_create_product(
     product_is_published = True
     product_charge_taxes = True
     product_tax_rate = "STANDARD"
-    product_price = 22.33
+    product_price = "22.33"
 
     # Mock tax interface with fake response from tax gateway
     monkeypatch.setattr(
@@ -776,6 +827,7 @@ def test_create_product(
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
+    assert str(data["product"]["basePrice"]["amount"]) == product_price
     values = (
         data["product"]["attributes"][0]["values"][0]["slug"],
         data["product"]["attributes"][1]["values"][0]["slug"],
@@ -1051,6 +1103,7 @@ def test_update_product(
     product_charge_taxes = True
     product_tax_rate = "STANDARD"
     product_price = "33.12"
+    assert str(product.price.amount) == "10.00"
 
     # Mock tax interface with fake response from tax gateway
     monkeypatch.setattr(
@@ -1084,6 +1137,7 @@ def test_update_product(
     assert data["product"]["isPublished"] == product_is_published
     assert data["product"]["chargeTaxes"] == product_charge_taxes
     assert data["product"]["taxType"]["taxCode"] == product_tax_rate
+    assert str(data["product"]["basePrice"]["amount"]) == product_price
     assert not data["product"]["category"]["name"] == category.name
 
     attributes = data["product"]["attributes"]
@@ -1938,11 +1992,9 @@ def test_product_variant_price(
     product.price = Money(amount=product_price, currency="USD")
     product.save()
     if variant_override is not None:
-        product.variants.update(
-            price_override=Money(amount=variant_override, currency="USD")
-        )
+        product.variants.update(price_override_amount=variant_override, currency="USD")
     else:
-        product.variants.update(price_override=None)
+        product.variants.update(price_override_amount=None)
     # Drop other variants
     # product.variants.exclude(id=variant.pk).delete()
 
@@ -2039,13 +2091,13 @@ def test_report_product_sales(
     line_a = order_with_lines.lines.get(product_sku=node_a["sku"])
     assert node_a["quantityOrdered"] == line_a.quantity
     amount = str(node_a["revenue"]["gross"]["amount"])
-    assert Decimal(amount) == line_a.quantity * line_a.unit_price_gross.amount
+    assert Decimal(amount) == line_a.quantity * line_a.unit_price_gross_amount
 
     node_b = edges[1]["node"]
     line_b = order_with_lines.lines.get(product_sku=node_b["sku"])
     assert node_b["quantityOrdered"] == line_b.quantity
     amount = str(node_b["revenue"]["gross"]["amount"])
-    assert Decimal(amount) == line_b.quantity * line_b.unit_price_gross.amount
+    assert Decimal(amount) == line_b.quantity * line_b.unit_price_gross_amount
 
 
 def test_variant_revenue_permissions(
@@ -2449,3 +2501,50 @@ def test_product_type_filter_unassigned_attributes(
 
     _, attribute_id = graphene.Node.from_global_id(found_attributes[0]["node"]["id"])
     assert attribute_id == str(expected_attribute.pk)
+
+
+QUERY_FILTER_PRODUCT_TYPES = """
+    query($filters: ProductTypeFilterInput) {
+      productTypes(first: 10, filter: $filters) {
+        edges {
+          node {
+            name
+          }
+        }
+      }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "search, expected_names",
+    (
+        ("", ["The best juices", "The best beers", "The worst beers"]),
+        ("best", ["The best juices", "The best beers"]),
+        ("worst", ["The worst beers"]),
+        ("average", []),
+    ),
+)
+def test_filter_product_types_by_custom_search_value(
+    api_client, search, expected_names
+):
+    query = QUERY_FILTER_PRODUCT_TYPES
+
+    ProductType.objects.bulk_create(
+        [
+            ProductType(name="The best juices"),
+            ProductType(name="The best beers"),
+            ProductType(name="The worst beers"),
+        ]
+    )
+
+    variables = {"filters": {"search": search}}
+
+    results = get_graphql_content(api_client.post_graphql(query, variables))["data"][
+        "productTypes"
+    ]["edges"]
+
+    assert len(results) == len(expected_names)
+    matched_names = sorted([result["node"]["name"] for result in results])
+
+    assert matched_names == sorted(expected_names)
