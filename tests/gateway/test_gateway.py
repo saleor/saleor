@@ -13,6 +13,17 @@ PROCESS_PAYMENT_RESPONSE = GatewayResponse(
     is_success=True,
     customer_id="test_customer",
     action_required=False,
+    kind=TransactionKind.CAPTURE,
+    amount=Decimal(10.0),
+    currency="usd",
+    transaction_id="1234",
+    error=None,
+    raw_response=RAW_RESPONSE,
+)
+AUTHORIZE_RESPONSE = GatewayResponse(
+    is_success=True,
+    customer_id="test_customer",
+    action_required=False,
     kind=TransactionKind.AUTH,
     amount=Decimal(10.0),
     currency="usd",
@@ -57,7 +68,7 @@ def test_process_payment(gateway, payment_txn_preauth):
         USED_GATEWAY, PAYMENT_DATA
     )
     assert transaction.amount == PROCESS_PAYMENT_RESPONSE.amount
-    assert transaction.kind == TransactionKind.AUTH
+    assert transaction.kind == TransactionKind.CAPTURE
     assert transaction.currency == "usd"
     assert transaction.gateway_response == RAW_RESPONSE
 
@@ -76,3 +87,20 @@ def test_store_source_when_processing_payment(gateway, payment_txn_preauth):
         USED_GATEWAY, PAYMENT_DATA
     )
     assert transaction.customer_id == PROCESS_PAYMENT_RESPONSE.customer_id
+
+
+def test_authorize_payment(gateway, payment_txn_preauth):
+    PAYMENT_DATA = create_payment_information(
+        payment=payment_txn_preauth, payment_token=TOKEN
+    )
+    gateway.plugin_manager.authorize_payment.return_value = PROCESS_PAYMENT_RESPONSE
+
+    transaction = gateway.authorize(payment=payment_txn_preauth, token=TOKEN)
+
+    gateway.plugin_manager.authorize_payment.assert_called_once_with(
+        USED_GATEWAY, PAYMENT_DATA
+    )
+    assert transaction.amount == AUTHORIZE_RESPONSE.amount
+    assert transaction.kind == TransactionKind.AUTH
+    assert transaction.currency == "usd"
+    assert transaction.gateway_response == RAW_RESPONSE
