@@ -8,6 +8,7 @@ from django_prices_vatlayer.utils import get_tax_rate_types
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from ....core.taxes import TaxType
+from ....graphql.core.utils.error_codes import CommonErrorCode
 from ...base_plugin import BasePlugin
 from . import (
     DEFAULT_TAX_RATE_NAME,
@@ -327,7 +328,8 @@ class VatlayerPlugin(BasePlugin):
         """Validate if provided configuration is correct."""
         if not settings.VATLAYER_ACCESS_KEY and plugin_configuration.active:
             raise ValidationError(
-                "Cannot be enabled without provided 'settings.VATLAYER_ACCESS_KEY'"
+                "Cannot be enabled without provided 'settings.VATLAYER_ACCESS_KEY'",
+                code=CommonErrorCode.PLUGIN_MISCONFIGURED,
             )
 
     @classmethod

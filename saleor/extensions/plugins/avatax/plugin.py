@@ -9,6 +9,7 @@ from django.utils.translation import pgettext_lazy
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ....core.taxes import TaxError, TaxType, zero_taxed_money
+from ....graphql.core.utils.error_codes import CommonErrorCode
 from ... import ConfigurationTypeField
 from ...base_plugin import BasePlugin
 from . import (
@@ -436,7 +437,10 @@ class AvataxPlugin(BasePlugin):
                 "To enable a plugin, you need to provide values for the "
                 "following fields: "
             )
-            raise ValidationError(error_msg + ", ".join(missing_fields))
+            raise ValidationError(
+                error_msg + ", ".join(missing_fields),
+                code=CommonErrorCode.PLUGIN_MISCONFIGURED,
+            )
 
     @classmethod
     def _hide_secret_configuration_fields(cls, configuration):
