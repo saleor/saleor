@@ -25,7 +25,6 @@ DJANGO_FORM_FIELDS_ERROR_CODES = [
     "invalid_time",
     "missing",
     "overflow",
-    "required",
 ]
 
 DJANGO_PASSWORD_VALIDATION_ERROR_CODES = [
@@ -110,6 +109,8 @@ class CommonErrorCode(Enum):
     SHIPPING_METHOD_REQUIRED = "shipping_method_required"
     VALUE_ERROR = "value_error"
     PLUGIN_MISCONFIGURED = "plugin-misconfigured"
+    INVALID = "invalid"
+    REQUIRED = "required"
 
 
 class ProductErrorCode(Enum):
@@ -139,9 +140,7 @@ for enum in SALEOR_ERROR_CODE_ENUMS:
 
 
 ERROR_CODES = (
-    DJANGO_VALIDATORS_ERROR_CODES
-    + DJANGO_FORM_FIELDS_ERROR_CODES
-    + DJANGO_PASSWORD_VALIDATION_ERROR_CODES
+    DJANGO_PASSWORD_VALIDATION_ERROR_CODES
     + DJANGO_MODEL_FIELDS_ERROR_CODES
     + saleor_error_codes
 )
@@ -150,6 +149,10 @@ ERROR_CODES = (
 def get_error_code_from_error(error):
     """Return valid error code or UNKNOWN for unknown error code."""
     code = error.code
+    if code == "required":
+        return code
+    if code in DJANGO_VALIDATORS_ERROR_CODES or code in DJANGO_FORM_FIELDS_ERROR_CODES:
+        return "invalid"
     if isinstance(code, Enum):
         code = code.value
     if code not in ERROR_CODES:
