@@ -1,20 +1,19 @@
-from decimal import Decimal
 import logging
+from decimal import Decimal
 
 from django.core.exceptions import ImproperlyConfigured
 
 from ..core.payments import Gateway, PaymentInterface
 from ..extensions.manager import get_extensions_manager
-
-from . import GatewayError, TransactionKind, PaymentError
+from . import GatewayError, PaymentError, TransactionKind
 from .models import Payment, Transaction
 from .utils import (
+    _gateway_postprocess,
     clean_authorize,
     clean_capture,
     create_payment_information,
     create_transaction,
     validate_gateway_response,
-    _gateway_postprocess,
 )
 
 logger = logging.getLogger(__name__)
@@ -128,6 +127,7 @@ class PaymentGateway:
     def refund(self, payment: Payment, amount: Decimal = None) -> Transaction:
         if amount is None:
             amount = payment.captured_amount
+        _validate_refund_amound(payment, amount)
         if not payment.can_refund():
             raise PaymentError("This payment cannot be refunded.")
         gateway = _get_gateway(payment)
@@ -177,3 +177,10 @@ def _get_past_transaction_token(payment: Payment, kind: TransactionKind):
     if txn is None:
         raise PaymentError("Cannot find successful {kind.value} transaction")
     return txn.token
+
+
+def _validate_refund_amound(payment: Payment, amount: Decimal):
+    if amount <= 0:
+        raise PaymentError("Amount should be a positive number.")
+    if amount > payment.captured_amount:
+        raise PaymentError("Cannot refund more than captured")

@@ -3,7 +3,7 @@ from decimal import Decimal
 import pytest
 
 from saleor.core.payments import Gateway, PaymentInterface
-from saleor.payment import TransactionKind, ChargeStatus
+from saleor.payment import ChargeStatus, TransactionKind
 from saleor.payment.gateway import PaymentGateway
 from saleor.payment.interface import GatewayResponse
 from saleor.payment.utils import create_payment_information
@@ -31,13 +31,25 @@ AUTHORIZE_RESPONSE = GatewayResponse(
     error=None,
     raw_response=RAW_RESPONSE,
 )
-REFUND_AMOUNT = Decimal(2.0)
-REFUND_RESPONSE = GatewayResponse(
+PARTIAL_REFUND_AMOUNT = Decimal(2.0)
+PARTIAL_REFUND_RESPONSE = GatewayResponse(
     is_success=True,
     customer_id="test_customer",
     action_required=False,
     kind=TransactionKind.REFUND,
-    amount=REFUND_AMOUNT,
+    amount=PARTIAL_REFUND_AMOUNT,
+    currency="usd",
+    transaction_id="1234",
+    error=None,
+    raw_response=RAW_RESPONSE,
+)
+FULL_REFUND_AMOUNT = Decimal("98.40")
+FULL_REFUND_RESPONSE = GatewayResponse(
+    is_success=True,
+    customer_id="test_customer",
+    action_required=False,
+    kind=TransactionKind.REFUND,
+    amount=FULL_REFUND_AMOUNT,
     currency="usd",
     transaction_id="1234",
     error=None,
@@ -136,22 +148,45 @@ def test_capture_payment(gateway, payment_txn_preauth):
     assert transaction.gateway_response == RAW_RESPONSE
 
 
-def test_refund_payment(gateway, payment_txn_captured):
+def test_partial_refund_payment(gateway, payment_txn_captured):
     capture_transaction = payment_txn_captured.transactions.get()
     PAYMENT_DATA = create_payment_information(
         payment=payment_txn_captured,
-        amount=REFUND_AMOUNT,
+        amount=PARTIAL_REFUND_AMOUNT,
         payment_token=capture_transaction.token,
     )
-    gateway.plugin_manager.refund_payment.return_value = REFUND_RESPONSE
-    transaction = gateway.refund(payment=payment_txn_captured, amount=REFUND_AMOUNT)
+    gateway.plugin_manager.refund_payment.return_value = PARTIAL_REFUND_RESPONSE
+    transaction = gateway.refund(
+        payment=payment_txn_captured, amount=PARTIAL_REFUND_AMOUNT
+    )
     gateway.plugin_manager.refund_payment.assert_called_once_with(
         USED_GATEWAY, PAYMENT_DATA
     )
 
     payment_txn_captured.refresh_from_db()
     assert payment_txn_captured.charge_status == ChargeStatus.PARTIALLY_REFUNDED
-    assert transaction.amount == REFUND_AMOUNT
+    assert transaction.amount == PARTIAL_REFUND_AMOUNT
+    assert transaction.kind == TransactionKind.REFUND
+    assert transaction.currency == "usd"
+    assert transaction.gateway_response == RAW_RESPONSE
+
+
+def test_full_refund_payment(gateway, payment_txn_captured):
+    capture_transaction = payment_txn_captured.transactions.get()
+    PAYMENT_DATA = create_payment_information(
+        payment=payment_txn_captured,
+        amount=FULL_REFUND_AMOUNT,
+        payment_token=capture_transaction.token,
+    )
+    gateway.plugin_manager.refund_payment.return_value = FULL_REFUND_RESPONSE
+    transaction = gateway.refund(payment=payment_txn_captured)
+    gateway.plugin_manager.refund_payment.assert_called_once_with(
+        USED_GATEWAY, PAYMENT_DATA
+    )
+
+    payment_txn_captured.refresh_from_db()
+    assert payment_txn_captured.charge_status == ChargeStatus.FULLY_REFUNDED
+    assert transaction.amount == FULL_REFUND_AMOUNT
     assert transaction.kind == TransactionKind.REFUND
     assert transaction.currency == "usd"
     assert transaction.gateway_response == RAW_RESPONSE
