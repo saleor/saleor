@@ -27,12 +27,6 @@ DJANGO_FORM_FIELDS_ERROR_CODES = [
     "overflow",
 ]
 
-DJANGO_PASSWORD_VALIDATION_ERROR_CODES = [
-    "password_entirely_numeric",
-    "password_too_common",
-    "password_too_short",
-    "password_too_similar",
-]
 
 DJANGO_MODEL_FIELDS_ERROR_CODES = ["blank", "null", "unique", "unique_for_date"]
 
@@ -50,6 +44,10 @@ class AccountErrorCode(Enum):
     INVALID_PASSWORD = "invalid_password"
     INVALID_PHONE_NUMBER = "invalid_phone_number"
     NOT_USERS_ADDRESS = "not_users_address"
+    PASSWORD_ENTIRELY_NUMERIC = "password_entirely_numeric"
+    PASSWORD_TOO_COMMON = "password_too_common"
+    PASSWORD_TOO_SHORT = "password_too_short"
+    PASSWORD_TOO_SIMILAR = "password_too_similar"
 
 
 class CheckoutErrorCode(Enum):
@@ -139,11 +137,7 @@ for enum in SALEOR_ERROR_CODE_ENUMS:
     saleor_error_codes.extend([code.value for code in enum])
 
 
-ERROR_CODES = (
-    DJANGO_PASSWORD_VALIDATION_ERROR_CODES
-    + DJANGO_MODEL_FIELDS_ERROR_CODES
-    + saleor_error_codes
-)
+ERROR_CODES = DJANGO_MODEL_FIELDS_ERROR_CODES + saleor_error_codes
 
 
 def get_error_code_from_error(error):
