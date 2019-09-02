@@ -1154,7 +1154,7 @@ def fake_manager(mocker):
     return mocker.Mock(spec=PaymentInterface)
 
 
-@pytest.fixture(autouse=True, scope="function")
+@pytest.fixture
 def mock_get_manager(mocker, fake_manager):
     mgr = mocker.patch(
         "saleor.payment.gateway.get_extensions_manager",
