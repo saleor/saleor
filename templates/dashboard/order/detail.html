@@ -296,9 +296,9 @@
                 <tr class="last-no-border">
                   <td>
                     {% if line.variant.product %}
-                      <a href="{% url 'dashboard:product-details' pk=line.variant.product.pk %}">{{ line.product_name }}</a>
+                      <a href="{% url 'dashboard:product-details' pk=line.variant.product.pk %}">{{ line }}</a>
                     {% else %}
-                      {{ line.product_name }}
+                      {{ line }}
                     {% endif %}
                     <br>
                     <span class="grey-text">
@@ -486,7 +486,7 @@
                 {% for line in fulfillment %}
                   <tr class="last-no-border">
                     <td>
-                      {{ line.order_line.product_name }}
+                      {{ line.order_line }}
                     </td>
                     <td class="right-align">
                       {{ line.quantity }}
