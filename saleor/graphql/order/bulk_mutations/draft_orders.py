@@ -24,7 +24,7 @@ class DraftOrderBulkDelete(ModelBulkDeleteMutation):
                 {
                     "id": ValidationError(
                         "Cannot delete non-draft orders.",
-                        code=OrderErrorCode.DELETE_NON_DRAFT_ORDER,
+                        code=OrderErrorCode.CANNOT_DELETE,
                     )
                 }
             )
@@ -48,7 +48,7 @@ class DraftOrderLinesBulkDelete(ModelBulkDeleteMutation):
                 {
                     "id": ValidationError(
                         "Cannot delete line for non-draft orders.",
-                        code=OrderErrorCode.DELETE_LINE_NON_DRAFT_ORDER,
+                        code=OrderErrorCode.CANNOT_DELETE,
                     )
                 }
             )

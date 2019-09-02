@@ -312,8 +312,8 @@ class DraftOrderLinesCreate(BaseMutation):
                 raise ValidationError(
                     {
                         "quantity": ValidationError(
-                            "Ensure this value is greater than or equal to 1.",
-                            code=OrderErrorCode.QUANTITY_LESS_THAN_ONE,
+                            "Ensure this value is greater than 0.",
+                            code=OrderErrorCode.ZERO_QUANTITY,
                         )
                     }
                 )
@@ -406,8 +406,8 @@ class DraftOrderLineUpdate(ModelMutation):
             raise ValidationError(
                 {
                     "quantity": ValidationError(
-                        "Ensure this value is greater than or equal to 1.",
-                        code=OrderErrorCode.QUANTITY_LESS_THAN_ONE,
+                        "Ensure this value is greater than 0.",
+                        code=OrderErrorCode.ZERO_QUANTITY,
                     )
                 }
             )
