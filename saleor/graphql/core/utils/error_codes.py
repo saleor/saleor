@@ -112,22 +112,16 @@ class CommonErrorCode(Enum):
     PLUGIN_MISCONFIGURED = "plugin-misconfigured"
 
 
-class AttributeErrorCode(Enum):
+class ProductErrorCode(Enum):
     ATTRIBUTE_ALREADY_ASSIGNED = "attribute_already_assigned"
     ATTRIBUTE_BAD_VALUE = "attribute_bad_value"
     ATTRIBUTE_CANNOT_BE_ASSIGNED = "attribute_cannot_be_assigned"
     ATTRIBUTE_DISABLED_VARIANTS = "attribute_disabled_variants"
     ATTRIBUTE_NON_ASSIGNABLE = "attribute_non_assignable"
     ATTRIBUTE_VALUES_NOT_UNIQUE = "attribute_values_not_unique"
-
-
-class DigitalContentErrorCode(Enum):
     MISSING_CONFIGURATION_FIELDS = "missing_configuration_fields"
-    VARIANT_NO_DIGITAL_CONTENT = "variant_no_digital_content"
-
-
-class ProductErrorCode(Enum):
     NOT_PRODUCTS_IMAGE = "not_products_image"
+    VARIANT_NO_DIGITAL_CONTENT = "variant_no_digital_content"
 
 
 SALEOR_ERROR_CODE_ENUMS = [
@@ -136,8 +130,6 @@ SALEOR_ERROR_CODE_ENUMS = [
     MenuErrorCode,
     OrderErrorCode,
     CommonErrorCode,
-    AttributeErrorCode,
-    DigitalContentErrorCode,
     ProductErrorCode,
 ]
 

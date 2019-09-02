@@ -15,7 +15,7 @@ from ...core.mutations import (
     UpdateMetaBaseMutation,
 )
 from ...core.utils import from_global_id_strict_type
-from ...core.utils.error_codes import AttributeErrorCode, CommonErrorCode
+from ...core.utils.error_codes import CommonErrorCode, ProductErrorCode
 from ...core.utils.reordering import perform_reordering
 from ...product.types import ProductType
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
@@ -131,7 +131,7 @@ class AttributeMixin:
                 {
                     cls.ATTRIBUTE_VALUES_FIELD: ValidationError(
                         "Provided values are not unique.",
-                        code=AttributeErrorCode.ATTRIBUTE_VALUES_NOT_UNIQUE,
+                        code=ProductErrorCode.ATTRIBUTE_VALUES_NOT_UNIQUE,
                     )
                 }
             )
@@ -266,7 +266,7 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
                 raise ValidationError(
                     {
                         "remove_values": ValidationError(
-                            msg, code=AttributeErrorCode.ATTRIBUTE_BAD_VALUE
+                            msg, code=ProductErrorCode.ATTRIBUTE_BAD_VALUE
                         )
                     }
                 )
@@ -355,7 +355,7 @@ class AttributeAssign(BaseMutation):
                 {
                     "operations": ValidationError(
                         (f"{msg} have already been assigned to this product type."),
-                        code=AttributeErrorCode.ATTRIBUTE_ALREADY_ASSIGNED,
+                        code=ProductErrorCode.ATTRIBUTE_ALREADY_ASSIGNED,
                     )
                 }
             )
@@ -375,7 +375,7 @@ class AttributeAssign(BaseMutation):
                             f"{AttributeInputType.NON_ASSIGNABLE_TO_VARIANTS} "
                             f"cannot be assigned as variant attributes"
                         ),
-                        code=AttributeErrorCode.ATTRIBUTE_NON_ASSIGNABLE,
+                        code=ProductErrorCode.ATTRIBUTE_NON_ASSIGNABLE,
                     )
                 }
             )
@@ -391,7 +391,7 @@ class AttributeAssign(BaseMutation):
                 {
                     "operations": ValidationError(
                         "Cannot assign variant only attributes.",
-                        code=AttributeErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED,
+                        code=ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED,
                     )
                 }
             )
@@ -429,7 +429,7 @@ class AttributeAssign(BaseMutation):
                 {
                     "operations": ValidationError(
                         "Variants are disabled in this product type.",
-                        code=AttributeErrorCode.ATTRIBUTE_DISABLED_VARIANTS,
+                        code=ProductErrorCode.ATTRIBUTE_DISABLED_VARIANTS,
                     )
                 }
             )
