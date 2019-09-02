@@ -631,6 +631,8 @@ class AttributeAssignmentMixin:
         for attribute in attributes:
             key = pks.get(attribute.pk, None)
 
+            # Retrieve the primary key by slug if it
+            # was not resolved through a global ID but a slug
             if key is None:
                 key = slugs[attribute.slug]
 
@@ -733,16 +735,21 @@ class ProductCreate(ModelMutation):
                 raise ValidationError({"sku": "Product with this SKU already exists."})
 
     @classmethod
-    def get_instance(cls, info, __qs: QuerySet = None, **data):
+    def get_instance(cls, info, **data):
         """Prefetch related fields that are needed to process the mutation."""
         # If we are updating an instance and want to update its attributes,
         # prefetch them.
-        if data.get("id") and data.get("attributes"):
-            __qs = cls.Meta.model.objects.prefetch_related(
-                "product_type__product_attributes",
-                "attributes__assignment__attribute__values",
+
+        object_id = data.get("id")
+        if object_id and data.get("attributes"):
+            # Prefetches needed by AttributeAssignmentMixin and
+            # associate_attribute_values_to_instance
+            qs = cls.Meta.model.objects.prefetch_related(
+                "product_type__product_attributes", "product_type__attributeproduct"
             )
-        return super().get_instance(info, __qs, **data)
+            return cls.get_node_or_error(info, object_id, only_type="Product", qs=qs)
+
+        return super().get_instance(info, **data)
 
     @classmethod
     @transaction.atomic
@@ -951,6 +958,28 @@ class ProductVariantCreate(ModelMutation):
             except ValidationError as exc:
                 raise ValidationError({"attributes": str(exc.args[0])})
         return cleaned_input
+
+    @classmethod
+    def get_instance(cls, info, **data):
+        """Prefetch related fields that are needed to process the mutation.
+
+        If we are updating an instance and want to update its attributes,
+        # prefetch them.
+        """
+
+        object_id = data.get("id")
+        if object_id and data.get("attributes"):
+            # Prefetches needed by AttributeAssignmentMixin and
+            # associate_attribute_values_to_instance
+            qs = cls.Meta.model.objects.prefetch_related(
+                "product__product_type__variant_attributes",
+                "product__product_type__attributevariant",
+            )
+            return cls.get_node_or_error(
+                info, object_id, only_type="ProductVariant", qs=qs
+            )
+
+        return super().get_instance(info, **data)
 
     @classmethod
     @transaction.atomic()

@@ -8,7 +8,6 @@ from django.core.exceptions import (
     ImproperlyConfigured,
     ValidationError,
 )
-from django.db.models import QuerySet
 from django.db.models.fields.files import FileField
 from graphene import ObjectType
 from graphene.types.mutation import MutationOptions
@@ -356,17 +355,15 @@ class ModelMutation(BaseMutation):
         instance.save()
 
     @classmethod
-    def get_instance(cls, info, __qs: QuerySet = None, **data):
+    def get_instance(cls, info, **data):
         """Retrieve an instance from the supplied global id.
 
-        Optionally take a __qs parameter to resolve the node using a custom query set.
+        Optionally take a qs parameter to resolve the node using a custom query set.
         """
         object_id = data.get("id")
         if object_id:
             model_type = registry.get_type_for_model(cls._meta.model)
-            instance = cls.get_node_or_error(
-                info, object_id, only_type=model_type, qs=__qs
-            )
+            instance = cls.get_node_or_error(info, object_id, only_type=model_type)
         else:
             instance = cls._meta.model()
         return instance

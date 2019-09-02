@@ -201,13 +201,6 @@ class AttributesMixin:
 
     available_attributes = Attribute.objects.none()
 
-    def __init__(self, *args, **kwargs):
-        if not self.instance_attributes_rel:
-            raise Exception(
-                "instance_attributes_rel must be set in subclasses of "
-                "AttributesMixin."
-            )
-
     def prepare_fields_for_attributes(self):
         initial_attrs = self.instance.attributes
 
