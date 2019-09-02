@@ -3103,7 +3103,7 @@ input SeoInput {
 
 type ServiceAccount implements Node {
   id: ID!
-  authToken: String!
+  authToken: String
   created: DateTime
   isActive: Boolean
   privateMeta: [MetaStore]!

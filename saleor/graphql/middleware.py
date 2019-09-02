@@ -1,10 +1,12 @@
+from typing import Optional
+
 from django.contrib.auth.models import AnonymousUser
 from django.shortcuts import reverse
 from django.utils.functional import SimpleLazyObject
 from graphene_django.settings import graphene_settings
 from graphql_jwt.middleware import JSONWebTokenMiddleware
 
-from saleor.account.models import ServiceAccount
+from ..account.models import ServiceAccount
 
 
 def jwt_middleware(get_response):
@@ -32,7 +34,7 @@ def jwt_middleware(get_response):
     return middleware
 
 
-def get_service_account(auth_token):
+def get_service_account(auth_token) -> Optional[ServiceAccount]:
     qs = ServiceAccount.objects.filter(auth_token=auth_token, is_active=True)
     return qs.first()
 
@@ -40,14 +42,14 @@ def get_service_account(auth_token):
 def service_account_middleware(get_response):
 
     service_account_auth_header = "HTTP_AUTHORIZATION"
-    prefix = "Bearer"
+    prefix = "bearer"
 
     def middleware(request):
         if request.path == reverse("api"):
             auth = request.META.get(service_account_auth_header, "").split()
             if len(auth) == 2:
                 auth_prefix, auth_token = auth
-                if auth_prefix == prefix:
+                if auth_prefix.lower() == prefix:
                     request.service = SimpleLazyObject(
                         lambda: get_service_account(auth_token)
                     )
