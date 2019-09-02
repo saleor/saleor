@@ -126,9 +126,7 @@ def test_service_account_update_mutation(
 
     assert service_account_data["isActive"] == service_account.is_active
     assert service_account.is_active is False
-    assert (
-        service_account_data["authToken"] == "*" * 6 + service_account.auth_token[-4:]
-    )
+    assert service_account_data["authToken"] == service_account.auth_token[-4:]
     assert set(service_account.permissions.all()) == {
         permission_manage_products,
         permission_manage_users,
@@ -149,9 +147,7 @@ def test_service_account_update_no_permission(
     assert_no_permission(response)
 
 
-@pytest.fixture
-def query_service_accounts_with_filter():
-    query = """
+QUERY_SERVICE_ACCOUNTS_WITH_FILTER = """
     query ($filter: ServiceAccountFilterInput ){
         serviceAccounts(first: 5, filter: $filter){
             edges{
@@ -169,7 +165,6 @@ def query_service_accounts_with_filter():
         }
     }
     """
-    return query
 
 
 @pytest.mark.parametrize(
@@ -177,7 +172,6 @@ def query_service_accounts_with_filter():
     (({"search": "Sample"}, 1), ({"isActive": False}, 1), ({}, 2)),
 )
 def test_service_accounts_query(
-    query_service_accounts_with_filter,
     staff_api_client,
     permission_manage_service_accounts,
     service_account,
@@ -190,7 +184,7 @@ def test_service_accounts_query(
 
     variables = {"filter": service_account_filter}
     response = staff_api_client.post_graphql(
-        query_service_accounts_with_filter,
+        QUERY_SERVICE_ACCOUNTS_WITH_FILTER,
         variables,
         permissions=[permission_manage_service_accounts],
     )
@@ -199,35 +193,28 @@ def test_service_accounts_query(
     service_accounts_data = content["data"]["serviceAccounts"]["edges"]
     for service_account_data in service_accounts_data:
         token = service_account_data["node"]["authToken"]
-        assert token.startswith("*" * 6)
-        assert len(token) == 10
+        assert len(token) == 4
     assert len(service_accounts_data) == count
 
 
 def test_service_accounts_query_no_permission(
-    query_service_accounts_with_filter,
-    staff_api_client,
-    permission_manage_users,
-    permission_manage_staff,
-    service_account,
+    staff_api_client, permission_manage_users, permission_manage_staff, service_account
 ):
     variables = {"filter": {}}
     response = staff_api_client.post_graphql(
-        query_service_accounts_with_filter, variables, permissions=[]
+        QUERY_SERVICE_ACCOUNTS_WITH_FILTER, variables, permissions=[]
     )
     assert_no_permission(response)
 
     response = staff_api_client.post_graphql(
-        query_service_accounts_with_filter,
+        QUERY_SERVICE_ACCOUNTS_WITH_FILTER,
         variables,
         permissions=[permission_manage_users, permission_manage_staff],
     )
     assert_no_permission(response)
 
 
-@pytest.fixture
-def query_service_account():
-    query = """
+QUERY_SERVICE_ACCOUNT = """
     query ($id: ID! ){
         serviceAccount(id: $id){
             id
@@ -242,11 +229,9 @@ def query_service_account():
         }
     }
     """
-    return query
 
 
 def test_service_account_query(
-    query_service_account,
     staff_api_client,
     permission_manage_service_accounts,
     permission_manage_staff,
@@ -257,16 +242,14 @@ def test_service_account_query(
     id = graphene.Node.to_global_id("ServiceAccount", service_account.id)
     variables = {"id": id}
     response = staff_api_client.post_graphql(
-        query_service_account,
+        QUERY_SERVICE_ACCOUNT,
         variables,
         permissions=[permission_manage_service_accounts],
     )
     content = get_graphql_content(response)
 
     service_account_data = content["data"]["serviceAccount"]
-    assert (
-        service_account_data["authToken"] == "*" * 6 + service_account.auth_token[-4:]
-    )
+    assert service_account_data["authToken"] == service_account.auth_token[-4:]
     assert service_account_data["isActive"] == service_account.is_active
     assert service_account_data["permissions"] == [
         {"code": "MANAGE_STAFF", "name": "Manage staff."}
@@ -274,23 +257,19 @@ def test_service_account_query(
 
 
 def test_service_account_query_no_permission(
-    query_service_account,
-    staff_api_client,
-    permission_manage_staff,
-    permission_manage_users,
-    service_account,
+    staff_api_client, permission_manage_staff, permission_manage_users, service_account
 ):
     service_account.permissions.add(permission_manage_staff)
 
     id = graphene.Node.to_global_id("ServiceAccount", service_account.id)
     variables = {"id": id}
     response = staff_api_client.post_graphql(
-        query_service_account, variables, permissions=[]
+        QUERY_SERVICE_ACCOUNT, variables, permissions=[]
     )
     assert_no_permission(response)
 
     response = staff_api_client.post_graphql(
-        query_service_account,
+        QUERY_SERVICE_ACCOUNT,
         variables,
         permissions=[permission_manage_users, permission_manage_staff],
     )
@@ -321,44 +300,35 @@ def test_service_account_with_access_to_resources(
     get_graphql_content(response)
 
 
-@pytest.fixture
-def query_service_account_valid_token():
-    query = """
+QUERY_SERVICE_ACCOUNT_VALID_TOKEN = """
         query {
             serviceAccountValidToken
         }
     """
-    return query
 
 
-def test_service_account_valid_token(
-    service_account_api_client, service_account, query_service_account_valid_token
-):
+def test_service_account_valid_token(service_account_api_client, service_account):
     response = service_account_api_client.post_graphql(
-        query_service_account_valid_token
+        QUERY_SERVICE_ACCOUNT_VALID_TOKEN
     )
     content = get_graphql_content(response)
     valid_token = content["data"]["serviceAccountValidToken"]
     assert valid_token
 
 
-def test_service_account_empty_token(
-    service_account, query_service_account_valid_token
-):
+def test_service_account_empty_token(service_account):
     api = ApiClient()
-    response = api.post_graphql(query_service_account_valid_token)
+    response = api.post_graphql(QUERY_SERVICE_ACCOUNT_VALID_TOKEN)
     content = get_graphql_content(response)
     valid_token = content["data"]["serviceAccountValidToken"]
     assert valid_token is False
 
 
-def test_service_account_invalid_token(
-    service_account_api_client, service_account, query_service_account_valid_token
-):
+def test_service_account_invalid_token(service_account_api_client, service_account):
     service_account.auth_token = "12345"
     service_account.save()
     response = service_account_api_client.post_graphql(
-        query_service_account_valid_token
+        QUERY_SERVICE_ACCOUNT_VALID_TOKEN
     )
     content = get_graphql_content(response)
     valid_token = content["data"]["serviceAccountValidToken"]

@@ -156,11 +156,12 @@ class CustomerEvent(CountableDjangoObjectType):
 
 class ServiceAccount(MetadataObjectType, CountableDjangoObjectType):
     permissions = graphene.List(
-        PermissionDisplay, description="List of service's permissions."
+        PermissionDisplay, description="List of the service's permissions."
     )
     created = graphene.DateTime(description="Created date")
     is_active = graphene.Boolean()
     name = graphene.String()
+    auth_token = graphene.String(description="Last 4 characters of the token")
 
     class Meta:
         description = "Represents service account data."
@@ -178,11 +179,11 @@ class ServiceAccount(MetadataObjectType, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_auth_token(root: models.ServiceAccount, _info, **_kwargs):
-        return "*" * 6 + root.auth_token[-4:]
+        return root.auth_token[-4:]
 
     @staticmethod
-    def resolve_meta(root, _info):
-        return resolve_meta(root, _info)
+    def resolve_meta(root, info):
+        return resolve_meta(root, info)
 
 
 class User(MetadataObjectType, CountableDjangoObjectType):

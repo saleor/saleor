@@ -112,7 +112,7 @@ class AccountQueries(graphene.ObjectType):
         description="Lookup a service account by ID.",
     )
     service_account_valid_token = graphene.Field(
-        graphene.Boolean, description="Confirm token for service account"
+        graphene.Boolean, description="Confirm token for a service account"
     )
 
     user = graphene.Field(

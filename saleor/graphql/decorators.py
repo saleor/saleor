@@ -5,7 +5,9 @@ from graphql_jwt import exceptions
 from graphql_jwt.decorators import context
 
 
-def user_passes_test(test_func):
+def account_passes_test(test_func):
+    """Determine if user/service_account has permission to access to content."""
+
     def decorator(f):
         @wraps(f)
         @context(f)
@@ -32,4 +34,4 @@ def permission_required(perm):
             return True
         return False
 
-    return user_passes_test(check_perms)
+    return account_passes_test(check_perms)

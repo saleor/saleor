@@ -221,11 +221,11 @@ class ServiceAccount(ModelWithMetadata):
 
     def has_perms(self, perm_list):
         """Return True if the service has each of the specified permissions."""
-        wanted_perms = set(perm_list)
-        actual_perms = self._get_permissions()
-
         if not self.is_active:
             return False
+
+        wanted_perms = set(perm_list)
+        actual_perms = self._get_permissions()
 
         return (wanted_perms & actual_perms) == wanted_perms
 

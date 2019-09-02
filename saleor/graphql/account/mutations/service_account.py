@@ -15,7 +15,7 @@ from ...core.mutations import (
 class ServiceAccountInput(graphene.InputObjectType):
     name = graphene.types.String(description="Name of the service account")
     is_active = graphene.types.Boolean(
-        description="Determine if service account should be enabled"
+        description="Determine if this service account should be enabled"
     )
     permissions = graphene.List(
         PermissionEnum,
@@ -82,8 +82,7 @@ class ServiceAccountUpdate(ModelMutation):
         cleaned_input = super().clean_input(info, instance, data)
         # clean and prepare permissions
         if "permissions" in cleaned_input:
-            permissions = cleaned_input.pop("permissions")
-            cleaned_input["permissions"] = get_permissions(permissions)
+            cleaned_input["permissions"] = get_permissions(cleaned_input["permissions"])
         return cleaned_input
 
 
@@ -101,7 +100,7 @@ class ServiceAccountDelete(ModelDeleteMutation):
 
 class ServiceAccountUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
-        description = "Updates private metadata for service account."
+        description = "Updates private metadata for a service account."
         permissions = ("account.manage_service_account",)
         model = models.ServiceAccount
         public = False
