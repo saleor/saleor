@@ -67,6 +67,18 @@ FULL_REFUND_RESPONSE = GatewayResponse(
     error=None,
     raw_response=RAW_RESPONSE,
 )
+CONFIRM_AMOUNT = Decimal("98.40")
+CONFIRM_RESPONSE = GatewayResponse(
+    is_success=True,
+    customer_id="test_customer",
+    action_required=False,
+    kind=TransactionKind.CONFIRM,
+    amount=CONFIRM_AMOUNT,
+    currency="usd",
+    transaction_id="1234",
+    error=None,
+    raw_response=RAW_RESPONSE,
+)
 TOKEN = "token"
 USED_GATEWAY = Gateway.DUMMY
 
@@ -222,5 +234,25 @@ def test_void_payment(gateway, payment_txn_preauth):
     assert not payment_txn_preauth.is_active
     assert transaction.amount == VOID_RESPONSE.amount
     assert transaction.kind == TransactionKind.VOID
+    assert transaction.currency == "usd"
+    assert transaction.gateway_response == RAW_RESPONSE
+
+
+def test_confirm_payment(gateway, payment_txn_preauth):
+    auth_transaction = payment_txn_preauth.transactions.get()
+    PAYMENT_DATA = create_payment_information(
+        payment=payment_txn_preauth,
+        payment_token=auth_transaction.token,
+        amount=CONFIRM_AMOUNT,
+    )
+    gateway.plugin_manager.confirm_payment.return_value = CONFIRM_RESPONSE
+
+    transaction = gateway.confirm(payment=payment_txn_preauth)
+
+    gateway.plugin_manager.confirm_payment.assert_called_once_with(
+        USED_GATEWAY, PAYMENT_DATA
+    )
+    assert transaction.amount == CONFIRM_RESPONSE.amount
+    assert transaction.kind == TransactionKind.CONFIRM
     assert transaction.currency == "usd"
     assert transaction.gateway_response == RAW_RESPONSE

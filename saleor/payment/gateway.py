@@ -148,6 +148,7 @@ class PaymentGateway:
 
     @raise_payment_error
     @payment_postprocess
+    @require_active_payment
     def void(self, payment: Payment) -> Transaction:
         gateway = _get_gateway(payment)
         token = _get_past_transaction_token(payment, TransactionKind.AUTH)
@@ -158,6 +159,24 @@ class PaymentGateway:
         return create_transaction(
             payment=payment,
             kind=TransactionKind.VOID,
+            payment_information=payment_data,
+            error_msg=error,
+            gateway_response=response,
+        )
+
+    @raise_payment_error
+    @payment_postprocess
+    @require_active_payment
+    def confirm(self, payment: Payment) -> Transaction:
+        gateway = _get_gateway(payment)
+        token = _get_past_transaction_token(payment, TransactionKind.AUTH)
+        payment_data = create_payment_information(payment=payment, payment_token=token)
+        response, error = _fetch_gateway_response(
+            self.plugin_manager.confirm_payment, gateway, payment_data
+        )
+        return create_transaction(
+            payment=payment,
+            kind=TransactionKind.CONFIRM,
             payment_information=payment_data,
             error_msg=error,
             gateway_response=response,
