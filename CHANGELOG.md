@@ -60,6 +60,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Refactor account deletion mutations - #4668 by @fowczarek
 - Upgraded django-prices from v1 to v2.1. Currency codes are now locked at 3 characters max by default for consistency. - #4639 by @NyanKiyoshi
 - Drop deprecated fields from api - #4684 by@fowczarek
+- Fix for Digital products - update order status after automatic fulfillment - #4709 by @korycins
 
 ## 2.8.0
 
