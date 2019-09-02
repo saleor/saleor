@@ -40,6 +40,7 @@ def other_shipping_method(shipping_zone):
 @pytest.fixture(autouse=True)
 def setup_dummy_gateway(settings):
     settings.PLUGINS = ["saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin"]
+    return settings
 
 
 def test_clean_shipping_method_after_shipping_address_changes_stay_the_same(
