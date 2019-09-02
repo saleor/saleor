@@ -110,6 +110,7 @@ class CommonErrorCode(Enum):
     POSITIVE_NUMBER_REQUIRED = "positive_number_required"
     SHIPPING_METHOD_REQUIRED = "shipping_method_required"
     VALUE_ERROR = "value_error"
+    PLUGIN_MISCONFIGURED = "plugin-misconfigured"
 
 
 class AttributeErrorCode(Enum):
