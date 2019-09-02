@@ -75,7 +75,7 @@
         {% for line in order %}
           <tr>
             <td>
-              {{ line.product_name|truncatechars:30 }}<br>
+              {{ line|truncatechars:30 }}<br>
             </td>
             <td>
               {{ line.product_sku }}

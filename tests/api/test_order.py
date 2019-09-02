@@ -324,6 +324,7 @@ def test_nested_order_events_query(
                                 quantity
                                 orderLine {
                                     productName
+                                    variantName
                                 }
                             }
                             paymentId
@@ -367,7 +368,10 @@ def test_nested_order_events_query(
     assert data["fulfilledItems"] == [
         {
             "quantity": line.quantity,
-            "orderLine": {"productName": line.order_line.product_name},
+            "orderLine": {
+                "productName": line.order_line.product_name,
+                "variantName": line.order_line.variant_name,
+            },
         }
         for line in fulfillment.lines.all()
     ]

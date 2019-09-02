@@ -359,6 +359,7 @@ def create_order_lines(order, discounts, how_many=10):
     lines = []
     for dummy in range(how_many):
         variant = next(variants_iter)
+        product = variant.product
         quantity = random.randrange(1, 5)
         variant.quantity += quantity
         variant.quantity_allocated += quantity
@@ -367,7 +368,8 @@ def create_order_lines(order, discounts, how_many=10):
         lines.append(
             OrderLine(
                 order=order,
-                product_name=variant.display_product(),
+                product_name=str(product),
+                variant_name=str(variant),
                 product_sku=variant.sku,
                 is_shipping_required=variant.is_shipping_required(),
                 quantity=quantity,

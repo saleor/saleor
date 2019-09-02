@@ -198,6 +198,12 @@ class OrderLine(CountableDjangoObjectType):
             A purchased product variant. Note: this field may be null if the
             variant has been removed from stock at all.""",
     )
+    translated_product_name = graphene.String(
+        required=True, description="Product name in the customer's language"
+    )
+    translated_variant_name = graphene.String(
+        required=True, description="Variant name in the customer's language"
+    )
 
     class Meta:
         description = "Represents order line of particular order."
@@ -208,11 +214,11 @@ class OrderLine(CountableDjangoObjectType):
             "id",
             "is_shipping_required",
             "product_name",
+            "variant_name",
             "product_sku",
             "quantity",
             "quantity_fulfilled",
             "tax_rate",
-            "translated_product_name",
         ]
 
     @staticmethod
@@ -232,6 +238,14 @@ class OrderLine(CountableDjangoObjectType):
     @staticmethod
     def resolve_unit_price(root: models.OrderLine, _info):
         return root.unit_price
+
+    @staticmethod
+    def resolve_translated_product_name(root: models.OrderLine, _info):
+        return root.translated_product_name
+
+    @staticmethod
+    def resolve_translated_variant_name(root: models.OrderLine, _info):
+        return root.translated_variant_name
 
 
 class Order(CountableDjangoObjectType):
