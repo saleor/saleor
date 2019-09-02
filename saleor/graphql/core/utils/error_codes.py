@@ -78,18 +78,17 @@ class MenuErrorCode(Enum):
 class OrderErrorCode(Enum):
     CANNOT_CANCEL_FULFILLMENT = "cannot_cancel_fulfillment"
     CANNOT_CANCEL_ORDER = "cannot_cancel_order"
+    CANNOT_DELETE = "cannot_delete"
+    CANNOT_REFUND = "cannot_refund"
     CAPTURE_INACTIVE_PAYMENT = "capture_inactive_payment"
-    DELETE_LINE_NON_DRAFT_ORDER = "delete_line_non_draft_order"
-    DELETE_NON_DRAFT_ORDER = "delete_non_draft_order"
     EDIT_NON_DRAFT_ORDER = "edit_non_draft_order"
     FULFILL_ORDER_LINE = "fulfill_order_line"
     ORDER_INVALID_SHIPPING_METHOD = "order_invalid_shipping_method"
-    ORDER_NO_PAYMENT = "order_no_payment"
     ORDER_NO_PRODUCTS = "order_without_products"
     ORDER_NO_SHIPPING_ADDRESS = "order_no_shipping_address"
-    QUANTITY_LESS_THAN_ONE = "quantity_less_than_one"
-    REFUND_MANUAL_PAYMENT = "refund_manual_payment"
+    PAYMENT_MISSING = "payment_missing"
     VOID_INACTIVE_PAYMENT = "void_inactive_payment"
+    ZERO_QUANTITY = "zero_quantity"
 
 
 class CommonErrorCode(Enum):

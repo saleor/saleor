@@ -70,7 +70,7 @@ def clean_payment(payment):
             {
                 "payment": ValidationError(
                     "There's no payment associated with the order.",
-                    code=OrderErrorCode.ORDER_NO_PAYMENT,
+                    code=OrderErrorCode.PAYMENT_MISSING,
                 )
             }
         )
@@ -110,7 +110,7 @@ def clean_refund_payment(payment):
             {
                 "payment": ValidationError(
                     "Manual payments can not be refunded.",
-                    code=OrderErrorCode.REFUND_MANUAL_PAYMENT,
+                    code=OrderErrorCode.CANNOT_REFUND,
                 )
             }
         )
