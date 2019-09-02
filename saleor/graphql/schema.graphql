@@ -2176,7 +2176,7 @@ input OrderFilterInput {
 type OrderLine implements Node {
   id: ID!
   productName: String!
-  translatedProductName: String!
+  variantName: String!
   productSku: String!
   isShippingRequired: Boolean!
   quantity: Int!
@@ -2186,6 +2186,8 @@ type OrderLine implements Node {
   thumbnail(size: Int): Image
   unitPrice: TaxedMoney
   variant: ProductVariant
+  translatedProductName: String!
+  translatedVariantName: String!
 }
 
 input OrderLineCreateInput {
@@ -2664,7 +2666,7 @@ enum ProductOrderField {
 }
 
 type ProductPricingInfo {
-  available: Boolean @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, this has been moved to the parent type as 'is_available'.")
+  available: Boolean @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, this has been moved to the parent type as 'isAvailable'.")
   onSale: Boolean
   discount: TaxedMoney
   discountLocalCurrency: TaxedMoney
@@ -2816,7 +2818,7 @@ type ProductVariant implements Node {
   meta: [MetaStore]!
   stockQuantity: Int!
   priceOverride: Money
-  price: Money @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, has been replaced by 'pricing.price_undiscounted'")
+  price: Money @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, has been replaced by 'pricing.priceUndiscounted'")
   availability: VariantPricingInfo @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, has been renamed to 'pricing'.")
   pricing: VariantPricingInfo
   isAvailable: Boolean
@@ -3565,7 +3567,7 @@ type VariantImageUnassign {
 }
 
 type VariantPricingInfo {
-  available: Boolean @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, this has been moved to the parent type as 'is_available'.")
+  available: Boolean @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, this has been moved to the parent type as 'isAvailable'.")
   onSale: Boolean
   discount: TaxedMoney
   discountLocalCurrency: TaxedMoney

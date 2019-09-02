@@ -13,13 +13,16 @@ def get_organization():
 
 def get_product_data(line, organization):
     gross_product_price = line.get_total().gross
+    line_name = str(line)
+    if line.translated_product_name:
+        line_name = (
+            f"{line.translated_product_name} ({line.translated_variant_name})"
+            if line.translated_variant_name
+            else line.translated_product_name
+        )
     product_data = {
         "@type": "Offer",
-        "itemOffered": {
-            "@type": "Product",
-            "name": line.translated_product_name or line.product_name,
-            "sku": line.product_sku,
-        },
+        "itemOffered": {"@type": "Product", "name": line_name, "sku": line.product_sku},
         "price": gross_product_price.amount,
         "priceCurrency": gross_product_price.currency,
         "eligibleQuantity": {"@type": "QuantitativeValue", "value": line.quantity},

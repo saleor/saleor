@@ -464,7 +464,7 @@ class ProductVariant(ModelWithMetadata):
             variant_display = str(self)
             product = self.product
         product_display = (
-            "%s (%s)" % (product, variant_display) if variant_display else str(product)
+            f"{product} ({variant_display})" if variant_display else str(product)
         )
         return smart_text(product_display)
 
