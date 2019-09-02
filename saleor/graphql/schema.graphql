@@ -2176,7 +2176,7 @@ input OrderFilterInput {
 type OrderLine implements Node {
   id: ID!
   productName: String!
-  translatedProductName: String!
+  variantName: String!
   productSku: String!
   isShippingRequired: Boolean!
   quantity: Int!
@@ -2186,6 +2186,8 @@ type OrderLine implements Node {
   thumbnail(size: Int): Image
   unitPrice: TaxedMoney
   variant: ProductVariant
+  translatedProductName: String!
+  translatedVariantName: String!
 }
 
 input OrderLineCreateInput {
