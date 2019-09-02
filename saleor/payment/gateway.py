@@ -105,7 +105,7 @@ class PaymentGateway:
             amount = payment.get_charge_amount()
         clean_capture(payment, amount)
         gateway = _get_gateway(payment)
-        token = _get_authorization_token(payment)
+        token = _get_past_transaction_token(payment, TransactionKind.AUTH)
         payment_data = create_payment_information(
             payment=payment,
             payment_token=token,
@@ -118,6 +118,29 @@ class PaymentGateway:
         return create_transaction(
             payment=payment,
             kind=TransactionKind.CAPTURE,
+            payment_information=payment_data,
+            error_msg=error,
+            gateway_response=response,
+        )
+
+    @raise_payment_error
+    @payment_postprocess
+    def refund(self, payment: Payment, amount: Decimal = None) -> Transaction:
+        if amount is None:
+            amount = payment.captured_amount
+        if not payment.can_refund():
+            raise PaymentError("This payment cannot be refunded.")
+        gateway = _get_gateway(payment)
+        token = _get_past_transaction_token(payment, TransactionKind.CAPTURE)
+        payment_data = create_payment_information(
+            payment=payment, payment_token=token, amount=amount
+        )
+        response, error = _fetch_gateway_response(
+            self.plugin_manager.refund_payment, gateway, payment_data
+        )
+        return create_transaction(
+            payment=payment,
+            kind=TransactionKind.REFUND,
             payment_information=payment_data,
             error_msg=error,
             gateway_response=response,
@@ -149,10 +172,8 @@ def _fetch_gateway_response(fn, *args, **kwargs):
     return response, error
 
 
-def _get_authorization_token(payment: Payment):
-    auth_transaction = payment.transactions.filter(
-        kind=TransactionKind.AUTH, is_success=True
-    ).first()
-    if auth_transaction is None:
-        raise PaymentError("Cannot capture unauthorized transaction")
-    return auth_transaction.token
+def _get_past_transaction_token(payment: Payment, kind: TransactionKind):
+    txn = payment.transactions.filter(kind=kind, is_success=True).first()
+    if txn is None:
+        raise PaymentError("Cannot find successful {kind.value} transaction")
+    return txn.token
