@@ -31,6 +31,18 @@ AUTHORIZE_RESPONSE = GatewayResponse(
     error=None,
     raw_response=RAW_RESPONSE,
 )
+VOID_AMOUNT = Decimal("98.40")
+VOID_RESPONSE = GatewayResponse(
+    is_success=True,
+    customer_id="test_customer",
+    action_required=False,
+    kind=TransactionKind.VOID,
+    amount=VOID_AMOUNT,
+    currency="usd",
+    transaction_id="1234",
+    error=None,
+    raw_response=RAW_RESPONSE,
+)
 PARTIAL_REFUND_AMOUNT = Decimal(2.0)
 PARTIAL_REFUND_RESPONSE = GatewayResponse(
     is_success=True,
@@ -188,5 +200,27 @@ def test_full_refund_payment(gateway, payment_txn_captured):
     assert payment_txn_captured.charge_status == ChargeStatus.FULLY_REFUNDED
     assert transaction.amount == FULL_REFUND_AMOUNT
     assert transaction.kind == TransactionKind.REFUND
+    assert transaction.currency == "usd"
+    assert transaction.gateway_response == RAW_RESPONSE
+
+
+def test_void_payment(gateway, payment_txn_preauth):
+    auth_transaction = payment_txn_preauth.transactions.get()
+    PAYMENT_DATA = create_payment_information(
+        payment=payment_txn_preauth,
+        payment_token=auth_transaction.token,
+        amount=VOID_AMOUNT,
+    )
+    gateway.plugin_manager.void_payment.return_value = VOID_RESPONSE
+
+    transaction = gateway.void(payment=payment_txn_preauth)
+
+    gateway.plugin_manager.void_payment.assert_called_once_with(
+        USED_GATEWAY, PAYMENT_DATA
+    )
+    payment_txn_preauth.refresh_from_db()
+    assert not payment_txn_preauth.is_active
+    assert transaction.amount == VOID_RESPONSE.amount
+    assert transaction.kind == TransactionKind.VOID
     assert transaction.currency == "usd"
     assert transaction.gateway_response == RAW_RESPONSE
