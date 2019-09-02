@@ -8,7 +8,7 @@ from django.template.defaultfilters import slugify
 from graphene.utils.str_converters import to_camel_case
 
 from saleor.graphql.core.utils import snake_to_camel_case
-from saleor.graphql.core.utils.error_codes import AttributeErrorCode
+from saleor.graphql.core.utils.error_codes import ProductErrorCode
 from saleor.graphql.product.enums import AttributeTypeEnum, AttributeValueType
 from saleor.graphql.product.mutations.attributes import validate_value_is_unique
 from saleor.graphql.product.types.attributes import resolve_attribute_value_type
@@ -476,13 +476,13 @@ def test_create_attribute_with_given_slug(
             "Red color",
             "Red color",
             "Provided values are not unique.",
-            AttributeErrorCode.ATTRIBUTE_VALUES_NOT_UNIQUE,
+            ProductErrorCode.ATTRIBUTE_VALUES_NOT_UNIQUE,
         ),
         (
             "Red color",
             "red color",
             "Provided values are not unique.",
-            AttributeErrorCode.ATTRIBUTE_VALUES_NOT_UNIQUE,
+            ProductErrorCode.ATTRIBUTE_VALUES_NOT_UNIQUE,
         ),
     ),
 )
@@ -618,13 +618,13 @@ def test_update_empty_attribute_and_add_values(
             "Red color",
             "Red color",
             "Provided values are not unique.",
-            AttributeErrorCode.ATTRIBUTE_VALUES_NOT_UNIQUE,
+            ProductErrorCode.ATTRIBUTE_VALUES_NOT_UNIQUE,
         ),
         (
             "Red color",
             "red color",
             "Provided values are not unique.",
-            AttributeErrorCode.ATTRIBUTE_VALUES_NOT_UNIQUE,
+            ProductErrorCode.ATTRIBUTE_VALUES_NOT_UNIQUE,
         ),
     ),
 )
@@ -681,7 +681,7 @@ def test_update_attribute_and_remove_others_attribute_value(
     assert errors[0]["field"] == "removeValues"
     err_msg = "Value %s does not belong to this attribute." % str(size_attribute)
     assert errors[0]["message"] == err_msg
-    assert errors[0]["code"] == AttributeErrorCode.ATTRIBUTE_BAD_VALUE.name
+    assert errors[0]["code"] == ProductErrorCode.ATTRIBUTE_BAD_VALUE.name
 
 
 def test_delete_attribute(

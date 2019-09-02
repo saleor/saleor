@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from ....product import models
 from ...core.mutations import BaseMutation, ModelMutation
 from ...core.types import Upload
-from ...core.utils.error_codes import DigitalContentErrorCode
+from ...core.utils.error_codes import ProductErrorCode
 from ...decorators import permission_required
 from ..types import DigitalContent, ProductVariant
 
@@ -80,7 +80,7 @@ class DigitalContentCreate(BaseMutation):
                 msg += "{}, " * len(missing_fields)
                 raise ValidationError(
                     msg.format(*missing_fields),
-                    code=DigitalContentErrorCode.MISSING_CONFIGURATION_FIELDS,
+                    code=ProductErrorCode.MISSING_CONFIGURATION_FIELDS,
                 )
 
         return data
@@ -171,7 +171,7 @@ class DigitalContentUpdate(BaseMutation):
                 msg += "{}, " * len(missing_fields)
                 raise ValidationError(
                     msg.format(*missing_fields),
-                    code=DigitalContentErrorCode.MISSING_CONFIGURATION_FIELDS,
+                    code=ProductErrorCode.MISSING_CONFIGURATION_FIELDS,
                 )
 
         return data
@@ -188,7 +188,7 @@ class DigitalContentUpdate(BaseMutation):
             raise ValidationError(
                 {
                     "variantId": ValidationError(
-                        msg, code=DigitalContentErrorCode.VARIANT_NO_DIGITAL_CONTENT
+                        msg, code=ProductErrorCode.VARIANT_NO_DIGITAL_CONTENT
                     )
                 }
             )
