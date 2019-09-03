@@ -28,7 +28,6 @@ from ...order.utils import (
 from ...payment import ChargeStatus, CustomPaymentChoices, PaymentError, gateway
 from ...payment.utils import (
     clean_mark_order_as_paid,
-    gateway_capture,
     gateway_refund,
     mark_order_as_paid,
 )
@@ -342,7 +341,7 @@ class CapturePaymentForm(BasePaymentForm):
 
     def capture(self, user):
         return self.try_payment_action(
-            user, gateway_capture, self.cleaned_data["amount"]
+            user, gateway.capture, self.cleaned_data["amount"]
         )
 
 

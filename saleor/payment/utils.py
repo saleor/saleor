@@ -442,31 +442,6 @@ def gateway_authorize(payment: Payment, payment_token: str) -> Transaction:
 
 
 @require_active_payment
-def gateway_capture(payment: Payment, amount: Decimal = None) -> Transaction:
-    """Capture the money that was reserved during the authorization stage."""
-    if amount is None:
-        amount = payment.get_charge_amount()
-    clean_capture(payment, amount)
-
-    auth_transaction = payment.transactions.filter(
-        kind=TransactionKind.AUTH, is_success=True
-    ).first()
-    if auth_transaction is None:
-        raise PaymentError("Cannot capture unauthorized transaction")
-    payment_token = auth_transaction.token
-
-    transaction = call_gateway(
-        operation_type=OperationType.CAPTURE,
-        payment=payment,
-        payment_token=payment_token,
-        amount=amount,
-    )
-
-    _gateway_postprocess(transaction, payment)
-    return transaction
-
-
-@require_active_payment
 def gateway_confirm(payment) -> Transaction:
     if not payment.can_confirm():
         raise PaymentError("Only active and not paid payments can be confirmed.")

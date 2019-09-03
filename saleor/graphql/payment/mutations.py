@@ -6,12 +6,7 @@ from ...core.taxes import zero_taxed_money
 from ...core.utils import get_client_ip
 from ...payment import PaymentError, gateway, models
 from ...payment.error_codes import PaymentErrorCode
-from ...payment.utils import (
-    create_payment,
-    gateway_capture,
-    gateway_confirm,
-    gateway_refund,
-)
+from ...payment.utils import create_payment, gateway_confirm, gateway_refund
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..checkout.types import Checkout
@@ -142,7 +137,7 @@ class PaymentCapture(BaseMutation):
             info, payment_id, field="payment_id", only_type=Payment
         )
         try:
-            gateway_capture(payment, amount)
+            gateway.capture(payment, amount)
         except PaymentError as e:
             raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)
         return PaymentCapture(payment=payment)
