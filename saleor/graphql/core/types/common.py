@@ -5,10 +5,15 @@ from ...translations.enums import LanguageCodeEnum
 from ..enums import (
     AccountErrorCode,
     CheckoutErrorCode,
+    ExtensionsErrorCode,
+    GiftcardErrorCode,
     MenuErrorCode,
     OrderErrorCode,
+    PaymentErrorCode,
     PermissionEnum,
     ProductErrorCode,
+    ShippingErrorCode,
+    ShopErrorCode,
 )
 from .money import VAT
 
@@ -50,6 +55,26 @@ class OrderError(Error):
 
 class ProductError(Error):
     code = ProductErrorCode(description="The error code.")
+
+
+class ShopError(Error):
+    code = ShopErrorCode(description="The error code.")
+
+
+class ShippingError(Error):
+    code = ShippingErrorCode(description="The error code.")
+
+
+class PaymentError(Error):
+    code = PaymentErrorCode(description="The error code.")
+
+
+class GiftcardError(Error):
+    code = GiftcardErrorCode(description="The error code.")
+
+
+class ExtensionsError(Error):
+    code = ExtensionsErrorCode(description="The error code.")
 
 
 class LanguageDisplay(graphene.ObjectType):

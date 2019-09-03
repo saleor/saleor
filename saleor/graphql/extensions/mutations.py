@@ -2,7 +2,25 @@ import graphene
 
 from ...extensions.manager import get_extensions_manager
 from ..core.mutations import BaseMutation
+from ..core.types.common import ExtensionsError
 from .types import Plugin
+
+
+class ExtensionsErrorMixin:
+    extensions_errors = graphene.List(
+        graphene.NonNull(ExtensionsError),
+        description="List of errors that occurred executing the mutation.",
+    )
+
+    @classmethod
+    def handle_typed_errors(cls, errors: list, **extra):
+        extensions_errors = [
+            ExtensionsError(field=e.field, message=e.message, code=code)
+            for e, code in errors
+        ]
+        return cls(
+            errors=[e[0] for e in errors], extensions_errors=extensions_errors, **extra
+        )
 
 
 class ConfigurationItemInput(graphene.InputObjectType):
@@ -23,7 +41,7 @@ class PluginUpdateInput(graphene.InputObjectType):
     )
 
 
-class PluginUpdate(BaseMutation):
+class PluginUpdate(ExtensionsErrorMixin, BaseMutation):
     plugin = graphene.Field(Plugin)
 
     class Arguments:

@@ -11,8 +11,31 @@ from ...giftcard import models
 from ...giftcard.utils import activate_gift_card, deactivate_gift_card
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.scalars import Decimal
-from ..core.utils.error_codes import CommonErrorCode
+from ..core.types.common import GiftcardError
+from ..core.utils.error_codes import GiftcardErrorCode
 from .types import GiftCard
+
+
+class GiftcardErrorMixin:
+    gift_card_errors = graphene.List(
+        graphene.NonNull(GiftcardError),
+        description="List of errors that occurred executing the mutation.",
+    )
+
+    @classmethod
+    def handle_typed_errors(cls, errors: list, **extra):
+        gift_card_errors = [
+            GiftcardError(field=e.field, message=e.message, code=code)
+            for e, code in errors
+        ]
+        return cls(
+            errors=[e[0] for e in errors], gift_card_errors=gift_card_errors, **extra
+        )
+
+
+class BaseGiftcardMutation(GiftcardErrorMixin, BaseMutation):
+    class Meta:
+        abstract = True
 
 
 class GiftCardUpdateInput(graphene.InputObjectType):
@@ -32,7 +55,7 @@ class GiftCardCreateInput(GiftCardUpdateInput):
     code = graphene.String(required=False, decription="Code to use the gift card.")
 
 
-class GiftCardCreate(ModelMutation):
+class GiftCardCreate(GiftcardErrorMixin, ModelMutation):
     class Arguments:
         input = GiftCardCreateInput(
             required=True, description="Fields required to create a gift card."
@@ -64,7 +87,7 @@ class GiftCardCreate(ModelMutation):
                     {
                         "email": ValidationError(
                             "Customer with this email doesn't exist.",
-                            code=CommonErrorCode.OBJECT_DOES_NOT_EXIST,
+                            code=GiftcardErrorCode.OBJECT_DOES_NOT_EXIST,
                         )
                     }
                 )
@@ -84,7 +107,7 @@ class GiftCardUpdate(GiftCardCreate):
         permissions = ("giftcard.manage_gift_card",)
 
 
-class GiftCardDeactivate(BaseMutation):
+class GiftCardDeactivate(BaseGiftcardMutation):
     gift_card = graphene.Field(GiftCard, description="A gift card to deactivate.")
 
     class Arguments:
@@ -104,7 +127,7 @@ class GiftCardDeactivate(BaseMutation):
         return GiftCardDeactivate(gift_card=gift_card)
 
 
-class GiftCardActivate(BaseMutation):
+class GiftCardActivate(BaseGiftcardMutation):
     gift_card = graphene.Field(GiftCard, description="A gift card to activate.")
 
     class Arguments:

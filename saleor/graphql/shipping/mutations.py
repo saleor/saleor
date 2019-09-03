@@ -5,9 +5,32 @@ from ...dashboard.shipping.forms import default_shipping_zone_exists
 from ...shipping import models
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import Decimal, WeightScalar
-from ..core.utils.error_codes import CommonErrorCode
+from ..core.types.common import ShippingError
+from ..core.utils.error_codes import ShippingErrorCode
 from .enums import ShippingMethodTypeEnum
 from .types import ShippingMethod, ShippingZone
+
+
+class ShippingErrorMixin:
+    shipping_errors = graphene.List(
+        graphene.NonNull(ShippingError),
+        description="List of errors that occurred executing the mutation.",
+    )
+
+    @classmethod
+    def handle_typed_errors(cls, errors: list, **extra):
+        shipping_errors = [
+            ShippingError(field=e.field, message=e.message, code=code)
+            for e, code in errors
+        ]
+        return cls(
+            errors=[e[0] for e in errors], shipping_errors=shipping_errors, **extra
+        )
+
+
+class BaseShippingMutation(ShippingErrorMixin, BaseMutation):
+    class Meta:
+        abstract = True
 
 
 class ShippingPriceInput(graphene.InputObjectType):
@@ -56,7 +79,7 @@ class ShippingZoneMixin:
                     {
                         "default": ValidationError(
                             "Default shipping zone already exists.",
-                            code=CommonErrorCode.OBJECT_ALREADY_EXISTS,
+                            code=ShippingErrorCode.OBJECT_ALREADY_EXISTS,
                         )
                     }
                 )
@@ -67,7 +90,7 @@ class ShippingZoneMixin:
         return cleaned_input
 
 
-class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):
+class ShippingZoneCreate(ShippingZoneMixin, ShippingErrorMixin, ModelMutation):
     shipping_zone = graphene.Field(ShippingZone, description="Created shipping zone.")
 
     class Arguments:
@@ -81,7 +104,7 @@ class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):
         permissions = ("shipping.manage_shipping",)
 
 
-class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
+class ShippingZoneUpdate(ShippingZoneMixin, ShippingErrorMixin, ModelMutation):
     shipping_zone = graphene.Field(ShippingZone, description="Updated shipping zone.")
 
     class Arguments:
@@ -96,7 +119,7 @@ class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
         permissions = ("shipping.manage_shipping",)
 
 
-class ShippingZoneDelete(ModelDeleteMutation):
+class ShippingZoneDelete(ShippingErrorMixin, ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a shipping zone to delete.")
 
@@ -140,7 +163,7 @@ class ShippingPriceMixin:
                                     "Maximum order price should be larger than "
                                     "the minimum order price."
                                 ),
-                                code=CommonErrorCode.MAX_LESS_THAN_MIN,
+                                code=ShippingErrorCode.MAX_LESS_THAN_MIN,
                             )
                         }
                     )
@@ -159,14 +182,14 @@ class ShippingPriceMixin:
                                     "Maximum order weight should be larger than the "
                                     "minimum order weight."
                                 ),
-                                code=CommonErrorCode.MAX_LESS_THAN_MIN,
+                                code=ShippingErrorCode.MAX_LESS_THAN_MIN,
                             )
                         }
                     )
         return cleaned_input
 
 
-class ShippingPriceCreate(ShippingPriceMixin, ModelMutation):
+class ShippingPriceCreate(ShippingPriceMixin, ShippingErrorMixin, ModelMutation):
     shipping_zone = graphene.Field(
         ShippingZone,
         description="A shipping zone to which the shipping method belongs.",
@@ -189,7 +212,7 @@ class ShippingPriceCreate(ShippingPriceMixin, ModelMutation):
         return response
 
 
-class ShippingPriceUpdate(ShippingPriceMixin, ModelMutation):
+class ShippingPriceUpdate(ShippingPriceMixin, ShippingErrorMixin, ModelMutation):
     shipping_zone = graphene.Field(
         ShippingZone,
         description="A shipping zone to which the shipping method belongs.",
@@ -213,7 +236,7 @@ class ShippingPriceUpdate(ShippingPriceMixin, ModelMutation):
         return response
 
 
-class ShippingPriceDelete(BaseMutation):
+class ShippingPriceDelete(BaseShippingMutation):
     shipping_method = graphene.Field(
         ShippingMethod, description="A shipping method to delete."
     )

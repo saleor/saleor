@@ -445,12 +445,14 @@ type AuthorizationKey {
 
 type AuthorizationKeyAdd {
   errors: [Error!]
+  shopErrors: [ShopError!]
   authorizationKey: AuthorizationKey
   shop: Shop
 }
 
 type AuthorizationKeyDelete {
   errors: [Error!]
+  shopErrors: [ShopError!]
   authorizationKey: AuthorizationKey
   shop: Shop
 }
@@ -756,6 +758,7 @@ type CheckoutLinesUpdate {
 
 type CheckoutPaymentCreate {
   errors: [Error!]
+  paymentErrors: [PaymentError!]
   checkout: Checkout
   payment: Payment
 }
@@ -1531,6 +1534,21 @@ type Error {
   message: String
 }
 
+type ExtensionsError {
+  field: String
+  message: String
+  code: ExtensionsErrorCode
+}
+
+enum ExtensionsErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NULL
+  PLUGIN_MISCONFIGURED
+  REQUIRED
+  UNIQUE
+}
+
 type Fulfillment implements Node {
   id: ID!
   fulfillmentOrder: Int!
@@ -1622,6 +1640,7 @@ type GiftCard implements Node {
 
 type GiftCardActivate {
   errors: [Error!]
+  giftCardErrors: [GiftcardError!]
   giftCard: GiftCard
 }
 
@@ -1638,6 +1657,7 @@ type GiftCardCountableEdge {
 
 type GiftCardCreate {
   errors: [Error!]
+  giftCardErrors: [GiftcardError!]
   giftCard: GiftCard
 }
 
@@ -1651,11 +1671,13 @@ input GiftCardCreateInput {
 
 type GiftCardDeactivate {
   errors: [Error!]
+  giftCardErrors: [GiftcardError!]
   giftCard: GiftCard
 }
 
 type GiftCardUpdate {
   errors: [Error!]
+  giftCardErrors: [GiftcardError!]
   giftCard: GiftCard
 }
 
@@ -1666,8 +1688,25 @@ input GiftCardUpdateInput {
   userEmail: String
 }
 
+type GiftcardError {
+  field: String
+  message: String
+  code: GiftcardErrorCode
+}
+
+enum GiftcardErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NULL
+  OBJECT_ALREADY_EXISTS
+  OBJECT_DOES_NOT_EXIST
+  REQUIRED
+  UNIQUE
+}
+
 type HomepageCollectionUpdate {
   errors: [Error!]
+  shopErrors: [ShopError!]
   shop: Shop
 }
 
@@ -2617,6 +2656,7 @@ type Payment implements Node {
 
 type PaymentCapture {
   errors: [Error!]
+  paymentErrors: [PaymentError!]
   payment: Payment
 }
 
@@ -2639,6 +2679,24 @@ type PaymentCountableEdge {
   cursor: String!
 }
 
+type PaymentError {
+  field: String
+  message: String
+  code: PaymentErrorCode
+}
+
+enum PaymentErrorCode {
+  BILLING_ADDRESS_NOT_SET
+  GRAPHQL_ERROR
+  INVALID
+  NULL
+  OBJECT_DOES_NOT_EXIST
+  PARTIAL_PAYMENT_NOT_ALLOWED
+  PAYMENT_ERROR
+  REQUIRED
+  UNIQUE
+}
+
 input PaymentInput {
   gateway: GatewaysEnum!
   token: String!
@@ -2648,11 +2706,13 @@ input PaymentInput {
 
 type PaymentRefund {
   errors: [Error!]
+  paymentErrors: [PaymentError!]
   payment: Payment
 }
 
 type PaymentSecureConfirm {
   errors: [Error!]
+  paymentErrors: [PaymentError!]
   payment: Payment
 }
 
@@ -2663,6 +2723,7 @@ type PaymentSource {
 
 type PaymentVoid {
   errors: [Error!]
+  paymentErrors: [PaymentError!]
   payment: Payment
 }
 
@@ -2714,6 +2775,7 @@ input PluginFilterInput {
 
 type PluginUpdate {
   errors: [Error!]
+  extensionsErrors: [ExtensionsError!]
   plugin: Plugin
 }
 
@@ -3472,6 +3534,23 @@ type SetPassword {
   accountErrors: [AccountError!]
 }
 
+type ShippingError {
+  field: String
+  message: String
+  code: ShippingErrorCode
+}
+
+enum ShippingErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  MAX_LESS_THAN_MIN
+  NULL
+  OBJECT_ALREADY_EXISTS
+  OBJECT_DOES_NOT_EXIST
+  REQUIRED
+  UNIQUE
+}
+
 type ShippingMethod implements Node {
   id: ID!
   name: String!
@@ -3502,12 +3581,14 @@ type ShippingPriceBulkDelete {
 
 type ShippingPriceCreate {
   errors: [Error!]
+  shippingErrors: [ShippingError!]
   shippingZone: ShippingZone
   shippingMethod: ShippingMethod
 }
 
 type ShippingPriceDelete {
   errors: [Error!]
+  shippingErrors: [ShippingError!]
   shippingMethod: ShippingMethod
   shippingZone: ShippingZone
 }
@@ -3530,6 +3611,7 @@ type ShippingPriceTranslate {
 
 type ShippingPriceUpdate {
   errors: [Error!]
+  shippingErrors: [ShippingError!]
   shippingZone: ShippingZone
   shippingMethod: ShippingMethod
 }
@@ -3561,11 +3643,13 @@ type ShippingZoneCountableEdge {
 
 type ShippingZoneCreate {
   errors: [Error!]
+  shippingErrors: [ShippingError!]
   shippingZone: ShippingZone
 }
 
 type ShippingZoneDelete {
   errors: [Error!]
+  shippingErrors: [ShippingError!]
   shippingZone: ShippingZone
 }
 
@@ -3577,6 +3661,7 @@ input ShippingZoneInput {
 
 type ShippingZoneUpdate {
   errors: [Error!]
+  shippingErrors: [ShippingError!]
   shippingZone: ShippingZone
 }
 
@@ -3610,16 +3695,36 @@ type Shop {
 
 type ShopAddressUpdate {
   errors: [Error!]
+  shopErrors: [ShopError!]
   shop: Shop
 }
 
 type ShopDomainUpdate {
   errors: [Error!]
+  shopErrors: [ShopError!]
   shop: Shop
+}
+
+type ShopError {
+  field: String
+  message: String
+  code: ShopErrorCode
+}
+
+enum ShopErrorCode {
+  CANNOT_FETCH_TAX_RATES
+  GRAPHQL_ERROR
+  INVALID
+  NULL
+  OBJECT_ALREADY_EXISTS
+  OBJECT_DOES_NOT_EXIST
+  REQUIRED
+  UNIQUE
 }
 
 type ShopFetchTaxRates {
   errors: [Error!]
+  shopErrors: [ShopError!]
   shop: Shop
 }
 
@@ -3648,6 +3753,7 @@ input ShopSettingsTranslationInput {
 
 type ShopSettingsUpdate {
   errors: [Error!]
+  shopErrors: [ShopError!]
   shop: Shop
 }
 
