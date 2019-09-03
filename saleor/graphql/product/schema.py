@@ -132,10 +132,7 @@ class ProductQueries(graphene.ObjectType):
         ),
     )
     digital_contents = PrefetchingConnectionField(
-        DigitalContent,
-        query=graphene.String(),
-        level=graphene.Argument(graphene.Int),
-        description="List of the digital contents.",
+        DigitalContent, description="List of the digital contents."
     )
     attributes = FilterInputConnectionField(
         Attribute,
@@ -151,21 +148,26 @@ class ProductQueries(graphene.ObjectType):
             description="""Return attributes for products
             belonging to the given collection.""",
         ),
-        filter=AttributeFilterInput(),
+        filter=AttributeFilterInput(description="Filtering options for attributes."),
         sort_by=graphene.Argument(
-            AttributeSortingInput, description="Sort attributes."
+            AttributeSortingInput, description="Sorting options for attributes."
         ),
     )
     attribute = graphene.Field(
         Attribute,
-        id=graphene.Argument(graphene.ID, required=True),
+        id=graphene.Argument(
+            graphene.ID, description="ID of the attribute.", required=True
+        ),
         description="Lookup an attribute by ID.",
     )
     categories = FilterInputConnectionField(
         Category,
         query=graphene.String(description=DESCRIPTIONS["category"]),
         filter=CategoryFilterInput(),
-        level=graphene.Argument(graphene.Int),
+        level=graphene.Argument(
+            graphene.Int,
+            description="Filter categories by the nesting level in the category tree.",
+        ),
         description="List of the shop's categories.",
     )
     category = graphene.Field(
@@ -184,7 +186,7 @@ class ProductQueries(graphene.ObjectType):
     )
     collections = FilterInputConnectionField(
         Collection,
-        filter=CollectionFilterInput(),
+        filter=CollectionFilterInput(description="Filtering options for collections."),
         query=graphene.String(description=DESCRIPTIONS["collection"]),
         description="List of the shop's collections.",
     )
@@ -201,22 +203,22 @@ class ProductQueries(graphene.ObjectType):
         attributes=graphene.List(
             AttributeScalar,
             description=(
-                'DEPRECATED: Will be removed in Saleor 2.10, use the "filter" input.',
-                "Filter products by attributes.",
+                "Filter products by attributes. DEPRECATED: Will be removed in "
+                "Saleor 2.10, use the `filter` field instead."
             ),
         ),
         categories=graphene.List(
             graphene.ID,
             description=(
-                'DEPRECATED: Will be removed in Saleor 2.10, use the "filter" input.',
-                "Filter products by category.",
+                "Filter products by category. DEPRECATED: Will be removed in "
+                "Saleor 2.10, use the `filter` field instead."
             ),
         ),
         collections=graphene.List(
             graphene.ID,
             description=(
-                'DEPRECATED: Will be removed in Saleor 2.10, use the "filter" input.',
-                "Filter products by collections.",
+                "Filter products by collections. DEPRECATED: Will be removed in "
+                "Saleor 2.10, use the `filter` field instead."
             ),
         ),
         sort_by=graphene.Argument(ProductOrder, description="Sort products."),
@@ -235,7 +237,9 @@ class ProductQueries(graphene.ObjectType):
     )
     product_types = FilterInputConnectionField(
         ProductType,
-        filter=ProductTypeFilterInput(),
+        filter=ProductTypeFilterInput(
+            description="Filtering options for product types."
+        ),
         query=graphene.String(description=DESCRIPTIONS["product_type"]),
         description="List of the shop's product types.",
     )
@@ -248,8 +252,10 @@ class ProductQueries(graphene.ObjectType):
     )
     product_variants = PrefetchingConnectionField(
         ProductVariant,
-        ids=graphene.List(graphene.ID),
-        description="Lookup multiple variants by ID",
+        ids=graphene.List(
+            graphene.ID, description="Filter product variants by given IDs."
+        ),
+        description="List of product variants.",
     )
     report_product_sales = PrefetchingConnectionField(
         ProductVariant,
