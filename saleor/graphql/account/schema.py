@@ -132,11 +132,11 @@ class AccountQueries(graphene.ObjectType):
             city_area=city_area,
         )
 
-    @permission_required("account.manage_service_account")
+    @permission_required("account.manage_service_accounts")
     def resolve_service_accounts(self, info, **_kwargs):
         return resolve_service_accounts(info)
 
-    @permission_required("account.manage_service_account")
+    @permission_required("account.manage_service_accounts")
     def resolve_service_account(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, ServiceAccount)
 

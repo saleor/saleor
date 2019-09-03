@@ -203,7 +203,7 @@ class ServiceAccount(ModelWithMetadata):
     class Meta:
         permissions = (
             (
-                "manage_service_account",
+                "manage_service_accounts",
                 pgettext_lazy("Permission description", "Manage service account"),
             ),
         )

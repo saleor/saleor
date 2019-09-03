@@ -37,7 +37,7 @@ class ServiceAccountCreate(ModelMutation):
     class Meta:
         description = "Creates a new service account"
         model = models.ServiceAccount
-        permissions = ("account.manage_service_account",)
+        permissions = ("account.manage_service_accounts",)
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -61,6 +61,12 @@ class ServiceAccountCreate(ModelMutation):
         response.auth_token = instance.auth_token
         return response
 
+    @classmethod
+    def success_response(cls, instance):
+        response = super().success_response(instance)
+        response.auth_token = instance.auth_token
+        return response
+
 
 class ServiceAccountUpdate(ModelMutation):
     class Arguments:
@@ -75,7 +81,7 @@ class ServiceAccountUpdate(ModelMutation):
     class Meta:
         description = "Updates an existing service account"
         model = models.ServiceAccount
-        permissions = ("account.manage_service_account",)
+        permissions = ("account.manage_service_accounts",)
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -95,13 +101,13 @@ class ServiceAccountDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes a service account"
         model = models.ServiceAccount
-        permissions = ("account.manage_service_account",)
+        permissions = ("account.manage_service_accounts",)
 
 
 class ServiceAccountUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Updates private metadata for a service account."
-        permissions = ("account.manage_service_account",)
+        permissions = ("account.manage_service_accounts",)
         model = models.ServiceAccount
         public = False
 
@@ -110,5 +116,5 @@ class ServiceAccountClearStoredPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clear stored metadata value."
         model = models.ServiceAccount
-        permissions = ("account.manage_service_account",)
+        permissions = ("account.manage_service_accounts",)
         public = False
