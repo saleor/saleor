@@ -15,7 +15,7 @@ from ..discount.models import NotApplicable
 from ..extensions.manager import get_extensions_manager
 from ..order import FulfillmentStatus, OrderStatus, emails
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
-from ..payment import ChargeStatus, gateway
+from ..payment import ChargeStatus
 from ..product.utils import (
     allocate_stock,
     deallocate_stock,
@@ -209,6 +209,7 @@ def cancel_order(user, order, restock):
         charge_status=ChargeStatus.FULLY_REFUNDED
     )
 
+    from ..payment import gateway
     for payment in payments:
         if payment.can_refund():
             gateway.refund(payment)
