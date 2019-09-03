@@ -3,7 +3,9 @@ from unittest.mock import Mock, patch
 
 import pytest
 from django.core.exceptions import ImproperlyConfigured
+from prices import Money, TaxedMoney
 
+from saleor.order import OrderStatus
 from saleor.order.events import OrderEvents, OrderEventsEmails
 from saleor.payment import (
     ChargeStatus,
@@ -159,6 +161,67 @@ def test_handle_fully_paid_order(mock_send_payment_confirmation, order):
     }
 
     mock_send_payment_confirmation.assert_called_once_with(order.pk)
+
+
+@patch("saleor.order.emails.send_fulfillment_confirmation.delay")
+@patch("saleor.order.emails.send_payment_confirmation.delay")
+def test_handle_fully_paid_order_digital_lines(
+    mock_send_payment_confirmation,
+    mock_send_fulfillment_confirmation,
+    order,
+    digital_content,
+    variant,
+    site_settings,
+):
+    site_settings.automatic_fulfillment_digital_products = True
+    site_settings.save()
+
+    variant.digital_content = digital_content
+    variant.digital_content.save()
+
+    product_type = variant.product.product_type
+    product_type.is_shipping_required = False
+    product_type.is_digital = True
+    product_type.save()
+
+    net = variant.get_price()
+    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    order.lines.create(
+        product_name=str(variant.product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        quantity=3,
+        variant=variant,
+        unit_price=TaxedMoney(net=net, gross=gross),
+        tax_rate=23,
+    )
+
+    handle_fully_paid_order(order)
+
+    fulfillment = order.fulfillments.first()
+
+    event_order_paid, event_email_sent, event_order_fulfilled, event_digital_links = (
+        order.events.all()
+    )
+    assert event_order_paid.type == OrderEvents.ORDER_FULLY_PAID
+
+    assert event_email_sent.type == OrderEvents.EMAIL_SENT
+    assert event_order_fulfilled.type == OrderEvents.EMAIL_SENT
+    assert event_digital_links.type == OrderEvents.EMAIL_SENT
+
+    assert (
+        event_order_fulfilled.parameters["email_type"] == OrderEventsEmails.FULFILLMENT
+    )
+    assert (
+        event_digital_links.parameters["email_type"] == OrderEventsEmails.DIGITAL_LINKS
+    )
+
+    mock_send_payment_confirmation.assert_called_once_with(order.pk)
+    mock_send_fulfillment_confirmation.assert_called_once_with(order.pk, fulfillment.pk)
+
+    order.refresh_from_db()
+    assert order.status == OrderStatus.FULFILLED
 
 
 def test_require_active_payment():
