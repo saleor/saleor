@@ -68,7 +68,7 @@ class OrderQueries(graphene.ObjectType):
     )
     orders = FilterInputConnectionField(
         Order,
-        filter=OrderFilterInput(),
+        filter=OrderFilterInput(description="Filtering options for orders."),
         query=graphene.String(description=DESCRIPTIONS["order"]),
         created=graphene.Argument(
             ReportingPeriod, description="Filter orders from a selected timespan."
@@ -80,7 +80,7 @@ class OrderQueries(graphene.ObjectType):
     )
     draft_orders = FilterInputConnectionField(
         Order,
-        filter=OrderDraftFilterInput(),
+        filter=OrderDraftFilterInput(description="Filtering options for draft orders."),
         query=graphene.String(description=DESCRIPTIONS["order"]),
         created=graphene.Argument(
             ReportingPeriod, description="Filter draft orders from a selected timespan."
@@ -96,7 +96,7 @@ class OrderQueries(graphene.ObjectType):
         Order,
         description="Lookup an order by token.",
         token=graphene.Argument(
-            graphene.UUID, description="The order's token", required=True
+            graphene.UUID, description="The order's token.", required=True
         ),
     )
 

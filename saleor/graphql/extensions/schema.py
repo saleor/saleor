@@ -11,7 +11,9 @@ from .types import Plugin
 class ExtensionsQueries(graphene.ObjectType):
     plugin = graphene.Field(
         Plugin,
-        id=graphene.Argument(graphene.ID, required=True),
+        id=graphene.Argument(
+            graphene.ID, description="ID of the plugin.", required=True
+        ),
         description="Lookup a plugin by ID.",
     )
     plugins = FilterInputConnectionField(
