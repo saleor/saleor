@@ -9,9 +9,29 @@ from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..core.enums import WeightUnitsEnum
 from ..core.mutations import BaseMutation
-from ..core.utils.error_codes import CommonErrorCode
+from ..core.types.common import ShopError
+from ..core.utils.error_codes import ShopErrorCode
 from ..product.types import Collection
 from .types import AuthorizationKey, AuthorizationKeyType, Shop
+
+
+class ShopErrorMixin:
+    shop_errors = graphene.List(
+        graphene.NonNull(ShopError),
+        description="List of errors that occurred executing the mutation.",
+    )
+
+    @classmethod
+    def handle_typed_errors(cls, errors: list, **extra):
+        shop_errors = [
+            ShopError(field=e.field, message=e.message, code=code) for e, code in errors
+        ]
+        return cls(errors=[e[0] for e in errors], shop_errors=shop_errors, **extra)
+
+
+class BaseShopMutation(ShopErrorMixin, BaseMutation):
+    class Meta:
+        abstract = True
 
 
 class ShopSettingsInput(graphene.InputObjectType):
@@ -42,7 +62,7 @@ class SiteDomainInput(graphene.InputObjectType):
     name = graphene.String(description="Shop site name")
 
 
-class ShopSettingsUpdate(BaseMutation):
+class ShopSettingsUpdate(BaseShopMutation):
     shop = graphene.Field(Shop, description="Updated Shop")
 
     class Arguments:
@@ -67,7 +87,7 @@ class ShopSettingsUpdate(BaseMutation):
         return ShopSettingsUpdate(shop=Shop())
 
 
-class ShopAddressUpdate(BaseMutation, I18nMixin):
+class ShopAddressUpdate(BaseShopMutation, I18nMixin):
     shop = graphene.Field(Shop, description="Updated Shop")
 
     class Arguments:
@@ -93,7 +113,7 @@ class ShopAddressUpdate(BaseMutation, I18nMixin):
         return ShopAddressUpdate(shop=Shop())
 
 
-class ShopDomainUpdate(BaseMutation):
+class ShopDomainUpdate(BaseShopMutation):
     shop = graphene.Field(Shop, description="Updated Shop")
 
     class Arguments:
@@ -118,7 +138,7 @@ class ShopDomainUpdate(BaseMutation):
         return ShopDomainUpdate(shop=Shop())
 
 
-class ShopFetchTaxRates(BaseMutation):
+class ShopFetchTaxRates(BaseShopMutation):
     shop = graphene.Field(Shop, description="Updated Shop")
 
     class Meta:
@@ -131,13 +151,13 @@ class ShopFetchTaxRates(BaseMutation):
             raise ValidationError(
                 "Could not fetch tax rates. Make sure you have supplied a "
                 "valid API Access Key.",
-                code=CommonErrorCode.CANNOT_FETCH_TAX_RATES,
+                code=ShopErrorCode.CANNOT_FETCH_TAX_RATES,
             )
         call_command("get_vat_rates")
         return ShopFetchTaxRates(shop=Shop())
 
 
-class HomepageCollectionUpdate(BaseMutation):
+class HomepageCollectionUpdate(BaseShopMutation):
     shop = graphene.Field(Shop, description="Updated Shop")
 
     class Arguments:
@@ -166,7 +186,7 @@ class AuthorizationKeyInput(graphene.InputObjectType):
     password = graphene.String(required=True, description="Client secret.")
 
 
-class AuthorizationKeyAdd(BaseMutation):
+class AuthorizationKeyAdd(BaseShopMutation):
     authorization_key = graphene.Field(
         AuthorizationKey, description="Newly added authorization key."
     )
@@ -191,7 +211,7 @@ class AuthorizationKeyAdd(BaseMutation):
                 {
                     "key_type": ValidationError(
                         "Authorization key already exists.",
-                        code=CommonErrorCode.OBJECT_ALREADY_EXISTS,
+                        code=ShopErrorCode.OBJECT_ALREADY_EXISTS,
                     )
                 }
             )
@@ -205,7 +225,7 @@ class AuthorizationKeyAdd(BaseMutation):
         return AuthorizationKeyAdd(authorization_key=instance, shop=Shop())
 
 
-class AuthorizationKeyDelete(BaseMutation):
+class AuthorizationKeyDelete(BaseShopMutation):
     authorization_key = graphene.Field(
         AuthorizationKey, description="Authorization key that was deleted."
     )
@@ -232,7 +252,7 @@ class AuthorizationKeyDelete(BaseMutation):
                 {
                     "key_type": ValidationError(
                         "Couldn't resolve authorization key",
-                        code=CommonErrorCode.OBJECT_DOES_NOT_EXIST,
+                        code=ShopErrorCode.OBJECT_DOES_NOT_EXIST,
                     )
                 }
             )

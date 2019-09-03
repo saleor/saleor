@@ -162,6 +162,7 @@ class ShippingErrorCode(Enum):
 
 
 class PaymentErrorCode(Enum):
+    BILLING_ADDRESS_NOT_SET = "billing_address_not_set"
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
     NULL = "null"
@@ -176,6 +177,7 @@ class GiftcardErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
     NULL = "null"
+    OBJECT_ALREADY_EXISTS = "object_already_exists"
     OBJECT_DOES_NOT_EXIST = "object_does_not_exist"
     REQUIRED = "required"
     UNIQUE = "unique"

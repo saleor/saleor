@@ -8,7 +8,6 @@ from django_countries import countries
 
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import Sale, Voucher
-from saleor.graphql.core.utils.error_codes import CommonErrorCode
 from saleor.graphql.discount.enums import DiscountValueTypeEnum, VoucherTypeEnum
 from tests.api.utils import get_graphql_content
 
@@ -157,7 +156,6 @@ mutation  voucherCreate(
             errors {
                 field
                 message
-                code
             }
             voucher {
                 type
@@ -265,7 +263,6 @@ def test_create_voucher_with_existing_gift_card_code(
     errors = content["data"]["voucherCreate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "promoCode"
-    assert errors[0]["code"] == CommonErrorCode.OBJECT_ALREADY_EXISTS.name
 
 
 def test_create_voucher_with_existing_voucher_code(
@@ -292,7 +289,6 @@ def test_create_voucher_with_existing_voucher_code(
     errors = content["data"]["voucherCreate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "promoCode"
-    assert errors[0]["code"] == CommonErrorCode.OBJECT_ALREADY_EXISTS.name
 
 
 def test_update_voucher(staff_api_client, voucher, permission_manage_discounts):

@@ -17,10 +17,33 @@ from ..account.types import AddressInput
 from ..checkout.types import Checkout
 from ..core.mutations import BaseMutation
 from ..core.scalars import Decimal
+from ..core.types import common as common_types
 from ..core.utils import from_global_id_strict_type
-from ..core.utils.error_codes import CheckoutErrorCode, CommonErrorCode
+from ..core.utils.error_codes import PaymentErrorCode
 from .enums import PaymentGatewayEnum
 from .types import Payment
+
+
+class PaymentErrorMixin:
+    payment_errors = graphene.List(
+        graphene.NonNull(common_types.PaymentError),
+        description="List of errors that occurred executing the mutation.",
+    )
+
+    @classmethod
+    def handle_typed_errors(cls, errors: list, **extra):
+        payment_errors = [
+            common_types.PaymentError(field=e.field, message=e.message, code=code)
+            for e, code in errors
+        ]
+        return cls(
+            errors=[e[0] for e in errors], payment_errors=payment_errors, **extra
+        )
+
+
+class BasePaymentMutation(PaymentErrorMixin, BaseMutation):
+    class Meta:
+        abstract = True
 
 
 class PaymentInput(graphene.InputObjectType):
@@ -50,7 +73,7 @@ class PaymentInput(graphene.InputObjectType):
     )
 
 
-class CheckoutPaymentCreate(BaseMutation, I18nMixin):
+class CheckoutPaymentCreate(BasePaymentMutation, I18nMixin):
     checkout = graphene.Field(Checkout, description="Related checkout object.")
     payment = graphene.Field(Payment, description="A newly created payment.")
 
@@ -81,7 +104,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
                 {
                     "billing_address": ValidationError(
                         "No billing address associated with this checkout.",
-                        code=CheckoutErrorCode.BILLING_ADDRESS_NOT_SET,
+                        code=PaymentErrorCode.BILLING_ADDRESS_NOT_SET,
                     )
                 }
             )
@@ -100,7 +123,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
                     "amount": ValidationError(
                         "Partial payments are not allowed, amount should be "
                         "equal checkout's total.",
-                        code=CommonErrorCode.PARTIAL_PAYMENT_NOT_ALLOWED,
+                        code=PaymentErrorCode.PARTIAL_PAYMENT_NOT_ALLOWED,
                     )
                 }
             )
@@ -121,7 +144,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         return CheckoutPaymentCreate(payment=payment)
 
 
-class PaymentCapture(BaseMutation):
+class PaymentCapture(BasePaymentMutation):
     payment = graphene.Field(Payment, description="Updated payment")
 
     class Arguments:
@@ -140,7 +163,7 @@ class PaymentCapture(BaseMutation):
         try:
             gateway_capture(payment, amount)
         except PaymentError as e:
-            raise ValidationError(str(e), code=CommonErrorCode.PAYMENT_ERROR)
+            raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)
         return PaymentCapture(payment=payment)
 
 
@@ -157,11 +180,11 @@ class PaymentRefund(PaymentCapture):
         try:
             gateway_refund(payment, amount=amount)
         except PaymentError as e:
-            raise ValidationError(str(e), code=CommonErrorCode.PAYMENT_ERROR)
+            raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)
         return PaymentRefund(payment=payment)
 
 
-class PaymentVoid(BaseMutation):
+class PaymentVoid(BasePaymentMutation):
     payment = graphene.Field(Payment, description="Updated payment")
 
     class Arguments:
@@ -179,11 +202,11 @@ class PaymentVoid(BaseMutation):
         try:
             gateway_void(payment)
         except PaymentError as e:
-            raise ValidationError(str(e), code=CommonErrorCode.PAYMENT_ERROR)
+            raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)
         return PaymentVoid(payment=payment)
 
 
-class PaymentSecureConfirm(BaseMutation):
+class PaymentSecureConfirm(BasePaymentMutation):
     payment = graphene.Field(Payment, description="Updated payment")
 
     class Arguments:
@@ -200,5 +223,5 @@ class PaymentSecureConfirm(BaseMutation):
         try:
             gateway_confirm(payment)
         except PaymentError as e:
-            raise ValidationError(str(e), code=CommonErrorCode.PAYMENT_ERROR)
+            raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)
         return PaymentSecureConfirm(payment=payment)
