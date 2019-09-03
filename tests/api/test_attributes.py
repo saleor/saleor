@@ -370,6 +370,10 @@ CREATE_ATTRIBUTES_QUERY = """
             errors {
                 field
                 message
+            }
+            productErrors {
+                field
+                message
                 code
             }
             attribute {
@@ -505,7 +509,9 @@ def test_create_attribute_and_attribute_values_errors(
     assert errors
     assert errors[0]["field"] == "values"
     assert errors[0]["message"] == error_msg
-    assert errors[0]["code"] == error_code.name
+
+    product_errors = content["data"]["attributeCreate"]["productErrors"]
+    assert product_errors[0]["code"] == error_code.name
 
 
 UPDATE_ATTRIBUTE_QUERY = """
@@ -518,6 +524,10 @@ UPDATE_ATTRIBUTE_QUERY = """
                 name: $name, addValues: $addValues,
                 removeValues: $removeValues}) {
         errors {
+            field
+            message
+        }
+        productErrors {
             field
             message
             code
@@ -654,7 +664,9 @@ def test_update_attribute_and_add_attribute_values_errors(
     assert errors
     assert errors[0]["field"] == "addValues"
     assert errors[0]["message"] == error_msg
-    assert errors[0]["code"] == error_code.name
+
+    product_errors = content["data"]["attributeUpdate"]["productErrors"]
+    assert product_errors[0]["code"] == error_code.name
 
 
 def test_update_attribute_and_remove_others_attribute_value(
@@ -681,7 +693,9 @@ def test_update_attribute_and_remove_others_attribute_value(
     assert errors[0]["field"] == "removeValues"
     err_msg = "Value %s does not belong to this attribute." % str(size_attribute)
     assert errors[0]["message"] == err_msg
-    assert errors[0]["code"] == ProductErrorCode.ATTRIBUTE_BAD_VALUE.name
+
+    product_errors = content["data"]["attributeUpdate"]["productErrors"]
+    assert product_errors[0]["code"] == ProductErrorCode.ATTRIBUTE_BAD_VALUE.name
 
 
 def test_delete_attribute(

@@ -20,7 +20,8 @@ from ...core.mutations import (
     UpdateMetaBaseMutation,
     validation_error_to_error_type,
 )
-from ...core.utils.error_codes import AccountErrorCode, CommonErrorCode
+from ...core.types.common import AccountError
+from ...core.utils.error_codes import AccountErrorCode
 
 BILLING_ADDRESS_FIELD = "default_billing_address"
 SHIPPING_ADDRESS_FIELD = "default_shipping_address"
@@ -40,7 +41,29 @@ def can_edit_address(user, address):
     )
 
 
-class SetPassword(CreateToken):
+class AccountErrorMixin:
+    account_errors = graphene.List(
+        graphene.NonNull(AccountError),
+        description="List of errors that occurred executing the mutation.",
+    )
+
+    @classmethod
+    def handle_typed_errors(cls, errors: list, **extra):
+        account_errors = [
+            AccountError(field=e.field, message=e.message, code=code)
+            for e, code in errors
+        ]
+        return cls(
+            errors=[e[0] for e in errors], account_errors=account_errors, **extra
+        )
+
+
+class BaseAccountMutation(AccountErrorMixin, BaseMutation):
+    class Meta:
+        abstract = True
+
+
+class SetPassword(AccountErrorMixin, CreateToken):
     user = graphene.Field(User, description="An user instance with new password.")
 
     class Arguments:
@@ -64,7 +87,7 @@ class SetPassword(CreateToken):
             cls._set_password_for_user(email, password, token)
         except ValidationError as e:
             errors = validation_error_to_error_type(e)
-            return cls(errors=errors)
+            return cls.handle_typed_errors(errors)
         return super().mutate(root, info, **data)
 
     @classmethod
@@ -75,7 +98,8 @@ class SetPassword(CreateToken):
             raise ValidationError(
                 {
                     "email": ValidationError(
-                        "User doesn't exist", code=CommonErrorCode.OBJECT_DOES_NOT_EXIST
+                        "User doesn't exist",
+                        code=AccountErrorCode.OBJECT_DOES_NOT_EXIST,
                     )
                 }
             )
@@ -83,7 +107,7 @@ class SetPassword(CreateToken):
             raise ValidationError(
                 {
                     "token": ValidationError(
-                        INVALID_TOKEN, code=CommonErrorCode.INVALID_TOKEN
+                        INVALID_TOKEN, code=AccountErrorCode.INVALID_TOKEN
                     )
                 }
             )
@@ -96,7 +120,7 @@ class SetPassword(CreateToken):
         account_events.customer_password_reset_event(user=user)
 
 
-class RequestPasswordReset(BaseMutation):
+class RequestPasswordReset(BaseAccountMutation):
     class Arguments:
         email = graphene.String(
             required=True,
@@ -126,7 +150,7 @@ class RequestPasswordReset(BaseMutation):
                 {
                     "email": ValidationError(
                         "User with this email doesn't exist",
-                        code=CommonErrorCode.OBJECT_DOES_NOT_EXIST,
+                        code=AccountErrorCode.OBJECT_DOES_NOT_EXIST,
                     )
                 }
             )
@@ -134,7 +158,7 @@ class RequestPasswordReset(BaseMutation):
         return RequestPasswordReset()
 
 
-class PasswordChange(BaseMutation):
+class PasswordChange(BaseAccountMutation):
     user = graphene.Field(User, description="A user instance with a new password.")
 
     class Arguments:
@@ -176,7 +200,7 @@ class PasswordChange(BaseMutation):
         return PasswordChange(user=user)
 
 
-class BaseAddressUpdate(ModelMutation):
+class BaseAddressUpdate(AccountErrorMixin, ModelMutation):
     """Base mutation for address update used by staff and account."""
 
     user = graphene.Field(
@@ -208,7 +232,7 @@ class BaseAddressUpdate(ModelMutation):
         return response
 
 
-class BaseAddressDelete(ModelDeleteMutation):
+class BaseAddressDelete(AccountErrorMixin, ModelDeleteMutation):
     """Base mutation for address delete used by staff and customers."""
 
     user = graphene.Field(
@@ -294,7 +318,7 @@ class UserCreateInput(CustomerInput):
     )
 
 
-class BaseCustomerCreate(ModelMutation, I18nMixin):
+class BaseCustomerCreate(AccountErrorMixin, ModelMutation, I18nMixin):
     """Base mutation for customer create used by staff and account."""
 
     class Arguments:
@@ -359,14 +383,14 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
             )
 
 
-class UserUpdateMeta(UpdateMetaBaseMutation):
+class UserUpdateMeta(AccountErrorMixin, UpdateMetaBaseMutation):
     class Meta:
         description = "Updates metadata for user."
         model = models.User
         public = True
 
 
-class UserClearStoredMeta(ClearMetaBaseMutation):
+class UserClearStoredMeta(AccountErrorMixin, ClearMetaBaseMutation):
     class Meta:
         description = "Clear stored metadata value."
         model = models.User

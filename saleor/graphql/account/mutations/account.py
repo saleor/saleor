@@ -7,10 +7,12 @@ from ....checkout import AddressType
 from ....core.utils.url import validate_storefront_url
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
-from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.utils.error_codes import AccountErrorCode, CommonErrorCode
+from ...core.mutations import ModelDeleteMutation, ModelMutation
+from ...core.utils.error_codes import AccountErrorCode
 from .base import (
     INVALID_TOKEN,
+    AccountErrorMixin,
+    BaseAccountMutation,
     BaseAddressDelete,
     BaseAddressUpdate,
     BaseCustomerCreate,
@@ -22,7 +24,7 @@ class AccountRegisterInput(graphene.InputObjectType):
     password = graphene.String(description="Password", required=True)
 
 
-class AccountRegister(ModelMutation):
+class AccountRegister(AccountErrorMixin, ModelMutation):
     class Arguments:
         input = AccountRegisterInput(
             description="Fields required to create a user.", required=True
@@ -75,7 +77,7 @@ class AccountUpdate(BaseCustomerCreate):
         return super().perform_mutation(root, info, **data)
 
 
-class AccountRequestDeletion(BaseMutation):
+class AccountRequestDeletion(BaseAccountMutation):
     class Arguments:
         redirect_url = graphene.String(
             required=True,
@@ -103,7 +105,7 @@ class AccountRequestDeletion(BaseMutation):
         return AccountRequestDeletion()
 
 
-class AccountDelete(ModelDeleteMutation):
+class AccountDelete(AccountErrorMixin, ModelDeleteMutation):
     class Arguments:
         token = graphene.String(
             description=(
@@ -140,7 +142,7 @@ class AccountDelete(ModelDeleteMutation):
             raise ValidationError(
                 {
                     "token": ValidationError(
-                        INVALID_TOKEN, code=CommonErrorCode.INVALID_TOKEN
+                        INVALID_TOKEN, code=AccountErrorCode.INVALID_TOKEN
                     )
                 }
             )
@@ -154,7 +156,7 @@ class AccountDelete(ModelDeleteMutation):
         return cls.success_response(user)
 
 
-class AccountAddressCreate(ModelMutation):
+class AccountAddressCreate(AccountErrorMixin, ModelMutation):
     user = graphene.Field(
         User, description="A user instance for which the address was created."
     )
@@ -210,7 +212,7 @@ class AccountAddressDelete(BaseAddressDelete):
         model = models.Address
 
 
-class AccountSetDefaultAddress(BaseMutation):
+class AccountSetDefaultAddress(BaseAccountMutation):
     user = graphene.Field(User, description="An updated user instance.")
 
     class Arguments:

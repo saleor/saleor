@@ -24,10 +24,8 @@ from ....product.utils.attributes import (
     generate_name_for_variant,
 )
 from ...core.mutations import (
-    BaseMutation,
     ClearMetaBaseMutation,
     ModelDeleteMutation,
-    ModelMutation,
     UpdateMetaBaseMutation,
 )
 from ...core.scalars import Decimal, WeightScalar
@@ -37,7 +35,7 @@ from ...core.utils import (
     from_global_id_strict_type,
     validate_image_file,
 )
-from ...core.utils.error_codes import CommonErrorCode, ProductErrorCode
+from ...core.utils.error_codes import ProductErrorCode
 from ...core.utils.reordering import perform_reordering
 from ..types import (
     Category,
@@ -48,9 +46,11 @@ from ..types import (
     ProductVariant,
 )
 from ..utils import (
+    attributes_to_json,
     validate_attribute_input_for_product,
     validate_attribute_input_for_variant,
 )
+from .base import BaseProductMutation, ModelProductMutation, ProductErrorMixin
 
 
 class CategoryInput(graphene.InputObjectType):
@@ -63,7 +63,7 @@ class CategoryInput(graphene.InputObjectType):
     background_image_alt = graphene.String(description="Alt text for an image.")
 
 
-class CategoryCreate(ModelMutation):
+class CategoryCreate(ModelProductMutation):
     class Arguments:
         input = CategoryInput(
             required=True, description="Fields required to create a category."
@@ -123,7 +123,7 @@ class CategoryUpdate(CategoryCreate):
         permissions = ("product.manage_products",)
 
 
-class CategoryDelete(ModelDeleteMutation):
+class CategoryDelete(ProductErrorMixin, ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a category to delete.")
 
@@ -159,7 +159,7 @@ class CollectionCreateInput(CollectionInput):
     )
 
 
-class CollectionCreate(ModelMutation):
+class CollectionCreate(ModelProductMutation):
     class Arguments:
         input = CollectionCreateInput(
             required=True, description="Fields required to create a collection."
@@ -207,7 +207,7 @@ class CollectionUpdate(CollectionCreate):
         instance.save()
 
 
-class CollectionDelete(ModelDeleteMutation):
+class CollectionDelete(ProductErrorMixin, ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a collection to delete.")
 
@@ -217,7 +217,7 @@ class CollectionDelete(ModelDeleteMutation):
         permissions = ("product.manage_products",)
 
 
-class CollectionReorderProducts(BaseMutation):
+class CollectionReorderProducts(BaseProductMutation):
     collection = graphene.Field(
         Collection, description="Collection from which products are reordered."
     )
@@ -251,7 +251,7 @@ class CollectionReorderProducts(BaseMutation):
                 {
                     "collection_id": ValidationError(
                         f"Couldn't resolve to a collection: {collection_id}",
-                        code=CommonErrorCode.OBJECT_DOES_NOT_EXIST,
+                        code=ProductErrorCode.OBJECT_DOES_NOT_EXIST,
                     )
                 }
             )
@@ -273,7 +273,7 @@ class CollectionReorderProducts(BaseMutation):
                     {
                         "moves": ValidationError(
                             f"Couldn't resolve to a product: {move_info.product_id}",
-                            code=CommonErrorCode.OBJECT_DOES_NOT_EXIST,
+                            code=ProductErrorCode.OBJECT_DOES_NOT_EXIST,
                         )
                     }
                 )
@@ -284,7 +284,7 @@ class CollectionReorderProducts(BaseMutation):
         return CollectionReorderProducts(collection=collection)
 
 
-class CollectionAddProducts(BaseMutation):
+class CollectionAddProducts(BaseProductMutation):
     collection = graphene.Field(
         Collection, description="Collection to which products will be added."
     )
@@ -317,7 +317,7 @@ class CollectionAddProducts(BaseMutation):
         return CollectionAddProducts(collection=collection)
 
 
-class CollectionRemoveProducts(BaseMutation):
+class CollectionRemoveProducts(BaseProductMutation):
     collection = graphene.Field(
         Collection, description="Collection from which products will be removed."
     )
@@ -349,7 +349,7 @@ class CollectionRemoveProducts(BaseMutation):
         return CollectionRemoveProducts(collection=collection)
 
 
-class CollectionUpdateMeta(UpdateMetaBaseMutation):
+class CollectionUpdateMeta(ProductErrorMixin, UpdateMetaBaseMutation):
     class Meta:
         model = models.Collection
         description = "Update public metadata for Collection"
@@ -357,7 +357,7 @@ class CollectionUpdateMeta(UpdateMetaBaseMutation):
         public = True
 
 
-class CollectionClearMeta(ClearMetaBaseMutation):
+class CollectionClearMeta(ProductErrorMixin, ClearMetaBaseMutation):
     class Meta:
         model = models.Collection
         description = "Clears public metadata item for Collection"
@@ -365,7 +365,7 @@ class CollectionClearMeta(ClearMetaBaseMutation):
         public = True
 
 
-class CollectionUpdatePrivateMeta(UpdateMetaBaseMutation):
+class CollectionUpdatePrivateMeta(ProductErrorMixin, UpdateMetaBaseMutation):
     class Meta:
         model = models.Collection
         description = "Update public metadata for Collection"
@@ -373,7 +373,7 @@ class CollectionUpdatePrivateMeta(UpdateMetaBaseMutation):
         public = False
 
 
-class CollectionClearPrivateMeta(ClearMetaBaseMutation):
+class CollectionClearPrivateMeta(ProductErrorMixin, ClearMetaBaseMutation):
     class Meta:
         model = models.Collection
         description = "Clears public metadata item for Collection"
@@ -381,7 +381,7 @@ class CollectionClearPrivateMeta(ClearMetaBaseMutation):
         public = False
 
 
-class CategoryUpdateMeta(UpdateMetaBaseMutation):
+class CategoryUpdateMeta(ProductErrorMixin, UpdateMetaBaseMutation):
     class Meta:
         model = models.Category
         description = "Update public metadata for category"
@@ -389,7 +389,7 @@ class CategoryUpdateMeta(UpdateMetaBaseMutation):
         public = True
 
 
-class CategoryClearMeta(ClearMetaBaseMutation):
+class CategoryClearMeta(ProductErrorMixin, ClearMetaBaseMutation):
     class Meta:
         model = models.Category
         description = "Clears public metadata item for category"
@@ -397,7 +397,7 @@ class CategoryClearMeta(ClearMetaBaseMutation):
         public = True
 
 
-class CategoryUpdatePrivateMeta(UpdateMetaBaseMutation):
+class CategoryUpdatePrivateMeta(ProductErrorMixin, UpdateMetaBaseMutation):
     class Meta:
         model = models.Category
         description = "Update public metadata for category"
@@ -405,7 +405,7 @@ class CategoryUpdatePrivateMeta(UpdateMetaBaseMutation):
         public = False
 
 
-class CategoryClearPrivateMeta(ClearMetaBaseMutation):
+class CategoryClearPrivateMeta(ProductErrorMixin, ClearMetaBaseMutation):
     class Meta:
         model = models.Category
         description = "Clears public metadata item for category"
@@ -667,7 +667,7 @@ class AttributeAssignmentMixin:
             associate_attribute_values_to_instance(instance, attribute, *values)
 
 
-class ProductCreate(ModelMutation):
+class ProductCreate(ModelProductMutation):
     class Arguments:
         input = ProductCreateInput(
             required=True, description="Fields required to create a product."
@@ -747,7 +747,7 @@ class ProductCreate(ModelMutation):
                     {
                         "sku": ValidationError(
                             "This field cannot be blank.",
-                            code=CommonErrorCode.NON_BLANK_VALUE_REQUIRED,
+                            code=ProductErrorCode.REQUIRED,
                         )
                     }
                 )
@@ -756,7 +756,7 @@ class ProductCreate(ModelMutation):
                     {
                         "sku": ValidationError(
                             "Product with this SKU already exists.",
-                            code=CommonErrorCode.OBJECT_ALREADY_EXISTS,
+                            code=ProductErrorCode.OBJECT_ALREADY_EXISTS,
                         )
                     }
                 )
@@ -832,7 +832,7 @@ class ProductUpdate(ProductCreate):
                 {
                     "sku": ValidationError(
                         "Product with this SKU already exists.",
-                        code=CommonErrorCode.OBJECT_ALREADY_EXISTS,
+                        code=ProductErrorCode.OBJECT_ALREADY_EXISTS,
                     )
                 }
             )
@@ -863,7 +863,7 @@ class ProductUpdate(ProductCreate):
             AttributeAssignmentMixin.save(instance, attributes)
 
 
-class ProductDelete(ModelDeleteMutation):
+class ProductDelete(ProductErrorMixin, ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a product to delete.")
 
@@ -873,7 +873,7 @@ class ProductDelete(ModelDeleteMutation):
         permissions = ("product.manage_products",)
 
 
-class ProductUpdateMeta(UpdateMetaBaseMutation):
+class ProductUpdateMeta(ProductErrorMixin, UpdateMetaBaseMutation):
     class Meta:
         model = models.Product
         description = "Update public metadata for product"
@@ -881,7 +881,7 @@ class ProductUpdateMeta(UpdateMetaBaseMutation):
         public = True
 
 
-class ProductClearMeta(ClearMetaBaseMutation):
+class ProductClearMeta(ProductErrorMixin, ClearMetaBaseMutation):
     class Meta:
         description = "Clears public metadata item for product"
         model = models.Product
@@ -889,7 +889,7 @@ class ProductClearMeta(ClearMetaBaseMutation):
         public = True
 
 
-class ProductUpdatePrivateMeta(UpdateMetaBaseMutation):
+class ProductUpdatePrivateMeta(ProductErrorMixin, UpdateMetaBaseMutation):
     class Meta:
         description = "Update public metadata for product"
         model = models.Product
@@ -897,7 +897,7 @@ class ProductUpdatePrivateMeta(UpdateMetaBaseMutation):
         public = False
 
 
-class ProductClearPrivateMeta(ClearMetaBaseMutation):
+class ProductClearPrivateMeta(ProductErrorMixin, ClearMetaBaseMutation):
     class Meta:
         description = "Clears public metadata item for product"
         model = models.Product
@@ -938,7 +938,7 @@ class ProductVariantCreateInput(ProductVariantInput):
     )
 
 
-class ProductVariantCreate(ModelMutation):
+class ProductVariantCreate(ModelProductMutation):
     class Arguments:
         input = ProductVariantCreateInput(
             required=True, description="Fields required to create a product variant."
@@ -1045,7 +1045,7 @@ class ProductVariantUpdate(ProductVariantCreate):
         permissions = ("product.manage_products",)
 
 
-class ProductVariantDelete(ModelDeleteMutation):
+class ProductVariantDelete(ProductErrorMixin, ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(
             required=True, description="ID of a product variant to delete."
@@ -1063,7 +1063,7 @@ class ProductVariantDelete(ModelDeleteMutation):
         return super().success_response(instance)
 
 
-class ProductVariantUpdateMeta(UpdateMetaBaseMutation):
+class ProductVariantUpdateMeta(ProductErrorMixin, UpdateMetaBaseMutation):
     class Meta:
         model = models.ProductVariant
         description = "Update public metadata for product variant"
@@ -1071,7 +1071,7 @@ class ProductVariantUpdateMeta(UpdateMetaBaseMutation):
         public = True
 
 
-class ProductVariantClearMeta(ClearMetaBaseMutation):
+class ProductVariantClearMeta(ProductErrorMixin, ClearMetaBaseMutation):
     class Meta:
         model = models.ProductVariant
         description = "Clears public metadata item for product variant"
@@ -1079,7 +1079,7 @@ class ProductVariantClearMeta(ClearMetaBaseMutation):
         public = True
 
 
-class ProductVariantUpdatePrivateMeta(UpdateMetaBaseMutation):
+class ProductVariantUpdatePrivateMeta(ProductErrorMixin, UpdateMetaBaseMutation):
     class Meta:
         model = models.ProductVariant
         description = "Update public metadata for product variant"
@@ -1087,7 +1087,7 @@ class ProductVariantUpdatePrivateMeta(UpdateMetaBaseMutation):
         public = False
 
 
-class ProductVariantClearPrivateMeta(ClearMetaBaseMutation):
+class ProductVariantClearPrivateMeta(ProductErrorMixin, ClearMetaBaseMutation):
     class Meta:
         model = models.ProductVariant
         description = "Clears public metadata item for product variant"
@@ -1125,7 +1125,7 @@ class ProductTypeInput(graphene.InputObjectType):
     tax_code = graphene.String(description="Tax rate for enabled tax gateway")
 
 
-class ProductTypeCreate(ModelMutation):
+class ProductTypeCreate(ModelProductMutation):
     class Arguments:
         input = ProductTypeInput(
             required=True, description="Fields required to create a product type."
@@ -1188,7 +1188,7 @@ class ProductTypeUpdate(ProductTypeCreate):
         super().save(info, instance, cleaned_input)
 
 
-class ProductTypeDelete(ModelDeleteMutation):
+class ProductTypeDelete(ProductErrorMixin, ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a product type to delete.")
 
@@ -1198,7 +1198,7 @@ class ProductTypeDelete(ModelDeleteMutation):
         permissions = ("product.manage_products",)
 
 
-class ProductTypeUpdateMeta(UpdateMetaBaseMutation):
+class ProductTypeUpdateMeta(ProductErrorMixin, UpdateMetaBaseMutation):
     class Meta:
         model = models.ProductType
         description = "Update public metadata for product type"
@@ -1206,7 +1206,7 @@ class ProductTypeUpdateMeta(UpdateMetaBaseMutation):
         public = True
 
 
-class ProductTypeClearMeta(ClearMetaBaseMutation):
+class ProductTypeClearMeta(ProductErrorMixin, ClearMetaBaseMutation):
     class Meta:
         description = "Clears public metadata item for product type"
         model = models.ProductType
@@ -1214,7 +1214,7 @@ class ProductTypeClearMeta(ClearMetaBaseMutation):
         public = True
 
 
-class ProductTypeUpdatePrivateMeta(UpdateMetaBaseMutation):
+class ProductTypeUpdatePrivateMeta(ProductErrorMixin, UpdateMetaBaseMutation):
     class Meta:
         description = "Update public metadata for product type"
         model = models.ProductType
@@ -1222,7 +1222,7 @@ class ProductTypeUpdatePrivateMeta(UpdateMetaBaseMutation):
         public = False
 
 
-class ProductTypeClearPrivateMeta(ClearMetaBaseMutation):
+class ProductTypeClearPrivateMeta(ProductErrorMixin, ClearMetaBaseMutation):
     class Meta:
         description = "Clears public metadata item for product type"
         model = models.ProductType
@@ -1240,7 +1240,7 @@ class ProductImageCreateInput(graphene.InputObjectType):
     )
 
 
-class ProductImageCreate(BaseMutation):
+class ProductImageCreate(BaseProductMutation):
     product = graphene.Field(Product)
     image = graphene.Field(ProductImage)
 
@@ -1274,7 +1274,7 @@ class ProductImageUpdateInput(graphene.InputObjectType):
     alt = graphene.String(description="Alt text for an image.")
 
 
-class ProductImageUpdate(BaseMutation):
+class ProductImageUpdate(BaseProductMutation):
     product = graphene.Field(Product)
     image = graphene.Field(ProductImage)
 
@@ -1299,7 +1299,7 @@ class ProductImageUpdate(BaseMutation):
         return ProductImageUpdate(product=product, image=image)
 
 
-class ProductImageReorder(BaseMutation):
+class ProductImageReorder(BaseProductMutation):
     product = graphene.Field(Product)
     images = graphene.List(ProductImage)
 
@@ -1328,7 +1328,7 @@ class ProductImageReorder(BaseMutation):
                 {
                     "order": ValidationError(
                         "Incorrect number of image IDs provided.",
-                        code=CommonErrorCode.INCORRECT_VALUE,
+                        code=ProductErrorCode.INCORRECT_VALUE,
                     )
                 }
             )
@@ -1357,7 +1357,7 @@ class ProductImageReorder(BaseMutation):
         return ProductImageReorder(product=product, images=images)
 
 
-class ProductImageDelete(BaseMutation):
+class ProductImageDelete(BaseProductMutation):
     product = graphene.Field(Product)
     image = graphene.Field(ProductImage)
 
@@ -1377,7 +1377,7 @@ class ProductImageDelete(BaseMutation):
         return ProductImageDelete(product=image.product, image=image)
 
 
-class VariantImageAssign(BaseMutation):
+class VariantImageAssign(BaseProductMutation):
     product_variant = graphene.Field(ProductVariant)
     image = graphene.Field(ProductImage)
 
@@ -1418,7 +1418,7 @@ class VariantImageAssign(BaseMutation):
         return VariantImageAssign(product_variant=variant, image=image)
 
 
-class VariantImageUnassign(BaseMutation):
+class VariantImageUnassign(BaseProductMutation):
     product_variant = graphene.Field(ProductVariant)
     image = graphene.Field(ProductImage)
 

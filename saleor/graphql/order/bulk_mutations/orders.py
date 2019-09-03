@@ -3,10 +3,11 @@ import graphene
 from ....order import events, models
 from ....order.utils import cancel_order
 from ...core.mutations import BaseBulkMutation
+from ..mutations.base import OrderErrorMixin
 from ..mutations.orders import clean_order_cancel
 
 
-class OrderBulkCancel(BaseBulkMutation):
+class OrderBulkCancel(OrderErrorMixin, BaseBulkMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID, required=True, description="List of orders IDs to cancel."

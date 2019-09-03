@@ -4,16 +4,13 @@ from django.core.exceptions import ValidationError
 
 from ...discount.models import Voucher
 from ...giftcard.models import GiftCard
-from ...graphql.core.utils.error_codes import CheckoutErrorCode, CommonErrorCode
 
 
 class InvalidPromoCode(ValidationError):
     def __init__(self, message=None, **kwargs):
         if message is None:
             message = {
-                "promo_code": ValidationError(
-                    "Promo code is invalid", code=CheckoutErrorCode.INVALID_PROMO_CODE
-                )
+                "promo_code": ValidationError("Promo code is invalid", code="invalid")
             }
         super().__init__(message, **kwargs)
 
@@ -23,8 +20,7 @@ class PromoCodeAlreadyExists(ValidationError):
         if message is None:
             message = {
                 "promo_code": ValidationError(
-                    "Promo code already exists.",
-                    code=CommonErrorCode.OBJECT_ALREADY_EXISTS,
+                    "Promo code already exists.", code="object_already_exists"
                 )
             }
         super().__init__(message, **kwargs)

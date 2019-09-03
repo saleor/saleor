@@ -2,7 +2,14 @@ import graphene
 
 from ....product.templatetags.product_images import get_thumbnail
 from ...translations.enums import LanguageCodeEnum
-from ..enums import ErrorCode, PermissionEnum
+from ..enums import (
+    AccountErrorCode,
+    CheckoutErrorCode,
+    MenuErrorCode,
+    OrderErrorCode,
+    PermissionEnum,
+    ProductErrorCode,
+)
 from .money import VAT
 
 
@@ -20,10 +27,29 @@ class Error(graphene.ObjectType):
         required=False,
     )
     message = graphene.String(description="The error message.")
-    code = ErrorCode(description="The error code.")
 
     class Meta:
         description = "Represents an error in the input of a mutation."
+
+
+class AccountError(Error):
+    code = AccountErrorCode(description="The error code.")
+
+
+class CheckoutError(Error):
+    code = CheckoutErrorCode(description="The error code.")
+
+
+class MenuError(Error):
+    code = MenuErrorCode(description="The error code.")
+
+
+class OrderError(Error):
+    code = OrderErrorCode(description="The error code.")
+
+
+class ProductError(Error):
+    code = ProductErrorCode(description="The error code.")
 
 
 class LanguageDisplay(graphene.ObjectType):

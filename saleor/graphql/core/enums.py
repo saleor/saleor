@@ -3,8 +3,7 @@ import graphene
 from ...core.permissions import MODELS_PERMISSIONS
 from ...core.weight import WeightUnits
 from ...extensions.plugins.vatlayer import TaxRateType as CoreTaxRateType
-from .utils import str_to_enum
-from .utils.error_codes import ERROR_CODES
+from .utils import error_codes, str_to_enum
 
 # FIXME CoreTaxRateType should be removed after we will drop old api fields dedicated
 #  to taxes
@@ -60,6 +59,9 @@ WeightUnitsEnum = graphene.Enum(
     "WeightUnitsEnum", [(str_to_enum(unit[0]), unit[0]) for unit in WeightUnits.CHOICES]
 )
 
-ErrorCode = graphene.Enum(
-    "ErrorCode", [(str_to_enum(code), code) for code in sorted(ERROR_CODES)]
-)
+
+AccountErrorCode = graphene.Enum.from_enum(error_codes.AccountErrorCode)
+CheckoutErrorCode = graphene.Enum.from_enum(error_codes.CheckoutErrorCode)
+MenuErrorCode = graphene.Enum.from_enum(error_codes.MenuErrorCode)
+OrderErrorCode = graphene.Enum.from_enum(error_codes.OrderErrorCode)
+ProductErrorCode = graphene.Enum.from_enum(error_codes.ProductErrorCode)

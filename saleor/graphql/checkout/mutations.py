@@ -40,14 +40,37 @@ from ..core.mutations import (
     ModelMutation,
     UpdateMetaBaseMutation,
 )
+from ..core.types.common import CheckoutError
 from ..core.utils import from_global_id_strict_type
-from ..core.utils.error_codes import CheckoutErrorCode, CommonErrorCode
+from ..core.utils.error_codes import CheckoutErrorCode
 from ..order.types import Order
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
 from .types import Checkout, CheckoutLine
 
 ERROR_DOES_NOT_SHIP = "This checkout doesn't need shipping"
+
+
+class CheckoutErrorMixin:
+    checkout_errors = graphene.List(
+        graphene.NonNull(CheckoutError),
+        description="List of errors that occurred executing the mutation.",
+    )
+
+    @classmethod
+    def handle_typed_errors(cls, errors: list, **extra):
+        checkout_errors = [
+            CheckoutError(field=e.field, message=e.message, code=code)
+            for e, code in errors
+        ]
+        return cls(
+            errors=[e[0] for e in errors], checkout_errors=checkout_errors, **extra
+        )
+
+
+class BaseCheckoutMutation(CheckoutErrorMixin, BaseMutation):
+    class Meta:
+        abstract = True
 
 
 def clean_shipping_method(
@@ -97,7 +120,7 @@ def check_lines_quantity(variants, quantities):
                 {
                     "quantity": ValidationError(
                         "The quantity should be higher than zero.",
-                        code=CommonErrorCode.POSITIVE_NUMBER_REQUIRED,
+                        code=CheckoutErrorCode.ZERO_QUANTITY,
                     )
                 }
             )
@@ -150,7 +173,7 @@ class CheckoutCreateInput(graphene.InputObjectType):
     billing_address = AddressInput(description="Billing address of the customer.")
 
 
-class CheckoutCreate(ModelMutation, I18nMixin):
+class CheckoutCreate(CheckoutErrorMixin, ModelMutation, I18nMixin):
     created = graphene.Field(
         graphene.Boolean,
         description=(
@@ -295,7 +318,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return CheckoutCreate(checkout=checkout, created=True)
 
 
-class CheckoutLinesAdd(BaseMutation):
+class CheckoutLinesAdd(BaseCheckoutMutation):
     checkout = graphene.Field(Checkout, description="An updated Checkout.")
 
     class Arguments:
@@ -352,7 +375,7 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
         return super().perform_mutation(root, info, checkout_id, lines, replace=True)
 
 
-class CheckoutLineDelete(BaseMutation):
+class CheckoutLineDelete(BaseCheckoutMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
@@ -380,7 +403,7 @@ class CheckoutLineDelete(BaseMutation):
         return CheckoutLineDelete(checkout=checkout)
 
 
-class CheckoutCustomerAttach(BaseMutation):
+class CheckoutCustomerAttach(BaseCheckoutMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
@@ -403,7 +426,7 @@ class CheckoutCustomerAttach(BaseMutation):
         return CheckoutCustomerAttach(checkout=checkout)
 
 
-class CheckoutCustomerDetach(BaseMutation):
+class CheckoutCustomerDetach(BaseCheckoutMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout")
 
     class Arguments:
@@ -422,7 +445,7 @@ class CheckoutCustomerDetach(BaseMutation):
         return CheckoutCustomerDetach(checkout=checkout)
 
 
-class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
+class CheckoutShippingAddressUpdate(BaseCheckoutMutation, I18nMixin):
     checkout = graphene.Field(Checkout, description="An updated checkout")
 
     class Arguments:
@@ -448,7 +471,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
                 {
                     "checkout_id": ValidationError(
                         f"Couldn't resolve to a node: {checkout_id}",
-                        code=CommonErrorCode.OBJECT_DOES_NOT_EXIST,
+                        code=CheckoutErrorCode.OBJECT_DOES_NOT_EXIST,
                     )
                 }
             )
@@ -504,7 +527,7 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
         return CheckoutBillingAddressUpdate(checkout=checkout)
 
 
-class CheckoutEmailUpdate(BaseMutation):
+class CheckoutEmailUpdate(BaseCheckoutMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout")
 
     class Arguments:
@@ -526,7 +549,7 @@ class CheckoutEmailUpdate(BaseMutation):
         return CheckoutEmailUpdate(checkout=checkout)
 
 
-class CheckoutShippingMethodUpdate(BaseMutation):
+class CheckoutShippingMethodUpdate(BaseCheckoutMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout")
 
     class Arguments:
@@ -552,7 +575,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
                 {
                     "checkout_id": ValidationError(
                         f"Couldn't resolve to a node: {checkout_id}",
-                        code=CommonErrorCode.OBJECT_DOES_NOT_EXIST,
+                        code=CheckoutErrorCode.OBJECT_DOES_NOT_EXIST,
                     )
                 }
             )
@@ -595,7 +618,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
         return CheckoutShippingMethodUpdate(checkout=checkout)
 
 
-class CheckoutComplete(BaseMutation):
+class CheckoutComplete(BaseCheckoutMutation):
     order = graphene.Field(Order, description="Placed order")
 
     class Arguments:
@@ -669,7 +692,7 @@ class CheckoutComplete(BaseMutation):
 
         except PaymentError as e:
             abort_order_data(order_data)
-            raise ValidationError(str(e), code=CommonErrorCode.PAYMENT_ERROR)
+            raise ValidationError(str(e), code=CheckoutErrorCode.PAYMENT_ERROR)
 
         if txn.customer_id and user.is_authenticated:
             store_customer_id(user, payment.gateway, txn.customer_id)
@@ -684,7 +707,7 @@ class CheckoutComplete(BaseMutation):
         return CheckoutComplete(order=order)
 
 
-class CheckoutUpdateVoucher(BaseMutation):
+class CheckoutUpdateVoucher(BaseCheckoutMutation):
     checkout = graphene.Field(Checkout, description="An checkout with updated voucher")
 
     class Arguments:
@@ -714,7 +737,7 @@ class CheckoutUpdateVoucher(BaseMutation):
                     {
                         "voucher_code": ValidationError(
                             "Voucher with given code does not exist.",
-                            code=CommonErrorCode.OBJECT_DOES_NOT_EXIST,
+                            code=CheckoutErrorCode.OBJECT_DOES_NOT_EXIST,
                         )
                     }
                 )
@@ -738,7 +761,7 @@ class CheckoutUpdateVoucher(BaseMutation):
         return CheckoutUpdateVoucher(checkout=checkout)
 
 
-class CheckoutAddPromoCode(BaseMutation):
+class CheckoutAddPromoCode(BaseCheckoutMutation):
     checkout = graphene.Field(
         Checkout, description="The checkout with the added gift card or voucher"
     )
@@ -761,7 +784,7 @@ class CheckoutAddPromoCode(BaseMutation):
         return CheckoutAddPromoCode(checkout=checkout)
 
 
-class CheckoutRemovePromoCode(BaseMutation):
+class CheckoutRemovePromoCode(BaseCheckoutMutation):
     checkout = graphene.Field(
         Checkout, description="The checkout with the removed gift card or voucher"
     )
@@ -784,7 +807,7 @@ class CheckoutRemovePromoCode(BaseMutation):
         return CheckoutUpdateVoucher(checkout=checkout)
 
 
-class CheckoutUpdateMeta(UpdateMetaBaseMutation):
+class CheckoutUpdateMeta(CheckoutErrorMixin, UpdateMetaBaseMutation):
     class Meta:
         description = "Updates metadata for Checkout."
         permissions = ("order.manage_orders",)
@@ -792,7 +815,7 @@ class CheckoutUpdateMeta(UpdateMetaBaseMutation):
         public = True
 
 
-class CheckoutUpdatePrivateMeta(UpdateMetaBaseMutation):
+class CheckoutUpdatePrivateMeta(CheckoutErrorMixin, UpdateMetaBaseMutation):
     class Meta:
         description = "Updates private metadata for Checkout."
         permissions = ("order.manage_orders",)
@@ -800,7 +823,7 @@ class CheckoutUpdatePrivateMeta(UpdateMetaBaseMutation):
         public = False
 
 
-class CheckoutClearStoredMeta(ClearMetaBaseMutation):
+class CheckoutClearStoredMeta(CheckoutErrorMixin, ClearMetaBaseMutation):
     class Meta:
         description = "Clear stored metadata value."
         permissions = ("order.manage_orders",)
@@ -808,7 +831,7 @@ class CheckoutClearStoredMeta(ClearMetaBaseMutation):
         public = True
 
 
-class CheckoutClearStoredPrivateMeta(ClearMetaBaseMutation):
+class CheckoutClearStoredPrivateMeta(CheckoutErrorMixin, ClearMetaBaseMutation):
     class Meta:
         description = "Clear stored metadata value."
         permissions = ("order.manage_orders",)

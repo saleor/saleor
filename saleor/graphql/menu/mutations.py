@@ -11,11 +11,31 @@ from ...menu.utils import update_menu
 from ...page import models as page_models
 from ...product import models as product_models
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
+from ..core.types.common import MenuError
 from ..core.utils.error_codes import MenuErrorCode
 from ..page.types import Page
 from ..product.types import Category, Collection
 from .enums import NavigationType
 from .types import Menu, MenuItem, MenuItemMoveInput
+
+
+class MenuErrorMixin:
+    menu_errors = graphene.List(
+        graphene.NonNull(MenuError),
+        description="List of errors that occurred executing the mutation.",
+    )
+
+    @classmethod
+    def handle_typed_errors(cls, errors: list, **extra):
+        menu_errors = [
+            MenuError(field=e.field, message=e.message, code=code) for e, code in errors
+        ]
+        return cls(errors=[e[0] for e in errors], menu_errors=menu_errors, **extra)
+
+
+class BaseMenuMutation(MenuErrorMixin, BaseMutation):
+    class Meta:
+        abstract = True
 
 
 class MenuItemInput(graphene.InputObjectType):
@@ -52,7 +72,7 @@ class MenuCreateInput(graphene.InputObjectType):
     items = graphene.List(MenuItemInput, description="List of menu items.")
 
 
-class MenuCreate(ModelMutation):
+class MenuCreate(MenuErrorMixin, ModelMutation):
     class Arguments:
         input = MenuCreateInput(
             required=True, description="Fields required to create a menu."
@@ -117,7 +137,7 @@ class MenuCreate(ModelMutation):
             instance.items.create(**item)
 
 
-class MenuUpdate(ModelMutation):
+class MenuUpdate(MenuErrorMixin, ModelMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a menu to update.")
         input = MenuInput(
@@ -130,7 +150,7 @@ class MenuUpdate(ModelMutation):
         permissions = ("menu.manage_menus",)
 
 
-class MenuDelete(ModelDeleteMutation):
+class MenuDelete(MenuErrorMixin, ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a menu to delete.")
 
@@ -156,7 +176,7 @@ def _validate_menu_item_instance(
             )
 
 
-class MenuItemCreate(ModelMutation):
+class MenuItemCreate(MenuErrorMixin, ModelMutation):
     class Arguments:
         input = MenuItemCreateInput(
             required=True,
@@ -224,7 +244,7 @@ class MenuItemUpdate(MenuItemCreate):
         return super().construct_instance(instance, cleaned_data)
 
 
-class MenuItemDelete(ModelDeleteMutation):
+class MenuItemDelete(MenuErrorMixin, ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a menu item to delete.")
 
@@ -245,7 +265,7 @@ _MenuMoveOperation = namedtuple(
 )
 
 
-class MenuItemMove(BaseMutation):
+class MenuItemMove(BaseMenuMutation):
     menu = graphene.Field(Menu, description="Assigned menu to move within.")
 
     class Arguments:
@@ -353,7 +373,7 @@ class MenuItemMove(BaseMutation):
         return cls(menu=menu)
 
 
-class AssignNavigation(BaseMutation):
+class AssignNavigation(BaseMenuMutation):
     menu = graphene.Field(Menu, description="Assigned navigation menu.")
 
     class Arguments:

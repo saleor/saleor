@@ -112,6 +112,10 @@ def test_checkout_update_shipping_address(
     data = content["data"]["checkoutShippingAddressUpdate"]
 
     assert data["errors"] == [
+        {"field": "shippingAddress", "message": "This checkout doesn't need shipping"}
+    ]
+
+    assert data["checkoutErrors"] == [
         {
             "field": "shippingAddress",
             "message": "This checkout doesn't need shipping",

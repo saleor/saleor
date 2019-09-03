@@ -2,11 +2,12 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....product import models
-from ...core.mutations import BaseMutation, ModelMutation
+from ...core.mutations import ModelMutation
 from ...core.types import Upload
 from ...core.utils.error_codes import ProductErrorCode
 from ...decorators import permission_required
 from ..types import DigitalContent, ProductVariant
+from .base import BaseProductMutation, ProductErrorMixin
 
 
 class DigitalContentInput(graphene.InputObjectType):
@@ -39,7 +40,7 @@ class DigitalContentUploadInput(DigitalContentInput):
     )
 
 
-class DigitalContentCreate(BaseMutation):
+class DigitalContentCreate(BaseProductMutation):
     variant = graphene.Field(ProductVariant)
     content = graphene.Field(DigitalContent)
 
@@ -111,7 +112,7 @@ class DigitalContentCreate(BaseMutation):
         return DigitalContentCreate(content=digital_content)
 
 
-class DigitalContentDelete(BaseMutation):
+class DigitalContentDelete(BaseProductMutation):
     variant = graphene.Field(ProductVariant)
 
     class Arguments:
@@ -136,7 +137,7 @@ class DigitalContentDelete(BaseMutation):
         return DigitalContentDelete(variant=variant)
 
 
-class DigitalContentUpdate(BaseMutation):
+class DigitalContentUpdate(BaseProductMutation):
     variant = graphene.Field(ProductVariant)
     content = graphene.Field(DigitalContent)
 
@@ -221,7 +222,7 @@ class DigitalContentUrlCreateInput(graphene.InputObjectType):
     )
 
 
-class DigitalContentUrlCreate(ModelMutation):
+class DigitalContentUrlCreate(ProductErrorMixin, ModelMutation):
     class Arguments:
         input = DigitalContentUrlCreateInput(
             required=True, description="Fields required to create a new url."

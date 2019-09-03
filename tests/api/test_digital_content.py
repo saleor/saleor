@@ -256,6 +256,10 @@ def test_digital_content_update_mutation_missing_content(
             errors {
                 field
                 message
+            }
+            productErrors {
+                field
+                message
                 code
             }
         }
@@ -280,7 +284,9 @@ def test_digital_content_update_mutation_missing_content(
     errors = content["data"]["digitalContentUpdate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "variantId"
-    assert errors[0]["code"] == ProductErrorCode.VARIANT_NO_DIGITAL_CONTENT.name
+
+    product_errors = content["data"]["digitalContentUpdate"]["productErrors"]
+    assert product_errors[0]["code"] == ProductErrorCode.VARIANT_NO_DIGITAL_CONTENT.name
 
 
 def test_digital_content_url_create(

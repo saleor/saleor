@@ -16,12 +16,13 @@ from ....order.utils import (
 )
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
-from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
+from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.scalars import Decimal
 from ...core.utils.error_codes import OrderErrorCode
 from ...product.types import ProductVariant
 from ..types import Order, OrderLine
 from ..utils import validate_draft_order
+from .base import BaseOrderMutation, OrderErrorMixin
 
 
 class OrderLineInput(graphene.InputObjectType):
@@ -60,7 +61,7 @@ class DraftOrderCreateInput(DraftOrderInput):
     )
 
 
-class DraftOrderCreate(ModelMutation, I18nMixin):
+class DraftOrderCreate(OrderErrorMixin, ModelMutation, I18nMixin):
     class Arguments:
         input = DraftOrderCreateInput(
             required=True, description="Fields required to create an order."
@@ -199,7 +200,7 @@ class DraftOrderUpdate(DraftOrderCreate):
         permissions = ("order.manage_orders",)
 
 
-class DraftOrderDelete(ModelDeleteMutation):
+class DraftOrderDelete(OrderErrorMixin, ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a draft order to delete.")
 
@@ -209,7 +210,7 @@ class DraftOrderDelete(ModelDeleteMutation):
         permissions = ("order.manage_orders",)
 
 
-class DraftOrderComplete(BaseMutation):
+class DraftOrderComplete(BaseOrderMutation):
     order = graphene.Field(Order, description="Completed order.")
 
     class Arguments:
@@ -265,7 +266,7 @@ class DraftOrderComplete(BaseMutation):
         return DraftOrderComplete(order=order)
 
 
-class DraftOrderLinesCreate(BaseMutation):
+class DraftOrderLinesCreate(BaseOrderMutation):
     order = graphene.Field(Order, description="A related draft order.")
     order_lines = graphene.List(
         graphene.NonNull(OrderLine), description="List of newly added order lines."
@@ -333,7 +334,7 @@ class DraftOrderLinesCreate(BaseMutation):
         return DraftOrderLinesCreate(order=order, order_lines=lines)
 
 
-class DraftOrderLineDelete(BaseMutation):
+class DraftOrderLineDelete(BaseOrderMutation):
     order = graphene.Field(Order, description="A related draft order.")
     order_line = graphene.Field(
         OrderLine, description="An order line that was deleted."
@@ -373,7 +374,7 @@ class DraftOrderLineDelete(BaseMutation):
         return DraftOrderLineDelete(order=order, order_line=line)
 
 
-class DraftOrderLineUpdate(ModelMutation):
+class DraftOrderLineUpdate(OrderErrorMixin, ModelMutation):
     order = graphene.Field(Order, description="A related draft order.")
 
     class Arguments:
