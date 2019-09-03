@@ -8,7 +8,7 @@ from ..extensions.manager import get_extensions_manager
 from . import GatewayError, PaymentError, TransactionKind
 from .models import Payment, Transaction
 from .utils import (
-    _gateway_postprocess,
+    gateway_postprocess,
     clean_authorize,
     clean_capture,
     create_payment_information,
@@ -35,7 +35,7 @@ def raise_payment_error(fn):
 def payment_postprocess(fn):
     def wrapped(*args, **kwargs):
         txn = fn(*args, **kwargs)
-        _gateway_postprocess(txn, txn.payment)
+        gateway_postprocess(txn, txn.payment)
         return txn
 
     return wrapped

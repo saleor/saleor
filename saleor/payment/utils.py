@@ -373,7 +373,7 @@ def validate_gateway_response(response: GatewayResponse):
 
 
 @transaction.atomic
-def _gateway_postprocess(transaction, payment):
+def gateway_postprocess(transaction, payment):
     if not transaction.is_success:
         return
 
@@ -421,7 +421,7 @@ def gateway_process_payment(
         **extras,
     )
 
-    _gateway_postprocess(transaction, payment)
+    gateway_postprocess(transaction, payment)
     return transaction
 
 
@@ -452,7 +452,7 @@ def gateway_confirm(payment) -> Transaction:
         payment=payment,
         payment_token=payment_token,
     )
-    _gateway_postprocess(transaction, payment)
+    gateway_postprocess(transaction, payment)
     return transaction
 
 
@@ -488,7 +488,7 @@ def gateway_refund(payment, amount: Decimal = None) -> Transaction:
         amount=amount,
     )
 
-    _gateway_postprocess(transaction, payment)
+    gateway_postprocess(transaction, payment)
     return transaction
 
 
