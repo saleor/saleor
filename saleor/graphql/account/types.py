@@ -158,16 +158,20 @@ class ServiceAccount(MetadataObjectType, CountableDjangoObjectType):
     permissions = graphene.List(
         PermissionDisplay, description="List of the service's permissions."
     )
-    created = graphene.DateTime(description="Created date")
-    is_active = graphene.Boolean()
-    name = graphene.String()
+    created = graphene.DateTime(
+        description="The date and time when the service account was created."
+    )
+    is_active = graphene.Boolean(
+        description="Determine if service account will be set active or not."
+    )
+    name = graphene.String(description="Name of the service account.")
     auth_token = graphene.String(description="Last 4 characters of the token")
 
     class Meta:
         description = "Represents service account data."
         interfaces = [relay.Node]
         model = models.ServiceAccount
-        permissions = ("account.manage_service_account",)
+        permissions = ("account.manage_service_accounts",)
         only_fields = ["name" "permissions", "created", "is_active", "auth_token", "id"]
 
     @staticmethod
