@@ -62,11 +62,6 @@ class StripeGatewayPlugin(BasePlugin):
         super().__init__(*args, **kwargs)
         self.config = None
 
-    @classmethod
-    def _get_default_configuration(cls):
-        defaults = None
-        return defaults
-
     def _initialize_plugin_configuration(self):
         super()._initialize_plugin_configuration()
 

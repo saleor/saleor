@@ -374,10 +374,13 @@ def validate_gateway_response(response: GatewayResponse):
 
 @transaction.atomic
 def _gateway_postprocess(transaction, payment):
+    if not transaction.is_success:
+        return
+
     transaction_kind = transaction.kind
 
     if transaction_kind in {TransactionKind.CAPTURE, TransactionKind.CONFIRM}:
-        payment.captured_amount += transaction.amount
+        payment.captured_amount += Decimal(transaction.amount)
 
         # Set payment charge status to fully charged
         # only if there is no more amount needs to charge
@@ -459,19 +462,6 @@ def gateway_capture(payment: Payment, amount: Decimal = None) -> Transaction:
         amount=amount,
     )
 
-    _gateway_postprocess(transaction, payment)
-    return transaction
-
-
-@require_active_payment
-def gateway_void(payment) -> Transaction:
-    if not payment.can_void():
-        raise PaymentError("Only pre-authorized transactions can be voided.")
-
-    payment_token = get_payment_token(payment)
-    transaction = call_gateway(
-        operation_type=OperationType.VOID, payment=payment, payment_token=payment_token
-    )
     _gateway_postprocess(transaction, payment)
     return transaction
 

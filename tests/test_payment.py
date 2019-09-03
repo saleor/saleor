@@ -13,6 +13,7 @@ from saleor.payment import (
     OperationType,
     PaymentError,
     TransactionKind,
+    gateway,
     get_payment_gateway,
 )
 from saleor.payment.interface import (
@@ -36,7 +37,6 @@ from saleor.payment.utils import (
     gateway_get_client_token,
     gateway_process_payment,
     gateway_refund,
-    gateway_void,
     handle_fully_paid_order,
     mark_order_as_paid,
     require_active_payment,
@@ -318,38 +318,13 @@ def test_gateway_get_client_token_not_existing_gateway(settings):
 
 
 @pytest.mark.parametrize(
-    "func", [gateway_authorize, gateway_capture, gateway_refund, gateway_void]
+    "func", [gateway_authorize, gateway_capture, gateway_refund, gateway.void]
 )
 def test_payment_needs_to_be_active_for_any_action(func, payment_dummy):
     payment_dummy.is_active = False
     with pytest.raises(PaymentError) as exc:
         func(payment_dummy, "token")
     assert exc.value.message == NOT_ACTIVE_PAYMENT_ERROR
-
-
-@patch("saleor.payment.utils.get_payment_gateway")
-def test_gateway_process_payment(
-    mock_get_payment_gateway,
-    payment_txn_preauth,
-    gateway_config,
-    transaction_token,
-    dummy_response,
-):
-    payment_token = transaction_token
-    payment = payment_txn_preauth
-    mock_process_payment = Mock(return_value=dummy_response)
-    mock_get_payment_gateway.return_value = (
-        Mock(process_payment=mock_process_payment),
-        gateway_config,
-    )
-
-    payment_info = create_payment_information(payment, payment_token)
-    gateway_process_payment(payment, payment_token)
-
-    mock_get_payment_gateway.assert_called_with(payment.gateway)
-    mock_process_payment.assert_called_once_with(
-        payment_information=payment_info, config=gateway_config
-    )
 
 
 @patch("saleor.payment.utils.get_payment_gateway")
@@ -594,57 +569,6 @@ def test_gateway_charge_errors(payment_dummy, transaction_token, settings):
     with pytest.raises(PaymentError) as exc:
         gateway_capture(payment, Decimal("1000000"))
     assert exc.value.message == ("Unable to charge more than un-captured amount.")
-
-
-@patch("saleor.payment.utils.get_payment_gateway")
-def test_gateway_void(
-    mock_get_payment_gateway, payment_txn_preauth, gateway_config, dummy_response
-):
-    txn = payment_txn_preauth.transactions.first()
-    payment = payment_txn_preauth
-    assert payment.is_active
-
-    dummy_response.kind = TransactionKind.VOID
-    mock_void = Mock(return_value=dummy_response)
-    mock_get_payment_gateway.return_value = (Mock(void=mock_void), gateway_config)
-
-    payment_info = create_payment_information(payment, txn.token)
-    gateway_void(payment)
-
-    mock_get_payment_gateway.assert_called_once_with(payment.gateway)
-    mock_void.assert_called_once_with(
-        payment_information=payment_info, config=gateway_config
-    )
-
-    payment.refresh_from_db()
-    assert payment.is_active is False
-
-
-@patch("saleor.payment.utils.get_payment_gateway")
-def test_gateway_void_failed(
-    mock_get_payment_gateway, payment_txn_preauth, gateway_config, dummy_response
-):
-    txn = payment_txn_preauth.transactions.first()
-    txn.is_success = False
-    payment = payment_txn_preauth
-
-    dummy_response.kind = TransactionKind.VOID
-    dummy_response.is_success = False
-    mock_void = Mock(return_value=dummy_response)
-    mock_get_payment_gateway.return_value = (Mock(void=mock_void), gateway_config)
-    with pytest.raises(PaymentError) as exc:
-        gateway_void(payment)
-    assert exc.value.message == EXAMPLE_ERROR
-
-    payment.refresh_from_db()
-    assert payment.is_active
-
-
-def test_gateway_void_errors(payment_dummy):
-    payment_dummy.charge_status = ChargeStatus.FULLY_CHARGED
-    with pytest.raises(PaymentError) as exc:
-        gateway_void(payment_dummy)
-    assert exc.value.message == "Only pre-authorized transactions can be voided."
 
 
 @patch("saleor.payment.utils.get_payment_gateway")

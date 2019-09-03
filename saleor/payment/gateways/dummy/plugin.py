@@ -36,12 +36,14 @@ class DummyGatewayPlugin(BasePlugin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.config = None
-
-    @classmethod
-    def _get_default_configuration(cls):
-        defaults = None
-        return defaults
+        self.active = True
+        self.config = GatewayConfig(
+            gateway_name=GATEWAY_NAME,
+            auto_capture=True,
+            connection_params={},
+            template_path="",
+            store_customer=False,
+        )
 
     def _initialize_plugin_configuration(self):
         super()._initialize_plugin_configuration()
