@@ -20,6 +20,7 @@ from saleor.account.models import Address, User
 from saleor.checkout import utils
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
+from saleor.core.payments import PaymentInterface
 from saleor.discount import DiscountInfo, DiscountValueType, VoucherType
 from saleor.discount.models import Sale, Voucher, VoucherCustomer, VoucherTranslation
 from saleor.giftcard.models import GiftCard
@@ -52,6 +53,12 @@ from saleor.shipping.models import ShippingMethod, ShippingMethodType, ShippingZ
 from saleor.site import AuthenticationBackends
 from saleor.site.models import AuthorizationKey, SiteSettings
 from tests.utils import create_image
+
+
+@pytest.fixture(autouse=True)
+def setup_dummy_gateway(settings):
+    settings.PLUGINS = ["saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin"]
+    return settings
 
 
 @pytest.fixture(autouse=True)
@@ -1418,3 +1425,19 @@ def other_description_raw():
         "Saleor is powered by a GraphQL server running on top of Python 3 "
         "and a Django 2 framework."
     )
+
+
+@pytest.fixture
+def fake_payment_interface(mocker):
+    return mocker.Mock(spec=PaymentInterface)
+
+
+@pytest.fixture
+def mock_get_manager(mocker, fake_payment_interface):
+    mgr = mocker.patch(
+        "saleor.payment.gateway.get_extensions_manager",
+        autospec=True,
+        return_value=fake_payment_interface,
+    )
+    yield fake_payment_interface
+    mgr.assert_called_once()

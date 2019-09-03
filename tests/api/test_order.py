@@ -1530,23 +1530,20 @@ def test_order_void(
 
 
 def test_order_void_payment_error(
-    staff_api_client, permission_manage_orders, payment_txn_preauth
+    mock_get_manager, staff_api_client, permission_manage_orders, payment_txn_preauth
 ):
-    msg = "error has happened"
+    msg = "Oops! Something went wrong."
     order = payment_txn_preauth.order
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
-    with patch(
-        "saleor.graphql.order.mutations.orders.gateway_void",
-        side_effect=ValueError(msg),
-    ):
-        response = staff_api_client.post_graphql(
-            ORDER_VOID, variables, permissions=[permission_manage_orders]
-        )
-        content = get_graphql_content(response)
-        errors = content["data"]["orderVoid"]["errors"]
-        assert errors[0]["field"] == "payment"
-        assert errors[0]["message"] == msg
+    mock_get_manager.void_payment.side_effect = ValueError(msg)
+    response = staff_api_client.post_graphql(
+        ORDER_VOID, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["orderVoid"]["errors"]
+    assert errors[0]["field"] == "payment"
+    assert errors[0]["message"] == msg
 
         order_errors = content["data"]["orderVoid"]["orderErrors"]
         assert order_errors[0]["code"] == OrderErrorCode.PAYMENT_ERROR.name

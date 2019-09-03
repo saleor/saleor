@@ -2,9 +2,9 @@ from decimal import Decimal
 
 import pytest
 
-from saleor.core.payments import Gateway, PaymentInterface
+import saleor.payment.gateway as gateway
+from saleor.core.payments import Gateway
 from saleor.payment import ChargeStatus, TransactionKind
-from saleor.payment.gateway import PaymentGateway
 from saleor.payment.interface import GatewayResponse
 from saleor.payment.utils import create_payment_information
 
@@ -84,35 +84,25 @@ USED_GATEWAY = Gateway.DUMMY
 
 
 @pytest.fixture
-def fake_manager(mocker):
-    return mocker.Mock(spec=PaymentInterface)
-
-
-@pytest.fixture(autouse=True, scope="function")
-def mock_get_manager(mocker, fake_manager):
+def mock_payment_interface(mocker, fake_payment_interface):
     mgr = mocker.patch(
         "saleor.payment.gateway.get_extensions_manager",
-        auto_spec=True,
-        return_value=fake_manager,
+        autospec=True,
+        return_value=fake_payment_interface,
     )
-    yield mgr
+    yield fake_payment_interface
     mgr.assert_called_once()
 
 
-@pytest.fixture
-def gateway():
-    return PaymentGateway()
-
-
-def test_process_payment(gateway, payment_txn_preauth):
+def test_process_payment(mock_payment_interface, payment_txn_preauth):
     PAYMENT_DATA = create_payment_information(
         payment=payment_txn_preauth, payment_token=TOKEN
     )
-    gateway.plugin_manager.process_payment.return_value = PROCESS_PAYMENT_RESPONSE
+    mock_payment_interface.process_payment.return_value = PROCESS_PAYMENT_RESPONSE
 
     transaction = gateway.process_payment(payment=payment_txn_preauth, token=TOKEN)
 
-    gateway.plugin_manager.process_payment.assert_called_once_with(
+    mock_payment_interface.process_payment.assert_called_once_with(
         USED_GATEWAY, PAYMENT_DATA
     )
     assert transaction.amount == PROCESS_PAYMENT_RESPONSE.amount
@@ -121,31 +111,33 @@ def test_process_payment(gateway, payment_txn_preauth):
     assert transaction.gateway_response == RAW_RESPONSE
 
 
-def test_store_source_when_processing_payment(gateway, payment_txn_preauth):
+def test_store_source_when_processing_payment(
+    mock_payment_interface, payment_txn_preauth
+):
     PAYMENT_DATA = create_payment_information(
         payment=payment_txn_preauth, payment_token=TOKEN, store_source=True
     )
-    gateway.plugin_manager.process_payment.return_value = PROCESS_PAYMENT_RESPONSE
+    mock_payment_interface.process_payment.return_value = PROCESS_PAYMENT_RESPONSE
 
     transaction = gateway.process_payment(
         payment=payment_txn_preauth, token=TOKEN, store_source=True
     )
 
-    gateway.plugin_manager.process_payment.assert_called_once_with(
+    mock_payment_interface.process_payment.assert_called_once_with(
         USED_GATEWAY, PAYMENT_DATA
     )
     assert transaction.customer_id == PROCESS_PAYMENT_RESPONSE.customer_id
 
 
-def test_authorize_payment(gateway, payment_dummy):
+def test_authorize_payment(mock_payment_interface, payment_dummy):
     PAYMENT_DATA = create_payment_information(
         payment=payment_dummy, payment_token=TOKEN
     )
-    gateway.plugin_manager.authorize_payment.return_value = AUTHORIZE_RESPONSE
+    mock_payment_interface.authorize_payment.return_value = AUTHORIZE_RESPONSE
 
     transaction = gateway.authorize(payment=payment_dummy, token=TOKEN)
 
-    gateway.plugin_manager.authorize_payment.assert_called_once_with(
+    mock_payment_interface.authorize_payment.assert_called_once_with(
         USED_GATEWAY, PAYMENT_DATA
     )
     assert transaction.amount == AUTHORIZE_RESPONSE.amount
@@ -154,16 +146,16 @@ def test_authorize_payment(gateway, payment_dummy):
     assert transaction.gateway_response == RAW_RESPONSE
 
 
-def test_capture_payment(gateway, payment_txn_preauth):
+def test_capture_payment(mock_payment_interface, payment_txn_preauth):
     auth_transaction = payment_txn_preauth.transactions.get()
     PAYMENT_DATA = create_payment_information(
         payment=payment_txn_preauth, payment_token=auth_transaction.token
     )
-    gateway.plugin_manager.capture_payment.return_value = PROCESS_PAYMENT_RESPONSE
+    mock_payment_interface.capture_payment.return_value = PROCESS_PAYMENT_RESPONSE
 
     transaction = gateway.capture(payment=payment_txn_preauth)
 
-    gateway.plugin_manager.capture_payment.assert_called_once_with(
+    mock_payment_interface.capture_payment.assert_called_once_with(
         USED_GATEWAY, PAYMENT_DATA
     )
     assert transaction.amount == PROCESS_PAYMENT_RESPONSE.amount
@@ -172,18 +164,18 @@ def test_capture_payment(gateway, payment_txn_preauth):
     assert transaction.gateway_response == RAW_RESPONSE
 
 
-def test_partial_refund_payment(gateway, payment_txn_captured):
+def test_partial_refund_payment(mock_payment_interface, payment_txn_captured):
     capture_transaction = payment_txn_captured.transactions.get()
     PAYMENT_DATA = create_payment_information(
         payment=payment_txn_captured,
         amount=PARTIAL_REFUND_AMOUNT,
         payment_token=capture_transaction.token,
     )
-    gateway.plugin_manager.refund_payment.return_value = PARTIAL_REFUND_RESPONSE
+    mock_payment_interface.refund_payment.return_value = PARTIAL_REFUND_RESPONSE
     transaction = gateway.refund(
         payment=payment_txn_captured, amount=PARTIAL_REFUND_AMOUNT
     )
-    gateway.plugin_manager.refund_payment.assert_called_once_with(
+    mock_payment_interface.refund_payment.assert_called_once_with(
         USED_GATEWAY, PAYMENT_DATA
     )
 
@@ -195,16 +187,16 @@ def test_partial_refund_payment(gateway, payment_txn_captured):
     assert transaction.gateway_response == RAW_RESPONSE
 
 
-def test_full_refund_payment(gateway, payment_txn_captured):
+def test_full_refund_payment(mock_payment_interface, payment_txn_captured):
     capture_transaction = payment_txn_captured.transactions.get()
     PAYMENT_DATA = create_payment_information(
         payment=payment_txn_captured,
         amount=FULL_REFUND_AMOUNT,
         payment_token=capture_transaction.token,
     )
-    gateway.plugin_manager.refund_payment.return_value = FULL_REFUND_RESPONSE
+    mock_payment_interface.refund_payment.return_value = FULL_REFUND_RESPONSE
     transaction = gateway.refund(payment=payment_txn_captured)
-    gateway.plugin_manager.refund_payment.assert_called_once_with(
+    mock_payment_interface.refund_payment.assert_called_once_with(
         USED_GATEWAY, PAYMENT_DATA
     )
 
@@ -216,18 +208,18 @@ def test_full_refund_payment(gateway, payment_txn_captured):
     assert transaction.gateway_response == RAW_RESPONSE
 
 
-def test_void_payment(gateway, payment_txn_preauth):
+def test_void_payment(mock_payment_interface, payment_txn_preauth):
     auth_transaction = payment_txn_preauth.transactions.get()
     PAYMENT_DATA = create_payment_information(
         payment=payment_txn_preauth,
         payment_token=auth_transaction.token,
         amount=VOID_AMOUNT,
     )
-    gateway.plugin_manager.void_payment.return_value = VOID_RESPONSE
+    mock_payment_interface.void_payment.return_value = VOID_RESPONSE
 
     transaction = gateway.void(payment=payment_txn_preauth)
 
-    gateway.plugin_manager.void_payment.assert_called_once_with(
+    mock_payment_interface.void_payment.assert_called_once_with(
         USED_GATEWAY, PAYMENT_DATA
     )
     payment_txn_preauth.refresh_from_db()
@@ -238,18 +230,18 @@ def test_void_payment(gateway, payment_txn_preauth):
     assert transaction.gateway_response == RAW_RESPONSE
 
 
-def test_confirm_payment(gateway, payment_txn_preauth):
+def test_confirm_payment(mock_payment_interface, payment_txn_preauth):
     auth_transaction = payment_txn_preauth.transactions.get()
     PAYMENT_DATA = create_payment_information(
         payment=payment_txn_preauth,
         payment_token=auth_transaction.token,
         amount=CONFIRM_AMOUNT,
     )
-    gateway.plugin_manager.confirm_payment.return_value = CONFIRM_RESPONSE
+    mock_payment_interface.confirm_payment.return_value = CONFIRM_RESPONSE
 
     transaction = gateway.confirm(payment=payment_txn_preauth)
 
-    gateway.plugin_manager.confirm_payment.assert_called_once_with(
+    mock_payment_interface.confirm_payment.assert_called_once_with(
         USED_GATEWAY, PAYMENT_DATA
     )
     assert transaction.amount == CONFIRM_RESPONSE.amount

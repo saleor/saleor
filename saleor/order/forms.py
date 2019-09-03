@@ -3,8 +3,8 @@ from django.conf import settings
 from django.utils.translation import pgettext_lazy
 
 from ..account.forms import SignupForm
+from ..payment import gateway
 from ..payment.models import Payment
-from ..payment.utils import gateway_void
 from . import events
 from .models import Order
 
@@ -49,7 +49,7 @@ class PaymentDeleteForm(forms.Form):
 
     def save(self):
         payment = self.cleaned_data["payment"]
-        gateway_void(payment)
+        gateway.void(payment)
 
 
 class PasswordForm(SignupForm):

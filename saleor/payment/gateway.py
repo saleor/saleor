@@ -49,8 +49,8 @@ def require_active_payment(fn):
     return wrapped
 
 
-@raise_payment_error
 @payment_postprocess
+@raise_payment_error
 @require_active_payment
 def process_payment(
     payment: Payment, token: str, store_source: bool = False
@@ -72,11 +72,9 @@ def process_payment(
     )
 
 
-@raise_payment_error
 @payment_postprocess
-def authorize(
-    payment: Payment, token: str, store_source: bool = False
-) -> Transaction:
+@raise_payment_error
+def authorize(payment: Payment, token: str, store_source: bool = False) -> Transaction:
     plugin_manager = get_extensions_manager()
     clean_authorize(payment)
     gateway = _get_gateway(payment)
@@ -95,8 +93,8 @@ def authorize(
     )
 
 
-@raise_payment_error
 @payment_postprocess
+@raise_payment_error
 def capture(
     payment: Payment, amount: Decimal = None, store_source: bool = False
 ) -> Transaction:
@@ -107,10 +105,7 @@ def capture(
     gateway = _get_gateway(payment)
     token = _get_past_transaction_token(payment, TransactionKind.AUTH)
     payment_data = create_payment_information(
-        payment=payment,
-        payment_token=token,
-        amount=amount,
-        store_source=store_source,
+        payment=payment, payment_token=token, amount=amount, store_source=store_source
     )
     response, error = _fetch_gateway_response(
         plugin_manager.capture_payment, gateway, payment_data
@@ -124,8 +119,8 @@ def capture(
     )
 
 
-@raise_payment_error
 @payment_postprocess
+@raise_payment_error
 def refund(payment: Payment, amount: Decimal = None) -> Transaction:
     plugin_manager = get_extensions_manager()
     if amount is None:
@@ -150,8 +145,8 @@ def refund(payment: Payment, amount: Decimal = None) -> Transaction:
     )
 
 
-@raise_payment_error
 @payment_postprocess
+@raise_payment_error
 @require_active_payment
 def void(payment: Payment) -> Transaction:
     plugin_manager = get_extensions_manager()
@@ -170,8 +165,8 @@ def void(payment: Payment) -> Transaction:
     )
 
 
-@raise_payment_error
 @payment_postprocess
+@raise_payment_error
 @require_active_payment
 def confirm(payment: Payment) -> Transaction:
     plugin_manager = get_extensions_manager()

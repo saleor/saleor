@@ -29,8 +29,7 @@ from ...core import analytics
 from ...core.exceptions import InsufficientStock
 from ...core.taxes import TaxError
 from ...discount import models as voucher_model
-from ...payment import PaymentError
-from ...payment.gateway import PaymentGateway
+from ...payment import PaymentError, gateway
 from ...payment.interface import AddressData
 from ...payment.utils import store_customer_id
 from ...product import models as product_models
@@ -643,7 +642,6 @@ class CheckoutComplete(BaseMutation):
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
 
-        gateway = PaymentGateway()
         user = info.context.user
         clean_checkout(checkout, info.context.discounts)
 
