@@ -52,7 +52,7 @@ class GiftCardUpdateInput(graphene.InputObjectType):
 
 
 class GiftCardCreateInput(GiftCardUpdateInput):
-    code = graphene.String(required=False, decription="Code to use the gift card.")
+    code = graphene.String(required=False, description="Code to use the gift card.")
 
 
 class GiftCardCreate(GiftcardErrorMixin, ModelMutation):
