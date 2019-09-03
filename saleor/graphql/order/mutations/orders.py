@@ -18,12 +18,12 @@ from ....payment.utils import (
     mark_order_as_paid,
 )
 from ...account.types import AddressInput
-from ...core.mutations import BaseMutation
 from ...core.scalars import Decimal
-from ...core.utils.error_codes import CommonErrorCode, OrderErrorCode
+from ...core.utils.error_codes import OrderErrorCode
 from ...order.mutations.draft_orders import DraftOrderUpdate
 from ...order.types import Order, OrderEvent
 from ...shipping.types import ShippingMethod
+from .base import BaseOrderMutation
 
 
 def clean_order_update_shipping(order, method):
@@ -125,7 +125,7 @@ def try_payment_action(order, user, payment, func, *args, **kwargs):
             order=order, user=user, message=message, payment=payment
         )
         raise ValidationError(
-            {"payment": ValidationError(message, code=CommonErrorCode.PAYMENT_ERROR)}
+            {"payment": ValidationError(message, code=OrderErrorCode.PAYMENT_ERROR)}
         )
     return True
 
@@ -163,7 +163,7 @@ class OrderUpdateShippingInput(graphene.InputObjectType):
     )
 
 
-class OrderUpdateShipping(BaseMutation):
+class OrderUpdateShipping(BaseOrderMutation):
     order = graphene.Field(Order, description="Order with updated shipping method.")
 
     class Arguments:
@@ -191,7 +191,7 @@ class OrderUpdateShipping(BaseMutation):
                     {
                         "shipping_method": ValidationError(
                             "Shipping method is required for this order.",
-                            code=CommonErrorCode.SHIPPING_METHOD_REQUIRED,
+                            code=OrderErrorCode.SHIPPING_METHOD_REQUIRED,
                         )
                     }
                 )
@@ -241,7 +241,7 @@ class OrderAddNoteInput(graphene.InputObjectType):
     message = graphene.String(description="Note message.", name="message")
 
 
-class OrderAddNote(BaseMutation):
+class OrderAddNote(BaseOrderMutation):
     order = graphene.Field(Order, description="Order with the note added.")
     event = graphene.Field(OrderEvent, description="Order note created.")
 
@@ -268,7 +268,7 @@ class OrderAddNote(BaseMutation):
         return OrderAddNote(order=order, event=event)
 
 
-class OrderCancel(BaseMutation):
+class OrderCancel(BaseOrderMutation):
     order = graphene.Field(Order, description="Canceled order.")
 
     class Arguments:
@@ -289,7 +289,7 @@ class OrderCancel(BaseMutation):
         return OrderCancel(order=order)
 
 
-class OrderMarkAsPaid(BaseMutation):
+class OrderMarkAsPaid(BaseOrderMutation):
     order = graphene.Field(Order, description="Order marked as paid.")
 
     class Arguments:
@@ -311,7 +311,7 @@ class OrderMarkAsPaid(BaseMutation):
         return OrderMarkAsPaid(order=order)
 
 
-class OrderCapture(BaseMutation):
+class OrderCapture(BaseOrderMutation):
     order = graphene.Field(Order, description="Captured order.")
 
     class Arguments:
@@ -329,7 +329,7 @@ class OrderCapture(BaseMutation):
                 {
                     "amount": ValidationError(
                         "Amount should be a positive number.",
-                        code=CommonErrorCode.POSITIVE_NUMBER_REQUIRED,
+                        code=OrderErrorCode.ZERO_QUANTITY,
                     )
                 }
             )
@@ -348,7 +348,7 @@ class OrderCapture(BaseMutation):
         return OrderCapture(order=order)
 
 
-class OrderVoid(BaseMutation):
+class OrderVoid(BaseOrderMutation):
     order = graphene.Field(Order, description="A voided order.")
 
     class Arguments:
@@ -372,7 +372,7 @@ class OrderVoid(BaseMutation):
         return OrderVoid(order=order)
 
 
-class OrderRefund(BaseMutation):
+class OrderRefund(BaseOrderMutation):
     order = graphene.Field(Order, description="A refunded order.")
 
     class Arguments:
@@ -390,7 +390,7 @@ class OrderRefund(BaseMutation):
                 {
                     "amount": ValidationError(
                         "Amount should be a positive number.",
-                        code=CommonErrorCode.POSITIVE_NUMBER_REQUIRED,
+                        code=OrderErrorCode.ZERO_QUANTITY,
                     )
                 }
             )

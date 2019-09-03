@@ -4,10 +4,11 @@ from django.core.exceptions import ValidationError
 from ...account import models
 from ..core.mutations import BaseBulkMutation, ModelBulkDeleteMutation
 from ..core.utils.error_codes import AccountErrorCode
+from .mutations.base import AccountErrorMixin
 from .utils import CustomerDeleteMixin, StaffDeleteMixin
 
 
-class UserBulkDelete(ModelBulkDeleteMutation):
+class UserBulkDelete(AccountErrorMixin, ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID, required=True, description="List of sale IDs to delete."
@@ -37,7 +38,7 @@ class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
         permissions = ("account.manage_staff",)
 
 
-class UserBulkSetActive(BaseBulkMutation):
+class UserBulkSetActive(AccountErrorMixin, BaseBulkMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID, required=True, description="List of user IDs to (de)activate)."

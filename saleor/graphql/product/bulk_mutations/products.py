@@ -2,9 +2,10 @@ import graphene
 
 from ....product import models
 from ...core.mutations import BaseBulkMutation, ModelBulkDeleteMutation
+from ..mutations.base import ProductErrorMixin
 
 
-class CategoryBulkDelete(ModelBulkDeleteMutation):
+class CategoryBulkDelete(ProductErrorMixin, ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID, required=True, description="List of category IDs to delete."
@@ -16,7 +17,7 @@ class CategoryBulkDelete(ModelBulkDeleteMutation):
         permissions = ("product.manage_products",)
 
 
-class CollectionBulkDelete(ModelBulkDeleteMutation):
+class CollectionBulkDelete(ProductErrorMixin, ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID, required=True, description="List of collection IDs to delete."
@@ -28,7 +29,7 @@ class CollectionBulkDelete(ModelBulkDeleteMutation):
         permissions = ("product.manage_products",)
 
 
-class CollectionBulkPublish(BaseBulkMutation):
+class CollectionBulkPublish(ProductErrorMixin, BaseBulkMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID,
@@ -50,7 +51,7 @@ class CollectionBulkPublish(BaseBulkMutation):
         queryset.update(is_published=is_published)
 
 
-class ProductBulkDelete(ModelBulkDeleteMutation):
+class ProductBulkDelete(ProductErrorMixin, ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID, required=True, description="List of product IDs to delete."
@@ -62,7 +63,7 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
         permissions = ("product.manage_products",)
 
 
-class ProductVariantBulkDelete(ModelBulkDeleteMutation):
+class ProductVariantBulkDelete(ProductErrorMixin, ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID,
@@ -76,7 +77,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         permissions = ("product.manage_products",)
 
 
-class ProductTypeBulkDelete(ModelBulkDeleteMutation):
+class ProductTypeBulkDelete(ProductErrorMixin, ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID,
@@ -90,7 +91,7 @@ class ProductTypeBulkDelete(ModelBulkDeleteMutation):
         permissions = ("product.manage_products",)
 
 
-class ProductImageBulkDelete(ModelBulkDeleteMutation):
+class ProductImageBulkDelete(ProductErrorMixin, ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID,
@@ -104,7 +105,7 @@ class ProductImageBulkDelete(ModelBulkDeleteMutation):
         permissions = ("product.manage_products",)
 
 
-class ProductBulkPublish(BaseBulkMutation):
+class ProductBulkPublish(ProductErrorMixin, BaseBulkMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID, required=True, description="List of products IDs to publish."

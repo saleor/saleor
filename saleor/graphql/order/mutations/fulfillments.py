@@ -5,10 +5,10 @@ from django.utils.translation import npgettext_lazy, pgettext_lazy
 from ....order import events, models
 from ....order.emails import send_fulfillment_confirmation_to_customer
 from ....order.utils import cancel_fulfillment, fulfill_order_line, update_order_status
-from ...core.mutations import BaseMutation
-from ...core.utils.error_codes import CommonErrorCode, OrderErrorCode
+from ...core.utils.error_codes import OrderErrorCode
 from ...order.types import Fulfillment, Order
 from ..types import OrderLine
+from .base import BaseOrderMutation
 
 
 class FulfillmentLineInput(graphene.InputObjectType):
@@ -39,7 +39,7 @@ class FulfillmentCancelInput(graphene.InputObjectType):
     restock = graphene.Boolean(description="Whether item lines are restocked.")
 
 
-class FulfillmentCreate(BaseMutation):
+class FulfillmentCreate(BaseOrderMutation):
     fulfillment = graphene.Field(Fulfillment, description="A created fulfillment.")
     order = graphene.Field(Order, description="Fulfilled order.")
 
@@ -92,7 +92,7 @@ class FulfillmentCreate(BaseMutation):
                 {
                     "lines": ValidationError(
                         "Total quantity must be larger than 0.",
-                        code=CommonErrorCode.POSITIVE_NUMBER_REQUIRED,
+                        code=OrderErrorCode.ZERO_QUANTITY,
                     )
                 }
             )
@@ -140,7 +140,7 @@ class FulfillmentCreate(BaseMutation):
         return FulfillmentCreate(fulfillment=fulfillment, order=fulfillment.order)
 
 
-class FulfillmentUpdateTracking(BaseMutation):
+class FulfillmentUpdateTracking(BaseOrderMutation):
     fulfillment = graphene.Field(
         Fulfillment, description="A fulfillment with updated tracking."
     )
@@ -172,7 +172,7 @@ class FulfillmentUpdateTracking(BaseMutation):
         return FulfillmentUpdateTracking(fulfillment=fulfillment, order=order)
 
 
-class FulfillmentCancel(BaseMutation):
+class FulfillmentCancel(BaseOrderMutation):
     fulfillment = graphene.Field(Fulfillment, description="A canceled fulfillment.")
     order = graphene.Field(Order, description="Order which fulfillment was cancelled.")
 

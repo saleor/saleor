@@ -52,17 +52,16 @@ def validation_error_to_error_type(validation_error: ValidationError) -> list:
             field = None if field == NON_FIELD_ERRORS else snake_to_camel_case(field)
             for err in field_errors:
                 err_list.append(
-                    Error(
-                        field=field,
-                        message=err.messages[0],
-                        code=get_error_code_from_error(err),
+                    (
+                        Error(field=field, message=err.messages[0]),
+                        get_error_code_from_error(err),
                     )
                 )
     else:
         # convert non-field errors
         for err in validation_error.error_list:
             err_list.append(
-                Error(message=err.messages[0], code=get_error_code_from_error(err))
+                (Error(message=err.messages[0]), get_error_code_from_error(err))
             )
     return err_list
 
@@ -144,7 +143,7 @@ class BaseMutation(graphene.Mutation):
             node = cls.get_node_by_pk(info, graphene_type=only_type, pk=pk, qs=qs)
         except (AssertionError, GraphQLError) as e:
             raise ValidationError(
-                {field: ValidationError(str(e), code=CommonErrorCode.GRAPHQL_ERROR)}
+                {field: ValidationError(str(e), code="graphql_error")}
             )
         else:
             if node is None:
@@ -152,7 +151,7 @@ class BaseMutation(graphene.Mutation):
                     {
                         field: ValidationError(
                             "Couldn't resolve to a node: %s" % node_id,
-                            code=CommonErrorCode.OBJECT_DOES_NOT_EXIST,
+                            code="object_does_not_exist",
                         )
                     }
                 )
@@ -164,7 +163,7 @@ class BaseMutation(graphene.Mutation):
             instances = get_nodes(ids, only_type, qs=qs)
         except GraphQLError as e:
             raise ValidationError(
-                {field: ValidationError(str(e), code=CommonErrorCode.GRAPHQL_ERROR)}
+                {field: ValidationError(str(e), code="graphql_error")}
             )
         return instances
 
@@ -250,12 +249,24 @@ class BaseMutation(graphene.Mutation):
                 response.errors = []
             return response
         except ValidationError as e:
-            errors = validation_error_to_error_type(e)
-            return cls(errors=errors)
+            return cls.handle_errors(e)
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
         pass
+
+    @classmethod
+    def handle_errors(cls, error: ValidationError, **extra):
+        errors = validation_error_to_error_type(error)
+        return cls.handle_typed_errors(errors, **extra)
+
+    @classmethod
+    def handle_typed_errors(cls, errors: list, **extra):
+        """Return class instance with errors.
+
+        Should be overridden in mutation that supports typed errors.
+        """
+        return cls(errors=[e[0] for e in errors], **extra)
 
 
 class ModelMutation(BaseMutation):
@@ -512,7 +523,8 @@ class BaseBulkMutation(BaseMutation):
 
         count, errors = cls.perform_mutation(root, info, **data)
         if errors:
-            errors = validation_error_to_error_type(errors)
+            return cls.handle_errors(errors, count=count)
+
         return cls(errors=errors, count=count)
 
 

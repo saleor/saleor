@@ -17,7 +17,6 @@ from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...core.enums import PermissionEnum
 from ...core.mutations import (
-    BaseMutation,
     ClearMetaBaseMutation,
     ModelDeleteMutation,
     ModelMutation,
@@ -28,6 +27,8 @@ from ...core.utils import validate_image_file
 from ...core.utils.error_codes import AccountErrorCode
 from ..utils import CustomerDeleteMixin, StaffDeleteMixin, UserDeleteMixin
 from .base import (
+    AccountErrorMixin,
+    BaseAccountMutation,
     BaseAddressDelete,
     BaseAddressUpdate,
     BaseCustomerCreate,
@@ -126,7 +127,7 @@ class CustomerUpdate(CustomerCreate):
         return cls.success_response(new_instance)
 
 
-class UserDelete(UserDeleteMixin, ModelDeleteMutation):
+class UserDelete(AccountErrorMixin, UserDeleteMixin, ModelDeleteMutation):
     class Meta:
         abstract = True
 
@@ -147,7 +148,7 @@ class CustomerDelete(CustomerDeleteMixin, UserDelete):
         return results
 
 
-class StaffCreate(ModelMutation):
+class StaffCreate(AccountErrorMixin, ModelMutation):
     class Arguments:
         input = StaffCreateInput(
             description="Fields required to create a staff user.", required=True
@@ -263,7 +264,7 @@ class StaffDelete(StaffDeleteMixin, UserDelete):
         return cls.success_response(instance)
 
 
-class AddressCreate(ModelMutation):
+class AddressCreate(AccountErrorMixin, ModelMutation):
     user = graphene.Field(
         User, description="A user instance for which the address was created."
     )
@@ -306,7 +307,7 @@ class AddressDelete(BaseAddressDelete):
         permissions = ("account.manage_users",)
 
 
-class AddressSetDefault(BaseMutation):
+class AddressSetDefault(BaseAccountMutation):
     user = graphene.Field(User, description="An updated user instance.")
 
     class Arguments:
@@ -346,7 +347,7 @@ class AddressSetDefault(BaseMutation):
         return cls(user=user)
 
 
-class UserAvatarUpdate(BaseMutation):
+class UserAvatarUpdate(BaseAccountMutation):
     user = graphene.Field(User, description="An updated user instance.")
 
     class Arguments:
@@ -380,7 +381,7 @@ class UserAvatarUpdate(BaseMutation):
         return UserAvatarUpdate(user=user)
 
 
-class UserAvatarDelete(BaseMutation):
+class UserAvatarDelete(BaseAccountMutation):
     user = graphene.Field(User, description="An updated user instance.")
 
     class Meta:
@@ -395,7 +396,7 @@ class UserAvatarDelete(BaseMutation):
         return UserAvatarDelete(user=user)
 
 
-class UserUpdatePrivateMeta(UpdateMetaBaseMutation):
+class UserUpdatePrivateMeta(AccountErrorMixin, UpdateMetaBaseMutation):
     class Meta:
         description = "Updates private metadata for user."
         permissions = ("account.manage_users",)
@@ -403,7 +404,7 @@ class UserUpdatePrivateMeta(UpdateMetaBaseMutation):
         public = False
 
 
-class UserClearStoredPrivateMeta(ClearMetaBaseMutation):
+class UserClearStoredPrivateMeta(AccountErrorMixin, ClearMetaBaseMutation):
     class Meta:
         description = "Clear stored metadata value."
         model = models.User

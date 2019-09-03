@@ -15,11 +15,7 @@ from saleor.graphql.checkout.mutations import (
     update_checkout_shipping_method_if_invalid,
 )
 from saleor.graphql.core.utils import str_to_enum
-from saleor.graphql.core.utils.error_codes import (
-    AccountErrorCode,
-    CheckoutErrorCode,
-    CommonErrorCode,
-)
+from saleor.graphql.core.utils.error_codes import CheckoutErrorCode
 from saleor.order.models import Order
 from saleor.payment import PaymentError
 from saleor.payment.models import Transaction
@@ -106,6 +102,10 @@ MUTATION_CHECKOUT_CREATE = """
         errors {
           field
           message
+        }
+        checkoutErrors {
+          field
+          message
           code
         }
       }
@@ -162,12 +162,12 @@ def test_checkout_create(api_client, variant, graphql_address_data):
         (
             -1,
             "The quantity should be higher than zero.",
-            CommonErrorCode.POSITIVE_NUMBER_REQUIRED,
+            CheckoutErrorCode.ZERO_QUANTITY,
         ),
         (
             0,
             "The quantity should be higher than zero.",
-            CommonErrorCode.POSITIVE_NUMBER_REQUIRED,
+            CheckoutErrorCode.ZERO_QUANTITY,
         ),
         (
             51,
@@ -200,6 +200,10 @@ def test_checkout_create_cannot_add_invalid_quantities(
     content = get_graphql_content(response)["data"]["checkoutCreate"]
     assert content["errors"]
     assert content["errors"] == [
+        {"field": "quantity", "message": expected_error_message}
+    ]
+
+    assert content["checkoutErrors"] == [
         {
             "field": "quantity",
             "message": expected_error_message,
@@ -246,7 +250,9 @@ def test_checkout_create_required_email(api_client, variant):
     assert errors
     assert errors[0]["field"] == "email"
     assert errors[0]["message"] == "This field cannot be blank."
-    assert errors[0]["code"] == "BLANK"
+
+    checkout_errors = content["data"]["checkoutCreate"]["checkoutErrors"]
+    assert checkout_errors[0]["code"] == "REQUIRED"
 
 
 def test_checkout_create_default_email_for_logged_in_customer(user_api_client, variant):
@@ -785,6 +791,10 @@ MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE = """
             errors {
                 field,
                 message,
+            }
+            checkoutErrors {
+                field
+                message
                 code
             }
         }
@@ -849,10 +859,13 @@ def test_checkout_shipping_address_with_invalid_phone_number_returns_error(
         )
     )["data"]["checkoutShippingAddressUpdate"]
     assert response["errors"] == [
+        {"field": "phone", "message": "'+33600000' is not a valid phone number."}
+    ]
+    assert response["checkoutErrors"] == [
         {
             "field": "phone",
             "message": "'+33600000' is not a valid phone number.",
-            "code": AccountErrorCode.INVALID_PHONE_NUMBER.name,
+            "code": CheckoutErrorCode.INVALID_PHONE_NUMBER.name,
         }
     ]
 
@@ -916,7 +929,8 @@ def test_checkout_shipping_address_update_invalid_country_code(
     data = content["data"]["checkoutShippingAddressUpdate"]
     assert data["errors"][0]["message"] == "Invalid country code."
     assert data["errors"][0]["field"] == "country"
-    assert data["errors"][0]["code"] == AccountErrorCode.INVALID_COUNTRY.name
+
+    assert data["checkoutErrors"][0]["code"] == CheckoutErrorCode.INVALID_COUNTRY.name
 
 
 def test_checkout_billing_address_update(
@@ -975,6 +989,10 @@ CHECKOUT_EMAIL_UPDATE_MUTATION = """
             errors {
                 field,
                 message
+            }
+            checkoutErrors {
+                field,
+                message
                 code
             }
         }
@@ -1009,7 +1027,9 @@ def test_checkout_email_update_validation(user_api_client, checkout_with_item):
     assert errors
     assert errors[0]["field"] == "email"
     assert errors[0]["message"] == "This field cannot be blank."
-    assert errors[0]["code"] == "BLANK"
+
+    checkout_errors = content["data"]["checkoutEmailUpdate"]["checkoutErrors"]
+    assert checkout_errors[0]["code"] == "REQUIRED"
 
 
 MUTATION_CHECKOUT_COMPLETE = """

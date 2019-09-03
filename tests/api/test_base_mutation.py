@@ -5,7 +5,6 @@ import pytest
 from django.core.exceptions import ImproperlyConfigured
 
 from saleor.graphql.core.mutations import BaseMutation
-from saleor.graphql.core.utils.error_codes import CommonErrorCode
 from saleor.graphql.product import types as product_types
 
 
@@ -72,7 +71,6 @@ def test_user_error_nonexistent_id(schema_context):
                 errors {
                     field
                     message
-                    code
                 }
             }
         }
@@ -84,7 +82,6 @@ def test_user_error_nonexistent_id(schema_context):
     assert user_errors
     assert user_errors[0]["field"] == "productId"
     assert user_errors[0]["message"] == "Couldn't resolve to a node"
-    assert user_errors[0]["code"] == CommonErrorCode.OBJECT_DOES_NOT_EXIST.name
 
 
 def test_user_error_id_of_different_type(product, schema_context):

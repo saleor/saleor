@@ -8,19 +8,19 @@ from django.template.defaultfilters import slugify
 
 from ....product import AttributeInputType, models
 from ...core.mutations import (
-    BaseMutation,
     ClearMetaBaseMutation,
     ModelDeleteMutation,
     ModelMutation,
     UpdateMetaBaseMutation,
 )
 from ...core.utils import from_global_id_strict_type
-from ...core.utils.error_codes import CommonErrorCode, ProductErrorCode
+from ...core.utils.error_codes import ProductErrorCode
 from ...core.utils.reordering import perform_reordering
 from ...product.types import ProductType
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..enums import AttributeInputTypeEnum, AttributeTypeEnum
 from ..types import Attribute, AttributeValue
+from .base import BaseProductMutation, ProductErrorMixin
 
 
 class AttributeValueCreateInput(graphene.InputObjectType):
@@ -120,7 +120,7 @@ class AttributeMixin:
                 raise ValidationError(
                     {
                         cls.ATTRIBUTE_VALUES_FIELD: ValidationError(
-                            msg, code=CommonErrorCode.OBJECT_ALREADY_EXISTS
+                            msg, code=ProductErrorCode.OBJECT_ALREADY_EXISTS
                         )
                     }
                 )
@@ -185,7 +185,7 @@ class AttributeMixin:
                 {
                     "slug": ValidationError(
                         "This attribute's slug already exists.",
-                        code=CommonErrorCode.OBJECT_ALREADY_EXISTS,
+                        code=ProductErrorCode.OBJECT_ALREADY_EXISTS,
                     )
                 }
             )
@@ -200,7 +200,7 @@ class AttributeMixin:
             attribute.values.create(**value)
 
 
-class AttributeCreate(AttributeMixin, ModelMutation):
+class AttributeCreate(ProductErrorMixin, AttributeMixin, ModelMutation):
     # Needed by AttributeMixin,
     # represents the input name for the passed list of values
     ATTRIBUTE_VALUES_FIELD = "values"
@@ -238,7 +238,7 @@ class AttributeCreate(AttributeMixin, ModelMutation):
         return AttributeCreate(attribute=instance)
 
 
-class AttributeUpdate(AttributeMixin, ModelMutation):
+class AttributeUpdate(ProductErrorMixin, AttributeMixin, ModelMutation):
     # Needed by AttributeMixin,
     # represents the input name for the passed list of values
     ATTRIBUTE_VALUES_FIELD = "add_values"
@@ -300,7 +300,7 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
         return AttributeUpdate(attribute=instance)
 
 
-class AttributeAssign(BaseMutation):
+class AttributeAssign(BaseProductMutation):
     product_type = graphene.Field(ProductType, description="The updated product type.")
 
     class Arguments:
@@ -444,7 +444,7 @@ class AttributeAssign(BaseMutation):
         return cls(product_type=product_type)
 
 
-class AttributeUnassign(BaseMutation):
+class AttributeUnassign(BaseProductMutation):
     product_type = graphene.Field(ProductType, description="The updated product type.")
 
     class Arguments:
@@ -494,7 +494,7 @@ class AttributeUnassign(BaseMutation):
         return cls(product_type=product_type)
 
 
-class AttributeDelete(ModelDeleteMutation):
+class AttributeDelete(ProductErrorMixin, ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of an attribute to delete.")
 
@@ -504,7 +504,7 @@ class AttributeDelete(ModelDeleteMutation):
         permissions = ("product.manage_products",)
 
 
-class AttributeUpdateMeta(UpdateMetaBaseMutation):
+class AttributeUpdateMeta(ProductErrorMixin, UpdateMetaBaseMutation):
     class Meta:
         model = models.Attribute
         description = "Update public metadata for Attribute "
@@ -512,7 +512,7 @@ class AttributeUpdateMeta(UpdateMetaBaseMutation):
         public = True
 
 
-class AttributeClearMeta(ClearMetaBaseMutation):
+class AttributeClearMeta(ProductErrorMixin, ClearMetaBaseMutation):
     class Meta:
         description = "Clears public metadata item for Attribute"
         model = models.Attribute
@@ -520,7 +520,7 @@ class AttributeClearMeta(ClearMetaBaseMutation):
         public = True
 
 
-class AttributeUpdatePrivateMeta(UpdateMetaBaseMutation):
+class AttributeUpdatePrivateMeta(ProductErrorMixin, UpdateMetaBaseMutation):
     class Meta:
         description = "Update public metadata for Attribute"
         model = models.Attribute
@@ -528,7 +528,7 @@ class AttributeUpdatePrivateMeta(UpdateMetaBaseMutation):
         public = False
 
 
-class AttributeClearPrivateMeta(ClearMetaBaseMutation):
+class AttributeClearPrivateMeta(ProductErrorMixin, ClearMetaBaseMutation):
     class Meta:
         description = "Clears public metadata item for Attribute"
         model = models.Attribute
@@ -544,13 +544,13 @@ def validate_value_is_unique(attribute: models.Attribute, value: models.Attribut
             {
                 "name": ValidationError(
                     f"Value with slug {value.slug} already exists.",
-                    code=CommonErrorCode.OBJECT_ALREADY_EXISTS,
+                    code=ProductErrorCode.OBJECT_ALREADY_EXISTS,
                 )
             }
         )
 
 
-class AttributeValueCreate(ModelMutation):
+class AttributeValueCreate(ProductErrorMixin, ModelMutation):
     attribute = graphene.Field(Attribute, description="The updated attribute.")
 
     class Arguments:
@@ -593,7 +593,7 @@ class AttributeValueCreate(ModelMutation):
         return AttributeValueCreate(attribute=attribute, attributeValue=instance)
 
 
-class AttributeValueUpdate(ModelMutation):
+class AttributeValueUpdate(ProductErrorMixin, ModelMutation):
     attribute = graphene.Field(Attribute, description="The updated attribute.")
 
     class Arguments:
@@ -628,7 +628,7 @@ class AttributeValueUpdate(ModelMutation):
         return response
 
 
-class AttributeValueDelete(ModelDeleteMutation):
+class AttributeValueDelete(ProductErrorMixin, ModelDeleteMutation):
     attribute = graphene.Field(Attribute, description="The updated attribute.")
 
     class Arguments:
@@ -646,7 +646,7 @@ class AttributeValueDelete(ModelDeleteMutation):
         return response
 
 
-class ProductTypeReorderAttributes(BaseMutation):
+class ProductTypeReorderAttributes(BaseProductMutation):
     product_type = graphene.Field(
         ProductType, description="Product type from which attributes are reordered."
     )
@@ -688,7 +688,7 @@ class ProductTypeReorderAttributes(BaseMutation):
                 {
                     "product_type_id": ValidationError(
                         (f"Couldn't resolve to a product type: {product_type_id}"),
-                        code=CommonErrorCode.OBJECT_DOES_NOT_EXIST,
+                        code=ProductErrorCode.OBJECT_DOES_NOT_EXIST,
                     )
                 }
             )
@@ -709,7 +709,7 @@ class ProductTypeReorderAttributes(BaseMutation):
                     {
                         "moves": ValidationError(
                             f"Couldn't resolve to an attribute: {move_info.id}",
-                            code=CommonErrorCode.OBJECT_DOES_NOT_EXIST,
+                            code=ProductErrorCode.OBJECT_DOES_NOT_EXIST,
                         )
                     }
                 )
@@ -720,7 +720,7 @@ class ProductTypeReorderAttributes(BaseMutation):
         return ProductTypeReorderAttributes(product_type=product_type)
 
 
-class AttributeReorderValues(BaseMutation):
+class AttributeReorderValues(BaseProductMutation):
     attribute = graphene.Field(
         Attribute, description="Attribute from which values are reordered."
     )
@@ -752,7 +752,7 @@ class AttributeReorderValues(BaseMutation):
                 {
                     "attribute_id": ValidationError(
                         f"Couldn't resolve to an attribute: {attribute_id}",
-                        code=CommonErrorCode.OBJECT_DOES_NOT_EXIST,
+                        code=ProductErrorCode.OBJECT_DOES_NOT_EXIST,
                     )
                 }
             )
@@ -773,7 +773,7 @@ class AttributeReorderValues(BaseMutation):
                     {
                         "moves": ValidationError(
                             f"Couldn't resolve to an attribute value: {move_info.id}",
-                            code=CommonErrorCode.OBJECT_DOES_NOT_EXIST,
+                            code=ProductErrorCode.OBJECT_DOES_NOT_EXIST,
                         )
                     }
                 )

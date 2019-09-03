@@ -4,7 +4,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.http.request import split_domain_port, validate_host
 
-from ...graphql.core.utils.error_codes import CommonErrorCode
+from ...graphql.core.utils.error_codes import AccountErrorCode
 
 
 def validate_storefront_url(url):
@@ -18,7 +18,7 @@ def validate_storefront_url(url):
         domain, _ = split_domain_port(parsed_url.netloc)
     except ValueError as error:
         raise ValidationError(
-            {"redirectUrl": str(error)}, code=CommonErrorCode.INVALID_STOREFRONT_URL
+            {"redirectUrl": str(error)}, code=AccountErrorCode.INVALID_STOREFRONT_URL
         )
     if not validate_host(domain, settings.ALLOWED_CLIENT_HOSTS):
         error_message = (
@@ -26,5 +26,5 @@ def validate_storefront_url(url):
             "`ALLOWED_CLIENT_HOSTS` configuration."
         )
         raise ValidationError(
-            {"redirectUrl": error_message}, code=CommonErrorCode.INVALID_STOREFRONT_URL
+            {"redirectUrl": error_message}, code=AccountErrorCode.INVALID_STOREFRONT_URL
         )

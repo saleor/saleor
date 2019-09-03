@@ -3,9 +3,10 @@ import graphene
 from ...menu import models
 from ...menu.utils import update_menus
 from ..core.mutations import ModelBulkDeleteMutation
+from .mutations import MenuErrorMixin
 
 
-class MenuBulkDelete(ModelBulkDeleteMutation):
+class MenuBulkDelete(MenuErrorMixin, ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID, required=True, description="List of menu IDs to delete."
@@ -17,7 +18,7 @@ class MenuBulkDelete(ModelBulkDeleteMutation):
         permissions = ("menu.manage_menus",)
 
 
-class MenuItemBulkDelete(ModelBulkDeleteMutation):
+class MenuItemBulkDelete(MenuErrorMixin, ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID, required=True, description="List of menu item IDs to delete."

@@ -2,9 +2,10 @@ import graphene
 
 from ....product import models
 from ...core.mutations import ModelBulkDeleteMutation
+from ..mutations.base import ProductErrorMixin
 
 
-class AttributeBulkDelete(ModelBulkDeleteMutation):
+class AttributeBulkDelete(ProductErrorMixin, ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID, required=True, description="List of attribute IDs to delete."
@@ -16,7 +17,7 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
         permissions = ("product.manage_products",)
 
 
-class AttributeValueBulkDelete(ModelBulkDeleteMutation):
+class AttributeValueBulkDelete(ProductErrorMixin, ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID,
