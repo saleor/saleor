@@ -3,7 +3,7 @@ from decimal import Decimal
 
 from django.core.exceptions import ImproperlyConfigured
 
-from ..core.payments import Gateway, PaymentInterface
+from ..core.payments import Gateway
 from ..extensions.manager import get_extensions_manager
 from . import GatewayError, PaymentError, TransactionKind
 from .models import Payment, Transaction
@@ -41,146 +41,153 @@ def payment_postprocess(fn):
 
 
 def require_active_payment(fn):
-    def wrapped(self, payment: Payment, *args, **kwargs):
+    def wrapped(payment: Payment, *args, **kwargs):
         if not payment.is_active:
             raise PaymentError("This payment is no longer active.")
-        return fn(self, payment, *args, **kwargs)
+        return fn(payment, *args, **kwargs)
 
     return wrapped
 
 
-class PaymentGateway:
-    def __init__(self):
-        self.plugin_manager: PaymentInterface = get_extensions_manager()
+@raise_payment_error
+@payment_postprocess
+@require_active_payment
+def process_payment(
+    payment: Payment, token: str, store_source: bool = False
+) -> Transaction:
+    plugin_manager = get_extensions_manager()
+    gateway = _get_gateway(payment)
+    payment_data = create_payment_information(
+        payment=payment, payment_token=token, store_source=store_source
+    )
+    response, error = _fetch_gateway_response(
+        plugin_manager.process_payment, gateway, payment_data
+    )
+    return create_transaction(
+        payment=payment,
+        kind=TransactionKind.CAPTURE,
+        payment_information=payment_data,
+        error_msg=error,
+        gateway_response=response,
+    )
 
-    @raise_payment_error
-    @payment_postprocess
-    @require_active_payment
-    def process_payment(
-        self, payment: Payment, token: str, store_source: bool = False
-    ) -> Transaction:
-        gateway = _get_gateway(payment)
-        payment_data = create_payment_information(
-            payment=payment, payment_token=token, store_source=store_source
-        )
-        response, error = _fetch_gateway_response(
-            self.plugin_manager.process_payment, gateway, payment_data
-        )
-        return create_transaction(
-            payment=payment,
-            kind=TransactionKind.CAPTURE,
-            payment_information=payment_data,
-            error_msg=error,
-            gateway_response=response,
-        )
 
-    @raise_payment_error
-    @payment_postprocess
-    def authorize(
-        self, payment: Payment, token: str, store_source: bool = False
-    ) -> Transaction:
-        clean_authorize(payment)
-        gateway = _get_gateway(payment)
-        payment_data = create_payment_information(
-            payment=payment, payment_token=token, store_source=store_source
-        )
-        response, error = _fetch_gateway_response(
-            self.plugin_manager.authorize_payment, gateway, payment_data
-        )
-        return create_transaction(
-            payment=payment,
-            kind=TransactionKind.AUTH,
-            payment_information=payment_data,
-            error_msg=error,
-            gateway_response=response,
-        )
+@raise_payment_error
+@payment_postprocess
+def authorize(
+    payment: Payment, token: str, store_source: bool = False
+) -> Transaction:
+    plugin_manager = get_extensions_manager()
+    clean_authorize(payment)
+    gateway = _get_gateway(payment)
+    payment_data = create_payment_information(
+        payment=payment, payment_token=token, store_source=store_source
+    )
+    response, error = _fetch_gateway_response(
+        plugin_manager.authorize_payment, gateway, payment_data
+    )
+    return create_transaction(
+        payment=payment,
+        kind=TransactionKind.AUTH,
+        payment_information=payment_data,
+        error_msg=error,
+        gateway_response=response,
+    )
 
-    @raise_payment_error
-    @payment_postprocess
-    def capture(
-        self, payment: Payment, amount: Decimal = None, store_source: bool = False
-    ) -> Transaction:
-        if amount is None:
-            amount = payment.get_charge_amount()
-        clean_capture(payment, amount)
-        gateway = _get_gateway(payment)
-        token = _get_past_transaction_token(payment, TransactionKind.AUTH)
-        payment_data = create_payment_information(
-            payment=payment,
-            payment_token=token,
-            amount=amount,
-            store_source=store_source,
-        )
-        response, error = _fetch_gateway_response(
-            self.plugin_manager.capture_payment, gateway, payment_data
-        )
-        return create_transaction(
-            payment=payment,
-            kind=TransactionKind.CAPTURE,
-            payment_information=payment_data,
-            error_msg=error,
-            gateway_response=response,
-        )
 
-    @raise_payment_error
-    @payment_postprocess
-    def refund(self, payment: Payment, amount: Decimal = None) -> Transaction:
-        if amount is None:
-            amount = payment.captured_amount
-        _validate_refund_amound(payment, amount)
-        if not payment.can_refund():
-            raise PaymentError("This payment cannot be refunded.")
-        gateway = _get_gateway(payment)
-        token = _get_past_transaction_token(payment, TransactionKind.CAPTURE)
-        payment_data = create_payment_information(
-            payment=payment, payment_token=token, amount=amount
-        )
-        response, error = _fetch_gateway_response(
-            self.plugin_manager.refund_payment, gateway, payment_data
-        )
-        return create_transaction(
-            payment=payment,
-            kind=TransactionKind.REFUND,
-            payment_information=payment_data,
-            error_msg=error,
-            gateway_response=response,
-        )
+@raise_payment_error
+@payment_postprocess
+def capture(
+    payment: Payment, amount: Decimal = None, store_source: bool = False
+) -> Transaction:
+    plugin_manager = get_extensions_manager()
+    if amount is None:
+        amount = payment.get_charge_amount()
+    clean_capture(payment, amount)
+    gateway = _get_gateway(payment)
+    token = _get_past_transaction_token(payment, TransactionKind.AUTH)
+    payment_data = create_payment_information(
+        payment=payment,
+        payment_token=token,
+        amount=amount,
+        store_source=store_source,
+    )
+    response, error = _fetch_gateway_response(
+        plugin_manager.capture_payment, gateway, payment_data
+    )
+    return create_transaction(
+        payment=payment,
+        kind=TransactionKind.CAPTURE,
+        payment_information=payment_data,
+        error_msg=error,
+        gateway_response=response,
+    )
 
-    @raise_payment_error
-    @payment_postprocess
-    @require_active_payment
-    def void(self, payment: Payment) -> Transaction:
-        gateway = _get_gateway(payment)
-        token = _get_past_transaction_token(payment, TransactionKind.AUTH)
-        payment_data = create_payment_information(payment=payment, payment_token=token)
-        response, error = _fetch_gateway_response(
-            self.plugin_manager.void_payment, gateway, payment_data
-        )
-        return create_transaction(
-            payment=payment,
-            kind=TransactionKind.VOID,
-            payment_information=payment_data,
-            error_msg=error,
-            gateway_response=response,
-        )
 
-    @raise_payment_error
-    @payment_postprocess
-    @require_active_payment
-    def confirm(self, payment: Payment) -> Transaction:
-        gateway = _get_gateway(payment)
-        token = _get_past_transaction_token(payment, TransactionKind.AUTH)
-        payment_data = create_payment_information(payment=payment, payment_token=token)
-        response, error = _fetch_gateway_response(
-            self.plugin_manager.confirm_payment, gateway, payment_data
-        )
-        return create_transaction(
-            payment=payment,
-            kind=TransactionKind.CONFIRM,
-            payment_information=payment_data,
-            error_msg=error,
-            gateway_response=response,
-        )
+@raise_payment_error
+@payment_postprocess
+def refund(payment: Payment, amount: Decimal = None) -> Transaction:
+    plugin_manager = get_extensions_manager()
+    if amount is None:
+        amount = payment.captured_amount
+    _validate_refund_amound(payment, amount)
+    if not payment.can_refund():
+        raise PaymentError("This payment cannot be refunded.")
+    gateway = _get_gateway(payment)
+    token = _get_past_transaction_token(payment, TransactionKind.CAPTURE)
+    payment_data = create_payment_information(
+        payment=payment, payment_token=token, amount=amount
+    )
+    response, error = _fetch_gateway_response(
+        plugin_manager.refund_payment, gateway, payment_data
+    )
+    return create_transaction(
+        payment=payment,
+        kind=TransactionKind.REFUND,
+        payment_information=payment_data,
+        error_msg=error,
+        gateway_response=response,
+    )
+
+
+@raise_payment_error
+@payment_postprocess
+@require_active_payment
+def void(payment: Payment) -> Transaction:
+    plugin_manager = get_extensions_manager()
+    gateway = _get_gateway(payment)
+    token = _get_past_transaction_token(payment, TransactionKind.AUTH)
+    payment_data = create_payment_information(payment=payment, payment_token=token)
+    response, error = _fetch_gateway_response(
+        plugin_manager.void_payment, gateway, payment_data
+    )
+    return create_transaction(
+        payment=payment,
+        kind=TransactionKind.VOID,
+        payment_information=payment_data,
+        error_msg=error,
+        gateway_response=response,
+    )
+
+
+@raise_payment_error
+@payment_postprocess
+@require_active_payment
+def confirm(payment: Payment) -> Transaction:
+    plugin_manager = get_extensions_manager()
+    gateway = _get_gateway(payment)
+    token = _get_past_transaction_token(payment, TransactionKind.AUTH)
+    payment_data = create_payment_information(payment=payment, payment_token=token)
+    response, error = _fetch_gateway_response(
+        plugin_manager.confirm_payment, gateway, payment_data
+    )
+    return create_transaction(
+        payment=payment,
+        kind=TransactionKind.CONFIRM,
+        payment_information=payment_data,
+        error_msg=error,
+        gateway_response=response,
+    )
 
 
 def _get_gateway(payment: Payment) -> Gateway:
