@@ -13,6 +13,7 @@ from .utils import (
     clean_capture,
     create_payment_information,
     create_transaction,
+    update_card_details,
     validate_gateway_response,
 )
 
@@ -95,13 +96,14 @@ def authorize(payment: Payment, token: str, store_source: bool = False) -> Trans
 
 @payment_postprocess
 @raise_payment_error
+@require_active_payment
 def capture(
     payment: Payment, amount: Decimal = None, store_source: bool = False
 ) -> Transaction:
     plugin_manager = get_extensions_manager()
     if amount is None:
         amount = payment.get_charge_amount()
-    clean_capture(payment, amount)
+    clean_capture(payment, Decimal(amount))
     gateway = _get_gateway(payment)
     token = _get_past_transaction_token(payment, TransactionKind.AUTH)
     payment_data = create_payment_information(
@@ -110,6 +112,8 @@ def capture(
     response, error = _fetch_gateway_response(
         plugin_manager.capture_payment, gateway, payment_data
     )
+    if response.card_info:
+        update_card_details(payment, response)
     return create_transaction(
         payment=payment,
         kind=TransactionKind.CAPTURE,
