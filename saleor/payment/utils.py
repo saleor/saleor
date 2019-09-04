@@ -408,23 +408,6 @@ def gateway_postprocess(transaction, payment):
         payment.save(update_fields=changed_fields)
 
 
-@require_active_payment
-def gateway_process_payment(
-    payment: Payment, payment_token: str, **extras
-) -> Transaction:
-    """Perform the whole payment process on a gateway."""
-    transaction = call_gateway(
-        operation_type=OperationType.PROCESS_PAYMENT,
-        payment=payment,
-        payment_token=payment_token,
-        amount=payment.total,
-        **extras,
-    )
-
-    gateway_postprocess(transaction, payment)
-    return transaction
-
-
 def fetch_customer_id(user, gateway):
     """Retrieve users customer_id stored for desired gateway."""
     key = prepare_namespace_name(gateway)

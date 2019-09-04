@@ -216,6 +216,12 @@ class ExtensionsManager(PaymentInterface):
         method_name = "process_payment"
         return self.__run_payment_method(gateway, method_name, payment_information)
 
+    def create_payment_form(self, gateway, data, payment_information):
+        method_name = "create_form"
+        return self.__run_payment_method(
+            gateway, method_name, payment_information, data=data
+        )
+
     def list_payment_sources(self, customer_id: str) -> List["CustomerSource"]:
         default_value = []
         return self.__run_method_on_plugins(
@@ -223,14 +229,22 @@ class ExtensionsManager(PaymentInterface):
         )
 
     def __run_payment_method(
-        self, gateway: Gateway, method_name: str, payment_information: "PaymentData"
+        self,
+        gateway: Gateway,
+        method_name: str,
+        payment_information: "PaymentData",
+        **kwargs,
     ) -> Optional["GatewayResposne"]:
         default_value = None
         gateway_name = gateway.value
         gtw = self.get_plugin(gateway_name)
         if gtw is not None:
             return self.__run_method_on_single_plugin(
-                gtw, method_name, default_value, payment_information=payment_information
+                gtw,
+                method_name,
+                default_value,
+                payment_information=payment_information,
+                **kwargs,
             )
 
         raise Exception(f"Payment plugin {gateway_name} is inaccessible!")

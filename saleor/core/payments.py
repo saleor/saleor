@@ -56,5 +56,11 @@ class PaymentInterface(ABC):
         pass
 
     @abstractmethod
+    def create_payment_form(
+        self, data, gateway: Gateway, payment_information: "PaymentData"
+    ) -> "GatewayResponse":
+        pass
+
+    @abstractmethod
     def list_payment_sources(self, customer_id: str) -> List["CustomerSource"]:
         pass

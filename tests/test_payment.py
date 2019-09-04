@@ -33,7 +33,6 @@ from saleor.payment.utils import (
     create_payment_information,
     create_transaction,
     gateway_get_client_token,
-    gateway_process_payment,
     handle_fully_paid_order,
     mark_order_as_paid,
     require_active_payment,

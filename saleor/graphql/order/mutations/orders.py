@@ -11,10 +11,7 @@ from ....order.utils import (
     recalculate_order,
 )
 from ....payment import CustomPaymentChoices, PaymentError, gateway
-from ....payment.utils import (
-    clean_mark_order_as_paid,
-    mark_order_as_paid,
-)
+from ....payment.utils import clean_mark_order_as_paid, mark_order_as_paid
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation
 from ...core.scalars import Decimal
