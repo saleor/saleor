@@ -238,7 +238,7 @@ class AccountSetDefaultAddress(BaseAccountMutation):
                 {
                     "id": ValidationError(
                         "The address doesn't belong to that user.",
-                        code=AccountErrorCode.NOT_USERS_ADDRESS,
+                        code=AccountErrorCode.INVALID,
                     )
                 }
             )
