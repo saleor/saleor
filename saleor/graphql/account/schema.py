@@ -111,9 +111,6 @@ class AccountQueries(graphene.ObjectType):
         id=graphene.Argument(graphene.ID, required=True),
         description="Lookup a service account by ID.",
     )
-    service_account_valid_token = graphene.Field(
-        graphene.Boolean, description="Confirm token for a service account"
-    )
 
     user = graphene.Field(
         User,
@@ -143,13 +140,6 @@ class AccountQueries(graphene.ObjectType):
     @permission_required("account.manage_users")
     def resolve_customers(self, info, query=None, **_kwargs):
         return resolve_customers(info, query=query)
-
-    def resolve_service_account_valid_token(self, info):
-        if not hasattr(info.context, "service"):
-            return False
-        elif not info.context.service:
-            return False
-        return True
 
     @login_required
     def resolve_me(self, info):

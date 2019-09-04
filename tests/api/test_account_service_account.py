@@ -4,7 +4,6 @@ import pytest
 from saleor.account.models import ServiceAccount
 from saleor.graphql.core.enums import PermissionEnum
 
-from .conftest import ApiClient
 from .utils import assert_no_permission, get_graphql_content
 
 SERVICE_ACCOUNT_CREATE_MUTATION = """
@@ -298,38 +297,3 @@ def test_service_account_with_access_to_resources(
     service_account.permissions.add(permission_manage_orders)
     response = service_account_api_client.post_graphql(query)
     get_graphql_content(response)
-
-
-QUERY_SERVICE_ACCOUNT_VALID_TOKEN = """
-        query {
-            serviceAccountValidToken
-        }
-    """
-
-
-def test_service_account_valid_token(service_account_api_client, service_account):
-    response = service_account_api_client.post_graphql(
-        QUERY_SERVICE_ACCOUNT_VALID_TOKEN
-    )
-    content = get_graphql_content(response)
-    valid_token = content["data"]["serviceAccountValidToken"]
-    assert valid_token
-
-
-def test_service_account_empty_token(service_account):
-    api = ApiClient()
-    response = api.post_graphql(QUERY_SERVICE_ACCOUNT_VALID_TOKEN)
-    content = get_graphql_content(response)
-    valid_token = content["data"]["serviceAccountValidToken"]
-    assert valid_token is False
-
-
-def test_service_account_invalid_token(service_account_api_client, service_account):
-    service_account.auth_token = "12345"
-    service_account.save()
-    response = service_account_api_client.post_graphql(
-        QUERY_SERVICE_ACCOUNT_VALID_TOKEN
-    )
-    content = get_graphql_content(response)
-    valid_token = content["data"]["serviceAccountValidToken"]
-    assert valid_token is False

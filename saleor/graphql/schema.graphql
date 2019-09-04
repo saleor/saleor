@@ -2435,7 +2435,7 @@ type PermissionDisplay {
 enum PermissionEnum {
   MANAGE_USERS
   MANAGE_STAFF
-  MANAGE_SERVICE_ACCOUNT
+  MANAGE_SERVICE_ACCOUNTS
   IMPERSONATE_USERS
   MANAGE_DISCOUNTS
   MANAGE_GIFT_CARD
@@ -2973,7 +2973,6 @@ type Query {
   staffUsers(filter: StaffUserInput, query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
   serviceAccounts(filter: ServiceAccountFilterInput, before: String, after: String, first: Int, last: Int): ServiceAccountCountableConnection
   serviceAccount(id: ID!): ServiceAccount
-  serviceAccountValidToken: Boolean
   user(id: ID!): User
   node(id: ID!): Node
 }
