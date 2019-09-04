@@ -105,11 +105,7 @@ class SetPassword(AccountErrorMixin, CreateToken):
             )
         if not default_token_generator.check_token(user, token):
             raise ValidationError(
-                {
-                    "token": ValidationError(
-                        INVALID_TOKEN, code=AccountErrorCode.INVALID_TOKEN
-                    )
-                }
+                {"token": ValidationError(INVALID_TOKEN, code=AccountErrorCode.INVALID)}
             )
         try:
             password_validation.validate_password(password, user)

@@ -140,11 +140,7 @@ class AccountDelete(AccountErrorMixin, ModelDeleteMutation):
         token = data.pop("token")
         if not default_token_generator.check_token(user, token):
             raise ValidationError(
-                {
-                    "token": ValidationError(
-                        INVALID_TOKEN, code=AccountErrorCode.INVALID_TOKEN
-                    )
-                }
+                {"token": ValidationError(INVALID_TOKEN, code=AccountErrorCode.INVALID)}
             )
 
         db_id = user.id

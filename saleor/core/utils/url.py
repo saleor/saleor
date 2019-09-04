@@ -18,7 +18,7 @@ def validate_storefront_url(url):
         domain, _ = split_domain_port(parsed_url.netloc)
     except ValueError as error:
         raise ValidationError(
-            {"redirectUrl": str(error)}, code=AccountErrorCode.INVALID_STOREFRONT_URL
+            {"redirectUrl": str(error)}, code=AccountErrorCode.INVALID
         )
     if not validate_host(domain, settings.ALLOWED_CLIENT_HOSTS):
         error_message = (
@@ -26,5 +26,5 @@ def validate_storefront_url(url):
             "`ALLOWED_CLIENT_HOSTS` configuration."
         )
         raise ValidationError(
-            {"redirectUrl": error_message}, code=AccountErrorCode.INVALID_STOREFRONT_URL
+            {"redirectUrl": error_message}, code=AccountErrorCode.INVALID
         )
