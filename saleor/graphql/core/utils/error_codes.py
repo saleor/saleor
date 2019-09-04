@@ -44,7 +44,6 @@ class AccountErrorCode(Enum):
     INVALID_PHONE_NUMBER = "invalid_phone_number"
     INVALID_STOREFRONT_URL = "invalid_storefront_url"
     INVALID_TOKEN = "invalid_token"
-    NOT_USERS_ADDRESS = "not_users_address"
     NULL = "null"
     OBJECT_DOES_NOT_EXIST = "object_does_not_exist"
     PASSWORD_ENTIRELY_NUMERIC = "password_entirely_numeric"
