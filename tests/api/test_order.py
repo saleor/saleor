@@ -33,6 +33,7 @@ def orders_query_with_filter():
     query = """
       query ($filter: OrderFilterInput!, ) {
         orders(first: 5, filter:$filter) {
+          totalCount
           edges {
             node {
               id
@@ -49,6 +50,7 @@ def draft_orders_query_with_filter():
     query = """
       query ($filter: OrderDraftFilterInput!, ) {
         draftOrders(first: 5, filter:$filter) {
+          totalCount
           edges {
             node {
               id
@@ -2110,3 +2112,88 @@ def test_order_query_with_filter_created_(
     orders = content["data"]["draftOrders"]["edges"]
 
     assert len(orders) == count
+
+
+@pytest.mark.parametrize(
+    "orders_filter, count",
+    [
+        ({"search": "test_token"}, 1),
+        ({"search": "test_discount"}, 1),
+        ({"search": "user"}, 2),
+        ({"search": "user1@example.com"}, 1),
+        ({"search": "test@example.com"}, 1),
+        ({"search": "Leslie"}, 1),
+        ({"search": "Wade"}, 1),
+        ({"search": ""}, 3),
+    ],
+)
+def test_orders_query_with_filter_search(
+    orders_filter,
+    count,
+    orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    customer_user,
+):
+    Order.objects.bulk_create(
+        [
+            Order(
+                user=customer_user, token="test_token", discount_name="test_discount"
+            ),
+            Order(token=str(uuid.uuid4()), user_email="user1@example.com"),
+            Order(token=str(uuid.uuid4()), user_email="user2@example.com"),
+        ]
+    )
+    variables = {"filter": orders_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["orders"]["totalCount"] == count
+
+
+@pytest.mark.parametrize(
+    "draft_orders_filter, count",
+    [
+        ({"search": "test_token"}, 1),
+        ({"search": "test_discount"}, 1),
+        ({"search": "user"}, 2),
+        ({"search": "user1@example.com"}, 1),
+        ({"search": "test@example.com"}, 1),
+        ({"search": "Leslie"}, 1),
+        ({"search": "Wade"}, 1),
+        ({"search": ""}, 3),
+    ],
+)
+def test_draft_orders_query_with_filter_search(
+    draft_orders_filter,
+    count,
+    draft_orders_query_with_filter,
+    staff_api_client,
+    permission_manage_orders,
+    customer_user,
+):
+    Order.objects.bulk_create(
+        [
+            Order(
+                user=customer_user,
+                token="test_token",
+                discount_name="test_discount",
+                status=OrderStatus.DRAFT,
+            ),
+            Order(
+                token=str(uuid.uuid4()),
+                user_email="user1@example.com",
+                status=OrderStatus.DRAFT,
+            ),
+            Order(
+                token=str(uuid.uuid4()),
+                user_email="user2@example.com",
+                status=OrderStatus.DRAFT,
+            ),
+        ]
+    )
+    variables = {"filter": draft_orders_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(draft_orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["draftOrders"]["totalCount"] == count
