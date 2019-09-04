@@ -130,8 +130,7 @@ class AttributeMixin:
             raise ValidationError(
                 {
                     cls.ATTRIBUTE_VALUES_FIELD: ValidationError(
-                        "Provided values are not unique.",
-                        code=ProductErrorCode.ATTRIBUTE_VALUES_NOT_UNIQUE,
+                        "Provided values are not unique.", code=ProductErrorCode.UNIQUE
                     )
                 }
             )

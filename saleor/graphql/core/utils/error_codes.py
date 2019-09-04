@@ -122,7 +122,6 @@ class ProductErrorCode(Enum):
     ATTRIBUTE_CANNOT_BE_ASSIGNED = "attribute_cannot_be_assigned"
     ATTRIBUTE_DISABLED_VARIANTS = "attribute_disabled_variants"
     ATTRIBUTE_NON_ASSIGNABLE = "attribute_non_assignable"
-    ATTRIBUTE_VALUES_NOT_UNIQUE = "attribute_values_not_unique"
     GRAPHQL_ERROR = "graphql_error"
     INCORRECT_VALUE = "incorrect_value"
     INVALID = "invalid"

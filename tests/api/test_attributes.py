@@ -480,13 +480,13 @@ def test_create_attribute_with_given_slug(
             "Red color",
             "Red color",
             "Provided values are not unique.",
-            ProductErrorCode.ATTRIBUTE_VALUES_NOT_UNIQUE,
+            ProductErrorCode.UNIQUE,
         ),
         (
             "Red color",
             "red color",
             "Provided values are not unique.",
-            ProductErrorCode.ATTRIBUTE_VALUES_NOT_UNIQUE,
+            ProductErrorCode.UNIQUE,
         ),
     ),
 )
@@ -628,13 +628,13 @@ def test_update_empty_attribute_and_add_values(
             "Red color",
             "Red color",
             "Provided values are not unique.",
-            ProductErrorCode.ATTRIBUTE_VALUES_NOT_UNIQUE,
+            ProductErrorCode.UNIQUE,
         ),
         (
             "Red color",
             "red color",
             "Provided values are not unique.",
-            ProductErrorCode.ATTRIBUTE_VALUES_NOT_UNIQUE,
+            ProductErrorCode.UNIQUE,
         ),
     ),
 )
