@@ -67,6 +67,24 @@ def query_collections_with_filter():
     return query
 
 
+@pytest.fixture
+def query_categories_with_filter():
+    query = """
+    query ($filter: CategoryFilterInput!, ) {
+          categories(first:5, filter: $filter) {
+            totalCount
+            edges{
+              node{
+                id
+                name
+              }
+            }
+          }
+        }
+        """
+    return query
+
+
 def test_fetch_all_products(user_api_client, product):
     query = """
     query {
@@ -2261,6 +2279,41 @@ def test_collections_query_with_filter(
     collections = content["data"]["collections"]["edges"]
 
     assert len(collections) == count
+
+
+@pytest.mark.parametrize(
+    "category_filter, count",
+    [
+        ({"search": "slug_"}, 3),
+        ({"search": "Category1"}, 1),
+        ({"search": "cat1"}, 2),
+        ({"search": "Subcategory_description"}, 1),
+    ],
+)
+def test_categories_query_with_filter(
+    category_filter,
+    count,
+    query_categories_with_filter,
+    staff_api_client,
+    permission_manage_products,
+):
+    Category.objects.create(
+        name="Category1", slug="slug_category1", description="Description cat1"
+    )
+    Category.objects.create(
+        name="Category2", slug="slug_category2", description="Description cat2"
+    )
+    Category.objects.create(
+        name="SubCategory",
+        slug="slug_subcategory",
+        parent=Category.objects.get(name="Category1"),
+        description="Subcategory_description of cat1",
+    )
+    variables = {"filter": category_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query_categories_with_filter, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["categories"]["totalCount"] == count
 
 
 @pytest.mark.parametrize(
