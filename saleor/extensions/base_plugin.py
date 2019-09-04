@@ -177,6 +177,9 @@ class BasePlugin:
     ) -> List["CustomerSource"]:
         pass
 
+    def create_form(self, data, payment_information):
+        pass
+
     @classmethod
     def _update_config_items(
         cls, configuration_to_update: List[dict], current_config: List[dict]

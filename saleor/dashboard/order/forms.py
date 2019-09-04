@@ -26,10 +26,7 @@ from ...order.utils import (
     recalculate_order,
 )
 from ...payment import ChargeStatus, CustomPaymentChoices, PaymentError, gateway
-from ...payment.utils import (
-    clean_mark_order_as_paid,
-    mark_order_as_paid,
-)
+from ...payment.utils import clean_mark_order_as_paid, mark_order_as_paid
 from ...product.models import Product, ProductVariant
 from ...product.utils import allocate_stock, deallocate_stock
 from ...shipping.models import ShippingMethod
