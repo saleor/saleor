@@ -1654,7 +1654,7 @@ def test_set_password_invalid_token(user_api_client, customer_user):
 
     account_errors = content["data"]["setPassword"]["accountErrors"]
     assert account_errors[0]["message"] == INVALID_TOKEN
-    assert account_errors[0]["code"] == AccountErrorCode.INVALID_TOKEN.name
+    assert account_errors[0]["code"] == AccountErrorCode.INVALID.name
 
 
 def test_set_password_invalid_email(user_api_client):

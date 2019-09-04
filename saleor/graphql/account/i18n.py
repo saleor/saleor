@@ -35,7 +35,7 @@ class I18nMixin:
             raise ValidationError(
                 {
                     "country": ValidationError(
-                        "Invalid country code.", code=AccountErrorCode.INVALID_COUNTRY
+                        "Invalid country code.", code=AccountErrorCode.INVALID
                     )
                 }
             )

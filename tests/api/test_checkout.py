@@ -865,7 +865,7 @@ def test_checkout_shipping_address_with_invalid_phone_number_returns_error(
         {
             "field": "phone",
             "message": "'+33600000' is not a valid phone number.",
-            "code": CheckoutErrorCode.INVALID_PHONE_NUMBER.name,
+            "code": CheckoutErrorCode.INVALID.name,
         }
     ]
 
@@ -930,7 +930,7 @@ def test_checkout_shipping_address_update_invalid_country_code(
     assert data["errors"][0]["message"] == "Invalid country code."
     assert data["errors"][0]["field"] == "country"
 
-    assert data["checkoutErrors"][0]["code"] == CheckoutErrorCode.INVALID_COUNTRY.name
+    assert data["checkoutErrors"][0]["code"] == CheckoutErrorCode.INVALID.name
 
 
 def test_checkout_billing_address_update(
