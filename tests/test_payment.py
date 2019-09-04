@@ -25,7 +25,6 @@ from saleor.payment.interface import (
 from saleor.payment.models import Payment
 from saleor.payment.utils import (
     ALLOWED_GATEWAY_KINDS,
-    call_gateway,
     clean_authorize,
     clean_capture,
     clean_mark_order_as_paid,
@@ -537,51 +536,3 @@ def test_validate_gateway_response_not_json_serializable(gateway_response):
         validate_gateway_response(gateway_response)
 
     assert str(e.value) == "Gateway response needs to be json serializable"
-
-
-@patch("saleor.payment.utils.get_payment_gateway")
-def test_call_gateway_invalid_response(mock_get_payment_gateway, payment_dummy):
-    mock_get_payment_gateway.return_value = (
-        Mock(auth=Mock(return_value=("wrong", "response"))),
-        {},
-    )
-
-    with pytest.raises(PaymentError) as e:
-        call_gateway(
-            operation_type=OperationType.AUTH,
-            payment=payment_dummy,
-            payment_token="token",
-        )
-    assert str(e.value) == "Gateway response validation failed"
-
-
-@patch("saleor.payment.utils.get_payment_gateway")
-def test_call_gateway_function_not_implemented(mock_get_payment_gateway, payment_dummy):
-    class CustomClass:
-        pass
-
-    mock_get_payment_gateway.return_value = (CustomClass(), {})
-
-    with pytest.raises(PaymentError) as e:
-        call_gateway(
-            operation_type=OperationType.AUTH,
-            payment=payment_dummy,
-            payment_token="token",
-        )
-    assert str(e.value) == "Gateway doesn't implement AUTH operation"
-
-
-@patch("saleor.payment.utils.get_payment_gateway")
-def test_call_gateway_generic_error(mock_get_payment_gateway, payment_dummy):
-    mock_get_payment_gateway.return_value = (
-        Mock(authorize=Mock(side_effect=Exception("something went wrong"))),
-        {},
-    )
-
-    with pytest.raises(PaymentError) as e:
-        call_gateway(
-            operation_type=OperationType.AUTH,
-            payment=payment_dummy,
-            payment_token="token",
-        )
-    assert str(e.value) == "Gateway encountered an error"

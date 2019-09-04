@@ -30,36 +30,12 @@ from .models import Payment, Transaction
 logger = logging.getLogger(__name__)
 
 GENERIC_TRANSACTION_ERROR = "Transaction was unsuccessful"
-REQUIRED_GATEWAY_KEYS = {
-    "transaction_id",
-    "is_success",
-    "kind",
-    "error",
-    "amount",
-    "currency",
-}
 ALLOWED_GATEWAY_KINDS = {choices[0] for choices in TransactionKind.CHOICES}
 GATEWAYS_META_NAMESPACE = "payment-gateways"
 
 
 def list_enabled_gateways() -> List[str]:
     return list(settings.CHECKOUT_PAYMENT_GATEWAYS.keys())
-
-
-def get_gateway_operation_func(gateway, operation_type):
-    """Return gateway method based on the operation type to be performed."""
-    if operation_type == OperationType.PROCESS_PAYMENT:
-        return gateway.process_payment
-    if operation_type == OperationType.AUTH:
-        return gateway.authorize
-    if operation_type == OperationType.CAPTURE:
-        return gateway.capture
-    if operation_type == OperationType.VOID:
-        return gateway.void
-    if operation_type == OperationType.REFUND:
-        return gateway.refund
-    if operation_type == OperationType.CONFIRM:
-        return gateway.confirm
 
 
 def create_payment_information(
@@ -116,22 +92,6 @@ def handle_fully_paid_order(order):
     except Exception:
         # Analytics failing should not abort the checkout flow
         logger.exception("Recording order in analytics failed")
-
-
-def require_active_payment(view):
-    """Require an active payment instance.
-
-    Decorate a view to check if payment is authorized, so any actions
-    can be performed on it.
-    """
-
-    @wraps(view)
-    def func(payment: Payment, *args, **kwargs):
-        if not payment.is_active:
-            raise PaymentError("This payment is no longer active.")
-        return view(payment, *args, **kwargs)
-
-    return func
 
 
 def create_payment(
@@ -281,74 +241,6 @@ def clean_mark_order_as_paid(order: Order):
                 "Orders with payments can not be manually marked as paid.",
             )
         )
-
-
-def call_gateway(operation_type, payment, payment_token, **extra_params):
-    """Call the passed gateway function and handle exceptions.
-
-    Additionally does validation of the returned gateway response.
-    """
-    gateway, gateway_config = get_payment_gateway(payment.gateway)
-    gateway_response = None
-    error_msg = None
-    store_source = (
-        extra_params.pop("store_source", False) and gateway_config.store_customer
-    )
-    payment_information = create_payment_information(
-        payment, payment_token, store_source=store_source, **extra_params
-    )
-
-    try:
-        func = get_gateway_operation_func(gateway, operation_type)
-    except AttributeError:
-        error_msg = "Gateway doesn't implement {} operation".format(operation_type.name)
-        logger.exception(error_msg)
-        raise PaymentError(error_msg)
-
-    # The transaction kind is provided as a default value
-    # for creating transactions when gateway has invalid response
-    # The PROCESS_PAYMENT operation has CAPTURE as default transaction kind
-    # For other operations, the transaction kind is same wtih operation type
-    default_transaction_kind = TransactionKind.CAPTURE
-    if operation_type != OperationType.PROCESS_PAYMENT:
-        default_transaction_kind = getattr(
-            TransactionKind, OperationType(operation_type).name
-        )
-
-    # Validate the default transaction kind
-    if default_transaction_kind not in dict(TransactionKind.CHOICES):
-        error_msg = "The default transaction kind is invalid"
-        logger.exception(error_msg)
-        raise PaymentError(error_msg)
-
-    try:
-        gateway_response = func(
-            payment_information=payment_information, config=gateway_config
-        )
-        validate_gateway_response(gateway_response)
-    except GatewayError:
-        error_msg = "Gateway response validation failed"
-        logger.exception(error_msg)
-        gateway_response = None  # Set response empty as the validation failed
-    except Exception:
-        error_msg = "Gateway encountered an error"
-        logger.exception(error_msg)
-    finally:
-        payment_transaction = create_transaction(
-            payment=payment,
-            kind=default_transaction_kind,
-            payment_information=payment_information,
-            error_msg=error_msg,
-            gateway_response=gateway_response,
-        )
-
-    if not payment_transaction.is_success:
-        # Attempt to get errors from response, if none raise a generic one
-        raise PaymentError(payment_transaction.error or GENERIC_TRANSACTION_ERROR)
-
-    if gateway_response.card_info:
-        update_card_details(payment, gateway_response)
-    return payment_transaction
 
 
 def validate_gateway_response(response: GatewayResponse):
