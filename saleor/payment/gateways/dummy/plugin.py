@@ -12,6 +12,7 @@ from . import (
     capture,
     confirm,
     create_form,
+    get_client_token,
     process_payment,
     refund,
     void,
@@ -129,3 +130,6 @@ class DummyGatewayPlugin(BasePlugin):
         self, data, payment_information: "PaymentData", previous_value
     ) -> "forms.Form":
         return create_form(data, payment_information, {})
+
+    def get_client_token(self, payment_information, previous_value):
+        return get_client_token()

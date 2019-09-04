@@ -222,6 +222,10 @@ class ExtensionsManager(PaymentInterface):
             gateway, method_name, payment_information, data=data
         )
 
+    def get_client_token(self, gateway, payment_information) -> str:
+        method_name = "get_client_token"
+        return self.__run_payment_method(gateway, method_name, payment_information)
+
     def list_payment_sources(self, customer_id: str) -> List["CustomerSource"]:
         default_value = []
         return self.__run_method_on_plugins(

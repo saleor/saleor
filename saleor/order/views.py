@@ -122,11 +122,11 @@ def start_payment(request, order, gateway):
                     return redirect("order:payment-success", token=order.token)
                 return redirect(order.get_absolute_url())
 
-    # client_token = payment_gateway.get_client_token(config=gateway_config)
+    client_token = payment_gateway.get_client_token(payment)
     ctx = {
         "form": form,
         "payment": payment,
-        # "client_token": client_token,
+        "client_token": client_token,
         "order": order,
     }
     return TemplateResponse(request, gateway_config.template_path, ctx)

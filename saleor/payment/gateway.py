@@ -127,6 +127,7 @@ def capture(
 
 @payment_postprocess
 @raise_payment_error
+@require_active_payment
 def refund(payment: Payment, amount: Decimal = None) -> Transaction:
     plugin_manager = get_extensions_manager()
     if amount is None:
@@ -197,6 +198,13 @@ def create_payment_form(payment: Payment, data) -> forms.Form:
     payment_data = create_payment_information(payment)
     gateway = _get_gateway(payment)
     return plugin_manager.create_payment_form(gateway, data, payment_data)
+
+
+def get_client_token(payment: Payment) -> str:
+    plugin_manager = get_extensions_manager()
+    payment_data = create_payment_information(payment)
+    gateway = _get_gateway(payment)
+    return plugin_manager.get_client_token(gateway, payment_data)
 
 
 def _get_gateway(payment: Payment) -> Gateway:
