@@ -62,5 +62,9 @@ class PaymentInterface(ABC):
         pass
 
     @abstractmethod
+    def get_client_token(self, gateway: Gateway, payment_information: "PaymentData") -> str:
+        pass
+
+    @abstractmethod
     def list_payment_sources(self, customer_id: str) -> List["CustomerSource"]:
         pass

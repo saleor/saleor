@@ -177,7 +177,10 @@ class BasePlugin:
     ) -> List["CustomerSource"]:
         pass
 
-    def create_form(self, data, payment_information):
+    def create_form(self, data, payment_information, previous_value):
+        pass
+
+    def get_client_token(self, payment_information, previous_value):
         pass
 
     @classmethod

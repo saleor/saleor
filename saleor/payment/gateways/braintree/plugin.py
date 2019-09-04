@@ -10,6 +10,7 @@ from . import (
     GatewayConfig,
     authorize,
     capture,
+    create_form,
     list_client_sources,
     process_payment,
     refund,
@@ -163,3 +164,6 @@ class BraintreeGatewayPlugin(BasePlugin):
         sources = list_client_sources(self._get_gateway_config(), customer_id)
         previous_value.extend(sources)
         return previous_value
+
+    def create_form(self, data, payment_information, previous_value) -> "forms.Form":
+        return create_form(data, payment_information)

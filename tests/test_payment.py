@@ -364,31 +364,6 @@ def test_gateway_charge_errors(payment_dummy, transaction_token, settings):
     assert exc.value.message == ("Unable to charge more than un-captured amount.")
 
 
-@patch("saleor.payment.utils.get_payment_gateway")
-def test_gateway_refund_failed(
-    mock_get_payment_gateway,
-    payment_txn_captured,
-    gateway_config,
-    settings,
-    dummy_response,
-):
-    txn = payment_txn_captured.transactions.first()
-    payment = payment_txn_captured
-    captured_before = payment.captured_amount
-    txn.is_success = False
-
-    dummy_response.kind = TransactionKind.REFUND
-    dummy_response.is_success = False
-    mock_refund = Mock(return_value=dummy_response)
-    mock_get_payment_gateway.return_value = (Mock(refund=mock_refund), gateway_config)
-
-    with pytest.raises(PaymentError) as exc:
-        gateway.refund(payment, Decimal("10.00"))
-    assert exc.value.message == EXAMPLE_ERROR
-    payment.refresh_from_db()
-    assert payment.captured_amount == captured_before
-
-
 def test_gateway_refund_errors(payment_txn_captured):
     payment = payment_txn_captured
     with pytest.raises(PaymentError) as exc:

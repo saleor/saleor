@@ -94,7 +94,7 @@ def extract_gateway_response(braintree_result) -> Dict:
     }
 
 
-def create_form(data, payment_information, connection_params):
+def create_form(data, payment_information):
     return BraintreePaymentForm(data=data, payment_information=payment_information)
 
 
