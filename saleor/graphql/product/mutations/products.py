@@ -1328,7 +1328,7 @@ class ProductImageReorder(BaseProductMutation):
                 {
                     "order": ValidationError(
                         "Incorrect number of image IDs provided.",
-                        code=ProductErrorCode.INCORRECT_VALUE,
+                        code=ProductErrorCode.INVALID,
                     )
                 }
             )

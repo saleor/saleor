@@ -9,7 +9,7 @@ def validate_total_quantity(order):
             {
                 "lines": ValidationError(
                     "Could not create order without any products.",
-                    code=OrderErrorCode.ORDER_NO_PRODUCTS,
+                    code=OrderErrorCode.REQUIRED,
                 )
             }
         )
