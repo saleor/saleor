@@ -3506,10 +3506,10 @@ type ServiceAccountUpdatePrivateMeta {
 }
 
 type SetPassword {
+  accountErrors: [AccountError!]
   token: String
   errors: [Error]!
   user: User
-  accountErrors: [AccountError!]
 }
 
 type ShippingError {

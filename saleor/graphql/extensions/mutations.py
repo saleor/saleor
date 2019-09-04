@@ -11,16 +11,8 @@ class ExtensionsErrorMixin:
         graphene.NonNull(ExtensionsError),
         description="List of errors that occurred executing the mutation.",
     )
-
-    @classmethod
-    def handle_typed_errors(cls, errors: list, **extra):
-        extensions_errors = [
-            ExtensionsError(field=e.field, message=e.message, code=code)
-            for e, code in errors
-        ]
-        return cls(
-            errors=[e[0] for e in errors], extensions_errors=extensions_errors, **extra
-        )
+    ERROR_TYPE_CLASS = ExtensionsError
+    ERROR_TYPE_FIELD = "extensions_errors"
 
 
 class ConfigurationItemInput(graphene.InputObjectType):

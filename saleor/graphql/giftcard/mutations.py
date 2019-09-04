@@ -21,16 +21,8 @@ class GiftcardErrorMixin:
         graphene.NonNull(GiftcardError),
         description="List of errors that occurred executing the mutation.",
     )
-
-    @classmethod
-    def handle_typed_errors(cls, errors: list, **extra):
-        gift_card_errors = [
-            GiftcardError(field=e.field, message=e.message, code=code)
-            for e, code in errors
-        ]
-        return cls(
-            errors=[e[0] for e in errors], gift_card_errors=gift_card_errors, **extra
-        )
+    ERROR_TYPE_CLASS = GiftcardError
+    ERROR_TYPE_FIELD = "gift_card_errors"
 
 
 class BaseGiftcardMutation(GiftcardErrorMixin, BaseMutation):

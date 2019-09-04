@@ -29,16 +29,8 @@ class PaymentErrorMixin:
         graphene.NonNull(common_types.PaymentError),
         description="List of errors that occurred executing the mutation.",
     )
-
-    @classmethod
-    def handle_typed_errors(cls, errors: list, **extra):
-        payment_errors = [
-            common_types.PaymentError(field=e.field, message=e.message, code=code)
-            for e, code in errors
-        ]
-        return cls(
-            errors=[e[0] for e in errors], payment_errors=payment_errors, **extra
-        )
+    ERROR_TYPE_CLASS = common_types.PaymentError
+    ERROR_TYPE_FIELD = "payment_errors"
 
 
 class BasePaymentMutation(PaymentErrorMixin, BaseMutation):
