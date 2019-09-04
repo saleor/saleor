@@ -2,7 +2,7 @@ from urllib.parse import urlparse
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.http.request import validate_host
+from django.http.request import split_domain_port, validate_host
 
 
 def validate_storefront_url(url):
@@ -13,12 +13,8 @@ def validate_storefront_url(url):
     """
     try:
         parsed_url = urlparse(url)
+        domain, _ = split_domain_port(parsed_url.netloc)
     except ValueError as error:
         raise ValidationError({"redirectUrl": str(error)})
-    if not validate_host(parsed_url.netloc, settings.ALLOWED_STOREFRONT_HOSTS):
-        raise ValidationError(
-            {
-                "redirectUrl": "%s this is not valid storefront address."
-                % parsed_url.netloc
-            }
-        )
+    if not validate_host(domain, settings.ALLOWED_STOREFRONT_HOSTS):
+        raise ValidationError({"redirectUrl": f"{domain} this is not allowed address."})
