@@ -80,8 +80,7 @@ class DigitalContentCreate(BaseProductMutation):
             if missing_fields:
                 msg += "{}, " * len(missing_fields)
                 raise ValidationError(
-                    msg.format(*missing_fields),
-                    code=ProductErrorCode.MISSING_CONFIGURATION_FIELDS,
+                    msg.format(*missing_fields), code=ProductErrorCode.REQUIRED
                 )
 
         return data
@@ -171,8 +170,7 @@ class DigitalContentUpdate(BaseProductMutation):
             if missing_fields:
                 msg += "{}, " * len(missing_fields)
                 raise ValidationError(
-                    msg.format(*missing_fields),
-                    code=ProductErrorCode.MISSING_CONFIGURATION_FIELDS,
+                    msg.format(*missing_fields), code=ProductErrorCode.REQUIRED
                 )
 
         return data

@@ -374,7 +374,7 @@ class AttributeAssign(BaseProductMutation):
                             f"{AttributeInputType.NON_ASSIGNABLE_TO_VARIANTS} "
                             f"cannot be assigned as variant attributes"
                         ),
-                        code=ProductErrorCode.ATTRIBUTE_NON_ASSIGNABLE,
+                        code=ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED,
                     )
                 }
             )
