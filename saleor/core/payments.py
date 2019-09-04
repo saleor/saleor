@@ -62,7 +62,9 @@ class PaymentInterface(ABC):
         pass
 
     @abstractmethod
-    def get_client_token(self, gateway: Gateway, payment_information: "PaymentData") -> str:
+    def get_client_token(
+        self, gateway: Gateway, payment_information: "PaymentData"
+    ) -> str:
         pass
 
     @abstractmethod
