@@ -976,8 +976,24 @@ ACCOUNT_REQUEST_DELETION_MUTATION = """
 """
 
 
+@patch("saleor.account.emails._send_delete_confirmation_email")
+def test_account_request_deletion(send_delete_confirmation_email_mock, user_api_client):
+    user = user_api_client.user
+    variables = {"redirectUrl": "https://www.example.com"}
+    response = user_api_client.post_graphql(
+        ACCOUNT_REQUEST_DELETION_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["accountRequestDeletion"]
+    assert not data["errors"]
+    send_delete_confirmation_email_mock.assert_called_once_with(user.email, ANY)
+    url = send_delete_confirmation_email_mock.mock_calls[0][1][1]
+    url_validator = URLValidator()
+    url_validator(url)
+
+
 @patch("saleor.account.emails._send_account_delete_confirmation_email_with_url.delay")
-def test_account_request_deletion(
+def test_account_request_deletion_token_validation(
     send_account_delete_confirmation_email_with_url_mock, user_api_client
 ):
     user = user_api_client.user

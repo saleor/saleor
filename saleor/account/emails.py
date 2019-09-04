@@ -78,7 +78,7 @@ def _send_account_delete_confirmation_email_with_url(
         "redirect_url": redirect_url,
         "params": params,
     }
-    _send_account_delete_confirmation_email(recipient_email, delete_url)
+    _send_delete_confirmation_email(recipient_email, delete_url)
 
 
 @app.task
