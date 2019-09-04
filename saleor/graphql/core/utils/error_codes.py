@@ -44,7 +44,6 @@ class AccountErrorCode(Enum):
     INVALID_PHONE_NUMBER = "invalid_phone_number"
     INVALID_STOREFRONT_URL = "invalid_storefront_url"
     INVALID_TOKEN = "invalid_token"
-    NULL = "null"
     OBJECT_DOES_NOT_EXIST = "object_does_not_exist"
     PASSWORD_ENTIRELY_NUMERIC = "password_entirely_numeric"
     PASSWORD_TOO_COMMON = "password_too_common"
@@ -63,7 +62,6 @@ class CheckoutErrorCode(Enum):
     INVALID_COUNTRY = "invalid_country"
     INVALID_PHONE_NUMBER = "invalid_phone_number"
     INVALID_SHIPPING_METHOD = "invalid_shipping_method"
-    NULL = "null"
     OBJECT_ALREADY_EXISTS = "object_already_exists"
     OBJECT_DOES_NOT_EXIST = "object_does_not_exist"
     PAYMENT_ERROR = "payment_error"
@@ -85,7 +83,6 @@ class MenuErrorCode(Enum):
     INVALID = "invalid"
     INVALID_MENU_ITEM = "invalid_menu_item"
     NO_MENU_ITEM_PROVIDED = "no_item_provided"
-    NULL = "null"
     OBJECT_DOES_NOT_EXIST = "object_does_not_exist"
     REQUIRED = "required"
     TOO_MANY_MENU_ITEMS = "too_many_items"
@@ -102,7 +99,6 @@ class OrderErrorCode(Enum):
     FULFILL_ORDER_LINE = "fulfill_order_line"
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
-    NULL = "null"
     OBJECT_DOES_NOT_EXIST = "object_does_not_exist"
     ORDER_INVALID_SHIPPING_METHOD = "order_invalid_shipping_method"
     ORDER_NO_SHIPPING_ADDRESS = "order_no_shipping_address"
@@ -123,7 +119,6 @@ class ProductErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
     NOT_PRODUCTS_IMAGE = "not_products_image"
-    NULL = "null"
     OBJECT_ALREADY_EXISTS = "object_already_exists"
     OBJECT_DOES_NOT_EXIST = "object_does_not_exist"
     REQUIRED = "required"
@@ -135,7 +130,6 @@ class ShopErrorCode(Enum):
     CANNOT_FETCH_TAX_RATES = "cannot_fetch_tax_rates"
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
-    NULL = "null"
     OBJECT_ALREADY_EXISTS = "object_already_exists"
     OBJECT_DOES_NOT_EXIST = "object_does_not_exist"
     REQUIRED = "required"
@@ -146,7 +140,6 @@ class ShippingErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
     MAX_LESS_THAN_MIN = "max_less_than_min"
-    NULL = "null"
     OBJECT_ALREADY_EXISTS = "object_already_exists"
     OBJECT_DOES_NOT_EXIST = "object_does_not_exist"
     REQUIRED = "required"
@@ -157,7 +150,6 @@ class PaymentErrorCode(Enum):
     BILLING_ADDRESS_NOT_SET = "billing_address_not_set"
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
-    NULL = "null"
     OBJECT_DOES_NOT_EXIST = "object_does_not_exist"
     PARTIAL_PAYMENT_NOT_ALLOWED = "partial_payment_not_allowed"
     PAYMENT_ERROR = "payment_error"
@@ -168,7 +160,6 @@ class PaymentErrorCode(Enum):
 class GiftcardErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
-    NULL = "null"
     OBJECT_ALREADY_EXISTS = "object_already_exists"
     OBJECT_DOES_NOT_EXIST = "object_does_not_exist"
     REQUIRED = "required"
@@ -178,7 +169,6 @@ class GiftcardErrorCode(Enum):
 class ExtensionsErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
-    NULL = "null"
     PLUGIN_MISCONFIGURED = "plugin-misconfigured"
     REQUIRED = "required"
     UNIQUE = "unique"
@@ -214,5 +204,5 @@ def get_error_code_from_error(error):
     if isinstance(code, Enum):
         code = code.value
     if code not in saleor_error_codes:
-        return "null"
+        return "invalid"
     return code
