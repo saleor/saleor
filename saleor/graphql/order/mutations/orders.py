@@ -13,7 +13,6 @@ from ....order.utils import (
 from ....payment import CustomPaymentChoices, PaymentError, gateway
 from ....payment.utils import (
     clean_mark_order_as_paid,
-    gateway_refund,
     mark_order_as_paid,
 )
 from ...account.types import AddressInput
@@ -415,7 +414,7 @@ class OrderRefund(BaseMutation):
         clean_refund_payment(payment)
 
         try_payment_action(
-            order, info.context.user, payment, gateway_refund, payment, amount
+            order, info.context.user, payment, gateway.refund, payment, amount
         )
 
         events.payment_refunded_event(

@@ -6,7 +6,7 @@ from django.utils.translation import pgettext_lazy
 from saleor.extensions import ConfigurationTypeField
 from saleor.extensions.base_plugin import BasePlugin
 
-from . import GatewayConfig, authorize, capture, process_payment, refund, void
+from . import GatewayConfig, authorize, capture, confirm, process_payment, refund, void
 
 GATEWAY_NAME = "dummy"
 
@@ -95,6 +95,11 @@ class DummyGatewayPlugin(BasePlugin):
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
         return capture(payment_information, self._get_gateway_config())
+
+    def confirm_payment(
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
+        return confirm(payment_information, self._get_gateway_config())
 
     def refund_payment(
         self, payment_information: "PaymentData", previous_value

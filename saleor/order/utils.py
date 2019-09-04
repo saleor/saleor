@@ -210,6 +210,7 @@ def cancel_order(user, order, restock):
     )
 
     from ..payment import gateway
+
     for payment in payments:
         if payment.can_refund():
             gateway.refund(payment)
