@@ -75,6 +75,7 @@ def process_payment(
 
 @payment_postprocess
 @raise_payment_error
+@require_active_payment
 def authorize(payment: Payment, token: str, store_source: bool = False) -> Transaction:
     plugin_manager = get_extensions_manager()
     clean_authorize(payment)

@@ -28,7 +28,6 @@ from ...order.utils import (
 from ...payment import ChargeStatus, CustomPaymentChoices, PaymentError, gateway
 from ...payment.utils import (
     clean_mark_order_as_paid,
-    gateway_refund,
     mark_order_as_paid,
 )
 from ...product.models import Product, ProductVariant
@@ -364,7 +363,7 @@ class RefundPaymentForm(BasePaymentForm):
 
     def refund(self, user):
         return self.try_payment_action(
-            user, gateway_refund, self.cleaned_data["amount"]
+            user, gateway.refund, self.cleaned_data["amount"]
         )
 
 
