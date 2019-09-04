@@ -20,13 +20,8 @@ class ShopErrorMixin:
         graphene.NonNull(ShopError),
         description="List of errors that occurred executing the mutation.",
     )
-
-    @classmethod
-    def handle_typed_errors(cls, errors: list, **extra):
-        shop_errors = [
-            ShopError(field=e.field, message=e.message, code=code) for e, code in errors
-        ]
-        return cls(errors=[e[0] for e in errors], shop_errors=shop_errors, **extra)
+    ERROR_TYPE_CLASS = ShopError
+    ERROR_TYPE_FIELD = "shop_errors"
 
 
 class BaseShopMutation(ShopErrorMixin, BaseMutation):

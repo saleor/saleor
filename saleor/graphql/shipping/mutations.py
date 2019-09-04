@@ -16,16 +16,8 @@ class ShippingErrorMixin:
         graphene.NonNull(ShippingError),
         description="List of errors that occurred executing the mutation.",
     )
-
-    @classmethod
-    def handle_typed_errors(cls, errors: list, **extra):
-        shipping_errors = [
-            ShippingError(field=e.field, message=e.message, code=code)
-            for e, code in errors
-        ]
-        return cls(
-            errors=[e[0] for e in errors], shipping_errors=shipping_errors, **extra
-        )
+    ERROR_TYPE_CLASS = ShippingError
+    ERROR_TYPE_FIELD = "shipping_errors"
 
 
 class BaseShippingMutation(ShippingErrorMixin, BaseMutation):

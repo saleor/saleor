@@ -24,13 +24,8 @@ class MenuErrorMixin:
         graphene.NonNull(MenuError),
         description="List of errors that occurred executing the mutation.",
     )
-
-    @classmethod
-    def handle_typed_errors(cls, errors: list, **extra):
-        menu_errors = [
-            MenuError(field=e.field, message=e.message, code=code) for e, code in errors
-        ]
-        return cls(errors=[e[0] for e in errors], menu_errors=menu_errors, **extra)
+    ERROR_TYPE_CLASS = MenuError
+    ERROR_TYPE_FIELD = "menu_errors"
 
 
 class BaseMenuMutation(MenuErrorMixin, BaseMutation):

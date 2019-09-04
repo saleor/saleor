@@ -262,10 +262,13 @@ class BaseMutation(graphene.Mutation):
 
     @classmethod
     def handle_typed_errors(cls, errors: list, **extra):
-        """Return class instance with errors.
-
-        Should be overridden in mutation that supports typed errors.
-        """
+        """Return class instance with errors."""
+        if hasattr(cls, "ERROR_TYPE_CLASS") and hasattr(cls, "ERROR_TYPE_FIELD"):
+            typed_errors = [
+                cls.ERROR_TYPE_CLASS(field=e.field, message=e.message, code=code)
+                for e, code in errors
+            ]
+            extra.update({cls.ERROR_TYPE_FIELD: typed_errors})
         return cls(errors=[e[0] for e in errors], **extra)
 
 

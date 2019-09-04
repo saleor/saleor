@@ -56,16 +56,8 @@ class CheckoutErrorMixin:
         graphene.NonNull(CheckoutError),
         description="List of errors that occurred executing the mutation.",
     )
-
-    @classmethod
-    def handle_typed_errors(cls, errors: list, **extra):
-        checkout_errors = [
-            CheckoutError(field=e.field, message=e.message, code=code)
-            for e, code in errors
-        ]
-        return cls(
-            errors=[e[0] for e in errors], checkout_errors=checkout_errors, **extra
-        )
+    ERROR_TYPE_CLASS = CheckoutError
+    ERROR_TYPE_FIELD = "checkout_errors"
 
 
 class BaseCheckoutMutation(CheckoutErrorMixin, BaseMutation):
