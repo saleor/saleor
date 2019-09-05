@@ -34,7 +34,6 @@ from saleor.payment.utils import (
     gateway_get_client_token,
     handle_fully_paid_order,
     mark_order_as_paid,
-    require_active_payment,
     validate_gateway_response,
 )
 
@@ -217,19 +216,6 @@ def test_handle_fully_paid_order_digital_lines(
 
     order.refresh_from_db()
     assert order.status == OrderStatus.FULFILLED
-
-
-def test_require_active_payment():
-    @require_active_payment
-    def test_function(_payment, *_args, **_kwargs):
-        return True
-
-    payment = Mock(is_active=True)
-    test_function(payment)
-
-    non_active_payment = Mock(is_active=False)
-    with pytest.raises(PaymentError):
-        test_function(non_active_payment)
 
 
 def test_create_payment(address, settings):

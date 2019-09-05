@@ -24,6 +24,16 @@ if TYPE_CHECKING:
     from ...interface import GatewayResponse, PaymentData
 
 
+def require_active_plugin(fn):
+    def wrapped(self, *args, **kwargs):
+        previous = kwargs.get("previous_value", None)
+        if not self.active:
+            return previous
+        return fn(self, *args, **kwargs)
+
+    return wrapped
+
+
 class DummyGatewayPlugin(BasePlugin):
     PLUGIN_NAME = GATEWAY_NAME
     CONFIG_STRUCTURE = {
@@ -96,40 +106,48 @@ class DummyGatewayPlugin(BasePlugin):
     def _get_gateway_config(self):
         return self.config
 
+    @require_active_plugin
     def authorize_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
         return authorize(payment_information, self._get_gateway_config())
 
+    @require_active_plugin
     def capture_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
         return capture(payment_information, self._get_gateway_config())
 
+    @require_active_plugin
     def confirm_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
         return confirm(payment_information, self._get_gateway_config())
 
+    @require_active_plugin
     def refund_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
         return refund(payment_information, self._get_gateway_config())
 
+    @require_active_plugin
     def void_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
         return void(payment_information, self._get_gateway_config())
 
+    @require_active_plugin
     def process_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
         return process_payment(payment_information, self._get_gateway_config())
 
+    @require_active_plugin
     def create_form(
         self, data, payment_information: "PaymentData", previous_value
     ) -> "forms.Form":
         return create_form(data, payment_information, {})
 
+    @require_active_plugin
     def get_client_token(self, payment_information, previous_value):
         return get_client_token()
