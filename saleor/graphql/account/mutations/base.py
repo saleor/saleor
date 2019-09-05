@@ -46,6 +46,7 @@ class AccountErrorMixin:
         graphene.NonNull(AccountError),
         description="List of errors that occurred executing the mutation.",
     )
+
     ERROR_TYPE_CLASS = AccountError
     ERROR_TYPE_FIELD = "account_errors"
 

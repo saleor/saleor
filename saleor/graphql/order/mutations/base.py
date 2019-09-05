@@ -9,6 +9,7 @@ class OrderErrorMixin:
         graphene.NonNull(OrderError),
         description="List of errors that occurred executing the mutation.",
     )
+
     ERROR_TYPE_CLASS = OrderError
     ERROR_TYPE_FIELD = "order_errors"
 

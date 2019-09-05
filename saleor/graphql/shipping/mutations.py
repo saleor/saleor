@@ -16,6 +16,7 @@ class ShippingErrorMixin:
         graphene.NonNull(ShippingError),
         description="List of errors that occurred executing the mutation.",
     )
+
     ERROR_TYPE_CLASS = ShippingError
     ERROR_TYPE_FIELD = "shipping_errors"
 
