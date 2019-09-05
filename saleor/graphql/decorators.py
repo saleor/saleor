@@ -29,8 +29,8 @@ def permission_required(perm):
             perms = perm
         if context.user.has_perms(perms):
             return True
-        service = getattr(context, "service", None)
-        if service and service.has_perms(perms):
+        service_account = getattr(context, "service_account", None)
+        if service_account and service_account.has_perms(perms):
             return True
         return False
 

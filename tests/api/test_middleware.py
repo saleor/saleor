@@ -15,7 +15,7 @@ def test_service_account_middleware_accepts_api_requests(service_account, rf):
     middleware = service_account_middleware(Mock())
     middleware(request)
 
-    assert request.service == service_account
+    assert request.service_account == service_account
 
 
 @pytest.mark.parametrize("path", ["account:details", "home"])
@@ -30,4 +30,4 @@ def test_service_account_middleware_block(service_account, path, rf):
     middleware = service_account_middleware(Mock())
     middleware(request)
 
-    assert not hasattr(request, "service")
+    assert not hasattr(request, "service_account")

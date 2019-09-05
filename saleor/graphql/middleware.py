@@ -50,7 +50,7 @@ def service_account_middleware(get_response):
             if len(auth) == 2:
                 auth_prefix, auth_token = auth
                 if auth_prefix.lower() == prefix:
-                    request.service = SimpleLazyObject(
+                    request.service_account = SimpleLazyObject(
                         lambda: get_service_account(auth_token)
                     )
         return get_response(request)
