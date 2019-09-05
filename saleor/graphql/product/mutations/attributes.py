@@ -169,7 +169,8 @@ class AttributeMixin:
             raise ValidationError(
                 {
                     "slug": ValidationError(
-                        "The attribute's slug cannot be blank.", code="blank"
+                        "The attribute's slug cannot be blank.",
+                        code=ProductErrorCode.REQUIRED,
                     )
                 }
             )
