@@ -20,6 +20,10 @@ class Gateway(Enum):
 
 class PaymentInterface(ABC):
     @abstractmethod
+    def list_payment_gateways(self) -> List[Gateway]:
+        pass
+
+    @abstractmethod
     def authorize_payment(
         self, gateway: Gateway, payment_information: "PaymentData"
     ) -> "GatewayResponse":

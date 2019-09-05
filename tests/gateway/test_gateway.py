@@ -248,3 +248,11 @@ def test_confirm_payment(mock_payment_interface, payment_txn_preauth):
     assert transaction.kind == TransactionKind.CONFIRM
     assert transaction.currency == "usd"
     assert transaction.gateway_response == RAW_RESPONSE
+
+
+def test_list_gateways(mock_payment_interface):
+    gateways = [Gateway.STRIPE, Gateway.BRAINTREE]
+    mock_payment_interface.list_payment_gateways.return_value = gateways
+    lst = gateway.list_gateways()
+    mock_payment_interface.list_payment_gateways.assert_called_once()
+    assert lst == gateways
