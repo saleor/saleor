@@ -1176,7 +1176,6 @@ def test_checkout_complete_does_not_delete_checkout_after_unsuccessful_payment(
     address,
     shipping_method,
 ):
-    expected_error = "Oops! Something went wrong."
     mock_get_manager.process_payment.side_effect = error_side_effect
     expected_voucher_usage_count = voucher.used
     checkout = checkout_with_voucher
@@ -1200,8 +1199,7 @@ def test_checkout_complete_does_not_delete_checkout_after_unsuccessful_payment(
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     variables = {"checkoutId": checkout_id}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["checkoutComplete"]
+    get_graphql_content(response)
 
     assert Order.objects.count() == orders_count
 
