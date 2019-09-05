@@ -9,6 +9,7 @@ class ProductErrorMixin:
         graphene.NonNull(ProductError),
         description="List of errors that occurred executing the mutation.",
     )
+
     ERROR_TYPE_CLASS = ProductError
     ERROR_TYPE_FIELD = "product_errors"
 

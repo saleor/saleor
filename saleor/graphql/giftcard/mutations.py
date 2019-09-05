@@ -21,6 +21,7 @@ class GiftcardErrorMixin:
         graphene.NonNull(GiftcardError),
         description="List of errors that occurred executing the mutation.",
     )
+
     ERROR_TYPE_CLASS = GiftcardError
     ERROR_TYPE_FIELD = "gift_card_errors"
 

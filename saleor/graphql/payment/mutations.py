@@ -29,6 +29,7 @@ class PaymentErrorMixin:
         graphene.NonNull(common_types.PaymentError),
         description="List of errors that occurred executing the mutation.",
     )
+
     ERROR_TYPE_CLASS = common_types.PaymentError
     ERROR_TYPE_FIELD = "payment_errors"
 

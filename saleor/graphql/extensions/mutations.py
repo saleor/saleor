@@ -11,6 +11,7 @@ class ExtensionsErrorMixin:
         graphene.NonNull(ExtensionsError),
         description="List of errors that occurred executing the mutation.",
     )
+
     ERROR_TYPE_CLASS = ExtensionsError
     ERROR_TYPE_FIELD = "extensions_errors"
 

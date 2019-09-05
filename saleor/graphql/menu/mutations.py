@@ -24,6 +24,7 @@ class MenuErrorMixin:
         graphene.NonNull(MenuError),
         description="List of errors that occurred executing the mutation.",
     )
+
     ERROR_TYPE_CLASS = MenuError
     ERROR_TYPE_FIELD = "menu_errors"
 
