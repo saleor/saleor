@@ -4,13 +4,7 @@ import pytest
 from prices import Money
 
 from saleor.product import AttributeInputType
-from saleor.product.models import (
-    Attribute,
-    AttributeValue,
-    Product,
-    ProductType,
-    ProductVariant,
-)
+from saleor.product.models import AttributeValue, Product, ProductType, ProductVariant
 from saleor.product.tasks import _update_variants_names
 from saleor.product.utils.attributes import (
     associate_attribute_values_to_instance,
@@ -101,12 +95,44 @@ def test_update_variants_changed_does_nothing_with_no_attributes():
     assert _update_variants_names(product_type, saved_attributes) is None
 
 
-def test_associate_attribute_to_non_product_instance():
+def test_associate_attribute_to_non_product_instance(color_attribute):
     instance = ProductType()
-    attribute = Attribute()
-    value = AttributeValue()
+    attribute = color_attribute
+    value = color_attribute.values.first()
+
+    with pytest.raises(AssertionError) as exc:
+        associate_attribute_values_to_instance(instance, attribute, value)  # noqa
+
+    assert exc.value.args == ("ProductType is unsupported",)
+
+
+def test_associate_attribute_to_product_instance_from_different_attribute(
+    product, color_attribute, size_attribute
+):
+    """Ensure an assertion error is raised when one tries to associate attribute values
+    to an object that don't belong to the supplied attribute.
+    """
+    instance = product
+    attribute = color_attribute
+    value = size_attribute.values.first()
 
     with pytest.raises(AssertionError) as exc:
         associate_attribute_values_to_instance(instance, attribute, value)
 
-    assert exc.value.args == ("ProductType is unsupported",)
+    assert exc.value.args == ("Some values are not from the provided attribute.",)
+
+
+def test_associate_attribute_to_product_instance_without_values(product):
+    """Ensure clearing the values from a product is properly working."""
+    old_assignment = product.attributes.first()
+    assert old_assignment is not None, "The product doesn't have attribute-values"
+    assert old_assignment.values.count() == 1
+
+    attribute = old_assignment.attribute
+
+    # Clear the values
+    new_assignment = associate_attribute_values_to_instance(product, attribute)
+
+    # Ensure the values were cleared and no new assignment entry was created
+    assert new_assignment.pk == old_assignment.pk
+    assert new_assignment.values.count() == 0

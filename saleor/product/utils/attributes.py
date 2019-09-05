@@ -1,4 +1,4 @@
-from typing import Union
+from typing import Set, Union
 
 from ..models import (
     AssignedProductAttribute,
@@ -50,6 +50,17 @@ def _associate_attribute_to_instance(
     return assignment
 
 
+def validate_attribute_owns_values(attribute: Attribute, value_ids: Set[int]) -> None:
+    """Check given value IDs are belonging to the given attribute.
+
+    :raise: AssertionError
+    """
+    attribute_actual_value_ids = set(attribute.values.values_list("pk", flat=True))
+    found_associated_ids = attribute_actual_value_ids & value_ids
+    if found_associated_ids != value_ids:
+        raise AssertionError("Some values are not from the provided attribute.")
+
+
 def associate_attribute_values_to_instance(
     instance: Union[Product, ProductVariant],
     attribute: Attribute,
@@ -61,6 +72,12 @@ def associate_attribute_values_to_instance(
     attribute association. Meaning any values already assigned or concurrently
     assigned will be overridden by this call.
     """
+    values_ids = {value.pk for value in values}
+
+    # Ensure the values are actually form the given attribute
+    validate_attribute_owns_values(attribute, values_ids)
+
+    # Associate the attribute and the passed values
     assignment = _associate_attribute_to_instance(instance, attribute.pk)
     assignment.values.set(values)
     return assignment
