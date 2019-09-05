@@ -232,6 +232,14 @@ class ExtensionsManager(PaymentInterface):
             "list_payment_sources", default_value, customer_id=customer_id
         )
 
+    def list_payment_gateways(self) -> List["Gateway"]:
+        PAYMENT_METHOD = "process_payment"
+        return [
+            plugin.PLUGIN_NAME
+            for plugin in self.plugins
+            if PAYMENT_METHOD in type(plugin).__dict__
+        ]
+
     def __run_payment_method(
         self,
         gateway: Gateway,

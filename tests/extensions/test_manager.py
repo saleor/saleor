@@ -281,3 +281,13 @@ def test_manager_save_plugin_configuration():
     manager.save_plugin_configuration("Sample Plugin", {"active": False})
     configuration.refresh_from_db()
     assert not configuration.active
+
+
+def test_manager_serve_list_of_payment_gateways():
+    SamplePlugin.process_payment = lambda: True
+    plugins = [
+        "tests.extensions.test_manager.SamplePlugin",
+        "tests.extensions.test_manager.SamplePlugin1",
+    ]
+    manager = ExtensionsManager(plugins=plugins)
+    assert manager.list_payment_gateways() == [SamplePlugin.PLUGIN_NAME]

@@ -1,5 +1,6 @@
 import logging
 from decimal import Decimal
+from typing import List
 
 from django import forms
 from django.core.exceptions import ImproperlyConfigured
@@ -205,6 +206,11 @@ def get_client_token(payment: Payment) -> str:
     payment_data = create_payment_information(payment)
     gateway = _get_gateway(payment)
     return plugin_manager.get_client_token(gateway, payment_data)
+
+
+def list_gateways() -> List[Gateway]:
+    plugin_manager = get_extensions_manager()
+    return plugin_manager.list_payment_gateways()
 
 
 def _get_gateway(payment: Payment) -> Gateway:
