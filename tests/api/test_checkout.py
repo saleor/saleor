@@ -203,6 +203,33 @@ def test_checkout_create_reuse_checkout(checkout, user_api_client, variant):
     assert checkout_data["lines"] == []
 
 
+def test_checkout_create_reuse_checkout_with_invalid_shipping_address(
+    checkout, address, user_api_client, graphql_address_data
+):
+    # assign user and shipping address to the checkout
+    checkout.user = user_api_client.user
+    checkout.shipping_address = address
+    checkout.save()
+
+    shipping_address = graphql_address_data
+    shipping_address["phone"] = "+33600000"
+
+    variables = {"checkoutInput": {"shippingAddress": shipping_address, "lines": []}}
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)["data"]["checkoutCreate"]
+
+    # Look at the flag to see whether a new checkout was created or not
+    assert not content["created"]
+
+    # assert that existing checkout was reused and returned by mutation
+    checkout_data = content["checkout"]
+    assert checkout_data["token"] == str(checkout.token)
+
+    assert content["errors"] == [
+        {"field": "phone", "message": "'+33600000' is not a valid phone number."}
+    ]
+
+
 def test_checkout_create_required_email(api_client, variant):
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     variables = {
