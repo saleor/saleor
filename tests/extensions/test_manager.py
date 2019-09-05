@@ -290,4 +290,10 @@ def test_manager_serve_list_of_payment_gateways():
         "tests.extensions.test_manager.SamplePlugin1",
     ]
     manager = ExtensionsManager(plugins=plugins)
+    for p in manager.plugins:
+        p.active = True
+
     assert manager.list_payment_gateways() == [SamplePlugin.PLUGIN_NAME]
+
+    manager.plugins[0].active = False
+    assert manager.list_payment_gateways() == []
