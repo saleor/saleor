@@ -6,7 +6,7 @@ from django.utils.module_loading import import_string
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from ..core.payments import Gateway, PaymentInterface
+from ..core.payments import PaymentInterface
 from ..core.taxes import TaxType, quantize_price
 from .models import PluginConfiguration
 
@@ -17,6 +17,7 @@ if TYPE_CHECKING:
     from ..account.models import Address
     from ..order.models import OrderLine, Order
     from ..payment.interface import PaymentData, GatewayResponse, CustomerSource
+    from ..core.payments import Gateway
 
 
 class ExtensionsManager(PaymentInterface):
@@ -181,37 +182,37 @@ class ExtensionsManager(PaymentInterface):
         )
 
     def authorize_payment(
-        self, gateway: str, payment_information: "PaymentData"
+        self, gateway: "Gateway", payment_information: "PaymentData"
     ) -> "GatewayResponse":
         method_name = "authorize_payment"
         return self.__run_payment_method(gateway, method_name, payment_information)
 
     def capture_payment(
-        self, gateway: str, payment_information: "PaymentData"
+        self, gateway: "Gateway", payment_information: "PaymentData"
     ) -> "GatewayResponse":
         method_name = "capture_payment"
         return self.__run_payment_method(gateway, method_name, payment_information)
 
     def refund_payment(
-        self, gateway: str, payment_information: "PaymentData"
+        self, gateway: "Gateway", payment_information: "PaymentData"
     ) -> "GatewayResponse":
         method_name = "refund_payment"
         return self.__run_payment_method(gateway, method_name, payment_information)
 
     def void_payment(
-        self, gateway: str, payment_information: "PaymentData"
+        self, gateway: "Gateway", payment_information: "PaymentData"
     ) -> "GatewayResponse":
         method_name = "void_payment"
         return self.__run_payment_method(gateway, method_name, payment_information)
 
     def confirm_payment(
-        self, gateway: str, payment_information: "PaymentData"
+        self, gateway: "Gateway", payment_information: "PaymentData"
     ) -> "GatewayResponse":
         method_name = "confirm_payment"
         return self.__run_payment_method(gateway, method_name, payment_information)
 
     def process_payment(
-        self, gateway: str, payment_information: "PaymentData"
+        self, gateway: "Gateway", payment_information: "PaymentData"
     ) -> "GatewayResponse":
         method_name = "process_payment"
         return self.__run_payment_method(gateway, method_name, payment_information)
@@ -237,12 +238,12 @@ class ExtensionsManager(PaymentInterface):
         return [
             plugin.PLUGIN_NAME
             for plugin in self.plugins
-            if PAYMENT_METHOD in type(plugin).__dict__
+            if plugin.active and PAYMENT_METHOD in type(plugin).__dict__
         ]
 
     def __run_payment_method(
         self,
-        gateway: Gateway,
+        gateway: "Gateway",
         method_name: str,
         payment_information: "PaymentData",
         **kwargs,
