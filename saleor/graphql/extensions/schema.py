@@ -1,7 +1,7 @@
 import graphene
-from graphql_jwt.decorators import permission_required
 
 from ..core.fields import PrefetchingConnectionField
+from ..decorators import permission_required
 from .mutations import PluginUpdate
 from .resolvers import resolve_plugin, resolve_plugins
 from .types import Plugin

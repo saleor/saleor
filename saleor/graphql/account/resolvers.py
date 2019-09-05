@@ -48,6 +48,11 @@ def resolve_staff_users(info, query):
     return gql_optimizer.query(qs, info)
 
 
+def resolve_service_accounts(info):
+    qs = models.ServiceAccount.objects.all()
+    return gql_optimizer.query(qs, info)
+
+
 def resolve_address_validation_rules(
     info,
     country_code: str,
@@ -55,6 +60,7 @@ def resolve_address_validation_rules(
     city: Optional[str],
     city_area: Optional[str],
 ):
+
     params = {
         "country_code": country_code,
         "country_area": country_area,

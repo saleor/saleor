@@ -1980,6 +1980,11 @@ type Mutations {
   userBulkSetActive(ids: [ID]!, isActive: Boolean!): UserBulkSetActive
   userUpdatePrivateMetadata(id: ID!, input: MetaInput!): UserUpdatePrivateMeta
   userClearStoredPrivateMetadata(id: ID!, input: MetaPath!): UserClearStoredPrivateMeta
+  serviceAccountCreate(input: ServiceAccountInput!): ServiceAccountCreate
+  serviceAccountUpdate(id: ID!, input: ServiceAccountInput!): ServiceAccountUpdate
+  serviceAccountDelete(id: ID!): ServiceAccountDelete
+  serviceAccountUpdatePrivateMetadata(id: ID!, input: MetaInput!): ServiceAccountUpdatePrivateMeta
+  serviceAccountClearStoredPrivateMetadata(id: ID!, input: MetaPath!): ServiceAccountClearStoredPrivateMeta
   passwordReset(email: String!): PasswordReset
 }
 
@@ -2432,6 +2437,7 @@ type PermissionDisplay {
 enum PermissionEnum {
   MANAGE_USERS
   MANAGE_STAFF
+  MANAGE_SERVICE_ACCOUNTS
   IMPERSONATE_USERS
   MANAGE_DISCOUNTS
   MANAGE_GIFT_CARD
@@ -2967,6 +2973,8 @@ type Query {
   customers(filter: CustomerFilterInput, query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
   me: User
   staffUsers(filter: StaffUserInput, query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
+  serviceAccounts(filter: ServiceAccountFilterInput, before: String, after: String, first: Int, last: Int): ServiceAccountCountableConnection
+  serviceAccount(id: ID!): ServiceAccount
   user(id: ID!): User
   node(id: ID!): Node
 }
@@ -3092,6 +3100,65 @@ type SelectedAttribute {
 input SeoInput {
   title: String
   description: String
+}
+
+type ServiceAccount implements Node {
+  id: ID!
+  authToken: String
+  created: DateTime
+  isActive: Boolean
+  privateMeta: [MetaStore]!
+  meta: [MetaStore]!
+  permissions: [PermissionDisplay]
+  name: String
+}
+
+type ServiceAccountClearStoredPrivateMeta {
+  errors: [Error!]
+  serviceAccount: ServiceAccount
+}
+
+type ServiceAccountCountableConnection {
+  pageInfo: PageInfo!
+  edges: [ServiceAccountCountableEdge!]!
+  totalCount: Int
+}
+
+type ServiceAccountCountableEdge {
+  node: ServiceAccount!
+  cursor: String!
+}
+
+type ServiceAccountCreate {
+  errors: [Error!]
+  authToken: String
+  serviceAccount: ServiceAccount
+}
+
+type ServiceAccountDelete {
+  errors: [Error!]
+  serviceAccount: ServiceAccount
+}
+
+input ServiceAccountFilterInput {
+  search: String
+  isActive: Boolean
+}
+
+input ServiceAccountInput {
+  name: String
+  isActive: Boolean
+  permissions: [PermissionEnum]
+}
+
+type ServiceAccountUpdate {
+  errors: [Error!]
+  serviceAccount: ServiceAccount
+}
+
+type ServiceAccountUpdatePrivateMeta {
+  errors: [Error!]
+  serviceAccount: ServiceAccount
 }
 
 type SetPassword {

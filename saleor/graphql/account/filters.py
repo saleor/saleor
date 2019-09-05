@@ -1,7 +1,7 @@
 import django_filters
 from django.db.models import Count, Sum
 
-from ...account.models import User
+from ...account.models import ServiceAccount, User
 from ..core.filters import EnumFilter, ObjectTypeFilter
 from ..core.types.common import DateRangeInput, IntRangeInput, PriceRangeInput
 from ..utils import filter_by_query_param
@@ -69,6 +69,13 @@ def filter_search(qs, _, value):
     return qs
 
 
+def filter_service_account_search(qs, _, value):
+    search_fields = ("name",)
+    if value:
+        qs = filter_by_query_param(qs, value, search_fields)
+    return qs
+
+
 class CustomerFilter(django_filters.FilterSet):
     date_joined = ObjectTypeFilter(
         input_class=DateRangeInput, method=filter_date_joined
@@ -93,6 +100,15 @@ class CustomerFilter(django_filters.FilterSet):
             "placed_orders",
             "search",
         ]
+
+
+class ServiceAccountFilter(django_filters.FilterSet):
+    search = django_filters.CharFilter(method=filter_service_account_search)
+    is_active = django_filters.BooleanFilter()
+
+    class Meta:
+        model = ServiceAccount
+        fields = ["search", "is_active"]
 
 
 class StaffUserFilter(django_filters.FilterSet):

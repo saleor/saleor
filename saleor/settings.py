@@ -219,6 +219,7 @@ MIDDLEWARE = [
     "social_django.middleware.SocialAuthExceptionMiddleware",
     "impersonate.middleware.ImpersonateMiddleware",
     "saleor.graphql.middleware.jwt_middleware",
+    "saleor.graphql.middleware.service_account_middleware",
 ]
 
 INSTALLED_APPS = [
