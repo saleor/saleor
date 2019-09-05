@@ -120,7 +120,7 @@ class AttributeMixin:
                 raise ValidationError(
                     {
                         cls.ATTRIBUTE_VALUES_FIELD: ValidationError(
-                            msg, code=ProductErrorCode.OBJECT_ALREADY_EXISTS
+                            msg, code=ProductErrorCode.ATTRIBUTE_VALUE_ALREADY_EXISTS
                         )
                     }
                 )
@@ -184,7 +184,7 @@ class AttributeMixin:
                 {
                     "slug": ValidationError(
                         "This attribute's slug already exists.",
-                        code=ProductErrorCode.OBJECT_ALREADY_EXISTS,
+                        code=ProductErrorCode.ATTRIBUTE_SLUG_ALREADY_EXISTS,
                     )
                 }
             )
@@ -543,7 +543,7 @@ def validate_value_is_unique(attribute: models.Attribute, value: models.Attribut
             {
                 "name": ValidationError(
                     f"Value with slug {value.slug} already exists.",
-                    code=ProductErrorCode.OBJECT_ALREADY_EXISTS,
+                    code=ProductErrorCode.ATTRIBUTE_SLUG_ALREADY_EXISTS,
                 )
             }
         )

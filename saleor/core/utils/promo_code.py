@@ -20,7 +20,7 @@ class PromoCodeAlreadyExists(ValidationError):
         if message is None:
             message = {
                 "promo_code": ValidationError(
-                    "Promo code already exists.", code="object_already_exists"
+                    "Promo code already exists.", code="promo_code_already_exists"
                 )
             }
         super().__init__(message, **kwargs)

@@ -207,7 +207,7 @@ class AuthorizationKeyAdd(BaseShopMutation):
                 {
                     "key_type": ValidationError(
                         "Authorization key already exists.",
-                        code=ShopErrorCode.OBJECT_ALREADY_EXISTS,
+                        code=ShopErrorCode.AUTHORIZATION_KEY_ALREADY_EXISTS,
                     )
                 }
             )
