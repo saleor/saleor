@@ -532,39 +532,12 @@ class BaseAttributeQuerySet(models.QuerySet):
         return self.get_public_attributes()
 
 
-class AssignedProductAttribute(models.Model):
-    """Associate a product type attribute and selected values to a given product."""
-
-    product = models.ForeignKey(
-        Product, related_name="attributes", on_delete=models.CASCADE
-    )
-    assignment = models.ForeignKey(
-        "AttributeProduct", on_delete=models.CASCADE, related_name="productassignments"
-    )
+class BaseAssignedAttribute(models.Model):
+    assignment = None
     values = models.ManyToManyField("AttributeValue")
 
     class Meta:
-        unique_together = (("product", "assignment"),)
-
-    @property
-    def attribute(self):
-        """Return the attribute assigned to this relation."""
-        return self.assignment.attribute
-
-
-class AssignedVariantAttribute(models.Model):
-    """Associate a product type attribute and selected values to a given variant."""
-
-    variant = models.ForeignKey(
-        ProductVariant, related_name="attributes", on_delete=models.CASCADE
-    )
-    assignment = models.ForeignKey(
-        "AttributeVariant", on_delete=models.CASCADE, related_name="variantassignments"
-    )
-    values = models.ManyToManyField("AttributeValue")
-
-    class Meta:
-        unique_together = (("variant", "assignment"),)
+        abstract = True
 
     @property
     def attribute(self):
@@ -573,6 +546,34 @@ class AssignedVariantAttribute(models.Model):
     @property
     def attribute_pk(self):
         return self.assignment.attribute_id
+
+
+class AssignedProductAttribute(BaseAssignedAttribute):
+    """Associate a product type attribute and selected values to a given product."""
+
+    product = models.ForeignKey(
+        Product, related_name="attributes", on_delete=models.CASCADE
+    )
+    assignment = models.ForeignKey(
+        "AttributeProduct", on_delete=models.CASCADE, related_name="productassignments"
+    )
+
+    class Meta:
+        unique_together = (("product", "assignment"),)
+
+
+class AssignedVariantAttribute(BaseAssignedAttribute):
+    """Associate a product type attribute and selected values to a given variant."""
+
+    variant = models.ForeignKey(
+        ProductVariant, related_name="attributes", on_delete=models.CASCADE
+    )
+    assignment = models.ForeignKey(
+        "AttributeVariant", on_delete=models.CASCADE, related_name="variantassignments"
+    )
+
+    class Meta:
+        unique_together = (("variant", "assignment"),)
 
 
 class AssociatedAttributeQuerySet(BaseAttributeQuerySet):

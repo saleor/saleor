@@ -485,7 +485,7 @@ class AttributeAssignmentMixin:
     """
 
     @classmethod
-    def _get_attribute_nodes(
+    def _resolve_attribute_nodes(
         cls,
         qs: QuerySet,
         *,
@@ -596,7 +596,9 @@ class AttributeAssignmentMixin:
         """Resolve and prepare the input for further checks.
 
         :param raw_input: The user's attributes input.
-        :param attributes_qs: A queryset of attributes, must prefetch attribute values.
+        :param attributes_qs:
+            A queryset of attributes, the attribute values must be prefetched.
+            Prefetch is needed by ``_pre_save_values`` during save.
         :param is_variant: Whether the input is for a variant or a product.
 
         :raises ValidationError: contain the message.
@@ -624,7 +626,7 @@ class AttributeAssignmentMixin:
             else:
                 raise ValidationError("You must whether supply an ID or a slug")
 
-        attributes = cls._get_attribute_nodes(
+        attributes = cls._resolve_attribute_nodes(
             attributes_qs, global_ids=global_ids, pks=pks.keys(), slugs=slugs.keys()
         )
         cleaned_input = []
@@ -745,7 +747,8 @@ class ProductCreate(ModelMutation):
             # Prefetches needed by AttributeAssignmentMixin and
             # associate_attribute_values_to_instance
             qs = cls.Meta.model.objects.prefetch_related(
-                "product_type__product_attributes", "product_type__attributeproduct"
+                "product_type__product_attributes__values",
+                "product_type__attributeproduct",
             )
             return cls.get_node_or_error(info, object_id, only_type="Product", qs=qs)
 
@@ -972,7 +975,7 @@ class ProductVariantCreate(ModelMutation):
             # Prefetches needed by AttributeAssignmentMixin and
             # associate_attribute_values_to_instance
             qs = cls.Meta.model.objects.prefetch_related(
-                "product__product_type__variant_attributes",
+                "product__product_type__variant_attributes__values",
                 "product__product_type__attributevariant",
             )
             return cls.get_node_or_error(
@@ -984,7 +987,6 @@ class ProductVariantCreate(ModelMutation):
     @classmethod
     @transaction.atomic()
     def save(cls, info, instance, cleaned_input):
-        # FIXME: get_node should prefetch
         instance.save()
         # Recalculate the "minimal variant price" for the parent product
         update_product_minimal_variant_price_task.delay(instance.product_id)
