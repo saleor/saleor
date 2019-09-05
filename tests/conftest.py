@@ -425,6 +425,11 @@ def permission_manage_plugins():
 
 
 @pytest.fixture
+def permission_manage_service_accounts():
+    return Permission.objects.get(codename="manage_service_accounts")
+
+
+@pytest.fixture
 def product_type(color_attribute, size_attribute):
     product_type = ProductType.objects.create(
         name="Default Type", has_variants=True, is_shipping_required=True

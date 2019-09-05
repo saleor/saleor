@@ -2,7 +2,6 @@ import graphene
 from django.conf import settings
 from django_countries import countries
 from django_prices_vatlayer.models import VAT
-from graphql_jwt.decorators import permission_required
 from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 
 from ...core.permissions import get_permissions
@@ -14,6 +13,7 @@ from ..account.types import Address
 from ..core.enums import WeightUnitsEnum
 from ..core.types.common import CountryDisplay, LanguageDisplay, PermissionDisplay
 from ..core.utils import get_node_optimized, str_to_enum
+from ..decorators import permission_required
 from ..menu.types import Menu
 from ..product.types import Collection
 from ..translations.enums import LanguageCodeEnum

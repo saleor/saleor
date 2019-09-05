@@ -1,10 +1,10 @@
 import graphene
 from django.core.exceptions import ValidationError
-from graphql_jwt.decorators import permission_required
 
 from ....product import models
 from ...core.mutations import BaseMutation, ModelMutation
 from ...core.types import Upload
+from ...decorators import permission_required
 from ..types import DigitalContent, ProductVariant
 
 

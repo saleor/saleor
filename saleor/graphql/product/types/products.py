@@ -6,7 +6,6 @@ import graphene_django_optimizer as gql_optimizer
 from django.db.models import Prefetch
 from graphene import relay
 from graphql.error import GraphQLError
-from graphql_jwt.decorators import permission_required
 
 from ....product import models
 from ....product.templatetags.product_images import (
@@ -32,6 +31,7 @@ from ...core.types import (
     TaxedMoneyRange,
     TaxType,
 )
+from ...decorators import permission_required
 from ...translations.enums import LanguageCodeEnum
 from ...translations.resolvers import resolve_translation
 from ...translations.types import (
