@@ -1,7 +1,7 @@
 import json
 import logging
 from decimal import Decimal
-from typing import Dict, List
+from typing import Dict
 
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
@@ -20,9 +20,8 @@ from . import (
     GatewayError,
     PaymentError,
     TransactionKind,
-    get_payment_gateway,
 )
-from .interface import AddressData, GatewayResponse, PaymentData, TokenConfig
+from .interface import AddressData, GatewayResponse, PaymentData
 from .models import Payment, Transaction
 
 logger = logging.getLogger(__name__)
@@ -30,10 +29,6 @@ logger = logging.getLogger(__name__)
 GENERIC_TRANSACTION_ERROR = "Transaction was unsuccessful"
 ALLOWED_GATEWAY_KINDS = {choices[0] for choices in TransactionKind.CHOICES}
 GATEWAYS_META_NAMESPACE = "payment-gateways"
-
-
-def list_enabled_gateways() -> List[str]:
-    return list(settings.CHECKOUT_PAYMENT_GATEWAYS.keys())
 
 
 def create_payment_information(
@@ -202,18 +197,6 @@ def create_transaction(
     return txn
 
 
-def gateway_get_client_token(gateway_name: str, token_config: TokenConfig = None):
-    """Get a client token.
-
-    That will be used as a customer's identificator for client-side tokenization
-    of the chosen payment method.
-    """
-    if not token_config:
-        token_config = TokenConfig()
-    gateway, gateway_config = get_payment_gateway(gateway_name)
-    return gateway.get_client_token(config=gateway_config, token_config=token_config)
-
-
 def clean_capture(payment: Payment, amount: Decimal):
     """Check if payment can be captured."""
     if amount <= 0:
@@ -319,12 +302,6 @@ def store_customer_id(user, gateway, customer_id):
 
 def prepare_namespace_name(s):
     return s.strip().upper()
-
-
-def retrieve_customer_sources(gateway_name, customer_id):
-    """Fetch all customer payment sources stored in gateway."""
-    gateway, config = get_payment_gateway(gateway_name)
-    return gateway.list_client_sources(config, customer_id)
 
 
 def update_card_details(payment, gateway_response):

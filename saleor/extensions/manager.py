@@ -6,7 +6,7 @@ from django.utils.module_loading import import_string
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from ..core.payments import PaymentInterface
+from ..core.payments import Gateway, PaymentInterface
 from ..core.taxes import TaxType, quantize_price
 from .models import PluginConfiguration
 
@@ -17,7 +17,6 @@ if TYPE_CHECKING:
     from ..account.models import Address
     from ..order.models import OrderLine, Order
     from ..payment.interface import PaymentData, GatewayResponse, CustomerSource
-    from ..core.payments import Gateway
 
 
 class ExtensionsManager(PaymentInterface):
@@ -182,37 +181,37 @@ class ExtensionsManager(PaymentInterface):
         )
 
     def authorize_payment(
-        self, gateway: "Gateway", payment_information: "PaymentData"
+        self, gateway: Gateway, payment_information: "PaymentData"
     ) -> "GatewayResponse":
         method_name = "authorize_payment"
         return self.__run_payment_method(gateway, method_name, payment_information)
 
     def capture_payment(
-        self, gateway: "Gateway", payment_information: "PaymentData"
+        self, gateway: Gateway, payment_information: "PaymentData"
     ) -> "GatewayResponse":
         method_name = "capture_payment"
         return self.__run_payment_method(gateway, method_name, payment_information)
 
     def refund_payment(
-        self, gateway: "Gateway", payment_information: "PaymentData"
+        self, gateway: Gateway, payment_information: "PaymentData"
     ) -> "GatewayResponse":
         method_name = "refund_payment"
         return self.__run_payment_method(gateway, method_name, payment_information)
 
     def void_payment(
-        self, gateway: "Gateway", payment_information: "PaymentData"
+        self, gateway: Gateway, payment_information: "PaymentData"
     ) -> "GatewayResponse":
         method_name = "void_payment"
         return self.__run_payment_method(gateway, method_name, payment_information)
 
     def confirm_payment(
-        self, gateway: "Gateway", payment_information: "PaymentData"
+        self, gateway: Gateway, payment_information: "PaymentData"
     ) -> "GatewayResponse":
         method_name = "confirm_payment"
         return self.__run_payment_method(gateway, method_name, payment_information)
 
     def process_payment(
-        self, gateway: "Gateway", payment_information: "PaymentData"
+        self, gateway: Gateway, payment_information: "PaymentData"
     ) -> "GatewayResponse":
         method_name = "process_payment"
         return self.__run_payment_method(gateway, method_name, payment_information)
@@ -227,23 +226,29 @@ class ExtensionsManager(PaymentInterface):
         method_name = "get_client_token"
         return self.__run_payment_method(gateway, method_name, payment_information)
 
-    def list_payment_sources(self, customer_id: str) -> List["CustomerSource"]:
+    def list_payment_sources(
+        self, gateway: Gateway, customer_id: str
+    ) -> List["CustomerSource"]:
         default_value = []
-        return self.__run_method_on_plugins(
-            "list_payment_sources", default_value, customer_id=customer_id
-        )
+        gateway_name = gateway.value
+        gtw = self.get_plugin(gateway_name)
+        if gtw is not None:
+            return self.__run_method_on_single_plugin(
+                gtw, "list_payment_sources", default_value, customer_id=customer_id
+            )
+        raise Exception(f"Payment plugin {gateway_name} is inaccessible!")
 
-    def list_payment_gateways(self) -> List["Gateway"]:
+    def list_payment_gateways(self) -> List[Gateway]:
         PAYMENT_METHOD = "process_payment"
         return [
-            plugin.PLUGIN_NAME
+            Gateway(plugin.PLUGIN_NAME)
             for plugin in self.plugins
             if plugin.active and PAYMENT_METHOD in type(plugin).__dict__
         ]
 
     def __run_payment_method(
         self,
-        gateway: "Gateway",
+        gateway: Gateway,
         method_name: str,
         payment_information: "PaymentData",
         **kwargs,

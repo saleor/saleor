@@ -14,7 +14,6 @@ from saleor.payment import (
     PaymentError,
     TransactionKind,
     gateway,
-    get_payment_gateway,
 )
 from saleor.payment.interface import (
     CreditCardInfo,
@@ -31,7 +30,6 @@ from saleor.payment.utils import (
     create_payment,
     create_payment_information,
     create_transaction,
-    gateway_get_client_token,
     handle_fully_paid_order,
     mark_order_as_paid,
     validate_gateway_response,
@@ -106,29 +104,6 @@ def dummy_response(payment_dummy, transaction_data, transaction_token, card_deta
         raw_response=None,
         card_info=card_details,
     )
-
-
-def test_get_payment_gateway_not_allowed_checkout_choice(settings):
-    gateway = "example-gateway"
-    settings.CHECKOUT_PAYMENT_GATEWAYS = {}
-    with pytest.raises(ValueError):
-        get_payment_gateway(gateway)
-
-
-def test_get_payment_gateway_non_existing_name(settings):
-    gateway = "example-gateway"
-    settings.CHECKOUT_PAYMENT_GATEWAYS = {gateway: "Example gateway"}
-    with pytest.raises(ImproperlyConfigured):
-        get_payment_gateway(gateway)
-
-
-def test_get_payment_gateway(settings):
-    gateway_name = list(settings.PAYMENT_GATEWAYS.keys())[0]
-    gateway = settings.PAYMENT_GATEWAYS[gateway_name]
-    gateway_module, gateway_config = get_payment_gateway(gateway_name)
-    assert gateway_module.__name__ == gateway["module"]
-    assert gateway_config.connection_params == gateway["config"]["connection_params"]
-    assert gateway_config.auto_capture == gateway["config"]["auto_capture"]
 
 
 @patch("saleor.order.emails.send_payment_confirmation.delay")
@@ -266,36 +241,6 @@ def test_create_transaction_no_gateway_response(transaction_data):
     transaction_data.pop("gateway_response")
     txn = create_transaction(**transaction_data)
     assert txn.gateway_response == {}
-
-
-@patch("saleor.payment.utils.get_payment_gateway")
-def test_gateway_get_client_token(get_payment_gateway_mock, gateway_config):
-    get_client_token_mock = Mock(return_value="client-token")
-    get_payment_gateway_mock.return_value = (
-        Mock(get_client_token=get_client_token_mock),
-        gateway_config,
-    )
-
-    token = gateway_get_client_token("some-gateway")
-
-    assert token == "client-token"
-    get_client_token_mock.assert_called_once_with(
-        config=gateway_config, token_config=TokenConfig()
-    )
-
-
-def test_gateway_get_client_token_not_allowed_gateway(settings):
-    gateway = "example-gateway"
-    settings.CHECKOUT_PAYMENT_GATEWAYS = {}
-    with pytest.raises(ValueError):
-        gateway_get_client_token(gateway)
-
-
-def test_gateway_get_client_token_not_existing_gateway(settings):
-    gateway = "example-gateway"
-    settings.CHECKOUT_PAYMENT_GATEWAYS = {gateway: "Example gateway"}
-    with pytest.raises(ImproperlyConfigured):
-        gateway_get_client_token(gateway)
 
 
 @pytest.mark.parametrize(
