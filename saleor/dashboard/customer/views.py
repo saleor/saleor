@@ -11,7 +11,7 @@ from django.utils.translation import pgettext_lazy
 from ...account import events as account_events
 from ...account.models import CustomerNote, User
 from ...core.utils import get_paginator_items
-from ..emails import send_set_password_customer_email
+from ..emails import send_set_password_email
 from ..views import staff_member_required
 from .filters import UserFilter
 from .forms import CustomerDeleteForm, CustomerForm, CustomerNoteForm
@@ -62,7 +62,7 @@ def customer_create(request):
     if form.is_valid():
         form.save()
         msg = pgettext_lazy("Dashboard message", "Added customer %s") % customer
-        send_set_password_customer_email(customer)
+        send_set_password_email(customer)
         messages.success(request, msg)
         return redirect("dashboard:customer-details", pk=customer.pk)
     ctx = {"form": form, "customer": customer}

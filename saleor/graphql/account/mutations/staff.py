@@ -11,7 +11,7 @@ from ....account.utils import get_random_avatar
 from ....checkout import AddressType
 from ....core.permissions import get_permissions
 from ....core.utils.url import validate_storefront_url
-from ....dashboard.emails import send_set_password_staff_email_with_url
+from ....dashboard.emails import send_set_password_email_with_url
 from ....dashboard.staff.utils import remove_staff_member
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
@@ -187,8 +187,8 @@ class StaffCreate(ModelMutation):
         if create_avatar:
             create_user_avatar_thumbnails.delay(user_id=user.pk)
         if cleaned_input.get("send_password_email"):
-            send_set_password_staff_email_with_url(
-                cleaned_input.get("redirect_url"), user
+            send_set_password_email_with_url(
+                redirect_url=cleaned_input.get("redirect_url"), user=user, staff=True
             )
 
 

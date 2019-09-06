@@ -5,7 +5,6 @@ from unittest.mock import ANY, MagicMock, Mock, patch
 
 import graphene
 import pytest
-from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 from django.core.files import File
@@ -641,7 +640,6 @@ def test_customer_create(
     )
     content = get_graphql_content(response)
 
-    User = get_user_model()
     new_customer = User.objects.get(email=email)
 
     shipping_address, billing_address = (
@@ -690,7 +688,6 @@ def test_customer_create_send_password_with_url(
     data = content["data"]["customerCreate"]
     assert not data["errors"]
 
-    User = get_user_model()
     new_customer = User.objects.get(email=email)
     assert new_customer
 
@@ -711,8 +708,7 @@ def test_customer_create_without_send_password(
     content = get_graphql_content(response)
     data = content["data"]["customerCreate"]
     assert not data["errors"]
-    staff_user = User.objects.get(email=email)
-    assert staff_user
+    User.objects.get(email=email)
 
 
 def test_customer_create_without_redirect_url(
@@ -730,7 +726,7 @@ def test_customer_create_without_redirect_url(
     assert not staff_user
 
 
-def test_customer_create_without_invalid_url(staff_api_client, permission_manage_users):
+def test_customer_create_with_invalid_url(staff_api_client, permission_manage_users):
     email = "api_user@example.com"
     variables = {"email": email, "send_mail": True, "redirect_url": "invalid"}
     response = staff_api_client.post_graphql(
@@ -743,7 +739,7 @@ def test_customer_create_without_invalid_url(staff_api_client, permission_manage
     assert not staff_user
 
 
-def test_customer_create_without_url_not_allowed(
+def test_customer_create_with_not_allowed_url(
     staff_api_client, permission_manage_users
 ):
     email = "api_user@example.com"
@@ -829,7 +825,6 @@ def test_customer_update(
     )
     content = get_graphql_content(response)
 
-    User = get_user_model()
     customer = User.objects.get(email=customer_user.email)
 
     # check that existing instances are updated
@@ -1136,7 +1131,7 @@ def test_account_request_deletion_all_storefront_hosts_allowed(
 ):
     user = user_api_client.user
     token = default_token_generator.make_token(user)
-    settings.ALLOWED_STOREFRONT_HOSTS = ["*"]
+    settings.ALLOWED_CLIENT_HOSTS = ["*"]
     variables = {"redirectUrl": "https://www.test.com"}
     response = user_api_client.post_graphql(
         ACCOUNT_REQUEST_DELETION_MUTATION, variables
@@ -1158,7 +1153,7 @@ def test_account_request_deletion_subdomain(
 ):
     user = user_api_client.user
     token = default_token_generator.make_token(user)
-    settings.ALLOWED_STOREFRONT_HOSTS = [".example.com"]
+    settings.ALLOWED_CLIENT_HOSTS = [".example.com"]
     variables = {"redirectUrl": "https://sub.example.com"}
     response = user_api_client.post_graphql(
         ACCOUNT_REQUEST_DELETION_MUTATION, variables
@@ -1354,7 +1349,6 @@ def test_staff_create(
     permissions = data["user"]["permissions"]
     assert permissions[0]["code"] == "MANAGE_PRODUCTS"
 
-    User = get_user_model()
     staff_user = User.objects.get(email=email)
 
     assert staff_user.is_staff
@@ -1385,7 +1379,6 @@ def test_staff_create_send_password_with_url(
     data = content["data"]["staffCreate"]
     assert not data["errors"]
 
-    User = get_user_model()
     staff_user = User.objects.get(email=email)
     assert staff_user.is_staff
 
@@ -1406,8 +1399,7 @@ def test_staff_create_without_send_password(
     content = get_graphql_content(response)
     data = content["data"]["staffCreate"]
     assert not data["errors"]
-    staff_user = User.objects.get(email=email)
-    assert staff_user
+    User.objects.get(email=email)
 
 
 def test_staff_create_without_redirect_url(
@@ -1425,7 +1417,7 @@ def test_staff_create_without_redirect_url(
     assert not staff_user
 
 
-def test_staff_create_without_invalid_url(
+def test_staff_create_with_invalid_url(
     staff_api_client, media_root, permission_manage_staff
 ):
     email = "api_user@example.com"
@@ -1440,7 +1432,7 @@ def test_staff_create_without_invalid_url(
     assert not staff_user
 
 
-def test_staff_create_without_url_not_allowed(
+def test_staff_create_with_not_allowed_url(
     staff_api_client, media_root, permission_manage_staff
 ):
     email = "api_user@example.com"
@@ -2259,6 +2251,7 @@ def test_account_reset_password_storefront_hosts_not_allowed(
     content = get_graphql_content(response)
     data = content["data"]["requestPasswordReset"]
     assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "redirectUrl"
     assert not send_password_reset_email_mock.called
 
 
@@ -2266,7 +2259,7 @@ def test_account_reset_password_storefront_hosts_not_allowed(
 def test_account_reset_password_all_storefront_hosts_allowed(
     send_password_reset_email_mock, user_api_client, customer_user, settings
 ):
-    settings.ALLOWED_STOREFRONT_HOSTS = ["*"]
+    settings.ALLOWED_CLIENT_HOSTS = ["*"]
     variables = {"email": customer_user.email, "redirectUrl": "https://www.test.com"}
     response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
     content = get_graphql_content(response)
@@ -2285,7 +2278,7 @@ def test_account_reset_password_all_storefront_hosts_allowed(
 def test_account_reset_password_subdomain(
     send_password_reset_email_mock, user_api_client, customer_user, settings
 ):
-    settings.ALLOWED_STOREFRONT_HOSTS = [".example.com"]
+    settings.ALLOWED_CLIENT_HOSTS = [".example.com"]
     variables = {"email": customer_user.email, "redirectUrl": "https://sub.example.com"}
     response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
     content = get_graphql_content(response)
