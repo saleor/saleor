@@ -72,5 +72,7 @@ class PaymentInterface(ABC):
         pass
 
     @abstractmethod
-    def list_payment_sources(self, customer_id: str) -> List["CustomerSource"]:
+    def list_payment_sources(
+        self, gateway: Gateway, customer_id: str
+    ) -> List["CustomerSource"]:
         pass

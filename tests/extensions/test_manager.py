@@ -5,6 +5,7 @@ import pytest
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
+from saleor.core.payments import Gateway
 from saleor.core.taxes import TaxType
 from saleor.extensions.base_plugin import BasePlugin
 from saleor.extensions.manager import ExtensionsManager, get_extensions_manager
@@ -285,6 +286,8 @@ def test_manager_save_plugin_configuration():
 
 def test_manager_serve_list_of_payment_gateways():
     SamplePlugin.process_payment = lambda: True
+    SamplePlugin.PLUGIN_NAME = "braintree"
+    SamplePlugin1.PLUGIN_NAME = "stripe"
     plugins = [
         "tests.extensions.test_manager.SamplePlugin",
         "tests.extensions.test_manager.SamplePlugin1",
@@ -293,7 +296,7 @@ def test_manager_serve_list_of_payment_gateways():
     for p in manager.plugins:
         p.active = True
 
-    assert manager.list_payment_gateways() == [SamplePlugin.PLUGIN_NAME]
+    assert manager.list_payment_gateways() == [Gateway(SamplePlugin.PLUGIN_NAME)]
 
     manager.plugins[0].active = False
     assert manager.list_payment_gateways() == []

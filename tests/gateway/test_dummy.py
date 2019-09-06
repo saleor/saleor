@@ -2,13 +2,7 @@ from decimal import Decimal
 
 import pytest
 
-from saleor.payment import (
-    ChargeStatus,
-    PaymentError,
-    TransactionKind,
-    gateway,
-    get_payment_gateway,
-)
+from saleor.payment import ChargeStatus, PaymentError, TransactionKind, gateway
 from saleor.payment.utils import create_payment_information
 
 
@@ -232,14 +226,8 @@ def test_refund_gateway_error(payment_txn_captured, monkeypatch):
 def test_dummy_payment_form(kind, charge_status, payment_dummy):
     payment = payment_dummy
     data = {"charge_status": charge_status}
-    payment_gateway, gateway_config = get_payment_gateway(payment.gateway)
-    payment_info = create_payment_information(payment)
 
-    form = payment_gateway.create_form(
-        data=data,
-        payment_information=payment_info,
-        connection_params=gateway_config.connection_params,
-    )
+    form = gateway.create_payment_form(payment=payment, data=data)
     assert form.is_valid()
     gateway.process_payment(payment=payment, token=form.get_payment_token())
     payment.refresh_from_db()

@@ -1,5 +1,6 @@
 import logging
 
+from django.conf import settings
 from django.contrib import auth, messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
@@ -13,7 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 from ..account.forms import LoginForm
 from ..account.models import User
 from ..core.utils import get_client_ip
-from ..payment import ChargeStatus, TransactionKind, get_payment_gateway
+from ..payment import ChargeStatus, TransactionKind
 from ..payment import gateway as payment_gateway
 from ..payment.utils import create_payment, create_payment_information
 from . import FulfillmentStatus
@@ -89,7 +90,6 @@ def payment(request, token):
 
 @check_order_status
 def start_payment(request, order, gateway):
-    _, gateway_config = get_payment_gateway(gateway)
     extra_data = {"customer_user_agent": request.META.get("HTTP_USER_AGENT")}
     with transaction.atomic():
         payment = create_payment(
@@ -129,7 +129,8 @@ def start_payment(request, order, gateway):
         "client_token": client_token,
         "order": order,
     }
-    return TemplateResponse(request, gateway_config.template_path, ctx)
+    template_path = settings.PAYMENT_GATEWAYS[gateway]["config"]["template_path"]
+    return TemplateResponse(request, template_path, ctx)
 
 
 @check_order_status

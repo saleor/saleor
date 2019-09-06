@@ -1,10 +1,11 @@
 import graphene
 
+from ...core.payments import Gateway
 from ...graphql.core.enums import to_enum
-from ...payment import GATEWAYS_ENUM, ChargeStatus
+from ...payment import ChargeStatus
 
 PaymentChargeStatusEnum = to_enum(ChargeStatus, type_name="PaymentChargeStatusEnum")
-PaymentGatewayEnum = graphene.Enum.from_enum(GATEWAYS_ENUM)
+PaymentGatewayEnum = graphene.Enum.from_enum(Gateway)
 
 
 class OrderAction(graphene.Enum):
