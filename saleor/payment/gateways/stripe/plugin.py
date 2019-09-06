@@ -98,7 +98,7 @@ class StripeGatewayPlugin(BasePlugin):
                 connection_params=gateway_config["connection_params"],
                 store_customer=gateway_config["store_card"],
             )
-            self.active = GATEWAY_NAME in settings.CHECKOUT_PAYMENT_GATEWAYS
+            self.active = False
 
     @classmethod
     def _get_default_configuration(cls):
