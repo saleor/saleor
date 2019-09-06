@@ -23,6 +23,16 @@ if TYPE_CHECKING:
     from . import GatewayResponse, PaymentData, CustomerSource
 
 
+def require_active_plugin(fn):
+    def wrapped(self, *args, **kwargs):
+        previous = kwargs.get("previous_value", None)
+        if not self.active:
+            return previous
+        return fn(self, *args, **kwargs)
+
+    return wrapped
+
+
 class BraintreeGatewayPlugin(BasePlugin):
     PLUGIN_NAME = "Braintree Gateway"
     CONFIG_STRUCTURE = {
@@ -133,31 +143,37 @@ class BraintreeGatewayPlugin(BasePlugin):
     def _get_gateway_config(self):
         return self.config
 
+    @require_active_plugin
     def authorize_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
         return authorize(payment_information, self._get_gateway_config())
 
+    @require_active_plugin
     def capture_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
         return capture(payment_information, self._get_gateway_config())
 
+    @require_active_plugin
     def refund_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
         return refund(payment_information, self._get_gateway_config())
 
+    @require_active_plugin
     def void_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
         return void(payment_information, self._get_gateway_config())
 
+    @require_active_plugin
     def process_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
         return process_payment(payment_information, self._get_gateway_config())
 
+    @require_active_plugin
     def list_payment_sources(
         self, customer_id: str, previous_value
     ) -> List["CustomerSource"]:
@@ -165,5 +181,6 @@ class BraintreeGatewayPlugin(BasePlugin):
         previous_value.extend(sources)
         return previous_value
 
+    @require_active_plugin
     def create_form(self, data, payment_information, previous_value) -> "forms.Form":
         return create_form(data, payment_information)

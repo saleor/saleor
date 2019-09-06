@@ -22,6 +22,16 @@ if TYPE_CHECKING:
     from . import GatewayResponse, PaymentData, CustomerSource
 
 
+def require_active_plugin(fn):
+    def wrapped(self, *args, **kwargs):
+        previous = kwargs.get("previous_value", None)
+        if not self.active:
+            return previous
+        return fn(self, *args, **kwargs)
+
+    return wrapped
+
+
 class StripeGatewayPlugin(BasePlugin):
     PLUGIN_NAME = "Stripe Gateway"
     CONFIG_STRUCTURE = {
@@ -108,26 +118,31 @@ class StripeGatewayPlugin(BasePlugin):
     def _get_gateway_config(self):
         return self.config
 
+    @require_active_plugin
     def authorize_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
         return authorize(payment_information, self._get_gateway_config())
 
+    @require_active_plugin
     def capture_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
         return capture(payment_information, self._get_gateway_config())
 
+    @require_active_plugin
     def refund_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
         return refund(payment_information, self._get_gateway_config())
 
+    @require_active_plugin
     def void_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
         return void(payment_information, self._get_gateway_config())
 
+    @require_active_plugin
     def process_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
