@@ -259,3 +259,38 @@ def test_bulk_unpublish(staff_api_client, page_list, permission_manage_pages):
 
     assert content["data"]["pageBulkPublish"]["count"] == len(page_list)
     assert not any(page.is_published for page in page_list)
+
+
+@pytest.mark.parametrize(
+    "page_filter, count",
+    [
+        ({"search": "Page1"}, 1),
+        ({"search": "slug_page_2"}, 1),
+        ({"search": "test"}, 1),
+        ({"search": "slug_"}, 3),
+        ({"search": "Page"}, 2),
+    ],
+)
+def test_pages_query_with_filter(
+    page_filter, count, staff_api_client, permission_manage_pages
+):
+    query = """
+        query ($filter: PageFilterInput) {
+            pages(first: 5, filter:$filter) {
+                totalCount
+                edges {
+                    node {
+                        id
+                    }
+                }
+            }
+        }
+    """
+    Page.objects.create(title="Page1", slug="slug_page_1", content="Content for page 1")
+    Page.objects.create(title="Page2", slug="slug_page_2", content="Content for page 2")
+    Page.objects.create(title="About", slug="slug_about", content="About test content")
+    variables = {"filter": page_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_pages)
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["pages"]["totalCount"] == count
