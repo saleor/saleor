@@ -1,4 +1,4 @@
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit
 
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
@@ -13,36 +13,22 @@ from ..core.emails import get_email_base_context
 from ..core.utils import build_absolute_uri
 
 
-def send_set_password_staff_email_with_url(redirect_url, staff):
-    """Trigger sending a set password email for the given staff."""
-    token = default_token_generator.make_token(staff)
+def send_set_password_email_with_url(redirect_url, user, staff=False):
+    """Trigger sending a set password email for the given customer/staff."""
+    template_type = "staff" if staff else "customer"
+    template = f"dashboard/{template_type}/set_password"
+    token = default_token_generator.make_token(user)
     _send_set_user_password_email_with_url.delay(
-        staff.email, redirect_url, token, "dashboard/staff/set_password"
+        user.email, redirect_url, token, template
     )
 
 
-def send_set_password_customer_email_with_url(redirect_url, customer):
-    """Trigger sending a set password email for the given customer."""
-    token = default_token_generator.make_token(customer)
-    _send_set_user_password_email_with_url.delay(
-        customer.email, redirect_url, token, "dashboard/customer/set_password"
-    )
-
-
-def send_set_password_staff_email(staff):
-    """Trigger sending a set password email for the given staff."""
-    token = default_token_generator.make_token(staff)
-    _send_set_user_password_email.delay(
-        staff.email, staff.pk, token, "dashboard/staff/set_password"
-    )
-
-
-def send_set_password_customer_email(customer):
-    """Trigger sending a set password email for the given customer."""
-    token = default_token_generator.make_token(customer)
-    _send_set_user_password_email.delay(
-        customer.email, customer.pk, token, "dashboard/customer/set_password"
-    )
+def send_set_password_email(user, staff=False):
+    """Trigger sending a set password email for the given customer/staff."""
+    template_type = "staff" if staff else "customer"
+    template = f"dashboard/{template_type}/set_password"
+    token = default_token_generator.make_token(user)
+    _send_set_user_password_email.delay(user.email, user.pk, token, template)
 
 
 @app.task
@@ -50,8 +36,9 @@ def _send_set_user_password_email_with_url(
     recipient_email, redirect_url, token, template_name
 ):
     params = urlencode({"email": recipient_email, "token": token})
-    password_set_url = f"{redirect_url}?%{params}"
-    _send_set_password_email(recipient_email, password_set_url, template_name)
+    password_set_url = urlsplit(redirect_url)
+    password_set_url = password_set_url._replace(query=params)
+    _send_set_password_email(recipient_email, password_set_url.geturl(), template_name)
 
 
 @app.task
