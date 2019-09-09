@@ -1,10 +1,10 @@
 import graphene
 
-from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
+from ..core.fields import FilterInputConnectionField
 from ..descriptions import DESCRIPTIONS
 from ..translations.mutations import MenuItemTranslate
 from .bulk_mutations import MenuBulkDelete, MenuItemBulkDelete
-from .filters import MenuFilterInput
+from .filters import MenuFilterInput, MenuItemFilterInput
 from .mutations import (
     AssignNavigation,
     MenuCreate,
@@ -37,9 +37,10 @@ class MenuQueries(graphene.ObjectType):
         id=graphene.Argument(graphene.ID, required=True),
         description="Lookup a menu item by ID.",
     )
-    menu_items = PrefetchingConnectionField(
+    menu_items = FilterInputConnectionField(
         MenuItem,
         query=graphene.String(description=DESCRIPTIONS["menu_item"]),
+        filter=MenuItemFilterInput(),
         description="List of the shop's menu items.",
     )
 
