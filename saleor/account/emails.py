@@ -1,4 +1,4 @@
-from urllib.parse import urlencode
+from urllib.parse import urlencode, urlsplit
 
 from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
@@ -36,11 +36,9 @@ def _send_user_password_reset_email(recipient_email, context, user_id):
 @app.task
 def _send_password_reset_email_with_url(recipient_email, redirect_url, user_id, token):
     params = urlencode({"email": recipient_email, "token": token})
-    reset_url = "%(redirect_url)s?%(params)s" % {
-        "redirect_url": redirect_url,
-        "params": params,
-    }
-    _send_password_reset_email(recipient_email, reset_url, user_id)
+    reset_url = urlsplit(redirect_url)
+    reset_url = reset_url._replace(query=params)
+    _send_password_reset_email(recipient_email, reset_url.geturl(), user_id)
 
 
 def _send_password_reset_email(recipient_email, reset_url, user_id):
@@ -78,7 +76,7 @@ def _send_account_delete_confirmation_email_with_url(
         "redirect_url": redirect_url,
         "params": params,
     }
-    _send_account_delete_confirmation_email(recipient_email, delete_url)
+    _send_delete_confirmation_email(recipient_email, delete_url)
 
 
 @app.task

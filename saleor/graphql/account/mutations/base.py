@@ -8,7 +8,7 @@ from graphql_jwt.exceptions import PermissionDenied
 from ....account import events as account_events, models
 from ....account.emails import send_user_password_reset_email_with_url
 from ....core.utils.url import validate_storefront_url
-from ....dashboard.emails import send_set_password_customer_email
+from ....dashboard.emails import send_set_password_email_with_url
 from ...account.i18n import I18nMixin
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import (
@@ -259,6 +259,12 @@ class UserCreateInput(CustomerInput):
     send_password_email = graphene.Boolean(
         description="Send an email with a link to set a password"
     )
+    redirect_url = graphene.String(
+        description=(
+            "URL of a view where users should be redirected to "
+            "set the password. URL in RFC 1808 format.",
+        )
+    )
 
 
 class BaseCustomerCreate(ModelMutation, I18nMixin):
@@ -290,6 +296,14 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
                 billing_address_data, instance=getattr(instance, BILLING_ADDRESS_FIELD)
             )
             cleaned_input[BILLING_ADDRESS_FIELD] = billing_address
+
+        if cleaned_input.get("send_password_email"):
+            if not cleaned_input.get("redirect_url"):
+                raise ValidationError(
+                    {"redirect_url": "Redirect url is required to send a password."}
+                )
+            validate_storefront_url(cleaned_input.get("redirect_url"))
+
         return cleaned_input
 
     @classmethod
@@ -313,7 +327,9 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
             account_events.customer_account_created_event(user=instance)
 
         if cleaned_input.get("send_password_email"):
-            send_set_password_customer_email.delay(instance.pk)
+            send_set_password_email_with_url(
+                cleaned_input.get("redirect_url"), instance
+            )
 
 
 class UserUpdateMeta(UpdateMetaBaseMutation):

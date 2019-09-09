@@ -3376,6 +3376,7 @@ input StaffCreateInput {
   note: String
   permissions: [PermissionEnum]
   sendPasswordEmail: Boolean
+  redirectUrl: String
 }
 
 type StaffDelete {
@@ -3603,6 +3604,7 @@ input UserCreateInput {
   isActive: Boolean
   note: String
   sendPasswordEmail: Boolean
+  redirectUrl: String
 }
 
 type UserUpdateMeta {
