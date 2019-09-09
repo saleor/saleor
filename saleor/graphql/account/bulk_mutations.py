@@ -2,8 +2,8 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ...account import models
+from ...account.error_codes import AccountErrorCode
 from ..core.mutations import BaseBulkMutation, ModelBulkDeleteMutation
-from ..core.utils.error_codes import AccountErrorCode
 from .mutations.base import AccountErrorMixin
 from .utils import CustomerDeleteMixin, StaffDeleteMixin
 

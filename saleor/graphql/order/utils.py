@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 
-from ..core.utils.error_codes import OrderErrorCode
+from ...order.error_codes import OrderErrorCode
 
 
 def validate_total_quantity(order):

@@ -11,7 +11,6 @@ from prices import Money, TaxedMoney
 from saleor.account.models import CustomerEvent
 from saleor.core.taxes import zero_taxed_money
 from saleor.graphql.core.enums import ReportingPeriod
-from saleor.graphql.core.utils.error_codes import OrderErrorCode
 from saleor.graphql.order.mutations.orders import (
     clean_order_cancel,
     clean_order_capture,
@@ -21,6 +20,7 @@ from saleor.graphql.order.mutations.orders import (
 from saleor.graphql.order.utils import validate_draft_order
 from saleor.graphql.payment.types import PaymentChargeStatusEnum
 from saleor.order import OrderStatus, events as order_events
+from saleor.order.error_codes import OrderErrorCode
 from saleor.order.models import Order, OrderEvent
 from saleor.payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from saleor.payment.models import Payment

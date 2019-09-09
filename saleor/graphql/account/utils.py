@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError
 from graphene.utils.str_converters import to_camel_case
 
 from ...account import events as account_events
-from ..core.utils.error_codes import AccountErrorCode
+from ...account.error_codes import AccountErrorCode
 
 
 class UserDeleteMixin:

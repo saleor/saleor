@@ -16,6 +16,7 @@ from prices import Money, MoneyRange, TaxedMoneyRange
 from ..account.forms import get_address_form
 from ..account.models import Address, User
 from ..account.utils import store_user_address
+from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import quantize_price, zero_taxed_money
 from ..core.utils import to_local_currency
@@ -39,7 +40,6 @@ from ..giftcard.utils import (
     add_gift_card_code_to_checkout,
     remove_gift_card_code_from_checkout,
 )
-from ..graphql.core.utils.error_codes import CheckoutErrorCode
 from ..order import events
 from ..order.emails import send_order_confirmation
 from ..order.models import Order, OrderLine

@@ -3,10 +3,10 @@ from django.core.exceptions import ValidationError
 
 from ...dashboard.shipping.forms import default_shipping_zone_exists
 from ...shipping import models
+from ...shipping.error_codes import ShippingErrorCode
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import Decimal, WeightScalar
 from ..core.types.common import ShippingError
-from ..core.utils.error_codes import ShippingErrorCode
 from .enums import ShippingMethodTypeEnum
 from .types import ShippingMethod, ShippingZone
 

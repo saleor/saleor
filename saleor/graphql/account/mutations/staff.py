@@ -6,6 +6,7 @@ from graphql_jwt.decorators import staff_member_required
 from graphql_jwt.exceptions import PermissionDenied
 
 from ....account import events as account_events, models, utils
+from ....account.error_codes import AccountErrorCode
 from ....account.thumbnails import create_user_avatar_thumbnails
 from ....account.utils import get_random_avatar
 from ....checkout import AddressType
@@ -24,7 +25,6 @@ from ...core.mutations import (
 )
 from ...core.types import Upload
 from ...core.utils import validate_image_file
-from ...core.utils.error_codes import AccountErrorCode
 from ..utils import CustomerDeleteMixin, StaffDeleteMixin, UserDeleteMixin
 from .base import (
     AccountErrorMixin,

@@ -1,4 +1,4 @@
-from ..graphql.core.utils.error_codes import CheckoutErrorCode
+from ..checkout.error_codes import CheckoutErrorCode
 
 
 class InsufficientStock(Exception):

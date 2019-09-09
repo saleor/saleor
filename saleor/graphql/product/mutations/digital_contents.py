@@ -2,9 +2,9 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....product import models
+from ....product.error_codes import ProductErrorCode
 from ...core.mutations import ModelMutation
 from ...core.types import Upload
-from ...core.utils.error_codes import ProductErrorCode
 from ...decorators import permission_required
 from ..types import DigitalContent, ProductVariant
 from .base import BaseProductMutation, ProductErrorMixin

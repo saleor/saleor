@@ -4,7 +4,7 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.http.request import split_domain_port, validate_host
 
-from ...graphql.core.utils.error_codes import AccountErrorCode
+from ...account.error_codes import AccountErrorCode
 
 
 def validate_storefront_url(url):

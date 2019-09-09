@@ -7,6 +7,7 @@ from django.db import transaction
 from django.utils import timezone
 
 from ...checkout import models
+from ...checkout.error_codes import CheckoutErrorCode
 from ...checkout.utils import (
     abort_order_data,
     add_promo_code_to_checkout,
@@ -42,7 +43,6 @@ from ..core.mutations import (
 )
 from ..core.types.common import CheckoutError
 from ..core.utils import from_global_id_strict_type
-from ..core.utils.error_codes import CheckoutErrorCode
 from ..order.types import Order
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod

@@ -7,12 +7,12 @@ from django.db.models import Model
 from graphql_relay import from_global_id
 
 from ...menu import models
+from ...menu.error_codes import MenuErrorCode
 from ...menu.utils import update_menu
 from ...page import models as page_models
 from ...product import models as product_models
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import MenuError
-from ..core.utils.error_codes import MenuErrorCode
 from ..page.types import Page
 from ..product.types import Category, Collection
 from .enums import NavigationType

@@ -6,8 +6,8 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 
 from ....account import emails, models
+from ....account.error_codes import AccountErrorCode
 from ...core.mutations import BaseMutation
-from ...core.utils.error_codes import AccountErrorCode
 
 
 def send_user_password_reset_email(user, site):

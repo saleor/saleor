@@ -8,11 +8,11 @@ from django.template.defaultfilters import slugify
 from graphene.utils.str_converters import to_camel_case
 
 from saleor.graphql.core.utils import snake_to_camel_case
-from saleor.graphql.core.utils.error_codes import ProductErrorCode
 from saleor.graphql.product.enums import AttributeTypeEnum, AttributeValueType
 from saleor.graphql.product.mutations.attributes import validate_value_is_unique
 from saleor.graphql.product.types.attributes import resolve_attribute_value_type
 from saleor.product import AttributeInputType
+from saleor.product.error_codes import ProductErrorCode
 from saleor.product.models import (
     Attribute,
     AttributeProduct,

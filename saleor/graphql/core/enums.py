@@ -1,9 +1,19 @@
 import graphene
 
+from ...account import error_codes as account_error_codes
+from ...checkout import error_codes as checkout_error_codes
+from ...core import error_codes as shop_error_codes
 from ...core.permissions import MODELS_PERMISSIONS
 from ...core.weight import WeightUnits
+from ...extensions import error_codes as extensions_error_codes
 from ...extensions.plugins.vatlayer import TaxRateType as CoreTaxRateType
-from .utils import error_codes, str_to_enum
+from ...giftcard import error_codes as giftcard_error_codes
+from ...menu import error_codes as menu_error_codes
+from ...order import error_codes as order_error_codes
+from ...payment import error_codes as payment_error_codes
+from ...product import error_codes as product_error_codes
+from ...shipping import error_codes as shipping_error_codes
+from .utils import str_to_enum
 
 # FIXME CoreTaxRateType should be removed after we will drop old api fields dedicated
 #  to taxes
@@ -60,13 +70,15 @@ WeightUnitsEnum = graphene.Enum(
 )
 
 
-AccountErrorCode = graphene.Enum.from_enum(error_codes.AccountErrorCode)
-CheckoutErrorCode = graphene.Enum.from_enum(error_codes.CheckoutErrorCode)
-MenuErrorCode = graphene.Enum.from_enum(error_codes.MenuErrorCode)
-OrderErrorCode = graphene.Enum.from_enum(error_codes.OrderErrorCode)
-ProductErrorCode = graphene.Enum.from_enum(error_codes.ProductErrorCode)
-ShopErrorCode = graphene.Enum.from_enum(error_codes.ShopErrorCode)
-ShippingErrorCode = graphene.Enum.from_enum(error_codes.ShippingErrorCode)
-PaymentErrorCode = graphene.Enum.from_enum(error_codes.PaymentErrorCode)
-GiftcardErrorCode = graphene.Enum.from_enum(error_codes.GiftcardErrorCode)
-ExtensionsErrorCode = graphene.Enum.from_enum(error_codes.ExtensionsErrorCode)
+AccountErrorCode = graphene.Enum.from_enum(account_error_codes.AccountErrorCode)
+CheckoutErrorCode = graphene.Enum.from_enum(checkout_error_codes.CheckoutErrorCode)
+ExtensionsErrorCode = graphene.Enum.from_enum(
+    extensions_error_codes.ExtensionsErrorCode
+)
+GiftcardErrorCode = graphene.Enum.from_enum(giftcard_error_codes.GiftcardErrorCode)
+MenuErrorCode = graphene.Enum.from_enum(menu_error_codes.MenuErrorCode)
+OrderErrorCode = graphene.Enum.from_enum(order_error_codes.OrderErrorCode)
+PaymentErrorCode = graphene.Enum.from_enum(payment_error_codes.PaymentErrorCode)
+ProductErrorCode = graphene.Enum.from_enum(product_error_codes.ProductErrorCode)
+ShopErrorCode = graphene.Enum.from_enum(shop_error_codes.ShopErrorCode)
+ShippingErrorCode = graphene.Enum.from_enum(shipping_error_codes.ShippingErrorCode)

@@ -5,6 +5,7 @@ from django.core.exceptions import ValidationError
 from ...core.taxes import zero_taxed_money
 from ...core.utils import get_client_ip
 from ...payment import PaymentError, models
+from ...payment.error_codes import PaymentErrorCode
 from ...payment.utils import (
     create_payment,
     gateway_capture,
@@ -19,7 +20,6 @@ from ..core.mutations import BaseMutation
 from ..core.scalars import Decimal
 from ..core.types import common as common_types
 from ..core.utils import from_global_id_strict_type
-from ..core.utils.error_codes import PaymentErrorCode
 from .enums import PaymentGatewayEnum
 from .types import Payment
 

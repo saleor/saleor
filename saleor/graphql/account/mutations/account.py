@@ -3,12 +3,12 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 
 from ....account import emails, events as account_events, models, utils
+from ....account.error_codes import AccountErrorCode
 from ....checkout import AddressType
 from ....core.utils.url import validate_storefront_url
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import ModelDeleteMutation, ModelMutation
-from ...core.utils.error_codes import AccountErrorCode
 from .base import (
     INVALID_TOKEN,
     AccountErrorMixin,

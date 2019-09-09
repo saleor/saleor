@@ -2,7 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import pgettext_lazy
 
-from ....graphql.core.utils.error_codes import PaymentErrorCode
+from ...error_codes import PaymentErrorCode
 from ...interface import PaymentData
 
 
