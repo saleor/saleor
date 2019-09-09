@@ -17,11 +17,10 @@ class InvalidPromoCode(ValidationError):
 
 class PromoCodeAlreadyExists(ValidationError):
     def __init__(self, message=None, **kwargs):
+        code = kwargs.get("code", "promo_code_already_exists")
         if message is None:
             message = {
-                "promo_code": ValidationError(
-                    "Promo code already exists.", code="promo_code_already_exists"
-                )
+                "promo_code": ValidationError("Promo code already exists.", code=code)
             }
         super().__init__(message, **kwargs)
 
