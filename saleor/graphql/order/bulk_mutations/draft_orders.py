@@ -2,8 +2,8 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ....order import OrderStatus, models
+from ....order.error_codes import OrderErrorCode
 from ...core.mutations import ModelBulkDeleteMutation
-from ...core.utils.error_codes import OrderErrorCode
 from ..mutations.base import OrderErrorMixin
 
 

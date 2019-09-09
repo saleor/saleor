@@ -14,6 +14,7 @@ from freezegun import freeze_time
 from prices import Money
 
 from saleor.account import events as account_events
+from saleor.account.error_codes import AccountErrorCode
 from saleor.account.models import Address, User
 from saleor.account.utils import get_random_avatar
 from saleor.checkout import AddressType
@@ -26,7 +27,6 @@ from saleor.graphql.account.mutations.staff import (
 )
 from saleor.graphql.core.enums import PermissionEnum
 from saleor.graphql.core.utils import str_to_enum
-from saleor.graphql.core.utils.error_codes import AccountErrorCode
 from saleor.order.models import FulfillmentStatus, Order
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image
@@ -1668,7 +1668,7 @@ def test_set_password_invalid_email(user_api_client):
     account_errors = content["data"]["setPassword"]["accountErrors"]
     assert len(account_errors) == 1
     assert account_errors[0]["field"] == "email"
-    assert account_errors[0]["code"] == "NOT_FOUND"
+    assert account_errors[0]["code"] == AccountErrorCode.NOT_FOUND.name
 
 
 def test_set_password_invalid_password(user_api_client, customer_user, settings):

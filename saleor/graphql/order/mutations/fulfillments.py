@@ -4,8 +4,8 @@ from django.utils.translation import npgettext_lazy, pgettext_lazy
 
 from ....order import events, models
 from ....order.emails import send_fulfillment_confirmation_to_customer
+from ....order.error_codes import OrderErrorCode
 from ....order.utils import cancel_fulfillment, fulfill_order_line, update_order_status
-from ...core.utils.error_codes import OrderErrorCode
 from ...order.types import Fulfillment, Order
 from ..types import OrderLine
 from .base import BaseOrderMutation

@@ -3,7 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 from phonenumber_field.phonenumber import to_python
 from phonenumbers.phonenumberutil import is_possible_number
 
-from ..graphql.core.utils.error_codes import AccountErrorCode
+from .error_codes import AccountErrorCode
 
 
 def validate_possible_number(phone, country=None):

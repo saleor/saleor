@@ -4,13 +4,13 @@ from django.core.exceptions import ValidationError
 from django.core.management import call_command
 
 from ...account.models import Address
+from ...core.error_codes import ShopErrorCode
 from ...site import models as site_models
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..core.enums import WeightUnitsEnum
 from ..core.mutations import BaseMutation
 from ..core.types.common import ShopError
-from ..core.utils.error_codes import ShopErrorCode
 from ..product.types import Collection
 from .types import AuthorizationKey, AuthorizationKeyType, Shop
 

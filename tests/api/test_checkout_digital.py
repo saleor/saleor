@@ -4,9 +4,9 @@ from graphene import Node
 from prices import TaxedMoney
 
 from saleor.account.models import Address
+from saleor.checkout.error_codes import CheckoutErrorCode
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
-from saleor.graphql.core.utils.error_codes import CheckoutErrorCode
 from saleor.order.models import Order
 from tests.api.utils import get_graphql_content
 

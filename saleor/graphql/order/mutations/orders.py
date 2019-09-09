@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from ....account.models import User
 from ....core.taxes import zero_taxed_money
 from ....order import events, models
+from ....order.error_codes import OrderErrorCode
 from ....order.utils import (
     cancel_order,
     get_valid_shipping_methods_for_order,
@@ -19,7 +20,6 @@ from ....payment.utils import (
 )
 from ...account.types import AddressInput
 from ...core.scalars import Decimal
-from ...core.utils.error_codes import OrderErrorCode
 from ...order.mutations.draft_orders import DraftOrderUpdate
 from ...order.types import Order, OrderEvent
 from ...shipping.types import ShippingMethod

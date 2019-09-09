@@ -8,11 +8,11 @@ from ...core.utils.promo_code import (
     is_available_promo_code,
 )
 from ...giftcard import models
+from ...giftcard.error_codes import GiftcardErrorCode
 from ...giftcard.utils import activate_gift_card, deactivate_gift_card
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.scalars import Decimal
 from ..core.types.common import GiftcardError
-from ..core.utils.error_codes import GiftcardErrorCode
 from .types import GiftCard
 
 

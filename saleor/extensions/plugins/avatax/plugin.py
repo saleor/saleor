@@ -9,9 +9,9 @@ from django.utils.translation import pgettext_lazy
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ....core.taxes import TaxError, TaxType, zero_taxed_money
-from ....graphql.core.utils.error_codes import ExtensionsErrorCode
 from ... import ConfigurationTypeField
 from ...base_plugin import BasePlugin
+from ...error_codes import ExtensionsErrorCode
 from . import (
     META_FIELD,
     META_NAMESPACE,

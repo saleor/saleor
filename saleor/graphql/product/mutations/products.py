@@ -9,6 +9,7 @@ from graphene.types import InputObjectType
 from graphql_relay import from_global_id
 
 from ....product import models
+from ....product.error_codes import ProductErrorCode
 from ....product.tasks import (
     update_product_minimal_variant_price_task,
     update_products_minimal_variant_prices_of_catalogues_task,
@@ -35,7 +36,6 @@ from ...core.utils import (
     from_global_id_strict_type,
     validate_image_file,
 )
-from ...core.utils.error_codes import ProductErrorCode
 from ...core.utils.reordering import perform_reordering
 from ..types import (
     Category,

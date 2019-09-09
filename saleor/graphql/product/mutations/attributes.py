@@ -7,6 +7,7 @@ from django.db.models import Q
 from django.template.defaultfilters import slugify
 
 from ....product import AttributeInputType, models
+from ....product.error_codes import ProductErrorCode
 from ...core.mutations import (
     ClearMetaBaseMutation,
     ModelDeleteMutation,
@@ -14,7 +15,6 @@ from ...core.mutations import (
     UpdateMetaBaseMutation,
 )
 from ...core.utils import from_global_id_strict_type
-from ...core.utils.error_codes import ProductErrorCode
 from ...core.utils.reordering import perform_reordering
 from ...product.types import ProductType
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions

@@ -7,6 +7,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from prices import Money, TaxedMoney
 
+from saleor.checkout.error_codes import CheckoutErrorCode
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import clean_checkout, is_fully_paid
 from saleor.core.taxes import zero_money
@@ -15,7 +16,6 @@ from saleor.graphql.checkout.mutations import (
     update_checkout_shipping_method_if_invalid,
 )
 from saleor.graphql.core.utils import str_to_enum
-from saleor.graphql.core.utils.error_codes import CheckoutErrorCode
 from saleor.order.models import Order
 from saleor.payment import PaymentError
 from saleor.payment.models import Transaction
@@ -252,7 +252,7 @@ def test_checkout_create_required_email(api_client, variant):
     assert errors[0]["message"] == "This field cannot be blank."
 
     checkout_errors = content["data"]["checkoutCreate"]["checkoutErrors"]
-    assert checkout_errors[0]["code"] == "REQUIRED"
+    assert checkout_errors[0]["code"] == CheckoutErrorCode.REQUIRED.name
 
 
 def test_checkout_create_default_email_for_logged_in_customer(user_api_client, variant):
@@ -1029,7 +1029,7 @@ def test_checkout_email_update_validation(user_api_client, checkout_with_item):
     assert errors[0]["message"] == "This field cannot be blank."
 
     checkout_errors = content["data"]["checkoutEmailUpdate"]["checkoutErrors"]
-    assert checkout_errors[0]["code"] == "REQUIRED"
+    assert checkout_errors[0]["code"] == CheckoutErrorCode.REQUIRED.name
 
 
 MUTATION_CHECKOUT_COMPLETE = """

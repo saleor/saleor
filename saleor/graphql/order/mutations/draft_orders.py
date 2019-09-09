@@ -6,6 +6,7 @@ from ....account.models import User
 from ....core.exceptions import InsufficientStock
 from ....core.taxes import zero_taxed_money
 from ....order import OrderStatus, events, models
+from ....order.error_codes import OrderErrorCode
 from ....order.utils import (
     add_variant_to_order,
     allocate_stock,
@@ -18,7 +19,6 @@ from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.scalars import Decimal
-from ...core.utils.error_codes import OrderErrorCode
 from ...product.types import ProductVariant
 from ..types import Order, OrderLine
 from ..utils import validate_draft_order
