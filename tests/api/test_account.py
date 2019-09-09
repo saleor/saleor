@@ -1305,6 +1305,10 @@ STAFF_CREATE_MUTATION = """
             errors {
                 field
                 message
+            }
+            accountErrors {
+                field
+                message
                 code
             }
             user {
@@ -1499,6 +1503,10 @@ def test_staff_update_doesnt_change_existing_avatar(
                 id: $id,
                 input: {permissions: $permissions, isActive: $is_active}) {
             errors {
+                field
+                message
+            }
+            accountErrors {
                 field
                 message
                 code
