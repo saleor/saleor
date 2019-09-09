@@ -80,7 +80,7 @@ class GiftCardCreate(GiftcardErrorMixin, ModelMutation):
                     {
                         "email": ValidationError(
                             "Customer with this email doesn't exist.",
-                            code=GiftcardErrorCode.OBJECT_DOES_NOT_EXIST,
+                            code=GiftcardErrorCode.NOT_FOUND,
                         )
                     }
                 )

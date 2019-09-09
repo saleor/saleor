@@ -41,7 +41,7 @@ def validate_order_lines(order):
                 {
                     "lines": ValidationError(
                         "Could not create orders with non-existing products.",
-                        code=OrderErrorCode.OBJECT_DOES_NOT_EXIST,
+                        code=OrderErrorCode.NOT_FOUND,
                     )
                 }
             )

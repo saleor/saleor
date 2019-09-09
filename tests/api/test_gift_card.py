@@ -289,7 +289,7 @@ def test_create_gift_card_with_existing_voucher_code(
     assert errors[0]["field"] == "promoCode"
 
     gift_card_errors = content["data"]["giftCardCreate"]["giftCardErrors"]
-    assert gift_card_errors[0]["code"] == "PROMO_CODE_ALREADY_EXISTS"
+    assert gift_card_errors[0]["code"] == "ALREADY_EXISTS"
 
 
 def test_create_gift_card_with_existing_gift_card_code(
@@ -307,7 +307,7 @@ def test_create_gift_card_with_existing_gift_card_code(
     assert errors[0]["field"] == "promoCode"
 
     gift_card_errors = content["data"]["giftCardCreate"]["giftCardErrors"]
-    assert gift_card_errors[0]["code"] == "PROMO_CODE_ALREADY_EXISTS"
+    assert gift_card_errors[0]["code"] == "ALREADY_EXISTS"
 
 
 def test_create_gift_card_without_user(staff_api_client, permission_manage_gift_card):
@@ -360,7 +360,7 @@ def test_create_gift_card_with_incorrect_user_email(
     assert errors[0]["message"] == "Customer with this email doesn't exist."
 
     gift_card_errors = content["data"]["giftCardCreate"]["giftCardErrors"]
-    assert gift_card_errors[0]["code"] == "OBJECT_DOES_NOT_EXIST"
+    assert gift_card_errors[0]["code"] == "NOT_FOUND"
 
 
 def test_create_gift_card_without_premissions(staff_api_client):

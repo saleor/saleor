@@ -207,7 +207,7 @@ class AuthorizationKeyAdd(BaseShopMutation):
                 {
                     "key_type": ValidationError(
                         "Authorization key already exists.",
-                        code=ShopErrorCode.AUTHORIZATION_KEY_ALREADY_EXISTS,
+                        code=ShopErrorCode.ALREADY_EXISTS,
                     )
                 }
             )
@@ -248,7 +248,7 @@ class AuthorizationKeyDelete(BaseShopMutation):
                 {
                     "key_type": ValidationError(
                         "Couldn't resolve authorization key",
-                        code=ShopErrorCode.OBJECT_DOES_NOT_EXIST,
+                        code=ShopErrorCode.NOT_FOUND,
                     )
                 }
             )
