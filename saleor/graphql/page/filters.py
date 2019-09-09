@@ -6,8 +6,8 @@ from ..utils import filter_by_query_param
 
 
 def filter_page_search(qs, _, value):
-    order_fields = ["content", "slug", "title"]
-    qs = filter_by_query_param(qs, value, order_fields)
+    page_fields = ["content", "slug", "title"]
+    qs = filter_by_query_param(qs, value, page_fields)
     return qs
 
 
