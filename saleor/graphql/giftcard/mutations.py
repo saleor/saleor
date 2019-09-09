@@ -65,7 +65,7 @@ class GiftCardCreate(GiftcardErrorMixin, ModelMutation):
         if not code and not instance.pk:
             data["code"] = generate_promo_code()
         elif not is_available_promo_code(code):
-            raise PromoCodeAlreadyExists()
+            raise PromoCodeAlreadyExists(code=GiftcardErrorCode.ALREADY_EXISTS)
         cleaned_input = super().clean_input(info, instance, data)
         balance = cleaned_input.get("balance", None)
         if balance:
