@@ -609,25 +609,15 @@ def test_filter_products_by_collections(user_api_client, collection, product):
     assert product_data["name"] == product.name
 
 
-def test_sort_products(user_api_client, product):
-    # set price and update date of the first product
-    product.price = Money("10.00", "USD")
-    product.minimal_variant_price = Money("10.00", "USD")
-    product.updated_at = datetime.utcnow()
-    product.save()
-
-    # Create the second product with higher price and date
-    product.pk = None
-    product.price = Money("20.00", "USD")
-    product.minimal_variant_price = Money("20.00", "USD")
-    product.updated_at = datetime.utcnow()
-    product.save()
-
-    query = """
+SORT_PRODUCTS_QUERY = """
     query {
         products(sortBy: %(sort_by_product_order)s, first: 2) {
             edges {
                 node {
+                    isPublished
+                    productType{
+                        name
+                    }
                     pricing {
                         priceRangeUndiscounted {
                             start {
@@ -649,7 +639,24 @@ def test_sort_products(user_api_client, product):
             }
         }
     }
-    """
+"""
+
+
+def test_sort_products(user_api_client, product):
+    # set price and update date of the first product
+    product.price = Money("10.00", "USD")
+    product.minimal_variant_price = Money("10.00", "USD")
+    product.updated_at = datetime.utcnow()
+    product.save()
+
+    # Create the second product with higher price and date
+    product.pk = None
+    product.price = Money("20.00", "USD")
+    product.minimal_variant_price = Money("20.00", "USD")
+    product.updated_at = datetime.utcnow()
+    product.save()
+
+    query = SORT_PRODUCTS_QUERY
 
     # Test sorting by PRICE, ascending
     asc_price_query = query % {"sort_by_product_order": "{field: PRICE, direction:ASC}"}
@@ -716,6 +723,62 @@ def test_sort_products(user_api_client, product):
     date_0 = content["data"]["products"]["edges"][0]["node"]["updatedAt"]
     date_1 = content["data"]["products"]["edges"][1]["node"]["updatedAt"]
     assert parse_datetime(date_0) > parse_datetime(date_1)
+
+
+def test_sort_products_published(staff_api_client, product, permission_manage_products):
+    # Create the second not published product
+    product.pk = None
+    product.is_published = False
+    product.save()
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # Test sorting by PUBLISHED, ascending
+    asc_published_query = SORT_PRODUCTS_QUERY % {
+        "sort_by_product_order": "{field: PUBLISHED, direction:ASC}"
+    }
+    response = staff_api_client.post_graphql(asc_published_query)
+    content = get_graphql_content(response)
+    is_published_0 = content["data"]["products"]["edges"][0]["node"]["isPublished"]
+    is_published_1 = content["data"]["products"]["edges"][1]["node"]["isPublished"]
+    assert is_published_0 is False
+    assert is_published_1 is True
+
+    # Test sorting by PUBLISHED, descending
+    desc_published_query = SORT_PRODUCTS_QUERY % {
+        "sort_by_product_order": "{field: PUBLISHED, direction:DESC}"
+    }
+    response = staff_api_client.post_graphql(desc_published_query)
+    content = get_graphql_content(response)
+    is_published_0 = content["data"]["products"]["edges"][0]["node"]["isPublished"]
+    is_published_1 = content["data"]["products"]["edges"][1]["node"]["isPublished"]
+    assert is_published_0 is True
+    assert is_published_1 is False
+
+
+def test_sort_products_product_type_name(
+    user_api_client, product, product_with_default_variant
+):
+    # Test sorting by TYPE, ascending
+    asc_published_query = SORT_PRODUCTS_QUERY % {
+        "sort_by_product_order": "{field: TYPE, direction:ASC}"
+    }
+    response = user_api_client.post_graphql(asc_published_query)
+    content = get_graphql_content(response)
+    edges = content["data"]["products"]["edges"]
+    product_type_name_0 = edges[0]["node"]["productType"]["name"]
+    product_type_name_1 = edges[1]["node"]["productType"]["name"]
+    assert product_type_name_0 < product_type_name_1
+
+    # Test sorting by PUBLISHED, descending
+    desc_published_query = SORT_PRODUCTS_QUERY % {
+        "sort_by_product_order": "{field: TYPE, direction:DESC}"
+    }
+    response = user_api_client.post_graphql(desc_published_query)
+    content = get_graphql_content(response)
+    product_type_name_0 = edges[0]["node"]["productType"]["name"]
+    product_type_name_1 = edges[1]["node"]["productType"]["name"]
+    assert product_type_name_0 < product_type_name_1
 
 
 def test_create_product(
