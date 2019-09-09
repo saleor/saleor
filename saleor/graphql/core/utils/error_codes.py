@@ -40,7 +40,7 @@ class AccountErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
     INVALID_PASSWORD = "invalid_password"
-    OBJECT_DOES_NOT_EXIST = "object_does_not_exist"
+    NOT_FOUND = "not_found"
     PASSWORD_ENTIRELY_NUMERIC = "password_entirely_numeric"
     PASSWORD_TOO_COMMON = "password_too_common"
     PASSWORD_TOO_SHORT = "password_too_short"
@@ -56,7 +56,7 @@ class CheckoutErrorCode(Enum):
     INSUFFICIENT_STOCK = "insufficient_stock"
     INVALID = "invalid"
     INVALID_SHIPPING_METHOD = "invalid_shipping_method"
-    OBJECT_DOES_NOT_EXIST = "object_does_not_exist"
+    NOT_FOUND = "not_found"
     PAYMENT_ERROR = "payment_error"
     QUANTITY_GREATER_THAN_LIMIT = "quantity_greater_than_limit"
     REQUIRED = "required"
@@ -76,7 +76,7 @@ class MenuErrorCode(Enum):
     INVALID = "invalid"
     INVALID_MENU_ITEM = "invalid_menu_item"
     NO_MENU_ITEM_PROVIDED = "no_item_provided"
-    OBJECT_DOES_NOT_EXIST = "object_does_not_exist"
+    NOT_FOUND = "not_found"
     REQUIRED = "required"
     TOO_MANY_MENU_ITEMS = "too_many_items"
     UNIQUE = "unique"
@@ -92,7 +92,7 @@ class OrderErrorCode(Enum):
     FULFILL_ORDER_LINE = "fulfill_order_line"
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
-    OBJECT_DOES_NOT_EXIST = "object_does_not_exist"
+    NOT_FOUND = "not_found"
     ORDER_INVALID_SHIPPING_METHOD = "order_invalid_shipping_method"
     ORDER_NO_SHIPPING_ADDRESS = "order_no_shipping_address"
     PAYMENT_ERROR = "payment_error"
@@ -105,38 +105,36 @@ class OrderErrorCode(Enum):
 
 
 class ProductErrorCode(Enum):
+    ALREADY_EXISTS = "already_exists"
     ATTRIBUTE_ALREADY_ASSIGNED = "attribute_already_assigned"
     ATTRIBUTE_BAD_VALUE = "attribute_bad_value"
     ATTRIBUTE_CANNOT_BE_ASSIGNED = "attribute_cannot_be_assigned"
     ATTRIBUTE_DISABLED_VARIANTS = "attribute_disabled_variants"
-    ATTRIBUTE_SLUG_ALREADY_EXISTS = "attribute_slug_already_exists"
-    ATTRIBUTE_VALUE_ALREADY_EXISTS = "attribute_value_already_exists"
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
     NOT_PRODUCTS_IMAGE = "not_products_image"
-    OBJECT_DOES_NOT_EXIST = "object_does_not_exist"
+    NOT_FOUND = "not_found"
     REQUIRED = "required"
-    SKU_ALREADY_EXISTS = "sku_already_exists"
     UNIQUE = "unique"
     VARIANT_NO_DIGITAL_CONTENT = "variant_no_digital_content"
 
 
 class ShopErrorCode(Enum):
+    ALREADY_EXISTS = "already_exists"
     CANNOT_FETCH_TAX_RATES = "cannot_fetch_tax_rates"
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
-    AUTHORIZATION_KEY_ALREADY_EXISTS = "authorization_key_already_exists"
-    OBJECT_DOES_NOT_EXIST = "object_does_not_exist"
+    NOT_FOUND = "not_found"
     REQUIRED = "required"
     UNIQUE = "unique"
 
 
 class ShippingErrorCode(Enum):
+    ALREADY_EXISTS = "already_exists"
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
     MAX_LESS_THAN_MIN = "max_less_than_min"
-    DEFAULT_SHIPPING_ZONE_ALREADY_EXISTS = "default_shipping_zone_already_exists"
-    OBJECT_DOES_NOT_EXIST = "object_does_not_exist"
+    NOT_FOUND = "not_found"
     REQUIRED = "required"
     UNIQUE = "unique"
 
@@ -145,7 +143,7 @@ class PaymentErrorCode(Enum):
     BILLING_ADDRESS_NOT_SET = "billing_address_not_set"
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
-    OBJECT_DOES_NOT_EXIST = "object_does_not_exist"
+    NOT_FOUND = "not_found"
     PARTIAL_PAYMENT_NOT_ALLOWED = "partial_payment_not_allowed"
     PAYMENT_ERROR = "payment_error"
     REQUIRED = "required"
@@ -153,10 +151,10 @@ class PaymentErrorCode(Enum):
 
 
 class GiftcardErrorCode(Enum):
+    ALREADY_EXISTS = "already_exists"
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
-    OBJECT_DOES_NOT_EXIST = "object_does_not_exist"
-    PROMO_CODE_ALREADY_EXISTS = "promo_code_already_exists"
+    NOT_FOUND = "not_found"
     REQUIRED = "required"
     UNIQUE = "unique"
 
@@ -165,7 +163,7 @@ class ExtensionsErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
     PLUGIN_MISCONFIGURED = "plugin-misconfigured"
-    OBJECT_DOES_NOT_EXIST = "object_does_not_exist"
+    NOT_FOUND = "not_found"
     REQUIRED = "required"
     UNIQUE = "unique"
 

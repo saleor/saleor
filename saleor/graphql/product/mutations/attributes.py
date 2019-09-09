@@ -120,7 +120,7 @@ class AttributeMixin:
                 raise ValidationError(
                     {
                         cls.ATTRIBUTE_VALUES_FIELD: ValidationError(
-                            msg, code=ProductErrorCode.ATTRIBUTE_VALUE_ALREADY_EXISTS
+                            msg, code=ProductErrorCode.ALREADY_EXISTS
                         )
                     }
                 )
@@ -185,7 +185,7 @@ class AttributeMixin:
                 {
                     "slug": ValidationError(
                         "This attribute's slug already exists.",
-                        code=ProductErrorCode.ATTRIBUTE_SLUG_ALREADY_EXISTS,
+                        code=ProductErrorCode.ALREADY_EXISTS,
                     )
                 }
             )
@@ -544,7 +544,7 @@ def validate_value_is_unique(attribute: models.Attribute, value: models.Attribut
             {
                 "name": ValidationError(
                     f"Value with slug {value.slug} already exists.",
-                    code=ProductErrorCode.ATTRIBUTE_SLUG_ALREADY_EXISTS,
+                    code=ProductErrorCode.ALREADY_EXISTS,
                 )
             }
         )
@@ -688,7 +688,7 @@ class ProductTypeReorderAttributes(BaseProductMutation):
                 {
                     "product_type_id": ValidationError(
                         (f"Couldn't resolve to a product type: {product_type_id}"),
-                        code=ProductErrorCode.OBJECT_DOES_NOT_EXIST,
+                        code=ProductErrorCode.NOT_FOUND,
                     )
                 }
             )
@@ -709,7 +709,7 @@ class ProductTypeReorderAttributes(BaseProductMutation):
                     {
                         "moves": ValidationError(
                             f"Couldn't resolve to an attribute: {move_info.id}",
-                            code=ProductErrorCode.OBJECT_DOES_NOT_EXIST,
+                            code=ProductErrorCode.NOT_FOUND,
                         )
                     }
                 )
@@ -752,7 +752,7 @@ class AttributeReorderValues(BaseProductMutation):
                 {
                     "attribute_id": ValidationError(
                         f"Couldn't resolve to an attribute: {attribute_id}",
-                        code=ProductErrorCode.OBJECT_DOES_NOT_EXIST,
+                        code=ProductErrorCode.NOT_FOUND,
                     )
                 }
             )
@@ -773,7 +773,7 @@ class AttributeReorderValues(BaseProductMutation):
                     {
                         "moves": ValidationError(
                             f"Couldn't resolve to an attribute value: {move_info.id}",
-                            code=ProductErrorCode.OBJECT_DOES_NOT_EXIST,
+                            code=ProductErrorCode.NOT_FOUND,
                         )
                     }
                 )

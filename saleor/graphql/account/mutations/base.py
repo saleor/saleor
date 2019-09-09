@@ -91,8 +91,7 @@ class SetPassword(CreateToken, AccountErrorMixin):
             raise ValidationError(
                 {
                     "email": ValidationError(
-                        "User doesn't exist",
-                        code=AccountErrorCode.OBJECT_DOES_NOT_EXIST,
+                        "User doesn't exist", code=AccountErrorCode.NOT_FOUND
                     )
                 }
             )
@@ -147,7 +146,7 @@ class RequestPasswordReset(BaseAccountMutation):
                 {
                     "email": ValidationError(
                         "User with this email doesn't exist",
-                        code=AccountErrorCode.OBJECT_DOES_NOT_EXIST,
+                        code=AccountErrorCode.NOT_FOUND,
                     )
                 }
             )

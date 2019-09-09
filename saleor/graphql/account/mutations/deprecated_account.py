@@ -185,7 +185,7 @@ class CustomerPasswordReset(BaseMutation):
                 {
                     "email": ValidationError(
                         "User with this email doesn't exist",
-                        code=AccountErrorCode.OBJECT_DOES_NOT_EXIST,
+                        code=AccountErrorCode.NOT_FOUND,
                     )
                 }
             )

@@ -72,7 +72,7 @@ class ShippingZoneMixin:
                     {
                         "default": ValidationError(
                             "Default shipping zone already exists.",
-                            code=ShippingErrorCode.DEFAULT_SHIPPING_ZONE_ALREADY_EXISTS,
+                            code=ShippingErrorCode.ALREADY_EXISTS,
                         )
                     }
                 )
