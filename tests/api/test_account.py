@@ -2312,6 +2312,9 @@ mutation($addressInput: AddressInput!, $addressType: AddressTypeEnum) {
         id,
         city
     }
+    user {
+        email
+    }
   }
 }
 """
@@ -2339,6 +2342,15 @@ def test_customer_create_address(
 
     user.refresh_from_db()
     assert user.addresses.count() == nr_of_addresses + 1
+
+
+def test_account_address_create_return_user(user_api_client, graphql_address_data):
+    user = user_api_client.user
+    variables = {"addressInput": graphql_address_data}
+    response = user_api_client.post_graphql(ACCOUNT_ADDRESS_CREATE_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["accountAddressCreate"]["user"]
+    assert data["email"] == user.email
 
 
 @pytest.mark.parametrize(
