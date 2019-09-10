@@ -127,8 +127,8 @@ class PasswordChange(BaseMutation):
         description = "Change the password of the logged in user."
 
     @classmethod
-    def check_permissions(cls, user):
-        return user.is_authenticated
+    def check_permissions(cls, context):
+        return context.user.is_authenticated
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -204,7 +204,7 @@ class BaseAddressDelete(ModelDeleteMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        if not cls.check_permissions(info.context.user):
+        if not cls.check_permissions(info.context):
             raise PermissionDenied()
 
         node_id = data.get("id")

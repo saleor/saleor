@@ -288,8 +288,8 @@ class AttributeAssign(BaseMutation):
         description = "Assign attributes to a given product type."
 
     @classmethod
-    def check_permissions(cls, user):
-        return user.has_perm("product.manage_products")
+    def check_permissions(cls, context):
+        return context.user.has_perm("product.manage_products")
 
     @classmethod
     def get_operations(cls, info, operations: List[AttributeAssignInput]):
@@ -418,8 +418,8 @@ class AttributeUnassign(BaseMutation):
         description = "Un-assign attributes from a given product type."
 
     @classmethod
-    def check_permissions(cls, user):
-        return user.has_perm("product.manage_products")
+    def check_permissions(cls, context):
+        return context.user.has_perm("product.manage_products")
 
     @classmethod
     def save_field_values(cls, product_type, field, pks):

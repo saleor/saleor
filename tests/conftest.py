@@ -51,6 +51,7 @@ from saleor.product.models import (
 from saleor.shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
 from saleor.site import AuthenticationBackends
 from saleor.site.models import AuthorizationKey, SiteSettings
+from saleor.webhook.models import Webhook
 from tests.utils import create_image
 
 
@@ -1057,6 +1058,11 @@ def permission_manage_translations():
 
 
 @pytest.fixture
+def permission_manage_webhooks():
+    return Permission.objects.get(codename="manage_webhooks")
+
+
+@pytest.fixture
 def collection(db):
     collection = Collection.objects.create(
         name="Collection",
@@ -1423,3 +1429,13 @@ def other_description_raw():
         "Saleor is powered by a GraphQL server running on top of Python 3 "
         "and a Django 2 framework."
     )
+
+
+@pytest.fixture
+def webhook(service_account):
+    webhook = Webhook.objects.create(
+        service_account=service_account,
+        target_url="http://www.example.com/test",
+        event="New Event",
+    )
+    return webhook

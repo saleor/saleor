@@ -54,8 +54,8 @@ class LoggedUserUpdate(BaseCustomerCreate):
         model = models.User
 
     @classmethod
-    def check_permissions(cls, user):
-        return user.is_authenticated
+    def check_permissions(cls, context):
+        return context.user.is_authenticated
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
@@ -91,8 +91,8 @@ class CustomerAddressCreate(ModelMutation):
         exclude = ["user_addresses"]
 
     @classmethod
-    def check_permissions(cls, user):
-        return user.is_authenticated
+    def check_permissions(cls, context):
+        return context.user.is_authenticated
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
@@ -128,8 +128,8 @@ class CustomerSetDefaultAddress(BaseMutation):
         )
 
     @classmethod
-    def check_permissions(cls, user):
-        return user.is_authenticated
+    def check_permissions(cls, context):
+        return context.user.is_authenticated
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
