@@ -420,9 +420,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, shipping_address):
-        pk = from_global_id_strict_type(
-            info, checkout_id, Checkout, field="checkout_id"
-        )
+        pk = from_global_id_strict_type(checkout_id, Checkout, field="checkout_id")
 
         try:
             checkout = models.Checkout.objects.prefetch_related(
@@ -512,7 +510,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, shipping_method_id):
         pk = from_global_id_strict_type(
-            info, checkout_id, only_type=Checkout, field="checkout_id"
+            checkout_id, only_type=Checkout, field="checkout_id"
         )
 
         try:

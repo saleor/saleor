@@ -1,7 +1,10 @@
-from collections import OrderedDict
+import functools
+import operator
+from collections import OrderedDict, defaultdict
 from itertools import chain
+from typing import Dict, Iterable
 
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 from django.forms import CheckboxSelectMultiple
 from django.utils.translation import pgettext_lazy
 from django_filters import MultipleChoiceFilter, OrderingFilter, RangeFilter
@@ -21,13 +24,29 @@ SORT_BY_FIELDS = OrderedDict(
 )
 
 
-class JSONBArrayFilter(MultipleChoiceFilter):
-    def get_filter_predicate(self, v):
-        operator = f"{self.field_name}__has_key"
-        try:
-            return {operator: getattr(v, self.field.to_field_name)}
-        except (AttributeError, TypeError):
-            return {operator: v}
+T_PRODUCT_FILTER_QUERIES = Dict[int, Iterable[int]]
+
+
+def filter_products_by_attributes_values(qs, queries: T_PRODUCT_FILTER_QUERIES):
+    # Combine filters of the same attribute with OR operator
+    # and then combine full query with AND operator.
+    combine_and = [
+        Q(**{"attributes__values__pk__in": values_pk})
+        | Q(**{"variants__attributes__values__pk__in": values_pk})
+        for _, values_pk in queries.items()
+    ]
+    query = functools.reduce(operator.and_, combine_and)
+    qs = qs.filter(query).distinct()
+    return qs
+
+
+class AttributeValuesFilter(MultipleChoiceFilter):
+    """A filter that is only there for rendering the attribute fields.
+
+    The attributes will then be filtered in ``ProductFilter#filter_queryset``.
+
+    This is a temporary work-around for: https://github.com/django/django/pull/8119
+    """
 
 
 class ProductFilter(SortedFilterSet):
@@ -50,8 +69,7 @@ class ProductFilter(SortedFilterSet):
         attributes = self._get_attributes()
         filters = {}
         for attribute in attributes:
-            filters[attribute.slug] = JSONBArrayFilter(
-                field_name=f"attributes__from_key_{attribute.pk}",
+            filters[attribute.slug] = AttributeValuesFilter(
                 label=attribute.translated.name,
                 widget=CheckboxSelectMultiple,
                 choices=self._get_attribute_choices(attribute),
@@ -90,6 +108,38 @@ class ProductFilter(SortedFilterSet):
         return [
             (choice.pk, choice.translated.name) for choice in attribute.values.all()
         ]
+
+    def filter_queryset(self, queryset):
+        """Temporary workaround for filtering products by their attributes values.
+
+        Refer to https://code.djangoproject.com/ticket/25367.
+
+        Filter the queryset with the underlying form's `cleaned_data`. You must
+        call `is_valid()` or `errors` before calling this method.
+
+        This method should be overridden if additional filtering needs to be
+        applied to the queryset before it is cached.
+        """
+
+        attribute_values = defaultdict(set)
+        for name, value in self.form.cleaned_data.items():
+            filter_field = self.filters[name]
+            if isinstance(filter_field, AttributeValuesFilter):
+                value = {int(pk) for pk in value}
+                if value:
+                    attribute_values[name].update(value)
+                continue
+
+            # Imported from django_filters.filterset.BaseFilterSet#filter_queryset.
+            queryset = filter_field.filter(queryset, value)
+            assert isinstance(queryset, QuerySet), (
+                "Expected '%s.%s' to return a QuerySet, but got a %s instead."
+                % (type(self).__name__, name, type(queryset).__name__)
+            )
+
+        if attribute_values:
+            queryset = filter_products_by_attributes_values(queryset, attribute_values)
+        return queryset
 
 
 class ProductCategoryFilter(ProductFilter):

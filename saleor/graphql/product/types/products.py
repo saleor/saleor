@@ -1,5 +1,4 @@
-from collections import OrderedDict
-from typing import Dict
+from typing import List, Union
 
 import graphene
 import graphene_django_optimizer as gql_optimizer
@@ -75,31 +74,55 @@ def prefetch_products_collection_sorted(info, *_args, **_kwargs):
     )
 
 
-def resolve_attribute_list(attributes_json, attributes_qs):
-    """Resolve attributes dict into a list of `SelectedAttribute`s.
+def resolve_attribute_list(
+    instance: Union[models.Product, models.ProductVariant], *, user
+) -> List[SelectedAttribute]:
+    """Resolve attributes from a product into a list of `SelectedAttribute`s.
 
-    keys = list(attributes.keys())
-    values = list(attributes.values())
-
-    `attributes_qs` is the queryset of attribute objects. If it's prefetch
-    beforehand along with the values, it saves database queries.
+    Note: you have to prefetch the below M2M fields.
+        - product_type -> attribute[rel] -> [rel]assignments -> values
+        - product_type -> attribute[rel] -> attribute
     """
-    attributes_map = OrderedDict()  # type: Dict[str, models.Attribute]
-    values_map = {}  # type: Dict[str, models.AttributeValue]
-    for attr in attributes_qs:
-        attributes_map[str(attr.pk)] = attr
-        for val in attr.values.all():
-            values_map[str(val.pk)] = val
+    resolved_attributes = []
 
-    attributes_list = []
-    for attr_pk, attr in attributes_map.items():
-        values = attributes_json.get(attr_pk, [])
-        values = [values_map[v_pk] for v_pk in values if v_pk in values_map]
-        value = values[0] if values else None
-        attributes_list.append(
-            SelectedAttribute(attribute=attr, value=value, values=values)
+    # Retrieve the product type
+    if isinstance(instance, models.Product):
+        product_type = instance.product_type
+        product_type_attributes_assoc_field = "attributeproduct"
+        assigned_attribute_instance_field = "productassignments"
+        assigned_attribute_instance_filters = {"product_id": instance.pk}
+    elif isinstance(instance, models.ProductVariant):
+        product_type = instance.product.product_type
+        product_type_attributes_assoc_field = "attributevariant"
+        assigned_attribute_instance_field = "variantassignments"
+        assigned_attribute_instance_filters = {"variant_id": instance.pk}
+    else:
+        raise AssertionError(f"{instance.__class__.__name__} is unsupported")
+
+    # Retrieve all the product attributes assigned to this product type
+    attributes_qs = getattr(product_type, product_type_attributes_assoc_field)
+    attributes_qs = attributes_qs.get_visible_to_user(user)
+
+    # An empty QuerySet for unresolved values
+    empty_qs = models.AttributeValue.objects.none()
+
+    # Goes through all the attributes assigned to the product type
+    # The assigned values are returned as a QuerySet, but will assign a
+    # dummy empty QuerySet if no values are assigned to the given instance.
+    for attr_data_rel in attributes_qs:
+        attr_instance_data = getattr(attr_data_rel, assigned_attribute_instance_field)
+
+        # Retrieve the instance's associated data
+        attr_data = attr_instance_data.filter(**assigned_attribute_instance_filters)
+        attr_data = attr_data.first()
+
+        # Return the instance's attribute values if the assignment was found,
+        # otherwise it sets the values as an empty QuerySet
+        values = attr_data.values.all() if attr_data is not None else empty_qs
+        resolved_attributes.append(
+            SelectedAttribute(attribute=attr_data_rel.attribute, values=values)
         )
-    return attributes_list
+    return resolved_attributes
 
 
 class ProductOrder(graphene.InputObjectType):
@@ -283,15 +306,11 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         return root.quantity_available
 
     @staticmethod
-    @gql_optimizer.resolver_hints("product__product_type__variant_attributes__values")
+    @gql_optimizer.resolver_hints(
+        prefetch_related=["attributes__values", "attributes__assignment__attribute"]
+    )
     def resolve_attributes(root: models.ProductVariant, info):
-        attr_qs = (
-            root.product.product_type.variant_attributes.prefetch_related("values")
-            .get_visible_to_user(info.context.user)
-            .variant_attributes_sorted()
-        )
-        attr_qs = gql_optimizer.query(attr_qs, info)
-        return resolve_attribute_list(root.attributes, attr_qs)
+        return resolve_attribute_list(root, user=info.context.user)
 
     @staticmethod
     @permission_required("product.manage_products")
@@ -542,16 +561,13 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
 
     @staticmethod
     @gql_optimizer.resolver_hints(
-        prefetch_related="product_type__product_attributes__values"
+        prefetch_related=[
+            "product_type__attributeproduct__productassignments__values",
+            "product_type__attributeproduct__attribute",
+        ]
     )
     def resolve_attributes(root: models.Product, info):
-        attr_qs = (
-            root.product_type.product_attributes.prefetch_related("values")
-            .get_visible_to_user(info.context.user)
-            .product_attributes_sorted()
-        )
-        attr_qs = gql_optimizer.query(attr_qs, info)
-        return resolve_attribute_list(root.attributes, attr_qs)
+        return resolve_attribute_list(root, user=info.context.user)
 
     @staticmethod
     @permission_required("product.manage_products")

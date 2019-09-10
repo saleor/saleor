@@ -1,6 +1,10 @@
+import binascii
+from typing import Union
+
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from django.core.exceptions import ValidationError
+from graphene import ObjectType
 
 
 def clean_seo_fields(data):
@@ -30,12 +34,17 @@ def validate_image_file(file, field_name):
         raise ValidationError({field_name: "Invalid file type"})
 
 
-def from_global_id_strict_type(info, global_id, only_type, field="id"):
+def from_global_id_strict_type(
+    global_id: str, only_type: Union[ObjectType, str], field: str = "id"
+) -> str:
     """Resolve a node global id with a strict given type required."""
-    _type, _id = graphene.Node.from_global_id(global_id)
-    graphene_type = info.schema.get_type(_type).graphene_type
-    if graphene_type != only_type:
-        raise ValidationError({field: "Couldn't resolve to a node: %s" % global_id})
+    try:
+        _type, _id = graphene.Node.from_global_id(global_id)
+    except (binascii.Error, UnicodeDecodeError) as exc:
+        raise ValidationError({field: f"Couldn't resolve to a node"}) from exc
+
+    if str(_type) != str(only_type):
+        raise ValidationError({field: f"Must receive a {only_type} id"})
     return _id
 
 
