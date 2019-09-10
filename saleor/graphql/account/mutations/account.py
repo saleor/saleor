@@ -174,11 +174,11 @@ class AccountAddressCreate(ModelMutation):
     def perform_mutation(cls, root, info, **data):
         success_response = super().perform_mutation(root, info, **data)
         address_type = data.get("type", None)
+        user = info.context.user
+        success_response.user = user
         if address_type:
-            user = info.context.user
             instance = success_response.address
             utils.change_user_default_address(user, instance, address_type)
-            success_response.user = user
         return success_response
 
     @classmethod
