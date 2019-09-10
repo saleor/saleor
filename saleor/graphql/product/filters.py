@@ -6,7 +6,7 @@ import django_filters
 from django.db.models import Q, Sum
 from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 
-from ...product.models import Attribute, Collection, Product, ProductType
+from ...product.models import Attribute, Category, Collection, Product, ProductType
 from ...search.backends import picker
 from ..core.filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
 from ..core.types import FilterInputObjectType
@@ -231,6 +231,16 @@ class CollectionFilter(django_filters.FilterSet):
         fields = ["published", "search"]
 
 
+class CategoryFilter(django_filters.FilterSet):
+    search = django_filters.CharFilter(
+        method=filter_fields_containing_value("slug", "name", "description")
+    )
+
+    class Meta:
+        model = Category
+        fields = ["search"]
+
+
 class ProductTypeFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(method=filter_fields_containing_value("name"))
 
@@ -272,6 +282,11 @@ class ProductFilterInput(FilterInputObjectType):
 class CollectionFilterInput(FilterInputObjectType):
     class Meta:
         filterset_class = CollectionFilter
+
+
+class CategoryFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = CategoryFilter
 
 
 class ProductTypeFilterInput(FilterInputObjectType):

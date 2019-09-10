@@ -90,6 +90,33 @@ def test_menus_query(user_api_client, menu, menu_item):
     assert item["menu"]["name"] == menu.name
 
 
+@pytest.mark.parametrize(
+    "menu_filter, count", [({"search": "Menu1"}, 1), ({"search": "Menu"}, 2)]
+)
+def test_menus_query_with_filter(
+    menu_filter, count, staff_api_client, permission_manage_menus
+):
+    query = """
+        query ($filter: MenuFilterInput) {
+            menus(first: 5, filter:$filter) {
+                totalCount
+                edges {
+                    node {
+                        id
+                    }
+                }
+            }
+        }
+    """
+    Menu.objects.create(name="Menu1")
+    Menu.objects.create(name="Menu2")
+    variables = {"filter": menu_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_menus)
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["menus"]["totalCount"] == count
+
+
 def test_menu_items_query(user_api_client, menu_item, collection):
     query = """
     query menuitem($id: ID!) {
@@ -128,6 +155,36 @@ def test_menu_items_query(user_api_client, menu_item, collection):
     assert not data["category"]
     assert not data["page"]
     assert data["url"] is None
+
+
+@pytest.mark.parametrize(
+    "menu_item_filter, count",
+    [({"search": "MenuItem1"}, 1), ({"search": "MenuItem"}, 2)],
+)
+def test_menu_items_query_with_filter(
+    menu_item_filter, count, staff_api_client, permission_manage_menus
+):
+    query = """
+        query ($filter: MenuItemFilterInput) {
+            menuItems(first: 5, filter:$filter) {
+                totalCount
+                edges {
+                    node {
+                        id
+                        name
+                    }
+                }
+            }
+        }
+    """
+    menu = Menu.objects.create(name="Menu1")
+    MenuItem.objects.create(name="MenuItem1", menu=menu)
+    MenuItem.objects.create(name="MenuItem2", menu=menu)
+    variables = {"filter": menu_item_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_menus)
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["menuItems"]["totalCount"] == count
 
 
 def test_menu_item_query_static_url(user_api_client, menu_item):
