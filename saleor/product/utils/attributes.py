@@ -9,7 +9,7 @@ from ..models import (
     ProductVariant,
 )
 
-T_ASSIGNMENT_REL = Union[AssignedProductAttribute, AssignedVariantAttribute]
+AttributeAssignmentType = Union[AssignedProductAttribute, AssignedVariantAttribute]
 
 
 def generate_name_for_variant(variant: ProductVariant) -> str:
@@ -26,7 +26,7 @@ def generate_name_for_variant(variant: ProductVariant) -> str:
 
 def _associate_attribute_to_instance(
     instance: Union[Product, ProductVariant], attribute_pk: Attribute
-) -> T_ASSIGNMENT_REL:
+) -> AttributeAssignmentType:
     """Associate a given attribute to an instance."""
     if isinstance(instance, Product):
         attribute_rel = instance.product_type.attributeproduct.get(
@@ -65,7 +65,7 @@ def associate_attribute_values_to_instance(
     instance: Union[Product, ProductVariant],
     attribute: Attribute,
     *values: AttributeValue,
-) -> T_ASSIGNMENT_REL:
+) -> AttributeAssignmentType:
     """Assign given attribute values to a product or variant.
 
     Note: be award this function invokes the ``set`` method on the instance's
