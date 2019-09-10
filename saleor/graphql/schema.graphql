@@ -1767,6 +1767,9 @@ input MoveProductInput {
 }
 
 type Mutations {
+  webhookCreate(input: WebhookSubscribeInput!): WebhookCreate
+  webhookDelete(id: ID!): WebhookDelete
+  webhookUpdate(id: ID!, input: WebhookSubscribeInput!): WebhookUpdate
   authorizationKeyAdd(input: AuthorizationKeyInput!, keyType: AuthorizationKeyType!): AuthorizationKeyAdd
   authorizationKeyDelete(keyType: AuthorizationKeyType!): AuthorizationKeyDelete
   homepageCollectionUpdate(collection: ID): HomepageCollectionUpdate
@@ -2449,6 +2452,7 @@ enum PermissionEnum {
   MANAGE_SHIPPING
   MANAGE_SETTINGS
   MANAGE_TRANSLATIONS
+  MANAGE_WEBHOOKS
 }
 
 type Plugin implements Node {
@@ -2922,6 +2926,8 @@ type ProductVariantUpdatePrivateMeta {
 }
 
 type Query {
+  webhook(id: ID!): Webhook
+  webhooks(before: String, after: String, first: Int, last: Int): WebhookCountableConnection
   translations(kind: TranslatableKinds!, before: String, after: String, first: Int, last: Int): TranslatableItemConnection
   shop: Shop
   shippingZone(id: ID!): ShippingZone
@@ -3760,6 +3766,47 @@ enum VoucherTypeEnum {
 type VoucherUpdate {
   errors: [Error!]
   voucher: Voucher
+}
+
+type Webhook implements Node {
+  serviceAccount: ServiceAccount!
+  event: String!
+  targetUrl: String!
+  isActive: Boolean!
+  id: ID!
+}
+
+type WebhookCountableConnection {
+  pageInfo: PageInfo!
+  edges: [WebhookCountableEdge!]!
+  totalCount: Int
+}
+
+type WebhookCountableEdge {
+  node: Webhook!
+  cursor: String!
+}
+
+type WebhookCreate {
+  errors: [Error!]
+  webhook: Webhook
+}
+
+type WebhookDelete {
+  errors: [Error!]
+  webhook: Webhook
+}
+
+input WebhookSubscribeInput {
+  targetUrl: String
+  event: String
+  serviceAccount: ID
+  isActive: Boolean
+}
+
+type WebhookUpdate {
+  errors: [Error!]
+  webhook: Webhook
 }
 
 type Weight {
