@@ -65,7 +65,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, **data):
         checkout_id = from_global_id_strict_type(
-            info, checkout_id, only_type=Checkout, field="checkout_id"
+            checkout_id, only_type=Checkout, field="checkout_id"
         )
         checkout = models.Checkout.objects.prefetch_related(
             "lines__variant__product__collections"
