@@ -57,10 +57,10 @@ def filter_created_range(qs, _, value):
 
 def filter_order_search(qs, _, value):
     order_fields = [
+        "pk",
         "discount_name",
-        "token",
+        "translated_discount_name",
         "user_email",
-        "user__email",
         "user__first_name",
         "user__last_name",
     ]
