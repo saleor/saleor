@@ -203,6 +203,8 @@ def customer_user(address):  # pylint: disable=W0613
         "password",
         default_billing_address=default_address,
         default_shipping_address=default_address,
+        first_name="Leslie",
+        last_name="Wade",
     )
     user.addresses.add(default_address)
     return user

@@ -218,14 +218,14 @@ class ExtensionsManager:
                 return plugin.get_plugin_configuration(plugin_configurations_qs)
 
     def get_plugin_configurations(self) -> List["PluginConfiguration"]:
-        plugin_configurations = []
+        plugin_configuration_ids = []
         plugin_configurations_qs = PluginConfiguration.objects.all()
         for plugin in self.plugins:
             plugin_configuration = plugin.get_plugin_configuration(
                 plugin_configurations_qs
             )
-            plugin_configurations.append(plugin_configuration)
-        return plugin_configurations
+            plugin_configuration_ids.append(plugin_configuration.pk)
+        return PluginConfiguration.objects.filter(pk__in=plugin_configuration_ids)
 
 
 def get_extensions_manager(

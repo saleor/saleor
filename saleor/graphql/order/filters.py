@@ -55,13 +55,27 @@ def filter_created_range(qs, _, value):
     return qs
 
 
+def filter_order_search(qs, _, value):
+    order_fields = [
+        "pk",
+        "discount_name",
+        "translated_discount_name",
+        "user_email",
+        "user__first_name",
+        "user__last_name",
+    ]
+    qs = filter_by_query_param(qs, value, order_fields)
+    return qs
+
+
 class DraftOrderFilter(django_filters.FilterSet):
     customer = django_filters.CharFilter(method=filter_customer)
     created = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
+    search = django_filters.CharFilter(method=filter_order_search)
 
     class Meta:
         model = Order
-        fields = ["customer", "created"]
+        fields = ["customer", "created", "search"]
 
 
 class OrderFilter(DraftOrderFilter):
@@ -71,7 +85,8 @@ class OrderFilter(DraftOrderFilter):
     status = ListObjectTypeFilter(input_class=OrderStatusFilter, method=filter_status)
     customer = django_filters.CharFilter(method=filter_customer)
     created = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_range)
+    search = django_filters.CharFilter(method=filter_order_search)
 
     class Meta:
         model = Order
-        fields = ["payment_status", "status", "customer", "created"]
+        fields = ["payment_status", "status", "customer", "created", "search"]
