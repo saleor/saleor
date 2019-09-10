@@ -358,7 +358,7 @@ class ModelMutation(BaseMutation):
     def get_instance(cls, info, **data):
         """Retrieve an instance from the supplied global id.
 
-        Optionally take a qs parameter to resolve the node using a custom query set.
+        The expected graphene type can be lazy (str).
         """
         object_id = data.get("id")
         if object_id:
