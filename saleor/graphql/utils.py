@@ -141,7 +141,7 @@ def filter_by_period(queryset, period, field_name):
 def generate_query_argument_description(search_fields):
     deprecated_info = (
         "DEPRECATED: Will be removed in Saleor 2.10,"
-        ' use "filter: {search: {}}" instead.\n'
+        " use `filter: {search: {}}` instead.\n"
     )
     header = "Supported filter parameters:\n"
     supported_list = ""

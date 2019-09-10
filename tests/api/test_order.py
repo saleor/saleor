@@ -2117,8 +2117,9 @@ def test_order_query_with_filter_created_(
 @pytest.mark.parametrize(
     "orders_filter, count",
     [
-        ({"search": "test_token"}, 1),
-        ({"search": "test_discount"}, 1),
+        ({"search": "test_discount"}, 2),
+        ({"search": "test_discount1"}, 1),
+        ({"search": "translated_discount1_name"}, 1),
         ({"search": "user"}, 2),
         ({"search": "user1@example.com"}, 1),
         ({"search": "test@example.com"}, 1),
@@ -2138,10 +2139,19 @@ def test_orders_query_with_filter_search(
     Order.objects.bulk_create(
         [
             Order(
-                user=customer_user, token="test_token", discount_name="test_discount"
+                user=customer_user,
+                token=str(uuid.uuid4()),
+                discount_name="test_discount1",
+                user_email="test@example.com",
+                translated_discount_name="translated_discount1_name",
             ),
             Order(token=str(uuid.uuid4()), user_email="user1@example.com"),
-            Order(token=str(uuid.uuid4()), user_email="user2@example.com"),
+            Order(
+                token=str(uuid.uuid4()),
+                user_email="user2@example.com",
+                discount_name="test_discount2",
+                translated_discount_name="translated_discount2_name",
+            ),
         ]
     )
     variables = {"filter": orders_filter}
@@ -2151,11 +2161,22 @@ def test_orders_query_with_filter_search(
     assert content["data"]["orders"]["totalCount"] == count
 
 
+def test_orders_query_with_filter_search_by_id(
+    orders_query_with_filter, order, staff_api_client, permission_manage_orders
+):
+    variables = {"filter": {"search": order.pk}}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["orders"]["totalCount"] == 1
+
+
 @pytest.mark.parametrize(
     "draft_orders_filter, count",
     [
-        ({"search": "test_token"}, 1),
-        ({"search": "test_discount"}, 1),
+        ({"search": "test_discount"}, 2),
+        ({"search": "test_discount1"}, 1),
+        ({"search": "translated_discount1_name"}, 1),
         ({"search": "user"}, 2),
         ({"search": "user1@example.com"}, 1),
         ({"search": "test@example.com"}, 1),
@@ -2176,8 +2197,10 @@ def test_draft_orders_query_with_filter_search(
         [
             Order(
                 user=customer_user,
-                token="test_token",
-                discount_name="test_discount",
+                token=str(uuid.uuid4()),
+                discount_name="test_discount1",
+                user_email="test@example.com",
+                translated_discount_name="translated_discount1_name",
                 status=OrderStatus.DRAFT,
             ),
             Order(
@@ -2188,6 +2211,8 @@ def test_draft_orders_query_with_filter_search(
             Order(
                 token=str(uuid.uuid4()),
                 user_email="user2@example.com",
+                discount_name="test_discount2",
+                translated_discount_name="translated_discount2_name",
                 status=OrderStatus.DRAFT,
             ),
         ]
@@ -2197,3 +2222,16 @@ def test_draft_orders_query_with_filter_search(
     response = staff_api_client.post_graphql(draft_orders_query_with_filter, variables)
     content = get_graphql_content(response)
     assert content["data"]["draftOrders"]["totalCount"] == count
+
+
+def test_draft_orders_query_with_filter_search_by_id(
+    draft_orders_query_with_filter,
+    draft_order,
+    staff_api_client,
+    permission_manage_orders,
+):
+    variables = {"filter": {"search": draft_order.pk}}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(draft_orders_query_with_filter, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["draftOrders"]["totalCount"] == 1
