@@ -1,5 +1,6 @@
 import graphene
 from django.conf import settings
+from django.utils import translation
 from django_countries import countries
 from django_prices_vatlayer.models import VAT
 from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
@@ -71,6 +72,10 @@ class Shop(graphene.ObjectType):
     )
     countries = graphene.List(
         CountryDisplay,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            description="A language code to return the translation for.",
+        ),
         description="List of countries available in the shop.",
         required=True,
     )
@@ -149,14 +154,15 @@ class Shop(graphene.ObjectType):
         return site_models.AuthorizationKey.objects.all()
 
     @staticmethod
-    def resolve_countries(_, _info):
+    def resolve_countries(_, _info, language_code=LanguageCodeEnum.EN.value):
         taxes = {vat.country_code: vat for vat in VAT.objects.all()}
-        return [
-            CountryDisplay(
-                code=country[0], country=country[1], vat=taxes.get(country[0])
-            )
-            for country in countries
-        ]
+        with translation.override(language_code):
+            return [
+                CountryDisplay(
+                    code=country[0], country=country[1], vat=taxes.get(country[0])
+                )
+                for country in countries
+            ]
 
     @staticmethod
     def resolve_currencies(_, _info):
