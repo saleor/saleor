@@ -3303,7 +3303,7 @@ type ShippingZoneUpdate {
 type Shop {
   geolocalization: Geolocalization
   authorizationKeys: [AuthorizationKey]!
-  countries: [CountryDisplay]!
+  countries(languageCode: LanguageCodeEnum): [CountryDisplay]!
   currencies: [String]!
   defaultCurrency: String!
   defaultCountry: CountryDisplay
