@@ -154,7 +154,7 @@ class Shop(graphene.ObjectType):
         return site_models.AuthorizationKey.objects.all()
 
     @staticmethod
-    def resolve_countries(_, _info, language_code=LanguageCodeEnum.EN.value):
+    def resolve_countries(_, _info, language_code=None):
         taxes = {vat.country_code: vat for vat in VAT.objects.all()}
         with translation.override(language_code):
             return [
