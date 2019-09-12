@@ -3,23 +3,29 @@ from django.core.exceptions import ValidationError
 
 from ...webhook import models
 from ..core.mutations import ModelDeleteMutation, ModelMutation
+from .enums import WebhookEventTypeEnum
 from .types import Webhook
 
 
-class WebhookSubscribeInput(graphene.InputObjectType):
+class WebhookCreateInput(graphene.InputObjectType):
     target_url = graphene.String(description="The url to receive the payload")
-    event = graphene.String(description="The event that webhook wants to subscribe")
+    events = graphene.List(
+        WebhookEventTypeEnum, description="The event that webhook wants to subscribe"
+    )
     service_account = graphene.ID(
         required=False, description="serviceAccount ID of which webhook belongs to"
     )
     is_active = graphene.Boolean(
         description="Determine if webhook will be set active or not.", required=False
     )
+    secret_key = graphene.String(
+        description="Use to create a hash signature with each payload", required=False
+    )
 
 
 class WebhookCreate(ModelMutation):
     class Arguments:
-        input = WebhookSubscribeInput(
+        input = WebhookCreateInput(
             description="Fields required to create a webhook.", required=True
         )
 
@@ -50,9 +56,6 @@ class WebhookCreate(ModelMutation):
             raise ValidationError(
                 {"serviceAccount": "Service account doesn't exist or is disabled"}
             )
-
-        # FIXME Confirm that service_account has permissions to fetch resources
-        #  for given event.
         return cleaned_data
 
     @classmethod
@@ -68,13 +71,44 @@ class WebhookCreate(ModelMutation):
         has_perm = bool(context.service_account) or has_perm
         return has_perm
 
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        instance.save()
+        events = cleaned_input.get("events", [])
+        models.WebhookEvent.objects.bulk_create(
+            [
+                models.WebhookEvent(webhook=instance, event_type=event)
+                for event in events
+            ]
+        )
+
+
+class WebhookUpdateInput(graphene.InputObjectType):
+    target_url = graphene.String(
+        description="The url to receive the payload", required=False
+    )
+    events = graphene.List(
+        WebhookEventTypeEnum,
+        description="The event that webhook wants to subscribe",
+        required=False,
+    )
+    service_account = graphene.ID(
+        required=False, description="serviceAccount ID of which webhook belongs to"
+    )
+    is_active = graphene.Boolean(
+        description="Determine if webhook will be set active or not.", required=False
+    )
+    secret_key = graphene.String(
+        description="Use to create a hash signature with each payload", required=False
+    )
+
 
 class WebhookUpdate(ModelMutation):
     webhook = graphene.Field(Webhook)
 
     class Arguments:
         id = graphene.ID(required=True, description="ID of a webhook to update.")
-        input = WebhookSubscribeInput(
+        input = WebhookUpdateInput(
             description="Fields required to update a webhook.", required=True
         )
 

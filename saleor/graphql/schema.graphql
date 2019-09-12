@@ -1767,9 +1767,9 @@ input MoveProductInput {
 }
 
 type Mutations {
-  webhookCreate(input: WebhookSubscribeInput!): WebhookCreate
+  webhookCreate(input: WebhookCreateInput!): WebhookCreate
   webhookDelete(id: ID!): WebhookDelete
-  webhookUpdate(id: ID!, input: WebhookSubscribeInput!): WebhookUpdate
+  webhookUpdate(id: ID!, input: WebhookUpdateInput!): WebhookUpdate
   authorizationKeyAdd(input: AuthorizationKeyInput!, keyType: AuthorizationKeyType!): AuthorizationKeyAdd
   authorizationKeyDelete(keyType: AuthorizationKeyType!): AuthorizationKeyDelete
   homepageCollectionUpdate(collection: ID): HomepageCollectionUpdate
@@ -3770,10 +3770,11 @@ type VoucherUpdate {
 
 type Webhook implements Node {
   serviceAccount: ServiceAccount!
-  event: String!
   targetUrl: String!
   isActive: Boolean!
+  secretKey: String
   id: ID!
+  events: [WebhookEvent]
 }
 
 type WebhookCountableConnection {
@@ -3792,21 +3793,38 @@ type WebhookCreate {
   webhook: Webhook
 }
 
+input WebhookCreateInput {
+  targetUrl: String
+  events: [WebhookEventTypeEnum]
+  serviceAccount: ID
+  isActive: Boolean
+  secretKey: String
+}
+
 type WebhookDelete {
   errors: [Error!]
   webhook: Webhook
 }
 
-input WebhookSubscribeInput {
-  targetUrl: String
-  event: String
-  serviceAccount: ID
-  isActive: Boolean
+type WebhookEvent {
+  eventType: String
+}
+
+enum WebhookEventTypeEnum {
+  ORDER_CREATED
 }
 
 type WebhookUpdate {
   errors: [Error!]
   webhook: Webhook
+}
+
+input WebhookUpdateInput {
+  targetUrl: String
+  events: [WebhookEventTypeEnum]
+  serviceAccount: ID
+  isActive: Boolean
+  secretKey: String
 }
 
 type Weight {

@@ -8,9 +8,9 @@ class Webhook(models.Model):
     service_account = models.ForeignKey(
         ServiceAccount, related_name="webhooks", on_delete=models.CASCADE
     )
-    event = models.CharField("Event", max_length=128, db_index=True)
     target_url = models.URLField("Target URL", max_length=255)
     is_active = models.BooleanField(default=True)
+    secret_key = models.CharField(max_length=255, null=True, blank=True)
 
     class Meta:
         permissions = (
@@ -20,10 +20,12 @@ class Webhook(models.Model):
             ),
         )
 
-    def to_dict(self):
-        return {
-            "id": self.id,
-            "event": self.event,
-            "target": self.target_url,
-            "service_account_name": self.service_account.name,
-        }
+
+class WebhookEvent(models.Model):
+    webhook = models.ForeignKey(
+        Webhook, related_name="events", on_delete=models.CASCADE
+    )
+    event_type = models.CharField("Event type", max_length=128, db_index=True)
+
+    def __repr__(self):
+        return self.event_type
