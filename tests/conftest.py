@@ -51,6 +51,7 @@ from saleor.product.models import (
 from saleor.shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
 from saleor.site import AuthenticationBackends
 from saleor.site.models import AuthorizationKey, SiteSettings
+from saleor.webhook import WebhookEventType
 from saleor.webhook.models import Webhook
 from tests.utils import create_image
 
@@ -1434,8 +1435,7 @@ def other_description_raw():
 @pytest.fixture
 def webhook(service_account):
     webhook = Webhook.objects.create(
-        service_account=service_account,
-        target_url="http://www.example.com/test",
-        event="New Event",
+        service_account=service_account, target_url="http://www.example.com/test"
     )
+    webhook.events.create(event_type=WebhookEventType.ORDER_CREATED)
     return webhook
