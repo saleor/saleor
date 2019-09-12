@@ -54,6 +54,14 @@ class MenuItem(CountableDjangoObjectType):
         resolver=resolve_translation,
     )
 
+    sort_order = graphene.Field(
+        graphene.Int,
+        deprecation_reason=(
+            "Use the position in list instead and relative "
+            "calculus to determine shift position."
+        ),
+    )
+
     class Meta:
         description = """Represents a single item of the related menu.
         Can store categories, collection or pages."""

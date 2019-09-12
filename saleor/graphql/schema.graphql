@@ -1840,7 +1840,7 @@ input MenuInput {
 
 type MenuItem implements Node {
   id: ID!
-  sortOrder: Int
+  sortOrder: Int @deprecated(reason: "Use the position in list instead and relative calculus to determine shift position.")
   menu: Menu!
   name: String!
   parent: MenuItem
