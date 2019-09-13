@@ -1,5 +1,7 @@
 from typing import TYPE_CHECKING, Any
 
+from django.core import serializers
+
 from ....webhook import WebhookEventType
 from ...base_plugin import BasePlugin
 from .tasks import trigger_webhooks_for_event
@@ -21,7 +23,8 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
 
-        trigger_webhooks_for_event.delay(WebhookEventType.ORDER_CREATED, order.pk)
+        data = serializers.serialize("json", [order])
+        trigger_webhooks_for_event.delay(WebhookEventType.ORDER_CREATED, data)
 
     @classmethod
     def _get_default_configuration(cls):
