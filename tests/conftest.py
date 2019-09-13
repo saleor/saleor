@@ -17,7 +17,7 @@ from PIL import Image
 from prices import Money, TaxedMoney
 
 from saleor.account.backends import BaseBackend
-from saleor.account.models import Address, User
+from saleor.account.models import Address, ServiceAccount, User
 from saleor.checkout import utils
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
@@ -1430,6 +1430,11 @@ def other_description_raw():
         "Saleor is powered by a GraphQL server running on top of Python 3 "
         "and a Django 2 framework."
     )
+
+
+@pytest.fixture
+def service_account(db):
+    return ServiceAccount.objects.create(name="Sample service account", is_active=True)
 
 
 @pytest.fixture

@@ -8,7 +8,7 @@ from django.shortcuts import reverse
 from django.test.client import MULTIPART_CONTENT, Client
 from graphql_jwt.shortcuts import get_token
 
-from saleor.account.models import ServiceAccount, User
+from saleor.account.models import User
 
 from .utils import assert_no_permission
 
@@ -141,8 +141,3 @@ def user_list_not_active(user_list):
     users = User.objects.filter(pk__in=[user.pk for user in user_list])
     users.update(is_active=False)
     return users
-
-
-@pytest.fixture
-def service_account(db):
-    return ServiceAccount.objects.create(name="Sample service account", is_active=True)

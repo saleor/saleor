@@ -22,7 +22,6 @@ class WebhookPlugin(BasePlugin):
 
         if not self.active:
             return previous_value
-
         data = serializers.serialize("json", [order])
         trigger_webhooks_for_event.delay(WebhookEventType.ORDER_CREATED, data)
 
