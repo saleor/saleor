@@ -2,10 +2,8 @@ import logging
 
 import requests
 from celery import shared_task
-from django.core import serializers
 from requests.exceptions import RequestException
 
-from ....order.models import Order
 from ....webhook import WebhookEventType
 from ....webhook.models import Webhook
 from . import create_webhook_headers
@@ -16,7 +14,7 @@ WEBHOOK_TIMEOUT = 10
 
 
 @shared_task
-def trigger_webhooks_for_event(event_type, order_pk):
+def trigger_webhooks_for_event(event_type, data):
     permissions = {}
     required_permission = WebhookEventType.PERMISSIONS.get(event_type, "")
     if required_permission:
@@ -34,8 +32,6 @@ def trigger_webhooks_for_event(event_type, order_pk):
         "service_account__permissions__content_type"
     )
 
-    order = Order.objects.get(pk=order_pk)
-    data = serializers.serialize("json", [order])
     for webhook in webhooks:
         send_webhook_request.delay(
             webhook.pk, webhook.target_url, webhook.secret_key, event_type, data
