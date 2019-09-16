@@ -43,6 +43,8 @@ MAX_CHECKOUT_LINE_QUANTITY = 50
 
 USE_JSON_CONTENT = False
 
+AUTH_PASSWORD_VALIDATORS = []
+
 PASSWORD_HASHERS = ["tests.dummy_password_hasher.DummyHasher"]
 EXTENSIONS_MANAGER = "saleor.extensions.manager.ExtensionsManager"
 
