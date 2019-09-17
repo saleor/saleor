@@ -3,10 +3,10 @@ import graphene
 from ...menu import models
 from ...menu.utils import update_menus
 from ..core.mutations import ModelBulkDeleteMutation
-from .mutations import MenuErrorMixin
+from ..core.types.common import MenuError
 
 
-class MenuBulkDelete(MenuErrorMixin, ModelBulkDeleteMutation):
+class MenuBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID, required=True, description="List of menu IDs to delete."
@@ -16,9 +16,11 @@ class MenuBulkDelete(MenuErrorMixin, ModelBulkDeleteMutation):
         description = "Deletes menus."
         model = models.Menu
         permissions = ("menu.manage_menus",)
+        error_type_class = MenuError
+        error_type_field = "menu_errors"
 
 
-class MenuItemBulkDelete(MenuErrorMixin, ModelBulkDeleteMutation):
+class MenuItemBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID, required=True, description="List of menu item IDs to delete."
@@ -28,6 +30,8 @@ class MenuItemBulkDelete(MenuErrorMixin, ModelBulkDeleteMutation):
         description = "Deletes menu items."
         model = models.MenuItem
         permissions = ("menu.manage_menus",)
+        error_type_class = MenuError
+        error_type_field = "menu_errors"
 
     @classmethod
     def bulk_action(cls, queryset):

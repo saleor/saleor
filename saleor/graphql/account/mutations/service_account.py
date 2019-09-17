@@ -10,6 +10,7 @@ from ...core.mutations import (
     ModelMutation,
     UpdateMetaBaseMutation,
 )
+from ...core.types.common import AccountError
 
 
 class ServiceAccountInput(graphene.InputObjectType):
@@ -38,6 +39,8 @@ class ServiceAccountCreate(ModelMutation):
         description = "Creates a new service account"
         model = models.ServiceAccount
         permissions = ("account.manage_service_accounts",)
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -82,6 +85,8 @@ class ServiceAccountUpdate(ModelMutation):
         description = "Updates an existing service account"
         model = models.ServiceAccount
         permissions = ("account.manage_service_accounts",)
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -102,6 +107,8 @@ class ServiceAccountDelete(ModelDeleteMutation):
         description = "Deletes a service account"
         model = models.ServiceAccount
         permissions = ("account.manage_service_accounts",)
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
 
 class ServiceAccountUpdatePrivateMeta(UpdateMetaBaseMutation):
@@ -110,6 +117,8 @@ class ServiceAccountUpdatePrivateMeta(UpdateMetaBaseMutation):
         permissions = ("account.manage_service_accounts",)
         model = models.ServiceAccount
         public = False
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
 
 class ServiceAccountClearStoredPrivateMeta(ClearMetaBaseMutation):
@@ -118,3 +127,5 @@ class ServiceAccountClearStoredPrivateMeta(ClearMetaBaseMutation):
         model = models.ServiceAccount
         permissions = ("account.manage_service_accounts",)
         public = False
+        error_type_class = AccountError
+        error_type_field = "account_errors"

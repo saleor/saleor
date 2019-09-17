@@ -18,17 +18,17 @@ from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...core.enums import PermissionEnum
 from ...core.mutations import (
+    BaseMutation,
     ClearMetaBaseMutation,
     ModelDeleteMutation,
     ModelMutation,
     UpdateMetaBaseMutation,
 )
 from ...core.types import Upload
+from ...core.types.common import AccountError
 from ...core.utils import validate_image_file
 from ..utils import CustomerDeleteMixin, StaffDeleteMixin, UserDeleteMixin
 from .base import (
-    AccountErrorMixin,
-    BaseAccountMutation,
     BaseAddressDelete,
     BaseAddressUpdate,
     BaseCustomerCreate,
@@ -62,6 +62,8 @@ class CustomerCreate(BaseCustomerCreate):
         exclude = ["password"]
         model = models.User
         permissions = ("account.manage_users",)
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
 
 class CustomerUpdate(CustomerCreate):
@@ -76,6 +78,8 @@ class CustomerUpdate(CustomerCreate):
         exclude = ["password"]
         model = models.User
         permissions = ("account.manage_users",)
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     def generate_events(
@@ -127,7 +131,7 @@ class CustomerUpdate(CustomerCreate):
         return cls.success_response(new_instance)
 
 
-class UserDelete(AccountErrorMixin, UserDeleteMixin, ModelDeleteMutation):
+class UserDelete(UserDeleteMixin, ModelDeleteMutation):
     class Meta:
         abstract = True
 
@@ -137,6 +141,8 @@ class CustomerDelete(CustomerDeleteMixin, UserDelete):
         description = "Deletes a customer."
         model = models.User
         permissions = ("account.manage_users",)
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     class Arguments:
         id = graphene.ID(required=True, description="ID of a customer to delete.")
@@ -148,7 +154,7 @@ class CustomerDelete(CustomerDeleteMixin, UserDelete):
         return results
 
 
-class StaffCreate(AccountErrorMixin, ModelMutation):
+class StaffCreate(ModelMutation):
     class Arguments:
         input = StaffCreateInput(
             description="Fields required to create a staff user.", required=True
@@ -159,6 +165,8 @@ class StaffCreate(AccountErrorMixin, ModelMutation):
         exclude = ["password"]
         model = models.User
         permissions = ("account.manage_staff",)
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -206,6 +214,8 @@ class StaffUpdate(StaffCreate):
         exclude = ["password"]
         model = models.User
         permissions = ("account.manage_staff",)
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     def clean_is_active(cls, is_active, instance, user):
@@ -243,6 +253,8 @@ class StaffDelete(StaffDeleteMixin, UserDelete):
         description = "Deletes a staff user."
         model = models.User
         permissions = ("account.manage_staff",)
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     class Arguments:
         id = graphene.ID(required=True, description="ID of a staff user to delete.")
@@ -264,7 +276,7 @@ class StaffDelete(StaffDeleteMixin, UserDelete):
         return cls.success_response(instance)
 
 
-class AddressCreate(AccountErrorMixin, ModelMutation):
+class AddressCreate(ModelMutation):
     user = graphene.Field(
         User, description="A user instance for which the address was created."
     )
@@ -281,6 +293,8 @@ class AddressCreate(AccountErrorMixin, ModelMutation):
         description = "Creates user address"
         model = models.Address
         permissions = ("account.manage_users",)
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
@@ -298,6 +312,8 @@ class AddressUpdate(BaseAddressUpdate):
         description = "Updates an address"
         model = models.Address
         permissions = ("account.manage_users",)
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
 
 class AddressDelete(BaseAddressDelete):
@@ -305,9 +321,11 @@ class AddressDelete(BaseAddressDelete):
         description = "Deletes an address"
         model = models.Address
         permissions = ("account.manage_users",)
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
 
-class AddressSetDefault(BaseAccountMutation):
+class AddressSetDefault(BaseMutation):
     user = graphene.Field(User, description="An updated user instance.")
 
     class Arguments:
@@ -320,6 +338,8 @@ class AddressSetDefault(BaseAccountMutation):
     class Meta:
         description = "Sets a default address for the given user."
         permissions = ("account.manage_users",)
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, address_id, user_id, **data):
@@ -347,7 +367,7 @@ class AddressSetDefault(BaseAccountMutation):
         return cls(user=user)
 
 
-class UserAvatarUpdate(BaseAccountMutation):
+class UserAvatarUpdate(BaseMutation):
     user = graphene.Field(User, description="An updated user instance.")
 
     class Arguments:
@@ -363,6 +383,8 @@ class UserAvatarUpdate(BaseAccountMutation):
             upload format can be found here:
             https://github.com/jaydenseric/graphql-multipart-request-spec
             """
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     @staff_member_required
@@ -381,11 +403,13 @@ class UserAvatarUpdate(BaseAccountMutation):
         return UserAvatarUpdate(user=user)
 
 
-class UserAvatarDelete(BaseAccountMutation):
+class UserAvatarDelete(BaseMutation):
     user = graphene.Field(User, description="An updated user instance.")
 
     class Meta:
         description = "Deletes a user avatar. Only for staff members."
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     @staff_member_required
@@ -396,17 +420,21 @@ class UserAvatarDelete(BaseAccountMutation):
         return UserAvatarDelete(user=user)
 
 
-class UserUpdatePrivateMeta(AccountErrorMixin, UpdateMetaBaseMutation):
+class UserUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Updates private metadata for user."
         permissions = ("account.manage_users",)
         model = models.User
         public = False
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
 
-class UserClearStoredPrivateMeta(AccountErrorMixin, ClearMetaBaseMutation):
+class UserClearStoredPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clear stored metadata value."
         model = models.User
         permissions = ("account.manage_users",)
         public = False
+        error_type_class = AccountError
+        error_type_field = "account_errors"

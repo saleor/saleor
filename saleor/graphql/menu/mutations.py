@@ -19,21 +19,6 @@ from .enums import NavigationType
 from .types import Menu, MenuItem, MenuItemMoveInput
 
 
-class MenuErrorMixin:
-    menu_errors = graphene.List(
-        graphene.NonNull(MenuError),
-        description="List of errors that occurred executing the mutation.",
-    )
-
-    ERROR_TYPE_CLASS = MenuError
-    ERROR_TYPE_FIELD = "menu_errors"
-
-
-class BaseMenuMutation(MenuErrorMixin, BaseMutation):
-    class Meta:
-        abstract = True
-
-
 class MenuItemInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the menu item.")
     url = graphene.String(description="URL of the pointed item.")
@@ -68,7 +53,7 @@ class MenuCreateInput(graphene.InputObjectType):
     items = graphene.List(MenuItemInput, description="List of menu items.")
 
 
-class MenuCreate(MenuErrorMixin, ModelMutation):
+class MenuCreate(ModelMutation):
     class Arguments:
         input = MenuCreateInput(
             required=True, description="Fields required to create a menu."
@@ -78,6 +63,8 @@ class MenuCreate(MenuErrorMixin, ModelMutation):
         description = "Creates a new Menu"
         model = models.Menu
         permissions = ("menu.manage_menus",)
+        error_type_class = MenuError
+        error_type_field = "menu_errors"
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -133,7 +120,7 @@ class MenuCreate(MenuErrorMixin, ModelMutation):
             instance.items.create(**item)
 
 
-class MenuUpdate(MenuErrorMixin, ModelMutation):
+class MenuUpdate(ModelMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a menu to update.")
         input = MenuInput(
@@ -144,9 +131,11 @@ class MenuUpdate(MenuErrorMixin, ModelMutation):
         description = "Updates a menu."
         model = models.Menu
         permissions = ("menu.manage_menus",)
+        error_type_class = MenuError
+        error_type_field = "menu_errors"
 
 
-class MenuDelete(MenuErrorMixin, ModelDeleteMutation):
+class MenuDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a menu to delete.")
 
@@ -154,6 +143,8 @@ class MenuDelete(MenuErrorMixin, ModelDeleteMutation):
         description = "Deletes a menu."
         model = models.Menu
         permissions = ("menu.manage_menus",)
+        error_type_class = MenuError
+        error_type_field = "menu_errors"
 
 
 def _validate_menu_item_instance(
@@ -172,7 +163,7 @@ def _validate_menu_item_instance(
             )
 
 
-class MenuItemCreate(MenuErrorMixin, ModelMutation):
+class MenuItemCreate(ModelMutation):
     class Arguments:
         input = MenuItemCreateInput(
             required=True,
@@ -185,6 +176,8 @@ class MenuItemCreate(MenuErrorMixin, ModelMutation):
         description = "Creates a new menu item."
         model = models.MenuItem
         permissions = ("menu.manage_menus",)
+        error_type_class = MenuError
+        error_type_field = "menu_errors"
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -229,6 +222,8 @@ class MenuItemUpdate(MenuItemCreate):
         description = "Updates a menu item."
         model = models.MenuItem
         permissions = ("menu.manage_menus",)
+        error_type_class = MenuError
+        error_type_field = "menu_errors"
 
     @classmethod
     def construct_instance(cls, instance, cleaned_data):
@@ -240,7 +235,7 @@ class MenuItemUpdate(MenuItemCreate):
         return super().construct_instance(instance, cleaned_data)
 
 
-class MenuItemDelete(MenuErrorMixin, ModelDeleteMutation):
+class MenuItemDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a menu item to delete.")
 
@@ -248,6 +243,8 @@ class MenuItemDelete(MenuErrorMixin, ModelDeleteMutation):
         description = "Deletes a menu item."
         model = models.MenuItem
         permissions = ("menu.manage_menus",)
+        error_type_class = MenuError
+        error_type_field = "menu_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -261,7 +258,7 @@ _MenuMoveOperation = namedtuple(
 )
 
 
-class MenuItemMove(BaseMenuMutation):
+class MenuItemMove(BaseMutation):
     menu = graphene.Field(Menu, description="Assigned menu to move within.")
 
     class Arguments:
@@ -273,6 +270,8 @@ class MenuItemMove(BaseMenuMutation):
     class Meta:
         description = "Moves items of menus"
         permissions = ("menu.manage_menus",)
+        error_type_class = MenuError
+        error_type_field = "menu_errors"
 
     @staticmethod
     def clean_move(move):
@@ -369,7 +368,7 @@ class MenuItemMove(BaseMenuMutation):
         return cls(menu=menu)
 
 
-class AssignNavigation(BaseMenuMutation):
+class AssignNavigation(BaseMutation):
     menu = graphene.Field(Menu, description="Assigned navigation menu.")
 
     class Arguments:
@@ -382,6 +381,8 @@ class AssignNavigation(BaseMenuMutation):
     class Meta:
         description = "Assigns storefront's navigation menus."
         permissions = ("menu.manage_menus", "site.manage_settings")
+        error_type_class = MenuError
+        error_type_field = "menu_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, navigation_type, menu=None):

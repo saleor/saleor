@@ -5,22 +5,22 @@ schema {
 
 type AccountAddressCreate {
   errors: [Error!]
-  accountErrors: [AccountError!]
   user: User
+  accountErrors: [AccountError!]
   address: Address
 }
 
 type AccountAddressDelete {
   errors: [Error!]
-  accountErrors: [AccountError!]
   user: User
+  accountErrors: [AccountError!]
   address: Address
 }
 
 type AccountAddressUpdate {
   errors: [Error!]
-  accountErrors: [AccountError!]
   user: User
+  accountErrors: [AccountError!]
   address: Address
 }
 
@@ -82,8 +82,8 @@ type AccountRequestDeletion {
 
 type AccountSetDefaultAddress {
   errors: [Error!]
-  accountErrors: [AccountError!]
   user: User
+  accountErrors: [AccountError!]
 }
 
 type AccountUpdate {
@@ -111,15 +111,15 @@ type Address implements Node {
 
 type AddressCreate {
   errors: [Error!]
-  accountErrors: [AccountError!]
   user: User
+  accountErrors: [AccountError!]
   address: Address
 }
 
 type AddressDelete {
   errors: [Error!]
-  accountErrors: [AccountError!]
   user: User
+  accountErrors: [AccountError!]
   address: Address
 }
 
@@ -139,8 +139,8 @@ input AddressInput {
 
 type AddressSetDefault {
   errors: [Error!]
-  accountErrors: [AccountError!]
   user: User
+  accountErrors: [AccountError!]
 }
 
 enum AddressTypeEnum {
@@ -150,8 +150,8 @@ enum AddressTypeEnum {
 
 type AddressUpdate {
   errors: [Error!]
-  accountErrors: [AccountError!]
   user: User
+  accountErrors: [AccountError!]
   address: Address
 }
 
@@ -177,8 +177,8 @@ type AddressValidationData {
 
 type AssignNavigation {
   errors: [Error!]
-  menuErrors: [MenuError!]
   menu: Menu
+  menuErrors: [MenuError!]
 }
 
 type Attribute implements Node {
@@ -202,8 +202,8 @@ type Attribute implements Node {
 
 type AttributeAssign {
   errors: [Error!]
-  productErrors: [ProductError!]
   productType: ProductType
+  productErrors: [ProductError!]
 }
 
 input AttributeAssignInput {
@@ -242,8 +242,8 @@ type AttributeCountableEdge {
 
 type AttributeCreate {
   errors: [Error!]
-  productErrors: [ProductError!]
   attribute: Attribute
+  productErrors: [ProductError!]
 }
 
 input AttributeCreateInput {
@@ -289,8 +289,8 @@ enum AttributeInputTypeEnum {
 
 type AttributeReorderValues {
   errors: [Error!]
-  productErrors: [ProductError!]
   attribute: Attribute
+  productErrors: [ProductError!]
 }
 
 scalar AttributeScalar
@@ -332,14 +332,14 @@ enum AttributeTypeEnum {
 
 type AttributeUnassign {
   errors: [Error!]
-  productErrors: [ProductError!]
   productType: ProductType
+  productErrors: [ProductError!]
 }
 
 type AttributeUpdate {
   errors: [Error!]
-  productErrors: [ProductError!]
   attribute: Attribute
+  productErrors: [ProductError!]
 }
 
 input AttributeUpdateInput {
@@ -385,8 +385,8 @@ type AttributeValueBulkDelete {
 
 type AttributeValueCreate {
   errors: [Error!]
-  productErrors: [ProductError!]
   attribute: Attribute
+  productErrors: [ProductError!]
   attributeValue: AttributeValue
 }
 
@@ -396,8 +396,8 @@ input AttributeValueCreateInput {
 
 type AttributeValueDelete {
   errors: [Error!]
-  productErrors: [ProductError!]
   attribute: Attribute
+  productErrors: [ProductError!]
   attributeValue: AttributeValue
 }
 
@@ -427,8 +427,8 @@ enum AttributeValueType {
 
 type AttributeValueUpdate {
   errors: [Error!]
-  productErrors: [ProductError!]
   attribute: Attribute
+  productErrors: [ProductError!]
   attributeValue: AttributeValue
 }
 
@@ -439,16 +439,16 @@ type AuthorizationKey {
 
 type AuthorizationKeyAdd {
   errors: [Error!]
-  shopErrors: [ShopError!]
   authorizationKey: AuthorizationKey
   shop: Shop
+  shopErrors: [ShopError!]
 }
 
 type AuthorizationKeyDelete {
   errors: [Error!]
-  shopErrors: [ShopError!]
   authorizationKey: AuthorizationKey
   shop: Shop
+  shopErrors: [ShopError!]
 }
 
 input AuthorizationKeyInput {
@@ -606,14 +606,14 @@ type Checkout implements Node {
 
 type CheckoutAddPromoCode {
   errors: [Error!]
-  checkoutErrors: [CheckoutError!]
   checkout: Checkout
+  checkoutErrors: [CheckoutError!]
 }
 
 type CheckoutBillingAddressUpdate {
   errors: [Error!]
-  checkoutErrors: [CheckoutError!]
   checkout: Checkout
+  checkoutErrors: [CheckoutError!]
 }
 
 type CheckoutClearStoredMeta {
@@ -630,8 +630,8 @@ type CheckoutClearStoredPrivateMeta {
 
 type CheckoutComplete {
   errors: [Error!]
-  checkoutErrors: [CheckoutError!]
   order: Order
+  checkoutErrors: [CheckoutError!]
 }
 
 type CheckoutCountableConnection {
@@ -647,8 +647,8 @@ type CheckoutCountableEdge {
 
 type CheckoutCreate {
   errors: [Error!]
-  checkoutErrors: [CheckoutError!]
   created: Boolean
+  checkoutErrors: [CheckoutError!]
   checkout: Checkout
 }
 
@@ -661,20 +661,20 @@ input CheckoutCreateInput {
 
 type CheckoutCustomerAttach {
   errors: [Error!]
-  checkoutErrors: [CheckoutError!]
   checkout: Checkout
+  checkoutErrors: [CheckoutError!]
 }
 
 type CheckoutCustomerDetach {
   errors: [Error!]
-  checkoutErrors: [CheckoutError!]
   checkout: Checkout
+  checkoutErrors: [CheckoutError!]
 }
 
 type CheckoutEmailUpdate {
   errors: [Error!]
-  checkoutErrors: [CheckoutError!]
   checkout: Checkout
+  checkoutErrors: [CheckoutError!]
 }
 
 type CheckoutError {
@@ -725,8 +725,8 @@ type CheckoutLineCountableEdge {
 
 type CheckoutLineDelete {
   errors: [Error!]
-  checkoutErrors: [CheckoutError!]
   checkout: Checkout
+  checkoutErrors: [CheckoutError!]
 }
 
 input CheckoutLineInput {
@@ -736,39 +736,39 @@ input CheckoutLineInput {
 
 type CheckoutLinesAdd {
   errors: [Error!]
-  checkoutErrors: [CheckoutError!]
   checkout: Checkout
+  checkoutErrors: [CheckoutError!]
 }
 
 type CheckoutLinesUpdate {
   errors: [Error!]
-  checkoutErrors: [CheckoutError!]
   checkout: Checkout
+  checkoutErrors: [CheckoutError!]
 }
 
 type CheckoutPaymentCreate {
   errors: [Error!]
-  paymentErrors: [PaymentError!]
   checkout: Checkout
   payment: Payment
+  paymentErrors: [PaymentError!]
 }
 
 type CheckoutRemovePromoCode {
   errors: [Error!]
-  checkoutErrors: [CheckoutError!]
   checkout: Checkout
+  checkoutErrors: [CheckoutError!]
 }
 
 type CheckoutShippingAddressUpdate {
   errors: [Error!]
-  checkoutErrors: [CheckoutError!]
   checkout: Checkout
+  checkoutErrors: [CheckoutError!]
 }
 
 type CheckoutShippingMethodUpdate {
   errors: [Error!]
-  checkoutErrors: [CheckoutError!]
   checkout: Checkout
+  checkoutErrors: [CheckoutError!]
 }
 
 type CheckoutUpdateMeta {
@@ -785,8 +785,8 @@ type CheckoutUpdatePrivateMeta {
 
 type CheckoutUpdateVoucher {
   errors: [Error!]
-  checkoutErrors: [CheckoutError!]
   checkout: Checkout
+  checkoutErrors: [CheckoutError!]
 }
 
 type ChoiceValue {
@@ -813,8 +813,8 @@ type Collection implements Node {
 
 type CollectionAddProducts {
   errors: [Error!]
-  productErrors: [ProductError!]
   collection: Collection
+  productErrors: [ProductError!]
 }
 
 type CollectionBulkDelete {
@@ -901,14 +901,14 @@ enum CollectionPublished {
 
 type CollectionRemoveProducts {
   errors: [Error!]
-  productErrors: [ProductError!]
   collection: Collection
+  productErrors: [ProductError!]
 }
 
 type CollectionReorderProducts {
   errors: [Error!]
-  productErrors: [ProductError!]
   collection: Collection
+  productErrors: [ProductError!]
 }
 
 type CollectionTranslate {
@@ -1372,15 +1372,15 @@ type DigitalContentCountableEdge {
 
 type DigitalContentCreate {
   errors: [Error!]
-  productErrors: [ProductError!]
   variant: ProductVariant
   content: DigitalContent
+  productErrors: [ProductError!]
 }
 
 type DigitalContentDelete {
   errors: [Error!]
-  productErrors: [ProductError!]
   variant: ProductVariant
+  productErrors: [ProductError!]
 }
 
 input DigitalContentInput {
@@ -1392,9 +1392,9 @@ input DigitalContentInput {
 
 type DigitalContentUpdate {
   errors: [Error!]
-  productErrors: [ProductError!]
   variant: ProductVariant
   content: DigitalContent
+  productErrors: [ProductError!]
 }
 
 input DigitalContentUploadInput {
@@ -1449,8 +1449,8 @@ type DraftOrderBulkDelete {
 
 type DraftOrderComplete {
   errors: [Error!]
-  orderErrors: [OrderError!]
   order: Order
+  orderErrors: [OrderError!]
 }
 
 type DraftOrderCreate {
@@ -1488,15 +1488,15 @@ input DraftOrderInput {
 
 type DraftOrderLineDelete {
   errors: [Error!]
-  orderErrors: [OrderError!]
   order: Order
   orderLine: OrderLine
+  orderErrors: [OrderError!]
 }
 
 type DraftOrderLineUpdate {
   errors: [Error!]
-  orderErrors: [OrderError!]
   order: Order
+  orderErrors: [OrderError!]
   orderLine: OrderLine
 }
 
@@ -1508,9 +1508,9 @@ type DraftOrderLinesBulkDelete {
 
 type DraftOrderLinesCreate {
   errors: [Error!]
-  orderErrors: [OrderError!]
   order: Order
   orderLines: [OrderLine!]
+  orderErrors: [OrderError!]
 }
 
 type DraftOrderUpdate {
@@ -1551,9 +1551,9 @@ type Fulfillment implements Node {
 
 type FulfillmentCancel {
   errors: [Error!]
-  orderErrors: [OrderError!]
   fulfillment: Fulfillment
   order: Order
+  orderErrors: [OrderError!]
 }
 
 input FulfillmentCancelInput {
@@ -1562,9 +1562,9 @@ input FulfillmentCancelInput {
 
 type FulfillmentCreate {
   errors: [Error!]
-  orderErrors: [OrderError!]
   fulfillment: Fulfillment
   order: Order
+  orderErrors: [OrderError!]
 }
 
 input FulfillmentCreateInput {
@@ -1591,9 +1591,9 @@ enum FulfillmentStatus {
 
 type FulfillmentUpdateTracking {
   errors: [Error!]
-  orderErrors: [OrderError!]
   fulfillment: Fulfillment
   order: Order
+  orderErrors: [OrderError!]
 }
 
 input FulfillmentUpdateTrackingInput {
@@ -1630,8 +1630,8 @@ type GiftCard implements Node {
 
 type GiftCardActivate {
   errors: [Error!]
-  giftCardErrors: [GiftCardError!]
   giftCard: GiftCard
+  giftCardErrors: [GiftCardError!]
 }
 
 type GiftCardCountableConnection {
@@ -1661,8 +1661,8 @@ input GiftCardCreateInput {
 
 type GiftCardDeactivate {
   errors: [Error!]
-  giftCardErrors: [GiftCardError!]
   giftCard: GiftCard
+  giftCardErrors: [GiftCardError!]
 }
 
 type GiftCardError {
@@ -1695,8 +1695,8 @@ input GiftCardUpdateInput {
 
 type HomepageCollectionUpdate {
   errors: [Error!]
-  shopErrors: [ShopError!]
   shop: Shop
+  shopErrors: [ShopError!]
 }
 
 type Image {
@@ -1764,7 +1764,6 @@ type LanguageDisplay {
 
 type LoggedUserUpdate {
   errors: [Error!]
-  accountErrors: [AccountError!]
   user: User
 }
 
@@ -1907,8 +1906,8 @@ input MenuItemInput {
 
 type MenuItemMove {
   errors: [Error!]
-  menuErrors: [MenuError!]
   menu: Menu
+  menuErrors: [MenuError!]
 }
 
 input MenuItemMoveInput {
@@ -2276,9 +2275,9 @@ enum OrderAction {
 
 type OrderAddNote {
   errors: [Error!]
-  orderErrors: [OrderError!]
   order: Order
   event: OrderEvent
+  orderErrors: [OrderError!]
 }
 
 input OrderAddNoteInput {
@@ -2293,14 +2292,14 @@ type OrderBulkCancel {
 
 type OrderCancel {
   errors: [Error!]
-  orderErrors: [OrderError!]
   order: Order
+  orderErrors: [OrderError!]
 }
 
 type OrderCapture {
   errors: [Error!]
-  orderErrors: [OrderError!]
   order: Order
+  orderErrors: [OrderError!]
 }
 
 type OrderCountableConnection {
@@ -2458,14 +2457,14 @@ input OrderLineInput {
 
 type OrderMarkAsPaid {
   errors: [Error!]
-  orderErrors: [OrderError!]
   order: Order
+  orderErrors: [OrderError!]
 }
 
 type OrderRefund {
   errors: [Error!]
-  orderErrors: [OrderError!]
   order: Order
+  orderErrors: [OrderError!]
 }
 
 enum OrderStatus {
@@ -2499,8 +2498,8 @@ input OrderUpdateInput {
 
 type OrderUpdateShipping {
   errors: [Error!]
-  orderErrors: [OrderError!]
   order: Order
+  orderErrors: [OrderError!]
 }
 
 input OrderUpdateShippingInput {
@@ -2509,8 +2508,8 @@ input OrderUpdateShippingInput {
 
 type OrderVoid {
   errors: [Error!]
-  orderErrors: [OrderError!]
   order: Order
+  orderErrors: [OrderError!]
 }
 
 type Page implements Node {
@@ -2609,8 +2608,8 @@ type PageUpdate {
 
 type PasswordChange {
   errors: [Error!]
-  accountErrors: [AccountError!]
   user: User
+  accountErrors: [AccountError!]
 }
 
 type PasswordReset {
@@ -2642,8 +2641,8 @@ type Payment implements Node {
 
 type PaymentCapture {
   errors: [Error!]
-  paymentErrors: [PaymentError!]
   payment: Payment
+  paymentErrors: [PaymentError!]
 }
 
 enum PaymentChargeStatusEnum {
@@ -2691,14 +2690,14 @@ input PaymentInput {
 
 type PaymentRefund {
   errors: [Error!]
-  paymentErrors: [PaymentError!]
   payment: Payment
+  paymentErrors: [PaymentError!]
 }
 
 type PaymentSecureConfirm {
   errors: [Error!]
-  paymentErrors: [PaymentError!]
   payment: Payment
+  paymentErrors: [PaymentError!]
 }
 
 type PaymentSource {
@@ -2708,8 +2707,8 @@ type PaymentSource {
 
 type PaymentVoid {
   errors: [Error!]
-  paymentErrors: [PaymentError!]
   payment: Payment
+  paymentErrors: [PaymentError!]
 }
 
 type PermissionDisplay {
@@ -2760,8 +2759,8 @@ input PluginFilterInput {
 
 type PluginUpdate {
   errors: [Error!]
-  extensionsErrors: [ExtensionsError!]
   plugin: Plugin
+  extensionsErrors: [ExtensionsError!]
 }
 
 input PluginUpdateInput {
@@ -2924,9 +2923,9 @@ type ProductImageBulkDelete {
 
 type ProductImageCreate {
   errors: [Error!]
-  productErrors: [ProductError!]
   product: Product
   image: ProductImage
+  productErrors: [ProductError!]
 }
 
 input ProductImageCreateInput {
@@ -2937,23 +2936,23 @@ input ProductImageCreateInput {
 
 type ProductImageDelete {
   errors: [Error!]
-  productErrors: [ProductError!]
   product: Product
   image: ProductImage
+  productErrors: [ProductError!]
 }
 
 type ProductImageReorder {
   errors: [Error!]
-  productErrors: [ProductError!]
   product: Product
   images: [ProductImage]
+  productErrors: [ProductError!]
 }
 
 type ProductImageUpdate {
   errors: [Error!]
-  productErrors: [ProductError!]
   product: Product
   image: ProductImage
+  productErrors: [ProductError!]
 }
 
 input ProductImageUpdateInput {
@@ -3105,8 +3104,8 @@ input ProductTypeInput {
 
 type ProductTypeReorderAttributes {
   errors: [Error!]
-  productErrors: [ProductError!]
   productType: ProductType
+  productErrors: [ProductError!]
 }
 
 type ProductTypeUpdate {
@@ -3123,7 +3122,6 @@ type ProductTypeUpdateMeta {
 
 type ProductTypeUpdatePrivateMeta {
   errors: [Error!]
-  productErrors: [ProductError!]
   productType: ProductType
 }
 
@@ -3203,7 +3201,6 @@ type ProductVariantCountableEdge {
 
 type ProductVariantCreate {
   errors: [Error!]
-  productErrors: [ProductError!]
   productVariant: ProductVariant
 }
 
@@ -3458,6 +3455,7 @@ type ServiceAccount implements Node {
 
 type ServiceAccountClearStoredPrivateMeta {
   errors: [Error!]
+  accountErrors: [AccountError!]
   serviceAccount: ServiceAccount
 }
 
@@ -3475,11 +3473,13 @@ type ServiceAccountCountableEdge {
 type ServiceAccountCreate {
   errors: [Error!]
   authToken: String
+  accountErrors: [AccountError!]
   serviceAccount: ServiceAccount
 }
 
 type ServiceAccountDelete {
   errors: [Error!]
+  accountErrors: [AccountError!]
   serviceAccount: ServiceAccount
 }
 
@@ -3496,19 +3496,21 @@ input ServiceAccountInput {
 
 type ServiceAccountUpdate {
   errors: [Error!]
+  accountErrors: [AccountError!]
   serviceAccount: ServiceAccount
 }
 
 type ServiceAccountUpdatePrivateMeta {
   errors: [Error!]
+  accountErrors: [AccountError!]
   serviceAccount: ServiceAccount
 }
 
 type SetPassword {
-  accountErrors: [AccountError!]
   token: String
   errors: [Error]!
   user: User
+  accountErrors: [AccountError!]
 }
 
 type ShippingError {
@@ -3553,20 +3555,21 @@ enum ShippingMethodTypeEnum {
 type ShippingPriceBulkDelete {
   errors: [Error!]
   count: Int!
+  shippingErrors: [ShippingError!]
 }
 
 type ShippingPriceCreate {
   errors: [Error!]
-  shippingErrors: [ShippingError!]
   shippingZone: ShippingZone
+  shippingErrors: [ShippingError!]
   shippingMethod: ShippingMethod
 }
 
 type ShippingPriceDelete {
   errors: [Error!]
-  shippingErrors: [ShippingError!]
   shippingMethod: ShippingMethod
   shippingZone: ShippingZone
+  shippingErrors: [ShippingError!]
 }
 
 input ShippingPriceInput {
@@ -3587,8 +3590,8 @@ type ShippingPriceTranslate {
 
 type ShippingPriceUpdate {
   errors: [Error!]
-  shippingErrors: [ShippingError!]
   shippingZone: ShippingZone
+  shippingErrors: [ShippingError!]
   shippingMethod: ShippingMethod
 }
 
@@ -3604,6 +3607,7 @@ type ShippingZone implements Node {
 type ShippingZoneBulkDelete {
   errors: [Error!]
   count: Int!
+  shippingErrors: [ShippingError!]
 }
 
 type ShippingZoneCountableConnection {
@@ -3619,8 +3623,8 @@ type ShippingZoneCountableEdge {
 
 type ShippingZoneCreate {
   errors: [Error!]
-  shippingErrors: [ShippingError!]
   shippingZone: ShippingZone
+  shippingErrors: [ShippingError!]
 }
 
 type ShippingZoneDelete {
@@ -3637,8 +3641,8 @@ input ShippingZoneInput {
 
 type ShippingZoneUpdate {
   errors: [Error!]
-  shippingErrors: [ShippingError!]
   shippingZone: ShippingZone
+  shippingErrors: [ShippingError!]
 }
 
 type Shop {
@@ -3671,14 +3675,14 @@ type Shop {
 
 type ShopAddressUpdate {
   errors: [Error!]
-  shopErrors: [ShopError!]
   shop: Shop
+  shopErrors: [ShopError!]
 }
 
 type ShopDomainUpdate {
   errors: [Error!]
-  shopErrors: [ShopError!]
   shop: Shop
+  shopErrors: [ShopError!]
 }
 
 type ShopError {
@@ -3699,8 +3703,8 @@ enum ShopErrorCode {
 
 type ShopFetchTaxRates {
   errors: [Error!]
-  shopErrors: [ShopError!]
   shop: Shop
+  shopErrors: [ShopError!]
 }
 
 input ShopSettingsInput {
@@ -3728,8 +3732,8 @@ input ShopSettingsTranslationInput {
 
 type ShopSettingsUpdate {
   errors: [Error!]
-  shopErrors: [ShopError!]
   shop: Shop
+  shopErrors: [ShopError!]
 }
 
 type ShopTranslation implements Node {
@@ -3951,14 +3955,14 @@ input UserAddressInput {
 
 type UserAvatarDelete {
   errors: [Error!]
-  accountErrors: [AccountError!]
   user: User
+  accountErrors: [AccountError!]
 }
 
 type UserAvatarUpdate {
   errors: [Error!]
-  accountErrors: [AccountError!]
   user: User
+  accountErrors: [AccountError!]
 }
 
 type UserBulkSetActive {
@@ -4022,16 +4026,16 @@ type VAT {
 
 type VariantImageAssign {
   errors: [Error!]
-  productErrors: [ProductError!]
   productVariant: ProductVariant
   image: ProductImage
+  productErrors: [ProductError!]
 }
 
 type VariantImageUnassign {
   errors: [Error!]
-  productErrors: [ProductError!]
   productVariant: ProductVariant
   image: ProductImage
+  productErrors: [ProductError!]
 }
 
 type VariantPricingInfo {

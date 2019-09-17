@@ -16,21 +16,6 @@ from ..core.types.common import GiftCardError
 from .types import GiftCard
 
 
-class GiftCardErrorMixin:
-    gift_card_errors = graphene.List(
-        graphene.NonNull(GiftCardError),
-        description="List of errors that occurred executing the mutation.",
-    )
-
-    ERROR_TYPE_CLASS = GiftCardError
-    ERROR_TYPE_FIELD = "gift_card_errors"
-
-
-class BaseGiftcardMutation(GiftCardErrorMixin, BaseMutation):
-    class Meta:
-        abstract = True
-
-
 class GiftCardUpdateInput(graphene.InputObjectType):
     start_date = graphene.types.datetime.Date(
         description="Start date of the gift card in ISO 8601 format."
@@ -48,7 +33,7 @@ class GiftCardCreateInput(GiftCardUpdateInput):
     code = graphene.String(required=False, description="Code to use the gift card.")
 
 
-class GiftCardCreate(GiftCardErrorMixin, ModelMutation):
+class GiftCardCreate(ModelMutation):
     class Arguments:
         input = GiftCardCreateInput(
             required=True, description="Fields required to create a gift card."
@@ -58,6 +43,8 @@ class GiftCardCreate(GiftCardErrorMixin, ModelMutation):
         description = "Creates a new gift card"
         model = models.GiftCard
         permissions = ("giftcard.manage_gift_card",)
+        error_type_class = GiftCardError
+        error_type_field = "gift_card_errors"
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -98,9 +85,11 @@ class GiftCardUpdate(GiftCardCreate):
         description = "Update a gift card."
         model = models.GiftCard
         permissions = ("giftcard.manage_gift_card",)
+        error_type_class = GiftCardError
+        error_type_field = "gift_card_errors"
 
 
-class GiftCardDeactivate(BaseGiftcardMutation):
+class GiftCardDeactivate(BaseMutation):
     gift_card = graphene.Field(GiftCard, description="A gift card to deactivate.")
 
     class Arguments:
@@ -109,6 +98,8 @@ class GiftCardDeactivate(BaseGiftcardMutation):
     class Meta:
         description = "Deactivate a gift card."
         permissions = ("giftcard.manage_gift_card",)
+        error_type_class = GiftCardError
+        error_type_field = "gift_card_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -120,7 +111,7 @@ class GiftCardDeactivate(BaseGiftcardMutation):
         return GiftCardDeactivate(gift_card=gift_card)
 
 
-class GiftCardActivate(BaseGiftcardMutation):
+class GiftCardActivate(BaseMutation):
     gift_card = graphene.Field(GiftCard, description="A gift card to activate.")
 
     class Arguments:
@@ -129,6 +120,8 @@ class GiftCardActivate(BaseGiftcardMutation):
     class Meta:
         description = "Activate a gift card."
         permissions = ("giftcard.manage_gift_card",)
+        error_type_class = GiftCardError
+        error_type_field = "gift_card_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):

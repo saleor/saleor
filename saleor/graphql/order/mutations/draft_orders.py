@@ -17,12 +17,12 @@ from ....order.utils import (
 )
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
-from ...core.mutations import ModelDeleteMutation, ModelMutation
+from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import Decimal
+from ...core.types.common import OrderError
 from ...product.types import ProductVariant
 from ..types import Order, OrderLine
 from ..utils import validate_draft_order
-from .base import BaseOrderMutation, OrderErrorMixin
 
 
 class OrderLineInput(graphene.InputObjectType):
@@ -61,7 +61,7 @@ class DraftOrderCreateInput(DraftOrderInput):
     )
 
 
-class DraftOrderCreate(OrderErrorMixin, ModelMutation, I18nMixin):
+class DraftOrderCreate(ModelMutation, I18nMixin):
     class Arguments:
         input = DraftOrderCreateInput(
             required=True, description="Fields required to create an order."
@@ -71,6 +71,8 @@ class DraftOrderCreate(OrderErrorMixin, ModelMutation, I18nMixin):
         description = "Creates a new draft order."
         model = models.Order
         permissions = ("order.manage_orders",)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -198,9 +200,11 @@ class DraftOrderUpdate(DraftOrderCreate):
         description = "Updates a draft order."
         model = models.Order
         permissions = ("order.manage_orders",)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
 
 
-class DraftOrderDelete(OrderErrorMixin, ModelDeleteMutation):
+class DraftOrderDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a draft order to delete.")
 
@@ -208,9 +212,11 @@ class DraftOrderDelete(OrderErrorMixin, ModelDeleteMutation):
         description = "Deletes a draft order."
         model = models.Order
         permissions = ("order.manage_orders",)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
 
 
-class DraftOrderComplete(BaseOrderMutation):
+class DraftOrderComplete(BaseMutation):
     order = graphene.Field(Order, description="Completed order.")
 
     class Arguments:
@@ -221,6 +227,8 @@ class DraftOrderComplete(BaseOrderMutation):
     class Meta:
         description = "Completes creating an order."
         permissions = ("order.manage_orders",)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
 
     @classmethod
     def update_user_fields(cls, order):
@@ -266,7 +274,7 @@ class DraftOrderComplete(BaseOrderMutation):
         return DraftOrderComplete(order=order)
 
 
-class DraftOrderLinesCreate(BaseOrderMutation):
+class DraftOrderLinesCreate(BaseMutation):
     order = graphene.Field(Order, description="A related draft order.")
     order_lines = graphene.List(
         graphene.NonNull(OrderLine), description="List of newly added order lines."
@@ -285,6 +293,8 @@ class DraftOrderLinesCreate(BaseOrderMutation):
     class Meta:
         description = "Create order lines for a draft order."
         permissions = ("order.manage_orders",)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -334,7 +344,7 @@ class DraftOrderLinesCreate(BaseOrderMutation):
         return DraftOrderLinesCreate(order=order, order_lines=lines)
 
 
-class DraftOrderLineDelete(BaseOrderMutation):
+class DraftOrderLineDelete(BaseMutation):
     order = graphene.Field(Order, description="A related draft order.")
     order_line = graphene.Field(
         OrderLine, description="An order line that was deleted."
@@ -346,6 +356,8 @@ class DraftOrderLineDelete(BaseOrderMutation):
     class Meta:
         description = "Deletes an order line from a draft order."
         permissions = ("order.manage_orders",)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, id):
@@ -374,7 +386,7 @@ class DraftOrderLineDelete(BaseOrderMutation):
         return DraftOrderLineDelete(order=order, order_line=line)
 
 
-class DraftOrderLineUpdate(OrderErrorMixin, ModelMutation):
+class DraftOrderLineUpdate(ModelMutation):
     order = graphene.Field(Order, description="A related draft order.")
 
     class Arguments:
@@ -387,6 +399,8 @@ class DraftOrderLineUpdate(OrderErrorMixin, ModelMutation):
         description = "Updates an order line of a draft order."
         model = models.OrderLine
         permissions = ("order.manage_orders",)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
 
     @classmethod
     def clean_input(cls, info, instance, data):

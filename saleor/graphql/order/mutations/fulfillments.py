@@ -6,9 +6,10 @@ from ....order import events, models
 from ....order.emails import send_fulfillment_confirmation_to_customer
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import cancel_fulfillment, fulfill_order_line, update_order_status
+from ...core.mutations import BaseMutation
+from ...core.types.common import OrderError
 from ...order.types import Fulfillment, Order
 from ..types import OrderLine
-from .base import BaseOrderMutation
 
 
 class FulfillmentLineInput(graphene.InputObjectType):
@@ -39,7 +40,7 @@ class FulfillmentCancelInput(graphene.InputObjectType):
     restock = graphene.Boolean(description="Whether item lines are restocked.")
 
 
-class FulfillmentCreate(BaseOrderMutation):
+class FulfillmentCreate(BaseMutation):
     fulfillment = graphene.Field(Fulfillment, description="A created fulfillment.")
     order = graphene.Field(Order, description="Fulfilled order.")
 
@@ -54,6 +55,8 @@ class FulfillmentCreate(BaseOrderMutation):
     class Meta:
         description = "Creates a new fulfillment for an order."
         permissions = ("order.manage_orders",)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
 
     @classmethod
     def clean_lines(cls, order_lines, quantities):
@@ -140,7 +143,7 @@ class FulfillmentCreate(BaseOrderMutation):
         return FulfillmentCreate(fulfillment=fulfillment, order=fulfillment.order)
 
 
-class FulfillmentUpdateTracking(BaseOrderMutation):
+class FulfillmentUpdateTracking(BaseMutation):
     fulfillment = graphene.Field(
         Fulfillment, description="A fulfillment with updated tracking."
     )
@@ -155,6 +158,8 @@ class FulfillmentUpdateTracking(BaseOrderMutation):
     class Meta:
         description = "Updates a fulfillment for an order."
         permissions = ("order.manage_orders",)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -172,7 +177,7 @@ class FulfillmentUpdateTracking(BaseOrderMutation):
         return FulfillmentUpdateTracking(fulfillment=fulfillment, order=order)
 
 
-class FulfillmentCancel(BaseOrderMutation):
+class FulfillmentCancel(BaseMutation):
     fulfillment = graphene.Field(Fulfillment, description="A canceled fulfillment.")
     order = graphene.Field(Order, description="Order which fulfillment was cancelled.")
 
@@ -186,6 +191,8 @@ class FulfillmentCancel(BaseOrderMutation):
         description = """Cancels existing fulfillment
         and optionally restocks items."""
         permissions = ("order.manage_orders",)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):

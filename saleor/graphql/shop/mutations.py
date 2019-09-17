@@ -15,21 +15,6 @@ from ..product.types import Collection
 from .types import AuthorizationKey, AuthorizationKeyType, Shop
 
 
-class ShopErrorMixin:
-    shop_errors = graphene.List(
-        graphene.NonNull(ShopError),
-        description="List of errors that occurred executing the mutation.",
-    )
-
-    ERROR_TYPE_CLASS = ShopError
-    ERROR_TYPE_FIELD = "shop_errors"
-
-
-class BaseShopMutation(ShopErrorMixin, BaseMutation):
-    class Meta:
-        abstract = True
-
-
 class ShopSettingsInput(graphene.InputObjectType):
     header_text = graphene.String(description="Header text")
     description = graphene.String(description="SEO description")
@@ -58,7 +43,7 @@ class SiteDomainInput(graphene.InputObjectType):
     name = graphene.String(description="Shop site name")
 
 
-class ShopSettingsUpdate(BaseShopMutation):
+class ShopSettingsUpdate(BaseMutation):
     shop = graphene.Field(Shop, description="Updated Shop")
 
     class Arguments:
@@ -69,6 +54,8 @@ class ShopSettingsUpdate(BaseShopMutation):
     class Meta:
         description = "Updates shop settings"
         permissions = ("site.manage_settings",)
+        error_type_class = ShopError
+        error_type_field = "shop_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -83,7 +70,7 @@ class ShopSettingsUpdate(BaseShopMutation):
         return ShopSettingsUpdate(shop=Shop())
 
 
-class ShopAddressUpdate(BaseShopMutation, I18nMixin):
+class ShopAddressUpdate(BaseMutation, I18nMixin):
     shop = graphene.Field(Shop, description="Updated Shop")
 
     class Arguments:
@@ -92,6 +79,8 @@ class ShopAddressUpdate(BaseShopMutation, I18nMixin):
     class Meta:
         description = "Update shop address"
         permissions = ("site.manage_settings",)
+        error_type_class = ShopError
+        error_type_field = "shop_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -109,7 +98,7 @@ class ShopAddressUpdate(BaseShopMutation, I18nMixin):
         return ShopAddressUpdate(shop=Shop())
 
 
-class ShopDomainUpdate(BaseShopMutation):
+class ShopDomainUpdate(BaseMutation):
     shop = graphene.Field(Shop, description="Updated Shop")
 
     class Arguments:
@@ -118,6 +107,8 @@ class ShopDomainUpdate(BaseShopMutation):
     class Meta:
         description = "Updates site domain of the shop"
         permissions = ("site.manage_settings",)
+        error_type_class = ShopError
+        error_type_field = "shop_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -134,12 +125,14 @@ class ShopDomainUpdate(BaseShopMutation):
         return ShopDomainUpdate(shop=Shop())
 
 
-class ShopFetchTaxRates(BaseShopMutation):
+class ShopFetchTaxRates(BaseMutation):
     shop = graphene.Field(Shop, description="Updated Shop")
 
     class Meta:
         description = "Fetch tax rates"
         permissions = ("site.manage_settings",)
+        error_type_class = ShopError
+        error_type_field = "shop_errors"
 
     @classmethod
     def perform_mutation(cls, _root, _info):
@@ -153,7 +146,7 @@ class ShopFetchTaxRates(BaseShopMutation):
         return ShopFetchTaxRates(shop=Shop())
 
 
-class HomepageCollectionUpdate(BaseShopMutation):
+class HomepageCollectionUpdate(BaseMutation):
     shop = graphene.Field(Shop, description="Updated Shop")
 
     class Arguments:
@@ -162,6 +155,8 @@ class HomepageCollectionUpdate(BaseShopMutation):
     class Meta:
         description = "Updates homepage collection of the shop"
         permissions = ("site.manage_settings",)
+        error_type_class = ShopError
+        error_type_field = "shop_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, collection=None):
@@ -182,7 +177,7 @@ class AuthorizationKeyInput(graphene.InputObjectType):
     password = graphene.String(required=True, description="Client secret.")
 
 
-class AuthorizationKeyAdd(BaseShopMutation):
+class AuthorizationKeyAdd(BaseMutation):
     authorization_key = graphene.Field(
         AuthorizationKey, description="Newly added authorization key."
     )
@@ -191,6 +186,8 @@ class AuthorizationKeyAdd(BaseShopMutation):
     class Meta:
         description = "Adds an authorization key."
         permissions = ("site.manage_settings",)
+        error_type_class = ShopError
+        error_type_field = "shop_errors"
 
     class Arguments:
         key_type = AuthorizationKeyType(
@@ -221,7 +218,7 @@ class AuthorizationKeyAdd(BaseShopMutation):
         return AuthorizationKeyAdd(authorization_key=instance, shop=Shop())
 
 
-class AuthorizationKeyDelete(BaseShopMutation):
+class AuthorizationKeyDelete(BaseMutation):
     authorization_key = graphene.Field(
         AuthorizationKey, description="Authorization key that was deleted."
     )
@@ -235,6 +232,8 @@ class AuthorizationKeyDelete(BaseShopMutation):
     class Meta:
         description = "Deletes an authorization key."
         permissions = ("site.manage_settings",)
+        error_type_class = ShopError
+        error_type_field = "shop_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, key_type):

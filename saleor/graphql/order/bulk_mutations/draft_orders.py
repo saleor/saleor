@@ -4,10 +4,10 @@ from django.core.exceptions import ValidationError
 from ....order import OrderStatus, models
 from ....order.error_codes import OrderErrorCode
 from ...core.mutations import ModelBulkDeleteMutation
-from ..mutations.base import OrderErrorMixin
+from ...core.types.common import OrderError
 
 
-class DraftOrderBulkDelete(OrderErrorMixin, ModelBulkDeleteMutation):
+class DraftOrderBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID, required=True, description="List of draft order IDs to delete."
@@ -17,6 +17,8 @@ class DraftOrderBulkDelete(OrderErrorMixin, ModelBulkDeleteMutation):
         description = "Deletes draft orders."
         model = models.Order
         permissions = ("order.manage_orders",)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
 
     @classmethod
     def clean_instance(cls, info, instance):
@@ -31,7 +33,7 @@ class DraftOrderBulkDelete(OrderErrorMixin, ModelBulkDeleteMutation):
             )
 
 
-class DraftOrderLinesBulkDelete(OrderErrorMixin, ModelBulkDeleteMutation):
+class DraftOrderLinesBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID, required=True, description="List of order lines IDs to delete."
@@ -41,6 +43,8 @@ class DraftOrderLinesBulkDelete(OrderErrorMixin, ModelBulkDeleteMutation):
         description = "Deletes order lines."
         model = models.OrderLine
         permissions = ("order.manage_orders",)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
 
     @classmethod
     def clean_instance(cls, _info, instance):

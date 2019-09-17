@@ -6,16 +6,6 @@ from ..core.types.common import ExtensionsError
 from .types import Plugin
 
 
-class ExtensionErrorMixin:
-    extensions_errors = graphene.List(
-        graphene.NonNull(ExtensionsError),
-        description="List of errors that occurred executing the mutation.",
-    )
-
-    ERROR_TYPE_CLASS = ExtensionsError
-    ERROR_TYPE_FIELD = "extensions_errors"
-
-
 class ConfigurationItemInput(graphene.InputObjectType):
     name = graphene.String(required=True, description="Name of the field to update")
     value = graphene.String(
@@ -34,7 +24,7 @@ class PluginUpdateInput(graphene.InputObjectType):
     )
 
 
-class PluginUpdate(ExtensionErrorMixin, BaseMutation):
+class PluginUpdate(BaseMutation):
     plugin = graphene.Field(Plugin)
 
     class Arguments:
@@ -47,6 +37,8 @@ class PluginUpdate(ExtensionErrorMixin, BaseMutation):
     class Meta:
         description = "Update plugin configuration"
         permissions = "extensions.manage_plugins"
+        error_type_class = ExtensionsError
+        error_type_field = "extensions_errors"
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
