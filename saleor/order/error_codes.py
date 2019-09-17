@@ -7,7 +7,7 @@ class OrderErrorCode(Enum):
     CANNOT_DELETE = "cannot_delete"
     CANNOT_REFUND = "cannot_refund"
     CAPTURE_INACTIVE_PAYMENT = "capture_inactive_payment"
-    EDIT_NON_DRAFT_ORDER = "edit_non_draft_order"
+    NOT_EDITABLE = "not_editable"
     FULFILL_ORDER_LINE = "fulfill_order_line"
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"

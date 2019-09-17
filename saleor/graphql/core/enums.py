@@ -75,7 +75,7 @@ CheckoutErrorCode = graphene.Enum.from_enum(checkout_error_codes.CheckoutErrorCo
 ExtensionsErrorCode = graphene.Enum.from_enum(
     extensions_error_codes.ExtensionsErrorCode
 )
-GiftcardErrorCode = graphene.Enum.from_enum(giftcard_error_codes.GiftcardErrorCode)
+GiftCardErrorCode = graphene.Enum.from_enum(giftcard_error_codes.GiftCardErrorCode)
 MenuErrorCode = graphene.Enum.from_enum(menu_error_codes.MenuErrorCode)
 OrderErrorCode = graphene.Enum.from_enum(order_error_codes.OrderErrorCode)
 PaymentErrorCode = graphene.Enum.from_enum(payment_error_codes.PaymentErrorCode)

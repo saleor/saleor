@@ -294,7 +294,7 @@ class DraftOrderLinesCreate(BaseOrderMutation):
                 {
                     "id": ValidationError(
                         "Only draft orders can be edited.",
-                        code=OrderErrorCode.EDIT_NON_DRAFT_ORDER,
+                        code=OrderErrorCode.NOT_EDITABLE,
                     )
                 }
             )
@@ -356,7 +356,7 @@ class DraftOrderLineDelete(BaseOrderMutation):
                 {
                     "id": ValidationError(
                         "Only draft orders can be edited.",
-                        code=OrderErrorCode.EDIT_NON_DRAFT_ORDER,
+                        code=OrderErrorCode.NOT_EDITABLE,
                     )
                 }
             )
@@ -397,7 +397,7 @@ class DraftOrderLineUpdate(OrderErrorMixin, ModelMutation):
                 {
                     "id": ValidationError(
                         "Only draft orders can be edited.",
-                        code=OrderErrorCode.EDIT_NON_DRAFT_ORDER,
+                        code=OrderErrorCode.NOT_EDITABLE,
                     )
                 }
             )
