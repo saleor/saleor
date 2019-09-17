@@ -57,7 +57,8 @@ class MenuItem(CountableDjangoObjectType):
     sort_order = graphene.Field(
         graphene.Int,
         deprecation_reason=(
-            "Use the position in list instead and relative "
+            "Will be dropped in 2.10 and is deprecated since 2.9: "
+            "use the position in list instead and relative "
             "calculus to determine shift position."
         ),
     )
