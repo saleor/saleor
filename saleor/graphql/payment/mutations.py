@@ -24,21 +24,6 @@ from .enums import PaymentGatewayEnum
 from .types import Payment
 
 
-class PaymentErrorMixin:
-    payment_errors = graphene.List(
-        graphene.NonNull(common_types.PaymentError),
-        description="List of errors that occurred executing the mutation.",
-    )
-
-    ERROR_TYPE_CLASS = common_types.PaymentError
-    ERROR_TYPE_FIELD = "payment_errors"
-
-
-class BasePaymentMutation(PaymentErrorMixin, BaseMutation):
-    class Meta:
-        abstract = True
-
-
 class PaymentInput(graphene.InputObjectType):
     gateway = graphene.Field(
         PaymentGatewayEnum,
@@ -66,7 +51,7 @@ class PaymentInput(graphene.InputObjectType):
     )
 
 
-class CheckoutPaymentCreate(BasePaymentMutation, I18nMixin):
+class CheckoutPaymentCreate(BaseMutation, I18nMixin):
     checkout = graphene.Field(Checkout, description="Related checkout object.")
     payment = graphene.Field(Payment, description="A newly created payment.")
 
@@ -78,6 +63,8 @@ class CheckoutPaymentCreate(BasePaymentMutation, I18nMixin):
 
     class Meta:
         description = "Create a new payment for given checkout."
+        error_type_class = common_types.PaymentError
+        error_type_field = "payment_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, **data):
@@ -137,7 +124,7 @@ class CheckoutPaymentCreate(BasePaymentMutation, I18nMixin):
         return CheckoutPaymentCreate(payment=payment)
 
 
-class PaymentCapture(BasePaymentMutation):
+class PaymentCapture(BaseMutation):
     payment = graphene.Field(Payment, description="Updated payment")
 
     class Arguments:
@@ -147,6 +134,8 @@ class PaymentCapture(BasePaymentMutation):
     class Meta:
         description = "Captures the authorized payment amount"
         permissions = ("order.manage_orders",)
+        error_type_class = common_types.PaymentError
+        error_type_field = "payment_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, payment_id, amount=None):
@@ -164,6 +153,8 @@ class PaymentRefund(PaymentCapture):
     class Meta:
         description = "Refunds the captured payment amount"
         permissions = ("order.manage_orders",)
+        error_type_class = common_types.PaymentError
+        error_type_field = "payment_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, payment_id, amount=None):
@@ -177,7 +168,7 @@ class PaymentRefund(PaymentCapture):
         return PaymentRefund(payment=payment)
 
 
-class PaymentVoid(BasePaymentMutation):
+class PaymentVoid(BaseMutation):
     payment = graphene.Field(Payment, description="Updated payment")
 
     class Arguments:
@@ -186,6 +177,8 @@ class PaymentVoid(BasePaymentMutation):
     class Meta:
         description = "Voids the authorized payment"
         permissions = ("order.manage_orders",)
+        error_type_class = common_types.PaymentError
+        error_type_field = "payment_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, payment_id):
@@ -199,7 +192,7 @@ class PaymentVoid(BasePaymentMutation):
         return PaymentVoid(payment=payment)
 
 
-class PaymentSecureConfirm(BasePaymentMutation):
+class PaymentSecureConfirm(BaseMutation):
     payment = graphene.Field(Payment, description="Updated payment")
 
     class Arguments:
@@ -207,6 +200,8 @@ class PaymentSecureConfirm(BasePaymentMutation):
 
     class Meta:
         description = "Confirms payment in two step process like 3D secure"
+        error_type_class = common_types.PaymentError
+        error_type_field = "payment_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, payment_id):

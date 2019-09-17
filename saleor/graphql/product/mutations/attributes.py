@@ -9,18 +9,19 @@ from django.template.defaultfilters import slugify
 from ....product import AttributeInputType, models
 from ....product.error_codes import ProductErrorCode
 from ...core.mutations import (
+    BaseMutation,
     ClearMetaBaseMutation,
     ModelDeleteMutation,
     ModelMutation,
     UpdateMetaBaseMutation,
 )
+from ...core.types.common import ProductError
 from ...core.utils import from_global_id_strict_type
 from ...core.utils.reordering import perform_reordering
 from ...product.types import ProductType
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..enums import AttributeInputTypeEnum, AttributeTypeEnum
 from ..types import Attribute, AttributeValue
-from .base import BaseProductMutation, ProductErrorMixin
 
 
 class AttributeValueCreateInput(graphene.InputObjectType):
@@ -200,7 +201,7 @@ class AttributeMixin:
             attribute.values.create(**value)
 
 
-class AttributeCreate(ProductErrorMixin, AttributeMixin, ModelMutation):
+class AttributeCreate(AttributeMixin, ModelMutation):
     # Needed by AttributeMixin,
     # represents the input name for the passed list of values
     ATTRIBUTE_VALUES_FIELD = "values"
@@ -216,6 +217,8 @@ class AttributeCreate(ProductErrorMixin, AttributeMixin, ModelMutation):
         model = models.Attribute
         description = "Creates an attribute."
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -238,7 +241,7 @@ class AttributeCreate(ProductErrorMixin, AttributeMixin, ModelMutation):
         return AttributeCreate(attribute=instance)
 
 
-class AttributeUpdate(ProductErrorMixin, AttributeMixin, ModelMutation):
+class AttributeUpdate(AttributeMixin, ModelMutation):
     # Needed by AttributeMixin,
     # represents the input name for the passed list of values
     ATTRIBUTE_VALUES_FIELD = "add_values"
@@ -255,6 +258,8 @@ class AttributeUpdate(ProductErrorMixin, AttributeMixin, ModelMutation):
         model = models.Attribute
         description = "Updates attribute."
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def clean_remove_values(cls, cleaned_input, instance):
@@ -300,7 +305,7 @@ class AttributeUpdate(ProductErrorMixin, AttributeMixin, ModelMutation):
         return AttributeUpdate(attribute=instance)
 
 
-class AttributeAssign(BaseProductMutation):
+class AttributeAssign(BaseMutation):
     product_type = graphene.Field(ProductType, description="The updated product type.")
 
     class Arguments:
@@ -316,6 +321,8 @@ class AttributeAssign(BaseProductMutation):
 
     class Meta:
         description = "Assign attributes to a given product type."
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def check_permissions(cls, user):
@@ -444,7 +451,7 @@ class AttributeAssign(BaseProductMutation):
         return cls(product_type=product_type)
 
 
-class AttributeUnassign(BaseProductMutation):
+class AttributeUnassign(BaseMutation):
     product_type = graphene.Field(ProductType, description="The updated product type.")
 
     class Arguments:
@@ -460,6 +467,8 @@ class AttributeUnassign(BaseProductMutation):
 
     class Meta:
         description = "Un-assign attributes from a given product type."
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def check_permissions(cls, user):
@@ -494,7 +503,7 @@ class AttributeUnassign(BaseProductMutation):
         return cls(product_type=product_type)
 
 
-class AttributeDelete(ProductErrorMixin, ModelDeleteMutation):
+class AttributeDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of an attribute to delete.")
 
@@ -502,38 +511,48 @@ class AttributeDelete(ProductErrorMixin, ModelDeleteMutation):
         model = models.Attribute
         description = "Deletes an attribute."
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class AttributeUpdateMeta(ProductErrorMixin, UpdateMetaBaseMutation):
+class AttributeUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.Attribute
         description = "Update public metadata for Attribute "
         permissions = ("product.manage_products",)
         public = True
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class AttributeClearMeta(ProductErrorMixin, ClearMetaBaseMutation):
+class AttributeClearMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clears public metadata item for Attribute"
         model = models.Attribute
         permissions = ("product.manage_products",)
         public = True
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class AttributeUpdatePrivateMeta(ProductErrorMixin, UpdateMetaBaseMutation):
+class AttributeUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Update public metadata for Attribute"
         model = models.Attribute
         permissions = ("product.manage_products",)
         public = False
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class AttributeClearPrivateMeta(ProductErrorMixin, ClearMetaBaseMutation):
+class AttributeClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clears public metadata item for Attribute"
         model = models.Attribute
         permissions = ("product.manage_products",)
         public = False
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 def validate_value_is_unique(attribute: models.Attribute, value: models.AttributeValue):
@@ -550,7 +569,7 @@ def validate_value_is_unique(attribute: models.Attribute, value: models.Attribut
         )
 
 
-class AttributeValueCreate(ProductErrorMixin, ModelMutation):
+class AttributeValueCreate(ModelMutation):
     attribute = graphene.Field(Attribute, description="The updated attribute.")
 
     class Arguments:
@@ -567,6 +586,8 @@ class AttributeValueCreate(ProductErrorMixin, ModelMutation):
         model = models.AttributeValue
         description = "Creates a value for an attribute."
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -593,7 +614,7 @@ class AttributeValueCreate(ProductErrorMixin, ModelMutation):
         return AttributeValueCreate(attribute=attribute, attributeValue=instance)
 
 
-class AttributeValueUpdate(ProductErrorMixin, ModelMutation):
+class AttributeValueUpdate(ModelMutation):
     attribute = graphene.Field(Attribute, description="The updated attribute.")
 
     class Arguments:
@@ -608,6 +629,8 @@ class AttributeValueUpdate(ProductErrorMixin, ModelMutation):
         model = models.AttributeValue
         description = "Updates value of an attribute."
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -628,7 +651,7 @@ class AttributeValueUpdate(ProductErrorMixin, ModelMutation):
         return response
 
 
-class AttributeValueDelete(ProductErrorMixin, ModelDeleteMutation):
+class AttributeValueDelete(ModelDeleteMutation):
     attribute = graphene.Field(Attribute, description="The updated attribute.")
 
     class Arguments:
@@ -638,6 +661,8 @@ class AttributeValueDelete(ProductErrorMixin, ModelDeleteMutation):
         model = models.AttributeValue
         description = "Deletes a value of an attribute."
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def success_response(cls, instance):
@@ -646,7 +671,7 @@ class AttributeValueDelete(ProductErrorMixin, ModelDeleteMutation):
         return response
 
 
-class ProductTypeReorderAttributes(BaseProductMutation):
+class ProductTypeReorderAttributes(BaseMutation):
     product_type = graphene.Field(
         ProductType, description="Product type from which attributes are reordered."
     )
@@ -654,6 +679,8 @@ class ProductTypeReorderAttributes(BaseProductMutation):
     class Meta:
         description = "Reorder the attributes of a product type"
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     class Arguments:
         product_type_id = graphene.Argument(
@@ -720,7 +747,7 @@ class ProductTypeReorderAttributes(BaseProductMutation):
         return ProductTypeReorderAttributes(product_type=product_type)
 
 
-class AttributeReorderValues(BaseProductMutation):
+class AttributeReorderValues(BaseMutation):
     attribute = graphene.Field(
         Attribute, description="Attribute from which values are reordered."
     )
@@ -728,6 +755,8 @@ class AttributeReorderValues(BaseProductMutation):
     class Meta:
         description = "Reorder the values of an attribute"
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     class Arguments:
         attribute_id = graphene.Argument(

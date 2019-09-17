@@ -2,10 +2,10 @@ import graphene
 
 from ....product import models
 from ...core.mutations import BaseBulkMutation, ModelBulkDeleteMutation
-from ..mutations.base import ProductErrorMixin
+from ...core.types.common import ProductError
 
 
-class CategoryBulkDelete(ProductErrorMixin, ModelBulkDeleteMutation):
+class CategoryBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID, required=True, description="List of category IDs to delete."
@@ -15,9 +15,11 @@ class CategoryBulkDelete(ProductErrorMixin, ModelBulkDeleteMutation):
         description = "Deletes categories."
         model = models.Category
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class CollectionBulkDelete(ProductErrorMixin, ModelBulkDeleteMutation):
+class CollectionBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID, required=True, description="List of collection IDs to delete."
@@ -27,9 +29,11 @@ class CollectionBulkDelete(ProductErrorMixin, ModelBulkDeleteMutation):
         description = "Deletes collections."
         model = models.Collection
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class CollectionBulkPublish(ProductErrorMixin, BaseBulkMutation):
+class CollectionBulkPublish(BaseBulkMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID,
@@ -45,13 +49,15 @@ class CollectionBulkPublish(ProductErrorMixin, BaseBulkMutation):
         description = "Publish collections."
         model = models.Collection
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def bulk_action(cls, queryset, is_published):
         queryset.update(is_published=is_published)
 
 
-class ProductBulkDelete(ProductErrorMixin, ModelBulkDeleteMutation):
+class ProductBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID, required=True, description="List of product IDs to delete."
@@ -61,9 +67,11 @@ class ProductBulkDelete(ProductErrorMixin, ModelBulkDeleteMutation):
         description = "Deletes products."
         model = models.Product
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class ProductVariantBulkDelete(ProductErrorMixin, ModelBulkDeleteMutation):
+class ProductVariantBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID,
@@ -75,9 +83,11 @@ class ProductVariantBulkDelete(ProductErrorMixin, ModelBulkDeleteMutation):
         description = "Deletes product variants."
         model = models.ProductVariant
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class ProductTypeBulkDelete(ProductErrorMixin, ModelBulkDeleteMutation):
+class ProductTypeBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID,
@@ -89,9 +99,11 @@ class ProductTypeBulkDelete(ProductErrorMixin, ModelBulkDeleteMutation):
         description = "Deletes product types."
         model = models.ProductType
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class ProductImageBulkDelete(ProductErrorMixin, ModelBulkDeleteMutation):
+class ProductImageBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID,
@@ -103,9 +115,11 @@ class ProductImageBulkDelete(ProductErrorMixin, ModelBulkDeleteMutation):
         description = "Deletes product images."
         model = models.ProductImage
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class ProductBulkPublish(ProductErrorMixin, BaseBulkMutation):
+class ProductBulkPublish(BaseBulkMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID, required=True, description="List of products IDs to publish."
@@ -118,6 +132,8 @@ class ProductBulkPublish(ProductErrorMixin, BaseBulkMutation):
         description = "Publish products."
         model = models.Product
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def bulk_action(cls, queryset, is_published):

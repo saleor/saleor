@@ -25,12 +25,15 @@ from ....product.utils.attributes import (
     generate_name_for_variant,
 )
 from ...core.mutations import (
+    BaseMutation,
     ClearMetaBaseMutation,
     ModelDeleteMutation,
+    ModelMutation,
     UpdateMetaBaseMutation,
 )
 from ...core.scalars import Decimal, WeightScalar
 from ...core.types import SeoInput, Upload
+from ...core.types.common import ProductError
 from ...core.utils import (
     clean_seo_fields,
     from_global_id_strict_type,
@@ -50,7 +53,6 @@ from ..utils import (
     validate_attribute_input_for_product,
     validate_attribute_input_for_variant,
 )
-from .base import BaseProductMutation, ModelProductMutation, ProductErrorMixin
 
 
 class CategoryInput(graphene.InputObjectType):
@@ -63,7 +65,7 @@ class CategoryInput(graphene.InputObjectType):
     background_image_alt = graphene.String(description="Alt text for an image.")
 
 
-class CategoryCreate(ModelProductMutation):
+class CategoryCreate(ModelMutation):
     class Arguments:
         input = CategoryInput(
             required=True, description="Fields required to create a category."
@@ -79,6 +81,8 @@ class CategoryCreate(ModelProductMutation):
         description = "Creates a new category."
         model = models.Category
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -121,9 +125,11 @@ class CategoryUpdate(CategoryCreate):
         description = "Updates a category."
         model = models.Category
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class CategoryDelete(ProductErrorMixin, ModelDeleteMutation):
+class CategoryDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a category to delete.")
 
@@ -131,6 +137,8 @@ class CategoryDelete(ProductErrorMixin, ModelDeleteMutation):
         description = "Deletes a category."
         model = models.Category
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class CollectionInput(graphene.InputObjectType):
@@ -159,7 +167,7 @@ class CollectionCreateInput(CollectionInput):
     )
 
 
-class CollectionCreate(ModelProductMutation):
+class CollectionCreate(ModelMutation):
     class Arguments:
         input = CollectionCreateInput(
             required=True, description="Fields required to create a collection."
@@ -169,6 +177,8 @@ class CollectionCreate(ModelProductMutation):
         description = "Creates a new collection."
         model = models.Collection
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -199,6 +209,8 @@ class CollectionUpdate(CollectionCreate):
         description = "Updates a collection."
         model = models.Collection
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -207,7 +219,7 @@ class CollectionUpdate(CollectionCreate):
         instance.save()
 
 
-class CollectionDelete(ProductErrorMixin, ModelDeleteMutation):
+class CollectionDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a collection to delete.")
 
@@ -215,9 +227,11 @@ class CollectionDelete(ProductErrorMixin, ModelDeleteMutation):
         description = "Deletes a collection."
         model = models.Collection
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class CollectionReorderProducts(BaseProductMutation):
+class CollectionReorderProducts(BaseMutation):
     collection = graphene.Field(
         Collection, description="Collection from which products are reordered."
     )
@@ -225,6 +239,8 @@ class CollectionReorderProducts(BaseProductMutation):
     class Meta:
         description = "Reorder the products of a collection"
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     class Arguments:
         collection_id = graphene.Argument(
@@ -284,7 +300,7 @@ class CollectionReorderProducts(BaseProductMutation):
         return CollectionReorderProducts(collection=collection)
 
 
-class CollectionAddProducts(BaseProductMutation):
+class CollectionAddProducts(BaseMutation):
     collection = graphene.Field(
         Collection, description="Collection to which products will be added."
     )
@@ -300,6 +316,8 @@ class CollectionAddProducts(BaseProductMutation):
     class Meta:
         description = "Adds products to a collection."
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     @transaction.atomic()
@@ -317,7 +335,7 @@ class CollectionAddProducts(BaseProductMutation):
         return CollectionAddProducts(collection=collection)
 
 
-class CollectionRemoveProducts(BaseProductMutation):
+class CollectionRemoveProducts(BaseMutation):
     collection = graphene.Field(
         Collection, description="Collection from which products will be removed."
     )
@@ -333,6 +351,8 @@ class CollectionRemoveProducts(BaseProductMutation):
     class Meta:
         description = "Remove products from a collection."
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, collection_id, products):
@@ -349,68 +369,84 @@ class CollectionRemoveProducts(BaseProductMutation):
         return CollectionRemoveProducts(collection=collection)
 
 
-class CollectionUpdateMeta(ProductErrorMixin, UpdateMetaBaseMutation):
+class CollectionUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.Collection
         description = "Update public metadata for Collection"
         permissions = ("product.manage_products",)
         public = True
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class CollectionClearMeta(ProductErrorMixin, ClearMetaBaseMutation):
+class CollectionClearMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.Collection
         description = "Clears public metadata item for Collection"
         permissions = ("product.manage_products",)
         public = True
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class CollectionUpdatePrivateMeta(ProductErrorMixin, UpdateMetaBaseMutation):
+class CollectionUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.Collection
         description = "Update public metadata for Collection"
         permissions = ("product.manage_products",)
         public = False
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class CollectionClearPrivateMeta(ProductErrorMixin, ClearMetaBaseMutation):
+class CollectionClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.Collection
         description = "Clears public metadata item for Collection"
         permissions = ("product.manage_products",)
         public = False
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class CategoryUpdateMeta(ProductErrorMixin, UpdateMetaBaseMutation):
+class CategoryUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.Category
         description = "Update public metadata for category"
         permissions = ("product.manage_products",)
         public = True
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class CategoryClearMeta(ProductErrorMixin, ClearMetaBaseMutation):
+class CategoryClearMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.Category
         description = "Clears public metadata item for category"
         permissions = ("product.manage_products",)
         public = True
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class CategoryUpdatePrivateMeta(ProductErrorMixin, UpdateMetaBaseMutation):
+class CategoryUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.Category
         description = "Update public metadata for category"
         permissions = ("product.manage_products",)
         public = False
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class CategoryClearPrivateMeta(ProductErrorMixin, ClearMetaBaseMutation):
+class CategoryClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.Category
         description = "Clears public metadata item for category"
         permissions = ("product.manage_products",)
         public = False
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class AttributeValueInput(InputObjectType):
@@ -667,7 +703,7 @@ class AttributeAssignmentMixin:
             associate_attribute_values_to_instance(instance, attribute, *values)
 
 
-class ProductCreate(ModelProductMutation):
+class ProductCreate(ModelMutation):
     class Arguments:
         input = ProductCreateInput(
             required=True, description="Fields required to create a product."
@@ -677,6 +713,8 @@ class ProductCreate(ModelProductMutation):
         description = "Creates a new product."
         model = models.Product
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def clean_attributes(
@@ -819,6 +857,8 @@ class ProductUpdate(ProductCreate):
         description = "Updates an existing product."
         model = models.Product
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def clean_sku(cls, product_type, cleaned_input):
@@ -863,7 +903,7 @@ class ProductUpdate(ProductCreate):
             AttributeAssignmentMixin.save(instance, attributes)
 
 
-class ProductDelete(ProductErrorMixin, ModelDeleteMutation):
+class ProductDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a product to delete.")
 
@@ -871,38 +911,48 @@ class ProductDelete(ProductErrorMixin, ModelDeleteMutation):
         description = "Deletes a product."
         model = models.Product
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class ProductUpdateMeta(ProductErrorMixin, UpdateMetaBaseMutation):
+class ProductUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.Product
         description = "Update public metadata for product"
         permissions = ("product.manage_products",)
         public = True
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class ProductClearMeta(ProductErrorMixin, ClearMetaBaseMutation):
+class ProductClearMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clears public metadata item for product"
         model = models.Product
         permissions = ("product.manage_products",)
         public = True
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class ProductUpdatePrivateMeta(ProductErrorMixin, UpdateMetaBaseMutation):
+class ProductUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Update public metadata for product"
         model = models.Product
         permissions = ("product.manage_products",)
         public = False
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class ProductClearPrivateMeta(ProductErrorMixin, ClearMetaBaseMutation):
+class ProductClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clears public metadata item for product"
         model = models.Product
         permissions = ("product.manage_products",)
         public = False
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class ProductVariantInput(graphene.InputObjectType):
@@ -938,7 +988,7 @@ class ProductVariantCreateInput(ProductVariantInput):
     )
 
 
-class ProductVariantCreate(ModelProductMutation):
+class ProductVariantCreate(ModelMutation):
     class Arguments:
         input = ProductVariantCreateInput(
             required=True, description="Fields required to create a product variant."
@@ -948,6 +998,8 @@ class ProductVariantCreate(ModelProductMutation):
         description = "Creates a new variant for a product"
         model = models.ProductVariant
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def clean_attributes(
@@ -1043,9 +1095,11 @@ class ProductVariantUpdate(ProductVariantCreate):
         description = "Updates an existing variant for product"
         model = models.ProductVariant
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class ProductVariantDelete(ProductErrorMixin, ModelDeleteMutation):
+class ProductVariantDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(
             required=True, description="ID of a product variant to delete."
@@ -1055,6 +1109,8 @@ class ProductVariantDelete(ProductErrorMixin, ModelDeleteMutation):
         description = "Deletes a product variant."
         model = models.ProductVariant
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def success_response(cls, instance):
@@ -1063,36 +1119,44 @@ class ProductVariantDelete(ProductErrorMixin, ModelDeleteMutation):
         return super().success_response(instance)
 
 
-class ProductVariantUpdateMeta(ProductErrorMixin, UpdateMetaBaseMutation):
+class ProductVariantUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.ProductVariant
         description = "Update public metadata for product variant"
         permissions = ("product.manage_products",)
         public = True
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class ProductVariantClearMeta(ProductErrorMixin, ClearMetaBaseMutation):
+class ProductVariantClearMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.ProductVariant
         description = "Clears public metadata item for product variant"
         permissions = ("product.manage_products",)
         public = True
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class ProductVariantUpdatePrivateMeta(ProductErrorMixin, UpdateMetaBaseMutation):
+class ProductVariantUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.ProductVariant
         description = "Update public metadata for product variant"
         permissions = ("product.manage_products",)
         public = False
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class ProductVariantClearPrivateMeta(ProductErrorMixin, ClearMetaBaseMutation):
+class ProductVariantClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.ProductVariant
         description = "Clears public metadata item for product variant"
         permissions = ("product.manage_products",)
         public = False
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class ProductTypeInput(graphene.InputObjectType):
@@ -1125,7 +1189,7 @@ class ProductTypeInput(graphene.InputObjectType):
     tax_code = graphene.String(description="Tax rate for enabled tax gateway")
 
 
-class ProductTypeCreate(ModelProductMutation):
+class ProductTypeCreate(ModelMutation):
     class Arguments:
         input = ProductTypeInput(
             required=True, description="Fields required to create a product type."
@@ -1135,6 +1199,8 @@ class ProductTypeCreate(ModelProductMutation):
         description = "Creates a new product type."
         model = models.ProductType
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -1177,6 +1243,8 @@ class ProductTypeUpdate(ProductTypeCreate):
         description = "Updates an existing product type."
         model = models.ProductType
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -1188,7 +1256,7 @@ class ProductTypeUpdate(ProductTypeCreate):
         super().save(info, instance, cleaned_input)
 
 
-class ProductTypeDelete(ProductErrorMixin, ModelDeleteMutation):
+class ProductTypeDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a product type to delete.")
 
@@ -1196,38 +1264,48 @@ class ProductTypeDelete(ProductErrorMixin, ModelDeleteMutation):
         description = "Deletes a product type."
         model = models.ProductType
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class ProductTypeUpdateMeta(ProductErrorMixin, UpdateMetaBaseMutation):
+class ProductTypeUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.ProductType
         description = "Update public metadata for product type"
         permissions = ("product.manage_products",)
         public = True
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class ProductTypeClearMeta(ProductErrorMixin, ClearMetaBaseMutation):
+class ProductTypeClearMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clears public metadata item for product type"
         model = models.ProductType
         permissions = ("product.manage_products",)
         public = True
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class ProductTypeUpdatePrivateMeta(ProductErrorMixin, UpdateMetaBaseMutation):
+class ProductTypeUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Update public metadata for product type"
         model = models.ProductType
         permissions = ("product.manage_products",)
         public = False
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
-class ProductTypeClearPrivateMeta(ProductErrorMixin, ClearMetaBaseMutation):
+class ProductTypeClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clears public metadata item for product type"
         model = models.ProductType
         permissions = ("product.manage_products",)
         public = False
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class ProductImageCreateInput(graphene.InputObjectType):
@@ -1240,7 +1318,7 @@ class ProductImageCreateInput(graphene.InputObjectType):
     )
 
 
-class ProductImageCreate(BaseProductMutation):
+class ProductImageCreate(BaseMutation):
     product = graphene.Field(Product)
     image = graphene.Field(ProductImage)
 
@@ -1255,6 +1333,8 @@ class ProductImageCreate(BaseProductMutation):
         can be found here:
         https://github.com/jaydenseric/graphql-multipart-request-spec"""
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -1274,7 +1354,7 @@ class ProductImageUpdateInput(graphene.InputObjectType):
     alt = graphene.String(description="Alt text for an image.")
 
 
-class ProductImageUpdate(BaseProductMutation):
+class ProductImageUpdate(BaseMutation):
     product = graphene.Field(Product)
     image = graphene.Field(ProductImage)
 
@@ -1287,6 +1367,8 @@ class ProductImageUpdate(BaseProductMutation):
     class Meta:
         description = "Updates a product image."
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -1299,7 +1381,7 @@ class ProductImageUpdate(BaseProductMutation):
         return ProductImageUpdate(product=product, image=image)
 
 
-class ProductImageReorder(BaseProductMutation):
+class ProductImageReorder(BaseMutation):
     product = graphene.Field(Product)
     images = graphene.List(ProductImage)
 
@@ -1317,6 +1399,8 @@ class ProductImageReorder(BaseProductMutation):
     class Meta:
         description = "Changes ordering of the product image."
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, product_id, images_ids):
@@ -1357,7 +1441,7 @@ class ProductImageReorder(BaseProductMutation):
         return ProductImageReorder(product=product, images=images)
 
 
-class ProductImageDelete(BaseProductMutation):
+class ProductImageDelete(BaseMutation):
     product = graphene.Field(Product)
     image = graphene.Field(ProductImage)
 
@@ -1367,6 +1451,8 @@ class ProductImageDelete(BaseProductMutation):
     class Meta:
         description = "Deletes a product image."
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -1377,7 +1463,7 @@ class ProductImageDelete(BaseProductMutation):
         return ProductImageDelete(product=image.product, image=image)
 
 
-class VariantImageAssign(BaseProductMutation):
+class VariantImageAssign(BaseMutation):
     product_variant = graphene.Field(ProductVariant)
     image = graphene.Field(ProductImage)
 
@@ -1390,6 +1476,8 @@ class VariantImageAssign(BaseProductMutation):
     class Meta:
         description = "Assign an image to a product variant"
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, image_id, variant_id):
@@ -1418,7 +1506,7 @@ class VariantImageAssign(BaseProductMutation):
         return VariantImageAssign(product_variant=variant, image=image)
 
 
-class VariantImageUnassign(BaseProductMutation):
+class VariantImageUnassign(BaseMutation):
     product_variant = graphene.Field(ProductVariant)
     image = graphene.Field(ProductImage)
 
@@ -1432,6 +1520,8 @@ class VariantImageUnassign(BaseProductMutation):
     class Meta:
         description = "Unassign an image from a product variant"
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, image_id, variant_id):

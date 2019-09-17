@@ -19,11 +19,12 @@ from ....payment.utils import (
     mark_order_as_paid,
 )
 from ...account.types import AddressInput
+from ...core.mutations import BaseMutation
 from ...core.scalars import Decimal
+from ...core.types.common import OrderError
 from ...order.mutations.draft_orders import DraftOrderUpdate
 from ...order.types import Order, OrderEvent
 from ...shipping.types import ShippingMethod
-from .base import BaseOrderMutation
 
 
 def clean_order_update_shipping(order, method):
@@ -147,6 +148,8 @@ class OrderUpdate(DraftOrderUpdate):
         description = "Updates an order."
         model = models.Order
         permissions = ("order.manage_orders",)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -163,7 +166,7 @@ class OrderUpdateShippingInput(graphene.InputObjectType):
     )
 
 
-class OrderUpdateShipping(BaseOrderMutation):
+class OrderUpdateShipping(BaseMutation):
     order = graphene.Field(Order, description="Order with updated shipping method.")
 
     class Arguments:
@@ -179,6 +182,8 @@ class OrderUpdateShipping(BaseOrderMutation):
     class Meta:
         description = "Updates a shipping method of the order."
         permissions = ("order.manage_orders",)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -241,7 +246,7 @@ class OrderAddNoteInput(graphene.InputObjectType):
     message = graphene.String(description="Note message.", name="message")
 
 
-class OrderAddNote(BaseOrderMutation):
+class OrderAddNote(BaseMutation):
     order = graphene.Field(Order, description="Order with the note added.")
     event = graphene.Field(OrderEvent, description="Order note created.")
 
@@ -258,6 +263,8 @@ class OrderAddNote(BaseOrderMutation):
     class Meta:
         description = "Adds note to the order."
         permissions = ("order.manage_orders",)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -268,7 +275,7 @@ class OrderAddNote(BaseOrderMutation):
         return OrderAddNote(order=order, event=event)
 
 
-class OrderCancel(BaseOrderMutation):
+class OrderCancel(BaseMutation):
     order = graphene.Field(Order, description="Canceled order.")
 
     class Arguments:
@@ -280,6 +287,8 @@ class OrderCancel(BaseOrderMutation):
     class Meta:
         description = "Cancel an order."
         permissions = ("order.manage_orders",)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, restock, **data):
@@ -289,7 +298,7 @@ class OrderCancel(BaseOrderMutation):
         return OrderCancel(order=order)
 
 
-class OrderMarkAsPaid(BaseOrderMutation):
+class OrderMarkAsPaid(BaseMutation):
     order = graphene.Field(Order, description="Order marked as paid.")
 
     class Arguments:
@@ -298,6 +307,8 @@ class OrderMarkAsPaid(BaseOrderMutation):
     class Meta:
         description = "Mark order as manually paid."
         permissions = ("order.manage_orders",)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -311,7 +322,7 @@ class OrderMarkAsPaid(BaseOrderMutation):
         return OrderMarkAsPaid(order=order)
 
 
-class OrderCapture(BaseOrderMutation):
+class OrderCapture(BaseMutation):
     order = graphene.Field(Order, description="Captured order.")
 
     class Arguments:
@@ -321,6 +332,8 @@ class OrderCapture(BaseOrderMutation):
     class Meta:
         description = "Capture an order."
         permissions = ("order.manage_orders",)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, amount, **data):
@@ -348,7 +361,7 @@ class OrderCapture(BaseOrderMutation):
         return OrderCapture(order=order)
 
 
-class OrderVoid(BaseOrderMutation):
+class OrderVoid(BaseMutation):
     order = graphene.Field(Order, description="A voided order.")
 
     class Arguments:
@@ -357,6 +370,8 @@ class OrderVoid(BaseOrderMutation):
     class Meta:
         description = "Void an order."
         permissions = ("order.manage_orders",)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -372,7 +387,7 @@ class OrderVoid(BaseOrderMutation):
         return OrderVoid(order=order)
 
 
-class OrderRefund(BaseOrderMutation):
+class OrderRefund(BaseMutation):
     order = graphene.Field(Order, description="A refunded order.")
 
     class Arguments:
@@ -382,6 +397,8 @@ class OrderRefund(BaseOrderMutation):
     class Meta:
         description = "Refund an order."
         permissions = ("order.manage_orders",)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, amount, **data):

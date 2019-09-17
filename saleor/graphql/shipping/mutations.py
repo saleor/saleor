@@ -11,21 +11,6 @@ from .enums import ShippingMethodTypeEnum
 from .types import ShippingMethod, ShippingZone
 
 
-class ShippingErrorMixin:
-    shipping_errors = graphene.List(
-        graphene.NonNull(ShippingError),
-        description="List of errors that occurred executing the mutation.",
-    )
-
-    ERROR_TYPE_CLASS = ShippingError
-    ERROR_TYPE_FIELD = "shipping_errors"
-
-
-class BaseShippingMutation(ShippingErrorMixin, BaseMutation):
-    class Meta:
-        abstract = True
-
-
 class ShippingPriceInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the shipping method.")
     price = Decimal(description="Shipping price of the shipping method.")
@@ -83,7 +68,7 @@ class ShippingZoneMixin:
         return cleaned_input
 
 
-class ShippingZoneCreate(ShippingZoneMixin, ShippingErrorMixin, ModelMutation):
+class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):
     shipping_zone = graphene.Field(ShippingZone, description="Created shipping zone.")
 
     class Arguments:
@@ -95,9 +80,11 @@ class ShippingZoneCreate(ShippingZoneMixin, ShippingErrorMixin, ModelMutation):
         description = "Creates a new shipping zone."
         model = models.ShippingZone
         permissions = ("shipping.manage_shipping",)
+        error_type_class = ShippingError
+        error_type_field = "shipping_errors"
 
 
-class ShippingZoneUpdate(ShippingZoneMixin, ShippingErrorMixin, ModelMutation):
+class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
     shipping_zone = graphene.Field(ShippingZone, description="Updated shipping zone.")
 
     class Arguments:
@@ -110,9 +97,11 @@ class ShippingZoneUpdate(ShippingZoneMixin, ShippingErrorMixin, ModelMutation):
         description = "Updates a new shipping zone."
         model = models.ShippingZone
         permissions = ("shipping.manage_shipping",)
+        error_type_class = ShippingError
+        error_type_field = "shipping_errors"
 
 
-class ShippingZoneDelete(ShippingErrorMixin, ModelDeleteMutation):
+class ShippingZoneDelete(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of a shipping zone to delete.")
 
@@ -120,6 +109,8 @@ class ShippingZoneDelete(ShippingErrorMixin, ModelDeleteMutation):
         description = "Deletes a shipping zone."
         model = models.ShippingZone
         permissions = ("shipping.manage_shipping",)
+        error_type_class = ShippingError
+        error_type_field = "shipping_errors"
 
 
 class ShippingPriceMixin:
@@ -182,7 +173,7 @@ class ShippingPriceMixin:
         return cleaned_input
 
 
-class ShippingPriceCreate(ShippingPriceMixin, ShippingErrorMixin, ModelMutation):
+class ShippingPriceCreate(ShippingPriceMixin, ModelMutation):
     shipping_zone = graphene.Field(
         ShippingZone,
         description="A shipping zone to which the shipping method belongs.",
@@ -197,6 +188,8 @@ class ShippingPriceCreate(ShippingPriceMixin, ShippingErrorMixin, ModelMutation)
         description = "Creates a new shipping price."
         model = models.ShippingMethod
         permissions = ("shipping.manage_shipping",)
+        error_type_class = ShippingError
+        error_type_field = "shipping_errors"
 
     @classmethod
     def success_response(cls, instance):
@@ -205,7 +198,7 @@ class ShippingPriceCreate(ShippingPriceMixin, ShippingErrorMixin, ModelMutation)
         return response
 
 
-class ShippingPriceUpdate(ShippingPriceMixin, ShippingErrorMixin, ModelMutation):
+class ShippingPriceUpdate(ShippingPriceMixin, ModelMutation):
     shipping_zone = graphene.Field(
         ShippingZone,
         description="A shipping zone to which the shipping method belongs.",
@@ -221,6 +214,8 @@ class ShippingPriceUpdate(ShippingPriceMixin, ShippingErrorMixin, ModelMutation)
         description = "Updates a new shipping price."
         model = models.ShippingMethod
         permissions = ("shipping.manage_shipping",)
+        error_type_class = ShippingError
+        error_type_field = "shipping_errors"
 
     @classmethod
     def success_response(cls, instance):
@@ -229,7 +224,7 @@ class ShippingPriceUpdate(ShippingPriceMixin, ShippingErrorMixin, ModelMutation)
         return response
 
 
-class ShippingPriceDelete(BaseShippingMutation):
+class ShippingPriceDelete(BaseMutation):
     shipping_method = graphene.Field(
         ShippingMethod, description="A shipping method to delete."
     )
@@ -244,6 +239,8 @@ class ShippingPriceDelete(BaseShippingMutation):
     class Meta:
         description = "Deletes a shipping price."
         permissions = ("shipping.manage_shipping",)
+        error_type_class = ShippingError
+        error_type_field = "shipping_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):

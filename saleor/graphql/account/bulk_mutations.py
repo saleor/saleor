@@ -4,11 +4,11 @@ from django.core.exceptions import ValidationError
 from ...account import models
 from ...account.error_codes import AccountErrorCode
 from ..core.mutations import BaseBulkMutation, ModelBulkDeleteMutation
-from .mutations.base import AccountErrorMixin
+from ..core.types.common import AccountError
 from .utils import CustomerDeleteMixin, StaffDeleteMixin
 
 
-class UserBulkDelete(AccountErrorMixin, ModelBulkDeleteMutation):
+class UserBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID, required=True, description="List of sale IDs to delete."
@@ -23,6 +23,8 @@ class CustomerBulkDelete(CustomerDeleteMixin, UserBulkDelete):
         description = "Deletes customers."
         model = models.User
         permissions = ("account.manage_users",)
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
@@ -36,9 +38,11 @@ class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
         description = "Deletes staff users."
         model = models.User
         permissions = ("account.manage_staff",)
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
 
-class UserBulkSetActive(AccountErrorMixin, BaseBulkMutation):
+class UserBulkSetActive(BaseBulkMutation):
     class Arguments:
         ids = graphene.List(
             graphene.ID, required=True, description="List of user IDs to (de)activate)."
@@ -51,6 +55,8 @@ class UserBulkSetActive(AccountErrorMixin, BaseBulkMutation):
         description = "Activate or deactivate users."
         model = models.User
         permissions = ("account.manage_users",)
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     def clean_instance(cls, info, instance):

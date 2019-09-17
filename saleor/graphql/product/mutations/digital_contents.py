@@ -3,11 +3,11 @@ from django.core.exceptions import ValidationError
 
 from ....product import models
 from ....product.error_codes import ProductErrorCode
-from ...core.mutations import ModelMutation
+from ...core.mutations import BaseMutation, ModelMutation
 from ...core.types import Upload
+from ...core.types.common import ProductError
 from ...decorators import permission_required
 from ..types import DigitalContent, ProductVariant
-from .base import BaseProductMutation, ProductErrorMixin
 
 
 class DigitalContentInput(graphene.InputObjectType):
@@ -40,7 +40,7 @@ class DigitalContentUploadInput(DigitalContentInput):
     )
 
 
-class DigitalContentCreate(BaseProductMutation):
+class DigitalContentCreate(BaseMutation):
     variant = graphene.Field(ProductVariant)
     content = graphene.Field(DigitalContent)
 
@@ -58,6 +58,8 @@ class DigitalContentCreate(BaseProductMutation):
         be sent as a `multipart` request. More detailed specs of the upload
         format can be found here:
         https://github.com/jaydenseric/graphql-multipart-request-spec"""
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     @permission_required("product.manage_products")
@@ -111,7 +113,7 @@ class DigitalContentCreate(BaseProductMutation):
         return DigitalContentCreate(content=digital_content)
 
 
-class DigitalContentDelete(BaseProductMutation):
+class DigitalContentDelete(BaseMutation):
     variant = graphene.Field(ProductVariant)
 
     class Arguments:
@@ -122,6 +124,8 @@ class DigitalContentDelete(BaseProductMutation):
 
     class Meta:
         description = "Remove digital content assigned to given variant"
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     @permission_required("product.manage_products")
@@ -136,7 +140,7 @@ class DigitalContentDelete(BaseProductMutation):
         return DigitalContentDelete(variant=variant)
 
 
-class DigitalContentUpdate(BaseProductMutation):
+class DigitalContentUpdate(BaseMutation):
     variant = graphene.Field(ProductVariant)
     content = graphene.Field(DigitalContent)
 
@@ -151,6 +155,8 @@ class DigitalContentUpdate(BaseProductMutation):
 
     class Meta:
         description = "Update digital content"
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     @permission_required("product.manage_products")
@@ -220,7 +226,7 @@ class DigitalContentUrlCreateInput(graphene.InputObjectType):
     )
 
 
-class DigitalContentUrlCreate(ProductErrorMixin, ModelMutation):
+class DigitalContentUrlCreate(ModelMutation):
     class Arguments:
         input = DigitalContentUrlCreateInput(
             required=True, description="Fields required to create a new url."
@@ -229,6 +235,8 @@ class DigitalContentUrlCreate(ProductErrorMixin, ModelMutation):
     class Meta:
         description = "Generate new url to digital content"
         model = models.DigitalContentUrl
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     @permission_required("product.manage_products")

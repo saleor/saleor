@@ -51,21 +51,6 @@ from .types import Checkout, CheckoutLine
 ERROR_DOES_NOT_SHIP = "This checkout doesn't need shipping"
 
 
-class CheckoutErrorMixin:
-    checkout_errors = graphene.List(
-        graphene.NonNull(CheckoutError),
-        description="List of errors that occurred executing the mutation.",
-    )
-
-    ERROR_TYPE_CLASS = CheckoutError
-    ERROR_TYPE_FIELD = "checkout_errors"
-
-
-class BaseCheckoutMutation(CheckoutErrorMixin, BaseMutation):
-    class Meta:
-        abstract = True
-
-
 def clean_shipping_method(
     checkout: models.Checkout, method: Optional[models.ShippingMethod], discounts
 ) -> bool:
@@ -165,7 +150,7 @@ class CheckoutCreateInput(graphene.InputObjectType):
     billing_address = AddressInput(description="Billing address of the customer.")
 
 
-class CheckoutCreate(CheckoutErrorMixin, ModelMutation, I18nMixin):
+class CheckoutCreate(ModelMutation, I18nMixin):
     created = graphene.Field(
         graphene.Boolean,
         description=(
@@ -184,6 +169,8 @@ class CheckoutCreate(CheckoutErrorMixin, ModelMutation, I18nMixin):
         description = "Create a new checkout."
         model = models.Checkout
         return_field_name = "checkout"
+        error_type_class = CheckoutError
+        error_type_field = "checkout_errors"
 
     @classmethod
     def process_checkout_lines(
@@ -310,7 +297,7 @@ class CheckoutCreate(CheckoutErrorMixin, ModelMutation, I18nMixin):
         return CheckoutCreate(checkout=checkout, created=True)
 
 
-class CheckoutLinesAdd(BaseCheckoutMutation):
+class CheckoutLinesAdd(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated Checkout.")
 
     class Arguments:
@@ -326,6 +313,8 @@ class CheckoutLinesAdd(BaseCheckoutMutation):
 
     class Meta:
         description = "Adds a checkout line to the existing checkout."
+        error_type_class = CheckoutError
+        error_type_field = "checkout_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, lines, replace=False):
@@ -361,13 +350,15 @@ class CheckoutLinesUpdate(CheckoutLinesAdd):
 
     class Meta:
         description = "Updates CheckoutLine in the existing Checkout."
+        error_type_class = CheckoutError
+        error_type_field = "checkout_errors"
 
     @classmethod
     def perform_mutation(cls, root, info, checkout_id, lines):
         return super().perform_mutation(root, info, checkout_id, lines, replace=True)
 
 
-class CheckoutLineDelete(BaseCheckoutMutation):
+class CheckoutLineDelete(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
@@ -376,6 +367,8 @@ class CheckoutLineDelete(BaseCheckoutMutation):
 
     class Meta:
         description = "Deletes a CheckoutLine."
+        error_type_class = CheckoutError
+        error_type_field = "checkout_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, line_id):
@@ -395,7 +388,7 @@ class CheckoutLineDelete(BaseCheckoutMutation):
         return CheckoutLineDelete(checkout=checkout)
 
 
-class CheckoutCustomerAttach(BaseCheckoutMutation):
+class CheckoutCustomerAttach(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
@@ -404,6 +397,8 @@ class CheckoutCustomerAttach(BaseCheckoutMutation):
 
     class Meta:
         description = "Sets the customer as the owner of the Checkout."
+        error_type_class = CheckoutError
+        error_type_field = "checkout_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, customer_id):
@@ -418,7 +413,7 @@ class CheckoutCustomerAttach(BaseCheckoutMutation):
         return CheckoutCustomerAttach(checkout=checkout)
 
 
-class CheckoutCustomerDetach(BaseCheckoutMutation):
+class CheckoutCustomerDetach(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout")
 
     class Arguments:
@@ -426,6 +421,8 @@ class CheckoutCustomerDetach(BaseCheckoutMutation):
 
     class Meta:
         description = "Removes the user assigned as the owner of the checkout."
+        error_type_class = CheckoutError
+        error_type_field = "checkout_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id):
@@ -437,7 +434,7 @@ class CheckoutCustomerDetach(BaseCheckoutMutation):
         return CheckoutCustomerDetach(checkout=checkout)
 
 
-class CheckoutShippingAddressUpdate(BaseCheckoutMutation, I18nMixin):
+class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
     checkout = graphene.Field(Checkout, description="An updated checkout")
 
     class Arguments:
@@ -449,6 +446,8 @@ class CheckoutShippingAddressUpdate(BaseCheckoutMutation, I18nMixin):
 
     class Meta:
         description = "Update shipping address in the existing Checkout."
+        error_type_class = CheckoutError
+        error_type_field = "checkout_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, shipping_address):
@@ -503,6 +502,8 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
 
     class Meta:
         description = "Update billing address in the existing Checkout."
+        error_type_class = CheckoutError
+        error_type_field = "checkout_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, billing_address):
@@ -519,7 +520,7 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
         return CheckoutBillingAddressUpdate(checkout=checkout)
 
 
-class CheckoutEmailUpdate(BaseCheckoutMutation):
+class CheckoutEmailUpdate(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout")
 
     class Arguments:
@@ -528,6 +529,8 @@ class CheckoutEmailUpdate(BaseCheckoutMutation):
 
     class Meta:
         description = "Updates email address in the existing Checkout object."
+        error_type_class = CheckoutError
+        error_type_field = "checkout_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, email):
@@ -541,7 +544,7 @@ class CheckoutEmailUpdate(BaseCheckoutMutation):
         return CheckoutEmailUpdate(checkout=checkout)
 
 
-class CheckoutShippingMethodUpdate(BaseCheckoutMutation):
+class CheckoutShippingMethodUpdate(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout")
 
     class Arguments:
@@ -550,6 +553,8 @@ class CheckoutShippingMethodUpdate(BaseCheckoutMutation):
 
     class Meta:
         description = "Updates the shipping address of the checkout."
+        error_type_class = CheckoutError
+        error_type_field = "checkout_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, shipping_method_id):
@@ -610,7 +615,7 @@ class CheckoutShippingMethodUpdate(BaseCheckoutMutation):
         return CheckoutShippingMethodUpdate(checkout=checkout)
 
 
-class CheckoutComplete(BaseCheckoutMutation):
+class CheckoutComplete(BaseMutation):
     order = graphene.Field(Order, description="Placed order")
 
     class Arguments:
@@ -628,6 +633,8 @@ class CheckoutComplete(BaseCheckoutMutation):
             "a payment charge is made. This action requires a successful "
             "payment before it can be performed."
         )
+        error_type_class = CheckoutError
+        error_type_field = "checkout_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, store_source):
@@ -699,7 +706,7 @@ class CheckoutComplete(BaseCheckoutMutation):
         return CheckoutComplete(order=order)
 
 
-class CheckoutUpdateVoucher(BaseCheckoutMutation):
+class CheckoutUpdateVoucher(BaseMutation):
     checkout = graphene.Field(Checkout, description="An checkout with updated voucher")
 
     class Arguments:
@@ -712,6 +719,8 @@ class CheckoutUpdateVoucher(BaseCheckoutMutation):
             "or CheckoutRemovePromoCode instead. Adds voucher to the checkout. Query "
             "it without voucher_code field to remove voucher from checkout."
         )
+        error_type_class = CheckoutError
+        error_type_field = "checkout_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, voucher_code=None):
@@ -753,7 +762,7 @@ class CheckoutUpdateVoucher(BaseCheckoutMutation):
         return CheckoutUpdateVoucher(checkout=checkout)
 
 
-class CheckoutAddPromoCode(BaseCheckoutMutation):
+class CheckoutAddPromoCode(BaseMutation):
     checkout = graphene.Field(
         Checkout, description="The checkout with the added gift card or voucher"
     )
@@ -766,6 +775,8 @@ class CheckoutAddPromoCode(BaseCheckoutMutation):
 
     class Meta:
         description = "Adds a gift card or a voucher to a checkout."
+        error_type_class = CheckoutError
+        error_type_field = "checkout_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, promo_code):
@@ -776,7 +787,7 @@ class CheckoutAddPromoCode(BaseCheckoutMutation):
         return CheckoutAddPromoCode(checkout=checkout)
 
 
-class CheckoutRemovePromoCode(BaseCheckoutMutation):
+class CheckoutRemovePromoCode(BaseMutation):
     checkout = graphene.Field(
         Checkout, description="The checkout with the removed gift card or voucher"
     )
@@ -789,6 +800,8 @@ class CheckoutRemovePromoCode(BaseCheckoutMutation):
 
     class Meta:
         description = "Remove a gift card or a voucher from a checkout."
+        error_type_class = CheckoutError
+        error_type_field = "checkout_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id, promo_code):
@@ -799,33 +812,41 @@ class CheckoutRemovePromoCode(BaseCheckoutMutation):
         return CheckoutUpdateVoucher(checkout=checkout)
 
 
-class CheckoutUpdateMeta(CheckoutErrorMixin, UpdateMetaBaseMutation):
+class CheckoutUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Updates metadata for Checkout."
         permissions = ("order.manage_orders",)
         model = models.Checkout
         public = True
+        error_type_class = CheckoutError
+        error_type_field = "checkout_errors"
 
 
-class CheckoutUpdatePrivateMeta(CheckoutErrorMixin, UpdateMetaBaseMutation):
+class CheckoutUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Updates private metadata for Checkout."
         permissions = ("order.manage_orders",)
         model = models.Checkout
         public = False
+        error_type_class = CheckoutError
+        error_type_field = "checkout_errors"
 
 
-class CheckoutClearStoredMeta(CheckoutErrorMixin, ClearMetaBaseMutation):
+class CheckoutClearStoredMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clear stored metadata value."
         permissions = ("order.manage_orders",)
         model = models.Checkout
         public = True
+        error_type_class = CheckoutError
+        error_type_field = "checkout_errors"
 
 
-class CheckoutClearStoredPrivateMeta(CheckoutErrorMixin, ClearMetaBaseMutation):
+class CheckoutClearStoredPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clear stored metadata value."
         permissions = ("order.manage_orders",)
         model = models.Checkout
         public = False
+        error_type_class = CheckoutError
+        error_type_field = "checkout_errors"

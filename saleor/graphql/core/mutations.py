@@ -43,6 +43,18 @@ def get_output_fields(model, return_field_name):
     return fields
 
 
+def get_error_fields(error_type_class, error_type_field):
+    """ """
+    return {
+        error_type_field: graphene.Field(
+            graphene.List(
+                graphene.NonNull(error_type_class),
+                description="List of errors that occurred executing the mutation.",
+            )
+        )
+    }
+
+
 def validation_error_to_error_type(validation_error: ValidationError) -> list:
     """Convert a ValidationError into a list of Error types."""
     err_list = []
@@ -83,9 +95,14 @@ class BaseMutation(graphene.Mutation):
 
     @classmethod
     def __init_subclass_with_meta__(
-        cls, description=None, permissions: Tuple = None, _meta=None, **options
+        cls,
+        description=None,
+        permissions: Tuple = None,
+        _meta=None,
+        error_type_class=None,
+        error_type_field=None,
+        **options,
     ):
-
         if not _meta:
             _meta = MutationOptions(cls)
 
@@ -101,9 +118,15 @@ class BaseMutation(graphene.Mutation):
             )
 
         _meta.permissions = permissions
+        _meta.error_type_class = error_type_class
+        _meta.error_type_field = error_type_field
         super().__init_subclass_with_meta__(
             description=description, _meta=_meta, **options
         )
+        if error_type_class and error_type_field:
+            cls._meta.fields.update(
+                get_error_fields(error_type_class, error_type_field)
+            )
 
     @classmethod
     def _update_mutation_arguments_and_fields(cls, arguments, fields):
@@ -263,12 +286,15 @@ class BaseMutation(graphene.Mutation):
     @classmethod
     def handle_typed_errors(cls, errors: list, **extra):
         """Return class instance with errors."""
-        if hasattr(cls, "ERROR_TYPE_CLASS") and hasattr(cls, "ERROR_TYPE_FIELD"):
+        if (
+            cls._meta.error_type_class is not None
+            and cls._meta.error_type_field is not None
+        ):
             typed_errors = [
-                cls.ERROR_TYPE_CLASS(field=e.field, message=e.message, code=code)
+                cls._meta.error_type_class(field=e.field, message=e.message, code=code)
                 for e, code in errors
             ]
-            extra.update({cls.ERROR_TYPE_FIELD: typed_errors})
+            extra.update({cls._meta.error_type_field: typed_errors})
         return cls(errors=[e[0] for e in errors], **extra)
 
 

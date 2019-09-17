@@ -41,23 +41,12 @@ def can_edit_address(user, address):
     )
 
 
-class AccountErrorMixin:
+class SetPassword(CreateToken):
+    user = graphene.Field(User, description="An user instance with new password.")
     account_errors = graphene.List(
         graphene.NonNull(AccountError),
         description="List of errors that occurred executing the mutation.",
     )
-
-    ERROR_TYPE_CLASS = AccountError
-    ERROR_TYPE_FIELD = "account_errors"
-
-
-class BaseAccountMutation(AccountErrorMixin, BaseMutation):
-    class Meta:
-        abstract = True
-
-
-class SetPassword(CreateToken, AccountErrorMixin):
-    user = graphene.Field(User, description="An user instance with new password.")
 
     class Arguments:
         token = graphene.String(
@@ -116,7 +105,7 @@ class SetPassword(CreateToken, AccountErrorMixin):
         return cls(errors=[e[0] for e in errors], account_errors=account_errors)
 
 
-class RequestPasswordReset(BaseAccountMutation):
+class RequestPasswordReset(BaseMutation):
     class Arguments:
         email = graphene.String(
             required=True,
@@ -132,6 +121,8 @@ class RequestPasswordReset(BaseAccountMutation):
 
     class Meta:
         description = "Sends an email with the account password modification link."
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -154,7 +145,7 @@ class RequestPasswordReset(BaseAccountMutation):
         return RequestPasswordReset()
 
 
-class PasswordChange(BaseAccountMutation):
+class PasswordChange(BaseMutation):
     user = graphene.Field(User, description="A user instance with a new password.")
 
     class Arguments:
@@ -165,6 +156,8 @@ class PasswordChange(BaseAccountMutation):
 
     class Meta:
         description = "Change the password of the logged in user."
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     def check_permissions(cls, user):
@@ -196,7 +189,7 @@ class PasswordChange(BaseAccountMutation):
         return PasswordChange(user=user)
 
 
-class BaseAddressUpdate(AccountErrorMixin, ModelMutation):
+class BaseAddressUpdate(ModelMutation):
     """Base mutation for address update used by staff and account."""
 
     user = graphene.Field(
@@ -228,7 +221,7 @@ class BaseAddressUpdate(AccountErrorMixin, ModelMutation):
         return response
 
 
-class BaseAddressDelete(AccountErrorMixin, ModelDeleteMutation):
+class BaseAddressDelete(ModelDeleteMutation):
     """Base mutation for address delete used by staff and customers."""
 
     user = graphene.Field(
@@ -314,7 +307,7 @@ class UserCreateInput(CustomerInput):
     )
 
 
-class BaseCustomerCreate(AccountErrorMixin, ModelMutation, I18nMixin):
+class BaseCustomerCreate(ModelMutation, I18nMixin):
     """Base mutation for customer create used by staff and account."""
 
     class Arguments:
@@ -379,15 +372,19 @@ class BaseCustomerCreate(AccountErrorMixin, ModelMutation, I18nMixin):
             )
 
 
-class UserUpdateMeta(AccountErrorMixin, UpdateMetaBaseMutation):
+class UserUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Updates metadata for user."
         model = models.User
         public = True
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
 
-class UserClearStoredMeta(AccountErrorMixin, ClearMetaBaseMutation):
+class UserClearStoredMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clear stored metadata value."
         model = models.User
         public = True
+        error_type_class = AccountError
+        error_type_field = "account_errors"

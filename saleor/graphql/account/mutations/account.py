@@ -8,11 +8,10 @@ from ....checkout import AddressType
 from ....core.utils.url import validate_storefront_url
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
-from ...core.mutations import ModelDeleteMutation, ModelMutation
+from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
+from ...core.types.common import AccountError
 from .base import (
     INVALID_TOKEN,
-    AccountErrorMixin,
-    BaseAccountMutation,
     BaseAddressDelete,
     BaseAddressUpdate,
     BaseCustomerCreate,
@@ -24,7 +23,7 @@ class AccountRegisterInput(graphene.InputObjectType):
     password = graphene.String(description="Password", required=True)
 
 
-class AccountRegister(AccountErrorMixin, ModelMutation):
+class AccountRegister(ModelMutation):
     class Arguments:
         input = AccountRegisterInput(
             description="Fields required to create a user.", required=True
@@ -34,6 +33,8 @@ class AccountRegister(AccountErrorMixin, ModelMutation):
         description = "Register a new user."
         exclude = ["password"]
         model = models.User
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     def save(cls, info, user, cleaned_input):
@@ -65,6 +66,8 @@ class AccountUpdate(BaseCustomerCreate):
         description = "Updates the account of the logged-in user."
         exclude = ["password"]
         model = models.User
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     def check_permissions(cls, user):
@@ -77,7 +80,7 @@ class AccountUpdate(BaseCustomerCreate):
         return super().perform_mutation(root, info, **data)
 
 
-class AccountRequestDeletion(BaseAccountMutation):
+class AccountRequestDeletion(BaseMutation):
     class Arguments:
         redirect_url = graphene.String(
             required=True,
@@ -91,6 +94,8 @@ class AccountRequestDeletion(BaseAccountMutation):
         description = (
             "Sends an email with the account removal link for the logged-in user."
         )
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     def check_permissions(cls, user):
@@ -105,7 +110,7 @@ class AccountRequestDeletion(BaseAccountMutation):
         return AccountRequestDeletion()
 
 
-class AccountDelete(AccountErrorMixin, ModelDeleteMutation):
+class AccountDelete(ModelDeleteMutation):
     class Arguments:
         token = graphene.String(
             description=(
@@ -118,6 +123,8 @@ class AccountDelete(AccountErrorMixin, ModelDeleteMutation):
     class Meta:
         description = "Remove user account."
         model = models.User
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     def check_permissions(cls, user):
@@ -152,7 +159,7 @@ class AccountDelete(AccountErrorMixin, ModelDeleteMutation):
         return cls.success_response(user)
 
 
-class AccountAddressCreate(AccountErrorMixin, ModelMutation):
+class AccountAddressCreate(ModelMutation):
     user = graphene.Field(
         User, description="A user instance for which the address was created."
     )
@@ -173,6 +180,8 @@ class AccountAddressCreate(AccountErrorMixin, ModelMutation):
     class Meta:
         description = "Create a new address for the customer."
         model = models.Address
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     def check_permissions(cls, user):
@@ -200,15 +209,19 @@ class AccountAddressUpdate(BaseAddressUpdate):
     class Meta:
         description = "Updates an address of the logged-in user."
         model = models.Address
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
 
 class AccountAddressDelete(BaseAddressDelete):
     class Meta:
         description = "Delete an address of the logged-in user."
         model = models.Address
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
 
-class AccountSetDefaultAddress(BaseAccountMutation):
+class AccountSetDefaultAddress(BaseMutation):
     user = graphene.Field(User, description="An updated user instance.")
 
     class Arguments:
@@ -219,6 +232,8 @@ class AccountSetDefaultAddress(BaseAccountMutation):
 
     class Meta:
         description = "Sets a default address for the authenticated user."
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     def check_permissions(cls, user):
