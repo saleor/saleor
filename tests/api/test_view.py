@@ -70,12 +70,27 @@ def test_graphql_view_not_allowed(method, client):
     assert response.status_code == 405
 
 
-def test_invalid_request_body(client):
+def test_invalid_request_body_non_debug(client):
     data = "invalid-data"
     response = client.post(API_PATH, data, content_type="application/json")
     assert response.status_code == 400
     content = _get_graphql_content_from_response(response)
     assert "errors" in content
+
+
+@override_settings(DEBUG=True)
+def test_invalid_request_body_with_debug(client):
+    data = "invalid-data"
+    response = client.post(API_PATH, data, content_type="application/json")
+    assert response.status_code == 400
+    content = _get_graphql_content_from_response(response)
+    errors = content.get("errors")
+    assert errors == [
+        {
+            "extensions": {"exception": {"code": "str", "stacktrace ": []}},
+            "message": "Unable to parse query.",
+        }
+    ]
 
 
 def test_invalid_query(api_client):

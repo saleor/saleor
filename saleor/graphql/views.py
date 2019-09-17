@@ -203,7 +203,6 @@ class GraphQLView(View):
         if settings.DEBUG:
             lines = []
 
-            # FIXME: test :80
             if isinstance(exc, BaseException):
                 for line in traceback.format_exception(
                     type(exc), exc, exc.__traceback__
