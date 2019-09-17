@@ -46,8 +46,7 @@ def from_global_id_strict_type(
         raise ValidationError(
             {
                 field: ValidationError(
-                    "Couldn't resolve to a node: %s" % global_id,
-                    code="object_does_not_exist",
+                    "Couldn't resolve to a node: %s" % global_id, code="not_found"
                 )
             }
         ) from exc
