@@ -105,6 +105,7 @@ def create_order_from_draft(request, order_pk):
         )
 
         events.order_created_event(order=order, user=request.user, from_draft=True)
+        request.extensions.postprocess_order_creation(order)
         messages.success(request, msg)
 
         if form.cleaned_data.get("notify_customer"):
