@@ -38,6 +38,7 @@ class AccountRegister(ModelMutation):
         user.set_password(password)
         user.save()
         account_events.customer_account_created_event(user=user)
+        info.context.extensions.customer_created(customer=user)
 
 
 class AccountInput(graphene.InputObjectType):

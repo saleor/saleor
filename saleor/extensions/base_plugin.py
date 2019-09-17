@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     from ..core.taxes import TaxType
     from ..checkout.models import Checkout, CheckoutLine
     from ..product.models import Product
-    from ..account.models import Address
+    from ..account.models import Address, User
     from ..order.models import OrderLine, Order
 
 
@@ -134,6 +134,9 @@ class BasePlugin:
     def get_tax_rate_percentage_value(
         self, obj: Union["Product", "ProductType"], country: Country, previous_value
     ) -> Decimal:
+        return NotImplemented
+
+    def customer_created(self, customer: "User", previous_value: Any) -> Any:
         return NotImplemented
 
     @classmethod

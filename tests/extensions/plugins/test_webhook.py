@@ -6,6 +6,10 @@ from django.core.serializers import serialize
 
 from saleor.extensions.manager import get_extensions_manager
 from saleor.extensions.plugins.webhook import create_hmac_signature
+from saleor.extensions.plugins.webhook.payloads import (
+    generate_customer_payload,
+    generate_order_payload,
+)
 from saleor.extensions.plugins.webhook.tasks import trigger_webhooks_for_event
 from saleor.webhook import WebhookEventType
 
@@ -40,7 +44,7 @@ def test_trigger_webhooks_for_event(
     "saleor.extensions.plugins.webhook.tasks.requests.post", wraps=requests.post
 )
 def test_trigger_webhooks_for_event_with_secret_key(
-    mock_request, webhook, settings, order_with_lines, permission_manage_orders
+    mock_request, webhook, order_with_lines, permission_manage_orders
 ):
     webhook.service_account.permissions.add(permission_manage_orders)
     webhook.target_url = "https://webhook.site/f0fc9979-cbd4-47b7-8705-1acb03fff1d0"
@@ -70,7 +74,19 @@ def test_postprocess_order_creation(mocked_webhook_trigger, settings, order_with
     manager = get_extensions_manager()
     manager.postprocess_order_creation(order_with_lines)
 
-    expected_data = serialize("json", [order_with_lines])
+    expected_data = generate_order_payload(order_with_lines)
     mocked_webhook_trigger.assert_called_once_with(
         WebhookEventType.ORDER_CREATED, expected_data
+    )
+
+
+@mock.patch("saleor.extensions.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_customer_created(mocked_webhook_trigger, settings, customer_user):
+    settings.PLUGINS = ["saleor.extensions.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_extensions_manager()
+    manager.customer_created(customer_user)
+
+    expected_data = generate_customer_payload(customer_user)
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.CUSTOMER_CREATED, expected_data
     )
