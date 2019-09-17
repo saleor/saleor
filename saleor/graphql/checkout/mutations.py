@@ -77,8 +77,7 @@ def clean_shipping_method(
 
     if not checkout.is_shipping_required():
         raise ValidationError(
-            "This checkout does not requires shipping.",
-            code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED,
+            ERROR_DOES_NOT_SHIP, code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED
         )
 
     if not checkout.shipping_address:
