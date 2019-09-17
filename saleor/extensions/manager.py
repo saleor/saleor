@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from .base_plugin import BasePlugin
     from ..checkout.models import Checkout, CheckoutLine
     from ..product.models import Product
-    from ..account.models import Address
+    from ..account.models import Address, User
     from ..order.models import OrderLine, Order
 
 
@@ -177,6 +177,10 @@ class ExtensionsManager:
         return self.__run_method_on_plugins(
             "postprocess_order_creation", default_value, order
         )
+
+    def customer_created(self, customer: "User"):
+        default_value = None
+        return self.__run_method_on_plugins("customer_created", default_value, customer)
 
     # FIXME these methods should be more generic
     def assign_tax_code_to_object_meta(

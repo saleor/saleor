@@ -3812,6 +3812,7 @@ type WebhookEvent {
 
 enum WebhookEventTypeEnum {
   ORDER_CREATED
+  CUSTOMER_CREATED
 }
 
 type WebhookUpdate {

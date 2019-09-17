@@ -310,6 +310,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
 
         # The instance is a new object in db, create an event
         if is_creation:
+            info.context.extensions.customer_created(customer=instance)
             account_events.customer_account_created_event(user=instance)
 
         if cleaned_input.get("send_password_email"):
