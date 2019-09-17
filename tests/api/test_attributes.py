@@ -695,7 +695,7 @@ def test_update_attribute_and_remove_others_attribute_value(
     assert errors[0]["message"] == err_msg
 
     product_errors = content["data"]["attributeUpdate"]["productErrors"]
-    assert product_errors[0]["code"] == ProductErrorCode.ATTRIBUTE_BAD_VALUE.name
+    assert product_errors[0]["code"] == ProductErrorCode.INVALID.name
 
 
 def test_delete_attribute(

@@ -2,7 +2,7 @@ from datetime import date
 
 import graphene
 
-from saleor.giftcard.error_codes import GiftcardErrorCode
+from saleor.giftcard.error_codes import GiftCardErrorCode
 from tests.api.utils import get_graphql_content
 
 from .utils import assert_no_permission
@@ -290,7 +290,7 @@ def test_create_gift_card_with_existing_voucher_code(
     assert errors[0]["field"] == "promoCode"
 
     gift_card_errors = content["data"]["giftCardCreate"]["giftCardErrors"]
-    assert gift_card_errors[0]["code"] == GiftcardErrorCode.ALREADY_EXISTS.name
+    assert gift_card_errors[0]["code"] == GiftCardErrorCode.ALREADY_EXISTS.name
 
 
 def test_create_gift_card_with_existing_gift_card_code(
@@ -308,7 +308,7 @@ def test_create_gift_card_with_existing_gift_card_code(
     assert errors[0]["field"] == "promoCode"
 
     gift_card_errors = content["data"]["giftCardCreate"]["giftCardErrors"]
-    assert gift_card_errors[0]["code"] == GiftcardErrorCode.ALREADY_EXISTS.name
+    assert gift_card_errors[0]["code"] == GiftCardErrorCode.ALREADY_EXISTS.name
 
 
 def test_create_gift_card_without_user(staff_api_client, permission_manage_gift_card):
@@ -361,7 +361,7 @@ def test_create_gift_card_with_incorrect_user_email(
     assert errors[0]["message"] == "Customer with this email doesn't exist."
 
     gift_card_errors = content["data"]["giftCardCreate"]["giftCardErrors"]
-    assert gift_card_errors[0]["code"] == GiftcardErrorCode.NOT_FOUND.name
+    assert gift_card_errors[0]["code"] == GiftCardErrorCode.NOT_FOUND.name
 
 
 def test_create_gift_card_without_premissions(staff_api_client):

@@ -8,25 +8,25 @@ from ...core.utils.promo_code import (
     is_available_promo_code,
 )
 from ...giftcard import models
-from ...giftcard.error_codes import GiftcardErrorCode
+from ...giftcard.error_codes import GiftCardErrorCode
 from ...giftcard.utils import activate_gift_card, deactivate_gift_card
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.scalars import Decimal
-from ..core.types.common import GiftcardError
+from ..core.types.common import GiftCardError
 from .types import GiftCard
 
 
-class GiftcardErrorMixin:
+class GiftCardErrorMixin:
     gift_card_errors = graphene.List(
-        graphene.NonNull(GiftcardError),
+        graphene.NonNull(GiftCardError),
         description="List of errors that occurred executing the mutation.",
     )
 
-    ERROR_TYPE_CLASS = GiftcardError
+    ERROR_TYPE_CLASS = GiftCardError
     ERROR_TYPE_FIELD = "gift_card_errors"
 
 
-class BaseGiftcardMutation(GiftcardErrorMixin, BaseMutation):
+class BaseGiftcardMutation(GiftCardErrorMixin, BaseMutation):
     class Meta:
         abstract = True
 
@@ -48,7 +48,7 @@ class GiftCardCreateInput(GiftCardUpdateInput):
     code = graphene.String(required=False, description="Code to use the gift card.")
 
 
-class GiftCardCreate(GiftcardErrorMixin, ModelMutation):
+class GiftCardCreate(GiftCardErrorMixin, ModelMutation):
     class Arguments:
         input = GiftCardCreateInput(
             required=True, description="Fields required to create a gift card."
@@ -65,7 +65,7 @@ class GiftCardCreate(GiftcardErrorMixin, ModelMutation):
         if not code and not instance.pk:
             data["code"] = generate_promo_code()
         elif not is_available_promo_code(code):
-            raise PromoCodeAlreadyExists(code=GiftcardErrorCode.ALREADY_EXISTS)
+            raise PromoCodeAlreadyExists(code=GiftCardErrorCode.ALREADY_EXISTS)
         cleaned_input = super().clean_input(info, instance, data)
         balance = cleaned_input.get("balance", None)
         if balance:
@@ -80,7 +80,7 @@ class GiftCardCreate(GiftcardErrorMixin, ModelMutation):
                     {
                         "email": ValidationError(
                             "Customer with this email doesn't exist.",
-                            code=GiftcardErrorCode.NOT_FOUND,
+                            code=GiftCardErrorCode.NOT_FOUND,
                         )
                     }
                 )

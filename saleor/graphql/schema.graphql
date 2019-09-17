@@ -1630,7 +1630,7 @@ type GiftCard implements Node {
 
 type GiftCardActivate {
   errors: [Error!]
-  giftCardErrors: [GiftcardError!]
+  giftCardErrors: [GiftCardError!]
   giftCard: GiftCard
 }
 
@@ -1647,7 +1647,7 @@ type GiftCardCountableEdge {
 
 type GiftCardCreate {
   errors: [Error!]
-  giftCardErrors: [GiftcardError!]
+  giftCardErrors: [GiftCardError!]
   giftCard: GiftCard
 }
 
@@ -1661,13 +1661,28 @@ input GiftCardCreateInput {
 
 type GiftCardDeactivate {
   errors: [Error!]
-  giftCardErrors: [GiftcardError!]
+  giftCardErrors: [GiftCardError!]
   giftCard: GiftCard
+}
+
+type GiftCardError {
+  field: String
+  message: String
+  code: GiftCardErrorCode
+}
+
+enum GiftCardErrorCode {
+  ALREADY_EXISTS
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
 }
 
 type GiftCardUpdate {
   errors: [Error!]
-  giftCardErrors: [GiftcardError!]
+  giftCardErrors: [GiftCardError!]
   giftCard: GiftCard
 }
 
@@ -1676,21 +1691,6 @@ input GiftCardUpdateInput {
   endDate: Date
   balance: Decimal
   userEmail: String
-}
-
-type GiftcardError {
-  field: String
-  message: String
-  code: GiftcardErrorCode
-}
-
-enum GiftcardErrorCode {
-  ALREADY_EXISTS
-  GRAPHQL_ERROR
-  INVALID
-  NOT_FOUND
-  REQUIRED
-  UNIQUE
 }
 
 type HomepageCollectionUpdate {
@@ -2337,7 +2337,7 @@ enum OrderErrorCode {
   CANNOT_DELETE
   CANNOT_REFUND
   CAPTURE_INACTIVE_PAYMENT
-  EDIT_NON_DRAFT_ORDER
+  NOT_EDITABLE
   FULFILL_ORDER_LINE
   GRAPHQL_ERROR
   INVALID
@@ -2886,9 +2886,8 @@ type ProductError {
 enum ProductErrorCode {
   ALREADY_EXISTS
   ATTRIBUTE_ALREADY_ASSIGNED
-  ATTRIBUTE_BAD_VALUE
   ATTRIBUTE_CANNOT_BE_ASSIGNED
-  ATTRIBUTE_DISABLED_VARIANTS
+  ATTRIBUTE_VARIANTS_DISABLED
   GRAPHQL_ERROR
   INVALID
   NOT_PRODUCTS_IMAGE

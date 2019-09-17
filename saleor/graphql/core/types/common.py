@@ -6,7 +6,7 @@ from ..enums import (
     AccountErrorCode,
     CheckoutErrorCode,
     ExtensionsErrorCode,
-    GiftcardErrorCode,
+    GiftCardErrorCode,
     MenuErrorCode,
     OrderErrorCode,
     PaymentErrorCode,
@@ -69,8 +69,8 @@ class PaymentError(Error):
     code = PaymentErrorCode(description="The error code.")
 
 
-class GiftcardError(Error):
-    code = GiftcardErrorCode(description="The error code.")
+class GiftCardError(Error):
+    code = GiftCardErrorCode(description="The error code.")
 
 
 class ExtensionsError(Error):

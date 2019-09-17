@@ -6,7 +6,7 @@ from ..core.types.common import ExtensionsError
 from .types import Plugin
 
 
-class ExtensionsErrorMixin:
+class ExtensionErrorMixin:
     extensions_errors = graphene.List(
         graphene.NonNull(ExtensionsError),
         description="List of errors that occurred executing the mutation.",
@@ -34,7 +34,7 @@ class PluginUpdateInput(graphene.InputObjectType):
     )
 
 
-class PluginUpdate(ExtensionsErrorMixin, BaseMutation):
+class PluginUpdate(ExtensionErrorMixin, BaseMutation):
     plugin = graphene.Field(Plugin)
 
     class Arguments:

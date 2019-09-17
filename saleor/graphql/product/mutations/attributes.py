@@ -266,7 +266,7 @@ class AttributeUpdate(ProductErrorMixin, AttributeMixin, ModelMutation):
                 raise ValidationError(
                     {
                         "remove_values": ValidationError(
-                            msg, code=ProductErrorCode.ATTRIBUTE_BAD_VALUE
+                            msg, code=ProductErrorCode.INVALID
                         )
                     }
                 )
@@ -429,7 +429,7 @@ class AttributeAssign(BaseProductMutation):
                 {
                     "operations": ValidationError(
                         "Variants are disabled in this product type.",
-                        code=ProductErrorCode.ATTRIBUTE_DISABLED_VARIANTS,
+                        code=ProductErrorCode.ATTRIBUTE_VARIANTS_DISABLED,
                     )
                 }
             )
