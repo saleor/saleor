@@ -57,8 +57,12 @@ for enum in SALEOR_ERROR_CODE_ENUMS:
     saleor_error_codes.extend([code.value for code in enum])
 
 
-def get_error_code_from_error(error):
-    """Return valid error code."""
+def get_error_code_from_error(error) -> str:
+    """Return valid error code from ValidationError.
+
+    It unifies default Django error codes and checks
+    if error code is valid.
+    """
     code = error.code
     if code in ["required", "blank", "null"]:
         return "required"
