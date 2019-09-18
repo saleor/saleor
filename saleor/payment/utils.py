@@ -12,6 +12,7 @@ from django.utils.translation import pgettext_lazy
 from ..account.models import Address, User
 from ..checkout.models import Checkout
 from ..core import analytics
+from ..extensions.manager import get_extensions_manager
 from ..order import events, utils as order_utils
 from ..order.emails import send_payment_confirmation
 from ..order.models import Order
@@ -102,6 +103,7 @@ def create_payment_information(
 
 def handle_fully_paid_order(order):
     events.order_fully_paid_event(order=order)
+    get_extensions_manager().order_fully_paid(order)
 
     if order.get_customer_email():
         events.email_sent_event(

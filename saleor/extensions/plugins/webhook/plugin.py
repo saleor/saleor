@@ -35,6 +35,14 @@ class WebhookPlugin(BasePlugin):
             WebhookEventType.CUSTOMER_CREATED, customer_data
         )
 
+    def order_fully_paid(self, order: "Order", previous_value: Any) -> Any:
+        self._initialize_plugin_configuration()
+        if not self.active:
+            return previous_value
+        order.lines.prefetch_related("lines")
+        order_data = generate_order_payload(order)
+        trigger_webhooks_for_event.delay(WebhookEventType.ORDER_FULLYPAID, order_data)
+
     @classmethod
     def _get_default_configuration(cls):
         defaults = {
