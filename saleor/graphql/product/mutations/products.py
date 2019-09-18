@@ -531,6 +531,7 @@ class ProductCreate(ModelMutation):
     @transaction.atomic
     def save(cls, info, instance, cleaned_input):
         instance.save()
+        info.context.extensions.product_created(instance)
         if not instance.product_type.has_variants:
             site_settings = info.context.site.settings
             track_inventory = cleaned_input.get(

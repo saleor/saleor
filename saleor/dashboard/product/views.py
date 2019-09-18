@@ -17,9 +17,9 @@ from ...product.models import (
     ProductType,
     ProductVariant,
 )
+from ...product.tasks import update_product_minimal_variant_price_task
 from ...product.utils.availability import get_product_availability
 from ...product.utils.costs import get_margin_for_variant, get_product_costs_data
-from ...product.tasks import update_product_minimal_variant_price_task
 from ..views import staff_member_required
 from . import forms
 from .filters import AttributeFilter, ProductFilter, ProductTypeFilter
@@ -141,6 +141,7 @@ def product_create(request, type_pk):
             variant_form.save()
         msg = pgettext_lazy("Dashboard message", "Added product %s") % (product,)
         messages.success(request, msg)
+        request.extensions.product_created(product)
         return redirect("dashboard:product-details", pk=product.pk)
     ctx = {
         "product_form": product_form,

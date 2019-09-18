@@ -182,6 +182,10 @@ class ExtensionsManager:
         default_value = None
         return self.__run_method_on_plugins("customer_created", default_value, customer)
 
+    def product_created(self, product: "Product"):
+        default_value = None
+        return self.__run_method_on_plugins("product_created", default_value, product)
+
     def order_fully_paid(self, order: "Order"):
         default_value = None
         return self.__run_method_on_plugins("order_fully_paid", default_value, order)
