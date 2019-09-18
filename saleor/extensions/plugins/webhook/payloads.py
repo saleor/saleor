@@ -5,6 +5,7 @@ from .serializers import WebhookSerializer
 if TYPE_CHECKING:
     from ....order.models import Order
     from ....account.models import User
+    from ....product.models import Product
 
 ADDRESS_FIELDS = (
     "first_name",
@@ -109,3 +110,39 @@ def generate_customer_payload(customer: "User"):
         },
     )
     return data
+
+
+def generate_product_payload(product: "Product"):
+    serializer = WebhookSerializer()
+
+    product_fields = (
+        "name",
+        "description_json",
+        "currency",
+        "price_amount",
+        "minimal_variant_price_amount",
+        "attributes",
+        "updated_at",
+        "charge_taxes",
+        "weight",
+    )
+    product_variant_fields = (
+        "sku"
+        "name"
+        "currency"
+        "price_override_amount"
+        "track_inventory"
+        "quantity"
+        "quantity_allocated"
+        "cost_price_amount"
+    )
+    product_payload = serializer.serialize(
+        [product],
+        fields=product_fields,
+        additional_fields={
+            "category": (lambda p: p.category, ("name", "slug")),
+            "collections": (lambda p: p.collections.all(), ("name", "slug")),
+            "variants": (lambda p: p.variants.all(), product_variant_fields),
+        },
+    )
+    return product_payload

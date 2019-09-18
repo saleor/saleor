@@ -9,9 +9,12 @@ from saleor.extensions.plugins.webhook import create_hmac_signature
 from saleor.extensions.plugins.webhook.payloads import (
     generate_customer_payload,
     generate_order_payload,
+    generate_product_payload,
 )
 from saleor.extensions.plugins.webhook.tasks import trigger_webhooks_for_event
 from saleor.webhook import WebhookEventType
+
+# FIXME Add tests for payloads structure
 
 
 @pytest.mark.vcr
@@ -101,4 +104,16 @@ def test_order_fully_paid(mocked_webhook_trigger, settings, order_with_lines):
     expected_data = generate_order_payload(order_with_lines)
     mocked_webhook_trigger.assert_called_once_with(
         WebhookEventType.ORDER_FULLYPAID, expected_data
+    )
+
+
+@mock.patch("saleor.extensions.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_product_created(mocked_webhook_trigger, settings, product):
+    settings.PLUGINS = ["saleor.extensions.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_extensions_manager()
+    manager.product_created(product)
+
+    expected_data = generate_product_payload(product)
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.PRODUCT_CREATED, expected_data
     )

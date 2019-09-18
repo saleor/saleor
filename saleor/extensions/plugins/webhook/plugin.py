@@ -2,12 +2,17 @@ from typing import TYPE_CHECKING, Any
 
 from ....webhook import WebhookEventType
 from ...base_plugin import BasePlugin
-from .payloads import generate_customer_payload, generate_order_payload
+from .payloads import (
+    generate_customer_payload,
+    generate_order_payload,
+    generate_product_payload,
+)
 from .tasks import trigger_webhooks_for_event
 
 if TYPE_CHECKING:
     from ....order.models import Order
     from ....account.models import User
+    from ....product.models import Product
 
 
 class WebhookPlugin(BasePlugin):
@@ -39,9 +44,15 @@ class WebhookPlugin(BasePlugin):
         self._initialize_plugin_configuration()
         if not self.active:
             return previous_value
-        order.lines.prefetch_related("lines")
         order_data = generate_order_payload(order)
         trigger_webhooks_for_event.delay(WebhookEventType.ORDER_FULLYPAID, order_data)
+
+    def product_created(self, product: "Product", previous_value: Any) -> Any:
+        self._initialize_plugin_configuration()
+        if not self.active:
+            return previous_value
+        product_data = generate_product_payload(product)
+        trigger_webhooks_for_event.delay(WebhookEventType.PRODUCT_CREATED, product_data)
 
     @classmethod
     def _get_default_configuration(cls):
