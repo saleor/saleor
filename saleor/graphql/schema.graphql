@@ -1812,10 +1812,6 @@ type MenuDelete {
   menu: Menu
 }
 
-input MenuFilterInput {
-  search: String
-}
-
 type MenuError {
   field: String
   message: String
@@ -1832,6 +1828,10 @@ enum MenuErrorCode {
   REQUIRED
   TOO_MANY_MENU_ITEMS
   UNIQUE
+}
+
+input MenuFilterInput {
+  search: String
 }
 
 input MenuInput {
@@ -3122,6 +3122,7 @@ type ProductTypeUpdateMeta {
 
 type ProductTypeUpdatePrivateMeta {
   errors: [Error!]
+  productErrors: [ProductError!]
   productType: ProductType
 }
 
@@ -3201,6 +3202,7 @@ type ProductVariantCountableEdge {
 
 type ProductVariantCreate {
   errors: [Error!]
+  productErrors: [ProductError!]
   productVariant: ProductVariant
 }
 
