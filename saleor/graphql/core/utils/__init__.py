@@ -52,7 +52,9 @@ def from_global_id_strict_type(
         ) from exc
 
     if str(_type) != str(only_type):
-        raise ValidationError({field: f"Must receive a {only_type} id"})
+        raise ValidationError(
+            {field: ValidationError(f"Must receive a {only_type} id", code="invalid")}
+        )
     return _id
 
 

@@ -340,7 +340,12 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
         if cleaned_input.get("send_password_email"):
             if not cleaned_input.get("redirect_url"):
                 raise ValidationError(
-                    {"redirect_url": "Redirect url is required to send a password."}
+                    {
+                        "redirect_url": ValidationError(
+                            "Redirect url is required to send a password.",
+                            code=AccountErrorCode.REQUIRED,
+                        )
+                    }
                 )
             validate_storefront_url(cleaned_input.get("redirect_url"))
 

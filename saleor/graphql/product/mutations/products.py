@@ -49,7 +49,6 @@ from ..types import (
     ProductVariant,
 )
 from ..utils import (
-    attributes_to_json,
     validate_attribute_input_for_product,
     validate_attribute_input_for_variant,
 )
@@ -546,7 +545,11 @@ class AttributeAssignmentMixin:
 
         if not nodes:
             raise ValidationError(
-                f"Could not resolve to a node: ids={global_ids} and slugs={list(slugs)}"
+                (
+                    f"Could not resolve to a node: ids={global_ids}"
+                    "and slugs={list(slugs)}"
+                ),
+                code=ProductErrorCode.NOT_FOUND,
             )
 
         nodes_pk_list = set()
@@ -557,11 +560,17 @@ class AttributeAssignmentMixin:
 
         for pk, global_id in zip(pks, global_ids):
             if pk not in nodes_pk_list:
-                raise ValidationError(f"Could not resolve {global_id!r} to Attribute")
+                raise ValidationError(
+                    f"Could not resolve {global_id!r} to Attribute",
+                    code=ProductErrorCode.NOT_FOUND,
+                )
 
         for slug in slugs:
             if slug not in nodes_slug_list:
-                raise ValidationError(f"Could not resolve slug {slug!r} to Attribute")
+                raise ValidationError(
+                    f"Could not resolve slug {slug!r} to Attribute",
+                    code=ProductErrorCode.NOT_FOUND,
+                )
 
         return nodes
 
@@ -570,9 +579,15 @@ class AttributeAssignmentMixin:
         """Resolve an Attribute global ID into an internal ID (int)."""
         graphene_type, internal_id = from_global_id(global_id)  # type: str, str
         if graphene_type != "Attribute":
-            raise ValidationError(f"Must receive an Attribute id, got {graphene_type}.")
+            raise ValidationError(
+                f"Must receive an Attribute id, got {graphene_type}.",
+                code=ProductErrorCode.INVALID,
+            )
         if not internal_id.isnumeric():
-            raise ValidationError(f"An invalid ID value was passed: {global_id}")
+            raise ValidationError(
+                f"An invalid ID value was passed: {global_id}",
+                code=ProductErrorCode.INVALID,
+            )
         return int(internal_id)
 
     @classmethod
@@ -605,7 +620,8 @@ class AttributeAssignmentMixin:
 
         if qs.filter(missing_required_filter).exists():
             raise ValidationError(
-                "All attributes flagged as having a value required must be supplied."
+                "All attributes flagged as having a value required must be supplied.",
+                code=ProductErrorCode.REQUIRED,
             )
 
     @classmethod
@@ -618,7 +634,9 @@ class AttributeAssignmentMixin:
         - ensure the values are correct for a variant
         """
         if len(cleaned_input) != qs.count():
-            raise ValidationError("All attributes must take a value")
+            raise ValidationError(
+                "All attributes must take a value", code=ProductErrorCode.REQUIRED
+            )
 
         for attribute, values in cleaned_input:
             validate_attribute_input_for_variant(attribute, values)
@@ -671,7 +689,10 @@ class AttributeAssignmentMixin:
             elif slug:
                 slugs[slug] = values
             else:
-                raise ValidationError("You must whether supply an ID or a slug")
+                raise ValidationError(
+                    "You must whether supply an ID or a slug",
+                    code=ProductErrorCode.REQUIRED,
+                )
 
         attributes = cls._resolve_attribute_nodes(
             attributes_qs, global_ids=global_ids, pks=pks.keys(), slugs=slugs.keys()
@@ -763,7 +784,7 @@ class ProductCreate(ModelMutation):
                     attributes, product_type
                 )
             except ValidationError as exc:
-                raise ValidationError({"attributes": str(exc.args[0])})
+                raise ValidationError({"attributes": exc})
 
         clean_seo_fields(cleaned_input)
         cls.clean_sku(product_type, cleaned_input)
@@ -1043,7 +1064,7 @@ class ProductVariantCreate(ModelMutation):
                     attributes, product_type
                 )
             except ValidationError as exc:
-                raise ValidationError({"attributes": str(exc.args[0])})
+                raise ValidationError({"attributes": exc})
         return cleaned_input
 
     @classmethod

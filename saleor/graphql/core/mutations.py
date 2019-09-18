@@ -21,7 +21,7 @@ from ..account.types import User
 from ..utils import get_nodes
 from .types import Error, MetaInput, MetaPath, Upload
 from .utils import from_global_id_strict_type, snake_to_camel_case
-from .utils.error_codes import CommonErrorCode, get_error_code_from_error
+from .utils.error_codes import get_error_code_from_error
 
 registry = get_global_registry()
 
@@ -173,8 +173,7 @@ class BaseMutation(graphene.Mutation):
                 raise ValidationError(
                     {
                         field: ValidationError(
-                            "Couldn't resolve to a node: %s" % node_id,
-                            code="object_does_not_exist",
+                            "Couldn't resolve to a node: %s" % node_id, code="not_found"
                         )
                     }
                 )
