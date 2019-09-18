@@ -90,3 +90,15 @@ def test_customer_created(mocked_webhook_trigger, settings, customer_user):
     mocked_webhook_trigger.assert_called_once_with(
         WebhookEventType.CUSTOMER_CREATED, expected_data
     )
+
+
+@mock.patch("saleor.extensions.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_order_fully_paid(mocked_webhook_trigger, settings, order_with_lines):
+    settings.PLUGINS = ["saleor.extensions.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_extensions_manager()
+    manager.order_fully_paid(order_with_lines)
+
+    expected_data = generate_order_payload(order_with_lines)
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.ORDER_FULLYPAID, expected_data
+    )
