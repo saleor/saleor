@@ -3,6 +3,7 @@ import uuid
 from django.core.exceptions import ValidationError
 
 from ...discount.models import Voucher
+from ...giftcard.error_codes import GiftCardErrorCode
 from ...giftcard.models import GiftCard
 
 
@@ -10,14 +11,16 @@ class InvalidPromoCode(ValidationError):
     def __init__(self, message=None, **kwargs):
         if message is None:
             message = {
-                "promo_code": ValidationError("Promo code is invalid", code="invalid")
+                "promo_code": ValidationError(
+                    "Promo code is invalid", code=GiftCardErrorCode.INVALID
+                )
             }
         super().__init__(message, **kwargs)
 
 
 class PromoCodeAlreadyExists(ValidationError):
     def __init__(self, message=None, **kwargs):
-        code = kwargs.get("code", "promo_code_already_exists")
+        code = kwargs.get("code", GiftCardErrorCode.ALREADY_EXISTS)
         if message is None:
             message = {
                 "promo_code": ValidationError("Promo code already exists.", code=code)
