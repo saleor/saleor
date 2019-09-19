@@ -81,7 +81,7 @@ def test_user_error_nonexistent_id(schema_context):
     user_errors = result.data["test"]["errors"]
     assert user_errors
     assert user_errors[0]["field"] == "productId"
-    assert user_errors[0]["message"] == "Couldn't resolve to a node"
+    assert user_errors[0]["message"] == "Couldn't resolve to a node: not-really"
 
 
 def test_user_error_id_of_different_type(product, schema_context):

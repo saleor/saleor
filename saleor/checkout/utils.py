@@ -16,6 +16,7 @@ from prices import Money, MoneyRange, TaxedMoneyRange
 from ..account.forms import get_address_form
 from ..account.models import Address, User
 from ..account.utils import store_user_address
+from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import quantize_price, zero_taxed_money
 from ..core.utils import to_local_currency
@@ -828,7 +829,12 @@ def add_voucher_code_to_checkout(checkout: Checkout, voucher_code: str, discount
         add_voucher_to_checkout(checkout, voucher, discounts)
     except NotApplicable:
         raise ValidationError(
-            {"promo_code": "Voucher is not applicable to that checkout."}
+            {
+                "promo_code": ValidationError(
+                    "Voucher is not applicable to that checkout.",
+                    code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE,
+                )
+            }
         )
 
 
@@ -1191,18 +1197,28 @@ def clean_checkout(checkout: Checkout, discounts):
     """Check if checkout can be completed."""
     if checkout.is_shipping_required():
         if not checkout.shipping_method:
-            raise ValidationError("Shipping method is not set")
+            raise ValidationError(
+                "Shipping method is not set",
+                code=CheckoutErrorCode.SHIPPING_METHOD_NOT_SET,
+            )
         if not checkout.shipping_address:
-            raise ValidationError("Shipping address is not set")
+            raise ValidationError(
+                "Shipping address is not set",
+                code=CheckoutErrorCode.SHIPPING_ADDRESS_NOT_SET,
+            )
         if not is_valid_shipping_method(checkout, discounts):
             raise ValidationError(
-                "Shipping method is not valid for your shipping address"
+                "Shipping method is not valid for your shipping address",
+                code=CheckoutErrorCode.INVALID_SHIPPING_METHOD,
             )
 
     if not checkout.billing_address:
-        raise ValidationError("Billing address is not set")
+        raise ValidationError(
+            "Billing address is not set", code=CheckoutErrorCode.BILLING_ADDRESS_NOT_SET
+        )
 
     if not is_fully_paid(checkout, discounts):
         raise ValidationError(
-            "Provided payment methods can not cover the checkout's total " "amount"
+            "Provided payment methods can not cover the checkout's total amount",
+            code=CheckoutErrorCode.CHECKOUT_NOT_FULLY_PAID,
         )

@@ -69,6 +69,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Migrated the old product attributes mapping to M2M - #4663 by @NyanKiyoshi
 - Add translations to countries in shop query - #4732 by @fowczarek
 - Added validations for minimum password length in settings - #4735 by @fowczarek
+- Add error codes to mutations responses - #4676 by @Kwaidan00
 
 ## 2.8.0
 

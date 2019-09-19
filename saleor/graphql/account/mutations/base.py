@@ -7,6 +7,7 @@ from graphql_jwt.exceptions import PermissionDenied
 
 from ....account import events as account_events, models
 from ....account.emails import send_user_password_reset_email_with_url
+from ....account.error_codes import AccountErrorCode
 from ....core.utils.url import validate_storefront_url
 from ....dashboard.emails import send_set_password_email_with_url
 from ...account.i18n import I18nMixin
@@ -20,6 +21,7 @@ from ...core.mutations import (
     UpdateMetaBaseMutation,
     validation_error_to_error_type,
 )
+from ...core.types.common import AccountError
 
 BILLING_ADDRESS_FIELD = "default_billing_address"
 SHIPPING_ADDRESS_FIELD = "default_shipping_address"
@@ -41,6 +43,10 @@ def can_edit_address(user, address):
 
 class SetPassword(CreateToken):
     user = graphene.Field(User, description="An user instance with new password.")
+    account_errors = graphene.List(
+        graphene.NonNull(AccountError),
+        description="List of errors that occurred executing the mutation.",
+    )
 
     class Arguments:
         token = graphene.String(
@@ -63,7 +69,7 @@ class SetPassword(CreateToken):
             cls._set_password_for_user(email, password, token)
         except ValidationError as e:
             errors = validation_error_to_error_type(e)
-            return cls(errors=errors)
+            return cls.handle_typed_errors(errors)
         return super().mutate(root, info, **data)
 
     @classmethod
@@ -71,16 +77,32 @@ class SetPassword(CreateToken):
         try:
             user = models.User.objects.get(email=email)
         except ObjectDoesNotExist:
-            raise ValidationError({"email": "User doesn't exist"})
+            raise ValidationError(
+                {
+                    "email": ValidationError(
+                        "User doesn't exist", code=AccountErrorCode.NOT_FOUND
+                    )
+                }
+            )
         if not default_token_generator.check_token(user, token):
-            raise ValidationError({"token": INVALID_TOKEN})
+            raise ValidationError(
+                {"token": ValidationError(INVALID_TOKEN, code=AccountErrorCode.INVALID)}
+            )
         try:
             password_validation.validate_password(password, user)
         except ValidationError as error:
-            raise ValidationError({"password": error.messages})
+            raise ValidationError({"password": error})
         user.set_password(password)
         user.save(update_fields=["password"])
         account_events.customer_password_reset_event(user=user)
+
+    @classmethod
+    def handle_typed_errors(cls, errors: list):
+        account_errors = [
+            AccountError(field=e.field, message=e.message, code=code)
+            for e, code in errors
+        ]
+        return cls(errors=[e[0] for e in errors], account_errors=account_errors)
 
 
 class RequestPasswordReset(BaseMutation):
@@ -99,6 +121,8 @@ class RequestPasswordReset(BaseMutation):
 
     class Meta:
         description = "Sends an email with the account password modification link."
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -109,7 +133,14 @@ class RequestPasswordReset(BaseMutation):
         try:
             user = models.User.objects.get(email=email)
         except ObjectDoesNotExist:
-            raise ValidationError({"email": "User with this email doesn't exist"})
+            raise ValidationError(
+                {
+                    "email": ValidationError(
+                        "User with this email doesn't exist",
+                        code=AccountErrorCode.NOT_FOUND,
+                    )
+                }
+            )
         send_user_password_reset_email_with_url(redirect_url, user)
         return RequestPasswordReset()
 
@@ -125,6 +156,8 @@ class PasswordChange(BaseMutation):
 
     class Meta:
         description = "Change the password of the logged in user."
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     def check_permissions(cls, user):
@@ -137,11 +170,18 @@ class PasswordChange(BaseMutation):
         new_password = data["new_password"]
 
         if not user.check_password(old_password):
-            raise ValidationError({"old_password": "Old password isn't valid."})
+            raise ValidationError(
+                {
+                    "old_password": ValidationError(
+                        "Old password isn't valid.",
+                        code=AccountErrorCode.INVALID_PASSWORD,
+                    )
+                }
+            )
         try:
             password_validation.validate_password(new_password, user)
         except ValidationError as error:
-            raise ValidationError({"new_password": error.messages})
+            raise ValidationError({"new_password": error})
 
         user.set_password(new_password)
         user.save(update_fields=["password"])
@@ -300,7 +340,12 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
         if cleaned_input.get("send_password_email"):
             if not cleaned_input.get("redirect_url"):
                 raise ValidationError(
-                    {"redirect_url": "Redirect url is required to send a password."}
+                    {
+                        "redirect_url": ValidationError(
+                            "Redirect url is required to send a password.",
+                            code=AccountErrorCode.REQUIRED,
+                        )
+                    }
                 )
             validate_storefront_url(cleaned_input.get("redirect_url"))
 
@@ -337,6 +382,8 @@ class UserUpdateMeta(UpdateMetaBaseMutation):
         description = "Updates metadata for user."
         model = models.User
         public = True
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
 
 class UserClearStoredMeta(ClearMetaBaseMutation):
@@ -344,3 +391,5 @@ class UserClearStoredMeta(ClearMetaBaseMutation):
         description = "Clear stored metadata value."
         model = models.User
         public = True
+        error_type_class = AccountError
+        error_type_field = "account_errors"

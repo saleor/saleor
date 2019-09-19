@@ -20,6 +20,7 @@ from saleor.graphql.order.mutations.orders import (
 from saleor.graphql.order.utils import validate_draft_order
 from saleor.graphql.payment.types import PaymentChargeStatusEnum
 from saleor.order import OrderStatus, events as order_events
+from saleor.order.error_codes import OrderErrorCode
 from saleor.order.models import Order, OrderEvent
 from saleor.payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from saleor.payment.models import Payment
@@ -1429,6 +1430,11 @@ def test_paid_order_mark_as_paid(
                         field
                         message
                     }
+                    orderErrors {
+                        field
+                        message
+                        code
+                    }
                     order {
                         isPaid
                     }
@@ -1445,6 +1451,9 @@ def test_paid_order_mark_as_paid(
     msg = "Orders with payments can not be manually marked as paid."
     assert errors[0]["message"] == msg
     assert errors[0]["field"] == "payment"
+
+    order_errors = content["data"]["orderMarkAsPaid"]["orderErrors"]
+    assert order_errors[0]["code"] == OrderErrorCode.PAYMENT_ERROR.name
 
 
 def test_order_mark_as_paid(
@@ -1491,6 +1500,11 @@ ORDER_VOID = """
                 field
                 message
             }
+            orderErrors {
+                field
+                message
+                code
+            }
         }
     }
 """
@@ -1533,6 +1547,9 @@ def test_order_void_payment_error(
         errors = content["data"]["orderVoid"]["errors"]
         assert errors[0]["field"] == "payment"
         assert errors[0]["message"] == msg
+
+        order_errors = content["data"]["orderVoid"]["orderErrors"]
+        assert order_errors[0]["code"] == OrderErrorCode.PAYMENT_ERROR.name
 
 
 def test_order_refund(staff_api_client, permission_manage_orders, payment_txn_captured):
@@ -1620,7 +1637,7 @@ def test_try_payment_action_generates_event(order, staff_user, payment_dummy):
             order=order, user=staff_user, payment=payment_dummy, func=_test_operation
         )
 
-    assert exc.value.args[0] == {"payment": message}
+    assert exc.value.args[0]["payment"].message == message
 
     error_event = OrderEvent.objects.get()  # type: OrderEvent
     assert error_event.type == order_events.OrderEvents.PAYMENT_FAILED

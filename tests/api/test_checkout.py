@@ -7,6 +7,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from prices import Money, TaxedMoney
 
+from saleor.checkout.error_codes import CheckoutErrorCode
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import clean_checkout, is_fully_paid
 from saleor.core.taxes import zero_money
@@ -102,6 +103,11 @@ MUTATION_CHECKOUT_CREATE = """
           field
           message
         }
+        checkoutErrors {
+          field
+          message
+          code
+        }
       }
     }
 """
@@ -151,15 +157,32 @@ def test_checkout_create(api_client, variant, graphql_address_data):
 
 
 @pytest.mark.parametrize(
-    "quantity, expected_error_message",
+    "quantity, expected_error_message, error_code",
     (
-        (-1, "The quantity should be higher than zero."),
-        (0, "The quantity should be higher than zero."),
-        (51, "Cannot add more than 50 times this item."),
+        (
+            -1,
+            "The quantity should be higher than zero.",
+            CheckoutErrorCode.ZERO_QUANTITY,
+        ),
+        (
+            0,
+            "The quantity should be higher than zero.",
+            CheckoutErrorCode.ZERO_QUANTITY,
+        ),
+        (
+            51,
+            "Cannot add more than 50 times this item.",
+            CheckoutErrorCode.QUANTITY_GREATER_THAN_LIMIT,
+        ),
     ),
 )
 def test_checkout_create_cannot_add_invalid_quantities(
-    api_client, variant, graphql_address_data, quantity, expected_error_message
+    api_client,
+    variant,
+    graphql_address_data,
+    quantity,
+    expected_error_message,
+    error_code,
 ):
 
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
@@ -178,6 +201,14 @@ def test_checkout_create_cannot_add_invalid_quantities(
     assert content["errors"]
     assert content["errors"] == [
         {"field": "quantity", "message": expected_error_message}
+    ]
+
+    assert content["checkoutErrors"] == [
+        {
+            "field": "quantity",
+            "message": expected_error_message,
+            "code": error_code.name,
+        }
     ]
 
 
@@ -219,6 +250,9 @@ def test_checkout_create_required_email(api_client, variant):
     assert errors
     assert errors[0]["field"] == "email"
     assert errors[0]["message"] == "This field cannot be blank."
+
+    checkout_errors = content["data"]["checkoutCreate"]["checkoutErrors"]
+    assert checkout_errors[0]["code"] == CheckoutErrorCode.REQUIRED.name
 
 
 def test_checkout_create_default_email_for_logged_in_customer(user_api_client, variant):
@@ -756,7 +790,12 @@ MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE = """
             },
             errors {
                 field,
+                message,
+            }
+            checkoutErrors {
+                field
                 message
+                code
             }
         }
     }"""
@@ -822,6 +861,13 @@ def test_checkout_shipping_address_with_invalid_phone_number_returns_error(
     assert response["errors"] == [
         {"field": "phone", "message": "'+33600000' is not a valid phone number."}
     ]
+    assert response["checkoutErrors"] == [
+        {
+            "field": "phone",
+            "message": "'+33600000' is not a valid phone number.",
+            "code": CheckoutErrorCode.INVALID.name,
+        }
+    ]
 
 
 @pytest.mark.parametrize(
@@ -884,6 +930,8 @@ def test_checkout_shipping_address_update_invalid_country_code(
     assert data["errors"][0]["message"] == "Invalid country code."
     assert data["errors"][0]["field"] == "country"
 
+    assert data["checkoutErrors"][0]["code"] == CheckoutErrorCode.INVALID.name
+
 
 def test_checkout_billing_address_update(
     user_api_client, checkout_with_item, graphql_address_data
@@ -942,6 +990,11 @@ CHECKOUT_EMAIL_UPDATE_MUTATION = """
                 field,
                 message
             }
+            checkoutErrors {
+                field,
+                message
+                code
+            }
         }
     }
 """
@@ -974,6 +1027,9 @@ def test_checkout_email_update_validation(user_api_client, checkout_with_item):
     assert errors
     assert errors[0]["field"] == "email"
     assert errors[0]["message"] == "This field cannot be blank."
+
+    checkout_errors = content["data"]["checkoutEmailUpdate"]["checkoutErrors"]
+    assert checkout_errors[0]["code"] == CheckoutErrorCode.REQUIRED.name
 
 
 MUTATION_CHECKOUT_COMPLETE = """
@@ -1131,7 +1187,7 @@ def test_checkout_complete_invalid_checkout_id(user_api_client):
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
-    assert data["errors"][0]["message"] == "Couldn't resolve to a node"
+    assert data["errors"][0]["message"] == "Couldn't resolve to a node: invalidId"
     assert data["errors"][0]["field"] == "checkoutId"
     assert orders_count == Order.objects.count()
 
