@@ -16,7 +16,12 @@ if TYPE_CHECKING:
     from ..product.models import Product
     from ..account.models import Address
     from ..order.models import OrderLine, Order
-    from ..payment.interface import PaymentData, GatewayResponse, CustomerSource
+    from ..payment.interface import (
+        PaymentData,
+        GatewayResponse,
+        CustomerSource,
+        TokenConfig,
+    )
 
 
 class ExtensionsManager(PaymentInterface):
@@ -222,9 +227,14 @@ class ExtensionsManager(PaymentInterface):
             gateway, method_name, payment_information, data=data
         )
 
-    def get_client_token(self, gateway, payment_information) -> str:
+    def get_client_token(self, gateway, token_config: "TokenConfig") -> str:
         method_name = "get_client_token"
-        return self.__run_payment_method(gateway, method_name, payment_information)
+        default_value = None
+        gateway_name = gateway.value
+        gtw = self.get_plugin(gateway_name)
+        return self.__run_method_on_single_plugin(
+            gtw, method_name, default_value, token_config=token_config
+        )
 
     def list_payment_sources(
         self, gateway: Gateway, customer_id: str

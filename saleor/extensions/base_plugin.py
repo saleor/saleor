@@ -175,7 +175,7 @@ class BasePlugin:
     def create_form(self, data, payment_information, previous_value):
         pass
 
-    def get_client_token(self, payment_information, previous_value):
+    def get_client_token(self, token_config, previous_value):
         pass
 
     @classmethod

@@ -10,6 +10,7 @@ from . import (
     authorize,
     capture,
     create_form,
+    get_client_token,
     list_client_sources,
     process_payment,
     refund,
@@ -174,3 +175,7 @@ class BraintreeGatewayPlugin(BasePlugin):
     @require_active_plugin
     def create_form(self, data, payment_information, previous_value) -> "forms.Form":
         return create_form(data, payment_information)
+
+    @require_active_plugin
+    def get_client_token(self, token_config, previous_value):
+        return get_client_token(self._get_gateway_config(), token_config)
