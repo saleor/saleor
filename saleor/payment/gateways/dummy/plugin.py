@@ -1,6 +1,5 @@
 from typing import TYPE_CHECKING
 
-from django.conf import settings
 from django.utils.translation import pgettext_lazy
 
 from saleor.extensions import ConfigurationTypeField
@@ -27,6 +26,7 @@ if TYPE_CHECKING:
 def require_active_plugin(fn):
     def wrapped(self, *args, **kwargs):
         previous = kwargs.get("previous_value", None)
+        self._initialize_plugin_configuration()
         if not self.active:
             return previous
         return fn(self, *args, **kwargs)
@@ -71,6 +71,7 @@ class DummyGatewayPlugin(BasePlugin):
         if self._cached_config and self._cached_config.configuration:
             configuration = self._cached_config.configuration
 
+            configuration = {item["name"]: item["value"] for item in configuration}
             self.config = GatewayConfig(
                 gateway_name=GATEWAY_NAME,
                 auto_capture=configuration["Automatic payment capture"],
@@ -78,17 +79,6 @@ class DummyGatewayPlugin(BasePlugin):
                 template_path="",
                 store_customer=configuration["Store customers card"],
             )
-        else:
-            # This should be removed after we drop payment configs in settings
-            gateway_config = settings.PAYMENT_GATEWAYS[GATEWAY_NAME]["config"]
-            self.config = GatewayConfig(
-                gateway_name=GATEWAY_NAME,
-                auto_capture=gateway_config["auto_capture"],
-                template_path=gateway_config["template_path"],
-                connection_params=gateway_config["connection_params"],
-                store_customer=gateway_config["store_card"],
-            )
-            self.active = GATEWAY_NAME in settings.CHECKOUT_PAYMENT_GATEWAYS
 
     @classmethod
     def _get_default_configuration(cls):
