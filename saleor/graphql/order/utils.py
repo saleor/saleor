@@ -28,7 +28,7 @@ def validate_shipping_method(order):
             {
                 "shipping": ValidationError(
                     "Shipping method is not valid for chosen shipping address",
-                    code=OrderErrorCode.ORDER_INVALID_SHIPPING_METHOD,
+                    code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE,
                 )
             }
         )

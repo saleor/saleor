@@ -47,7 +47,7 @@ def clean_order_update_shipping(order, method):
             {
                 "shipping_method": ValidationError(
                     "Shipping method cannot be used with this order.",
-                    code=OrderErrorCode.ORDER_INVALID_SHIPPING_METHOD,
+                    code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE,
                 )
             }
         )
