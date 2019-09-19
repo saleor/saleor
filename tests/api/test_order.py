@@ -1545,8 +1545,8 @@ def test_order_void_payment_error(
     assert errors[0]["field"] == "payment"
     assert errors[0]["message"] == msg
 
-        order_errors = content["data"]["orderVoid"]["orderErrors"]
-        assert order_errors[0]["code"] == OrderErrorCode.PAYMENT_ERROR.name
+    order_errors = content["data"]["orderVoid"]["orderErrors"]
+    assert order_errors[0]["code"] == OrderErrorCode.PAYMENT_ERROR.name
 
 
 def test_order_refund(staff_api_client, permission_manage_orders, payment_txn_captured):
