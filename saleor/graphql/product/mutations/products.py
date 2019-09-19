@@ -547,7 +547,7 @@ class AttributeAssignmentMixin:
             raise ValidationError(
                 (
                     f"Could not resolve to a node: ids={global_ids}"
-                    "and slugs={list(slugs)}"
+                    f" and slugs={list(slugs)}"
                 ),
                 code=ProductErrorCode.NOT_FOUND,
             )
