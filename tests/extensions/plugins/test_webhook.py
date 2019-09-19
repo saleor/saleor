@@ -1,4 +1,5 @@
 from unittest import mock
+from unittest.mock import call
 
 import pytest
 import requests
@@ -102,9 +103,12 @@ def test_order_fully_paid(mocked_webhook_trigger, settings, order_with_lines):
     manager.order_fully_paid(order_with_lines)
 
     expected_data = generate_order_payload(order_with_lines)
-    mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.ORDER_FULLYPAID, expected_data
-    )
+    calls = [
+        call(WebhookEventType.ORDER_FULLYPAID, expected_data),
+        call(WebhookEventType.ORDER_UPDATED, expected_data),
+    ]
+    assert mocked_webhook_trigger.call_count == 2
+    mocked_webhook_trigger.assert_has_calls(calls, any_order=True)
 
 
 @mock.patch("saleor.extensions.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
@@ -138,6 +142,9 @@ def test_order_cancelled(mocked_webhook_trigger, settings, order_with_lines):
     manager.order_cancelled(order_with_lines)
 
     expected_data = generate_order_payload(order_with_lines)
-    mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.ORDER_CANCELLED, expected_data
-    )
+    calls = [
+        call(WebhookEventType.ORDER_CANCELLED, expected_data),
+        call(WebhookEventType.ORDER_UPDATED, expected_data),
+    ]
+    assert mocked_webhook_trigger.call_count == 2
+    mocked_webhook_trigger.assert_has_calls(calls, any_order=True)
