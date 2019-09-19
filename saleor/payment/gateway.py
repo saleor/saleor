@@ -199,7 +199,7 @@ def create_payment_form(payment: Payment, data) -> forms.Form:
     plugin_manager = get_extensions_manager()
     payment_data = create_payment_information(payment)
     gateway = _get_gateway(payment)
-    return plugin_manager.create_payment_form(gateway, data, payment_data)
+    return plugin_manager.create_payment_form(data, gateway, payment_data)
 
 
 def list_payment_sources(gateway: Gateway, customer_id: str) -> List["CustomerSource"]:
