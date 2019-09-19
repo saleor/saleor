@@ -284,9 +284,11 @@ def gateway_postprocess(transaction, payment):
 def fetch_customer_id(user, gateway):
     """Retrieve users customer_id stored for desired gateway."""
     key = prepare_namespace_name(gateway)
-    gateway_config = user.get_private_meta(
-        namespace=GATEWAYS_META_NAMESPACE, client=key
-    )
+    gateway_config = {}
+    if hasattr(user, "get_private_meta"):
+        gateway_config = user.get_private_meta(
+            namespace=GATEWAYS_META_NAMESPACE, client=key
+        )
     return gateway_config.get("customer_id", None)
 
 
