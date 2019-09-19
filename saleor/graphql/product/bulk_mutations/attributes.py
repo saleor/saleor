@@ -2,6 +2,7 @@ import graphene
 
 from ....product import models
 from ...core.mutations import ModelBulkDeleteMutation
+from ...core.types.common import ProductError
 
 
 class AttributeBulkDelete(ModelBulkDeleteMutation):
@@ -14,6 +15,8 @@ class AttributeBulkDelete(ModelBulkDeleteMutation):
         description = "Deletes attributes."
         model = models.Attribute
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class AttributeValueBulkDelete(ModelBulkDeleteMutation):
@@ -28,3 +31,5 @@ class AttributeValueBulkDelete(ModelBulkDeleteMutation):
         description = "Deletes values of attributes."
         model = models.AttributeValue
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"

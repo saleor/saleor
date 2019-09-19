@@ -14,6 +14,7 @@ from freezegun import freeze_time
 from prices import Money
 
 from saleor.account import events as account_events
+from saleor.account.error_codes import AccountErrorCode
 from saleor.account.models import Address, User
 from saleor.account.utils import get_random_avatar
 from saleor.checkout import AddressType
@@ -25,6 +26,7 @@ from saleor.graphql.account.mutations.staff import (
     UserDelete,
 )
 from saleor.graphql.core.enums import PermissionEnum
+from saleor.graphql.core.utils import str_to_enum
 from saleor.order.models import FulfillmentStatus, Order
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image
@@ -1304,6 +1306,11 @@ STAFF_CREATE_MUTATION = """
                 field
                 message
             }
+            accountErrors {
+                field
+                message
+                code
+            }
             user {
                 id
                 email
@@ -1499,6 +1506,11 @@ def test_staff_update_doesnt_change_existing_avatar(
                 field
                 message
             }
+            accountErrors {
+                field
+                message
+                code
+            }
         }
     }
     """
@@ -1608,6 +1620,11 @@ SET_PASSWORD_MUTATION = """
                 field
                 message
             }
+            accountErrors {
+                field
+                message
+                code
+            }
             user {
                 id
             }
@@ -1643,6 +1660,10 @@ def test_set_password_invalid_token(user_api_client, customer_user):
     errors = content["data"]["setPassword"]["errors"]
     assert errors[0]["message"] == INVALID_TOKEN
 
+    account_errors = content["data"]["setPassword"]["accountErrors"]
+    assert account_errors[0]["message"] == INVALID_TOKEN
+    assert account_errors[0]["code"] == AccountErrorCode.INVALID.name
+
 
 def test_set_password_invalid_email(user_api_client):
     variables = {"email": "fake@example.com", "password": "pass", "token": "token"}
@@ -1651,6 +1672,11 @@ def test_set_password_invalid_email(user_api_client):
     errors = content["data"]["setPassword"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "email"
+
+    account_errors = content["data"]["setPassword"]["accountErrors"]
+    assert len(account_errors) == 1
+    assert account_errors[0]["field"] == "email"
+    assert account_errors[0]["code"] == AccountErrorCode.NOT_FOUND.name
 
 
 def test_set_password_invalid_password(user_api_client, customer_user, settings):
@@ -1673,6 +1699,10 @@ def test_set_password_invalid_password(user_api_client, customer_user, settings)
         == "This password is too short. It must contain at least 5 characters."
     )
     assert errors[1]["message"] == "This password is entirely numeric."
+
+    account_errors = content["data"]["setPassword"]["accountErrors"]
+    assert account_errors[0]["code"] == str_to_enum("password_too_short")
+    assert account_errors[1]["code"] == str_to_enum("password_entirely_numeric")
 
 
 @patch("saleor.account.emails._send_user_password_reset_email.delay")

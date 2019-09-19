@@ -3,8 +3,10 @@ from django.core.exceptions import ValidationError
 
 from ...dashboard.shipping.forms import default_shipping_zone_exists
 from ...shipping import models
+from ...shipping.error_codes import ShippingErrorCode
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import Decimal, WeightScalar
+from ..core.types.common import ShippingError
 from .enums import ShippingMethodTypeEnum
 from .types import ShippingMethod, ShippingZone
 
@@ -52,7 +54,12 @@ class ShippingZoneMixin:
         if default:
             if default_shipping_zone_exists(instance.pk):
                 raise ValidationError(
-                    {"default": "Default shipping zone already exists."}
+                    {
+                        "default": ValidationError(
+                            "Default shipping zone already exists.",
+                            code=ShippingErrorCode.ALREADY_EXISTS,
+                        )
+                    }
                 )
             elif cleaned_input.get("countries"):
                 cleaned_input["countries"] = []
@@ -73,6 +80,8 @@ class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):
         description = "Creates a new shipping zone."
         model = models.ShippingZone
         permissions = ("shipping.manage_shipping",)
+        error_type_class = ShippingError
+        error_type_field = "shipping_errors"
 
 
 class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
@@ -88,6 +97,8 @@ class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
         description = "Updates a new shipping zone."
         model = models.ShippingZone
         permissions = ("shipping.manage_shipping",)
+        error_type_class = ShippingError
+        error_type_field = "shipping_errors"
 
 
 class ShippingZoneDelete(ModelDeleteMutation):
@@ -98,6 +109,8 @@ class ShippingZoneDelete(ModelDeleteMutation):
         description = "Deletes a shipping zone."
         model = models.ShippingZone
         permissions = ("shipping.manage_shipping",)
+        error_type_class = ShippingError
+        error_type_field = "shipping_errors"
 
 
 class ShippingPriceMixin:
@@ -129,9 +142,12 @@ class ShippingPriceMixin:
                 ):
                     raise ValidationError(
                         {
-                            "maximum_order_price": (
-                                "Maximum order price should be larger than "
-                                "the minimum order price."
+                            "maximum_order_price": ValidationError(
+                                (
+                                    "Maximum order price should be larger than "
+                                    "the minimum order price."
+                                ),
+                                code=ShippingErrorCode.MAX_LESS_THAN_MIN,
                             )
                         }
                     )
@@ -145,9 +161,12 @@ class ShippingPriceMixin:
                 ):
                     raise ValidationError(
                         {
-                            "maximum_order_weight": (
-                                "Maximum order weight should be larger than the "
-                                "minimum order weight."
+                            "maximum_order_weight": ValidationError(
+                                (
+                                    "Maximum order weight should be larger than the "
+                                    "minimum order weight."
+                                ),
+                                code=ShippingErrorCode.MAX_LESS_THAN_MIN,
                             )
                         }
                     )
@@ -169,6 +188,8 @@ class ShippingPriceCreate(ShippingPriceMixin, ModelMutation):
         description = "Creates a new shipping price."
         model = models.ShippingMethod
         permissions = ("shipping.manage_shipping",)
+        error_type_class = ShippingError
+        error_type_field = "shipping_errors"
 
     @classmethod
     def success_response(cls, instance):
@@ -193,6 +214,8 @@ class ShippingPriceUpdate(ShippingPriceMixin, ModelMutation):
         description = "Updates a new shipping price."
         model = models.ShippingMethod
         permissions = ("shipping.manage_shipping",)
+        error_type_class = ShippingError
+        error_type_field = "shipping_errors"
 
     @classmethod
     def success_response(cls, instance):
@@ -216,6 +239,8 @@ class ShippingPriceDelete(BaseMutation):
     class Meta:
         description = "Deletes a shipping price."
         permissions = ("shipping.manage_shipping",)
+        error_type_class = ShippingError
+        error_type_field = "shipping_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):

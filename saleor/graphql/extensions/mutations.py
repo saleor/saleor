@@ -2,6 +2,7 @@ import graphene
 
 from ...extensions.manager import get_extensions_manager
 from ..core.mutations import BaseMutation
+from ..core.types.common import ExtensionsError
 from .types import Plugin
 
 
@@ -36,6 +37,8 @@ class PluginUpdate(BaseMutation):
     class Meta:
         description = "Update plugin configuration"
         permissions = "extensions.manage_plugins"
+        error_type_class = ExtensionsError
+        error_type_field = "extensions_errors"
 
     @classmethod
     def perform_mutation(cls, root, info, **data):

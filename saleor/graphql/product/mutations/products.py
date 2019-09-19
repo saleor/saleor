@@ -9,6 +9,7 @@ from graphene.types import InputObjectType
 from graphql_relay import from_global_id
 
 from ....product import models
+from ....product.error_codes import ProductErrorCode
 from ....product.tasks import (
     update_product_minimal_variant_price_task,
     update_products_minimal_variant_prices_of_catalogues_task,
@@ -32,6 +33,7 @@ from ...core.mutations import (
 )
 from ...core.scalars import Decimal, WeightScalar
 from ...core.types import SeoInput, Upload
+from ...core.types.common import ProductError
 from ...core.utils import (
     clean_seo_fields,
     from_global_id_strict_type,
@@ -78,6 +80,8 @@ class CategoryCreate(ModelMutation):
         description = "Creates a new category."
         model = models.Category
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -120,6 +124,8 @@ class CategoryUpdate(CategoryCreate):
         description = "Updates a category."
         model = models.Category
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class CategoryDelete(ModelDeleteMutation):
@@ -130,6 +136,8 @@ class CategoryDelete(ModelDeleteMutation):
         description = "Deletes a category."
         model = models.Category
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class CollectionInput(graphene.InputObjectType):
@@ -168,6 +176,8 @@ class CollectionCreate(ModelMutation):
         description = "Creates a new collection."
         model = models.Collection
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -198,6 +208,8 @@ class CollectionUpdate(CollectionCreate):
         description = "Updates a collection."
         model = models.Collection
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -214,6 +226,8 @@ class CollectionDelete(ModelDeleteMutation):
         description = "Deletes a collection."
         model = models.Collection
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class CollectionReorderProducts(BaseMutation):
@@ -224,6 +238,8 @@ class CollectionReorderProducts(BaseMutation):
     class Meta:
         description = "Reorder the products of a collection"
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     class Arguments:
         collection_id = graphene.Argument(
@@ -247,7 +263,12 @@ class CollectionReorderProducts(BaseMutation):
             ).get(pk=pk)
         except ObjectDoesNotExist:
             raise ValidationError(
-                {"collection_id": f"Couldn't resolve to a collection: {collection_id}"}
+                {
+                    "collection_id": ValidationError(
+                        f"Couldn't resolve to a collection: {collection_id}",
+                        code=ProductErrorCode.NOT_FOUND,
+                    )
+                }
             )
 
         m2m_related_field = collection.collectionproduct
@@ -264,7 +285,12 @@ class CollectionReorderProducts(BaseMutation):
                 m2m_info = m2m_related_field.get(product_id=int(product_pk))
             except ObjectDoesNotExist:
                 raise ValidationError(
-                    {"moves": f"Couldn't resolve to a product: {move_info.product_id}"}
+                    {
+                        "moves": ValidationError(
+                            f"Couldn't resolve to a product: {move_info.product_id}",
+                            code=ProductErrorCode.NOT_FOUND,
+                        )
+                    }
                 )
             operations[m2m_info.pk] = move_info.sort_order
 
@@ -289,6 +315,8 @@ class CollectionAddProducts(BaseMutation):
     class Meta:
         description = "Adds products to a collection."
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     @transaction.atomic()
@@ -322,6 +350,8 @@ class CollectionRemoveProducts(BaseMutation):
     class Meta:
         description = "Remove products from a collection."
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, collection_id, products):
@@ -344,6 +374,8 @@ class CollectionUpdateMeta(UpdateMetaBaseMutation):
         description = "Update public metadata for Collection"
         permissions = ("product.manage_products",)
         public = True
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class CollectionClearMeta(ClearMetaBaseMutation):
@@ -352,6 +384,8 @@ class CollectionClearMeta(ClearMetaBaseMutation):
         description = "Clears public metadata item for Collection"
         permissions = ("product.manage_products",)
         public = True
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class CollectionUpdatePrivateMeta(UpdateMetaBaseMutation):
@@ -360,6 +394,8 @@ class CollectionUpdatePrivateMeta(UpdateMetaBaseMutation):
         description = "Update public metadata for Collection"
         permissions = ("product.manage_products",)
         public = False
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class CollectionClearPrivateMeta(ClearMetaBaseMutation):
@@ -368,6 +404,8 @@ class CollectionClearPrivateMeta(ClearMetaBaseMutation):
         description = "Clears public metadata item for Collection"
         permissions = ("product.manage_products",)
         public = False
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class CategoryUpdateMeta(UpdateMetaBaseMutation):
@@ -376,6 +414,8 @@ class CategoryUpdateMeta(UpdateMetaBaseMutation):
         description = "Update public metadata for category"
         permissions = ("product.manage_products",)
         public = True
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class CategoryClearMeta(ClearMetaBaseMutation):
@@ -384,6 +424,8 @@ class CategoryClearMeta(ClearMetaBaseMutation):
         description = "Clears public metadata item for category"
         permissions = ("product.manage_products",)
         public = True
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class CategoryUpdatePrivateMeta(UpdateMetaBaseMutation):
@@ -392,6 +434,8 @@ class CategoryUpdatePrivateMeta(UpdateMetaBaseMutation):
         description = "Update public metadata for category"
         permissions = ("product.manage_products",)
         public = False
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class CategoryClearPrivateMeta(ClearMetaBaseMutation):
@@ -400,6 +444,8 @@ class CategoryClearPrivateMeta(ClearMetaBaseMutation):
         description = "Clears public metadata item for category"
         permissions = ("product.manage_products",)
         public = False
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class AttributeValueInput(InputObjectType):
@@ -499,7 +545,11 @@ class AttributeAssignmentMixin:
 
         if not nodes:
             raise ValidationError(
-                f"Could not resolve to a node: ids={global_ids} and slugs={list(slugs)}"
+                (
+                    f"Could not resolve to a node: ids={global_ids}"
+                    f" and slugs={list(slugs)}"
+                ),
+                code=ProductErrorCode.NOT_FOUND,
             )
 
         nodes_pk_list = set()
@@ -510,11 +560,17 @@ class AttributeAssignmentMixin:
 
         for pk, global_id in zip(pks, global_ids):
             if pk not in nodes_pk_list:
-                raise ValidationError(f"Could not resolve {global_id!r} to Attribute")
+                raise ValidationError(
+                    f"Could not resolve {global_id!r} to Attribute",
+                    code=ProductErrorCode.NOT_FOUND,
+                )
 
         for slug in slugs:
             if slug not in nodes_slug_list:
-                raise ValidationError(f"Could not resolve slug {slug!r} to Attribute")
+                raise ValidationError(
+                    f"Could not resolve slug {slug!r} to Attribute",
+                    code=ProductErrorCode.NOT_FOUND,
+                )
 
         return nodes
 
@@ -523,9 +579,15 @@ class AttributeAssignmentMixin:
         """Resolve an Attribute global ID into an internal ID (int)."""
         graphene_type, internal_id = from_global_id(global_id)  # type: str, str
         if graphene_type != "Attribute":
-            raise ValidationError(f"Must receive an Attribute id, got {graphene_type}.")
+            raise ValidationError(
+                f"Must receive an Attribute id, got {graphene_type}.",
+                code=ProductErrorCode.INVALID,
+            )
         if not internal_id.isnumeric():
-            raise ValidationError(f"An invalid ID value was passed: {global_id}")
+            raise ValidationError(
+                f"An invalid ID value was passed: {global_id}",
+                code=ProductErrorCode.INVALID,
+            )
         return int(internal_id)
 
     @classmethod
@@ -558,7 +620,8 @@ class AttributeAssignmentMixin:
 
         if qs.filter(missing_required_filter).exists():
             raise ValidationError(
-                "All attributes flagged as having a value required must be supplied."
+                "All attributes flagged as having a value required must be supplied.",
+                code=ProductErrorCode.REQUIRED,
             )
 
     @classmethod
@@ -571,7 +634,9 @@ class AttributeAssignmentMixin:
         - ensure the values are correct for a variant
         """
         if len(cleaned_input) != qs.count():
-            raise ValidationError("All attributes must take a value")
+            raise ValidationError(
+                "All attributes must take a value", code=ProductErrorCode.REQUIRED
+            )
 
         for attribute, values in cleaned_input:
             validate_attribute_input_for_variant(attribute, values)
@@ -624,7 +689,10 @@ class AttributeAssignmentMixin:
             elif slug:
                 slugs[slug] = values
             else:
-                raise ValidationError("You must whether supply an ID or a slug")
+                raise ValidationError(
+                    "You must whether supply an ID or a slug",
+                    code=ProductErrorCode.REQUIRED,
+                )
 
         attributes = cls._resolve_attribute_nodes(
             attributes_qs, global_ids=global_ids, pks=pks.keys(), slugs=slugs.keys()
@@ -666,6 +734,8 @@ class ProductCreate(ModelMutation):
         description = "Creates a new product."
         model = models.Product
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def clean_attributes(
@@ -714,7 +784,7 @@ class ProductCreate(ModelMutation):
                     attributes, product_type
                 )
             except ValidationError as exc:
-                raise ValidationError({"attributes": str(exc.args[0])})
+                raise ValidationError({"attributes": exc})
 
         clean_seo_fields(cleaned_input)
         cls.clean_sku(product_type, cleaned_input)
@@ -732,9 +802,23 @@ class ProductCreate(ModelMutation):
         if product_type and not product_type.has_variants:
             input_sku = cleaned_input.get("sku")
             if not input_sku:
-                raise ValidationError({"sku": "This field cannot be blank."})
+                raise ValidationError(
+                    {
+                        "sku": ValidationError(
+                            "This field cannot be blank.",
+                            code=ProductErrorCode.REQUIRED,
+                        )
+                    }
+                )
             elif models.ProductVariant.objects.filter(sku=input_sku).exists():
-                raise ValidationError({"sku": "Product with this SKU already exists."})
+                raise ValidationError(
+                    {
+                        "sku": ValidationError(
+                            "Product with this SKU already exists.",
+                            code=ProductErrorCode.ALREADY_EXISTS,
+                        )
+                    }
+                )
 
     @classmethod
     def get_instance(cls, info, **data):
@@ -794,6 +878,8 @@ class ProductUpdate(ProductCreate):
         description = "Updates an existing product."
         model = models.Product
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def clean_sku(cls, product_type, cleaned_input):
@@ -803,7 +889,14 @@ class ProductUpdate(ProductCreate):
             and input_sku
             and models.ProductVariant.objects.filter(sku=input_sku).exists()
         ):
-            raise ValidationError({"sku": "Product with this SKU already exists."})
+            raise ValidationError(
+                {
+                    "sku": ValidationError(
+                        "Product with this SKU already exists.",
+                        code=ProductErrorCode.ALREADY_EXISTS,
+                    )
+                }
+            )
 
     @classmethod
     @transaction.atomic
@@ -839,6 +932,8 @@ class ProductDelete(ModelDeleteMutation):
         description = "Deletes a product."
         model = models.Product
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class ProductUpdateMeta(UpdateMetaBaseMutation):
@@ -847,6 +942,8 @@ class ProductUpdateMeta(UpdateMetaBaseMutation):
         description = "Update public metadata for product"
         permissions = ("product.manage_products",)
         public = True
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class ProductClearMeta(ClearMetaBaseMutation):
@@ -855,6 +952,8 @@ class ProductClearMeta(ClearMetaBaseMutation):
         model = models.Product
         permissions = ("product.manage_products",)
         public = True
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class ProductUpdatePrivateMeta(UpdateMetaBaseMutation):
@@ -863,6 +962,8 @@ class ProductUpdatePrivateMeta(UpdateMetaBaseMutation):
         model = models.Product
         permissions = ("product.manage_products",)
         public = False
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class ProductClearPrivateMeta(ClearMetaBaseMutation):
@@ -871,6 +972,8 @@ class ProductClearPrivateMeta(ClearMetaBaseMutation):
         model = models.Product
         permissions = ("product.manage_products",)
         public = False
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class ProductVariantInput(graphene.InputObjectType):
@@ -916,6 +1019,8 @@ class ProductVariantCreate(ModelMutation):
         description = "Creates a new variant for a product"
         model = models.ProductVariant
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def clean_attributes(
@@ -959,7 +1064,7 @@ class ProductVariantCreate(ModelMutation):
                     attributes, product_type
                 )
             except ValidationError as exc:
-                raise ValidationError({"attributes": str(exc.args[0])})
+                raise ValidationError({"attributes": exc})
         return cleaned_input
 
     @classmethod
@@ -1011,6 +1116,8 @@ class ProductVariantUpdate(ProductVariantCreate):
         description = "Updates an existing variant for product"
         model = models.ProductVariant
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class ProductVariantDelete(ModelDeleteMutation):
@@ -1023,6 +1130,8 @@ class ProductVariantDelete(ModelDeleteMutation):
         description = "Deletes a product variant."
         model = models.ProductVariant
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def success_response(cls, instance):
@@ -1037,6 +1146,8 @@ class ProductVariantUpdateMeta(UpdateMetaBaseMutation):
         description = "Update public metadata for product variant"
         permissions = ("product.manage_products",)
         public = True
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class ProductVariantClearMeta(ClearMetaBaseMutation):
@@ -1045,6 +1156,8 @@ class ProductVariantClearMeta(ClearMetaBaseMutation):
         description = "Clears public metadata item for product variant"
         permissions = ("product.manage_products",)
         public = True
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class ProductVariantUpdatePrivateMeta(UpdateMetaBaseMutation):
@@ -1053,6 +1166,8 @@ class ProductVariantUpdatePrivateMeta(UpdateMetaBaseMutation):
         description = "Update public metadata for product variant"
         permissions = ("product.manage_products",)
         public = False
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class ProductVariantClearPrivateMeta(ClearMetaBaseMutation):
@@ -1061,6 +1176,8 @@ class ProductVariantClearPrivateMeta(ClearMetaBaseMutation):
         description = "Clears public metadata item for product variant"
         permissions = ("product.manage_products",)
         public = False
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class ProductTypeInput(graphene.InputObjectType):
@@ -1103,6 +1220,8 @@ class ProductTypeCreate(ModelMutation):
         description = "Creates a new product type."
         model = models.ProductType
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -1145,6 +1264,8 @@ class ProductTypeUpdate(ProductTypeCreate):
         description = "Updates an existing product type."
         model = models.ProductType
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -1164,6 +1285,8 @@ class ProductTypeDelete(ModelDeleteMutation):
         description = "Deletes a product type."
         model = models.ProductType
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class ProductTypeUpdateMeta(UpdateMetaBaseMutation):
@@ -1172,6 +1295,8 @@ class ProductTypeUpdateMeta(UpdateMetaBaseMutation):
         description = "Update public metadata for product type"
         permissions = ("product.manage_products",)
         public = True
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class ProductTypeClearMeta(ClearMetaBaseMutation):
@@ -1180,6 +1305,8 @@ class ProductTypeClearMeta(ClearMetaBaseMutation):
         model = models.ProductType
         permissions = ("product.manage_products",)
         public = True
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class ProductTypeUpdatePrivateMeta(UpdateMetaBaseMutation):
@@ -1188,6 +1315,8 @@ class ProductTypeUpdatePrivateMeta(UpdateMetaBaseMutation):
         model = models.ProductType
         permissions = ("product.manage_products",)
         public = False
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class ProductTypeClearPrivateMeta(ClearMetaBaseMutation):
@@ -1196,6 +1325,8 @@ class ProductTypeClearPrivateMeta(ClearMetaBaseMutation):
         model = models.ProductType
         permissions = ("product.manage_products",)
         public = False
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
 
 class ProductImageCreateInput(graphene.InputObjectType):
@@ -1223,6 +1354,8 @@ class ProductImageCreate(BaseMutation):
         can be found here:
         https://github.com/jaydenseric/graphql-multipart-request-spec"""
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -1255,6 +1388,8 @@ class ProductImageUpdate(BaseMutation):
     class Meta:
         description = "Updates a product image."
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -1285,6 +1420,8 @@ class ProductImageReorder(BaseMutation):
     class Meta:
         description = "Changes ordering of the product image."
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, product_id, images_ids):
@@ -1292,7 +1429,14 @@ class ProductImageReorder(BaseMutation):
             info, product_id, field="product_id", only_type=Product
         )
         if len(images_ids) != product.images.count():
-            raise ValidationError({"order": "Incorrect number of image IDs provided."})
+            raise ValidationError(
+                {
+                    "order": ValidationError(
+                        "Incorrect number of image IDs provided.",
+                        code=ProductErrorCode.INVALID,
+                    )
+                }
+            )
 
         images = []
         for image_id in images_ids:
@@ -1301,8 +1445,13 @@ class ProductImageReorder(BaseMutation):
             )
             if image and image.product != product:
                 raise ValidationError(
-                    {"order": "Image %(image_id)s does not belong to this product."},
-                    params={"image_id": image_id},
+                    {
+                        "order": ValidationError(
+                            "Image %(image_id)s does not belong to this product.",
+                            code=ProductErrorCode.NOT_PRODUCTS_IMAGE,
+                            params={"image_id": image_id},
+                        )
+                    }
                 )
             images.append(image)
 
@@ -1323,6 +1472,8 @@ class ProductImageDelete(BaseMutation):
     class Meta:
         description = "Deletes a product image."
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -1346,6 +1497,8 @@ class VariantImageAssign(BaseMutation):
     class Meta:
         description = "Assign an image to a product variant"
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, image_id, variant_id):
@@ -1364,7 +1517,12 @@ class VariantImageAssign(BaseMutation):
                 image.variant_images.create(variant=variant)
             else:
                 raise ValidationError(
-                    {"image_id": "This image doesn't belong to that product."}
+                    {
+                        "image_id": ValidationError(
+                            "This image doesn't belong to that product.",
+                            code=ProductErrorCode.NOT_PRODUCTS_IMAGE,
+                        )
+                    }
                 )
         return VariantImageAssign(product_variant=variant, image=image)
 
@@ -1383,6 +1541,8 @@ class VariantImageUnassign(BaseMutation):
     class Meta:
         description = "Unassign an image from a product variant"
         permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, image_id, variant_id):
@@ -1399,7 +1559,12 @@ class VariantImageUnassign(BaseMutation):
             )
         except models.VariantImage.DoesNotExist:
             raise ValidationError(
-                {"image_id": "Image is not assigned to this variant."}
+                {
+                    "image_id": ValidationError(
+                        "Image is not assigned to this variant.",
+                        code=ProductErrorCode.NOT_PRODUCTS_IMAGE,
+                    )
+                }
             )
         else:
             variant_image.delete()

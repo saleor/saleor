@@ -12,6 +12,7 @@ from saleor.graphql.product.enums import AttributeTypeEnum, AttributeValueType
 from saleor.graphql.product.mutations.attributes import validate_value_is_unique
 from saleor.graphql.product.types.attributes import resolve_attribute_value_type
 from saleor.product import AttributeInputType
+from saleor.product.error_codes import ProductErrorCode
 from saleor.product.models import (
     Attribute,
     AttributeProduct,
@@ -370,6 +371,11 @@ CREATE_ATTRIBUTES_QUERY = """
                 field
                 message
             }
+            productErrors {
+                field
+                message
+                code
+            }
             attribute {
                 name
                 slug
@@ -468,10 +474,20 @@ def test_create_attribute_with_given_slug(
 
 
 @pytest.mark.parametrize(
-    "name_1, name_2, error_msg",
+    "name_1, name_2, error_msg, error_code",
     (
-        ("Red color", "Red color", "Provided values are not unique."),
-        ("Red color", "red color", "Provided values are not unique."),
+        (
+            "Red color",
+            "Red color",
+            "Provided values are not unique.",
+            ProductErrorCode.UNIQUE,
+        ),
+        (
+            "Red color",
+            "red color",
+            "Provided values are not unique.",
+            ProductErrorCode.UNIQUE,
+        ),
     ),
 )
 def test_create_attribute_and_attribute_values_errors(
@@ -479,6 +495,7 @@ def test_create_attribute_and_attribute_values_errors(
     name_1,
     name_2,
     error_msg,
+    error_code,
     permission_manage_products,
     product_type,
 ):
@@ -493,6 +510,9 @@ def test_create_attribute_and_attribute_values_errors(
     assert errors[0]["field"] == "values"
     assert errors[0]["message"] == error_msg
 
+    product_errors = content["data"]["attributeCreate"]["productErrors"]
+    assert product_errors[0]["code"] == error_code.name
+
 
 UPDATE_ATTRIBUTE_QUERY = """
     mutation updateAttribute(
@@ -506,6 +526,11 @@ UPDATE_ATTRIBUTE_QUERY = """
         errors {
             field
             message
+        }
+        productErrors {
+            field
+            message
+            code
         }
         attribute {
             name
@@ -597,10 +622,20 @@ def test_update_empty_attribute_and_add_values(
 
 
 @pytest.mark.parametrize(
-    "name_1, name_2, error_msg",
+    "name_1, name_2, error_msg, error_code",
     (
-        ("Red color", "Red color", "Provided values are not unique."),
-        ("Red color", "red color", "Provided values are not unique."),
+        (
+            "Red color",
+            "Red color",
+            "Provided values are not unique.",
+            ProductErrorCode.UNIQUE,
+        ),
+        (
+            "Red color",
+            "red color",
+            "Provided values are not unique.",
+            ProductErrorCode.UNIQUE,
+        ),
     ),
 )
 def test_update_attribute_and_add_attribute_values_errors(
@@ -608,6 +643,7 @@ def test_update_attribute_and_add_attribute_values_errors(
     name_1,
     name_2,
     error_msg,
+    error_code,
     color_attribute,
     permission_manage_products,
 ):
@@ -628,6 +664,9 @@ def test_update_attribute_and_add_attribute_values_errors(
     assert errors
     assert errors[0]["field"] == "addValues"
     assert errors[0]["message"] == error_msg
+
+    product_errors = content["data"]["attributeUpdate"]["productErrors"]
+    assert product_errors[0]["code"] == error_code.name
 
 
 def test_update_attribute_and_remove_others_attribute_value(
@@ -654,6 +693,9 @@ def test_update_attribute_and_remove_others_attribute_value(
     assert errors[0]["field"] == "removeValues"
     err_msg = "Value %s does not belong to this attribute." % str(size_attribute)
     assert errors[0]["message"] == err_msg
+
+    product_errors = content["data"]["attributeUpdate"]["productErrors"]
+    assert product_errors[0]["code"] == ProductErrorCode.INVALID.name
 
 
 def test_delete_attribute(
