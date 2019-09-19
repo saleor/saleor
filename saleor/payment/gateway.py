@@ -7,6 +7,7 @@ from django.core.exceptions import ImproperlyConfigured
 
 from ..core.payments import Gateway
 from ..extensions.manager import get_extensions_manager
+from ..payment.interface import TokenConfig
 from . import GatewayError, PaymentError, TransactionKind
 from .models import Payment, Transaction
 from .utils import (
@@ -206,16 +207,14 @@ def list_payment_sources(gateway: Gateway, customer_id: str) -> List["CustomerSo
     return plugin_manager.list_payment_sources(gateway, customer_id)
 
 
-def get_client_token(payment: Payment) -> str:
+def get_client_token(gateway: Gateway, customer_id: str = None) -> str:
     plugin_manager = get_extensions_manager()
-    payment_data = create_payment_information(payment)
-    gateway = _get_gateway(payment)
-    return plugin_manager.get_client_token(gateway, payment_data)
+    token_config = TokenConfig(customer_id=customer_id)
+    return plugin_manager.get_client_token(gateway, token_config)
 
 
 def list_gateways() -> List[Gateway]:
-    plugin_manager = get_extensions_manager()
-    return plugin_manager.list_payment_gateways()
+    return get_extensions_manager().list_payment_gateways()
 
 
 def _get_gateway(payment: Payment) -> Gateway:
