@@ -103,7 +103,6 @@ def create_payment_information(
 
 def handle_fully_paid_order(order):
     events.order_fully_paid_event(order=order)
-    get_extensions_manager().order_fully_paid(order)
 
     if order.get_customer_email():
         events.email_sent_event(
@@ -118,6 +117,7 @@ def handle_fully_paid_order(order):
     except Exception:
         # Analytics failing should not abort the checkout flow
         logger.exception("Recording order in analytics failed")
+    get_extensions_manager().order_fully_paid(order)
 
 
 def require_active_payment(view):
@@ -208,6 +208,7 @@ def mark_order_as_paid(order: Order, request_user: User):
     payment.captured_amount = order.total.gross.amount
     payment.save(update_fields=["captured_amount", "charge_status"])
     events.order_manually_marked_as_paid_event(order=order, user=request_user)
+    get_extensions_manager().order_fully_paid(order)
 
 
 def create_transaction(
