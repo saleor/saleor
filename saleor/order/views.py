@@ -11,12 +11,13 @@ from django.urls import reverse
 from django.utils.translation import pgettext_lazy
 from django.views.decorators.csrf import csrf_exempt
 
+
 from ..account.forms import LoginForm
 from ..account.models import User
 from ..core.utils import get_client_ip
-from ..payment import ChargeStatus, TransactionKind
-from ..payment import gateway as payment_gateway
-from ..payment.utils import create_payment, create_payment_information
+from ..core.payments import Gateway
+from ..payment import ChargeStatus, TransactionKind, gateway as payment_gateway
+from ..payment.utils import create_payment, fetch_customer_id
 from . import FulfillmentStatus
 from .forms import CustomerNoteForm, PasswordForm, PaymentDeleteForm, PaymentsForm
 from .models import Order
@@ -122,7 +123,10 @@ def start_payment(request, order, gateway):
                     return redirect("order:payment-success", token=order.token)
                 return redirect(order.get_absolute_url())
 
-    client_token = payment_gateway.get_client_token(payment)
+    client_token = payment_gateway.get_client_token(
+        Gateway(payment.gateway),
+        customer_id=fetch_customer_id(request.user, payment.gateway),
+    )
     ctx = {
         "form": form,
         "payment": payment,

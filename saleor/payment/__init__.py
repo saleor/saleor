@@ -1,5 +1,6 @@
 from enum import Enum
 
+from django.conf import settings
 from django.utils.translation import pgettext_lazy
 
 
@@ -7,6 +8,11 @@ class PaymentError(Exception):
     def __init__(self, message):
         super(PaymentError, self).__init__(message)
         self.message = message
+
+
+GATEWAYS_ENUM = Enum(
+    "GatewaysEnum", {key.upper(): key.lower() for key in settings.PAYMENT_GATEWAYS}
+)
 
 
 class GatewayError(IOError):

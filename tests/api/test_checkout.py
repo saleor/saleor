@@ -398,10 +398,7 @@ def test_checkout_available_payment_gateways(api_client, checkout_with_item, set
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
-    checkout_payment_gateways = [
-        str_to_enum(gateway) for gateway in settings.CHECKOUT_PAYMENT_GATEWAYS.keys()
-    ]
-    assert data["availablePaymentGateways"] == checkout_payment_gateways
+    assert data["availablePaymentGateways"] == ["DUMMY"]
 
 
 def test_checkout_available_shipping_methods(
