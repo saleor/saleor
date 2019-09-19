@@ -615,61 +615,12 @@ BRAINTREE = "braintree"
 RAZORPAY = "razorpay"
 STRIPE = "stripe"
 
-CHECKOUT_PAYMENT_GATEWAYS = {
-    DUMMY: pgettext_lazy("Payment method name", "Dummy gateway")
-}
-
+# TODO: remove this after graphql schema stops generating enum from this
 PAYMENT_GATEWAYS = {
-    DUMMY: {
-        "module": "saleor.payment.gateways.dummy",
-        "config": {
-            "auto_capture": True,
-            "store_card": False,
-            "connection_params": {},
-            "template_path": "order/payment/dummy.html",
-        },
-    },
-    BRAINTREE: {
-        "module": "saleor.payment.gateways.braintree",
-        "config": {
-            "auto_capture": get_bool_from_env("BRAINTREE_AUTO_CAPTURE", True),
-            "store_card": get_bool_from_env("BRAINTREE_STORE_CARD", False),
-            "template_path": "order/payment/braintree.html",
-            "connection_params": {
-                "sandbox_mode": get_bool_from_env("BRAINTREE_SANDBOX_MODE", True),
-                "merchant_id": os.environ.get("BRAINTREE_MERCHANT_ID"),
-                "public_key": os.environ.get("BRAINTREE_PUBLIC_KEY"),
-                "private_key": os.environ.get("BRAINTREE_PRIVATE_KEY"),
-            },
-        },
-    },
-    RAZORPAY: {
-        "module": "saleor.payment.gateways.razorpay",
-        "config": {
-            "store_card": get_bool_from_env("RAZORPAY_STORE_CARD", False),
-            "auto_capture": get_bool_from_env("RAZORPAY_AUTO_CAPTURE", None),
-            "template_path": "order/payment/razorpay.html",
-            "connection_params": {
-                "public_key": os.environ.get("RAZORPAY_PUBLIC_KEY"),
-                "secret_key": os.environ.get("RAZORPAY_SECRET_KEY"),
-                "prefill": get_bool_from_env("RAZORPAY_PREFILL", True),
-                "store_name": os.environ.get("RAZORPAY_STORE_NAME"),
-                "store_image": os.environ.get("RAZORPAY_STORE_IMAGE"),
-            },
-        },
-    },
-    STRIPE: {
-        "module": "saleor.payment.gateways.stripe",
-        "config": {
-            "store_card": get_bool_from_env("STRIPE_STORE_CARD", False),
-            "auto_capture": get_bool_from_env("STRIPE_AUTO_CAPTURE", True),
-            "template_path": "order/payment/stripe.html",
-            "connection_params": {
-                "public_key": os.environ.get("STRIPE_PUBLIC_KEY"),
-                "secret_key": os.environ.get("STRIPE_SECRET_KEY"),
-            },
-        },
-    },
+    DUMMY: {"template_path": "order/payment/dummy.html"},
+    BRAINTREE: {"template_path": "order/payment/braintree.html"},
+    RAZORPAY: {"template_path": "implement_me"},
+    STRIPE: {"template_path": "implement_me"},
 }
 
 GRAPHENE = {

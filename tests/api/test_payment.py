@@ -525,18 +525,8 @@ def set_braintree_customer_id(customer_user, braintree_customer_id):
     return customer_user
 
 
-@pytest.fixture
-def enable_braintree(settings):
-    settings.CHECKOUT_PAYMENT_GATEWAYS = {"braintree": None}
-    return settings
-
-
 def test_list_payment_sources(
-    mocker,
-    enable_braintree,
-    braintree_customer_id,
-    set_braintree_customer_id,
-    user_api_client,
+    mocker, braintree_customer_id, set_braintree_customer_id, user_api_client
 ):
     query = """
     {
