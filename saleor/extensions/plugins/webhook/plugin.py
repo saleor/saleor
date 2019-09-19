@@ -26,9 +26,29 @@ class WebhookPlugin(BasePlugin):
         self._initialize_plugin_configuration()
         if not self.active:
             return previous_value
-        order.lines.prefetch_related("lines")
         order_data = generate_order_payload(order)
         trigger_webhooks_for_event.delay(WebhookEventType.ORDER_CREATED, order_data)
+
+    def order_fully_paid(self, order: "Order", previous_value: Any) -> Any:
+        self._initialize_plugin_configuration()
+        if not self.active:
+            return previous_value
+        order_data = generate_order_payload(order)
+        trigger_webhooks_for_event.delay(WebhookEventType.ORDER_FULLYPAID, order_data)
+
+    def order_updated(self, order: "Order", previous_value: Any) -> Any:
+        self._initialize_plugin_configuration()
+        if not self.active:
+            return previous_value
+        order_data = generate_order_payload(order)
+        trigger_webhooks_for_event.delay(WebhookEventType.ORDER_UPDATED, order_data)
+
+    def order_cancelled(self, order: "Order", previous_value: Any) -> Any:
+        self._initialize_plugin_configuration()
+        if not self.active:
+            return previous_value
+        order_data = generate_order_payload(order)
+        trigger_webhooks_for_event.delay(WebhookEventType.ORDER_CANCELLED, order_data)
 
     def customer_created(self, customer: "User", previous_value: Any) -> Any:
         self._initialize_plugin_configuration()
@@ -39,13 +59,6 @@ class WebhookPlugin(BasePlugin):
         trigger_webhooks_for_event.delay(
             WebhookEventType.CUSTOMER_CREATED, customer_data
         )
-
-    def order_fully_paid(self, order: "Order", previous_value: Any) -> Any:
-        self._initialize_plugin_configuration()
-        if not self.active:
-            return previous_value
-        order_data = generate_order_payload(order)
-        trigger_webhooks_for_event.delay(WebhookEventType.ORDER_FULLYPAID, order_data)
 
     def product_created(self, product: "Product", previous_value: Any) -> Any:
         self._initialize_plugin_configuration()

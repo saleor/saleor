@@ -190,6 +190,14 @@ class ExtensionsManager:
         default_value = None
         return self.__run_method_on_plugins("order_fully_paid", default_value, order)
 
+    def order_updated(self, order: "Order"):
+        default_value = None
+        return self.__run_method_on_plugins("order_updated", default_value, order)
+
+    def order_cancelled(self, order: "Order"):
+        default_value = None
+        return self.__run_method_on_plugins("order_cancelled", default_value, order)
+
     # FIXME these methods should be more generic
     def assign_tax_code_to_object_meta(
         self, obj: Union["Product", "ProductType"], tax_code: str
