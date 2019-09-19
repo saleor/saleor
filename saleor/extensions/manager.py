@@ -221,7 +221,7 @@ class ExtensionsManager(PaymentInterface):
         method_name = "process_payment"
         return self.__run_payment_method(gateway, method_name, payment_information)
 
-    def create_payment_form(self, gateway, data, payment_information):
+    def create_payment_form(self, data, gateway, payment_information):
         method_name = "create_form"
         return self.__run_payment_method(
             gateway, method_name, payment_information, data=data
