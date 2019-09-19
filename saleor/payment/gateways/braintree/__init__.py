@@ -53,7 +53,9 @@ def get_customer_data(payment_information: PaymentData) -> Dict:
             "locality": billing.city,
             "region": billing.country_area,
             "country_code_alpha2": billing.country,
-        },
+        }
+        if billing
+        else {},
         "risk_data": {"customer_ip": payment_information.customer_ip_address or ""},
         "customer": {"email": payment_information.customer_email},
     }
