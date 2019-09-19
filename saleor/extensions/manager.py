@@ -243,7 +243,8 @@ class ExtensionsManager(PaymentInterface):
         return [
             Gateway(plugin.PLUGIN_NAME)
             for plugin in self.plugins
-            if plugin.active and PAYMENT_METHOD in type(plugin).__dict__
+            if PAYMENT_METHOD in type(plugin).__dict__
+            and self.get_plugin_configuration(plugin.PLUGIN_NAME).active
         ]
 
     def __run_payment_method(
