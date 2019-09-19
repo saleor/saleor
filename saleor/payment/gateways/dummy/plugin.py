@@ -139,5 +139,5 @@ class DummyGatewayPlugin(BasePlugin):
         return create_form(data, payment_information, {})
 
     @require_active_plugin
-    def get_client_token(self, payment_information, previous_value):
+    def get_client_token(self, token_config, previous_value):
         return get_client_token()

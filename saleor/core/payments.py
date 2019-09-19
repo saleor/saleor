@@ -3,7 +3,12 @@ from enum import Enum
 from typing import TYPE_CHECKING, List
 
 if TYPE_CHECKING:
-    from saleor.payment.interface import PaymentData, GatewayResponse, CustomerSource
+    from saleor.payment.interface import (
+        PaymentData,
+        GatewayResponse,
+        CustomerSource,
+        TokenConfig,
+    )
 
 
 class Gateway(Enum):
@@ -66,9 +71,7 @@ class PaymentInterface(ABC):
         pass
 
     @abstractmethod
-    def get_client_token(
-        self, gateway: Gateway, payment_information: "PaymentData"
-    ) -> str:
+    def get_client_token(self, gateway: Gateway, token_config: "TokenConfig") -> str:
         pass
 
     @abstractmethod
