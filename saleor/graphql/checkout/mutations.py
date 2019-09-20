@@ -92,7 +92,7 @@ def update_checkout_shipping_method_if_invalid(checkout: models.Checkout, discou
 def check_lines_quantity(variants, quantities):
     """Check if stock is sufficient for each line in the list of dicts."""
     for variant, quantity in zip(variants, quantities):
-        if quantity < 1:
+        if quantity < 0:
             raise ValidationError(
                 {
                     "quantity": ValidationError(
