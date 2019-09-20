@@ -38,24 +38,29 @@ ERROR_CODES_WHITELIST = {
 }
 
 
+def get_billing_data(payment_information: PaymentData) -> Dict:
+    billing = {}
+    if payment_information.billing:
+        billing_info = payment_information.billing
+        billing = {
+            "first_name": billing_info.first_name,
+            "last_name": billing_info.last_name,
+            "company": billing_info.company_name,
+            "postal_code": billing_info.postal_code,
+            "street_address": billing_info.street_address_1,
+            "extended_address": billing_info.street_address_2,
+            "locality": billing_info.city,
+            "region": billing_info.country_area,
+            "country_code_alpha2": billing_info.country,
+        }
+    return billing
+
+
 def get_customer_data(payment_information: PaymentData) -> Dict:
     """Provide customer info, use only for new customer creation."""
-    billing = payment_information.billing
     return {
         "order_id": payment_information.order_id,
-        "billing": {
-            "first_name": billing.first_name,
-            "last_name": billing.last_name,
-            "company": billing.company_name,
-            "postal_code": billing.postal_code,
-            "street_address": billing.street_address_1,
-            "extended_address": billing.street_address_2,
-            "locality": billing.city,
-            "region": billing.country_area,
-            "country_code_alpha2": billing.country,
-        }
-        if billing
-        else {},
+        "billing": get_billing_data(payment_information),
         "risk_data": {"customer_ip": payment_information.customer_ip_address or ""},
         "customer": {"email": payment_information.customer_email},
     }
