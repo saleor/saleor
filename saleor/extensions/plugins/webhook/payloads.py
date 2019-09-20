@@ -24,6 +24,7 @@ ADDRESS_FIELDS = (
 
 def generate_order_payload(order: "Order"):
     serializer = WebhookSerializer()
+    fulfillment_fields = ("status", "tracking_number", "shipping_date")
     payment_fields = (
         "gateway"
         "is_active"
@@ -80,6 +81,7 @@ def generate_order_payload(order: "Order"):
             "payments": (lambda o: o.payments.all(), payment_fields),
             "shipping_address": (lambda o: o.shipping_address, ADDRESS_FIELDS),
             "billing_address": (lambda o: o.billing_address, ADDRESS_FIELDS),
+            "fulfillments": (lambda o: o.fulfillments.all(), fulfillment_fields),
         },
     )
     return order_data
