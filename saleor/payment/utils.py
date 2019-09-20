@@ -253,7 +253,7 @@ def gateway_postprocess(transaction, payment):
     transaction_kind = transaction.kind
 
     if transaction_kind in {TransactionKind.CAPTURE, TransactionKind.CONFIRM}:
-        payment.captured_amount += Decimal(transaction.amount)
+        payment.captured_amount += transaction.amount
 
         # Set payment charge status to fully charged
         # only if there is no more amount needs to charge

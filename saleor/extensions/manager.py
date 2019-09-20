@@ -244,11 +244,11 @@ class ExtensionsManager(PaymentInterface):
         raise Exception(f"Payment plugin {gateway_name} is inaccessible!")
 
     def list_payment_gateways(self) -> List[Gateway]:
-        PAYMENT_METHOD = "process_payment"
+        payment_method = "process_payment"
         return [
             Gateway(plugin.PLUGIN_NAME)
             for plugin in self.plugins
-            if PAYMENT_METHOD in type(plugin).__dict__
+            if payment_method in type(plugin).__dict__
             and self.get_plugin_configuration(plugin.PLUGIN_NAME).active
         ]
 
