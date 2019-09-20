@@ -1,3 +1,4 @@
+from copy import copy
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, List, Union
 
@@ -221,12 +222,30 @@ class BasePlugin:
     @classmethod
     def _append_config_structure(cls, configuration):
         config_structure = getattr(cls, "CONFIG_STRUCTURE") or {}
-        for coniguration_field in configuration:
+        for configuration_field in configuration:
 
-            structure_to_add = config_structure.get(coniguration_field.get("name"))
+            structure_to_add = config_structure.get(configuration_field.get("name"))
             if structure_to_add:
-                coniguration_field.update(structure_to_add)
+                configuration_field.update(structure_to_add)
         return config_structure
+
+    @classmethod
+    def _update_configuration_structure(cls, configuration):
+        config_structure = getattr(cls, "CONFIG_STRUCTURE") or {}
+        desired_config_keys = set(config_structure.keys())
+
+        config = configuration.configuration or []
+        configured_keys = set(d["name"] for d in config)
+        missing_keys = desired_config_keys - configured_keys
+
+        if not missing_keys:
+            return
+
+        default_config = cls._get_default_configuration()["configuration"]
+        update_values = [copy(k) for k in default_config if k["name"] in missing_keys]
+        config.extend(update_values)
+
+        configuration.save(update_fields=["configuration"])
 
     @classmethod
     def get_plugin_configuration(cls, queryset: QuerySet) -> "PluginConfiguration":
@@ -234,6 +253,7 @@ class BasePlugin:
         configuration = queryset.get_or_create(name=cls.PLUGIN_NAME, defaults=defaults)[
             0
         ]
+        cls._update_configuration_structure(configuration)
         if configuration.configuration:
             # Let's add a translated descriptions and labels
             cls._append_config_structure(configuration.configuration)
