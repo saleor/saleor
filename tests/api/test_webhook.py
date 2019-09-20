@@ -342,6 +342,44 @@ def test_query_webhooks_by_staff_without_permission(staff_api_client, webhook):
     assert_no_permission(response)
 
 
+def test_query_webhooks_by_service_account(service_account_api_client, webhook):
+    second_sa = ServiceAccount.objects.create(
+        name="Sample service account", is_active=True
+    )
+    second_webhook = Webhook.objects.create(
+        service_account=second_sa, target_url="http://www.example.com/test"
+    )
+    second_webhook.events.create(event_type="order_created")
+
+    query = QUERY_WEBHOOKS
+    response = service_account_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    webhooks = content["data"]["webhooks"]["edges"]
+    assert len(webhooks) == 1
+    webhook_data = webhooks[0]
+    webhook_id = webhook_data["node"]["id"]
+    _, webhook_id = graphene.Node.from_global_id(webhook_id)
+    assert webhook_id == str(webhook.id)
+
+
+def test_query_webhooks_by_service_account_without_permissions(
+    service_account_api_client
+):
+    second_sa = ServiceAccount.objects.create(
+        name="Sample service account", is_active=True
+    )
+    second_webhook = Webhook.objects.create(
+        service_account=second_sa, target_url="http://www.example.com/test"
+    )
+    second_webhook.events.create(event_type="order_created")
+
+    query = QUERY_WEBHOOKS
+    response = service_account_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    webhooks = content["data"]["webhooks"]["edges"]
+    assert len(webhooks) == 0
+
+
 QUERY_WEBHOOK = """
     query webhook($id: ID!){
       webhook(id: $id){
@@ -378,3 +416,39 @@ def test_query_webhook_by_staff_without_permission(staff_api_client, webhook):
     variables = {"id": webhook_id}
     response = staff_api_client.post_graphql(query, variables=variables)
     assert_no_permission(response)
+
+
+def test_query_webhook_by_service_account(service_account_api_client, webhook):
+    query = QUERY_WEBHOOK
+
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
+    variables = {"id": webhook_id}
+    response = service_account_api_client.post_graphql(query, variables=variables)
+
+    content = get_graphql_content(response)
+    webhook_response = content["data"]["webhook"]
+    assert webhook_response["id"] == webhook_id
+    assert webhook_response["isActive"] == webhook.is_active
+    events = webhook.events.all()
+    assert len(events) == 1
+    assert events[0].event_type == WebhookEventTypeEnum.ORDER_CREATED.value
+
+
+def test_query_webhook_by_service_account_without_permission(
+    service_account_api_client
+):
+    second_sa = ServiceAccount.objects.create(
+        name="Sample service account", is_active=True
+    )
+    webhook = Webhook.objects.create(
+        service_account=second_sa, target_url="http://www.example.com/test"
+    )
+    webhook.events.create(event_type="order_created")
+
+    query = QUERY_WEBHOOK
+    webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
+    variables = {"id": webhook_id}
+    response = service_account_api_client.post_graphql(query, variables=variables)
+    content = get_graphql_content(response)
+    webhook_response = content["data"]["webhook"]
+    assert webhook_response is None

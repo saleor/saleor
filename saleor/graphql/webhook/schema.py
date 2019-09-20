@@ -1,9 +1,8 @@
 import graphene
 
 from ..core.fields import PrefetchingConnectionField
-from ..decorators import permission_required
 from .mutations import WebhookCreate, WebhookDelete, WebhookUpdate
-from .resolvers import resolve_webhooks
+from .resolvers import resolve_webhook, resolve_webhooks
 from .types import Webhook
 
 
@@ -15,13 +14,11 @@ class WebhookQueries(graphene.ObjectType):
     )
     webhooks = PrefetchingConnectionField(Webhook, description="List of webhooks")
 
-    @permission_required("webhook.manage_webhooks")
-    def resolve_webhooks(self, _info, **_kwargs):
-        return resolve_webhooks()
+    def resolve_webhooks(self, info, **_kwargs):
+        return resolve_webhooks(info)
 
-    @permission_required("webhook.manage_webhooks")
     def resolve_webhook(self, info, **data):
-        return graphene.Node.get_node_from_global_id(info, data["id"], Webhook)
+        return resolve_webhook(info, data["id"])
 
 
 class WebhookMutations(graphene.ObjectType):
