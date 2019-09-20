@@ -3811,8 +3811,13 @@ type WebhookEvent {
 }
 
 enum WebhookEventTypeEnum {
+  ALL_EVENTS
   ORDER_CREATED
+  ORDER_FULLY_PAID
+  ORDER_UPDATED
+  ORDER_CANCELLED
   CUSTOMER_CREATED
+  PRODUCT_CREATED
 }
 
 type WebhookUpdate {
