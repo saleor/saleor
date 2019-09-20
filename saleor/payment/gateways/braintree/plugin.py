@@ -20,7 +20,8 @@ from . import (
 GATEWAY_NAME = "braintree"
 
 if TYPE_CHECKING:
-    from . import GatewayResponse, PaymentData, CustomerSource
+    from . import GatewayResponse, PaymentData, TokenConfig
+    from django import forms
 
 
 def require_active_plugin(fn):
@@ -88,11 +89,6 @@ class BraintreeGatewayPlugin(BasePlugin):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.config = None
-
-    @classmethod
-    def _get_default_configuration(cls):
-        defaults = None
-        return defaults
 
     def _initialize_plugin_configuration(self):
         super()._initialize_plugin_configuration()
@@ -173,9 +169,11 @@ class BraintreeGatewayPlugin(BasePlugin):
         return previous_value
 
     @require_active_plugin
-    def create_form(self, data, payment_information, previous_value) -> "forms.Form":
+    def create_form(
+        self, data, payment_information: "PaymentData", previous_value
+    ) -> "forms.Form":
         return create_form(data, payment_information)
 
     @require_active_plugin
-    def get_client_token(self, token_config, previous_value):
+    def get_client_token(self, token_config: "TokenConfig", previous_value):
         return get_client_token(self._get_gateway_config(), token_config)

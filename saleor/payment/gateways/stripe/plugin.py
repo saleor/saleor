@@ -18,7 +18,7 @@ from . import (
 GATEWAY_NAME = "stripe"
 
 if TYPE_CHECKING:
-    from . import GatewayResponse, PaymentData, CustomerSource
+    from . import GatewayResponse, PaymentData
 
 
 def require_active_plugin(fn):

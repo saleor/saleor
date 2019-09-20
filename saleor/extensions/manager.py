@@ -16,12 +16,7 @@ if TYPE_CHECKING:
     from ..product.models import Product
     from ..account.models import Address
     from ..order.models import OrderLine, Order
-    from ..payment.interface import (
-        PaymentData,
-        GatewayResponse,
-        CustomerSource,
-        TokenConfig,
-    )
+    from ..payment.interface import PaymentData, GatewayResponse, TokenConfig
 
 
 class ExtensionsManager(PaymentInterface):

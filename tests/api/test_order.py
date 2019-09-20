@@ -1,6 +1,6 @@
 import uuid
 from datetime import date, timedelta
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import MagicMock, Mock
 
 import graphene
 import pytest

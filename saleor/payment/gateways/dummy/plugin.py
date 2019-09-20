@@ -20,7 +20,8 @@ from . import (
 GATEWAY_NAME = "dummy"
 
 if TYPE_CHECKING:
-    from ...interface import GatewayResponse, PaymentData
+    from ...interface import GatewayResponse, PaymentData, TokenConfig
+    from django import forms
 
 
 def require_active_plugin(fn):
@@ -139,5 +140,5 @@ class DummyGatewayPlugin(BasePlugin):
         return create_form(data, payment_information, {})
 
     @require_active_plugin
-    def get_client_token(self, token_config, previous_value):
+    def get_client_token(self, token_config: "TokenConfig", previous_value):
         return get_client_token()
