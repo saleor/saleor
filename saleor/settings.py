@@ -619,8 +619,8 @@ STRIPE = "stripe"
 PAYMENT_GATEWAYS = {
     DUMMY: {"template_path": "order/payment/dummy.html"},
     BRAINTREE: {"template_path": "order/payment/braintree.html"},
-    RAZORPAY: {"template_path": "implement_me"},
-    STRIPE: {"template_path": "implement_me"},
+    RAZORPAY: {"template_path": "order/payment/razorpay.html"},
+    STRIPE: None,
 }
 
 GRAPHENE = {
