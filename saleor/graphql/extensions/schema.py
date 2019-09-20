@@ -1,8 +1,8 @@
 import graphene
 
 from ..core.fields import FilterInputConnectionField
-from .filters import PluginFilterInput
 from ..decorators import permission_required
+from .filters import PluginFilterInput
 from .mutations import PluginUpdate
 from .resolvers import resolve_plugin, resolve_plugins
 from .types import Plugin

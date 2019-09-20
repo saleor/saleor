@@ -4,15 +4,9 @@ from django.core.exceptions import ValidationError
 
 from ...core.taxes import zero_taxed_money
 from ...core.utils import get_client_ip
-from ...payment import PaymentError, models
+from ...payment import PaymentError, gateway, models
 from ...payment.error_codes import PaymentErrorCode
-from ...payment.utils import (
-    create_payment,
-    gateway_capture,
-    gateway_confirm,
-    gateway_refund,
-    gateway_void,
-)
+from ...payment.utils import create_payment
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..checkout.types import Checkout
@@ -143,7 +137,7 @@ class PaymentCapture(BaseMutation):
             info, payment_id, field="payment_id", only_type=Payment
         )
         try:
-            gateway_capture(payment, amount)
+            gateway.capture(payment, amount)
         except PaymentError as e:
             raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)
         return PaymentCapture(payment=payment)
@@ -162,7 +156,7 @@ class PaymentRefund(PaymentCapture):
             info, payment_id, field="payment_id", only_type=Payment
         )
         try:
-            gateway_refund(payment, amount=amount)
+            gateway.refund(payment, amount=amount)
         except PaymentError as e:
             raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)
         return PaymentRefund(payment=payment)
@@ -186,7 +180,7 @@ class PaymentVoid(BaseMutation):
             info, payment_id, field="payment_id", only_type=Payment
         )
         try:
-            gateway_void(payment)
+            gateway.void(payment)
         except PaymentError as e:
             raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)
         return PaymentVoid(payment=payment)
@@ -209,7 +203,7 @@ class PaymentSecureConfirm(BaseMutation):
             info, payment_id, field="payment_id", only_type=Payment
         )
         try:
-            gateway_confirm(payment)
+            gateway.confirm(payment)
         except PaymentError as e:
             raise ValidationError(str(e), code=PaymentErrorCode.PAYMENT_ERROR)
         return PaymentSecureConfirm(payment=payment)

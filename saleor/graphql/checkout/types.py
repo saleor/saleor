@@ -1,10 +1,10 @@
 import graphene
 import graphene_django_optimizer as gql_optimizer
-from django.conf import settings
 
 from ...checkout import models
 from ...checkout.utils import get_valid_shipping_methods_for_checkout
 from ...core.taxes import zero_taxed_money
+from ...extensions.manager import get_extensions_manager
 from ..core.connection import CountableDjangoObjectType
 from ..core.resolvers import resolve_meta, resolve_private_meta
 from ..core.types.meta import MetadataObjectType
@@ -160,7 +160,7 @@ class Checkout(MetadataObjectType, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_available_payment_gateways(_: models.Checkout, _info):
-        return settings.CHECKOUT_PAYMENT_GATEWAYS.keys()
+        return [gtw for gtw in get_extensions_manager().list_payment_gateways()]
 
     @staticmethod
     def resolve_gift_cards(root: models.Checkout, _info):
