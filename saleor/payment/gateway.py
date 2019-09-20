@@ -11,11 +11,11 @@ from ..payment.interface import TokenConfig
 from . import GatewayError, PaymentError, TransactionKind
 from .models import Payment, Transaction
 from .utils import (
-    gateway_postprocess,
     clean_authorize,
     clean_capture,
     create_payment_information,
     create_transaction,
+    gateway_postprocess,
     update_card_details,
     validate_gateway_response,
 )

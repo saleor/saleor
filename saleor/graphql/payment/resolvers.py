@@ -1,9 +1,7 @@
 import graphene_django_optimizer as gql_optimizer
 
-
 from ...core.payments import Gateway
-from ...payment import models
-from ...payment import gateway as payment_gateway
+from ...payment import gateway as payment_gateway, models
 from ...payment.utils import fetch_customer_id
 from ..utils import filter_by_query_param
 

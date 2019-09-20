@@ -11,11 +11,10 @@ from django.urls import reverse
 from django.utils.translation import pgettext_lazy
 from django.views.decorators.csrf import csrf_exempt
 
-
 from ..account.forms import LoginForm
 from ..account.models import User
-from ..core.utils import get_client_ip
 from ..core.payments import Gateway
+from ..core.utils import get_client_ip
 from ..payment import ChargeStatus, TransactionKind, gateway as payment_gateway
 from ..payment.utils import create_payment, fetch_customer_id
 from . import FulfillmentStatus

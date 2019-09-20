@@ -4,8 +4,8 @@ import graphene
 import pytest
 from prices import TaxedMoney
 
-from saleor.core.utils import get_country_name_by_code
 from saleor.core.payments import Gateway
+from saleor.core.utils import get_country_name_by_code
 from saleor.graphql.payment.enums import (
     OrderAction,
     PaymentChargeStatusEnum,

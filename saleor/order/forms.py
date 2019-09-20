@@ -1,6 +1,6 @@
 from django import forms
-from django.utils.translation import pgettext_lazy
 from django.utils.functional import lazy
+from django.utils.translation import pgettext_lazy
 
 from ..account.forms import SignupForm
 from ..payment import gateway
