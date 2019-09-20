@@ -4,7 +4,7 @@ from ..core.fields import PrefetchingConnectionField
 from ..decorators import permission_required
 from .enums import PaymentGatewayEnum
 from .mutations import PaymentCapture, PaymentRefund, PaymentSecureConfirm, PaymentVoid
-from .resolvers import resolve_payments, resolve_client_token
+from .resolvers import resolve_client_token, resolve_payments
 from .types import Payment
 
 
