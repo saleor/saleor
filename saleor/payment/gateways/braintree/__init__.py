@@ -1,4 +1,3 @@
-import logging
 from typing import Dict, List
 
 import braintree as braintree_sdk
@@ -17,14 +16,7 @@ from ...interface import (
 from .errors import DEFAULT_ERROR_MESSAGE, BraintreeException
 from .forms import BraintreePaymentForm
 
-logger = logging.getLogger(__name__)
-
-
 # FIXME: Move to SiteSettings
-
-# If this option is checked, then one needs to authorize the amount paid
-# manually via the Braintree Dashboard
-CONFIRM_MANUALLY = False
 THREE_D_SECURE_REQUIRED = False
 
 # Error codes whitelist should be a dict of code: error_msg_override
