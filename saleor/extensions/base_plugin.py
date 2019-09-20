@@ -13,6 +13,7 @@ if TYPE_CHECKING:
     from ..product.models import Product
     from ..account.models import Address
     from ..order.models import OrderLine, Order
+    from ..payment.interface import GatewayResponse, PaymentData
 
 
 class BasePlugin:
@@ -134,6 +135,42 @@ class BasePlugin:
     def get_tax_rate_percentage_value(
         self, obj: Union["Product", "ProductType"], country: Country, previous_value
     ) -> Decimal:
+        return NotImplemented
+
+    def authorize_payment(
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
+        return NotImplemented
+
+    def capture_payment(
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
+        return NotImplemented
+
+    def refund_payment(
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
+        return NotImplemented
+
+    def confirm_payment(
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
+        return NotImplemented
+
+    def process_payment(
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
+        return NotImplemented
+
+    def list_payment_sources(
+        self, customer_id: str, previous_value
+    ) -> List["CustomerSource"]:
+        return NotImplemented
+
+    def create_form(self, data, payment_information, previous_value):
+        return NotImplemented
+
+    def get_client_token(self, token_config, previous_value):
         return NotImplemented
 
     @classmethod

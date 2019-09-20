@@ -5,6 +5,7 @@ import pytest
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
+from saleor.core.payments import Gateway
 from saleor.core.taxes import TaxType
 from saleor.extensions.base_plugin import BasePlugin
 from saleor.extensions.manager import ExtensionsManager, get_extensions_manager
@@ -76,6 +77,16 @@ class SamplePlugin(BasePlugin):
 
 class SamplePlugin1(BasePlugin):
     PLUGIN_NAME = "Sample Plugin1"
+
+    @classmethod
+    def _get_default_configuration(cls):
+        defaults = {
+            "name": "Sample Plugin1",
+            "description": "",
+            "active": False,
+            "configuration": None,
+        }
+        return defaults
 
 
 def test_get_extensions_manager():
@@ -281,3 +292,49 @@ def test_manager_save_plugin_configuration():
     manager.save_plugin_configuration("Sample Plugin", {"active": False})
     configuration.refresh_from_db()
     assert not configuration.active
+
+
+class ActivePaymentGateway(BasePlugin):
+    PLUGIN_NAME = "braintree"
+
+    @classmethod
+    def _get_default_configuration(cls):
+        defaults = {
+            "name": "braintree",
+            "description": "",
+            "active": True,
+            "configuration": None,
+        }
+        return defaults
+
+    def process_payment(self, payment_information, previous_value):
+        pass
+
+
+class InactivePaymentGateway(BasePlugin):
+    PLUGIN_NAME = "stripe"
+
+    @classmethod
+    def _get_default_configuration(cls):
+        defaults = {
+            "name": "stripe",
+            "description": "",
+            "active": False,
+            "configuration": None,
+        }
+        return defaults
+
+    def process_payment(self, payment_information, previous_value):
+        pass
+
+
+def test_manager_serve_list_of_payment_gateways():
+    plugins = [
+        "tests.extensions.test_manager.SamplePlugin",
+        "tests.extensions.test_manager.ActivePaymentGateway",
+        "tests.extensions.test_manager.InactivePaymentGateway",
+    ]
+    manager = ExtensionsManager(plugins=plugins)
+    assert manager.list_payment_gateways() == [
+        Gateway(ActivePaymentGateway.PLUGIN_NAME)
+    ]

@@ -29,13 +29,6 @@ if "sqlite" in DATABASES["default"]["ENGINE"]:  # noqa
         "MIRROR": None,
     }
 
-CHECKOUT_PAYMENT_GATEWAYS = {
-    DUMMY: "Dummy gateway",
-    BRAINTREE: "Braintree",
-    RAZORPAY: "Razorpay",
-    STRIPE: "Stripe",
-}
-
 COUNTRIES_ONLY = None
 
 MEDIA_ROOT = None

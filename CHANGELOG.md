@@ -70,6 +70,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add translations to countries in shop query - #4732 by @fowczarek
 - Added validations for minimum password length in settings - #4735 by @fowczarek
 - Add error codes to mutations responses - #4676 by @Kwaidan00
+- Payment gateways are now saleor plugins with dynamic configuration - #4669 by @salwator
 
 ## 2.8.0
 

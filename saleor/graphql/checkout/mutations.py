@@ -29,9 +29,9 @@ from ...core import analytics
 from ...core.exceptions import InsufficientStock
 from ...core.taxes import TaxError
 from ...discount import models as voucher_model
-from ...payment import PaymentError
+from ...payment import PaymentError, gateway
 from ...payment.interface import AddressData
-from ...payment.utils import gateway_process_payment, store_customer_id
+from ...payment.utils import store_customer_id
 from ...product import models as product_models
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, User
@@ -678,12 +678,8 @@ class CheckoutComplete(BaseMutation):
             shipping_address = AddressData(**shipping_address.as_data())
 
         try:
-            txn = gateway_process_payment(
-                payment=payment,
-                payment_token=payment.token,
-                billing_address=billing_address,
-                shipping_address=shipping_address,
-                store_source=store_source,
+            txn = gateway.process_payment(
+                payment=payment, token=payment.token, store_source=store_source
             )
 
             if not txn.is_success:

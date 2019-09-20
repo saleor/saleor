@@ -10,14 +10,8 @@ from ....order.utils import (
     get_valid_shipping_methods_for_order,
     recalculate_order,
 )
-from ....payment import CustomPaymentChoices, PaymentError
-from ....payment.utils import (
-    clean_mark_order_as_paid,
-    gateway_capture,
-    gateway_refund,
-    gateway_void,
-    mark_order_as_paid,
-)
+from ....payment import CustomPaymentChoices, PaymentError, gateway
+from ....payment.utils import clean_mark_order_as_paid, mark_order_as_paid
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation
 from ...core.scalars import Decimal
@@ -352,7 +346,7 @@ class OrderCapture(BaseMutation):
         clean_order_capture(payment)
 
         try_payment_action(
-            order, info.context.user, payment, gateway_capture, payment, amount
+            order, info.context.user, payment, gateway.capture, payment, amount
         )
 
         events.payment_captured_event(
@@ -379,7 +373,7 @@ class OrderVoid(BaseMutation):
         payment = order.get_last_payment()
         clean_void_payment(payment)
 
-        try_payment_action(order, info.context.user, payment, gateway_void, payment)
+        try_payment_action(order, info.context.user, payment, gateway.void, payment)
 
         events.payment_voided_event(
             order=order, user=info.context.user, payment=payment
@@ -417,7 +411,7 @@ class OrderRefund(BaseMutation):
         clean_refund_payment(payment)
 
         try_payment_action(
-            order, info.context.user, payment, gateway_refund, payment, amount
+            order, info.context.user, payment, gateway.refund, payment, amount
         )
 
         events.payment_refunded_event(

@@ -1,5 +1,6 @@
 import logging
 
+from django.conf import settings
 from django.contrib import auth, messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
@@ -12,13 +13,10 @@ from django.views.decorators.csrf import csrf_exempt
 
 from ..account.forms import LoginForm
 from ..account.models import User
+from ..core.payments import Gateway
 from ..core.utils import get_client_ip
-from ..payment import ChargeStatus, TransactionKind, get_payment_gateway
-from ..payment.utils import (
-    create_payment,
-    create_payment_information,
-    gateway_process_payment,
-)
+from ..payment import ChargeStatus, TransactionKind, gateway as payment_gateway
+from ..payment.utils import create_payment, fetch_customer_id
 from . import FulfillmentStatus
 from .forms import CustomerNoteForm, PasswordForm, PaymentDeleteForm, PaymentsForm
 from .models import Order
@@ -92,8 +90,6 @@ def payment(request, token):
 
 @check_order_status
 def start_payment(request, order, gateway):
-    payment_gateway, gateway_config = get_payment_gateway(gateway)
-    connection_params = gateway_config.connection_params
     extra_data = {"customer_user_agent": request.META.get("HTTP_USER_AGENT")}
     with transaction.atomic():
         payment = create_payment(
@@ -113,16 +109,11 @@ def start_payment(request, order, gateway):
         ):
             return redirect(order.get_absolute_url())
 
-        payment_info = create_payment_information(payment)
-        form = payment_gateway.create_form(
-            data=request.POST or None,
-            payment_information=payment_info,
-            connection_params=connection_params,
-        )
+        form = payment_gateway.create_payment_form(payment, data=request.POST or None)
         if form.is_valid():
             try:
-                gateway_process_payment(
-                    payment=payment, payment_token=form.get_payment_token()
+                payment_gateway.process_payment(
+                    payment=payment, token=form.get_payment_token()
                 )
             except Exception as exc:
                 form.add_error(None, str(exc))
@@ -131,14 +122,18 @@ def start_payment(request, order, gateway):
                     return redirect("order:payment-success", token=order.token)
                 return redirect(order.get_absolute_url())
 
-    client_token = payment_gateway.get_client_token(config=gateway_config)
+    client_token = payment_gateway.get_client_token(
+        Gateway(payment.gateway),
+        customer_id=fetch_customer_id(request.user, payment.gateway),
+    )
     ctx = {
         "form": form,
         "payment": payment,
         "client_token": client_token,
         "order": order,
     }
-    return TemplateResponse(request, gateway_config.template_path, ctx)
+    template_path = settings.PAYMENT_GATEWAYS[gateway]["template_path"]
+    return TemplateResponse(request, template_path, ctx)
 
 
 @check_order_status
