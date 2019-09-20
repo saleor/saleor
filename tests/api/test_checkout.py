@@ -171,11 +171,6 @@ def test_checkout_create(api_client, variant, graphql_address_data):
             CheckoutErrorCode.ZERO_QUANTITY,
         ),
         (
-            0,
-            "The quantity should be higher than zero.",
-            CheckoutErrorCode.ZERO_QUANTITY,
-        ),
-        (
             51,
             "Cannot add more than 50 times this item.",
             CheckoutErrorCode.QUANTITY_GREATER_THAN_LIMIT,
@@ -712,6 +707,36 @@ def test_checkout_line_delete(
     content = get_graphql_content(response)
 
     data = content["data"]["checkoutLineDelete"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.lines.count() == 0
+    mocked_update_shipping_method.assert_called_once_with(checkout, mock.ANY)
+
+
+@mock.patch(
+    "saleor.graphql.checkout.mutations.update_checkout_shipping_method_if_invalid",
+    wraps=update_checkout_shipping_method_if_invalid,
+)
+def test_checkout_line_delete_by_zero_quantity(
+    mocked_update_shipping_method, user_api_client, checkout_with_item
+):
+    checkout = checkout_with_item
+    assert checkout.lines.count() == 1
+    line = checkout.lines.first()
+    variant = line.variant
+    assert line.quantity == 3
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    variables = {
+        "checkoutId": checkout_id,
+        "lines": [{"variantId": variant_id, "quantity": 0}],
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
+    content = get_graphql_content(response)
+
+    data = content["data"]["checkoutLinesUpdate"]
     assert not data["errors"]
     checkout.refresh_from_db()
     assert checkout.lines.count() == 0
