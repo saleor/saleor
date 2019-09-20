@@ -274,7 +274,8 @@ class ExtensionsManager(PaymentInterface):
                 return resp
 
         raise Exception(
-            f"Payment plugin {gateway_name} for {method_name} payment method is inaccessible!"
+            f"Payment plugin {gateway_name} for {method_name}"
+            " payment method is inaccessible!"
         )
 
     # FIXME these methods should be more generic
