@@ -140,43 +140,38 @@ class BasePlugin:
     def authorize_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
-        pass
+        return NotImplemented
 
     def capture_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
-        pass
+        return NotImplemented
 
     def refund_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
-        pass
-
-    def void_payment(
-        self, payment_information: "PaymentData", previous_value
-    ) -> "GatewayResponse":
-        pass
+        return NotImplemented
 
     def confirm_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
-        pass
+        return NotImplemented
 
     def process_payment(
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
-        pass
+        return NotImplemented
 
     def list_payment_sources(
         self, customer_id: str, previous_value
     ) -> List["CustomerSource"]:
-        pass
+        return NotImplemented
 
     def create_form(self, data, payment_information, previous_value):
-        pass
+        return NotImplemented
 
     def get_client_token(self, token_config, previous_value):
-        pass
+        return NotImplemented
 
     @classmethod
     def _update_config_items(
