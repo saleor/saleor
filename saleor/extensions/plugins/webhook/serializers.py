@@ -49,7 +49,9 @@ class WebhookSerializer(JSONSerializer):
         python_serializer = PythonSerializer()
         for field_name, (qs, fields) in self.additional_fields.items():
             data_to_serialize = qs(obj)
-            if isinstance(data_to_serialize, Iterable):
+            if not data_to_serialize:
+                data[field_name] = None
+            elif isinstance(data_to_serialize, Iterable):
                 data[field_name] = python_serializer.serialize(
                     data_to_serialize, fields=fields
                 )
