@@ -263,15 +263,19 @@ class ExtensionsManager(PaymentInterface):
         gateway_name = gateway.value
         gtw = self.get_plugin(gateway_name)
         if gtw is not None:
-            return self.__run_method_on_single_plugin(
+            resp = self.__run_method_on_single_plugin(
                 gtw,
                 method_name,
-                default_value,
+                previous_value=default_value,
                 payment_information=payment_information,
                 **kwargs,
             )
+            if resp is not None:
+                return resp
 
-        raise Exception(f"Payment plugin {gateway_name} is inaccessible!")
+        raise Exception(
+            f"Payment plugin {gateway_name} for {method_name} payment method is inaccessible!"
+        )
 
     # FIXME these methods should be more generic
 
