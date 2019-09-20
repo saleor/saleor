@@ -3,7 +3,6 @@ from decimal import Decimal
 import pytest
 
 from saleor.payment import ChargeStatus, PaymentError, TransactionKind, gateway
-from saleor.payment.utils import create_payment_information
 
 
 @pytest.fixture(autouse=True)

@@ -1,6 +1,5 @@
 import graphene
 import graphene_django_optimizer as gql_optimizer
-from django.conf import settings
 
 from ...checkout import models
 from ...checkout.utils import get_valid_shipping_methods_for_checkout

@@ -16,11 +16,9 @@ from saleor.graphql.checkout.mutations import (
     clean_shipping_method,
     update_checkout_shipping_method_if_invalid,
 )
-from saleor.graphql.core.utils import str_to_enum
 from saleor.order.models import Order
 from saleor.payment import TransactionKind
 from saleor.payment.interface import GatewayResponse
-from saleor.payment.models import Transaction
 from saleor.shipping import ShippingMethodType
 from saleor.shipping.models import ShippingMethod
 from tests.api.utils import get_graphql_content

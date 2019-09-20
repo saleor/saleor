@@ -3,7 +3,6 @@ from django.utils.translation import pgettext_lazy
 from django.utils.functional import lazy
 
 from ..account.forms import SignupForm
-from ..extensions.manager import get_extensions_manager
 from ..payment import gateway
 from ..payment.models import Payment
 from . import events

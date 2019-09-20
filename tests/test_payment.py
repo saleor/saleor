@@ -2,7 +2,6 @@ from decimal import Decimal
 from unittest.mock import Mock, patch
 
 import pytest
-from django.core.exceptions import ImproperlyConfigured
 from prices import Money, TaxedMoney
 
 from saleor.order import OrderStatus
@@ -10,17 +9,11 @@ from saleor.order.events import OrderEvents, OrderEventsEmails
 from saleor.payment import (
     ChargeStatus,
     GatewayError,
-    OperationType,
     PaymentError,
     TransactionKind,
     gateway,
 )
-from saleor.payment.interface import (
-    CreditCardInfo,
-    GatewayConfig,
-    GatewayResponse,
-    TokenConfig,
-)
+from saleor.payment.interface import CreditCardInfo, GatewayConfig, GatewayResponse
 from saleor.payment.models import Payment
 from saleor.payment.utils import (
     ALLOWED_GATEWAY_KINDS,
