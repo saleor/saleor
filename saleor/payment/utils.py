@@ -117,7 +117,9 @@ def handle_fully_paid_order(order):
     except Exception:
         # Analytics failing should not abort the checkout flow
         logger.exception("Recording order in analytics failed")
-    get_extensions_manager().order_fully_paid(order)
+    manager = get_extensions_manager()
+    manager.order_fully_paid(order)
+    manager.order_updated(order)
 
 
 def require_active_payment(view):

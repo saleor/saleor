@@ -241,6 +241,7 @@ class OrderCancel(BaseMutation):
         clean_order_cancel(order)
         cancel_order(user=info.context.user, order=order, restock=restock)
         info.context.extensions.order_cancelled(order)
+        info.context.extensions.order_updated(order)
         return OrderCancel(order=order)
 
 
