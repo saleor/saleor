@@ -2,7 +2,7 @@ from django.utils.translation import pgettext_lazy
 
 
 class WebhookEventType:
-    ALL = "all events"
+    ALL = "all_events"
     ORDER_CREATED = "order_created"
     ORDER_FULLYPAID = "order_fully_paid"
     ORDER_UPDATED = "order_updated"
