@@ -71,6 +71,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added validations for minimum password length in settings - #4735 by @fowczarek
 - Add error codes to mutations responses - #4676 by @Kwaidan00
 - Payment gateways are now saleor plugins with dynamic configuration - #4669 by @salwator
+- Fixed the inability of users to set a variant's `priceOverride` and `costPrice` to `null` - #4754 by @NyanKiyoshi
 
 ## 2.8.0
 

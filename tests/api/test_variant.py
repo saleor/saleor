@@ -1,5 +1,6 @@
 import graphene
 import pytest
+from graphene.utils.str_converters import to_camel_case
 
 from tests.api.utils import get_graphql_content
 
@@ -335,6 +336,66 @@ def test_update_product_variant(staff_api_client, product, permission_manage_pro
     assert data["quantity"] == quantity
     assert data["costPrice"]["amount"] == cost_price
     assert data["sku"] == sku
+
+
+@pytest.mark.parametrize("field", ("cost_price", "price_override"))
+def test_update_product_variant_unset_amounts(
+    staff_api_client, product, permission_manage_products, field
+):
+    """Ensure setting nullable amounts to null is properly handled
+    (setting the amount to none) and doesn't override the currency.
+    """
+    query = """
+        mutation updateVariant (
+            $id: ID!,
+            $sku: String!,
+            $costPrice: Decimal,
+            $priceOverride: Decimal) {
+                productVariantUpdate(
+                    id: $id,
+                    input: {
+                        sku: $sku,
+                        costPrice: $costPrice,
+                        priceOverride: $priceOverride
+                    }) {
+                    productVariant {
+                        name
+                        sku
+                        quantity
+                        costPrice {
+                            currency
+                            amount
+                            localized
+                        }
+                        priceOverride {
+                            currency
+                            amount
+                            localized
+                        }
+                    }
+                }
+            }
+
+    """
+    variant = product.variants.first()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    sku = variant.sku
+
+    camel_case_field_name = to_camel_case(field)
+
+    variables = {"id": variant_id, "sku": sku, camel_case_field_name: None}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    variant.refresh_from_db()
+
+    assert variant.currency is not None
+    assert getattr(variant, field) is None
+
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantUpdate"]["productVariant"]
+    assert data[camel_case_field_name] is None
 
 
 QUERY_UPDATE_VARIANT_ATTRIBUTES = """
