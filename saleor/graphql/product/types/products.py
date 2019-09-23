@@ -310,6 +310,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         return getattr(root, "digital_content", None)
 
     @staticmethod
+    @permission_required("product.manage_products")
     def resolve_stock_quantity(root: models.ProductVariant, *_args):
         return root.quantity_available
 
@@ -324,6 +325,11 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
     @permission_required("product.manage_products")
     def resolve_margin(root: models.ProductVariant, *_args):
         return get_margin_for_variant(root)
+
+    @staticmethod
+    @permission_required("product.manage_products")
+    def resolve_cost_price(root: models.ProductVariant, *_args):
+        return root.cost_price
 
     @staticmethod
     def resolve_price(root: models.ProductVariant, *_args):

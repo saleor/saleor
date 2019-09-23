@@ -147,7 +147,6 @@ def test_product_query(staff_api_client, product, permission_manage_products):
                         }
                         variants {
                             name
-                            stockQuantity
                         }
                         isAvailable
                         pricing {
@@ -2306,98 +2305,82 @@ def test_report_product_sales(
     assert Decimal(amount) == line_b.quantity * line_b.unit_price_gross_amount
 
 
-def test_variant_revenue_permissions(
-    staff_api_client, permission_manage_products, permission_manage_orders, product
+@pytest.mark.parametrize(
+    "field, is_nested",
+    (
+        ("basePrice", True),
+        ("purchaseCost", True),
+        ("margin", True),
+        ("privateMeta", True),
+    ),
+)
+def test_product_restricted_fields_permissions(
+    staff_api_client,
+    permission_manage_products,
+    permission_manage_orders,
+    product,
+    field,
+    is_nested,
 ):
+    """Ensure non-public (restricted) fields are correctly requiring
+    the 'manage_products' permission.
+    """
     query = """
-    query VariantRevenue($id: ID!) {
-        productVariant(id: $id) {
-            revenue(period: TODAY) {
-                gross {
-                    localized
-                }
-            }
+    query Product($id: ID!) {
+        product(id: $id) {
+            %(field)s
         }
     }
+    """ % {
+        "field": field if not is_nested else "%s { __typename }" % field
+    }
+    variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
+    permissions = [permission_manage_orders, permission_manage_products]
+    response = staff_api_client.post_graphql(query, variables, permissions)
+    content = get_graphql_content(response)
+    assert field in content["data"]["product"]
+
+
+@pytest.mark.parametrize(
+    "field, is_nested",
+    (
+        ("digitalContent", True),
+        ("stockQuantity", False),
+        ("margin", False),
+        ("costPrice", True),
+        ("priceOverride", True),
+        ("quantity", False),
+        ("quantityOrdered", False),
+        ("quantityAllocated", False),
+        ("privateMeta", True),
+    ),
+)
+def test_variant_restricted_fields_permissions(
+    staff_api_client,
+    permission_manage_products,
+    permission_manage_orders,
+    product,
+    field,
+    is_nested,
+):
+    """Ensure non-public (restricted) fields are correctly requiring
+    the 'manage_products' permission.
     """
+    query = """
+    query ProductVariant($id: ID!) {
+        productVariant(id: $id) {
+            %(field)s
+        }
+    }
+    """ % {
+        "field": field if not is_nested else "%s { __typename }" % field
+    }
     variant = product.variants.first()
     variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
     permissions = [permission_manage_orders, permission_manage_products]
     response = staff_api_client.post_graphql(query, variables, permissions)
     content = get_graphql_content(response)
-    assert content["data"]["productVariant"]["revenue"]
-
-
-def test_variant_quantity_permissions(
-    staff_api_client, permission_manage_products, product
-):
-    query = """
-    query Quantity($id: ID!) {
-        productVariant(id: $id) {
-            quantity
-        }
-    }
-    """
-    variant = product.variants.first()
-    variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
-    permissions = [permission_manage_products]
-    response = staff_api_client.post_graphql(query, variables, permissions)
-    content = get_graphql_content(response)
-    assert "quantity" in content["data"]["productVariant"]
-
-
-def test_variant_quantity_ordered_permissions(
-    staff_api_client, permission_manage_products, permission_manage_orders, product
-):
-    query = """
-    query QuantityOrdered($id: ID!) {
-        productVariant(id: $id) {
-            quantityOrdered
-        }
-    }
-    """
-    variant = product.variants.first()
-    variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
-    permissions = [permission_manage_orders, permission_manage_products]
-    response = staff_api_client.post_graphql(query, variables, permissions)
-    content = get_graphql_content(response)
-    assert "quantityOrdered" in content["data"]["productVariant"]
-
-
-def test_variant_quantity_allocated_permissions(
-    staff_api_client, permission_manage_products, permission_manage_orders, product
-):
-    query = """
-    query QuantityAllocated($id: ID!) {
-        productVariant(id: $id) {
-            quantityAllocated
-        }
-    }
-    """
-    variant = product.variants.first()
-    variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
-    permissions = [permission_manage_orders, permission_manage_products]
-    response = staff_api_client.post_graphql(query, variables, permissions)
-    content = get_graphql_content(response)
-    assert "quantityAllocated" in content["data"]["productVariant"]
-
-
-def test_variant_margin_permissions(
-    staff_api_client, permission_manage_products, permission_manage_orders, product
-):
-    query = """
-    query Margin($id: ID!) {
-        productVariant(id: $id) {
-            margin
-        }
-    }
-    """
-    variant = product.variants.first()
-    variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
-    permissions = [permission_manage_orders, permission_manage_products]
-    response = staff_api_client.post_graphql(query, variables, permissions)
-    content = get_graphql_content(response)
-    assert "margin" in content["data"]["productVariant"]
+    assert field in content["data"]["productVariant"]
 
 
 def test_variant_digital_content(
