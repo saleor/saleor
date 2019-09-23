@@ -245,6 +245,7 @@ class BasePlugin:
         update_values = [copy(k) for k in default_config if k["name"] in missing_keys]
         config.extend(update_values)
 
+        configuration.configuration = config
         configuration.save(update_fields=["configuration"])
 
     @classmethod

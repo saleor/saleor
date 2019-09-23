@@ -82,6 +82,7 @@ class SamplePlugin(BasePlugin):
 
 class SamplePlugin1(BasePlugin):
     PLUGIN_NAME = "Sample Plugin1"
+    CONFIG_STRUCTURE = {}
 
     @classmethod
     def _get_default_configuration(cls):
@@ -299,9 +300,27 @@ def test_manager_save_plugin_configuration():
     assert not configuration.active
 
 
-def test_plugin_updates_configuration_shape():
-    new_config = {"name": "Foo", "value": "bar"}
+@pytest.fixture
+def new_config():
+    return {"name": "Foo", "value": "bar"}
 
+
+@pytest.fixture
+def new_config_structure():
+    return {"type": ConfigurationTypeField.STRING, "help_text": "foo", "label": "foo"}
+
+
+@pytest.fixture
+def manager_with_plugin_enabled():
+    plugins = ["tests.extensions.test_manager.SamplePlugin"]
+    manager = ExtensionsManager(plugins=plugins)
+    manager.get_plugin_configuration(plugin_name="Sample Plugin")
+    return manager
+
+
+def test_plugin_updates_configuration_shape(
+    new_config, new_config_structure, manager_with_plugin_enabled
+):
     @classmethod
     def new_default_configuration(cls):
         defaults = {
@@ -312,22 +331,47 @@ def test_plugin_updates_configuration_shape():
         }
         return defaults
 
-    new_config_structure = {
-        "type": ConfigurationTypeField.STRING,
-        "help_text": "foo",
-        "label": "foo",
-    }
-    plugins = ["tests.extensions.test_manager.SamplePlugin"]
-    manager = ExtensionsManager(plugins=plugins)
-    manager.get_plugin_configuration(plugin_name="Sample Plugin")
-
     SamplePlugin._get_default_configuration = new_default_configuration
     SamplePlugin.CONFIG_STRUCTURE["Foo"] = new_config_structure
 
-    configuration = manager.get_plugin_configuration(plugin_name="Sample Plugin")
+    configuration = manager_with_plugin_enabled.get_plugin_configuration(
+        plugin_name="Sample Plugin"
+    )
     configuration.refresh_from_db()
     assert len(configuration.configuration) == 2
     assert configuration.configuration[1] == new_config
+
+
+@pytest.fixture
+def manager_with_plugin_without_configuration_enabled():
+    plugins = ["tests.extensions.test_manager.SamplePlugin1"]
+    manager = ExtensionsManager(plugins=plugins)
+    manager.get_plugin_configuration(plugin_name="Sample Plugin1")
+    return manager
+
+
+def test_plugin_add_new_configuration(
+    new_config, new_config_structure, manager_with_plugin_without_configuration_enabled
+):
+    @classmethod
+    def new_default_configuration(cls):
+        defaults = {
+            "name": "Sample Plugin",
+            "description": "",
+            "active": True,
+            "configuration": [new_config],
+        }
+        return defaults
+
+    SamplePlugin1._get_default_configuration = new_default_configuration
+    SamplePlugin1.CONFIG_STRUCTURE["Foo"] = new_config_structure
+
+    config = manager_with_plugin_without_configuration_enabled.get_plugin_configuration(
+        plugin_name="Sample Plugin1"
+    )
+    config.refresh_from_db()
+    assert len(config.configuration) == 1
+    assert config.configuration[0] == new_config
 
 
 class ActivePaymentGateway(BasePlugin):
