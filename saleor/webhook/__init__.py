@@ -7,6 +7,7 @@ class WebhookEventType:
     ORDER_FULLYPAID = "order_fully_paid"
     ORDER_UPDATED = "order_updated"
     ORDER_CANCELLED = "order_cancelled"
+    ORDER_FULFILLED = "order_fulfilled"
 
     CUSTOMER_CREATED = "customer_created"
 

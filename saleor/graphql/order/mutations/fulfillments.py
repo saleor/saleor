@@ -2,7 +2,8 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 
-from ....order import events, models
+from ....extensions.manager import get_extensions_manager
+from ....order import OrderStatus, events, models
 from ....order.emails import send_fulfillment_confirmation_to_customer
 from ....order.utils import cancel_fulfillment, fulfill_order_line, update_order_status
 from ...core.mutations import BaseMutation
@@ -108,10 +109,13 @@ class FulfillmentCreate(BaseMutation):
         events.fulfillment_fulfilled_items_event(
             order=order, user=user, fulfillment_lines=fulfillment_lines
         )
+        manager = get_extensions_manager()
+        manager.order_updated(order)
+        if order.status == OrderStatus.FULFILLED:
+            manager.order_fulfilled(order)
 
         if cleaned_input.get("notify_customer", True):
             send_fulfillment_confirmation_to_customer(order, fulfillment, user)
-
         return fulfillment
 
     @classmethod
@@ -123,7 +127,6 @@ class FulfillmentCreate(BaseMutation):
         )
         cleaned_input = cls.clean_input(data)
         fulfillment = cls.save(info.context.user, fulfillment, order, cleaned_input)
-        info.context.extensions.order_updated(order)
         return FulfillmentCreate(fulfillment=fulfillment, order=fulfillment.order)
 
 

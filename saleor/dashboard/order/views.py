@@ -516,6 +516,7 @@ def cancel_order(request, order_pk):
         with transaction.atomic():
             form.cancel_order(request.user)
         request.extensions.order_cancelled(order)
+        request.extensions.order_updated(order)
         messages.success(request, msg)
         return redirect("dashboard:order-details", order_pk=order.pk)
         # TODO: send status confirmation email

@@ -39,5 +39,7 @@ class OrderBulkCancel(BaseBulkMutation):
                 events.fulfillment_restocked_items_event(
                     order=order, user=user, fulfillment=order
                 )
-            get_extensions_manager().order_cancelled(order)
+            manager = get_extensions_manager()
+            manager.order_cancelled(order)
+            manager.order_updated(order)
             events.order_canceled_event(order=order, user=user)

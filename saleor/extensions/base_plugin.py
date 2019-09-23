@@ -151,6 +151,9 @@ class BasePlugin:
     def order_cancelled(self, order: "Order", previous_value: Any) -> Any:
         return NotImplemented
 
+    def order_fulfilled(self, order: "Order", previous_value: Any) -> Any:
+        return NotImplemented
+
     @classmethod
     def _update_config_items(
         cls, configuration_to_update: List[dict], current_config: List[dict]
