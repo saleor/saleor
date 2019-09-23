@@ -41,8 +41,8 @@ ADMINS = (
 )
 MANAGERS = ADMINS
 
-ALLOWED_STOREFRONT_HOSTS = get_list(
-    os.environ.get("ALLOWED_STOREFRONT_HOSTS", "localhost,127.0.0.1")
+ALLOWED_CLIENT_HOSTS = get_list(
+    os.environ.get("ALLOWED_CLIENT_HOSTS", "localhost,127.0.0.1")
 )
 
 INTERNAL_IPS = get_list(os.environ.get("INTERNAL_IPS", "127.0.0.1"))
@@ -346,6 +346,13 @@ AUTH_USER_MODEL = "account.User"
 
 LOGIN_URL = "/account/login/"
 
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {"min_length": 8},
+    }
+]
+
 DEFAULT_COUNTRY = os.environ.get("DEFAULT_COUNTRY", "US")
 DEFAULT_CURRENCY = os.environ.get("DEFAULT_CURRENCY", "USD")
 DEFAULT_DECIMAL_PLACES = get_currency_fraction(DEFAULT_CURRENCY)
@@ -609,61 +616,12 @@ BRAINTREE = "braintree"
 RAZORPAY = "razorpay"
 STRIPE = "stripe"
 
-CHECKOUT_PAYMENT_GATEWAYS = {
-    DUMMY: pgettext_lazy("Payment method name", "Dummy gateway")
-}
-
+# TODO: remove this after graphql schema stops generating enum from this
 PAYMENT_GATEWAYS = {
-    DUMMY: {
-        "module": "saleor.payment.gateways.dummy",
-        "config": {
-            "auto_capture": True,
-            "store_card": False,
-            "connection_params": {},
-            "template_path": "order/payment/dummy.html",
-        },
-    },
-    BRAINTREE: {
-        "module": "saleor.payment.gateways.braintree",
-        "config": {
-            "auto_capture": get_bool_from_env("BRAINTREE_AUTO_CAPTURE", True),
-            "store_card": get_bool_from_env("BRAINTREE_STORE_CARD", False),
-            "template_path": "order/payment/braintree.html",
-            "connection_params": {
-                "sandbox_mode": get_bool_from_env("BRAINTREE_SANDBOX_MODE", True),
-                "merchant_id": os.environ.get("BRAINTREE_MERCHANT_ID"),
-                "public_key": os.environ.get("BRAINTREE_PUBLIC_KEY"),
-                "private_key": os.environ.get("BRAINTREE_PRIVATE_KEY"),
-            },
-        },
-    },
-    RAZORPAY: {
-        "module": "saleor.payment.gateways.razorpay",
-        "config": {
-            "store_card": get_bool_from_env("RAZORPAY_STORE_CARD", False),
-            "auto_capture": get_bool_from_env("RAZORPAY_AUTO_CAPTURE", None),
-            "template_path": "order/payment/razorpay.html",
-            "connection_params": {
-                "public_key": os.environ.get("RAZORPAY_PUBLIC_KEY"),
-                "secret_key": os.environ.get("RAZORPAY_SECRET_KEY"),
-                "prefill": get_bool_from_env("RAZORPAY_PREFILL", True),
-                "store_name": os.environ.get("RAZORPAY_STORE_NAME"),
-                "store_image": os.environ.get("RAZORPAY_STORE_IMAGE"),
-            },
-        },
-    },
-    STRIPE: {
-        "module": "saleor.payment.gateways.stripe",
-        "config": {
-            "store_card": get_bool_from_env("STRIPE_STORE_CARD", False),
-            "auto_capture": get_bool_from_env("STRIPE_AUTO_CAPTURE", True),
-            "template_path": "order/payment/stripe.html",
-            "connection_params": {
-                "public_key": os.environ.get("STRIPE_PUBLIC_KEY"),
-                "secret_key": os.environ.get("STRIPE_SECRET_KEY"),
-            },
-        },
-    },
+    DUMMY: {"template_path": "order/payment/dummy.html"},
+    BRAINTREE: {"template_path": "order/payment/braintree.html"},
+    RAZORPAY: {"template_path": "order/payment/razorpay.html"},
+    STRIPE: None,
 }
 
 GRAPHENE = {
@@ -673,7 +631,14 @@ GRAPHENE = {
 
 EXTENSIONS_MANAGER = "saleor.extensions.manager.ExtensionsManager"
 
-PLUGINS = os.environ.get("PLUGINS", [])
+PLUGINS = [
+    "saleor.extensions.plugins.avatax.plugin.AvataxPlugin",
+    "saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin",
+    "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
+    "saleor.payment.gateways.stripe.plugin.StripeGatewayPlugin",
+    "saleor.payment.gateways.braintree.plugin.BraintreeGatewayPlugin",
+    "saleor.payment.gateways.razorpay.plugin.RazorpayGatewayPlugin",
+]
 
 # Whether DraftJS should be used be used instead of HTML
 # True to use DraftJS (JSON based), for the 2.0 dashboard

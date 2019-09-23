@@ -28,6 +28,8 @@ class ProductOrderField(graphene.Enum):
     PRICE = "price_amount"
     MINIMAL_PRICE = "minimal_variant_price_amount"
     DATE = "updated_at"
+    TYPE = "product_type__name"
+    PUBLISHED = "is_published"
 
     @property
     def description(self):
@@ -39,6 +41,10 @@ class ProductOrderField(graphene.Enum):
             return "Sort products by a minimal price of a product's variant."
         if self == ProductOrderField.DATE:
             return "Sort products by update date."
+        if self == ProductOrderField.TYPE:
+            return "Sort products by type."
+        if self == ProductOrderField.PUBLISHED:
+            return "Sort products by publication status."
         raise ValueError("Unsupported enum value: %s" % self.value)
 
 

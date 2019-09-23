@@ -155,7 +155,7 @@ class ReplaceCheckoutLineForm(AddToCheckoutForm):
             self.variant.check_quantity(quantity)
         except InsufficientStock as e:
             msg = self.error_messages["insufficient-stock"]
-            raise forms.ValidationError(msg % e.item.quantity_available)
+            raise forms.ValidationError(msg % e.item.quantity_available, code=e.code)
         return quantity
 
     def clean(self):

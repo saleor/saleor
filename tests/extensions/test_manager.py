@@ -5,7 +5,10 @@ import pytest
 from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
+from saleor.core.payments import Gateway
 from saleor.core.taxes import TaxType
+
+from saleor.extensions import ConfigurationTypeField
 from saleor.extensions.base_plugin import BasePlugin
 from saleor.extensions.manager import ExtensionsManager, get_extensions_manager
 from saleor.extensions.models import PluginConfiguration
@@ -13,6 +16,9 @@ from saleor.extensions.models import PluginConfiguration
 
 class SamplePlugin(BasePlugin):
     PLUGIN_NAME = "Sample Plugin"
+    CONFIG_STRUCTURE = {
+        "Test": {"type": ConfigurationTypeField.BOOLEAN, "help_text": "", "label": ""}
+    }
 
     def calculate_checkout_total(self, checkout, discounts, previous_value):
         total = Money("1.0", currency=checkout.get_total().currency)
@@ -69,13 +75,24 @@ class SamplePlugin(BasePlugin):
             "name": "Sample Plugin",
             "description": "",
             "active": True,
-            "configuration": None,
+            "configuration": [{"name": "Test", "value": True}],
         }
         return defaults
 
 
 class SamplePlugin1(BasePlugin):
     PLUGIN_NAME = "Sample Plugin1"
+    CONFIG_STRUCTURE = {}
+
+    @classmethod
+    def _get_default_configuration(cls):
+        defaults = {
+            "name": "Sample Plugin1",
+            "description": "",
+            "active": False,
+            "configuration": None,
+        }
+        return defaults
 
 
 def test_get_extensions_manager():
@@ -281,3 +298,123 @@ def test_manager_save_plugin_configuration():
     manager.save_plugin_configuration("Sample Plugin", {"active": False})
     configuration.refresh_from_db()
     assert not configuration.active
+
+
+@pytest.fixture
+def new_config():
+    return {"name": "Foo", "value": "bar"}
+
+
+@pytest.fixture
+def new_config_structure():
+    return {"type": ConfigurationTypeField.STRING, "help_text": "foo", "label": "foo"}
+
+
+@pytest.fixture
+def manager_with_plugin_enabled():
+    plugins = ["tests.extensions.test_manager.SamplePlugin"]
+    manager = ExtensionsManager(plugins=plugins)
+    manager.get_plugin_configuration(plugin_name="Sample Plugin")
+    return manager
+
+
+def test_plugin_updates_configuration_shape(
+    new_config, new_config_structure, manager_with_plugin_enabled
+):
+    @classmethod
+    def new_default_configuration(cls):
+        defaults = {
+            "name": "Sample Plugin",
+            "description": "",
+            "active": True,
+            "configuration": [{"name": "Test", "value": True}, new_config],
+        }
+        return defaults
+
+    SamplePlugin._get_default_configuration = new_default_configuration
+    SamplePlugin.CONFIG_STRUCTURE["Foo"] = new_config_structure
+
+    configuration = manager_with_plugin_enabled.get_plugin_configuration(
+        plugin_name="Sample Plugin"
+    )
+    configuration.refresh_from_db()
+    assert len(configuration.configuration) == 2
+    assert configuration.configuration[1] == new_config
+
+
+@pytest.fixture
+def manager_with_plugin_without_configuration_enabled():
+    plugins = ["tests.extensions.test_manager.SamplePlugin1"]
+    manager = ExtensionsManager(plugins=plugins)
+    manager.get_plugin_configuration(plugin_name="Sample Plugin1")
+    return manager
+
+
+def test_plugin_add_new_configuration(
+    new_config, new_config_structure, manager_with_plugin_without_configuration_enabled
+):
+    @classmethod
+    def new_default_configuration(cls):
+        defaults = {
+            "name": "Sample Plugin",
+            "description": "",
+            "active": True,
+            "configuration": [new_config],
+        }
+        return defaults
+
+    SamplePlugin1._get_default_configuration = new_default_configuration
+    SamplePlugin1.CONFIG_STRUCTURE["Foo"] = new_config_structure
+
+    config = manager_with_plugin_without_configuration_enabled.get_plugin_configuration(
+        plugin_name="Sample Plugin1"
+    )
+    config.refresh_from_db()
+    assert len(config.configuration) == 1
+    assert config.configuration[0] == new_config
+
+
+class ActivePaymentGateway(BasePlugin):
+    PLUGIN_NAME = "braintree"
+
+    @classmethod
+    def _get_default_configuration(cls):
+        defaults = {
+            "name": "braintree",
+            "description": "",
+            "active": True,
+            "configuration": None,
+        }
+        return defaults
+
+    def process_payment(self, payment_information, previous_value):
+        pass
+
+
+class InactivePaymentGateway(BasePlugin):
+    PLUGIN_NAME = "stripe"
+
+    @classmethod
+    def _get_default_configuration(cls):
+        defaults = {
+            "name": "stripe",
+            "description": "",
+            "active": False,
+            "configuration": None,
+        }
+        return defaults
+
+    def process_payment(self, payment_information, previous_value):
+        pass
+
+
+def test_manager_serve_list_of_payment_gateways():
+    plugins = [
+        "tests.extensions.test_manager.SamplePlugin",
+        "tests.extensions.test_manager.ActivePaymentGateway",
+        "tests.extensions.test_manager.InactivePaymentGateway",
+    ]
+    manager = ExtensionsManager(plugins=plugins)
+    assert manager.list_payment_gateways() == [
+        Gateway(ActivePaymentGateway.PLUGIN_NAME)
+    ]

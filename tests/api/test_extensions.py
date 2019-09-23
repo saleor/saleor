@@ -220,3 +220,91 @@ def test_plugin_configuration_update(
     assert second_configuration_item["type"] == old_configuration[1]["type"]
     assert second_configuration_item["help_text"] == old_configuration[1]["help_text"]
     assert second_configuration_item["label"] == old_configuration[1]["label"]
+
+
+class Plugin1(BasePlugin):
+    PLUGIN_NAME = "Plugin1"
+
+    @classmethod
+    def get_plugin_configuration(cls, queryset) -> "PluginConfiguration":
+        qs = queryset.filter(name="Plugin1")
+        if qs.exists():
+            return qs[0]
+        defaults = {
+            "name": "Plugin1",
+            "description": "Test plugin description_1",
+            "active": True,
+            "configuration": [],
+        }
+        return PluginConfiguration.objects.create(**defaults)
+
+
+class Plugin2Inactive(BasePlugin):
+    PLUGIN_NAME = "Plugin2Inactive"
+
+    @classmethod
+    def get_plugin_configuration(cls, queryset) -> "PluginConfiguration":
+        qs = queryset.filter(name="Plugin2Inactive")
+        if qs.exists():
+            return qs[0]
+        defaults = {
+            "name": "Plugin2Inactive",
+            "description": "Test plugin description_2",
+            "active": False,
+            "configuration": [],
+        }
+        return PluginConfiguration.objects.create(**defaults)
+
+
+class Active(BasePlugin):
+    PLUGIN_NAME = "Plugin1"
+
+    @classmethod
+    def get_plugin_configuration(cls, queryset) -> "PluginConfiguration":
+        qs = queryset.filter(name="Active")
+        if qs.exists():
+            return qs[0]
+        defaults = {
+            "name": "Active",
+            "description": "Not working",
+            "active": True,
+            "configuration": [],
+        }
+        return PluginConfiguration.objects.create(**defaults)
+
+
+@pytest.mark.parametrize(
+    "plugin_filter, count",
+    [
+        ({"search": "Plugin1"}, 1),
+        ({"search": "description"}, 2),
+        ({"active": True}, 2),
+        ({"search": "Plugin"}, 2),
+        ({"active": "False", "search": "Plugin"}, 1),
+    ],
+)
+def test_plugins_query_with_filter(
+    plugin_filter, count, staff_api_client, permission_manage_plugins, settings
+):
+    settings.PLUGINS = [
+        "tests.api.test_extensions.Plugin1",
+        "tests.api.test_extensions.Plugin2Inactive",
+        "tests.api.test_extensions.Active",
+    ]
+    query = """
+        query ($filter: PluginFilterInput) {
+            plugins(first: 5, filter:$filter) {
+                totalCount
+                edges {
+                    node {
+                        id
+                    }
+                }
+            }
+        }
+    """
+    variables = {"filter": plugin_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_plugins)
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["plugins"]["totalCount"] == count

@@ -5,6 +5,7 @@ import graphene_django_optimizer as gql_optimizer
 from graphene import relay
 
 from ....product import models
+from ....product.utils.attributes import AttributeAssignmentType
 from ...core.connection import CountableDjangoObjectType
 from ...core.resolvers import resolve_meta, resolve_private_meta
 from ...core.types import MetadataObjectType
@@ -202,6 +203,10 @@ class SelectedAttribute(graphene.ObjectType):
 
     class Meta:
         description = "Represents a custom attribute."
+
+    @staticmethod
+    def resolve_value(root: AttributeAssignmentType, _info):
+        return root.values.first()
 
 
 class AttributeInput(graphene.InputObjectType):

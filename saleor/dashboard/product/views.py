@@ -155,7 +155,9 @@ def product_create(request, type_pk):
 @permission_required("product.manage_products")
 def product_edit(request, pk):
     product = get_object_or_404(
-        Product.objects.prefetch_related("variants", "product_type__attributeproduct"),
+        Product.objects.prefetch_related(
+            "variants", "product_type", "product_type__attributeproduct", "attributes"
+        ),
         pk=pk,
     )
     form = forms.ProductForm(request.POST or None, instance=product)
@@ -354,7 +356,14 @@ def variant_create(request, product_pk):
 @permission_required("product.manage_products")
 def variant_edit(request, product_pk, variant_pk):
     product = get_object_or_404(Product.objects.all(), pk=product_pk)
-    variant = get_object_or_404(product.variants.all(), pk=variant_pk)
+    variant = get_object_or_404(
+        product.variants.prefetch_related(
+            "product__product_type",
+            "product__product_type__attributevariant",
+            "attributes",
+        ),
+        pk=variant_pk,
+    )
     form = forms.ProductVariantForm(request.POST or None, instance=variant)
     if form.is_valid():
         form.save()
