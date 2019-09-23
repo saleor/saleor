@@ -254,9 +254,7 @@ def test_braintree_payment_form(payment_dummy):
     data = {"amount": payment.total, "payment_method_nonce": "fake-nonce"}
     payment_info = create_payment_information(payment)
 
-    form = create_form(
-        data=data, payment_information=payment_info, connection_params={"secret": "123"}
-    )
+    form = create_form(data=data, payment_information=payment_info)
 
     assert isinstance(form, BraintreePaymentForm)
     assert form.is_valid()

@@ -1,11 +1,12 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, List, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 from django.conf import settings
 from django.utils.module_loading import import_string
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
+from ..core.payments import Gateway, PaymentInterface
 from ..core.taxes import TaxType, quantize_price
 from .models import PluginConfiguration
 
@@ -15,9 +16,10 @@ if TYPE_CHECKING:
     from ..product.models import Product
     from ..account.models import Address, User
     from ..order.models import OrderLine, Order
+    from ..payment.interface import PaymentData, GatewayResponse, TokenConfig
 
 
-class ExtensionsManager:
+class ExtensionsManager(PaymentInterface):
     """Base manager for handling plugins logic."""
 
     plugins = None
@@ -202,7 +204,106 @@ class ExtensionsManager:
         default_value = None
         return self.__run_method_on_plugins("order_fulfilled", default_value, order)
 
+    def authorize_payment(
+        self, gateway: Gateway, payment_information: "PaymentData"
+    ) -> "GatewayResponse":
+        method_name = "authorize_payment"
+        return self.__run_payment_method(gateway, method_name, payment_information)
+
+    def capture_payment(
+        self, gateway: Gateway, payment_information: "PaymentData"
+    ) -> "GatewayResponse":
+        method_name = "capture_payment"
+        return self.__run_payment_method(gateway, method_name, payment_information)
+
+    def refund_payment(
+        self, gateway: Gateway, payment_information: "PaymentData"
+    ) -> "GatewayResponse":
+        method_name = "refund_payment"
+        return self.__run_payment_method(gateway, method_name, payment_information)
+
+    def void_payment(
+        self, gateway: Gateway, payment_information: "PaymentData"
+    ) -> "GatewayResponse":
+        method_name = "void_payment"
+        return self.__run_payment_method(gateway, method_name, payment_information)
+
+    def confirm_payment(
+        self, gateway: Gateway, payment_information: "PaymentData"
+    ) -> "GatewayResponse":
+        method_name = "confirm_payment"
+        return self.__run_payment_method(gateway, method_name, payment_information)
+
+    def process_payment(
+        self, gateway: Gateway, payment_information: "PaymentData"
+    ) -> "GatewayResponse":
+        method_name = "process_payment"
+        return self.__run_payment_method(gateway, method_name, payment_information)
+
+    def create_payment_form(self, data, gateway, payment_information):
+        method_name = "create_form"
+        return self.__run_payment_method(
+            gateway, method_name, payment_information, data=data
+        )
+
+    def get_client_token(self, gateway, token_config: "TokenConfig") -> str:
+        method_name = "get_client_token"
+        default_value = None
+        gateway_name = gateway.value
+        gtw = self.get_plugin(gateway_name)
+        return self.__run_method_on_single_plugin(
+            gtw, method_name, default_value, token_config=token_config
+        )
+
+    def list_payment_sources(
+        self, gateway: Gateway, customer_id: str
+    ) -> List["CustomerSource"]:
+        default_value = []
+        gateway_name = gateway.value
+        gtw = self.get_plugin(gateway_name)
+        if gtw is not None:
+            return self.__run_method_on_single_plugin(
+                gtw, "list_payment_sources", default_value, customer_id=customer_id
+            )
+        raise Exception(f"Payment plugin {gateway_name} is inaccessible!")
+
+    def list_payment_gateways(self) -> List[Gateway]:
+        payment_method = "process_payment"
+        return [
+            Gateway(plugin.PLUGIN_NAME)
+            for plugin in self.plugins
+            if payment_method in type(plugin).__dict__
+            and self.get_plugin_configuration(plugin.PLUGIN_NAME).active
+        ]
+
+    def __run_payment_method(
+        self,
+        gateway: Gateway,
+        method_name: str,
+        payment_information: "PaymentData",
+        **kwargs,
+    ) -> Optional["GatewayResposne"]:
+        default_value = None
+        gateway_name = gateway.value
+        gtw = self.get_plugin(gateway_name)
+        if gtw is not None:
+            resp = self.__run_method_on_single_plugin(
+                gtw,
+                method_name,
+                previous_value=default_value,
+                payment_information=payment_information,
+                **kwargs,
+            )
+            if resp is not None:
+                return resp
+
+        raise Exception(
+            f"Payment plugin {gateway_name} for {method_name}"
+            " payment method is inaccessible!"
+        )
+
     # FIXME these methods should be more generic
+
     def assign_tax_code_to_object_meta(
         self, obj: Union["Product", "ProductType"], tax_code: str
     ):
@@ -235,21 +336,26 @@ class ExtensionsManager:
                     plugin_configuration, cleaned_data
                 )
 
-    def get_plugin_configuration(self, plugin_name) -> "PluginConfiguration":
-        plugin_configurations_qs = PluginConfiguration.objects.all()
+    def get_plugin(self, plugin_name: str) -> Optional["BasePlugin"]:
         for plugin in self.plugins:
             if plugin.PLUGIN_NAME == plugin_name:
-                return plugin.get_plugin_configuration(plugin_configurations_qs)
+                return plugin
+
+    def get_plugin_configuration(self, plugin_name) -> Optional["PluginConfiguration"]:
+        plugin = self.get_plugin(plugin_name)
+        if plugin is not None:
+            plugin_configurations_qs = PluginConfiguration.objects.all()
+            return plugin.get_plugin_configuration(plugin_configurations_qs)
 
     def get_plugin_configurations(self) -> List["PluginConfiguration"]:
-        plugin_configurations = []
+        plugin_configuration_ids = []
         plugin_configurations_qs = PluginConfiguration.objects.all()
         for plugin in self.plugins:
             plugin_configuration = plugin.get_plugin_configuration(
                 plugin_configurations_qs
             )
-            plugin_configurations.append(plugin_configuration)
-        return plugin_configurations
+            plugin_configuration_ids.append(plugin_configuration.pk)
+        return PluginConfiguration.objects.filter(pk__in=plugin_configuration_ids)
 
 
 def get_extensions_manager(

@@ -64,6 +64,13 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop deprecated fields from api - #4684 by @fowczarek
 - Distinguish OrderLine product name and variant name - #4702 by @fowczarek
 - Fix for Digital products - update order status after automatic fulfillment - #4709 by @korycins
+- Add redirectUrl to staff and user create mutations - #4717 by @fowczarek
+- Filtering: use search in a consistent way. Add sort by product type name and publication status to products query. - #4715 by @fowczarek
+- Migrated the old product attributes mapping to M2M - #4663 by @NyanKiyoshi
+- Add translations to countries in shop query - #4732 by @fowczarek
+- Added validations for minimum password length in settings - #4735 by @fowczarek
+- Add error codes to mutations responses - #4676 by @Kwaidan00
+- Payment gateways are now saleor plugins with dynamic configuration - #4669 by @salwator
 
 ## 2.8.0
 
@@ -99,6 +106,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Refactored the backend side of `checkoutCreate` to improve performances and prevent side effects over the user's checkout if the checkout creation was to fail. - #4367 by @NyanKiyoshi
 - Refactored the logic of cleaning the checkout shipping method over the API, so users do not lose the shipping method when updating their checkout. If the shipping method becomes invalid, it will be replaced by the cheapest available. - #4367 by @NyanKiyoshi & @szewczykmira
 - Refactored process of getting available shipping methods to make it easier to understand and prevent human-made errors. - #4367 by @NyanKiyoshi
+- Moved 3D secure option to Braintree plugin configuration and update config structure mechanism - #4751 by @salwator
 
 ## 2.7.0
 

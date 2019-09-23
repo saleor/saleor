@@ -1,11 +1,11 @@
 import datetime
 import os
+import re
 from decimal import Decimal
 from unittest.mock import patch
 
 import pytest
 from bs4 import BeautifulSoup, Tag
-from django.core.exceptions import ValidationError
 from django.http import JsonResponse
 from django.template.response import TemplateResponse
 from django.urls import reverse
@@ -19,6 +19,7 @@ from saleor.checkout.utils import add_variant_to_checkout
 from saleor.menu.models import MenuItemTranslation
 from saleor.menu.utils import update_menu
 from saleor.product import AttributeInputType, ProductAvailabilityStatus, models
+from saleor.product.filters import filter_products_by_attributes_values
 from saleor.product.models import (
     Attribute,
     AttributeTranslation,
@@ -26,7 +27,6 @@ from saleor.product.models import (
     AttributeValueTranslation,
     DigitalContentUrl,
     Product,
-    validate_attribute_json,
 )
 from saleor.product.thumbnails import create_product_thumbnails
 from saleor.product.utils import (
@@ -35,13 +35,11 @@ from saleor.product.utils import (
     decrease_stock,
     increase_stock,
 )
-from saleor.product.utils.attributes import get_product_attributes_data
+from saleor.product.utils.attributes import associate_attribute_values_to_instance
 from saleor.product.utils.availability import get_product_availability_status
 from saleor.product.utils.costs import get_margin_for_variant
 from saleor.product.utils.digital_products import increment_download_count
 from saleor.product.utils.variants_picker import get_variant_picker_data
-
-from .utils import filter_products_by_attribute
 
 
 @pytest.mark.parametrize(
@@ -109,29 +107,36 @@ def test_filtering_by_attribute(db, color_attribute, category, settings):
     variant_b = models.ProductVariant.objects.create(product=product_b, sku="12345")
     color = color_attribute.values.first()
     color_2 = color_attribute.values.last()
-    product_a.attributes[str(color_attribute.pk)] = [str(color.pk)]
-    product_a.save()
-    variant_b.attributes[str(color_attribute.pk)] = [str(color.pk)]
-    variant_b.save()
 
-    filtered = filter_products_by_attribute(
-        models.Product.objects.all(), color_attribute.pk, color.pk
-    )
-    assert product_a in list(filtered)
-    assert product_b in list(filtered)
+    # Associate color to a product and a variant
+    associate_attribute_values_to_instance(product_a, color_attribute, color)
+    associate_attribute_values_to_instance(variant_b, color_attribute, color)
 
-    product_a.attributes[str(color_attribute.pk)] = [str(color_2.pk)]
-    product_a.save()
-    filtered = filter_products_by_attribute(
-        models.Product.objects.all(), color_attribute.pk, color.pk
-    )
-    assert product_a not in list(filtered)
-    assert product_b in list(filtered)
-    filtered = filter_products_by_attribute(
-        models.Product.objects.all(), color_attribute.pk, color_2.pk
-    )
-    assert product_a in list(filtered)
-    assert product_b not in list(filtered)
+    product_qs = models.Product.objects.all().values_list("pk", flat=True)
+
+    filters = {color_attribute.pk: [color.pk]}
+    filtered = filter_products_by_attributes_values(product_qs, filters)
+    assert product_a.pk in list(filtered)
+    assert product_b.pk in list(filtered)
+
+    associate_attribute_values_to_instance(product_a, color_attribute, color_2)
+
+    filters = {color_attribute.pk: [color.pk]}
+    filtered = filter_products_by_attributes_values(product_qs, filters)
+
+    assert product_a.pk not in list(filtered)
+    assert product_b.pk in list(filtered)
+
+    filters = {color_attribute.pk: [color_2.pk]}
+    filtered = filter_products_by_attributes_values(product_qs, filters)
+    assert product_a.pk in list(filtered)
+    assert product_b.pk not in list(filtered)
+
+    # Filter by multiple values, should trigger a OR condition
+    filters = {color_attribute.pk: [color.pk, color_2.pk]}
+    filtered = filter_products_by_attributes_values(product_qs, filters)
+    assert product_a.pk in list(filtered)
+    assert product_b.pk in list(filtered)
 
 
 def test_render_home_page(client, product, site_settings, settings):
@@ -457,8 +462,8 @@ def test_product_filter_multi_values_attribute(
     assert list(response.context["filter_set"].qs) == [product]
 
     # Try filtering with no occurrence
-    product.attributes[str(attribute.pk)].remove(str(data["modes"][0]))
-    product.save(update_fields=["attributes"])
+    attr_product_assoc = product.attributes.get(assignment__attribute_id=attribute.pk)
+    attr_product_assoc.values.remove(data["modes"][0])
     response = authorized_client.get(url, data)
     assert list(response.context["filter_set"].qs) == []
 
@@ -485,6 +490,29 @@ def test_product_filter_non_filterable(
     # Try selecting by the disabled attribute
     data = {"modes": list(attribute_values.keys())}
     response = authorized_client.get(url, data)
+
+    # Nothing should have been filtered, thus returning all the products
+    assert list(response.context["filter_set"].qs) == list(Product.objects.all())
+
+
+def test_product_filter_handles_garbage_input(
+    authorized_client,
+    product_with_multiple_values_attributes,
+    category,
+    product_list_published,
+):
+    """Ensure filtering products through an invalid ID (non integer input) doesn't
+    trigger any crash or error.
+    """
+
+    url = reverse(
+        "product:category", kwargs={"slug": category.slug, "category_id": category.pk}
+    )
+
+    # Try selecting by the disabled attribute
+    data = {"modes": "123-invalid-pk"}
+    response = authorized_client.get(url, data)
+    assert response.status_code == 200
 
     # Nothing should have been filtered, thus returning all the products
     assert list(response.context["filter_set"].qs) == list(Product.objects.all())
@@ -575,10 +603,9 @@ def test_get_variant_picker_data_no_nested_attributes(variant, product_type, cat
     product_type.variant_attributes.clear()
     product_type.variant_attributes.add(variant_attr)
 
-    variant.attributes = {
-        str(variant_attr.pk): [str(attr_val_1.pk), str(attr_val_2.pk)]
-    }
-    variant.save(update_fields=["attributes"])
+    associate_attribute_values_to_instance(
+        variant, variant_attr, attr_val_1, attr_val_2
+    )
 
     product = variant.product
     data = get_variant_picker_data(product, discounts=None, local_currency=None)
@@ -629,10 +656,7 @@ def test_product_page_renders_attributes_properly(
 
     # Assign the dropdown attribute to the product
     product.product_type.product_attributes.add(color_attribute)
-    product.attributes[str(color_attribute.pk)] = [
-        str(color_attribute.values.first().pk)
-    ]
-    product.save(update_fields=["attributes"])
+    associate_attribute_values_to_instance(product, color_attribute, red)
 
     # Create the attribute name translations
     AttributeTranslation.objects.bulk_create(
@@ -681,16 +705,16 @@ def test_product_page_renders_attributes_properly(
     assert attribute_table, "Did not find the attribute table"
 
     # Retrieve the table rows
-    expected_attributes = {
-        "Multiple Valeurs:Mode économique, Mode performance",
-        "Couleur:Rouge",
-    }
-    actual_attributes = [
-        row.get_text(strip=True) for row in attribute_table.select("tr")
-    ]
+    expected_attributes_re = re.compile(
+        r"Multiple Valeurs:Mode économique,\s+Mode performance\n\s*"  # noqa: no black!
+        r"Couleur:Rouge"
+    )
 
-    assert len(actual_attributes) == 2
-    assert set(actual_attributes) == expected_attributes
+    attribute_rows = attribute_table.select("tr")
+    actual_attributes = "\n".join(row.get_text(strip=True) for row in attribute_rows)
+
+    assert len(attribute_rows) == 2
+    assert expected_attributes_re.match(actual_attributes)
 
 
 def test_include_products_from_subcategories_in_main_view(
@@ -843,44 +867,6 @@ def test_variant_picker_data_with_translations(
     assert attribute["name"] == translated_variant_fr.name
 
 
-def test_get_product_attributes_data_translation(
-    product, settings, translated_attribute
-):
-    settings.LANGUAGE_CODE = "fr"
-    attributes_data = get_product_attributes_data(product)
-    attributes_keys = [attr.name for attr in attributes_data.keys()]
-    assert translated_attribute.name in attributes_keys
-
-
-def test_get_product_attributes_data_excludes_hidden_attributes(
-    product, color_attribute
-):
-    """Ensures hidden attributes are ignored."""
-
-    attributes_data = get_product_attributes_data(product)
-    assert attributes_data
-
-    color_attribute.visible_in_storefront = False
-    color_attribute.save(update_fields=["visible_in_storefront"])
-    attributes_data = get_product_attributes_data(product)
-    assert not attributes_data
-
-
-def test_get_product_attributes_data_multi_values_attribute(
-    product_with_multiple_values_attributes
-):
-    """Ensures attributes with multiple values are properly resolved and handled."""
-
-    product = product_with_multiple_values_attributes
-    attribute = product.product_type.product_attributes.first()
-
-    attributes_data = get_product_attributes_data(product)
-    values = list(attributes_data.values())
-
-    assert len(values) == 1
-    assert values[0] == ", ".join([v.name for v in attribute.values.all()])
-
-
 def test_homepage_collection_render(client, site_settings, collection, product_list):
     collection.products.add(*product_list)
     site_settings.homepage_collection = collection
@@ -1019,28 +1005,3 @@ def test_costs_get_margin_for_variant(variant, price, cost):
     variant.cost_price = cost
     variant.price_override = price
     assert not get_margin_for_variant(variant)
-
-
-@pytest.mark.parametrize(
-    "value, error",
-    (
-        ({123: []}, ["The key 123 should be of type str (got <class 'int'>)"]),
-        (
-            {"123": 111},
-            ["The values of '123' should be of type list (got <class 'int'>)"],
-        ),
-        (
-            {"123": [111]},
-            ["The values inside 111 should be of type str (got <class 'int'>)"],
-        ),
-    ),
-)
-def test_product_attributes_validator_invalid_values(value, error):
-    with pytest.raises(ValidationError) as exc_info:
-        validate_attribute_json(value)
-        assert exc_info.value.args[0] == error
-
-
-@pytest.mark.parametrize("value", ({"123": []}, {"123": ["111"]}))
-def test_product_attributes_validator_accept_valid_values(value):
-    validate_attribute_json(value)

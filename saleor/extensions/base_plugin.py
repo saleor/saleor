@@ -1,3 +1,4 @@
+from copy import copy
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, List, Union
 
@@ -13,6 +14,7 @@ if TYPE_CHECKING:
     from ..product.models import Product
     from ..account.models import Address, User
     from ..order.models import OrderLine, Order
+    from ..payment.interface import GatewayResponse, PaymentData
 
 
 class BasePlugin:
@@ -154,6 +156,42 @@ class BasePlugin:
     def order_fulfilled(self, order: "Order", previous_value: Any) -> Any:
         return NotImplemented
 
+    def authorize_payment(
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
+        return NotImplemented
+
+    def capture_payment(
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
+        return NotImplemented
+
+    def refund_payment(
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
+        return NotImplemented
+
+    def confirm_payment(
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
+        return NotImplemented
+
+    def process_payment(
+        self, payment_information: "PaymentData", previous_value
+    ) -> "GatewayResponse":
+        return NotImplemented
+
+    def list_payment_sources(
+        self, customer_id: str, previous_value
+    ) -> List["CustomerSource"]:
+        return NotImplemented
+
+    def create_form(self, data, payment_information, previous_value):
+        return NotImplemented
+
+    def get_client_token(self, token_config, previous_value):
+        return NotImplemented
+
     @classmethod
     def _update_config_items(
         cls, configuration_to_update: List[dict], current_config: List[dict]
@@ -202,12 +240,38 @@ class BasePlugin:
     @classmethod
     def _append_config_structure(cls, configuration):
         config_structure = getattr(cls, "CONFIG_STRUCTURE") or {}
-        for coniguration_field in configuration:
+        for configuration_field in configuration:
 
-            structure_to_add = config_structure.get(coniguration_field.get("name"))
+            structure_to_add = config_structure.get(configuration_field.get("name"))
             if structure_to_add:
-                coniguration_field.update(structure_to_add)
+                configuration_field.update(structure_to_add)
         return config_structure
+
+    @classmethod
+    def _update_configuration_structure(cls, configuration):
+        config_structure = getattr(cls, "CONFIG_STRUCTURE") or {}
+        desired_config_keys = set(config_structure.keys())
+
+        config = configuration.configuration or []
+        configured_keys = set(d["name"] for d in config)
+        missing_keys = desired_config_keys - configured_keys
+
+        if not missing_keys:
+            return
+
+        default_config = cls._get_default_configuration()
+        if not default_config:
+            return
+
+        update_values = [
+            copy(k)
+            for k in default_config["configuration"]
+            if k["name"] in missing_keys
+        ]
+        config.extend(update_values)
+
+        configuration.configuration = config
+        configuration.save(update_fields=["configuration"])
 
     @classmethod
     def get_plugin_configuration(cls, queryset: QuerySet) -> "PluginConfiguration":
@@ -215,6 +279,7 @@ class BasePlugin:
         configuration = queryset.get_or_create(name=cls.PLUGIN_NAME, defaults=defaults)[
             0
         ]
+        cls._update_configuration_structure(configuration)
         if configuration.configuration:
             # Let's add a translated descriptions and labels
             cls._append_config_structure(configuration.configuration)

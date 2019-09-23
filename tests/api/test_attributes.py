@@ -11,17 +11,19 @@ from saleor.graphql.core.utils import snake_to_camel_case
 from saleor.graphql.product.enums import AttributeTypeEnum, AttributeValueType
 from saleor.graphql.product.mutations.attributes import validate_value_is_unique
 from saleor.graphql.product.types.attributes import resolve_attribute_value_type
-from saleor.graphql.product.types.products import resolve_attribute_list
-from saleor.graphql.product.utils import attributes_to_json
 from saleor.product import AttributeInputType
+from saleor.product.error_codes import ProductErrorCode
 from saleor.product.models import (
     Attribute,
     AttributeProduct,
     AttributeValue,
     AttributeVariant,
     Category,
+    Product,
     ProductType,
+    ProductVariant,
 )
+from saleor.product.utils.attributes import associate_attribute_values_to_instance
 from tests.api.utils import get_graphql_content
 
 
@@ -39,148 +41,6 @@ def test_validate_value_is_unique(color_attribute):
 
     # value that already belongs to the attribute shouldn't be taken into account
     validate_value_is_unique(color_attribute, value)
-
-
-def test_attributes_to_json(product, color_attribute, size_attribute):
-    attribute_values_count = AttributeValue.objects.count()
-
-    attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.id)
-    color_value = color_attribute.values.first()
-
-    # test transforming slugs of existing attributes to IDs
-    input_data = [{"id": attribute_id, "values": [color_value.slug]}]
-    attrs_qs = product.product_type.product_attributes.all()
-    ids = attributes_to_json(input_data, attrs_qs)
-    assert str(color_attribute.pk) in ids
-    assert ids[str(color_attribute.pk)] == [str(color_value.pk)]
-    assert (
-        AttributeValue.objects.count() == attribute_values_count
-    ), "No new values should been created"
-
-    # test creating a new attribute value
-    input_data = [{"id": attribute_id, "values": ["Space Grey"]}]
-    ids = attributes_to_json(input_data, attrs_qs)
-    new_value = AttributeValue.objects.get(slug="space-grey")
-    attribute_values_count += 1
-    assert str(color_attribute.pk) in ids
-    assert ids[str(color_attribute.pk)] == [str(new_value.pk)]
-
-    # test passing the newly created value by slug
-    input_data = [{"id": attribute_id, "values": ["space-grey"]}]
-    attributes_to_json(input_data, attrs_qs)
-    assert (
-        AttributeValue.objects.count() == attribute_values_count
-    ), "Only one new value should have been created"
-
-
-# WARNING: Passing by slug will be dropped in a future release
-# This test can be safely removed on the field is dropped.
-def test_attributes_to_json_passing_by_slug(product, color_attribute):
-    color_value = color_attribute.values.first()
-
-    # test transforming slugs of existing attributes to IDs
-    input_data = [{"slug": color_attribute.slug, "values": [color_value.slug]}]
-    attrs_qs = product.product_type.product_attributes.all()
-    ids = attributes_to_json(input_data, attrs_qs)
-    assert str(color_attribute.pk) in ids
-    assert ids[str(color_attribute.pk)] == [str(color_value.pk)]
-
-    # test creating a new attribute value
-    input_data = [{"slug": color_attribute.slug, "values": ["Space Grey"]}]
-    ids = attributes_to_json(input_data, attrs_qs)
-    new_value = AttributeValue.objects.get(slug="space-grey")
-    assert str(color_attribute.pk) in ids
-    assert ids[str(color_attribute.pk)] == [str(new_value.pk)]
-
-    # test passing an attribute that doesn't belong to this product raises
-    # an error
-    input_data = [{"slug": "no-existing", "values": ["not-a-value"]}]
-    with pytest.raises(ValueError) as exc:
-        attributes_to_json(input_data, attrs_qs)
-    assert exc.value.args == (
-        "The given attribute doesn't belong to given product type.",
-    )
-
-
-@pytest.mark.parametrize("input", ([{"slug": "color", "values": []}], []))
-def test_attributes_to_json_missing_required_value(product, color_attribute, input):
-    # A value is required
-    color_attribute.value_required = True
-    color_attribute.save(update_fields=["value_required"])
-
-    # test transforming slugs of existing attributes to IDs
-    attrs_qs = product.product_type.product_attributes.all()
-
-    with pytest.raises(ValueError) as exc:
-        attributes_to_json(input, attrs_qs)
-    assert exc.value.args == ("color expects a value but none were given",)
-
-
-def test_attributes_to_json_id_not_in_product_type(product, size_attribute):
-    attrs_qs = product.product_type.product_attributes.all()
-
-    # Pass an id not belonging to the product type
-    input_data = [
-        {
-            "id": graphene.Node.to_global_id("Attribute", size_attribute.pk),
-            "values": ["a-value"],
-        }
-    ]
-    with pytest.raises(ValueError) as exc:
-        attributes_to_json(input_data, attrs_qs)
-    assert exc.value.args == (
-        "The given attribute doesn't belong to given product type.",
-    )
-
-
-def test_attributes_to_json_invalid_id_type(product):
-    attrs_qs = product.product_type.product_attributes.all()
-    invalid_id = graphene.Node.to_global_id("Invalid", 1)
-
-    # Pass an id of invalid type
-    input_data = [{"id": invalid_id, "values": ["a-value"]}]
-    with pytest.raises(ValueError) as exc:
-        attributes_to_json(input_data, attrs_qs)
-    assert exc.value.args == (f"Couldn't resolve to a node: {invalid_id}",)
-
-
-def test_attributes_to_json_without_values(product, color_attribute):
-    attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.id)
-    input_data = [{"id": attribute_id, "values": []}]
-    attrs_qs = product.product_type.product_attributes.all()
-
-    # The attribute should be ignored and raise no error as the value is not required
-    assert not attributes_to_json(input_data, attrs_qs)
-
-
-def test_attributes_to_json_duplicated_slug(product, color_attribute, size_attribute):
-    # It's possible to have a value with the same slug but for a different attribute.
-    # Ensure that `attributes_to_json` works in that case.
-
-    attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.id)
-    color_value = color_attribute.values.first()
-
-    # Create a fake duplicated value.
-    AttributeValue.objects.create(
-        slug=color_value.slug, name="Duplicated value", attribute=size_attribute
-    )
-
-    input_data = [{"id": attribute_id, "values": [color_value.slug]}]
-    attrs_qs = product.product_type.product_attributes.all()
-    ids = attributes_to_json(input_data, attrs_qs)
-    assert str(color_attribute.pk) in ids
-    assert ids[str(color_attribute.pk)] == [str(color_value.pk)]
-
-
-def test_attributes_to_json_missing_value_getter_raises_error(product):
-    # test transforming slugs of existing attributes to IDs
-    input_data = [{"values": []}]
-    attrs_qs = product.product_type.product_attributes.all()
-
-    with pytest.raises(ValueError) as exc:
-        assert not attributes_to_json(input_data, attrs_qs)
-
-    assert exc.value.args == ("The value ID or slug was not provided",)
 
 
 def test_get_single_attribute_by_pk(user_api_client, color_attribute_without_values):
@@ -276,65 +136,32 @@ def test_attributes_query_hidden_attribute_as_staff_user(
     assert len(attributes_data) == attribute_count
 
 
-QUERY_PRODUCT_ATTRIBUTES = """
+QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES = """
     {
       products(first: 1) {
         edges {
           node {
             attributes {
               attribute {
-                name
+                slug
+              }
+              values {
+                slug
+              }
+              value {
+                slug
               }
             }
-          }
-        }
-      }
-    }
-"""
-
-
-def test_resolve_product_attributes_with_hidden(
-    user_api_client, product, color_attribute
-):
-    query = QUERY_PRODUCT_ATTRIBUTES
-
-    # Hide one attribute from the storefront
-    color_attribute.visible_in_storefront = False
-    color_attribute.save(update_fields=["visible_in_storefront"])
-
-    gql_attrs = get_graphql_content(user_api_client.post_graphql(query))["data"][
-        "products"
-    ]["edges"][0]["node"]["attributes"]
-    assert len(gql_attrs) == len(product.attributes) - 1
-
-
-def test_resolve_product_attributes_with_hidden_as_staff_user(
-    staff_api_client, product, color_attribute, permission_manage_products
-):
-    query = QUERY_PRODUCT_ATTRIBUTES
-
-    # Hide one attribute from the storefront
-    color_attribute.visible_in_storefront = False
-    color_attribute.save(update_fields=["visible_in_storefront"])
-
-    # Add proper permissions
-    staff_api_client.user.user_permissions.add(permission_manage_products)
-
-    gql_attrs = get_graphql_content(staff_api_client.post_graphql(query))["data"][
-        "products"
-    ]["edges"][0]["node"]["attributes"]
-    assert len(gql_attrs) == len(product.attributes)
-
-
-QUERY_VARIANT_ATTRIBUTES = """
-    {
-      products(first: 1) {
-        edges {
-          node {
             variants {
               attributes {
                 attribute {
-                  name
+                  slug
+                }
+                values {
+                  slug
+                }
+                value {
+                  slug
                 }
               }
             }
@@ -345,37 +172,143 @@ QUERY_VARIANT_ATTRIBUTES = """
 """
 
 
-def test_resolve_variant_attributes_with_hidden(
-    user_api_client, product, size_attribute
+@pytest.mark.parametrize("is_staff", (False, True))
+def test_resolve_attributes_with_hidden(
+    user_api_client,
+    product,
+    color_attribute,
+    size_attribute,
+    staff_user,
+    is_staff,
+    permission_manage_products,
 ):
-    query = QUERY_VARIANT_ATTRIBUTES
+    """Ensure non-staff users don't see hidden attributes, and staff users having
+    the 'manage product' permission can.
+    """
+    query = QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES
+    api_client = user_api_client
 
-    # Hide one attribute from the storefront
-    size_attribute.visible_in_storefront = False
-    size_attribute.save(update_fields=["visible_in_storefront"])
+    variant = product.variants.first()
 
-    gql_attrs = get_graphql_content(user_api_client.post_graphql(query))["data"][
-        "products"
-    ]["edges"][0]["node"]["variants"][0]["attributes"]
-    assert len(gql_attrs) == len(product.variants.first().attributes) - 1
+    product_attribute = color_attribute
+    variant_attribute = size_attribute
+
+    expected_product_attribute_count = product.attributes.count() - 1
+    expected_variant_attribute_count = variant.attributes.count() - 1
+
+    if is_staff:
+        api_client.user = staff_user
+        expected_product_attribute_count += 1
+        expected_variant_attribute_count += 1
+        staff_user.user_permissions.add(permission_manage_products)
+
+    # Hide one product and variant attribute from the storefront
+    for attribute in (product_attribute, variant_attribute):
+        attribute.visible_in_storefront = False
+        attribute.save(update_fields=["visible_in_storefront"])
+
+    product = get_graphql_content(api_client.post_graphql(query))["data"]["products"][
+        "edges"
+    ][0]["node"]
+
+    assert len(product["attributes"]) == expected_product_attribute_count
+    assert len(product["variants"][0]["attributes"]) == expected_variant_attribute_count
 
 
-def test_resolve_variant_attributes_with_hidden_as_staff_user(
-    staff_api_client, product, size_attribute, permission_manage_products
+def test_resolve_attribute_values(user_api_client, product, staff_user):
+    """Ensure the attribute values are properly resolved."""
+    query = QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES
+    api_client = user_api_client
+
+    variant = product.variants.first()
+
+    assert product.attributes.count() == 1
+    assert variant.attributes.count() == 1
+
+    product_attribute_values = list(
+        product.attributes.first().values.values_list("slug", flat=True)
+    )
+    variant_attribute_values = list(
+        variant.attributes.first().values.values_list("slug", flat=True)
+    )
+
+    assert len(product_attribute_values) == 1
+    assert len(variant_attribute_values) == 1
+
+    product = get_graphql_content(api_client.post_graphql(query))["data"]["products"][
+        "edges"
+    ][0]["node"]
+
+    product_attributes = product["attributes"]
+    variant_attributes = product["variants"][0]["attributes"]
+
+    assert len(product_attributes) == len(product_attribute_values)
+    assert len(variant_attributes) == len(variant_attribute_values)
+
+    assert product_attributes[0]["attribute"]["slug"] == "color"
+    assert product_attributes[0]["values"][0]["slug"] == product_attribute_values[0]
+    assert product_attributes[0]["value"]["slug"] == product_attribute_values[0]
+
+    assert variant_attributes[0]["attribute"]["slug"] == "size"
+    assert variant_attributes[0]["values"][0]["slug"] == variant_attribute_values[0]
+    assert variant_attributes[0]["value"]["slug"] == variant_attribute_values[0]
+
+
+def test_resolve_attribute_values_non_assigned_to_node(
+    user_api_client, product, staff_user
 ):
-    query = QUERY_VARIANT_ATTRIBUTES
+    """Ensure the attribute values are properly resolved when an attribute is part
+    of the product type but not of the node (product/variant), thus no values should be
+    resolved.
+    """
+    query = QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES
+    api_client = user_api_client
 
-    # Hide one attribute from the storefront
-    size_attribute.visible_in_storefront = False
-    size_attribute.save(update_fields=["visible_in_storefront"])
+    variant = product.variants.first()
+    product_type = product.product_type
 
-    # Add proper permissions
-    staff_api_client.user.user_permissions.add(permission_manage_products)
+    # Create dummy attributes
+    unassigned_product_attribute = Attribute.objects.create(name="P", slug="product")
+    unassigned_variant_attribute = Attribute.objects.create(name="V", slug="variant")
 
-    gql_attrs = get_graphql_content(staff_api_client.post_graphql(query))["data"][
-        "products"
-    ]["edges"][0]["node"]["variants"][0]["attributes"]
-    assert len(gql_attrs) == len(product.variants.first().attributes)
+    # Create a value for each dummy attribute to ensure they are not returned
+    # by the product or variant as they are not associated to them
+    AttributeValue.objects.bulk_create(
+        [
+            AttributeValue(slug="a", name="A", attribute=unassigned_product_attribute),
+            AttributeValue(slug="b", name="B", attribute=unassigned_product_attribute),
+        ]
+    )
+
+    # Assign the dummy attributes to the product type and push them at the top
+    # through a sort_order=0 as the other attributes have sort_order=null
+    AttributeProduct.objects.create(
+        attribute=unassigned_product_attribute, product_type=product_type, sort_order=0
+    )
+    AttributeVariant.objects.create(
+        attribute=unassigned_variant_attribute, product_type=product_type, sort_order=0
+    )
+
+    assert product.attributes.count() == 1
+    assert variant.attributes.count() == 1
+
+    product = get_graphql_content(api_client.post_graphql(query))["data"]["products"][
+        "edges"
+    ][0]["node"]
+
+    product_attributes = product["attributes"]
+    variant_attributes = product["variants"][0]["attributes"]
+
+    assert len(product_attributes) == 2, "Non-assigned attr from the PT may be missing"
+    assert len(variant_attributes) == 2, "Non-assigned attr from the PT may be missing"
+
+    assert product_attributes[0]["attribute"]["slug"] == "product"
+    assert product_attributes[0]["values"] == []
+    assert variant_attributes[0]["value"] is None
+
+    assert variant_attributes[0]["attribute"]["slug"] == "variant"
+    assert variant_attributes[0]["values"] == []
+    assert variant_attributes[0]["value"] is None
 
 
 def test_attributes_in_category_query(user_api_client, product):
@@ -437,6 +370,11 @@ CREATE_ATTRIBUTES_QUERY = """
             errors {
                 field
                 message
+            }
+            productErrors {
+                field
+                message
+                code
             }
             attribute {
                 name
@@ -536,10 +474,20 @@ def test_create_attribute_with_given_slug(
 
 
 @pytest.mark.parametrize(
-    "name_1, name_2, error_msg",
+    "name_1, name_2, error_msg, error_code",
     (
-        ("Red color", "Red color", "Provided values are not unique."),
-        ("Red color", "red color", "Provided values are not unique."),
+        (
+            "Red color",
+            "Red color",
+            "Provided values are not unique.",
+            ProductErrorCode.UNIQUE,
+        ),
+        (
+            "Red color",
+            "red color",
+            "Provided values are not unique.",
+            ProductErrorCode.UNIQUE,
+        ),
     ),
 )
 def test_create_attribute_and_attribute_values_errors(
@@ -547,6 +495,7 @@ def test_create_attribute_and_attribute_values_errors(
     name_1,
     name_2,
     error_msg,
+    error_code,
     permission_manage_products,
     product_type,
 ):
@@ -561,6 +510,9 @@ def test_create_attribute_and_attribute_values_errors(
     assert errors[0]["field"] == "values"
     assert errors[0]["message"] == error_msg
 
+    product_errors = content["data"]["attributeCreate"]["productErrors"]
+    assert product_errors[0]["code"] == error_code.name
+
 
 UPDATE_ATTRIBUTE_QUERY = """
     mutation updateAttribute(
@@ -574,6 +526,11 @@ UPDATE_ATTRIBUTE_QUERY = """
         errors {
             field
             message
+        }
+        productErrors {
+            field
+            message
+            code
         }
         attribute {
             name
@@ -665,10 +622,20 @@ def test_update_empty_attribute_and_add_values(
 
 
 @pytest.mark.parametrize(
-    "name_1, name_2, error_msg",
+    "name_1, name_2, error_msg, error_code",
     (
-        ("Red color", "Red color", "Provided values are not unique."),
-        ("Red color", "red color", "Provided values are not unique."),
+        (
+            "Red color",
+            "Red color",
+            "Provided values are not unique.",
+            ProductErrorCode.UNIQUE,
+        ),
+        (
+            "Red color",
+            "red color",
+            "Provided values are not unique.",
+            ProductErrorCode.UNIQUE,
+        ),
     ),
 )
 def test_update_attribute_and_add_attribute_values_errors(
@@ -676,6 +643,7 @@ def test_update_attribute_and_add_attribute_values_errors(
     name_1,
     name_2,
     error_msg,
+    error_code,
     color_attribute,
     permission_manage_products,
 ):
@@ -696,6 +664,9 @@ def test_update_attribute_and_add_attribute_values_errors(
     assert errors
     assert errors[0]["field"] == "addValues"
     assert errors[0]["message"] == error_msg
+
+    product_errors = content["data"]["attributeUpdate"]["productErrors"]
+    assert product_errors[0]["code"] == error_code.name
 
 
 def test_update_attribute_and_remove_others_attribute_value(
@@ -722,6 +693,9 @@ def test_update_attribute_and_remove_others_attribute_value(
     assert errors[0]["field"] == "removeValues"
     err_msg = "Value %s does not belong to this attribute." % str(size_attribute)
     assert errors[0]["message"] == err_msg
+
+    product_errors = content["data"]["attributeUpdate"]["productErrors"]
+    assert product_errors[0]["code"] == ProductErrorCode.INVALID.name
 
 
 def test_delete_attribute(
@@ -923,53 +897,16 @@ def test_resolve_attribute_value_type(raw_value, expected_type):
     assert resolve_attribute_value_type(raw_value) == expected_type
 
 
-def test_resolve_attribute_list(color_attribute):
-    value = color_attribute.values.first()
-    attributes_json = {str(color_attribute.pk): [str(value.pk)]}
-    res = resolve_attribute_list(attributes_json, Attribute.objects.all())
-    assert len(res) == 1
-    assert len(res[0].values) == 1
-    assert res[0].attribute.name == color_attribute.name
-    assert res[0].values[0].name == value.name
-
-    # test passing invalid json should resolve to empty list
-    attr_pk = str(Attribute.objects.order_by("pk").last().pk + 1)
-    val_pk = str(AttributeValue.objects.order_by("pk").last().pk + 1)
-    attributes_json = {attr_pk: [val_pk]}
-    res = resolve_attribute_list(attributes_json, Attribute.objects.all())
-    assert len(res) == 1
-    assert res[0].attribute.pk == color_attribute.pk
-    assert res[0].values == []
-
-
-# FIXME: this field (value) is deprecated
-def test_resolve_attribute_list_deprecated_single_value(color_attribute):
-    value = color_attribute.values.first()
-
-    # Test passing a value
-    attributes_json = {str(color_attribute.pk): [str(value.pk)]}
-    res = resolve_attribute_list(attributes_json, Attribute.objects.all())
-    assert len(res) == 1
-    assert len(res[0].values) == 1
-    assert res[0].value.pk == value.pk
-
-    # Test passing no values
-    attributes_json = {str(color_attribute.pk): []}
-    res = resolve_attribute_list(attributes_json, Attribute.objects.all())
-    assert len(res) == 1
-    assert res[0].values == []
-    assert res[0].value is None
-
-
 def test_resolve_assigned_attribute_without_values(api_client, product_type, product):
-    # Remove all attributes and values from product
-    product.attributes = {}
-    product.save(update_fields=["attributes"])
-
-    # Remove all attributes and values from variant
+    """Ensure the attributes assigned to a product type are resolved even if
+    the product doesn't provide any value for it or is not directly associated to it.
+    """
+    # Retrieve the product's variant
     variant = product.variants.get()
-    variant.attributes = {}
-    variant.save(update_fields=["attributes"])
+
+    # Remove all attributes and values from the product and its variant
+    product.attributesrelated.clear()
+    variant.attributesrelated.clear()
 
     # Retrieve the product and variant's attributes
     products = get_graphql_content(
@@ -1884,11 +1821,11 @@ def test_attributes_of_products_are_sorted(
     m2m_rel_other_attr.save(update_fields=["sort_order"])
 
     # Assign attributes to the product
-    node = variant if is_variant else product
-    node.attributes = {
-        str(color_attribute.pk): [str(color_attribute.values.first().pk)]
-    }
-    node.save(update_fields=["attributes"])
+    node = variant if is_variant else product  # type: Union[Product, ProductVariant]
+    node.attributesrelated.clear()
+    associate_attribute_values_to_instance(
+        node, color_attribute, color_attribute.values.first()
+    )
 
     # Sort the database attributes by their sort order and ID (when None)
     expected_order = [other_attribute.pk, color_attribute.pk]

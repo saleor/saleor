@@ -198,11 +198,19 @@
       </div>
       <hr>
       <table>
-        {% for attribute, value in product_attributes.items %}
-          <tr>
-            <td>{{ attribute.translated }}:</td>
-            <td><strong>{{ value }}</strong></td>
-          </tr>
+        {% for attribute_rel in product.attributes.all %}
+          {% with attribute=attribute_rel.attribute %}
+            <tr>
+              <td>{{ attribute.translated }}:</td>
+              <td>
+                <strong>
+                  {% for value in attribute_rel.values.all %}
+                    {{ value.translated }}{% if not forloop.last %},{% endif %}
+                  {% endfor %}
+                </strong>
+              </td>
+            </tr>
+          {% endwith %}
         {% endfor %}
       </table>
     </div>

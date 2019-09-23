@@ -2,6 +2,7 @@ import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
 from ....account import events as account_events, models, utils
+from ....account.error_codes import AccountErrorCode
 from ....checkout import AddressType
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
@@ -138,7 +139,14 @@ class CustomerSetDefaultAddress(BaseMutation):
         user = info.context.user
 
         if address not in user.addresses.all():
-            raise ValidationError({"id": "The address doesn't belong to that user."})
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "The address doesn't belong to that user.",
+                        code=AccountErrorCode.INVALID,
+                    )
+                }
+            )
 
         if data.get("type") == AddressTypeEnum.BILLING.value:
             address_type = AddressType.BILLING
@@ -174,7 +182,14 @@ class CustomerPasswordReset(BaseMutation):
         try:
             user = models.User.objects.get(email=email)
         except ObjectDoesNotExist:
-            raise ValidationError({"email": "User with this email doesn't exist"})
+            raise ValidationError(
+                {
+                    "email": ValidationError(
+                        "User with this email doesn't exist",
+                        code=AccountErrorCode.NOT_FOUND,
+                    )
+                }
+            )
         site = info.context.site
         send_user_password_reset_email(user, site)
         return CustomerPasswordReset()

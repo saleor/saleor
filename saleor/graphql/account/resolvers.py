@@ -6,11 +6,8 @@ from django.db.models import Q
 from i18naddress import get_validation_rules
 
 from ...account import models
-from ...payment.utils import (
-    fetch_customer_id,
-    list_enabled_gateways,
-    retrieve_customer_sources,
-)
+from ...payment import gateway
+from ...payment.utils import fetch_customer_id
 from ..utils import filter_by_query_param
 from .types import AddressValidationData, ChoiceValue
 from .utils import get_allowed_fields_camel_case, get_required_fields_camel_case
@@ -96,16 +93,16 @@ def resolve_address_validation_rules(
 
 
 def resolve_payment_sources(user: models.User):
-    stored_customer_accounts = {
-        gateway: fetch_customer_id(user, gateway) for gateway in list_enabled_gateways()
-    }
+    stored_customer_accounts = (
+        (gtw, fetch_customer_id(user, gtw.value)) for gtw in gateway.list_gateways()
+    )
     return list(
         chain(
             *[
                 prepare_graphql_payment_sources_type(
-                    retrieve_customer_sources(gateway, customer_id)
+                    gateway.list_payment_sources(gtw, customer_id)
                 )
-                for gateway, customer_id in stored_customer_accounts.items()
+                for gtw, customer_id in stored_customer_accounts
                 if customer_id is not None
             ]
         )

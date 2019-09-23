@@ -21,6 +21,8 @@ class ApiClient(Client):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user", AnonymousUser())
         service_account = kwargs.pop("service_account", None)
+        self._user = None
+        self.token = None
         self.user = user
         self.service_token = None
         if not user.is_anonymous:
@@ -32,10 +34,20 @@ class ApiClient(Client):
     def _base_environ(self, **request):
         environ = super()._base_environ(**request)
         if not self.user.is_anonymous:
-            environ.update({"HTTP_AUTHORIZATION": "JWT %s" % self.token})
+            environ["HTTP_AUTHORIZATION"] = f"JWT {self.token}"
         elif self.service_token:
-            environ.update({"HTTP_AUTHORIZATION": "Bearer %s" % self.service_token})
+            environ["HTTP_AUTHORIZATION"] = f"Bearer {self.service_token}"
         return environ
+
+    @property
+    def user(self):
+        return self._user
+
+    @user.setter
+    def user(self, user):
+        self._user = user
+        if not user.is_anonymous:
+            self.token = get_token(user)
 
     def post(self, data=None, **kwargs):
         """Send a POST request.

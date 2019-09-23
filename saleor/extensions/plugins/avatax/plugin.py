@@ -11,6 +11,7 @@ from prices import Money, TaxedMoney, TaxedMoneyRange
 from ....core.taxes import TaxError, TaxType, zero_taxed_money
 from ... import ConfigurationTypeField
 from ...base_plugin import BasePlugin
+from ...error_codes import ExtensionsErrorCode
 from . import (
     META_FIELD,
     META_NAMESPACE,
@@ -436,7 +437,10 @@ class AvataxPlugin(BasePlugin):
                 "To enable a plugin, you need to provide values for the "
                 "following fields: "
             )
-            raise ValidationError(error_msg + ", ".join(missing_fields))
+            raise ValidationError(
+                error_msg + ", ".join(missing_fields),
+                code=ExtensionsErrorCode.PLUGIN_MISCONFIGURED,
+            )
 
     @classmethod
     def _hide_secret_configuration_fields(cls, configuration):
