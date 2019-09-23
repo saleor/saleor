@@ -241,8 +241,15 @@ class BasePlugin:
         if not missing_keys:
             return
 
-        default_config = cls._get_default_configuration()["configuration"]
-        update_values = [copy(k) for k in default_config if k["name"] in missing_keys]
+        default_config = cls._get_default_configuration()
+        if not default_config:
+            return
+
+        update_values = [
+            copy(k)
+            for k in default_config["configuration"]
+            if k["name"] in missing_keys
+        ]
         config.extend(update_values)
 
         configuration.configuration = config
