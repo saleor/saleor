@@ -70,10 +70,10 @@ def test_trigger_webhooks_for_event_with_secret_key(
 
 
 @mock.patch("saleor.extensions.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
-def test_postprocess_order_creation(mocked_webhook_trigger, settings, order_with_lines):
+def test_order_created(mocked_webhook_trigger, settings, order_with_lines):
     settings.PLUGINS = ["saleor.extensions.plugins.webhook.plugin.WebhookPlugin"]
     manager = get_extensions_manager()
-    manager.postprocess_order_creation(order_with_lines)
+    manager.order_created(order_with_lines)
 
     expected_data = generate_order_payload(order_with_lines)
     mocked_webhook_trigger.assert_called_once_with(

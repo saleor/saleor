@@ -424,7 +424,7 @@ def test_show_taxes_on_storefront(settings):
     assert manager.show_taxes_on_storefront() is False
 
 
-def test_postprocess_order_creation(settings, order, monkeypatch):
+def test_order_created(settings, order, monkeypatch):
     settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
     settings.AVATAX_USERNAME_OR_ACCOUNT = "test"
     settings.AVATAX_PASSWORD_OR_LICENSE = "test"
@@ -439,7 +439,7 @@ def test_postprocess_order_creation(settings, order, monkeypatch):
         mocked_task,
     )
 
-    manager.postprocess_order_creation(order)
+    manager.order_created(order)
 
     assert mocked_task.called
 
