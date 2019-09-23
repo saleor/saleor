@@ -19,11 +19,7 @@ def create_webhook_headers(
 ):
     signature_prefix = "sha1="
     domain = Site.objects.get_current().domain
-    headers = {
-        "X-Saleor-Event": event_name,
-        # X-Saleor-Task: {TaskID} # FIXME
-        "X-Saleor-Domain": domain,
-    }
+    headers = {"X-Saleor-Event": event_name, "X-Saleor-Domain": domain}
     if secret_key and body:
         saleor_hmac_sha256 = signature_prefix + create_hmac_signature(
             body, secret_key, encoding
