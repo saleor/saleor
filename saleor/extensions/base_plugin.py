@@ -120,7 +120,7 @@ class BasePlugin:
     ):
         return NotImplemented
 
-    def postprocess_order_creation(self, order: "Order", previous_value: Any):
+    def order_created(self, order: "Order", previous_value: Any):
         return NotImplemented
 
     def assign_tax_code_to_object_meta(
