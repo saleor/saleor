@@ -71,6 +71,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added validations for minimum password length in settings - #4735 by @fowczarek
 - Add error codes to mutations responses - #4676 by @Kwaidan00
 - Payment gateways are now saleor plugins with dynamic configuration - #4669 by @salwator
+- Add support for webhooks - #4731 by @korycins
 
 ## 2.8.0
 
