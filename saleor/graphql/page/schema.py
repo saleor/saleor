@@ -20,7 +20,7 @@ class PageQueries(graphene.ObjectType):
     pages = FilterInputConnectionField(
         Page,
         query=graphene.String(description=DESCRIPTIONS["page"]),
-        filter=PageFilterInput(),
+        filter=PageFilterInput(description="Filtering options for pages."),
         description="List of the shop's pages.",
     )
 

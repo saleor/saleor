@@ -163,7 +163,7 @@ class ProductQueries(graphene.ObjectType):
     categories = FilterInputConnectionField(
         Category,
         query=graphene.String(description=DESCRIPTIONS["category"]),
-        filter=CategoryFilterInput(),
+        filter=CategoryFilterInput(description="Filtering options for categories."),
         level=graphene.Argument(
             graphene.Int,
             description="Filter categories by the nesting level in the category tree.",
@@ -199,7 +199,7 @@ class ProductQueries(graphene.ObjectType):
     )
     products = FilterInputConnectionField(
         Product,
-        filter=ProductFilterInput(),
+        filter=ProductFilterInput(description="Filtering options for products."),
         attributes=graphene.List(
             AttributeScalar,
             description=(

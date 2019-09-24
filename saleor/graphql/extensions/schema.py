@@ -17,7 +17,9 @@ class ExtensionsQueries(graphene.ObjectType):
         description="Lookup a plugin by ID.",
     )
     plugins = FilterInputConnectionField(
-        Plugin, filter=PluginFilterInput(), description="List of plugins"
+        Plugin,
+        filter=PluginFilterInput(description="Filtering options for plugins"),
+        description="List of plugins",
     )
 
     @permission_required("extensions.manage_plugins")

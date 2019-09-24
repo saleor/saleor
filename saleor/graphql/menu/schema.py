@@ -29,7 +29,7 @@ class MenuQueries(graphene.ObjectType):
     menus = FilterInputConnectionField(
         Menu,
         query=graphene.String(description=DESCRIPTIONS["menu"]),
-        filter=MenuFilterInput(),
+        filter=MenuFilterInput(description="Filtering options for menus."),
         description="List of the storefront's menus.",
     )
     menu_item = graphene.Field(
@@ -42,7 +42,7 @@ class MenuQueries(graphene.ObjectType):
     menu_items = FilterInputConnectionField(
         MenuItem,
         query=graphene.String(description=DESCRIPTIONS["menu_item"]),
-        filter=MenuItemFilterInput(),
+        filter=MenuItemFilterInput(description="Filtering options for menu items."),
         description="List of the storefronts's menu items.",
     )
 
