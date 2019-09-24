@@ -8,7 +8,12 @@ from ....product import models
 from ....product.error_codes import ProductErrorCode
 from ....product.tasks import update_product_minimal_variant_price_task
 from ....product.utils.attributes import generate_name_for_variant
-from ...core.mutations import BaseBulkMutation, ModelBulkDeleteMutation, ModelMutation
+from ...core.mutations import (
+    BaseBulkMutation,
+    BaseMutation,
+    ModelBulkDeleteMutation,
+    ModelMutation,
+)
 from ...core.types.common import ProductError
 from ..mutations.products import (
     T_INPUT_MAP,
@@ -16,6 +21,7 @@ from ..mutations.products import (
     AttributeValueInput,
     ProductVariantInput,
 )
+from ..types import ProductVariant
 
 
 class CategoryBulkDelete(ModelBulkDeleteMutation):
@@ -92,11 +98,14 @@ class ProductVariantBulkCreateInput(ProductVariantInput):
     )
 
 
-class ProductVariantBulkCreate(ModelMutation):
+class ProductVariantBulkCreate(BaseMutation):
     count = graphene.Int(
         required=True,
         default_value=0,
         description="Returns how many objects were affected.",
+    )
+    product_variants = graphene.List(
+        ProductVariant, required=True, default_value=[], description=""
     )
 
     class Arguments:
@@ -113,7 +122,6 @@ class ProductVariantBulkCreate(ModelMutation):
 
     class Meta:
         description = "Creates product variants."
-        model = models.ProductVariant
         permissions = ("product.manage_products",)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -130,7 +138,7 @@ class ProductVariantBulkCreate(ModelMutation):
 
     @classmethod
     def clean_input(cls, info, instance: models.ProductVariant, data: dict):
-        cleaned_input = super().clean_input(
+        cleaned_input = ModelMutation.clean_input(
             info, instance, data, ProductVariantBulkCreateInput
         )
 
@@ -174,7 +182,6 @@ class ProductVariantBulkCreate(ModelMutation):
     def save_instances(cls, info, instances, cleaned_inputs):
         for instance, cleaned_input in zip(instances, cleaned_inputs):
             cls.save(info, instance, cleaned_input)
-            cls._save_m2m(info, instance, cleaned_input)
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
@@ -186,7 +193,7 @@ class ProductVariantBulkCreate(ModelMutation):
         product_type = product.product_type
         for variant_data in data.get("input"):
             try:
-                instance = cls.get_instance(info, **variant_data)
+                instance = models.ProductVariant()
                 variant_data["product_type"] = product_type
                 cleaned_input = cls.clean_input(info, instance, variant_data)
                 cleaned_input["product"] = product
@@ -211,7 +218,9 @@ class ProductVariantBulkCreate(ModelMutation):
             cls.save_instances(info, instances, cleaned_inputs)
         else:
             raise ValidationError(errors)
-        return ProductVariantBulkCreate(count=len(instances))
+        return ProductVariantBulkCreate(
+            count=len(instances), product_variants=instances
+        )
 
 
 class ProductVariantBulkDelete(ModelBulkDeleteMutation):
