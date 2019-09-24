@@ -125,9 +125,7 @@ class ProductVariantBulkCreate(ModelMutation):
         return attributes
 
     @classmethod
-    def clean_input(
-        cls, info, instance: models.ProductVariant, data: dict, product_type
-    ):
+    def clean_input(cls, info, instance: models.ProductVariant, data: dict):
         cleaned_input = super().clean_input(
             info, instance, data, ProductVariantBulkCreateInput
         )
@@ -148,7 +146,7 @@ class ProductVariantBulkCreate(ModelMutation):
         if attributes:
             try:
                 cleaned_input["attributes"] = cls.clean_attributes(
-                    attributes, product_type
+                    attributes, data["product_type"]
                 )
             except ValidationError as exc:
                 raise ValidationError({"attributes": exc})
@@ -185,9 +183,8 @@ class ProductVariantBulkCreate(ModelMutation):
         for variant_data in data.get("input"):
             try:
                 instance = cls.get_instance(info, **variant_data)
-                cleaned_input = cls.clean_input(
-                    info, instance, variant_data, product_type
-                )
+                variant_data["product_type"] = product_type
+                cleaned_input = cls.clean_input(info, instance, variant_data)
                 cleaned_input["product"] = product
                 instance = cls.construct_instance(instance, cleaned_input)
                 cls.clean_instance(instance)
