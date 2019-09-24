@@ -1,9 +1,9 @@
 import logging
 
 import requests
-from celery import shared_task
 from requests.exceptions import RequestException
 
+from ....celeryconf import app
 from ....webhook import WebhookEventType
 from ....webhook.models import Webhook
 from . import create_webhook_headers
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 WEBHOOK_TIMEOUT = 10
 
 
-@shared_task
+@app.task
 def trigger_webhooks_for_event(event_type, data):
     permissions = {}
     required_permission = WebhookEventType.PERMISSIONS.get(event_type, "")
@@ -38,7 +38,7 @@ def trigger_webhooks_for_event(event_type, data):
         )
 
 
-@shared_task(
+@app.task(
     autoretry_for=(RequestException,),
     retry_backoff=60,
     retry_kwargs={"max_retries": 15},
