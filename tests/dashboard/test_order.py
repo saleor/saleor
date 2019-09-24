@@ -1100,7 +1100,7 @@ def test_send_fulfillment_order_lines_mails(
         assert len(events) == 1
 
 
-@patch("saleor.dashboard.order.views." "send_fulfillment_confirmation_to_customer")
+@patch("saleor.order.actions.send_fulfillment_confirmation_to_customer")
 def test_view_fulfill_order_lines(
     mock_email_fulfillment, admin_client, order_with_lines
 ):

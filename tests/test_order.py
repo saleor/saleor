@@ -11,14 +11,12 @@ from saleor.checkout.utils import create_order, prepare_order_data
 from saleor.core.exceptions import InsufficientStock
 from saleor.core.weight import zero_weight
 from saleor.discount.utils import validate_voucher_in_order
-from saleor.order import FulfillmentStatus, OrderStatus, events as order_events, models
+from saleor.order import OrderStatus, events as order_events, models
 from saleor.order.models import Fulfillment, Order
 from saleor.order.templatetags.order_lines import display_translated_order_line_name
 from saleor.order.utils import (
     add_variant_to_order,
     automatically_fulfill_digital_lines,
-    cancel_fulfillment,
-    cancel_order,
     change_order_line_quantity,
     delete_order_line,
     fulfill_order_line,
@@ -275,30 +273,6 @@ def test_restock_fulfillment_lines(fulfilled_order):
     )
     assert stock_1.quantity == stock_1_quantity_before + line_1.quantity
     assert stock_2.quantity == stock_2_quantity_before + line_2.quantity
-
-
-def test_cancel_order(fulfilled_order):
-    cancel_order(None, fulfilled_order, restock=False)
-    assert all(
-        [
-            f.status == FulfillmentStatus.CANCELED
-            for f in fulfilled_order.fulfillments.all()
-        ]
-    )
-    assert fulfilled_order.status == OrderStatus.CANCELED
-
-
-def test_cancel_fulfillment(fulfilled_order):
-    fulfillment = fulfilled_order.fulfillments.first()
-    line_1 = fulfillment.lines.first()
-    line_2 = fulfillment.lines.first()
-
-    cancel_fulfillment(None, fulfillment, restock=False)
-
-    assert fulfillment.status == FulfillmentStatus.CANCELED
-    assert fulfilled_order.status == OrderStatus.UNFULFILLED
-    assert line_1.order_line.quantity_fulfilled == 0
-    assert line_2.order_line.quantity_fulfilled == 0
 
 
 def test_update_order_status(fulfilled_order):

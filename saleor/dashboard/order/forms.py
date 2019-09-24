@@ -16,17 +16,21 @@ from ...discount.models import Voucher
 from ...discount.utils import decrease_voucher_usage, increase_voucher_usage
 from ...extensions.manager import get_extensions_manager
 from ...order import OrderStatus, events
+from ...order.actions import (
+    cancel_fulfillment,
+    cancel_order,
+    clean_mark_order_as_paid,
+    mark_order_as_paid,
+    order_shipping_updated,
+)
 from ...order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ...order.utils import (
     add_variant_to_order,
-    cancel_fulfillment,
-    cancel_order,
     change_order_line_quantity,
     fulfill_order_line,
     recalculate_order,
 )
 from ...payment import ChargeStatus, CustomPaymentChoices, PaymentError, gateway
-from ...payment.utils import clean_mark_order_as_paid, mark_order_as_paid
 from ...product.models import Product, ProductVariant
 from ...product.utils import allocate_stock, deallocate_stock
 from ...shipping.models import ShippingMethod
@@ -209,8 +213,9 @@ class OrderShippingForm(forms.ModelForm):
 
         manager = get_extensions_manager()
         self.instance.shipping_price = manager.calculate_order_shipping(self.instance)
-        recalculate_order(self.instance)
-        return super().save(commit)
+        instance = super().save(commit)
+        order_shipping_updated(instance)
+        return instance
 
 
 class OrderRemoveShippingForm(forms.ModelForm):
@@ -487,7 +492,7 @@ class CancelOrderForm(forms.Form):
         return data
 
     def cancel_order(self, user):
-        cancel_order(user, self.order, self.cleaned_data.get("restock"))
+        cancel_order(self.order, user, self.cleaned_data.get("restock"))
 
 
 class CancelFulfillmentForm(forms.Form):
@@ -520,7 +525,7 @@ class CancelFulfillmentForm(forms.Form):
         return data
 
     def cancel_fulfillment(self, user):
-        cancel_fulfillment(user, self.fulfillment, self.cleaned_data.get("restock"))
+        cancel_fulfillment(self.fulfillment, user, self.cleaned_data.get("restock"))
 
 
 class FulfillmentTrackingNumberForm(forms.ModelForm):
