@@ -1,6 +1,5 @@
 import logging
 
-from django.conf import settings
 from django.contrib import auth, messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
