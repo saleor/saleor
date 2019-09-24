@@ -112,12 +112,16 @@ class AccountQueries(graphene.ObjectType):
     )
     service_accounts = FilterInputConnectionField(
         ServiceAccount,
-        filter=ServiceAccountFilterInput(),
+        filter=ServiceAccountFilterInput(
+            description="Filtering options for service accounts."
+        ),
         description="List of the service accounts",
     )
     service_account = graphene.Field(
         ServiceAccount,
-        id=graphene.Argument(graphene.ID, required=True),
+        id=graphene.Argument(
+            graphene.ID, description="ID of the service account.", required=True
+        ),
         description="Lookup a service account by ID.",
     )
 
