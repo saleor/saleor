@@ -1,8 +1,21 @@
+from collections import defaultdict
+
 import graphene
+from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from ....product import models
-from ...core.mutations import BaseBulkMutation, ModelBulkDeleteMutation
+from ....product.error_codes import ProductErrorCode
+from ....product.tasks import update_product_minimal_variant_price_task
+from ....product.utils.attributes import generate_name_for_variant
+from ...core.mutations import BaseBulkMutation, ModelBulkDeleteMutation, ModelMutation
 from ...core.types.common import ProductError
+from ..mutations.products import (
+    T_INPUT_MAP,
+    AttributeAssignmentMixin,
+    AttributeValueInput,
+    ProductVariantInput,
+)
 
 
 class CategoryBulkDelete(ModelBulkDeleteMutation):
@@ -69,6 +82,135 @@ class ProductBulkDelete(ModelBulkDeleteMutation):
         permissions = ("product.manage_products",)
         error_type_class = ProductError
         error_type_field = "product_errors"
+
+
+class ProductVariantBulkCreateInput(ProductVariantInput):
+    attributes = graphene.List(
+        AttributeValueInput,
+        required=True,
+        description="List of attributes specific to this variant.",
+    )
+
+
+class ProductVariantBulkCreate(ModelMutation):
+    count = graphene.Int(description="Returns how many objects were affected.")
+
+    class Arguments:
+        input = graphene.List(
+            ProductVariantBulkCreateInput,
+            required=True,
+            description="Fields required to create a product variants.",
+        )
+        product_id = graphene.ID(
+            description="Product ID of which type is the variant.",
+            name="product",
+            required=True,
+        )
+
+    class Meta:
+        description = "Creates product variants."
+        model = models.ProductVariant
+        permissions = ("product.manage_products",)
+        error_type_class = ProductError
+        error_type_field = "product_errors"
+
+    @classmethod
+    def clean_attributes(
+        cls, attributes: dict, product_type: models.ProductType
+    ) -> T_INPUT_MAP:
+        attributes_qs = product_type.variant_attributes
+        attributes = AttributeAssignmentMixin.clean_input(
+            attributes, attributes_qs, is_variant=True
+        )
+        return attributes
+
+    @classmethod
+    def clean_input(
+        cls, info, instance: models.ProductVariant, data: dict, product_type
+    ):
+        cleaned_input = super().clean_input(
+            info, instance, data, ProductVariantBulkCreateInput
+        )
+
+        cost_price_amount = cleaned_input.pop("cost_price", None)
+        if cost_price_amount is not None:
+            cleaned_input["cost_price_amount"] = cost_price_amount
+
+        price_override_amount = cleaned_input.pop("price_override", None)
+        if price_override_amount is not None:
+            cleaned_input["price_override_amount"] = price_override_amount
+
+        # Attributes are provided as list of `AttributeValueInput` objects.
+        # We need to transform them into the format they're stored in the
+        # `Product` model, which is HStore field that maps attribute's PK to
+        # the value's PK.
+        attributes = cleaned_input.get("attributes")
+        if attributes:
+            try:
+                cleaned_input["attributes"] = cls.clean_attributes(
+                    attributes, product_type
+                )
+            except ValidationError as exc:
+                raise ValidationError({"attributes": exc})
+
+        return cleaned_input
+
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        instance.save()
+        # Recalculate the "minimal variant price" for the parent product
+        update_product_minimal_variant_price_task.delay(instance.product_id)
+
+        attributes = cleaned_input.get("attributes")
+        if attributes:
+            AttributeAssignmentMixin.save(instance, attributes)
+            instance.name = generate_name_for_variant(instance)
+            instance.save(update_fields=["name"])
+
+    @classmethod
+    @transaction.atomic
+    def save_instances(cls, info, instances, cleaned_inputs):
+        for instance, cleaned_input in zip(instances, cleaned_inputs):
+            cls.save(info, instance, cleaned_input)
+            cls._save_m2m(info, instance, cleaned_input)
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        product = cls.get_node_or_error(info, data.get("product_id"), models.Product)
+        errors = defaultdict(list)
+        instances = []
+        cleaned_inputs = []
+        sku_list = []
+        product_type = product.product_type
+        for variant_data in data.get("input"):
+            try:
+                instance = cls.get_instance(info, **variant_data)
+                cleaned_input = cls.clean_input(
+                    info, instance, variant_data, product_type
+                )
+                cleaned_input["product"] = product
+                instance = cls.construct_instance(instance, cleaned_input)
+                cls.clean_instance(instance)
+                instances.append(instance)
+                cleaned_inputs.append(cleaned_input)
+            except ValidationError as exc:
+                for key, value in exc.error_dict.items():
+                    errors[key].extend(value)
+            sku = variant_data.get("sku")
+            if sku:
+                if sku not in sku_list:
+                    sku_list.append(sku)
+                else:
+                    errors["sku"].append(
+                        ValidationError(
+                            "Duplicated SKU.", ProductErrorCode.ALREADY_EXISTS
+                        )
+                    )
+        if not errors:
+            cls.save_instances(info, instances, cleaned_inputs)
+        else:
+            raise ValidationError(errors)
+        return ProductVariantBulkCreate(count=len(instances))
 
 
 class ProductVariantBulkDelete(ModelBulkDeleteMutation):

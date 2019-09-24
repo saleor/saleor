@@ -336,7 +336,7 @@ class ModelMutation(BaseMutation):
         cls._update_mutation_arguments_and_fields(arguments=arguments, fields=fields)
 
     @classmethod
-    def clean_input(cls, info, instance, data):
+    def clean_input(cls, info, instance, data, input_cls=None):
         """Clean input data received from mutation arguments.
 
         Fields containing IDs or lists of IDs are automatically resolved into
@@ -366,7 +366,8 @@ class ModelMutation(BaseMutation):
                 return field.type.of_type == Upload
             return field.type == Upload
 
-        input_cls = getattr(cls.Arguments, "input")
+        if not input_cls:
+            input_cls = getattr(cls.Arguments, "input")
         cleaned_input = {}
 
         for field_name, field_item in input_cls._meta.fields.items():
