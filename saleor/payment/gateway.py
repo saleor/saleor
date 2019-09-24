@@ -217,6 +217,10 @@ def list_gateways() -> List[Gateway]:
     return get_extensions_manager().list_payment_gateways()
 
 
+def get_template_path(gateway: Gateway) -> str:
+    return get_extensions_manager().get_payment_template(gateway)
+
+
 def _get_gateway(payment: Payment) -> Gateway:
     try:
         gateway = Gateway(payment.gateway)

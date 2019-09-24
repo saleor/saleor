@@ -252,6 +252,13 @@ class ExtensionsManager(PaymentInterface):
             and self.get_plugin_configuration(plugin.PLUGIN_NAME).active
         ]
 
+    def get_payment_template(self, gateway: Gateway) -> str:
+        method_name = "get_payment_template"
+        default_value = None
+        gateway_name = gateway.value
+        gtw = self.get_plugin(gateway_name)
+        return self.__run_method_on_single_plugin(gtw, method_name, default_value)
+
     def __run_payment_method(
         self,
         gateway: Gateway,
