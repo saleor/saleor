@@ -213,7 +213,7 @@ def get_client_token(gateway: Gateway, customer_id: str = None) -> str:
     return plugin_manager.get_client_token(gateway, token_config)
 
 
-def list_gateways() -> List[Gateway]:
+def list_gateways() -> List[str]:
     return get_extensions_manager().list_payment_gateways()
 
 

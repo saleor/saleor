@@ -5,7 +5,7 @@ from django.utils.translation import pgettext_lazy
 from saleor.extensions import ConfigurationTypeField
 from saleor.extensions.base_plugin import BasePlugin
 
-from . import GatewayConfig, capture, process_payment, refund, create_form
+from . import GatewayConfig, capture, create_form, process_payment, refund
 
 GATEWAY_NAME = "razorpay"
 
