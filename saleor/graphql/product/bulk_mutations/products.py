@@ -93,7 +93,11 @@ class ProductVariantBulkCreateInput(ProductVariantInput):
 
 
 class ProductVariantBulkCreate(ModelMutation):
-    count = graphene.Int(description="Returns how many objects were affected.")
+    count = graphene.Int(
+        required=True,
+        default_value=0,
+        description="Returns how many objects were affected.",
+    )
 
     class Arguments:
         input = graphene.List(
