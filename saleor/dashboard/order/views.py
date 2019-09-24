@@ -15,13 +15,18 @@ from django_prices.templatetags import prices
 from ...core.exceptions import InsufficientStock
 from ...core.utils import get_paginator_items
 from ...order import OrderStatus, events
-from ...order.emails import (
-    send_fulfillment_confirmation_to_customer,
-    send_fulfillment_update,
-    send_order_confirmation,
+from ...order.actions import (
+    fulfillment_tracking_updated,
+    order_address_updated,
+    order_captured,
+    order_created,
+    order_fulfilled,
+    order_refunded,
+    order_voided,
 )
+from ...order.emails import send_fulfillment_update, send_order_confirmation
 from ...order.models import Fulfillment, FulfillmentLine, Order
-from ...order.utils import update_order_prices, update_order_status
+from ...order.utils import update_order_prices
 from ...shipping.models import ShippingMethod
 from ..views import staff_member_required
 from .filters import OrderFilter
@@ -103,11 +108,9 @@ def create_order_from_draft(request, order_pk):
         msg = pgettext_lazy(
             "Dashboard message related to an order", "Order created from draft order"
         )
+        order_created(order=order, user=request.user, from_draft=True)
 
-        events.order_created_event(order=order, user=request.user, from_draft=True)
-        request.extensions.order_created(order)
         messages.success(request, msg)
-
         if form.cleaned_data.get("notify_customer"):
             send_order_confirmation.delay(order.pk, request.user.pk)
         return redirect("dashboard:order-details", order_pk=order.pk)
@@ -191,11 +194,10 @@ def capture_payment(request, order_pk, payment_pk):
         msg = pgettext_lazy(
             "Dashboard message related to a payment", "Captured %(amount)s"
         ) % {"amount": prices.amount(amount)}
-        events.payment_captured_event(
+        messages.success(request, msg)
+        order_captured(
             order=order, user=request.user, amount=amount.amount, payment=payment
         )
-        request.extensions.order_updated(order)
-        messages.success(request, msg)
         return redirect("dashboard:order-details", order_pk=order.pk)
     status = 400 if form.errors else 200
     ctx = {"captured": amount, "form": form, "order": order, "payment": payment}
@@ -219,11 +221,8 @@ def refund_payment(request, order_pk, payment_pk):
         msg = pgettext_lazy(
             "Dashboard message related to a payment", "Refunded %(amount)s"
         ) % {"amount": prices.amount(payment.get_captured_amount())}
-        events.payment_refunded_event(
-            order=order, user=request.user, amount=amount, payment=payment
-        )
-        request.extensions.order_updated(order)
         messages.success(request, msg)
+        order_refunded(order, request.user, amount, payment)
         return redirect("dashboard:order-details", order_pk=order.pk)
     status = 400 if form.errors else 200
     ctx = {
@@ -246,8 +245,7 @@ def void_payment(request, order_pk, payment_pk):
     form = VoidPaymentForm(request.POST or None, payment=payment)
     if form.is_valid() and form.void(request.user):
         msg = pgettext_lazy("Dashboard message", "Voided payment")
-        events.payment_voided_event(order=order, user=request.user, payment=payment)
-        request.extensions.order_updated(order)
+        order_voided(order=order, user=request.user, payment=payment)
         messages.success(request, msg)
         return redirect("dashboard:order-details", order_pk=order.pk)
     status = 400 if form.errors else 200
@@ -375,10 +373,7 @@ def order_address(request, order_pk, address_type):
         if update_prices:
             update_order_prices(order, request.discounts)
         if not order.is_draft():
-            events.order_updated_address_event(
-                order=order, user=request.user, address=address
-            )
-            request.extensions.order_updated(order)
+            order_address_updated(order, request.user, address)
         messages.success(request, success_msg)
         return redirect("dashboard:order-details", order_pk=order_pk)
     ctx = {"order": order, "address_type": address_type, "form": form}
@@ -515,8 +510,6 @@ def cancel_order(request, order_pk):
         msg = pgettext_lazy("Dashboard message", "Order canceled")
         with transaction.atomic():
             form.cancel_order(request.user)
-        request.extensions.order_cancelled(order)
-        request.extensions.order_updated(order)
         messages.success(request, msg)
         return redirect("dashboard:order-details", order_pk=order.pk)
         # TODO: send status confirmation email
@@ -637,9 +630,6 @@ def fulfill_order_lines(request, order_pk):
                 quantity_fulfilled += quantity
                 quantities.append(quantity)
                 order_lines.append(line)
-            # update to refresh prefetched lines quantity_fulfilled
-            order = orders.get(pk=order_pk)
-            update_order_status(order)
             msg = npgettext_lazy(
                 "Dashboard message related to an order",
                 "Fulfilled %(quantity_fulfilled)d item",
@@ -647,17 +637,12 @@ def fulfill_order_lines(request, order_pk):
                 number="quantity_fulfilled",
             ) % {"quantity_fulfilled": quantity_fulfilled}
 
-            events.fulfillment_fulfilled_items_event(
-                order=order,
-                user=request.user,
-                fulfillment_lines=fulfillment.lines.all(),
+            order_fulfilled(
+                fulfillment,
+                request.user,
+                fulfillment.lines.all(),
+                form.cleaned_data.get("send_mail"),
             )
-            request.extensions.order_updated(order)
-
-            if form.cleaned_data.get("send_mail"):
-                send_fulfillment_confirmation_to_customer(
-                    order, fulfillment, request.user
-                )
         else:
             msg = pgettext_lazy(
                 "Dashboard message related to an order", "No items fulfilled"
@@ -690,7 +675,6 @@ def cancel_fulfillment(request, order_pk, fulfillment_pk):
         ) % {"fulfillment": fulfillment.composed_id}
         with transaction.atomic():
             form.cancel_fulfillment(request.user)
-        request.extensions.order_updated(order)
         messages.success(request, msg)
         return redirect("dashboard:order-details", order_pk=order.pk)
     elif form.errors:
@@ -711,13 +695,9 @@ def change_fulfillment_tracking(request, order_pk, fulfillment_pk):
     form = FulfillmentTrackingNumberForm(request.POST or None, instance=fulfillment)
     if form.is_valid():
         form.save()
-        events.fulfillment_tracking_updated_event(
-            order=order,
-            user=request.user,
-            tracking_number=request.POST.get("tracking_number"),
-            fulfillment=fulfillment,
+        fulfillment_tracking_updated(
+            fulfillment, request.user, request.POST.get("tracking_number")
         )
-        request.extensions.order_updated(order)
         if form.cleaned_data.get("send_mail"):
             events.email_sent_event(
                 order=order,

@@ -6,6 +6,7 @@ from ....account.models import User
 from ....core.exceptions import InsufficientStock
 from ....core.taxes import zero_taxed_money
 from ....order import OrderStatus, events, models
+from ....order.actions import order_created
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import (
     add_variant_to_order,
@@ -263,9 +264,7 @@ class DraftOrderComplete(BaseMutation):
             except InsufficientStock:
                 allocate_stock(line.variant, line.variant.quantity_available)
                 oversold_items.append(str(line))
-
-        events.order_created_event(order=order, user=info.context.user, from_draft=True)
-        info.context.extensions.order_created(order)
+        order_created(order, user=info.context.user, from_draft=True)
 
         if oversold_items:
             events.draft_order_oversold_items_event(

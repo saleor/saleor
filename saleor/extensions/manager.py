@@ -174,10 +174,6 @@ class ExtensionsManager(PaymentInterface):
             "preprocess_order_creation", default_value, checkout, discounts
         )
 
-    def order_created(self, order: "Order"):
-        default_value = None
-        return self.__run_method_on_plugins("order_created", default_value, order)
-
     def customer_created(self, customer: "User"):
         default_value = None
         return self.__run_method_on_plugins("customer_created", default_value, customer)
@@ -185,6 +181,10 @@ class ExtensionsManager(PaymentInterface):
     def product_created(self, product: "Product"):
         default_value = None
         return self.__run_method_on_plugins("product_created", default_value, product)
+
+    def order_created(self, order: "Order"):
+        default_value = None
+        return self.__run_method_on_plugins("order_created", default_value, order)
 
     def order_fully_paid(self, order: "Order"):
         default_value = None

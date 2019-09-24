@@ -6,22 +6,12 @@ from typing import Dict
 from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
-from django.utils.translation import pgettext_lazy
 
-from ..account.models import Address, User
+from ..account.models import Address
 from ..checkout.models import Checkout
-from ..core import analytics
-from ..extensions.manager import get_extensions_manager
-from ..order import events, utils as order_utils
-from ..order.emails import send_payment_confirmation
+from ..order.actions import handle_fully_paid_order
 from ..order.models import Order
-from . import (
-    ChargeStatus,
-    CustomPaymentChoices,
-    GatewayError,
-    PaymentError,
-    TransactionKind,
-)
+from . import ChargeStatus, GatewayError, PaymentError, TransactionKind
 from .interface import AddressData, GatewayResponse, PaymentData
 from .models import Payment, Transaction
 
@@ -68,27 +58,6 @@ def create_payment_information(
         customer_email=payment.billing_email,
         reuse_source=store_source,
     )
-
-
-def handle_fully_paid_order(order):
-    events.order_fully_paid_event(order=order)
-
-    if order.get_customer_email():
-        events.email_sent_event(
-            order=order, user=None, email_type=events.OrderEventsEmails.PAYMENT
-        )
-        send_payment_confirmation.delay(order.pk)
-
-        if order_utils.order_needs_automatic_fullfilment(order):
-            order_utils.automatically_fulfill_digital_lines(order)
-    try:
-        analytics.report_order(order.tracking_client_id, order)
-    except Exception:
-        # Analytics failing should not abort the checkout flow
-        logger.exception("Recording order in analytics failed")
-    manager = get_extensions_manager()
-    manager.order_fully_paid(order)
-    manager.order_updated(order)
 
 
 def create_payment(
@@ -143,29 +112,6 @@ def create_payment(
     return payment
 
 
-@transaction.atomic
-def mark_order_as_paid(order: Order, request_user: User):
-    """Mark order as paid.
-
-    Allows to create a payment for an order without actually performing any
-    payment by the gateway.
-    """
-    payment = create_payment(
-        gateway=CustomPaymentChoices.MANUAL,
-        payment_token="",
-        currency=order.total.gross.currency,
-        email=order.user_email,
-        billing_address=order.billing_address,
-        total=order.total.gross.amount,
-        order=order,
-    )
-    payment.charge_status = ChargeStatus.FULLY_CHARGED
-    payment.captured_amount = order.total.gross.amount
-    payment.save(update_fields=["captured_amount", "charge_status"])
-    events.order_manually_marked_as_paid_event(order=order, user=request_user)
-    get_extensions_manager().order_fully_paid(order)
-
-
 def create_transaction(
     payment: Payment,
     kind: str,
@@ -216,17 +162,6 @@ def clean_authorize(payment: Payment):
     """Check if payment can be authorized."""
     if not payment.can_authorize():
         raise PaymentError("Charged transactions cannot be authorized again.")
-
-
-def clean_mark_order_as_paid(order: Order):
-    """Check if an order can be marked as paid."""
-    if order.payments.exists():
-        raise PaymentError(
-            pgettext_lazy(
-                "Mark order as paid validation error",
-                "Orders with payments can not be manually marked as paid.",
-            )
-        )
 
 
 def validate_gateway_response(response: GatewayResponse):
