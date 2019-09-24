@@ -1,17 +1,18 @@
-import importlib
 from enum import Enum
 
 from django.conf import settings
-from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import pgettext_lazy
-
-from .interface import GatewayConfig
 
 
 class PaymentError(Exception):
     def __init__(self, message):
         super(PaymentError, self).__init__(message)
         self.message = message
+
+
+GATEWAYS_ENUM = Enum(
+    "GatewaysEnum", {key.upper(): key.lower() for key in settings.PAYMENT_GATEWAYS}
+)
 
 
 class GatewayError(IOError):
@@ -30,6 +31,7 @@ class OperationType(Enum):
     CAPTURE = "capture"
     VOID = "void"
     REFUND = "refund"
+    CONFIRM = "confirm"
 
 
 class TransactionError(Enum):
@@ -63,6 +65,7 @@ class TransactionKind:
     CAPTURE = "capture"
     VOID = "void"
     REFUND = "refund"
+    CONFIRM = "confirm"
     # FIXME we could use another status like WAITING_FOR_AUTH for transactions
     # Which were authorized, but needs to be confirmed manually by staff
     # eg. Braintree with "submit_for_settlement" enabled
@@ -71,6 +74,7 @@ class TransactionKind:
         (REFUND, pgettext_lazy("transaction kind", "Refund")),
         (CAPTURE, pgettext_lazy("transaction kind", "Capture")),
         (VOID, pgettext_lazy("transaction kind", "Void")),
+        (CONFIRM, pgettext_lazy("transaction kind", "Confirm")),
     ]
 
 
@@ -100,35 +104,3 @@ class ChargeStatus:
         (PARTIALLY_REFUNDED, pgettext_lazy("payment status", "Partially refunded")),
         (FULLY_REFUNDED, pgettext_lazy("payment status", "Fully refunded")),
     ]
-
-
-GATEWAYS_ENUM = Enum(
-    "GatewaysEnum", {key.upper(): key.lower() for key in settings.PAYMENT_GATEWAYS}
-)
-
-
-def get_payment_gateway(gateway_name):
-    if gateway_name not in settings.CHECKOUT_PAYMENT_GATEWAYS:
-        raise ValueError("%s is not allowed gateway" % gateway_name)
-    if gateway_name not in settings.PAYMENT_GATEWAYS:
-        raise ImproperlyConfigured(
-            "Payment gateway %s is not configured." % gateway_name
-        )
-
-    gateway_module = importlib.import_module(
-        settings.PAYMENT_GATEWAYS[gateway_name]["module"]
-    )
-
-    if "config" not in settings.PAYMENT_GATEWAYS[gateway_name]:
-        raise ImproperlyConfigured(
-            "Payment gateway %s should have own configuration" % gateway_name
-        )
-
-    gateway_config = settings.PAYMENT_GATEWAYS[gateway_name]["config"]
-    config = GatewayConfig(
-        auto_capture=gateway_config["auto_capture"],
-        template_path=gateway_config["template_path"],
-        connection_params=gateway_config["connection_params"],
-    )
-
-    return gateway_module, config

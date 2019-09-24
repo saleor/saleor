@@ -6,8 +6,11 @@ CELERY_TASK_ALWAYS_EAGER = True
 
 SECRET_KEY = "NOTREALLY"
 
+ALLOWED_CLIENT_HOSTS = ["www.example.com"]
+
 DEFAULT_CURRENCY = "USD"
 
+TIME_ZONE = "America/Chicago"
 LANGUAGE_CODE = "en"
 
 ES_URL = None
@@ -26,17 +29,16 @@ if "sqlite" in DATABASES["default"]["ENGINE"]:  # noqa
         "MIRROR": None,
     }
 
-CHECKOUT_PAYMENT_GATEWAYS = {
-    DUMMY: "Dummy gateway",
-    BRAINTREE: "Braintree",
-    RAZORPAY: "Razorpay",
-    STRIPE: "Stripe",
-}
-
 COUNTRIES_ONLY = None
 
 MEDIA_ROOT = None
 MAX_CHECKOUT_LINE_QUANTITY = 50
 
+USE_JSON_CONTENT = False
+
+AUTH_PASSWORD_VALIDATORS = []
 
 PASSWORD_HASHERS = ["tests.dummy_password_hasher.DummyHasher"]
+EXTENSIONS_MANAGER = "saleor.extensions.manager.ExtensionsManager"
+
+PLUGINS = []

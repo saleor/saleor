@@ -1,0 +1,41 @@
+interactions:
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip, deflate
+      Authorization:
+      - Basic Og==
+      Connection:
+      - keep-alive
+      User-Agent:
+      - python-requests/2.22.0
+    method: GET
+    uri: https://sandbox-rest.avatax.com/api/v2/definitions/taxcodes
+  response:
+    body:
+      string: "{\"@recordsetCount\":4745,\"value\":[{\"id\":27764,\"companyId\":1,\"\
+        taxCode\":\"PH404218\",\"taxCodeTypeId\":\"P\",\"description\":\"Medical Supplies\
+        \ - General: Container - nonmedical\",\"parentTaxCode\":\"0810\",\"isPhysical\"\
+        :true,\"goodsServiceCode\":0,\"entityUseCode\":\"\",\"isActive\":true,\"isSSTCertified\"\
+        :true,\"createdDate\":\"2013-08-30T05:09:00.383\",\"createdUserId\":0,\"modifiedDate\"\
+        :\"2018-02-23T05:42:36.643\",\"modifiedUserId\":0}]}"
+    headers:
+      Connection:
+      - keep-alive
+      Content-Type:
+      - application/json; charset=utf-8
+      Date:
+      - Tue, 23 Jul 2019 14:00:06 GMT
+      ServerDuration:
+      - '00:00:00.0025669'
+      Transfer-Encoding:
+      - chunked
+      X-Content-Type-Options:
+      - nosniff
+    status:
+      code: 200
+      message: OK
+version: 1

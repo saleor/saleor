@@ -4,13 +4,110 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-- Fixed internal error when creating a checkout with a voucher code - #4292 by @NyanKiyoshi
-- Add filter tab name as required - #4269 by @benekex2
-- A few unused panels are now disabled by default from the debug toolbar; this should improve loading time when debugging - #4301 by @NyanKiyoshi
-- Fixed internal error when adding a note to an anonymous order - #4319 by @NyanKiyoshi
-- Fix populatedb gift card duplication error - #4336 by @fowczarek
-- Fix voucher apply once per order - #4339 by @fowczarek
-- Change type of start and end date for discounts on date time field - #4293 by @fowczarek
+- Fix product type taxes select - #4453 by @benekex2
+- Fix form reloading - #4467 by @dominik-zeglen
+- Fix time zone based tests - #4468 by @fowczarek
+- Move Django Debug Toolbar requirement to the "dev" one (also downgrade it 2.0 -> 1.11, see PR) - #4454 by @derenio
+- Add voucher once per customer - #4442 by @fowczarek
+- Fix voucher limit value when checkbox unchecked - #4456 by @benekex2
+- New menu design - #4476 by @benekex2
+- Mutation for changing logged user first and last name - #4489 by @fowczarek
+- Add mutation for deleting account - #4494 by @fowczarek
+- New translations:
+  - Greek
+- Extensions Manager - #4497 by @korycins
+- Migration of tax logic into a plugin architecture - #4497 by @korycins
+- Move core.extensions to separate module - #4559 by @korycins
+- Fix searches and pickers - #4487 by @dominik-zeglen
+- Fix dashboard menu styles - #4491 by @benekex2
+- Do not allow random ids to appear in snapshots - #4495 by @dominik-zeglen
+- Order is no longer created when the payment was unsuccessful in the API - #4500 by @NyanKiyoshi
+- Fix navigation rwd - #4511 by @benekex2
+- Create general abstraction for object metadata - #4447 by @salwator
+- Contrast improvements - #4508 by @benekex2
+- Allow selecting the number of rows displayed in dashboard's list views - #4414 by @benekex2
+- Fix generating random avatars when updating staff accounts - #4521 by @maarcingebala
+- Changed license for artwork to CC-BY 4.0
+- Input UI changes - #4542 by @benekex2
+- Fix rendering user avatar when it's null #4546 by @maarcingebala
+- Do not lose focus while typing in product description field - #4549 by @dominik-zeglen
+- Update JSON menu representation in mutations - #4524 by @maarcingebala
+- Display menu item form errors - #4551 by @dominik-zeglen
+- Add voucher settings - #4556 by @benekex2
+- Enforced pydocstyle for Python docstrings over the project - #4562 by @NyanKiyoshi
+- The checkout process of digital orders no longer require shipping information over the API - #4573 by @NyanKiyoshi
+- Add e2e test config - #4553 by @dominik-zeglen
+- Fix MUI warnings - #4588 by @dominik-zeglen
+- Disabled unneeded reports from uWSGI about broken pipe and write errors from disconnected clients. Preventing from spamming sentry users. - #4596 by @NyanKiyoshi
+- Upgraded to django 2.2.4 - #4603 by @NyanKiyoshi
+- Invalid IP address in HTTP requests now fallback to the requester's IP address. - #4597 by @NyanKiyoshi
+- Add queries and mutation for serving and saving the configuration of all plugins - #4576 by @korycins
+- Refactor account mutations - #4510 by @fowczarek
+- Users cannot add multiple times the same product into a collection anymore - #4518 by @NyanKiyoshi
+- Enterprise-grade attributes management - #4351 by @dominik-zeglen and @NyanKiyoshi
+- Refetch attribute list after closing modal - #4615 by @dominik-zeglen
+- Add ability to toggle visible columns in product list - #4608 by @dominik-zeglen
+- Serialize empty URL as string when creating menu items - #4616 by @maarcingebala
+- Fix bulk actions - #4618 by @dominik-zeglen
+- Remove dashboard 2.0 files - #4631 by @dominik-zeglen
+- Refactoring of password recovery system - #4617 by @fowczarek
+- Added capability to filter attributes per global ID - #4640 by @NyanKiyoshi.
+- Added capability to search product types by value (through the name) - #4647 by @NyanKiyoshi.
+- Add mutation to change the authenticated user's password - #4656 by @fowczarek
+- Add an functionality to sort products by their "minimal variant price" - #4416 by @derenio
+- New stripe gateway implementation based on Stripe PaymentIntents API - #4606 by @salwator
+- Service (bot) accounts - backend support - #4689 by @korycins
+- Change AddressValidationRules API - #4655 by @Kwaidan00
+- Refactor account deletion mutations - #4668 by @fowczarek
+- Upgraded django-prices from v1 to v2.1. Currency codes are now locked at 3 characters max by default for consistency. - #4639 by @NyanKiyoshi
+- Drop deprecated fields from api - #4684 by@fowczarek
+- Drop deprecated fields from api - #4684 by @fowczarek
+- Distinguish OrderLine product name and variant name - #4702 by @fowczarek
+- Fix for Digital products - update order status after automatic fulfillment - #4709 by @korycins
+- Add redirectUrl to staff and user create mutations - #4717 by @fowczarek
+- Filtering: use search in a consistent way. Add sort by product type name and publication status to products query. - #4715 by @fowczarek
+- Migrated the old product attributes mapping to M2M - #4663 by @NyanKiyoshi
+- Add translations to countries in shop query - #4732 by @fowczarek
+- Added validations for minimum password length in settings - #4735 by @fowczarek
+- Add error codes to mutations responses - #4676 by @Kwaidan00
+- Payment gateways are now saleor plugins with dynamic configuration - #4669 by @salwator
+
+- Unified MenuItemMove to other reordering mutations. It now uses relative positions instead of absolute ones (breaking change) - #4734 by @NyanKiyoshi.
+## 2.8.0
+
+### Core
+
+- Avatax backend support - #4310 by @korycins
+- Add ability to store used payment sources in gateways (first implemented in Braintree) - #4195 by @salwator
+- Add ability to specify a minimal quantity of checkout items for a voucher - #4427 by @fowczarek
+- Change the type of start and end date fields from Date to DateTime - #4293 by @fowczarek
+- Revert the custom dynamic middlewares - #4452 by @NyanKiyoshi
+
+### Dashboard 2.0
+
+- UX improvements in Vouchers section - #4362 by @benekex2
+- Add company address configuration - #4432 by @benekex2
+- Require name when saving a custom list filter - #4269 by @benekex2
+- Use `esModuleInterop` flag in `tsconfig.json` to simplify imports - #4372 by @dominik-zeglen
+- Use hooks instead of a class component in forms - #4374 by @dominik-zeglen
+- Drop CSRF token header from API client - #4357 by @dominik-zeglen
+- Fix various bugs in the product section - #4429 by @dominik-zeglen
+
+### Other notable changes
+
+- Fix error when creating a checkout with voucher code - #4292 by @NyanKiyoshi
+- Fix error when users enter an invalid phone number in an address - #4404 by @NyanKiyoshi
+- Fix error when adding a note to an anonymous order - #4319 by @NyanKiyoshi
+- Fix gift card duplication error in the `populatedb` script - #4336 by @fowczarek
+- Fix vouchers apply once per order - #4339 by @fowczarek
+- Fix discount tests failing at random - #4401 by @korycins
+- Add `SPECIFIC_PRODUCT` type to `VoucherType` - #4344 by @fowczarek
+- New translations:
+  - Icelandic
+- Refactored the backend side of `checkoutCreate` to improve performances and prevent side effects over the user's checkout if the checkout creation was to fail. - #4367 by @NyanKiyoshi
+- Refactored the logic of cleaning the checkout shipping method over the API, so users do not lose the shipping method when updating their checkout. If the shipping method becomes invalid, it will be replaced by the cheapest available. - #4367 by @NyanKiyoshi & @szewczykmira
+- Refactored process of getting available shipping methods to make it easier to understand and prevent human-made errors. - #4367 by @NyanKiyoshi
+- Moved 3D secure option to Braintree plugin configuration and update config structure mechanism - #4751 by @salwator
 
 ## 2.7.0
 

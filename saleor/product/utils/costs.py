@@ -1,10 +1,11 @@
 from prices import MoneyRange
 
-from ...core.utils.taxes import ZERO_MONEY
+from ...core.taxes import zero_money
 
 
 def get_product_costs_data(product):
-    purchase_costs_range = MoneyRange(start=ZERO_MONEY, stop=ZERO_MONEY)
+
+    purchase_costs_range = MoneyRange(start=zero_money(), stop=zero_money())
     margin = (0, 0)
 
     if not product.variants.exists():
@@ -49,7 +50,7 @@ def get_variant_costs_data(variant):
 
 def get_cost_price(variant):
     if not variant.cost_price:
-        return ZERO_MONEY
+        return zero_money()
     return variant.cost_price
 
 

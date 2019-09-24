@@ -12,7 +12,7 @@
               This is required if you want to have sorting to be kept during further filtering.
             {% endcomment %}
             <input type="hidden" name="sort_by" value="{% if request.GET.sort_by %}{{ request.GET.sort_by }}{% endif %}">
-          {% elif field.name != 'price' %}
+          {% elif field.name != 'minimal_variant_price' %}
             <div class="filter-section" aria-expanded="true">
               <div class="filter-section__header">
                 <h3>{{ field.label }}</h3>
@@ -29,7 +29,7 @@
           {% endif %}
         {% endfor %}
         {% for field in filter_set.form %}
-          {% if field.name == 'price' %}
+          {% if field.name == 'minimal_variant_price' %}
             <div class="filter-section" aria-expanded="true">
               <div class="filter-section__header">
                 <h3>{{ field.label }}</h3>

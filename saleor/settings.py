@@ -1,14 +1,15 @@
 import ast
 import os.path
+import warnings
 
 import dj_database_url
 import dj_email_url
 import django_cache_url
+import sentry_sdk
 from django.contrib.messages import constants as messages
 from django.utils.translation import gettext_lazy as _, pgettext_lazy
-from django_prices.templatetags.prices_i18n import get_currency_fraction
-
-from . import __version__
+from django_prices.utils.formatting import get_currency_fraction
+from sentry_sdk.integrations.django import DjangoIntegration
 
 
 def get_list(text):
@@ -40,6 +41,10 @@ ADMINS = (
 )
 MANAGERS = ADMINS
 
+ALLOWED_CLIENT_HOSTS = get_list(
+    os.environ.get("ALLOWED_CLIENT_HOSTS", "localhost,127.0.0.1")
+)
+
 INTERNAL_IPS = get_list(os.environ.get("INTERNAL_IPS", "127.0.0.1"))
 
 # Some cloud providers (Heroku) export REDIS_URL variable instead of CACHE_URL
@@ -66,6 +71,7 @@ LANGUAGES = [
     ("cs", _("Czech")),
     ("da", _("Danish")),
     ("de", _("German")),
+    ("el", _("Greek")),
     ("en", _("English")),
     ("es", _("Spanish")),
     ("es-co", _("Colombian Spanish")),
@@ -76,6 +82,7 @@ LANGUAGES = [
     ("hu", _("Hungarian")),
     ("hy", _("Armenian")),
     ("id", _("Indonesian")),
+    ("is", _("Icelandic")),
     ("it", _("Italian")),
     ("ja", _("Japanese")),
     ("ko", _("Korean")),
@@ -195,23 +202,24 @@ TEMPLATES = [
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
 MIDDLEWARE = [
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "saleor.core.middleware.django_session_middleware",
-    "saleor.core.middleware.django_security_middleware",
-    "saleor.core.middleware.django_csrf_view_middleware",
-    "saleor.core.middleware.django_auth_middleware",
-    "saleor.core.middleware.django_messages_middleware",
-    "saleor.core.middleware.django_locale_middleware",
-    "saleor.core.middleware.babel_locale_middleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
+    "django_babel.middleware.LocaleMiddleware",
     "saleor.core.middleware.discounts",
     "saleor.core.middleware.google_analytics",
     "saleor.core.middleware.country",
     "saleor.core.middleware.currency",
     "saleor.core.middleware.site",
-    "saleor.core.middleware.taxes",
-    "saleor.core.middleware.social_auth_exception_middleware",
-    "saleor.core.middleware.impersonate_middleware",
+    "saleor.core.middleware.extensions",
+    "social_django.middleware.SocialAuthExceptionMiddleware",
+    "impersonate.middleware.ImpersonateMiddleware",
     "saleor.graphql.middleware.jwt_middleware",
+    "saleor.graphql.middleware.service_account_middleware",
 ]
 
 INSTALLED_APPS = [
@@ -228,6 +236,7 @@ INSTALLED_APPS = [
     "django.contrib.postgres",
     "django.forms",
     # Local apps
+    "saleor.extensions",
     "saleor.account",
     "saleor.discount",
     "saleor.giftcard",
@@ -267,8 +276,19 @@ INSTALLED_APPS = [
 
 ENABLE_DEBUG_TOOLBAR = get_bool_from_env("ENABLE_DEBUG_TOOLBAR", False)
 if ENABLE_DEBUG_TOOLBAR:
-    MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
-    INSTALLED_APPS.append("debug_toolbar")
+    # Ensure the debug toolbar is actually installed before adding it
+    try:
+        __import__("debug_toolbar")
+    except ImportError as exc:
+        msg = (
+            f"{exc} -- Install the missing dependencies by "
+            f"running `pip install -r requirements_dev.txt`"
+        )
+        warnings.warn(msg)
+    else:
+        MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
+        INSTALLED_APPS.append("debug_toolbar")
+
     DEBUG_TOOLBAR_PANELS = [
         # adds a request history to the debug toolbar
         "ddt_request_history.panels.request_history.RequestHistoryPanel",
@@ -325,11 +345,22 @@ AUTH_USER_MODEL = "account.User"
 
 LOGIN_URL = "/account/login/"
 
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {"min_length": 8},
+    }
+]
+
 DEFAULT_COUNTRY = os.environ.get("DEFAULT_COUNTRY", "US")
 DEFAULT_CURRENCY = os.environ.get("DEFAULT_CURRENCY", "USD")
 DEFAULT_DECIMAL_PLACES = get_currency_fraction(DEFAULT_CURRENCY)
 DEFAULT_MAX_DIGITS = 12
+DEFAULT_CURRENCY_CODE_LENGTH = 3
+
+# note: having multiple currencies is not supported yet
 AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
+
 COUNTRIES_OVERRIDE = {
     "EU": pgettext_lazy(
         "Name of political and economical union of european countries", "European Union"
@@ -343,6 +374,13 @@ OPENEXCHANGERATES_API_KEY = os.environ.get("OPENEXCHANGERATES_API_KEY")
 # If you are subscribed to a paid vatlayer plan, you can enable HTTPS.
 VATLAYER_ACCESS_KEY = os.environ.get("VATLAYER_ACCESS_KEY")
 VATLAYER_USE_HTTPS = get_bool_from_env("VATLAYER_USE_HTTPS", False)
+
+# Avatax supports two ways of log in - username:password or account:license
+AVATAX_USERNAME_OR_ACCOUNT = os.environ.get("AVATAX_USERNAME_OR_ACCOUNT")
+AVATAX_PASSWORD_OR_LICENSE = os.environ.get("AVATAX_PASSWORD_OR_LICENSE")
+AVATAX_USE_SANDBOX = get_bool_from_env("AVATAX_USE_SANDBOX", DEBUG)
+AVATAX_COMPANY_NAME = os.environ.get("AVATAX_COMPANY_NAME", "DEFAULT")
+AVATAX_AUTOCOMMIT = get_bool_from_env("AVATAX_AUTOCOMMIT", False)
 
 ACCOUNT_ACTIVATION_DAYS = 3
 
@@ -386,7 +424,7 @@ bootstrap4 = {
 
 TEST_RUNNER = "tests.runner.PytestTestRunner"
 
-ALLOWED_HOSTS = get_list(os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1"))
+ALLOWED_HOSTS = get_list(os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1,0.0.0.0"))
 ALLOWED_GRAPHQL_ORIGINS = os.environ.get("ALLOWED_GRAPHQL_ORIGINS", "*")
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
@@ -472,7 +510,7 @@ LOGOUT_ON_PASSWORD_CHANGE = False
 # SEARCH CONFIGURATION
 DB_SEARCH_ENABLED = True
 
-# support deployment-dependant elastic enviroment variable
+# support deployment-dependant elastic environment variable
 ES_URL = (
     os.environ.get("ELASTICSEARCH_URL")
     or os.environ.get("SEARCHBOX_URL")
@@ -570,83 +608,38 @@ RECAPTCHA_PRIVATE_KEY = os.environ.get("RECAPTCHA_PRIVATE_KEY")
 #  Sentry
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 if SENTRY_DSN:
-    INSTALLED_APPS.append("raven.contrib.django.raven_compat")
-    RAVEN_CONFIG = {"dsn": SENTRY_DSN, "release": __version__}
-
-
-SERIALIZATION_MODULES = {"json": "saleor.core.utils.json_serializer"}
-
+    sentry_sdk.init(dsn=SENTRY_DSN, integrations=[DjangoIntegration()])
 
 DUMMY = "dummy"
 BRAINTREE = "braintree"
 RAZORPAY = "razorpay"
 STRIPE = "stripe"
 
-CHECKOUT_PAYMENT_GATEWAYS = {
-    DUMMY: pgettext_lazy("Payment method name", "Dummy gateway")
-}
-
+# TODO: remove this after graphql schema stops generating enum from this
 PAYMENT_GATEWAYS = {
-    DUMMY: {
-        "module": "saleor.payment.gateways.dummy",
-        "config": {
-            "auto_capture": True,
-            "connection_params": {},
-            "template_path": "order/payment/dummy.html",
-        },
-    },
-    BRAINTREE: {
-        "module": "saleor.payment.gateways.braintree",
-        "config": {
-            "auto_capture": True,
-            "template_path": "order/payment/braintree.html",
-            "connection_params": {
-                "sandbox_mode": get_bool_from_env("BRAINTREE_SANDBOX_MODE", True),
-                "merchant_id": os.environ.get("BRAINTREE_MERCHANT_ID"),
-                "public_key": os.environ.get("BRAINTREE_PUBLIC_KEY"),
-                "private_key": os.environ.get("BRAINTREE_PRIVATE_KEY"),
-            },
-        },
-    },
-    RAZORPAY: {
-        "module": "saleor.payment.gateways.razorpay",
-        "config": {
-            "auto_capture": None,
-            "template_path": "order/payment/razorpay.html",
-            "connection_params": {
-                "public_key": os.environ.get("RAZORPAY_PUBLIC_KEY"),
-                "secret_key": os.environ.get("RAZORPAY_SECRET_KEY"),
-                "prefill": get_bool_from_env("RAZORPAY_PREFILL", True),
-                "store_name": os.environ.get("RAZORPAY_STORE_NAME"),
-                "store_image": os.environ.get("RAZORPAY_STORE_IMAGE"),
-            },
-        },
-    },
-    STRIPE: {
-        "module": "saleor.payment.gateways.stripe",
-        "config": {
-            "auto_capture": True,
-            "template_path": "order/payment/stripe.html",
-            "connection_params": {
-                "public_key": os.environ.get("STRIPE_PUBLIC_KEY"),
-                "secret_key": os.environ.get("STRIPE_SECRET_KEY"),
-                "store_name": os.environ.get("STRIPE_STORE_NAME", "Saleor"),
-                "store_image": os.environ.get("STRIPE_STORE_IMAGE", None),
-                "prefill": get_bool_from_env("STRIPE_PREFILL", True),
-                "remember_me": os.environ.get("STRIPE_REMEMBER_ME", True),
-                "locale": os.environ.get("STRIPE_LOCALE", "auto"),
-                "enable_billing_address": os.environ.get(
-                    "STRIPE_ENABLE_BILLING_ADDRESS", False
-                ),
-                "enable_shipping_address": os.environ.get(
-                    "STRIPE_ENABLE_SHIPPING_ADDRESS", False
-                ),
-            },
-        },
-    },
+    DUMMY: {"template_path": "order/payment/dummy.html"},
+    BRAINTREE: {"template_path": "order/payment/braintree.html"},
+    RAZORPAY: {"template_path": "order/payment/razorpay.html"},
+    STRIPE: None,
 }
 
 GRAPHENE = {
     "RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST": True,
     "RELAY_CONNECTION_MAX_LIMIT": 100,
 }
+
+EXTENSIONS_MANAGER = "saleor.extensions.manager.ExtensionsManager"
+
+PLUGINS = [
+    "saleor.extensions.plugins.avatax.plugin.AvataxPlugin",
+    "saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin",
+    "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
+    "saleor.payment.gateways.stripe.plugin.StripeGatewayPlugin",
+    "saleor.payment.gateways.braintree.plugin.BraintreeGatewayPlugin",
+    "saleor.payment.gateways.razorpay.plugin.RazorpayGatewayPlugin",
+]
+
+# Whether DraftJS should be used be used instead of HTML
+# True to use DraftJS (JSON based), for the 2.0 dashboard
+# False to use the old editor from dashboard 1.0
+USE_JSON_CONTENT = get_bool_from_env("USE_JSON_CONTENT", False)

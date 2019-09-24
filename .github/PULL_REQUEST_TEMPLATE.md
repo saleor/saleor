@@ -17,6 +17,5 @@ greatly reduce the amount of work needed to review your work. -->
 1. [ ] Database queries are optimized and the number of queries is constant.
 1. [ ] Database migration files are up to date.
 1. [ ] The changes are tested.
-1. [ ] The code is documented (docstrings, project documentation).
 1. [ ] GraphQL schema and type definitions are up to date.
 1. [ ] Changes are mentioned in the changelog.

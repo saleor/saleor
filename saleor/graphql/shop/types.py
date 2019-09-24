@@ -1,8 +1,8 @@
 import graphene
 from django.conf import settings
+from django.utils import translation
 from django_countries import countries
 from django_prices_vatlayer.models import VAT
-from graphql_jwt.decorators import permission_required
 from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 
 from ...core.permissions import get_permissions
@@ -10,9 +10,11 @@ from ...core.utils import get_client_ip, get_country_by_ip
 from ...menu import models as menu_models
 from ...product import models as product_models
 from ...site import models as site_models
+from ..account.types import Address
 from ..core.enums import WeightUnitsEnum
 from ..core.types.common import CountryDisplay, LanguageDisplay, PermissionDisplay
 from ..core.utils import get_node_optimized, str_to_enum
+from ..decorators import permission_required
 from ..menu.types import Menu
 from ..product.types import Collection
 from ..translations.enums import LanguageCodeEnum
@@ -70,6 +72,10 @@ class Shop(graphene.ObjectType):
     )
     countries = graphene.List(
         CountryDisplay,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            description="A language code to return the translation for.",
+        ),
         description="List of countries available in the shop.",
         required=True,
     )
@@ -133,6 +139,9 @@ class Shop(graphene.ObjectType):
     default_digital_url_valid_days = graphene.Int(
         description=("Default number of days which digital content url will be valid")
     )
+    company_address = graphene.Field(
+        Address, description="Company address", required=False
+    )
 
     class Meta:
         description = """
@@ -145,14 +154,15 @@ class Shop(graphene.ObjectType):
         return site_models.AuthorizationKey.objects.all()
 
     @staticmethod
-    def resolve_countries(_, _info):
+    def resolve_countries(_, _info, language_code=None):
         taxes = {vat.country_code: vat for vat in VAT.objects.all()}
-        return [
-            CountryDisplay(
-                code=country[0], country=country[1], vat=taxes.get(country[0])
-            )
-            for country in countries
-        ]
+        with translation.override(language_code):
+            return [
+                CountryDisplay(
+                    code=country[0], country=country[1], vat=taxes.get(country[0])
+                )
+                for country in countries
+            ]
 
     @staticmethod
     def resolve_currencies(_, _info):
@@ -258,6 +268,10 @@ class Shop(graphene.ObjectType):
         else:
             default_country = None
         return default_country
+
+    @staticmethod
+    def resolve_company_address(_, info):
+        return info.context.site.settings.company_address
 
     @staticmethod
     def resolve_translation(_, info, language_code):

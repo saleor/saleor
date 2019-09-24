@@ -296,9 +296,9 @@
                 <tr class="last-no-border">
                   <td>
                     {% if line.variant.product %}
-                      <a href="{% url 'dashboard:product-details' pk=line.variant.product.pk %}">{{ line.product_name }}</a>
+                      <a href="{% url 'dashboard:product-details' pk=line.variant.product.pk %}">{{ line }}</a>
                     {% else %}
-                      {{ line.product_name }}
+                      {{ line }}
                     {% endif %}
                     <br>
                     <span class="grey-text">
@@ -424,7 +424,7 @@
                   {% endif %}
                   <p>{% price order.total.tax %}</p>
                   {% if order.is_draft or order.discount_amount %}
-                    <p>{% discount_as_negative order.discount_amount html=True %}</p>
+                    <p>{% discount_as_negative order.discount html=True %}</p>
                   {% endif %}
                   <p><strong>{% price order.total.gross %}</strong></p>
                 </td>
@@ -486,7 +486,7 @@
                 {% for line in fulfillment %}
                   <tr class="last-no-border">
                     <td>
-                      {{ line.order_line.product_name }}
+                      {{ line.order_line }}
                     </td>
                     <td class="right-align">
                       {{ line.quantity }}

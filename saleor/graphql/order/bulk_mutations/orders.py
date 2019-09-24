@@ -3,6 +3,7 @@ import graphene
 from ....order import events, models
 from ....order.utils import cancel_order
 from ...core.mutations import BaseBulkMutation
+from ...core.types.common import OrderError
 from ..mutations.orders import clean_order_cancel
 
 
@@ -19,6 +20,8 @@ class OrderBulkCancel(BaseBulkMutation):
         description = "Cancels orders."
         model = models.Order
         permissions = ("order.manage_orders",)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
 
     @classmethod
     def clean_instance(cls, info, instance):

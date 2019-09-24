@@ -1,12 +1,14 @@
 import graphene
 from graphene_django.fields import DjangoConnectionField
-from graphql_jwt.decorators import permission_required
 
 from ..core.fields import PrefetchingConnectionField
+from ..decorators import permission_required
 from ..payment.mutations import CheckoutPaymentCreate
 from .mutations import (
     CheckoutAddPromoCode,
     CheckoutBillingAddressUpdate,
+    CheckoutClearStoredMeta,
+    CheckoutClearStoredPrivateMeta,
     CheckoutComplete,
     CheckoutCreate,
     CheckoutCustomerAttach,
@@ -18,6 +20,8 @@ from .mutations import (
     CheckoutRemovePromoCode,
     CheckoutShippingAddressUpdate,
     CheckoutShippingMethodUpdate,
+    CheckoutUpdateMeta,
+    CheckoutUpdatePrivateMeta,
     CheckoutUpdateVoucher,
 )
 from .resolvers import resolve_checkout, resolve_checkout_lines, resolve_checkouts
@@ -70,3 +74,7 @@ class CheckoutMutations(graphene.ObjectType):
     checkout_shipping_address_update = CheckoutShippingAddressUpdate.Field()
     checkout_shipping_method_update = CheckoutShippingMethodUpdate.Field()
     checkout_update_voucher = CheckoutUpdateVoucher.Field()
+    checkout_update_metadata = CheckoutUpdateMeta.Field()
+    checkout_clear_metadata = CheckoutClearStoredMeta.Field()
+    checkout_update_private_metadata = CheckoutUpdatePrivateMeta.Field()
+    checkout_clear_private_metadata = CheckoutClearStoredPrivateMeta.Field()

@@ -1,9 +1,10 @@
 import graphene
-from graphql_jwt.decorators import login_required, permission_required
+from graphql_jwt.decorators import login_required
 
 from ..core.enums import ReportingPeriod
 from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
 from ..core.types import FilterInputObjectType, TaxedMoney
+from ..decorators import permission_required
 from ..descriptions import DESCRIPTIONS
 from .bulk_mutations.draft_orders import DraftOrderBulkDelete, DraftOrderLinesBulkDelete
 from .bulk_mutations.orders import OrderBulkCancel

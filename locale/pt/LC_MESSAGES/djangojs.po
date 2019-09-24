@@ -11,7 +11,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-13 03:43-0500\n"
+"POT-Creation-Date: 2019-07-22 05:53-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
 "Last-Translator: Carlos Fontinha <prisma.portatil@gmail.com>, 2019\n"
 "Language-Team: Portuguese (https://www.transifex.com/mirumee/teams/34782/pt/)\n"
@@ -20,14 +20,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: pt\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-
-#: build/static/vendors~preview.3e127659ad09b01744f8.bundle.js:75
-msgid "Missing source"
-msgstr "Fonte não encontrada"
-
-#: build/static/vendors~preview.3e127659ad09b01744f8.bundle.js:136
-msgid "\n"
-msgstr ""
 
 #: saleor/static/dashboard/js/components/bulk-actions.js:89
 msgid "item selected"
@@ -371,5 +363,5 @@ msgstr "Quantidade"
 
 #: saleor/static/js/components/variantPicker/VariantPicker.js:167
 msgctxt "Product details primary action"
-msgid "Add to checkout"
-msgstr ""
+msgid "Add to cart"
+msgstr "Adicionar ao carrinho"

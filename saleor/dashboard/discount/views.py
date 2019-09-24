@@ -22,17 +22,11 @@ def get_voucher_type_forms(voucher, data):
         VoucherType.SHIPPING: forms.ShippingVoucherForm(
             data or None, instance=voucher, prefix=VoucherType.SHIPPING
         ),
-        VoucherType.VALUE: forms.ValueVoucherForm(
-            data or None, instance=voucher, prefix=VoucherType.VALUE
+        VoucherType.ENTIRE_ORDER: forms.EntireOrderVoucherForm(
+            data or None, instance=voucher, prefix=VoucherType.ENTIRE_ORDER
         ),
-        VoucherType.PRODUCT: forms.ProductVoucherForm(
-            data or None, instance=voucher, prefix=VoucherType.PRODUCT
-        ),
-        VoucherType.COLLECTION: forms.CollectionVoucherForm(
-            data or None, instance=voucher, prefix=VoucherType.COLLECTION
-        ),
-        VoucherType.CATEGORY: forms.CategoryVoucherForm(
-            data or None, instance=voucher, prefix=VoucherType.CATEGORY
+        VoucherType.SPECIFIC_PRODUCT: forms.SpecificProductVoucherForm(
+            data or None, instance=voucher, prefix=VoucherType.SPECIFIC_PRODUCT
         ),
     }
 

@@ -4,6 +4,9 @@ from graphene import relay
 
 from ....product import models
 from ...core.connection import CountableDjangoObjectType
+from ...core.resolvers import resolve_meta, resolve_private_meta
+from ...core.types import MetadataObjectType
+from ...decorators import permission_required
 
 
 class DigitalContentUrl(CountableDjangoObjectType):
@@ -19,7 +22,7 @@ class DigitalContentUrl(CountableDjangoObjectType):
         return root.get_absolute_url()
 
 
-class DigitalContent(CountableDjangoObjectType):
+class DigitalContent(CountableDjangoObjectType, MetadataObjectType):
     urls = gql_optimizer.field(
         graphene.List(
             lambda: DigitalContentUrl,
@@ -45,3 +48,12 @@ class DigitalContent(CountableDjangoObjectType):
     def resolve_urls(root: models.DigitalContent, info, **_kwargs):
         qs = root.urls.all()
         return gql_optimizer.query(qs, info)
+
+    @staticmethod
+    @permission_required("product.manage_products")
+    def resolve_private_meta(root, _info):
+        return resolve_private_meta(root, _info)
+
+    @staticmethod
+    def resolve_meta(root, _info):
+        return resolve_meta(root, _info)

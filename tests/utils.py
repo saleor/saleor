@@ -1,11 +1,12 @@
 from io import BytesIO
+from typing import Dict, Set, Union
 from urllib.parse import urlparse
 
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.db.models import Q
-from django.utils.encoding import smart_text
 from PIL import Image
 from prices import Money
+
+from saleor.product.models import Product, ProductVariant
 
 
 def get_url_path(url):
@@ -18,26 +19,9 @@ def get_redirect_location(response):
     return get_url_path(response["Location"])
 
 
-def filter_products_by_attribute(queryset, attribute_id, value):
-    key = smart_text(attribute_id)
-    value = smart_text(value)
-    in_product = Q(attributes__contains={key: value})
-    in_variant = Q(variants__attributes__contains={key: value})
-    return queryset.filter(in_product | in_variant)
-
-
 def get_form_errors(response, form_name="form"):
     errors = response.context.get(form_name).errors
     return errors.get("__all__") if errors else []
-
-
-def compare_taxes(taxes_1, taxes_2):
-    assert len(taxes_1) == len(taxes_2)
-
-    for rate_name, tax in taxes_1.items():
-        value_1 = tax["value"]
-        value_2 = taxes_2.get(rate_name)["value"]
-        assert value_1 == value_2
 
 
 def create_image(image_name="product2"):
@@ -57,3 +41,23 @@ def create_pdf_file_with_image_ext():
 
 def money(amount):
     return Money(amount, "USD")
+
+
+def generate_attribute_map(obj: Union[Product, ProductVariant]) -> Dict[int, Set[int]]:
+    """Generate a map from a product or variant instance, useful to quickly compare
+    the assigned attribute values against expected IDs.
+
+    The below association map will be returned.
+    {
+      attribute_pk (int) => {attribute_value_pk (int), ...}
+      ...
+    }
+    """
+
+    qs = obj.attributes.select_related("assignment__attribute")
+    qs = qs.prefetch_related("values")
+
+    return {
+        assignment.attribute.pk: {value.pk for value in assignment.values.all()}
+        for assignment in qs
+    }

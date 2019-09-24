@@ -9,12 +9,6 @@ from ..translations.types import PageTranslation
 
 
 class Page(CountableDjangoObjectType):
-    available_on = graphene.Date(
-        deprecation_reason=("availableOn is deprecated, use publicationDate instead")
-    )
-    is_visible = graphene.Boolean(
-        deprecation_reason=("isVisible is deprecated, use isPublished instead")
-    )
     translation = graphene.Field(
         PageTranslation,
         language_code=graphene.Argument(
@@ -22,7 +16,7 @@ class Page(CountableDjangoObjectType):
             description="A language code to return the translation for.",
             required=True,
         ),
-        description=("Returns translated Page fields for the given language code."),
+        description="Returns translated Page fields for the given language code.",
         resolver=resolve_translation,
     )
 
@@ -43,11 +37,3 @@ class Page(CountableDjangoObjectType):
         ]
         interfaces = [relay.Node]
         model = models.Page
-
-    @staticmethod
-    def resolve_available_on(root: models.Page, _info):
-        return root.publication_date
-
-    @staticmethod
-    def resolve_is_visible(root: models.Page, _info):
-        return root.is_published

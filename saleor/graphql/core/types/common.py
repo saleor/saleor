@@ -2,7 +2,19 @@ import graphene
 
 from ....product.templatetags.product_images import get_thumbnail
 from ...translations.enums import LanguageCodeEnum
-from ..enums import PermissionEnum
+from ..enums import (
+    AccountErrorCode,
+    CheckoutErrorCode,
+    ExtensionsErrorCode,
+    GiftCardErrorCode,
+    MenuErrorCode,
+    OrderErrorCode,
+    PaymentErrorCode,
+    PermissionEnum,
+    ProductErrorCode,
+    ShippingErrorCode,
+    ShopErrorCode,
+)
 from .money import VAT
 
 
@@ -23,6 +35,46 @@ class Error(graphene.ObjectType):
 
     class Meta:
         description = "Represents an error in the input of a mutation."
+
+
+class AccountError(Error):
+    code = AccountErrorCode(description="The error code.")
+
+
+class CheckoutError(Error):
+    code = CheckoutErrorCode(description="The error code.")
+
+
+class MenuError(Error):
+    code = MenuErrorCode(description="The error code.")
+
+
+class OrderError(Error):
+    code = OrderErrorCode(description="The error code.")
+
+
+class ProductError(Error):
+    code = ProductErrorCode(description="The error code.")
+
+
+class ShopError(Error):
+    code = ShopErrorCode(description="The error code.")
+
+
+class ShippingError(Error):
+    code = ShippingErrorCode(description="The error code.")
+
+
+class PaymentError(Error):
+    code = PaymentErrorCode(description="The error code.")
+
+
+class GiftCardError(Error):
+    code = GiftCardErrorCode(description="The error code.")
+
+
+class ExtensionsError(Error):
+    code = ExtensionsErrorCode(description="The error code.")
 
 
 class LanguageDisplay(graphene.ObjectType):
@@ -94,3 +146,12 @@ class DateTimeRangeInput(graphene.InputObjectType):
 class IntRangeInput(graphene.InputObjectType):
     gte = graphene.Int(description="Value greater than or equal", required=False)
     lte = graphene.Int(description="Value less than or equal", required=False)
+
+
+class TaxType(graphene.ObjectType):
+    """Representation of tax types fetched from tax gateway."""
+
+    description = graphene.String(description="Description of the tax type")
+    tax_code = graphene.String(
+        description="External tax code used to identify given tax group"
+    )

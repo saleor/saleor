@@ -1,36 +1,16 @@
-from functools import wraps
-from typing import Callable
+from typing import Optional
 
 from django.contrib.auth.models import AnonymousUser
-from django.urls import reverse
+from django.shortcuts import reverse
+from django.utils.functional import SimpleLazyObject
 from graphene_django.settings import graphene_settings
 from graphql_jwt.middleware import JSONWebTokenMiddleware
 
-
-def api_only_request_handler(get_response: Callable, handler: Callable):
-    @wraps(handler)
-    def handle_request(request):
-        api_path = reverse("api")
-        if request.path != api_path:
-            return get_response(request)
-        return handler(request)
-
-    return handle_request
+from ..account.models import ServiceAccount
 
 
-def api_only_middleware(middleware):
-    @wraps(middleware)
-    def wrapped(get_response):
-        handler = middleware(get_response)
-        return api_only_request_handler(get_response, handler)
-
-    return wrapped
-
-
-@api_only_middleware
 def jwt_middleware(get_response):
-    """Authenticate user using JSONWebTokenMiddleware
-    ignoring the session-based authentication.
+    """Authenticate a user using JWT and ignore the session-based authentication.
 
     This middleware resets authentication made by any previous middlewares
     and authenticates the user
@@ -42,12 +22,37 @@ def jwt_middleware(get_response):
     graphene_settings.MIDDLEWARE.remove(JSONWebTokenMiddleware)
 
     def middleware(request):
-        # clear user authenticated by AuthenticationMiddleware
-        request._cached_user = AnonymousUser()
-        request.user = AnonymousUser()
+        if request.path == reverse("api"):
+            # clear user authenticated by AuthenticationMiddleware
+            request._cached_user = AnonymousUser()
+            request.user = AnonymousUser()
 
-        # authenticate using JWT middleware
-        jwt_middleware_inst.process_request(request)
+            # authenticate using JWT middleware
+            jwt_middleware_inst.process_request(request)
+        return get_response(request)
+
+    return middleware
+
+
+def get_service_account(auth_token) -> Optional[ServiceAccount]:
+    qs = ServiceAccount.objects.filter(auth_token=auth_token, is_active=True)
+    return qs.first()
+
+
+def service_account_middleware(get_response):
+
+    service_account_auth_header = "HTTP_AUTHORIZATION"
+    prefix = "bearer"
+
+    def middleware(request):
+        if request.path == reverse("api"):
+            auth = request.META.get(service_account_auth_header, "").split()
+            if len(auth) == 2:
+                auth_prefix, auth_token = auth
+                if auth_prefix.lower() == prefix:
+                    request.service_account = SimpleLazyObject(
+                        lambda: get_service_account(auth_token)
+                    )
         return get_response(request)
 
     return middleware

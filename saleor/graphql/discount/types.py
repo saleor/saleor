@@ -3,13 +3,14 @@ import graphene_django_optimizer as gql_optimizer
 from graphene import relay
 
 from ...discount import models
+from ..core import types
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import PrefetchingConnectionField
-from ..core.types import CountryDisplay
 from ..product.types import Category, Collection, Product
 from ..translations.enums import LanguageCodeEnum
 from ..translations.resolvers import resolve_translation
 from ..translations.types import SaleTranslation, VoucherTranslation
+from .enums import DiscountValueTypeEnum, VoucherTypeEnum
 
 
 class Sale(CountableDjangoObjectType):
@@ -83,7 +84,7 @@ class Voucher(CountableDjangoObjectType):
         model_field="products",
     )
     countries = graphene.List(
-        CountryDisplay,
+        types.CountryDisplay,
         description="List of countries available for the shipping voucher.",
     )
     translation = graphene.Field(
@@ -96,6 +97,18 @@ class Voucher(CountableDjangoObjectType):
         description="Returns translated Voucher fields for the given language code.",
         resolver=resolve_translation,
     )
+    discount_value_type = DiscountValueTypeEnum(
+        description="Determines a type of discount for voucher - value or percentage",
+        required=True,
+    )
+    type = VoucherTypeEnum(description="Determines a type of voucher", required=True)
+    min_amount_spent = graphene.Field(
+        types.Money,
+        deprecation_reason=(
+            "DEPRECATED: Will be removed in Saleor 2.10, "
+            "use the minSpent field instead."
+        ),
+    )
 
     class Meta:
         description = """
@@ -104,12 +117,14 @@ class Voucher(CountableDjangoObjectType):
         providing valid voucher codes."""
         only_fields = [
             "apply_once_per_order",
+            "apply_once_per_customer",
             "code",
             "discount_value",
             "discount_value_type",
             "end_date",
             "id",
-            "min_amount_spent",
+            "min_spent",
+            "min_checkout_items_quantity",
             "name",
             "start_date",
             "type",
@@ -134,6 +149,10 @@ class Voucher(CountableDjangoObjectType):
     @staticmethod
     def resolve_countries(root: models.Voucher, *_args, **_kwargs):
         return [
-            CountryDisplay(code=country.code, country=country.name)
+            types.CountryDisplay(code=country.code, country=country.name)
             for country in root.countries
         ]
+
+    @staticmethod
+    def resolve_min_amount_spent(root: models.Voucher, *_args, **_kwargs):
+        return root.min_spent

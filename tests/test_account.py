@@ -1,5 +1,4 @@
 import re
-import uuid
 from unittest.mock import patch
 from urllib.parse import urlencode
 
@@ -7,6 +6,7 @@ import i18naddress
 import pytest
 from captcha import constants as recaptcha_constants
 from captcha.client import RecaptchaResponse
+from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.forms import Form
@@ -75,6 +75,24 @@ def test_address_form_postal_code_validation():
 
 
 @pytest.mark.parametrize(
+    "country, phone, is_valid",
+    (
+        ("US", "123-456-7890", False),
+        ("US", "(541) 754-3010", True),
+        ("FR", "0600000000", True),
+    ),
+)
+def test_address_form_phone_number_validation(country, phone, is_valid):
+    data = {"country": country, "phone": phone}
+    form = forms.get_address_form(data, country_code="PL")[0]
+    errors = form.errors
+    if not is_valid:
+        assert "phone" in errors
+    else:
+        assert "phone" not in errors
+
+
+@pytest.mark.parametrize(
     "form_data, form_valid, expected_preview, expected_country",
     [
         ({"preview": True}, False, True, "PL"),
@@ -127,21 +145,32 @@ def test_country_aware_form_has_only_supported_countries():
 
 
 @pytest.mark.parametrize(
-    "input,exception",
-    [
-        ("123", ValidationError),
-        ("+48123456789", None),
-        ("+12025550169", None),
-        ("+481234567890", ValidationError),
-        ("testext", ValidationError),
-    ],
+    "input_data, is_valid",
+    (
+        ({"phone": "123"}, False),
+        ({"phone": "+48123456789"}, True),
+        ({"phone": "+12025550169"}, True),
+        ({"phone": "+481234567890"}, False),
+        ({"phone": "testext"}, False),
+        ({"phone": "1-541-754-3010"}, False),
+        ({"phone": "001-541-754-3010"}, False),
+        ({"phone": "+1-541-754-3010"}, True),
+        ({"country": "US", "phone": "123-456-7890"}, False),
+        ({"country": "US", "phone": "555-555-5555"}, False),
+        ({"country": "US", "phone": "754-3010"}, False),
+        ({"country": "US", "phone": "001-541-754-3010"}, False),
+        ({"country": "US", "phone": "(541) 754-3010"}, True),
+        ({"country": "US", "phone": "1-541-754-3010"}, True),
+        ({"country": "FR", "phone": "1234567890"}, False),
+        ({"country": "FR", "phone": "0600000000"}, True),
+    ),
 )
-def test_validate_possible_number(input, exception):
-    if exception is not None:
-        with pytest.raises(exception):
-            validate_possible_number(input)
+def test_validate_possible_number(input_data, is_valid):
+    if not is_valid:
+        with pytest.raises(ValidationError):
+            validate_possible_number(**input_data)
     else:
-        validate_possible_number(input)
+        validate_possible_number(**input_data)
 
 
 def test_order_with_lines_pagination(authorized_client, order_list, settings):
@@ -372,25 +401,26 @@ def test_view_account_post_required(customer_user, authorized_client):
     assert response.status_code == 405
 
 
-@patch("saleor.account.views.send_account_delete_confirmation_email.delay")
+@patch("saleor.account.views.send_account_delete_confirmation_email")
 def test_view_account_delete(
     send_confirmation_mock, customer_user, authorized_client, staff_user
 ):
     url = reverse("account:delete")
     response = authorized_client.post(url)
     assert response.status_code == 302
-    send_confirmation_mock.assert_called_once_with(
-        str(customer_user.token), customer_user.email
-    )
+    send_confirmation_mock.assert_called_once_with(customer_user)
 
 
-def test_view_account_delete_confirm(customer_user, authorized_client):
+def test_view_account_delete_confirm(customer_user, staff_user, authorized_client):
     # Non existing token
-    url = reverse("account:delete-confirm", args=[str(uuid.uuid4())])
+    invalid_token = default_token_generator.make_token(staff_user)
+    url = reverse("account:delete-confirm", args=[invalid_token])
     response = authorized_client.get(url)
     assert response.status_code == 404
 
-    deletion_url = reverse("account:delete-confirm", args=[customer_user.token])
+    authorized_client.force_login(customer_user)
+    token = default_token_generator.make_token(customer_user)
+    deletion_url = reverse("account:delete-confirm", args=[token])
 
     # getting the page should not delete the user
     response = authorized_client.get(deletion_url)
