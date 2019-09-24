@@ -132,7 +132,7 @@ def start_payment(request, order, gateway):
         "client_token": client_token,
         "order": order,
     }
-    template_path = settings.PAYMENT_GATEWAYS[gateway]["template_path"]
+    template_path = payment_gateway.get_template_path(Gateway(payment.gateway))
     return TemplateResponse(request, template_path, ctx)
 
 
