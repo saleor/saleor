@@ -4,7 +4,6 @@ import graphene
 import pytest
 from prices import TaxedMoney
 
-from saleor.core.payments import Gateway
 from saleor.core.utils import get_country_name_by_code
 from saleor.graphql.payment.enums import OrderAction, PaymentChargeStatusEnum
 from saleor.payment.interface import CreditCardInfo, CustomerSource, TokenConfig
@@ -100,7 +99,7 @@ def test_checkout_add_payment(
     variables = {
         "checkoutId": checkout_id,
         "input": {
-            "gateway": "DUMMY",
+            "gateway": "Dummy",
             "token": "sample-token",
             "amount": total.gross.amount,
             "billingAddress": graphql_address_data,
@@ -131,7 +130,7 @@ def test_use_checkout_billing_address_as_payment_billing(
     variables = {
         "checkoutId": checkout_id,
         "input": {
-            "gateway": "DUMMY",
+            "gateway": "Dummy",
             "token": "sample-token",
             "amount": total.gross.amount,
         },
@@ -542,7 +541,7 @@ def test_list_payment_sources(
     source = CustomerSource(id="test1", gateway="braintree", credit_card_info=card)
     mocker.patch(
         "saleor.graphql.account.resolvers.gateway.list_gateways",
-        return_value=[Gateway("braintree")],
+        return_value=["braintree"],
         autospec=True,
     )
     mock_get_source_list = mocker.patch(
@@ -552,9 +551,7 @@ def test_list_payment_sources(
     )
     response = user_api_client.post_graphql(query)
 
-    mock_get_source_list.assert_called_once_with(
-        Gateway("braintree"), braintree_customer_id
-    )
+    mock_get_source_list.assert_called_once_with("braintree", braintree_customer_id)
     content = get_graphql_content(response)["data"]["me"]["storedPaymentSources"]
     assert content is not None and len(content) == 1
     assert content[0] == {

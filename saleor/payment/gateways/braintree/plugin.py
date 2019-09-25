@@ -17,7 +17,7 @@ from . import (
     void,
 )
 
-GATEWAY_NAME = "braintree"
+GATEWAY_NAME = "Braintree"
 
 if TYPE_CHECKING:
     from . import GatewayResponse, PaymentData, TokenConfig
@@ -36,7 +36,7 @@ def require_active_plugin(fn):
 
 
 class BraintreeGatewayPlugin(BasePlugin):
-    PLUGIN_NAME = "braintree"
+    PLUGIN_NAME = GATEWAY_NAME
     CONFIG_STRUCTURE = {
         "Template path": {
             "type": ConfigurationTypeField.STRING,

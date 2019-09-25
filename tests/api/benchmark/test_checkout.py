@@ -43,10 +43,7 @@ def checkout_with_charged_payment(checkout_with_billing_address):
     total = checkout.get_total()
     taxed_total = TaxedMoney(total, total)
     payment = Payment.objects.create(
-        gateway=settings.DUMMY,
-        is_active=True,
-        total=taxed_total.gross.amount,
-        currency="USD",
+        gateway="Dummy", is_active=True, total=taxed_total.gross.amount, currency="USD"
     )
 
     payment.charge_status = ChargeStatus.FULLY_CHARGED
@@ -492,7 +489,7 @@ def test_checkout_payment_charge(
         "input": {
             "billingAddress": graphql_address_data,
             "amount": 1000,  # 10.00 USD * 100
-            "gateway": settings.DUMMY.upper(),
+            "gateway": "Dummy",
             "token": "charged",
         },
     }

@@ -17,7 +17,7 @@ from . import (
     void,
 )
 
-GATEWAY_NAME = "dummy"
+GATEWAY_NAME = "Dummy"
 
 if TYPE_CHECKING:
     from ...interface import GatewayResponse, PaymentData, TokenConfig

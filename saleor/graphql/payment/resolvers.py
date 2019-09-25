@@ -1,6 +1,5 @@
 import graphene_django_optimizer as gql_optimizer
 
-from ...core.payments import Gateway
 from ...payment import gateway as payment_gateway, models
 from ...payment.utils import fetch_customer_id
 from ..utils import filter_by_query_param
@@ -8,9 +7,9 @@ from ..utils import filter_by_query_param
 PAYMENT_SEARCH_FIELDS = ["id"]
 
 
-def resolve_client_token(user, gateway):
+def resolve_client_token(user, gateway: str):
     customer_id = fetch_customer_id(user, gateway)
-    return payment_gateway.get_client_token(Gateway(gateway), customer_id)
+    return payment_gateway.get_client_token(gateway, customer_id)
 
 
 def resolve_payments(info, query):

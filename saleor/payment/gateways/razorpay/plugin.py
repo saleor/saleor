@@ -7,7 +7,7 @@ from saleor.extensions.base_plugin import BasePlugin
 
 from . import GatewayConfig, capture, create_form, process_payment, refund
 
-GATEWAY_NAME = "razorpay"
+GATEWAY_NAME = "Razorpay"
 
 if TYPE_CHECKING:
     from . import GatewayResponse, PaymentData

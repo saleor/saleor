@@ -12,7 +12,6 @@ from django.views.decorators.csrf import csrf_exempt
 
 from ..account.forms import LoginForm
 from ..account.models import User
-from ..core.payments import Gateway
 from ..core.utils import get_client_ip
 from ..payment import ChargeStatus, TransactionKind, gateway as payment_gateway
 from ..payment.utils import create_payment, fetch_customer_id
@@ -122,8 +121,7 @@ def start_payment(request, order, gateway):
                 return redirect(order.get_absolute_url())
 
     client_token = payment_gateway.get_client_token(
-        Gateway(payment.gateway),
-        customer_id=fetch_customer_id(request.user, payment.gateway),
+        payment.gateway, customer_id=fetch_customer_id(request.user, payment.gateway)
     )
     ctx = {
         "form": form,
@@ -131,7 +129,7 @@ def start_payment(request, order, gateway):
         "client_token": client_token,
         "order": order,
     }
-    template_path = payment_gateway.get_template_path(Gateway(payment.gateway))
+    template_path = payment_gateway.get_template_path(payment.gateway)
     return TemplateResponse(request, template_path, ctx)
 
 

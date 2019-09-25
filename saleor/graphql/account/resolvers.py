@@ -94,7 +94,7 @@ def resolve_address_validation_rules(
 
 def resolve_payment_sources(user: models.User):
     stored_customer_accounts = (
-        (gtw, fetch_customer_id(user, gtw.value)) for gtw in gateway.list_gateways()
+        (gtw, fetch_customer_id(user, gtw)) for gtw in gateway.list_gateways()
     )
     return list(
         chain(
