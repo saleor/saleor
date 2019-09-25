@@ -109,7 +109,7 @@ class ProductVariantBulkCreate(BaseMutation):
     )
 
     class Arguments:
-        input = graphene.List(
+        variants = graphene.List(
             ProductVariantBulkCreateInput,
             required=True,
             description="Fields required to create a product variants.",
@@ -191,7 +191,7 @@ class ProductVariantBulkCreate(BaseMutation):
         cleaned_inputs = []
         sku_list = []
         product_type = product.product_type
-        for variant_data in data.get("input"):
+        for variant_data in data.get("variants"):
             try:
                 instance = models.ProductVariant()
                 variant_data["product_type"] = product_type
@@ -210,9 +210,7 @@ class ProductVariantBulkCreate(BaseMutation):
                     sku_list.append(sku)
                 else:
                     errors["sku"].append(
-                        ValidationError(
-                            "Duplicated SKU.", ProductErrorCode.ALREADY_EXISTS
-                        )
+                        ValidationError("Duplicated SKU.", ProductErrorCode.UNIQUE)
                     )
         if not errors:
             cls.save_instances(info, instances, cleaned_inputs)
