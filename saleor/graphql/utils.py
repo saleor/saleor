@@ -144,10 +144,8 @@ def generate_query_argument_description(search_fields):
         " use `filter: {search: {}}` instead.\n"
     )
     header = "Supported filter parameters:\n"
-    supported_list = ""
-    for field in search_fields:
-        supported_list += "* {0}\n".format(field)
-    return deprecated_info + header + supported_list
+    supported_list = [f"`{field}`" for field in search_fields]
+    return deprecated_info + header + ", ".join(supported_list)
 
 
 def format_permissions_for_display(permissions):

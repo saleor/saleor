@@ -1037,13 +1037,11 @@ class ProductVariantCreate(ModelMutation):
     def clean_input(cls, info, instance: models.ProductVariant, data: dict):
         cleaned_input = super().clean_input(info, instance, data)
 
-        cost_price_amount = cleaned_input.pop("cost_price", None)
-        if cost_price_amount is not None:
-            cleaned_input["cost_price_amount"] = cost_price_amount
+        if "cost_price" in cleaned_input:
+            cleaned_input["cost_price_amount"] = cleaned_input.pop("cost_price")
 
-        price_override_amount = cleaned_input.pop("price_override", None)
-        if price_override_amount is not None:
-            cleaned_input["price_override_amount"] = price_override_amount
+        if "price_override" in cleaned_input:
+            cleaned_input["price_override_amount"] = cleaned_input.pop("price_override")
 
         # Attributes are provided as list of `AttributeValueInput` objects.
         # We need to transform them into the format they're stored in the

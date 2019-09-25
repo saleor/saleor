@@ -11,11 +11,15 @@ from .types import Plugin
 class ExtensionsQueries(graphene.ObjectType):
     plugin = graphene.Field(
         Plugin,
-        id=graphene.Argument(graphene.ID, required=True),
+        id=graphene.Argument(
+            graphene.ID, description="ID of the plugin.", required=True
+        ),
         description="Lookup a plugin by ID.",
     )
     plugins = FilterInputConnectionField(
-        Plugin, filter=PluginFilterInput(), description="List of plugins"
+        Plugin,
+        filter=PluginFilterInput(description="Filtering options for plugins"),
+        description="List of plugins",
     )
 
     @permission_required("extensions.manage_plugins")
