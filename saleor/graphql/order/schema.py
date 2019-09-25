@@ -64,11 +64,11 @@ class OrderQueries(graphene.ObjectType):
     order = graphene.Field(
         Order,
         description="Lookup an order by ID.",
-        id=graphene.Argument(graphene.ID, required=True),
+        id=graphene.Argument(graphene.ID, description="ID of an order.", required=True),
     )
     orders = FilterInputConnectionField(
         Order,
-        filter=OrderFilterInput(),
+        filter=OrderFilterInput(description="Filtering options for orders."),
         query=graphene.String(description=DESCRIPTIONS["order"]),
         created=graphene.Argument(
             ReportingPeriod, description="Filter orders from a selected timespan."
@@ -76,28 +76,28 @@ class OrderQueries(graphene.ObjectType):
         status=graphene.Argument(
             OrderStatusFilter, description="Filter order by status"
         ),
-        description="List of the shop's orders.",
+        description="List of orders.",
     )
     draft_orders = FilterInputConnectionField(
         Order,
-        filter=OrderDraftFilterInput(),
+        filter=OrderDraftFilterInput(description="Filtering options for draft orders."),
         query=graphene.String(description=DESCRIPTIONS["order"]),
         created=graphene.Argument(
             ReportingPeriod, description="Filter draft orders from a selected timespan."
         ),
-        description="List of the shop's draft orders.",
+        description="List of draft orders.",
     )
     orders_total = graphene.Field(
         TaxedMoney,
-        description="Total sales.",
-        period=graphene.Argument(
-            ReportingPeriod, description="Get total sales for selected span of time."
-        ),
+        description="Return the total sales amount from a specific period.",
+        period=graphene.Argument(ReportingPeriod, description="A period of time."),
     )
     order_by_token = graphene.Field(
         Order,
         description="Lookup an order by token.",
-        token=graphene.Argument(graphene.String, required=True),
+        token=graphene.Argument(
+            graphene.UUID, description="The order's token.", required=True
+        ),
     )
 
     @permission_required("order.manage_orders")

@@ -15,7 +15,9 @@ from .types import GiftCard
 class GiftCardQueries(graphene.ObjectType):
     gift_card = graphene.Field(
         GiftCard,
-        id=graphene.Argument(graphene.ID, required=True),
+        id=graphene.Argument(
+            graphene.ID, description="ID of the gift card.", required=True
+        ),
         description="Lookup a gift card by ID.",
     )
     gift_cards = PrefetchingConnectionField(GiftCard, description="List of gift cards")

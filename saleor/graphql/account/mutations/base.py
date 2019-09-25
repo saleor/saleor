@@ -42,7 +42,7 @@ def can_edit_address(user, address):
 
 
 class SetPassword(CreateToken):
-    user = graphene.Field(User, description="An user instance with new password.")
+    user = graphene.Field(User, description="A user instance with new password.")
     account_errors = graphene.List(
         graphene.NonNull(AccountError),
         description="List of errors that occurred executing the mutation.",
