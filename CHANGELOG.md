@@ -74,6 +74,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added support for sorting product by their attribute values through given attribute ID - #4740 by @NyanKiyoshi
 - Unified MenuItemMove to other reordering mutations. It now uses relative positions instead of absolute ones (breaking change) - #4734 by @NyanKiyoshi.
 - Add descriptions for queries and query arguments - #4758 by @maarcingebala
+- Fixed the inability of users to set a variant's `priceOverride` and `costPrice` to `null` - #4754 by @NyanKiyoshi
 
 ## 2.8.0
 
