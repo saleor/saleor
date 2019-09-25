@@ -137,6 +137,20 @@ class ProductVariantBulkCreate(BaseMutation):
         return attributes
 
     @classmethod
+    def validate_sku_duplication(cls, variants):
+        errors = []
+        sku_list = []
+        for variant_data in variants:
+            if not variant_data.sku:
+                continue
+            if variant_data.sku in sku_list:
+                errors.append(
+                    ValidationError("Duplicated SKU.", ProductErrorCode.UNIQUE)
+                )
+            sku_list.append(variant_data.sku)
+        return errors
+
+    @classmethod
     def clean_input(cls, info, instance: models.ProductVariant, data: dict):
         cleaned_input = ModelMutation.clean_input(
             info, instance, data, ProductVariantBulkCreateInput
@@ -189,7 +203,6 @@ class ProductVariantBulkCreate(BaseMutation):
         errors = defaultdict(list)
         instances = []
         cleaned_inputs = []
-        sku_list = []
         product_type = product.product_type
         for variant_data in data.get("variants"):
             try:
@@ -204,18 +217,12 @@ class ProductVariantBulkCreate(BaseMutation):
             except ValidationError as exc:
                 for key, value in exc.error_dict.items():
                     errors[key].extend(value)
-            sku = variant_data.get("sku")
-            if sku:
-                if sku not in sku_list:
-                    sku_list.append(sku)
-                else:
-                    errors["sku"].append(
-                        ValidationError("Duplicated SKU.", ProductErrorCode.UNIQUE)
-                    )
-        if not errors:
-            cls.save_instances(info, instances, cleaned_inputs)
-        else:
+        sku_erros = cls.validate_sku_duplication(data.get("variants"))
+        if sku_erros:
+            errors["sku"].extend(sku_erros)
+        if errors:
             raise ValidationError(errors)
+        cls.save_instances(info, instances, cleaned_inputs)
         return ProductVariantBulkCreate(
             count=len(instances), product_variants=instances
         )
