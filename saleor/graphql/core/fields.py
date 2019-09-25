@@ -20,7 +20,7 @@ def patch_pagination_args(field: DjangoConnectionField):
     By default Graphene's connection fields comes without description for pagination
     arguments. This functions patches those fields to add the descriptions.
     """
-    field.args["first"].description = "Returns the first n elements from the list."
+    field.args["first"].description = "Return the first n elements from the list."
     field.args["last"].description = "Return the last n elements from the list."
     field.args[
         "before"
