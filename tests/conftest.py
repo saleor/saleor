@@ -27,9 +27,10 @@ from saleor.giftcard.models import GiftCard
 from saleor.menu.models import Menu, MenuItem
 from saleor.menu.utils import update_menu
 from saleor.order import OrderStatus
+from saleor.order.actions import fulfill_order_line
 from saleor.order.events import OrderEvents
 from saleor.order.models import FulfillmentStatus, Order, OrderEvent
-from saleor.order.utils import fulfill_order_line, recalculate_order
+from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
 from saleor.payment import ChargeStatus, TransactionKind
 from saleor.payment.models import Payment

@@ -2,24 +2,28 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ...webhook import models
+from ...webhook.error_codes import WebhookErrorCode
 from ..core.mutations import ModelDeleteMutation, ModelMutation
+from ..core.types.common import WebhookError
 from .enums import WebhookEventTypeEnum
 from .types import Webhook
 
 
 class WebhookCreateInput(graphene.InputObjectType):
-    target_url = graphene.String(description="The url to receive the payload")
+    target_url = graphene.String(description="The url to receive the payload.")
     events = graphene.List(
-        WebhookEventTypeEnum, description="The event that webhook wants to subscribe"
+        WebhookEventTypeEnum, description="The events that webhook wants to subscribe."
     )
     service_account = graphene.ID(
-        required=False, description="serviceAccount ID of which webhook belongs to"
+        required=False,
+        description="ID of the service account to which webhook belongs.",
     )
     is_active = graphene.Boolean(
         description="Determine if webhook will be set active or not.", required=False
     )
     secret_key = graphene.String(
-        description="Use to create a hash signature with each payload", required=False
+        description="The secret key used to create a hash signature with each payload.",
+        required=False,
     )
 
 
@@ -30,9 +34,11 @@ class WebhookCreate(ModelMutation):
         )
 
     class Meta:
-        description = "Creates a new webhook subscription"
+        description = "Creates a new webhook subscription."
         model = models.Webhook
         permissions = ("webhook.manage_webhooks",)
+        error_type_class = WebhookError
+        error_type_field = "webhook_errors"
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -44,7 +50,9 @@ class WebhookCreate(ModelMutation):
         # We need to confirm that cleaned_data has service_account_id or
         # context has assigned service account instance
         if not instance.service_account_id and not service_account:
-            raise ValidationError("Missing token or serviceAccount")
+            raise ValidationError(
+                "Missing token or serviceAccount", code=WebhookErrorCode.INVALID
+            )
 
         if instance.service_account_id:
             # Let's skip service_account id in case when context has
@@ -54,7 +62,8 @@ class WebhookCreate(ModelMutation):
 
         if not service_account or not service_account.is_active:
             raise ValidationError(
-                {"serviceAccount": "Service account doesn't exist or is disabled"}
+                "Service account doesn't exist or is disabled",
+                code=WebhookErrorCode.NOT_FOUND,
             )
         return cleaned_data
 
@@ -85,15 +94,16 @@ class WebhookCreate(ModelMutation):
 
 class WebhookUpdateInput(graphene.InputObjectType):
     target_url = graphene.String(
-        description="The url to receive the payload", required=False
+        description="The url to receive the payload.", required=False
     )
     events = graphene.List(
         WebhookEventTypeEnum,
-        description="The event that webhook wants to subscribe",
+        description="The events that webhook wants to subscribe.",
         required=False,
     )
     service_account = graphene.ID(
-        required=False, description="serviceAccount ID of which webhook belongs to"
+        required=False,
+        description="ID of the service account to which webhook belongs.",
     )
     is_active = graphene.Boolean(
         description="Determine if webhook will be set active or not.", required=False
@@ -113,9 +123,11 @@ class WebhookUpdate(ModelMutation):
         )
 
     class Meta:
-        description = "Updates a webhook subscription"
+        description = "Updates a webhook subscription."
         model = models.Webhook
         permissions = ("webhook.manage_webhooks",)
+        error_type_class = WebhookError
+        error_type_field = "webhook_errors"
 
 
 class WebhookDelete(ModelDeleteMutation):
@@ -128,6 +140,8 @@ class WebhookDelete(ModelDeleteMutation):
         description = "Deletes a webhook subscription."
         model = models.Webhook
         permissions = ("webhook.manage_webhooks",)
+        error_type_class = WebhookError
+        error_type_field = "webhook_errors"
 
     @classmethod
     def check_permissions(cls, context):
@@ -144,16 +158,15 @@ class WebhookDelete(ModelDeleteMutation):
         if service_account:
             if not service_account.is_active:
                 raise ValidationError(
-                    {
-                        "serviceAccount": "Service account needs to be active to "
-                        "delete webhook"
-                    }
+                    "Service account needs to be active to delete webhook",
+                    code=WebhookErrorCode.INVALID,
                 )
             try:
                 service_account.webhooks.get(id=object_id)
             except models.Webhook.DoesNotExist:
                 raise ValidationError(
-                    {"id": "Couldn't resolve to a node: %s" % node_id}
+                    "Couldn't resolve to a node: %s" % node_id,
+                    code=WebhookErrorCode.GRAPHQL_ERROR,
                 )
 
         return super().perform_mutation(_root, info, **data)

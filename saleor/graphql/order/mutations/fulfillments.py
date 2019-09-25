@@ -5,11 +5,11 @@ from django.utils.translation import npgettext_lazy, pgettext_lazy
 from ....order import models
 from ....order.actions import (
     cancel_fulfillment,
+    fulfill_order_line,
     fulfillment_tracking_updated,
     order_fulfilled,
 )
 from ....order.error_codes import OrderErrorCode
-from ....order.utils import fulfill_order_line
 from ...core.mutations import BaseMutation
 from ...core.types.common import OrderError
 from ...order.types import Fulfillment, Order

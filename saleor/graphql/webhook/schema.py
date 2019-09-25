@@ -9,7 +9,9 @@ from .types import Webhook
 class WebhookQueries(graphene.ObjectType):
     webhook = graphene.Field(
         Webhook,
-        id=graphene.Argument(graphene.ID, required=True),
+        id=graphene.Argument(
+            graphene.ID, required=True, description="ID of the webhook"
+        ),
         description="Lookup a webhook by ID.",
     )
     webhooks = PrefetchingConnectionField(Webhook, description="List of webhooks")

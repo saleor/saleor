@@ -4197,6 +4197,7 @@ type WebhookCountableEdge {
 
 type WebhookCreate {
   errors: [Error!]
+  webhookErrors: [WebhookError!]
   webhook: Webhook
 }
 
@@ -4211,6 +4212,21 @@ input WebhookCreateInput {
 type WebhookDelete {
   errors: [Error!]
   webhook: Webhook
+  webhookErrors: [WebhookError!]
+}
+
+type WebhookError {
+  field: String
+  message: String
+  code: WebhookErrorCode
+}
+
+enum WebhookErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
 }
 
 type WebhookEvent {
@@ -4230,6 +4246,7 @@ enum WebhookEventTypeEnum {
 type WebhookUpdate {
   errors: [Error!]
   webhook: Webhook
+  webhookErrors: [WebhookError!]
 }
 
 input WebhookUpdateInput {
