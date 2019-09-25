@@ -16,9 +16,6 @@ from ...interface import (
 from .errors import DEFAULT_ERROR_MESSAGE, BraintreeException
 from .forms import BraintreePaymentForm
 
-# FIXME: Move to SiteSettings
-THREE_D_SECURE_REQUIRED = False
-
 # Error codes whitelist should be a dict of code: error_msg_override
 # if no error_msg_override is provided,
 # then error message returned by the gateway will be used
@@ -170,7 +167,7 @@ def transaction_for_new_customer(
             "options": {
                 "submit_for_settlement": config.auto_capture,
                 "store_in_vault_on_success": payment_information.reuse_source,
-                "three_d_secure": {"required": THREE_D_SECURE_REQUIRED},
+                "three_d_secure": {"required": config.require_3d_secure},
             },
             **get_customer_data(payment_information),
         }
