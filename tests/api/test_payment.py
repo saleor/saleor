@@ -455,7 +455,7 @@ def test_payments_query(
 
 def test_query_payment(payment_dummy, user_api_client, permission_manage_orders):
     query = """
-    query payment($id: ID) {
+    query payment($id: ID!) {
         payment(id: $id) {
             id
         }

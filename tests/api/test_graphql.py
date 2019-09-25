@@ -270,7 +270,7 @@ def test_generate_query_argument_description():
     expected = (
         "DEPRECATED: Will be removed in Saleor 2.10,"
         " use `filter: {search: {}}` instead."
-        "\nSupported filter parameters:\n* field_1\n* field_2\n"
+        "\nSupported filter parameters:\n`field_1`, `field_2`"
     )
     field_list = ["field_1", "field_2"]
     assert generate_query_argument_description(field_list) == expected
