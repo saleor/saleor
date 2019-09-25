@@ -21,7 +21,7 @@ def patch_pagination_args(field: DjangoConnectionField):
     arguments. This functions patches those fields to add the descriptions.
     """
     field.args["first"].description = "Returns the first n elements from the list."
-    field.args["last"].description = "Returns the last n elements from the list."
+    field.args["last"].description = "Return the last n elements from the list."
     field.args[
         "before"
     ].description = (
