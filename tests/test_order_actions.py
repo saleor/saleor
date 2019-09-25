@@ -6,13 +6,19 @@ from prices import Money, TaxedMoney
 
 from saleor.order import FulfillmentStatus, OrderEvents, OrderEventsEmails, OrderStatus
 from saleor.order.actions import (
+    automatically_fulfill_digital_lines,
     cancel_fulfillment,
     cancel_order,
     clean_mark_order_as_paid,
+    fulfill_order_line,
     handle_fully_paid_order,
     mark_order_as_paid,
 )
+from saleor.order.models import Fulfillment
 from saleor.payment import ChargeStatus, PaymentError
+from saleor.product.models import DigitalContent
+
+from .utils import create_image
 
 
 @pytest.fixture
@@ -141,3 +147,73 @@ def test_cancel_order(fulfilled_order):
         ]
     )
     assert fulfilled_order.status == OrderStatus.CANCELED
+
+
+def test_fulfill_order_line(order_with_lines):
+    order = order_with_lines
+    line = order.lines.first()
+    quantity_fulfilled_before = line.quantity_fulfilled
+    variant = line.variant
+    stock_quantity_after = variant.quantity - line.quantity
+
+    fulfill_order_line(line, line.quantity)
+
+    variant.refresh_from_db()
+    assert variant.quantity == stock_quantity_after
+    assert line.quantity_fulfilled == quantity_fulfilled_before + line.quantity
+
+
+def test_fulfill_order_line_with_variant_deleted(order_with_lines):
+    line = order_with_lines.lines.first()
+    line.variant.delete()
+
+    line.refresh_from_db()
+
+    fulfill_order_line(line, line.quantity)
+
+
+def test_fulfill_order_line_without_inventory_tracking(order_with_lines):
+    order = order_with_lines
+    line = order.lines.first()
+    quantity_fulfilled_before = line.quantity_fulfilled
+    variant = line.variant
+    variant.track_inventory = False
+    variant.save()
+
+    # stock should not change
+    stock_quantity_after = variant.quantity
+
+    fulfill_order_line(line, line.quantity)
+
+    variant.refresh_from_db()
+    assert variant.quantity == stock_quantity_after
+    assert line.quantity_fulfilled == quantity_fulfilled_before + line.quantity
+
+
+@patch("saleor.order.actions.emails.send_fulfillment_confirmation")
+@patch("saleor.order.utils.get_default_digital_content_settings")
+def test_fulfill_digital_lines(
+    mock_digital_settings, mock_email_fulfillment, order_with_lines, media_root
+):
+    mock_digital_settings.return_value = {"automatic_fulfillment": True}
+    line = order_with_lines.lines.all()[0]
+
+    image_file, image_name = create_image()
+    variant = line.variant
+    digital_content = DigitalContent.objects.create(
+        content_file=image_file, product_variant=variant, use_default_settings=True
+    )
+
+    line.variant.digital_content = digital_content
+    line.is_shipping_required = False
+    line.save()
+
+    order_with_lines.refresh_from_db()
+    automatically_fulfill_digital_lines(order_with_lines)
+    line.refresh_from_db()
+    fulfillment = Fulfillment.objects.get(order=order_with_lines)
+    fulfillment_lines = fulfillment.lines.all()
+
+    assert fulfillment_lines.count() == 1
+    assert line.digital_content_url
+    assert mock_email_fulfillment.delay.called

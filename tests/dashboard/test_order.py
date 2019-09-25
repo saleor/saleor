@@ -1044,7 +1044,7 @@ def test_view_mark_order_as_paid(admin_client, order_with_lines):
     ).exists()
 
 
-@patch("saleor.order.utils.emails.send_fulfillment_confirmation")
+@patch("saleor.order.actions.emails.send_fulfillment_confirmation")
 @pytest.mark.parametrize(
     "has_standard,has_digital", ((True, True), (True, False), (False, True))
 )

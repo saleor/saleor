@@ -163,9 +163,10 @@ def test_webhook_create_by_staff_without_permission(staff_api_client, service_ac
 WEBHOOK_DELETE_BY_SERVICE_ACCOUNT = """
     mutation webhookDelete($id: ID!){
       webhookDelete(id: $id){
-        errors{
+        webhookErrors{
           field
           message
+          code
         }
       }
     }
@@ -208,8 +209,8 @@ def test_webhook_delete_by_service_account_wrong_webhook(
 
     response = service_account_api_client.post_graphql(query, variables=variables)
     content = get_graphql_content(response)
-    errors = content["data"]["webhookDelete"]["errors"]
-    assert errors[0]["field"] == "id"
+    errors = content["data"]["webhookDelete"]["webhookErrors"]
+    assert errors[0]["code"] == "GRAPHQL_ERROR"
 
 
 def test_webhook_delete_by_inactive_service_account(

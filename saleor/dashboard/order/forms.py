@@ -20,6 +20,7 @@ from ...order.actions import (
     cancel_fulfillment,
     cancel_order,
     clean_mark_order_as_paid,
+    fulfill_order_line,
     mark_order_as_paid,
     order_shipping_updated,
 )
@@ -27,7 +28,6 @@ from ...order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ...order.utils import (
     add_variant_to_order,
     change_order_line_quantity,
-    fulfill_order_line,
     recalculate_order,
 )
 from ...payment import ChargeStatus, CustomPaymentChoices, PaymentError, gateway
