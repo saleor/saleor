@@ -202,8 +202,13 @@ class GraphQLView(View):
 
         if settings.DEBUG:
             lines = []
-            for line in traceback.format_exception(type(exc), exc, exc.__traceback__):
-                lines.extend(line.rstrip().splitlines())
+
+            if isinstance(exc, BaseException):
+                for line in traceback.format_exception(
+                    type(exc), exc, exc.__traceback__
+                ):
+                    lines.extend(line.rstrip().splitlines())
+
             result["extensions"] = {
                 "exception": {"code": type(exc).__name__, "stacktrace ": lines}
             }

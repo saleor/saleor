@@ -84,6 +84,14 @@ class BraintreeGatewayPlugin(BasePlugin):
             ),
             "label": pgettext_lazy("Plugin label", "Automatic payment capture"),
         },
+        "Require 3D secure": {
+            "type": ConfigurationTypeField.BOOLEAN,
+            "help_text": pgettext_lazy(
+                "Plugin help text",
+                "Determines if Saleor should enforce 3D secure during payment.",
+            ),
+            "label": pgettext_lazy("Plugin label", "Require 3D secure"),
+        },
     }
 
     def __init__(self, *args, **kwargs):
@@ -108,6 +116,7 @@ class BraintreeGatewayPlugin(BasePlugin):
                 },
                 template_path="",
                 store_customer=configuration["Store customers card"],
+                require_3d_secure=configuration["Require 3D secure"],
             )
 
     @classmethod
@@ -123,6 +132,7 @@ class BraintreeGatewayPlugin(BasePlugin):
                 {"name": "Merchant ID", "value": ""},
                 {"name": "Store customers card", "value": False},
                 {"name": "Automatic payment capture", "value": True},
+                {"name": "Require 3D secure", "value": False},
             ],
         }
         return defaults
