@@ -71,8 +71,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added validations for minimum password length in settings - #4735 by @fowczarek
 - Add error codes to mutations responses - #4676 by @Kwaidan00
 - Payment gateways are now saleor plugins with dynamic configuration - #4669 by @salwator
-
 - Unified MenuItemMove to other reordering mutations. It now uses relative positions instead of absolute ones (breaking change) - #4734 by @NyanKiyoshi.
+- Add descriptions for queries and query arguments - #4758 by @maarcingebala
+
 ## 2.8.0
 
 ### Core
