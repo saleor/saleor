@@ -128,7 +128,7 @@ class AccountQueries(graphene.ObjectType):
     user = graphene.Field(
         User,
         id=graphene.Argument(graphene.ID, description="ID of the user.", required=True),
-        description="Lookup an user by ID.",
+        description="Lookup a user by ID.",
     )
 
     def resolve_address_validation_rules(
