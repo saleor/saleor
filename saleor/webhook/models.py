@@ -8,7 +8,7 @@ class Webhook(models.Model):
     service_account = models.ForeignKey(
         ServiceAccount, related_name="webhooks", on_delete=models.CASCADE
     )
-    target_url = models.URLField("Target URL", max_length=255)
+    target_url = models.URLField(max_length=255)
     is_active = models.BooleanField(default=True)
     secret_key = models.CharField(max_length=255, null=True, blank=True)
 
