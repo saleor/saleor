@@ -2979,7 +2979,8 @@ input ProductInput {
 }
 
 input ProductOrder {
-  field: ProductOrderField!
+  field: ProductOrderField
+  attributeId: ID
   direction: OrderDirection!
 }
 
