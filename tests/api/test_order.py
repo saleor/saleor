@@ -1861,7 +1861,7 @@ def test_orders_total(staff_api_client, permission_manage_orders, order_with_lin
 
 def test_order_by_token_query(api_client, order):
     query = """
-    query OrderByToken($token: String!) {
+    query OrderByToken($token: UUID!) {
         orderByToken(token: $token) {
             id
         }
