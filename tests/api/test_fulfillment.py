@@ -35,7 +35,7 @@ CREATE_FULFILLMENT_QUERY = """
 """
 
 
-@patch("saleor.order.actions.send_fulfillment_confirmation_to_customer")
+@patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_create_fulfillment(
     mock_email_fulfillment,
     staff_api_client,
@@ -68,7 +68,7 @@ def test_create_fulfillment(
     assert mock_email_fulfillment.call_count == 1
 
 
-@patch("saleor.order.actions.send_fulfillment_confirmation_to_customer")
+@patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_create_fulfillment_with_empty_quantity(
     mock_send_fulfillment_confirmation,
     staff_api_client,
@@ -245,7 +245,7 @@ def test_cancel_fulfillment(
     assert event_cancel_fulfillment.user == staff_user
 
 
-@patch("saleor.order.actions.send_fulfillment_confirmation_to_customer")
+@patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
 def test_create_digital_fulfillment(
     mock_email_fulfillment,
     digital_content,
