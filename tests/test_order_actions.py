@@ -15,16 +15,8 @@ from saleor.order.actions import (
 from saleor.payment import ChargeStatus, PaymentError
 
 
-@patch("saleor.order.emails.send_fulfillment_confirmation.delay")
-@patch("saleor.order.emails.send_payment_confirmation.delay")
-def test_handle_fully_paid_order_digital_lines(
-    mock_send_payment_confirmation,
-    mock_send_fulfillment_confirmation,
-    order,
-    digital_content,
-    variant,
-    site_settings,
-):
+@pytest.fixture
+def order_with_digital_line(order, digital_content, variant, site_settings):
     site_settings.automatic_fulfillment_digital_products = True
     site_settings.save()
 
@@ -48,7 +40,18 @@ def test_handle_fully_paid_order_digital_lines(
         unit_price=TaxedMoney(net=net, gross=gross),
         tax_rate=23,
     )
+    return order
 
+
+@patch("saleor.order.emails.send_fulfillment_confirmation.delay")
+@patch("saleor.order.emails.send_payment_confirmation.delay")
+def test_handle_fully_paid_order_digital_lines(
+    mock_send_payment_confirmation,
+    mock_send_fulfillment_confirmation,
+    order_with_digital_line,
+):
+
+    order = order_with_digital_line
     handle_fully_paid_order(order)
 
     fulfillment = order.fulfillments.first()
