@@ -198,16 +198,14 @@ class ProductVariantBulkCreate(BaseMutation):
             cls.save(info, instance, cleaned_input)
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
-        product = cls.get_node_or_error(info, data.get("product_id"), models.Product)
-        errors = defaultdict(list)
+    def create_instances(cls, info, variants, product):
         instances = []
         cleaned_inputs = []
-        product_type = product.product_type
-        for variant_data in data.get("variants"):
+        errors = defaultdict(list)
+        for variant_data in variants:
             try:
                 instance = models.ProductVariant()
-                variant_data["product_type"] = product_type
+                variant_data["product_type"] = product.product_type
                 cleaned_input = cls.clean_input(info, instance, variant_data)
                 cleaned_input["product"] = product
                 instance = cls.construct_instance(instance, cleaned_input)
@@ -217,6 +215,14 @@ class ProductVariantBulkCreate(BaseMutation):
             except ValidationError as exc:
                 for key, value in exc.error_dict.items():
                     errors[key].extend(value)
+        return instances, cleaned_inputs, errors
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        product = cls.get_node_or_error(info, data.get("product_id"), models.Product)
+        instances, cleaned_inputs, errors = cls.create_instances(
+            info, data.get("variants"), product
+        )
         sku_erros = cls.validate_sku_duplication(data.get("variants"))
         if sku_erros:
             errors["sku"].extend(sku_erros)
