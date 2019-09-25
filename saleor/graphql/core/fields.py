@@ -25,7 +25,7 @@ def patch_pagination_args(field: DjangoConnectionField):
     field.args[
         "before"
     ].description = (
-        "Returns the elements in the list that come before the specified cursor."
+        "Return the elements in the list that come before the specified cursor."
     )
     field.args[
         "after"
