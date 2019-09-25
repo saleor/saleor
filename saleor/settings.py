@@ -610,11 +610,6 @@ SENTRY_DSN = os.environ.get("SENTRY_DSN")
 if SENTRY_DSN:
     sentry_sdk.init(dsn=SENTRY_DSN, integrations=[DjangoIntegration()])
 
-DUMMY = "dummy"
-BRAINTREE = "braintree"
-RAZORPAY = "razorpay"
-STRIPE = "stripe"
-
 GRAPHENE = {
     "RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST": True,
     "RELAY_CONNECTION_MAX_LIMIT": 100,

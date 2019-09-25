@@ -1224,9 +1224,9 @@ def product_translation_fr(product):
 
 
 @pytest.fixture
-def payment_dummy(db, settings, order_with_lines):
+def payment_dummy(db, order_with_lines):
     return Payment.objects.create(
-        gateway=settings.DUMMY,
+        gateway="Dummy",
         order=order_with_lines,
         is_active=True,
         cc_first_digits="4111",
