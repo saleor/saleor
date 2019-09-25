@@ -1,5 +1,4 @@
 import pytest
-from django.conf import settings
 from graphene import Node
 from prices import TaxedMoney
 
