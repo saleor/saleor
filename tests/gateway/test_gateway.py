@@ -3,7 +3,6 @@ from decimal import Decimal
 import pytest
 
 import saleor.payment.gateway as gateway
-from saleor.core.payments import Gateway
 from saleor.payment import ChargeStatus, TransactionKind
 from saleor.payment.interface import GatewayResponse
 from saleor.payment.utils import create_payment_information
@@ -80,7 +79,7 @@ CONFIRM_RESPONSE = GatewayResponse(
     raw_response=RAW_RESPONSE,
 )
 TOKEN = "token"
-USED_GATEWAY = Gateway.DUMMY
+USED_GATEWAY = "Dummy"
 
 
 @pytest.fixture
@@ -251,7 +250,7 @@ def test_confirm_payment(mock_payment_interface, payment_txn_preauth):
 
 
 def test_list_gateways(mock_payment_interface):
-    gateways = [Gateway.STRIPE, Gateway.BRAINTREE]
+    gateways = ["Stripe", "Braintree"]
     mock_payment_interface.list_payment_gateways.return_value = gateways
     lst = gateway.list_gateways()
     mock_payment_interface.list_payment_gateways.assert_called_once()

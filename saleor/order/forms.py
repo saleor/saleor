@@ -10,10 +10,7 @@ from .models import Order
 
 
 def get_gateways():
-    gateways = [
-        (gtw.value, gtw.value.capitalize() + " gateway")
-        for gtw in gateway.list_gateways()
-    ]
+    gateways = [(gtw, gtw.capitalize() + " gateway") for gtw in gateway.list_gateways()]
     return gateways
 
 

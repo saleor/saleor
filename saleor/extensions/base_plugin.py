@@ -192,6 +192,9 @@ class BasePlugin:
     def get_client_token(self, token_config, previous_value):
         return NotImplemented
 
+    def get_payment_template(self, previous_value):
+        return NotImplemented
+
     @classmethod
     def _update_config_items(
         cls, configuration_to_update: List[dict], current_config: List[dict]

@@ -11,7 +11,6 @@ from ..core.types.meta import MetadataObjectType
 from ..core.types.money import Money, TaxedMoney
 from ..decorators import permission_required
 from ..giftcard.types import GiftCard
-from ..payment.enums import PaymentGatewayEnum
 from ..shipping.types import ShippingMethod
 
 
@@ -49,7 +48,7 @@ class Checkout(MetadataObjectType, CountableDjangoObjectType):
         description="Shipping methods that can be used with this order.",
     )
     available_payment_gateways = graphene.List(
-        PaymentGatewayEnum,
+        graphene.String,
         description="List of available payment gateways.",
         required=True,
     )
