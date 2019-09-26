@@ -154,6 +154,22 @@ class CustomerEvent(CountableDjangoObjectType):
         return None
 
 
+class ServiceAccountToken(CountableDjangoObjectType):
+    name = graphene.String()
+    auth_token = graphene.String(description="Last 4 characters of the tokens.")
+
+    class Meta:
+        description = "Represents token data."
+        model = models.ServiceAccountToken
+        interfaces = [relay.Node]
+        permissions = ("account.manage_service_accounts",)
+        only_fields = ["name", "auth_token"]
+
+    @staticmethod
+    def resolve_auth_token(root: models.ServiceAccount, _info, **_kwargs):
+        return root.auth_token[-4:]
+
+
 class ServiceAccount(MetadataObjectType, CountableDjangoObjectType):
     permissions = graphene.List(
         PermissionDisplay, description="List of the service's permissions."
@@ -165,14 +181,24 @@ class ServiceAccount(MetadataObjectType, CountableDjangoObjectType):
         description="Determine if service account will be set active or not."
     )
     name = graphene.String(description="Name of the service account.")
-    auth_token = graphene.String(description="Last 4 characters of the token")
+
+    tokens = graphene.List(
+        ServiceAccountToken, description="Last 4 characters of the tokens"
+    )
 
     class Meta:
         description = "Represents service account data."
         interfaces = [relay.Node]
         model = models.ServiceAccount
         permissions = ("account.manage_service_accounts",)
-        only_fields = ["name" "permissions", "created", "is_active", "auth_token", "id"]
+        only_fields = [
+            "name" "permissions",
+            "created",
+            "is_active",
+            "tokens",
+            "id",
+            "tokens",
+        ]
 
     @staticmethod
     def resolve_permissions(root: models.ServiceAccount, _info, **_kwargs):
@@ -182,8 +208,9 @@ class ServiceAccount(MetadataObjectType, CountableDjangoObjectType):
         return format_permissions_for_display(permissions)
 
     @staticmethod
-    def resolve_auth_token(root: models.ServiceAccount, _info, **_kwargs):
-        return root.auth_token[-4:]
+    @gql_optimizer.resolver_hints(prefetch_related="tokens")
+    def resolve_tokens(root: models.ServiceAccount, _info, **_kwargs):
+        return root.tokens.all()
 
     @staticmethod
     def resolve_meta(root, info):
