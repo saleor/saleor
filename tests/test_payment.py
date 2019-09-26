@@ -2,10 +2,7 @@ from decimal import Decimal
 from unittest.mock import Mock, patch
 
 import pytest
-from prices import Money, TaxedMoney
 
-from saleor.order import OrderStatus
-from saleor.order.events import OrderEvents, OrderEventsEmails
 from saleor.payment import (
     ChargeStatus,
     GatewayError,
@@ -19,12 +16,9 @@ from saleor.payment.utils import (
     ALLOWED_GATEWAY_KINDS,
     clean_authorize,
     clean_capture,
-    clean_mark_order_as_paid,
     create_payment,
     create_payment_information,
     create_transaction,
-    handle_fully_paid_order,
-    mark_order_as_paid,
     validate_gateway_response,
 )
 
@@ -99,93 +93,6 @@ def dummy_response(payment_dummy, transaction_data, transaction_token, card_deta
     )
 
 
-@patch("saleor.order.emails.send_payment_confirmation.delay")
-def test_handle_fully_paid_order_no_email(mock_send_payment_confirmation, order):
-    order.user = None
-    order.user_email = ""
-
-    handle_fully_paid_order(order)
-    event = order.events.get()
-    assert event.type == OrderEvents.ORDER_FULLY_PAID
-    assert not mock_send_payment_confirmation.called
-
-
-@patch("saleor.order.emails.send_payment_confirmation.delay")
-def test_handle_fully_paid_order(mock_send_payment_confirmation, order):
-    handle_fully_paid_order(order)
-    event_order_paid, event_email_sent = order.events.all()
-    assert event_order_paid.type == OrderEvents.ORDER_FULLY_PAID
-
-    assert event_email_sent.type == OrderEvents.EMAIL_SENT
-    assert event_email_sent.parameters == {
-        "email": order.get_customer_email(),
-        "email_type": OrderEventsEmails.PAYMENT,
-    }
-
-    mock_send_payment_confirmation.assert_called_once_with(order.pk)
-
-
-@patch("saleor.order.emails.send_fulfillment_confirmation.delay")
-@patch("saleor.order.emails.send_payment_confirmation.delay")
-def test_handle_fully_paid_order_digital_lines(
-    mock_send_payment_confirmation,
-    mock_send_fulfillment_confirmation,
-    order,
-    digital_content,
-    variant,
-    site_settings,
-):
-    site_settings.automatic_fulfillment_digital_products = True
-    site_settings.save()
-
-    variant.digital_content = digital_content
-    variant.digital_content.save()
-
-    product_type = variant.product.product_type
-    product_type.is_shipping_required = False
-    product_type.is_digital = True
-    product_type.save()
-
-    net = variant.get_price()
-    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
-    order.lines.create(
-        product_name=str(variant.product),
-        variant_name=str(variant),
-        product_sku=variant.sku,
-        is_shipping_required=variant.is_shipping_required(),
-        quantity=3,
-        variant=variant,
-        unit_price=TaxedMoney(net=net, gross=gross),
-        tax_rate=23,
-    )
-
-    handle_fully_paid_order(order)
-
-    fulfillment = order.fulfillments.first()
-
-    event_order_paid, event_email_sent, event_order_fulfilled, event_digital_links = (
-        order.events.all()
-    )
-    assert event_order_paid.type == OrderEvents.ORDER_FULLY_PAID
-
-    assert event_email_sent.type == OrderEvents.EMAIL_SENT
-    assert event_order_fulfilled.type == OrderEvents.EMAIL_SENT
-    assert event_digital_links.type == OrderEvents.EMAIL_SENT
-
-    assert (
-        event_order_fulfilled.parameters["email_type"] == OrderEventsEmails.FULFILLMENT
-    )
-    assert (
-        event_digital_links.parameters["email_type"] == OrderEventsEmails.DIGITAL_LINKS
-    )
-
-    mock_send_payment_confirmation.assert_called_once_with(order.pk)
-    mock_send_fulfillment_confirmation.assert_called_once_with(order.pk, fulfillment.pk)
-
-    order.refresh_from_db()
-    assert order.status == OrderStatus.FULFILLED
-
-
 def test_create_payment(address, settings):
     data = {
         "gateway": "Dummy",
@@ -201,20 +108,6 @@ def test_create_payment(address, settings):
 
     same_payment = create_payment(**data)
     assert payment == same_payment
-
-
-def test_mark_as_paid(admin_user, draft_order):
-    mark_order_as_paid(draft_order, admin_user)
-    payment = draft_order.payments.last()
-    assert payment.charge_status == ChargeStatus.FULLY_CHARGED
-    assert payment.captured_amount == draft_order.total.gross.amount
-    assert draft_order.events.last().type == (OrderEvents.ORDER_MARKED_AS_PAID)
-
-
-def test_clean_mark_order_as_paid(payment_txn_preauth):
-    order = payment_txn_preauth.order
-    with pytest.raises(PaymentError):
-        clean_mark_order_as_paid(order)
 
 
 def test_create_transaction(transaction_data):
@@ -247,7 +140,7 @@ def test_payment_needs_to_be_active_for_any_action(func, payment_dummy):
     assert exc.value.message == NOT_ACTIVE_PAYMENT_ERROR
 
 
-@patch("saleor.payment.utils.handle_fully_paid_order")
+@patch("saleor.order.actions.handle_fully_paid_order")
 def test_gateway_charge_failed(
     mock_handle_fully_paid_order, mock_get_manager, payment_txn_preauth, dummy_response
 ):
