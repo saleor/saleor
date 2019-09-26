@@ -4,11 +4,11 @@ import graphene
 import graphene_django_optimizer as gql_optimizer
 from django.db.models import Q, Sum
 from graphql import GraphQLError
+from graphql_relay import from_global_id
 
 from ...order import OrderStatus
 from ...product import models
 from ...search.backends import picker
-from ..core.utils import from_global_id_strict_type
 from ..utils import filter_by_period, filter_by_query_param, get_database_id, get_nodes
 from .enums import AttributeSortField, OrderDirection
 from .filters import (
@@ -116,17 +116,24 @@ def sort_products(qs: models.ProductsQueryset, sort_by: Optional["ProductOrder"]
     # Check if one of the required fields was provided
     if sort_by.field and sort_by.attribute_id:
         raise GraphQLError(
-            ("You must provide either `field` or `attributeId` to sort the products.")
+            "You must provide either `field` or `attributeId` to sort the products."
         )
+
+    if not sort_by.field and not sort_by.attribute_id:
+        return qs
 
     direction = sort_by.direction
     sorting_field = sort_by.field
 
+    # If an attribute ID was passed, attempt to convert it
     if sort_by.attribute_id:
+        graphene_type, attribute_pk = from_global_id(sort_by.attribute_id)
         is_ascending = direction == OrderDirection.ASC
-        attribute_pk = from_global_id_strict_type(sort_by.attribute_id, "Attribute")
-        qs = qs.sort_by_attribute(attribute_pk, ascending=is_ascending)
-    else:
+
+        # If the passed attribute ID is valid, execute the sorting
+        if attribute_pk.isnumeric() and graphene_type == "Attribute":
+            qs = qs.sort_by_attribute(attribute_pk, ascending=is_ascending)
+    elif sorting_field:
         qs = qs.order_by(f"{direction}{sorting_field}")
 
     return qs

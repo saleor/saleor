@@ -503,3 +503,57 @@ def test_sort_product_not_having_attribute_data(api_client, category, count_quer
     # Compare the results
     sorted_results = list(qs)
     assert sorted_results == expected_results
+
+
+@pytest.mark.parametrize(
+    "attribute_id",
+    [
+        "",
+        graphene.Node.to_global_id("Attribute", "not a number"),
+        graphene.Node.to_global_id("Attribute", -1),
+    ],
+)
+def test_sort_product_by_attribute_using_invalid_attribute_id(
+    api_client, product_list_published, attribute_id
+):
+    """Ensure passing an empty attribute ID as sorting field does nothing."""
+
+    query = QUERY_SORT_PRODUCTS_BY_ATTRIBUTE
+
+    # Products are ordered in descending order to ensure we
+    # are not actually trying to sort them at all
+    variables = {"attributeId": attribute_id, "direction": "DESC"}
+
+    response = get_graphql_content(api_client.post_graphql(query, variables))
+    products = response["data"]["products"]["edges"]
+
+    assert len(products) == product_models.Product.objects.count()
+    assert products[0]["node"]["name"] == product_models.Product.objects.first().name
+
+
+@pytest.mark.parametrize("direction", ["ASC", "DESC"])
+def test_sort_product_by_attribute_using_attribute_having_no_products(
+    api_client, products_structures, direction
+):
+    """Ensure passing an empty attribute ID as sorting field does nothing."""
+
+    query = QUERY_SORT_PRODUCTS_BY_ATTRIBUTE
+    attribute_without_products = product_models.Attribute.objects.create(
+        name="Colors 2", slug="colors-2"
+    )
+
+    attribute_id: str = graphene.Node.to_global_id(
+        "Attribute", attribute_without_products.pk
+    )
+    variables = {"attributeId": attribute_id, "direction": direction}
+
+    response = get_graphql_content(api_client.post_graphql(query, variables))
+    products = response["data"]["products"]["edges"]
+
+    if direction == "ASC":
+        expected_first_product = product_models.Product.objects.first()
+    else:
+        expected_first_product = product_models.Product.objects.last()
+
+    assert len(products) == product_models.Product.objects.count()
+    assert products[0]["node"]["name"] == expected_first_product.name
