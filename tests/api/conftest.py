@@ -8,7 +8,7 @@ from django.shortcuts import reverse
 from django.test.client import MULTIPART_CONTENT, Client
 from graphql_jwt.shortcuts import get_token
 
-from saleor.account.models import User
+from saleor.account.models import ServiceAccount, User
 
 from .utils import assert_no_permission
 
@@ -28,7 +28,8 @@ class ApiClient(Client):
         if not user.is_anonymous:
             self.token = get_token(user)
         elif service_account:
-            self.service_token = service_account.auth_token
+            token = service_account.tokens.first()
+            self.service_token = token.auth_token if token else None
         super().__init__(*args, **kwargs)
 
     def _base_environ(self, **request):
@@ -153,3 +154,12 @@ def user_list_not_active(user_list):
     users = User.objects.filter(pk__in=[user.pk for user in user_list])
     users.update(is_active=False)
     return users
+
+
+@pytest.fixture
+def service_account(db):
+    service_account = ServiceAccount.objects.create(
+        name="Sample service account", is_active=True
+    )
+    service_account.tokens.create(name="Default")
+    return service_account

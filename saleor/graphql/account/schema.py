@@ -37,6 +37,8 @@ from .mutations.service_account import (
     ServiceAccountClearStoredPrivateMeta,
     ServiceAccountCreate,
     ServiceAccountDelete,
+    ServiceAccountTokenCreate,
+    ServiceAccountTokenDelete,
     ServiceAccountUpdate,
     ServiceAccountUpdatePrivateMeta,
 )
@@ -227,6 +229,9 @@ class AccountMutations(graphene.ObjectType):
     service_account_clear_stored_private_metadata = (
         ServiceAccountClearStoredPrivateMeta.Field()
     )
+
+    service_account_token_create = ServiceAccountTokenCreate.Field()
+    service_account_token_delete = ServiceAccountTokenDelete.Field()
 
     # Staff deprecated mutation
     password_reset = PasswordReset.Field()

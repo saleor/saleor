@@ -188,7 +188,6 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
 
 class ServiceAccount(ModelWithMetadata):
     name = models.CharField(max_length=60)
-    auth_token = models.CharField(default=generate_token, unique=True, max_length=30)
     created = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
     permissions = models.ManyToManyField(
@@ -235,6 +234,14 @@ class ServiceAccount(ModelWithMetadata):
             return False
 
         return perm in self._get_permissions()
+
+
+class ServiceAccountToken(models.Model):
+    service_account = models.ForeignKey(
+        ServiceAccount, on_delete=models.CASCADE, related_name="tokens"
+    )
+    name = models.CharField(blank=True, default="", max_length=128)
+    auth_token = models.CharField(default=generate_token, unique=True, max_length=30)
 
 
 class CustomerNote(models.Model):

@@ -2198,6 +2198,8 @@ type Mutations {
   serviceAccountDelete(id: ID!): ServiceAccountDelete
   serviceAccountUpdatePrivateMetadata(id: ID!, input: MetaInput!): ServiceAccountUpdatePrivateMeta
   serviceAccountClearStoredPrivateMetadata(id: ID!, input: MetaPath!): ServiceAccountClearStoredPrivateMeta
+  serviceAccountTokenCreate(input: ServiceAccountTokenInput!): ServiceAccountTokenCreate
+  serviceAccountTokenDelete(id: ID!): ServiceAccountTokenDelete
   passwordReset(email: String!): PasswordReset
 }
 
@@ -3446,9 +3448,9 @@ input SeoInput {
 
 type ServiceAccount implements Node {
   id: ID!
-  authToken: String
   created: DateTime
   isActive: Boolean
+  tokens: [ServiceAccountToken]
   privateMeta: [MetaStore]!
   meta: [MetaStore]!
   permissions: [PermissionDisplay]
@@ -3474,7 +3476,6 @@ type ServiceAccountCountableEdge {
 
 type ServiceAccountCreate {
   errors: [Error!]
-  authToken: String
   accountErrors: [AccountError!]
   serviceAccount: ServiceAccount
 }
@@ -3494,6 +3495,30 @@ input ServiceAccountInput {
   name: String
   isActive: Boolean
   permissions: [PermissionEnum]
+}
+
+type ServiceAccountToken implements Node {
+  name: String
+  authToken: String
+  id: ID!
+}
+
+type ServiceAccountTokenCreate {
+  errors: [Error!]
+  authToken: String
+  accountErrors: [AccountError!]
+  serviceAccountToken: ServiceAccountToken
+}
+
+type ServiceAccountTokenDelete {
+  errors: [Error!]
+  accountErrors: [AccountError!]
+  serviceAccountToken: ServiceAccountToken
+}
+
+input ServiceAccountTokenInput {
+  name: String
+  serviceAccount: ID!
 }
 
 type ServiceAccountUpdate {
