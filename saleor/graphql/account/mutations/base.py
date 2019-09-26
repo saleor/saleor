@@ -160,8 +160,8 @@ class PasswordChange(BaseMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def check_permissions(cls, user):
-        return user.is_authenticated
+    def check_permissions(cls, context):
+        return context.user.is_authenticated
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -244,7 +244,7 @@ class BaseAddressDelete(ModelDeleteMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        if not cls.check_permissions(info.context.user):
+        if not cls.check_permissions(info.context):
             raise PermissionDenied()
 
         node_id = data.get("id")
@@ -369,6 +369,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
 
         # The instance is a new object in db, create an event
         if is_creation:
+            info.context.extensions.customer_created(customer=instance)
             account_events.customer_account_created_event(user=instance)
 
         if cleaned_input.get("send_password_email"):

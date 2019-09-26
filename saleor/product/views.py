@@ -15,16 +15,20 @@ from django.template.response import TemplateResponse
 from django.urls import reverse
 from draftjs_sanitizer import SafeJSONEncoder
 
-from ..checkout.utils import set_checkout_cookie
+from ..checkout.utils import (
+    get_checkout_from_request,
+    get_or_create_checkout_from_request,
+    set_checkout_cookie,
+)
 from ..core.utils import serialize_decimal
 from ..seo.schema.product import product_json_ld
 from .filters import ProductCategoryFilter, ProductCollectionFilter
+from .forms import ProductForm
 from .models import Category, DigitalContentUrl
 from .utils import (
     collections_visible_to_user,
     get_product_images,
     get_product_list_context,
-    handle_checkout_form,
     products_for_checkout,
     products_for_products_list,
     products_with_details,
@@ -74,7 +78,15 @@ def product_details(request, slug, product_id, form=None):
     today = datetime.date.today()
     is_visible = product.publication_date is None or product.publication_date <= today
     if form is None:
-        form = handle_checkout_form(request, product, create_checkout=False)[0]
+        checkout = get_checkout_from_request(request)
+        form = ProductForm(
+            checkout=checkout,
+            product=product,
+            data=request.POST or None,
+            discounts=request.discounts,
+            country=request.country,
+            extensions=request.extensions,
+        )
     availability = get_product_availability(
         product,
         discounts=request.discounts,
@@ -147,7 +159,15 @@ def product_add_to_checkout(request, slug, product_id):
 
     products = products_for_checkout(user=request.user)
     product = get_object_or_404(products, pk=product_id)
-    form, checkout = handle_checkout_form(request, product, create_checkout=True)
+    checkout = get_or_create_checkout_from_request(request)
+    form = ProductForm(
+        checkout=checkout,
+        product=product,
+        data=request.POST or None,
+        discounts=request.discounts,
+        country=request.country,
+        extensions=request.extensions,
+    )
     if form.is_valid():
         form.save()
         if request.is_ajax():
