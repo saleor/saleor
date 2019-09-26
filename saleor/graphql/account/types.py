@@ -155,8 +155,8 @@ class CustomerEvent(CountableDjangoObjectType):
 
 
 class ServiceAccountToken(CountableDjangoObjectType):
-    name = graphene.String()
-    auth_token = graphene.String(description="Last 4 characters of the tokens.")
+    name = graphene.String(description="Name of the authenticated token.")
+    auth_token = graphene.String(description="Last 4 characters of the token.")
 
     class Meta:
         description = "Represents token data."
