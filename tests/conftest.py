@@ -16,7 +16,7 @@ from PIL import Image
 from prices import Money, TaxedMoney
 
 from saleor.account.backends import BaseBackend
-from saleor.account.models import Address, User
+from saleor.account.models import Address, ServiceAccount, User
 from saleor.checkout import utils
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
@@ -27,9 +27,10 @@ from saleor.giftcard.models import GiftCard
 from saleor.menu.models import Menu, MenuItem
 from saleor.menu.utils import update_menu
 from saleor.order import OrderStatus
+from saleor.order.actions import fulfill_order_line
 from saleor.order.events import OrderEvents
 from saleor.order.models import FulfillmentStatus, Order, OrderEvent
-from saleor.order.utils import fulfill_order_line, recalculate_order
+from saleor.order.utils import recalculate_order
 from saleor.page.models import Page
 from saleor.payment import ChargeStatus, TransactionKind
 from saleor.payment.models import Payment
@@ -52,6 +53,8 @@ from saleor.product.utils.attributes import associate_attribute_values_to_instan
 from saleor.shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
 from saleor.site import AuthenticationBackends
 from saleor.site.models import AuthorizationKey, SiteSettings
+from saleor.webhook import WebhookEventType
+from saleor.webhook.models import Webhook
 from tests.utils import create_image
 
 
@@ -1059,6 +1062,11 @@ def permission_manage_translations():
 
 
 @pytest.fixture
+def permission_manage_webhooks():
+    return Permission.objects.get(codename="manage_webhooks")
+
+
+@pytest.fixture
 def collection(db):
     collection = Collection.objects.create(
         name="Collection",
@@ -1425,6 +1433,20 @@ def other_description_raw():
         "Saleor is powered by a GraphQL server running on top of Python 3 "
         "and a Django 2 framework."
     )
+
+
+@pytest.fixture
+def service_account(db):
+    return ServiceAccount.objects.create(name="Sample service account", is_active=True)
+
+
+@pytest.fixture
+def webhook(service_account):
+    webhook = Webhook.objects.create(
+        service_account=service_account, target_url="http://www.example.com/test"
+    )
+    webhook.events.create(event_type=WebhookEventType.ORDER_CREATED)
+    return webhook
 
 
 @pytest.fixture

@@ -277,7 +277,7 @@ class AvataxPlugin(BasePlugin):
             raise TaxError(customer_msg)
         return previous_value
 
-    def postprocess_order_creation(self, order: "Order", previous_value: Any) -> Any:
+    def order_created(self, order: "Order", previous_value: Any) -> Any:
         self._initialize_plugin_configuration()
 
         if not self.active:

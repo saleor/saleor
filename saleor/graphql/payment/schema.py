@@ -9,10 +9,18 @@ from .types import Payment
 
 
 class PaymentQueries(graphene.ObjectType):
-    payment = graphene.Field(Payment, id=graphene.Argument(graphene.ID))
+    payment = graphene.Field(
+        Payment,
+        description="Lookup a payment by ID.",
+        id=graphene.Argument(
+            graphene.ID, description="ID of the payment.", required=True
+        ),
+    )
     payments = PrefetchingConnectionField(Payment, description="List of payments")
     payment_client_token = graphene.Field(
-        graphene.String, args={"gateway": PaymentGatewayEnum()}
+        graphene.String,
+        description="Return a new token for the payment gateway.",
+        gateway=graphene.Argument(PaymentGatewayEnum, description="A payment gateway."),
     )
 
     @permission_required("order.manage_orders")

@@ -35,23 +35,25 @@ class SaleFilterInput(FilterInputObjectType):
 class DiscountQueries(graphene.ObjectType):
     sale = graphene.Field(
         Sale,
-        id=graphene.Argument(graphene.ID, required=True),
+        id=graphene.Argument(graphene.ID, description="ID of the sale.", required=True),
         description="Lookup a sale by ID.",
     )
     sales = FilterInputConnectionField(
         Sale,
-        filter=SaleFilterInput(),
+        filter=SaleFilterInput(description="Filtering options for sales."),
         query=graphene.String(description="Search sales by name, value or type."),
         description="List of the shop's sales.",
     )
     voucher = graphene.Field(
         Voucher,
-        id=graphene.Argument(graphene.ID, required=True),
+        id=graphene.Argument(
+            graphene.ID, description="ID of the voucher.", required=True
+        ),
         description="Lookup a voucher by ID.",
     )
     vouchers = FilterInputConnectionField(
         Voucher,
-        filter=VoucherFilterInput(),
+        filter=VoucherFilterInput(description="Filtering options for vouchers."),
         query=graphene.String(description="Search vouchers by name or code."),
         description="List of the shop's vouchers.",
     )

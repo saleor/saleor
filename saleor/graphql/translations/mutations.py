@@ -18,8 +18,8 @@ class BaseTranslateMutation(ModelMutation):
         abstract = True
 
     @classmethod
-    def check_permissions(cls, user):
-        return user.has_perm("site.manage_translations")
+    def check_permissions(cls, context):
+        return context.user.has_perm("site.manage_translations")
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
