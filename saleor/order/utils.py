@@ -13,15 +13,9 @@ from ..core.weight import zero_weight
 from ..dashboard.order.utils import get_voucher_discount_for_order
 from ..discount.models import NotApplicable
 from ..extensions.manager import get_extensions_manager
-from ..order import FulfillmentStatus, OrderStatus, emails
-from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
-from ..payment import ChargeStatus
-from ..product.utils import (
-    allocate_stock,
-    deallocate_stock,
-    decrease_stock,
-    increase_stock,
-)
+from ..order import OrderStatus
+from ..order.models import Order, OrderLine
+from ..product.utils import allocate_stock, deallocate_stock, increase_stock
 from ..product.utils.digital_products import get_default_digital_content_settings
 from ..shipping.models import ShippingMethod
 from . import events
@@ -45,43 +39,6 @@ def order_needs_automatic_fullfilment(order: Order) -> bool:
         if order_line_needs_automatic_fulfillment(line):
             return True
     return False
-
-
-def fulfill_order_line(order_line, quantity):
-    """Fulfill order line with given quantity."""
-    if order_line.variant and order_line.variant.track_inventory:
-        decrease_stock(order_line.variant, quantity)
-    order_line.quantity_fulfilled += quantity
-    order_line.save(update_fields=["quantity_fulfilled"])
-
-
-def automatically_fulfill_digital_lines(order: Order):
-    """Fulfill all digital lines which have enabled automatic fulfillment setting.
-
-    Send confirmation email afterward.
-    """
-    digital_lines = order.lines.filter(
-        is_shipping_required=False, variant__digital_content__isnull=False
-    )
-    digital_lines = digital_lines.prefetch_related("variant__digital_content")
-
-    if not digital_lines:
-        return
-    fulfillment, _ = Fulfillment.objects.get_or_create(order=order)
-    for line in digital_lines:
-        if not order_line_needs_automatic_fulfillment(line):
-            continue
-        digital_content = line.variant.digital_content
-        digital_content.urls.create(line=line)
-        quantity = line.quantity
-        FulfillmentLine.objects.create(
-            fulfillment=fulfillment, order_line=line, quantity=quantity
-        )
-        fulfill_order_line(order_line=line, quantity=quantity)
-    emails.send_fulfillment_confirmation_to_customer(
-        order, fulfillment, user=order.user
-    )
-    update_order_status(order)
 
 
 def check_order_status(func):
@@ -186,38 +143,6 @@ def update_order_prices(order, discounts):
     recalculate_order(order)
 
 
-def cancel_order(user, order, restock):
-    """Cancel order and associated fulfillments.
-
-    Return products to corresponding stocks if restock is set to True.
-    """
-
-    events.order_canceled_event(order=order, user=user)
-    if restock:
-        events.fulfillment_restocked_items_event(
-            order=order, user=user, fulfillment=order
-        )
-        restock_order_lines(order)
-
-    for fulfillment in order.fulfillments.all():
-        fulfillment.status = FulfillmentStatus.CANCELED
-        fulfillment.save(update_fields=["status"])
-    order.status = OrderStatus.CANCELED
-    order.save(update_fields=["status"])
-
-    payments = order.payments.filter(is_active=True).exclude(
-        charge_status=ChargeStatus.FULLY_REFUNDED
-    )
-
-    from ..payment import gateway
-
-    for payment in payments:
-        if payment.can_refund():
-            gateway.refund(payment)
-        elif payment.can_void():
-            gateway.void(payment)
-
-
 def update_order_status(order):
     """Update order status depending on fulfillments."""
     quantity_fulfilled = order.quantity_fulfilled
@@ -233,28 +158,6 @@ def update_order_status(order):
     if status != order.status:
         order.status = status
         order.save(update_fields=["status"])
-
-
-def cancel_fulfillment(user, fulfillment, restock):
-    """Cancel fulfillment.
-
-    Return products to corresponding stocks if restock is set to True.
-    """
-    events.fulfillment_canceled_event(
-        order=fulfillment.order, user=user, fulfillment=fulfillment
-    )
-    if restock:
-        events.fulfillment_restocked_items_event(
-            order=fulfillment.order, user=user, fulfillment=fulfillment
-        )
-        restock_fulfillment_lines(fulfillment)
-    for line in fulfillment:
-        order_line = line.order_line
-        order_line.quantity_fulfilled -= line.quantity
-        order_line.save(update_fields=["quantity_fulfilled"])
-    fulfillment.status = FulfillmentStatus.CANCELED
-    fulfillment.save(update_fields=["status"])
-    update_order_status(fulfillment.order)
 
 
 def attach_order_to_user(order, user):

@@ -4,14 +4,18 @@ from django.core.exceptions import ValidationError
 from ....account.models import User
 from ....core.taxes import zero_taxed_money
 from ....order import events, models
-from ....order.error_codes import OrderErrorCode
-from ....order.utils import (
+from ....order.actions import (
     cancel_order,
-    get_valid_shipping_methods_for_order,
-    recalculate_order,
+    clean_mark_order_as_paid,
+    mark_order_as_paid,
+    order_captured,
+    order_refunded,
+    order_shipping_updated,
+    order_voided,
 )
+from ....order.error_codes import OrderErrorCode
+from ....order.utils import get_valid_shipping_methods_for_order
 from ....payment import CustomPaymentChoices, PaymentError, gateway
-from ....payment.utils import clean_mark_order_as_paid, mark_order_as_paid
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation
 from ...core.scalars import Decimal
@@ -231,8 +235,7 @@ class OrderUpdateShipping(BaseMutation):
             ]
         )
         # Post-process the results
-        recalculate_order(order)
-
+        order_shipping_updated(order)
         return OrderUpdateShipping(order=order)
 
 
@@ -288,7 +291,7 @@ class OrderCancel(BaseMutation):
     def perform_mutation(cls, _root, info, restock, **data):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
         clean_order_cancel(order)
-        cancel_order(user=info.context.user, order=order, restock=restock)
+        cancel_order(order=order, user=info.context.user, restock=restock)
         return OrderCancel(order=order)
 
 
@@ -349,9 +352,7 @@ class OrderCapture(BaseMutation):
             order, info.context.user, payment, gateway.capture, payment, amount
         )
 
-        events.payment_captured_event(
-            order=order, user=info.context.user, amount=amount, payment=payment
-        )
+        order_captured(order, info.context.user, amount, payment)
         return OrderCapture(order=order)
 
 
@@ -374,10 +375,7 @@ class OrderVoid(BaseMutation):
         clean_void_payment(payment)
 
         try_payment_action(order, info.context.user, payment, gateway.void, payment)
-
-        events.payment_voided_event(
-            order=order, user=info.context.user, payment=payment
-        )
+        order_voided(order, info.context.user, payment)
         return OrderVoid(order=order)
 
 
@@ -414,7 +412,5 @@ class OrderRefund(BaseMutation):
             order, info.context.user, payment, gateway.refund, payment, amount
         )
 
-        events.payment_refunded_event(
-            order=order, user=info.context.user, amount=amount, payment=payment
-        )
+        order_refunded(order, info.context.user, amount, payment)
         return OrderRefund(order=order)

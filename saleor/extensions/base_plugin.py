@@ -12,7 +12,7 @@ if TYPE_CHECKING:
     from ..core.taxes import TaxType
     from ..checkout.models import Checkout, CheckoutLine
     from ..product.models import Product
-    from ..account.models import Address
+    from ..account.models import Address, User
     from ..order.models import OrderLine, Order
     from ..payment.interface import GatewayResponse, PaymentData
 
@@ -120,7 +120,7 @@ class BasePlugin:
     ):
         return NotImplemented
 
-    def postprocess_order_creation(self, order: "Order", previous_value: Any):
+    def order_created(self, order: "Order", previous_value: Any):
         return NotImplemented
 
     def assign_tax_code_to_object_meta(
@@ -136,6 +136,24 @@ class BasePlugin:
     def get_tax_rate_percentage_value(
         self, obj: Union["Product", "ProductType"], country: Country, previous_value
     ) -> Decimal:
+        return NotImplemented
+
+    def customer_created(self, customer: "User", previous_value: Any) -> Any:
+        return NotImplemented
+
+    def product_created(self, product: "Product", previous_value: Any) -> Any:
+        return NotImplemented
+
+    def order_fully_paid(self, order: "Order", previous_value: Any) -> Any:
+        return NotImplemented
+
+    def order_updated(self, order: "Order", previous_value: Any) -> Any:
+        return NotImplemented
+
+    def order_cancelled(self, order: "Order", previous_value: Any) -> Any:
+        return NotImplemented
+
+    def order_fulfilled(self, order: "Order", previous_value: Any) -> Any:
         return NotImplemented
 
     def authorize_payment(

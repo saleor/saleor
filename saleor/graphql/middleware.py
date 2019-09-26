@@ -46,6 +46,7 @@ def service_account_middleware(get_response):
 
     def middleware(request):
         if request.path == reverse("api"):
+            request.service_account = None
             auth = request.META.get(service_account_auth_header, "").split()
             if len(auth) == 2:
                 auth_prefix, auth_token = auth
