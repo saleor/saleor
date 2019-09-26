@@ -75,6 +75,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Unified MenuItemMove to other reordering mutations. It now uses relative positions instead of absolute ones (breaking change) - #4734 by @NyanKiyoshi.
 - Add descriptions for queries and query arguments - #4758 by @maarcingebala
 - Fixed the inability of users to set a variant's `priceOverride` and `costPrice` to `null` - #4754 by @NyanKiyoshi
+- Add support for webhooks - #4731 by @korycins
 
 ## 2.8.0
 

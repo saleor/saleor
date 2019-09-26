@@ -40,7 +40,7 @@ from ..giftcard.utils import (
     add_gift_card_code_to_checkout,
     remove_gift_card_code_from_checkout,
 )
-from ..order import events
+from ..order.actions import order_created
 from ..order.emails import send_order_confirmation
 from ..order.models import Order, OrderLine
 from ..shipping.models import ShippingMethod
@@ -1164,11 +1164,7 @@ def create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
     # assign checkout payments to the order
     checkout.payments.update(order=order)
 
-    manager = get_extensions_manager()
-    manager.postprocess_order_creation(order)
-
-    # Create the order placed
-    events.order_created_event(order=order, user=user)
+    order_created(order=order, user=user)
 
     # Send the order confirmation email
     send_order_confirmation.delay(order.pk, user.pk)

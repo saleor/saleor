@@ -1984,6 +1984,9 @@ input MoveProductInput {
 }
 
 type Mutations {
+  webhookCreate(input: WebhookCreateInput!): WebhookCreate
+  webhookDelete(id: ID!): WebhookDelete
+  webhookUpdate(id: ID!, input: WebhookUpdateInput!): WebhookUpdate
   authorizationKeyAdd(input: AuthorizationKeyInput!, keyType: AuthorizationKeyType!): AuthorizationKeyAdd
   authorizationKeyDelete(keyType: AuthorizationKeyType!): AuthorizationKeyDelete
   homepageCollectionUpdate(collection: ID): HomepageCollectionUpdate
@@ -2731,6 +2734,7 @@ enum PermissionEnum {
   MANAGE_SHIPPING
   MANAGE_SETTINGS
   MANAGE_TRANSLATIONS
+  MANAGE_WEBHOOKS
 }
 
 type Plugin implements Node {
@@ -3264,6 +3268,8 @@ type ProductVariantUpdatePrivateMeta {
 }
 
 type Query {
+  webhook(id: ID!): Webhook
+  webhooks(before: String, after: String, first: Int, last: Int): WebhookCountableConnection
   translations(kind: TranslatableKinds!, before: String, after: String, first: Int, last: Int): TranslatableItemConnection
   shop: Shop
   shippingZone(id: ID!): ShippingZone
@@ -4168,6 +4174,88 @@ enum VoucherTypeEnum {
 type VoucherUpdate {
   errors: [Error!]
   voucher: Voucher
+}
+
+type Webhook implements Node {
+  serviceAccount: ServiceAccount!
+  targetUrl: String!
+  isActive: Boolean!
+  secretKey: String
+  id: ID!
+  events: [WebhookEvent]
+}
+
+type WebhookCountableConnection {
+  pageInfo: PageInfo!
+  edges: [WebhookCountableEdge!]!
+  totalCount: Int
+}
+
+type WebhookCountableEdge {
+  node: Webhook!
+  cursor: String!
+}
+
+type WebhookCreate {
+  errors: [Error!]
+  webhookErrors: [WebhookError!]
+  webhook: Webhook
+}
+
+input WebhookCreateInput {
+  targetUrl: String
+  events: [WebhookEventTypeEnum]
+  serviceAccount: ID
+  isActive: Boolean
+  secretKey: String
+}
+
+type WebhookDelete {
+  errors: [Error!]
+  webhook: Webhook
+  webhookErrors: [WebhookError!]
+}
+
+type WebhookError {
+  field: String
+  message: String
+  code: WebhookErrorCode
+}
+
+enum WebhookErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+}
+
+type WebhookEvent {
+  eventType: String
+}
+
+enum WebhookEventTypeEnum {
+  ALL_EVENTS
+  ORDER_CREATED
+  ORDER_FULLY_PAID
+  ORDER_UPDATED
+  ORDER_CANCELLED
+  CUSTOMER_CREATED
+  PRODUCT_CREATED
+}
+
+type WebhookUpdate {
+  errors: [Error!]
+  webhook: Webhook
+  webhookErrors: [WebhookError!]
+}
+
+input WebhookUpdateInput {
+  targetUrl: String
+  events: [WebhookEventTypeEnum]
+  serviceAccount: ID
+  isActive: Boolean
+  secretKey: String
 }
 
 type Weight {
