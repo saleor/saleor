@@ -17,7 +17,7 @@ from . import (
     void,
 )
 
-GATEWAY_NAME = "braintree"
+GATEWAY_NAME = "Braintree"
 
 if TYPE_CHECKING:
     from . import GatewayResponse, PaymentData, TokenConfig
@@ -36,8 +36,15 @@ def require_active_plugin(fn):
 
 
 class BraintreeGatewayPlugin(BasePlugin):
-    PLUGIN_NAME = "braintree"
+    PLUGIN_NAME = GATEWAY_NAME
     CONFIG_STRUCTURE = {
+        "Template path": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": pgettext_lazy(
+                "Plugin help text", "Location of django payment template for gateway."
+            ),
+            "label": pgettext_lazy("Plugin label", "Template path"),
+        },
         "Public API key": {
             "type": ConfigurationTypeField.STRING,
             "help_text": pgettext_lazy(
@@ -114,7 +121,7 @@ class BraintreeGatewayPlugin(BasePlugin):
                     "public_key": configuration["Public API key"],
                     "private_key": configuration["Secret API key"],
                 },
-                template_path="",
+                template_path=configuration["Template path"],
                 store_customer=configuration["Store customers card"],
                 require_3d_secure=configuration["Require 3D secure"],
             )
@@ -126,6 +133,7 @@ class BraintreeGatewayPlugin(BasePlugin):
             "description": "",
             "active": False,
             "configuration": [
+                {"name": "Template path", "value": "order/payment/braintree.html"},
                 {"name": "Public API key", "value": ""},
                 {"name": "Secret API key", "value": ""},
                 {"name": "Use sandbox", "value": True},
@@ -187,3 +195,7 @@ class BraintreeGatewayPlugin(BasePlugin):
     @require_active_plugin
     def get_client_token(self, token_config: "TokenConfig", previous_value):
         return get_client_token(self._get_gateway_config(), token_config)
+
+    @require_active_plugin
+    def get_payment_template(self, previous_value) -> str:
+        return self._get_gateway_config().template_path

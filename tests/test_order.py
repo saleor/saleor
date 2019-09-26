@@ -332,7 +332,7 @@ def test_order_queryset_to_ship(settings):
     ]
     for order in orders_to_ship:
         order.payments.create(
-            gateway=settings.DUMMY,
+            gateway="Dummy",
             charge_status=ChargeStatus.FULLY_CHARGED,
             total=order.total.gross.amount,
             captured_amount=order.total.gross.amount,
@@ -398,7 +398,7 @@ def test_update_order_prices(order_with_lines):
 
 
 def test_order_payment_flow(
-    request_checkout_with_item, client, address, customer_user, shipping_zone, settings
+    request_checkout_with_item, client, address, customer_user, shipping_zone
 ):
     request_checkout_with_item.shipping_address = address
     request_checkout_with_item.billing_address = address.get_copy()
@@ -416,21 +416,22 @@ def test_order_payment_flow(
         user=customer_user,
     )
 
+    gateway = "Dummy"
     # Select payment
     url = reverse("order:payment", kwargs={"token": order.token})
-    data = {"gateway": settings.DUMMY}
+    data = {"gateway": gateway}
     response = client.post(url, data, follow=True)
 
     assert len(response.redirect_chain) == 1
     assert response.status_code == 200
     redirect_url = reverse(
-        "order:payment", kwargs={"token": order.token, "gateway": settings.DUMMY}
+        "order:payment", kwargs={"token": order.token, "gateway": gateway}
     )
     assert response.request["PATH_INFO"] == redirect_url
 
     # Go to payment details page, enter payment data
     data = {
-        "gateway": settings.DUMMY,
+        "gateway": gateway,
         "is_active": True,
         "total": order.total.gross.amount,
         "currency": order.total.gross.currency,

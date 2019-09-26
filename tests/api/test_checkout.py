@@ -379,7 +379,7 @@ def test_checkout_create_check_lines_quantity(
     assert data["errors"][0]["field"] == "quantity"
 
 
-def test_checkout_available_payment_gateways(api_client, checkout_with_item, settings):
+def test_checkout_available_payment_gateways(api_client, checkout_with_item):
     query = """
     query getCheckout($token: UUID!) {
         checkout(token: $token) {
@@ -391,7 +391,7 @@ def test_checkout_available_payment_gateways(api_client, checkout_with_item, set
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
-    assert data["availablePaymentGateways"] == ["DUMMY"]
+    assert data["availablePaymentGateways"] == ["Dummy"]
 
 
 def test_checkout_available_shipping_methods(

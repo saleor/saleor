@@ -595,7 +595,7 @@ type Checkout implements Node {
   privateMeta: [MetaStore]!
   meta: [MetaStore]!
   availableShippingMethods: [ShippingMethod]!
-  availablePaymentGateways: [GatewaysEnum]!
+  availablePaymentGateways: [String]!
   email: String!
   isShippingRequired: Boolean!
   lines: [CheckoutLine]
@@ -1599,13 +1599,6 @@ type FulfillmentUpdateTracking {
 input FulfillmentUpdateTrackingInput {
   trackingNumber: String
   notifyCustomer: Boolean
-}
-
-enum GatewaysEnum {
-  DUMMY
-  BRAINTREE
-  RAZORPAY
-  STRIPE
 }
 
 scalar GenericScalar
@@ -2685,7 +2678,7 @@ enum PaymentErrorCode {
 }
 
 input PaymentInput {
-  gateway: GatewaysEnum!
+  gateway: String!
   token: String!
   amount: Decimal
   billingAddress: AddressInput
@@ -3291,7 +3284,7 @@ type Query {
   reportProductSales(period: ReportingPeriod!, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   payment(id: ID!): Payment
   payments(before: String, after: String, first: Int, last: Int): PaymentCountableConnection
-  paymentClientToken(gateway: GatewaysEnum): String
+  paymentClientToken(gateway: String!): String
   page(id: ID, slug: String): Page
   pages(query: String, filter: PageFilterInput, before: String, after: String, first: Int, last: Int): PageCountableConnection
   homepageEvents(before: String, after: String, first: Int, last: Int): OrderEventCountableConnection

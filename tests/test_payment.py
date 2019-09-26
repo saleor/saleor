@@ -66,7 +66,7 @@ def transaction_data(payment_dummy, gateway_response):
 @pytest.fixture
 def gateway_config():
     return GatewayConfig(
-        gateway_name="dummy",
+        gateway_name="Dummy",
         auto_capture=True,
         template_path="template.html",
         connection_params={"secret-key": "nobodylikesspanishinqusition"},
@@ -95,7 +95,7 @@ def dummy_response(payment_dummy, transaction_data, transaction_token, card_deta
 
 def test_create_payment(address, settings):
     data = {
-        "gateway": settings.DUMMY,
+        "gateway": "Dummy",
         "payment_token": "token",
         "total": 10,
         "currency": settings.DEFAULT_CURRENCY,
@@ -104,7 +104,7 @@ def test_create_payment(address, settings):
         "customer_ip_address": "127.0.0.1",
     }
     payment = create_payment(**data)
-    assert payment.gateway == settings.DUMMY
+    assert payment.gateway == "Dummy"
 
     same_payment = create_payment(**data)
     assert payment == same_payment
