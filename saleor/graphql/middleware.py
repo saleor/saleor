@@ -35,7 +35,7 @@ def jwt_middleware(get_response):
 
 
 def get_service_account(auth_token) -> Optional[ServiceAccount]:
-    qs = ServiceAccount.objects.filter(auth_token=auth_token, is_active=True)
+    qs = ServiceAccount.objects.filter(tokens__auth_token=auth_token, is_active=True)
     return qs.first()
 
 

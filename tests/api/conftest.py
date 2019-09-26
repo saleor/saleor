@@ -28,7 +28,8 @@ class ApiClient(Client):
         if not user.is_anonymous:
             self.token = get_token(user)
         elif service_account:
-            self.service_token = service_account.auth_token
+            token = service_account.tokens.first()
+            self.service_token = token.auth_token if token else None
         super().__init__(*args, **kwargs)
 
     def _base_environ(self, **request):
@@ -157,4 +158,8 @@ def user_list_not_active(user_list):
 
 @pytest.fixture
 def service_account(db):
-    return ServiceAccount.objects.create(name="Sample service account", is_active=True)
+    service_account = ServiceAccount.objects.create(
+        name="Sample service account", is_active=True
+    )
+    service_account.tokens.create(name="Default")
+    return service_account
