@@ -2,10 +2,14 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 
-from ....order import events, models
-from ....order.emails import send_fulfillment_confirmation_to_customer
+from ....order import models
+from ....order.actions import (
+    cancel_fulfillment,
+    fulfill_order_line,
+    fulfillment_tracking_updated,
+    order_fulfilled,
+)
 from ....order.error_codes import OrderErrorCode
-from ....order.utils import cancel_fulfillment, fulfill_order_line, update_order_status
 from ...core.mutations import BaseMutation
 from ...core.types.common import OrderError
 from ...order.types import Fulfillment, Order
@@ -121,14 +125,12 @@ class FulfillmentCreate(BaseMutation):
             )
 
         fulfillment.lines.bulk_create(fulfillment_lines)
-        update_order_status(order)
-        events.fulfillment_fulfilled_items_event(
-            order=order, user=user, fulfillment_lines=fulfillment_lines
+        order_fulfilled(
+            fulfillment,
+            user,
+            fulfillment_lines,
+            cleaned_input.get("notify_customer", True),
         )
-
-        if cleaned_input.get("notify_customer", True):
-            send_fulfillment_confirmation_to_customer(order, fulfillment, user)
-
         return fulfillment
 
     @classmethod
@@ -168,12 +170,7 @@ class FulfillmentUpdateTracking(BaseMutation):
         fulfillment.tracking_number = tracking_number
         fulfillment.save()
         order = fulfillment.order
-        events.fulfillment_tracking_updated_event(
-            order=order,
-            user=info.context.user,
-            tracking_number=tracking_number,
-            fulfillment=fulfillment,
-        )
+        fulfillment_tracking_updated(fulfillment, info.context.user, tracking_number)
         return FulfillmentUpdateTracking(fulfillment=fulfillment, order=order)
 
 
@@ -213,5 +210,5 @@ class FulfillmentCancel(BaseMutation):
             )
 
         order = fulfillment.order
-        cancel_fulfillment(info.context.user, fulfillment, restock)
+        cancel_fulfillment(fulfillment, info.context.user, restock)
         return FulfillmentCancel(fulfillment=fulfillment, order=order)

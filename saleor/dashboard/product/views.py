@@ -141,6 +141,7 @@ def product_create(request, type_pk):
             variant_form.save()
         msg = pgettext_lazy("Dashboard message", "Added product %s") % (product,)
         messages.success(request, msg)
+        request.extensions.product_created(product)
         return redirect("dashboard:product-details", pk=product.pk)
     ctx = {
         "product_form": product_form,
