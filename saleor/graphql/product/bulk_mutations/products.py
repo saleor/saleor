@@ -142,24 +142,6 @@ class ProductVariantBulkCreate(BaseMutation):
         return attributes
 
     @classmethod
-    def validate_sku_duplication(cls, variants):
-        errors = []
-        sku_list = []
-        for index, variant_data in enumerate(variants):
-            if not variant_data.sku:
-                continue
-            if variant_data.sku in sku_list:
-                errors.append(
-                    ValidationError(
-                        "Duplicated SKU.",
-                        ProductErrorCode.UNIQUE,
-                        params={"index": index},
-                    )
-                )
-            sku_list.append(variant_data.sku)
-        return errors
-
-    @classmethod
     def clean_input(cls, info, instance: models.ProductVariant, data: dict):
         cleaned_input = ModelMutation.clean_input(
             info, instance, data, ProductVariantBulkCreateInput
@@ -189,6 +171,16 @@ class ProductVariantBulkCreate(BaseMutation):
         return cleaned_input
 
     @classmethod
+    def add_indexes_to_errors(cls, index, error, error_dict):
+        for key, value in error.error_dict.items():
+            for e in value:
+                if e.params:
+                    e.params["index"] = index
+                else:
+                    e.params = {"index": index}
+            error_dict[key].extend(value)
+
+    @classmethod
     def save(cls, info, instance, cleaned_input):
         instance.save()
         # Recalculate the "minimal variant price" for the parent product
@@ -199,12 +191,6 @@ class ProductVariantBulkCreate(BaseMutation):
             AttributeAssignmentMixin.save(instance, attributes)
             instance.name = generate_name_for_variant(instance)
             instance.save(update_fields=["name"])
-
-    @classmethod
-    @transaction.atomic
-    def save_variants(cls, info, instances, cleaned_inputs):
-        for instance, cleaned_input in zip(instances, cleaned_inputs):
-            cls.save(info, instance, cleaned_input)
 
     @classmethod
     def create_variants(cls, info, cleaned_inputs, product, errors):
@@ -219,13 +205,7 @@ class ProductVariantBulkCreate(BaseMutation):
                 cls.clean_instance(instance)
                 instances.append(instance)
             except ValidationError as exc:
-                for key, value in exc.error_dict.items():
-                    for e in value:
-                        if e.params:
-                            e.params["index"] = index
-                        else:
-                            e.params = {"index": index}
-                    errors[key].extend(value)
+                cls.add_indexes_to_errors(index, exc, errors)
         return instances
 
     @classmethod
@@ -238,13 +218,7 @@ class ProductVariantBulkCreate(BaseMutation):
                 variant_data["product_type"] = product_type
                 cleaned_input = cls.clean_input(info, None, variant_data)
             except ValidationError as exc:
-                for key, value in exc.error_dict.items():
-                    for e in value:
-                        if e.params:
-                            e.params["index"] = index
-                        else:
-                            e.params = {"index": index}
-                    errors[key].extend(value)
+                cls.add_indexes_to_errors(index, exc, errors)
             cleaned_inputs.append(cleaned_input if cleaned_input else None)
 
             # Find duplicated sku in variants
@@ -260,6 +234,12 @@ class ProductVariantBulkCreate(BaseMutation):
                 )
             sku_list.append(variant_data.sku)
         return cleaned_inputs
+
+    @classmethod
+    @transaction.atomic
+    def save_variants(cls, info, instances, cleaned_inputs):
+        for instance, cleaned_input in zip(instances, cleaned_inputs):
+            cls.save(info, instance, cleaned_input)
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
