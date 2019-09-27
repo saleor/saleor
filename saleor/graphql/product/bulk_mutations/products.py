@@ -202,25 +202,22 @@ class ProductVariantBulkCreate(BaseMutation):
 
     @classmethod
     @transaction.atomic
-    def save_instances(cls, info, instances, cleaned_inputs):
+    def save_variants(cls, info, instances, cleaned_inputs):
         for instance, cleaned_input in zip(instances, cleaned_inputs):
             cls.save(info, instance, cleaned_input)
 
     @classmethod
-    def create_instances(cls, info, variants, product):
+    def create_variants(cls, info, cleaned_inputs, product, errors):
         instances = []
-        cleaned_inputs = []
-        errors = defaultdict(list)
-        for index, variant_data in enumerate(variants):
+        for index, cleaned_input in enumerate(cleaned_inputs):
+            if not cleaned_input:
+                continue
             try:
                 instance = models.ProductVariant()
-                variant_data["product_type"] = product.product_type
-                cleaned_input = cls.clean_input(info, instance, variant_data)
                 cleaned_input["product"] = product
                 instance = cls.construct_instance(instance, cleaned_input)
                 cls.clean_instance(instance)
                 instances.append(instance)
-                cleaned_inputs.append(cleaned_input)
             except ValidationError as exc:
                 for key, value in exc.error_dict.items():
                     for e in value:
@@ -229,20 +226,53 @@ class ProductVariantBulkCreate(BaseMutation):
                         else:
                             e.params = {"index": index}
                     errors[key].extend(value)
-        return instances, cleaned_inputs, errors
+        return instances
+
+    @classmethod
+    def clean_variants(cls, info, variants, product_type, errors):
+        cleaned_inputs = []
+        sku_list = []
+        for index, variant_data in enumerate(variants):
+            cleaned_input = None
+            try:
+                variant_data["product_type"] = product_type
+                cleaned_input = cls.clean_input(info, None, variant_data)
+            except ValidationError as exc:
+                for key, value in exc.error_dict.items():
+                    for e in value:
+                        if e.params:
+                            e.params["index"] = index
+                        else:
+                            e.params = {"index": index}
+                    errors[key].extend(value)
+            cleaned_inputs.append(cleaned_input if cleaned_input else None)
+
+            # Find duplicated sku in variants
+            if not variant_data.sku:
+                continue
+            if variant_data.sku in sku_list:
+                errors["sku"].append(
+                    ValidationError(
+                        "Duplicated SKU.",
+                        ProductErrorCode.UNIQUE,
+                        params={"index": index},
+                    )
+                )
+            sku_list.append(variant_data.sku)
+        return cleaned_inputs
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
         product = cls.get_node_or_error(info, data.get("product_id"), models.Product)
-        instances, cleaned_inputs, errors = cls.create_instances(
-            info, data.get("variants"), product
+        errors = defaultdict(list)
+
+        cleaned_inputs = cls.clean_variants(
+            info, data.get("variants"), product.product_type, errors
         )
-        sku_erros = cls.validate_sku_duplication(data.get("variants"))
-        if sku_erros:
-            errors["sku"].extend(sku_erros)
+        instances = cls.create_variants(info, cleaned_inputs, product, errors)
         if errors:
             raise ValidationError(errors)
-        cls.save_instances(info, instances, cleaned_inputs)
+        cls.save_variants(info, instances, cleaned_inputs)
         return ProductVariantBulkCreate(
             count=len(instances), product_variants=instances
         )
