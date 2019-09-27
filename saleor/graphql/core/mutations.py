@@ -66,13 +66,18 @@ def validation_error_to_error_type(validation_error: ValidationError) -> list:
                     (
                         Error(field=field, message=err.messages[0]),
                         get_error_code_from_error(err),
+                        err.params,
                     )
                 )
     else:
         # convert non-field errors
         for err in validation_error.error_list:
             err_list.append(
-                (Error(message=err.messages[0]), get_error_code_from_error(err))
+                (
+                    Error(message=err.messages[0]),
+                    get_error_code_from_error(err),
+                    err.params,
+                )
             )
     return err_list
 
@@ -295,7 +300,7 @@ class BaseMutation(graphene.Mutation):
         ):
             typed_errors = [
                 cls._meta.error_type_class(field=e.field, message=e.message, code=code)
-                for e, code in errors
+                for e, code, _ in errors
             ]
             extra.update({cls._meta.error_type_field: typed_errors})
         return cls(errors=[e[0] for e in errors], **extra)
