@@ -79,6 +79,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add support for webhooks - #4731 by @korycins
 - Fixed the random failure of `populatedb` trying to create a new user with an existing email - #4769 by @NyanKiyoshi
 - Fixed the inability of filtering attributes using `inCategory` and `inCollection` and deprecated those fields to use `filter { inCollection: ..., inCategory: ... }` instead - #4700 by @NyanKiyoshi & @khalibloo
+- Fixed internal error when updating or creating a sale with missing required values - #4778 by @NyanKiyoshi
 
 ## 2.8.0
 
