@@ -604,7 +604,7 @@ type Checkout implements Node {
   privateMeta: [MetaStore]!
   meta: [MetaStore]!
   availableShippingMethods: [ShippingMethod]!
-  availablePaymentGateways: [String]!
+  availablePaymentGateways: [PaymentGateway]!
   email: String!
   isShippingRequired: Boolean!
   lines: [CheckoutLine]
@@ -1608,6 +1608,11 @@ type FulfillmentUpdateTracking {
 input FulfillmentUpdateTrackingInput {
   trackingNumber: String
   notifyCustomer: Boolean
+}
+
+type GatewayConfigLine {
+  field: String!
+  value: String
 }
 
 scalar GenericScalar
@@ -2687,6 +2692,11 @@ enum PaymentErrorCode {
   PAYMENT_ERROR
   REQUIRED
   UNIQUE
+}
+
+type PaymentGateway {
+  name: String!
+  config: [GatewayConfigLine!]!
 }
 
 input PaymentInput {
