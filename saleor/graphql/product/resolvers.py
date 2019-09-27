@@ -1,8 +1,7 @@
 from typing import TYPE_CHECKING, Optional
 
-import graphene
 import graphene_django_optimizer as gql_optimizer
-from django.db.models import Q, Sum
+from django.db.models import Sum
 from graphql import GraphQLError
 from graphql_relay import from_global_id
 
@@ -12,6 +11,7 @@ from ...search.backends import picker
 from ..utils import filter_by_period, filter_by_query_param, get_database_id, get_nodes
 from .enums import AttributeSortField, OrderDirection
 from .filters import (
+    filter_attributes_by_product_types,
     filter_products_by_attributes,
     filter_products_by_categories,
     filter_products_by_collections,
@@ -31,18 +31,11 @@ COLLECTION_SEARCH_FIELDS = ("name", "slug")
 ATTRIBUTES_SEARCH_FIELDS = ("name", "slug")
 
 
-def _filter_attributes_by_product_types(attribute_qs, product_qs):
-    product_types = set(product_qs.values_list("product_type_id", flat=True))
-    return attribute_qs.filter(
-        Q(product_types__in=product_types) | Q(product_variant_types__in=product_types)
-    )
-
-
 def resolve_attributes(
     info,
     qs=None,
-    category_id=None,
-    collection_id=None,
+    in_category=None,
+    in_collection=None,
     query=None,
     sort_by=None,
     **_kwargs,
@@ -50,26 +43,11 @@ def resolve_attributes(
     qs = qs or models.Attribute.objects.get_visible_to_user(info.context.user)
     qs = filter_by_query_param(qs, query, ATTRIBUTES_SEARCH_FIELDS)
 
-    if category_id:
-        # Filter attributes by product types belonging to the given category.
-        category = graphene.Node.get_node_from_global_id(info, category_id, "Category")
-        if category:
-            tree = category.get_descendants(include_self=True)
-            product_qs = models.Product.objects.filter(category__in=tree)
-            qs = _filter_attributes_by_product_types(qs, product_qs)
-        else:
-            qs = qs.none()
+    if in_category:
+        qs = filter_attributes_by_product_types(qs, "in_category", in_category)
 
-    if collection_id:
-        # Filter attributes by product types belonging to the given collection.
-        collection = graphene.Node.get_node_from_global_id(
-            info, collection_id, "Collection"
-        )
-        if collection:
-            product_qs = collection.products.all()
-            qs = _filter_attributes_by_product_types(qs, product_qs)
-        else:
-            qs = qs.none()
+    if in_collection:
+        qs = filter_attributes_by_product_types(qs, "in_collection", in_collection)
 
     if sort_by:
         is_asc = sort_by["direction"] == OrderDirection.ASC.value

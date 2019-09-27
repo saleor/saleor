@@ -275,6 +275,8 @@ input AttributeFilterInput {
   availableInGrid: Boolean
   search: String
   ids: [ID]
+  inCollection: ID
+  inCategory: ID
 }
 
 input AttributeInput {
