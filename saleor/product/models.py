@@ -169,9 +169,11 @@ class ProductsQueryset(PublishedQuerySet):
 
         # Retrieve all the products' attribute data IDs (assignments) and
         # product types that have the given attribute associated to them
-        associated_values = AttributeProduct.objects.filter(
-            attribute_id=attribute_pk
-        ).values_list("pk", "product_type_id")
+        associated_values = tuple(
+            AttributeProduct.objects.filter(attribute_id=attribute_pk).values_list(
+                "pk", "product_type_id"
+            )
+        )
 
         if not associated_values:
             if not ascending:
