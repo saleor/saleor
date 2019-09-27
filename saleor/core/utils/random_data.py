@@ -353,6 +353,10 @@ def create_fake_user():
     address = create_address()
     email = get_email(address.first_name, address.last_name)
 
+    # Skip the email if it already exists
+    if User.objects.filter(email=email).exists():
+        return
+
     user = User.objects.create_user(
         first_name=address.first_name,
         last_name=address.last_name,
