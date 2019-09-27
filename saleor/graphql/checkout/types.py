@@ -167,10 +167,7 @@ class Checkout(MetadataObjectType, CountableDjangoObjectType):
 
     @staticmethod
     def resolve_available_payment_gateways(_: models.Checkout, _info):
-        return [
-            {"name": gtw, "config": []}
-            for gtw in get_extensions_manager().list_payment_gateways()
-        ]
+        return [gtw for gtw in get_extensions_manager().list_payment_gateways()]
 
     @staticmethod
     def resolve_gift_cards(root: models.Checkout, _info):

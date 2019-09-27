@@ -383,7 +383,7 @@ def test_checkout_create_check_lines_quantity(
 def expected_dummy_gateway():
     return {
         "name": "Dummy",
-        "config": [{"field": "store_customer_card", "value": False}],
+        "config": [{"field": "store_customer_card", "value": "false"}],
     }
 
 
