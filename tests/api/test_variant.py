@@ -630,10 +630,11 @@ PRODUCT_VARIANT_BULK_CREATE_MUTATION = """
         $variants: [ProductVariantBulkCreateInput]!, $productId: ID!
     ) {
         productVariantBulkCreate(variants: $variants, product: $productId) {
-            productErrors {
+            bulkProductErrors {
                 field
                 message
                 code
+                index
             }
             count
         }
@@ -669,7 +670,7 @@ def test_product_variant_bulk_create_by_attribute_slug(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
-    assert not data["productErrors"]
+    assert not data["bulkProductErrors"]
     assert data["count"] == 1
     assert product_varinat_count + 1 == ProductVariant.objects.count()
     assert attribut_value_count == size_attribute.values.count()
@@ -702,7 +703,7 @@ def test_product_variant_bulk_create_by_attribute_id(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
-    assert not data["productErrors"]
+    assert not data["bulkProductErrors"]
     assert data["count"] == 1
     assert product_varinat_count + 1 == ProductVariant.objects.count()
     assert attribut_value_count == size_attribute.values.count()
@@ -735,7 +736,7 @@ def test_product_variant_bulk_create_with_new_attribute_value(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
-    assert not data["productErrors"]
+    assert not data["bulkProductErrors"]
     assert data["count"] == 2
     assert product_varinat_count + 2 == ProductVariant.objects.count()
     assert attribut_value_count + 1 == size_attribute.values.count()
@@ -766,9 +767,11 @@ def test_product_variant_bulk_create_negative_quantity(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
-    # TODO Refactor errors
-    assert len(data["productErrors"]) == 1
-    assert data["productErrors"][0]["code"] == ProductErrorCode.INVALID.name
+    assert len(data["bulkProductErrors"]) == 1
+    error = data["bulkProductErrors"][0]
+    assert error["field"] == "quantity"
+    assert error["code"] == ProductErrorCode.INVALID.name
+    assert error["index"] == 0
     assert product_varinat_count == ProductVariant.objects.count()
 
 
@@ -792,9 +795,11 @@ def test_product_variant_bulk_create_duplicated_sku(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
-    # TODO Refactor errors
-    assert len(data["productErrors"]) == 1
-    assert data["productErrors"][0]["code"] == ProductErrorCode.UNIQUE.name
+    assert len(data["bulkProductErrors"]) == 1
+    error = data["bulkProductErrors"][0]
+    assert error["field"] == "sku"
+    assert error["code"] == ProductErrorCode.UNIQUE.name
+    assert error["index"] == 0
     assert product_varinat_count == ProductVariant.objects.count()
 
 
@@ -822,9 +827,11 @@ def test_product_variant_bulk_create_duplicated_sku_in_input(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
-    # TODO Refactor errors
-    assert len(data["productErrors"]) == 1
-    assert data["productErrors"][0]["code"] == ProductErrorCode.UNIQUE.name
+    assert len(data["bulkProductErrors"]) == 1
+    error = data["bulkProductErrors"][0]
+    assert error["field"] == "sku"
+    assert error["code"] == ProductErrorCode.UNIQUE.name
+    assert error["index"] == 1
     assert product_varinat_count == ProductVariant.objects.count()
 
 
@@ -855,9 +862,14 @@ def test_product_variant_bulk_create_invalid_attribute_slug(
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
     # TODO Refactor errors
-    assert len(data["productErrors"]) == 2
-    assert data["productErrors"][0]["code"] == ProductErrorCode.NOT_FOUND.name
-    assert data["productErrors"][1]["code"] == ProductErrorCode.NOT_FOUND.name
+    assert len(data["bulkProductErrors"]) == 2
+    errors = data["bulkProductErrors"]
+    assert errors[0]["field"] == "attributes"
+    assert errors[0]["code"] == ProductErrorCode.NOT_FOUND.name
+    assert errors[0]["index"] == 0
+    assert errors[1]["field"] == "attributes"
+    assert errors[1]["code"] == ProductErrorCode.NOT_FOUND.name
+    assert errors[1]["index"] == 1
     assert product_varinat_count == ProductVariant.objects.count()
 
 
@@ -897,8 +909,15 @@ def test_product_variant_bulk_create_many_errors(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantBulkCreate"]
-    assert len(data["productErrors"]) == 3
-    assert data["productErrors"][0]["code"] == ProductErrorCode.INVALID.name
-    assert data["productErrors"][1]["code"] == ProductErrorCode.UNIQUE.name
-    assert data["productErrors"][2]["code"] == ProductErrorCode.NOT_FOUND.name
+    assert len(data["bulkProductErrors"]) == 3
+    errors = data["bulkProductErrors"]
+    assert errors[0]["field"] == "quantity"
+    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+    assert errors[0]["index"] == 0
+    assert errors[1]["field"] == "sku"
+    assert errors[1]["code"] == ProductErrorCode.UNIQUE.name
+    assert errors[1]["index"] == 1
+    assert errors[2]["field"] == "attributes"
+    assert errors[2]["code"] == ProductErrorCode.NOT_FOUND.name
+    assert errors[2]["index"] == 2
     assert product_varinat_count == ProductVariant.objects.count()

@@ -14,7 +14,7 @@ from ...core.mutations import (
     ModelBulkDeleteMutation,
     ModelMutation,
 )
-from ...core.types.common import ProductError
+from ...core.types.common import BulkProductError, ProductError
 from ..mutations.products import (
     T_INPUT_MAP,
     AttributeAssignmentMixin,
@@ -105,17 +105,22 @@ class ProductVariantBulkCreate(BaseMutation):
         description="Returns how many objects were affected.",
     )
     product_variants = graphene.List(
-        ProductVariant, required=True, default_value=[], description=""
+        ProductVariant,
+        required=True,
+        default_value=[],
+        description=(
+            "Represents a version of a products such as different size or color.",
+        ),
     )
 
     class Arguments:
         variants = graphene.List(
             ProductVariantBulkCreateInput,
             required=True,
-            description="Fields required to create a product variants.",
+            description="Fields required to create product variants.",
         )
         product_id = graphene.ID(
-            description="Product ID of which type is the variant.",
+            description="ID of the product to create the variants for",
             name="product",
             required=True,
         )
@@ -123,8 +128,8 @@ class ProductVariantBulkCreate(BaseMutation):
     class Meta:
         description = "Creates product variants."
         permissions = ("product.manage_products",)
-        error_type_class = ProductError
-        error_type_field = "product_errors"
+        error_type_class = BulkProductError
+        error_type_field = "bulk_product_errors"
 
     @classmethod
     def clean_attributes(
@@ -140,12 +145,16 @@ class ProductVariantBulkCreate(BaseMutation):
     def validate_sku_duplication(cls, variants):
         errors = []
         sku_list = []
-        for variant_data in variants:
+        for index, variant_data in enumerate(variants):
             if not variant_data.sku:
                 continue
             if variant_data.sku in sku_list:
                 errors.append(
-                    ValidationError("Duplicated SKU.", ProductErrorCode.UNIQUE)
+                    ValidationError(
+                        "Duplicated SKU.",
+                        ProductErrorCode.UNIQUE,
+                        params={"index": index},
+                    )
                 )
             sku_list.append(variant_data.sku)
         return errors
@@ -202,7 +211,7 @@ class ProductVariantBulkCreate(BaseMutation):
         instances = []
         cleaned_inputs = []
         errors = defaultdict(list)
-        for variant_data in variants:
+        for index, variant_data in enumerate(variants):
             try:
                 instance = models.ProductVariant()
                 variant_data["product_type"] = product.product_type
@@ -214,6 +223,11 @@ class ProductVariantBulkCreate(BaseMutation):
                 cleaned_inputs.append(cleaned_input)
             except ValidationError as exc:
                 for key, value in exc.error_dict.items():
+                    for e in value:
+                        if e.params:
+                            e.params["index"] = index
+                        else:
+                            e.params = {"index": index}
                     errors[key].extend(value)
         return instances, cleaned_inputs, errors
 
@@ -232,6 +246,20 @@ class ProductVariantBulkCreate(BaseMutation):
         return ProductVariantBulkCreate(
             count=len(instances), product_variants=instances
         )
+
+    @classmethod
+    def handle_typed_errors(cls, errors: list, **extra):
+        typed_errors = [
+            cls._meta.error_type_class(
+                field=e.field,
+                message=e.message,
+                code=code,
+                index=params.get("index") if params else None,
+            )
+            for e, code, params in errors
+        ]
+        extra.update({cls._meta.error_type_field: typed_errors})
+        return cls(errors=[e[0] for e in errors], **extra)
 
 
 class ProductVariantBulkDelete(ModelBulkDeleteMutation):
