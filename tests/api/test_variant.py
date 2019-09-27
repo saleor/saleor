@@ -1,3 +1,4 @@
+from unittest.mock import ANY
 from uuid import uuid4
 
 import graphene
@@ -886,6 +887,11 @@ def test_product_variant_bulk_create_many_errors(
             "attributes": [{"slug": size_attribute.slug, "values": ["Test-value1"]}],
         },
         {
+            "sku": str(uuid4())[:12],
+            "quantity": 100,
+            "attributes": [{"slug": size_attribute.slug, "values": ["Test-value4"]}],
+        },
+        {
             "sku": sku,
             "quantity": 100,
             "attributes": [{"slug": size_attribute.slug, "values": ["Test-value2"]}],
@@ -894,11 +900,6 @@ def test_product_variant_bulk_create_many_errors(
             "sku": str(uuid4())[:12],
             "quantity": 100,
             "attributes": [{"slug": "Invalid", "values": ["Test-value3"]}],
-        },
-        {
-            "sku": str(uuid4())[:12],
-            "quantity": 100,
-            "attributes": [{"slug": size_attribute.slug, "values": ["Test-value4"]}],
         },
     ]
 
@@ -911,13 +912,26 @@ def test_product_variant_bulk_create_many_errors(
     data = content["data"]["productVariantBulkCreate"]
     assert len(data["bulkProductErrors"]) == 3
     errors = data["bulkProductErrors"]
-    assert errors[0]["field"] == "quantity"
-    assert errors[0]["code"] == ProductErrorCode.INVALID.name
-    assert errors[0]["index"] == 0
-    assert errors[1]["field"] == "sku"
-    assert errors[1]["code"] == ProductErrorCode.UNIQUE.name
-    assert errors[1]["index"] == 1
-    assert errors[2]["field"] == "attributes"
-    assert errors[2]["code"] == ProductErrorCode.NOT_FOUND.name
-    assert errors[2]["index"] == 2
+    expected_errors = [
+        {
+            "field": "quantity",
+            "index": 0,
+            "code": ProductErrorCode.INVALID.name,
+            "message": ANY,
+        },
+        {
+            "field": "sku",
+            "index": 2,
+            "code": ProductErrorCode.UNIQUE.name,
+            "message": ANY,
+        },
+        {
+            "field": "attributes",
+            "index": 3,
+            "code": ProductErrorCode.NOT_FOUND.name,
+            "message": ANY,
+        },
+    ]
+    for expected_error in expected_errors:
+        assert expected_error in errors
     assert product_varinat_count == ProductVariant.objects.count()
