@@ -81,6 +81,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixed the inability of filtering attributes using `inCategory` and `inCollection` and deprecated those fields to use `filter { inCollection: ..., inCategory: ... }` instead - #4700 by @NyanKiyoshi & @khalibloo
 - Fixed internal error when updating or creating a sale with missing required values - #4778 by @NyanKiyoshi
 - Fixed the internal error filtering pages by URL in the dashboard 1.0 - #4776 by @NyanKiyoshi
+- Added product variant bulk create mutation - #4735 by @fowczarek
 
 ## 2.8.0
 
