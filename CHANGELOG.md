@@ -77,6 +77,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixed the inability of users to set a variant's `priceOverride` and `costPrice` to `null` - #4754 by @NyanKiyoshi
 - PaymentGatewayEnum removed from GraphQL schema as gateways now are dynamic plugins. Gateway names changed. - #4756 by @salwator
 - Add support for webhooks - #4731 by @korycins
+- Fixed the random failure of `populatedb` trying to create a new user with an existing email - #4769 by @NyanKiyoshi
 
 ## 2.8.0
 
