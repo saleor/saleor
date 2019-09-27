@@ -134,7 +134,6 @@ def test_create_checkout(api_client, graphql_address_data, variant, count_querie
         }
 
         fragment Checkout on Checkout {
-          availablePaymentGateways
           token
           id
           user {
@@ -275,7 +274,6 @@ def test_add_shipping_to_checkout(
         }
 
         fragment Checkout on Checkout {
-          availablePaymentGateways
           token
           id
           user {
@@ -409,7 +407,6 @@ def test_add_billing_address_to_checkout(
         }
 
         fragment Checkout on Checkout {
-          availablePaymentGateways
           token
           id
           user {
