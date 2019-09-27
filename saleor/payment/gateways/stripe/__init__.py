@@ -181,7 +181,7 @@ def process_payment(
 
 
 def _get_client(**connection_params):
-    stripe.api_key = connection_params.get("secret_key")
+    stripe.api_key = connection_params.get("private_key")
     return stripe
 
 
