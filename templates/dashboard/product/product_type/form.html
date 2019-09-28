@@ -90,14 +90,16 @@
                 </div>
               </div>
             </div>
-            <div class="row">
-              <div class="col s12">
-                <span class="card-title">{% trans "Taxes" %}</span>
+            {% if form.tax_rate.field.choices %}
+              <div class="row">
+                <div class="col s12">
+                  <span class="card-title">{% trans "Taxes" %}</span>
+                </div>
+                <div class="col s12 m8">
+                  {{ form.tax_rate|materializecss }}
+                </div>
               </div>
-              <div class="col s12 m8">
-                {{ form.tax_rate|materializecss }}
-              </div>
-            </div>
+            {% endif %}
             <div class="row">
               <div class="col s12">
                 <span class="card-title">{% trans "Shipping" %}</span>

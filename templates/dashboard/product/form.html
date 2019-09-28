@@ -87,7 +87,9 @@
                   {{ product_form.price|materializecss }}
                 </div>
                 <div class="row">
-                  {{ product_form.tax_rate|materializecss }}
+                  {% if product_form.tax_rate.field.choices %}
+                    {{ product_form.tax_rate|materializecss }}
+                  {% endif %}
                   {{ product_form.charge_taxes|materializecss }}
                 </div>
                 {% if not product.product_type.has_variants %}
