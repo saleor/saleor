@@ -153,7 +153,7 @@
                 </h5>
                 <h6>
                   {% if product.charge_taxes %}
-                    {% blocktrans trimmed with tax_rate=product.tax_rate context "Product pricing card header subtitle" %}
+                    {% blocktrans trimmed with tax_rate=tax_rate_code context "Product pricing card header subtitle" %}
                       Taxes are charged ({{ tax_rate }} tax rate)
                     {% endblocktrans %}
                   {% else %}

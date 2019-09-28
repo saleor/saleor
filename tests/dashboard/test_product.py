@@ -1,4 +1,5 @@
 import json
+from unittest import mock
 from unittest.mock import MagicMock, Mock
 
 from django.forms import HiddenInput
@@ -6,8 +7,10 @@ from django.forms.models import model_to_dict
 from django.urls import reverse
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
+from saleor.core.taxes import TaxType
 from saleor.dashboard.product import ProductBulkAction
 from saleor.dashboard.product.forms import ProductForm, ProductVariantForm
+from saleor.extensions.manager import get_extensions_manager
 from saleor.product.forms import VariantChoiceField
 from saleor.product.models import (
     Attribute,
@@ -235,7 +238,10 @@ def test_view_product_create(admin_client, product_type, category):
     assert Product.objects.count() == 1
 
 
-def test_view_product_edit(admin_client, product):
+@mock.patch(
+    "saleor.extensions.manager.ExtensionsManager.assign_tax_code_to_object_meta"
+)
+def test_view_product_edit(mocked_set_tax_rate_code, admin_client, product):
     url = reverse("dashboard:product-update", kwargs={"pk": product.pk})
     data = {
         "name": "Product second name",
@@ -255,6 +261,56 @@ def test_view_product_edit(admin_client, product):
         "dashboard:product-details", kwargs={"pk": product.pk}
     )
     assert product.name == "Product second name"
+    assert (
+        mocked_set_tax_rate_code.call_count == 0
+    ), "The tax code shouldn't have been changed"
+
+
+def test_update_product_tax_rate(admin_client, product):
+    """Ensure tax rates are correctly listed in the form and the form is properly
+    updating the tax rate.
+    """
+    tax_rate_code = "dummy"
+
+    url = reverse("dashboard:product-update", kwargs={"pk": product.pk})
+    data = {
+        "name": "Product second name",
+        "description": "Product description.",
+        "price_0": 10,
+        "price_1": product.price.currency,
+        "category": product.category.pk,
+        "variant-sku": "123",
+        "variant-quantity": 10,
+        "tax_rate": tax_rate_code,
+    }
+
+    manager = get_extensions_manager()
+
+    with mock.patch("saleor.extensions.manager.ExtensionsManager") as mocked_manager:
+        mocked_manager = mocked_manager()
+        mocked_manager.assign_tax_code_to_object_meta.side_effect = (
+            manager.assign_tax_code_to_object_meta
+        )
+        mocked_manager.get_tax_rate_type_choices.return_value = [
+            TaxType(code=tax_rate_code, description="")
+        ]
+
+        # Ensure the available tax rate codes are properly returned
+        response = admin_client.get(url)
+        assert response.status_code == 200
+        form = response.context["form"]
+        tax_rate_field = form.fields["tax_rate"]
+        assert tax_rate_field.choices == [("dummy", "")]
+
+        # Ensure we are able to set a given tax rate code to a product
+        response = admin_client.post(url, data)
+        assert response.status_code == 302
+        assert get_redirect_location(response) == reverse(
+            "dashboard:product-details", kwargs={"pk": product.pk}
+        )
+        mocked_manager.assign_tax_code_to_object_meta.assert_called_once_with(
+            mock.ANY, "dummy"
+        )
 
 
 def test_view_product_delete(db, admin_client, product):
