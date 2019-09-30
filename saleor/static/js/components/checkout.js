@@ -42,7 +42,7 @@ export default $(document).ready((e) => {
     e.preventDefault();
     let $target = $(e.target.form);
     let quantity = $target.find('input[name="quantity"]').val();
-    let variant = $target.find('input[name="variant"]').val();
+    let variant = $target.find('[name="variant"]').val();
     $.ajax({
       url: $target.attr('action'),
       type: 'POST',
