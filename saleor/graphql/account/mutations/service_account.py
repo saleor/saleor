@@ -74,7 +74,7 @@ class ServiceAccountTokenDelete(ModelDeleteMutation):
 
 class ServiceAccountCreate(ModelMutation):
     auth_token = graphene.types.String(
-        description="The newly created authentication token"
+        description="The newly created authentication token."
     )
 
     class Arguments:
