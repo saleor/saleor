@@ -119,7 +119,7 @@ class ProductVariantBulkCreate(BaseMutation):
             description="Input list of product variants to create.",
         )
         product_id = graphene.ID(
-            description="ID of the product to create the variants for",
+            description="ID of the product to create the variants for.",
             name="product",
             required=True,
         )
