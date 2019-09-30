@@ -73,6 +73,10 @@ class ServiceAccountTokenDelete(ModelDeleteMutation):
 
 
 class ServiceAccountCreate(ModelMutation):
+    auth_token = graphene.types.String(
+        description="The newly created authentication token."
+    )
+
     class Arguments:
         input = ServiceAccountInput(
             required=True,
@@ -94,6 +98,17 @@ class ServiceAccountCreate(ModelMutation):
             permissions = cleaned_input.pop("permissions")
             cleaned_input["permissions"] = get_permissions(permissions)
         return cleaned_input
+
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        instance.save()
+        instance.tokens.create(name="Default")
+
+    @classmethod
+    def success_response(cls, instance):
+        response = super().success_response(instance)
+        response.auth_token = instance.tokens.get().auth_token
+        return response
 
 
 class ServiceAccountUpdate(ModelMutation):
