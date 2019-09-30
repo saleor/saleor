@@ -18,10 +18,23 @@ class GatewayConfigLine(graphene.ObjectType):
     field = graphene.String(required=True, description="Gateway config key.")
     value = graphene.String(description="Gateway config value for key.")
 
+    class Meta:
+        description = "Payment gateway client configuration key and value pair."
+
 
 class PaymentGateway(graphene.ObjectType):
     name = graphene.String(required=True, description="Payment gateway name.")
-    config = graphene.List(graphene.NonNull(GatewayConfigLine), required=True)
+    config = graphene.List(
+        graphene.NonNull(GatewayConfigLine),
+        required=True,
+        description="Payment gateway client configuration.",
+    )
+
+    class Meta:
+        description = (
+            "Available payment gateway backend with configuration "
+            "necessary to setup client."
+        )
 
 
 class CheckoutLine(CountableDjangoObjectType):
