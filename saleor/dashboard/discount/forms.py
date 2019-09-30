@@ -59,6 +59,9 @@ class SaleForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        if self.errors:
+            return cleaned_data
+
         discount_type = cleaned_data["type"]
         value = cleaned_data["value"]
         if discount_type == DiscountValueType.PERCENTAGE and value > 100:

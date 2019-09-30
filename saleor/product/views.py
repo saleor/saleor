@@ -103,7 +103,9 @@ def product_details(request, slug, product_id, form=None):
         request.country,
     )
     # show_variant_picker determines if variant picker is used or select input
-    show_variant_picker = all([v.attributes for v in product.variants.all()])
+    show_variant_picker = all(
+        [v["attributes"] for v in variant_picker_data["variants"]]
+    )
     json_ld_data = product_json_ld(product)
     ctx = {
         "description_json": product.translated.description_json,
