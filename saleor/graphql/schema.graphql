@@ -463,6 +463,13 @@ enum AuthorizationKeyType {
   GOOGLE_OAUTH2
 }
 
+type BulkProductError {
+  field: String
+  message: String
+  code: ProductErrorCode
+  index: Int
+}
+
 input CatalogueInput {
   products: [ID]
   categories: [ID]
@@ -2068,6 +2075,7 @@ type Mutations {
   digitalContentUrlCreate(input: DigitalContentUrlCreateInput!): DigitalContentUrlCreate
   productVariantCreate(input: ProductVariantCreateInput!): ProductVariantCreate
   productVariantDelete(id: ID!): ProductVariantDelete
+  productVariantBulkCreate(product: ID!, variants: [ProductVariantBulkCreateInput]!): ProductVariantBulkCreate
   productVariantBulkDelete(ids: [ID]!): ProductVariantBulkDelete
   productVariantUpdate(id: ID!, input: ProductVariantInput!): ProductVariantUpdate
   productVariantTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): ProductVariantTranslate
@@ -3171,6 +3179,23 @@ type ProductVariant implements Node {
   images: [ProductImage]
   translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
   digitalContent: DigitalContent
+}
+
+type ProductVariantBulkCreate {
+  errors: [Error!]
+  count: Int!
+  productVariants: [ProductVariant!]!
+  bulkProductErrors: [BulkProductError!]
+}
+
+input ProductVariantBulkCreateInput {
+  attributes: [AttributeValueInput]!
+  costPrice: Decimal
+  priceOverride: Decimal
+  sku: String!
+  quantity: Int
+  trackInventory: Boolean
+  weight: WeightScalar
 }
 
 type ProductVariantBulkDelete {
