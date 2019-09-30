@@ -74,6 +74,25 @@ def test_view_sale_add(admin_client, category, collection):
     assert collection in sale.collections.all()
 
 
+def test_view_sale_update_invalid_values(admin_client, sale, collection):
+    url = reverse("dashboard:sale-update", kwargs={"pk": sale.pk})
+    data = {
+        "name": sale.name,
+        "categories": [],
+        "collections": [],
+        "start_date": "2018-01-01",
+    }
+
+    response = admin_client.post(url, data)
+    assert response.status_code == 200
+
+    form_ctx = response.context["form"]
+    assert form_ctx.errors == {
+        "type": ["This field is required."],
+        "value": ["This field is required."],
+    }
+
+
 def test_view_sale_add_requires_product_category_or_collection(
     admin_client, category, product, collection
 ):
