@@ -2,6 +2,7 @@ import graphene
 import graphene_django_optimizer as gql_optimizer
 from django.core.exceptions import ValidationError
 from graphene import relay
+from graphql_jwt.decorators import permission_required
 
 from ...order import models
 from ...order.models import FulfillmentStatus
@@ -9,7 +10,9 @@ from ...order.utils import get_valid_shipping_methods_for_order
 from ...product.templatetags.product_images import get_product_image_thumbnail
 from ..account.types import User
 from ..core.connection import CountableDjangoObjectType
+from ..core.resolvers import resolve_meta, resolve_private_meta
 from ..core.types.common import Image
+from ..core.types.meta import MetadataObjectType
 from ..core.types.money import Money, TaxedMoney
 from ..giftcard.types import GiftCard
 from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
@@ -248,7 +251,7 @@ class OrderLine(CountableDjangoObjectType):
         return root.translated_variant_name
 
 
-class Order(CountableDjangoObjectType):
+class Order(MetadataObjectType, CountableDjangoObjectType):
     fulfillments = gql_optimizer.field(
         graphene.List(
             Fulfillment, required=True, description="List of shipments for the order."
@@ -474,3 +477,12 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     def resolve_discount_amount(root: models.Order, _info):
         return root.discount
+
+    @staticmethod
+    @permission_required("order.manage_orders")
+    def resolve_private_meta(root: models.Order, _info):
+        return resolve_private_meta(root, _info)
+
+    @staticmethod
+    def resolve_meta(root: models.Order, _info):
+        return resolve_meta(root, _info)

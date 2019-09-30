@@ -2112,12 +2112,16 @@ type Mutations {
   orderAddNote(order: ID!, input: OrderAddNoteInput!): OrderAddNote
   orderCancel(id: ID!, restock: Boolean!): OrderCancel
   orderCapture(amount: Decimal!, id: ID!): OrderCapture
+  orderClearPrivateStoredMeta(id: ID!, input: MetaPath!): OrderClearPrivateStoredMeta
+  orderClearStoredMeta(id: ID!, input: MetaPath!): OrderClearStoredMeta
   orderFulfillmentCancel(id: ID!, input: FulfillmentCancelInput!): FulfillmentCancel
   orderFulfillmentCreate(input: FulfillmentCreateInput!, order: ID): FulfillmentCreate
   orderFulfillmentUpdateTracking(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdateTracking
   orderMarkAsPaid(id: ID!): OrderMarkAsPaid
   orderRefund(amount: Decimal!, id: ID!): OrderRefund
   orderUpdate(id: ID!, input: OrderUpdateInput!): OrderUpdate
+  orderUpdateMeta(id: ID!, input: MetaInput!): OrderUpdateMeta
+  orderUpdatePrivateMeta(id: ID!, input: MetaInput!): OrderUpdatePrivateMeta
   orderUpdateShipping(order: ID!, input: OrderUpdateShippingInput): OrderUpdateShipping
   orderVoid(id: ID!): OrderVoid
   orderBulkCancel(ids: [ID]!, restock: Boolean!): OrderBulkCancel
@@ -2257,6 +2261,8 @@ type Order implements Node {
   displayGrossPrices: Boolean!
   customerNote: String!
   weight: Weight
+  privateMeta: [MetaStore]!
+  meta: [MetaStore]!
   fulfillments: [Fulfillment]!
   lines: [OrderLine]!
   actions: [OrderAction]!
@@ -2313,6 +2319,16 @@ type OrderCapture {
   errors: [Error!]
   order: Order
   orderErrors: [OrderError!]
+}
+
+type OrderClearPrivateStoredMeta {
+  errors: [Error!]
+  order: Order
+}
+
+type OrderClearStoredMeta {
+  errors: [Error!]
+  order: Order
 }
 
 type OrderCountableConnection {
@@ -2507,6 +2523,16 @@ input OrderUpdateInput {
   billingAddress: AddressInput
   userEmail: String
   shippingAddress: AddressInput
+}
+
+type OrderUpdateMeta {
+  errors: [Error!]
+  order: Order
+}
+
+type OrderUpdatePrivateMeta {
+  errors: [Error!]
+  order: Order
 }
 
 type OrderUpdateShipping {
