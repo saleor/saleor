@@ -3478,6 +3478,7 @@ type ServiceAccountCountableEdge {
 
 type ServiceAccountCreate {
   errors: [Error!]
+  authToken: String
   accountErrors: [AccountError!]
   serviceAccount: ServiceAccount
 }

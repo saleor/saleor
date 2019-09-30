@@ -12,6 +12,7 @@ SERVICE_ACCOUNT_CREATE_MUTATION = """
         serviceAccountCreate(input:
             {name: $name, isActive: $is_active, permissions: $permissions})
         {
+            authToken
             serviceAccount{
                 permissions{
                     code
@@ -50,10 +51,12 @@ def test_service_account_create_mutation(
     response = staff_api_client.post_graphql(query, variables=variables)
     content = get_graphql_content(response)
     service_account_data = content["data"]["serviceAccountCreate"]["serviceAccount"]
+    default_token = content["data"]["serviceAccountCreate"]["authToken"]
     service_account = ServiceAccount.objects.get()
     assert service_account_data["isActive"] == service_account.is_active
     assert service_account_data["name"] == service_account.name
     assert list(service_account.permissions.all()) == [permission_manage_products]
+    assert default_token == service_account.tokens.get().auth_token
 
 
 def test_service_account_create_mutation_no_permissions(
