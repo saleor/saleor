@@ -16,6 +16,7 @@ from measurement.measures import Weight
 from prices import Money
 
 from ..account.models import Address
+from ..core.models import ModelWithMetadata
 from ..core.taxes import zero_money, zero_taxed_money
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.weight import WeightUnits, zero_weight
@@ -60,7 +61,7 @@ class OrderQueryset(models.QuerySet):
         return qs.distinct()
 
 
-class Order(models.Model):
+class Order(ModelWithMetadata):
     created = models.DateTimeField(default=now, editable=False)
     status = models.CharField(
         max_length=32, default=OrderStatus.UNFULFILLED, choices=OrderStatus.CHOICES
