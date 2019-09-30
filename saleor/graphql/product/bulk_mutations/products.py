@@ -16,9 +16,9 @@ from ...core.mutations import (
 )
 from ...core.types.common import BulkProductError, ProductError
 from ..mutations.products import (
-    T_INPUT_MAP,
     AttributeAssignmentMixin,
     AttributeValueInput,
+    ProductVariantCreate,
     ProductVariantInput,
 )
 from ..types import ProductVariant
@@ -96,28 +96,27 @@ class ProductVariantBulkCreateInput(ProductVariantInput):
         required=True,
         description="List of attributes specific to this variant.",
     )
+    sku = graphene.String(required=True, description="Stock keeping unit.")
 
 
 class ProductVariantBulkCreate(BaseMutation):
     count = graphene.Int(
         required=True,
         default_value=0,
-        description="Returns how many objects were affected.",
+        description="Returns how many objects were created.",
     )
     product_variants = graphene.List(
-        ProductVariant,
+        graphene.NonNull(ProductVariant),
         required=True,
         default_value=[],
-        description=(
-            "Represents a version of a products such as different size or color.",
-        ),
+        description=("List of the created variants.",),
     )
 
     class Arguments:
         variants = graphene.List(
             ProductVariantBulkCreateInput,
             required=True,
-            description="Fields required to create product variants.",
+            description="Input list of product variants to create.",
         )
         product_id = graphene.ID(
             description="ID of the product to create the variants for",
@@ -126,25 +125,15 @@ class ProductVariantBulkCreate(BaseMutation):
         )
 
     class Meta:
-        description = "Creates product variants."
+        description = "Creates product variants for a given product."
         permissions = ("product.manage_products",)
         error_type_class = BulkProductError
         error_type_field = "bulk_product_errors"
 
     @classmethod
-    def clean_attributes(
-        cls, attributes: dict, product_type: models.ProductType
-    ) -> T_INPUT_MAP:
-        attributes_qs = product_type.variant_attributes
-        attributes = AttributeAssignmentMixin.clean_input(
-            attributes, attributes_qs, is_variant=True
-        )
-        return attributes
-
-    @classmethod
     def clean_input(cls, info, instance: models.ProductVariant, data: dict):
         cleaned_input = ModelMutation.clean_input(
-            info, instance, data, ProductVariantBulkCreateInput
+            info, instance, data, input_cls=ProductVariantBulkCreateInput
         )
 
         cost_price_amount = cleaned_input.pop("cost_price", None)
@@ -155,14 +144,10 @@ class ProductVariantBulkCreate(BaseMutation):
         if price_override_amount is not None:
             cleaned_input["price_override_amount"] = price_override_amount
 
-        # Attributes are provided as list of `AttributeValueInput` objects.
-        # We need to transform them into the format they're stored in the
-        # `Product` model, which is HStore field that maps attribute's PK to
-        # the value's PK.
         attributes = cleaned_input.get("attributes")
         if attributes:
             try:
-                cleaned_input["attributes"] = cls.clean_attributes(
+                cleaned_input["attributes"] = ProductVariantCreate.clean_attributes(
                     attributes, data["product_type"]
                 )
             except ValidationError as exc:
@@ -172,6 +157,7 @@ class ProductVariantBulkCreate(BaseMutation):
 
     @classmethod
     def add_indexes_to_errors(cls, index, error, error_dict):
+        """Append errors with index in params to mutation error dict."""
         for key, value in error.error_dict.items():
             for e in value:
                 if e.params:
@@ -183,8 +169,6 @@ class ProductVariantBulkCreate(BaseMutation):
     @classmethod
     def save(cls, info, instance, cleaned_input):
         instance.save()
-        # Recalculate the "minimal variant price" for the parent product
-        update_product_minimal_variant_price_task.delay(instance.product_id)
 
         attributes = cleaned_input.get("attributes")
         if attributes:
@@ -238,21 +222,28 @@ class ProductVariantBulkCreate(BaseMutation):
     @classmethod
     @transaction.atomic
     def save_variants(cls, info, instances, cleaned_inputs):
+        assert len(instances) == len(
+            cleaned_inputs
+        ), "There should be the same number of instances and cleaned inputs."
         for instance, cleaned_input in zip(instances, cleaned_inputs):
             cls.save(info, instance, cleaned_input)
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
-        product = cls.get_node_or_error(info, data.get("product_id"), models.Product)
+        product = cls.get_node_or_error(info, data["product_id"], models.Product)
         errors = defaultdict(list)
 
         cleaned_inputs = cls.clean_variants(
-            info, data.get("variants"), product.product_type, errors
+            info, data["variants"], product.product_type, errors
         )
         instances = cls.create_variants(info, cleaned_inputs, product, errors)
         if errors:
             raise ValidationError(errors)
         cls.save_variants(info, instances, cleaned_inputs)
+
+        # Recalculate the "minimal variant price" for the parent product
+        update_product_minimal_variant_price_task.delay(product.pk)
+
         return ProductVariantBulkCreate(
             count=len(instances), product_variants=instances
         )

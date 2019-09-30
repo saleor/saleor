@@ -3184,7 +3184,7 @@ type ProductVariant implements Node {
 type ProductVariantBulkCreate {
   errors: [Error!]
   count: Int!
-  productVariants: [ProductVariant]!
+  productVariants: [ProductVariant!]!
   bulkProductErrors: [BulkProductError!]
 }
 
@@ -3192,7 +3192,7 @@ input ProductVariantBulkCreateInput {
   attributes: [AttributeValueInput]!
   costPrice: Decimal
   priceOverride: Decimal
-  sku: String
+  sku: String!
   quantity: Int
   trackInventory: Boolean
   weight: WeightScalar
