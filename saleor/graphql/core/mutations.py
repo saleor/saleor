@@ -300,7 +300,7 @@ class BaseMutation(graphene.Mutation):
         ):
             typed_errors = [
                 cls._meta.error_type_class(field=e.field, message=e.message, code=code)
-                for e, code, _ in errors
+                for e, code, _params in errors
             ]
             extra.update({cls._meta.error_type_field: typed_errors})
         return cls(errors=[e[0] for e in errors], **extra)

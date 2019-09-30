@@ -59,7 +59,9 @@ class ProductError(Error):
 
 
 class BulkProductError(ProductError):
-    index = graphene.Int(description="Input list index with error")
+    index = graphene.Int(
+        description="Index of an input list item that caused the error"
+    )
 
 
 class ShopError(Error):

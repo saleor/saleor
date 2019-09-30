@@ -100,7 +100,7 @@ class SetPassword(CreateToken):
     def handle_typed_errors(cls, errors: list):
         account_errors = [
             AccountError(field=e.field, message=e.message, code=code)
-            for e, code, _ in errors
+            for e, code, _params in errors
         ]
         return cls(errors=[e[0] for e in errors], account_errors=account_errors)
 
