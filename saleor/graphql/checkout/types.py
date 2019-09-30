@@ -15,12 +15,12 @@ from ..shipping.types import ShippingMethod
 
 
 class GatewayConfigLine(graphene.ObjectType):
-    field = graphene.String(required=True, description="Gateway config key")
-    value = graphene.String(description="Gateway config value for key")
+    field = graphene.String(required=True, description="Gateway config key.")
+    value = graphene.String(description="Gateway config value for key.")
 
 
 class PaymentGateway(graphene.ObjectType):
-    name = graphene.String(required=True, description="Payment gateway name")
+    name = graphene.String(required=True, description="Payment gateway name.")
     config = graphene.List(graphene.NonNull(GatewayConfigLine), required=True)
 
 
