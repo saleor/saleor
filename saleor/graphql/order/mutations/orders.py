@@ -424,6 +424,7 @@ class OrderUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Updates meta for order."
         model = models.Order
+        permissions = "orders.manage_orders"
         public = True
 
 
@@ -439,6 +440,7 @@ class OrderClearStoredMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clears stored metadata value."
         model = models.Order
+        permissions = "orders.manage_orders"
         public = True
 
 
