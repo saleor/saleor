@@ -379,11 +379,27 @@ def test_checkout_create_check_lines_quantity(
     assert data["errors"][0]["field"] == "quantity"
 
 
-def test_checkout_available_payment_gateways(api_client, checkout_with_item):
+@pytest.fixture
+def expected_dummy_gateway():
+    return {
+        "name": "Dummy",
+        "config": [{"field": "store_customer_card", "value": "false"}],
+    }
+
+
+def test_checkout_available_payment_gateways(
+    api_client, checkout_with_item, expected_dummy_gateway
+):
     query = """
     query getCheckout($token: UUID!) {
         checkout(token: $token) {
-           availablePaymentGateways
+           availablePaymentGateways {
+               name
+               config {
+                   field
+                   value
+               }
+           }
         }
     }
     """
@@ -391,7 +407,7 @@ def test_checkout_available_payment_gateways(api_client, checkout_with_item):
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
-    assert data["availablePaymentGateways"] == ["Dummy"]
+    assert data["availablePaymentGateways"] == [expected_dummy_gateway]
 
 
 def test_checkout_available_shipping_methods(

@@ -204,7 +204,7 @@ def get_client_token(gateway: str, customer_id: str = None) -> str:
     return plugin_manager.get_client_token(gateway, token_config)
 
 
-def list_gateways() -> List[str]:
+def list_gateways() -> List[dict]:
     return get_extensions_manager().list_payment_gateways()
 
 

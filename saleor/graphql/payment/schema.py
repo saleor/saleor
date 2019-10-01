@@ -19,6 +19,10 @@ class PaymentQueries(graphene.ObjectType):
     payment_client_token = graphene.Field(
         graphene.String,
         gateway=graphene.String(required=True, description="A payment gateway."),
+        deprecation_reason=(
+            "DEPRECATED: Will be removed in Saleor 2.10, "
+            "use payment gateway config instead in availablePaymentGateways."
+        ),
     )
 
     @permission_required("order.manage_orders")

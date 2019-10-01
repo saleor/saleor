@@ -103,7 +103,12 @@ class BraintreeGatewayPlugin(BasePlugin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.config = None
+        self.config = GatewayConfig(
+            gateway_name=GATEWAY_NAME,
+            auto_capture=True,
+            template_path="",
+            connection_params={},
+        )
 
     def _initialize_plugin_configuration(self):
         super()._initialize_plugin_configuration()
@@ -145,7 +150,7 @@ class BraintreeGatewayPlugin(BasePlugin):
         }
         return defaults
 
-    def _get_gateway_config(self):
+    def _get_gateway_config(self) -> GatewayConfig:
         return self.config
 
     @require_active_plugin
@@ -199,3 +204,11 @@ class BraintreeGatewayPlugin(BasePlugin):
     @require_active_plugin
     def get_payment_template(self, previous_value) -> str:
         return self._get_gateway_config().template_path
+
+    @require_active_plugin
+    def get_payment_config(self, previous_value):
+        config = self._get_gateway_config()
+        return [
+            {"field": "store_customer_card", "value": config.store_customer},
+            {"field": "client_token", "value": get_client_token(config=config)},
+        ]

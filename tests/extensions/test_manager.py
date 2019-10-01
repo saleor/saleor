@@ -373,6 +373,7 @@ def test_plugin_add_new_configuration(
 
 
 class ActivePaymentGateway(BasePlugin):
+    CLIENT_CONFIG = [{"field": "foo", "value": "bar"}]
     PLUGIN_NAME = "braintree"
 
     @classmethod
@@ -387,6 +388,9 @@ class ActivePaymentGateway(BasePlugin):
 
     def process_payment(self, payment_information, previous_value):
         pass
+
+    def get_payment_config(self, previous_value):
+        return self.CLIENT_CONFIG
 
 
 class InactivePaymentGateway(BasePlugin):
@@ -407,10 +411,14 @@ class InactivePaymentGateway(BasePlugin):
 
 
 def test_manager_serve_list_of_payment_gateways():
+    expected_gateway = {
+        "name": ActivePaymentGateway.PLUGIN_NAME,
+        "config": ActivePaymentGateway.CLIENT_CONFIG,
+    }
     plugins = [
         "tests.extensions.test_manager.SamplePlugin",
         "tests.extensions.test_manager.ActivePaymentGateway",
         "tests.extensions.test_manager.InactivePaymentGateway",
     ]
     manager = ExtensionsManager(plugins=plugins)
-    assert manager.list_payment_gateways() == [ActivePaymentGateway.PLUGIN_NAME]
+    assert manager.list_payment_gateways() == [expected_gateway]
