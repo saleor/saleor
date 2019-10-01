@@ -28,9 +28,13 @@ from .mutations.orders import (
     OrderAddNote,
     OrderCancel,
     OrderCapture,
+    OrderClearMeta,
+    OrderClearPrivateMeta,
     OrderMarkAsPaid,
     OrderRefund,
     OrderUpdate,
+    OrderUpdateMeta,
+    OrderUpdatePrivateMeta,
     OrderUpdateShipping,
     OrderVoid,
 )
@@ -138,12 +142,16 @@ class OrderMutations(graphene.ObjectType):
     order_add_note = OrderAddNote.Field()
     order_cancel = OrderCancel.Field()
     order_capture = OrderCapture.Field()
+    order_clear_private_meta = OrderClearPrivateMeta.Field()
+    order_clear_meta = OrderClearMeta.Field()
     order_fulfillment_cancel = FulfillmentCancel.Field()
     order_fulfillment_create = FulfillmentCreate.Field()
     order_fulfillment_update_tracking = FulfillmentUpdateTracking.Field()
     order_mark_as_paid = OrderMarkAsPaid.Field()
     order_refund = OrderRefund.Field()
     order_update = OrderUpdate.Field()
+    order_update_meta = OrderUpdateMeta.Field()
+    order_update_private_meta = OrderUpdatePrivateMeta.Field()
     order_update_shipping = OrderUpdateShipping.Field()
     order_void = OrderVoid.Field()
 

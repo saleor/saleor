@@ -17,7 +17,11 @@ from ....order.error_codes import OrderErrorCode
 from ....order.utils import get_valid_shipping_methods_for_order
 from ....payment import CustomPaymentChoices, PaymentError, gateway
 from ...account.types import AddressInput
-from ...core.mutations import BaseMutation
+from ...core.mutations import (
+    BaseMutation,
+    ClearMetaBaseMutation,
+    UpdateMetaBaseMutation,
+)
 from ...core.scalars import Decimal
 from ...core.types.common import OrderError
 from ...order.mutations.draft_orders import DraftOrderUpdate
@@ -414,3 +418,35 @@ class OrderRefund(BaseMutation):
 
         order_refunded(order, info.context.user, amount, payment)
         return OrderRefund(order=order)
+
+
+class OrderUpdateMeta(UpdateMetaBaseMutation):
+    class Meta:
+        description = "Updates meta for order."
+        model = models.Order
+        permissions = "orders.manage_orders"
+        public = True
+
+
+class OrderUpdatePrivateMeta(UpdateMetaBaseMutation):
+    class Meta:
+        description = "Updates private meta for order."
+        model = models.Order
+        permissions = "orders.manage_orders"
+        public = False
+
+
+class OrderClearMeta(ClearMetaBaseMutation):
+    class Meta:
+        description = "Clears stored metadata value."
+        model = models.Order
+        permissions = "orders.manage_orders"
+        public = True
+
+
+class OrderClearPrivateMeta(ClearMetaBaseMutation):
+    class Meta:
+        description = "Clears stored private metadata value."
+        model = models.Order
+        permissions = "orders.manage_orders"
+        public = False
