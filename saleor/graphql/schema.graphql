@@ -604,7 +604,7 @@ type Checkout implements Node {
   privateMeta: [MetaStore]!
   meta: [MetaStore]!
   availableShippingMethods: [ShippingMethod]!
-  availablePaymentGateways: [String]!
+  availablePaymentGateways: [PaymentGateway]!
   email: String!
   isShippingRequired: Boolean!
   lines: [CheckoutLine]
@@ -1608,6 +1608,11 @@ type FulfillmentUpdateTracking {
 input FulfillmentUpdateTrackingInput {
   trackingNumber: String
   notifyCustomer: Boolean
+}
+
+type GatewayConfigLine {
+  field: String!
+  value: String
 }
 
 scalar GenericScalar
@@ -2689,6 +2694,11 @@ enum PaymentErrorCode {
   UNIQUE
 }
 
+type PaymentGateway {
+  name: String!
+  config: [GatewayConfigLine!]!
+}
+
 input PaymentInput {
   gateway: String!
   token: String!
@@ -3313,7 +3323,7 @@ type Query {
   reportProductSales(period: ReportingPeriod!, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   payment(id: ID!): Payment
   payments(before: String, after: String, first: Int, last: Int): PaymentCountableConnection
-  paymentClientToken(gateway: String!): String
+  paymentClientToken(gateway: String!): String @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, use payment gateway config instead in availablePaymentGateways.")
   page(id: ID, slug: String): Page
   pages(query: String, filter: PageFilterInput, before: String, after: String, first: Int, last: Int): PageCountableConnection
   homepageEvents(before: String, after: String, first: Int, last: Int): OrderEventCountableConnection
