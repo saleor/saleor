@@ -2,7 +2,6 @@ import graphene
 import graphene_django_optimizer as gql_optimizer
 from django.core.exceptions import ValidationError
 from graphene import relay
-from graphql_jwt.decorators import permission_required
 
 from ...order import models
 from ...order.models import FulfillmentStatus
@@ -14,6 +13,7 @@ from ..core.resolvers import resolve_meta, resolve_private_meta
 from ..core.types.common import Image
 from ..core.types.meta import MetadataObjectType
 from ..core.types.money import Money, TaxedMoney
+from ..decorators import permission_required
 from ..giftcard.types import GiftCard
 from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
 from ..product.types import ProductVariant
