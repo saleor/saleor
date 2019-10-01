@@ -176,7 +176,7 @@ class AccountMutations(graphene.ObjectType):
     password_change = PasswordChange.Field()
 
     user_update_metadata = UserUpdateMeta.Field()
-    user_clear_stored_metadata = UserClearMeta.Field()
+    user_clear_metadata = UserClearMeta.Field()
 
     # Account mutations
     account_address_create = AccountAddressCreate.Field()
@@ -219,7 +219,7 @@ class AccountMutations(graphene.ObjectType):
     user_bulk_set_active = UserBulkSetActive.Field()
 
     user_update_private_metadata = UserUpdatePrivateMeta.Field()
-    user_clear_stored_private_metadata = UserClearPrivateMeta.Field()
+    user_clear_private_metadata = UserClearPrivateMeta.Field()
 
     service_account_create = ServiceAccountCreate.Field()
     service_account_update = ServiceAccountUpdate.Field()

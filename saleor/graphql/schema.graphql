@@ -625,13 +625,13 @@ type CheckoutBillingAddressUpdate {
   checkoutErrors: [CheckoutError!]
 }
 
-type CheckoutClearStoredMeta {
+type CheckoutClearMeta {
   errors: [Error!]
   checkoutErrors: [CheckoutError!]
   checkout: Checkout
 }
 
-type CheckoutClearStoredPrivateMeta {
+type CheckoutClearPrivateMeta {
   errors: [Error!]
   checkoutErrors: [CheckoutError!]
   checkout: Checkout
@@ -2112,8 +2112,8 @@ type Mutations {
   orderAddNote(order: ID!, input: OrderAddNoteInput!): OrderAddNote
   orderCancel(id: ID!, restock: Boolean!): OrderCancel
   orderCapture(amount: Decimal!, id: ID!): OrderCapture
-  orderClearPrivateStoredMeta(id: ID!, input: MetaPath!): OrderClearPrivateStoredMeta
-  orderClearStoredMeta(id: ID!, input: MetaPath!): OrderClearStoredMeta
+  orderClearPrivateMeta(id: ID!, input: MetaPath!): OrderClearPrivateMeta
+  orderClearMeta(id: ID!, input: MetaPath!): OrderClearMeta
   orderFulfillmentCancel(id: ID!, input: FulfillmentCancelInput!): FulfillmentCancel
   orderFulfillmentCreate(input: FulfillmentCreateInput!, order: ID): FulfillmentCreate
   orderFulfillmentUpdateTracking(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdateTracking
@@ -2174,14 +2174,14 @@ type Mutations {
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!): CheckoutShippingMethodUpdate
   checkoutUpdateVoucher(checkoutId: ID!, voucherCode: String): CheckoutUpdateVoucher
   checkoutUpdateMetadata(id: ID!, input: MetaInput!): CheckoutUpdateMeta
-  checkoutClearMetadata(id: ID!, input: MetaPath!): CheckoutClearStoredMeta
+  checkoutClearMetadata(id: ID!, input: MetaPath!): CheckoutClearMeta
   checkoutUpdatePrivateMetadata(id: ID!, input: MetaInput!): CheckoutUpdatePrivateMeta
-  checkoutClearPrivateMetadata(id: ID!, input: MetaPath!): CheckoutClearStoredPrivateMeta
+  checkoutClearPrivateMetadata(id: ID!, input: MetaPath!): CheckoutClearPrivateMeta
   requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
   setPassword(token: String!, email: String!, password: String!): SetPassword
   passwordChange(newPassword: String!, oldPassword: String!): PasswordChange
   userUpdateMetadata(id: ID!, input: MetaInput!): UserUpdateMeta
-  userClearStoredMetadata(id: ID!, input: MetaPath!): UserClearStoredMeta
+  userClearMetadata(id: ID!, input: MetaPath!): UserClearMeta
   accountAddressCreate(input: AddressInput!, type: AddressTypeEnum): AccountAddressCreate
   accountAddressUpdate(id: ID!, input: AddressInput!): AccountAddressUpdate
   accountAddressDelete(id: ID!): AccountAddressDelete
@@ -2211,12 +2211,12 @@ type Mutations {
   userAvatarDelete: UserAvatarDelete
   userBulkSetActive(ids: [ID]!, isActive: Boolean!): UserBulkSetActive
   userUpdatePrivateMetadata(id: ID!, input: MetaInput!): UserUpdatePrivateMeta
-  userClearStoredPrivateMetadata(id: ID!, input: MetaPath!): UserClearStoredPrivateMeta
+  userClearPrivateMetadata(id: ID!, input: MetaPath!): UserClearPrivateMeta
   serviceAccountCreate(input: ServiceAccountInput!): ServiceAccountCreate
   serviceAccountUpdate(id: ID!, input: ServiceAccountInput!): ServiceAccountUpdate
   serviceAccountDelete(id: ID!): ServiceAccountDelete
   serviceAccountUpdatePrivateMetadata(id: ID!, input: MetaInput!): ServiceAccountUpdatePrivateMeta
-  serviceAccountClearStoredPrivateMetadata(id: ID!, input: MetaPath!): ServiceAccountClearStoredPrivateMeta
+  serviceAccountClearPrivateMetadata(id: ID!, input: MetaPath!): ServiceAccountClearPrivateMeta
   serviceAccountTokenCreate(input: ServiceAccountTokenInput!): ServiceAccountTokenCreate
   serviceAccountTokenDelete(id: ID!): ServiceAccountTokenDelete
   passwordReset(email: String!): PasswordReset
@@ -2321,12 +2321,12 @@ type OrderCapture {
   orderErrors: [OrderError!]
 }
 
-type OrderClearPrivateStoredMeta {
+type OrderClearMeta {
   errors: [Error!]
   order: Order
 }
 
-type OrderClearStoredMeta {
+type OrderClearPrivateMeta {
   errors: [Error!]
   order: Order
 }
@@ -3520,7 +3520,7 @@ type ServiceAccount implements Node {
   name: String
 }
 
-type ServiceAccountClearStoredPrivateMeta {
+type ServiceAccountClearPrivateMeta {
   errors: [Error!]
   accountErrors: [AccountError!]
   serviceAccount: ServiceAccount
@@ -4062,13 +4062,13 @@ type UserBulkSetActive {
   accountErrors: [AccountError!]
 }
 
-type UserClearStoredMeta {
+type UserClearMeta {
   errors: [Error!]
   accountErrors: [AccountError!]
   user: User
 }
 
-type UserClearStoredPrivateMeta {
+type UserClearPrivateMeta {
   errors: [Error!]
   accountErrors: [AccountError!]
   user: User
