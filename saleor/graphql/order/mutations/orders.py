@@ -436,7 +436,7 @@ class OrderUpdatePrivateMeta(UpdateMetaBaseMutation):
         public = False
 
 
-class OrderClearStoredMeta(ClearMetaBaseMutation):
+class OrderClearMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clears stored metadata value."
         model = models.Order
@@ -444,7 +444,7 @@ class OrderClearStoredMeta(ClearMetaBaseMutation):
         public = True
 
 
-class OrderClearPrivateStoredMeta(ClearMetaBaseMutation):
+class OrderClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clears stored private metadata value."
         model = models.Order

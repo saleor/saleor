@@ -161,7 +161,7 @@ class ServiceAccountUpdatePrivateMeta(UpdateMetaBaseMutation):
         error_type_field = "account_errors"
 
 
-class ServiceAccountClearStoredPrivateMeta(ClearMetaBaseMutation):
+class ServiceAccountClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clear stored metadata value."
         model = models.ServiceAccount
