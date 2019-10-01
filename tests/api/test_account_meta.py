@@ -183,8 +183,8 @@ def test_add_new_key_value_pair_to_private_metadata_using_mutation(
 
 
 CLEAR_PRIVATE_METADATA_MUTATION = """
-    mutation UserClearStoredPrivateMetadata($id: ID!, $input: MetaPath!) {
-      userClearStoredPrivateMetadata(
+    mutation UserClearPrivateMetadata($id: ID!, $input: MetaPath!) {
+      userClearPrivateMetadata(
         id: $id
         input: $input
       ) {
@@ -222,9 +222,9 @@ def test_clear_private_metadata_through_mutation(
         variables,
         permissions=[permission_manage_users],
     )
-    meta = get_graphql_content(response)["data"]["userClearStoredPrivateMetadata"][
-        "user"
-    ]["privateMeta"][0]
+    meta = get_graphql_content(response)["data"]["userClearPrivateMetadata"]["user"][
+        "privateMeta"
+    ][0]
 
     assert meta["namespace"] == PRIVATE_META_NAMESPACE
     assert meta["clients"] == []
@@ -248,9 +248,9 @@ def test_clear_silently_private_metadata_from_nonexistent_client(
         variables,
         permissions=[permission_manage_users],
     )
-    meta = get_graphql_content(response)["data"]["userClearStoredPrivateMetadata"][
-        "user"
-    ]["privateMeta"][0]
+    meta = get_graphql_content(response)["data"]["userClearPrivateMetadata"]["user"][
+        "privateMeta"
+    ][0]
 
     assert meta["namespace"] == PRIVATE_META_NAMESPACE
     assert meta["clients"] == [
@@ -430,8 +430,8 @@ def test_add_new_namespace_metadata_using_mutation(user_api_client, customer_wit
 
 
 CLEAR_METADATA_MUTATION = """
-    mutation UserClearStoredPrivateMetadata($id: ID!, $input: MetaPath!) {
-      userClearStoredMetadata(
+    mutation UserClearPrivateMetadata($id: ID!, $input: MetaPath!) {
+      userClearMetadata(
         id: $id
         input: $input
       ) {
@@ -463,9 +463,7 @@ def test_clear_metadata_through_mutation(user_api_client, customer_with_meta):
         },
     }
     response = user_api_client.post_graphql(CLEAR_METADATA_MUTATION, variables)
-    meta = get_graphql_content(response)["data"]["userClearStoredMetadata"]["user"][
-        "meta"
-    ][0]
+    meta = get_graphql_content(response)["data"]["userClearMetadata"]["user"]["meta"][0]
 
     assert meta["namespace"] == PUBLIC_META_NAMESPACE
     assert meta["clients"] == []
@@ -485,9 +483,7 @@ def test_clear_silently_metadata_from_nonexistent_client(
         },
     }
     response = staff_api_client.post_graphql(CLEAR_METADATA_MUTATION, variables)
-    meta = get_graphql_content(response)["data"]["userClearStoredMetadata"]["user"][
-        "meta"
-    ][0]
+    meta = get_graphql_content(response)["data"]["userClearMetadata"]["user"]["meta"][0]
 
     assert meta["namespace"] == PUBLIC_META_NAMESPACE
     assert meta["clients"] == [

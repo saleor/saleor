@@ -828,7 +828,7 @@ class CheckoutUpdatePrivateMeta(UpdateMetaBaseMutation):
         error_type_field = "checkout_errors"
 
 
-class CheckoutClearStoredMeta(ClearMetaBaseMutation):
+class CheckoutClearMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clear stored metadata value."
         permissions = ("order.manage_orders",)
@@ -838,7 +838,7 @@ class CheckoutClearStoredMeta(ClearMetaBaseMutation):
         error_type_field = "checkout_errors"
 
 
-class CheckoutClearStoredPrivateMeta(ClearMetaBaseMutation):
+class CheckoutClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clear stored metadata value."
         permissions = ("order.manage_orders",)

@@ -22,7 +22,7 @@ from .mutations.base import (
     PasswordChange,
     RequestPasswordReset,
     SetPassword,
-    UserClearStoredMeta,
+    UserClearMeta,
     UserUpdateMeta,
 )
 from .mutations.deprecated_account import (
@@ -34,7 +34,7 @@ from .mutations.deprecated_account import (
 )
 from .mutations.deprecated_staff import PasswordReset
 from .mutations.service_account import (
-    ServiceAccountClearStoredPrivateMeta,
+    ServiceAccountClearPrivateMeta,
     ServiceAccountCreate,
     ServiceAccountDelete,
     ServiceAccountTokenCreate,
@@ -55,7 +55,7 @@ from .mutations.staff import (
     StaffUpdate,
     UserAvatarDelete,
     UserAvatarUpdate,
-    UserClearStoredPrivateMeta,
+    UserClearPrivateMeta,
     UserUpdatePrivateMeta,
 )
 from .resolvers import (
@@ -176,7 +176,7 @@ class AccountMutations(graphene.ObjectType):
     password_change = PasswordChange.Field()
 
     user_update_metadata = UserUpdateMeta.Field()
-    user_clear_stored_metadata = UserClearStoredMeta.Field()
+    user_clear_metadata = UserClearMeta.Field()
 
     # Account mutations
     account_address_create = AccountAddressCreate.Field()
@@ -219,16 +219,14 @@ class AccountMutations(graphene.ObjectType):
     user_bulk_set_active = UserBulkSetActive.Field()
 
     user_update_private_metadata = UserUpdatePrivateMeta.Field()
-    user_clear_stored_private_metadata = UserClearStoredPrivateMeta.Field()
+    user_clear_private_metadata = UserClearPrivateMeta.Field()
 
     service_account_create = ServiceAccountCreate.Field()
     service_account_update = ServiceAccountUpdate.Field()
     service_account_delete = ServiceAccountDelete.Field()
 
     service_account_update_private_metadata = ServiceAccountUpdatePrivateMeta.Field()
-    service_account_clear_stored_private_metadata = (
-        ServiceAccountClearStoredPrivateMeta.Field()
-    )
+    service_account_clear_private_metadata = ServiceAccountClearPrivateMeta.Field()
 
     service_account_token_create = ServiceAccountTokenCreate.Field()
     service_account_token_delete = ServiceAccountTokenDelete.Field()
