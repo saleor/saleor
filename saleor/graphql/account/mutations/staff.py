@@ -435,7 +435,7 @@ class UserUpdatePrivateMeta(UpdateMetaBaseMutation):
         error_type_field = "account_errors"
 
 
-class UserClearStoredPrivateMeta(ClearMetaBaseMutation):
+class UserClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clear stored metadata value."
         model = models.User
