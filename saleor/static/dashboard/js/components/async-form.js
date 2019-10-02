@@ -1,6 +1,6 @@
 import { initSelects } from './selects';
 
-const onAsyncFormSubmit = (e) => {
+const onAsyncFormSubmit = e => {
   const $target = $(e.currentTarget);
   let $action = $target.attr('action');
   const $submitButton = $target.find('button[type=submit][clicked=true]');
@@ -12,7 +12,7 @@ const onAsyncFormSubmit = (e) => {
     url: $action,
     method: 'POST',
     data: $target.serialize(),
-    complete: (response) => {
+    complete: response => {
       // Write HTML if got 400 response, otherwise pretend nothing happened
       if (response.status === 400) {
         $target.parent().html(response.responseText);
@@ -21,7 +21,7 @@ const onAsyncFormSubmit = (e) => {
         $('.modal-close').click();
       }
     },
-    success: (response) => {
+    success: response => {
       if (response.redirectUrl) {
         window.location.href = response.redirectUrl;
       } else {
@@ -32,7 +32,7 @@ const onAsyncFormSubmit = (e) => {
   e.preventDefault();
 };
 
-const onAsyncFormButtonClick = (e) => {
+const onAsyncFormButtonClick = e => {
   const $button = $(e.currentTarget);
   const $formAsync = $button.parents('.form-async');
   $('button[type=submit]', $formAsync).removeAttr('clicked');

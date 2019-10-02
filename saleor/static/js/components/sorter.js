@@ -1,6 +1,6 @@
-export default $(document).ready((e) => {
-  $(document).ready((e) => {
-    $('.sort-by button').on('click', (e) => {
+export default $(document).ready(e => {
+  $(document).ready(e => {
+    $('.sort-by button').on('click', e => {
       const parentContainer = $(e.currentTarget).parent();
       const list = parentContainer.find('.sort-list');
       if (list.hasClass('d-none')) {
@@ -11,7 +11,7 @@ export default $(document).ready((e) => {
         parentContainer.find('.click-area').addClass('d-none');
       }
     });
-    $('.sort-by .click-area').on('click', (e) => {
+    $('.sort-by .click-area').on('click', e => {
       $('.sort-by .sort-list').addClass('d-none');
       $(e.currentTarget).addClass('d-none');
     });

@@ -1,6 +1,6 @@
 import { onScroll } from './utils';
 
-function toggleMenu (e) {
+function toggleMenu(e) {
   e.preventDefault();
   $('body').toggleClass('nav-toggled');
 }
@@ -15,7 +15,8 @@ if ($mainNavTop.length) {
   $toggleMenu.on('click', toggleMenu);
   if ($mainNavTop.length > 0) {
     onScroll(() => {
-      const stickSideMenu = Math.floor($(window).scrollTop()) > Math.ceil(mainNavTop);
+      const stickSideMenu =
+        Math.floor($(window).scrollTop()) > Math.ceil(mainNavTop);
       $('body').toggleClass('sticky-nav', stickSideMenu);
     });
   }

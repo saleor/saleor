@@ -1,4 +1,4 @@
-$('.filters-menu').on('click', (e) => {
+$('.filters-menu').on('click', e => {
   const menuContainer = $('.filters-menu__body');
   if (menuContainer.hasClass('d-none')) {
     menuContainer.removeClass('d-none');
@@ -7,7 +7,7 @@ $('.filters-menu').on('click', (e) => {
   }
 });
 
-$('.filter-section__header').on('click', (event) => {
+$('.filter-section__header').on('click', event => {
   const $target = $(event.currentTarget).parent();
   if ($target.attr('aria-expanded') === 'true') {
     $target.attr('aria-expanded', 'false').addClass('filter-section--closed');

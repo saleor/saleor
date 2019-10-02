@@ -10,17 +10,15 @@ const focusInputs = [
 
 // -----
 
-$('body').on('click', '.modal-trigger-custom', (e) => {
+$('body').on('click', '.modal-trigger-custom', e => {
   const target = e.currentTarget;
   e.preventDefault();
   $.ajax({
     url: target.dataset.href,
     method: 'GET',
-    success: (response) => {
+    success: response => {
       const $modal = $(target.getAttribute('href'));
-      $modal
-        .html(response)
-        .modal('open');
+      $modal.html(response).modal('open');
       initSelects();
       const inputs = $modal.find(focusInputs.join(','));
 
@@ -30,7 +28,7 @@ $('body').on('click', '.modal-trigger-custom', (e) => {
       }
 
       // Image checkbox selector
-      $('.image_select-item-overlay').on('click', (e) => {
+      $('.image_select-item-overlay').on('click', e => {
         const imageId = e.currentTarget.getAttribute('id');
         const checkbox = document.querySelector('input#' + imageId);
         const checkboxState = checkbox.getAttribute('checked');
@@ -39,7 +37,11 @@ $('body').on('click', '.modal-trigger-custom', (e) => {
       });
 
       // Inject all SVGs from modal
-      svgInjector.inject(document.querySelectorAll('.modal-content svg[data-src]:not(.injected-svg)'));
+      svgInjector.inject(
+        document.querySelectorAll(
+          '.modal-content svg[data-src]:not(.injected-svg)'
+        )
+      );
     }
   });
 });

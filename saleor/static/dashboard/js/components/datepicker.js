@@ -21,7 +21,8 @@ $('.datepicker').pickadate({
     pgettext('Datepicker month', 'September'),
     pgettext('Datepicker month', 'October'),
     pgettext('Datepicker month', 'November'),
-    pgettext('Datepicker month', 'December')],
+    pgettext('Datepicker month', 'December')
+  ],
   monthsShort: [
     pgettext('Datepicker month shortcut', 'Jan'),
     pgettext('Datepicker month shortcut', 'Feb'),
@@ -34,7 +35,8 @@ $('.datepicker').pickadate({
     pgettext('Datepicker month shortcut', 'Sep'),
     pgettext('Datepicker month shortcut', 'Oct'),
     pgettext('Datepicker month shortcut', 'Nov'),
-    pgettext('Datepicker month shortcut', 'Dec')],
+    pgettext('Datepicker month shortcut', 'Dec')
+  ],
   weekdaysFull: [
     pgettext('Datepicker weekday', 'Sunday'),
     pgettext('Datepicker weekday', 'Monday'),
@@ -42,7 +44,8 @@ $('.datepicker').pickadate({
     pgettext('Datepicker weekday', 'Wednesday'),
     pgettext('Datepicker weekday', 'Thursday'),
     pgettext('Datepicker weekday', 'Friday'),
-    pgettext('Datepicker weekday', 'Saturday')],
+    pgettext('Datepicker weekday', 'Saturday')
+  ],
   weekdaysShort: [
     pgettext('Datepicker weekday shortcut', 'Sun'),
     pgettext('Datepicker weekday shortcut', 'Mon'),
@@ -50,7 +53,8 @@ $('.datepicker').pickadate({
     pgettext('Datepicker weekday shortcut', 'Wed'),
     pgettext('Datepicker weekday shortcut', 'Thu'),
     pgettext('Datepicker weekday shortcut', 'Fri'),
-    pgettext('Datepicker weekday shortcut', 'Sat')],
+    pgettext('Datepicker weekday shortcut', 'Sat')
+  ],
 
   // Materialize modified
   weekdaysLetter: [
@@ -60,7 +64,8 @@ $('.datepicker').pickadate({
     pgettext('Wednesday shortcut', 'W'),
     pgettext('Thursday shortcut', 'T'),
     pgettext('Friday shortcut', 'F'),
-    pgettext('Saturday shortcut', 'S')],
+    pgettext('Saturday shortcut', 'S')
+  ],
   today: pgettext('Datepicker option', 'Today'),
   clear: pgettext('Datepicker option', 'Clear'),
   close: pgettext('Datepicker option', 'Close'),

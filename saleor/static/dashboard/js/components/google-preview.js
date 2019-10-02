@@ -9,7 +9,9 @@ const $descriptionMaterialize = $seoDescription.data('materialize');
 let $description = '';
 const $descriptionId = $seoDescription.data('bind');
 if ($descriptionMaterialize) {
-  const $descriptions = $(`.materialize-textarea[name='${$descriptionMaterialize}']`);
+  const $descriptions = $(
+    `.materialize-textarea[name='${$descriptionMaterialize}']`
+  );
   // They're two textareas from Medium editor, first one contains HTML-free text
   $description = $descriptions.not($descriptionId).first();
 } else {
@@ -43,11 +45,19 @@ function updateCharsCount(seoField) {
   if ($fieldLength < $minRecommendedLength) {
     $charCountWrapper.addClass('orange-text');
     $charCountWrapper.removeClass('green-text');
-    $charCountWrapper.attr('title', gettext('Your input might be a little too short, think of something more descriptive'));
+    $charCountWrapper.attr(
+      'title',
+      gettext(
+        'Your input might be a little too short, think of something more descriptive'
+      )
+    );
   } else {
     $charCountWrapper.removeClass('orange-text');
     $charCountWrapper.addClass('green-text');
-    $charCountWrapper.attr('title', gettext('Your input fits between the recommended lengths'));
+    $charCountWrapper.attr(
+      'title',
+      gettext('Your input fits between the recommended lengths')
+    );
   }
   $charCount.text($fieldLength);
 }
@@ -71,7 +81,7 @@ function truncate(text, seoField) {
 }
 
 function updatePlaceholderOnInput(field, seoField, previewField) {
-  field.on(watchedEvents, (e) => {
+  field.on(watchedEvents, e => {
     const $target = $(e.currentTarget);
     const $placeholderText = $target.val() || $target.text();
     seoField.attr('placeholder', truncate($placeholderText, seoField));
@@ -85,7 +95,7 @@ function updatePlaceholderOnInput(field, seoField, previewField) {
 }
 
 function updatePreviewOnInput(seoField, previewField) {
-  seoField.on(watchedEvents, (e) => {
+  seoField.on(watchedEvents, e => {
     const $target = $(e.currentTarget);
     const $currentText = $target.val();
     if ($currentText) {
@@ -109,8 +119,16 @@ if ($seoTitle.length) {
 }
 if ($seoDescription.length) {
   if ($description) {
-    setPlaceholderAndPreview($description, $seoDescription, $googleDescriptionPreview);
-    updatePlaceholderOnInput($description, $seoDescription, $googleDescriptionPreview);
+    setPlaceholderAndPreview(
+      $description,
+      $seoDescription,
+      $googleDescriptionPreview
+    );
+    updatePlaceholderOnInput(
+      $description,
+      $seoDescription,
+      $googleDescriptionPreview
+    );
   }
   updatePreviewOnInput($seoDescription, $googleDescriptionPreview);
   updateCharsCount($seoDescription);

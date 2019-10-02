@@ -103,6 +103,7 @@
     "build-schema": "python manage.py get_graphql_schema > saleor/graphql/schema.graphql",
     "heroku-postbuild": "npm run build-assets && npm run build-emails",
     "start": "webpack -d --watch",
-    "build-emails": "mjml --config.beautify false -l skip \"templates/templated_email/source/*.mjml\" -o templates/templated_email/compiled"
+    "build-emails": "mjml --config.beautify false -l skip \"templates/templated_email/source/*.mjml\" -o templates/templated_email/compiled",
+    "prettier": "prettier --write \"saleor/static/**/*.js\""
   }
 }

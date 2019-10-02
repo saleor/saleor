@@ -1,8 +1,11 @@
 import 'select2';
 
-function appendOption ($select, option) {
-  $select.append($('<option></option>')
-    .attr('value', option.id).text(option.text));
+function appendOption($select, option) {
+  $select.append(
+    $('<option></option>')
+      .attr('value', option.id)
+      .text(option.text)
+  );
 }
 
 function initSelects() {
@@ -14,8 +17,12 @@ function initSelects() {
   });
   $variantAttrsSelect.addClass('select2-enabled');
 
-  $('select:not(.browser-default):not(.enable-ajax-select2):not([multiple])').material_select();
-  $('select[multiple]:not(.browser-default):not(.enable-ajax-select2)').select2({width: '100%'});
+  $(
+    'select:not(.browser-default):not(.enable-ajax-select2):not([multiple])'
+  ).material_select();
+  $('select[multiple]:not(.browser-default):not(.enable-ajax-select2)').select2(
+    { width: '100%' }
+  );
 
   $('select.enable-ajax-select2:not(.select2-enabled)').each((i, select) => {
     const $select = $(select);
@@ -23,9 +30,9 @@ function initSelects() {
 
     if (initial) {
       const initialData = initial instanceof Array ? initial : [initial];
-      const selected = initialData.map((item) => {
+      const selected = initialData.map(item => {
         appendOption($select, item);
-        return (item.id);
+        return item.id;
       });
       $select.val(selected);
     }
@@ -42,6 +49,4 @@ function initSelects() {
   });
 }
 
-export {
-  initSelects
-};
+export { initSelects };

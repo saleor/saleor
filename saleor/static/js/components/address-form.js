@@ -1,7 +1,7 @@
-export default $(document).ready((e) => {
-  $(function () {
+export default $(document).ready(e => {
+  $(function() {
     const $i18nAddresses = $('.i18n-address');
-    $i18nAddresses.each(function () {
+    $i18nAddresses.each(function() {
       const $form = $(this).closest('form');
       const $countryField = $form.find('select[name=country]');
       const $previewField = $form.find('input.preview');
@@ -16,7 +16,7 @@ export default $(document).ready((e) => {
   let $deleteAdressIcon = $('.delete-icon');
   let $deleteAddress = $('.address-delete');
 
-  $deleteAdressIcon.on('click', (e) => {
+  $deleteAdressIcon.on('click', e => {
     if ($deleteAddress.hasClass('none')) {
       $deleteAddress.removeClass('none');
       $deleteAdressIcons.addClass('none');
@@ -25,7 +25,7 @@ export default $(document).ready((e) => {
     }
   });
 
-  $deleteAddress.find('.cancel').on('click', (e) => {
+  $deleteAddress.find('.cancel').on('click', e => {
     $deleteAddress.addClass('none');
     $deleteAdressIcons.removeClass('none');
   });
@@ -36,10 +36,10 @@ export default $(document).ready((e) => {
   let $addressHide = $('.address_hide label');
   let $addressForm = $('.checkout__new-address');
   let $initialValue = $('#address_new_address').prop('checked');
-  $addressShow.click((e) => {
+  $addressShow.click(e => {
     $addressForm.slideDown('slow');
   });
-  $addressHide.click((e) => {
+  $addressHide.click(e => {
     $addressForm.slideUp('slow');
   });
   if ($initialValue) {

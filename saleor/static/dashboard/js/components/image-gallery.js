@@ -1,7 +1,7 @@
 // eslint-disable-next-line no-unused-vars
 import Dropzone from 'dropzone';
 
-function createLink (link, index, replacement) {
+function createLink(link, index, replacement) {
   const outputLink = link.attr('data-href-template').split('/');
   outputLink[outputLink.length + index] = replacement;
   return outputLink.join('/');
@@ -18,7 +18,7 @@ $('#product-image-form').dropzone({
   previewTemplate: $('#template').html(),
   method: 'POST',
   clickable: '.dropzone-message',
-  init: function () {
+  init: function() {
     this.on('success', (e, response) => {
       const $previewElement = $(e.previewElement);
       $previewElement.find('.product-gallery-item-desc').html(response.image);

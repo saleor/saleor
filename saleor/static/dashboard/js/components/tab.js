@@ -1,6 +1,6 @@
 const $tabs = $('ul.tabs');
 if ($tabs.length) {
-  $tabs.find('.tab').on('click', (e) => {
+  $tabs.find('.tab').on('click', e => {
     const tabSelector = $(e.currentTarget)
       .find('a')
       .attr('href');
@@ -8,7 +8,8 @@ if ($tabs.length) {
     $(tabSelector + '-btn').removeClass('btn-fab-hidden');
   });
 
-  $tabs.find('a.active')
+  $tabs
+    .find('a.active')
     .parent()
     .click();
 }
