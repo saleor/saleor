@@ -29,6 +29,8 @@ repos:
         files: ^saleor/
 
   - repo: https://github.com/prettier/prettier
-    rev: '' # Use the sha or tag you want to point at
+    rev: 1.18.2
     hooks:
       - id: prettier
+        files: ^.*\.js$
+        verbose: true
