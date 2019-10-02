@@ -4,9 +4,9 @@
  */
 function onVoucherTypeChange(e) {
   const $target = $(e.currentTarget);
-  $('.voucher-form').each((index, form) => {
+  $(".voucher-form").each((index, form) => {
     const $form = $(form);
-    $form.toggleClass('hide', $form.data('type') !== $target.val());
+    $form.toggleClass("hide", $form.data("type") !== $target.val());
   });
 }
 
@@ -18,15 +18,15 @@ function onDiscountTypeChange(e) {
   const $target = $(e.currentTarget);
   const showOnPercentage =
     '[name="product-apply_to"], [name="category-apply_to"]';
-  const $showOnPercentage = $(showOnPercentage).parents('.input');
-  $showOnPercentage.toggleClass('hide', $target.val() === 'percentage');
+  const $showOnPercentage = $(showOnPercentage).parents(".input");
+  $showOnPercentage.toggleClass("hide", $target.val() === "percentage");
 }
 
 // -----
 
 $('[name="discount_value_type"]')
-  .on('change', onDiscountTypeChange)
-  .trigger('change');
+  .on("change", onDiscountTypeChange)
+  .trigger("change");
 $('[name="type"]')
-  .on('change', onVoucherTypeChange)
-  .trigger('change');
+  .on("change", onVoucherTypeChange)
+  .trigger("change");

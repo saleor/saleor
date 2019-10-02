@@ -1,6 +1,6 @@
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-import classNames from 'classnames';
+import React, { Component } from "react";
+import PropTypes from "prop-types";
+import classNames from "classnames";
 
 export default class AttributeSelectionWidget extends Component {
   static propTypes = {
@@ -22,7 +22,7 @@ export default class AttributeSelectionWidget extends Component {
           {attribute.values.map((value, i) => {
             const active = selected === value.pk.toString();
             const labelClass = classNames({
-              'btn btn-secondary variant-picker__option': true,
+              "btn btn-secondary variant-picker__option": true,
               active: active
             });
             return (

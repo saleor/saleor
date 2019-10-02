@@ -1,16 +1,16 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
+import React from "react";
+import ReactDOM from "react-dom";
 
-import VariantPicker from './variantPicker/VariantPicker';
-import VariantPrice from './variantPicker/VariantPrice';
-import variantPickerStore from '../stores/variantPicker';
+import VariantPicker from "./variantPicker/VariantPicker";
+import VariantPrice from "./variantPicker/VariantPrice";
+import variantPickerStore from "../stores/variantPicker";
 
-import { onAddToCheckoutSuccess, onAddToCheckoutError } from './checkout';
+import { onAddToCheckoutSuccess, onAddToCheckoutError } from "./checkout";
 
 export default $(document).ready(e => {
-  const variantPickerContainer = document.getElementById('variant-picker');
+  const variantPickerContainer = document.getElementById("variant-picker");
   const variantPriceContainer = document.getElementById(
-    'variant-price-component'
+    "variant-price-component"
   );
 
   if (variantPickerContainer) {
