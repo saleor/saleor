@@ -75,14 +75,14 @@ module.exports = (_, argv) => {
             {
               loader: 'css-loader',
               options: {
-                'sourceMap': true
+                sourceMap: true
               }
             },
             {
               loader: 'postcss-loader',
               options: {
-                'sourceMap': true,
-                'plugins': function () {
+                sourceMap: true,
+                plugins: function() {
                   return [autoprefixer];
                 }
               }
@@ -90,7 +90,7 @@ module.exports = (_, argv) => {
             {
               loader: 'sass-loader',
               options: {
-                'sourceMap': true
+                sourceMap: true
               }
             }
           ]
@@ -112,11 +112,7 @@ module.exports = (_, argv) => {
       removeEmptyChunks: false,
       splitChunks: false
     },
-    plugins: [
-      bundleTrackerPlugin,
-      extractCssPlugin,
-      providePlugin
-    ],
+    plugins: [bundleTrackerPlugin, extractCssPlugin, providePlugin],
     resolve: {
       alias: {
         jquery: resolve('node_modules/jquery/dist/jquery.js')
