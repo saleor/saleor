@@ -5,6 +5,7 @@ from ..account.models import ServiceAccount
 
 
 class Webhook(models.Model):
+    name = models.CharField(max_length=255, null=True, blank=True)
     service_account = models.ForeignKey(
         ServiceAccount, related_name="webhooks", on_delete=models.CASCADE
     )
