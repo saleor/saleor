@@ -621,6 +621,7 @@ EXTENSIONS_MANAGER = "saleor.extensions.manager.ExtensionsManager"
 PLUGINS = [
     "saleor.extensions.plugins.avatax.plugin.AvataxPlugin",
     "saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin",
+    "saleor.extensions.plugins.webhook.plugin.WebhookPlugin",
     "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
     "saleor.payment.gateways.stripe.plugin.StripeGatewayPlugin",
     "saleor.payment.gateways.braintree.plugin.BraintreeGatewayPlugin",
