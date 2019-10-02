@@ -90,16 +90,18 @@
                 </div>
               </div>
             </div>
-            {% if form.tax_rate.field.choices %}
               <div class="row">
                 <div class="col s12">
                   <span class="card-title">{% trans "Taxes" %}</span>
                 </div>
                 <div class="col s12 m8">
-                  {{ form.tax_rate|materializecss }}
+                  {% if form.tax_rate.field.choices %}
+                    {{ form.tax_rate|materializecss }}
+                  {% else %}
+                    {% trans "Tax settings are disabled. Make sure you have enabled a VAT provider and fetched the rates if required by the plugin." context "Note message in product type form when no rates were found" %}
+                  {% endif %}
                 </div>
               </div>
-            {% endif %}
             <div class="row">
               <div class="col s12">
                 <span class="card-title">{% trans "Shipping" %}</span>
