@@ -65,8 +65,6 @@
     "eslint-plugin-react": "^7.14.2",
     "eslint-plugin-standard": "^3.1.0",
     "file-loader": "^1.1.11",
-    "husky": "^3.0.8",
-    "lint-staged": "^9.4.1",
     "mini-css-extract-plugin": "^0.4.5",
     "mjml": "^4.4.0",
     "node-sass": "^4.12.0",
@@ -106,16 +104,5 @@
     "heroku-postbuild": "npm run build-assets && npm run build-emails",
     "start": "webpack -d --watch",
     "build-emails": "mjml --config.beautify false -l skip \"templates/templated_email/source/*.mjml\" -o templates/templated_email/compiled"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
-  "lint-staged": {
-    "*.js": [
-      "eslint --fix",
-      "git add"
-    ]
   }
 }
