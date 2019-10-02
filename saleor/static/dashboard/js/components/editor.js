@@ -58,7 +58,10 @@ const editor = new MediumEditor('.rich-text-editor', {
       },
       {
         name: 'image',
-        aria: pgettext('Rich text editor option', 'Image (converts selected text to an image tag)'),
+        aria: pgettext(
+          'Rich text editor option',
+          'Image (converts selected text to an image tag)'
+        ),
         contentDefault: `<img src="${insertPhotoIcon}">`
       },
       {

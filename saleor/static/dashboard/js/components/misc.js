@@ -23,12 +23,12 @@ initSelects();
 $('.modal').modal();
 
 // Print button
-$('.btn-print').click((e) => {
+$('.btn-print').click(e => {
   window.print();
 });
 
 // Clickable rows in dashboard tables
-$(document).on('mouseup', 'tr[data-action-go] > td:not(.ignore-link)', (e) => {
+$(document).on('mouseup', 'tr[data-action-go] > td:not(.ignore-link)', e => {
   const $target = $(e.currentTarget);
   // Ignore selecting text
   const selectedText = getSelection().toString();
@@ -42,7 +42,7 @@ $(document).on('mouseup', 'tr[data-action-go] > td:not(.ignore-link)', (e) => {
 // Publish / unpublish lever in detail views
 const selectors = ['#product-is-published', '#collection-is-published'];
 selectors.forEach(selector => {
-  $(selector).on('click', (e) => {
+  $(selector).on('click', e => {
     const form = $(e.currentTarget).closest('#toggle-publish-form');
     const input = form.find('#toggle-publish-switch')[0];
     if (e.target === input) {
@@ -53,19 +53,20 @@ selectors.forEach(selector => {
         headers: {
           'X-CSRFToken': $('[name=csrfmiddlewaretoken]').val()
         }
-      }).then(() => {
-        window.location.reload();
-      }).catch(() => {
-        window.location.reload();
-      });
+      })
+        .then(() => {
+          window.location.reload();
+        })
+        .catch(() => {
+          window.location.reload();
+        });
     }
   });
 });
 
 // Styleguide sticky right menu
-onScroll(() => $('.styleguide__menu').toggleClass('fixed', $(window).scrollTop() > 100));
+onScroll(() =>
+  $('.styleguide__menu').toggleClass('fixed', $(window).scrollTop() > 100)
+);
 
-export {
-  screenSizes,
-  svgInjector
-};
+export { screenSizes, svgInjector };

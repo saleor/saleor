@@ -7,7 +7,7 @@ const firstMessageOffset = 250;
 // -----
 
 if (data) {
-  Object.keys(data).forEach((key) => {
+  Object.keys(data).forEach(key => {
     Materialize.toast(data[key], 5000);
   });
 }

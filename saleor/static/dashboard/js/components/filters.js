@@ -30,7 +30,7 @@ if ($filters.length) {
   $(window).on('resize', moveFilters);
 }
 
-$('.collapse-activate').on('click', (e) => {
+$('.collapse-activate').on('click', e => {
   const $collapsibleCard = $('.collapse');
   if ($collapsibleCard.hasClass('collapsed')) {
     $collapsibleCard.removeClass('collapsed');

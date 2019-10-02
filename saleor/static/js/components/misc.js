@@ -1,13 +1,13 @@
 import 'lazysizes';
 import SVGInjector from 'svg-injector-2';
 
-export const getAjaxError = (response) => {
+export const getAjaxError = response => {
   let ajaxError = $.parseJSON(response.responseText).error.quantity;
   return ajaxError;
 };
 export const csrftoken = $.cookie('csrftoken');
 
-export default $(document).ready((e) => {
+export default $(document).ready(e => {
   function csrfSafeMethod(method) {
     return /^(GET|HEAD|OPTIONS|TRACE)$/.test(method);
   }
@@ -15,7 +15,7 @@ export default $(document).ready((e) => {
   new SVGInjector().inject(document.querySelectorAll('svg[data-src]'));
 
   $.ajaxSetup({
-    beforeSend: function (xhr, settings) {
+    beforeSend: function(xhr, settings) {
       if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
         xhr.setRequestHeader('X-CSRFToken', csrftoken);
       }
@@ -33,7 +33,7 @@ export default $(document).ready((e) => {
   // Function for update product image height
   function updateProductImageHeight() {
     let productImageWidth = $('.product-image').width();
-    $('.product-image').css({'height': productImageWidth + 'px'});
+    $('.product-image').css({ height: productImageWidth + 'px' });
   }
 
   // Update product-image height when window is initialized

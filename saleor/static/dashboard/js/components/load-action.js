@@ -1,8 +1,8 @@
-function disableSubsequentClicks (e) {
+function disableSubsequentClicks(e) {
   e.preventDefault();
 }
 
-function initLoadAction (e) {
+function initLoadAction(e) {
   $('body').css('cursor', 'progress');
   $(e.target).on('click', disableSubsequentClicks);
 }

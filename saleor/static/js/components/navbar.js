@@ -16,16 +16,15 @@ const renderNavbar = () => {
     if ($desktopLinks.length) {
       $searchForm.addClass('search-form--hidden');
       $mobileNav.append('<ul class="nav navbar-nav navbar__menu__login"></ul>');
-      $languagePicker.appendTo('.navbar__menu__login')
+      $languagePicker
+        .appendTo('.navbar__menu__login')
         .wrap('<li class="nav-item login-item"></li>')
         .addClass('nav-link');
       $desktopLinks
         .appendTo('.navbar__menu__login')
         .wrap('<li class="nav-item login-item"></li>')
         .addClass('nav-link');
-      $desktopLinkBar
-        .find('li')
-        .remove();
+      $desktopLinkBar.find('li').remove();
     }
     $languagePickerButton.attr('data-target', '#languagePickerModal');
     $languagePickerButton.attr('data-toggle', 'modal');
@@ -33,7 +32,8 @@ const renderNavbar = () => {
     const $mobileLinks = $mobileLinkBar.find('a').not('.dropdown-link');
     if ($mobileLinks.length) {
       $searchForm.removeClass('search-form--hidden');
-      $languagePicker.appendTo('.navbar__login ul')
+      $languagePicker
+        .appendTo('.navbar__login ul')
         .wrap('<li></li>')
         .removeClass('nav-link');
       $mobileLinks
@@ -50,16 +50,11 @@ const renderNavbar = () => {
 // -----
 
 renderNavbar();
-$toogleIcon
-  .on('click', (e) => {
-    $mobileNav.toggleClass('open');
-    e.stopPropagation();
-  });
-$(document)
-  .on('click', () => $mobileNav.removeClass('open'));
-$(window)
-  .on('resize', renderNavbar);
-$searchIcon
-  .on('click', () => $searchForm.removeClass('search-form--hidden'));
-$closeSearchIcon
-  .on('click', () => $searchForm.addClass('search-form--hidden'));
+$toogleIcon.on('click', e => {
+  $mobileNav.toggleClass('open');
+  e.stopPropagation();
+});
+$(document).on('click', () => $mobileNav.removeClass('open'));
+$(window).on('resize', renderNavbar);
+$searchIcon.on('click', () => $searchForm.removeClass('search-form--hidden'));
+$closeSearchIcon.on('click', () => $searchForm.addClass('search-form--hidden'));
