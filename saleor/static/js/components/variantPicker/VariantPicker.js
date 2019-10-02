@@ -1,13 +1,13 @@
-import _ from 'lodash';
-import $ from 'jquery';
-import classNames from 'classnames';
-import { observer } from 'mobx-react';
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
+import _ from "lodash";
+import $ from "jquery";
+import classNames from "classnames";
+import { observer } from "mobx-react";
+import React, { Component } from "react";
+import PropTypes from "prop-types";
 
-import AttributeSelectionWidget from './AttributeSelectionWidget';
-import QuantityInput from './QuantityInput';
-import * as queryString from 'query-string';
+import AttributeSelectionWidget from "./AttributeSelectionWidget";
+import QuantityInput from "./QuantityInput";
+import * as queryString from "query-string";
 
 export default observer(
   class VariantPicker extends Component {
@@ -69,7 +69,7 @@ export default observer(
       if (quantity > 0 && !store.isEmpty) {
         $.ajax({
           url: this.props.url,
-          method: 'post',
+          method: "post",
           data: {
             quantity: quantity,
             variant: store.variant.id
@@ -104,7 +104,7 @@ export default observer(
               params[attribute.slug] = value.slug;
             }
           });
-          history.pushState(null, null, '?' + queryString.stringify(params));
+          history.pushState(null, null, "?" + queryString.stringify(params));
         }
       );
     };
@@ -161,7 +161,7 @@ export default observer(
         store.isEmpty || !this.checkVariantAvailability();
 
       const addToCheckoutBtnClasses = classNames({
-        'btn btn-primary': true,
+        "btn btn-primary": true,
         disabled: disableAddToCheckout
       });
 
@@ -187,7 +187,7 @@ export default observer(
                 onClick={this.handleAddToCheckout}
                 disabled={disableAddToCheckout}
               >
-                {pgettext('Product details primary action', 'Add to cart')}
+                {pgettext("Product details primary action", "Add to cart")}
               </button>
             </div>
           </div>

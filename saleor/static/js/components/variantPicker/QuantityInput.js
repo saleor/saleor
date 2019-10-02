@@ -1,6 +1,6 @@
-import classNames from 'classnames';
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
+import classNames from "classnames";
+import React, { Component } from "react";
+import PropTypes from "prop-types";
 
 export default class QuantityInput extends Component {
   static propTypes = {
@@ -12,8 +12,8 @@ export default class QuantityInput extends Component {
   render() {
     const { errors, quantity } = this.props;
     const formGroupClasses = classNames({
-      'form-group': true,
-      'has-error': errors && !!errors.length,
+      "form-group": true,
+      "has-error": errors && !!errors.length,
       product__info__quantity: true
     });
     return (
@@ -22,7 +22,7 @@ export default class QuantityInput extends Component {
           className="control-label product__variant-picker__label"
           htmlFor="id_quantity"
         >
-          {pgettext('Add to cart form field label', 'Quantity')}
+          {pgettext("Add to cart form field label", "Quantity")}
         </label>
         <input
           className="form-control"
@@ -34,7 +34,7 @@ export default class QuantityInput extends Component {
           onChange={this.props.handleChange}
           type="number"
         />
-        {errors && <span className="help-block">{errors.join(' ')}</span>}
+        {errors && <span className="help-block">{errors.join(" ")}</span>}
       </div>
     );
   }

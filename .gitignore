@@ -13,7 +13,6 @@
 !.npmrc
 !.nvmrc
 !.plop
-!.prettierrc.json
 !.pylintrc
 !.testcafe
 !.travis*

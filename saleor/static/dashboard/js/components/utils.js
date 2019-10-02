@@ -1,9 +1,9 @@
-import detectPassiveEvents from 'detect-passive-events';
-import { parse, stringify } from 'qs';
+import detectPassiveEvents from "detect-passive-events";
+import { parse, stringify } from "qs";
 
 function onScroll(func) {
   window.addEventListener(
-    'scroll',
+    "scroll",
     func,
     detectPassiveEvents.hasSupport
       ? {

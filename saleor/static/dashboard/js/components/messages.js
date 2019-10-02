@@ -1,6 +1,6 @@
-const dataElement = $('#messages-container');
-const data = dataElement.data('messages');
-const $messages = $('.message');
+const dataElement = $("#messages-container");
+const data = dataElement.data("messages");
+const $messages = $(".message");
 const offset = 100;
 const firstMessageOffset = 250;
 
@@ -16,11 +16,11 @@ setTimeout(() => {
   let timeout = 0;
   $messages.each((index, msg) => {
     setTimeout(() => {
-      msg.removeClass('toast--hidden');
+      msg.removeClass("toast--hidden");
     }, timeout + offset);
     timeout += 3000;
     setTimeout(() => {
-      msg.addClass('toast--hidden');
+      msg.addClass("toast--hidden");
     }, timeout - offset);
   });
 }, firstMessageOffset);

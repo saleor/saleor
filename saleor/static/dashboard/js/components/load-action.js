@@ -3,10 +3,10 @@ function disableSubsequentClicks(e) {
 }
 
 function initLoadAction(e) {
-  $('body').css('cursor', 'progress');
-  $(e.target).on('click', disableSubsequentClicks);
+  $("body").css("cursor", "progress");
+  $(e.target).on("click", disableSubsequentClicks);
 }
 
 // -----
 
-$('.load-action').on('click', initLoadAction);
+$(".load-action").on("click", initLoadAction);
