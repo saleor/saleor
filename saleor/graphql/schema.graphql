@@ -4259,6 +4259,7 @@ type VoucherUpdate {
 }
 
 type Webhook implements Node {
+  name: String
   serviceAccount: ServiceAccount!
   targetUrl: String!
   isActive: Boolean!
@@ -4285,6 +4286,7 @@ type WebhookCreate {
 }
 
 input WebhookCreateInput {
+  name: String
   targetUrl: String
   events: [WebhookEventTypeEnum]
   serviceAccount: ID
@@ -4333,6 +4335,7 @@ type WebhookUpdate {
 }
 
 input WebhookUpdateInput {
+  name: String
   targetUrl: String
   events: [WebhookEventTypeEnum]
   serviceAccount: ID
