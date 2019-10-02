@@ -1,0 +1,9 @@
+{% extends "dashboard/base.html" %}
+{% load i18n %}
+{% load materializecss %}
+{% load static %}
+{% load utils %}
+
+{% block title %}
+  {% trans "Payments" context "Dashboard payments form" %} - {{ block.super }}
+{% endblock %}
