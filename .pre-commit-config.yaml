@@ -32,5 +32,5 @@ repos:
     rev: 1.18.2
     hooks:
       - id: prettier
-        files: ^.*\.js$
+        files: ^saleor/static/*.*\.js$
         verbose: true
