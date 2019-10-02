@@ -127,7 +127,7 @@ Get more details in our [Contributing Guide](https://docs.getsaleor.com/docs/con
 
 ## Translations
 
-Did you know that Saleor is available in almost 30 languages, translated entirely by our community?
+Did you know that Saleor is available in more than 30 languages, translated entirely by our community?
 
 If you'd like to help us, you can join one of our translation teams on [the localization platform Transifex](https://www.transifex.com/mirumee/saleor-1/languages/).
 
