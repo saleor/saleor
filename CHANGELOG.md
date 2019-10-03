@@ -86,6 +86,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - availablePaymentGateways extended with configuration data in GraphQL schema - #4774 by @salwator
 - Add metadata to Order model - #4513 by @szewczykmira
 - Fixed display of the products tax rate in the details page of dashboard 1.0, users can now update the tax rate of products in dashboard 1.0. The tax fields will no longer be shown if no tax support is enabled. - #4780 by @NyanKiyoshi
+- Add default value to custom errors - #4797 by @fowczarek
 
 ## 2.8.0
 
