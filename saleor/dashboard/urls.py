@@ -8,7 +8,7 @@ from .discount.urls import urlpatterns as discount_urls
 from .menu.urls import urlpatterns as menu_urls
 from .order.urls import urlpatterns as order_urls
 from .page.urls import urlpatterns as page_urls
-from .payments.urls import urlpatterns as payments_urls
+from .payment.urls import urlpatterns as payments_urls
 from .product.urls import urlpatterns as product_urls
 from .search.urls import urlpatterns as search_urls
 from .shipping.urls import urlpatterns as shipping_urls
