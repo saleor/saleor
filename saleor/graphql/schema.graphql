@@ -3196,11 +3196,11 @@ type ProductVariant implements Node {
   name: String!
   product: Product!
   trackInventory: Boolean!
-  quantity: Int!
   quantityAllocated: Int!
   weight: Weight
   privateMeta: [MetaStore]!
   meta: [MetaStore]!
+  quantity: Int!
   stockQuantity: Int!
   priceOverride: Money
   price: Money @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, has been replaced by 'pricing.priceUndiscounted'")

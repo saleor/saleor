@@ -2345,7 +2345,6 @@ def test_product_restricted_fields_permissions(
     "field, is_nested",
     (
         ("digitalContent", True),
-        ("stockQuantity", False),
         ("margin", False),
         ("costPrice", True),
         ("priceOverride", True),
@@ -2381,6 +2380,66 @@ def test_variant_restricted_fields_permissions(
     response = staff_api_client.post_graphql(query, variables, permissions)
     content = get_graphql_content(response)
     assert field in content["data"]["productVariant"]
+
+
+VARIANT_QUANTITY_AVAILABLE_IN_STOCK_QUERY = """
+    query ProductVariant($id: ID!) {
+        productVariant(id: $id) {
+            stockQuantity
+        }
+    }
+    """
+
+
+def test_variant_available_stock_quantity_is_not_capped_for_authorized_user(
+    staff_api_client, permission_manage_products, variant, settings
+):
+    """
+    The exact quantity available in stock should be accessible for a staff
+    user having the permission to manage products.
+    """
+    settings.MAX_CHECKOUT_LINE_QUANTITY = 50
+    actual_stock_available = 60
+    expected_stock_available = actual_stock_available
+
+    variant.quantity = actual_stock_available
+    variant.quantity_allocated = 0
+    variant.save(update_fields=["quantity", "quantity_allocated"])
+
+    query = VARIANT_QUANTITY_AVAILABLE_IN_STOCK_QUERY
+    variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    data = get_graphql_content(staff_api_client.post_graphql(query, variables))
+    stock_available = data["data"]["productVariant"]["stockQuantity"]
+
+    assert stock_available == expected_stock_available
+
+
+@pytest.mark.parametrize(
+    "actual_stock_available, expected_stock_available",
+    ((60, 50), (50, 50), (49, 49), (0, 0)),
+)
+def test_variant_available_stock_quantity_is_capped_for_unauthorized_user(
+    api_client, variant, settings, actual_stock_available, expected_stock_available
+):
+    """
+    The exact quantity available in stock shouldn't be made available to customers
+    and unauthorized staff users. Instead it should be capped to a said value.
+    """
+    settings.MAX_CHECKOUT_LINE_QUANTITY = 50
+
+    variant.quantity = actual_stock_available
+    variant.quantity_allocated = 0
+    variant.save(update_fields=["quantity", "quantity_allocated"])
+
+    query = VARIANT_QUANTITY_AVAILABLE_IN_STOCK_QUERY
+    variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
+
+    data = get_graphql_content(api_client.post_graphql(query, variables))
+    stock_available = data["data"]["productVariant"]["stockQuantity"]
+
+    assert stock_available == expected_stock_available
 
 
 def test_variant_digital_content(
