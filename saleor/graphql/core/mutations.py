@@ -49,7 +49,8 @@ def get_error_fields(error_type_class, error_type_field):
             graphene.List(
                 graphene.NonNull(error_type_class),
                 description="List of errors that occurred executing the mutation.",
-            )
+            ),
+            default_value=[],
         )
     }
 
