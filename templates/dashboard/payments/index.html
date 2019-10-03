@@ -34,7 +34,7 @@
             </thead>
             <tbody>
               {% for gateway in payment_gateways%}
-                <tr data-action-go="">
+                <tr data-action-go="{% url "dashboard:configure-payment" gateway %}">
                   <td>
                     {{ gateway }}
                   </td>
