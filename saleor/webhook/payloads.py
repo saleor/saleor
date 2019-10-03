@@ -3,9 +3,9 @@ from typing import TYPE_CHECKING
 from .serializers import WebhookSerializer
 
 if TYPE_CHECKING:
-    from ....order.models import Order
-    from ....account.models import User
-    from ....product.models import Product
+    from ..order.models import Order
+    from ..account.models import User
+    from ..product.models import Product
 
 ADDRESS_FIELDS = (
     "first_name",

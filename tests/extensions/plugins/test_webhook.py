@@ -6,13 +6,13 @@ from django.core.serializers import serialize
 
 from saleor.extensions.manager import get_extensions_manager
 from saleor.extensions.plugins.webhook import create_hmac_signature
-from saleor.extensions.plugins.webhook.payloads import (
+from saleor.extensions.plugins.webhook.tasks import trigger_webhooks_for_event
+from saleor.webhook import WebhookEventType
+from saleor.webhook.payloads import (
     generate_customer_payload,
     generate_order_payload,
     generate_product_payload,
 )
-from saleor.extensions.plugins.webhook.tasks import trigger_webhooks_for_event
-from saleor.webhook import WebhookEventType
 
 
 @pytest.mark.vcr

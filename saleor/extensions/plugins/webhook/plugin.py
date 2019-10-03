@@ -1,12 +1,12 @@
 from typing import TYPE_CHECKING, Any
 
 from ....webhook import WebhookEventType
-from ...base_plugin import BasePlugin
-from .payloads import (
+from ....webhook.payloads import (
     generate_customer_payload,
     generate_order_payload,
     generate_product_payload,
 )
+from ...base_plugin import BasePlugin
 from .tasks import trigger_webhooks_for_event
 
 if TYPE_CHECKING:
