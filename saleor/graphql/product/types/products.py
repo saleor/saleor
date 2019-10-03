@@ -2,6 +2,7 @@ from typing import List, Union
 
 import graphene
 import graphene_django_optimizer as gql_optimizer
+from django.conf import settings
 from django.db.models import Prefetch
 from graphene import relay
 from graphql.error import GraphQLError
@@ -205,6 +206,11 @@ class ProductPricingInfo(BasePricingInfo):
 
 
 class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
+    quantity = graphene.Int(
+        required=True,
+        description="Quantity of a product in the store's possession, "
+        "including the allocated stock that is waiting for shipment.",
+    )
     stock_quantity = graphene.Int(
         required=True, description="Quantity of a product available for sale."
     )
@@ -295,7 +301,6 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
             "id",
             "name",
             "product",
-            "quantity",
             "quantity_allocated",
             "sku",
             "track_inventory",
@@ -310,9 +315,11 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         return getattr(root, "digital_content", None)
 
     @staticmethod
-    @permission_required("product.manage_products")
-    def resolve_stock_quantity(root: models.ProductVariant, *_args):
-        return root.quantity_available
+    def resolve_stock_quantity(root: models.ProductVariant, info):
+        exact_quantity_available = root.quantity_available
+        if info.context.user.has_perm("product.manage_products"):
+            return exact_quantity_available
+        return min(exact_quantity_available, settings.MAX_CHECKOUT_LINE_QUANTITY)
 
     @staticmethod
     @gql_optimizer.resolver_hints(
