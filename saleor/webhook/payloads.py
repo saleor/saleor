@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from .serializers import WebhookSerializer
+from .payload_serializers import PayloadSerializer
 
 if TYPE_CHECKING:
     from ..order.models import Order
@@ -23,7 +23,7 @@ ADDRESS_FIELDS = (
 
 
 def generate_order_payload(order: "Order"):
-    serializer = WebhookSerializer()
+    serializer = PayloadSerializer()
     fulfillment_fields = ("status", "tracking_number", "shipping_date")
     payment_fields = (
         "gateway"
@@ -91,7 +91,7 @@ def generate_order_payload(order: "Order"):
 
 
 def generate_customer_payload(customer: "User"):
-    serializer = WebhookSerializer()
+    serializer = PayloadSerializer()
     data = serializer.serialize(
         [customer],
         fields=[
@@ -118,7 +118,7 @@ def generate_customer_payload(customer: "User"):
 
 
 def generate_product_payload(product: "Product"):
-    serializer = WebhookSerializer()
+    serializer = PayloadSerializer()
 
     product_fields = (
         "name",
