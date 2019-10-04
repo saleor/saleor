@@ -27,6 +27,10 @@ def get_client_token(**_):
     return
 
 
+def get_public_key(config: GatewayConfig):
+    return config.connection_params['public_key']
+
+
 def authorize(
     payment_information: PaymentData, config: GatewayConfig
 ) -> GatewayResponse:
