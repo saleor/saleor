@@ -28,7 +28,7 @@ def get_client_token(**_):
 
 
 def get_public_key(config: GatewayConfig):
-    return config.connection_params['public_key']
+    return config.connection_params["public_key"]
 
 
 def authorize(
