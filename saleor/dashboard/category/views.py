@@ -73,8 +73,8 @@ def category_edit(request, root_pk=None):
             request,
             pgettext_lazy("Dashboard message", "Updated category %s") % category,
         )
-        if root_pk:
-            return redirect("dashboard:category-details", pk=root_pk)
+        if root and root.parent:
+            return redirect("dashboard:category-details", pk=root.parent.pk)
         return redirect("dashboard:category-list")
     elif form.errors:
         status = 400
@@ -88,6 +88,7 @@ def category_edit(request, root_pk=None):
 def category_details(request, pk):
     root = get_object_or_404(Category, pk=pk)
     path = root.get_ancestors(include_self=True) if root else []
+    is_child = True if root.parent else False
     categories = root.get_children().order_by("name")
     category_filter = CategoryFilter(request.GET, queryset=categories)
     categories = get_paginator_items(
@@ -99,6 +100,7 @@ def category_details(request, pk):
         "root": root,
         "filter_set": category_filter,
         "is_empty": not category_filter.queryset.exists(),
+        "is_child": is_child,
     }
     return TemplateResponse(request, "dashboard/category/detail.html", ctx)
 
