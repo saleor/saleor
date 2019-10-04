@@ -236,8 +236,9 @@ def update_base_fields(form_class, i18n_rules):
         field.placeholder = placeholder_value
 
     if i18n_rules.country_area_choices:
+        required = "country_area" in i18n_rules.required_fields
         form_class.base_fields["country_area"] = CountryAreaChoiceField(
-            choices=i18n_rules.country_area_choices
+            choices=i18n_rules.country_area_choices, required=required
         )
 
     labels_map = {
