@@ -52,7 +52,7 @@
     <div id="card-errors" role="alert"></div>
   </div>
 <br>
-  <button class="btn btn-lg btn-primary">Paga</button>
+  <button class="btn btn-lg btn-primary">{% trans "Make payment" context "Payment form primary action" %}</button>
     {% if form.errors %}
       <a class="btn" href="{% url "order:details" token=payment.order.token %}">
         {% trans "Change payment" context "Payment form (Stripe) secondary action" %}
