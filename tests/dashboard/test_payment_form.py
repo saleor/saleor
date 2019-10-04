@@ -46,18 +46,7 @@ def enable_plugin(settings):
 
 
 @pytest.fixture
-def config_boolean_structure():
-    return {
-        "name": "Require 3D secure",
-        "value": True,
-        "type": "Boolean",
-        "help_text": "Determines if Saleor should enforce 3D secure during payment.",
-        "label": "Require 3D secure",
-    }
-
-
-@pytest.fixture
-def config_char_field():
+def config_char_structure():
     return {
         "name": "Template path",
         "value": "order/payment/braintree.html",
@@ -73,14 +62,21 @@ def test_configuration_form_get_current_configuration(
     assert gateway_config_form._get_current_configuration() == plugin_configuration
 
 
-def test_configuration_form__create_field(gateway_config_form, config_char_field):
-    template_field = gateway_config_form._create_field(config_char_field)
+def test_configuration_form__create_field(gateway_config_form, config_char_structure):
+    template_field = gateway_config_form._create_field(config_char_structure)
     assert isinstance(template_field, ConfigCharField)
-    assert template_field.label == config_char_field["name"]
-    assert template_field.initial == config_char_field["value"]
+    assert template_field.label == config_char_structure["name"]
+    assert template_field.initial == config_char_structure["value"]
 
 
-def test_config_boolean_field_returned_value(config_boolean_structure):
+def test_config_boolean_field_returned_value():
+    config_boolean_structure = {
+        "name": "Require 3D secure",
+        "value": True,
+        "type": "Boolean",
+        "help_text": "Determines if Saleor should enforce 3D secure during payment.",
+        "label": "Require 3D secure",
+    }
     boolean_field = ConfigBooleanField(structure=config_boolean_structure)
     assert boolean_field.clean(True) == {
         "name": config_boolean_structure["name"],
@@ -92,10 +88,10 @@ def test_config_boolean_field_returned_value(config_boolean_structure):
     }
 
 
-def test_config_char_field_returned_value(config_char_field):
-    char_field = ConfigCharField(structure=config_char_field)
+def test_config_char_field_returned_value(config_char_structure):
+    char_field = ConfigCharField(structure=config_char_structure)
     value = "1234466"
     assert char_field.clean(value) == {
-        "name": config_char_field["name"],
+        "name": config_char_structure["name"],
         "value": value,
     }
