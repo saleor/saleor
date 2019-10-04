@@ -595,7 +595,9 @@ class AttributeAssignmentMixin:
         """Lazy-retrieve or create the database objects from the supplied raw values."""
         get_or_create = attribute.values.get_or_create
         return tuple(
-            get_or_create(attribute=attribute, name=value, slug=slugify(value))[0]
+            get_or_create(
+                attribute=attribute, slug=slugify(value), defaults={"name": value}
+            )[0]
             for value in values
         )
 
