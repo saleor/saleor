@@ -27,7 +27,7 @@ from saleor.account.utils import (
 from saleor.account.validators import validate_possible_number
 
 
-@pytest.mark.parametrize("country", ["CN", "PL", "US"])
+@pytest.mark.parametrize("country", ["CN", "PL", "US", "IE"])
 def test_address_form_for_country(country):
     data = {
         "first_name": "John",
