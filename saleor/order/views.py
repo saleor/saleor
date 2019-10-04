@@ -129,6 +129,8 @@ def start_payment(request, order, gateway):
         "client_token": client_token,
         "order": order,
     }
+    if gateway_config.gateway_name == 'stripe':
+        ctx["public_key"] = payment_gateway.get_public_key(config=gateway_config)
     template_path = payment_gateway.get_template_path(payment.gateway)
     return TemplateResponse(request, template_path, ctx)
 
