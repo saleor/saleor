@@ -42,7 +42,12 @@ def configure_payment_gateway(request: HttpRequest, plugin_name: str) -> HttpRes
         messages.error(request, msg)
         return redirect("dashboard:payments-index")
 
-    form = GatewayConfigurationForm(plugin)
+    form = GatewayConfigurationForm(plugin, request.POST or None)
+    if form.is_valid():
+        form.save()
+        msg = pgettext_lazy("Dashboard message", "Payment config succesfully updated")
+        messages.success(request, msg)
+        return redirect("dashboard:payments-index")
 
     ctx = {"plugin_name": plugin_name, "config_form": form}
     return TemplateResponse(request, "dashboard/payments/configuration_form.html", ctx)
