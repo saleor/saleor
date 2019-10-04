@@ -1,6 +1,10 @@
 import pytest
 
-from saleor.dashboard.payment.forms import GatewayConfigurationForm
+from saleor.dashboard.payment.forms import (
+    ConfigBooleanField,
+    ConfigCharField,
+    GatewayConfigurationForm,
+)
 from saleor.extensions.models import PluginConfiguration
 from saleor.payment.gateways.braintree.plugin import BraintreeGatewayPlugin
 
@@ -29,6 +33,11 @@ def plugin_configuration(db):
     return plugin_configuration
 
 
+@pytest.fixture
+def gateway_config_form():
+    return GatewayConfigurationForm(BraintreeGatewayPlugin)
+
+
 @pytest.fixture(autouse=True)
 def enable_plugin(settings):
     settings.PLUGINS = [
@@ -36,6 +45,57 @@ def enable_plugin(settings):
     ]
 
 
-def test_configuration_form_get_current_configuration(plugin_configuration):
-    form = GatewayConfigurationForm(BraintreeGatewayPlugin)
-    assert form._get_current_configuration() == plugin_configuration
+@pytest.fixture
+def config_boolean_structure():
+    return {
+        "name": "Require 3D secure",
+        "value": True,
+        "type": "Boolean",
+        "help_text": "Determines if Saleor should enforce 3D secure during payment.",
+        "label": "Require 3D secure",
+    }
+
+
+@pytest.fixture
+def config_char_field():
+    return {
+        "name": "Template path",
+        "value": "order/payment/braintree.html",
+        "type": "String",
+        "help_text": "Location of django payment template for gateway.",
+        "label": "Template path",
+    }
+
+
+def test_configuration_form_get_current_configuration(
+    plugin_configuration, gateway_config_form
+):
+    assert gateway_config_form._get_current_configuration() == plugin_configuration
+
+
+def test_configuration_form__create_field(gateway_config_form, config_char_field):
+    template_field = gateway_config_form._create_field(config_char_field)
+    assert isinstance(template_field, ConfigCharField)
+    assert template_field.label == config_char_field["name"]
+    assert template_field.initial == config_char_field["value"]
+
+
+def test_config_boolean_field_returned_value(config_boolean_structure):
+    boolean_field = ConfigBooleanField(structure=config_boolean_structure)
+    assert boolean_field.clean(True) == {
+        "name": config_boolean_structure["name"],
+        "value": True,
+    }
+    assert boolean_field.clean(False) == {
+        "name": config_boolean_structure["name"],
+        "value": False,
+    }
+
+
+def test_config_char_field_returned_value(config_char_field):
+    char_field = ConfigCharField(structure=config_char_field)
+    value = "1234466"
+    assert char_field.clean(value) == {
+        "name": config_char_field["name"],
+        "value": value,
+    }
