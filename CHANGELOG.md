@@ -90,6 +90,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Change `unique_together` in `AttributeValue` - #4805 by @fowczarek
 - Change max length of SKU in order/product variant to 255 - #4811 by @lex111
 - Replace Pipenv with Poetry - #3894 by @michaljelonek
+- Add form to configure payments in dashboard - #4807 by @szewczykmira
 
 ## 2.8.0
 
