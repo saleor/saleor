@@ -13,18 +13,17 @@ TYPE_TO_FIELD = {
 }
 
 
-class GatewayConfigurationForm(forms.Form):
-    active = forms.BooleanField()
+class GatewayConfigurationForm(forms.ModelForm):
+    class Meta:
+        model = PluginConfiguration
+        fields = ("active",)
 
     def __init__(self, plugin, *args, **kwargs):
         self.plugin = plugin
+        kwargs["instance"] = self._get_current_configuration()
         super().__init__(*args, **kwargs)
-        self.current_configuration = self._get_current_configuration()
         # add new fields specified for gateway
-        self.fields.update(
-            self._prepare_fields_for_given_config(self.current_configuration)
-        )
-        self.fields["active"].initial = self.current_configuration.active
+        self.fields.update(self._prepare_fields_for_given_config(self.instance))
 
     def _get_current_configuration(self) -> PluginConfiguration:
         qs = PluginConfiguration.objects.all()
@@ -46,7 +45,14 @@ class GatewayConfigurationForm(forms.Form):
             parsed_fields[slug] = self._create_field(elem)
         return parsed_fields
 
-    def clean(self):
-        cleaned_data = super().clean()
+    def parse_values(self):
+        cleaned_data = self.cleaned_data
+        active = cleaned_data.get("active")
+        cleaned_data.pop("active")
+        data = {"active": active}
+        data["configuration"] = list(cleaned_data.values())
+        return data
 
-        return cleaned_data
+    def save(self):
+        parse_value = self.parse_values()
+        self.plugin.save_plugin_configuration(self.instance, parse_value)
