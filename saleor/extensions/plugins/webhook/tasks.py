@@ -16,7 +16,7 @@ WEBHOOK_TIMEOUT = 10
 @app.task
 def trigger_webhooks_for_event(event_type, data):
     permissions = {}
-    required_permission = WebhookEventType.PERMISSIONS.get(event_type, "")
+    required_permission = WebhookEventType.PERMISSIONS[event_type]
     if required_permission:
         app_label, codename = required_permission.split(".")
         permissions["service_account__permissions__content_type__app_label"] = app_label
