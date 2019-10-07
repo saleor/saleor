@@ -111,7 +111,7 @@ class WebhookUpdateInput(graphene.InputObjectType):
         description="Determine if webhook will be set active or not.", required=False
     )
     secret_key = graphene.String(
-        description="Use to create a hash signature with each payload", required=False
+        description="Use to create a hash signature with each payload.", required=False
     )
 
 

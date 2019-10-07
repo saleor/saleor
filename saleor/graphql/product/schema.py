@@ -127,13 +127,13 @@ from .types.attributes import AttributeSortingInput
 class ProductQueries(graphene.ObjectType):
     digital_content = graphene.Field(
         DigitalContent,
-        description="Lookup a digital content by ID.",
+        description="Look up digital content by ID.",
         id=graphene.Argument(
             graphene.ID, description="ID of the digital content.", required=True
         ),
     )
     digital_contents = PrefetchingConnectionField(
-        DigitalContent, description="List of the digital contents."
+        DigitalContent, description="List of digital content."
     )
     attributes = FilterInputConnectionField(
         Attribute,
@@ -165,7 +165,7 @@ class ProductQueries(graphene.ObjectType):
         id=graphene.Argument(
             graphene.ID, description="ID of the attribute.", required=True
         ),
-        description="Lookup an attribute by ID.",
+        description="Look up an attribute by ID.",
     )
     categories = FilterInputConnectionField(
         Category,
@@ -182,14 +182,14 @@ class ProductQueries(graphene.ObjectType):
         id=graphene.Argument(
             graphene.ID, required=True, description="ID of the category."
         ),
-        description="Lookup a category by ID.",
+        description="Look up a category by ID.",
     )
     collection = graphene.Field(
         Collection,
         id=graphene.Argument(
             graphene.ID, description="ID of the collection.", required=True
         ),
-        description="Lookup a collection by ID.",
+        description="Look up a collection by ID.",
     )
     collections = FilterInputConnectionField(
         Collection,
@@ -202,7 +202,7 @@ class ProductQueries(graphene.ObjectType):
         id=graphene.Argument(
             graphene.ID, description="ID of the product.", required=True
         ),
-        description="Lookup a product by ID.",
+        description="Look up a product by ID.",
     )
     products = FilterInputConnectionField(
         Product,
@@ -230,7 +230,7 @@ class ProductQueries(graphene.ObjectType):
         ),
         sort_by=graphene.Argument(ProductOrder, description="Sort products."),
         stock_availability=graphene.Argument(
-            StockAvailability, description="Filter products by the stock availability"
+            StockAvailability, description="Filter products by stock availability."
         ),
         query=graphene.String(description=DESCRIPTIONS["product"]),
         description="List of the shop's products.",
@@ -240,7 +240,7 @@ class ProductQueries(graphene.ObjectType):
         id=graphene.Argument(
             graphene.ID, description="ID of the product type.", required=True
         ),
-        description="Lookup a product type by ID.",
+        description="Look up a product type by ID.",
     )
     product_types = FilterInputConnectionField(
         ProductType,
@@ -255,7 +255,7 @@ class ProductQueries(graphene.ObjectType):
         id=graphene.Argument(
             graphene.ID, description="ID of the product variant.", required=True
         ),
-        description="Lookup a product variant by ID.",
+        description="Look up a product variant by ID.",
     )
     product_variants = PrefetchingConnectionField(
         ProductVariant,

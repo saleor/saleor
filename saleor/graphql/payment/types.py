@@ -59,9 +59,9 @@ class PaymentSource(graphene.ObjectType):
             "for user in payment gateway, such as credit card."
         )
 
-    gateway = graphene.String(description="Payment gateway name", required=True)
+    gateway = graphene.String(description="Payment gateway name.", required=True)
     credit_card_info = graphene.Field(
-        CreditCard, description="Stored credit card details if available"
+        CreditCard, description="Stored credit card details if available."
     )
 
 

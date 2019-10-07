@@ -91,14 +91,14 @@ class AttributeUpdateInput(graphene.InputObjectType):
 
 
 class AttributeAssignInput(graphene.InputObjectType):
-    id = graphene.ID(required=True, description="The ID of the attribute to assign")
+    id = graphene.ID(required=True, description="The ID of the attribute to assign.")
     type = AttributeTypeEnum(
         required=True, description="The attribute type to be assigned as."
     )
 
 
 class ReorderInput(graphene.InputObjectType):
-    id = graphene.ID(required=True, description="The ID of the item to move")
+    id = graphene.ID(required=True, description="The ID of the item to move.")
     sort_order = graphene.Int(
         description=(
             "The new relative sorting position of the item (from -inf to +inf)"
@@ -462,7 +462,7 @@ class AttributeUnassign(BaseMutation):
         attribute_ids = graphene.List(
             graphene.ID,
             required=True,
-            description="The IDs of the attributes to assign",
+            description="The IDs of the attributes to assign.",
         )
 
     class Meta:
@@ -518,7 +518,7 @@ class AttributeDelete(ModelDeleteMutation):
 class AttributeUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.Attribute
-        description = "Update public metadata for Attribute "
+        description = "Update public metadata for Attribute."
         permissions = ("product.manage_products",)
         public = True
         error_type_class = ProductError
@@ -527,7 +527,7 @@ class AttributeUpdateMeta(UpdateMetaBaseMutation):
 
 class AttributeClearMeta(ClearMetaBaseMutation):
     class Meta:
-        description = "Clears public metadata item for Attribute"
+        description = "Clears public metadata item for Attribute."
         model = models.Attribute
         permissions = ("product.manage_products",)
         public = True
@@ -537,7 +537,7 @@ class AttributeClearMeta(ClearMetaBaseMutation):
 
 class AttributeUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
-        description = "Update public metadata for Attribute"
+        description = "Update public metadata for Attribute."
         model = models.Attribute
         permissions = ("product.manage_products",)
         public = False
@@ -547,7 +547,7 @@ class AttributeUpdatePrivateMeta(UpdateMetaBaseMutation):
 
 class AttributeClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
-        description = "Clears public metadata item for Attribute"
+        description = "Clears public metadata item for Attribute."
         model = models.Attribute
         permissions = ("product.manage_products",)
         public = False
@@ -677,7 +677,7 @@ class ProductTypeReorderAttributes(BaseMutation):
     )
 
     class Meta:
-        description = "Reorder the attributes of a product type"
+        description = "Reorder the attributes of a product type."
         permissions = ("product.manage_products",)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -753,7 +753,7 @@ class AttributeReorderValues(BaseMutation):
     )
 
     class Meta:
-        description = "Reorder the values of an attribute"
+        description = "Reorder the values of an attribute."
         permissions = ("product.manage_products",)
         error_type_class = ProductError
         error_type_field = "product_errors"

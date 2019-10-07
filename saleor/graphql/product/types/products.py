@@ -139,7 +139,7 @@ class ProductOrder(graphene.InputObjectType):
     direction = graphene.Argument(
         OrderDirection,
         required=True,
-        description="Specifies the direction in which to sort products",
+        description="Specifies the direction in which to sort products.",
     )
 
 
@@ -262,7 +262,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
     )
     images = gql_optimizer.field(
         graphene.List(
-            lambda: ProductImage, description="List of images for the product variant"
+            lambda: ProductImage, description="List of images for the product variant."
         ),
         model_field="images",
     )
@@ -280,7 +280,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
     )
     digital_content = gql_optimizer.field(
         graphene.Field(
-            DigitalContent, description="Digital content for the product variant"
+            DigitalContent, description="Digital content for the product variant."
         ),
         model_field="digital_content",
     )
@@ -409,7 +409,7 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
     thumbnail = graphene.Field(
         Image,
         description="The main thumbnail for a product.",
-        size=graphene.Argument(graphene.Int, description="Size of thumbnail"),
+        size=graphene.Argument(graphene.Int, description="Size of thumbnail."),
     )
     availability = graphene.Field(
         ProductPricingInfo,
@@ -453,21 +453,21 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
     image_by_id = graphene.Field(
         lambda: ProductImage,
         id=graphene.Argument(graphene.ID, description="ID of a product image."),
-        description="Get a single product image by ID",
+        description="Get a single product image by ID.",
     )
     variants = gql_optimizer.field(
-        graphene.List(ProductVariant, description="List of variants for the product"),
+        graphene.List(ProductVariant, description="List of variants for the product."),
         model_field="variants",
     )
     images = gql_optimizer.field(
         graphene.List(
-            lambda: ProductImage, description="List of images for the product"
+            lambda: ProductImage, description="List of images for the product."
         ),
         model_field="images",
     )
     collections = gql_optimizer.field(
         graphene.List(
-            lambda: Collection, description="List of collections for the product"
+            lambda: Collection, description="List of collections for the product."
         ),
         model_field="collections",
     )
@@ -723,7 +723,7 @@ class Collection(CountableDjangoObjectType, MetadataObjectType):
         prefetch_related=prefetch_products_collection_sorted,
     )
     background_image = graphene.Field(
-        Image, size=graphene.Int(description="Size of the image")
+        Image, size=graphene.Int(description="Size of the image.")
     )
     translation = graphene.Field(
         CollectionTranslation,
@@ -805,7 +805,7 @@ class Category(CountableDjangoObjectType, MetadataObjectType):
         lambda: Category, description="List of children of the category."
     )
     background_image = graphene.Field(
-        Image, size=graphene.Int(description="Size of the image")
+        Image, size=graphene.Int(description="Size of the image.")
     )
     translation = graphene.Field(
         CategoryTranslation,
@@ -889,7 +889,7 @@ class ProductImage(CountableDjangoObjectType):
     url = graphene.String(
         required=True,
         description="The URL of the image.",
-        size=graphene.Int(description="Size of the image"),
+        size=graphene.Int(description="Size of the image."),
     )
 
     class Meta:

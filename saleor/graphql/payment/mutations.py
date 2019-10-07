@@ -118,14 +118,14 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
 
 
 class PaymentCapture(BaseMutation):
-    payment = graphene.Field(Payment, description="Updated payment")
+    payment = graphene.Field(Payment, description="Updated payment.")
 
     class Arguments:
-        payment_id = graphene.ID(required=True, description="Payment ID")
-        amount = Decimal(description="Transaction amount")
+        payment_id = graphene.ID(required=True, description="Payment ID.")
+        amount = Decimal(description="Transaction amount.")
 
     class Meta:
-        description = "Captures the authorized payment amount"
+        description = "Captures the authorized payment amount."
         permissions = ("order.manage_orders",)
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
@@ -144,7 +144,7 @@ class PaymentCapture(BaseMutation):
 
 class PaymentRefund(PaymentCapture):
     class Meta:
-        description = "Refunds the captured payment amount"
+        description = "Refunds the captured payment amount."
         permissions = ("order.manage_orders",)
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
@@ -162,13 +162,13 @@ class PaymentRefund(PaymentCapture):
 
 
 class PaymentVoid(BaseMutation):
-    payment = graphene.Field(Payment, description="Updated payment")
+    payment = graphene.Field(Payment, description="Updated payment.")
 
     class Arguments:
-        payment_id = graphene.ID(required=True, description="Payment ID")
+        payment_id = graphene.ID(required=True, description="Payment ID.")
 
     class Meta:
-        description = "Voids the authorized payment"
+        description = "Voids the authorized payment."
         permissions = ("order.manage_orders",)
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
@@ -186,13 +186,13 @@ class PaymentVoid(BaseMutation):
 
 
 class PaymentSecureConfirm(BaseMutation):
-    payment = graphene.Field(Payment, description="Updated payment")
+    payment = graphene.Field(Payment, description="Updated payment.")
 
     class Arguments:
-        payment_id = graphene.ID(required=True, description="Payment ID")
+        payment_id = graphene.ID(required=True, description="Payment ID.")
 
     class Meta:
-        description = "Confirms payment in two step process like 3D secure"
+        description = "Confirms payment in a two-step process like 3D secure"
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
 

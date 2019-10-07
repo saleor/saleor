@@ -30,18 +30,18 @@ from .types import Checkout, CheckoutLine
 class CheckoutQueries(graphene.ObjectType):
     checkout = graphene.Field(
         Checkout,
-        description="Lookup a checkout by token.",
-        token=graphene.Argument(graphene.UUID, description="The checkout's token"),
+        description="Look up a checkout by token.",
+        token=graphene.Argument(graphene.UUID, description="The checkout's token."),
     )
     # FIXME we could optimize the below field
     checkouts = BaseDjangoConnectionField(Checkout, description="List of checkouts.")
     checkout_line = graphene.Field(
         CheckoutLine,
         id=graphene.Argument(graphene.ID, description="ID of the checkout line."),
-        description="Lookup a checkout line by ID.",
+        description="Look up a checkout line by ID.",
     )
     checkout_lines = PrefetchingConnectionField(
-        CheckoutLine, description="List of checkout lines"
+        CheckoutLine, description="List of checkout lines."
     )
 
     def resolve_checkout(self, *_args, token):
