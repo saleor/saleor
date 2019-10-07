@@ -13,6 +13,11 @@ TYPE_TO_FIELD = {
 }
 
 
+def create_custom_form_field(structure: Dict[str, str]) -> forms.Field:
+    elem_type = structure["type"]
+    return TYPE_TO_FIELD[elem_type](structure=structure)
+
+
 class GatewayConfigurationForm(forms.ModelForm):
     class Meta:
         model = PluginConfiguration
@@ -29,10 +34,6 @@ class GatewayConfigurationForm(forms.ModelForm):
         qs = PluginConfiguration.objects.all()
         return self.plugin.get_plugin_configuration(qs)
 
-    def _create_field(self, structure: Dict[str, str]) -> forms.Field:
-        elem_type = structure["type"]
-        return TYPE_TO_FIELD[elem_type](structure=structure)
-
     def _prepare_fields_for_given_config(
         self, current_configuration: PluginConfiguration
     ) -> Dict[str, forms.Field]:
@@ -42,7 +43,7 @@ class GatewayConfigurationForm(forms.ModelForm):
             raise Exception
         for elem in structure:
             slug = slugify(elem["name"])
-            parsed_fields[slug] = self._create_field(elem)
+            parsed_fields[slug] = create_custom_form_field(elem)
         return parsed_fields
 
     def parse_values(self):
@@ -53,6 +54,7 @@ class GatewayConfigurationForm(forms.ModelForm):
         data["configuration"] = list(cleaned_data.values())
         return data
 
+    # pylint: disable=W0221
     def save(self):
         parse_value = self.parse_values()
         self.plugin.save_plugin_configuration(self.instance, parse_value)
