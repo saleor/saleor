@@ -88,6 +88,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixed display of the products tax rate in the details page of dashboard 1.0, users can now update the tax rate of products in dashboard 1.0. The tax fields will no longer be shown if no tax support is enabled. - #4780 by @NyanKiyoshi
 - Add default value to custom errors - #4797 by @fowczarek
 - Change `unique_together` in `AttributeValue` - #4805 by @fowczarek
+- Change max length of SKU in order/product variant to 255 - #4811 by @lex111
 
 ## 2.8.0
 
