@@ -1,11 +1,15 @@
 from typing import TYPE_CHECKING
 
+from ..order import FulfillmentStatus, OrderStatus
+from ..order.models import Order
+from ..payment import ChargeStatus
+from ..product.models import Product
+from . import WebhookEventType
 from .payload_serializers import PayloadSerializer
 
 if TYPE_CHECKING:
-    from ..order.models import Order
     from ..account.models import User
-    from ..product.models import Product
+
 
 ADDRESS_FIELDS = (
     "first_name",
@@ -151,3 +155,37 @@ def generate_product_payload(product: "Product"):
         },
     )
     return product_payload
+
+
+def generate_sample_payload(event_name):
+    if event_name == WebhookEventType.CUSTOMER_CREATED:
+        users = User.objects.filter(is_staff=False, is_active=True)[:2]
+        return [generate_customer_payload(user) for user in users]
+
+    if event_name == WebhookEventType.PRODUCT_CREATED:
+        products = Product.objects.prefetch_related(
+            "category", "collections", "variants"
+        )
+        return [generate_product_payload(product) for product in products.all()[:2]]
+
+    order_qs = Order.objects.prefetch_related(
+        "payments",
+        "lines",
+        "shipping_method",
+        "shipping_address",
+        "billing_address",
+        "fulfillments",
+    )
+    if event_name == WebhookEventType.ORDER_CREATED:
+        orders = order_qs.filter(status=OrderStatus.UNFULFILLED)[:2]
+    elif event_name == WebhookEventType.ORDER_FULLYPAID:
+        orders = order_qs.filter(payments__status=ChargeStatus.FULLY_CHARGED)[:2]
+    elif event_name == WebhookEventType.ORDER_FULFILLED:
+        orders = order_qs.filter(fulfillments__status=FulfillmentStatus.FULFILLED)[:2]
+    elif event_name in [
+        WebhookEventType.ORDER_CANCELLED,
+        WebhookEventType.ORDER_UPDATED,
+    ]:
+        orders = order_qs.filter(status=OrderStatus.CANCELED)[:2]
+
+    return [generate_order_payload(order) for order in orders]

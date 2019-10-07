@@ -2,14 +2,22 @@ import graphene
 import graphene_django_optimizer as gql_optimizer
 
 from ...webhook import models
+from ...webhook.payloads import generate_sample_payload
 from ..core.connection import CountableDjangoObjectType
 
 
 class WebhookEvent(graphene.ObjectType):
-    event_type = graphene.String(description="Name of the event type")
+    event_type = graphene.String(description="Name of the event type.")
+    sample_payload = graphene.JSONString(
+        description="Sample payload that webhook sends."
+    )
 
     class Meta:
-        description = "Webhook event"
+        description = "Webhook event."
+
+    @staticmethod
+    def resolve_sample_payload(root: models.WebhookEvent, *_args, **_kwargs):
+        return generate_sample_payload(root.event_type)
 
 
 class Webhook(CountableDjangoObjectType):
