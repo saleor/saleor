@@ -4,6 +4,7 @@ from saleor.dashboard.payment.forms import (
     ConfigBooleanField,
     ConfigCharField,
     GatewayConfigurationForm,
+    create_custom_form_field,
 )
 from saleor.extensions.models import PluginConfiguration
 from saleor.payment.gateways.braintree.plugin import BraintreeGatewayPlugin
@@ -62,8 +63,8 @@ def test_configuration_form_get_current_configuration(
     assert gateway_config_form._get_current_configuration() == plugin_configuration
 
 
-def test_configuration_form__create_field(gateway_config_form, config_char_structure):
-    template_field = gateway_config_form._create_field(config_char_structure)
+def test_configuration_form__create_field(config_char_structure):
+    template_field = create_custom_form_field(config_char_structure)
     assert isinstance(template_field, ConfigCharField)
     assert template_field.label == config_char_structure["name"]
     assert template_field.initial == config_char_structure["value"]
