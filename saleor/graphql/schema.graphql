@@ -4314,6 +4314,7 @@ enum WebhookErrorCode {
 
 type WebhookEvent {
   eventType: String
+  samplePayload: JSONString
 }
 
 enum WebhookEventTypeEnum {
