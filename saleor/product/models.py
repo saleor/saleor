@@ -412,7 +412,7 @@ class ProductVariantQueryset(models.QuerySet):
 
 
 class ProductVariant(ModelWithMetadata):
-    sku = models.CharField(max_length=32, unique=True)
+    sku = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255, blank=True)
     currency = models.CharField(
         max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
