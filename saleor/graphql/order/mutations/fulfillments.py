@@ -24,7 +24,7 @@ class FulfillmentLineInput(graphene.InputObjectType):
 
 
 class FulfillmentCreateInput(graphene.InputObjectType):
-    tracking_number = graphene.String(description="Fulfillment tracking number")
+    tracking_number = graphene.String(description="Fulfillment tracking number.")
     notify_customer = graphene.Boolean(
         description="If true, send an email notification to the customer."
     )
@@ -34,7 +34,7 @@ class FulfillmentCreateInput(graphene.InputObjectType):
 
 
 class FulfillmentUpdateTrackingInput(graphene.InputObjectType):
-    tracking_number = graphene.String(description="Fulfillment tracking number")
+    tracking_number = graphene.String(description="Fulfillment tracking number.")
     notify_customer = graphene.Boolean(
         description="If true, send an email notification to the customer."
     )
@@ -149,7 +149,9 @@ class FulfillmentUpdateTracking(BaseMutation):
     fulfillment = graphene.Field(
         Fulfillment, description="A fulfillment with updated tracking."
     )
-    order = graphene.Field(Order, description="Order which fulfillment was updated.")
+    order = graphene.Field(
+        Order, description="Order for which fulfillment was updated."
+    )
 
     class Arguments:
         id = graphene.ID(required=True, description="ID of an fulfillment to update.")

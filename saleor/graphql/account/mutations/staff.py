@@ -46,7 +46,7 @@ class StaffInput(UserInput):
 
 class StaffCreateInput(StaffInput):
     send_password_email = graphene.Boolean(
-        description="Send an email with a link to set the password"
+        description="Send an email with a link to set the password."
     )
     redirect_url = graphene.String(
         description=(
@@ -288,14 +288,14 @@ class AddressCreate(ModelMutation):
 
     class Arguments:
         user_id = graphene.ID(
-            description="ID of a user to create address for", required=True
+            description="ID of a user to create address for.", required=True
         )
         input = AddressInput(
-            description="Fields required to create address", required=True
+            description="Fields required to create address.", required=True
         )
 
     class Meta:
-        description = "Creates user address"
+        description = "Creates user address."
         model = models.Address
         permissions = ("account.manage_users",)
         error_type_class = AccountError
@@ -314,7 +314,7 @@ class AddressCreate(ModelMutation):
 
 class AddressUpdate(BaseAddressUpdate):
     class Meta:
-        description = "Updates an address"
+        description = "Updates an address."
         model = models.Address
         permissions = ("account.manage_users",)
         error_type_class = AccountError
@@ -323,7 +323,7 @@ class AddressUpdate(BaseAddressUpdate):
 
 class AddressDelete(BaseAddressDelete):
     class Meta:
-        description = "Deletes an address"
+        description = "Deletes an address."
         model = models.Address
         permissions = ("account.manage_users",)
         error_type_class = AccountError
@@ -437,7 +437,7 @@ class UserUpdatePrivateMeta(UpdateMetaBaseMutation):
 
 class UserClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
-        description = "Clear stored metadata value."
+        description = "Clear private metadata for user."
         model = models.User
         permissions = ("account.manage_users",)
         public = False

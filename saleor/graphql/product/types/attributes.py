@@ -44,7 +44,7 @@ class AttributeSortingInput(graphene.InputObjectType):
     direction = graphene.Argument(
         OrderDirection,
         required=True,
-        description="Specifies the direction in which to sort the attributes",
+        description="Specifies the direction in which to sort the attributes.",
     )
 
 

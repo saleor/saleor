@@ -50,7 +50,7 @@ class DraftOrderInput(InputObjectType):
         description="ID of a selected shipping method.", name="shippingMethod"
     )
     voucher = graphene.ID(
-        description="ID of the voucher associated with the order", name="voucher"
+        description="ID of the voucher associated with the order.", name="voucher"
     )
 
 
@@ -392,7 +392,7 @@ class DraftOrderLineUpdate(ModelMutation):
     class Arguments:
         id = graphene.ID(description="ID of the order line to update.", required=True)
         input = OrderLineInput(
-            required=True, description="Fields required to update an order line"
+            required=True, description="Fields required to update an order line."
         )
 
     class Meta:

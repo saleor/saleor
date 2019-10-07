@@ -7,7 +7,7 @@ from ..decorators import permission_required
 
 class GiftCard(CountableDjangoObjectType):
     display_code = graphene.String(
-        description="Code in format with allows displaying in a user interface."
+        description="Code in format which allows displaying in a user interface."
     )
     code = graphene.String(description="Gift card code.")
     user = graphene.Field(

@@ -12,7 +12,7 @@ from ..types import DigitalContent, ProductVariant
 
 class DigitalContentInput(graphene.InputObjectType):
     use_default_settings = graphene.Boolean(
-        description="Use default digital content settings for this product",
+        description="Use default digital content settings for this product.",
         required=True,
     )
     max_downloads = graphene.Int(
@@ -123,7 +123,7 @@ class DigitalContentDelete(BaseMutation):
         )
 
     class Meta:
-        description = "Remove digital content assigned to given variant"
+        description = "Remove digital content assigned to given variant."
         error_type_class = ProductError
         error_type_field = "product_errors"
 
@@ -154,7 +154,7 @@ class DigitalContentUpdate(BaseMutation):
         )
 
     class Meta:
-        description = "Update digital content"
+        description = "Update digital content."
         error_type_class = ProductError
         error_type_field = "product_errors"
 
@@ -220,7 +220,7 @@ class DigitalContentUpdate(BaseMutation):
 
 class DigitalContentUrlCreateInput(graphene.InputObjectType):
     content = graphene.ID(
-        description="Digital content ID which url will belong to",
+        description="Digital content ID which URL will belong to.",
         name="content",
         required=True,
     )
@@ -233,7 +233,7 @@ class DigitalContentUrlCreate(ModelMutation):
         )
 
     class Meta:
-        description = "Generate new url to digital content"
+        description = "Generate new URL to digital content."
         model = models.DigitalContentUrl
         error_type_class = ProductError
         error_type_field = "product_errors"

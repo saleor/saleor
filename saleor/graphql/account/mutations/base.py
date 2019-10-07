@@ -197,9 +197,9 @@ class BaseAddressUpdate(ModelMutation):
     )
 
     class Arguments:
-        id = graphene.ID(description="ID of the address to update", required=True)
+        id = graphene.ID(description="ID of the address to update.", required=True)
         input = AddressInput(
-            description="Fields required to update the address", required=True
+            description="Fields required to update the address.", required=True
         )
 
     class Meta:
@@ -297,7 +297,7 @@ class CustomerInput(UserInput, UserAddressInput):
 
 class UserCreateInput(CustomerInput):
     send_password_email = graphene.Boolean(
-        description="Send an email with a link to set a password"
+        description="Send an email with a link to set a password."
     )
     redirect_url = graphene.String(
         description=(
@@ -389,7 +389,7 @@ class UserUpdateMeta(UpdateMetaBaseMutation):
 
 class UserClearMeta(ClearMetaBaseMutation):
     class Meta:
-        description = "Clear stored metadata value."
+        description = "Clear metadata for user."
         model = models.User
         public = True
         error_type_class = AccountError

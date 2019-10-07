@@ -414,10 +414,10 @@ class CheckoutCustomerAttach(BaseMutation):
 
 
 class CheckoutCustomerDetach(BaseMutation):
-    checkout = graphene.Field(Checkout, description="An updated checkout")
+    checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
-        checkout_id = graphene.ID(description="Checkout ID", required=True)
+        checkout_id = graphene.ID(description="Checkout ID.", required=True)
 
     class Meta:
         description = "Removes the user assigned as the owner of the checkout."
@@ -435,7 +435,7 @@ class CheckoutCustomerDetach(BaseMutation):
 
 
 class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
-    checkout = graphene.Field(Checkout, description="An updated checkout")
+    checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
         checkout_id = graphene.ID(required=True, description="ID of the Checkout.")
@@ -492,7 +492,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
 
 class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
-    checkout = graphene.Field(Checkout, description="An updated checkout")
+    checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
         checkout_id = graphene.ID(required=True, description="ID of the Checkout.")
@@ -521,11 +521,11 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
 
 
 class CheckoutEmailUpdate(BaseMutation):
-    checkout = graphene.Field(Checkout, description="An updated checkout")
+    checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
-        checkout_id = graphene.ID(description="Checkout ID")
-        email = graphene.String(required=True, description="email")
+        checkout_id = graphene.ID(description="Checkout ID.")
+        email = graphene.String(required=True, description="email.")
 
     class Meta:
         description = "Updates email address in the existing Checkout object."
@@ -545,11 +545,11 @@ class CheckoutEmailUpdate(BaseMutation):
 
 
 class CheckoutShippingMethodUpdate(BaseMutation):
-    checkout = graphene.Field(Checkout, description="An updated checkout")
+    checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
-        checkout_id = graphene.ID(description="Checkout ID")
-        shipping_method_id = graphene.ID(required=True, description="Shipping method")
+        checkout_id = graphene.ID(description="Checkout ID.")
+        shipping_method_id = graphene.ID(required=True, description="Shipping method.")
 
     class Meta:
         description = "Updates the shipping address of the checkout."
@@ -616,10 +616,10 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
 
 class CheckoutComplete(BaseMutation):
-    order = graphene.Field(Order, description="Placed order")
+    order = graphene.Field(Order, description="Placed order.")
 
     class Arguments:
-        checkout_id = graphene.ID(description="Checkout ID", required=True)
+        checkout_id = graphene.ID(description="Checkout ID.", required=True)
         store_source = graphene.Boolean(
             default_value=False,
             description=(
@@ -703,11 +703,11 @@ class CheckoutComplete(BaseMutation):
 
 
 class CheckoutUpdateVoucher(BaseMutation):
-    checkout = graphene.Field(Checkout, description="An checkout with updated voucher")
+    checkout = graphene.Field(Checkout, description="An checkout with updated voucher.")
 
     class Arguments:
-        checkout_id = graphene.ID(description="Checkout ID", required=True)
-        voucher_code = graphene.String(description="Voucher code")
+        checkout_id = graphene.ID(description="Checkout ID.", required=True)
+        voucher_code = graphene.String(description="Voucher code.")
 
     class Meta:
         description = (
@@ -760,13 +760,13 @@ class CheckoutUpdateVoucher(BaseMutation):
 
 class CheckoutAddPromoCode(BaseMutation):
     checkout = graphene.Field(
-        Checkout, description="The checkout with the added gift card or voucher"
+        Checkout, description="The checkout with the added gift card or voucher."
     )
 
     class Arguments:
-        checkout_id = graphene.ID(description="Checkout ID", required=True)
+        checkout_id = graphene.ID(description="Checkout ID.", required=True)
         promo_code = graphene.String(
-            description="Gift card code or voucher code", required=True
+            description="Gift card code or voucher code.", required=True
         )
 
     class Meta:
@@ -785,13 +785,13 @@ class CheckoutAddPromoCode(BaseMutation):
 
 class CheckoutRemovePromoCode(BaseMutation):
     checkout = graphene.Field(
-        Checkout, description="The checkout with the removed gift card or voucher"
+        Checkout, description="The checkout with the removed gift card or voucher."
     )
 
     class Arguments:
-        checkout_id = graphene.ID(description="Checkout ID", required=True)
+        checkout_id = graphene.ID(description="Checkout ID.", required=True)
         promo_code = graphene.String(
-            description="Gift card code or voucher code", required=True
+            description="Gift card code or voucher code.", required=True
         )
 
     class Meta:
@@ -830,7 +830,7 @@ class CheckoutUpdatePrivateMeta(UpdateMetaBaseMutation):
 
 class CheckoutClearMeta(ClearMetaBaseMutation):
     class Meta:
-        description = "Clear stored metadata value."
+        description = "Clear metadata for checkout."
         permissions = ("order.manage_orders",)
         model = models.Checkout
         public = True
@@ -840,7 +840,7 @@ class CheckoutClearMeta(ClearMetaBaseMutation):
 
 class CheckoutClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
-        description = "Clear stored metadata value."
+        description = "Clear private metadata for checkout."
         permissions = ("order.manage_orders",)
         model = models.Checkout
         public = False
