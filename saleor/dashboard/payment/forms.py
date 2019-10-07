@@ -48,8 +48,7 @@ class GatewayConfigurationForm(forms.ModelForm):
 
     def parse_values(self):
         cleaned_data = self.cleaned_data
-        active = cleaned_data.get("active")
-        cleaned_data.pop("active")
+        active = cleaned_data.pop("active", False)
         data = {"active": active}
         data["configuration"] = list(cleaned_data.values())
         return data
