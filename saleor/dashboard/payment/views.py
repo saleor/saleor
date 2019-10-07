@@ -12,32 +12,28 @@ from ...payment.gateways.stripe.plugin import StripeGatewayPlugin
 from ..views import staff_member_required
 from .forms import GatewayConfigurationForm
 
-GATEWAYS_PLUGINS = [
+PAYMENT_PLUGINS = [
     BraintreeGatewayPlugin,
     DummyGatewayPlugin,
     RazorpayGatewayPlugin,
     StripeGatewayPlugin,
 ]
 
+PAYMENT_GATEWAYS = {plugin.PLUGIN_NAME: plugin for plugin in PAYMENT_PLUGINS}
+
 
 @staff_member_required
 @permission_required("extensions.manage_plugins")
 def index(request: "HttpRequest") -> TemplateResponse:
-    payment_gateways = [gateway.PLUGIN_NAME for gateway in GATEWAYS_PLUGINS]
-
-    ctx = {"payment_gateways": payment_gateways}
+    ctx = {"payment_gateways": PAYMENT_GATEWAYS.keys()}
     return TemplateResponse(request, "dashboard/payments/index.html", ctx)
 
 
 @staff_member_required
 @permission_required("extension.manage_plugins")
 def configure_payment_gateway(request: HttpRequest, plugin_name: str) -> HttpResponse:
-    plugin = None
-    for gateway in GATEWAYS_PLUGINS:
-        if gateway.PLUGIN_NAME == plugin_name:
-            plugin = gateway
-            break
-    else:
+    plugin = PAYMENT_GATEWAYS.get(plugin_name, None)
+    if plugin is None:
         msg = pgettext_lazy("Dashboard message", "Selected plugin does not exists.")
         messages.error(request, msg)
         return redirect("dashboard:payments-index")
