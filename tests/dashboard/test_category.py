@@ -115,6 +115,34 @@ def test_category_edit_with_background_image(
     mock_create_thumbnails.assert_called_once_with(category.pk)
 
 
+def test_subcategory_edit(monkeypatch, admin_client, category):
+    mock_create_thumbnails = Mock(return_value=None)
+    monkeypatch.setattr(
+        (
+            "saleor.dashboard.category.forms."
+            "create_category_background_image_thumbnails.delay"
+        ),
+        mock_create_thumbnails,
+    )
+
+    assert Category.objects.count() == 1
+    url = reverse("dashboard:category-add", kwargs={"root_pk": category.pk})
+    data = {"name": "Cars", "description": "Fastest cars"}
+    response = admin_client.post(url, data, follow=True)
+    assert response.status_code == 200
+    assert Category.objects.count() == 2
+    category.refresh_from_db()
+    subcategories = category.get_children()
+    assert len(subcategories) == 1
+    assert subcategories[0].name == "Cars"
+    url = reverse("dashboard:category-edit", kwargs={"root_pk": subcategories[0].pk})
+    data = {"name": "Cars Updated", "description": "Super slow!"}
+    response = admin_client.post(url, data, follow=True)
+    subcategories = category.get_children()
+    assert subcategories[0].name == "Cars Updated"
+    assert "Subcategories" in str(response.content)
+
+
 def test_category_details(admin_client, category):
     assert Category.objects.count() == 1
     url = reverse("dashboard:category-details", kwargs={"pk": category.pk})
