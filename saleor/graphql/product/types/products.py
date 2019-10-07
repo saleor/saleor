@@ -512,11 +512,9 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
 
     @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related="images")
-    def resolve_thumbnail(root: models.Product, info, *, size=None):
+    def resolve_thumbnail(root: models.Product, info, *, size=255):
         image = root.get_first_image()
         if image:
-            if not size:
-                size = 255
             url = get_product_image_thumbnail(image, size, method="thumbnail")
             alt = image.alt
             return Image(alt=alt, url=info.context.build_absolute_uri(url))

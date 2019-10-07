@@ -228,13 +228,11 @@ class OrderLine(CountableDjangoObjectType):
     @gql_optimizer.resolver_hints(
         prefetch_related=["variant__images", "variant__product__images"]
     )
-    def resolve_thumbnail(root: models.OrderLine, info, *, size=None):
+    def resolve_thumbnail(root: models.OrderLine, info, *, size=255):
         if not root.variant_id:
             return None
         image = root.variant.get_first_image()
         if image:
-            if not size:
-                size = 255
             url = get_product_image_thumbnail(image, size, method="thumbnail")
             alt = image.alt
             return Image(alt=alt, url=info.context.build_absolute_uri(url))
