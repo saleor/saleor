@@ -53,7 +53,6 @@ class GatewayConfigurationForm(forms.ModelForm):
         data["configuration"] = list(cleaned_data.values())
         return data
 
-    # pylint: disable=W0221
-    def save(self):
+    def save(self, _):
         parse_value = self.parse_values()
         self.plugin.save_plugin_configuration(self.instance, parse_value)
