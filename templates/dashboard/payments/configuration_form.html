@@ -12,11 +12,22 @@
 
 {% block breadcrumbs %}
 <ul class="breadcrumbs breadcrumbs--history">
-  <li>
-    {% trans "Payments configurations" context "Dashboard payment configuration page" %}
-  </li>
-  <li>{{ plugin_name }}</li>
-</ul>
+    <li>
+      <a href="{% url "dashboard:payments-index" %}" class="breadcrumb">
+        {% trans "Payments configurations" context "Dashboard payment configuration page" %}
+      </a>
+    </li>
+    <li class="back-mobile">
+      <a href="{% url "dashboard:payments-index" %}">
+        <svg data-src="{% static "dashboard/images/arrow-left.svg" %}" fill="#fff" width="20px" height="20px" />
+      </a>
+    </li>
+    <li>
+      <span class="breadcrumbs--ellipsed-item">
+        {{ plugin_name }}
+      </span>
+    </li>
+  </ul>
 {% endblock %}
 
 {% block content %}
