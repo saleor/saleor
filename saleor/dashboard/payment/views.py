@@ -34,7 +34,7 @@ def index(request: "HttpRequest") -> TemplateResponse:
 def configure_payment_gateway(request: HttpRequest, plugin_name: str) -> HttpResponse:
     plugin = PAYMENT_GATEWAYS.get(plugin_name, None)
     if plugin is None:
-        msg = pgettext_lazy("Dashboard message", "Selected plugin does not exists.")
+        msg = pgettext_lazy("Dashboard message", "Selected plugin does not exist.")
         messages.error(request, msg)
         return redirect("dashboard:payments-index")
 
