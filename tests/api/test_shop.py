@@ -251,6 +251,60 @@ def test_query_digital_content_settings(
     assert data["defaultDigitalUrlValidDays"] == url_valid_days
 
 
+QUERY_RETRIEVE_DEFAULT_MAIL_SENDER_SETTINGS = """
+    {
+      shop {
+        defaultMailSenderName
+        defaultMailSenderAddress
+      }
+    }
+"""
+
+
+def test_query_default_mail_sender_settings(
+    staff_api_client, site_settings, permission_manage_settings
+):
+    site_settings.default_mail_sender_name = "Mirumee Labs Info"
+    site_settings.default_mail_sender_address = "hello@example.com"
+    site_settings.save(
+        update_fields=["default_mail_sender_name", "default_mail_sender_address"]
+    )
+
+    query = QUERY_RETRIEVE_DEFAULT_MAIL_SENDER_SETTINGS
+
+    response = staff_api_client.post_graphql(
+        query, permissions=[permission_manage_settings]
+    )
+    content = get_graphql_content(response)
+
+    data = content["data"]["shop"]
+    assert data["defaultMailSenderName"] == "Mirumee Labs Info"
+    assert data["defaultMailSenderAddress"] == "hello@example.com"
+
+
+def test_query_default_mail_sender_settings_not_set(
+    staff_api_client, site_settings, permission_manage_settings, settings
+):
+    site_settings.default_mail_sender_name = None
+    site_settings.default_mail_sender_address = None
+    site_settings.save(
+        update_fields=["default_mail_sender_name", "default_mail_sender_address"]
+    )
+
+    settings.EMAIL_HOST_USER = "default@example.com"
+
+    query = QUERY_RETRIEVE_DEFAULT_MAIL_SENDER_SETTINGS
+
+    response = staff_api_client.post_graphql(
+        query, permissions=[permission_manage_settings]
+    )
+    content = get_graphql_content(response)
+
+    data = content["data"]["shop"]
+    assert data["defaultMailSenderName"] is None
+    assert data["defaultMailSenderAddress"] == "default@example.com"
+
+
 def test_shop_digital_content_settings_mutation(
     staff_api_client, site_settings, permission_manage_settings
 ):
@@ -334,6 +388,100 @@ def test_shop_settings_mutation(
     site_settings.refresh_from_db()
     assert not site_settings.include_taxes_in_prices
     assert site_settings.charge_taxes_on_shipping == new_charge_taxes_on_shipping
+
+
+MUTATION_UPDATE_DEFAULT_MAIL_SENDER_SETTINGS = """
+    mutation updateDefaultSenderSettings($input: ShopSettingsInput!) {
+      shopSettingsUpdate(input: $input) {
+        shop {
+          defaultMailSenderName
+          defaultMailSenderAddress
+        }
+        errors {
+          field
+          message
+        }
+      }
+    }
+"""
+
+
+def test_update_default_sender_settings(staff_api_client, permission_manage_settings):
+    query = MUTATION_UPDATE_DEFAULT_MAIL_SENDER_SETTINGS
+
+    variables = {
+        "input": {
+            "defaultMailSenderName": "Dummy Name",
+            "defaultMailSenderAddress": "dummy@example.com",
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_settings]
+    )
+    content = get_graphql_content(response)
+
+    data = content["data"]["shopSettingsUpdate"]["shop"]
+    assert data["defaultMailSenderName"] == "Dummy Name"
+    assert data["defaultMailSenderAddress"] == "dummy@example.com"
+
+
+@pytest.mark.parametrize(
+    "sender_name",
+    (
+        "\nDummy Name",
+        "\rDummy Name",
+        "Dummy Name\r",
+        "Dummy Name\n",
+        "Dummy\rName",
+        "Dummy\nName",
+    ),
+)
+def test_update_default_sender_settings_invalid_name(
+    staff_api_client, permission_manage_settings, sender_name
+):
+    query = MUTATION_UPDATE_DEFAULT_MAIL_SENDER_SETTINGS
+
+    variables = {"input": {"defaultMailSenderName": sender_name}}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_settings]
+    )
+    content = get_graphql_content(response)
+
+    errors = content["data"]["shopSettingsUpdate"]["errors"]
+    assert errors == [
+        {"field": "defaultMailSenderName", "message": "New lines are not allowed."}
+    ]
+
+
+@pytest.mark.parametrize(
+    "sender_email",
+    (
+        "\ndummy@example.com",
+        "\rdummy@example.com",
+        "dummy@example.com\r",
+        "dummy@example.com\n",
+        "dummy@example\r.com",
+        "dummy@example\n.com",
+    ),
+)
+def test_update_default_sender_settings_invalid_email(
+    staff_api_client, permission_manage_settings, sender_email
+):
+    query = MUTATION_UPDATE_DEFAULT_MAIL_SENDER_SETTINGS
+
+    variables = {"input": {"defaultMailSenderAddress": sender_email}}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_settings]
+    )
+    content = get_graphql_content(response)
+
+    errors = content["data"]["shopSettingsUpdate"]["errors"]
+    assert errors == [
+        {"field": "defaultMailSenderAddress", "message": "Enter a valid email address."}
+    ]
 
 
 def test_shop_domain_update(staff_api_client, permission_manage_settings):

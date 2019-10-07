@@ -1,13 +1,30 @@
+from typing import Optional
+
+from django.conf import settings
 from django.contrib.sites.models import Site
+from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.translation import pgettext_lazy
 
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits
 from . import AuthenticationBackends
+from .error_codes import SiteErrorCode
 from .patch_sites import patch_contrib_sites
 
 patch_contrib_sites()
+
+
+EMAIL_SENDER_NAME_VALIDATORS = [
+    RegexValidator(
+        r"[\n\r]",
+        inverse_match=True,
+        message=pgettext_lazy(
+            "Email sender name validation error", "New lines are not allowed."
+        ),
+        code=SiteErrorCode.FORBIDDEN_CHARACTER.value,
+    )
+]
 
 
 class SiteSettings(models.Model):
@@ -40,6 +57,12 @@ class SiteSettings(models.Model):
     company_address = models.ForeignKey(
         "account.Address", blank=True, null=True, on_delete=models.CASCADE
     )
+
+    default_mail_sender_name = models.CharField(
+        max_length=254, blank=True, null=True, validators=EMAIL_SENDER_NAME_VALIDATORS
+    )
+    default_mail_sender_address = models.EmailField(blank=True, null=True)
+
     translated = TranslationProxy()
 
     class Meta:
@@ -56,6 +79,23 @@ class SiteSettings(models.Model):
 
     def __str__(self):
         return self.site.name
+
+    @property
+    def default_from_email(self) -> Optional[str]:
+        sender_name: Optional[str] = self.default_mail_sender_name
+        sender_address: Optional[
+            str
+        ] = self.default_mail_sender_address or settings.EMAIL_HOST_USER
+
+        # If no name was provided, only return the email address
+        if not sender_name:
+            return sender_address
+
+        # If an email address was provided, return 'Sender Name <address>'
+        if sender_address:
+            return f"{sender_name} <{sender_address}>"
+
+        return None
 
     def available_backends(self):
         return self.authorizationkey_set.values_list("name", flat=True)

@@ -65,7 +65,7 @@ def setup_dummy_gateway(settings):
 
 
 @pytest.fixture(autouse=True)
-def site_settings(db, settings):
+def site_settings(db, settings) -> SiteSettings:
     """Create a site and matching site settings.
 
     This fixture is autouse because django.contrib.sites.models.Site and
