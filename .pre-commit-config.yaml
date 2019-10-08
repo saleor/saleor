@@ -34,3 +34,12 @@ repos:
       - id: prettier
         files: ^saleor/static/*.*\.js$
         verbose: true
+
+  - repo: local
+    hooks:
+      - id: migrations-check
+        language: system
+        name: Check for uncreated migrations.
+        entry: bash -c "./manage.py makemigrations --check --dry-run"
+        files: "models\\.py$"
+        stages: [commit]
