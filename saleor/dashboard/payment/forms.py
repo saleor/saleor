@@ -28,7 +28,7 @@ class GatewayConfigurationForm(forms.ModelForm):
         kwargs["instance"] = self._get_current_configuration()
         super().__init__(*args, **kwargs)
         # add new fields specified for gateway
-        self.fields.update(self._prepare_fields_for_given_config(self.instance))
+        self._prepare_fields_for_given_config(self.instance)
 
     def _get_current_configuration(self) -> PluginConfiguration:
         qs = PluginConfiguration.objects.all()
@@ -43,7 +43,7 @@ class GatewayConfigurationForm(forms.ModelForm):
             raise Exception
         for elem in structure:
             slug = slugify(elem["name"])
-            parsed_fields[slug] = create_custom_form_field(elem)
+            self.fields[slug] = create_custom_form_field(elem)
         return parsed_fields
 
     def parse_values(self):
