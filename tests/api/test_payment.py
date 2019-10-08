@@ -141,6 +141,10 @@ def test_use_checkout_billing_address_as_payment_billing(
 
     # check if proper error is returned if address is missing
     assert data["errors"][0]["field"] == "billingAddress"
+    assert (
+        data["errors"][0]["message"]
+        == "No billing address associated with this checkout."
+    )
 
     # assign the address and try again
     address.street_address_1 = "spanish-inqusition"
@@ -177,7 +181,7 @@ def test_payment_capture_success(
 ):
     payment = payment_txn_preauth
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
-    payment_id = graphene.Node.to_global_id("Payment", payment_txn_preauth.pk)
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
 
     variables = {"paymentId": payment_id, "amount": str(payment_txn_preauth.total)}
     response = staff_api_client.post_graphql(
@@ -198,7 +202,7 @@ def test_payment_capture_with_invalid_argument(
 ):
     payment = payment_txn_preauth
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
-    payment_id = graphene.Node.to_global_id("Payment", payment_txn_preauth.pk)
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
 
     variables = {"paymentId": payment_id, "amount": 0}
     response = staff_api_client.post_graphql(
@@ -210,12 +214,33 @@ def test_payment_capture_with_invalid_argument(
     assert data["errors"][0]["message"] == "Amount should be a positive number."
 
 
+def test_payment_capture_with_payment_non_authorized_yet(
+    staff_api_client, permission_manage_orders, payment_dummy
+):
+    """Ensure capture a payment that is set as authorized is failing with
+    the proper error message.
+    """
+    payment = payment_dummy
+    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+
+    variables = {"paymentId": payment_id, "amount": 1}
+    response = staff_api_client.post_graphql(
+        CAPTURE_QUERY, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["paymentCapture"]
+    assert data["errors"] == [
+        {"field": None, "message": "Cannot find successful auth transaction"}
+    ]
+
+
 def test_payment_capture_gateway_error(
     staff_api_client, permission_manage_orders, payment_txn_preauth, monkeypatch
 ):
     payment = payment_txn_preauth
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
-    payment_id = graphene.Node.to_global_id("Payment", payment_txn_preauth.pk)
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     variables = {"paymentId": payment_id, "amount": str(payment_txn_preauth.total)}
     monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", lambda: False)
     response = staff_api_client.post_graphql(
@@ -223,9 +248,7 @@ def test_payment_capture_gateway_error(
     )
     content = get_graphql_content(response)
     data = content["data"]["paymentCapture"]
-    assert data["errors"]
-    assert data["errors"][0]["field"] is None
-    assert data["errors"][0]["message"]
+    assert data["errors"] == [{"field": None, "message": "Unable to process capture"}]
 
     payment_txn_preauth.refresh_from_db()
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
@@ -309,9 +332,7 @@ def test_payment_refund_error(
     content = get_graphql_content(response)
     data = content["data"]["paymentRefund"]
 
-    assert data["errors"]
-    assert data["errors"][0]["field"] is None
-    assert data["errors"][0]["message"]
+    assert data["errors"] == [{"field": None, "message": "Unable to process refund"}]
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.transactions.count() == 2
