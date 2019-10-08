@@ -19,6 +19,7 @@ class WebhookEventType:
         (ORDER_FULLYPAID, pgettext_lazy("Order has been fully paid", "Order paid")),
         (ORDER_UPDATED, pgettext_lazy("Order has been updated", "Order updated")),
         (ORDER_CANCELLED, pgettext_lazy("Order has been cancelled", "Order cancelled")),
+        (ORDER_FULFILLED, pgettext_lazy("Order has been fulfilled", "Order fulfilled")),
         (
             CUSTOMER_CREATED,
             pgettext_lazy("Customer has been created", "Customer created"),
@@ -28,6 +29,9 @@ class WebhookEventType:
     PERMISSIONS = {
         ORDER_CREATED: "order.manage_orders",
         ORDER_FULLYPAID: "order.manage_orders",
+        ORDER_UPDATED: "order.manage_orders",
+        ORDER_CANCELLED: "order.manage_orders",
+        ORDER_FULFILLED: "order.manage_orders",
         CUSTOMER_CREATED: "account.manage_users",
         PRODUCT_CREATED: "product.manage_products",
     }
