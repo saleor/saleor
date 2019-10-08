@@ -16,10 +16,10 @@ class GiftCard(CountableDjangoObjectType):
     )
 
     class Meta:
-        description = """
-        A gift card is a prepaid electronic payment card accepted in stores.
-        They can be used during checkout by providing a valid gift
-        card codes. """
+        description = (
+            "A gift card is a prepaid electronic payment card accepted in stores. They "
+            "can be used during checkout by providing a valid gift card codes."
+        )
         only_fields = [
             "user",
             "code",

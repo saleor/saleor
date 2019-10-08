@@ -65,9 +65,10 @@ class Shop(graphene.ObjectType):
     )
     authorization_keys = graphene.List(
         AuthorizationKey,
-        description="""List of configured authorization keys. Authorization
-               keys are used to enable third-party OAuth authorization
-               (currently Facebook or Google).""",
+        description=(
+            "List of configured authorization keys. Authorization keys are used to "
+            "enable third-party OAuth authorization (currently Facebook or Google)."
+        ),
         required=True,
     )
     countries = graphene.List(
@@ -127,7 +128,7 @@ class Shop(graphene.ObjectType):
             description="A language code to return the translation for.",
             required=True,
         ),
-        description=("Returns translated Shop fields for the given language code."),
+        description="Returns translated Shop fields for the given language code.",
     )
     automatic_fulfillment_digital_products = graphene.Boolean(
         description="Enable automatic fulfillment for all digital products."
@@ -144,8 +145,9 @@ class Shop(graphene.ObjectType):
     )
 
     class Meta:
-        description = """
-        Represents a shop resource containing general shop data and configuration."""
+        description = (
+            "Represents a shop resource containing general shop data and configuration."
+        )
 
     @staticmethod
     @permission_required("site.manage_settings")

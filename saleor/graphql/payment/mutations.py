@@ -39,8 +39,10 @@ class PaymentInput(graphene.InputObjectType):
         ),
     )
     billing_address = AddressInput(
-        description="""Billing address. If empty, the billing address associated with
-            the checkout instance will be used."""
+        description=(
+            "Billing address. If empty, the billing address associated with the "
+            "checkout instance will be used."
+        )
     )
 
 

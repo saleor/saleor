@@ -115,7 +115,7 @@ class RequestPasswordReset(BaseMutation):
             required=True,
             description=(
                 "URL of a view where users should be redirected to "
-                "reset the password. URL in RFC 1808 format.",
+                "reset the password. URL in RFC 1808 format."
             ),
         )
 
@@ -302,7 +302,7 @@ class UserCreateInput(CustomerInput):
     redirect_url = graphene.String(
         description=(
             "URL of a view where users should be redirected to "
-            "set the password. URL in RFC 1808 format.",
+            "set the password. URL in RFC 1808 format."
         )
     )
 

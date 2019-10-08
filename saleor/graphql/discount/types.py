@@ -44,9 +44,10 @@ class Sale(CountableDjangoObjectType):
     )
 
     class Meta:
-        description = """
-        Sales allow creating discounts for categories, collections or
-        products and are visible to all the customers."""
+        description = (
+            "Sales allow creating discounts for categories, collections or products "
+            "and are visible to all the customers."
+        )
         interfaces = [relay.Node]
         model = models.Sale
         only_fields = ["end_date", "id", "name", "start_date", "type", "value"]
@@ -111,10 +112,11 @@ class Voucher(CountableDjangoObjectType):
     )
 
     class Meta:
-        description = """
-        Vouchers allow giving discounts to particular customers on categories,
-        collections or specific products. They can be used during checkout by
-        providing valid voucher codes."""
+        description = (
+            "Vouchers allow giving discounts to particular customers on categories, "
+            "collections or specific products. They can be used during checkout by "
+            "providing valid voucher codes."
+        )
         only_fields = [
             "apply_once_per_order",
             "apply_once_per_customer",

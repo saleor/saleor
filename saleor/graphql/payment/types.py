@@ -71,8 +71,9 @@ class Payment(CountableDjangoObjectType):
     )
     actions = graphene.List(
         OrderAction,
-        description="""List of actions that can be performed in
-        the current state of a payment.""",
+        description=(
+            "List of actions that can be performed in the current state of a payment."
+        ),
         required=True,
     )
     total = graphene.Field(Money, description="Total amount of the payment.")

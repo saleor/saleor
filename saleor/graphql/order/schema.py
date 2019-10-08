@@ -62,8 +62,10 @@ class OrderDraftFilterInput(FilterInputObjectType):
 class OrderQueries(graphene.ObjectType):
     homepage_events = PrefetchingConnectionField(
         OrderEvent,
-        description="""List of activity events to display on
-        homepage (at the moment it only contains order-events).""",
+        description=(
+            "List of activity events to display on "
+            "homepage (at the moment it only contains order-events)."
+        ),
     )
     order = graphene.Field(
         Order,

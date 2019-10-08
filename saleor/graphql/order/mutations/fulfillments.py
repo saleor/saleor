@@ -187,8 +187,7 @@ class FulfillmentCancel(BaseMutation):
         )
 
     class Meta:
-        description = """Cancels existing fulfillment
-        and optionally restocks items."""
+        description = "Cancels existing fulfillment and optionally restocks items."
         permissions = ("order.manage_orders",)
         error_type_class = OrderError
         error_type_field = "order_errors"

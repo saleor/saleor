@@ -199,9 +199,10 @@ class OrderLine(CountableDjangoObjectType):
     variant = graphene.Field(
         ProductVariant,
         required=False,
-        description="""
-            A purchased product variant. Note: this field may be null if the
-            variant has been removed from stock at all.""",
+        description=(
+            "A purchased product variant. Note: this field may be null if the variant "
+            "has been removed from stock at all."
+        ),
     )
     translated_product_name = graphene.String(
         required=True, description="Product name in the customer's language"
@@ -268,8 +269,9 @@ class Order(MetadataObjectType, CountableDjangoObjectType):
     )
     actions = graphene.List(
         OrderAction,
-        description="""List of actions that can be performed in
-        the current state of an order.""",
+        description=(
+            "List of actions that can be performed in the current state of an order."
+        ),
         required=True,
     )
     available_shipping_methods = graphene.List(
@@ -316,8 +318,7 @@ class Order(MetadataObjectType, CountableDjangoObjectType):
     )
     total_balance = graphene.Field(
         Money,
-        description="""The difference between the paid and the order total
-        amount.""",
+        description="The difference between the paid and the order total amount.",
         required=True,
     )
     user_email = graphene.String(
