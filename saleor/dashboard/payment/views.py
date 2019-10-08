@@ -1,6 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
-from django.http import HttpRequest, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
@@ -28,7 +28,7 @@ def configure_payment_gateway(request: HttpRequest, plugin_name: str) -> HttpRes
     if plugin is None:
         msg = pgettext_lazy("Dashboard message", "Selected plugin does not exist.")
         messages.error(request, msg)
-        return redirect("dashboard:payments-index")
+        raise Http404()
 
     form = GatewayConfigurationForm(plugin, request.POST or None)
     if form.is_valid():
