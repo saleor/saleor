@@ -40,9 +40,7 @@ class MenuItemCreateInput(MenuItemInput):
         description="Menu to which item belongs.", name="menu", required=True
     )
     parent = graphene.ID(
-        description="""
-        ID of the parent menu. If empty, menu will be top level
-        menu.""",
+        description="ID of the parent menu. If empty, menu will be top level menu.",
         name="parent",
     )
 
@@ -170,9 +168,10 @@ class MenuItemCreate(ModelMutation):
     class Arguments:
         input = MenuItemCreateInput(
             required=True,
-            description="""Fields required to update a menu item.
-            Only one of 'url', 'category', 'page', 'collection' is allowed
-            per item""",
+            description=(
+                "Fields required to update a menu item. Only one of `url`, `category`, "
+                "`page`, `collection` is allowed per item."
+            ),
         )
 
     class Meta:
@@ -216,9 +215,10 @@ class MenuItemUpdate(MenuItemCreate):
         id = graphene.ID(required=True, description="ID of a menu item to update.")
         input = MenuItemInput(
             required=True,
-            description="""Fields required to update a menu item.
-            Only one of 'url', 'category', 'page', 'collection' is allowed
-            per item""",
+            description=(
+                "Fields required to update a menu item. Only one of `url`, `category`, "
+                "`page`, `collection` is allowed per item."
+            ),
         )
 
     class Meta:

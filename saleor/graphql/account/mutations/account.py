@@ -87,7 +87,7 @@ class AccountRequestDeletion(BaseMutation):
             required=True,
             description=(
                 "URL of a view where users should be redirected to "
-                "delete their account. URL in RFC 1808 format.",
+                "delete their account. URL in RFC 1808 format."
             ),
         )
 

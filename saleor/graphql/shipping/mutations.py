@@ -40,9 +40,10 @@ class ShippingZoneInput(graphene.InputObjectType):
         graphene.String, description="List of countries in this shipping zone."
     )
     default = graphene.Boolean(
-        description="""
-            Default shipping zone will be used
-            for countries not covered by other zones."""
+        description=(
+            "Default shipping zone will be used for countries not covered by other "
+            "zones."
+        )
     )
 
 

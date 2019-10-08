@@ -57,8 +57,9 @@ class DraftOrderInput(InputObjectType):
 class DraftOrderCreateInput(DraftOrderInput):
     lines = graphene.List(
         OrderLineCreateInput,
-        description="""Variant line input consisting of variant ID
-        and quantity of products.""",
+        description=(
+            "Variant line input consisting of variant ID and quantity of products."
+        ),
     )
 
 

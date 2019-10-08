@@ -38,9 +38,10 @@ class TaxedMoney(graphene.ObjectType):
     tax = graphene.Field(Money, description="Amount of taxes.", required=True)
 
     class Meta:
-        description = """Represents a monetary value with taxes. In
-        cases where taxes were not applied, net and gross values will be equal.
-        """
+        description = (
+            "Represents a monetary value with taxes. In cases where taxes were not "
+            "applied, net and gross values will be equal."
+        )
 
 
 class TaxedMoneyRange(graphene.ObjectType):

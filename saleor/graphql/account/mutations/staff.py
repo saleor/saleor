@@ -51,7 +51,7 @@ class StaffCreateInput(StaffInput):
     redirect_url = graphene.String(
         description=(
             "URL of a view where users should be redirected to "
-            "set the password. URL in RFC 1808 format.",
+            "set the password. URL in RFC 1808 format."
         )
     )
 
@@ -382,12 +382,11 @@ class UserAvatarUpdate(BaseMutation):
         )
 
     class Meta:
-        description = """
-            Create a user avatar. Only for staff members. This mutation must
-            be sent as a `multipart` request. More detailed specs of the
-            upload format can be found here:
-            https://github.com/jaydenseric/graphql-multipart-request-spec
-            """
+        description = (
+            "Create a user avatar. Only for staff members. This mutation must be sent "
+            "as a `multipart` request. More detailed specs of the upload format can be "
+            "found here: https://github.com/jaydenseric/graphql-multipart-request-spec"
+        )
         error_type_class = AccountError
         error_type_field = "account_errors"
 

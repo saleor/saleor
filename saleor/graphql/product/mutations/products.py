@@ -70,9 +70,10 @@ class CategoryCreate(ModelMutation):
             required=True, description="Fields required to create a category."
         )
         parent_id = graphene.ID(
-            description="""
-                ID of the parent category. If empty, category will be top level
-                category.""",
+            description=(
+                "ID of the parent category. If empty, category will be top level "
+                "category."
+            ),
             name="parent",
         )
 
@@ -486,19 +487,23 @@ class ProductInput(graphene.InputObjectType):
     seo = SeoInput(description="Search engine optimization fields.")
     weight = WeightScalar(description="Weight of the Product.", required=False)
     sku = graphene.String(
-        description="""Stock keeping unit of a product. Note: this
-        field is only used if a product doesn't use variants."""
+        description=(
+            "Stock keeping unit of a product. Note: this field is only used if "
+            "a product doesn't use variants."
+        )
     )
     quantity = graphene.Int(
-        description="""The total quantity of a product available for
-        sale. Note: this field is only used if a product doesn't
-        use variants."""
+        description=(
+            "The total quantity of a product available for sale. Note: this field is "
+            "only used if a product doesn't use variants."
+        )
     )
     track_inventory = graphene.Boolean(
-        description="""Determines if the inventory of this product
-        should be tracked. If false, the quantity won't change when customers
-        buy this item. Note: this field is only used if a product doesn't
-        use variants."""
+        description=(
+            "Determines if the inventory of this product should be tracked. If false, "
+            "the quantity won't change when customers buy this item. Note: this field "
+            "is only used if a product doesn't use variants."
+        )
     )
 
 
@@ -992,9 +997,10 @@ class ProductVariantInput(graphene.InputObjectType):
         description="The total quantity of this variant available for sale."
     )
     track_inventory = graphene.Boolean(
-        description="""Determines if the inventory of this variant should
-               be tracked. If false, the quantity won't change when customers
-               buy this item."""
+        description=(
+            "Determines if the inventory of this variant should be tracked. If false, "
+            "the quantity won't change when customers buy this item."
+        )
     )
     weight = WeightScalar(description="Weight of the Product Variant.", required=False)
 
@@ -1184,10 +1190,11 @@ class ProductVariantClearPrivateMeta(ClearMetaBaseMutation):
 class ProductTypeInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the product type.")
     has_variants = graphene.Boolean(
-        description="""Determines if product of this type has multiple
-        variants. This option mainly simplifies product management
-        in the dashboard. There is always at least one variant created under
-        the hood."""
+        description=(
+            "Determines if product of this type has multiple variants. This option "
+            "mainly simplifies product management in the dashboard. There is always at "
+            "least one variant created under the hood."
+        )
     )
     product_attributes = graphene.List(
         graphene.ID,
@@ -1196,13 +1203,14 @@ class ProductTypeInput(graphene.InputObjectType):
     )
     variant_attributes = graphene.List(
         graphene.ID,
-        description="""List of attributes used to distinguish between
-        different variants of a product.""",
+        description=(
+            "List of attributes used to distinguish between different variants of "
+            "a product."
+        ),
         name="variantAttributes",
     )
     is_shipping_required = graphene.Boolean(
-        description="""Determines if shipping is required for products
-        of this variant."""
+        description="Determines if shipping is required for products of this variant."
     )
     is_digital = graphene.Boolean(
         description="Determines if products are digital.", required=False
@@ -1350,10 +1358,11 @@ class ProductImageCreate(BaseMutation):
         )
 
     class Meta:
-        description = """Create a product image. This mutation must be
-        sent as a `multipart` request. More detailed specs of the upload format
-        can be found here:
-        https://github.com/jaydenseric/graphql-multipart-request-spec"""
+        description = (
+            "Create a product image. This mutation must be sent as a `multipart` "
+            "request. More detailed specs of the upload format can be found here: "
+            "https://github.com/jaydenseric/graphql-multipart-request-spec"
+        )
         permissions = ("product.manage_products",)
         error_type_class = ProductError
         error_type_field = "product_errors"

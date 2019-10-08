@@ -602,7 +602,7 @@ class CreateToken(ObtainJSONWebToken):
 
 
 class VerifyToken(Verify):
-    """Mutation that confirms if token is valid and also return user data."""
+    """Mutation that confirms if token is valid and also returns user data."""
 
     user = graphene.Field(User)
 

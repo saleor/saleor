@@ -17,7 +17,8 @@ class DigitalContentInput(graphene.InputObjectType):
     )
     max_downloads = graphene.Int(
         description=(
-            "Determines how many times a download link can be accessed by a " "customer"
+            "Determines how many times a download link can be accessed by a "
+            "customer."
         ),
         required=False,
     )
@@ -29,7 +30,7 @@ class DigitalContentInput(graphene.InputObjectType):
         required=False,
     )
     automatic_fulfillment = graphene.Boolean(
-        description=("Overwrite default automatic_fulfillment setting for variant"),
+        description="Overwrite default automatic_fulfillment setting for variant.",
         required=False,
     )
 
@@ -54,10 +55,11 @@ class DigitalContentCreate(BaseMutation):
         )
 
     class Meta:
-        description = """Create new digital content. This mutation must
-        be sent as a `multipart` request. More detailed specs of the upload
-        format can be found here:
-        https://github.com/jaydenseric/graphql-multipart-request-spec"""
+        description = (
+            "Create new digital content. This mutation must be sent as a `multipart` "
+            "request. More detailed specs of the upload format can be found here: "
+            "https://github.com/jaydenseric/graphql-multipart-request-spec"
+        )
         error_type_class = ProductError
         error_type_field = "product_errors"
 
