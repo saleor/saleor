@@ -70,6 +70,7 @@ text-unidecode = "^1.2"
 tqdm = "^4.36"
 uwsgi = { version = "^2.0.8", markers = "platform_system != 'Windows'" }
 weasyprint = ">=48"
+graphene-federation = "^0.0.2"
 
 [tool.poetry.dev-dependencies]
 black = "19.3b0"
