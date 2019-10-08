@@ -22,7 +22,7 @@ def index(request: "HttpRequest") -> TemplateResponse:
 
 
 @staff_member_required
-@permission_required("extension.manage_plugins")
+@permission_required("extensions.manage_plugins")
 def configure_payment_gateway(request: HttpRequest, plugin_name: str) -> HttpResponse:
     plugin = get_extensions_manager().get_plugin(plugin_name)
     if plugin is None:
