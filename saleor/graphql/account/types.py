@@ -35,13 +35,13 @@ class AddressInput(graphene.InputObjectType):
 
 class Address(CountableDjangoObjectType):
     country = graphene.Field(
-        CountryDisplay, required=True, description="Default shop's country"
+        CountryDisplay, required=True, description="Shop's default country."
     )
     is_default_shipping_address = graphene.Boolean(
-        required=False, description="Address is user's default shipping address"
+        required=False, description="Address is user's default shipping address."
     )
     is_default_billing_address = graphene.Boolean(
-        required=False, description="Address is user's default billing address"
+        required=False, description="Address is user's default billing address."
     )
 
     class Meta:
@@ -110,7 +110,7 @@ class CustomerEvent(CountableDjangoObjectType):
     date = graphene.types.datetime.DateTime(
         description="Date when event happened at in ISO 8601 format."
     )
-    type = CustomerEventsEnum(description="Customer event type")
+    type = CustomerEventsEnum(description="Customer event type.")
     user = graphene.Field(
         lambda: User,
         id=graphene.Argument(graphene.ID),
@@ -183,7 +183,7 @@ class ServiceAccount(MetadataObjectType, CountableDjangoObjectType):
     name = graphene.String(description="Name of the service account.")
 
     tokens = graphene.List(
-        ServiceAccountToken, description="Last 4 characters of the tokens"
+        ServiceAccountToken, description="Last 4 characters of the tokens."
     )
 
     class Meta:
@@ -232,7 +232,7 @@ class User(MetadataObjectType, CountableDjangoObjectType):
         ),
         model_field="gift_cards",
     )
-    note = graphene.String(description="A note about the customer")
+    note = graphene.String(description="A note about the customer.")
     orders = gql_optimizer.field(
         PrefetchingConnectionField(
             "saleor.graphql.order.types.Order", description="List of user's orders."
@@ -251,7 +251,7 @@ class User(MetadataObjectType, CountableDjangoObjectType):
     )
     stored_payment_sources = graphene.List(
         "saleor.graphql.payment.types.PaymentSource",
-        description="List of stored payment sources",
+        description="List of stored payment sources.",
     )
 
     class Meta:

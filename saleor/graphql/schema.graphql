@@ -2836,11 +2836,11 @@ type Product implements Node {
   meta: [MetaStore]!
   url: String!
   thumbnail(size: Int): Image
-  availability: ProductPricingInfo @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, Has been renamed to 'pricing'.")
+  availability: ProductPricingInfo @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, Has been renamed to `pricing`.")
   pricing: ProductPricingInfo
   isAvailable: Boolean
   basePrice: Money
-  price: Money @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, has been replaced by 'basePrice'")
+  price: Money @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, has been replaced by `basePrice`")
   minimalVariantPrice: Money
   taxType: TaxType
   attributes: [SelectedAttribute!]!
@@ -3204,7 +3204,7 @@ type ProductVariant implements Node {
   stockQuantity: Int!
   priceOverride: Money
   price: Money @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, has been replaced by 'pricing.priceUndiscounted'")
-  availability: VariantPricingInfo @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, has been renamed to 'pricing'.")
+  availability: VariantPricingInfo @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, has been renamed to `pricing`.")
   pricing: VariantPricingInfo
   isAvailable: Boolean
   attributes: [SelectedAttribute!]!

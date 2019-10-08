@@ -34,22 +34,22 @@ class OrderEvent(CountableDjangoObjectType):
     date = graphene.types.datetime.DateTime(
         description="Date when event happened at in ISO 8601 format."
     )
-    type = OrderEventsEnum(description="Order event type")
+    type = OrderEventsEnum(description="Order event type.")
     user = graphene.Field(
         User,
         id=graphene.Argument(graphene.ID),
         description="User who performed the action.",
     )
     message = graphene.String(description="Content of the event.")
-    email = graphene.String(description="Email of the customer")
+    email = graphene.String(description="Email of the customer.")
     email_type = OrderEventsEmailsEnum(
-        description="Type of an email sent to the customer"
+        description="Type of an email sent to the customer."
     )
     amount = graphene.Float(description="Amount of money.")
-    payment_id = graphene.String(description="The payment ID from the payment gateway")
+    payment_id = graphene.String(description="The payment ID from the payment gateway.")
     payment_gateway = graphene.String(description="The payment gateway of the payment.")
     quantity = graphene.Int(description="Number of items.")
-    composed_id = graphene.String(description="Composed id of the Fulfillment.")
+    composed_id = graphene.String(description="Composed ID of the Fulfillment.")
     order_number = graphene.String(description="User-friendly number of an order.")
     oversold_items = graphene.List(
         graphene.String, description="List of oversold lines names."
@@ -159,7 +159,9 @@ class FulfillmentLine(CountableDjangoObjectType):
 
 class Fulfillment(CountableDjangoObjectType):
     lines = gql_optimizer.field(
-        graphene.List(FulfillmentLine, description="List of lines for the fulfillment"),
+        graphene.List(
+            FulfillmentLine, description="List of lines for the fulfillment."
+        ),
         model_field="lines",
     )
     status_display = graphene.String(description="User-friendly fulfillment status.")
@@ -189,7 +191,7 @@ class OrderLine(CountableDjangoObjectType):
     thumbnail = graphene.Field(
         Image,
         description="The main thumbnail for the ordered product.",
-        size=graphene.Argument(graphene.Int, description="Size of thumbnail"),
+        size=graphene.Argument(graphene.Int, description="Size of thumbnail."),
     )
     unit_price = graphene.Field(
         TaxedMoney, description="Price of the single item in the order line."
@@ -197,9 +199,10 @@ class OrderLine(CountableDjangoObjectType):
     variant = graphene.Field(
         ProductVariant,
         required=False,
-        description="""
-            A purchased product variant. Note: this field may be null if the
-            variant has been removed from stock at all.""",
+        description=(
+            "A purchased product variant. Note: this field may be null if the variant "
+            "has been removed from stock at all."
+        ),
     )
     translated_product_name = graphene.String(
         required=True, description="Product name in the customer's language"
@@ -266,8 +269,9 @@ class Order(MetadataObjectType, CountableDjangoObjectType):
     )
     actions = graphene.List(
         OrderAction,
-        description="""List of actions that can be performed in
-        the current state of an order.""",
+        description=(
+            "List of actions that can be performed in the current state of an order."
+        ),
         required=True,
     )
     available_shipping_methods = graphene.List(
@@ -282,7 +286,7 @@ class Order(MetadataObjectType, CountableDjangoObjectType):
         description="User-friendly payment status."
     )
     payments = gql_optimizer.field(
-        graphene.List(Payment, description="List of payments for the order"),
+        graphene.List(Payment, description="List of payments for the order."),
         model_field="payments",
     )
     total = graphene.Field(TaxedMoney, description="Total amount of the order.")
@@ -291,7 +295,7 @@ class Order(MetadataObjectType, CountableDjangoObjectType):
         TaxedMoney, description="The sum of line prices not including shipping."
     )
     gift_cards = gql_optimizer.field(
-        graphene.List(GiftCard, description="List of userd gift cards"),
+        graphene.List(GiftCard, description="List of user gift cards."),
         model_field="gift_cards",
     )
     status_display = graphene.String(description="User-friendly order status.")
@@ -314,8 +318,7 @@ class Order(MetadataObjectType, CountableDjangoObjectType):
     )
     total_balance = graphene.Field(
         Money,
-        description="""The difference between the paid and the order total
-        amount.""",
+        description="The difference between the paid and the order total amount.",
         required=True,
     )
     user_email = graphene.String(
