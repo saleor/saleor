@@ -21,7 +21,7 @@ class ShippingMethod(CountableDjangoObjectType):
             required=True,
         ),
         description=(
-            "Returns translated Shipping Method fields " "for the given language code."
+            "Returns translated shipping method fields " "for the given language code."
         ),
         resolver=resolve_translation,
     )

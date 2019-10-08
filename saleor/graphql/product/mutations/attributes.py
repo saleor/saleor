@@ -518,7 +518,7 @@ class AttributeDelete(ModelDeleteMutation):
 class AttributeUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.Attribute
-        description = "Update public metadata for Attribute."
+        description = "Update public metadata for attribute."
         permissions = ("product.manage_products",)
         public = True
         error_type_class = ProductError
@@ -527,7 +527,7 @@ class AttributeUpdateMeta(UpdateMetaBaseMutation):
 
 class AttributeClearMeta(ClearMetaBaseMutation):
     class Meta:
-        description = "Clears public metadata item for Attribute."
+        description = "Clears public metadata item for attribute."
         model = models.Attribute
         permissions = ("product.manage_products",)
         public = True
@@ -537,7 +537,7 @@ class AttributeClearMeta(ClearMetaBaseMutation):
 
 class AttributeUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
-        description = "Update public metadata for Attribute."
+        description = "Update public metadata for attribute."
         model = models.Attribute
         permissions = ("product.manage_products",)
         public = False
@@ -547,7 +547,7 @@ class AttributeUpdatePrivateMeta(UpdateMetaBaseMutation):
 
 class AttributeClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
-        description = "Clears public metadata item for Attribute."
+        description = "Clears public metadata item for attribute."
         model = models.Attribute
         permissions = ("product.manage_products",)
         public = False

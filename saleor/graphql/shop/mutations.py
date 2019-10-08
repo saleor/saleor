@@ -44,7 +44,7 @@ class SiteDomainInput(graphene.InputObjectType):
 
 
 class ShopSettingsUpdate(BaseMutation):
-    shop = graphene.Field(Shop, description="Updated Shop.")
+    shop = graphene.Field(Shop, description="Updated shop.")
 
     class Arguments:
         input = ShopSettingsInput(
@@ -71,7 +71,7 @@ class ShopSettingsUpdate(BaseMutation):
 
 
 class ShopAddressUpdate(BaseMutation, I18nMixin):
-    shop = graphene.Field(Shop, description="Updated Shop.")
+    shop = graphene.Field(Shop, description="Updated shop.")
 
     class Arguments:
         input = AddressInput(description="Fields required to update shop address.")
@@ -99,7 +99,7 @@ class ShopAddressUpdate(BaseMutation, I18nMixin):
 
 
 class ShopDomainUpdate(BaseMutation):
-    shop = graphene.Field(Shop, description="Updated Shop.")
+    shop = graphene.Field(Shop, description="Updated shop.")
 
     class Arguments:
         input = SiteDomainInput(description="Fields required to update site.")
@@ -126,7 +126,7 @@ class ShopDomainUpdate(BaseMutation):
 
 
 class ShopFetchTaxRates(BaseMutation):
-    shop = graphene.Field(Shop, description="Updated Shop.")
+    shop = graphene.Field(Shop, description="Updated shop.")
 
     class Meta:
         description = "Fetch tax rates."
@@ -147,7 +147,7 @@ class ShopFetchTaxRates(BaseMutation):
 
 
 class HomepageCollectionUpdate(BaseMutation):
-    shop = graphene.Field(Shop, description="Updated Shop.")
+    shop = graphene.Field(Shop, description="Updated shop.")
 
     class Arguments:
         collection = graphene.ID(description="Collection displayed on homepage.")
@@ -181,7 +181,7 @@ class AuthorizationKeyAdd(BaseMutation):
     authorization_key = graphene.Field(
         AuthorizationKey, description="Newly added authorization key."
     )
-    shop = graphene.Field(Shop, description="Updated Shop.")
+    shop = graphene.Field(Shop, description="Updated shop.")
 
     class Meta:
         description = "Adds an authorization key."
@@ -222,7 +222,7 @@ class AuthorizationKeyDelete(BaseMutation):
     authorization_key = graphene.Field(
         AuthorizationKey, description="Authorization key that was deleted."
     )
-    shop = graphene.Field(Shop, description="Updated Shop.")
+    shop = graphene.Field(Shop, description="Updated shop.")
 
     class Arguments:
         key_type = AuthorizationKeyType(
