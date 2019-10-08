@@ -77,12 +77,6 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "19.2.0"
 
-[package.extras]
-azure-pipelines = ["coverage", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface", "pytest-azurepipelines"]
-dev = ["coverage", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface", "sphinx", "pre-commit"]
-docs = ["sphinx", "zope.interface"]
-tests = ["coverage", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface"]
-
 [[package]]
 category = "main"
 description = "A tool that automatically formats Python code to conform to the PEP 8 style guide"
@@ -116,10 +110,6 @@ version = "4.7.1"
 [package.dependencies]
 soupsieve = ">=1.2"
 
-[package.extras]
-html5lib = ["html5lib"]
-lxml = ["lxml"]
-
 [[package]]
 category = "dev"
 description = "Print ASCII tables for terminals"
@@ -149,9 +139,6 @@ appdirs = "*"
 attrs = ">=18.1.0"
 click = ">=6.5"
 toml = ">=0.9.4"
-
-[package.extras]
-d = ["aiohttp (>=3.3.2)", "aiohttp-cors"]
 
 [[package]]
 category = "main"
@@ -212,6 +199,7 @@ requests = ">=0.11.1,<3.0"
 [[package]]
 category = "main"
 description = "Extensible memoizing collections and decorators"
+marker = "extra == \"google\""
 name = "cachetools"
 optional = false
 python-versions = "*"
@@ -229,11 +217,6 @@ version = "1.1.0"
 cffi = ">=1.1.0"
 setuptools = ">=39.2.0"
 
-[package.extras]
-doc = ["sphinx", "sphinx-rtd-theme"]
-test = ["pytest-runner", "pytest-cov", "pytest-flake8", "pytest-isort"]
-xcb = ["xcffib (>=0.3.2)"]
-
 [[package]]
 category = "main"
 description = "A Simple SVG Converter based on Cairo"
@@ -249,10 +232,6 @@ defusedxml = "*"
 pillow = "*"
 tinycss2 = "*"
 
-[package.extras]
-doc = ["sphinx", "sphinx-rtd-theme"]
-test = ["pytest-runner", "pytest-cov", "pytest-flake8", "pytest-isort"]
-
 [[package]]
 category = "main"
 description = "Distributed Task Queue."
@@ -265,45 +244,8 @@ version = "4.3.0"
 billiard = ">=3.6.0,<4.0"
 kombu = ">=4.4.0,<5.0"
 pytz = ">0.0-dev"
+redis = ">=3.2.0"
 vine = ">=1.3.0"
-
-[package.dependencies.redis]
-optional = true
-version = ">=3.2.0"
-
-[package.extras]
-arangodb = ["pyArango (>=1.3.2)"]
-auth = ["cryptography"]
-azureblockblob = ["azure-storage (0.36.0)", "azure-common (1.1.5)", "azure-storage-common (1.1.0)"]
-brotli = ["brotli (>=1.0.0)", "brotlipy (>=0.7.0)"]
-cassandra = ["cassandra-driver"]
-consul = ["python-consul"]
-cosmosdbsql = ["pydocumentdb (2.3.2)"]
-couchbase = ["couchbase", "couchbase-cffi"]
-couchdb = ["pycouchdb"]
-django = ["Django (>=1.8)"]
-dynamodb = ["boto3 (>=1.4.6)"]
-elasticsearch = ["elasticsearch"]
-eventlet = ["eventlet (>=0.24.1)"]
-gevent = ["gevent"]
-librabbitmq = ["librabbitmq (>=1.5.0)"]
-lzma = ["backports.lzma"]
-memcache = ["pylibmc"]
-mongodb = ["pymongo (>=3.3.0)"]
-msgpack = ["msgpack"]
-pymemcache = ["python-memcached"]
-pyro = ["pyro4"]
-redis = ["redis (>=3.2.0)"]
-riak = ["riak (>=2.0)"]
-s3 = ["boto3 (>=1.4.6)"]
-slmq = ["softlayer-messaging (>=1.0.3)"]
-solar = ["ephem"]
-sqlalchemy = ["sqlalchemy"]
-sqs = ["boto3 (>=1.4.6)", "pycurl"]
-tblib = ["tblib (>=1.3.0)"]
-yaml = ["PyYAML (>=3.10)"]
-zookeeper = ["kazoo (>=1.3.1)"]
-zstd = ["zstandard"]
 
 [[package]]
 category = "main"
@@ -390,13 +332,9 @@ version = "0.2.2"
 [package.dependencies]
 tinycss2 = "*"
 
-[package.extras]
-test = ["pytest-runner", "pytest-cov", "pytest-flake8", "pytest-isort"]
-
 [[package]]
 category = "main"
 description = "A backport of the dataclasses module for Python 3.6"
-marker = "python_version < \"3.7\""
 name = "dataclasses"
 optional = false
 python-versions = "*"
@@ -437,10 +375,6 @@ version = "2.2.6"
 [package.dependencies]
 pytz = "*"
 sqlparse = "*"
-
-[package.extras]
-argon2 = ["argon2-cffi (>=16.1.0)"]
-bcrypt = ["bcrypt"]
 
 [[package]]
 category = "main"
@@ -495,11 +429,6 @@ version = "5.5"
 
 [package.dependencies]
 six = "*"
-
-[package.extras]
-dev = ["tox", "django", "pytest", "pytest-django", "djangorestframework", "mock"]
-maintainer = ["transifex-client", "zest.releaser", "django"]
-test = ["pytest", "pytest-django", "pytest-cov", "mock"]
 
 [[package]]
 category = "dev"
@@ -623,10 +552,6 @@ version = "2.4.0"
 Django = ">=1.11.3"
 babel = "*"
 
-[package.extras]
-phonenumbers = ["phonenumbers (>=7.0.2)"]
-phonenumberslite = ["phonenumberslite (>=7.0.2)"]
-
 [[package]]
 category = "main"
 description = "Django fields for the prices module"
@@ -731,19 +656,7 @@ version = "1.7.2"
 
 [package.dependencies]
 Django = ">=1.11"
-
-[package.dependencies.google-cloud-storage]
-optional = true
-version = ">=0.22.0"
-
-[package.extras]
-azure = ["azure-storage-blob (>=1.3.1)"]
-boto = ["boto (>=2.32.0)"]
-boto3 = ["boto3 (>=1.4.4)"]
-dropbox = ["dropbox (>=7.2.1)"]
-google = ["google-cloud-storage (>=0.22.0)"]
-libcloud = ["apache-libcloud"]
-sftp = ["paramiko"]
+google-cloud-storage = ">=0.22.0"
 
 [[package]]
 category = "main"
@@ -795,9 +708,6 @@ version = "1.0.0"
 [package.dependencies]
 urllib3 = "*"
 
-[package.extras]
-dev = ["pre-commit", "pytest", "mock"]
-
 [[package]]
 category = "main"
 description = "Python client for Elasticsearch"
@@ -808,10 +718,6 @@ version = "6.3.1"
 
 [package.dependencies]
 urllib3 = ">=1.21.1"
-
-[package.extras]
-develop = ["requests (>=2.0.0,<3.0.0)", "nose", "coverage", "mock", "pyaml", "nosexcover", "sphinx", "sphinx-rtd-theme"]
-requests = ["requests (>=2.4.0,<3.0.0)"]
 
 [[package]]
 category = "main"
@@ -826,9 +732,6 @@ elasticsearch = ">=6.0.0,<7.0.0"
 ipaddress = "*"
 python-dateutil = "*"
 six = "*"
-
-[package.extras]
-develop = ["mock", "pytest (>=3.0.0)", "pytest-cov", "pytz", "sphinx", "sphinx-rtd-theme"]
 
 [[package]]
 category = "dev"
@@ -848,9 +751,6 @@ version = "1.7.1"
 
 [package.dependencies]
 apipkg = ">=1.4"
-
-[package.extras]
-testing = ["pre-commit"]
 
 [[package]]
 category = "main"
@@ -902,6 +802,7 @@ six = "*"
 [[package]]
 category = "main"
 description = "Google API client core library"
+marker = "extra == \"google\""
 name = "google-api-core"
 optional = false
 python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*"
@@ -916,14 +817,10 @@ requests = ">=2.18.0,<3.0.0dev"
 setuptools = ">=34.0.0"
 six = ">=1.10.0"
 
-[package.extras]
-grpc = ["grpcio (>=1.8.2,<2.0dev)"]
-grpcgcp = ["grpcio-gcp (>=0.2.2)"]
-grpcio-gcp = ["grpcio-gcp (>=0.2.2)"]
-
 [[package]]
 category = "main"
 description = "Google Authentication Library"
+marker = "extra == \"google\""
 name = "google-auth"
 optional = false
 python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*"
@@ -938,6 +835,7 @@ six = ">=1.9.0"
 [[package]]
 category = "main"
 description = "Google Cloud API client core library"
+marker = "extra == \"google\""
 name = "google-cloud-core"
 optional = false
 python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*"
@@ -946,12 +844,10 @@ version = "1.0.3"
 [package.dependencies]
 google-api-core = ">=1.14.0,<2.0.0dev"
 
-[package.extras]
-grpc = ["grpcio (>=1.8.2,<2.0dev)"]
-
 [[package]]
 category = "main"
 description = "Google Cloud Storage API client library"
+marker = "extra == \"google\""
 name = "google-cloud-storage"
 optional = false
 python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*"
@@ -989,6 +885,7 @@ typing = ">=3.6.0"
 [[package]]
 category = "main"
 description = "Utilities for Google Media Downloads and Resumable Uploads"
+marker = "extra == \"google\""
 name = "google-resumable-media"
 optional = false
 python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*"
@@ -997,12 +894,10 @@ version = "0.4.1"
 [package.dependencies]
 six = "*"
 
-[package.extras]
-requests = ["requests (>=2.18.0,<3.0.0dev)"]
-
 [[package]]
 category = "main"
 description = "Common protobufs used in Google APIs"
+marker = "extra == \"google\""
 name = "googleapis-common-protos"
 optional = false
 python-versions = "*"
@@ -1010,9 +905,6 @@ version = "1.6.0"
 
 [package.dependencies]
 protobuf = ">=3.6.0"
-
-[package.extras]
-grpc = ["grpcio (>=1.0.0)"]
 
 [[package]]
 category = "main"
@@ -1036,11 +928,6 @@ graphql-core = ">=2.1,<3"
 graphql-relay = ">=2,<3"
 six = ">=1.10.0,<2"
 
-[package.extras]
-django = ["graphene-django"]
-sqlalchemy = ["graphene-sqlalchemy"]
-test = ["pytest", "pytest-benchmark", "pytest-cov", "pytest-mock", "snapshottest", "coveralls", "promise", "six", "mock", "pytz", "iso8601"]
-
 [[package]]
 category = "main"
 description = "Graphene Django integration"
@@ -1057,11 +944,6 @@ promise = ">=2.1"
 singledispatch = ">=3.4.0.3"
 six = ">=1.10.0"
 
-[package.extras]
-dev = ["black (19.3b0)", "flake8 (3.7.7)", "flake8-black (0.1.0)", "flake8-bugbear (19.3.0)", "pytest (>=3.6.3)", "pytest-cov", "coveralls", "mock", "pytz", "pytest-django (>=3.3.2)", "djangorestframework (>=3.6.3)", "django-filter (<2)", "django-filter (>=2)"]
-rest_framework = ["djangorestframework (>=3.6.3)"]
-test = ["pytest (>=3.6.3)", "pytest-cov", "coveralls", "mock", "pytz", "pytest-django (>=3.3.2)", "djangorestframework (>=3.6.3)", "django-filter (<2)", "django-filter (>=2)"]
-
 [[package]]
 category = "main"
 description = "Optimize database access inside graphene queries."
@@ -1069,6 +951,17 @@ name = "graphene-django-optimizer"
 optional = false
 python-versions = "*"
 version = "0.6.0"
+
+[[package]]
+category = "main"
+description = "Federation implementation for graphene"
+name = "graphene-federation"
+optional = false
+python-versions = "*"
+version = "0.0.2"
+
+[package.dependencies]
+graphene = ">=2.1.0,<3"
 
 [[package]]
 category = "main"
@@ -1082,10 +975,6 @@ version = "2.2.1"
 promise = ">=2.1"
 rx = ">=1.6,<3"
 six = ">=1.10.0"
-
-[package.extras]
-gevent = ["gevent (>=1.1)"]
-test = ["pytest (>=3.3,<4.0)", "pytest-django (2.9.1)", "pytest-cov (2.3.1)", "coveralls", "gevent (>=1.1)", "six (>=1.10.0)", "pytest-benchmark (3.0.0)", "pytest-mock (1.2)"]
 
 [[package]]
 category = "main"
@@ -1112,9 +1001,6 @@ version = "1.0.1"
 beautifulsoup4 = ">4.7,<4.8"
 lxml = "*"
 
-[package.extras]
-dev = ["pre-commit", "mock", "pytest"]
-
 [[package]]
 category = "main"
 description = "HTML parser based on the WHATWG HTML specification"
@@ -1127,13 +1013,6 @@ version = "1.0.1"
 six = ">=1.9"
 webencodings = "*"
 
-[package.extras]
-all = ["genshi", "chardet (>=2.2)", "datrie", "lxml"]
-chardet = ["chardet (>=2.2)"]
-datrie = ["datrie"]
-genshi = ["genshi"]
-lxml = ["lxml"]
-
 [[package]]
 category = "dev"
 description = "File identification library for Python"
@@ -1141,9 +1020,6 @@ name = "identify"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "1.4.7"
-
-[package.extras]
-license = ["editdistance"]
 
 [[package]]
 category = "main"
@@ -1164,10 +1040,6 @@ version = "0.23"
 [package.dependencies]
 zipp = ">=0.5"
 
-[package.extras]
-docs = ["sphinx", "rst.linker"]
-testing = ["packaging", "importlib-resources"]
-
 [[package]]
 category = "main"
 description = "IPv4/IPv6 manipulation library"
@@ -1184,12 +1056,6 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "4.3.21"
 
-[package.extras]
-pipfile = ["pipreqs", "requirementslib"]
-pyproject = ["toml"]
-requirements = ["pipreqs", "pip-api"]
-xdg_home = ["appdirs (>=1.4.0)"]
-
 [[package]]
 category = "main"
 description = "A very fast and expressive template engine."
@@ -1200,9 +1066,6 @@ version = "2.10.3"
 
 [package.dependencies]
 MarkupSafe = ">=0.23"
-
-[package.extras]
-i18n = ["Babel (>=0.8)"]
 
 [[package]]
 category = "main"
@@ -1235,22 +1098,6 @@ version = "4.6.5"
 amqp = "2.5.1"
 importlib-metadata = ">=0.18"
 
-[package.extras]
-azureservicebus = ["azure-servicebus (>=0.21.1)"]
-azurestoragequeues = ["azure-storage-queue"]
-consul = ["python-consul (>=0.6.0)"]
-librabbitmq = ["librabbitmq (>=1.5.2)"]
-mongodb = ["pymongo (>=3.3.0)"]
-msgpack = ["msgpack"]
-pyro = ["pyro4"]
-qpid = ["qpid-python (>=0.26)", "qpid-tools (>=0.26)"]
-redis = ["redis (>=3.2.0)"]
-slmq = ["softlayer-messaging (>=1.0.3)"]
-sqlalchemy = ["sqlalchemy"]
-sqs = ["boto3 (>=1.4.4)", "pycurl (7.43.0.2)"]
-yaml = ["PyYAML (>=3.10)"]
-zookeeper = ["kazoo (>=1.3.1)"]
-
 [[package]]
 category = "dev"
 description = "A fast and thorough lazy object proxy."
@@ -1267,12 +1114,6 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, != 3.4.*"
 version = "4.4.1"
 
-[package.extras]
-cssselect = ["cssselect (>=0.7)"]
-html5 = ["html5lib"]
-htmlsoup = ["beautifulsoup4"]
-source = ["Cython (>=0.29.7)"]
-
 [[package]]
 category = "main"
 description = "Python implementation of Markdown."
@@ -1283,9 +1124,6 @@ version = "3.1.1"
 
 [package.dependencies]
 setuptools = ">=36"
-
-[package.extras]
-testing = ["coverage", "pyyaml"]
 
 [[package]]
 category = "main"
@@ -1374,11 +1212,6 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "3.1.0"
 
-[package.extras]
-rsa = ["cryptography"]
-signals = ["blinker"]
-signedtoken = ["cryptography", "pyjwt (>=1.0.0)"]
-
 [[package]]
 category = "dev"
 description = "Core utilities for Python packages"
@@ -1419,9 +1252,6 @@ version = "0.13.0"
 [package.dependencies.importlib-metadata]
 python = "<3.8"
 version = ">=0.12"
-
-[package.extras]
-dev = ["pre-commit", "tox"]
 
 [[package]]
 category = "dev"
@@ -1465,12 +1295,10 @@ version = "2.2.1"
 [package.dependencies]
 six = "*"
 
-[package.extras]
-test = ["pytest (>=2.7.3)", "pytest-cov", "coveralls", "futures", "pytest-benchmark", "mock"]
-
 [[package]]
 category = "main"
 description = "Protocol Buffers"
+marker = "extra == \"google\""
 name = "protobuf"
 optional = false
 python-versions = "*"
@@ -1510,6 +1338,7 @@ version = "1.8.0"
 [[package]]
 category = "main"
 description = "ASN.1 types and codecs"
+marker = "extra == \"google\""
 name = "pyasn1"
 optional = false
 python-versions = "*"
@@ -1518,6 +1347,7 @@ version = "0.4.7"
 [[package]]
 category = "main"
 description = "A collection of ASN.1-based protocols modules."
+marker = "extra == \"google\""
 name = "pyasn1-modules"
 optional = false
 python-versions = "*"
@@ -1539,7 +1369,7 @@ category = "main"
 description = "C parser in Python"
 name = "pycparser"
 optional = false
-python-versions = "*"
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "2.19"
 
 [[package]]
@@ -1576,11 +1406,6 @@ name = "pyjwt"
 optional = false
 python-versions = "*"
 version = "1.7.1"
-
-[package.extras]
-crypto = ["cryptography (>=1.4)"]
-flake8 = ["flake8", "flake8-import-order", "pep8-naming"]
-test = ["pytest (>=4.0.1,<5.0.0)", "pytest-cov (>=2.6.0,<3.0.0)", "pytest-runner (>=4.2,<5.0.0)"]
 
 [[package]]
 category = "dev"
@@ -1620,10 +1445,6 @@ version = "2.0.11"
 [package.dependencies]
 pylint = ">=2.0"
 pylint-plugin-utils = ">=0.5"
-
-[package.extras]
-for_tests = ["coverage", "django-tables2", "factory-boy", "pytest"]
-with_django = ["django"]
 
 [[package]]
 category = "dev"
@@ -1674,9 +1495,6 @@ wcwidth = "*"
 python = "<3.8"
 version = ">=0.12"
 
-[package.extras]
-testing = ["argcomplete", "hypothesis (>=3.56)", "mock", "nose", "requests", "xmlschema"]
-
 [[package]]
 category = "dev"
 description = "Pytest plugin for measuring coverage."
@@ -1689,9 +1507,6 @@ version = "2.8.1"
 coverage = ">=4.4"
 pytest = ">=3.6"
 
-[package.extras]
-testing = ["fields", "hunter", "process-tests (2.0.2)", "six", "virtualenv"]
-
 [[package]]
 category = "dev"
 description = "A Django plugin for pytest."
@@ -1702,10 +1517,6 @@ version = "3.5.1"
 
 [package.dependencies]
 pytest = ">=3.6"
-
-[package.extras]
-docs = ["sphinx", "sphinx-rtd-theme"]
-testing = ["django", "django-configurations (>=2.0)", "six"]
 
 [[package]]
 category = "dev"
@@ -1725,9 +1536,6 @@ pytest = ">=4.4.0"
 [package.dependencies.django]
 python = ">=3.0"
 version = "*"
-
-[package.extras]
-dev = ["beautifulsoup4", "lxml", "sphinx", "sphinx-rtd-theme", "pre-commit", "mock"]
 
 [[package]]
 category = "dev"
@@ -1750,9 +1558,6 @@ version = "1.11.1"
 
 [package.dependencies]
 pytest = ">=2.7"
-
-[package.extras]
-dev = ["pre-commit", "tox"]
 
 [[package]]
 category = "dev"
@@ -1780,9 +1585,6 @@ pytest = ">=4.4.0"
 pytest-forked = "*"
 six = "*"
 
-[package.extras]
-testing = ["filelock"]
-
 [[package]]
 category = "main"
 description = "Extensions to the standard Python datetime module"
@@ -1804,9 +1606,6 @@ version = "3.0.4"
 
 [package.dependencies]
 text-unidecode = ">=1.3"
-
-[package.extras]
-unidecode = ["Unidecode (>=1.1.1)"]
 
 [[package]]
 category = "main"
@@ -1855,9 +1654,6 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "3.3.8"
 
-[package.extras]
-hiredis = ["hiredis (>=0.1.3)"]
-
 [[package]]
 category = "main"
 description = "Python HTTP for Humans."
@@ -1872,10 +1668,6 @@ chardet = ">=3.0.2,<3.1.0"
 idna = ">=2.5,<2.9"
 urllib3 = ">=1.21.1,<1.25.0 || >1.25.0,<1.25.1 || >1.25.1,<1.26"
 
-[package.extras]
-security = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)", "idna (>=2.0.0)"]
-socks = ["PySocks (>=1.5.6,<1.5.7 || >1.5.7)", "win-inet-pton"]
-
 [[package]]
 category = "main"
 description = "OAuthlib authentication support for Requests."
@@ -1888,12 +1680,10 @@ version = "1.2.0"
 oauthlib = ">=3.0.0"
 requests = ">=2.0.0"
 
-[package.extras]
-rsa = ["oauthlib (>=3.0.0)"]
-
 [[package]]
 category = "main"
 description = "Pure-Python RSA implementation"
+marker = "extra == \"google\""
 name = "rsa"
 optional = false
 python-versions = "*"
@@ -1932,11 +1722,6 @@ version = "0.12.3"
 [package.dependencies]
 certifi = "*"
 urllib3 = ">=1.9"
-
-[package.extras]
-bottle = ["bottle (>=0.12.13)"]
-falcon = ["falcon (>=1.4)"]
-flask = ["flask (>=0.8)", "blinker (>=1.1)"]
 
 [[package]]
 category = "main"
@@ -2000,14 +1785,6 @@ version = ">=0.5.0rc1"
 python = ">=3.0"
 version = ">=3.0.10"
 
-[package.extras]
-all = ["cryptography (>=2.1.1)", "pyjwt (>=1.7.1)", "python-jose (>=3.0.0)", "python-saml (>=2.2.0)", "python3-saml (>=1.2.1)"]
-allpy2 = ["cryptography (>=2.1.1)", "pyjwt (>=1.7.1)", "python-jose (>=3.0.0)", "python-openid (>=2.2.5)", "python-saml (>=2.2.0)", "python3-saml (>=1.2.1)"]
-allpy3 = ["cryptography (>=2.1.1)", "defusedxml (>=0.5.0rc1)", "pyjwt (>=1.7.1)", "python-jose (>=3.0.0)", "python-saml (>=2.2.0)", "python3-openid (>=3.0.10)", "python3-saml (>=1.2.1)"]
-azuread = ["cryptography (>=2.1.1)"]
-openidconnect = ["pyjwt (>=1.7.1)", "python-jose (>=3.0.0)"]
-saml = ["python-saml (>=2.2.0)", "python3-saml (>=1.2.1)"]
-
 [[package]]
 category = "main"
 description = "A modern CSS selector implementation for Beautiful Soup."
@@ -2068,10 +1845,6 @@ version = "1.0.2"
 setuptools = ">=39.2.0"
 webencodings = ">=0.4"
 
-[package.extras]
-doc = ["sphinx", "sphinx-rtd-theme"]
-test = ["pytest-runner", "pytest-cov", "pytest-flake8", "pytest-isort"]
-
 [[package]]
 category = "dev"
 description = "Python Library for Tom's Obvious, Minimal Language"
@@ -2101,10 +1874,6 @@ virtualenv = ">=14.0.0"
 python = "<3.8"
 version = ">=0.12,<1"
 
-[package.extras]
-docs = ["sphinx (>=2.0.0,<3)", "towncrier (>=18.5.0)", "pygments-github-lexers (>=0.0.5)", "sphinxcontrib-autoprogram (>=0.1.5)"]
-testing = ["freezegun (>=0.3.11,<1)", "pathlib2 (>=2.3.3,<3)", "pytest (>=4.0.0,<6)", "pytest-cov (>=2.5.1,<3)", "pytest-mock (>=1.10.0,<2)", "pytest-xdist (>=1.22.2,<2)", "pytest-randomly (>=1.2.3,<2)", "flaky (>=3.4.0,<4)", "psutil (>=5.6.1,<6)"]
-
 [[package]]
 category = "main"
 description = "Fast, Extensible Progress Meter"
@@ -2112,9 +1881,6 @@ name = "tqdm"
 optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*"
 version = "4.36.1"
-
-[package.extras]
-dev = ["py-make (>=0.1.0)", "twine", "argopt", "pydoc-markdown"]
 
 [[package]]
 category = "dev"
@@ -2155,15 +1921,9 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, <4"
 version = "1.25.6"
 
-[package.extras]
-brotli = ["brotlipy (>=0.6.0)"]
-secure = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "certifi", "ipaddress"]
-socks = ["PySocks (>=1.5.6,<1.5.7 || >1.5.7,<2.0)"]
-
 [[package]]
 category = "main"
 description = "The uWSGI server"
-marker = "platform_system != \"Windows\""
 name = "uwsgi"
 optional = false
 python-versions = "*"
@@ -2202,10 +1962,6 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "16.7.5"
 
-[package.extras]
-docs = ["sphinx (>=1.8.0,<2)", "towncrier (>=18.5.0)", "sphinx-rtd-theme (>=0.4.2,<1)"]
-testing = ["pytest (>=4.0.0,<5)", "coverage (>=4.5.0,<5)", "pytest-timeout (>=1.3.0,<2)", "six (>=1.10.0,<2)", "pytest-xdist", "pytest-localserver", "pypiserver", "mock", "xonsh"]
-
 [[package]]
 category = "dev"
 description = "Measures number of Terminal column cells of wide-character codes"
@@ -2231,10 +1987,6 @@ cssselect2 = ">=0.1"
 html5lib = ">=0.999999999"
 setuptools = ">=39.2.0"
 tinycss2 = ">=1.0.0"
-
-[package.extras]
-doc = ["sphinx", "sphinx-rtd-theme"]
-test = ["pytest-runner", "pytest-cov", "pytest-flake8", "pytest-isort"]
 
 [[package]]
 category = "main"
@@ -2284,12 +2036,8 @@ version = "0.6.0"
 [package.dependencies]
 more-itertools = "*"
 
-[package.extras]
-docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
-testing = ["pathlib2", "contextlib2", "unittest2"]
-
 [metadata]
-content-hash = "14e280d21b06138c2d3d98e76722d736b4f96b9df478087a07dd433e8bc5dbe5"
+content-hash = "a6dcd42225250d57e3abe0a20334725734e70b6fbcd3564694cd937355c911b7"
 python-versions = "~3.7"
 
 [metadata.hashes]
@@ -2378,6 +2126,7 @@ gprof2dot = ["48c1e168c28b8a8eb23bf30fda78fe2ef218269a41505341ec27c27083e47cf4"]
 graphene = ["09165f03e1591b76bf57b133482db9be6dac72c74b0a628d3c93182af9c5a896", "2cbe6d4ef15cfc7b7805e0760a0e5b80747161ce1b0f990dfdc0d2cf497c12f9"]
 graphene-django = ["0d1404ab1ba7873a8e848d87d138f615391d100ed0c046482c164429cfb992ef", "fa9e815f63e3c972773adc96c3f3c81e537dba0edcd0f1be92c799bc0b6ed0a8"]
 graphene-django-optimizer = ["48dd4806c1eb8597e3ba916531a68c3956d3779ebee3238d9736b795613794ef"]
+graphene-federation = ["a960d920952b540a5f543c66b2de0f5a45d5a6d50d16e41e43c42ea665dd8791"]
 graphql-core = ["1488f2a5c2272dc9ba66e3042a6d1c30cea0db4c80bd1e911c6791ad6187d91b", "da64c472d720da4537a2e8de8ba859210b62841bd47a9be65ca35177f62fe0e4"]
 graphql-relay = ["0e94201af4089e1f81f07d7bd8f84799768e39d70fa1ea16d1df505b46cc6335", "75aa0758971e252964cb94068a4decd472d2a8295229f02189e3cbca1f10dbb5", "7fa74661246e826ef939ee92e768f698df167a7617361ab399901eaebf80dce6"]
 html-to-draftjs = ["2212acf3b063c17b6dc91875f474159e1f730c1a4e5fbf74f9a66250f7040e9a"]
