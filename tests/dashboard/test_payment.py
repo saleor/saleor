@@ -57,6 +57,12 @@ def config_char_structure():
     }
 
 
+@pytest.fixture(autouse=True)
+def staff_user_plugin_manager(staff_user, permission_manage_plugins):
+    staff_user.user_permissions.add(permission_manage_plugins)
+    return staff_user
+
+
 def test_configuration_form_get_current_configuration(
     plugin_configuration, gateway_config_form
 ):
@@ -98,10 +104,16 @@ def test_config_char_field_returned_value(config_char_structure):
     }
 
 
-def test_payment_index_display_only_available_gateways(admin_client):
+def test_payment_index_display_only_available_gateways(staff_client):
     url = reverse("dashboard:payments-index")
-    response = admin_client.get(url)
+    response = staff_client.get(url)
     assert response.status_code == 200
     payment_gateways = response.context["payment_gateways"]
     assert len(payment_gateways) == 1
     assert BraintreeGatewayPlugin.PLUGIN_NAME in payment_gateways
+
+
+def test_configure_payment_gateway_returns_404_when_wrong_plugin_name(staff_client):
+    url = reverse("dashboard:configure-payment", args=["wrongValue"])
+    response = staff_client.get(url)
+    assert response.status_code == 404
