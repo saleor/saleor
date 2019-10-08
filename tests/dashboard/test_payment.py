@@ -1,8 +1,8 @@
 import pytest
+from django.urls import reverse
 
+from saleor.dashboard.forms import ConfigBooleanField, ConfigCharField
 from saleor.dashboard.payment.forms import (
-    ConfigBooleanField,
-    ConfigCharField,
     GatewayConfigurationForm,
     create_custom_form_field,
 )
@@ -96,3 +96,12 @@ def test_config_char_field_returned_value(config_char_structure):
         "name": config_char_structure["name"],
         "value": value,
     }
+
+
+def test_payment_index_display_only_available_gateways(admin_client):
+    url = reverse("dashboard:payments-index")
+    response = admin_client.get(url)
+    assert response.status_code == 200
+    payment_gateways = response.context["payment_gateways"]
+    assert len(payment_gateways) == 1
+    assert BraintreeGatewayPlugin.PLUGIN_NAME in payment_gateways
