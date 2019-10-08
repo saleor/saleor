@@ -177,7 +177,7 @@ class CountryAwareAddressForm(AddressForm):
                     error_msg = self.fields[field].error_messages[error_code]
                 except KeyError:
                     error_msg = pgettext_lazy(
-                        "Address form", "This value is invalid for selected country"
+                        "Address form", "This value is not valid for the address."
                     )
                 self.add_error(field, ValidationError(error_msg, code=error_code))
 
