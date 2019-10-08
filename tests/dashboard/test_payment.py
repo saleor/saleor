@@ -117,3 +117,68 @@ def test_configure_payment_gateway_returns_404_when_wrong_plugin_name(staff_clie
     url = reverse("dashboard:configure-payment", args=["wrongValue"])
     response = staff_client.get(url)
     assert response.status_code == 404
+
+
+def test_configure_payment_gateway_returns_proper_form(staff_client):
+    url = reverse("dashboard:configure-payment", args=["Braintree"])
+    response = staff_client.get(url)
+    assert response.status_code == 200
+    assert isinstance(response.context["config_form"], GatewayConfigurationForm)
+
+
+@pytest.mark.parametrize(
+    "expected_error",
+    ["template-path", "public-api-key", "secret-api-key", "merchant-id"],
+)
+def test_gateway_configuration_form_all_fields_are_required(expected_error):
+    data = {
+        "active": False,
+        "template-path": "template/example.html",
+        "public-api-key": "abcs",
+        "secret-api-key": "secret",
+        "use-sandbox": False,
+        "merchant-id": "merchant",
+        "store-customers-card": False,
+        "automatic-payment-capture": True,
+        "require-3d-secure": False,
+    }
+    data.pop(expected_error)
+    form = GatewayConfigurationForm(BraintreeGatewayPlugin, data)
+    assert not form.is_valid()
+    assert expected_error in form.errors
+
+
+def test_gateway_configuration_form_not_checked_active_field_set_to_false():
+    data = {
+        "template-path": "template/example.html",
+        "public-api-key": "abcs",
+        "secret-api-key": "secret",
+        "merchant-id": "merchant",
+    }
+
+    form = GatewayConfigurationForm(BraintreeGatewayPlugin, data)
+    assert form.is_valid()
+    assert form.cleaned_data["active"] is False
+
+
+@pytest.mark.parametrize(
+    "field_name",
+    [
+        "use-sandbox",
+        "store-customers-card",
+        "automatic-payment-capture",
+        "require-3d-secure",
+    ],
+)
+def test_gateway_configuration_form_json_field_set_to_false(field_name):
+    data = {
+        "active": True,
+        "template-path": "template/example.html",
+        "public-api-key": "abcs",
+        "secret-api-key": "secret",
+        "merchant-id": "merchant",
+    }
+    form = GatewayConfigurationForm(BraintreeGatewayPlugin, data)
+    assert form.is_valid()
+    cleaned_data = form.cleaned_data
+    assert cleaned_data[field_name]["value"] is False
