@@ -21,12 +21,15 @@ def remove_duplicated_attribute_values(apps, schema_editor):
         values_to_be_removed = attribute_values[1:]
         with transaction.atomic():
             for value_to_be_removed in values_to_be_removed:
-                invalid_assigned_variants = (
+                invalid_assigned_attributes = list(
                     value_to_be_removed.assignedvariantattribute_set.all()
                 )
-                for invalid_assigned_variant in invalid_assigned_variants:
-                    invalid_assigned_variant.values.clear()
-                    invalid_assigned_variant.values.add(final_value)
+                invalid_assigned_attributes.extend(
+                    list(value_to_be_removed.assignedproductattribute_set.all())
+                )
+                for invalid_assigned_attribute in invalid_assigned_attributes:
+                    invalid_assigned_attribute.values.clear()
+                    invalid_assigned_attribute.values.add(final_value)
             ids_to_be_removed = values_to_be_removed.values_list("id", flat=True)
             AttributeValue.objects.filter(id__in=ids_to_be_removed).delete()
 
