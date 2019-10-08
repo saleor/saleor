@@ -1,5 +1,5 @@
 # Package manager lock files
-Pipfile.lock linguist-generated -diff -merge
+*.lock linguist-generated -diff -merge
 package-lock.json linguist-generated -diff -merge
 
 # Generated django migration files
