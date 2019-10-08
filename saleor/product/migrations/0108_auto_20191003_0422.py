@@ -5,6 +5,14 @@ from django.db.models import Count
 
 
 def remove_duplicated_attribute_values(apps, schema_editor):
+    """Remove duplicated attribute values.
+
+    Before this migration Saleor allows create many attribute values with the same slug
+    and different names(eg.Names  `Orange` and `ORANGE` give the same slug `orange`).
+    After this migration values for each attribute should have a unique slug.
+    Before removing these duplicated values we need to assign proper values
+    to all `Product` and `ProductVariant` witch use duplicated values.
+    """
     AttributeValue = apps.get_model("product", "AttributeValue")
     duplicated_pk_for_attribute_values = (
         AttributeValue.objects.values("slug", "attribute")
