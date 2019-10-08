@@ -53,6 +53,6 @@ class GatewayConfigurationForm(forms.ModelForm):
         data["configuration"] = list(cleaned_data.values())
         return data
 
-    def save(self, _):
+    def save(self, *args):
         parse_value = self.parse_values()
         self.plugin.save_plugin_configuration(self.instance, parse_value)

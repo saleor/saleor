@@ -63,6 +63,21 @@ def staff_user_plugin_manager(staff_user, permission_manage_plugins):
     return staff_user
 
 
+@pytest.fixture()
+def form_data():
+    return {
+        "active": False,
+        "template-path": "template/example.html",
+        "public-api-key": "abcs",
+        "secret-api-key": "secret",
+        "use-sandbox": False,
+        "merchant-id": "merchant",
+        "store-customers-card": False,
+        "automatic-payment-capture": True,
+        "require-3d-secure": False,
+    }
+
+
 def test_configuration_form_get_current_configuration(
     plugin_configuration, gateway_config_form
 ):
@@ -130,20 +145,9 @@ def test_configure_payment_gateway_returns_proper_form(staff_client):
     "expected_error",
     ["template-path", "public-api-key", "secret-api-key", "merchant-id"],
 )
-def test_gateway_configuration_form_all_fields_are_required(expected_error):
-    data = {
-        "active": False,
-        "template-path": "template/example.html",
-        "public-api-key": "abcs",
-        "secret-api-key": "secret",
-        "use-sandbox": False,
-        "merchant-id": "merchant",
-        "store-customers-card": False,
-        "automatic-payment-capture": True,
-        "require-3d-secure": False,
-    }
-    data.pop(expected_error)
-    form = GatewayConfigurationForm(BraintreeGatewayPlugin, data)
+def test_gateway_configuration_form_all_fields_are_required(expected_error, form_data):
+    form_data.pop(expected_error)
+    form = GatewayConfigurationForm(BraintreeGatewayPlugin, form_data)
     assert not form.is_valid()
     assert expected_error in form.errors
 
@@ -170,15 +174,27 @@ def test_gateway_configuration_form_not_checked_active_field_set_to_false():
         "require-3d-secure",
     ],
 )
-def test_gateway_configuration_form_json_field_set_to_false(field_name):
-    data = {
-        "active": True,
-        "template-path": "template/example.html",
-        "public-api-key": "abcs",
-        "secret-api-key": "secret",
-        "merchant-id": "merchant",
-    }
-    form = GatewayConfigurationForm(BraintreeGatewayPlugin, data)
+def test_gateway_configuration_form_json_field_set_to_false(field_name, form_data):
+    form_data.pop(field_name)
+    form = GatewayConfigurationForm(BraintreeGatewayPlugin, form_data)
     assert form.is_valid()
     cleaned_data = form.cleaned_data
     assert cleaned_data[field_name]["value"] is False
+
+
+def test_form_properly_save_plugin_config(form_data, plugin_configuration):
+    assert plugin_configuration.active
+    form = GatewayConfigurationForm(BraintreeGatewayPlugin, form_data)
+    assert form.is_valid()
+    form.save()
+    plugin_configuration.refresh_from_db()
+    assert plugin_configuration.active is False
+
+
+def test_configure_payment_gateway_properly_handle_form(
+    form_data, plugin_configuration, staff_client
+):
+    assert plugin_configuration.active
+    url = reverse("dashboard:configure-payment", args=["Braintree"])
+    response = staff_client.post(url, form_data)
+    assert response.status_code == 302
