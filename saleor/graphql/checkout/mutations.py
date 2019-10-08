@@ -127,7 +127,7 @@ def check_lines_quantity(variants, quantities):
 
 class CheckoutLineInput(graphene.InputObjectType):
     quantity = graphene.Int(required=True, description="The number of items purchased.")
-    variant_id = graphene.ID(required=True, description="ID of the ProductVariant.")
+    variant_id = graphene.ID(required=True, description="ID of the product variant.")
 
 
 class CheckoutCreateInput(graphene.InputObjectType):
@@ -298,10 +298,10 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
 
 class CheckoutLinesAdd(BaseMutation):
-    checkout = graphene.Field(Checkout, description="An updated Checkout.")
+    checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
-        checkout_id = graphene.ID(description="The ID of the Checkout.", required=True)
+        checkout_id = graphene.ID(description="The ID of the checkout.", required=True)
         lines = graphene.List(
             CheckoutLineInput,
             required=True,
@@ -346,10 +346,10 @@ class CheckoutLinesAdd(BaseMutation):
 
 
 class CheckoutLinesUpdate(CheckoutLinesAdd):
-    checkout = graphene.Field(Checkout, description="An updated Checkout.")
+    checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Meta:
-        description = "Updates CheckoutLine in the existing Checkout."
+        description = "Updates checkout line in the existing checkout."
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
 
@@ -362,8 +362,8 @@ class CheckoutLineDelete(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
-        checkout_id = graphene.ID(description="The ID of the Checkout.", required=True)
-        line_id = graphene.ID(description="ID of the CheckoutLine to delete.")
+        checkout_id = graphene.ID(description="The ID of the checkout.", required=True)
+        line_id = graphene.ID(description="ID of the checkout line to delete.")
 
     class Meta:
         description = "Deletes a CheckoutLine."
@@ -392,11 +392,11 @@ class CheckoutCustomerAttach(BaseMutation):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
-        checkout_id = graphene.ID(required=True, description="ID of the Checkout.")
+        checkout_id = graphene.ID(required=True, description="ID of the checkout.")
         customer_id = graphene.ID(required=True, description="The ID of the customer.")
 
     class Meta:
-        description = "Sets the customer as the owner of the Checkout."
+        description = "Sets the customer as the owner of the checkout."
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
 
@@ -438,14 +438,14 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
-        checkout_id = graphene.ID(required=True, description="ID of the Checkout.")
+        checkout_id = graphene.ID(required=True, description="ID of the checkout.")
         shipping_address = AddressInput(
             required=True,
             description="The mailing address to where the checkout will be shipped.",
         )
 
     class Meta:
-        description = "Update shipping address in the existing Checkout."
+        description = "Update shipping address in the existing checkout."
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
 
@@ -495,13 +495,13 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
     checkout = graphene.Field(Checkout, description="An updated checkout.")
 
     class Arguments:
-        checkout_id = graphene.ID(required=True, description="ID of the Checkout.")
+        checkout_id = graphene.ID(required=True, description="ID of the checkout.")
         billing_address = AddressInput(
             required=True, description="The billing address of the checkout."
         )
 
     class Meta:
-        description = "Update billing address in the existing Checkout."
+        description = "Update billing address in the existing checkout."
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
 
@@ -528,7 +528,7 @@ class CheckoutEmailUpdate(BaseMutation):
         email = graphene.String(required=True, description="email.")
 
     class Meta:
-        description = "Updates email address in the existing Checkout object."
+        description = "Updates email address in the existing checkout object."
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
 
@@ -810,7 +810,7 @@ class CheckoutRemovePromoCode(BaseMutation):
 
 class CheckoutUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
-        description = "Updates metadata for Checkout."
+        description = "Updates metadata for checkout."
         permissions = ("order.manage_orders",)
         model = models.Checkout
         public = True
@@ -820,7 +820,7 @@ class CheckoutUpdateMeta(UpdateMetaBaseMutation):
 
 class CheckoutUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
-        description = "Updates private metadata for Checkout."
+        description = "Updates private metadata for checkout."
         permissions = ("order.manage_orders",)
         model = models.Checkout
         public = False

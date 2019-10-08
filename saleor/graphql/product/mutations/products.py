@@ -371,7 +371,7 @@ class CollectionRemoveProducts(BaseMutation):
 class CollectionUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.Collection
-        description = "Update public metadata for Collection."
+        description = "Update public metadata for collection."
         permissions = ("product.manage_products",)
         public = True
         error_type_class = ProductError
@@ -381,7 +381,7 @@ class CollectionUpdateMeta(UpdateMetaBaseMutation):
 class CollectionClearMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.Collection
-        description = "Clears public metadata for Collection."
+        description = "Clears public metadata for collection."
         permissions = ("product.manage_products",)
         public = True
         error_type_class = ProductError
@@ -391,7 +391,7 @@ class CollectionClearMeta(ClearMetaBaseMutation):
 class CollectionUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.Collection
-        description = "Update private metadata for Collection."
+        description = "Update private metadata for collection."
         permissions = ("product.manage_products",)
         public = False
         error_type_class = ProductError
@@ -401,7 +401,7 @@ class CollectionUpdatePrivateMeta(UpdateMetaBaseMutation):
 class CollectionClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.Collection
-        description = "Clears private metadata item for Collection."
+        description = "Clears private metadata item for collection."
         permissions = ("product.manage_products",)
         public = False
         error_type_class = ProductError

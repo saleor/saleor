@@ -44,14 +44,14 @@ class TranslatableItemConnection(CountableConnection):
 
 class TranslatableKinds(graphene.Enum):
     ATTRIBUTE = "Attribute"
-    ATTRIBUTE_VALUE = "Attribute Value"
+    ATTRIBUTE_VALUE = "Attribute value"
     CATEGORY = "Category"
     COLLECTION = "Collection"
-    MENU_ITEM = "Menu Item"
+    MENU_ITEM = "Menu item"
     PAGE = "Page"
     PRODUCT = "Product"
     SALE = "Sale"
-    SHIPPING_METHOD = "Shipping Method"
+    SHIPPING_METHOD = "Shipping method"
     VARIANT = "Variant"
     VOUCHER = "Voucher"
 
