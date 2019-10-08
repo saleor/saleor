@@ -36,7 +36,7 @@ def remove_duplicated_attribute_values(apps, schema_editor):
                     list(value_to_be_removed.assignedproductattribute_set.all())
                 )
                 for invalid_assigned_attribute in invalid_assigned_attributes:
-                    invalid_assigned_attribute.values.clear()
+                    invalid_assigned_attribute.values.remove(value_to_be_removed)
                     invalid_assigned_attribute.values.add(final_value)
             ids_to_be_removed = values_to_be_removed.values_list("id", flat=True)
             AttributeValue.objects.filter(id__in=ids_to_be_removed).delete()
