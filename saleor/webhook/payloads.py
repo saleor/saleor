@@ -1,3 +1,6 @@
+import json
+from typing import Optional
+
 from ..account.models import User
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import Order
@@ -178,18 +181,18 @@ def _generate_sample_order_payload(event_name):
     ]:
         order = order_qs.filter(status=OrderStatus.CANCELED).first()
 
-    return generate_order_payload(order) if order else []
+    return generate_order_payload(order) if order else None
 
 
-def generate_sample_payload(event_name):
+def generate_sample_payload(event_name: str) -> Optional[dict]:
     if event_name == WebhookEventType.CUSTOMER_CREATED:
         user = User.objects.filter(is_staff=False, is_active=True).first()
-        return generate_customer_payload(user) if user else []
-
-    if event_name == WebhookEventType.PRODUCT_CREATED:
+        payload = generate_customer_payload(user) if user else None
+    elif event_name == WebhookEventType.PRODUCT_CREATED:
         product = Product.objects.prefetch_related(
             "category", "collections", "variants"
         ).first()
-        return generate_product_payload(product) if product else []
-
-    return _generate_sample_order_payload(event_name)
+        payload = generate_product_payload(product) if product else None
+    else:
+        payload = _generate_sample_order_payload(event_name)
+    return json.loads(payload) if payload else None

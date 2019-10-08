@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from saleor.order import OrderStatus
@@ -26,7 +28,7 @@ def test_generate_sample_payload_order(
     fulfilled_order.status = order_status
     fulfilled_order.save()
     payload = generate_sample_payload(event_name)
-    assert payload == generate_order_payload(fulfilled_order)
+    assert payload == json.loads(generate_order_payload(fulfilled_order))
 
 
 @pytest.mark.parametrize(
@@ -45,14 +47,14 @@ def test_generate_sample_payload_order(
     ],
 )
 def test_generate_sample_payload_empty_response_(event_name):
-    assert generate_sample_payload(event_name) == []
+    assert generate_sample_payload(event_name) is None
 
 
 def test_generate_sample_customer_payload(customer_user):
     payload = generate_sample_payload(WebhookEventType.CUSTOMER_CREATED)
-    assert payload == generate_customer_payload(customer_user)
+    assert payload == json.loads(generate_customer_payload(customer_user))
 
 
 def test_generate_sample_product_payload(variant):
     payload = generate_sample_payload(WebhookEventType.PRODUCT_CREATED)
-    assert payload == generate_product_payload(variant.product)
+    assert payload == json.loads(generate_product_payload(variant.product))
