@@ -14,12 +14,12 @@ class ExtensionsQueries(graphene.ObjectType):
         id=graphene.Argument(
             graphene.ID, description="ID of the plugin.", required=True
         ),
-        description="Lookup a plugin by ID.",
+        description="Look up a plugin by ID.",
     )
     plugins = FilterInputConnectionField(
         Plugin,
-        filter=PluginFilterInput(description="Filtering options for plugins"),
-        description="List of plugins",
+        filter=PluginFilterInput(description="Filtering options for plugins."),
+        description="List of plugins.",
     )
 
     @permission_required("extensions.manage_plugins")

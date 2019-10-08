@@ -73,10 +73,10 @@ class Checkout(MetadataObjectType, CountableDjangoObjectType):
     available_payment_gateways = graphene.List(
         PaymentGateway, description="List of available payment gateways.", required=True
     )
-    email = graphene.String(description="Email of a customer", required=True)
+    email = graphene.String(description="Email of a customer.", required=True)
     gift_cards = gql_optimizer.field(
         graphene.List(
-            GiftCard, description="List of gift cards associated with this checkout"
+            GiftCard, description="List of gift cards associated with this checkout."
         ),
         model_field="gift_cards",
     )
@@ -134,7 +134,7 @@ class Checkout(MetadataObjectType, CountableDjangoObjectType):
             "voucher_code",
             "discount",
         ]
-        description = "Checkout object"
+        description = "Checkout object."
         model = models.Checkout
         interfaces = [graphene.relay.Node]
         filter_fields = ["token"]

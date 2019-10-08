@@ -15,7 +15,7 @@ class CustomerRegisterInput(graphene.InputObjectType):
     email = graphene.String(
         description="The unique email address of the user.", required=True
     )
-    password = graphene.String(description="Password", required=True)
+    password = graphene.String(description="Password.", required=True)
 
 
 class CustomerRegister(ModelMutation):
@@ -73,7 +73,7 @@ class CustomerAddressCreate(ModelMutation):
 
     class Arguments:
         input = AddressInput(
-            description="Fields required to create address", required=True
+            description="Fields required to create address.", required=True
         )
         type = AddressTypeEnum(
             required=False,
@@ -167,7 +167,7 @@ class CustomerPasswordResetInput(graphene.InputObjectType):
 class CustomerPasswordReset(BaseMutation):
     class Arguments:
         input = CustomerPasswordResetInput(
-            description="Fields required to reset customer's password", required=True
+            description="Fields required to reset customer's password.", required=True
         )
 
     class Meta:

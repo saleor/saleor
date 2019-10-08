@@ -6,20 +6,20 @@ from ..core.connection import CountableDjangoObjectType
 
 
 class WebhookEvent(graphene.ObjectType):
-    event_type = graphene.String(description="Name of the event type")
+    event_type = graphene.String(description="Name of the event type.")
 
     class Meta:
-        description = "Webhook event"
+        description = "Webhook event."
 
 
 class Webhook(CountableDjangoObjectType):
     events = gql_optimizer.field(
-        graphene.List(WebhookEvent, description="List of webhook events"),
+        graphene.List(WebhookEvent, description="List of webhook events."),
         model_field="events",
     )
 
     class Meta:
-        description = "Webhook"
+        description = "Webhook."
         model = models.Webhook
         interfaces = [graphene.relay.Node]
         only_fields = [
