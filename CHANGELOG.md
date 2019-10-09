@@ -92,6 +92,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Replace Pipenv with Poetry - #3894 by @michaljelonek
 - `productVariant` nodes now require `manage_products` permission to query `costPrice` and `stockQuantity` fields - #4753 by @NyanKiyoshi
 - `productVariant` nodes now require `manage_products` permission to query `costPrice` and `stockQuantity` fields. `isAvailable` of a variant is not longer returning false when another variant from the same product is out of stock. - #4753 by @NyanKiyoshi
+- Fixed crash when placing an order when a customer happens to have the same address more than once - #4823 by @NyanKiyoshi
 
 ## 2.8.0
 
