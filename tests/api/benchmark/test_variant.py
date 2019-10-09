@@ -24,6 +24,7 @@ def test_retrieve_variant_list(product_variant_list, api_client, count_queries):
           id
           sku
           name
+          stockQuantity
           isAvailable
           price {
             currency
@@ -48,6 +49,7 @@ def test_retrieve_variant_list(product_variant_list, api_client, count_queries):
             edges {
               node {
                 ...ProductVariantFields
+                stockQuantity
                 product {
                   ...BasicProductFields
                 }

@@ -315,10 +315,8 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         return getattr(root, "digital_content", None)
 
     @staticmethod
-    def resolve_stock_quantity(root: models.ProductVariant, info):
+    def resolve_stock_quantity(root: models.ProductVariant, _info):
         exact_quantity_available = root.quantity_available
-        if info.context.user.has_perm("product.manage_products"):
-            return exact_quantity_available
         return min(exact_quantity_available, settings.MAX_CHECKOUT_LINE_QUANTITY)
 
     @staticmethod
