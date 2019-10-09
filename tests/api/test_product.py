@@ -2391,16 +2391,15 @@ VARIANT_QUANTITY_AVAILABLE_IN_STOCK_QUERY = """
     """
 
 
-def test_variant_available_stock_quantity_is_not_capped_for_authorized_user(
+def test_variant_available_stock_quantity_is_capped_for_authorized_user(
     staff_api_client, permission_manage_products, variant, settings
 ):
     """
     The exact quantity available in stock should be accessible for a staff
     user having the permission to manage products.
     """
-    settings.MAX_CHECKOUT_LINE_QUANTITY = 50
     actual_stock_available = 60
-    expected_stock_available = actual_stock_available
+    expected_stock_available = settings.MAX_CHECKOUT_LINE_QUANTITY = 50
 
     variant.quantity = actual_stock_available
     variant.quantity_allocated = 0
