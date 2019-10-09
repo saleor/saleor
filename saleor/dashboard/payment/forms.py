@@ -40,7 +40,7 @@ class GatewayConfigurationForm(forms.ModelForm):
         parsed_fields = {}
         structure = current_configuration.configuration
         if structure is None:
-            raise Exception
+            return {}
         for elem in structure:
             slug = slugify(elem["name"])
             self.fields[slug] = create_custom_form_field(elem)

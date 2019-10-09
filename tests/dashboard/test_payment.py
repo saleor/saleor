@@ -119,6 +119,13 @@ def test_config_char_field_returned_value(config_char_structure):
     }
 
 
+def test_gateway_config_returns_empty_dict_when_no_config(plugin_configuration):
+    plugin_configuration.configuration = None
+    plugin_configuration.save()
+    form = GatewayConfigurationForm(BraintreeGatewayPlugin)
+    assert form._prepare_fields_for_given_config(plugin_configuration) == {}
+
+
 def test_payment_index_display_only_available_gateways(staff_client):
     url = reverse("dashboard:payments-index")
     response = staff_client.get(url)
