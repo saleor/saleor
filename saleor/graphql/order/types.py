@@ -231,15 +231,15 @@ class OrderLine(CountableDjangoObjectType):
     @gql_optimizer.resolver_hints(
         prefetch_related=["variant__images", "variant__product__images"]
     )
-    def resolve_thumbnail(root: models.OrderLine, info, *, size=None):
+    def resolve_thumbnail(root: models.OrderLine, info, *, size=255):
         if not root.variant_id:
             return None
-        if not size:
-            size = 255
         image = root.variant.get_first_image()
-        url = get_product_image_thumbnail(image, size, method="thumbnail")
-        alt = image.alt if image else None
-        return Image(alt=alt, url=info.context.build_absolute_uri(url))
+        if image:
+            url = get_product_image_thumbnail(image, size, method="thumbnail")
+            alt = image.alt
+            return Image(alt=alt, url=info.context.build_absolute_uri(url))
+        return None
 
     @staticmethod
     def resolve_unit_price(root: models.OrderLine, _info):
