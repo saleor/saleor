@@ -77,6 +77,12 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "19.2.0"
 
+[package.extras]
+azure-pipelines = ["coverage", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface", "pytest-azurepipelines"]
+dev = ["coverage", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface", "sphinx", "pre-commit"]
+docs = ["sphinx", "zope.interface"]
+tests = ["coverage", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface"]
+
 [[package]]
 category = "main"
 description = "A tool that automatically formats Python code to conform to the PEP 8 style guide"
@@ -110,6 +116,10 @@ version = "4.7.1"
 [package.dependencies]
 soupsieve = ">=1.2"
 
+[package.extras]
+html5lib = ["html5lib"]
+lxml = ["lxml"]
+
 [[package]]
 category = "dev"
 description = "Print ASCII tables for terminals"
@@ -140,6 +150,9 @@ attrs = ">=18.1.0"
 click = ">=6.5"
 toml = ">=0.9.4"
 
+[package.extras]
+d = ["aiohttp (>=3.3.2)", "aiohttp-cors"]
+
 [[package]]
 category = "main"
 description = "An easy safelist-based HTML-sanitizing tool."
@@ -158,10 +171,10 @@ description = "The AWS SDK for Python"
 name = "boto3"
 optional = false
 python-versions = "*"
-version = "1.9.245"
+version = "1.9.246"
 
 [package.dependencies]
-botocore = ">=1.12.245,<1.13.0"
+botocore = ">=1.12.246,<1.13.0"
 jmespath = ">=0.7.1,<1.0.0"
 s3transfer = ">=0.2.0,<0.3.0"
 
@@ -171,7 +184,7 @@ description = "Low-level, data-driven core of boto 3."
 name = "botocore"
 optional = false
 python-versions = "*"
-version = "1.12.245"
+version = "1.12.246"
 
 [package.dependencies]
 docutils = ">=0.10,<0.16"
@@ -217,6 +230,11 @@ version = "1.1.0"
 cffi = ">=1.1.0"
 setuptools = ">=39.2.0"
 
+[package.extras]
+doc = ["sphinx", "sphinx-rtd-theme"]
+test = ["pytest-runner", "pytest-cov", "pytest-flake8", "pytest-isort"]
+xcb = ["xcffib (>=0.3.2)"]
+
 [[package]]
 category = "main"
 description = "A Simple SVG Converter based on Cairo"
@@ -232,6 +250,10 @@ defusedxml = "*"
 pillow = "*"
 tinycss2 = "*"
 
+[package.extras]
+doc = ["sphinx", "sphinx-rtd-theme"]
+test = ["pytest-runner", "pytest-cov", "pytest-flake8", "pytest-isort"]
+
 [[package]]
 category = "main"
 description = "Distributed Task Queue."
@@ -244,8 +266,45 @@ version = "4.3.0"
 billiard = ">=3.6.0,<4.0"
 kombu = ">=4.4.0,<5.0"
 pytz = ">0.0-dev"
-redis = ">=3.2.0"
 vine = ">=1.3.0"
+
+[package.dependencies.redis]
+optional = true
+version = ">=3.2.0"
+
+[package.extras]
+arangodb = ["pyArango (>=1.3.2)"]
+auth = ["cryptography"]
+azureblockblob = ["azure-storage (0.36.0)", "azure-common (1.1.5)", "azure-storage-common (1.1.0)"]
+brotli = ["brotli (>=1.0.0)", "brotlipy (>=0.7.0)"]
+cassandra = ["cassandra-driver"]
+consul = ["python-consul"]
+cosmosdbsql = ["pydocumentdb (2.3.2)"]
+couchbase = ["couchbase", "couchbase-cffi"]
+couchdb = ["pycouchdb"]
+django = ["Django (>=1.8)"]
+dynamodb = ["boto3 (>=1.4.6)"]
+elasticsearch = ["elasticsearch"]
+eventlet = ["eventlet (>=0.24.1)"]
+gevent = ["gevent"]
+librabbitmq = ["librabbitmq (>=1.5.0)"]
+lzma = ["backports.lzma"]
+memcache = ["pylibmc"]
+mongodb = ["pymongo (>=3.3.0)"]
+msgpack = ["msgpack"]
+pymemcache = ["python-memcached"]
+pyro = ["pyro4"]
+redis = ["redis (>=3.2.0)"]
+riak = ["riak (>=2.0)"]
+s3 = ["boto3 (>=1.4.6)"]
+slmq = ["softlayer-messaging (>=1.0.3)"]
+solar = ["ephem"]
+sqlalchemy = ["sqlalchemy"]
+sqs = ["boto3 (>=1.4.6)", "pycurl"]
+tblib = ["tblib (>=1.3.0)"]
+yaml = ["PyYAML (>=3.10)"]
+zookeeper = ["kazoo (>=1.3.1)"]
+zstd = ["zstandard"]
 
 [[package]]
 category = "main"
@@ -332,9 +391,13 @@ version = "0.2.2"
 [package.dependencies]
 tinycss2 = "*"
 
+[package.extras]
+test = ["pytest-runner", "pytest-cov", "pytest-flake8", "pytest-isort"]
+
 [[package]]
 category = "main"
 description = "A backport of the dataclasses module for Python 3.6"
+marker = "python_version < \"3.7\""
 name = "dataclasses"
 optional = false
 python-versions = "*"
@@ -375,6 +438,10 @@ version = "2.2.6"
 [package.dependencies]
 pytz = "*"
 sqlparse = "*"
+
+[package.extras]
+argon2 = ["argon2-cffi (>=16.1.0)"]
+bcrypt = ["bcrypt"]
 
 [[package]]
 category = "main"
@@ -429,6 +496,11 @@ version = "5.5"
 
 [package.dependencies]
 six = "*"
+
+[package.extras]
+dev = ["tox", "django", "pytest", "pytest-django", "djangorestframework", "mock"]
+maintainer = ["transifex-client", "zest.releaser", "django"]
+test = ["pytest", "pytest-django", "pytest-cov", "mock"]
 
 [[package]]
 category = "dev"
@@ -552,6 +624,10 @@ version = "2.4.0"
 Django = ">=1.11.3"
 babel = "*"
 
+[package.extras]
+phonenumbers = ["phonenumbers (>=7.0.2)"]
+phonenumberslite = ["phonenumberslite (>=7.0.2)"]
+
 [[package]]
 category = "main"
 description = "Django fields for the prices module"
@@ -656,7 +732,19 @@ version = "1.7.2"
 
 [package.dependencies]
 Django = ">=1.11"
-google-cloud-storage = ">=0.22.0"
+
+[package.dependencies.google-cloud-storage]
+optional = true
+version = ">=0.22.0"
+
+[package.extras]
+azure = ["azure-storage-blob (>=1.3.1)"]
+boto = ["boto (>=2.32.0)"]
+boto3 = ["boto3 (>=1.4.4)"]
+dropbox = ["dropbox (>=7.2.1)"]
+google = ["google-cloud-storage (>=0.22.0)"]
+libcloud = ["apache-libcloud"]
+sftp = ["paramiko"]
 
 [[package]]
 category = "main"
@@ -708,6 +796,9 @@ version = "1.0.0"
 [package.dependencies]
 urllib3 = "*"
 
+[package.extras]
+dev = ["pre-commit", "pytest", "mock"]
+
 [[package]]
 category = "main"
 description = "Python client for Elasticsearch"
@@ -718,6 +809,10 @@ version = "6.3.1"
 
 [package.dependencies]
 urllib3 = ">=1.21.1"
+
+[package.extras]
+develop = ["requests (>=2.0.0,<3.0.0)", "nose", "coverage", "mock", "pyaml", "nosexcover", "sphinx", "sphinx-rtd-theme"]
+requests = ["requests (>=2.4.0,<3.0.0)"]
 
 [[package]]
 category = "main"
@@ -732,6 +827,9 @@ elasticsearch = ">=6.0.0,<7.0.0"
 ipaddress = "*"
 python-dateutil = "*"
 six = "*"
+
+[package.extras]
+develop = ["mock", "pytest (>=3.0.0)", "pytest-cov", "pytz", "sphinx", "sphinx-rtd-theme"]
 
 [[package]]
 category = "dev"
@@ -751,6 +849,9 @@ version = "1.7.1"
 
 [package.dependencies]
 apipkg = ">=1.4"
+
+[package.extras]
+testing = ["pre-commit"]
 
 [[package]]
 category = "main"
@@ -817,6 +918,11 @@ requests = ">=2.18.0,<3.0.0dev"
 setuptools = ">=34.0.0"
 six = ">=1.10.0"
 
+[package.extras]
+grpc = ["grpcio (>=1.8.2,<2.0dev)"]
+grpcgcp = ["grpcio-gcp (>=0.2.2)"]
+grpcio-gcp = ["grpcio-gcp (>=0.2.2)"]
+
 [[package]]
 category = "main"
 description = "Google Authentication Library"
@@ -843,6 +949,9 @@ version = "1.0.3"
 
 [package.dependencies]
 google-api-core = ">=1.14.0,<2.0.0dev"
+
+[package.extras]
+grpc = ["grpcio (>=1.8.2,<2.0dev)"]
 
 [[package]]
 category = "main"
@@ -894,6 +1003,9 @@ version = "0.4.1"
 [package.dependencies]
 six = "*"
 
+[package.extras]
+requests = ["requests (>=2.18.0,<3.0.0dev)"]
+
 [[package]]
 category = "main"
 description = "Common protobufs used in Google APIs"
@@ -905,6 +1017,9 @@ version = "1.6.0"
 
 [package.dependencies]
 protobuf = ">=3.6.0"
+
+[package.extras]
+grpc = ["grpcio (>=1.0.0)"]
 
 [[package]]
 category = "main"
@@ -928,6 +1043,11 @@ graphql-core = ">=2.1,<3"
 graphql-relay = ">=2,<3"
 six = ">=1.10.0,<2"
 
+[package.extras]
+django = ["graphene-django"]
+sqlalchemy = ["graphene-sqlalchemy"]
+test = ["pytest", "pytest-benchmark", "pytest-cov", "pytest-mock", "snapshottest", "coveralls", "promise", "six", "mock", "pytz", "iso8601"]
+
 [[package]]
 category = "main"
 description = "Graphene Django integration"
@@ -943,6 +1063,11 @@ graphql-core = ">=2.1.0,<3"
 promise = ">=2.1"
 singledispatch = ">=3.4.0.3"
 six = ">=1.10.0"
+
+[package.extras]
+dev = ["black (19.3b0)", "flake8 (3.7.7)", "flake8-black (0.1.0)", "flake8-bugbear (19.3.0)", "pytest (>=3.6.3)", "pytest-cov", "coveralls", "mock", "pytz", "pytest-django (>=3.3.2)", "djangorestframework (>=3.6.3)", "django-filter (<2)", "django-filter (>=2)"]
+rest_framework = ["djangorestframework (>=3.6.3)"]
+test = ["pytest (>=3.6.3)", "pytest-cov", "coveralls", "mock", "pytz", "pytest-django (>=3.3.2)", "djangorestframework (>=3.6.3)", "django-filter (<2)", "django-filter (>=2)"]
 
 [[package]]
 category = "main"
@@ -980,6 +1105,10 @@ promise = ">=2.1"
 rx = ">=1.6,<3"
 six = ">=1.10.0"
 
+[package.extras]
+gevent = ["gevent (>=1.1)"]
+test = ["pytest (>=3.3,<4.0)", "pytest-django (2.9.1)", "pytest-cov (2.3.1)", "coveralls", "gevent (>=1.1)", "six (>=1.10.0)", "pytest-benchmark (3.0.0)", "pytest-mock (1.2)"]
+
 [[package]]
 category = "main"
 description = "Relay implementation for Python"
@@ -1005,6 +1134,9 @@ version = "1.0.1"
 beautifulsoup4 = ">4.7,<4.8"
 lxml = "*"
 
+[package.extras]
+dev = ["pre-commit", "mock", "pytest"]
+
 [[package]]
 category = "main"
 description = "HTML parser based on the WHATWG HTML specification"
@@ -1017,6 +1149,13 @@ version = "1.0.1"
 six = ">=1.9"
 webencodings = "*"
 
+[package.extras]
+all = ["genshi", "chardet (>=2.2)", "datrie", "lxml"]
+chardet = ["chardet (>=2.2)"]
+datrie = ["datrie"]
+genshi = ["genshi"]
+lxml = ["lxml"]
+
 [[package]]
 category = "dev"
 description = "File identification library for Python"
@@ -1024,6 +1163,9 @@ name = "identify"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "1.4.7"
+
+[package.extras]
+license = ["editdistance"]
 
 [[package]]
 category = "main"
@@ -1044,6 +1186,10 @@ version = "0.23"
 [package.dependencies]
 zipp = ">=0.5"
 
+[package.extras]
+docs = ["sphinx", "rst.linker"]
+testing = ["packaging", "importlib-resources"]
+
 [[package]]
 category = "main"
 description = "IPv4/IPv6 manipulation library"
@@ -1060,6 +1206,12 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "4.3.21"
 
+[package.extras]
+pipfile = ["pipreqs", "requirementslib"]
+pyproject = ["toml"]
+requirements = ["pipreqs", "pip-api"]
+xdg_home = ["appdirs (>=1.4.0)"]
+
 [[package]]
 category = "main"
 description = "A very fast and expressive template engine."
@@ -1070,6 +1222,9 @@ version = "2.10.3"
 
 [package.dependencies]
 MarkupSafe = ">=0.23"
+
+[package.extras]
+i18n = ["Babel (>=0.8)"]
 
 [[package]]
 category = "main"
@@ -1102,6 +1257,22 @@ version = "4.6.5"
 amqp = "2.5.1"
 importlib-metadata = ">=0.18"
 
+[package.extras]
+azureservicebus = ["azure-servicebus (>=0.21.1)"]
+azurestoragequeues = ["azure-storage-queue"]
+consul = ["python-consul (>=0.6.0)"]
+librabbitmq = ["librabbitmq (>=1.5.2)"]
+mongodb = ["pymongo (>=3.3.0)"]
+msgpack = ["msgpack"]
+pyro = ["pyro4"]
+qpid = ["qpid-python (>=0.26)", "qpid-tools (>=0.26)"]
+redis = ["redis (>=3.2.0)"]
+slmq = ["softlayer-messaging (>=1.0.3)"]
+sqlalchemy = ["sqlalchemy"]
+sqs = ["boto3 (>=1.4.4)", "pycurl (7.43.0.2)"]
+yaml = ["PyYAML (>=3.10)"]
+zookeeper = ["kazoo (>=1.3.1)"]
+
 [[package]]
 category = "dev"
 description = "A fast and thorough lazy object proxy."
@@ -1118,6 +1289,12 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, != 3.4.*"
 version = "4.4.1"
 
+[package.extras]
+cssselect = ["cssselect (>=0.7)"]
+html5 = ["html5lib"]
+htmlsoup = ["beautifulsoup4"]
+source = ["Cython (>=0.29.7)"]
+
 [[package]]
 category = "main"
 description = "Python implementation of Markdown."
@@ -1128,6 +1305,9 @@ version = "3.1.1"
 
 [package.dependencies]
 setuptools = ">=36"
+
+[package.extras]
+testing = ["coverage", "pyyaml"]
 
 [[package]]
 category = "main"
@@ -1216,6 +1396,11 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "3.1.0"
 
+[package.extras]
+rsa = ["cryptography"]
+signals = ["blinker"]
+signedtoken = ["cryptography", "pyjwt (>=1.0.0)"]
+
 [[package]]
 category = "dev"
 description = "Core utilities for Python packages"
@@ -1256,6 +1441,9 @@ version = "0.13.0"
 [package.dependencies.importlib-metadata]
 python = "<3.8"
 version = ">=0.12"
+
+[package.extras]
+dev = ["pre-commit", "tox"]
 
 [[package]]
 category = "dev"
@@ -1298,6 +1486,9 @@ version = "2.2.1"
 
 [package.dependencies]
 six = "*"
+
+[package.extras]
+test = ["coveralls", "futures", "mock", "pytest (>=2.7.3)", "pytest-benchmark", "pytest-cov"]
 
 [[package]]
 category = "main"
@@ -1355,7 +1546,7 @@ marker = "extra == \"google\""
 name = "pyasn1-modules"
 optional = false
 python-versions = "*"
-version = "0.2.6"
+version = "0.2.7"
 
 [package.dependencies]
 pyasn1 = ">=0.4.6,<0.5.0"
@@ -1411,6 +1602,11 @@ optional = false
 python-versions = "*"
 version = "1.7.1"
 
+[package.extras]
+crypto = ["cryptography (>=1.4)"]
+flake8 = ["flake8", "flake8-import-order", "pep8-naming"]
+test = ["pytest (>=4.0.1,<5.0.0)", "pytest-cov (>=2.6.0,<3.0.0)", "pytest-runner (>=4.2,<5.0.0)"]
+
 [[package]]
 category = "dev"
 description = "python code static checker"
@@ -1449,6 +1645,10 @@ version = "2.0.11"
 [package.dependencies]
 pylint = ">=2.0"
 pylint-plugin-utils = ">=0.5"
+
+[package.extras]
+for_tests = ["coverage", "django-tables2", "factory-boy", "pytest"]
+with_django = ["django"]
 
 [[package]]
 category = "dev"
@@ -1499,6 +1699,9 @@ wcwidth = "*"
 python = "<3.8"
 version = ">=0.12"
 
+[package.extras]
+testing = ["argcomplete", "hypothesis (>=3.56)", "mock", "nose", "requests", "xmlschema"]
+
 [[package]]
 category = "dev"
 description = "Pytest plugin for measuring coverage."
@@ -1511,6 +1714,9 @@ version = "2.8.1"
 coverage = ">=4.4"
 pytest = ">=3.6"
 
+[package.extras]
+testing = ["fields", "hunter", "process-tests (2.0.2)", "six", "virtualenv"]
+
 [[package]]
 category = "dev"
 description = "A Django plugin for pytest."
@@ -1521,6 +1727,10 @@ version = "3.5.1"
 
 [package.dependencies]
 pytest = ">=3.6"
+
+[package.extras]
+docs = ["sphinx", "sphinx-rtd-theme"]
+testing = ["django", "django-configurations (>=2.0)", "six"]
 
 [[package]]
 category = "dev"
@@ -1540,6 +1750,9 @@ pytest = ">=4.4.0"
 [package.dependencies.django]
 python = ">=3.0"
 version = "*"
+
+[package.extras]
+dev = ["beautifulsoup4", "lxml", "sphinx", "sphinx-rtd-theme", "pre-commit", "mock"]
 
 [[package]]
 category = "dev"
@@ -1562,6 +1775,9 @@ version = "1.11.1"
 
 [package.dependencies]
 pytest = ">=2.7"
+
+[package.extras]
+dev = ["pre-commit", "tox"]
 
 [[package]]
 category = "dev"
@@ -1589,6 +1805,9 @@ pytest = ">=4.4.0"
 pytest-forked = "*"
 six = "*"
 
+[package.extras]
+testing = ["filelock"]
+
 [[package]]
 category = "main"
 description = "Extensions to the standard Python datetime module"
@@ -1610,6 +1829,9 @@ version = "3.0.4"
 
 [package.dependencies]
 text-unidecode = ">=1.3"
+
+[package.extras]
+unidecode = ["Unidecode (>=1.1.1)"]
 
 [[package]]
 category = "main"
@@ -1658,6 +1880,9 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "3.3.8"
 
+[package.extras]
+hiredis = ["hiredis (>=0.1.3)"]
+
 [[package]]
 category = "main"
 description = "Python HTTP for Humans."
@@ -1672,6 +1897,10 @@ chardet = ">=3.0.2,<3.1.0"
 idna = ">=2.5,<2.9"
 urllib3 = ">=1.21.1,<1.25.0 || >1.25.0,<1.25.1 || >1.25.1,<1.26"
 
+[package.extras]
+security = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)", "idna (>=2.0.0)"]
+socks = ["PySocks (>=1.5.6,<1.5.7 || >1.5.7)", "win-inet-pton"]
+
 [[package]]
 category = "main"
 description = "OAuthlib authentication support for Requests."
@@ -1683,6 +1912,9 @@ version = "1.2.0"
 [package.dependencies]
 oauthlib = ">=3.0.0"
 requests = ">=2.0.0"
+
+[package.extras]
+rsa = ["oauthlib (>=3.0.0)"]
 
 [[package]]
 category = "main"
@@ -1726,6 +1958,11 @@ version = "0.12.3"
 [package.dependencies]
 certifi = "*"
 urllib3 = ">=1.9"
+
+[package.extras]
+bottle = ["bottle (>=0.12.13)"]
+falcon = ["falcon (>=1.4)"]
+flask = ["flask (>=0.8)", "blinker (>=1.1)"]
 
 [[package]]
 category = "main"
@@ -1789,6 +2026,14 @@ version = ">=0.5.0rc1"
 python = ">=3.0"
 version = ">=3.0.10"
 
+[package.extras]
+all = ["cryptography (>=2.1.1)", "pyjwt (>=1.7.1)", "python-jose (>=3.0.0)", "python-saml (>=2.2.0)", "python3-saml (>=1.2.1)"]
+allpy2 = ["cryptography (>=2.1.1)", "pyjwt (>=1.7.1)", "python-jose (>=3.0.0)", "python-openid (>=2.2.5)", "python-saml (>=2.2.0)", "python3-saml (>=1.2.1)"]
+allpy3 = ["cryptography (>=2.1.1)", "defusedxml (>=0.5.0rc1)", "pyjwt (>=1.7.1)", "python-jose (>=3.0.0)", "python-saml (>=2.2.0)", "python3-openid (>=3.0.10)", "python3-saml (>=1.2.1)"]
+azuread = ["cryptography (>=2.1.1)"]
+openidconnect = ["pyjwt (>=1.7.1)", "python-jose (>=3.0.0)"]
+saml = ["python-saml (>=2.2.0)", "python3-saml (>=1.2.1)"]
+
 [[package]]
 category = "main"
 description = "A modern CSS selector implementation for Beautiful Soup."
@@ -1849,6 +2094,10 @@ version = "1.0.2"
 setuptools = ">=39.2.0"
 webencodings = ">=0.4"
 
+[package.extras]
+doc = ["sphinx", "sphinx-rtd-theme"]
+test = ["pytest-runner", "pytest-cov", "pytest-flake8", "pytest-isort"]
+
 [[package]]
 category = "dev"
 description = "Python Library for Tom's Obvious, Minimal Language"
@@ -1878,6 +2127,10 @@ virtualenv = ">=14.0.0"
 python = "<3.8"
 version = ">=0.12,<1"
 
+[package.extras]
+docs = ["sphinx (>=2.0.0,<3)", "towncrier (>=18.5.0)", "pygments-github-lexers (>=0.0.5)", "sphinxcontrib-autoprogram (>=0.1.5)"]
+testing = ["freezegun (>=0.3.11,<1)", "pathlib2 (>=2.3.3,<3)", "pytest (>=4.0.0,<6)", "pytest-cov (>=2.5.1,<3)", "pytest-mock (>=1.10.0,<2)", "pytest-xdist (>=1.22.2,<2)", "pytest-randomly (>=1.2.3,<2)", "flaky (>=3.4.0,<4)", "psutil (>=5.6.1,<6)"]
+
 [[package]]
 category = "main"
 description = "Fast, Extensible Progress Meter"
@@ -1885,6 +2138,9 @@ name = "tqdm"
 optional = false
 python-versions = ">=2.6, !=3.0.*, !=3.1.*"
 version = "4.36.1"
+
+[package.extras]
+dev = ["py-make (>=0.1.0)", "twine", "argopt", "pydoc-markdown"]
 
 [[package]]
 category = "dev"
@@ -1925,9 +2181,15 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, <4"
 version = "1.25.6"
 
+[package.extras]
+brotli = ["brotlipy (>=0.6.0)"]
+secure = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "certifi", "ipaddress"]
+socks = ["PySocks (>=1.5.6,<1.5.7 || >1.5.7,<2.0)"]
+
 [[package]]
 category = "main"
 description = "The uWSGI server"
+marker = "platform_system != \"Windows\""
 name = "uwsgi"
 optional = false
 python-versions = "*"
@@ -1966,6 +2228,10 @@ optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "16.7.5"
 
+[package.extras]
+docs = ["sphinx (>=1.8.0,<2)", "towncrier (>=18.5.0)", "sphinx-rtd-theme (>=0.4.2,<1)"]
+testing = ["pytest (>=4.0.0,<5)", "coverage (>=4.5.0,<5)", "pytest-timeout (>=1.3.0,<2)", "six (>=1.10.0,<2)", "pytest-xdist", "pytest-localserver", "pypiserver", "mock", "xonsh"]
+
 [[package]]
 category = "dev"
 description = "Measures number of Terminal column cells of wide-character codes"
@@ -1991,6 +2257,10 @@ cssselect2 = ">=0.1"
 html5lib = ">=0.999999999"
 setuptools = ">=39.2.0"
 tinycss2 = ">=1.0.0"
+
+[package.extras]
+doc = ["sphinx", "sphinx-rtd-theme"]
+test = ["pytest-runner", "pytest-cov", "pytest-flake8", "pytest-isort"]
 
 [[package]]
 category = "main"
@@ -2040,6 +2310,10 @@ version = "0.6.0"
 [package.dependencies]
 more-itertools = "*"
 
+[package.extras]
+docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
+testing = ["pathlib2", "contextlib2", "unittest2"]
+
 [metadata]
 content-hash = "47f2a9b25ebd339c98f3c46e226258561a06b5aaceb7bb7b583dc343c018e368"
 python-versions = "~3.7"
@@ -2060,8 +2334,8 @@ beautifultable = ["8deee768c7939578412f930c95c2ac51307fb723a6368e9e233091cdad240
 billiard = ["01afcb4e7c4fd6480940cfbd4d9edc19d7a7509d6ada533984d0d0f49901ec82", "b8809c74f648dfe69b973c8e660bcec00603758c9db8ba89d7719f88d5f01f26"]
 black = ["09a9dcb7c46ed496a9850b76e4e825d6049ecd38b611f1224857a79bd985a8cf", "68950ffd4d9169716bcb8719a56c07a2f4485354fec061cdd5910aa07369731c"]
 bleach = ["0ee95f6167129859c5dce9b1ca291ebdb5d8cd7e382ca0e237dfd0dad63f63d8", "24754b9a7d530bf30ce7cbc805bc6cce785660b4a10ff3a43633728438c105ab"]
-boto3 = ["9b18eeb4f0943af80fc40cd480931e4900f7fb3850dfafe68903148fdd832e6b", "a985ed608640f8f7be49f83f298172876b695cc2218e335334a9da3bf6b0a968"]
-botocore = ["16a09307cef306312d4c3ea18ed3902ae1e084c905bda091db2689e9852753ef", "b21b694a6bccbe12b64d3e452d081016b67172c92d0b1be2904f60cd4dd5598d"]
+boto3 = ["9a84be232ff6432312c16b8e52cc5a01e6ff461cb9b50b3cafee24c6876a5012", "ad269aa51439e0dd5f8245913bd2dd85684e37c237f5635143e96d48ce74f0eb"]
+botocore = ["210d9de193e1a1f8ad22ce57b6c18d48c79ff0c093680ec1a07e83a635fce4c7", "6dcc121be4917cc731577a2ddff67b89cee6a4b0ec30241ce207a80a0d41990a"]
 braintree = ["0c95dbe0b497fd2eafaa08b6282f2b1d547cba3a432f8101424bd06c333348b5", "7cdd715a5a61339e4e5dcb5611cf80512d5fdb0e4da69307a64141d3597357f7"]
 cachetools = ["428266a1c0d36dc5aca63a2d7c5942e88c2c898d72139fca0e97fdd2380517ae", "8ea2d3ce97850f31e4a08b0e2b5e6c34997d7216a9d2c98e0f3978630d4da69a"]
 cairocffi = ["f1c0c5878f74ac9ccb5d48b2601fcc75390c881ce476e79f4cfedd288b1b05db"]
@@ -2169,7 +2443,7 @@ psycopg2-binary = ["080c72714784989474f97be9ab0ddf7b2ad2984527e77f2909fcd04d4df5
 purl = ["5ac0e85979da0172d80156701cb3eb9b1eff31f3b43e981ef6dc06251c53a3a4", "75141bef1e7fce943afda671663a97c792af01c81648026cd5b5c0dcc3b72b96"]
 py = ["64f65755aee5b381cea27766a3a147c3f15b9b6b9ac88676de66ba2ae36793fa", "dc639b046a6e2cff5bbe40194ad65936d6ba360b52b3c3fe1d08a82dd50b5e53"]
 pyasn1 = ["1321d4b2f051410fe7302bb1619903d30b24ba1451d019c11d242d11b2a35444", "2860a047f666afd23b197a65f33145313511c368ce919b2d9b1853ffd3e9d32d", "2919babd43b3b44247c23201b71072c0c65a636daa595cad5bcd276094dbfc2d", "437a23121602c0bb6c65320b27e31e334ffd73a9ca5c6c075b66b6270b1a8184", "5a89df3c62688261e27439d5715fd0d3ca6bf7bf1067e2171642e92aff17e817", "62cdade8b5530f0b185e09855dd422bc05c0bbff6b72ff61381c09dac7befd8c", "67a43aec85f4ea96e72a7b22227ba7a45cf03b7297e1a53418be164bbf68335e", "813b198c169e9442f340743f77093435bf3e1de8d1731f3abc45d44afba17556", "96c44b5604e7674e53e27fce98f3fc68821d9546151b98842c27b533122649da", "a9495356ca1d66ed197a0f72b41eb1823cf7ea8b5bd07191673e8147aecf8604", "bcac468e38d16e94fee4c8f76eef1feb9a06a911e93465f2351a4140fa66d303", "c39d11c72f0e5e71faa35c8c8ef5ee9b810ec99a3c64f05133f1325fe5636bba", "f124185ccc1c1c5e782aa58d46bc28be279673a482334d70de6735d05d8b4b10"]
-pyasn1-modules = ["256c234d85baf315f0e99786d812e68b816e4ee4b35bac982689198ff3df5a61", "3b350a01813f4878f4ebb3e7348d3753556b120145460a810e3121fe78925923", "43c17a83c155229839cc5c6b868e8d0c6041dba149789b6d6e28801c64821722", "525edd202cadbb014587e6e8a82a86424d4c92340222000b300cfd4041625f5a", "5965cb606a914b1b086f6ffdb9e526b5ec21cea81ba0bb75f3b807d5500dda1a", "75819dd99d1be4effd1322859ec8ac3fa7c7503fec0acbce6985b2aae41aa838", "a00100a99dcc71a97b2291fcac868a39f32a72cc54d86a4e5504b34b2f5f8584", "a480489471e67c579f49057a10879cc9a787b64a84af00ed2ed3f68a652b0197", "b3899b59d6c6b4e91e9c5278ec49c0adb971349ef9c3531ae67149e3bb0b272b", "b5e0ab3dc16f42ef0c2e5ebf51db9f1e1aa734a68a4d26a2b475a289182b697f", "bf68431a9043b35aa0a18b865ecbb19ec19f8354488ea0b3b5d9ec33cb4c2be5", "e30199a9d221f1b26c885ff3d87fd08694dbbe18ed0e8e405a2a7126d30ce4c0", "ee0eb28ad9e9c0237954b4ca4c8a91cc2e98476c1dc9a1422310332518b0dd82"]
+pyasn1-modules = ["0c35a52e00b672f832e5846826f1fb7507907f7d52fba6faa9e3c4cbe874fe4b", "13a6955947d8a554de78fc305a4d651f20fb5580b88612a5f0661d4f189d27ac", "233f55c840e821e76828262db976ac894b285909d22d060c2bdb522e7bf28cc6", "24d54188cb7abd750e0a2cba61b7b46a75608175a0c3c1b1eee08322915d8d21", "27581362b4253b9c999882a64df974124cde12be0bf2c04148a0d68bc6bbb7b8", "33c220a2701032261a23eea6e9881404ac6fc7ff96f183b5353fea8fc8962547", "64f6aecf26e93f6a3ba3725b4eb9f532551747d7a63ca9ff43aef12f4bf11eac", "7b4edf07ca2f759d7cf693184be09f22e067c2eb52b03c770d0a2e9de1c67dfd", "9b972f81f59d896cebb9ebb1d44296f1acb28bf7869443c37551f4eed8d74f83", "9ca5e376a6d9dee35bb3a62608dfa2e6698798aa6b8db3c7afd0eb31af0d63c7", "b6ada4f840fe51abf5a6bd545b45bf537bea62221fa0dde2e8a553ed9f06a4e3", "c14b107a67ee36a7f183ae9f4803ffde4a03b67f3192eab0a62e851af71371d3", "eaf35047a0b068e3e0c2a99618b13b65c98c329661daa78c9d44a4ef0fe8139e"]
 pycodestyle = ["95a2219d12372f05704562a14ec30bc76b05a5b297b21a5dfe3f6fac3491ae56", "e40a936c9a450ad81df37f549d676d127b1b66000a6c500caa2b085bc0ca976c"]
 pycparser = ["a988718abfad80b6b157acce7bf130a30876d27603738ac39f140993246b25b3"]
 pydocstyle = ["04c84e034ebb56eb6396c820442b8c4499ac5eb94a3bda88951ac3dc519b6058", "66aff87ffe34b1e49bff2dd03a88ce6843be2f3346b0c9814410d34987fbab59"]
