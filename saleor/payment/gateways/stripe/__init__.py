@@ -56,7 +56,7 @@ class StripePaymentForm(forms.Form):
         return self.cleaned_data["payment_method_nonce"]
 
 
-def create_form(data, payment_information, connection_params):
+def create_form(data, payment_information):
     return StripePaymentForm(data=data, payment_information=payment_information)
 
 
