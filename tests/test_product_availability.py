@@ -1,6 +1,7 @@
 import datetime
 from unittest.mock import Mock
 
+import pytest
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from saleor.extensions.manager import ExtensionsManager
@@ -57,19 +58,52 @@ def test_product_availability_status(unavailable_product):
     assert status == ProductAvailabilityStatus.NOT_YET_AVAILABLE
 
 
-def test_variant_availability_status(unavailable_product):
+def test_variant_is_out_of_stock_when_product_is_unavalable(unavailable_product):
     product = unavailable_product
     product.product_type.has_variants = True
 
     variant = product.variants.create(sku="test")
     variant.quantity = 0
-    variant.save()
+    variant.save(update_fields=["quantity"])
+
     status = get_variant_availability_status(variant)
     assert status == VariantAvailabilityStatus.OUT_OF_STOCK
 
-    variant.quantity = 5
-    variant.save()
-    get_variant_availability_status(variant)
+
+@pytest.mark.parametrize(
+    "stock, expected_status",
+    (
+        (0, VariantAvailabilityStatus.OUT_OF_STOCK),
+        (1, VariantAvailabilityStatus.AVAILABLE),
+    ),
+)
+def test_variant_availability_status(variant, stock, expected_status):
+    variant.quantity = stock
+    variant.quantity_allocated = 0
+
+    status = get_variant_availability_status(variant)
+    assert status == expected_status
+
+
+def test_variant_is_still_available_when_another_variant_is_unavailable(
+    product_variant_list
+):
+    """
+    Ensure a variant is not incorrectly flagged as out of stock when another variant
+    from the parent product is unavailable.
+    """
+
+    unavailable_variant, available_variant = product_variant_list[:2]
+
+    unavailable_variant.quantity = 0
+    available_variant.quantity = 1
+    available_variant.quantity_allocated = 0
+
+    status = get_variant_availability_status(available_variant)
+    assert status == VariantAvailabilityStatus.AVAILABLE
+
+    status = get_variant_availability_status(unavailable_variant)
+    assert status == VariantAvailabilityStatus.OUT_OF_STOCK
 
 
 def test_availability(product, monkeypatch, settings):

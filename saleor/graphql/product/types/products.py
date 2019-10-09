@@ -2,6 +2,7 @@ from typing import List, Union
 
 import graphene
 import graphene_django_optimizer as gql_optimizer
+from django.conf import settings
 from django.db.models import Prefetch
 from graphene import relay
 from graphql.error import GraphQLError
@@ -205,6 +206,11 @@ class ProductPricingInfo(BasePricingInfo):
 
 
 class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
+    quantity = graphene.Int(
+        required=True,
+        description="Quantity of a product in the store's possession, "
+        "including the allocated stock that is waiting for shipment.",
+    )
     stock_quantity = graphene.Int(
         required=True, description="Quantity of a product available for sale."
     )
@@ -295,7 +301,6 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
             "id",
             "name",
             "product",
-            "quantity",
             "quantity_allocated",
             "sku",
             "track_inventory",
@@ -310,8 +315,9 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         return getattr(root, "digital_content", None)
 
     @staticmethod
-    def resolve_stock_quantity(root: models.ProductVariant, *_args):
-        return root.quantity_available
+    def resolve_stock_quantity(root: models.ProductVariant, _info):
+        exact_quantity_available = root.quantity_available
+        return min(exact_quantity_available, settings.MAX_CHECKOUT_LINE_QUANTITY)
 
     @staticmethod
     @gql_optimizer.resolver_hints(
@@ -324,6 +330,11 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
     @permission_required("product.manage_products")
     def resolve_margin(root: models.ProductVariant, *_args):
         return get_margin_for_variant(root)
+
+    @staticmethod
+    @permission_required("product.manage_products")
+    def resolve_cost_price(root: models.ProductVariant, *_args):
+        return root.cost_price
 
     @staticmethod
     def resolve_price(root: models.ProductVariant, *_args):
@@ -517,14 +528,13 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
 
     @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related="images")
-    def resolve_thumbnail(root: models.Product, info, *, size=None):
+    def resolve_thumbnail(root: models.Product, info, *, size=255):
         image = root.get_first_image()
-        if not size:
-            size = 255
-        url = get_product_image_thumbnail(image, size, method="thumbnail")
-        url = info.context.build_absolute_uri(url)
-        alt = image.alt if image else None
-        return Image(alt=alt, url=url)
+        if image:
+            url = get_product_image_thumbnail(image, size, method="thumbnail")
+            alt = image.alt
+            return Image(alt=alt, url=info.context.build_absolute_uri(url))
+        return None
 
     @staticmethod
     def resolve_url(root: models.Product, *_args):
