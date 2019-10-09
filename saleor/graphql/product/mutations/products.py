@@ -451,7 +451,6 @@ class CategoryClearPrivateMeta(ClearMetaBaseMutation):
 
 class AttributeValueInput(InputObjectType):
     id = graphene.ID(description="ID of the selected attribute.")
-    slug = graphene.String(description="Slug of the selected attribute.")
     values = graphene.List(
         graphene.String,
         required=True,

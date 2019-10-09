@@ -1,7 +1,7 @@
 import json
 from datetime import datetime
 from decimal import Decimal
-from unittest.mock import Mock, patch
+from unittest.mock import ANY, Mock, patch
 
 import graphene
 import pytest
@@ -15,6 +15,7 @@ from saleor.extensions.manager import ExtensionsManager
 from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.product.enums import StockAvailability
 from saleor.product import AttributeInputType
+from saleor.product.error_codes import ProductErrorCode
 from saleor.product.models import (
     Attribute,
     AttributeValue,
@@ -1236,9 +1237,10 @@ def test_update_product(
 SET_ATTRIBUTES_TO_PRODUCT_QUERY = """
     mutation updateProduct($productId: ID!, $attributes: [AttributeValueInput!]) {
       productUpdate(id: $productId, input: { attributes: $attributes }) {
-        errors {
+        productErrors {
           message
           field
+          code
         }
       }
     }
@@ -1270,11 +1272,8 @@ def test_update_product_can_only_assign_multiple_values_to_valid_input_types(
     data = get_graphql_content(
         staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
     )["data"]["productUpdate"]
-    assert data["errors"] == [
-        {
-            "field": "attributes",
-            "message": "A dropdown attribute must take only one value",
-        }
+    assert data["productErrors"] == [
+        {"field": "attributes", "code": ProductErrorCode.INVALID.name, "message": ANY}
     ]
 
     # Try to assign multiple values from a valid attribute
@@ -1282,7 +1281,7 @@ def test_update_product_can_only_assign_multiple_values_to_valid_input_types(
     data = get_graphql_content(
         staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
     )["data"]["productUpdate"]
-    assert not data["errors"]
+    assert not data["productErrors"]
 
 
 def test_update_product_with_existing_attribute_value(
@@ -1306,7 +1305,7 @@ def test_update_product_with_existing_attribute_value(
     data = get_graphql_content(
         staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
     )["data"]["productUpdate"]
-    assert not data["errors"]
+    assert not data["productErrors"]
 
     assert (
         color_attribute.values.count() == expected_attribute_values_count
@@ -1322,6 +1321,7 @@ def test_update_product_without_supplying_required_product_attribute(
     staff_api_client.user.user_permissions.add(permission_manage_products)
 
     product_type = product.product_type
+    color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.id)
 
     # Create and assign a new attribute requiring a value to be always supplied
     required_attribute = Attribute.objects.create(
@@ -1332,43 +1332,25 @@ def test_update_product_without_supplying_required_product_attribute(
     # Try to assign multiple values from an attribute that does not support such things
     variables = {
         "productId": graphene.Node.to_global_id("Product", product.pk),
-        "attributes": [{"slug": color_attribute.slug, "values": ["Blue"]}],
+        "attributes": [{"id": color_attribute_id, "values": ["Blue"]}],
     }
 
     data = get_graphql_content(
         staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
     )["data"]["productUpdate"]
-    assert data["errors"] == [
-        {
-            "field": "attributes",
-            "message": (
-                "All attributes flagged as having a value required must be supplied."
-            ),
-        }
+    assert data["productErrors"] == [
+        {"field": "attributes", "code": ProductErrorCode.REQUIRED.name, "message": ANY}
     ]
 
 
-@pytest.mark.parametrize(
-    "attributes_input, expected_message",
-    (
-        (
-            [{"id": "QXR0cmlidXRlOjA=", "values": ["hello"]}],  # no such ID (id=0)
-            "Could not resolve to a node: ids=['QXR0cmlidXRlOjA='] and slugs=[]",
-        ),
-        (
-            [{"slug": "Oopsie.", "values": ["hello"]}],  # no such slug
-            "Could not resolve to a node: ids=[] and slugs=['Oopsie.']",
-        ),
-    ),
-)
 def test_update_product_with_non_existing_attribute(
-    staff_api_client,
-    product,
-    permission_manage_products,
-    color_attribute,
-    attributes_input,
-    expected_message,
+    staff_api_client, product, permission_manage_products, color_attribute
 ):
+    non_existent_attribute_pk = 0
+    invalid_attribute_id = graphene.Node.to_global_id(
+        "Attribute", non_existent_attribute_pk
+    )
+
     """Ensure assigning an existing value to a product doesn't create a new
     attribute value."""
 
@@ -1377,13 +1359,15 @@ def test_update_product_with_non_existing_attribute(
     # Try to assign multiple values from an attribute that does not support such things
     variables = {
         "productId": graphene.Node.to_global_id("Product", product.pk),
-        "attributes": attributes_input,
+        "attributes": [{"id": invalid_attribute_id, "values": ["hello"]}],
     }
 
     data = get_graphql_content(
         staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
     )["data"]["productUpdate"]
-    assert data["errors"] == [{"field": "attributes", "message": expected_message}]
+    assert data["productErrors"] == [
+        {"field": "attributes", "code": ProductErrorCode.NOT_FOUND.name, "message": ANY}
+    ]
 
 
 def test_update_product_with_no_attribute_slug_or_id(
@@ -1402,8 +1386,8 @@ def test_update_product_with_no_attribute_slug_or_id(
     data = get_graphql_content(
         staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
     )["data"]["productUpdate"]
-    assert data["errors"] == [
-        {"field": "attributes", "message": "You must whether supply an ID or a slug"}
+    assert data["productErrors"] == [
+        {"field": "attributes", "code": ProductErrorCode.REQUIRED.name, "message": ANY}
     ]
 
 

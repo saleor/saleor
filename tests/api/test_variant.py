@@ -1,4 +1,3 @@
-from decimal import Decimal
 from unittest.mock import ANY
 from uuid import uuid4
 
@@ -86,7 +85,7 @@ def test_create_variant(
                         trackInventory: $trackInventory,
                         weight: $weight
                     }) {
-                    errors {
+                    productErrors {
                       field
                       message
                     }
@@ -128,6 +127,9 @@ def test_create_variant(
     quantity = 10
     weight = 10.22
     variant_slug = product_type.variant_attributes.first().slug
+    variant_id = graphene.Node.to_global_id(
+        "Attribute", product_type.variant_attributes.first().pk
+    )
     variant_value = "test-value"
 
     variables = {
@@ -137,14 +139,14 @@ def test_create_variant(
         "costPrice": cost_price,
         "priceOverride": price_override,
         "weight": weight,
-        "attributes": [{"slug": variant_slug, "values": [variant_value]}],
+        "attributes": [{"id": variant_id, "values": [variant_value]}],
         "trackInventory": True,
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)["data"]["productVariantCreate"]
-    assert not content["errors"]
+    assert not content["productErrors"]
     data = content["productVariant"]
     assert data["name"] == variant_value
     assert data["quantity"] == quantity
@@ -171,8 +173,9 @@ def test_create_product_variant_not_all_attributes(
                             sku: $sku,
                             attributes: $attributes
                         }) {
-                        errors {
+                        productErrors {
                             field
+                            code
                             message
                         }
                     }
@@ -181,23 +184,26 @@ def test_create_product_variant_not_all_attributes(
         """
     product_id = graphene.Node.to_global_id("Product", product.pk)
     sku = "1"
-    variant_slug = product_type.variant_attributes.first().slug
+    variant_id = graphene.Node.to_global_id(
+        "Attribute", product_type.variant_attributes.first().pk
+    )
     variant_value = "test-value"
     product_type.variant_attributes.add(color_attribute)
 
     variables = {
         "productId": product_id,
         "sku": sku,
-        "attributes": [{"slug": variant_slug, "values": [variant_value]}],
+        "attributes": [{"id": variant_id, "values": [variant_value]}],
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
-    assert content["data"]["productVariantCreate"]["errors"]
-    assert content["data"]["productVariantCreate"]["errors"][0] == {
+    assert content["data"]["productVariantCreate"]["productErrors"]
+    assert content["data"]["productVariantCreate"]["productErrors"][0] == {
         "field": "attributes",
-        "message": "All attributes must take a value",
+        "code": ProductErrorCode.REQUIRED.name,
+        "message": ANY,
     }
     assert not product.variants.filter(sku=sku).exists()
 
@@ -648,52 +654,6 @@ PRODUCT_VARIANT_BULK_CREATE_MUTATION = """
 """
 
 
-def test_product_variant_bulk_create_by_attribute_slug(
-    staff_api_client, product, size_attribute, permission_manage_products
-):
-    product_variant_count = ProductVariant.objects.count()
-    attribute_value_count = size_attribute.values.count()
-    product_id = graphene.Node.to_global_id("Product", product.pk)
-    attribute_value = size_attribute.values.last()
-    sku = str(uuid4())[:12]
-    quantity = 1000
-    cost_price = 15.5
-    price_override = 9.5
-    weight = 2.5
-    track_inventory = True
-    variants = [
-        {
-            "sku": sku,
-            "quantity": quantity,
-            "costPrice": cost_price,
-            "priceOverride": price_override,
-            "weight": weight,
-            "trackInventory": track_inventory,
-            "attributes": [
-                {"slug": size_attribute.slug, "values": [attribute_value.name]}
-            ],
-        }
-    ]
-
-    variables = {"productId": product_id, "variants": variants}
-    staff_api_client.user.user_permissions.add(permission_manage_products)
-    response = staff_api_client.post_graphql(
-        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["productVariantBulkCreate"]
-    assert not data["bulkProductErrors"]
-    assert data["count"] == 1
-    assert product_variant_count + 1 == ProductVariant.objects.count()
-    assert attribute_value_count == size_attribute.values.count()
-    product_variant = ProductVariant.objects.get(sku=sku)
-    assert product_variant.quantity == quantity
-    assert product_variant.cost_price.amount == cost_price
-    assert product_variant.price_override.amount == Decimal(price_override)
-    assert product_variant.weight.value == weight
-    assert product_variant.track_inventory == track_inventory
-
-
 def test_product_variant_bulk_create_by_attribute_id(
     staff_api_client, product, size_attribute, permission_manage_products
 ):
@@ -755,18 +715,17 @@ def test_product_variant_bulk_create_with_new_attribute_value(
 ):
     product_variant_count = ProductVariant.objects.count()
     attribute_value_count = size_attribute.values.count()
+    size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
     product_id = graphene.Node.to_global_id("Product", product.pk)
     attribute_value = size_attribute.values.last()
     variants = [
         {
             "sku": str(uuid4())[:12],
-            "attributes": [
-                {"slug": size_attribute.slug, "values": [attribute_value.name]}
-            ],
+            "attributes": [{"id": size_attribute_id, "values": [attribute_value.name]}],
         },
         {
             "sku": str(uuid4())[:12],
-            "attributes": [{"slug": size_attribute.slug, "values": ["Test-attribute"]}],
+            "attributes": [{"id": size_attribute_id, "values": ["Test-attribute"]}],
         },
     ]
 
@@ -788,16 +747,17 @@ def test_product_variant_bulk_create_negative_quantity(
 ):
     product_variant_count = ProductVariant.objects.count()
     product_id = graphene.Node.to_global_id("Product", product.pk)
+    size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
     variants = [
         {
             "sku": str(uuid4())[:12],
             "quantity": -1000,
-            "attributes": [{"slug": size_attribute.slug, "values": ["Test-value"]}],
+            "attributes": [{"id": size_attribute_id, "values": ["Test-value"]}],
         },
         {
             "sku": str(uuid4())[:12],
             "quantity": 100,
-            "attributes": [{"slug": size_attribute.slug, "values": ["Test-value2"]}],
+            "attributes": [{"id": size_attribute_id, "values": ["Test-value2"]}],
         },
     ]
 
@@ -825,17 +785,18 @@ def test_product_variant_bulk_create_duplicated_sku(
 ):
     product_variant_count = ProductVariant.objects.count()
     product_id = graphene.Node.to_global_id("Product", product.pk)
+    size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
     sku = product.variants.first().sku
     sku2 = product_with_default_variant.variants.first().sku
     assert not sku == sku2
     variants = [
         {
             "sku": sku,
-            "attributes": [{"slug": size_attribute.slug, "values": ["Test-value"]}],
+            "attributes": [{"id": size_attribute_id, "values": ["Test-value"]}],
         },
         {
             "sku": sku2,
-            "attributes": [{"slug": size_attribute.slug, "values": ["Test-valuee"]}],
+            "attributes": [{"id": size_attribute_id, "values": ["Test-valuee"]}],
         },
     ]
 
@@ -860,15 +821,16 @@ def test_product_variant_bulk_create_duplicated_sku_in_input(
 ):
     product_variant_count = ProductVariant.objects.count()
     product_id = graphene.Node.to_global_id("Product", product.pk)
+    size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
     sku = str(uuid4())[:12]
     variants = [
         {
             "sku": sku,
-            "attributes": [{"slug": size_attribute.slug, "values": ["Test-value"]}],
+            "attributes": [{"id": size_attribute_id, "values": ["Test-value"]}],
         },
         {
             "sku": sku,
-            "attributes": [{"slug": size_attribute.slug, "values": ["Test-value2"]}],
+            "attributes": [{"id": size_attribute_id, "values": ["Test-value2"]}],
         },
     ]
 
@@ -887,69 +849,37 @@ def test_product_variant_bulk_create_duplicated_sku_in_input(
     assert product_variant_count == ProductVariant.objects.count()
 
 
-def test_product_variant_bulk_create_invalid_attribute_slug(
-    staff_api_client, product, permission_manage_products
-):
-    unasign_attribute = Attribute.objects.create(
-        slug="new_attribute", name="New attribute"
-    )
-    product_variant_count = ProductVariant.objects.count()
-    product_id = graphene.Node.to_global_id("Product", product.pk)
-    variants = [
-        {
-            "sku": str(uuid4())[:12],
-            "attributes": [{"slug": "invalid", "values": ["Test-value"]}],
-        },
-        {
-            "sku": str(uuid4())[:12],
-            "attributes": [{"slug": unasign_attribute.slug, "values": ["Test-value"]}],
-        },
-    ]
-
-    variables = {"productId": product_id, "variants": variants}
-    staff_api_client.user.user_permissions.add(permission_manage_products)
-    response = staff_api_client.post_graphql(
-        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["productVariantBulkCreate"]
-    assert len(data["bulkProductErrors"]) == 2
-    errors = data["bulkProductErrors"]
-    assert errors[0]["field"] == "attributes"
-    assert errors[0]["code"] == ProductErrorCode.NOT_FOUND.name
-    assert errors[0]["index"] == 0
-    assert errors[1]["field"] == "attributes"
-    assert errors[1]["code"] == ProductErrorCode.NOT_FOUND.name
-    assert errors[1]["index"] == 1
-    assert product_variant_count == ProductVariant.objects.count()
-
-
 def test_product_variant_bulk_create_many_errors(
     staff_api_client, product, size_attribute, permission_manage_products
 ):
     product_variant_count = ProductVariant.objects.count()
     product_id = graphene.Node.to_global_id("Product", product.pk)
+    size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+    non_existent_attribute_pk = 0
+    invalid_attribute_id = graphene.Node.to_global_id(
+        "Attribute", non_existent_attribute_pk
+    )
     sku = product.variants.first().sku
     variants = [
         {
             "sku": str(uuid4())[:12],
             "quantity": -1000,
-            "attributes": [{"slug": size_attribute.slug, "values": ["Test-value1"]}],
+            "attributes": [{"id": size_attribute_id, "values": ["Test-value1"]}],
         },
         {
             "sku": str(uuid4())[:12],
             "quantity": 100,
-            "attributes": [{"slug": size_attribute.slug, "values": ["Test-value4"]}],
+            "attributes": [{"id": size_attribute_id, "values": ["Test-value4"]}],
         },
         {
             "sku": sku,
             "quantity": 100,
-            "attributes": [{"slug": size_attribute.slug, "values": ["Test-value2"]}],
+            "attributes": [{"id": size_attribute_id, "values": ["Test-value2"]}],
         },
         {
             "sku": str(uuid4())[:12],
             "quantity": 100,
-            "attributes": [{"slug": "Invalid", "values": ["Test-value3"]}],
+            "attributes": [{"id": invalid_attribute_id, "values": ["Test-value3"]}],
         },
     ]
 
