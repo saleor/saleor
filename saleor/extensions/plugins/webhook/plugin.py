@@ -34,7 +34,7 @@ class WebhookPlugin(BasePlugin):
         if not self.active:
             return previous_value
         order_data = generate_order_payload(order)
-        trigger_webhooks_for_event.delay(WebhookEventType.ORDER_FULLYPAID, order_data)
+        trigger_webhooks_for_event.delay(WebhookEventType.ORDER_FULLY_PAID, order_data)
 
     def order_updated(self, order: "Order", previous_value: Any) -> Any:
         self._initialize_plugin_configuration()

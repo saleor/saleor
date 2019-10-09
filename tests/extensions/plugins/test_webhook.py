@@ -54,7 +54,7 @@ third_url = "http://www.example.com/third/"
     "event_name, total_webhook_calls, expected_target_urls",
     [
         (WebhookEventType.PRODUCT_CREATED, 1, {first_url}),
-        (WebhookEventType.ORDER_FULLYPAID, 2, {first_url, third_url}),
+        (WebhookEventType.ORDER_FULLY_PAID, 2, {first_url, third_url}),
         (WebhookEventType.ORDER_FULFILLED, 1, {third_url}),
         (WebhookEventType.ORDER_CANCELLED, 1, {third_url}),
         (WebhookEventType.ORDER_UPDATED, 1, {third_url}),
@@ -81,7 +81,7 @@ def test_trigger_webhooks_for_event_calls_expected_events(
     )
     webhook.events.create(event_type=WebhookEventType.CUSTOMER_CREATED)
     webhook.events.create(event_type=WebhookEventType.PRODUCT_CREATED)
-    webhook.events.create(event_type=WebhookEventType.ORDER_FULLYPAID)
+    webhook.events.create(event_type=WebhookEventType.ORDER_FULLY_PAID)
 
     sa_without_permissions = ServiceAccount.objects.create()
 
@@ -167,7 +167,7 @@ def test_order_fully_paid(mocked_webhook_trigger, settings, order_with_lines):
 
     expected_data = generate_order_payload(order_with_lines)
     mocked_webhook_trigger.assert_called_once_with(
-        WebhookEventType.ORDER_FULLYPAID, expected_data
+        WebhookEventType.ORDER_FULLY_PAID, expected_data
     )
 
 

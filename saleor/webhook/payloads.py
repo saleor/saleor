@@ -180,7 +180,7 @@ def _generate_sample_order_payload(event_name):
     order = None
     if event_name == WebhookEventType.ORDER_CREATED:
         order = _get_sample_object(order_qs.filter(status=OrderStatus.UNFULFILLED))
-    elif event_name == WebhookEventType.ORDER_FULLYPAID:
+    elif event_name == WebhookEventType.ORDER_FULLY_PAID:
         order = _get_sample_object(
             order_qs.filter(payments__charge_status=ChargeStatus.FULLY_CHARGED)
         )
