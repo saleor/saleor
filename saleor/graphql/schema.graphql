@@ -3328,6 +3328,7 @@ type ProductVariantUpdatePrivateMeta {
 type Query {
   webhook(id: ID!): Webhook
   webhooks(before: String, after: String, first: Int, last: Int): WebhookCountableConnection
+  webhookSamplePayload(eventType: WebhookEventTypeEnum!): JSONString
   translations(kind: TranslatableKinds!, before: String, after: String, first: Int, last: Int): TranslatableItemConnection
   shop: Shop
   shippingZone(id: ID!): ShippingZone
@@ -4314,7 +4315,6 @@ enum WebhookErrorCode {
 
 type WebhookEvent {
   eventType: String
-  samplePayload: JSONString
 }
 
 enum WebhookEventTypeEnum {
