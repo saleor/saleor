@@ -22,6 +22,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.utils.translation import pgettext_lazy
 
+
 class StripePaymentForm(forms.Form):
     amount = forms.DecimalField()
 
