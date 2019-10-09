@@ -158,10 +158,10 @@ description = "The AWS SDK for Python"
 name = "boto3"
 optional = false
 python-versions = "*"
-version = "1.9.244"
+version = "1.9.245"
 
 [package.dependencies]
-botocore = ">=1.12.244,<1.13.0"
+botocore = ">=1.12.245,<1.13.0"
 jmespath = ">=0.7.1,<1.0.0"
 s3transfer = ">=0.2.0,<0.3.0"
 
@@ -171,7 +171,7 @@ description = "Low-level, data-driven core of boto 3."
 name = "botocore"
 optional = false
 python-versions = "*"
-version = "1.12.244"
+version = "1.12.245"
 
 [package.dependencies]
 docutils = ">=0.10,<0.16"
@@ -963,6 +963,10 @@ version = "0.0.2"
 [package.dependencies]
 graphene = ">=2.1.0,<3"
 
+[package.source]
+reference = "89f239a882e25dd540191fe6c74f5fd032ce3b17"
+type = "git"
+url = "https://github.com/erebus1/graphene-federation.git"
 [[package]]
 category = "main"
 description = "GraphQL implementation for Python"
@@ -2037,7 +2041,7 @@ version = "0.6.0"
 more-itertools = "*"
 
 [metadata]
-content-hash = "a6dcd42225250d57e3abe0a20334725734e70b6fbcd3564694cd937355c911b7"
+content-hash = "47f2a9b25ebd339c98f3c46e226258561a06b5aaceb7bb7b583dc343c018e368"
 python-versions = "~3.7"
 
 [metadata.hashes]
@@ -2056,8 +2060,8 @@ beautifultable = ["8deee768c7939578412f930c95c2ac51307fb723a6368e9e233091cdad240
 billiard = ["01afcb4e7c4fd6480940cfbd4d9edc19d7a7509d6ada533984d0d0f49901ec82", "b8809c74f648dfe69b973c8e660bcec00603758c9db8ba89d7719f88d5f01f26"]
 black = ["09a9dcb7c46ed496a9850b76e4e825d6049ecd38b611f1224857a79bd985a8cf", "68950ffd4d9169716bcb8719a56c07a2f4485354fec061cdd5910aa07369731c"]
 bleach = ["0ee95f6167129859c5dce9b1ca291ebdb5d8cd7e382ca0e237dfd0dad63f63d8", "24754b9a7d530bf30ce7cbc805bc6cce785660b4a10ff3a43633728438c105ab"]
-boto3 = ["2efd0a9647ef8fd7bf9fbbfdeb77007050258aa39914569c689bdf9cc288cdc1", "331b82e878f524be11c10d866a68b123b1c5e892d218a8250de10bf11cb14402"]
-botocore = ["7b75482156ef93e7a463f80411dc76fc868cd9fb1dedf03250cec98f8459d765", "e43e7d19f203d572f78c18a6a16cb87bbea10bc0543e0285f7b6a35d0c825bb6"]
+boto3 = ["9b18eeb4f0943af80fc40cd480931e4900f7fb3850dfafe68903148fdd832e6b", "a985ed608640f8f7be49f83f298172876b695cc2218e335334a9da3bf6b0a968"]
+botocore = ["16a09307cef306312d4c3ea18ed3902ae1e084c905bda091db2689e9852753ef", "b21b694a6bccbe12b64d3e452d081016b67172c92d0b1be2904f60cd4dd5598d"]
 braintree = ["0c95dbe0b497fd2eafaa08b6282f2b1d547cba3a432f8101424bd06c333348b5", "7cdd715a5a61339e4e5dcb5611cf80512d5fdb0e4da69307a64141d3597357f7"]
 cachetools = ["428266a1c0d36dc5aca63a2d7c5942e88c2c898d72139fca0e97fdd2380517ae", "8ea2d3ce97850f31e4a08b0e2b5e6c34997d7216a9d2c98e0f3978630d4da69a"]
 cairocffi = ["f1c0c5878f74ac9ccb5d48b2601fcc75390c881ce476e79f4cfedd288b1b05db"]
@@ -2126,7 +2130,7 @@ gprof2dot = ["48c1e168c28b8a8eb23bf30fda78fe2ef218269a41505341ec27c27083e47cf4"]
 graphene = ["09165f03e1591b76bf57b133482db9be6dac72c74b0a628d3c93182af9c5a896", "2cbe6d4ef15cfc7b7805e0760a0e5b80747161ce1b0f990dfdc0d2cf497c12f9"]
 graphene-django = ["0d1404ab1ba7873a8e848d87d138f615391d100ed0c046482c164429cfb992ef", "fa9e815f63e3c972773adc96c3f3c81e537dba0edcd0f1be92c799bc0b6ed0a8"]
 graphene-django-optimizer = ["48dd4806c1eb8597e3ba916531a68c3956d3779ebee3238d9736b795613794ef"]
-graphene-federation = ["a960d920952b540a5f543c66b2de0f5a45d5a6d50d16e41e43c42ea665dd8791"]
+graphene-federation = []
 graphql-core = ["1488f2a5c2272dc9ba66e3042a6d1c30cea0db4c80bd1e911c6791ad6187d91b", "da64c472d720da4537a2e8de8ba859210b62841bd47a9be65ca35177f62fe0e4"]
 graphql-relay = ["0e94201af4089e1f81f07d7bd8f84799768e39d70fa1ea16d1df505b46cc6335", "75aa0758971e252964cb94068a4decd472d2a8295229f02189e3cbca1f10dbb5", "7fa74661246e826ef939ee92e768f698df167a7617361ab399901eaebf80dce6"]
 html-to-draftjs = ["2212acf3b063c17b6dc91875f474159e1f730c1a4e5fbf74f9a66250f7040e9a"]
