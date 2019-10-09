@@ -8,10 +8,9 @@ RUN apt-get -y update \
   && rm -rf /var/lib/apt/lists/*
 
 # Install Python dependencies
-RUN pip install pipenv
-COPY Pipfile Pipfile.lock /app/
+COPY requirements_dev.txt /app/
 WORKDIR /app
-RUN pipenv install --system --deploy --dev
+RUN pip install -r requirements_dev.txt
 
 ### Build static assets
 FROM node:10 as build-nodejs

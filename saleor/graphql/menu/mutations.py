@@ -37,12 +37,10 @@ class MenuItemInput(graphene.InputObjectType):
 class MenuItemCreateInput(MenuItemInput):
     name = graphene.String(description="Name of the menu item.", required=True)
     menu = graphene.ID(
-        description="Menu to which item belongs to.", name="menu", required=True
+        description="Menu to which item belongs.", name="menu", required=True
     )
     parent = graphene.ID(
-        description="""
-        ID of the parent menu. If empty, menu will be top level
-        menu.""",
+        description="ID of the parent menu. If empty, menu will be top level menu.",
         name="parent",
     )
 
@@ -63,7 +61,7 @@ class MenuCreate(ModelMutation):
         )
 
     class Meta:
-        description = "Creates a new Menu"
+        description = "Creates a new Menu."
         model = models.Menu
         permissions = ("menu.manage_menus",)
         error_type_class = MenuError
@@ -170,9 +168,10 @@ class MenuItemCreate(ModelMutation):
     class Arguments:
         input = MenuItemCreateInput(
             required=True,
-            description="""Fields required to update a menu item.
-            Only one of 'url', 'category', 'page', 'collection' is allowed
-            per item""",
+            description=(
+                "Fields required to update a menu item. Only one of `url`, `category`, "
+                "`page`, `collection` is allowed per item."
+            ),
         )
 
     class Meta:
@@ -216,9 +215,10 @@ class MenuItemUpdate(MenuItemCreate):
         id = graphene.ID(required=True, description="ID of a menu item to update.")
         input = MenuItemInput(
             required=True,
-            description="""Fields required to update a menu item.
-            Only one of 'url', 'category', 'page', 'collection' is allowed
-            per item""",
+            description=(
+                "Fields required to update a menu item. Only one of `url`, `category`, "
+                "`page`, `collection` is allowed per item."
+            ),
         )
 
     class Meta:
@@ -270,11 +270,11 @@ class MenuItemMove(BaseMutation):
     class Arguments:
         menu = graphene.ID(required=True, description="ID of the menu.")
         moves = graphene.List(
-            MenuItemMoveInput, required=True, description="The menu position data"
+            MenuItemMoveInput, required=True, description="The menu position data."
         )
 
     class Meta:
-        description = "Moves items of menus"
+        description = "Moves items of menus."
         permissions = ("menu.manage_menus",)
         error_type_class = MenuError
         error_type_field = "menu_errors"

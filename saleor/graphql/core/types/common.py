@@ -27,9 +27,10 @@ class CountryDisplay(graphene.ObjectType):
 
 class Error(graphene.ObjectType):
     field = graphene.String(
-        description="""Name of a field that caused the error. A value of
-        `null` indicates that the error isn't associated with a particular
-        field.""",
+        description=(
+            "Name of a field that caused the error. A value of `null` indicates that "
+            "the error isn't associated with a particular field."
+        ),
         required=False,
     )
     message = graphene.String(description="The error message.")
@@ -109,8 +110,8 @@ class SeoInput(graphene.InputObjectType):
 
 
 class Weight(graphene.ObjectType):
-    unit = graphene.String(description="Weight unit", required=True)
-    value = graphene.Float(description="Weight value", required=True)
+    unit = graphene.String(description="Weight unit.", required=True)
+    value = graphene.Float(description="Weight value.", required=True)
 
     class Meta:
         description = "Represents weight value in a specific weight unit."
@@ -140,29 +141,29 @@ class Image(graphene.ObjectType):
 
 
 class PriceRangeInput(graphene.InputObjectType):
-    gte = graphene.Float(description="Price greater than or equal", required=False)
-    lte = graphene.Float(description="Price less than or equal", required=False)
+    gte = graphene.Float(description="Price greater than or equal to.", required=False)
+    lte = graphene.Float(description="Price less than or equal to.", required=False)
 
 
 class DateRangeInput(graphene.InputObjectType):
-    gte = graphene.Date(description="Start date", required=False)
-    lte = graphene.Date(description="End date", required=False)
+    gte = graphene.Date(description="Start date.", required=False)
+    lte = graphene.Date(description="End date.", required=False)
 
 
 class DateTimeRangeInput(graphene.InputObjectType):
-    gte = graphene.DateTime(description="Start date", required=False)
-    lte = graphene.DateTime(description="End date", required=False)
+    gte = graphene.DateTime(description="Start date.", required=False)
+    lte = graphene.DateTime(description="End date.", required=False)
 
 
 class IntRangeInput(graphene.InputObjectType):
-    gte = graphene.Int(description="Value greater than or equal", required=False)
-    lte = graphene.Int(description="Value less than or equal", required=False)
+    gte = graphene.Int(description="Value greater than or equal to.", required=False)
+    lte = graphene.Int(description="Value less than or equal to.", required=False)
 
 
 class TaxType(graphene.ObjectType):
     """Representation of tax types fetched from tax gateway."""
 
-    description = graphene.String(description="Description of the tax type")
+    description = graphene.String(description="Description of the tax type.")
     tax_code = graphene.String(
-        description="External tax code used to identify given tax group"
+        description="External tax code used to identify given tax group."
     )

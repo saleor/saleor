@@ -1,10 +1,16 @@
-import detectPassiveEvents from 'detect-passive-events';
-import { parse, stringify } from 'qs';
+import detectPassiveEvents from "detect-passive-events";
+import { parse, stringify } from "qs";
 
 function onScroll(func) {
-  window.addEventListener('scroll', func, detectPassiveEvents.hasSupport ? {
-    passive: true
-  } : false);
+  window.addEventListener(
+    "scroll",
+    func,
+    detectPassiveEvents.hasSupport
+      ? {
+          passive: true
+        }
+      : false
+  );
 }
 
 function createQueryString(currentQs, newData) {
@@ -13,7 +19,4 @@ function createQueryString(currentQs, newData) {
   return `?${data}`;
 }
 
-export {
-  onScroll,
-  createQueryString
-};
+export { onScroll, createQueryString };

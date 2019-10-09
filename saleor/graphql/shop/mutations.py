@@ -16,35 +16,35 @@ from .types import AuthorizationKey, AuthorizationKeyType, Shop
 
 
 class ShopSettingsInput(graphene.InputObjectType):
-    header_text = graphene.String(description="Header text")
-    description = graphene.String(description="SEO description")
-    include_taxes_in_prices = graphene.Boolean(description="Include taxes in prices")
+    header_text = graphene.String(description="Header text.")
+    description = graphene.String(description="SEO description.")
+    include_taxes_in_prices = graphene.Boolean(description="Include taxes in prices.")
     display_gross_prices = graphene.Boolean(
-        description="Display prices with tax in store"
+        description="Display prices with tax in store."
     )
-    charge_taxes_on_shipping = graphene.Boolean(description="Charge taxes on shipping")
+    charge_taxes_on_shipping = graphene.Boolean(description="Charge taxes on shipping.")
     track_inventory_by_default = graphene.Boolean(
-        description="Enable inventory tracking"
+        description="Enable inventory tracking."
     )
-    default_weight_unit = WeightUnitsEnum(description="Default weight unit")
+    default_weight_unit = WeightUnitsEnum(description="Default weight unit.")
     automatic_fulfillment_digital_products = graphene.Boolean(
-        description="Enable automatic fulfillment for all digital products"
+        description="Enable automatic fulfillment for all digital products."
     )
     default_digital_max_downloads = graphene.Int(
-        description="Default number of max downloads per digital content url"
+        description="Default number of max downloads per digital content URL."
     )
     default_digital_url_valid_days = graphene.Int(
-        description=("Default number of days which digital content url will be valid")
+        description=("Default number of days which digital content URL will be valid.")
     )
 
 
 class SiteDomainInput(graphene.InputObjectType):
-    domain = graphene.String(description="Domain name for shop")
-    name = graphene.String(description="Shop site name")
+    domain = graphene.String(description="Domain name for shop.")
+    name = graphene.String(description="Shop site name.")
 
 
 class ShopSettingsUpdate(BaseMutation):
-    shop = graphene.Field(Shop, description="Updated Shop")
+    shop = graphene.Field(Shop, description="Updated shop.")
 
     class Arguments:
         input = ShopSettingsInput(
@@ -52,7 +52,7 @@ class ShopSettingsUpdate(BaseMutation):
         )
 
     class Meta:
-        description = "Updates shop settings"
+        description = "Updates shop settings."
         permissions = ("site.manage_settings",)
         error_type_class = ShopError
         error_type_field = "shop_errors"
@@ -71,13 +71,13 @@ class ShopSettingsUpdate(BaseMutation):
 
 
 class ShopAddressUpdate(BaseMutation, I18nMixin):
-    shop = graphene.Field(Shop, description="Updated Shop")
+    shop = graphene.Field(Shop, description="Updated shop.")
 
     class Arguments:
-        input = AddressInput(description="Fields required to update shop address")
+        input = AddressInput(description="Fields required to update shop address.")
 
     class Meta:
-        description = "Update shop address"
+        description = "Update shop address."
         permissions = ("site.manage_settings",)
         error_type_class = ShopError
         error_type_field = "shop_errors"
@@ -99,13 +99,13 @@ class ShopAddressUpdate(BaseMutation, I18nMixin):
 
 
 class ShopDomainUpdate(BaseMutation):
-    shop = graphene.Field(Shop, description="Updated Shop")
+    shop = graphene.Field(Shop, description="Updated shop.")
 
     class Arguments:
-        input = SiteDomainInput(description="Fields required to update site")
+        input = SiteDomainInput(description="Fields required to update site.")
 
     class Meta:
-        description = "Updates site domain of the shop"
+        description = "Updates site domain of the shop."
         permissions = ("site.manage_settings",)
         error_type_class = ShopError
         error_type_field = "shop_errors"
@@ -126,10 +126,10 @@ class ShopDomainUpdate(BaseMutation):
 
 
 class ShopFetchTaxRates(BaseMutation):
-    shop = graphene.Field(Shop, description="Updated Shop")
+    shop = graphene.Field(Shop, description="Updated shop.")
 
     class Meta:
-        description = "Fetch tax rates"
+        description = "Fetch tax rates."
         permissions = ("site.manage_settings",)
         error_type_class = ShopError
         error_type_field = "shop_errors"
@@ -147,13 +147,13 @@ class ShopFetchTaxRates(BaseMutation):
 
 
 class HomepageCollectionUpdate(BaseMutation):
-    shop = graphene.Field(Shop, description="Updated Shop")
+    shop = graphene.Field(Shop, description="Updated shop.")
 
     class Arguments:
-        collection = graphene.ID(description="Collection displayed on homepage")
+        collection = graphene.ID(description="Collection displayed on homepage.")
 
     class Meta:
-        description = "Updates homepage collection of the shop"
+        description = "Updates homepage collection of the shop."
         permissions = ("site.manage_settings",)
         error_type_class = ShopError
         error_type_field = "shop_errors"
@@ -181,7 +181,7 @@ class AuthorizationKeyAdd(BaseMutation):
     authorization_key = graphene.Field(
         AuthorizationKey, description="Newly added authorization key."
     )
-    shop = graphene.Field(Shop, description="Updated Shop")
+    shop = graphene.Field(Shop, description="Updated shop.")
 
     class Meta:
         description = "Adds an authorization key."
@@ -222,7 +222,7 @@ class AuthorizationKeyDelete(BaseMutation):
     authorization_key = graphene.Field(
         AuthorizationKey, description="Authorization key that was deleted."
     )
-    shop = graphene.Field(Shop, description="Updated Shop")
+    shop = graphene.Field(Shop, description="Updated shop.")
 
     class Arguments:
         key_type = AuthorizationKeyType(

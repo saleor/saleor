@@ -1129,6 +1129,7 @@ def test_view_fulfill_order_lines(
     for line in order_with_lines.lines.all():
         assert line.quantity_unfulfilled == 0
     assert mock_email_fulfillment.call_count == 1
+    assert order_with_lines.status == OrderStatus.FULFILLED
 
 
 def test_view_fulfill_order_lines_with_empty_quantity(admin_client, order_with_lines):

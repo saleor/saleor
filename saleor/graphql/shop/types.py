@@ -65,9 +65,10 @@ class Shop(graphene.ObjectType):
     )
     authorization_keys = graphene.List(
         AuthorizationKey,
-        description="""List of configured authorization keys. Authorization
-               keys are used to enable third party OAuth authorization
-               (currently Facebook or Google).""",
+        description=(
+            "List of configured authorization keys. Authorization keys are used to "
+            "enable third-party OAuth authorization (currently Facebook or Google)."
+        ),
         required=True,
     )
     countries = graphene.List(
@@ -83,15 +84,15 @@ class Shop(graphene.ObjectType):
         graphene.String, description="List of available currencies.", required=True
     )
     default_currency = graphene.String(
-        description="Default shop's currency.", required=True
+        description="Shop's default currency.", required=True
     )
     default_country = graphene.Field(
-        CountryDisplay, description="Default shop's country"
+        CountryDisplay, description="Shop's default country."
     )
     description = graphene.String(description="Shop's description.")
     domain = graphene.Field(Domain, required=True, description="Shop's domain data.")
     homepage_collection = graphene.Field(
-        Collection, description="Collection displayed on homepage"
+        Collection, description="Collection displayed on homepage."
     )
     languages = graphene.List(
         LanguageDisplay,
@@ -106,20 +107,20 @@ class Shop(graphene.ObjectType):
     phone_prefixes = graphene.List(
         graphene.String, description="List of possible phone prefixes.", required=True
     )
-    header_text = graphene.String(description="Header text")
+    header_text = graphene.String(description="Header text.")
     include_taxes_in_prices = graphene.Boolean(
-        description="Include taxes in prices", required=True
+        description="Include taxes in prices.", required=True
     )
     display_gross_prices = graphene.Boolean(
-        description="Display prices with tax in store", required=True
+        description="Display prices with tax in store.", required=True
     )
     charge_taxes_on_shipping = graphene.Boolean(
-        description="Charge taxes on shipping", required=True
+        description="Charge taxes on shipping.", required=True
     )
     track_inventory_by_default = graphene.Boolean(
-        description="Enable inventory tracking"
+        description="Enable inventory tracking."
     )
-    default_weight_unit = WeightUnitsEnum(description="Default weight unit")
+    default_weight_unit = WeightUnitsEnum(description="Default weight unit.")
     translation = graphene.Field(
         ShopTranslation,
         language_code=graphene.Argument(
@@ -127,26 +128,26 @@ class Shop(graphene.ObjectType):
             description="A language code to return the translation for.",
             required=True,
         ),
-        description=("Returns translated Shop fields for the given language code."),
+        description="Returns translated Shop fields for the given language code.",
     )
     automatic_fulfillment_digital_products = graphene.Boolean(
-        description="Enable automatic fulfillment for all digital products"
+        description="Enable automatic fulfillment for all digital products."
     )
 
     default_digital_max_downloads = graphene.Int(
-        description="Default number of max downloads per digital content url"
+        description="Default number of max downloads per digital content URL."
     )
     default_digital_url_valid_days = graphene.Int(
-        description=("Default number of days which digital content url will be valid")
+        description=("Default number of days which digital content URL will be valid.")
     )
     company_address = graphene.Field(
-        Address, description="Company address", required=False
+        Address, description="Company address.", required=False
     )
 
     class Meta:
-        description = """
-        Represents a shop resource containing general shop\'s data
-        and configuration."""
+        description = (
+            "Represents a shop resource containing general shop data and configuration."
+        )
 
     @staticmethod
     @permission_required("site.manage_settings")

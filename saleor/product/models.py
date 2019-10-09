@@ -412,7 +412,7 @@ class ProductVariantQueryset(models.QuerySet):
 
 
 class ProductVariant(ModelWithMetadata):
-    sku = models.CharField(max_length=32, unique=True)
+    sku = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255, blank=True)
     currency = models.CharField(
         max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
@@ -470,7 +470,7 @@ class ProductVariant(ModelWithMetadata):
 
     @property
     def is_available(self):
-        return self.product.is_available
+        return self.is_visible and self.is_in_stock()
 
     def check_quantity(self, quantity):
         """Check if there is at least the given quantity in stock.
@@ -837,7 +837,7 @@ class AttributeValue(SortableModel):
 
     class Meta:
         ordering = ("sort_order", "id")
-        unique_together = ("name", "attribute")
+        unique_together = ("slug", "attribute")
 
     def __str__(self):
         return self.name

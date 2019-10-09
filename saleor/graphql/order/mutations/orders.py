@@ -178,7 +178,7 @@ class OrderUpdateShipping(BaseMutation):
             description="ID of the order to update a shipping method.",
         )
         input = OrderUpdateShippingInput(
-            description="Fields required to change " "shipping method of the order."
+            description="Fields required to change shipping method of the order."
         )
 
     class Meta:

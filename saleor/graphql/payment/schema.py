@@ -10,12 +10,12 @@ from .types import Payment
 class PaymentQueries(graphene.ObjectType):
     payment = graphene.Field(
         Payment,
-        description="Lookup a payment by ID.",
+        description="Look up a payment by ID.",
         id=graphene.Argument(
             graphene.ID, description="ID of the payment.", required=True
         ),
     )
-    payments = PrefetchingConnectionField(Payment, description="List of payments")
+    payments = PrefetchingConnectionField(Payment, description="List of payments.")
     payment_client_token = graphene.Field(
         graphene.String,
         gateway=graphene.String(required=True, description="A payment gateway."),
