@@ -11,11 +11,12 @@ class WebhookQueries(graphene.ObjectType):
     webhook = graphene.Field(
         Webhook,
         id=graphene.Argument(
-            graphene.ID, required=True, description="ID of the webhook"
+            graphene.ID, required=True, description="ID of the webhook."
         ),
-        description="Lookup a webhook by ID.",
+        description="Look up a webhook by ID.",
     )
-    webhooks = PrefetchingConnectionField(Webhook, description="List of webhooks")
+    webhooks = PrefetchingConnectionField(Webhook, description="List of webhooks.")
+
     webhook_sample_payload = graphene.Field(
         graphene.JSONString,
         event_type=graphene.Argument(

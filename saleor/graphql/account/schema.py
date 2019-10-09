@@ -117,20 +117,20 @@ class AccountQueries(graphene.ObjectType):
         filter=ServiceAccountFilterInput(
             description="Filtering options for service accounts."
         ),
-        description="List of the service accounts",
+        description="List of the service accounts.",
     )
     service_account = graphene.Field(
         ServiceAccount,
         id=graphene.Argument(
             graphene.ID, description="ID of the service account.", required=True
         ),
-        description="Lookup a service account by ID.",
+        description="Look up a service account by ID.",
     )
 
     user = graphene.Field(
         User,
         id=graphene.Argument(graphene.ID, description="ID of the user.", required=True),
-        description="Lookup a user by ID.",
+        description="Look up a user by ID.",
     )
 
     def resolve_address_validation_rules(

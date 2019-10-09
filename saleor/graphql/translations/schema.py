@@ -44,14 +44,14 @@ class TranslatableItemConnection(CountableConnection):
 
 class TranslatableKinds(graphene.Enum):
     ATTRIBUTE = "Attribute"
-    ATTRIBUTE_VALUE = "Attribute Value"
+    ATTRIBUTE_VALUE = "Attribute value"
     CATEGORY = "Category"
     COLLECTION = "Collection"
-    MENU_ITEM = "Menu Item"
+    MENU_ITEM = "Menu item"
     PAGE = "Page"
     PRODUCT = "Product"
     SALE = "Sale"
-    SHIPPING_METHOD = "Shipping Method"
+    SHIPPING_METHOD = "Shipping method"
     VARIANT = "Variant"
     VOUCHER = "Voucher"
 
@@ -59,7 +59,7 @@ class TranslatableKinds(graphene.Enum):
 class TranslationQueries(graphene.ObjectType):
     translations = BaseConnectionField(
         TranslatableItemConnection,
-        description="Returns list of all translatable items of a given kind.",
+        description="Returns a list of all translatable items of a given kind.",
         kind=graphene.Argument(
             TranslatableKinds, required=True, description="Kind of objects to retrieve."
         ),

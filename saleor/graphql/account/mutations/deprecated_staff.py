@@ -24,7 +24,7 @@ def send_user_password_reset_email(user, site):
 
 class PasswordReset(BaseMutation):
     class Arguments:
-        email = graphene.String(description="Email", required=True)
+        email = graphene.String(description="Email.", required=True)
 
     class Meta:
         description = (

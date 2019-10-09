@@ -1,15 +1,17 @@
-const $seoTitle = $('#id_seo_title');
+const $seoTitle = $("#id_seo_title");
 
-const $nameId = $seoTitle.data('bind');
+const $nameId = $seoTitle.data("bind");
 const $name = $(`#${$nameId}`);
 
-const $seoDescription = $('#id_seo_description');
-const $descriptionMaterialize = $seoDescription.data('materialize');
+const $seoDescription = $("#id_seo_description");
+const $descriptionMaterialize = $seoDescription.data("materialize");
 
-let $description = '';
-const $descriptionId = $seoDescription.data('bind');
+let $description = "";
+const $descriptionId = $seoDescription.data("bind");
 if ($descriptionMaterialize) {
-  const $descriptions = $(`.materialize-textarea[name='${$descriptionMaterialize}']`);
+  const $descriptions = $(
+    `.materialize-textarea[name='${$descriptionMaterialize}']`
+  );
   // They're two textareas from Medium editor, first one contains HTML-free text
   $description = $descriptions.not($descriptionId).first();
 } else {
@@ -18,36 +20,44 @@ if ($descriptionMaterialize) {
   }
 }
 
-const $googleTitlePreview = $('#google-preview-title');
-const $googleDescriptionPreview = $('#google-preview-description');
-const $preview = $('#google-preview');
+const $googleTitlePreview = $("#google-preview-title");
+const $googleDescriptionPreview = $("#google-preview-description");
+const $preview = $("#google-preview");
 
-const watchedEvents = 'input propertychange cut paste copy change';
+const watchedEvents = "input propertychange cut paste copy change";
 
 function setPlaceholderAndPreview(field, seoField, previewField) {
   const $text = field.text() || field.val();
   const $placeholderText = truncate($text, seoField);
-  seoField.attr('placeholder', $placeholderText);
+  seoField.attr("placeholder", $placeholderText);
   previewField.text(seoField.val() || $placeholderText);
 }
 
 function updateCharsCount(seoField) {
-  const $fieldId = seoField.attr('id');
+  const $fieldId = seoField.attr("id");
   const $charCount = $(`span[data-bind=${$fieldId}]`);
   let $fieldLength = seoField.val().length || seoField.text().length;
-  if (!$fieldLength && seoField.attr('placeholder')) {
-    $fieldLength = seoField.attr('placeholder').length;
+  if (!$fieldLength && seoField.attr("placeholder")) {
+    $fieldLength = seoField.attr("placeholder").length;
   }
-  const $minRecommendedLength = seoField.data('min-recommended-length');
+  const $minRecommendedLength = seoField.data("min-recommended-length");
   const $charCountWrapper = $charCount.parent();
   if ($fieldLength < $minRecommendedLength) {
-    $charCountWrapper.addClass('orange-text');
-    $charCountWrapper.removeClass('green-text');
-    $charCountWrapper.attr('title', gettext('Your input might be a little too short, think of something more descriptive'));
+    $charCountWrapper.addClass("orange-text");
+    $charCountWrapper.removeClass("green-text");
+    $charCountWrapper.attr(
+      "title",
+      gettext(
+        "Your input might be a little too short, think of something more descriptive"
+      )
+    );
   } else {
-    $charCountWrapper.removeClass('orange-text');
-    $charCountWrapper.addClass('green-text');
-    $charCountWrapper.attr('title', gettext('Your input fits between the recommended lengths'));
+    $charCountWrapper.removeClass("orange-text");
+    $charCountWrapper.addClass("green-text");
+    $charCountWrapper.attr(
+      "title",
+      gettext("Your input fits between the recommended lengths")
+    );
   }
   $charCount.text($fieldLength);
 }
@@ -63,7 +73,7 @@ function checkForErrors() {
 }
 
 function truncate(text, seoField) {
-  const $fieldMaxLength = seoField.prop('maxLength');
+  const $fieldMaxLength = seoField.prop("maxLength");
   if (text && text.length > $fieldMaxLength) {
     return text.substring(text, $fieldMaxLength);
   }
@@ -71,10 +81,10 @@ function truncate(text, seoField) {
 }
 
 function updatePlaceholderOnInput(field, seoField, previewField) {
-  field.on(watchedEvents, (e) => {
+  field.on(watchedEvents, e => {
     const $target = $(e.currentTarget);
     const $placeholderText = $target.val() || $target.text();
-    seoField.attr('placeholder', truncate($placeholderText, seoField));
+    seoField.attr("placeholder", truncate($placeholderText, seoField));
     const $seoText = seoField.val();
     if (!$seoText) {
       previewField.text(truncate($placeholderText, seoField));
@@ -85,13 +95,13 @@ function updatePlaceholderOnInput(field, seoField, previewField) {
 }
 
 function updatePreviewOnInput(seoField, previewField) {
-  seoField.on(watchedEvents, (e) => {
+  seoField.on(watchedEvents, e => {
     const $target = $(e.currentTarget);
     const $currentText = $target.val();
     if ($currentText) {
       previewField.text(truncate($currentText, seoField));
     } else {
-      const $placeholderValue = seoField.attr('placeholder');
+      const $placeholderValue = seoField.attr("placeholder");
       previewField.text(truncate($placeholderValue, seoField));
     }
     checkForErrors();
@@ -109,8 +119,16 @@ if ($seoTitle.length) {
 }
 if ($seoDescription.length) {
   if ($description) {
-    setPlaceholderAndPreview($description, $seoDescription, $googleDescriptionPreview);
-    updatePlaceholderOnInput($description, $seoDescription, $googleDescriptionPreview);
+    setPlaceholderAndPreview(
+      $description,
+      $seoDescription,
+      $googleDescriptionPreview
+    );
+    updatePlaceholderOnInput(
+      $description,
+      $seoDescription,
+      $googleDescriptionPreview
+    );
   }
   updatePreviewOnInput($seoDescription, $googleDescriptionPreview);
   updateCharsCount($seoDescription);

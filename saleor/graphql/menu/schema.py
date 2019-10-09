@@ -24,7 +24,7 @@ class MenuQueries(graphene.ObjectType):
         Menu,
         id=graphene.Argument(graphene.ID, description="ID of the menu."),
         name=graphene.Argument(graphene.String, description="The menu's name."),
-        description="Lookup a navigation menu by ID or name.",
+        description="Look up a navigation menu by ID or name.",
     )
     menus = FilterInputConnectionField(
         Menu,
@@ -37,7 +37,7 @@ class MenuQueries(graphene.ObjectType):
         id=graphene.Argument(
             graphene.ID, description="ID of the menu item.", required=True
         ),
-        description="Lookup a menu item by ID.",
+        description="Look up a menu item by ID.",
     )
     menu_items = FilterInputConnectionField(
         MenuItem,

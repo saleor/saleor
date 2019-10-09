@@ -60,6 +60,7 @@
     "eslint-plugin-import": "^2.18.0",
     "eslint-plugin-jsx-a11y": "^6.2.3",
     "eslint-plugin-node": "^5.2.1",
+    "eslint-plugin-prettier": "^3.1.1",
     "eslint-plugin-promise": "^3.8.0",
     "eslint-plugin-react": "^7.14.2",
     "eslint-plugin-standard": "^3.1.0",
@@ -69,6 +70,7 @@
     "node-sass": "^4.12.0",
     "postcss": "^6.0.23",
     "postcss-loader": "^2.1.6",
+    "prettier": "^1.18.2",
     "regenerator-runtime": "^0.11.1",
     "sass-loader": "^7.1.0",
     "webpack": "^4.35.3",
@@ -101,6 +103,7 @@
     "build-schema": "python manage.py get_graphql_schema > saleor/graphql/schema.graphql",
     "heroku-postbuild": "npm run build-assets && npm run build-emails",
     "start": "webpack -d --watch",
-    "build-emails": "mjml --config.beautify false -l skip \"templates/templated_email/source/*.mjml\" -o templates/templated_email/compiled"
+    "build-emails": "mjml --config.beautify false -l skip \"templates/templated_email/source/*.mjml\" -o templates/templated_email/compiled",
+    "prettier": "prettier --write \"saleor/static/**/*.js\""
   }
 }

@@ -85,6 +85,14 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added product variant bulk create mutation - #4749 by @fowczarek
 - availablePaymentGateways extended with configuration data in GraphQL schema - #4774 by @salwator
 - Add metadata to Order model - #4513 by @szewczykmira
+- Fixed display of the products tax rate in the details page of dashboard 1.0, users can now update the tax rate of products in dashboard 1.0. The tax fields will no longer be shown if no tax support is enabled. - #4780 by @NyanKiyoshi
+- Add default value to custom errors - #4797 by @fowczarek
+- Change `unique_together` in `AttributeValue` - #4805 by @fowczarek
+- Change max length of SKU in order/product variant to 255 - #4811 by @lex111
+- Replace Pipenv with Poetry - #3894 by @michaljelonek
+- `productVariant` nodes now require `manage_products` permission to query `costPrice` and `stockQuantity` fields - #4753 by @NyanKiyoshi
+- `productVariant` nodes now require `manage_products` permission to query `costPrice` and `stockQuantity` fields. `isAvailable` of a variant is not longer returning false when another variant from the same product is out of stock. - #4753 by @NyanKiyoshi
+- Fixed crash when placing an order when a customer happens to have the same address more than once - #4823 by @NyanKiyoshi
 
 ## 2.8.0
 

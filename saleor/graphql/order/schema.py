@@ -62,12 +62,14 @@ class OrderDraftFilterInput(FilterInputObjectType):
 class OrderQueries(graphene.ObjectType):
     homepage_events = PrefetchingConnectionField(
         OrderEvent,
-        description="""List of activity events to display on
-        homepage (at the moment it only contains order-events).""",
+        description=(
+            "List of activity events to display on "
+            "homepage (at the moment it only contains order-events)."
+        ),
     )
     order = graphene.Field(
         Order,
-        description="Lookup an order by ID.",
+        description="Look up an order by ID.",
         id=graphene.Argument(graphene.ID, description="ID of an order.", required=True),
     )
     orders = FilterInputConnectionField(
@@ -78,7 +80,7 @@ class OrderQueries(graphene.ObjectType):
             ReportingPeriod, description="Filter orders from a selected timespan."
         ),
         status=graphene.Argument(
-            OrderStatusFilter, description="Filter order by status"
+            OrderStatusFilter, description="Filter order by status."
         ),
         description="List of orders.",
     )
@@ -98,7 +100,7 @@ class OrderQueries(graphene.ObjectType):
     )
     order_by_token = graphene.Field(
         Order,
-        description="Lookup an order by token.",
+        description="Look up an order by token.",
         token=graphene.Argument(
             graphene.UUID, description="The order's token.", required=True
         ),

@@ -70,9 +70,10 @@ class CategoryCreate(ModelMutation):
             required=True, description="Fields required to create a category."
         )
         parent_id = graphene.ID(
-            description="""
-                ID of the parent category. If empty, category will be top level
-                category.""",
+            description=(
+                "ID of the parent category. If empty, category will be top level "
+                "category."
+            ),
             name="parent",
         )
 
@@ -236,7 +237,7 @@ class CollectionReorderProducts(BaseMutation):
     )
 
     class Meta:
-        description = "Reorder the products of a collection"
+        description = "Reorder the products of a collection."
         permissions = ("product.manage_products",)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -371,7 +372,7 @@ class CollectionRemoveProducts(BaseMutation):
 class CollectionUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.Collection
-        description = "Update public metadata for Collection"
+        description = "Update public metadata for collection."
         permissions = ("product.manage_products",)
         public = True
         error_type_class = ProductError
@@ -381,7 +382,7 @@ class CollectionUpdateMeta(UpdateMetaBaseMutation):
 class CollectionClearMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.Collection
-        description = "Clears public metadata item for Collection"
+        description = "Clears public metadata for collection."
         permissions = ("product.manage_products",)
         public = True
         error_type_class = ProductError
@@ -391,7 +392,7 @@ class CollectionClearMeta(ClearMetaBaseMutation):
 class CollectionUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.Collection
-        description = "Update public metadata for Collection"
+        description = "Update private metadata for collection."
         permissions = ("product.manage_products",)
         public = False
         error_type_class = ProductError
@@ -401,7 +402,7 @@ class CollectionUpdatePrivateMeta(UpdateMetaBaseMutation):
 class CollectionClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.Collection
-        description = "Clears public metadata item for Collection"
+        description = "Clears private metadata item for collection."
         permissions = ("product.manage_products",)
         public = False
         error_type_class = ProductError
@@ -411,7 +412,7 @@ class CollectionClearPrivateMeta(ClearMetaBaseMutation):
 class CategoryUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.Category
-        description = "Update public metadata for category"
+        description = "Update public metadata for category."
         permissions = ("product.manage_products",)
         public = True
         error_type_class = ProductError
@@ -421,7 +422,7 @@ class CategoryUpdateMeta(UpdateMetaBaseMutation):
 class CategoryClearMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.Category
-        description = "Clears public metadata item for category"
+        description = "Clears public metadata for category."
         permissions = ("product.manage_products",)
         public = True
         error_type_class = ProductError
@@ -431,7 +432,7 @@ class CategoryClearMeta(ClearMetaBaseMutation):
 class CategoryUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.Category
-        description = "Update public metadata for category"
+        description = "Update private metadata for category."
         permissions = ("product.manage_products",)
         public = False
         error_type_class = ProductError
@@ -441,7 +442,7 @@ class CategoryUpdatePrivateMeta(UpdateMetaBaseMutation):
 class CategoryClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.Category
-        description = "Clears public metadata item for category"
+        description = "Clears private metadata for category."
         permissions = ("product.manage_products",)
         public = False
         error_type_class = ProductError
@@ -449,7 +450,7 @@ class CategoryClearPrivateMeta(ClearMetaBaseMutation):
 
 
 class AttributeValueInput(InputObjectType):
-    id = graphene.ID(description="ID of the selected attribute")
+    id = graphene.ID(description="ID of the selected attribute.")
     slug = graphene.String(description="Slug of the selected attribute.")
     values = graphene.List(
         graphene.String,
@@ -482,23 +483,27 @@ class ProductInput(graphene.InputObjectType):
     )
     name = graphene.String(description="Product name.")
     base_price = Decimal(description="Product price.")
-    tax_code = graphene.String(description="Tax rate for enabled tax gateway")
+    tax_code = graphene.String(description="Tax rate for enabled tax gateway.")
     seo = SeoInput(description="Search engine optimization fields.")
     weight = WeightScalar(description="Weight of the Product.", required=False)
     sku = graphene.String(
-        description="""Stock keeping unit of a product. Note: this
-        field is only used if a product doesn't use variants."""
+        description=(
+            "Stock keeping unit of a product. Note: this field is only used if "
+            "a product doesn't use variants."
+        )
     )
     quantity = graphene.Int(
-        description="""The total quantity of a product available for
-        sale. Note: this field is only used if a product doesn't
-        use variants."""
+        description=(
+            "The total quantity of a product available for sale. Note: this field is "
+            "only used if a product doesn't use variants."
+        )
     )
     track_inventory = graphene.Boolean(
-        description="""Determines if the inventory of this product
-        should be tracked. If false, the quantity won't change when customers
-        buy this item. Note: this field is only used if a product doesn't
-        use variants."""
+        description=(
+            "Determines if the inventory of this product should be tracked. If false, "
+            "the quantity won't change when customers buy this item. Note: this field "
+            "is only used if a product doesn't use variants."
+        )
     )
 
 
@@ -595,7 +600,9 @@ class AttributeAssignmentMixin:
         """Lazy-retrieve or create the database objects from the supplied raw values."""
         get_or_create = attribute.values.get_or_create
         return tuple(
-            get_or_create(attribute=attribute, name=value, slug=slugify(value))[0]
+            get_or_create(
+                attribute=attribute, slug=slugify(value), defaults={"name": value}
+            )[0]
             for value in values
         )
 
@@ -940,7 +947,7 @@ class ProductDelete(ModelDeleteMutation):
 class ProductUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.Product
-        description = "Update public metadata for product"
+        description = "Update public metadata for product."
         permissions = ("product.manage_products",)
         public = True
         error_type_class = ProductError
@@ -949,7 +956,7 @@ class ProductUpdateMeta(UpdateMetaBaseMutation):
 
 class ProductClearMeta(ClearMetaBaseMutation):
     class Meta:
-        description = "Clears public metadata item for product"
+        description = "Clears public metadata item for product."
         model = models.Product
         permissions = ("product.manage_products",)
         public = True
@@ -959,7 +966,7 @@ class ProductClearMeta(ClearMetaBaseMutation):
 
 class ProductUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
-        description = "Update public metadata for product"
+        description = "Update private metadata for product."
         model = models.Product
         permissions = ("product.manage_products",)
         public = False
@@ -969,7 +976,7 @@ class ProductUpdatePrivateMeta(UpdateMetaBaseMutation):
 
 class ProductClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
-        description = "Clears public metadata item for product"
+        description = "Clears private metadata item for product."
         model = models.Product
         permissions = ("product.manage_products",)
         public = False
@@ -990,9 +997,10 @@ class ProductVariantInput(graphene.InputObjectType):
         description="The total quantity of this variant available for sale."
     )
     track_inventory = graphene.Boolean(
-        description="""Determines if the inventory of this variant should
-               be tracked. If false, the quantity won't change when customers
-               buy this item."""
+        description=(
+            "Determines if the inventory of this variant should be tracked. If false, "
+            "the quantity won't change when customers buy this item."
+        )
     )
     weight = WeightScalar(description="Weight of the Product Variant.", required=False)
 
@@ -1017,7 +1025,7 @@ class ProductVariantCreate(ModelMutation):
         )
 
     class Meta:
-        description = "Creates a new variant for a product"
+        description = "Creates a new variant for a product."
         model = models.ProductVariant
         permissions = ("product.manage_products",)
         error_type_class = ProductError
@@ -1112,7 +1120,7 @@ class ProductVariantUpdate(ProductVariantCreate):
         )
 
     class Meta:
-        description = "Updates an existing variant for product"
+        description = "Updates an existing variant for product."
         model = models.ProductVariant
         permissions = ("product.manage_products",)
         error_type_class = ProductError
@@ -1142,7 +1150,7 @@ class ProductVariantDelete(ModelDeleteMutation):
 class ProductVariantUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.ProductVariant
-        description = "Update public metadata for product variant"
+        description = "Update public metadata for product variant."
         permissions = ("product.manage_products",)
         public = True
         error_type_class = ProductError
@@ -1152,7 +1160,7 @@ class ProductVariantUpdateMeta(UpdateMetaBaseMutation):
 class ProductVariantClearMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.ProductVariant
-        description = "Clears public metadata item for product variant"
+        description = "Clears public metadata for product variant."
         permissions = ("product.manage_products",)
         public = True
         error_type_class = ProductError
@@ -1162,7 +1170,7 @@ class ProductVariantClearMeta(ClearMetaBaseMutation):
 class ProductVariantUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.ProductVariant
-        description = "Update public metadata for product variant"
+        description = "Update private metadata for product variant."
         permissions = ("product.manage_products",)
         public = False
         error_type_class = ProductError
@@ -1172,7 +1180,7 @@ class ProductVariantUpdatePrivateMeta(UpdateMetaBaseMutation):
 class ProductVariantClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.ProductVariant
-        description = "Clears public metadata item for product variant"
+        description = "Clears private metadata for product variant."
         permissions = ("product.manage_products",)
         public = False
         error_type_class = ProductError
@@ -1182,10 +1190,11 @@ class ProductVariantClearPrivateMeta(ClearMetaBaseMutation):
 class ProductTypeInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the product type.")
     has_variants = graphene.Boolean(
-        description="""Determines if product of this type has multiple
-        variants. This option mainly simplifies product management
-        in the dashboard. There is always at least one variant created under
-        the hood."""
+        description=(
+            "Determines if product of this type has multiple variants. This option "
+            "mainly simplifies product management in the dashboard. There is always at "
+            "least one variant created under the hood."
+        )
     )
     product_attributes = graphene.List(
         graphene.ID,
@@ -1194,19 +1203,20 @@ class ProductTypeInput(graphene.InputObjectType):
     )
     variant_attributes = graphene.List(
         graphene.ID,
-        description="""List of attributes used to distinguish between
-        different variants of a product.""",
+        description=(
+            "List of attributes used to distinguish between different variants of "
+            "a product."
+        ),
         name="variantAttributes",
     )
     is_shipping_required = graphene.Boolean(
-        description="""Determines if shipping is required for products
-        of this variant."""
+        description="Determines if shipping is required for products of this variant."
     )
     is_digital = graphene.Boolean(
         description="Determines if products are digital.", required=False
     )
     weight = WeightScalar(description="Weight of the ProductType items.")
-    tax_code = graphene.String(description="Tax rate for enabled tax gateway")
+    tax_code = graphene.String(description="Tax rate for enabled tax gateway.")
 
 
 class ProductTypeCreate(ModelMutation):
@@ -1291,7 +1301,7 @@ class ProductTypeDelete(ModelDeleteMutation):
 class ProductTypeUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.ProductType
-        description = "Update public metadata for product type"
+        description = "Update public metadata for product type."
         permissions = ("product.manage_products",)
         public = True
         error_type_class = ProductError
@@ -1300,7 +1310,7 @@ class ProductTypeUpdateMeta(UpdateMetaBaseMutation):
 
 class ProductTypeClearMeta(ClearMetaBaseMutation):
     class Meta:
-        description = "Clears public metadata item for product type"
+        description = "Clears public metadata for product type."
         model = models.ProductType
         permissions = ("product.manage_products",)
         public = True
@@ -1310,7 +1320,7 @@ class ProductTypeClearMeta(ClearMetaBaseMutation):
 
 class ProductTypeUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
-        description = "Update public metadata for product type"
+        description = "Update private metadata for product type."
         model = models.ProductType
         permissions = ("product.manage_products",)
         public = False
@@ -1320,7 +1330,7 @@ class ProductTypeUpdatePrivateMeta(UpdateMetaBaseMutation):
 
 class ProductTypeClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
-        description = "Clears public metadata item for product type"
+        description = "Clears private metadata for product type."
         model = models.ProductType
         permissions = ("product.manage_products",)
         public = False
@@ -1348,10 +1358,11 @@ class ProductImageCreate(BaseMutation):
         )
 
     class Meta:
-        description = """Create a product image. This mutation must be
-        sent as a `multipart` request. More detailed specs of the upload format
-        can be found here:
-        https://github.com/jaydenseric/graphql-multipart-request-spec"""
+        description = (
+            "Create a product image. This mutation must be sent as a `multipart` "
+            "request. More detailed specs of the upload format can be found here: "
+            "https://github.com/jaydenseric/graphql-multipart-request-spec"
+        )
         permissions = ("product.manage_products",)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -1494,7 +1505,7 @@ class VariantImageAssign(BaseMutation):
         variant_id = graphene.ID(required=True, description="ID of a product variant.")
 
     class Meta:
-        description = "Assign an image to a product variant"
+        description = "Assign an image to a product variant."
         permissions = ("product.manage_products",)
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -1538,7 +1549,7 @@ class VariantImageUnassign(BaseMutation):
         variant_id = graphene.ID(required=True, description="ID of a product variant.")
 
     class Meta:
-        description = "Unassign an image from a product variant"
+        description = "Unassign an image from a product variant."
         permissions = ("product.manage_products",)
         error_type_class = ProductError
         error_type_field = "product_errors"

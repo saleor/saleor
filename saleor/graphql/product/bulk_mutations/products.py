@@ -109,7 +109,7 @@ class ProductVariantBulkCreate(BaseMutation):
         graphene.NonNull(ProductVariant),
         required=True,
         default_value=[],
-        description=("List of the created variants.",),
+        description="List of the created variants.",
     )
 
     class Arguments:

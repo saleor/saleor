@@ -10,6 +10,7 @@ from .types import Webhook
 
 
 class WebhookCreateInput(graphene.InputObjectType):
+    name = graphene.String(description="The name of the webhook.", required=False)
     target_url = graphene.String(description="The url to receive the payload.")
     events = graphene.List(
         WebhookEventTypeEnum, description="The events that webhook wants to subscribe."
@@ -93,6 +94,7 @@ class WebhookCreate(ModelMutation):
 
 
 class WebhookUpdateInput(graphene.InputObjectType):
+    name = graphene.String(description="The new name of the webhook.", required=False)
     target_url = graphene.String(
         description="The url to receive the payload.", required=False
     )
@@ -109,7 +111,7 @@ class WebhookUpdateInput(graphene.InputObjectType):
         description="Determine if webhook will be set active or not.", required=False
     )
     secret_key = graphene.String(
-        description="Use to create a hash signature with each payload", required=False
+        description="Use to create a hash signature with each payload.", required=False
     )
 
 

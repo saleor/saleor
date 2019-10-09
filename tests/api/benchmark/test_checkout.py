@@ -100,7 +100,6 @@ def test_create_checkout(api_client, graphql_address_data, variant, count_querie
             ...Price
           }
           variant {
-            stockQuantity
             ...ProductVariant
           }
           quantity
@@ -240,7 +239,6 @@ def test_add_shipping_to_checkout(
             ...Price
           }
           variant {
-            stockQuantity
             ...ProductVariant
           }
           quantity
@@ -373,7 +371,6 @@ def test_add_billing_address_to_checkout(
             ...Price
           }
           variant {
-            stockQuantity
             ...ProductVariant
           }
           quantity

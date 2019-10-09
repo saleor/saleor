@@ -22,7 +22,7 @@ class ShippingQueries(graphene.ObjectType):
         id=graphene.Argument(
             graphene.ID, description="ID of the shipping zone.", required=True
         ),
-        description="Lookup a shipping zone by ID.",
+        description="Look up a shipping zone by ID.",
     )
     shipping_zones = PrefetchingConnectionField(
         ShippingZone, description="List of the shop's shipping zones."
