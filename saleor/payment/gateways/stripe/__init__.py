@@ -1,6 +1,9 @@
 from typing import List
 
 import stripe
+from django import forms
+from django.core.exceptions import ValidationError
+from django.utils.translation import pgettext_lazy
 
 from ... import TransactionKind
 from ...interface import (
@@ -17,10 +20,6 @@ from .utils import (
     get_currency_from_stripe,
     shipping_to_stripe_dict,
 )
-from django import forms
-
-from django.core.exceptions import ValidationError
-from django.utils.translation import pgettext_lazy
 
 
 class StripePaymentForm(forms.Form):
