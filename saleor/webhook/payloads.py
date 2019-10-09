@@ -1,5 +1,8 @@
 import json
+from random import randint
 from typing import Optional
+
+from django.db.models import Model, QuerySet
 
 from ..account.models import User
 from ..order import FulfillmentStatus, OrderStatus
@@ -155,6 +158,16 @@ def generate_product_payload(product: "Product"):
     return product_payload
 
 
+def _get_sample_object(qs: QuerySet) -> Optional[Model]:
+    """Return random object from query."""
+    count = qs.count()
+    if count == 0:
+        return None
+    random_index = randint(0, count - 1)
+    random_object = qs[random_index]
+    return random_object
+
+
 def _generate_sample_order_payload(event_name):
     order_qs = Order.objects.prefetch_related(
         "payments",
@@ -166,32 +179,31 @@ def _generate_sample_order_payload(event_name):
     )
     order = None
     if event_name == WebhookEventType.ORDER_CREATED:
-        order = order_qs.filter(status=OrderStatus.UNFULFILLED).first()
+        order = _get_sample_object(order_qs.filter(status=OrderStatus.UNFULFILLED))
     elif event_name == WebhookEventType.ORDER_FULLYPAID:
-        order = order_qs.filter(
-            payments__charge_status=ChargeStatus.FULLY_CHARGED
-        ).first()
+        order = _get_sample_object(
+            order_qs.filter(payments__charge_status=ChargeStatus.FULLY_CHARGED)
+        )
     elif event_name == WebhookEventType.ORDER_FULFILLED:
-        order = order_qs.filter(
-            fulfillments__status=FulfillmentStatus.FULFILLED
-        ).first()
+        order = _get_sample_object(
+            order_qs.filter(fulfillments__status=FulfillmentStatus.FULFILLED)
+        )
     elif event_name in [
         WebhookEventType.ORDER_CANCELLED,
         WebhookEventType.ORDER_UPDATED,
     ]:
-        order = order_qs.filter(status=OrderStatus.CANCELED).first()
-
+        order = _get_sample_object(order_qs.filter(status=OrderStatus.CANCELED))
     return generate_order_payload(order) if order else None
 
 
 def generate_sample_payload(event_name: str) -> Optional[dict]:
     if event_name == WebhookEventType.CUSTOMER_CREATED:
-        user = User.objects.filter(is_staff=False, is_active=True).first()
+        user = _get_sample_object(User.objects.filter(is_staff=False, is_active=True))
         payload = generate_customer_payload(user) if user else None
     elif event_name == WebhookEventType.PRODUCT_CREATED:
-        product = Product.objects.prefetch_related(
-            "category", "collections", "variants"
-        ).first()
+        product = _get_sample_object(
+            Product.objects.prefetch_related("category", "collections", "variants")
+        )
         payload = generate_product_payload(product) if product else None
     else:
         payload = _generate_sample_order_payload(event_name)
