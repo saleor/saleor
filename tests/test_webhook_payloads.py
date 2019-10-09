@@ -19,7 +19,7 @@ from saleor.webhook.payloads import (
         (WebhookEventType.ORDER_UPDATED, OrderStatus.CANCELED),
         (WebhookEventType.ORDER_CANCELLED, OrderStatus.CANCELED),
         (WebhookEventType.ORDER_FULFILLED, OrderStatus.UNFULFILLED),
-        (WebhookEventType.ORDER_FULLYPAID, OrderStatus.UNFULFILLED),
+        (WebhookEventType.ORDER_FULLY_PAID, OrderStatus.UNFULFILLED),
     ],
 )
 def test_generate_sample_payload_order(
@@ -38,7 +38,7 @@ def test_generate_sample_payload_order(
         WebhookEventType.ORDER_UPDATED,
         WebhookEventType.ORDER_CANCELLED,
         WebhookEventType.ORDER_FULFILLED,
-        WebhookEventType.ORDER_FULLYPAID,
+        WebhookEventType.ORDER_FULLY_PAID,
         WebhookEventType.PRODUCT_CREATED,
         WebhookEventType.CUSTOMER_CREATED,
         "Non_existing_event",
