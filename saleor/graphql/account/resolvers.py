@@ -3,7 +3,6 @@ from typing import Optional
 
 import graphene
 import graphene_django_optimizer as gql_optimizer
-from django.db.models import Q
 from graphql_jwt.exceptions import PermissionDenied
 from i18naddress import get_validation_rules
 
@@ -26,9 +25,7 @@ USER_SEARCH_FIELDS = (
 
 
 def resolve_customers(info, query):
-    qs = models.User.objects.filter(
-        Q(is_staff=False) | (Q(is_staff=True) & Q(orders__isnull=False))
-    )
+    qs = models.User.objects.customers()
     qs = filter_by_query_param(
         queryset=qs, query=query, search_fields=USER_SEARCH_FIELDS
     )
@@ -38,7 +35,7 @@ def resolve_customers(info, query):
 
 
 def resolve_staff_users(info, query):
-    qs = models.User.objects.filter(is_staff=True)
+    qs = models.User.objects.staff()
     qs = filter_by_query_param(
         queryset=qs, query=query, search_fields=USER_SEARCH_FIELDS
     )
@@ -48,15 +45,15 @@ def resolve_staff_users(info, query):
 
 
 def resolve_user(info, id):
-    api_account = info.context.user or info.context.service_account
-    if api_account:
+    requester = info.context.user or info.context.service_account
+    if requester:
         _model, user_pk = graphene.Node.from_global_id(id)
-        if api_account.has_perms(["account.manage_staff", "account.manage_users"]):
+        if requester.has_perms(["account.manage_staff", "account.manage_users"]):
             return models.User.objects.filter(pk=user_pk).first()
-        if api_account.has_perm("account.manage_staff"):
-            return models.User.objects.filter(pk=user_pk, is_staff=True).first()
-        if api_account.has_perm("account.manage_users"):
-            return models.User.objects.filter(pk=user_pk, is_staff=False).first()
+        if requester.has_perm("account.manage_staff"):
+            return models.User.objects.staff().filter(pk=user_pk).first()
+        if requester.has_perm("account.manage_users"):
+            return models.User.objects.customers().filter(pk=user_pk).first()
     return PermissionDenied()
 
 
