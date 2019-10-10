@@ -1,8 +1,10 @@
 from itertools import chain
 from typing import Optional
 
+import graphene
 import graphene_django_optimizer as gql_optimizer
 from django.db.models import Q
+from graphql_jwt.exceptions import PermissionDenied
 from i18naddress import get_validation_rules
 
 from ...account import models
@@ -43,6 +45,19 @@ def resolve_staff_users(info, query):
     qs = qs.order_by("email")
     qs = qs.distinct()
     return gql_optimizer.query(qs, info)
+
+
+def resolve_user(info, id):
+    api_account = info.context.user or info.context.service_account
+    if api_account:
+        _model, user_pk = graphene.Node.from_global_id(id)
+        if api_account.has_perms(["account.manage_staff", "account.manage_users"]):
+            return models.User.objects.filter(pk=user_pk).first()
+        if api_account.has_perm("account.manage_staff"):
+            return models.User.objects.filter(pk=user_pk, is_staff=True).first()
+        if api_account.has_perm("account.manage_users"):
+            return models.User.objects.filter(pk=user_pk, is_staff=False).first()
+    return PermissionDenied()
 
 
 def resolve_service_accounts(info):

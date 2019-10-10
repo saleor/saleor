@@ -316,7 +316,8 @@ def test_user_query_permission_manage_users_get_staff(
     staff_id = graphene.Node.to_global_id("User", staff_user.pk)
     variables = {"id": staff_id}
     response = staff_api_client.post_graphql(USER_QUERY, variables)
-    assert_no_permission(response)
+    content = get_graphql_content(response)
+    assert not content["data"]["user"]
 
 
 def test_user_query_permission_manage_staff_get_customer(
@@ -326,7 +327,8 @@ def test_user_query_permission_manage_staff_get_customer(
     customer_id = graphene.Node.to_global_id("User", customer_user.pk)
     variables = {"id": customer_id}
     response = staff_api_client.post_graphql(USER_QUERY, variables)
-    assert_no_permission(response)
+    content = get_graphql_content(response)
+    assert not content["data"]["user"]
 
 
 def test_user_query_permission_manage_staff_get_staff(
