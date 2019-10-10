@@ -30,7 +30,10 @@ def test_webhook_create_by_service_account(
     variables = {
         "name": "New integration",
         "target_url": "https://www.example.com",
-        "events": [WebhookEventTypeEnum.ORDER_CREATED.name],
+        "events": [
+            WebhookEventTypeEnum.ORDER_CREATED.name,
+            WebhookEventTypeEnum.ORDER_CREATED.name,
+        ],
     }
     response = service_account_api_client.post_graphql(query, variables=variables)
     get_graphql_content(response)
@@ -284,7 +287,10 @@ def test_webhook_update_by_staff(
     webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
     variables = {
         "id": webhook_id,
-        "events": [WebhookEventTypeEnum.ORDER_CREATED.name],
+        "events": [
+            WebhookEventTypeEnum.CUSTOMER_CREATED.name,
+            WebhookEventTypeEnum.CUSTOMER_CREATED.name,
+        ],
         "is_active": False,
     }
     staff_api_client.user.user_permissions.add(permission_manage_webhooks)
@@ -294,7 +300,7 @@ def test_webhook_update_by_staff(
     assert webhook.is_active is False
     events = webhook.events.all()
     assert len(events) == 1
-    assert events[0].event_type == WebhookEventTypeEnum.ORDER_CREATED.value
+    assert events[0].event_type == WebhookEventTypeEnum.CUSTOMER_CREATED.value
 
 
 def test_webhook_update_by_staff_without_permission(
@@ -304,7 +310,10 @@ def test_webhook_update_by_staff_without_permission(
     webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
     variables = {
         "id": webhook_id,
-        "events": [WebhookEventTypeEnum.ORDER_CREATED.name],
+        "events": [
+            WebhookEventTypeEnum.ORDER_CREATED.name,
+            WebhookEventTypeEnum.CUSTOMER_CREATED.name,
+        ],
         "is_active": False,
     }
     response = staff_api_client.post_graphql(query, variables=variables)
