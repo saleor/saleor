@@ -3,10 +3,11 @@ import graphene_django_optimizer as gql_optimizer
 
 from ...webhook import models
 from ..core.connection import CountableDjangoObjectType
+from .enums import WebhookEventTypeEnum
 
 
 class WebhookEvent(graphene.ObjectType):
-    event_type = graphene.String(description="Name of the event type.")
+    event_type = WebhookEventTypeEnum(description="Name of the event type.")
 
     class Meta:
         description = "Webhook event."
