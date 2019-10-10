@@ -56,7 +56,7 @@ def search_storefront(client, phrase):
     ],
 )
 @pytest.mark.integration
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_storefront_product_fuzzy_name_search(
     client, named_products, phrase, product_num
 ):
@@ -72,7 +72,7 @@ def unpublish_product(product):
 
 
 @pytest.mark.integration
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_storefront_filter_published_products(client, named_products):
     unpublish_product(named_products[0])
     assert search_storefront(client, "Coffee") == []
@@ -87,14 +87,14 @@ def search_dashboard(client, phrase):
 
 
 @pytest.mark.integration
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_dashboard_search_with_empty_results(admin_client, named_products):
     products, orders, users = search_dashboard(admin_client, "foo")
     assert 0 == len(products) == len(orders) == len(users)
 
 
 @pytest.mark.integration
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "phrase,product_num", [("  coffee. ", 0), ("shirt", 1), ("ROASTED", 2)]
 )
@@ -105,7 +105,7 @@ def test_find_product_by_name(admin_client, named_products, phrase, product_num)
 
 
 @pytest.mark.integration
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "phrase,product_num", [("BIG", 1), (" grains, ", 0), ("fabulous", 2)]
 )
@@ -160,7 +160,7 @@ def orders_with_user_names():
 
 
 @pytest.mark.integration
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_find_order_by_id_with_no_result(admin_client, orders_with_addresses):
     phrase = "991"  # not existing id
     _, orders, _ = search_dashboard(admin_client, phrase)
@@ -168,7 +168,7 @@ def test_find_order_by_id_with_no_result(admin_client, orders_with_addresses):
 
 
 @pytest.mark.integration
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_find_order_by_id(admin_client, orders_with_addresses):
     phrase = " 10 "
     _, orders, _ = search_dashboard(admin_client, phrase)
@@ -177,7 +177,7 @@ def test_find_order_by_id(admin_client, orders_with_addresses):
 
 
 @pytest.mark.integration
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "phrase,order_num", [("euzeb.potato@cebula.pl", 1), ("  johndoe@example.com ", 2)]
 )
@@ -188,7 +188,7 @@ def test_find_order_with_email(admin_client, orders_with_addresses, phrase, orde
 
 
 @pytest.mark.integration
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "phrase,order_num", [("knop", 0), ("ZIEMniak", 1), ("  john  ", 2), ("ANDREAS", 0)]
 )
@@ -201,7 +201,7 @@ def test_find_order_with_user_name(
 
 
 @pytest.mark.integration
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "phrase,order_num", [("knop", 0), ("ZIEMniak", 1), ("  john  ", 2), ("ANDREAS", 0)]
 )
@@ -218,7 +218,7 @@ ORDER_RESULTS_PERMISSION = "order.manage_orders"
 
 
 @pytest.mark.integration
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_orders_search_results_restricted_to_users_with_permission(
     orders_with_addresses, staff_client, staff_user
 ):
@@ -228,7 +228,7 @@ def test_orders_search_results_restricted_to_users_with_permission(
 
 
 @pytest.mark.integration
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_show_orders_search_result_to_user_with_permission_granted(
     orders_with_addresses, staff_client, staff_user, permission_manage_orders
 ):
@@ -260,7 +260,7 @@ def users_with_names():
 
 
 @pytest.mark.integration
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "phrase,user_num", [("adreas.knop@example.com", 0), (" euzeb.potato@cebula.pl ", 1)]
 )
@@ -271,7 +271,7 @@ def test_find_user_by_email(admin_client, users_with_addresses, phrase, user_num
 
 
 @pytest.mark.integration
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "phrase,user_num", [("Andreas Knop", 0), (" Euzebiusz ", 1), ("DOE", 2)]
 )
@@ -282,7 +282,7 @@ def test_find_user_by_name(admin_client, users_with_addresses, phrase, user_num)
 
 
 @pytest.mark.integration
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 @pytest.mark.parametrize(
     "phrase,user_num", [("Andreas Knop", 0), (" Euzebiusz ", 1), ("DOE", 2)]
 )
@@ -299,7 +299,7 @@ USER_RESULTS_PERMISSION = "account.manage_users"
 
 
 @pytest.mark.integration
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_users_search_results_restricted_to_staff_with_permission(
     users_with_addresses, staff_client, staff_user
 ):
@@ -309,7 +309,7 @@ def test_users_search_results_restricted_to_staff_with_permission(
 
 
 @pytest.mark.integration
-@pytest.mark.django_db(transaction=True)
+@pytest.mark.django_db
 def test_show_users_search_result_when_access_granted(
     users_with_addresses, staff_client, staff_user, permission_manage_users
 ):
