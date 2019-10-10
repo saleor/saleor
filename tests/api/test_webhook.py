@@ -1,4 +1,7 @@
+from unittest.mock import patch
+
 import graphene
+import pytest
 
 from saleor.account.models import ServiceAccount
 from saleor.graphql.webhook.enums import WebhookEventTypeEnum
@@ -459,3 +462,82 @@ def test_query_webhook_by_service_account_without_permission(
     content = get_graphql_content(response)
     webhook_response = content["data"]["webhook"]
     assert webhook_response is None
+
+
+SAMPLE_PAYLOAD_QUERY = """
+  query webhookSamplePayload($event_type: WebhookEventTypeEnum!){
+    webhookSamplePayload(eventType: $event_type)
+  }
+"""
+
+
+@patch("saleor.graphql.webhook.resolvers.payloads.generate_sample_payload")
+@pytest.mark.parametrize(
+    "event_type, has_access",
+    [
+        (WebhookEventTypeEnum.ORDER_CREATED, True),
+        (WebhookEventTypeEnum.ORDER_CREATED, True),
+        (WebhookEventTypeEnum.ORDER_FULLY_PAID, True),
+        (WebhookEventTypeEnum.ORDER_UPDATED, True),
+        (WebhookEventTypeEnum.ORDER_CANCELLED, True),
+        (WebhookEventTypeEnum.ORDER_FULFILLED, True),
+        (WebhookEventTypeEnum.CUSTOMER_CREATED, False),
+        (WebhookEventTypeEnum.PRODUCT_CREATED, False),
+    ],
+)
+def test_sample_payload_query_by_service_account(
+    mock_generate_sample_payload,
+    event_type,
+    has_access,
+    service_account_api_client,
+    permission_manage_orders,
+    service_account,
+):
+
+    mock_generate_sample_payload.return_value = {"mocked_response": ""}
+    query = SAMPLE_PAYLOAD_QUERY
+    service_account.permissions.add(permission_manage_orders)
+    variables = {"event_type": event_type.name}
+    response = service_account_api_client.post_graphql(query, variables=variables)
+    if not has_access:
+        assert_no_permission(response)
+        mock_generate_sample_payload.assert_not_called()
+    else:
+        get_graphql_content(response)
+        mock_generate_sample_payload.assert_called_with(event_type.value)
+
+
+@patch("saleor.graphql.webhook.resolvers.payloads.generate_sample_payload")
+@pytest.mark.parametrize(
+    "event_type, has_access",
+    [
+        (WebhookEventTypeEnum.ORDER_CREATED, False),
+        (WebhookEventTypeEnum.ORDER_CREATED, False),
+        (WebhookEventTypeEnum.ORDER_FULLY_PAID, False),
+        (WebhookEventTypeEnum.ORDER_UPDATED, False),
+        (WebhookEventTypeEnum.ORDER_CANCELLED, False),
+        (WebhookEventTypeEnum.ORDER_FULFILLED, False),
+        (WebhookEventTypeEnum.CUSTOMER_CREATED, True),
+        (WebhookEventTypeEnum.PRODUCT_CREATED, True),
+    ],
+)
+def test_sample_payload_query_by_staff(
+    mock_generate_sample_payload,
+    event_type,
+    has_access,
+    staff_api_client,
+    permission_manage_users,
+    permission_manage_products,
+):
+    mock_generate_sample_payload.return_value = {"mocked_response": ""}
+    query = SAMPLE_PAYLOAD_QUERY
+    staff_api_client.user.user_permissions.add(permission_manage_users)
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    variables = {"event_type": event_type.name}
+    response = staff_api_client.post_graphql(query, variables=variables)
+    if not has_access:
+        assert_no_permission(response)
+        mock_generate_sample_payload.assert_not_called()
+    else:
+        get_graphql_content(response)
+        mock_generate_sample_payload.assert_called_with(event_type.value)
