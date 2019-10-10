@@ -14,7 +14,7 @@ from ..core.fields import PrefetchingConnectionField
 from ..core.resolvers import resolve_meta, resolve_private_meta
 from ..core.types import CountryDisplay, Image, MetadataObjectType, PermissionDisplay
 from ..core.utils import get_node_optimized
-from ..decorators import permission_required
+from ..decorators import one_of_permissions_required, permission_required
 from ..utils import format_permissions_for_display
 from .enums import CustomerEventsEnum
 
@@ -296,13 +296,13 @@ class User(MetadataObjectType, CountableDjangoObjectType):
         return format_permissions_for_display(permissions)
 
     @staticmethod
-    @permission_required("account.manage_users")
-    def resolve_note(root: models.User, _info):
+    @one_of_permissions_required(["account.manage_users", "account.manage_staff"])
+    def resolve_note(root: models.User, info):
         return root.note
 
     @staticmethod
-    @permission_required("account.manage_users")
-    def resolve_events(root: models.User, _info):
+    @one_of_permissions_required(["account.manage_users", "account.manage_staff"])
+    def resolve_events(root: models.User, info):
         return root.events.all()
 
     @staticmethod
