@@ -300,10 +300,11 @@ def test_user_query_anonymous_user(api_client):
 def test_user_query_permission_manage_users_get_customer(
     staff_api_client, customer_user, permission_manage_users
 ):
-    staff_api_client.user.user_permissions.add(permission_manage_users)
     customer_id = graphene.Node.to_global_id("User", customer_user.pk)
     variables = {"id": customer_id}
-    response = staff_api_client.post_graphql(USER_QUERY, variables)
+    response = staff_api_client.post_graphql(
+        USER_QUERY, variables, permissions=[permission_manage_users]
+    )
     content = get_graphql_content(response)
     data = content["data"]["user"]
     assert customer_user.email == data["email"]
@@ -312,10 +313,11 @@ def test_user_query_permission_manage_users_get_customer(
 def test_user_query_permission_manage_users_get_staff(
     staff_api_client, staff_user, permission_manage_users
 ):
-    staff_api_client.user.user_permissions.add(permission_manage_users)
     staff_id = graphene.Node.to_global_id("User", staff_user.pk)
     variables = {"id": staff_id}
-    response = staff_api_client.post_graphql(USER_QUERY, variables)
+    response = staff_api_client.post_graphql(
+        USER_QUERY, variables, permissions=[permission_manage_users]
+    )
     content = get_graphql_content(response)
     assert not content["data"]["user"]
 
@@ -323,10 +325,11 @@ def test_user_query_permission_manage_users_get_staff(
 def test_user_query_permission_manage_staff_get_customer(
     staff_api_client, customer_user, permission_manage_staff
 ):
-    staff_api_client.user.user_permissions.add(permission_manage_staff)
     customer_id = graphene.Node.to_global_id("User", customer_user.pk)
     variables = {"id": customer_id}
-    response = staff_api_client.post_graphql(USER_QUERY, variables)
+    response = staff_api_client.post_graphql(
+        USER_QUERY, variables, permissions=[permission_manage_staff]
+    )
     content = get_graphql_content(response)
     assert not content["data"]["user"]
 
@@ -334,10 +337,11 @@ def test_user_query_permission_manage_staff_get_customer(
 def test_user_query_permission_manage_staff_get_staff(
     staff_api_client, staff_user, permission_manage_staff
 ):
-    staff_api_client.user.user_permissions.add(permission_manage_staff)
     staff_id = graphene.Node.to_global_id("User", staff_user.pk)
     variables = {"id": staff_id}
-    response = staff_api_client.post_graphql(USER_QUERY, variables)
+    response = staff_api_client.post_graphql(
+        USER_QUERY, variables, permissions=[permission_manage_staff]
+    )
     content = get_graphql_content(response)
     data = content["data"]["user"]
     assert staff_user.email == data["email"]

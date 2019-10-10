@@ -14,7 +14,7 @@ from ..core.fields import PrefetchingConnectionField
 from ..core.resolvers import resolve_meta, resolve_private_meta
 from ..core.types import CountryDisplay, Image, MetadataObjectType, PermissionDisplay
 from ..core.utils import get_node_optimized
-from ..decorators import one_of_permissions_required, permission_required
+from ..decorators import one_of_permissions_required
 from ..utils import format_permissions_for_display
 from .enums import CustomerEventsEnum
 
@@ -331,7 +331,7 @@ class User(MetadataObjectType, CountableDjangoObjectType):
         return resolve_payment_sources(root)
 
     @staticmethod
-    @permission_required("account.manage_users")
+    @one_of_permissions_required(["account.manage_users", "account.manage_staff"])
     def resolve_private_meta(root, _info):
         return resolve_private_meta(root, _info)
 
