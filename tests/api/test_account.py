@@ -297,6 +297,50 @@ def test_user_query_anonymous_user(api_client):
     assert_no_permission(response)
 
 
+def test_user_query_permission_manage_users_get_customer(
+    staff_api_client, customer_user, permission_manage_users
+):
+    staff_api_client.user.user_permissions.add(permission_manage_users)
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+    variables = {"id": customer_id}
+    response = staff_api_client.post_graphql(USER_QUERY, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["user"]
+    assert customer_user.email == data["email"]
+
+
+def test_user_query_permission_manage_users_get_staff(
+    staff_api_client, staff_user, permission_manage_users
+):
+    staff_api_client.user.user_permissions.add(permission_manage_users)
+    staff_id = graphene.Node.to_global_id("User", staff_user.pk)
+    variables = {"id": staff_id}
+    response = staff_api_client.post_graphql(USER_QUERY, variables)
+    assert_no_permission(response)
+
+
+def test_user_query_permission_manage_staff_get_customer(
+    staff_api_client, customer_user, permission_manage_staff
+):
+    staff_api_client.user.user_permissions.add(permission_manage_staff)
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+    variables = {"id": customer_id}
+    response = staff_api_client.post_graphql(USER_QUERY, variables)
+    assert_no_permission(response)
+
+
+def test_user_query_permission_manage_staff_get_staff(
+    staff_api_client, staff_user, permission_manage_staff
+):
+    staff_api_client.user.user_permissions.add(permission_manage_staff)
+    staff_id = graphene.Node.to_global_id("User", staff_user.pk)
+    variables = {"id": staff_id}
+    response = staff_api_client.post_graphql(USER_QUERY, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["user"]
+    assert staff_user.email == data["email"]
+
+
 def test_query_customers(staff_api_client, user_api_client, permission_manage_users):
     query = """
     query Users {
