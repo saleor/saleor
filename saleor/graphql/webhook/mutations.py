@@ -84,7 +84,7 @@ class WebhookCreate(ModelMutation):
     @classmethod
     def save(cls, info, instance, cleaned_input):
         instance.save()
-        events = cleaned_input.get("events", [])
+        events = set(cleaned_input.get("events", []))
         models.WebhookEvent.objects.bulk_create(
             [
                 models.WebhookEvent(webhook=instance, event_type=event)
