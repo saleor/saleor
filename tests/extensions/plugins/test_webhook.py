@@ -74,6 +74,8 @@ def test_trigger_webhooks_for_event_calls_expected_events(
     permission_manage_users,
     permission_manage_products,
 ):
+    """Confirm that Saleor executes only valid and allowed webhook events."""
+
     service_account.permissions.add(permission_manage_orders)
     service_account.permissions.add(permission_manage_products)
     webhook = service_account.webhooks.create(

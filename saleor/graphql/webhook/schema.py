@@ -22,7 +22,7 @@ class WebhookQueries(graphene.ObjectType):
         event_type=graphene.Argument(
             WebhookEventTypeEnum,
             required=True,
-            description="Name of the reguested event type.",
+            description="Name of the requested event type.",
         ),
     )
 

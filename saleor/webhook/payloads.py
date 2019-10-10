@@ -1,5 +1,4 @@
 import json
-from random import randint
 from typing import Optional
 
 from django.db.models import Model, QuerySet
@@ -160,11 +159,7 @@ def generate_product_payload(product: "Product"):
 
 def _get_sample_object(qs: QuerySet) -> Optional[Model]:
     """Return random object from query."""
-    count = qs.count()
-    if count == 0:
-        return None
-    random_index = randint(0, count - 1)
-    random_object = qs[random_index]
+    random_object = qs.order_by("?").first()
     return random_object
 
 
