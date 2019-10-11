@@ -12,6 +12,7 @@ class CustomerEvents:
 
     # Order related events
     PLACED_ORDER = "placed_order"  # created an order
+    CUSTOMER_NOTE_ADDED_TO_ORDER = "customer_note_added_to_order"  # added a customer note to one of their orders
     NOTE_ADDED_TO_ORDER = "note_added_to_order"  # added a note to one of their orders
     DIGITAL_LINK_DOWNLOADED = "digital_link_downloaded"  # downloaded a digital good
 

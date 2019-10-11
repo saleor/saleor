@@ -1,0 +1,20 @@
+{% extends "dashboard/base_modal.html" %}
+
+{% load i18n %}
+{% load materializecss %}
+
+{% block action_url %}
+  {% url 'dashboard:order-edit-customer-note' order_pk=order.pk %}
+{% endblock %}
+
+{% block title %}
+  {% trans "Edit customer note" context "Modal edit customer note title" %}
+{% endblock %}
+
+{% block content %}
+  {{ form|materializecss }}
+{% endblock %}
+
+{% block primary_action %}
+  {% trans "Save customer note" context "Modal edit customer note primary action" %}
+{% endblock %}
