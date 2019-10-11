@@ -4,6 +4,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Add validate for query param should be a valid string - #4822 by @nix010
 - Fix product type taxes select - #4453 by @benekex2
 - Fix form reloading - #4467 by @dominik-zeglen
 - Fix time zone based tests - #4468 by @fowczarek
@@ -90,6 +91,10 @@ All notable, unreleased changes to this project will be documented in this file.
 - Change `unique_together` in `AttributeValue` - #4805 by @fowczarek
 - Change max length of SKU in order/product variant to 255 - #4811 by @lex111
 - Replace Pipenv with Poetry - #3894 by @michaljelonek
+- `productVariant` nodes now require `manage_products` permission to query `costPrice` and `stockQuantity` fields - #4753 by @NyanKiyoshi
+- `productVariant` nodes now require `manage_products` permission to query `costPrice` and `stockQuantity` fields. `isAvailable` of a variant is not longer returning false when another variant from the same product is out of stock. - #4753 by @NyanKiyoshi
+- Fixed crash when placing an order when a customer happens to have the same address more than once - #4823 by @NyanKiyoshi
+- Fix fetching staff user without manage_users permission - #4835 by @fowczarek
 - Add form to configure payments in dashboard - #4807 by @szewczykmira
 
 ## 2.8.0

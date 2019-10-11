@@ -16,10 +16,12 @@ class NonNullConnection(Connection):
         class EdgeBase:
             node = Field(
                 cls._meta.node,
-                description="The item at the end of the edge",
+                description="The item at the end of the edge.",
                 required=True,
             )
-            cursor = String(required=True, description="A cursor for use in pagination")
+            cursor = String(
+                required=True, description="A cursor for use in pagination."
+            )
 
         # Create the edge type using the new EdgeBase.
         edge_name = cls.Edge._meta.name
@@ -36,7 +38,7 @@ class CountableConnection(NonNullConnection):
     class Meta:
         abstract = True
 
-    total_count = graphene.Int(description="A total count of items in the collection")
+    total_count = graphene.Int(description="A total count of items in the collection.")
 
     @staticmethod
     def resolve_total_count(root, *_args, **_kwargs):

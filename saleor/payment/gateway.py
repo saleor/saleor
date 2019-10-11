@@ -231,7 +231,7 @@ def _fetch_gateway_response(fn, *args, **kwargs):
 def _get_past_transaction_token(payment: Payment, kind: TransactionKind):
     txn = payment.transactions.filter(kind=kind, is_success=True).first()
     if txn is None:
-        raise PaymentError("Cannot find successful {kind.value} transaction")
+        raise PaymentError(f"Cannot find successful {kind} transaction")
     return txn.token
 
 

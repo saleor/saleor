@@ -3,18 +3,18 @@ class AttributeDescriptions:
     NAME = "Name of an attribute displayed in the interface."
     SLUG = "Internal representation of an attribute name."
     VALUES = "List of attribute's values."
-    VALUE_REQUIRED = "Whether the attribute requires values to be passed or not"
-    IS_VARIANT_ONLY = "Whether the attribute is for variants only"
+    VALUE_REQUIRED = "Whether the attribute requires values to be passed or not."
+    IS_VARIANT_ONLY = "Whether the attribute is for variants only."
     VISIBLE_IN_STOREFRONT = (
-        "Whether the attribute should be visible or not in storefront"
+        "Whether the attribute should be visible or not in storefront."
     )
-    FILTERABLE_IN_STOREFRONT = "Whether the attribute can be filtered in storefront"
-    FILTERABLE_IN_DASHBOARD = "Whether the attribute can be filtered in dashboard"
+    FILTERABLE_IN_STOREFRONT = "Whether the attribute can be filtered in storefront."
+    FILTERABLE_IN_DASHBOARD = "Whether the attribute can be filtered in dashboard."
     STOREFRONT_SEARCH_POSITION = (
-        "The position of the attribute in the storefront navigation (0 by default)"
+        "The position of the attribute in the storefront navigation (0 by default)."
     )
     AVAILABLE_IN_GRID = (
-        "Whether the attribute can be displayed in the admin product list"
+        "Whether the attribute can be displayed in the admin product list."
     )
 
 
