@@ -1,4 +1,3 @@
-Warning: The lock file is not up to date with the latest changes in pyproject.toml. You may be getting outdated dependencies. Run update to update them.
 amqp==2.5.1 \
     --hash=sha256:19a917e260178b8d410122712bac69cb3e6db010d68f6101e7307508aded5e68 \
     --hash=sha256:19d851b879a471fcfdcf01df9936cff924f422baa77653289f7095dedd5fb26a
@@ -20,16 +19,16 @@ billiard==3.6.1.0 \
 bleach==2.1.4 \
     --hash=sha256:0ee95f6167129859c5dce9b1ca291ebdb5d8cd7e382ca0e237dfd0dad63f63d8 \
     --hash=sha256:24754b9a7d530bf30ce7cbc805bc6cce785660b4a10ff3a43633728438c105ab
-boto3==1.9.246 \
-    --hash=sha256:9a84be232ff6432312c16b8e52cc5a01e6ff461cb9b50b3cafee24c6876a5012 \
-    --hash=sha256:ad269aa51439e0dd5f8245913bd2dd85684e37c237f5635143e96d48ce74f0eb
-botocore==1.12.246 \
-    --hash=sha256:210d9de193e1a1f8ad22ce57b6c18d48c79ff0c093680ec1a07e83a635fce4c7 \
-    --hash=sha256:6dcc121be4917cc731577a2ddff67b89cee6a4b0ec30241ce207a80a0d41990a
+boto3==1.9.247 \
+    --hash=sha256:13d90ebe4d41e1717d7cc015e983370aadba2995a2af30695f29b69f196e82fc \
+    --hash=sha256:e50edae8ccb630dc1950332764c6b462a9550663a3d71c00f898280f1446f107
+botocore==1.12.247 \
+    --hash=sha256:76ff516cfbe5c9f2ac4eb8bb5d8945bc7354d4898f2609ad32080efc9ecea751 \
+    --hash=sha256:fa425f3e24bb17a357a297532b253a7353a496f2be7b7a5c3fc1dd7419de259d
 braintree==3.49.0 \
     --hash=sha256:0c95dbe0b497fd2eafaa08b6282f2b1d547cba3a432f8101424bd06c333348b5 \
     --hash=sha256:7cdd715a5a61339e4e5dcb5611cf80512d5fdb0e4da69307a64141d3597357f7
-cachetools==3.1.1; extra == "google" \
+cachetools==3.1.1 \
     --hash=sha256:428266a1c0d36dc5aca63a2d7c5942e88c2c898d72139fca0e97fdd2380517ae \
     --hash=sha256:8ea2d3ce97850f31e4a08b0e2b5e6c34997d7216a9d2c98e0f3978630d4da69a
 cairocffi==1.1.0 \
@@ -174,16 +173,16 @@ faker==2.0.2 \
 freezegun==0.3.12 \
     --hash=sha256:2a4d9c8cd3c04a201e20c313caf8b6338f1cfa4cda43f46a94cc4a9fd13ea5e7 \
     --hash=sha256:edfdf5bc6040969e6ed2e36eafe277963bdc8b7c01daeda96c5c8594576c9390
-google-api-core==1.14.3; extra == "google" \
+google-api-core==1.14.3 \
     --hash=sha256:b95895a9398026bc0500cf9b4a3f82c3f72c3f9150b26ff53af40c74e91c264a \
     --hash=sha256:df8adc4b97f5ab4328a0e745bee77877cf4a7d4601cb1cd5959d2bbf8fba57aa
-google-auth==1.6.3; extra == "google" \
+google-auth==1.6.3 \
     --hash=sha256:0f7c6a64927d34c1a474da92cfc59e552a5d3b940d3266606c6a28b72888b9e4 \
     --hash=sha256:20705f6803fd2c4d1cc2dcb0df09d4dfcb9a7d51fd59e94a3a28231fd93119ed
-google-cloud-core==1.0.3; extra == "google" \
+google-cloud-core==1.0.3 \
     --hash=sha256:0ee17abc74ff02176bee221d4896a00a3c202f3fb07125a7d814ccabd20d7eb5 \
     --hash=sha256:10750207c1a9ad6f6e082d91dbff3920443bdaf1c344a782730489a9efa802f1
-google-cloud-storage==1.20.0; extra == "google" \
+google-cloud-storage==1.20.0 \
     --hash=sha256:13a6a820311662eb91a99810568c2bca5ddc7e44e2163fed4cb3f4d47da132cf \
     --hash=sha256:2e7e2435978bda1c209b70a9a00b8cbc53c3b00d6f09eb2c991ebba857babf24
 google-i18n-address==2.3.5 \
@@ -191,10 +190,10 @@ google-i18n-address==2.3.5 \
     --hash=sha256:7c6cd436e9abcdd69ea347d2e440d718019eed55e98b7078051f902a521f6fce
 google-measurement-protocol==1.0.0 \
     --hash=sha256:7618c44b875a0c9e80e6cf55e44ed80c04cf74cd2eff7eacdd76bf9b03029551
-google-resumable-media==0.4.1; extra == "google" \
+google-resumable-media==0.4.1 \
     --hash=sha256:5fd2e641f477e50be925a55bcfdf0b0cb97c2b92aacd7b15c1d339f70d55c1c7 \
     --hash=sha256:cdeb8fbb3551a665db921023603af2f0d6ac59ad8b48259cb510b8799505775f
-googleapis-common-protos==1.6.0; extra == "google" \
+googleapis-common-protos==1.6.0 \
     --hash=sha256:e61b8ed5e36b976b487c6e7b15f31bb10c7a0ca7bd5c0e837f4afab64b53a0c6
 gprof2dot==2016.10.13 \
     --hash=sha256:48c1e168c28b8a8eb23bf30fda78fe2ef218269a41505341ec27c27083e47cf4
@@ -204,8 +203,8 @@ graphene==2.1.8 \
 graphene-django==2.6.0 \
     --hash=sha256:0d1404ab1ba7873a8e848d87d138f615391d100ed0c046482c164429cfb992ef \
     --hash=sha256:fa9e815f63e3c972773adc96c3f3c81e537dba0edcd0f1be92c799bc0b6ed0a8
-graphene-django-optimizer==0.6.0 \
-    --hash=sha256:48dd4806c1eb8597e3ba916531a68c3956d3779ebee3238d9736b795613794ef
+graphene-django-optimizer==0.6.1 \
+    --hash=sha256:2c3902cfc739ae7f9953c9130fa4030d4f1bd9e81c820713c4270137e63f89cb
 -e git+https://github.com/erebus1/graphene-federation.git@89f239a882e25dd540191fe6c74f5fd032ce3b17#egg=graphene-federation
 graphql-core==2.2.1 \
     --hash=sha256:1488f2a5c2272dc9ba66e3042a6d1c30cea0db4c80bd1e911c6791ad6187d91b \
@@ -369,7 +368,7 @@ prices==1.0.0 \
 promise==2.2.1 \
     --hash=sha256:2ebbfc10b7abf6354403ed785fe4f04b9dfd421eb1a474ac8d187022228332af \
     --hash=sha256:348f5f6c3edd4fd47c9cd65aed03ac1b31136d375aa63871a57d3e444c85655c
-protobuf==3.10.0; extra == "google" \
+protobuf==3.10.0 \
     --hash=sha256:125713564d8cfed7610e52444c9769b8dcb0b55e25cc7841f2290ee7bc86636f \
     --hash=sha256:1accdb7a47e51503be64d9a57543964ba674edac103215576399d2d0e34eac77 \
     --hash=sha256:27003d12d4f68e3cbea9eb67427cab3bfddd47ff90670cb367fcd7a3a89b9657 \
@@ -419,7 +418,7 @@ psycopg2-binary==2.8.3 \
 purl==1.5 \
     --hash=sha256:5ac0e85979da0172d80156701cb3eb9b1eff31f3b43e981ef6dc06251c53a3a4 \
     --hash=sha256:75141bef1e7fce943afda671663a97c792af01c81648026cd5b5c0dcc3b72b96
-pyasn1==0.4.7; extra == "google" \
+pyasn1==0.4.7 \
     --hash=sha256:1321d4b2f051410fe7302bb1619903d30b24ba1451d019c11d242d11b2a35444 \
     --hash=sha256:2860a047f666afd23b197a65f33145313511c368ce919b2d9b1853ffd3e9d32d \
     --hash=sha256:2919babd43b3b44247c23201b71072c0c65a636daa595cad5bcd276094dbfc2d \
@@ -433,7 +432,7 @@ pyasn1==0.4.7; extra == "google" \
     --hash=sha256:bcac468e38d16e94fee4c8f76eef1feb9a06a911e93465f2351a4140fa66d303 \
     --hash=sha256:c39d11c72f0e5e71faa35c8c8ef5ee9b810ec99a3c64f05133f1325fe5636bba \
     --hash=sha256:f124185ccc1c1c5e782aa58d46bc28be279673a482334d70de6735d05d8b4b10
-pyasn1-modules==0.2.7; extra == "google" \
+pyasn1-modules==0.2.7 \
     --hash=sha256:0c35a52e00b672f832e5846826f1fb7507907f7d52fba6faa9e3c4cbe874fe4b \
     --hash=sha256:13a6955947d8a554de78fc305a4d651f20fb5580b88612a5f0661d4f189d27ac \
     --hash=sha256:233f55c840e821e76828262db976ac894b285909d22d060c2bdb522e7bf28cc6 \
@@ -473,9 +472,9 @@ pytz==2019.3 \
 razorpay==1.2.0 \
     --hash=sha256:0bea9e11aca8024af0cd741b779cb6d3b0a689a8488e21b5e4b345f8840a0fe4 \
     --hash=sha256:8bae5ba6e3d8c7aebf7e4b297d15dfdb4a4b05e6fabd8d56405ac0d2677539bd
-redis==3.3.8 \
-    --hash=sha256:98a22fb750c9b9bb46e75e945dc3f61d0ab30d06117cbb21ff9cd1d315fedd3b \
-    --hash=sha256:c504251769031b0dd7dd5cf786050a6050197c6de0d37778c80c08cb04ae8275
+redis==3.3.10 \
+    --hash=sha256:a657a62ca12d20deb700c3c00b4923bc29893740f2c072e7b1b669777401295d \
+    --hash=sha256:bf027fdd92aead8e49ab9d29e72498eef6ca7a38a15b2f88c5d9146145e93049
 requests==2.22.0 \
     --hash=sha256:11e007a8a2aa0323f5a921e9e6a2d7e4e67d9877e85773fba9ba6419025cbeb4 \
     --hash=sha256:9cf5292fcd0f598c671cfc1e0d7d1a7f13bb8085e9a590f48c010551dc6c4b31
@@ -483,7 +482,7 @@ requests-oauthlib==1.2.0 \
     --hash=sha256:bd6533330e8748e94bf0b214775fed487d309b8b8fe823dc45641ebcd9a32f57 \
     --hash=sha256:d3ed0c8f2e3bbc6b344fa63d6f933745ab394469da38db16bdddb461c7e25140 \
     --hash=sha256:dd5a0499abfefd087c6dd96693cbd5bfd28aa009719a7f85ab3fabe3956ef19a
-rsa==4.0; extra == "google" \
+rsa==4.0 \
     --hash=sha256:14ba45700ff1ec9eeb206a2ce76b32814958a98e372006c8fb76ba820211be66 \
     --hash=sha256:1a836406405730121ae9823e19c6e806c62bbad73f890574fff50efa4122c487
 rx==1.6.1 \
