@@ -96,7 +96,6 @@ class OrderEvents:
     FULFILLMENT_FULFILLED_ITEMS = "fulfillment_fulfilled_items"
     TRACKING_UPDATED = "tracking_updated"
     NOTE_ADDED = "note_added"
-    CUSTOMER_NOTE_ADDED = "customer_note_added"
 
     # Used mostly for importing legacy data from before Enum-based events
     OTHER = "other"
@@ -246,13 +245,6 @@ class OrderEvents:
             pgettext_lazy(
                 "Event from an user that added a note to an order",
                 "A note was added to the order",
-            ),
-        ),
-        (
-            CUSTOMER_NOTE_ADDED,
-            pgettext_lazy(
-                "Event from an user that added a customer note to an order",
-                "A customer note was added to the order",
             ),
         ),
         (
