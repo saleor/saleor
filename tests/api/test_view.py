@@ -108,6 +108,14 @@ def test_no_query(client):
     assert content["errors"][0]["message"] == "Must provide a query string."
 
 
+def test_query_is_dict(client):
+    data = {"query": {"type": "dict"}}
+    response = client.post(API_PATH, data, content_type="application/json")
+    assert response.status_code == 400
+    content = _get_graphql_content_from_response(response)
+    assert content["errors"][0]["message"] == "Must provide a query string."
+
+
 def test_graphql_execution_exception(monkeypatch, api_client):
     def mocked_execute(*args, **kwargs):
         raise IOError("Spanish inquisition")
