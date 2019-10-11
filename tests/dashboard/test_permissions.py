@@ -988,3 +988,47 @@ def test_staff_can_remove_user(staff_client, staff_user, permission_manage_users
 
     response = staff_client.get(url)
     assert response.status_code == 200
+
+
+def test_payment_index_view_cannot_be_accessed_without_permision(
+    staff_client, staff_user, permission_manage_plugins
+):
+    url = reverse("dashboard:payments-index")
+    assert not staff_user.has_perm("extensions.manage_plugins")
+    response = staff_client.get(url)
+    assert response.status_code == 302
+
+
+def test_payment_index_view_can_be_accessed_with_permission(
+    staff_client, staff_user, permission_manage_plugins
+):
+    url = reverse("dashboard:payments-index")
+    staff_user.user_permissions.add(permission_manage_plugins)
+    response = staff_client.get(url)
+    assert response.status_code == 200
+
+
+def test_staff_user_without_permission_cannot_update_payment_gateway(
+    staff_client, staff_user, permission_manage_plugins, settings
+):
+    settings.PLUGINS = [
+        "saleor.payment.gateways.braintree.plugin.BraintreeGatewayPlugin"
+    ]
+
+    url = reverse("dashboard:configure-payment", args=["Braintree"])
+    assert not staff_user.has_perm("extensions.manage_plugins")
+    response = staff_client.get(url)
+    assert response.status_code == 302
+
+
+def test_only_staff_user_with_permission_can_update_payment_gateway(
+    staff_client, staff_user, permission_manage_plugins, settings
+):
+    settings.PLUGINS = [
+        "saleor.payment.gateways.braintree.plugin.BraintreeGatewayPlugin"
+    ]
+
+    url = reverse("dashboard:configure-payment", args=["Braintree"])
+    staff_user.user_permissions.add(permission_manage_plugins)
+    response = staff_client.get(url)
+    assert response.status_code == 200

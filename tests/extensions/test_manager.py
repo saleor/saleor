@@ -422,3 +422,20 @@ def test_manager_serve_list_of_payment_gateways():
     ]
     manager = ExtensionsManager(plugins=plugins)
     assert manager.list_payment_gateways() == [expected_gateway]
+
+
+def test_manager_serve_list_all_payment_gateways():
+    expected_gateways = [
+        {
+            "name": ActivePaymentGateway.PLUGIN_NAME,
+            "config": ActivePaymentGateway.CLIENT_CONFIG,
+        },
+        {"name": InactivePaymentGateway.PLUGIN_NAME, "config": []},
+    ]
+
+    plugins = [
+        "tests.extensions.test_manager.ActivePaymentGateway",
+        "tests.extensions.test_manager.InactivePaymentGateway",
+    ]
+    manager = ExtensionsManager(plugins=plugins)
+    assert manager.list_payment_gateways(active_only=False) == expected_gateways

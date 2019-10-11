@@ -8,6 +8,7 @@ from .discount.urls import urlpatterns as discount_urls
 from .menu.urls import urlpatterns as menu_urls
 from .order.urls import urlpatterns as order_urls
 from .page.urls import urlpatterns as page_urls
+from .payment.urls import urlpatterns as payments_urls
 from .product.urls import urlpatterns as product_urls
 from .search.urls import urlpatterns as search_urls
 from .shipping.urls import urlpatterns as shipping_urls
@@ -27,6 +28,7 @@ urlpatterns = [
     url(r"^discounts/", include(discount_urls)),
     url(r"^settings/", include(site_urls)),
     url(r"^menu/", include(menu_urls)),
+    url(r"^payments/", include(payments_urls)),
     url(r"^shipping/", include(shipping_urls)),
     url(r"^style-guide/", core_views.styleguide, name="styleguide"),
     url(r"^search/", include(search_urls)),
