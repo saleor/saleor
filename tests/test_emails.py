@@ -5,7 +5,7 @@ from django.templatetags.static import static
 from templated_email import get_connection
 
 import saleor.order.emails as emails
-from saleor.core.emails import get_email_base_context
+from saleor.core.emails import get_email_bases
 from saleor.core.utils import build_absolute_uri
 from saleor.order.utils import add_variant_to_order
 
@@ -13,13 +13,16 @@ from saleor.order.utils import add_variant_to_order
 def test_get_email_base_context(site_settings):
     site = site_settings.site
     logo_url = build_absolute_uri(static("images/logo-light.svg"))
+
+    expected_send_kwargs = {"from_email": site_settings.default_from_email}
     proper_context = {
         "domain": site.domain,
         "logo_url": logo_url,
         "site_name": site.name,
     }
 
-    received_context = get_email_base_context()
+    send_kwargs, received_context = get_email_bases()
+    assert send_kwargs == expected_send_kwargs
     assert proper_context == received_context
 
 
@@ -62,7 +65,9 @@ def test_collect_data_for_email(order):
     ],
 )
 @mock.patch("saleor.order.emails.send_templated_mail")
-def test_send_emails(mocked_templated_email, order, template, send_email, settings):
+def test_send_emails(
+    mocked_templated_email, order, template, send_email, site_settings
+):
     send_email(order.pk)
     email_data = emails.collect_data_for_email(order.pk, template)
 
@@ -70,7 +75,7 @@ def test_send_emails(mocked_templated_email, order, template, send_email, settin
 
     expected_call_kwargs = {
         "context": email_data["context"],
-        "from_email": settings.ORDER_FROM_EMAIL,
+        "from_email": site_settings.default_from_email,
         "template_name": template,
     }
 
@@ -92,7 +97,7 @@ def test_send_emails(mocked_templated_email, order, template, send_email, settin
 )
 @mock.patch("saleor.order.emails.send_templated_mail")
 def test_send_confirmation_emails_without_addresses(
-    mocked_templated_email, order, template, send_email, settings, digital_content
+    mocked_templated_email, order, template, send_email, site_settings, digital_content
 ):
 
     assert not order.lines.count()
@@ -110,7 +115,7 @@ def test_send_confirmation_emails_without_addresses(
 
     expected_call_kwargs = {
         "context": email_data["context"],
-        "from_email": settings.ORDER_FROM_EMAIL,
+        "from_email": site_settings.default_from_email,
         "template_name": template,
     }
 
@@ -135,7 +140,7 @@ def test_send_confirmation_emails_without_addresses(
 )
 @mock.patch("saleor.order.emails.send_templated_mail")
 def test_send_fulfillment_emails(
-    mocked_templated_email, template, send_email, fulfilled_order, settings
+    mocked_templated_email, template, send_email, fulfilled_order, site_settings
 ):
     fulfillment = fulfilled_order.fulfillments.first()
     send_email(order_pk=fulfilled_order.pk, fulfillment_pk=fulfillment.pk)
@@ -147,7 +152,7 @@ def test_send_fulfillment_emails(
 
     expected_call_kwargs = {
         "context": email_data["context"],
-        "from_email": settings.ORDER_FROM_EMAIL,
+        "from_email": site_settings.default_from_email,
         "template_name": template,
     }
 

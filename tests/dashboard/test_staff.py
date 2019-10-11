@@ -10,7 +10,6 @@ from saleor.account.models import User
 from saleor.core.utils import build_absolute_uri
 from saleor.dashboard.staff.forms import StaffForm
 from saleor.dashboard.staff.utils import remove_staff_member
-from saleor.settings import DEFAULT_FROM_EMAIL
 
 
 def test_remove_staff_member_with_orders(staff_user, permission_manage_products, order):
@@ -155,7 +154,7 @@ def test_send_set_password_email(staff_user, site_settings):
     }
     send_templated_mail(
         template_name="dashboard/staff/set_password",
-        from_email=DEFAULT_FROM_EMAIL,
+        from_email=site_settings.default_from_email,
         recipient_list=[staff_user.email],
         context=ctx,
     )

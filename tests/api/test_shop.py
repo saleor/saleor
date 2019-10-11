@@ -291,7 +291,7 @@ def test_query_default_mail_sender_settings_not_set(
         update_fields=["default_mail_sender_name", "default_mail_sender_address"]
     )
 
-    settings.EMAIL_HOST_USER = "default@example.com"
+    settings.DEFAULT_FROM_EMAIL = "default@example.com"
 
     query = QUERY_RETRIEVE_DEFAULT_MAIL_SENDER_SETTINGS
 

@@ -23,9 +23,10 @@ class Migration(migrations.Migration):
                 null=True,
                 validators=[
                     django.core.validators.RegexValidator(
-                        "^[^\\n\\r]*$",
+                        "[\\n\\r]",
                         code="forbidden_character",
-                        message="New lines are forbidden.",
+                        inverse_match=True,
+                        message="New lines are not allowed.",
                     )
                 ],
             ),
