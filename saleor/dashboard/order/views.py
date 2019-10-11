@@ -44,7 +44,6 @@ from .forms import (
     FulfillmentLineForm,
     FulfillmentTrackingNumberForm,
     OrderCustomerForm,
-    OrderCustomerNoteForm,
     OrderEditDiscountForm,
     OrderEditVoucherForm,
     OrderMarkAsPaidForm,
@@ -55,7 +54,7 @@ from .forms import (
     OrderShippingForm,
     RefundPaymentForm,
     VoidPaymentForm,
-)
+    OrderCustomerNoteForm)
 from .utils import (
     create_invoice_pdf,
     create_packing_slip_pdf,
@@ -190,11 +189,9 @@ def order_edit_customer_note(request, order_pk):
     if form.is_valid():
         form.save()
         events.order_customer_note_edited_event(
-            order=order, user=request.user, content=form.cleaned_data["customer_note"]
+            order=order, user=request.user, message=form.cleaned_data["customer_note"]
         )
-        msg = pgettext_lazy(
-            "Dashboard message related to an order", "Customer's note edited"
-        )
+        msg = pgettext_lazy("Dashboard message related to an order", "Edited customer note")
         messages.success(request, msg)
     elif form.errors:
         status = 400
