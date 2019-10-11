@@ -1220,16 +1220,6 @@ def test_render_cancel_fulfillment_page(admin_client, fulfilled_order):
     assert response.status_code == 200
 
 
-def test_view_edit_order_customer_note(admin_client, order_with_lines):
-    url = reverse("dashboard:order-edit-customer-note", kwargs={"order_pk": order_with_lines.pk})
-    note_content = "this is a note"
-    data = {"csrfmiddlewaretoken": "hello", "customer_note": note_content}
-    response = admin_client.post(url, data)
-    assert response.status_code == 200
-    order_with_lines.refresh_from_db()
-    assert order_with_lines.customer_note == note_content
-
-
 def test_view_add_order_note(admin_client, order_with_lines):
     url = reverse("dashboard:order-add-note", kwargs={"order_pk": order_with_lines.pk})
     note_content = "this is a note"

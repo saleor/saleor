@@ -48,7 +48,6 @@ from .forms import (
     OrderEditVoucherForm,
     OrderMarkAsPaidForm,
     OrderNoteForm,
-    OrderCustomerNoteForm,
     OrderRemoveCustomerForm,
     OrderRemoveShippingForm,
     OrderRemoveVoucherForm,
@@ -178,27 +177,6 @@ def order_add_note(request, order_pk):
     ctx = {"order": order, "form": form}
     ctx.update(csrf(request))
     template = "dashboard/order/modal/add_note.html"
-    return TemplateResponse(request, template, ctx, status=status)
-
-
-@staff_member_required
-@permission_required("order.manage_orders")
-def order_edit_customer_note(request, order_pk):
-    order = get_object_or_404(Order, pk=order_pk)
-    form = OrderCustomerNoteForm(request.POST or None, instance=order)
-    status = 200
-    if form.is_valid():
-        form.save()
-        events.order_customer_note_edited_event(
-            order=order, user=request.user, message=form.cleaned_data["customer_note"]
-        )
-        msg = pgettext_lazy("Dashboard message related to an order", "Edited customer note")
-        messages.success(request, msg)
-    elif form.errors:
-        status = 400
-    ctx = {"order": order, "form": form}
-    ctx.update(csrf(request))
-    template = "dashboard/order/modal/add_customer_note.html"
     return TemplateResponse(request, template, ctx, status=status)
 
 

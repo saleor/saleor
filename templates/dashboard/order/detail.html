@@ -536,15 +536,10 @@
           {% if order.customer_note %}
             <p>{{ order.customer_note }}</p>
           {% else %}
-            <p class="grey-text">
+            <p>
               {% trans "There is no note from the customer associated with this order." context "No customer order note card message" %}
             </p>
           {% endif %}
-        </div>
-        <div class="card-action">
-          <a data-href="{% url "dashboard:order-edit-customer-note" order_pk=order.pk %}" class="modal-trigger-custom btn-flat waves-effect" href="#base-modal">
-            {% trans "Edit customer note" context "Order notes card action" %}
-          </a>
         </div>
       </div>
 

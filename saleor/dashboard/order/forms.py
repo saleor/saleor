@@ -290,17 +290,6 @@ class OrderNoteForm(forms.Form):
     )
 
 
-class OrderCustomerNoteForm(forms.ModelForm):
-
-    class Meta:
-        model = Order
-        fields = ["customer_note"]
-
-    customer_note = forms.CharField(
-        label=pgettext_lazy("Order customer note", "Customer note"), widget=forms.Textarea()
-    )
-
-
 class BasePaymentForm(forms.Form):
 
     amount = forms.DecimalField(
