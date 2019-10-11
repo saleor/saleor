@@ -40,7 +40,7 @@ class GiftCardCreate(ModelMutation):
         )
 
     class Meta:
-        description = "Creates a new gift card"
+        description = "Creates a new gift card."
         model = models.GiftCard
         permissions = ("giftcard.manage_gift_card",)
         error_type_class = GiftCardError

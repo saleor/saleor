@@ -13,7 +13,7 @@ class CoreMutations(graphene.ObjectType):
 
 class CoreQueries(graphene.ObjectType):
     tax_types = graphene.List(
-        TaxType, description="List of all tax rates available from tax gateway"
+        TaxType, description="List of all tax rates available from tax gateway."
     )
 
     def resolve_tax_types(self, info):

@@ -84,7 +84,7 @@ class WebhookCreate(ModelMutation):
     @classmethod
     def save(cls, info, instance, cleaned_input):
         instance.save()
-        events = cleaned_input.get("events", [])
+        events = set(cleaned_input.get("events", []))
         models.WebhookEvent.objects.bulk_create(
             [
                 models.WebhookEvent(webhook=instance, event_type=event)
@@ -111,7 +111,7 @@ class WebhookUpdateInput(graphene.InputObjectType):
         description="Determine if webhook will be set active or not.", required=False
     )
     secret_key = graphene.String(
-        description="Use to create a hash signature with each payload", required=False
+        description="Use to create a hash signature with each payload.", required=False
     )
 
 
@@ -130,6 +130,19 @@ class WebhookUpdate(ModelMutation):
         permissions = ("webhook.manage_webhooks",)
         error_type_class = WebhookError
         error_type_field = "webhook_errors"
+
+    @classmethod
+    def save(cls, info, instance, cleaned_input):
+        instance.save()
+        events = set(cleaned_input.get("events", []))
+        if events:
+            instance.events.all().delete()
+            models.WebhookEvent.objects.bulk_create(
+                [
+                    models.WebhookEvent(webhook=instance, event_type=event)
+                    for event in events
+                ]
+            )
 
 
 class WebhookDelete(ModelDeleteMutation):

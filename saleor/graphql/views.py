@@ -113,11 +113,11 @@ class GraphQLView(View):
     def parse_query(self, query: str) -> (GraphQLDocument, ExecutionResult):
         """Attempt to parse a query (mandatory) to a gql document object.
 
-        If no query was given, it returns an error.
+        If no query was given or query is not a string, it returns an error.
         If the query is invalid, it returns an error as well.
         Otherwise, it returns the parsed gql document.
         """
-        if not query:
+        if not query or not isinstance(query, str):
             return (
                 None,
                 ExecutionResult(

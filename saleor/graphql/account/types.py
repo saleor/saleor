@@ -14,7 +14,7 @@ from ..core.fields import PrefetchingConnectionField
 from ..core.resolvers import resolve_meta, resolve_private_meta
 from ..core.types import CountryDisplay, Image, MetadataObjectType, PermissionDisplay
 from ..core.utils import get_node_optimized
-from ..decorators import permission_required
+from ..decorators import one_of_permissions_required
 from ..utils import format_permissions_for_display
 from .enums import CustomerEventsEnum
 
@@ -35,13 +35,13 @@ class AddressInput(graphene.InputObjectType):
 
 class Address(CountableDjangoObjectType):
     country = graphene.Field(
-        CountryDisplay, required=True, description="Default shop's country"
+        CountryDisplay, required=True, description="Shop's default country."
     )
     is_default_shipping_address = graphene.Boolean(
-        required=False, description="Address is user's default shipping address"
+        required=False, description="Address is user's default shipping address."
     )
     is_default_billing_address = graphene.Boolean(
-        required=False, description="Address is user's default billing address"
+        required=False, description="Address is user's default billing address."
     )
 
     class Meta:
@@ -110,7 +110,7 @@ class CustomerEvent(CountableDjangoObjectType):
     date = graphene.types.datetime.DateTime(
         description="Date when event happened at in ISO 8601 format."
     )
-    type = CustomerEventsEnum(description="Customer event type")
+    type = CustomerEventsEnum(description="Customer event type.")
     user = graphene.Field(
         lambda: User,
         id=graphene.Argument(graphene.ID),
@@ -183,7 +183,7 @@ class ServiceAccount(MetadataObjectType, CountableDjangoObjectType):
     name = graphene.String(description="Name of the service account.")
 
     tokens = graphene.List(
-        ServiceAccountToken, description="Last 4 characters of the tokens"
+        ServiceAccountToken, description="Last 4 characters of the tokens."
     )
 
     class Meta:
@@ -232,7 +232,7 @@ class User(MetadataObjectType, CountableDjangoObjectType):
         ),
         model_field="gift_cards",
     )
-    note = graphene.String(description="A note about the customer")
+    note = graphene.String(description="A note about the customer.")
     orders = gql_optimizer.field(
         PrefetchingConnectionField(
             "saleor.graphql.order.types.Order", description="List of user's orders."
@@ -251,7 +251,7 @@ class User(MetadataObjectType, CountableDjangoObjectType):
     )
     stored_payment_sources = graphene.List(
         "saleor.graphql.payment.types.PaymentSource",
-        description="List of stored payment sources",
+        description="List of stored payment sources.",
     )
 
     class Meta:
@@ -296,13 +296,13 @@ class User(MetadataObjectType, CountableDjangoObjectType):
         return format_permissions_for_display(permissions)
 
     @staticmethod
-    @permission_required("account.manage_users")
-    def resolve_note(root: models.User, _info):
+    @one_of_permissions_required(["account.manage_users", "account.manage_staff"])
+    def resolve_note(root: models.User, info):
         return root.note
 
     @staticmethod
-    @permission_required("account.manage_users")
-    def resolve_events(root: models.User, _info):
+    @one_of_permissions_required(["account.manage_users", "account.manage_staff"])
+    def resolve_events(root: models.User, info):
         return root.events.all()
 
     @staticmethod
@@ -331,7 +331,7 @@ class User(MetadataObjectType, CountableDjangoObjectType):
         return resolve_payment_sources(root)
 
     @staticmethod
-    @permission_required("account.manage_users")
+    @one_of_permissions_required(["account.manage_users", "account.manage_staff"])
     def resolve_private_meta(root, _info):
         return resolve_private_meta(root, _info)
 

@@ -21,16 +21,16 @@ class ShippingMethod(CountableDjangoObjectType):
             required=True,
         ),
         description=(
-            "Returns translated Shipping Method fields " "for the given language code."
+            "Returns translated shipping method fields " "for the given language code."
         ),
         resolver=resolve_translation,
     )
 
     class Meta:
-        description = """
-            Shipping method are the methods you'll use to get
-            customer's orders to them.
-            They are directly exposed to the customers."""
+        description = (
+            "Shipping method are the methods you'll use to get customer's orders to "
+            "them. They are directly exposed to the customers."
+        )
         model = models.ShippingMethod
         interfaces = [relay.Node]
         only_fields = [
@@ -63,10 +63,11 @@ class ShippingZone(CountableDjangoObjectType):
     )
 
     class Meta:
-        description = """
-            Represents a shipping zone in the shop. Zones are the concept
-            used only for grouping shipping methods in the dashboard,
-            and are never exposed to the customers directly."""
+        description = (
+            "Represents a shipping zone in the shop. Zones are the concept used only "
+            "for grouping shipping methods in the dashboard, and are never exposed to "
+            "the customers directly."
+        )
         model = models.ShippingZone
         interfaces = [relay.Node]
         only_fields = ["default", "id", "name"]
