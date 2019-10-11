@@ -238,6 +238,23 @@ def order_note_added_event(*, order: Order, user: UserType, message: str) -> Ord
     )
 
 
+def order_customer_note_edited_event(*, order: Order, user: UserType, message: str) -> OrderEvent:
+    kwargs = {}
+    if user is not None and not user.is_anonymous:
+        if order.user is not None and order.user.pk == user.pk:
+            account_events.customer_edit_customer_note_order_event(
+                user=user, order=order, message=message
+            )
+        kwargs["user"] = user
+
+    return OrderEvent.objects.create(
+        order=order,
+        type=OrderEvents.CUSTOMER_NOTE_ADDED,
+        parameters={"message": message},
+        **kwargs,
+    )
+
+
 def order_updated_address_event(
     *, order: Order, user: UserType, address: Address
 ) -> OrderEvent:
