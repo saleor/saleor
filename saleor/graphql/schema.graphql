@@ -4319,7 +4319,7 @@ type WebhookEvent {
 }
 
 enum WebhookEventTypeEnum {
-  ALL_EVENTS
+  ANY_EVENTS
   ORDER_CREATED
   ORDER_FULLY_PAID
   ORDER_UPDATED
