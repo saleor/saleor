@@ -16,7 +16,7 @@ urlpatterns = [
     url(
         r"^(?P<order_pk>\d+)/edit-customer-note/$",
         views.order_edit_customer_note,
-        name="order-edit-customer-note",
+        name="order-edit-customer-note"
     ),
     url(
         r"^(?P<order_pk>\d+)/address/(?P<address_type>billing|shipping)/$",
