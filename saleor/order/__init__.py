@@ -96,6 +96,7 @@ class OrderEvents:
     FULFILLMENT_FULFILLED_ITEMS = "fulfillment_fulfilled_items"
     TRACKING_UPDATED = "tracking_updated"
     NOTE_ADDED = "note_added"
+    CUSTOMER_NOTE_ADDED = "customer_note_added"
 
     # Used mostly for importing legacy data from before Enum-based events
     OTHER = "other"
