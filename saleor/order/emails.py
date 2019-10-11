@@ -1,9 +1,8 @@
-from django.conf import settings
 from django.urls import reverse
 from templated_email import send_templated_mail
 
 from ..celeryconf import app
-from ..core.emails import get_email_base_context
+from ..core.emails import get_email_bases
 from ..core.utils import build_absolute_uri
 from ..seo.schema.email import get_order_confirmation_markup
 from . import events
@@ -25,7 +24,7 @@ def collect_data_for_email(order_pk, template):
     """
     order = Order.objects.get(pk=order_pk)
     recipient_email = order.get_customer_email()
-    email_context = get_email_base_context()
+    send_kwargs, email_context = get_email_bases()
     email_context["order_details_url"] = build_absolute_uri(
         reverse("order:details", kwargs={"token": order.token})
     )
@@ -40,7 +39,7 @@ def collect_data_for_email(order_pk, template):
         "recipient_list": [recipient_email],
         "template_name": template,
         "context": email_context,
-        "from_email": settings.ORDER_FROM_EMAIL,
+        **send_kwargs,
     }
 
 

@@ -285,7 +285,7 @@ class Shop(graphene.ObjectType):
     def resolve_default_mail_sender_address(_, info):
         return (
             info.context.site.settings.default_mail_sender_address
-            or settings.EMAIL_HOST_USER
+            or settings.DEFAULT_FROM_EMAIL
         )
 
     @staticmethod

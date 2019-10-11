@@ -85,7 +85,7 @@ class SiteSettings(models.Model):
         sender_name: Optional[str] = self.default_mail_sender_name
         sender_address: Optional[
             str
-        ] = self.default_mail_sender_address or settings.EMAIL_HOST_USER
+        ] = self.default_mail_sender_address or settings.DEFAULT_FROM_EMAIL
 
         # If no name was provided, only return the email address
         if not sender_name:
