@@ -51,6 +51,17 @@ def customer_added_to_note_order_event(
     )
 
 
+def customer_edit_customer_note_order_event(
+    *, user: UserType, order: Order, message: str
+) -> CustomerEvent:
+    return CustomerEvent.objects.create(
+        user=user,
+        order=order,
+        type=CustomerEvents.CUSTOMER_NOTE_ADDED_TO_ORDER,
+        parameters={"message": message},
+    )
+
+
 def customer_downloaded_a_digital_link_event(
     *, user: UserType, order_line: OrderLine
 ) -> CustomerEvent:
