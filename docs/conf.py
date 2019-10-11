@@ -49,7 +49,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Saleor'
-copyright = u'2015-2018, Mirumee Software'
+copyright = u'2015-2019, Mirumee Software'
 author = u'Mirumee Software'
 
 # The version info for the project you're documenting, acts as replacement for
