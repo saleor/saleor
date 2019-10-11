@@ -171,10 +171,10 @@ description = "The AWS SDK for Python"
 name = "boto3"
 optional = false
 python-versions = "*"
-version = "1.9.246"
+version = "1.9.247"
 
 [package.dependencies]
-botocore = ">=1.12.246,<1.13.0"
+botocore = ">=1.12.247,<1.13.0"
 jmespath = ">=0.7.1,<1.0.0"
 s3transfer = ">=0.2.0,<0.3.0"
 
@@ -184,7 +184,7 @@ description = "Low-level, data-driven core of boto 3."
 name = "botocore"
 optional = false
 python-versions = "*"
-version = "1.12.246"
+version = "1.12.247"
 
 [package.dependencies]
 docutils = ">=0.10,<0.16"
@@ -212,7 +212,6 @@ requests = ">=0.11.1,<3.0"
 [[package]]
 category = "main"
 description = "Extensible memoizing collections and decorators"
-marker = "extra == \"google\""
 name = "cachetools"
 optional = false
 python-versions = "*"
@@ -903,7 +902,6 @@ six = "*"
 [[package]]
 category = "main"
 description = "Google API client core library"
-marker = "extra == \"google\""
 name = "google-api-core"
 optional = false
 python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*"
@@ -926,7 +924,6 @@ grpcio-gcp = ["grpcio-gcp (>=0.2.2)"]
 [[package]]
 category = "main"
 description = "Google Authentication Library"
-marker = "extra == \"google\""
 name = "google-auth"
 optional = false
 python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*"
@@ -941,7 +938,6 @@ six = ">=1.9.0"
 [[package]]
 category = "main"
 description = "Google Cloud API client core library"
-marker = "extra == \"google\""
 name = "google-cloud-core"
 optional = false
 python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*"
@@ -956,7 +952,6 @@ grpc = ["grpcio (>=1.8.2,<2.0dev)"]
 [[package]]
 category = "main"
 description = "Google Cloud Storage API client library"
-marker = "extra == \"google\""
 name = "google-cloud-storage"
 optional = false
 python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*"
@@ -994,7 +989,6 @@ typing = ">=3.6.0"
 [[package]]
 category = "main"
 description = "Utilities for Google Media Downloads and Resumable Uploads"
-marker = "extra == \"google\""
 name = "google-resumable-media"
 optional = false
 python-versions = ">=2.7,!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*"
@@ -1009,7 +1003,6 @@ requests = ["requests (>=2.18.0,<3.0.0dev)"]
 [[package]]
 category = "main"
 description = "Common protobufs used in Google APIs"
-marker = "extra == \"google\""
 name = "googleapis-common-protos"
 optional = false
 python-versions = "*"
@@ -1075,7 +1068,7 @@ description = "Optimize database access inside graphene queries."
 name = "graphene-django-optimizer"
 optional = false
 python-versions = "*"
-version = "0.6.0"
+version = "0.6.1"
 
 [[package]]
 category = "main"
@@ -1493,7 +1486,6 @@ test = ["coveralls", "futures", "mock", "pytest (>=2.7.3)", "pytest-benchmark", 
 [[package]]
 category = "main"
 description = "Protocol Buffers"
-marker = "extra == \"google\""
 name = "protobuf"
 optional = false
 python-versions = "*"
@@ -1533,7 +1525,6 @@ version = "1.8.0"
 [[package]]
 category = "main"
 description = "ASN.1 types and codecs"
-marker = "extra == \"google\""
 name = "pyasn1"
 optional = false
 python-versions = "*"
@@ -1542,7 +1533,6 @@ version = "0.4.7"
 [[package]]
 category = "main"
 description = "A collection of ASN.1-based protocols modules."
-marker = "extra == \"google\""
 name = "pyasn1-modules"
 optional = false
 python-versions = "*"
@@ -1759,8 +1749,8 @@ category = "dev"
 description = "run tests in isolated forked subprocesses"
 name = "pytest-forked"
 optional = false
-python-versions = "*"
-version = "1.0.2"
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+version = "1.1.1"
 
 [package.dependencies]
 pytest = ">=3.1.0"
@@ -1825,7 +1815,7 @@ description = "A Python Slugify application that handles Unicode"
 name = "python-slugify"
 optional = false
 python-versions = "*"
-version = "3.0.4"
+version = "3.0.6"
 
 [package.dependencies]
 text-unidecode = ">=1.3"
@@ -1878,7 +1868,7 @@ description = "Python client for Redis key-value store"
 name = "redis"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-version = "3.3.8"
+version = "3.3.10"
 
 [package.extras]
 hiredis = ["hiredis (>=0.1.3)"]
@@ -1919,7 +1909,6 @@ rsa = ["oauthlib (>=3.0.0)"]
 [[package]]
 category = "main"
 description = "Pure-Python RSA implementation"
-marker = "extra == \"google\""
 name = "rsa"
 optional = false
 python-versions = "*"
@@ -2315,7 +2304,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["pathlib2", "contextlib2", "unittest2"]
 
 [metadata]
-content-hash = "47f2a9b25ebd339c98f3c46e226258561a06b5aaceb7bb7b583dc343c018e368"
+content-hash = "89558cffeea9e6ef0c4b06980ec7cddd16d89d48d805766b80f0253688cfcd86"
 python-versions = "~3.7"
 
 [metadata.hashes]
@@ -2334,8 +2323,8 @@ beautifultable = ["8deee768c7939578412f930c95c2ac51307fb723a6368e9e233091cdad240
 billiard = ["01afcb4e7c4fd6480940cfbd4d9edc19d7a7509d6ada533984d0d0f49901ec82", "b8809c74f648dfe69b973c8e660bcec00603758c9db8ba89d7719f88d5f01f26"]
 black = ["09a9dcb7c46ed496a9850b76e4e825d6049ecd38b611f1224857a79bd985a8cf", "68950ffd4d9169716bcb8719a56c07a2f4485354fec061cdd5910aa07369731c"]
 bleach = ["0ee95f6167129859c5dce9b1ca291ebdb5d8cd7e382ca0e237dfd0dad63f63d8", "24754b9a7d530bf30ce7cbc805bc6cce785660b4a10ff3a43633728438c105ab"]
-boto3 = ["9a84be232ff6432312c16b8e52cc5a01e6ff461cb9b50b3cafee24c6876a5012", "ad269aa51439e0dd5f8245913bd2dd85684e37c237f5635143e96d48ce74f0eb"]
-botocore = ["210d9de193e1a1f8ad22ce57b6c18d48c79ff0c093680ec1a07e83a635fce4c7", "6dcc121be4917cc731577a2ddff67b89cee6a4b0ec30241ce207a80a0d41990a"]
+boto3 = ["13d90ebe4d41e1717d7cc015e983370aadba2995a2af30695f29b69f196e82fc", "e50edae8ccb630dc1950332764c6b462a9550663a3d71c00f898280f1446f107"]
+botocore = ["76ff516cfbe5c9f2ac4eb8bb5d8945bc7354d4898f2609ad32080efc9ecea751", "fa425f3e24bb17a357a297532b253a7353a496f2be7b7a5c3fc1dd7419de259d"]
 braintree = ["0c95dbe0b497fd2eafaa08b6282f2b1d547cba3a432f8101424bd06c333348b5", "7cdd715a5a61339e4e5dcb5611cf80512d5fdb0e4da69307a64141d3597357f7"]
 cachetools = ["428266a1c0d36dc5aca63a2d7c5942e88c2c898d72139fca0e97fdd2380517ae", "8ea2d3ce97850f31e4a08b0e2b5e6c34997d7216a9d2c98e0f3978630d4da69a"]
 cairocffi = ["f1c0c5878f74ac9ccb5d48b2601fcc75390c881ce476e79f4cfedd288b1b05db"]
@@ -2403,7 +2392,7 @@ googleapis-common-protos = ["e61b8ed5e36b976b487c6e7b15f31bb10c7a0ca7bd5c0e837f4
 gprof2dot = ["48c1e168c28b8a8eb23bf30fda78fe2ef218269a41505341ec27c27083e47cf4"]
 graphene = ["09165f03e1591b76bf57b133482db9be6dac72c74b0a628d3c93182af9c5a896", "2cbe6d4ef15cfc7b7805e0760a0e5b80747161ce1b0f990dfdc0d2cf497c12f9"]
 graphene-django = ["0d1404ab1ba7873a8e848d87d138f615391d100ed0c046482c164429cfb992ef", "fa9e815f63e3c972773adc96c3f3c81e537dba0edcd0f1be92c799bc0b6ed0a8"]
-graphene-django-optimizer = ["48dd4806c1eb8597e3ba916531a68c3956d3779ebee3238d9736b795613794ef"]
+graphene-django-optimizer = ["2c3902cfc739ae7f9953c9130fa4030d4f1bd9e81c820713c4270137e63f89cb"]
 graphene-federation = []
 graphql-core = ["1488f2a5c2272dc9ba66e3042a6d1c30cea0db4c80bd1e911c6791ad6187d91b", "da64c472d720da4537a2e8de8ba859210b62841bd47a9be65ca35177f62fe0e4"]
 graphql-relay = ["0e94201af4089e1f81f07d7bd8f84799768e39d70fa1ea16d1df505b46cc6335", "75aa0758971e252964cb94068a4decd472d2a8295229f02189e3cbca1f10dbb5", "7fa74661246e826ef939ee92e768f698df167a7617361ab399901eaebf80dce6"]
@@ -2460,17 +2449,17 @@ pytest = ["7e4800063ccfc306a53c461442526c5571e1462f61583506ce97e4da6a1d88c8", "c
 pytest-cov = ["cc6742d8bac45070217169f5f72ceee1e0e55b0221f54bcf24845972d3a47f2b", "cdbdef4f870408ebdbfeb44e63e07eb18bb4619fae852f6e760645fa36172626"]
 pytest-django = ["264fb4c506db5d48a6364c311a0b00b7b48a52715bad8839b2d8bee9b99ed6bb", "4adfe5fb3ed47f0ba55506dd3daf688b1f74d5e69148c10ad2dd2f79f40c0d62"]
 pytest-django-queries = ["16f4dffa5a4c95bb2e10e6f4289796503578bc46ea69a81b2f4ed8376f7c75b5"]
-pytest-forked = ["5fe33fbd07d7b1302c95310803a5e5726a4ff7f19d5a542b7ce57c76fed8135f", "d352aaced2ebd54d42a65825722cb433004b4446ab5d2044851d9cc7a00c9e38"]
+pytest-forked = ["e2d46f319c8063a3a0536b18f9cdea6eea3bc9fe2cb16c94e1d6fad3abc37300"]
 pytest-mock = ["34520283d459cdf1d0dbb58a132df804697f1b966ecedf808bbf3d255af8f659", "f1ab8aefe795204efe7a015900296d1719e7bf0f4a0558d71e8599da1d1309d0"]
 pytest-vcr = ["23ee51b75abbcc43d926272773aae4f39f93aceb75ed56852d0bf618f92e1896", "2f316e0539399bea0296e8b8401145c62b6f85e9066af7e57b6151481b0d6d9c"]
 pytest-xdist = ["5d1b1d4461518a6023d56dab62fb63670d6f7537f23e2708459a557329accf48", "a8569b027db70112b290911ce2ed732121876632fb3f40b1d39cd2f72f58b147"]
 python-dateutil = ["7e6584c74aeed623791615e26efd690f29817a27c73085b78e4bad02493df2fb", "c89805f6f4d64db21ed966fda138f8a5ed7a4fdbc1a8ee329ce1b74e3c74da9e"]
-python-slugify = ["575d03256a132fc1efb4c52966c6eb11c57a13b071618f0b26076057a23f6937"]
+python-slugify = ["8653d589308c91c67fe5c97a2afda0cfac9492061e69c0db90d1aef68fcd2332"]
 python3-openid = ["0086da6b6ef3161cfe50fb1ee5cceaf2cda1700019fda03c2c5c440ca6abe4fa", "628d365d687e12da12d02c6691170f4451db28d6d68d050007e4a40065868502"]
 pytz = ["1c557d7d0e871de1f5ccd5833f60fb2550652da6be2693c1e02300743d21500d", "b02c06db6cf09c12dd25137e563b31700d3b80fcc4ad23abb7a315f2789819be"]
 pyyaml = ["0113bc0ec2ad727182326b61326afa3d1d8280ae1122493553fd6f4397f33df9", "01adf0b6c6f61bd11af6e10ca52b7d4057dd0be0343eb9283c878cf3af56aee4", "5124373960b0b3f4aa7df1707e63e9f109b5263eca5976c66e08b1c552d4eaf8", "5ca4f10adbddae56d824b2c09668e91219bb178a1eee1faa56af6f99f11bf696", "7907be34ffa3c5a32b60b95f4d95ea25361c951383a894fec31be7252b2b6f34", "7ec9b2a4ed5cad025c2278a1e6a19c011c80a3caaac804fd2d329e9cc2c287c9", "87ae4c829bb25b9fe99cf71fbb2140c448f534e24c998cc60f39ae4f94396a73", "9de9919becc9cc2ff03637872a440195ac4241c80536632fffeb6a1e25a74299", "a5a85b10e450c66b49f98846937e8cfca1db3127a9d5d1e31ca45c3d0bef4c5b", "b0997827b4f6a7c286c01c5f60384d218dca4ed7d9efa945c3e1aa623d5709ae", "b631ef96d3222e62861443cc89d6563ba3eeb816eeb96b2629345ab795e53681", "bf47c0607522fdbca6c9e817a6e81b08491de50f3766a7a0e6a5be7905961b41", "f81025eddd0327c7d4cfe9b62cf33190e1e736cc6e97502b3ec425f574b3e7a8"]
 razorpay = ["0bea9e11aca8024af0cd741b779cb6d3b0a689a8488e21b5e4b345f8840a0fe4", "8bae5ba6e3d8c7aebf7e4b297d15dfdb4a4b05e6fabd8d56405ac0d2677539bd"]
-redis = ["98a22fb750c9b9bb46e75e945dc3f61d0ab30d06117cbb21ff9cd1d315fedd3b", "c504251769031b0dd7dd5cf786050a6050197c6de0d37778c80c08cb04ae8275"]
+redis = ["a657a62ca12d20deb700c3c00b4923bc29893740f2c072e7b1b669777401295d", "bf027fdd92aead8e49ab9d29e72498eef6ca7a38a15b2f88c5d9146145e93049"]
 requests = ["11e007a8a2aa0323f5a921e9e6a2d7e4e67d9877e85773fba9ba6419025cbeb4", "9cf5292fcd0f598c671cfc1e0d7d1a7f13bb8085e9a590f48c010551dc6c4b31"]
 requests-oauthlib = ["bd6533330e8748e94bf0b214775fed487d309b8b8fe823dc45641ebcd9a32f57", "d3ed0c8f2e3bbc6b344fa63d6f933745ab394469da38db16bdddb461c7e25140", "dd5a0499abfefd087c6dd96693cbd5bfd28aa009719a7f85ab3fabe3956ef19a"]
 rsa = ["14ba45700ff1ec9eeb206a2ce76b32814958a98e372006c8fb76ba820211be66", "1a836406405730121ae9823e19c6e806c62bbad73f890574fff50efa4122c487"]
