@@ -15,6 +15,7 @@
 import sys
 import os
 import shlex
+import datetime
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
@@ -47,9 +48,13 @@ source_suffix = '.rst'
 # The master toctree document.
 master_doc = 'index'
 
+# Get the current year so the copyright (used in General information) is up to date.
+now = datetime.datetime.now()
+year = now.year
+
 # General information about the project.
 project = u'Saleor'
-copyright = u'2015-2018, Mirumee Software'
+copyright = u'2015-' + now.year + ', Mirumee Software'
 author = u'Mirumee Software'
 
 # The version info for the project you're documenting, acts as replacement for
