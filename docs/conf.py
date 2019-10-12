@@ -54,7 +54,7 @@ year = now.year
 
 # General information about the project.
 project = u'Saleor'
-copyright = u'2015-' + now.year + ', Mirumee Software'
+copyright = u'2015-' + str(now.year) + ', Mirumee Software'
 author = u'Mirumee Software'
 
 # The version info for the project you're documenting, acts as replacement for
