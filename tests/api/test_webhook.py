@@ -1,4 +1,5 @@
 import graphene
+import pytest
 
 from saleor.account.models import ServiceAccount
 from saleor.graphql.webhook.enums import WebhookEventTypeEnum
@@ -321,8 +322,8 @@ def test_webhook_update_by_staff_without_permission(
 
 
 QUERY_WEBHOOKS = """
-    query webhooks{
-      webhooks(first:5){
+    query webhooks($filter: WebhookFilterInput){
+      webhooks(first:5, filter: $filter){
         edges{
           node{
             serviceAccount{
@@ -344,9 +345,9 @@ def test_query_webhooks_by_staff(staff_api_client, webhook, permission_manage_we
     query = QUERY_WEBHOOKS
     webhook.id = None
     webhook.save()
-
+    variables = {"filter": {}}
     staff_api_client.user.user_permissions.add(permission_manage_webhooks)
-    response = staff_api_client.post_graphql(query)
+    response = staff_api_client.post_graphql(query, variables=variables)
     content = get_graphql_content(response)
     webhooks = content["data"]["webhooks"]["edges"]
     assert len(webhooks) == 2
@@ -354,7 +355,8 @@ def test_query_webhooks_by_staff(staff_api_client, webhook, permission_manage_we
 
 def test_query_webhooks_by_staff_without_permission(staff_api_client, webhook):
     query = QUERY_WEBHOOKS
-    response = staff_api_client.post_graphql(query)
+    variables = {"filter": {}}
+    response = staff_api_client.post_graphql(query, variables=variables)
     assert_no_permission(response)
 
 
@@ -368,7 +370,8 @@ def test_query_webhooks_by_service_account(service_account_api_client, webhook):
     second_webhook.events.create(event_type="order_created")
 
     query = QUERY_WEBHOOKS
-    response = service_account_api_client.post_graphql(query)
+    variables = {"filter": {}}
+    response = service_account_api_client.post_graphql(query, variables=variables)
     content = get_graphql_content(response)
     webhooks = content["data"]["webhooks"]["edges"]
     assert len(webhooks) == 1
@@ -376,6 +379,42 @@ def test_query_webhooks_by_service_account(service_account_api_client, webhook):
     webhook_id = webhook_data["node"]["id"]
     _, webhook_id = graphene.Node.from_global_id(webhook_id)
     assert webhook_id == str(webhook.id)
+
+
+@pytest.mark.parametrize(
+    "webhook_filter",
+    [
+        {"isActive": False},
+        {"search": "Sample"},
+        {"serviceAccount": "Second sample service"},
+        {"isActive": False, "search": "Sample"},
+    ],
+)
+def test_query_webhooks_with_filters(
+    webhook_filter, staff_api_client, webhook, permission_manage_webhooks
+):
+    second_sa = ServiceAccount.objects.create(
+        name="Second sample service account", is_active=False
+    )
+    second_webhook = Webhook.objects.create(
+        service_account=second_sa,
+        target_url="http://www.example.com/test",
+        is_active=False,
+        name="Sample webhook",
+    )
+    second_webhook.events.create(event_type="order_created")
+
+    query = QUERY_WEBHOOKS
+    variables = {"filter": webhook_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_webhooks)
+    response = staff_api_client.post_graphql(query, variables=variables)
+    content = get_graphql_content(response)
+    webhooks = content["data"]["webhooks"]["edges"]
+    assert len(webhooks) == 1
+    webhook_data = webhooks[0]
+    webhook_id = webhook_data["node"]["id"]
+    _, webhook_id = graphene.Node.from_global_id(webhook_id)
+    assert webhook_id == str(second_webhook.id)
 
 
 def test_query_webhooks_by_service_account_without_permissions(
@@ -390,7 +429,8 @@ def test_query_webhooks_by_service_account_without_permissions(
     second_webhook.events.create(event_type="order_created")
 
     query = QUERY_WEBHOOKS
-    response = service_account_api_client.post_graphql(query)
+    variables = {"filter": {}}
+    response = service_account_api_client.post_graphql(query, variables=variables)
     content = get_graphql_content(response)
     webhooks = content["data"]["webhooks"]["edges"]
     assert len(webhooks) == 0
