@@ -6,7 +6,7 @@ from templated_email import send_templated_mail
 
 from ..account import events as account_events
 from ..celeryconf import app
-from ..core.emails import get_email_bases
+from ..core.emails import get_email_context
 from ..core.utils import build_absolute_uri
 
 
@@ -41,7 +41,7 @@ def _send_password_reset_email_with_url(recipient_email, redirect_url, user_id, 
 
 
 def _send_password_reset_email(recipient_email, reset_url, user_id):
-    send_kwargs, ctx = get_email_bases()
+    send_kwargs, ctx = get_email_context()
     ctx["reset_url"] = reset_url
     send_templated_mail(
         template_name="account/password_reset",
@@ -87,7 +87,7 @@ def _send_account_delete_confirmation_email(recipient_email, token):
 
 
 def _send_delete_confirmation_email(recipient_email, delete_url):
-    send_kwargs, ctx = get_email_bases()
+    send_kwargs, ctx = get_email_context()
     ctx["delete_url"] = delete_url
     send_templated_mail(
         template_name="account/account_delete",
