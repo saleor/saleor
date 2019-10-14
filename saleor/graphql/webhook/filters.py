@@ -11,15 +11,7 @@ def filter_webhook_search(qs, _, value):
     return qs
 
 
-def filter_service_account(qs, _, value):
-    qs = qs.prefetch_related("service_account")
-    service_account_fields = ["service_account__name"]
-    qs = filter_by_query_param(qs, value, service_account_fields)
-    return qs
-
-
 class WebhookFilter(django_filters.FilterSet):
-    service_account = django_filters.CharFilter(method=filter_service_account)
     search = django_filters.CharFilter(method=filter_webhook_search)
     is_active = django_filters.BooleanFilter()
 

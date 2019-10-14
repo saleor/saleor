@@ -386,7 +386,6 @@ def test_query_webhooks_by_service_account(service_account_api_client, webhook):
     [
         {"isActive": False},
         {"search": "Sample"},
-        {"serviceAccount": "Second sample service"},
         {"isActive": False, "search": "Sample"},
     ],
 )
