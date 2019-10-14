@@ -22,11 +22,11 @@ class WebhookQueries(graphene.ObjectType):
     )
 
     @staticmethod
-    def resolve_webhooks(info, **_kwargs):
+    def resolve_webhooks(_, info, **_kwargs):
         return resolve_webhooks(info)
 
     @staticmethod
-    def resolve_webhook(info, **data):
+    def resolve_webhook(_, info, **data):
         return resolve_webhook(info, data["id"])
 
 
