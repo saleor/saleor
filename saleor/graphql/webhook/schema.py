@@ -1,6 +1,7 @@
 import graphene
 
-from ..core.fields import PrefetchingConnectionField
+from ..core.fields import FilterInputConnectionField
+from .filters import WebhookFilterInput
 from .mutations import WebhookCreate, WebhookDelete, WebhookUpdate
 from .resolvers import resolve_webhook, resolve_webhooks
 from .types import Webhook
@@ -14,12 +15,18 @@ class WebhookQueries(graphene.ObjectType):
         ),
         description="Look up a webhook by ID.",
     )
-    webhooks = PrefetchingConnectionField(Webhook, description="List of webhooks.")
+    webhooks = FilterInputConnectionField(
+        Webhook,
+        description="List of webhooks.",
+        filter=WebhookFilterInput(description="Filtering options for webhooks."),
+    )
 
-    def resolve_webhooks(self, info, **_kwargs):
+    @staticmethod
+    def resolve_webhooks(info, **_kwargs):
         return resolve_webhooks(info)
 
-    def resolve_webhook(self, info, **data):
+    @staticmethod
+    def resolve_webhook(info, **data):
         return resolve_webhook(info, data["id"])
 
 
