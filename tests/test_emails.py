@@ -1,16 +1,18 @@
 from unittest import mock
 
 import pytest
+from django.core import mail
 from django.templatetags.static import static
 from templated_email import get_connection
 
+import saleor.account.emails as account_emails
 import saleor.order.emails as emails
-from saleor.core.emails import get_email_bases
+from saleor.core.emails import get_email_context
 from saleor.core.utils import build_absolute_uri
 from saleor.order.utils import add_variant_to_order
 
 
-def test_get_email_base_context(site_settings):
+def test_get_email_context(site_settings):
     site = site_settings.site
     logo_url = build_absolute_uri(static("images/logo-light.svg"))
 
@@ -21,7 +23,7 @@ def test_get_email_base_context(site_settings):
         "site_name": site.name,
     }
 
-    send_kwargs, received_context = get_email_bases()
+    send_kwargs, received_context = get_email_context()
     assert send_kwargs == expected_send_kwargs
     assert proper_context == received_context
 
@@ -163,3 +165,44 @@ def test_send_fulfillment_emails(
     # Render the email to ensure there is no error
     email_connection = get_connection()
     email_connection.get_email_message(to=recipients, **expected_call_kwargs)
+
+
+def test_email_having_display_name_in_settings(customer_user, site_settings, settings):
+    expected_from_email = "Info <hello@mirumee.com>"
+
+    site_settings.default_mail_sender_name = None
+    site_settings.default_mail_sender_address = None
+
+    settings.DEFAULT_FROM_EMAIL = expected_from_email
+
+    assert site_settings.default_from_email == expected_from_email
+
+
+def test_send_dummy_email_with_utf_8(customer_user, site_settings):
+    site_settings.default_mail_sender_address = "hello@example.com"
+    site_settings.default_mail_sender_name = "徐 欣"
+    site_settings.save(
+        update_fields=["default_mail_sender_address", "default_mail_sender_name"]
+    )
+
+    account_emails.send_account_delete_confirmation_email(customer_user)
+
+    assert len(mail.outbox) > 0
+    message: mail.EmailMessage = mail.outbox[-1]
+    assert message.from_email == "徐 欣 <hello@example.com>"
+    assert message.extra_headers == {}
+
+
+@pytest.mark.parametrize(
+    "sender_name, sender_address",
+    (("徐 欣", "hello@example.com\nOopsie: Hello"), ("徐\n欣", "hello@example.com")),
+)
+def test_send_dummy_email_with_header_injection(
+    customer_user, site_settings, sender_name, sender_address
+):
+    site_settings.default_mail_sender_address = sender_name
+    site_settings.default_mail_sender_name = sender_address
+    site_settings.save()
+
+    account_emails.send_account_delete_confirmation_email(customer_user)
+    assert len(mail.outbox) == 0

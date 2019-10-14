@@ -1,3 +1,5 @@
+from email.headerregistry import Address
+from email.utils import parseaddr
 from typing import Optional
 
 from django.conf import settings
@@ -82,20 +84,24 @@ class SiteSettings(models.Model):
 
     @property
     def default_from_email(self) -> Optional[str]:
-        sender_name: Optional[str] = self.default_mail_sender_name
-        sender_address: Optional[
-            str
-        ] = self.default_mail_sender_address or settings.DEFAULT_FROM_EMAIL
+        sender_name: Optional[str] = self.default_mail_sender_name or ""
+        sender_address: Optional[str] = self.default_mail_sender_address
 
-        # If no name was provided, only return the email address
-        if not sender_name:
-            return sender_address
+        if not sender_address:
+            sender_address = settings.DEFAULT_FROM_EMAIL
 
-        # If an email address was provided, return 'Sender Name <address>'
-        if sender_address:
-            return f"{sender_name} <{sender_address}>"
+            if not sender_address:
+                return None
 
-        return None
+            sender_name, sender_address = parseaddr(sender_address)
+
+        # Note: we only want to format the address in accordance to RFC 5322
+        # but our job is not to sanitize the values. The sanitized value, encoding, etc.
+        # will depend on the email backend being used.
+        #
+        # Refer to email.header.Header and django.core.mail.message.sanitize_address.
+        value = str(Address(sender_name, addr_spec=sender_address))
+        return value
 
     def available_backends(self):
         return self.authorizationkey_set.values_list("name", flat=True)

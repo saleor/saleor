@@ -37,10 +37,10 @@ class ShopSettingsInput(graphene.InputObjectType):
         description="Default number of days which digital content URL will be valid."
     )
     default_mail_sender_name = graphene.String(
-        description="Default email sender's name"
+        description="Default email sender's name."
     )
     default_mail_sender_address = graphene.String(
-        description="Default email sender's address"
+        description="Default email sender's address."
     )
 
 
