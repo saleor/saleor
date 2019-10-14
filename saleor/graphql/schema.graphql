@@ -3327,7 +3327,7 @@ type ProductVariantUpdatePrivateMeta {
 
 type Query {
   webhook(id: ID!): Webhook
-  webhooks(before: String, after: String, first: Int, last: Int): WebhookCountableConnection
+  webhooks(filter: WebhookFilterInput, before: String, after: String, first: Int, last: Int): WebhookCountableConnection
   translations(kind: TranslatableKinds!, before: String, after: String, first: Int, last: Int): TranslatableItemConnection
   shop: Shop
   shippingZone(id: ID!): ShippingZone
@@ -4326,6 +4326,11 @@ enum WebhookEventTypeEnum {
   ORDER_CANCELLED
   CUSTOMER_CREATED
   PRODUCT_CREATED
+}
+
+input WebhookFilterInput {
+  search: String
+  isActive: Boolean
 }
 
 type WebhookUpdate {
