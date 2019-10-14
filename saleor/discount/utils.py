@@ -62,7 +62,7 @@ def get_product_discount_on_sale(product, product_collections, discount:Discount
     
 def get_product_discounts(product, discounts: Iterable[DiscountInfo]):
     """Return discount values for all discounts applicable to a product."""
-    product_collections = set(c.id for c in product.collections.all())
+    product_collections = product.collections.all().values_list("pk", flat=True)
     for discount in discounts:
         try:
             yield get_product_discount_on_sale( product, product_collections, discount)
