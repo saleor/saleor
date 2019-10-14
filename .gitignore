@@ -7,11 +7,11 @@
 !.dockerignore
 !.eslintrc.json
 !.flowconfig
-!.gqlconfig
 !.github
 !.gitignore
-!.nvmrc
+!.gqlconfig
 !.npmrc
+!.nvmrc
 !.plop
 !.pylintrc
 !.testcafe

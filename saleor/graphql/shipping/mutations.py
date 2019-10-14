@@ -15,16 +15,16 @@ class ShippingPriceInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the shipping method.")
     price = Decimal(description="Shipping price of the shipping method.")
     minimum_order_price = Decimal(
-        description="Minimum order price to use this shipping method"
+        description="Minimum order price to use this shipping method."
     )
     maximum_order_price = Decimal(
-        description="Maximum order price to use this shipping method"
+        description="Maximum order price to use this shipping method."
     )
     minimum_order_weight = WeightScalar(
-        description="Minimum order weight to use this shipping method"
+        description="Minimum order weight to use this shipping method."
     )
     maximum_order_weight = WeightScalar(
-        description="Maximum order weight to use this shipping method"
+        description="Maximum order weight to use this shipping method."
     )
     type = ShippingMethodTypeEnum(description="Shipping type: price or weight based.")
     shipping_zone = graphene.ID(
@@ -40,9 +40,10 @@ class ShippingZoneInput(graphene.InputObjectType):
         graphene.String, description="List of countries in this shipping zone."
     )
     default = graphene.Boolean(
-        description="""
-            Is default shipping zone, that will be used
-            for countries not covered by other zones."""
+        description=(
+            "Default shipping zone will be used for countries not covered by other "
+            "zones."
+        )
     )
 
 
@@ -181,7 +182,7 @@ class ShippingPriceCreate(ShippingPriceMixin, ModelMutation):
 
     class Arguments:
         input = ShippingPriceInput(
-            description="Fields required to create a shipping price", required=True
+            description="Fields required to create a shipping price.", required=True
         )
 
     class Meta:
@@ -207,7 +208,7 @@ class ShippingPriceUpdate(ShippingPriceMixin, ModelMutation):
     class Arguments:
         id = graphene.ID(description="ID of a shipping price to update.", required=True)
         input = ShippingPriceInput(
-            description="Fields required to update a shipping price", required=True
+            description="Fields required to update a shipping price.", required=True
         )
 
     class Meta:

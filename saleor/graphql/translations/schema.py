@@ -1,6 +1,7 @@
 import graphene
 
 from ..core.connection import CountableConnection
+from ..core.fields import BaseConnectionField
 from ..discount import types as discount_types
 from ..discount.resolvers import resolve_sales, resolve_vouchers
 from ..menu import types as menu_types
@@ -43,22 +44,22 @@ class TranslatableItemConnection(CountableConnection):
 
 class TranslatableKinds(graphene.Enum):
     ATTRIBUTE = "Attribute"
-    ATTRIBUTE_VALUE = "Attribute Value"
+    ATTRIBUTE_VALUE = "Attribute value"
     CATEGORY = "Category"
     COLLECTION = "Collection"
-    MENU_ITEM = "Menu Item"
+    MENU_ITEM = "Menu item"
     PAGE = "Page"
     PRODUCT = "Product"
     SALE = "Sale"
-    SHIPPING_METHOD = "Shipping Method"
+    SHIPPING_METHOD = "Shipping method"
     VARIANT = "Variant"
     VOUCHER = "Voucher"
 
 
 class TranslationQueries(graphene.ObjectType):
-    translations = graphene.ConnectionField(
+    translations = BaseConnectionField(
         TranslatableItemConnection,
-        description="Returns list of all translatable items of a given kind.",
+        description="Returns a list of all translatable items of a given kind.",
         kind=graphene.Argument(
             TranslatableKinds, required=True, description="Kind of objects to retrieve."
         ),

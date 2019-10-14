@@ -15,7 +15,7 @@ class CustomerRegisterInput(graphene.InputObjectType):
     email = graphene.String(
         description="The unique email address of the user.", required=True
     )
-    password = graphene.String(description="Password", required=True)
+    password = graphene.String(description="Password.", required=True)
 
 
 class CustomerRegister(ModelMutation):
@@ -38,6 +38,7 @@ class CustomerRegister(ModelMutation):
         user.set_password(password)
         user.save()
         account_events.customer_account_created_event(user=user)
+        info.context.extensions.customer_created(customer=user)
 
 
 class LoggedUserUpdate(BaseCustomerCreate):
@@ -55,8 +56,8 @@ class LoggedUserUpdate(BaseCustomerCreate):
         model = models.User
 
     @classmethod
-    def check_permissions(cls, user):
-        return user.is_authenticated
+    def check_permissions(cls, context):
+        return context.user.is_authenticated
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
@@ -72,7 +73,7 @@ class CustomerAddressCreate(ModelMutation):
 
     class Arguments:
         input = AddressInput(
-            description="Fields required to create address", required=True
+            description="Fields required to create address.", required=True
         )
         type = AddressTypeEnum(
             required=False,
@@ -92,8 +93,8 @@ class CustomerAddressCreate(ModelMutation):
         exclude = ["user_addresses"]
 
     @classmethod
-    def check_permissions(cls, user):
-        return user.is_authenticated
+    def check_permissions(cls, context):
+        return context.user.is_authenticated
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
@@ -129,8 +130,8 @@ class CustomerSetDefaultAddress(BaseMutation):
         )
 
     @classmethod
-    def check_permissions(cls, user):
-        return user.is_authenticated
+    def check_permissions(cls, context):
+        return context.user.is_authenticated
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -166,7 +167,7 @@ class CustomerPasswordResetInput(graphene.InputObjectType):
 class CustomerPasswordReset(BaseMutation):
     class Arguments:
         input = CustomerPasswordResetInput(
-            description="Fields required to reset customer's password", required=True
+            description="Fields required to reset customer's password.", required=True
         )
 
     class Meta:

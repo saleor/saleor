@@ -7,20 +7,20 @@ from .types import Plugin
 
 
 class ConfigurationItemInput(graphene.InputObjectType):
-    name = graphene.String(required=True, description="Name of the field to update")
+    name = graphene.String(required=True, description="Name of the field to update.")
     value = graphene.String(
-        required=True, description="Value of the given field to update"
+        required=True, description="Value of the given field to update."
     )
 
 
 class PluginUpdateInput(graphene.InputObjectType):
     active = graphene.Boolean(
-        required=False, description="Indicates whether the plugin should be enabled"
+        required=False, description="Indicates whether the plugin should be enabled."
     )
     configuration = graphene.List(
         ConfigurationItemInput,
         required=False,
-        description="Configuration of the plugin",
+        description="Configuration of the plugin.",
     )
 
 
@@ -28,14 +28,14 @@ class PluginUpdate(BaseMutation):
     plugin = graphene.Field(Plugin)
 
     class Arguments:
-        id = graphene.ID(required=True, description="ID of plugin to update")
+        id = graphene.ID(required=True, description="ID of plugin to update.")
         input = PluginUpdateInput(
             description="Fields required to update a plugin configuration.",
             required=True,
         )
 
     class Meta:
-        description = "Update plugin configuration"
+        description = "Update plugin configuration."
         permissions = "extensions.manage_plugins"
         error_type_class = ExtensionsError
         error_type_field = "extensions_errors"

@@ -10,7 +10,7 @@ from ...decorators import permission_required
 
 
 class DigitalContentUrl(CountableDjangoObjectType):
-    url = graphene.String(description="Url for digital content")
+    url = graphene.String(description="URL for digital content.")
 
     class Meta:
         model = models.DigitalContentUrl
@@ -26,7 +26,7 @@ class DigitalContent(CountableDjangoObjectType, MetadataObjectType):
     urls = gql_optimizer.field(
         graphene.List(
             lambda: DigitalContentUrl,
-            description="List of urls for the digital variant",
+            description="List of URLs for the digital variant.",
         ),
         model_field="urls",
     )

@@ -2,17 +2,27 @@ import graphene
 
 from ..core.fields import PrefetchingConnectionField
 from ..decorators import permission_required
-from .enums import PaymentGatewayEnum
 from .mutations import PaymentCapture, PaymentRefund, PaymentSecureConfirm, PaymentVoid
 from .resolvers import resolve_client_token, resolve_payments
 from .types import Payment
 
 
 class PaymentQueries(graphene.ObjectType):
-    payment = graphene.Field(Payment, id=graphene.Argument(graphene.ID))
-    payments = PrefetchingConnectionField(Payment, description="List of payments")
+    payment = graphene.Field(
+        Payment,
+        description="Look up a payment by ID.",
+        id=graphene.Argument(
+            graphene.ID, description="ID of the payment.", required=True
+        ),
+    )
+    payments = PrefetchingConnectionField(Payment, description="List of payments.")
     payment_client_token = graphene.Field(
-        graphene.String, args={"gateway": PaymentGatewayEnum()}
+        graphene.String,
+        gateway=graphene.String(required=True, description="A payment gateway."),
+        deprecation_reason=(
+            "DEPRECATED: Will be removed in Saleor 2.10, "
+            "use payment gateway config instead in availablePaymentGateways."
+        ),
     )
 
     @permission_required("order.manage_orders")

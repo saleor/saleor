@@ -42,7 +42,7 @@ def can_edit_address(user, address):
 
 
 class SetPassword(CreateToken):
-    user = graphene.Field(User, description="An user instance with new password.")
+    user = graphene.Field(User, description="A user instance with new password.")
     account_errors = graphene.List(
         graphene.NonNull(AccountError),
         description="List of errors that occurred executing the mutation.",
@@ -100,7 +100,7 @@ class SetPassword(CreateToken):
     def handle_typed_errors(cls, errors: list):
         account_errors = [
             AccountError(field=e.field, message=e.message, code=code)
-            for e, code in errors
+            for e, code, _params in errors
         ]
         return cls(errors=[e[0] for e in errors], account_errors=account_errors)
 
@@ -115,7 +115,7 @@ class RequestPasswordReset(BaseMutation):
             required=True,
             description=(
                 "URL of a view where users should be redirected to "
-                "reset the password. URL in RFC 1808 format.",
+                "reset the password. URL in RFC 1808 format."
             ),
         )
 
@@ -160,8 +160,8 @@ class PasswordChange(BaseMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def check_permissions(cls, user):
-        return user.is_authenticated
+    def check_permissions(cls, context):
+        return context.user.is_authenticated
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -197,9 +197,9 @@ class BaseAddressUpdate(ModelMutation):
     )
 
     class Arguments:
-        id = graphene.ID(description="ID of the address to update", required=True)
+        id = graphene.ID(description="ID of the address to update.", required=True)
         input = AddressInput(
-            description="Fields required to update the address", required=True
+            description="Fields required to update the address.", required=True
         )
 
     class Meta:
@@ -244,7 +244,7 @@ class BaseAddressDelete(ModelDeleteMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        if not cls.check_permissions(info.context.user):
+        if not cls.check_permissions(info.context):
             raise PermissionDenied()
 
         node_id = data.get("id")
@@ -297,12 +297,12 @@ class CustomerInput(UserInput, UserAddressInput):
 
 class UserCreateInput(CustomerInput):
     send_password_email = graphene.Boolean(
-        description="Send an email with a link to set a password"
+        description="Send an email with a link to set a password."
     )
     redirect_url = graphene.String(
         description=(
             "URL of a view where users should be redirected to "
-            "set the password. URL in RFC 1808 format.",
+            "set the password. URL in RFC 1808 format."
         )
     )
 
@@ -369,6 +369,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
 
         # The instance is a new object in db, create an event
         if is_creation:
+            info.context.extensions.customer_created(customer=instance)
             account_events.customer_account_created_event(user=instance)
 
         if cleaned_input.get("send_password_email"):
@@ -386,9 +387,9 @@ class UserUpdateMeta(UpdateMetaBaseMutation):
         error_type_field = "account_errors"
 
 
-class UserClearStoredMeta(ClearMetaBaseMutation):
+class UserClearMeta(ClearMetaBaseMutation):
     class Meta:
-        description = "Clear stored metadata value."
+        description = "Clear metadata for user."
         model = models.User
         public = True
         error_type_class = AccountError

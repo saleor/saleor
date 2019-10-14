@@ -3,7 +3,7 @@ from graphql_jwt.decorators import login_required
 
 from ..core.fields import FilterInputConnectionField
 from ..core.types import FilterInputObjectType
-from ..decorators import permission_required
+from ..decorators import one_of_permissions_required, permission_required
 from ..descriptions import DESCRIPTIONS
 from .bulk_mutations import CustomerBulkDelete, StaffBulkDelete, UserBulkSetActive
 from .enums import CountryCodeEnum
@@ -22,7 +22,7 @@ from .mutations.base import (
     PasswordChange,
     RequestPasswordReset,
     SetPassword,
-    UserClearStoredMeta,
+    UserClearMeta,
     UserUpdateMeta,
 )
 from .mutations.deprecated_account import (
@@ -34,9 +34,11 @@ from .mutations.deprecated_account import (
 )
 from .mutations.deprecated_staff import PasswordReset
 from .mutations.service_account import (
-    ServiceAccountClearStoredPrivateMeta,
+    ServiceAccountClearPrivateMeta,
     ServiceAccountCreate,
     ServiceAccountDelete,
+    ServiceAccountTokenCreate,
+    ServiceAccountTokenDelete,
     ServiceAccountUpdate,
     ServiceAccountUpdatePrivateMeta,
 )
@@ -53,7 +55,7 @@ from .mutations.staff import (
     StaffUpdate,
     UserAvatarDelete,
     UserAvatarUpdate,
-    UserClearStoredPrivateMeta,
+    UserClearPrivateMeta,
     UserUpdatePrivateMeta,
 )
 from .resolvers import (
@@ -61,6 +63,7 @@ from .resolvers import (
     resolve_customers,
     resolve_service_accounts,
     resolve_staff_users,
+    resolve_user,
 )
 from .types import AddressValidationData, ServiceAccount, User
 
@@ -83,39 +86,52 @@ class ServiceAccountFilterInput(FilterInputObjectType):
 class AccountQueries(graphene.ObjectType):
     address_validation_rules = graphene.Field(
         AddressValidationData,
-        country_code=graphene.Argument(CountryCodeEnum, required=True),
-        country_area=graphene.Argument(graphene.String),
-        city=graphene.Argument(graphene.String),
-        city_area=graphene.Argument(graphene.String),
+        description="Returns address validation rules.",
+        country_code=graphene.Argument(
+            CountryCodeEnum,
+            description="Two-letter ISO 3166-1 country code.",
+            required=True,
+        ),
+        country_area=graphene.Argument(
+            graphene.String, description="Designation of a region, province or state."
+        ),
+        city=graphene.Argument(graphene.String, description="City or a town name."),
+        city_area=graphene.Argument(
+            graphene.String, description="Sublocality like a district."
+        ),
     )
     customers = FilterInputConnectionField(
         User,
-        filter=CustomerFilterInput(),
+        filter=CustomerFilterInput(description="Filtering options for customers."),
         description="List of the shop's customers.",
         query=graphene.String(description=DESCRIPTIONS["user"]),
     )
-    me = graphene.Field(User, description="Logged in user data.")
+    me = graphene.Field(User, description="Return the currently authenticated user.")
     staff_users = FilterInputConnectionField(
         User,
-        filter=StaffUserInput(),
+        filter=StaffUserInput(description="Filtering options for staff users."),
         description="List of the shop's staff users.",
         query=graphene.String(description=DESCRIPTIONS["user"]),
     )
     service_accounts = FilterInputConnectionField(
         ServiceAccount,
-        filter=ServiceAccountFilterInput(),
-        description="List of the service accounts",
+        filter=ServiceAccountFilterInput(
+            description="Filtering options for service accounts."
+        ),
+        description="List of the service accounts.",
     )
     service_account = graphene.Field(
         ServiceAccount,
-        id=graphene.Argument(graphene.ID, required=True),
-        description="Lookup a service account by ID.",
+        id=graphene.Argument(
+            graphene.ID, description="ID of the service account.", required=True
+        ),
+        description="Look up a service account by ID.",
     )
 
     user = graphene.Field(
         User,
-        id=graphene.Argument(graphene.ID, required=True),
-        description="Lookup a user by ID.",
+        id=graphene.Argument(graphene.ID, description="ID of the user.", required=True),
+        description="Look up a user by ID.",
     )
 
     def resolve_address_validation_rules(
@@ -149,9 +165,9 @@ class AccountQueries(graphene.ObjectType):
     def resolve_staff_users(self, info, query=None, **_kwargs):
         return resolve_staff_users(info, query=query)
 
-    @permission_required("account.manage_users")
+    @one_of_permissions_required(["account.manage_staff", "account.manage_users"])
     def resolve_user(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, User)
+        return resolve_user(info, id)
 
 
 class AccountMutations(graphene.ObjectType):
@@ -161,7 +177,7 @@ class AccountMutations(graphene.ObjectType):
     password_change = PasswordChange.Field()
 
     user_update_metadata = UserUpdateMeta.Field()
-    user_clear_stored_metadata = UserClearStoredMeta.Field()
+    user_clear_metadata = UserClearMeta.Field()
 
     # Account mutations
     account_address_create = AccountAddressCreate.Field()
@@ -204,16 +220,17 @@ class AccountMutations(graphene.ObjectType):
     user_bulk_set_active = UserBulkSetActive.Field()
 
     user_update_private_metadata = UserUpdatePrivateMeta.Field()
-    user_clear_stored_private_metadata = UserClearStoredPrivateMeta.Field()
+    user_clear_private_metadata = UserClearPrivateMeta.Field()
 
     service_account_create = ServiceAccountCreate.Field()
     service_account_update = ServiceAccountUpdate.Field()
     service_account_delete = ServiceAccountDelete.Field()
 
     service_account_update_private_metadata = ServiceAccountUpdatePrivateMeta.Field()
-    service_account_clear_stored_private_metadata = (
-        ServiceAccountClearStoredPrivateMeta.Field()
-    )
+    service_account_clear_private_metadata = ServiceAccountClearPrivateMeta.Field()
+
+    service_account_token_create = ServiceAccountTokenCreate.Field()
+    service_account_token_delete = ServiceAccountTokenDelete.Field()
 
     # Staff deprecated mutation
     password_reset = PasswordReset.Field()

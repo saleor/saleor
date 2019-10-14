@@ -254,6 +254,7 @@ INSTALLED_APPS = [
     "saleor.data_feeds",
     "saleor.page",
     "saleor.payment",
+    "saleor.webhook",
     # External apps
     "versatileimagefield",
     "django_babel",
@@ -610,19 +611,6 @@ SENTRY_DSN = os.environ.get("SENTRY_DSN")
 if SENTRY_DSN:
     sentry_sdk.init(dsn=SENTRY_DSN, integrations=[DjangoIntegration()])
 
-DUMMY = "dummy"
-BRAINTREE = "braintree"
-RAZORPAY = "razorpay"
-STRIPE = "stripe"
-
-# TODO: remove this after graphql schema stops generating enum from this
-PAYMENT_GATEWAYS = {
-    DUMMY: {"template_path": "order/payment/dummy.html"},
-    BRAINTREE: {"template_path": "order/payment/braintree.html"},
-    RAZORPAY: {"template_path": "order/payment/razorpay.html"},
-    STRIPE: None,
-}
-
 GRAPHENE = {
     "RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST": True,
     "RELAY_CONNECTION_MAX_LIMIT": 100,
@@ -633,6 +621,7 @@ EXTENSIONS_MANAGER = "saleor.extensions.manager.ExtensionsManager"
 PLUGINS = [
     "saleor.extensions.plugins.avatax.plugin.AvataxPlugin",
     "saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin",
+    "saleor.extensions.plugins.webhook.plugin.WebhookPlugin",
     "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
     "saleor.payment.gateways.stripe.plugin.StripeGatewayPlugin",
     "saleor.payment.gateways.braintree.plugin.BraintreeGatewayPlugin",

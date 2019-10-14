@@ -4,6 +4,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Add validate for query param should be a valid string - #4822 by @nix010
 - Fix product type taxes select - #4453 by @benekex2
 - Fix form reloading - #4467 by @dominik-zeglen
 - Fix time zone based tests - #4468 by @fowczarek
@@ -71,8 +72,31 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added validations for minimum password length in settings - #4735 by @fowczarek
 - Add error codes to mutations responses - #4676 by @Kwaidan00
 - Payment gateways are now saleor plugins with dynamic configuration - #4669 by @salwator
-
+- Added support for sorting product by their attribute values through given attribute ID - #4740 by @NyanKiyoshi
 - Unified MenuItemMove to other reordering mutations. It now uses relative positions instead of absolute ones (breaking change) - #4734 by @NyanKiyoshi.
+- Add descriptions for queries and query arguments - #4758 by @maarcingebala
+- Fixed the inability of users to set a variant's `priceOverride` and `costPrice` to `null` - #4754 by @NyanKiyoshi
+- PaymentGatewayEnum removed from GraphQL schema as gateways now are dynamic plugins. Gateway names changed. - #4756 by @salwator
+- Add support for webhooks - #4731 by @korycins
+- Fixed the random failure of `populatedb` trying to create a new user with an existing email - #4769 by @NyanKiyoshi
+- Fixed the inability of filtering attributes using `inCategory` and `inCollection` and deprecated those fields to use `filter { inCollection: ..., inCategory: ... }` instead - #4700 by @NyanKiyoshi & @khalibloo
+- Fixed internal error when updating or creating a sale with missing required values - #4778 by @NyanKiyoshi
+- Fixed the internal error filtering pages by URL in the dashboard 1.0 - #4776 by @NyanKiyoshi
+- Added product variant bulk create mutation - #4735 by @fowczarek
+- Added product variant bulk create mutation - #4749 by @fowczarek
+- availablePaymentGateways extended with configuration data in GraphQL schema - #4774 by @salwator
+- Add metadata to Order model - #4513 by @szewczykmira
+- Fixed display of the products tax rate in the details page of dashboard 1.0, users can now update the tax rate of products in dashboard 1.0. The tax fields will no longer be shown if no tax support is enabled. - #4780 by @NyanKiyoshi
+- Add default value to custom errors - #4797 by @fowczarek
+- Change `unique_together` in `AttributeValue` - #4805 by @fowczarek
+- Change max length of SKU in order/product variant to 255 - #4811 by @lex111
+- Replace Pipenv with Poetry - #3894 by @michaljelonek
+- `productVariant` nodes now require `manage_products` permission to query `costPrice` and `stockQuantity` fields - #4753 by @NyanKiyoshi
+- `productVariant` nodes now require `manage_products` permission to query `costPrice` and `stockQuantity` fields. `isAvailable` of a variant is not longer returning false when another variant from the same product is out of stock. - #4753 by @NyanKiyoshi
+- Fixed crash when placing an order when a customer happens to have the same address more than once - #4823 by @NyanKiyoshi
+- Fix fetching staff user without manage_users permission - #4835 by @fowczarek
+- Add form to configure payments in dashboard - #4807 by @szewczykmira
+
 ## 2.8.0
 
 ### Core

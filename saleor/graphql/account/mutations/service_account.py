@@ -14,9 +14,9 @@ from ...core.types.common import AccountError
 
 
 class ServiceAccountInput(graphene.InputObjectType):
-    name = graphene.types.String(description="Name of the service account")
-    is_active = graphene.types.Boolean(
-        description="Determine if this service account should be enabled"
+    name = graphene.String(description="Name of the service account.")
+    is_active = graphene.Boolean(
+        description="Determine if this service account should be enabled."
     )
     permissions = graphene.List(
         PermissionEnum,
@@ -24,9 +24,57 @@ class ServiceAccountInput(graphene.InputObjectType):
     )
 
 
+class ServiceAccountTokenInput(graphene.InputObjectType):
+    name = graphene.String(description="Name of the token.", required=False)
+    service_account = graphene.ID(description="ID of service account.", required=True)
+
+
+class ServiceAccountTokenCreate(ModelMutation):
+    auth_token = graphene.types.String(
+        description="The newly created authentication token."
+    )
+
+    class Arguments:
+        input = ServiceAccountTokenInput(
+            required=True, description="Fields required to create a new auth token."
+        )
+
+    class Meta:
+        description = "Creates a new token."
+        model = models.ServiceAccountToken
+        permissions = ("account.manage_service_accounts",)
+        error_type_class = AccountError
+        error_type_field = "account_errors"
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        instance = cls.get_instance(info, **data)
+        data = data.get("input")
+        cleaned_input = cls.clean_input(info, instance, data)
+        instance = cls.construct_instance(instance, cleaned_input)
+        cls.clean_instance(instance)
+        cls.save(info, instance, cleaned_input)
+        cls._save_m2m(info, instance, cleaned_input)
+        response = cls.success_response(instance)
+        response.auth_token = instance.auth_token
+        return response
+
+
+class ServiceAccountTokenDelete(ModelDeleteMutation):
+    class Arguments:
+        id = graphene.ID(description="ID of an auth token to delete.", required=True)
+
+    class Meta:
+        description = "Deletes an authentication token assigned to service account."
+        model = models.ServiceAccountToken
+        permissions = ("account.manage_service_accounts",)
+        error_type_class = AccountError
+        error_type_field = "account_errors"
+
+
 class ServiceAccountCreate(ModelMutation):
     auth_token = graphene.types.String(
-        description="The newly created authentication token"
+        description="The newly created authentication token."
     )
 
     class Arguments:
@@ -36,7 +84,7 @@ class ServiceAccountCreate(ModelMutation):
         )
 
     class Meta:
-        description = "Creates a new service account"
+        description = "Creates a new service account."
         model = models.ServiceAccount
         permissions = ("account.manage_service_accounts",)
         error_type_class = AccountError
@@ -52,22 +100,14 @@ class ServiceAccountCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
-        instance = cls.get_instance(info, **data)
-        data = data.get("input")
-        cleaned_input = cls.clean_input(info, instance, data)
-        instance = cls.construct_instance(instance, cleaned_input)
-        cls.clean_instance(instance)
-        cls.save(info, instance, cleaned_input)
-        cls._save_m2m(info, instance, cleaned_input)
-        response = cls.success_response(instance)
-        response.auth_token = instance.auth_token
-        return response
+    def save(cls, info, instance, cleaned_input):
+        instance.save()
+        instance.tokens.create(name="Default")
 
     @classmethod
     def success_response(cls, instance):
         response = super().success_response(instance)
-        response.auth_token = instance.auth_token
+        response.auth_token = instance.tokens.get().auth_token
         return response
 
 
@@ -82,7 +122,7 @@ class ServiceAccountUpdate(ModelMutation):
         )
 
     class Meta:
-        description = "Updates an existing service account"
+        description = "Updates an existing service account."
         model = models.ServiceAccount
         permissions = ("account.manage_service_accounts",)
         error_type_class = AccountError
@@ -104,7 +144,7 @@ class ServiceAccountDelete(ModelDeleteMutation):
         )
 
     class Meta:
-        description = "Deletes a service account"
+        description = "Deletes a service account."
         model = models.ServiceAccount
         permissions = ("account.manage_service_accounts",)
         error_type_class = AccountError
@@ -121,9 +161,9 @@ class ServiceAccountUpdatePrivateMeta(UpdateMetaBaseMutation):
         error_type_field = "account_errors"
 
 
-class ServiceAccountClearStoredPrivateMeta(ClearMetaBaseMutation):
+class ServiceAccountClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
-        description = "Clear stored metadata value."
+        description = "Clear private metadata for a service account."
         model = models.ServiceAccount
         permissions = ("account.manage_service_accounts",)
         public = False

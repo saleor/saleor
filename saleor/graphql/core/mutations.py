@@ -44,13 +44,13 @@ def get_output_fields(model, return_field_name):
 
 
 def get_error_fields(error_type_class, error_type_field):
-    """ """
     return {
         error_type_field: graphene.Field(
             graphene.List(
                 graphene.NonNull(error_type_class),
                 description="List of errors that occurred executing the mutation.",
-            )
+            ),
+            default_value=[],
         )
     }
 
@@ -67,13 +67,18 @@ def validation_error_to_error_type(validation_error: ValidationError) -> list:
                     (
                         Error(field=field, message=err.messages[0]),
                         get_error_code_from_error(err),
+                        err.params,
                     )
                 )
     else:
         # convert non-field errors
         for err in validation_error.error_list:
             err_list.append(
-                (Error(message=err.messages[0]), get_error_code_from_error(err))
+                (
+                    Error(message=err.messages[0]),
+                    get_error_code_from_error(err),
+                    err.params,
+                )
             )
     return err_list
 
@@ -247,22 +252,27 @@ class BaseMutation(graphene.Mutation):
         return instance
 
     @classmethod
-    def check_permissions(cls, user):
-        """Determine whether user has rights to perform this mutation.
+    def check_permissions(cls, context):
+        """Determine whether user or service account has rights to perform this mutation.
 
-        Default implementation assumes that user is allowed to perform any
+        Default implementation assumes that account is allowed to perform any
         mutation. By overriding this method or defining required permissions
         in the meta-class, you can restrict access to it.
 
-        The `user` parameter is the User instance associated with the request.
+        The `context` parameter is the Context instance associated with the request.
         """
-        if cls._meta.permissions:
-            return user.has_perms(cls._meta.permissions)
-        return True
+        if not cls._meta.permissions:
+            return True
+        if context.user.has_perms(cls._meta.permissions):
+            return True
+        service_account = getattr(context, "service_account", None)
+        if service_account and service_account.has_perms(cls._meta.permissions):
+            return True
+        return False
 
     @classmethod
     def mutate(cls, root, info, **data):
-        if not cls.check_permissions(info.context.user):
+        if not cls.check_permissions(info.context):
             raise PermissionDenied()
 
         try:
@@ -291,7 +301,7 @@ class BaseMutation(graphene.Mutation):
         ):
             typed_errors = [
                 cls._meta.error_type_class(field=e.field, message=e.message, code=code)
-                for e, code in errors
+                for e, code, _params in errors
             ]
             extra.update({cls._meta.error_type_field: typed_errors})
         return cls(errors=[e[0] for e in errors], **extra)
@@ -332,7 +342,7 @@ class ModelMutation(BaseMutation):
         cls._update_mutation_arguments_and_fields(arguments=arguments, fields=fields)
 
     @classmethod
-    def clean_input(cls, info, instance, data):
+    def clean_input(cls, info, instance, data, input_cls=None):
         """Clean input data received from mutation arguments.
 
         Fields containing IDs or lists of IDs are automatically resolved into
@@ -362,7 +372,8 @@ class ModelMutation(BaseMutation):
                 return field.type.of_type == Upload
             return field.type == Upload
 
-        input_cls = getattr(cls.Arguments, "input")
+        if not input_cls:
+            input_cls = getattr(cls.Arguments, "input")
         cleaned_input = {}
 
         for field_name, field_item in input_cls._meta.fields.items():
@@ -457,7 +468,7 @@ class ModelDeleteMutation(ModelMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         """Perform a mutation that deletes a model instance."""
-        if not cls.check_permissions(info.context.user):
+        if not cls.check_permissions(info.context):
             raise PermissionDenied()
 
         node_id = data.get("id")
@@ -546,7 +557,7 @@ class BaseBulkMutation(BaseMutation):
 
     @classmethod
     def mutate(cls, root, info, **data):
-        if not cls.check_permissions(info.context.user):
+        if not cls.check_permissions(info.context):
             raise PermissionDenied()
 
         count, errors = cls.perform_mutation(root, info, **data)
@@ -569,7 +580,7 @@ class CreateToken(ObtainJSONWebToken):
     """Mutation that authenticates a user and returns token and user data.
 
     It overrides the default graphql_jwt.ObtainJSONWebToken to wrap potential
-    authentication errors in our Error type, which is consistent to how rest of
+    authentication errors in our Error type, which is consistent to how the rest of
     the mutation works.
     """
 
@@ -591,7 +602,7 @@ class CreateToken(ObtainJSONWebToken):
 
 
 class VerifyToken(Verify):
-    """Mutation that confirm if token is valid and also return user data."""
+    """Mutation that confirms if token is valid and also returns user data."""
 
     user = graphene.Field(User)
 

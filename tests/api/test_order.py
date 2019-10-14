@@ -109,10 +109,7 @@ def test_orderline_query(staff_api_client, permission_manage_orders, fulfilled_o
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
-    assert (
-        "/static/images/placeholder540x540.png"
-        in order_data["lines"][0]["thumbnail"]["url"]
-    )
+    assert order_data["lines"][0]["thumbnail"] is None
     variant_id = graphene.Node.to_global_id("ProductVariant", line.variant.pk)
     assert order_data["lines"][0]["variant"]["id"] == variant_id
 
@@ -1414,7 +1411,7 @@ def test_order_capture(
     assert event_captured.user == staff_user
     assert event_captured.parameters == {
         "amount": str(amount),
-        "payment_gateway": "dummy",
+        "payment_gateway": "Dummy",
         "payment_id": "",
     }
 
@@ -1861,7 +1858,7 @@ def test_orders_total(staff_api_client, permission_manage_orders, order_with_lin
 
 def test_order_by_token_query(api_client, order):
     query = """
-    query OrderByToken($token: String!) {
+    query OrderByToken($token: UUID!) {
         orderByToken(token: $token) {
             id
         }

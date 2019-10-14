@@ -1,12 +1,13 @@
 from decimal import Decimal
-from typing import Iterable
+from typing import Iterable, Union
 from uuid import uuid4
 
 from django.conf import settings
+from django.contrib.postgres.aggregates import StringAgg
 from django.contrib.postgres.fields import JSONField
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import F, Q
+from django.db.models import Case, Count, F, FilteredRelation, Q, When
 from django.urls import reverse
 from django.utils.encoding import smart_text
 from django.utils.html import strip_tags
@@ -155,6 +156,90 @@ class ProductsQueryset(PublishedQuerySet):
             F("collectionproduct__sort_order").asc(nulls_last=True),
             F("collectionproduct__id"),
         )
+        return qs
+
+    def sort_by_attribute(self, attribute_pk: Union[int, str], ascending: bool = True):
+        """Sort a query set by the values of the given product attribute.
+
+        :param attribute_pk: The database ID (must be a number) of the attribute
+                             to sort by.
+        :param ascending: The sorting direction.
+        """
+        qs: models.QuerySet = self
+
+        # Retrieve all the products' attribute data IDs (assignments) and
+        # product types that have the given attribute associated to them
+        associated_values = tuple(
+            AttributeProduct.objects.filter(attribute_id=attribute_pk).values_list(
+                "pk", "product_type_id"
+            )
+        )
+
+        if not associated_values:
+            if not ascending:
+                return qs.reverse()
+            return qs
+
+        attribute_associations, product_types_associated_to_attribute = zip(
+            *associated_values
+        )
+
+        qs = qs.annotate(
+            # Contains to retrieve the attribute data (singular) of each product
+            # Refer to `AttributeProduct`.
+            filtered_attribute=FilteredRelation(
+                relation_name="attributes",
+                condition=Q(attributes__assignment_id__in=attribute_associations),
+            ),
+            # Implicit `GROUP BY` required for the `StringAgg` aggregation
+            grouped_ids=Count("id"),
+            # String aggregation of the attribute's values to efficiently sort them
+            concatenated_values=Case(
+                # If the product has no association data but has the given attribute
+                # associated to its product type, then consider the concatenated values
+                # as empty (non-null).
+                When(
+                    Q(product_type_id__in=product_types_associated_to_attribute)
+                    & Q(filtered_attribute=None),
+                    then=models.Value(""),
+                ),
+                default=StringAgg(
+                    F("filtered_attribute__values__name"),
+                    delimiter=",",
+                    ordering=(
+                        [
+                            f"filtered_attribute__values__{field_name}"
+                            for field_name in AttributeValue._meta.ordering
+                        ]
+                    ),
+                ),
+                output_field=models.CharField(),
+            ),
+        )
+
+        qs = qs.extra(
+            order_by=[
+                Case(
+                    # Make the products having no such attribute be last in the sorting
+                    When(concatenated_values=None, then=2),
+                    # Put the products having an empty attribute value at the bottom of
+                    # the other products.
+                    When(concatenated_values="", then=1),
+                    # Put the products having an attribute value to be always at the top
+                    default=0,
+                    output_field=models.IntegerField(),
+                ),
+                # Sort each group of products (0, 1, 2, ...) per attribute values
+                "concatenated_values",
+                # Sort each group of products by name,
+                # if they have the same values or not values
+                "name",
+            ]
+        )
+
+        # Descending sorting
+        if not ascending:
+            return qs.reverse()
         return qs
 
 
@@ -327,7 +412,7 @@ class ProductVariantQueryset(models.QuerySet):
 
 
 class ProductVariant(ModelWithMetadata):
-    sku = models.CharField(max_length=32, unique=True)
+    sku = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255, blank=True)
     currency = models.CharField(
         max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
@@ -385,7 +470,7 @@ class ProductVariant(ModelWithMetadata):
 
     @property
     def is_available(self):
-        return self.product.is_available
+        return self.is_visible and self.is_in_stock()
 
     def check_quantity(self, quantity):
         """Check if there is at least the given quantity in stock.
@@ -752,7 +837,7 @@ class AttributeValue(SortableModel):
 
     class Meta:
         ordering = ("sort_order", "id")
-        unique_together = ("name", "attribute")
+        unique_together = ("slug", "attribute")
 
     def __str__(self):
         return self.name

@@ -275,6 +275,8 @@ input AttributeFilterInput {
   availableInGrid: Boolean
   search: String
   ids: [ID]
+  inCollection: ID
+  inCategory: ID
 }
 
 input AttributeInput {
@@ -461,6 +463,13 @@ enum AuthorizationKeyType {
   GOOGLE_OAUTH2
 }
 
+type BulkProductError {
+  field: String
+  message: String
+  code: ProductErrorCode
+  index: Int
+}
+
 input CatalogueInput {
   products: [ID]
   categories: [ID]
@@ -595,7 +604,7 @@ type Checkout implements Node {
   privateMeta: [MetaStore]!
   meta: [MetaStore]!
   availableShippingMethods: [ShippingMethod]!
-  availablePaymentGateways: [GatewaysEnum]!
+  availablePaymentGateways: [PaymentGateway]!
   email: String!
   isShippingRequired: Boolean!
   lines: [CheckoutLine]
@@ -616,13 +625,13 @@ type CheckoutBillingAddressUpdate {
   checkoutErrors: [CheckoutError!]
 }
 
-type CheckoutClearStoredMeta {
+type CheckoutClearMeta {
   errors: [Error!]
   checkoutErrors: [CheckoutError!]
   checkout: Checkout
 }
 
-type CheckoutClearStoredPrivateMeta {
+type CheckoutClearPrivateMeta {
   errors: [Error!]
   checkoutErrors: [CheckoutError!]
   checkout: Checkout
@@ -1601,11 +1610,9 @@ input FulfillmentUpdateTrackingInput {
   notifyCustomer: Boolean
 }
 
-enum GatewaysEnum {
-  DUMMY
-  BRAINTREE
-  RAZORPAY
-  STRIPE
+type GatewayConfigLine {
+  field: String!
+  value: String
 }
 
 scalar GenericScalar
@@ -1984,6 +1991,9 @@ input MoveProductInput {
 }
 
 type Mutations {
+  webhookCreate(input: WebhookCreateInput!): WebhookCreate
+  webhookDelete(id: ID!): WebhookDelete
+  webhookUpdate(id: ID!, input: WebhookUpdateInput!): WebhookUpdate
   authorizationKeyAdd(input: AuthorizationKeyInput!, keyType: AuthorizationKeyType!): AuthorizationKeyAdd
   authorizationKeyDelete(keyType: AuthorizationKeyType!): AuthorizationKeyDelete
   homepageCollectionUpdate(collection: ID): HomepageCollectionUpdate
@@ -2070,6 +2080,7 @@ type Mutations {
   digitalContentUrlCreate(input: DigitalContentUrlCreateInput!): DigitalContentUrlCreate
   productVariantCreate(input: ProductVariantCreateInput!): ProductVariantCreate
   productVariantDelete(id: ID!): ProductVariantDelete
+  productVariantBulkCreate(product: ID!, variants: [ProductVariantBulkCreateInput]!): ProductVariantBulkCreate
   productVariantBulkDelete(ids: [ID]!): ProductVariantBulkDelete
   productVariantUpdate(id: ID!, input: ProductVariantInput!): ProductVariantUpdate
   productVariantTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): ProductVariantTranslate
@@ -2101,12 +2112,16 @@ type Mutations {
   orderAddNote(order: ID!, input: OrderAddNoteInput!): OrderAddNote
   orderCancel(id: ID!, restock: Boolean!): OrderCancel
   orderCapture(amount: Decimal!, id: ID!): OrderCapture
+  orderClearPrivateMeta(id: ID!, input: MetaPath!): OrderClearPrivateMeta
+  orderClearMeta(id: ID!, input: MetaPath!): OrderClearMeta
   orderFulfillmentCancel(id: ID!, input: FulfillmentCancelInput!): FulfillmentCancel
   orderFulfillmentCreate(input: FulfillmentCreateInput!, order: ID): FulfillmentCreate
   orderFulfillmentUpdateTracking(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdateTracking
   orderMarkAsPaid(id: ID!): OrderMarkAsPaid
   orderRefund(amount: Decimal!, id: ID!): OrderRefund
   orderUpdate(id: ID!, input: OrderUpdateInput!): OrderUpdate
+  orderUpdateMeta(id: ID!, input: MetaInput!): OrderUpdateMeta
+  orderUpdatePrivateMeta(id: ID!, input: MetaInput!): OrderUpdatePrivateMeta
   orderUpdateShipping(order: ID!, input: OrderUpdateShippingInput): OrderUpdateShipping
   orderVoid(id: ID!): OrderVoid
   orderBulkCancel(ids: [ID]!, restock: Boolean!): OrderBulkCancel
@@ -2159,14 +2174,14 @@ type Mutations {
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!): CheckoutShippingMethodUpdate
   checkoutUpdateVoucher(checkoutId: ID!, voucherCode: String): CheckoutUpdateVoucher
   checkoutUpdateMetadata(id: ID!, input: MetaInput!): CheckoutUpdateMeta
-  checkoutClearMetadata(id: ID!, input: MetaPath!): CheckoutClearStoredMeta
+  checkoutClearMetadata(id: ID!, input: MetaPath!): CheckoutClearMeta
   checkoutUpdatePrivateMetadata(id: ID!, input: MetaInput!): CheckoutUpdatePrivateMeta
-  checkoutClearPrivateMetadata(id: ID!, input: MetaPath!): CheckoutClearStoredPrivateMeta
+  checkoutClearPrivateMetadata(id: ID!, input: MetaPath!): CheckoutClearPrivateMeta
   requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
   setPassword(token: String!, email: String!, password: String!): SetPassword
   passwordChange(newPassword: String!, oldPassword: String!): PasswordChange
   userUpdateMetadata(id: ID!, input: MetaInput!): UserUpdateMeta
-  userClearStoredMetadata(id: ID!, input: MetaPath!): UserClearStoredMeta
+  userClearMetadata(id: ID!, input: MetaPath!): UserClearMeta
   accountAddressCreate(input: AddressInput!, type: AddressTypeEnum): AccountAddressCreate
   accountAddressUpdate(id: ID!, input: AddressInput!): AccountAddressUpdate
   accountAddressDelete(id: ID!): AccountAddressDelete
@@ -2196,12 +2211,14 @@ type Mutations {
   userAvatarDelete: UserAvatarDelete
   userBulkSetActive(ids: [ID]!, isActive: Boolean!): UserBulkSetActive
   userUpdatePrivateMetadata(id: ID!, input: MetaInput!): UserUpdatePrivateMeta
-  userClearStoredPrivateMetadata(id: ID!, input: MetaPath!): UserClearStoredPrivateMeta
+  userClearPrivateMetadata(id: ID!, input: MetaPath!): UserClearPrivateMeta
   serviceAccountCreate(input: ServiceAccountInput!): ServiceAccountCreate
   serviceAccountUpdate(id: ID!, input: ServiceAccountInput!): ServiceAccountUpdate
   serviceAccountDelete(id: ID!): ServiceAccountDelete
   serviceAccountUpdatePrivateMetadata(id: ID!, input: MetaInput!): ServiceAccountUpdatePrivateMeta
-  serviceAccountClearStoredPrivateMetadata(id: ID!, input: MetaPath!): ServiceAccountClearStoredPrivateMeta
+  serviceAccountClearPrivateMetadata(id: ID!, input: MetaPath!): ServiceAccountClearPrivateMeta
+  serviceAccountTokenCreate(input: ServiceAccountTokenInput!): ServiceAccountTokenCreate
+  serviceAccountTokenDelete(id: ID!): ServiceAccountTokenDelete
   passwordReset(email: String!): PasswordReset
 }
 
@@ -2244,6 +2261,8 @@ type Order implements Node {
   displayGrossPrices: Boolean!
   customerNote: String!
   weight: Weight
+  privateMeta: [MetaStore]!
+  meta: [MetaStore]!
   fulfillments: [Fulfillment]!
   lines: [OrderLine]!
   actions: [OrderAction]!
@@ -2300,6 +2319,16 @@ type OrderCapture {
   errors: [Error!]
   order: Order
   orderErrors: [OrderError!]
+}
+
+type OrderClearMeta {
+  errors: [Error!]
+  order: Order
+}
+
+type OrderClearPrivateMeta {
+  errors: [Error!]
+  order: Order
 }
 
 type OrderCountableConnection {
@@ -2496,6 +2525,16 @@ input OrderUpdateInput {
   shippingAddress: AddressInput
 }
 
+type OrderUpdateMeta {
+  errors: [Error!]
+  order: Order
+}
+
+type OrderUpdatePrivateMeta {
+  errors: [Error!]
+  order: Order
+}
+
 type OrderUpdateShipping {
   errors: [Error!]
   order: Order
@@ -2681,8 +2720,13 @@ enum PaymentErrorCode {
   UNIQUE
 }
 
+type PaymentGateway {
+  name: String!
+  config: [GatewayConfigLine!]!
+}
+
 input PaymentInput {
-  gateway: GatewaysEnum!
+  gateway: String!
   token: String!
   amount: Decimal
   billingAddress: AddressInput
@@ -2731,6 +2775,7 @@ enum PermissionEnum {
   MANAGE_SHIPPING
   MANAGE_SETTINGS
   MANAGE_TRANSLATIONS
+  MANAGE_WEBHOOKS
 }
 
 type Plugin implements Node {
@@ -2791,11 +2836,11 @@ type Product implements Node {
   meta: [MetaStore]!
   url: String!
   thumbnail(size: Int): Image
-  availability: ProductPricingInfo @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, Has been renamed to 'pricing'.")
+  availability: ProductPricingInfo @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, Has been renamed to `pricing`.")
   pricing: ProductPricingInfo
   isAvailable: Boolean
   basePrice: Money
-  price: Money @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, has been replaced by 'basePrice'")
+  price: Money @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, has been replaced by `basePrice`")
   minimalVariantPrice: Money
   taxType: TaxType
   attributes: [SelectedAttribute!]!
@@ -2979,7 +3024,8 @@ input ProductInput {
 }
 
 input ProductOrder {
-  field: ProductOrderField!
+  field: ProductOrderField
+  attributeId: ID
   direction: OrderDirection!
 }
 
@@ -3150,15 +3196,15 @@ type ProductVariant implements Node {
   name: String!
   product: Product!
   trackInventory: Boolean!
-  quantity: Int!
   quantityAllocated: Int!
   weight: Weight
   privateMeta: [MetaStore]!
   meta: [MetaStore]!
+  quantity: Int!
   stockQuantity: Int!
   priceOverride: Money
   price: Money @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, has been replaced by 'pricing.priceUndiscounted'")
-  availability: VariantPricingInfo @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, has been renamed to 'pricing'.")
+  availability: VariantPricingInfo @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, has been renamed to `pricing`.")
   pricing: VariantPricingInfo
   isAvailable: Boolean
   attributes: [SelectedAttribute!]!
@@ -3169,6 +3215,23 @@ type ProductVariant implements Node {
   images: [ProductImage]
   translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
   digitalContent: DigitalContent
+}
+
+type ProductVariantBulkCreate {
+  errors: [Error!]
+  count: Int!
+  productVariants: [ProductVariant!]!
+  bulkProductErrors: [BulkProductError!]
+}
+
+input ProductVariantBulkCreateInput {
+  attributes: [AttributeValueInput]!
+  costPrice: Decimal
+  priceOverride: Decimal
+  sku: String!
+  quantity: Int
+  trackInventory: Boolean
+  weight: WeightScalar
 }
 
 type ProductVariantBulkDelete {
@@ -3263,12 +3326,14 @@ type ProductVariantUpdatePrivateMeta {
 }
 
 type Query {
+  webhook(id: ID!): Webhook
+  webhooks(before: String, after: String, first: Int, last: Int): WebhookCountableConnection
   translations(kind: TranslatableKinds!, before: String, after: String, first: Int, last: Int): TranslatableItemConnection
   shop: Shop
   shippingZone(id: ID!): ShippingZone
   shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
   digitalContent(id: ID!): DigitalContent
-  digitalContents(query: String, level: Int, before: String, after: String, first: Int, last: Int): DigitalContentCountableConnection
+  digitalContents(before: String, after: String, first: Int, last: Int): DigitalContentCountableConnection
   attributes(query: String, inCategory: ID, inCollection: ID, filter: AttributeFilterInput, sortBy: AttributeSortingInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
   attribute(id: ID!): Attribute
   categories(query: String, filter: CategoryFilterInput, level: Int, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
@@ -3282,9 +3347,9 @@ type Query {
   productVariant(id: ID!): ProductVariant
   productVariants(ids: [ID], before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   reportProductSales(period: ReportingPeriod!, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
-  payment(id: ID): Payment
+  payment(id: ID!): Payment
   payments(before: String, after: String, first: Int, last: Int): PaymentCountableConnection
-  paymentClientToken(gateway: GatewaysEnum): String
+  paymentClientToken(gateway: String!): String @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, use payment gateway config instead in availablePaymentGateways.")
   page(id: ID, slug: String): Page
   pages(query: String, filter: PageFilterInput, before: String, after: String, first: Int, last: Int): PageCountableConnection
   homepageEvents(before: String, after: String, first: Int, last: Int): OrderEventCountableConnection
@@ -3292,7 +3357,7 @@ type Query {
   orders(filter: OrderFilterInput, query: String, created: ReportingPeriod, status: OrderStatusFilter, before: String, after: String, first: Int, last: Int): OrderCountableConnection
   draftOrders(filter: OrderDraftFilterInput, query: String, created: ReportingPeriod, before: String, after: String, first: Int, last: Int): OrderCountableConnection
   ordersTotal(period: ReportingPeriod): TaxedMoney
-  orderByToken(token: String!): Order
+  orderByToken(token: UUID!): Order
   menu(id: ID, name: String): Menu
   menus(query: String, filter: MenuFilterInput, before: String, after: String, first: Int, last: Int): MenuCountableConnection
   menuItem(id: ID!): MenuItem
@@ -3446,16 +3511,16 @@ input SeoInput {
 
 type ServiceAccount implements Node {
   id: ID!
-  authToken: String
   created: DateTime
   isActive: Boolean
+  tokens: [ServiceAccountToken]
   privateMeta: [MetaStore]!
   meta: [MetaStore]!
   permissions: [PermissionDisplay]
   name: String
 }
 
-type ServiceAccountClearStoredPrivateMeta {
+type ServiceAccountClearPrivateMeta {
   errors: [Error!]
   accountErrors: [AccountError!]
   serviceAccount: ServiceAccount
@@ -3494,6 +3559,30 @@ input ServiceAccountInput {
   name: String
   isActive: Boolean
   permissions: [PermissionEnum]
+}
+
+type ServiceAccountToken implements Node {
+  name: String
+  authToken: String
+  id: ID!
+}
+
+type ServiceAccountTokenCreate {
+  errors: [Error!]
+  authToken: String
+  accountErrors: [AccountError!]
+  serviceAccountToken: ServiceAccountToken
+}
+
+type ServiceAccountTokenDelete {
+  errors: [Error!]
+  accountErrors: [AccountError!]
+  serviceAccountToken: ServiceAccountToken
+}
+
+input ServiceAccountTokenInput {
+  name: String
+  serviceAccount: ID!
 }
 
 type ServiceAccountUpdate {
@@ -3973,13 +4062,13 @@ type UserBulkSetActive {
   accountErrors: [AccountError!]
 }
 
-type UserClearStoredMeta {
+type UserClearMeta {
   errors: [Error!]
   accountErrors: [AccountError!]
   user: User
 }
 
-type UserClearStoredPrivateMeta {
+type UserClearPrivateMeta {
   errors: [Error!]
   accountErrors: [AccountError!]
   user: User
@@ -4167,6 +4256,91 @@ enum VoucherTypeEnum {
 type VoucherUpdate {
   errors: [Error!]
   voucher: Voucher
+}
+
+type Webhook implements Node {
+  name: String
+  serviceAccount: ServiceAccount!
+  targetUrl: String!
+  isActive: Boolean!
+  secretKey: String
+  id: ID!
+  events: [WebhookEvent]
+}
+
+type WebhookCountableConnection {
+  pageInfo: PageInfo!
+  edges: [WebhookCountableEdge!]!
+  totalCount: Int
+}
+
+type WebhookCountableEdge {
+  node: Webhook!
+  cursor: String!
+}
+
+type WebhookCreate {
+  errors: [Error!]
+  webhookErrors: [WebhookError!]
+  webhook: Webhook
+}
+
+input WebhookCreateInput {
+  name: String
+  targetUrl: String
+  events: [WebhookEventTypeEnum]
+  serviceAccount: ID
+  isActive: Boolean
+  secretKey: String
+}
+
+type WebhookDelete {
+  errors: [Error!]
+  webhook: Webhook
+  webhookErrors: [WebhookError!]
+}
+
+type WebhookError {
+  field: String
+  message: String
+  code: WebhookErrorCode
+}
+
+enum WebhookErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+}
+
+type WebhookEvent {
+  eventType: WebhookEventTypeEnum
+}
+
+enum WebhookEventTypeEnum {
+  ANY_EVENTS
+  ORDER_CREATED
+  ORDER_FULLY_PAID
+  ORDER_UPDATED
+  ORDER_CANCELLED
+  CUSTOMER_CREATED
+  PRODUCT_CREATED
+}
+
+type WebhookUpdate {
+  errors: [Error!]
+  webhook: Webhook
+  webhookErrors: [WebhookError!]
+}
+
+input WebhookUpdateInput {
+  name: String
+  targetUrl: String
+  events: [WebhookEventTypeEnum]
+  serviceAccount: ID
+  isActive: Boolean
+  secretKey: String
 }
 
 type Weight {

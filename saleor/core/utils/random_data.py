@@ -353,6 +353,10 @@ def create_fake_user():
     address = create_address()
     email = get_email(address.first_name, address.last_name)
 
+    # Skip the email if it already exists
+    if User.objects.filter(email=email).exists():
+        return
+
     user = User.objects.create_user(
         first_name=address.first_name,
         last_name=address.last_name,
@@ -373,7 +377,7 @@ def create_fake_user():
 @patch("saleor.order.emails.send_payment_confirmation.delay")
 def create_fake_payment(mock_email_confirmation, order):
     payment = create_payment(
-        gateway=settings.DUMMY,
+        gateway="Dummy",
         customer_ip_address=fake.ipv4(),
         email=order.user_email,
         order=order,

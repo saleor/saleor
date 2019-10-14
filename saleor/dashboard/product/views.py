@@ -23,6 +23,7 @@ from ...product.utils.costs import get_margin_for_variant, get_product_costs_dat
 from ..views import staff_member_required
 from . import forms
 from .filters import AttributeFilter, ProductFilter, ProductTypeFilter
+from .utils import get_product_tax_rate
 
 
 @staff_member_required
@@ -69,6 +70,7 @@ def product_details(request, pk):
     only_variant = variants.first() if no_variants else None
     ctx = {
         "product": product,
+        "tax_rate_code": get_product_tax_rate(product),
         "sale_price": sale_price,
         "discounted_price": discounted_price,
         "variants": variants,
@@ -141,6 +143,7 @@ def product_create(request, type_pk):
             variant_form.save()
         msg = pgettext_lazy("Dashboard message", "Added product %s") % (product,)
         messages.success(request, msg)
+        request.extensions.product_created(product)
         return redirect("dashboard:product-details", pk=product.pk)
     ctx = {
         "product_form": product_form,

@@ -20,7 +20,7 @@ from .base import (
 
 class AccountRegisterInput(graphene.InputObjectType):
     email = graphene.String(description="The email address of the user.", required=True)
-    password = graphene.String(description="Password", required=True)
+    password = graphene.String(description="Password.", required=True)
 
 
 class AccountRegister(ModelMutation):
@@ -42,6 +42,7 @@ class AccountRegister(ModelMutation):
         user.set_password(password)
         user.save()
         account_events.customer_account_created_event(user=user)
+        info.context.extensions.customer_created(customer=user)
 
 
 class AccountInput(graphene.InputObjectType):
@@ -70,8 +71,8 @@ class AccountUpdate(BaseCustomerCreate):
         error_type_field = "account_errors"
 
     @classmethod
-    def check_permissions(cls, user):
-        return user.is_authenticated
+    def check_permissions(cls, context):
+        return context.user.is_authenticated
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
@@ -86,7 +87,7 @@ class AccountRequestDeletion(BaseMutation):
             required=True,
             description=(
                 "URL of a view where users should be redirected to "
-                "delete their account. URL in RFC 1808 format.",
+                "delete their account. URL in RFC 1808 format."
             ),
         )
 
@@ -98,8 +99,8 @@ class AccountRequestDeletion(BaseMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def check_permissions(cls, user):
-        return user.is_authenticated
+    def check_permissions(cls, context):
+        return context.user.is_authenticated
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
@@ -127,8 +128,8 @@ class AccountDelete(ModelDeleteMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def check_permissions(cls, user):
-        return user.is_authenticated
+    def check_permissions(cls, context):
+        return context.user.is_authenticated
 
     @classmethod
     def clean_instance(cls, info, instance):
@@ -166,7 +167,7 @@ class AccountAddressCreate(ModelMutation):
 
     class Arguments:
         input = AddressInput(
-            description="Fields required to create address", required=True
+            description="Fields required to create address.", required=True
         )
         type = AddressTypeEnum(
             required=False,
@@ -184,8 +185,8 @@ class AccountAddressCreate(ModelMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def check_permissions(cls, user):
-        return user.is_authenticated
+    def check_permissions(cls, context):
+        return context.user.is_authenticated
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
@@ -236,8 +237,8 @@ class AccountSetDefaultAddress(BaseMutation):
         error_type_field = "account_errors"
 
     @classmethod
-    def check_permissions(cls, user):
-        return user.is_authenticated
+    def check_permissions(cls, context):
+        return context.user.is_authenticated
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):

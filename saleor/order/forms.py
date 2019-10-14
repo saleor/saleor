@@ -11,7 +11,7 @@ from .models import Order
 
 def get_gateways():
     gateways = [
-        (gtw.value, gtw.value.capitalize() + " gateway")
+        (gtw["name"], gtw["name"].capitalize() + " gateway")
         for gtw in gateway.list_gateways()
     ]
     return gateways

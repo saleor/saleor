@@ -6,6 +6,7 @@ from ....account.models import User
 from ....core.exceptions import InsufficientStock
 from ....core.taxes import zero_taxed_money
 from ....order import OrderStatus, events, models
+from ....order.actions import order_created
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import (
     add_variant_to_order,
@@ -49,15 +50,16 @@ class DraftOrderInput(InputObjectType):
         description="ID of a selected shipping method.", name="shippingMethod"
     )
     voucher = graphene.ID(
-        description="ID of the voucher associated with the order", name="voucher"
+        description="ID of the voucher associated with the order.", name="voucher"
     )
 
 
 class DraftOrderCreateInput(DraftOrderInput):
     lines = graphene.List(
         OrderLineCreateInput,
-        description="""Variant line input consisting of variant ID
-        and quantity of products.""",
+        description=(
+            "Variant line input consisting of variant ID and quantity of products."
+        ),
     )
 
 
@@ -263,8 +265,7 @@ class DraftOrderComplete(BaseMutation):
             except InsufficientStock:
                 allocate_stock(line.variant, line.variant.quantity_available)
                 oversold_items.append(str(line))
-
-        events.order_created_event(order=order, user=info.context.user, from_draft=True)
+        order_created(order, user=info.context.user, from_draft=True)
 
         if oversold_items:
             events.draft_order_oversold_items_event(
@@ -392,7 +393,7 @@ class DraftOrderLineUpdate(ModelMutation):
     class Arguments:
         id = graphene.ID(description="ID of the order line to update.", required=True)
         input = OrderLineInput(
-            required=True, description="Fields required to update an order line"
+            required=True, description="Fields required to update an order line."
         )
 
     class Meta:

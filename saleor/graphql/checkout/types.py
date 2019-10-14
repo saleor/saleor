@@ -11,8 +11,30 @@ from ..core.types.meta import MetadataObjectType
 from ..core.types.money import Money, TaxedMoney
 from ..decorators import permission_required
 from ..giftcard.types import GiftCard
-from ..payment.enums import PaymentGatewayEnum
 from ..shipping.types import ShippingMethod
+
+
+class GatewayConfigLine(graphene.ObjectType):
+    field = graphene.String(required=True, description="Gateway config key.")
+    value = graphene.String(description="Gateway config value for key.")
+
+    class Meta:
+        description = "Payment gateway client configuration key and value pair."
+
+
+class PaymentGateway(graphene.ObjectType):
+    name = graphene.String(required=True, description="Payment gateway name.")
+    config = graphene.List(
+        graphene.NonNull(GatewayConfigLine),
+        required=True,
+        description="Payment gateway client configuration.",
+    )
+
+    class Meta:
+        description = (
+            "Available payment gateway backend with configuration "
+            "necessary to setup client."
+        )
 
 
 class CheckoutLine(CountableDjangoObjectType):
@@ -49,14 +71,12 @@ class Checkout(MetadataObjectType, CountableDjangoObjectType):
         description="Shipping methods that can be used with this order.",
     )
     available_payment_gateways = graphene.List(
-        PaymentGatewayEnum,
-        description="List of available payment gateways.",
-        required=True,
+        PaymentGateway, description="List of available payment gateways.", required=True
     )
-    email = graphene.String(description="Email of a customer", required=True)
+    email = graphene.String(description="Email of a customer.", required=True)
     gift_cards = gql_optimizer.field(
         graphene.List(
-            GiftCard, description="List of gift cards associated with this checkout"
+            GiftCard, description="List of gift cards associated with this checkout."
         ),
         model_field="gift_cards",
     )
@@ -114,7 +134,7 @@ class Checkout(MetadataObjectType, CountableDjangoObjectType):
             "voucher_code",
             "discount",
         ]
-        description = "Checkout object"
+        description = "Checkout object."
         model = models.Checkout
         interfaces = [graphene.relay.Node]
         filter_fields = ["token"]

@@ -15,6 +15,7 @@ MODELS_PERMISSIONS = [
     "shipping.manage_shipping",
     "site.manage_settings",
     "site.manage_translations",
+    "webhook.manage_webhooks",
 ]
 
 
