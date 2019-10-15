@@ -44,6 +44,7 @@ from .forms import (
     FulfillmentLineForm,
     FulfillmentTrackingNumberForm,
     OrderCustomerForm,
+    OrderCustomerNoteForm,
     OrderEditDiscountForm,
     OrderEditVoucherForm,
     OrderMarkAsPaidForm,
@@ -54,7 +55,6 @@ from .forms import (
     OrderShippingForm,
     RefundPaymentForm,
     VoidPaymentForm,
-    OrderCustomerNoteForm,
 )
 from .utils import (
     create_invoice_pdf,
