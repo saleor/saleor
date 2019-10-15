@@ -57,7 +57,7 @@ def customer_edit_customer_note_order_event(
     return CustomerEvent.objects.create(
         user=user,
         order=order,
-        type=CustomerEvents.CUSTOMER_NOTE_ADDED_TO_ORDER,
+        type=CustomerEvents.CUSTOMER_NOTE_ADDED,
         parameters={"message": message},
     )
 
