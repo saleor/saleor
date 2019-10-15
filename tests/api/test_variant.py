@@ -209,7 +209,11 @@ def test_create_product_variant_not_all_attributes(
 
 
 def test_create_product_variant_duplicated_attributes(
-    staff_api_client, product_with_two_variants, permission_manage_products
+    staff_api_client,
+    product_with_two_variants,
+    color_attribute,
+    size_attribute,
+    permission_manage_products,
 ):
     query = """
         mutation createVariant (
@@ -232,21 +236,16 @@ def test_create_product_variant_duplicated_attributes(
         }
     """
     product = product_with_two_variants
-    product_variant = product.variants.first()
     product_id = graphene.Node.to_global_id("Product", product.pk)
-    first_attribute = product_variant.attributes.first().attribute
-    first_attribute_id = graphene.Node.to_global_id("Attribute", first_attribute.id)
-    first_attribute_value = product_variant.attributes.first().values.first()
-    second_attribute = product_variant.attributes.last().attribute
-    second_attribute_id = graphene.Node.to_global_id("Attribute", second_attribute.id)
-    second_attribute_value = product_variant.attributes.last().values.first()
+    color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.id)
+    size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.id)
     sku = str(uuid4())[:12]
     variables = {
         "productId": product_id,
         "sku": sku,
         "attributes": [
-            {"id": first_attribute_id, "values": [first_attribute_value.slug]},
-            {"id": second_attribute_id, "values": [second_attribute_value.slug]},
+            {"id": color_attribute_id, "values": ["red"]},
+            {"id": size_attribute_id, "values": ["small"]},
         ],
     }
     response = staff_api_client.post_graphql(
@@ -972,24 +971,23 @@ def test_product_variant_bulk_create_many_errors(
 
 
 def test_product_variant_bulk_create_two_variants_duplicated_attribute_value(
-    staff_api_client, product_with_two_variants, permission_manage_products
+    staff_api_client,
+    product_with_two_variants,
+    color_attribute,
+    size_attribute,
+    permission_manage_products,
 ):
     product = product_with_two_variants
-    product_variant = product.variants.first()
     product_variant_count = ProductVariant.objects.count()
     product_id = graphene.Node.to_global_id("Product", product.pk)
-    first_attribute = product_variant.attributes.first().attribute
-    first_attribute_id = graphene.Node.to_global_id("Attribute", first_attribute.id)
-    first_attribute_value = product_variant.attributes.first().values.first()
-    second_attribute = product_variant.attributes.last().attribute
-    second_attribute_id = graphene.Node.to_global_id("Attribute", second_attribute.id)
-    second_attribute_value = product_variant.attributes.last().values.first()
+    color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.id)
+    size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.id)
     variants = [
         {
             "sku": str(uuid4())[:12],
             "attributes": [
-                {"id": first_attribute_id, "values": [first_attribute_value.slug]},
-                {"id": second_attribute_id, "values": [second_attribute_value.slug]},
+                {"id": color_attribute_id, "values": ["blue"]},
+                {"id": size_attribute_id, "values": ["small"]},
             ],
         }
     ]
@@ -1044,25 +1042,23 @@ def test_product_variant_bulk_create_two_variants_duplicated_attribute_value_in_
 
 
 def test_product_variant_bulk_create_two_variants_duplicated_one_attribute_value(
-    staff_api_client, product_with_two_variants, permission_manage_products
+    staff_api_client,
+    product_with_two_variants,
+    color_attribute,
+    size_attribute,
+    permission_manage_products,
 ):
     product = product_with_two_variants
-    product_variant = product.variants.first()
     product_variant_count = ProductVariant.objects.count()
     product_id = graphene.Node.to_global_id("Product", product.pk)
-    assert product_variant.attributes.count() == 2
-    first_attribute = product_variant.attributes.first().attribute
-    first_attribute_id = graphene.Node.to_global_id("Attribute", first_attribute.id)
-    first_attribute_value = product_variant.attributes.first().values.first()
-    second_attribute = product_variant.attributes.last().attribute
-    second_attribute_id = graphene.Node.to_global_id("Attribute", second_attribute.id)
-    second_attribute_slug = "big"
+    color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.id)
+    size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.id)
     variants = [
         {
             "sku": str(uuid4())[:12],
             "attributes": [
-                {"id": first_attribute_id, "values": [first_attribute_value.slug]},
-                {"id": second_attribute_id, "values": [second_attribute_slug]},
+                {"id": color_attribute_id, "values": ["red"]},
+                {"id": size_attribute_id, "values": ["big"]},
             ],
         }
     ]
