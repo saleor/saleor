@@ -405,7 +405,6 @@ type AttributeValueDelete {
 
 input AttributeValueInput {
   id: ID
-  slug: String
   values: [String]!
 }
 
