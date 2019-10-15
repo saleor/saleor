@@ -2,7 +2,7 @@ from django.utils.translation import pgettext_lazy
 
 
 class WebhookEventType:
-    ALL = "all_events"
+    ANY = "any_events"
     ORDER_CREATED = "order_created"
     ORDER_FULLY_PAID = "order_fully_paid"
     ORDER_UPDATED = "order_updated"
@@ -14,7 +14,7 @@ class WebhookEventType:
     PRODUCT_CREATED = "product_created"
 
     CHOICES = [
-        (ALL, pgettext_lazy("All events", "All events")),
+        (ANY, pgettext_lazy("Any events", "Any events")),
         (ORDER_CREATED, pgettext_lazy("Order has been placed", "Order created")),
         (ORDER_FULLY_PAID, pgettext_lazy("Order has been fully paid", "Order paid")),
         (ORDER_UPDATED, pgettext_lazy("Order has been updated", "Order updated")),

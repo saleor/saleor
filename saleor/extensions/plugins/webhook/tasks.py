@@ -25,7 +25,7 @@ def trigger_webhooks_for_event(event_type, data):
     webhooks = Webhook.objects.filter(
         is_active=True,
         service_account__is_active=True,
-        events__event_type__in=[event_type, WebhookEventType.ALL],
+        events__event_type__in=[event_type, WebhookEventType.ANY],
         **permissions,
     )
     webhooks = webhooks.select_related("service_account").prefetch_related(
