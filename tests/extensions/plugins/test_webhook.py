@@ -90,7 +90,7 @@ def test_trigger_webhooks_for_event_calls_expected_events(
     second_webhook = sa_without_permissions.webhooks.create(
         target_url="http://www.example.com/wrong"
     )
-    second_webhook.events.create(event_type=WebhookEventType.ALL)
+    second_webhook.events.create(event_type=WebhookEventType.ANY)
     second_webhook.events.create(event_type=WebhookEventType.PRODUCT_CREATED)
     second_webhook.events.create(event_type=WebhookEventType.CUSTOMER_CREATED)
 
@@ -99,7 +99,7 @@ def test_trigger_webhooks_for_event_calls_expected_events(
     third_webhook = sa_with_partial_permissions.webhooks.create(
         target_url="http://www.example.com/third/"
     )
-    third_webhook.events.create(event_type=WebhookEventType.ALL)
+    third_webhook.events.create(event_type=WebhookEventType.ANY)
 
     trigger_webhooks_for_event(event_name, data="")
     assert mock_request.call_count == total_webhook_calls

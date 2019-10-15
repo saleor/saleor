@@ -3,7 +3,7 @@ from graphql_jwt.decorators import login_required
 
 from ..core.fields import FilterInputConnectionField
 from ..core.types import FilterInputObjectType
-from ..decorators import permission_required
+from ..decorators import one_of_permissions_required, permission_required
 from ..descriptions import DESCRIPTIONS
 from .bulk_mutations import CustomerBulkDelete, StaffBulkDelete, UserBulkSetActive
 from .enums import CountryCodeEnum
@@ -63,6 +63,7 @@ from .resolvers import (
     resolve_customers,
     resolve_service_accounts,
     resolve_staff_users,
+    resolve_user,
 )
 from .types import AddressValidationData, ServiceAccount, User
 
@@ -164,9 +165,9 @@ class AccountQueries(graphene.ObjectType):
     def resolve_staff_users(self, info, query=None, **_kwargs):
         return resolve_staff_users(info, query=query)
 
-    @permission_required("account.manage_users")
+    @one_of_permissions_required(["account.manage_staff", "account.manage_users"])
     def resolve_user(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, User)
+        return resolve_user(info, id)
 
 
 class AccountMutations(graphene.ObjectType):
