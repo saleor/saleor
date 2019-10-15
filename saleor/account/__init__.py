@@ -20,7 +20,7 @@ class CustomerEvents:
     EMAIL_ASSIGNED = "email_assigned"  # the staff user assigned a email to the customer
     NAME_ASSIGNED = "name_assigned"  # the staff user added set a name to the customer
     NOTE_ADDED = "note_added"  # the staff user added a note to the customer
-    CUSTOMER_NOTE_ADDED_TO_ORDER = "customer_note_added_to_order"  # added a customer note to one of their orders
+    CUSTOMER_NOTE_ADDED = "customer_note_added"  # added a customer note to orders
 
     CHOICES = [
         (
