@@ -78,6 +78,8 @@ def generate_order_payload(order: "Order"):
         "discount_name",
         "translated_discount_name",
         "weight",
+        "private_meta",
+        "meta",
     )
     order_data = serializer.serialize(
         [order],
@@ -104,8 +106,8 @@ def generate_customer_payload(customer: "User"):
             "last_name",
             "is_active",
             "date_joined",
-            "default_shipping_address",
-            "default_billing_address",
+            "private_meta",
+            "meta",
         ],
         additional_fields={
             "default_shipping_address": (
@@ -134,16 +136,22 @@ def generate_product_payload(product: "Product"):
         "updated_at",
         "charge_taxes",
         "weight",
+        "publication_date",
+        "is_published",
+        "private_meta",
+        "meta",
     )
     product_variant_fields = (
-        "sku"
-        "name"
-        "currency"
-        "price_override_amount"
-        "track_inventory"
-        "quantity"
-        "quantity_allocated"
-        "cost_price_amount"
+        "sku",
+        "name",
+        "currency",
+        "price_override_amount",
+        "track_inventory",
+        "quantity",
+        "quantity_allocated",
+        "cost_price_amount",
+        "private_meta",
+        "meta",
     )
     product_payload = serializer.serialize(
         [product],
