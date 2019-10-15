@@ -224,7 +224,6 @@ class Shop(graphene.ObjectType):
         return Navigation(main=top_menu, secondary=bottom_menu)
 
     @staticmethod
-    @permission_required("account.manage_users")
     def resolve_permissions(_, _info):
         permissions = get_permissions()
         return format_permissions_for_display(permissions)
