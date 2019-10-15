@@ -1,5 +1,7 @@
+from collections import defaultdict
 from typing import List
 
+import graphene
 from django.core.exceptions import ValidationError
 
 from ...product import AttributeInputType, models
@@ -45,3 +47,17 @@ def validate_attribute_input_for_variant(instance: models.Attribute, values: Lis
         raise ValidationError(
             "Attribute values cannot be blank", code=ProductErrorCode.REQUIRED
         )
+
+
+def get_used_attribute_values(product):
+    variants = product.variants.all()
+    used_attribute_values = []
+    for variant in variants:
+        attribute_values = defaultdict(list)
+        for assigned_variant_attribute in variant.attributes.all():
+            attribute = assigned_variant_attribute.attribute
+            attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
+            for variant in assigned_variant_attribute.values.all():
+                attribute_values[attribute_id].append(variant.slug)
+        used_attribute_values.append(attribute_values)
+    return used_attribute_values
