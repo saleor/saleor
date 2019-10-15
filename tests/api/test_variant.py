@@ -208,6 +208,60 @@ def test_create_product_variant_not_all_attributes(
     assert not product.variants.filter(sku=sku).exists()
 
 
+def test_create_product_variant_duplicated_attributes(
+    staff_api_client, product_with_two_variants, permission_manage_products
+):
+    query = """
+        mutation createVariant (
+            $productId: ID!,
+            $sku: String!,
+            $attributes: [AttributeValueInput]!
+        ) {
+            productVariantCreate(
+                input: {
+                    product: $productId,
+                    sku: $sku,
+                    attributes: $attributes
+                }) {
+                productErrors {
+                    field
+                    code
+                    message
+                }
+            }
+        }
+    """
+    product = product_with_two_variants
+    product_variant = product.variants.first()
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    first_attribute = product_variant.attributes.first().attribute
+    first_attribute_id = graphene.Node.to_global_id("Attribute", first_attribute.id)
+    first_attribute_value = product_variant.attributes.first().values.first()
+    second_attribute = product_variant.attributes.last().attribute
+    second_attribute_id = graphene.Node.to_global_id("Attribute", second_attribute.id)
+    second_attribute_value = product_variant.attributes.last().values.first()
+    sku = str(uuid4())[:12]
+    variables = {
+        "productId": product_id,
+        "sku": sku,
+        "attributes": [
+            {"id": first_attribute_id, "values": [first_attribute_value.slug]},
+            {"id": second_attribute_id, "values": [second_attribute_value.slug]},
+        ],
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["productVariantCreate"]["productErrors"]
+    assert content["data"]["productVariantCreate"]["productErrors"][0] == {
+        "field": "attributes",
+        "code": ProductErrorCode.UNIQUE.name,
+        "message": ANY,
+    }
+    assert not product.variants.filter(sku=sku).exists()
+
+
 def test_create_product_variant_update_with_new_attributes(
     staff_api_client, permission_manage_products, product, size_attribute
 ):

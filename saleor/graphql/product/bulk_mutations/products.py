@@ -194,24 +194,6 @@ class ProductVariantBulkCreate(BaseMutation):
         return instances
 
     @classmethod
-    def validate_duplicated_attribute_values(
-        cls, variant_data, index, used_attribute_values, errors
-    ):
-        attribute_values = defaultdict(list)
-        for attribute in variant_data.attributes:
-            attribute_values[attribute.id].extend(attribute.values)
-        if attribute_values in used_attribute_values:
-            errors["attributes"].append(
-                ValidationError(
-                    "Duplicated attribute values for product variant.",
-                    ProductErrorCode.UNIQUE,
-                    params={"index": index},
-                )
-            )
-        else:
-            used_attribute_values.append(attribute_values)
-
-    @classmethod
     def validate_duplicated_sku(cls, sku, index, sku_list, errors):
         if sku in sku_list:
             errors["sku"].append(
@@ -227,9 +209,14 @@ class ProductVariantBulkCreate(BaseMutation):
         sku_list = []
         used_attribute_values = get_used_attribute_values(product)
         for index, variant_data in enumerate(variants):
-            cls.validate_duplicated_attribute_values(
-                variant_data, index, used_attribute_values, errors
-            )
+            try:
+                ProductVariantCreate.validate_duplicated_attribute_values(
+                    variant_data.attributes, used_attribute_values
+                )
+            except ValidationError as exc:
+                errors["attributes"].append(
+                    ValidationError(exc.message, exc.code, params={"index": index})
+                )
 
             cleaned_input = None
             try:
