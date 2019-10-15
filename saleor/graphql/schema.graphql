@@ -3328,6 +3328,7 @@ type ProductVariantUpdatePrivateMeta {
 type Query {
   webhook(id: ID!): Webhook
   webhooks(filter: WebhookFilterInput, before: String, after: String, first: Int, last: Int): WebhookCountableConnection
+  webhookSamplePayload(eventType: WebhookEventTypeEnum!): JSONString
   translations(kind: TranslatableKinds!, before: String, after: String, first: Int, last: Int): TranslatableItemConnection
   shop: Shop
   shippingZone(id: ID!): ShippingZone
@@ -4324,6 +4325,7 @@ enum WebhookEventTypeEnum {
   ORDER_FULLY_PAID
   ORDER_UPDATED
   ORDER_CANCELLED
+  ORDER_FULFILLED
   CUSTOMER_CREATED
   PRODUCT_CREATED
 }

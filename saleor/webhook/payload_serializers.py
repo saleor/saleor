@@ -14,32 +14,21 @@ class PythonSerializer(PythonBaseSerializer):
         return data
 
 
-class WebhookSerializer(JSONSerializer):
+class PayloadSerializer(JSONSerializer):
     def __init__(self):
         super().__init__()
         self.additional_fields = {}
 
-    def serialize(
-        self,
-        queryset,
-        *,
-        stream=None,
-        fields=None,
-        use_natural_foreign_keys=False,
-        use_natural_primary_keys=False,
-        progress_output=None,
-        object_count=0,
-        **options,
-    ):
+    def serialize(self, queryset, **options):
         self.additional_fields = options.pop("additional_fields", {})
         return super().serialize(
             queryset,
-            stream=stream,
-            fields=fields,
-            use_natural_foreign_keys=use_natural_foreign_keys,
-            use_natural_primary_keys=use_natural_primary_keys,
-            progress_output=progress_output,
-            object_count=object_count,
+            stream=options.pop("stream", None),
+            fields=options.pop("fields", None),
+            use_natural_foreign_keys=options.pop("use_natural_foreign_keys", False),
+            use_natural_primary_keys=options.pop("use_natural_primary_keys", False),
+            progress_output=options.pop("progress_output", None),
+            object_count=options.pop("object_count", 0),
             **options,
         )
 
