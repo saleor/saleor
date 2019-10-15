@@ -7,7 +7,7 @@ from .enums import WebhookEventTypeEnum
 
 
 class WebhookEvent(CountableDjangoObjectType):
-    name = graphene.String(description="Printable name of the event")
+    name = graphene.String(description="Display name of the event.")
     event_type = WebhookEventTypeEnum(description="Internal name of the event type.")
 
     class Meta:
@@ -16,9 +16,8 @@ class WebhookEvent(CountableDjangoObjectType):
         only_fields = ["event_type", "name"]
 
     @staticmethod
-    def resolve_name(info: models.WebhookEvent, *_args, **_kwargs):
-        name = WebhookEventType.DISPLAY_LABELS.get(info.event_type) or info.event_type
-        return name
+    def resolve_name(root: models.WebhookEvent, *_args, **_kwargs):
+        return WebhookEventType.DISPLAY_LABELS.get(root.event_type) or root.event_type
 
 
 class Webhook(CountableDjangoObjectType):
