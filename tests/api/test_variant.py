@@ -986,7 +986,7 @@ def test_product_variant_bulk_create_two_variants_duplicated_attribute_value(
         {
             "sku": str(uuid4())[:12],
             "attributes": [
-                {"id": color_attribute_id, "values": ["blue"]},
+                {"id": color_attribute_id, "values": ["red"]},
                 {"id": size_attribute_id, "values": ["small"]},
             ],
         }
