@@ -88,10 +88,10 @@ def display_order_event(order_event: OrderEvent):
             "%(user_name)s added note: %(note)s"
             % {"note": params["message"], "user_name": order_event.user},
         )
-    if event_type == events.OrderEvents.CUSTOMER_NOTE_UPDATED:
+    if event_type == events.OrderEvents.CUSTOMER_NOTE_ADDED:
         return pgettext_lazy(
             "Dashboard message related to an order",
-            "%(user_name)s updated customer's note: %(note)s"
+            "%(user_name)s added customer's note: %(note)s"
             % {"note": params["message"], "user_name": order_event.user},
         )
     if event_type == events.OrderEvents.FULFILLMENT_CANCELED:
