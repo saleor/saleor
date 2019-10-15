@@ -5,6 +5,7 @@ import pytest
 
 from saleor.account.models import ServiceAccount
 from saleor.graphql.webhook.enums import WebhookEventTypeEnum
+from saleor.webhook import WebhookEventType
 from saleor.webhook.models import Webhook
 
 from .utils import assert_no_permission, get_graphql_content
@@ -509,6 +510,37 @@ def test_query_webhook_by_service_account_without_permission(
     content = get_graphql_content(response)
     webhook_response = content["data"]["webhook"]
     assert webhook_response is None
+
+
+WEBHOOK_EVENTS_QUERY = """
+{
+  webhookEvents(first:10){
+    edges{
+      node{
+        eventType
+        name
+      }
+    }
+  }
+}
+"""
+
+
+def test_query_webhook_events(staff_api_client, permission_manage_webhooks):
+    query = WEBHOOK_EVENTS_QUERY
+    staff_api_client.user.user_permissions.add(permission_manage_webhooks)
+    response = staff_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    webhook_events = content["data"]["webhookEvents"]["edges"]
+
+    assert len(webhook_events) == len(WebhookEventType.CHOICES)
+
+
+def test_query_webhook_events_without_permissions(staff_api_client):
+
+    query = WEBHOOK_EVENTS_QUERY
+    response = staff_api_client.post_graphql(query)
+    assert_no_permission(response)
 
 
 SAMPLE_PAYLOAD_QUERY = """
