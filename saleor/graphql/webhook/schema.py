@@ -29,6 +29,10 @@ class WebhookQueries(graphene.ObjectType):
             required=True,
             description="Name of the requested event type.",
         ),
+        description=(
+            "Retrieve a sample payload for a given webhook event based on real data. It"
+            " can be useful for some integrations where sample payload is required."
+        ),
     )
 
     @staticmethod
