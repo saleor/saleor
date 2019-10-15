@@ -249,6 +249,13 @@ class OrderEvents:
             ),
         ),
         (
+            CUSTOMER_NOTE_ADDED,
+            pgettext_lazy(
+                "Event from an user that added a customer's note to an order",
+                "A customer's note was added to the order",
+            ),
+        ),
+        (
             OTHER,
             pgettext_lazy(
                 "An other type of order event containing a message",
