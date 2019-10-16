@@ -514,13 +514,9 @@ def test_query_webhook_by_service_account_without_permission(
 
 WEBHOOK_EVENTS_QUERY = """
 {
-  webhookEvents(first:10){
-    edges{
-      node{
-        eventType
-        name
-      }
-    }
+  webhookEvents{
+    eventType
+    name
   }
 }
 """
@@ -531,7 +527,7 @@ def test_query_webhook_events(staff_api_client, permission_manage_webhooks):
     staff_api_client.user.user_permissions.add(permission_manage_webhooks)
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
-    webhook_events = content["data"]["webhookEvents"]["edges"]
+    webhook_events = content["data"]["webhookEvents"]
 
     assert len(webhook_events) == len(WebhookEventType.CHOICES)
 

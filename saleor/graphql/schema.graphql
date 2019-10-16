@@ -3328,7 +3328,7 @@ type ProductVariantUpdatePrivateMeta {
 type Query {
   webhook(id: ID!): Webhook
   webhooks(filter: WebhookFilterInput, before: String, after: String, first: Int, last: Int): WebhookCountableConnection
-  webhookEvents(before: String, after: String, first: Int, last: Int): WebhookEventCountableConnection
+  webhookEvents: [WebhookEvent]
   webhookSamplePayload(eventType: WebhookEventTypeEnum!): JSONString
   translations(kind: TranslatableKinds!, before: String, after: String, first: Int, last: Int): TranslatableItemConnection
   shop: Shop
@@ -4319,17 +4319,6 @@ enum WebhookErrorCode {
 type WebhookEvent {
   eventType: WebhookEventTypeEnum
   name: String
-}
-
-type WebhookEventCountableConnection {
-  pageInfo: PageInfo!
-  edges: [WebhookEventCountableEdge!]!
-  totalCount: Int
-}
-
-type WebhookEventCountableEdge {
-  node: WebhookEvent!
-  cursor: String!
 }
 
 enum WebhookEventTypeEnum {
