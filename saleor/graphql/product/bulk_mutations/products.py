@@ -22,7 +22,7 @@ from ..mutations.products import (
     ProductVariantInput,
 )
 from ..types import ProductVariant
-from ..utils import get_used_attribute_values
+from ..utils import get_used_variants_attribute_values
 
 
 class CategoryBulkDelete(ModelBulkDeleteMutation):
@@ -207,7 +207,7 @@ class ProductVariantBulkCreate(BaseMutation):
     def clean_variants(cls, info, variants, product, errors):
         cleaned_inputs = []
         sku_list = []
-        used_attribute_values = get_used_attribute_values(product)
+        used_attribute_values = get_used_variants_attribute_values(product)
         for index, variant_data in enumerate(variants):
             try:
                 ProductVariantCreate.validate_duplicated_attribute_values(

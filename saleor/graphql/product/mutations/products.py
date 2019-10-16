@@ -50,7 +50,7 @@ from ..types import (
     ProductVariant,
 )
 from ..utils import (
-    get_used_attribute_values,
+    get_used_variants_attribute_values,
     validate_attribute_input_for_product,
     validate_attribute_input_for_variant,
 )
@@ -1075,12 +1075,14 @@ class ProductVariantCreate(ModelMutation):
                 # If the variant is getting updated,
                 # simply retrieve the associated product type
                 product_type = instance.product.product_type
-                used_attribute_values = get_used_attribute_values(instance.product)
+                used_attribute_values = get_used_variants_attribute_values(
+                    instance.product
+                )
             else:
                 # If the variant is getting created, no product type is associated yet,
                 # retrieve it from the required "product" input field
                 product_type = cleaned_input["product"].product_type
-                used_attribute_values = get_used_attribute_values(
+                used_attribute_values = get_used_variants_attribute_values(
                     cleaned_input["product"]
                 )
 
