@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import Iterable, List, Tuple, Union
 
 import graphene
@@ -49,6 +50,7 @@ from ..types import (
     ProductVariant,
 )
 from ..utils import (
+    get_used_variants_attribute_values,
     validate_attribute_input_for_product,
     validate_attribute_input_for_variant,
 )
@@ -451,7 +453,6 @@ class CategoryClearPrivateMeta(ClearMetaBaseMutation):
 
 class AttributeValueInput(InputObjectType):
     id = graphene.ID(description="ID of the selected attribute.")
-    slug = graphene.String(description="Slug of the selected attribute.")
     values = graphene.List(
         graphene.String,
         required=True,
@@ -1042,6 +1043,19 @@ class ProductVariantCreate(ModelMutation):
         return attributes
 
     @classmethod
+    def validate_duplicated_attribute_values(cls, attributes, used_attribute_values):
+        attribute_values = defaultdict(list)
+        for attribute in attributes:
+            attribute_values[attribute.id].extend(attribute.values)
+        if attribute_values in used_attribute_values:
+            raise ValidationError(
+                "Duplicated attribute values for product variant.",
+                ProductErrorCode.UNIQUE,
+            )
+        else:
+            used_attribute_values.append(attribute_values)
+
+    @classmethod
     def clean_input(cls, info, instance: models.ProductVariant, data: dict):
         cleaned_input = super().clean_input(info, instance, data)
 
@@ -1061,12 +1075,21 @@ class ProductVariantCreate(ModelMutation):
                 # If the variant is getting updated,
                 # simply retrieve the associated product type
                 product_type = instance.product.product_type
+                used_attribute_values = get_used_variants_attribute_values(
+                    instance.product
+                )
             else:
                 # If the variant is getting created, no product type is associated yet,
                 # retrieve it from the required "product" input field
                 product_type = cleaned_input["product"].product_type
+                used_attribute_values = get_used_variants_attribute_values(
+                    cleaned_input["product"]
+                )
 
             try:
+                cls.validate_duplicated_attribute_values(
+                    attributes, used_attribute_values
+                )
                 cleaned_input["attributes"] = cls.clean_attributes(
                     attributes, product_type
                 )
