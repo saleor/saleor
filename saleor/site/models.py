@@ -4,6 +4,7 @@ from typing import Optional
 
 from django.conf import settings
 from django.contrib.sites.models import Site
+from django.core.exceptions import ImproperlyConfigured
 from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.translation import pgettext_lazy
@@ -83,15 +84,15 @@ class SiteSettings(models.Model):
         return self.site.name
 
     @property
-    def default_from_email(self) -> Optional[str]:
-        sender_name: Optional[str] = self.default_mail_sender_name or ""
+    def default_from_email(self) -> str:
+        sender_name: str = self.default_mail_sender_name or ""
         sender_address: Optional[str] = self.default_mail_sender_address
 
         if not sender_address:
             sender_address = settings.DEFAULT_FROM_EMAIL
 
             if not sender_address:
-                return None
+                raise ImproperlyConfigured("No sender email address has been set-up")
 
             sender_name, sender_address = parseaddr(sender_address)
 

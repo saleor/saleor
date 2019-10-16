@@ -122,7 +122,9 @@ if not EMAIL_URL and SENDGRID_USERNAME and SENDGRID_PASSWORD:
         SENDGRID_USERNAME,
         SENDGRID_PASSWORD,
     )
-email_config = dj_email_url.parse(EMAIL_URL or "console://")
+email_config = dj_email_url.parse(
+    EMAIL_URL or "console://demo@example.com:console@example/"
+)
 
 EMAIL_FILE_PATH = email_config["EMAIL_FILE_PATH"]
 EMAIL_HOST_USER = email_config["EMAIL_HOST_USER"]

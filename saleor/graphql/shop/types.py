@@ -283,10 +283,7 @@ class Shop(graphene.ObjectType):
     @staticmethod
     @permission_required("site.manage_settings")
     def resolve_default_mail_sender_address(_, info):
-        return (
-            info.context.site.settings.default_mail_sender_address
-            or settings.DEFAULT_FROM_EMAIL
-        )
+        return info.context.site.settings.default_mail_sender_address
 
     @staticmethod
     def resolve_company_address(_, info):
