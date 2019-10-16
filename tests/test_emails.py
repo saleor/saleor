@@ -2,6 +2,7 @@ from unittest import mock
 
 import pytest
 from django.core import mail
+from django.core.exceptions import ImproperlyConfigured
 from django.templatetags.static import static
 from templated_email import get_connection
 
@@ -202,7 +203,22 @@ def test_send_dummy_email_with_header_injection(
 ):
     site_settings.default_mail_sender_address = sender_name
     site_settings.default_mail_sender_name = sender_address
-    site_settings.save()
+    site_settings.save(
+        update_fields=["default_mail_sender_address", "default_mail_sender_name"]
+    )
 
     account_emails.send_account_delete_confirmation_email(customer_user)
     assert len(mail.outbox) == 0
+
+
+def test_email_with_email_not_configured_raises_error(settings, site_settings):
+    """Ensure an exception is thrown when not default sender is set;
+    both missing in the settings.py and in the site settings table.
+    """
+    site_settings.default_mail_sender_address = None
+    settings.DEFAULT_FROM_EMAIL = None
+
+    with pytest.raises(ImproperlyConfigured) as exc:
+        _ = site_settings.default_from_email
+
+    assert exc.value.args == ("No sender email address has been set-up",)

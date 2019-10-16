@@ -302,7 +302,7 @@ def test_query_default_mail_sender_settings_not_set(
 
     data = content["data"]["shop"]
     assert data["defaultMailSenderName"] is None
-    assert data["defaultMailSenderAddress"] == "default@example.com"
+    assert data["defaultMailSenderAddress"] is None
 
 
 def test_shop_digital_content_settings_mutation(
