@@ -285,7 +285,7 @@ def test_query_default_mail_sender_settings(
 def test_query_default_mail_sender_settings_not_set(
     staff_api_client, site_settings, permission_manage_settings, settings
 ):
-    site_settings.default_mail_sender_name = None
+    site_settings.default_mail_sender_name = ""
     site_settings.default_mail_sender_address = None
     site_settings.save(
         update_fields=["default_mail_sender_name", "default_mail_sender_address"]
@@ -301,7 +301,7 @@ def test_query_default_mail_sender_settings_not_set(
     content = get_graphql_content(response)
 
     data = content["data"]["shop"]
-    assert data["defaultMailSenderName"] is None
+    assert data["defaultMailSenderName"] == ""
     assert data["defaultMailSenderAddress"] is None
 
 

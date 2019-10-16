@@ -5,7 +5,7 @@ from typing import Optional
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.exceptions import ImproperlyConfigured
-from django.core.validators import RegexValidator
+from django.core.validators import MaxLengthValidator, RegexValidator
 from django.db import models
 from django.utils.translation import pgettext_lazy
 
@@ -26,7 +26,8 @@ EMAIL_SENDER_NAME_VALIDATORS = [
             "Email sender name validation error", "New lines are not allowed."
         ),
         code=SiteErrorCode.FORBIDDEN_CHARACTER.value,
-    )
+    ),
+    MaxLengthValidator(settings.DEFAULT_MAX_EMAIL_DISPLAY_NAME_LENGTH),
 ]
 
 
@@ -62,7 +63,10 @@ class SiteSettings(models.Model):
     )
 
     default_mail_sender_name = models.CharField(
-        max_length=254, blank=True, null=True, validators=EMAIL_SENDER_NAME_VALIDATORS
+        max_length=settings.DEFAULT_MAX_EMAIL_DISPLAY_NAME_LENGTH,
+        blank=True,
+        default="",
+        validators=EMAIL_SENDER_NAME_VALIDATORS,
     )
     default_mail_sender_address = models.EmailField(blank=True, null=True)
 
@@ -85,7 +89,7 @@ class SiteSettings(models.Model):
 
     @property
     def default_from_email(self) -> str:
-        sender_name: str = self.default_mail_sender_name or ""
+        sender_name: str = self.default_mail_sender_name
         sender_address: Optional[str] = self.default_mail_sender_address
 
         if not sender_address:

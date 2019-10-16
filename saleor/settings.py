@@ -55,7 +55,7 @@ CACHES = {"default": django_cache_url.config()}
 
 DATABASES = {
     "default": dj_database_url.config(
-        default="postgres://saleor:saleor@localhost:5432/saleor", conn_max_age=600
+        default="postgres://saleor:cloud@localhost:5432/saleor", conn_max_age=600
     )
 }
 
@@ -359,6 +359,11 @@ DEFAULT_CURRENCY = os.environ.get("DEFAULT_CURRENCY", "USD")
 DEFAULT_DECIMAL_PLACES = get_currency_fraction(DEFAULT_CURRENCY)
 DEFAULT_MAX_DIGITS = 12
 DEFAULT_CURRENCY_CODE_LENGTH = 3
+
+# The default max length for the display name of the
+# sender email address.
+# Following the recommendation of https://tools.ietf.org/html/rfc5322#section-2.1.1
+DEFAULT_MAX_EMAIL_DISPLAY_NAME_LENGTH = 78
 
 # note: having multiple currencies is not supported yet
 AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
