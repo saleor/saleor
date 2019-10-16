@@ -488,6 +488,39 @@ def product(product_type, category):
 
 
 @pytest.fixture
+def product_with_two_variants(color_attribute, size_attribute, category):
+    product_type = ProductType.objects.create(
+        name="Type with two variants", has_variants=True, is_shipping_required=True
+    )
+    product_type.variant_attributes.add(color_attribute)
+    product_type.variant_attributes.add(size_attribute)
+
+    product = Product.objects.create(
+        name="Test product with two variants",
+        price=Money("10.00", "USD"),
+        product_type=product_type,
+        category=category,
+    )
+
+    variant = ProductVariant.objects.create(
+        product=product,
+        sku="prodVar1",
+        cost_price=Money("1.00", "USD"),
+        quantity=10,
+        quantity_allocated=1,
+    )
+
+    associate_attribute_values_to_instance(
+        variant, color_attribute, color_attribute.values.first()
+    )
+    associate_attribute_values_to_instance(
+        variant, size_attribute, size_attribute.values.first()
+    )
+
+    return product
+
+
+@pytest.fixture
 def product_with_multiple_values_attributes(product, product_type, category) -> Product:
 
     attribute = Attribute.objects.create(

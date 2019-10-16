@@ -22,6 +22,7 @@ from ..mutations.products import (
     ProductVariantInput,
 )
 from ..types import ProductVariant
+from ..utils import get_used_variants_attribute_values
 
 
 class CategoryBulkDelete(ModelBulkDeleteMutation):
@@ -193,30 +194,41 @@ class ProductVariantBulkCreate(BaseMutation):
         return instances
 
     @classmethod
-    def clean_variants(cls, info, variants, product_type, errors):
+    def validate_duplicated_sku(cls, sku, index, sku_list, errors):
+        if sku in sku_list:
+            errors["sku"].append(
+                ValidationError(
+                    "Duplicated SKU.", ProductErrorCode.UNIQUE, params={"index": index}
+                )
+            )
+        sku_list.append(sku)
+
+    @classmethod
+    def clean_variants(cls, info, variants, product, errors):
         cleaned_inputs = []
         sku_list = []
+        used_attribute_values = get_used_variants_attribute_values(product)
         for index, variant_data in enumerate(variants):
+            try:
+                ProductVariantCreate.validate_duplicated_attribute_values(
+                    variant_data.attributes, used_attribute_values
+                )
+            except ValidationError as exc:
+                errors["attributes"].append(
+                    ValidationError(exc.message, exc.code, params={"index": index})
+                )
+
             cleaned_input = None
             try:
-                variant_data["product_type"] = product_type
+                variant_data["product_type"] = product.product_type
                 cleaned_input = cls.clean_input(info, None, variant_data)
             except ValidationError as exc:
                 cls.add_indexes_to_errors(index, exc, errors)
             cleaned_inputs.append(cleaned_input if cleaned_input else None)
 
-            # Find duplicated sku in variants
             if not variant_data.sku:
                 continue
-            if variant_data.sku in sku_list:
-                errors["sku"].append(
-                    ValidationError(
-                        "Duplicated SKU.",
-                        ProductErrorCode.UNIQUE,
-                        params={"index": index},
-                    )
-                )
-            sku_list.append(variant_data.sku)
+            cls.validate_duplicated_sku(variant_data.sku, index, sku_list, errors)
         return cleaned_inputs
 
     @classmethod
@@ -233,9 +245,7 @@ class ProductVariantBulkCreate(BaseMutation):
         product = cls.get_node_or_error(info, data["product_id"], models.Product)
         errors = defaultdict(list)
 
-        cleaned_inputs = cls.clean_variants(
-            info, data["variants"], product.product_type, errors
-        )
+        cleaned_inputs = cls.clean_variants(info, data["variants"], product, errors)
         instances = cls.create_variants(info, cleaned_inputs, product, errors)
         if errors:
             raise ValidationError(errors)
