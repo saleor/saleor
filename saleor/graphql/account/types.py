@@ -2,6 +2,7 @@ import graphene
 import graphene_django_optimizer as gql_optimizer
 from django.contrib.auth import get_user_model
 from graphene import relay
+from graphene_federation import key
 from graphql_jwt.decorators import login_required
 
 from ...account import models
@@ -33,6 +34,7 @@ class AddressInput(graphene.InputObjectType):
     phone = graphene.String(description="Phone number.")
 
 
+@key(fields="id")
 class Address(CountableDjangoObjectType):
     country = graphene.Field(
         CountryDisplay, required=True, description="Shop's default country."
@@ -105,6 +107,10 @@ class Address(CountableDjangoObjectType):
             return True
         return False
 
+    @staticmethod
+    def __resolve_reference(root, _info, **_kwargs):
+        return graphene.Node.get_node_from_global_id(_info, root.id)
+
 
 class CustomerEvent(CountableDjangoObjectType):
     date = graphene.types.datetime.DateTime(
@@ -170,6 +176,7 @@ class ServiceAccountToken(CountableDjangoObjectType):
         return root.auth_token[-4:]
 
 
+@key(fields="id")
 class ServiceAccount(MetadataObjectType, CountableDjangoObjectType):
     permissions = graphene.List(
         PermissionDisplay, description="List of the service's permissions."
@@ -216,7 +223,12 @@ class ServiceAccount(MetadataObjectType, CountableDjangoObjectType):
     def resolve_meta(root, info):
         return resolve_meta(root, info)
 
+    @staticmethod
+    def __resolve_reference(root, _info, **_kwargs):
+        return graphene.Node.get_node_from_global_id(_info, root.id)
 
+
+@key(fields="id")
 class User(MetadataObjectType, CountableDjangoObjectType):
     addresses = gql_optimizer.field(
         graphene.List(Address, description="List of all user's addresses."),
@@ -338,6 +350,10 @@ class User(MetadataObjectType, CountableDjangoObjectType):
     @staticmethod
     def resolve_meta(root, _info):
         return resolve_meta(root, _info)
+
+    @staticmethod
+    def __resolve_reference(root, _info, **_kwargs):
+        return graphene.Node.get_node_from_global_id(_info, root.id)
 
 
 class ChoiceValue(graphene.ObjectType):

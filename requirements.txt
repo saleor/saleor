@@ -5,8 +5,8 @@ babel==2.7.0
 beautifulsoup4==4.7.1
 billiard==3.6.1.0
 bleach==2.1.4
-boto3==1.9.244
-botocore==1.12.244
+boto3==1.9.247
+botocore==1.12.247
 braintree==3.49.0
 cachetools==3.1.1
 cairocffi==1.1.0
@@ -62,7 +62,8 @@ googleapis-common-protos==1.6.0
 gprof2dot==2016.10.13
 graphene==2.1.8
 graphene-django==2.6.0
-graphene-django-optimizer==0.6.0
+graphene-django-optimizer==0.6.1
+graphene-federation==0.0.3
 graphql-core==2.2.1
 graphql-relay==2.0.0
 html-to-draftjs==1.0.1
@@ -91,7 +92,7 @@ protobuf==3.10.0
 psycopg2-binary==2.8.3
 purl==1.5
 pyasn1==0.4.7
-pyasn1-modules==0.2.6
+pyasn1-modules==0.2.7
 pycodestyle==2.5.0
 pycparser==2.19
 pygments==2.4.2
@@ -101,7 +102,7 @@ python-dateutil==2.8.0
 python3-openid==3.1.0; python_version >= "3.0"
 pytz==2019.3
 razorpay==1.2.0
-redis==3.3.8
+redis==3.3.10
 requests==2.22.0
 requests-oauthlib==1.2.0
 rsa==4.0
