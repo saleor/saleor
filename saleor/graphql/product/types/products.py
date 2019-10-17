@@ -5,6 +5,7 @@ import graphene_django_optimizer as gql_optimizer
 from django.conf import settings
 from django.db.models import Prefetch
 from graphene import relay
+from graphene_federation import key
 from graphql.error import GraphQLError
 
 from ....product import models
@@ -205,6 +206,7 @@ class ProductPricingInfo(BasePricingInfo):
         description = "Represents availability of a product in the storefront."
 
 
+@key(fields="id")
 class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
     quantity = graphene.Int(
         required=True,
@@ -415,7 +417,12 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
     def resolve_meta(root, _info):
         return resolve_meta(root, _info)
 
+    @staticmethod
+    def __resolve_reference(root, _info, **_kwargs):
+        return graphene.Node.get_node_from_global_id(_info, root.id)
 
+
+@key(fields="id")
 class Product(CountableDjangoObjectType, MetadataObjectType):
     url = graphene.String(
         description="The storefront URL for the product.", required=True
@@ -643,7 +650,12 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
     def resolve_slug(root: models.Product, *_args):
         return root.get_slug()
 
+    @staticmethod
+    def __resolve_reference(root, _info, **_kwargs):
+        return graphene.Node.get_node_from_global_id(_info, root.id)
 
+
+@key(fields="id")
 class ProductType(CountableDjangoObjectType, MetadataObjectType):
     products = gql_optimizer.field(
         PrefetchingConnectionField(
@@ -731,7 +743,12 @@ class ProductType(CountableDjangoObjectType, MetadataObjectType):
     def resolve_meta(root, _info):
         return resolve_meta(root, _info)
 
+    @staticmethod
+    def __resolve_reference(root, _info, **_kwargs):
+        return graphene.Node.get_node_from_global_id(_info, root.id)
 
+
+@key(fields="id")
 class Collection(CountableDjangoObjectType, MetadataObjectType):
     products = gql_optimizer.field(
         PrefetchingConnectionField(
@@ -806,7 +823,12 @@ class Collection(CountableDjangoObjectType, MetadataObjectType):
     def resolve_meta(root, _info):
         return resolve_meta(root, _info)
 
+    @staticmethod
+    def __resolve_reference(root, _info, **_kwargs):
+        return graphene.Node.get_node_from_global_id(_info, root.id)
 
+
+@key(fields="id")
 class Category(CountableDjangoObjectType, MetadataObjectType):
     ancestors = PrefetchingConnectionField(
         lambda: Category, description="List of ancestors of the category."
@@ -903,7 +925,12 @@ class Category(CountableDjangoObjectType, MetadataObjectType):
     def resolve_meta(root, _info):
         return resolve_meta(root, _info)
 
+    @staticmethod
+    def __resolve_reference(root, _info, **_kwargs):
+        return graphene.Node.get_node_from_global_id(_info, root.id)
 
+
+@key(fields="id")
 class ProductImage(CountableDjangoObjectType):
     url = graphene.String(
         required=True,
@@ -924,6 +951,10 @@ class ProductImage(CountableDjangoObjectType):
         else:
             url = root.image.url
         return info.context.build_absolute_uri(url)
+
+    @staticmethod
+    def __resolve_reference(root, _info, **_kwargs):
+        return graphene.Node.get_node_from_global_id(_info, root.id)
 
 
 class MoveProductInput(graphene.InputObjectType):
