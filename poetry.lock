@@ -1076,15 +1076,11 @@ description = "Federation implementation for graphene"
 name = "graphene-federation"
 optional = false
 python-versions = "*"
-version = "0.0.2"
+version = "0.0.3"
 
 [package.dependencies]
 graphene = ">=2.1.0,<3"
 
-[package.source]
-reference = "89f239a882e25dd540191fe6c74f5fd032ce3b17"
-type = "git"
-url = "https://github.com/erebus1/graphene-federation.git"
 [[package]]
 category = "main"
 description = "GraphQL implementation for Python"
@@ -2304,7 +2300,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["pathlib2", "contextlib2", "unittest2"]
 
 [metadata]
-content-hash = "89558cffeea9e6ef0c4b06980ec7cddd16d89d48d805766b80f0253688cfcd86"
+content-hash = "5a23e06db616b73ac29fcb8c9e19fea19ce9e10f7930fb91ad3435b85aa4fdc7"
 python-versions = "~3.7"
 
 [metadata.hashes]
@@ -2393,7 +2389,7 @@ gprof2dot = ["48c1e168c28b8a8eb23bf30fda78fe2ef218269a41505341ec27c27083e47cf4"]
 graphene = ["09165f03e1591b76bf57b133482db9be6dac72c74b0a628d3c93182af9c5a896", "2cbe6d4ef15cfc7b7805e0760a0e5b80747161ce1b0f990dfdc0d2cf497c12f9"]
 graphene-django = ["0d1404ab1ba7873a8e848d87d138f615391d100ed0c046482c164429cfb992ef", "fa9e815f63e3c972773adc96c3f3c81e537dba0edcd0f1be92c799bc0b6ed0a8"]
 graphene-django-optimizer = ["2c3902cfc739ae7f9953c9130fa4030d4f1bd9e81c820713c4270137e63f89cb"]
-graphene-federation = []
+graphene-federation = ["74b393daf8811fdd10e4b8395f33e3be667e0e4f6f9508c372758f6fd38f03c1"]
 graphql-core = ["1488f2a5c2272dc9ba66e3042a6d1c30cea0db4c80bd1e911c6791ad6187d91b", "da64c472d720da4537a2e8de8ba859210b62841bd47a9be65ca35177f62fe0e4"]
 graphql-relay = ["0e94201af4089e1f81f07d7bd8f84799768e39d70fa1ea16d1df505b46cc6335", "75aa0758971e252964cb94068a4decd472d2a8295229f02189e3cbca1f10dbb5", "7fa74661246e826ef939ee92e768f698df167a7617361ab399901eaebf80dce6"]
 html-to-draftjs = ["2212acf3b063c17b6dc91875f474159e1f730c1a4e5fbf74f9a66250f7040e9a"]

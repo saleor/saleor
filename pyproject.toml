@@ -70,7 +70,7 @@ text-unidecode = "^1.2"
 tqdm = "^4.36"
 uwsgi = { version = "^2.0.8", markers = "platform_system != 'Windows'" }
 weasyprint = ">=48"
-graphene-federation = {git = "https://github.com/erebus1/graphene-federation.git"}
+graphene-federation = "^0.0.3"
 
 [tool.poetry.dev-dependencies]
 black = "19.3b0"
