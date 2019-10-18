@@ -16,7 +16,9 @@ def validate_storefront_url(url):
     try:
         parsed_url = urlparse(url)
         domain, _ = split_domain_port(parsed_url.netloc)
+        # TODO: Check if parsed_url.netloc is empty
     except ValueError as error:
+        # TODO: Move Error code and field outside function
         raise ValidationError(
             {"redirectUrl": str(error)}, code=AccountErrorCode.INVALID
         )
@@ -25,6 +27,7 @@ def validate_storefront_url(url):
             f"{domain or url} is not allowed. Please check "
             "`ALLOWED_CLIENT_HOSTS` configuration."
         )
+        # TODO: Move Error code and field outside function
         raise ValidationError(
             {"redirectUrl": error_message}, code=AccountErrorCode.INVALID
         )

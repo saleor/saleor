@@ -149,6 +149,8 @@ class Shop(graphene.ObjectType):
     company_address = graphene.Field(
         Address, description="Company address.", required=False
     )
+    # TODO: Add description
+    customer_set_password_url = graphene.String(description="XXXXX", required=False)
 
     class Meta:
         description = (
@@ -288,6 +290,10 @@ class Shop(graphene.ObjectType):
     @staticmethod
     def resolve_company_address(_, info):
         return info.context.site.settings.company_address
+
+    @staticmethod
+    def resolve_customer_set_password_url(_, info):
+        return info.context.site.settings.customer_set_password_url
 
     @staticmethod
     def resolve_translation(_, info, language_code):
