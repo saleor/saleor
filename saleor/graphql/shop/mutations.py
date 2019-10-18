@@ -5,6 +5,7 @@ from django.core.management import call_command
 
 from ...account.models import Address
 from ...core.error_codes import ShopErrorCode
+from ...core.utils.url import validate_storefront_url
 from ...site import models as site_models
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
@@ -42,6 +43,8 @@ class ShopSettingsInput(graphene.InputObjectType):
     default_mail_sender_address = graphene.String(
         description="Default email sender's address."
     )
+    # TODO: Add description
+    customer_set_password_url = graphene.String(description="XXXXX")
 
 
 class SiteDomainInput(graphene.InputObjectType):
@@ -64,13 +67,25 @@ class ShopSettingsUpdate(BaseMutation):
         error_type_field = "shop_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        instance = info.context.site.settings
-        data = data.get("input")
-        for field_name, desired_value in data.items():
+    def clean_input(cls, _info, _instance, data):
+        if data.get("customer_set_password_url"):
+            validate_storefront_url(data["customer_set_password_url"])
+        return data
+
+    @classmethod
+    def construct_instance(cls, instance, cleaned_data):
+        for field_name, desired_value in cleaned_data.items():
             current_value = getattr(instance, field_name)
             if current_value != desired_value:
                 setattr(instance, field_name, desired_value)
+        return instance
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        instance = info.context.site.settings
+        data = data.get("input")
+        cleaned_input = cls.clean_input(info, instance, data)
+        instance = cls.construct_instance(instance, cleaned_input)
         cls.clean_instance(instance)
         instance.save()
         return ShopSettingsUpdate(shop=Shop())
