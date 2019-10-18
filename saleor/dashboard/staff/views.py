@@ -48,7 +48,7 @@ def staff_details(request, pk):
         messages.success(request, msg)
         return redirect("dashboard:staff-list")
     ctx = {"staff_member": staff_member, "form": form}
-    return TemplateResponse(request, "dashboard/staff/detail.html", ctx)
+    return TemplateResponse(request, "dashboard/staff/form.html", ctx)
 
 
 @staff_member_required
@@ -76,7 +76,7 @@ def staff_create(request):
             send_promote_customer_to_staff_email.delay(staff.pk)
         return redirect("dashboard:staff-list")
     ctx = {"form": form}
-    return TemplateResponse(request, "dashboard/staff/detail.html", ctx)
+    return TemplateResponse(request, "dashboard/staff/form.html", ctx)
 
 
 @staff_member_required
