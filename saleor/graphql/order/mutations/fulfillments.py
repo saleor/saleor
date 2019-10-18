@@ -10,7 +10,11 @@ from ....order.actions import (
     order_fulfilled,
 )
 from ....order.error_codes import OrderErrorCode
-from ...core.mutations import BaseMutation
+from ...core.mutations import (
+    BaseMutation,
+    ClearMetaBaseMutation,
+    UpdateMetaBaseMutation,
+)
 from ...core.types.common import OrderError
 from ...order.types import Fulfillment, Order
 from ..types import OrderLine
@@ -42,6 +46,38 @@ class FulfillmentUpdateTrackingInput(graphene.InputObjectType):
 
 class FulfillmentCancelInput(graphene.InputObjectType):
     restock = graphene.Boolean(description="Whether item lines are restocked.")
+
+
+class FulfillmentClearMeta(ClearMetaBaseMutation):
+    class Meta:
+        description = "Clears meta for fulfillment"
+        model = models.Fulfillment
+        permission = "orders.manage_orders"
+        public = True
+
+
+class FulfillmentUpdateMeta(UpdateMetaBaseMutation):
+    class Meta:
+        description = "Updates meta for fulfillment"
+        model = models.Fulfillment
+        permission = "orders.manage_orders"
+        public = True
+
+
+class FulfillmentClearPrivateMeta(ClearMetaBaseMutation):
+    class Meta:
+        description = "Clears private meta for fulfillment"
+        model = models.Fulfillment
+        permission = "orders.manage_orders"
+        public = False
+
+
+class FulfillmentUpdatePrivateMeta(UpdateMetaBaseMutation):
+    class Meta:
+        description = "Updates meta for fulfillment"
+        model = models.Fulfillment
+        permission = "orders.manage_orders"
+        public = False
 
 
 class FulfillmentCreate(BaseMutation):
