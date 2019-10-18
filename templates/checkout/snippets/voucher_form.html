@@ -16,7 +16,7 @@
       </button>
     </form>
     <div class="float-right">
-      {% discount_as_negative checkout.discount_amount %}
+      {% discount_as_negative checkout.discount %}
     </div>
   {% else %}
     <form action="{{ request.path }}?next={{ request.path }}" method="post">

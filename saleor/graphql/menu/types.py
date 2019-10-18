@@ -23,8 +23,10 @@ class Menu(CountableDjangoObjectType):
     )
 
     class Meta:
-        description = """Represents a single menu - an object that is used
-               to help navigate through the store."""
+        description = (
+            "Represents a single menu - an object that is used to help navigate "
+            "through the store."
+        )
         interfaces = [relay.Node]
         only_fields = ["id", "name"]
         model = models.Menu
@@ -54,9 +56,20 @@ class MenuItem(CountableDjangoObjectType):
         resolver=resolve_translation,
     )
 
+    sort_order = graphene.Field(
+        graphene.Int,
+        deprecation_reason=(
+            "Will be dropped in 2.10 and is deprecated since 2.9: "
+            "use the position in list instead and relative "
+            "calculus to determine shift position."
+        ),
+    )
+
     class Meta:
-        description = """Represents a single item of the related menu.
-        Can store categories, collection or pages."""
+        description = (
+            "Represents a single item of the related menu. Can store categories, "
+            "collection or pages."
+        )
         interfaces = [relay.Node]
         only_fields = [
             "category",

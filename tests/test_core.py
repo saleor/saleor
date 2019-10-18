@@ -6,7 +6,7 @@ from urllib.parse import urljoin
 import pytest
 from django.shortcuts import reverse
 from django.templatetags.static import static
-from django.test import override_settings
+from django.test import Client, RequestFactory, override_settings
 from django.urls import translate_url
 from measurement.measures import Weight
 from prices import Money
@@ -19,7 +19,9 @@ from saleor.core.utils import (
     create_superuser,
     create_thumbnails,
     format_money,
+    get_client_ip,
     get_country_by_ip,
+    get_country_name_by_code,
     get_currency_for_country,
     random_data,
 )
@@ -64,6 +66,27 @@ def test_get_country_by_ip(ip_data, expected_country, monkeypatch):
     monkeypatch.setattr("saleor.core.utils.georeader.get", Mock(return_value=ip_data))
     country = get_country_by_ip("127.0.0.1")
     assert country == expected_country
+
+
+@pytest.mark.parametrize(
+    "ip_address, expected_ip",
+    [
+        ("83.0.0.1", "83.0.0.1"),
+        ("::1", "::1"),
+        ("256.0.0.1", "127.0.0.1"),
+        ("1:1:1", "127.0.0.1"),
+        ("invalid,8.8.8.8", "8.8.8.8"),
+        (None, "127.0.0.1"),
+    ],
+)
+def test_get_client_ip(ip_address, expected_ip):
+    """Test providing a valid IP in X-Forwarded-For returns the valid IP.
+    Otherwise, if no valid IP were found, returns the requester's IP.
+    """
+    expected_ip = expected_ip
+    headers = {"HTTP_X_FORWARDED_FOR": ip_address} if ip_address else {}
+    request = RequestFactory(**headers).get("/")
+    assert get_client_ip(request) == expected_ip
 
 
 @pytest.mark.parametrize(
@@ -132,11 +155,12 @@ def test_create_fake_order(db, monkeypatch, image, media_root):
     for _ in random_data.create_shipping_zones():
         pass
     for _ in random_data.create_users(3):
-        random_data.create_products_by_schema("/", 10)
-    how_many = 5
+        pass
+    random_data.create_products_by_schema("/", False)
+    how_many = 2
     for _ in random_data.create_orders(how_many):
         pass
-    assert Order.objects.all().count() == 5
+    assert Order.objects.all().count() == 2
 
 
 def test_create_product_sales(db):
@@ -288,6 +312,21 @@ def test_build_absolute_uri(site_settings, settings):
 
 
 def test_delete_sort_order_with_null_value(menu_item):
+    """Ensures there is no error when trying to delete a sortable item,
+    which triggers a shifting of the sort orders--which can be null."""
+
     menu_item.sort_order = None
     menu_item.save(update_fields=["sort_order"])
     menu_item.delete()
+
+
+def test_csrf_middleware_is_enabled():
+    csrf_client = Client(enforce_csrf_checks=True)
+    checkout_url = reverse("checkout:index")
+    response = csrf_client.post(checkout_url)
+    assert response.status_code == 403
+
+
+def test_get_country_name_by_code():
+    country_name = get_country_name_by_code("PL")
+    assert country_name == "Poland"

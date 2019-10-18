@@ -75,7 +75,7 @@
         {% for line in order %}
           <tr>
             <td>
-              {{ line.product_name|truncatechars:30 }}<br>
+              {{ line|truncatechars:30 }}<br>
             </td>
             <td>
               {{ line.product_sku }}
@@ -132,7 +132,7 @@
             {% trans "Discount" context "Order voucher header" %} {% if order.discount_name %}({{ order.translated_discount_name|default:order.discount_name }}){% endif %}
           </td>
           <td class="right-align">
-            {% discount_as_negative order.discount_amount html=True %}
+            {% discount_as_negative order.discount html=True %}
           </td>
         </tr>
       {% endif %}

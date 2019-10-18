@@ -72,7 +72,7 @@ class Command(BaseCommand):
             call_command("search_index", "--rebuild", force=True)
 
     def sequence_reset(self):
-        """Runs SQL sequence reset on all saleor.* apps.
+        """Run a SQL sequence reset on all saleor.* apps.
 
         When a value is manually assigned to an auto-incrementing field
         it doesn't update the field's sequence, which might cause a conflict

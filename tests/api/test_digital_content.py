@@ -1,5 +1,6 @@
 import graphene
 
+from saleor.product.error_codes import ProductErrorCode
 from saleor.product.models import DigitalContent, ProductVariant
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image
@@ -256,6 +257,11 @@ def test_digital_content_update_mutation_missing_content(
                 field
                 message
             }
+            productErrors {
+                field
+                message
+                code
+            }
         }
     }
     """
@@ -278,6 +284,9 @@ def test_digital_content_update_mutation_missing_content(
     errors = content["data"]["digitalContentUpdate"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "variantId"
+
+    product_errors = content["data"]["digitalContentUpdate"]["productErrors"]
+    assert product_errors[0]["code"] == ProductErrorCode.VARIANT_NO_DIGITAL_CONTENT.name
 
 
 def test_digital_content_url_create(

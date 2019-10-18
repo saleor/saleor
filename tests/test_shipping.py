@@ -1,52 +1,18 @@
-from unittest.mock import Mock
-
 import pytest
 from measurement.measures import Weight
-from prices import Money, TaxedMoney
+from prices import Money
 
 from saleor.core.utils import format_money
-from saleor.core.utils.taxes import get_taxed_shipping_price
 from saleor.shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
 
 from .utils import money
 
 
-@pytest.mark.parametrize(
-    "price, charge_taxes, expected_price",
-    [
-        (
-            Money(10, "USD"),
-            False,
-            TaxedMoney(net=Money(10, "USD"), gross=Money(10, "USD")),
-        ),
-        (
-            Money(10, "USD"),
-            True,
-            TaxedMoney(net=Money("8.13", "USD"), gross=Money(10, "USD")),
-        ),
-    ],
-)
-def test_get_taxed_shipping_price(
-    site_settings, vatlayer, price, charge_taxes, expected_price
-):
-    site_settings.charge_taxes_on_shipping = charge_taxes
-    site_settings.save()
-
-    shipping_price = get_taxed_shipping_price(price, taxes=vatlayer)
-
-    assert shipping_price == expected_price
-
-
-def test_shipping_get_total(monkeypatch, shipping_zone, vatlayer):
+def test_shipping_get_total(monkeypatch, shipping_zone):
     method = shipping_zone.shipping_methods.get()
-    price = Money(10, "USD")
-    taxed_price = TaxedMoney(net=Money("8.13", "USD"), gross=Money(10, "USD"))
-    mock_get_price = Mock(return_value=taxed_price)
-    monkeypatch.setattr(
-        "saleor.shipping.models.get_taxed_shipping_price", mock_get_price
-    )
-    method.get_total(taxes=vatlayer)
-    mock_get_price.assert_called_once_with(price, vatlayer)
+    price = Money("10.0", "USD")
+
+    assert method.get_total() == price
 
 
 def test_shipping_get_ajax_label(shipping_zone):
@@ -62,25 +28,26 @@ def test_shipping_get_ajax_label(shipping_zone):
 @pytest.mark.parametrize(
     "price, min_price, max_price, shipping_included",
     (
-        (money(10), money(10), money(20), True),  # price equal min price
-        (money(10), money(1), money(10), True),  # price equal max price
-        (money(9), money(10), money(15), False),  # price just below min price
-        (money(10), money(1), money(9), False),  # price just above max price
-        (money(10000000), money(1), None, True),  # no max price limit
-        (money(10), money(5), money(15), True),
+        (10, 10, 20, True),  # price equal min price
+        (10, 1, 10, True),  # price equal max price
+        (9, 10, 15, False),  # price just below min price
+        (10, 1, 9, False),  # price just above max price
+        (10000000, 1, None, True),  # no max price limit
+        (10, 5, 15, True),
     ),
 )  # regular case
 def test_applicable_shipping_methods_price(
     shipping_zone, price, min_price, max_price, shipping_included
 ):
     method = shipping_zone.shipping_methods.create(
-        minimum_order_price=min_price,
-        maximum_order_price=max_price,
+        minimum_order_price_amount=min_price,
+        maximum_order_price_amount=max_price,
+        currency="USD",
         type=ShippingMethodType.PRICE_BASED,
     )
     assert "PL" in shipping_zone.countries
     result = ShippingMethod.objects.applicable_shipping_methods(
-        price=price, weight=Weight(kg=0), country_code="PL"
+        price=Money(price, "USD"), weight=Weight(kg=0), country_code="PL"
     )
     assert (method in result) == shipping_included
 

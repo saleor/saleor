@@ -1,11 +1,18 @@
 from django.core.exceptions import ValidationError
 
-from ...shipping import models as shipping_models
+from ...order.error_codes import OrderErrorCode
 
 
 def validate_total_quantity(order):
     if order.get_total_quantity() == 0:
-        raise ValidationError({"lines": "Could not create order without any products."})
+        raise ValidationError(
+            {
+                "lines": ValidationError(
+                    "Could not create order without any products.",
+                    code=OrderErrorCode.REQUIRED,
+                )
+            }
+        )
 
 
 def validate_shipping_method(order):
@@ -18,7 +25,12 @@ def validate_shipping_method(order):
     )  # noqa
     if shipping_not_valid:
         raise ValidationError(
-            {"shipping": "Shipping method is not valid for chosen shipping address"}
+            {
+                "shipping": ValidationError(
+                    "Shipping method is not valid for chosen shipping address",
+                    code=OrderErrorCode.SHIPPING_METHOD_NOT_APPLICABLE,
+                )
+            }
         )
 
 
@@ -26,32 +38,25 @@ def validate_order_lines(order):
     for line in order:
         if line.variant is None:
             raise ValidationError(
-                {"lines": "Could not create orders with non-existing products."}
+                {
+                    "lines": ValidationError(
+                        "Could not create orders with non-existing products.",
+                        code=OrderErrorCode.NOT_FOUND,
+                    )
+                }
             )
 
 
 def validate_draft_order(order):
-    """Checks, if given order has a proper customer data, shipping
-    address and method set up and return list of errors if not.
-    Checks if product variants for order lines still exists in
-    database, too.
+    """Check if the given order contains the proper data.
+
+    - Has proper customer data,
+    - Shipping address and method are set up,
+    - Product variants for order lines still exists in database.
+
+    Returns a list of errors if any were found.
     """
     if order.is_shipping_required():
         validate_shipping_method(order)
     validate_total_quantity(order)
     validate_order_lines(order)
-
-
-# FIXME: is this function needed? QS method might be enough
-def applicable_shipping_methods(obj, price):
-    if not obj.is_shipping_required():
-        return []
-    if not obj.shipping_address:
-        return []
-
-    qs = shipping_models.ShippingMethod.objects
-    return qs.applicable_shipping_methods(
-        price=price,
-        weight=obj.get_total_weight(),
-        country_code=obj.shipping_address.country.code,
-    )

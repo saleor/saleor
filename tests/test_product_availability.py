@@ -1,6 +1,10 @@
 import datetime
 from unittest.mock import Mock
 
+import pytest
+from prices import Money, TaxedMoney, TaxedMoneyRange
+
+from saleor.extensions.manager import ExtensionsManager
 from saleor.product import ProductAvailabilityStatus, VariantAvailabilityStatus, models
 from saleor.product.utils.availability import (
     get_product_availability,
@@ -54,24 +58,62 @@ def test_product_availability_status(unavailable_product):
     assert status == ProductAvailabilityStatus.NOT_YET_AVAILABLE
 
 
-def test_variant_availability_status(unavailable_product):
+def test_variant_is_out_of_stock_when_product_is_unavalable(unavailable_product):
     product = unavailable_product
     product.product_type.has_variants = True
 
     variant = product.variants.create(sku="test")
     variant.quantity = 0
-    variant.save()
+    variant.save(update_fields=["quantity"])
+
     status = get_variant_availability_status(variant)
     assert status == VariantAvailabilityStatus.OUT_OF_STOCK
 
-    variant.quantity = 5
-    variant.save()
+
+@pytest.mark.parametrize(
+    "stock, expected_status",
+    (
+        (0, VariantAvailabilityStatus.OUT_OF_STOCK),
+        (1, VariantAvailabilityStatus.AVAILABLE),
+    ),
+)
+def test_variant_availability_status(variant, stock, expected_status):
+    variant.quantity = stock
+    variant.quantity_allocated = 0
+
     status = get_variant_availability_status(variant)
+    assert status == expected_status
 
 
-def test_availability(product, monkeypatch, settings, taxes):
+def test_variant_is_still_available_when_another_variant_is_unavailable(
+    product_variant_list
+):
+    """
+    Ensure a variant is not incorrectly flagged as out of stock when another variant
+    from the parent product is unavailable.
+    """
+
+    unavailable_variant, available_variant = product_variant_list[:2]
+
+    unavailable_variant.quantity = 0
+    available_variant.quantity = 1
+    available_variant.quantity_allocated = 0
+
+    status = get_variant_availability_status(available_variant)
+    assert status == VariantAvailabilityStatus.AVAILABLE
+
+    status = get_variant_availability_status(unavailable_variant)
+    assert status == VariantAvailabilityStatus.OUT_OF_STOCK
+
+
+def test_availability(product, monkeypatch, settings):
+    taxed_price = TaxedMoney(Money("10.0", "USD"), Money("12.30", "USD"))
+    monkeypatch.setattr(
+        ExtensionsManager, "apply_taxes_to_product", Mock(return_value=taxed_price)
+    )
     availability = get_product_availability(product)
-    assert availability.price_range == product.get_price_range()
+    taxed_price_range = TaxedMoneyRange(start=taxed_price, stop=taxed_price)
+    assert availability.price_range == taxed_price_range
     assert availability.price_range_local_currency is None
 
     monkeypatch.setattr(
@@ -84,7 +126,7 @@ def test_availability(product, monkeypatch, settings, taxes):
     assert availability.price_range_local_currency.start.currency == "PLN"
     assert availability.available
 
-    availability = get_product_availability(product, taxes=taxes)
+    availability = get_product_availability(product)
     assert availability.price_range.start.tax.amount
     assert availability.price_range.stop.tax.amount
     assert availability.price_range_undiscounted.start.tax.amount

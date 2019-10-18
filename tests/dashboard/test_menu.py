@@ -7,15 +7,15 @@ from django.utils import timezone
 from django.utils.formats import localize
 
 from saleor.dashboard.menu.forms import AssignMenuForm
-from saleor.dashboard.menu.utils import (
+from saleor.menu.models import Menu, MenuItem, MenuItemTranslation
+from saleor.menu.utils import (
     get_menu_as_json,
     get_menu_item_as_dict,
-    get_menus_that_needs_update,
+    get_menus_that_need_update,
     update_menu,
     update_menu_item_linked_object,
     update_menus,
 )
-from saleor.menu.models import Menu, MenuItem, MenuItemTranslation
 
 from ..utils import get_redirect_location
 
@@ -321,6 +321,12 @@ def test_get_menu_item_as_dict(menu):
     assert result == {"name": "Name", "url": "http://url.com", "translations": {}}
 
 
+def test_get_menu_item_as_dict_empty_url():
+    item = MenuItem(name="Name")
+    result = get_menu_item_as_dict(item)
+    assert result == {"name": "Name", "url": "", "translations": {}}
+
+
 def test_get_menu_item_as_dict_with_translations(menu, collection):
     item = MenuItem.objects.create(name="Name", menu=menu, collection=collection)
     MenuItemTranslation.objects.create(
@@ -357,13 +363,13 @@ def test_get_menu_as_json(menu):
     assert proper_data == get_menu_as_json(menu)
 
 
-@mock.patch("saleor.dashboard.menu.utils.update_menu")
+@mock.patch("saleor.menu.utils.update_menu")
 def test_update_menus(mock_update_menu, menu):
     update_menus([menu.pk])
     mock_update_menu.assert_called_once_with(menu)
 
 
-@mock.patch("saleor.dashboard.menu.utils.get_menu_as_json")
+@mock.patch("saleor.menu.utils.get_menu_as_json")
 def test_update_menu(mock_json_menu, menu):
     mock_json_menu.return_value = "Return value"
     update_menu(menu)
@@ -373,8 +379,8 @@ def test_update_menu(mock_json_menu, menu):
     assert menu.json_content == "Return value"
 
 
-def test_get_menus_that_needs_update(category, collection, page):
-    assert not get_menus_that_needs_update()
+def test_get_menus_that_need_update(category, collection, page):
+    assert not get_menus_that_need_update()
 
     menus = Menu.objects.bulk_create(
         [Menu(name="category"), Menu(name="collection"), Menu(name="page")]
@@ -384,7 +390,7 @@ def test_get_menus_that_needs_update(category, collection, page):
     MenuItem.objects.create(name="item", menu=menus[1], collection=collection),
     MenuItem.objects.create(name="item", menu=menus[2], page=page)
 
-    result = get_menus_that_needs_update(
+    result = get_menus_that_need_update(
         categories=[category], collection=collection, page=page
     )
     assert sorted(list(result)) == sorted([m.pk for m in menus])

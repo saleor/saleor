@@ -2,10 +2,10 @@
 
 import datetime
 
+import django.db.models.deletion
 from django.db import migrations, models
 from django.db.models import Q
 from django.utils.text import slugify
-import django.db.models.deletion
 
 
 def copy_featured_products_to_homepade_collection(apps, schema_editor):

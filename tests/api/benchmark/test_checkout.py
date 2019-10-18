@@ -1,6 +1,6 @@
 import pytest
-from django.conf import settings
 from graphene import Node
+from prices import TaxedMoney
 
 from saleor.checkout.utils import add_variant_to_checkout
 from saleor.payment import ChargeStatus, TransactionKind
@@ -39,11 +39,10 @@ def checkout_with_billing_address(checkout_with_shipping_method, address):
 def checkout_with_charged_payment(checkout_with_billing_address):
     checkout = checkout_with_billing_address
 
+    total = checkout.get_total()
+    taxed_total = TaxedMoney(total, total)
     payment = Payment.objects.create(
-        gateway=settings.DUMMY,
-        is_active=True,
-        total=checkout.get_total().gross.amount,
-        currency="USD",
+        gateway="Dummy", is_active=True, total=taxed_total.gross.amount, currency="USD"
     )
 
     payment.charge_status = ChargeStatus.FULLY_CHARGED
@@ -101,7 +100,6 @@ def test_create_checkout(api_client, graphql_address_data, variant, count_querie
             ...Price
           }
           variant {
-            stockQuantity
             ...ProductVariant
           }
           quantity
@@ -135,7 +133,6 @@ def test_create_checkout(api_client, graphql_address_data, variant, count_querie
         }
 
         fragment Checkout on Checkout {
-          availablePaymentGateways
           token
           id
           user {
@@ -242,7 +239,6 @@ def test_add_shipping_to_checkout(
             ...Price
           }
           variant {
-            stockQuantity
             ...ProductVariant
           }
           quantity
@@ -276,7 +272,6 @@ def test_add_shipping_to_checkout(
         }
 
         fragment Checkout on Checkout {
-          availablePaymentGateways
           token
           id
           user {
@@ -376,7 +371,6 @@ def test_add_billing_address_to_checkout(
             ...Price
           }
           variant {
-            stockQuantity
             ...ProductVariant
           }
           quantity
@@ -410,7 +404,6 @@ def test_add_billing_address_to_checkout(
         }
 
         fragment Checkout on Checkout {
-          availablePaymentGateways
           token
           id
           user {
@@ -489,7 +482,7 @@ def test_checkout_payment_charge(
         "input": {
             "billingAddress": graphql_address_data,
             "amount": 1000,  # 10.00 USD * 100
-            "gateway": settings.DUMMY.upper(),
+            "gateway": "Dummy",
             "token": "charged",
         },
     }

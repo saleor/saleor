@@ -11,27 +11,26 @@ from ...account.i18n import (
 from ...account.models import User
 from ...checkout.forms import QuantityField
 from ...core.exceptions import InsufficientStock
-from ...core.utils.taxes import ZERO_TAXED_MONEY
+from ...core.taxes import zero_taxed_money
 from ...discount.models import Voucher
 from ...discount.utils import decrease_voucher_usage, increase_voucher_usage
+from ...extensions.manager import get_extensions_manager
 from ...order import OrderStatus, events
+from ...order.actions import (
+    cancel_fulfillment,
+    cancel_order,
+    clean_mark_order_as_paid,
+    fulfill_order_line,
+    mark_order_as_paid,
+    order_shipping_updated,
+)
 from ...order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ...order.utils import (
     add_variant_to_order,
-    cancel_fulfillment,
-    cancel_order,
     change_order_line_quantity,
-    fulfill_order_line,
     recalculate_order,
 )
-from ...payment import ChargeStatus, CustomPaymentChoices, PaymentError
-from ...payment.utils import (
-    clean_mark_order_as_paid,
-    gateway_capture,
-    gateway_refund,
-    gateway_void,
-    mark_order_as_paid,
-)
+from ...payment import ChargeStatus, CustomPaymentChoices, PaymentError, gateway
 from ...product.models import Product, ProductVariant
 from ...product.utils import allocate_stock, deallocate_stock
 from ...shipping.models import ShippingMethod
@@ -58,7 +57,7 @@ class CreateOrderFromDraftForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if not self.instance.get_user_current_email():
+        if not self.instance.get_customer_email():
             self.fields.pop("notify_customer")
 
     def clean(self):
@@ -102,7 +101,7 @@ class CreateOrderFromDraftForm(forms.ModelForm):
         remove_shipping_address = False
         if not self.instance.is_shipping_required():
             self.instance.shipping_method_name = None
-            self.instance.shipping_price = ZERO_TAXED_MONEY
+            self.instance.shipping_price = zero_taxed_money()
             if self.instance.shipping_address:
                 remove_shipping_address = True
         super().save()
@@ -189,7 +188,6 @@ class OrderShippingForm(forms.ModelForm):
         fields = ["shipping_method"]
 
     def __init__(self, *args, **kwargs):
-        self.taxes = kwargs.pop("taxes")
         super().__init__(*args, **kwargs)
         method_field = self.fields["shipping_method"]
         fetch_data_url = reverse(
@@ -212,9 +210,12 @@ class OrderShippingForm(forms.ModelForm):
     def save(self, commit=True):
         method = self.instance.shipping_method
         self.instance.shipping_method_name = method.name
-        self.instance.shipping_price = method.get_total(self.taxes)
-        recalculate_order(self.instance)
-        return super().save(commit)
+
+        manager = get_extensions_manager()
+        self.instance.shipping_price = manager.calculate_order_shipping(self.instance)
+        instance = super().save(commit)
+        order_shipping_updated(instance)
+        return instance
 
 
 class OrderRemoveShippingForm(forms.ModelForm):
@@ -227,7 +228,7 @@ class OrderRemoveShippingForm(forms.ModelForm):
     def save(self, commit=True):
         self.instance.shipping_method = None
         self.instance.shipping_method_name = None
-        self.instance.shipping_price = ZERO_TAXED_MONEY
+        self.instance.shipping_price = zero_taxed_money()
         recalculate_order(self.instance)
         return super().save(commit)
 
@@ -341,7 +342,7 @@ class CapturePaymentForm(BasePaymentForm):
 
     def capture(self, user):
         return self.try_payment_action(
-            user, gateway_capture, self.cleaned_data["amount"]
+            user, gateway.capture, self.cleaned_data["amount"]
         )
 
 
@@ -364,7 +365,7 @@ class RefundPaymentForm(BasePaymentForm):
 
     def refund(self, user):
         return self.try_payment_action(
-            user, gateway_refund, self.cleaned_data["amount"]
+            user, gateway.refund, self.cleaned_data["amount"]
         )
 
 
@@ -386,7 +387,7 @@ class VoidPaymentForm(BasePaymentForm):
             raise forms.ValidationError(self.clean_error)
 
     def void(self, user):
-        return self.try_payment_action(user, gateway_void)
+        return self.try_payment_action(user, gateway.void)
 
 
 class OrderMarkAsPaidForm(forms.Form):
@@ -491,7 +492,7 @@ class CancelOrderForm(forms.Form):
         return data
 
     def cancel_order(self, user):
-        cancel_order(user, self.order, self.cleaned_data.get("restock"))
+        cancel_order(self.order, user, self.cleaned_data.get("restock"))
 
 
 class CancelFulfillmentForm(forms.Form):
@@ -524,7 +525,7 @@ class CancelFulfillmentForm(forms.Form):
         return data
 
     def cancel_fulfillment(self, user):
-        cancel_fulfillment(user, self.fulfillment, self.cleaned_data.get("restock"))
+        cancel_fulfillment(self.fulfillment, user, self.cleaned_data.get("restock"))
 
 
 class FulfillmentTrackingNumberForm(forms.ModelForm):
@@ -547,7 +548,7 @@ class FulfillmentTrackingNumberForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if not self.instance.order.get_user_current_email():
+        if not self.instance.order.get_customer_email():
             self.fields.pop("send_mail")
 
 
@@ -602,7 +603,6 @@ class AddVariantToOrderForm(forms.Form):
     def __init__(self, *args, **kwargs):
         self.order = kwargs.pop("order")
         self.discounts = kwargs.pop("discounts")
-        self.taxes = kwargs.pop("taxes")
         super().__init__(*args, **kwargs)
 
     def clean(self):
@@ -632,9 +632,7 @@ class AddVariantToOrderForm(forms.Form):
         """
         variant = self.cleaned_data.get("variant")
         quantity = self.cleaned_data.get("quantity")
-        line = add_variant_to_order(
-            self.order, variant, quantity, self.discounts, self.taxes
-        )
+        line = add_variant_to_order(self.order, variant, quantity, self.discounts)
         events.draft_order_added_products_event(
             order=self.order, user=user, order_lines=[(line.quantity, line)]
         )
@@ -677,7 +675,7 @@ class FulfillmentForm(forms.ModelForm):
         order = kwargs.pop("order")
         super().__init__(*args, **kwargs)
         self.instance.order = order
-        if not order.get_user_current_email():
+        if not order.get_customer_email():
             self.fields.pop("send_mail")
 
 

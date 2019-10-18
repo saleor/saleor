@@ -2,10 +2,16 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 
-from ....order import events, models
-from ....order.emails import send_fulfillment_confirmation_to_customer
-from ....order.utils import cancel_fulfillment, fulfill_order_line, update_order_status
+from ....order import models
+from ....order.actions import (
+    cancel_fulfillment,
+    fulfill_order_line,
+    fulfillment_tracking_updated,
+    order_fulfilled,
+)
+from ....order.error_codes import OrderErrorCode
 from ...core.mutations import BaseMutation
+from ...core.types.common import OrderError
 from ...order.types import Fulfillment, Order
 from ..types import OrderLine
 
@@ -18,7 +24,7 @@ class FulfillmentLineInput(graphene.InputObjectType):
 
 
 class FulfillmentCreateInput(graphene.InputObjectType):
-    tracking_number = graphene.String(description="Fulfillment tracking number")
+    tracking_number = graphene.String(description="Fulfillment tracking number.")
     notify_customer = graphene.Boolean(
         description="If true, send an email notification to the customer."
     )
@@ -28,7 +34,7 @@ class FulfillmentCreateInput(graphene.InputObjectType):
 
 
 class FulfillmentUpdateTrackingInput(graphene.InputObjectType):
-    tracking_number = graphene.String(description="Fulfillment tracking number")
+    tracking_number = graphene.String(description="Fulfillment tracking number.")
     notify_customer = graphene.Boolean(
         description="If true, send an email notification to the customer."
     )
@@ -53,6 +59,8 @@ class FulfillmentCreate(BaseMutation):
     class Meta:
         description = "Creates a new fulfillment for an order."
         permissions = ("order.manage_orders",)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
 
     @classmethod
     def clean_lines(cls, order_lines, quantities):
@@ -67,7 +75,13 @@ class FulfillmentCreate(BaseMutation):
                     "quantity": order_line.quantity_unfulfilled,
                     "order_line": order_line,
                 }
-                raise ValidationError({"order_line_id": msg})
+                raise ValidationError(
+                    {
+                        "order_line_id": ValidationError(
+                            msg, code=OrderErrorCode.FULFILL_ORDER_LINE
+                        )
+                    }
+                )
 
     @classmethod
     def clean_input(cls, data):
@@ -81,7 +95,14 @@ class FulfillmentCreate(BaseMutation):
         cls.clean_lines(order_lines, quantities)
 
         if sum(quantities) <= 0:
-            raise ValidationError({"lines": "Total quantity must be larger than 0."})
+            raise ValidationError(
+                {
+                    "lines": ValidationError(
+                        "Total quantity must be larger than 0.",
+                        code=OrderErrorCode.ZERO_QUANTITY,
+                    )
+                }
+            )
 
         data["order_lines"] = order_lines
         data["quantities"] = quantities
@@ -104,14 +125,12 @@ class FulfillmentCreate(BaseMutation):
             )
 
         fulfillment.lines.bulk_create(fulfillment_lines)
-        update_order_status(order)
-        events.fulfillment_fulfilled_items_event(
-            order=order, user=user, fulfillment_lines=fulfillment_lines
+        order_fulfilled(
+            fulfillment,
+            user,
+            fulfillment_lines,
+            cleaned_input.get("notify_customer", True),
         )
-
-        if cleaned_input.get("notify_customer", True):
-            send_fulfillment_confirmation_to_customer(order, fulfillment, user)
-
         return fulfillment
 
     @classmethod
@@ -130,7 +149,9 @@ class FulfillmentUpdateTracking(BaseMutation):
     fulfillment = graphene.Field(
         Fulfillment, description="A fulfillment with updated tracking."
     )
-    order = graphene.Field(Order, description="Order which fulfillment was updated.")
+    order = graphene.Field(
+        Order, description="Order for which fulfillment was updated."
+    )
 
     class Arguments:
         id = graphene.ID(required=True, description="ID of an fulfillment to update.")
@@ -141,6 +162,8 @@ class FulfillmentUpdateTracking(BaseMutation):
     class Meta:
         description = "Updates a fulfillment for an order."
         permissions = ("order.manage_orders",)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -149,12 +172,7 @@ class FulfillmentUpdateTracking(BaseMutation):
         fulfillment.tracking_number = tracking_number
         fulfillment.save()
         order = fulfillment.order
-        events.fulfillment_tracking_updated_event(
-            order=order,
-            user=info.context.user,
-            tracking_number=tracking_number,
-            fulfillment=fulfillment,
-        )
+        fulfillment_tracking_updated(fulfillment, info.context.user, tracking_number)
         return FulfillmentUpdateTracking(fulfillment=fulfillment, order=order)
 
 
@@ -169,9 +187,10 @@ class FulfillmentCancel(BaseMutation):
         )
 
     class Meta:
-        description = """Cancels existing fulfillment
-        and optionally restocks items."""
+        description = "Cancels existing fulfillment and optionally restocks items."
         permissions = ("order.manage_orders",)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -183,8 +202,14 @@ class FulfillmentCancel(BaseMutation):
                 "Cancel fulfillment mutation error",
                 "This fulfillment can't be canceled",
             )
-            raise ValidationError({"fulfillment": err_msg})
+            raise ValidationError(
+                {
+                    "fulfillment": ValidationError(
+                        err_msg, code=OrderErrorCode.CANNOT_CANCEL_FULFILLMENT
+                    )
+                }
+            )
 
         order = fulfillment.order
-        cancel_fulfillment(info.context.user, fulfillment, restock)
+        cancel_fulfillment(fulfillment, info.context.user, restock)
         return FulfillmentCancel(fulfillment=fulfillment, order=order)

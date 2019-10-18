@@ -5,8 +5,8 @@
 # 
 # Translators:
 # R.Sercan Arıcı <sercanarici@hotmail.com>, 2018
-# Ömer Faruk Demirel <farukdemirel@hotmail.com.tr>, 2018
-# Yasin Karadeniz <antiykd@gmail.com>, 2018
+# Ömer Faruk Demirel <farukdemirel@hotmail.com.tr>, 2019
+# Yasin Karadeniz <antiykd@gmail.com>, 2019
 # Taygun YI <yildirimtaygun@gmail.com>, 2019
 # Engin Öz <o.enginoz@gmail.com>, 2019
 # 
@@ -15,7 +15,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-13 03:43-0500\n"
+"POT-Creation-Date: 2019-07-22 05:53-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
 "Last-Translator: Engin Öz <o.enginoz@gmail.com>, 2019\n"
 "Language-Team: Turkish (https://www.transifex.com/mirumee/teams/34782/tr/)\n"
@@ -24,14 +24,6 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Language: tr\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-
-#: build/static/vendors~preview.3e127659ad09b01744f8.bundle.js:75
-msgid "Missing source"
-msgstr "Eksik kaynak"
-
-#: build/static/vendors~preview.3e127659ad09b01744f8.bundle.js:136
-msgid "\n"
-msgstr "\n"
 
 #: saleor/static/dashboard/js/components/bulk-actions.js:89
 msgid "item selected"
@@ -377,5 +369,5 @@ msgstr "Adet"
 
 #: saleor/static/js/components/variantPicker/VariantPicker.js:167
 msgctxt "Product details primary action"
-msgid "Add to checkout"
-msgstr ""
+msgid "Add to cart"
+msgstr "Sepete ekle"

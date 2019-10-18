@@ -6,8 +6,10 @@ from .common import (
     LanguageDisplay,
     PermissionDisplay,
     SeoInput,
+    TaxType,
     Weight,
 )
 from .filter_input import FilterInputObjectType
+from .meta import MetadataObjectType, MetaInput, MetaPath
 from .money import VAT, Money, MoneyRange, ReducedRate, TaxedMoney, TaxedMoneyRange
 from .upload import Upload

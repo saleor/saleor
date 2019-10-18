@@ -1,13 +1,16 @@
 from datetime import date, timedelta
+from decimal import Decimal
 
 import graphene
+from prices import Money, TaxedMoney
+
+from saleor.checkout.utils import add_voucher_to_checkout
+from saleor.discount import DiscountInfo, VoucherType
 from tests.api.test_checkout import (
     MUTATION_CHECKOUT_LINES_DELETE,
     MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE,
 )
 from tests.api.utils import get_graphql_content
-
-from saleor.checkout.utils import add_voucher_to_checkout
 
 MUTATION_CHECKOUT_UPDATE_VOUCHER = """
     mutation($checkoutId: ID!, $voucherCode: String) {
@@ -71,12 +74,12 @@ def test_checkout_add_voucher_invalid_code(api_client, checkout_with_item):
 
 
 def test_checkout_add_voucher_not_applicable_voucher(
-    api_client, checkout_with_item, voucher_with_high_min_amount_spent
+    api_client, checkout_with_item, voucher_with_high_min_spent_amount
 ):
     checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
     variables = {
         "checkoutId": checkout_id,
-        "voucherCode": voucher_with_high_min_amount_spent.code,
+        "voucherCode": voucher_with_high_min_spent_amount.code,
     }
     data = _mutate_checkout_update_voucher(api_client, variables)
 
@@ -87,8 +90,9 @@ def test_checkout_add_voucher_not_applicable_voucher(
 def test_checkout_lines_delete_with_not_applicable_voucher(
     user_api_client, checkout_with_item, voucher
 ):
-    voucher.min_amount_spent = checkout_with_item.get_subtotal().gross
-    voucher.save(update_fields=["min_amount_spent"])
+    subtotal = checkout_with_item.get_subtotal()
+    voucher.min_spent = TaxedMoney(subtotal, subtotal).gross
+    voucher.save(update_fields=["min_spent_amount", "currency"])
 
     add_voucher_to_checkout(checkout_with_item, voucher)
     assert checkout_with_item.voucher_code == voucher.code
@@ -182,20 +186,24 @@ def test_checkout_totals_use_discounts(api_client, checkout_with_item, sale):
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
 
-    discounts = [sale]
-    assert (
-        data["totalPrice"]["gross"]["amount"]
-        == checkout.get_total(discounts=discounts).gross.amount
-    )
-    assert (
-        data["subtotalPrice"]["gross"]["amount"]
-        == checkout.get_subtotal(discounts=discounts).gross.amount
-    )
+    discounts = [
+        DiscountInfo(
+            sale=sale,
+            product_ids={product.id},
+            category_ids=set(),
+            collection_ids=set(),
+        )
+    ]
+    total = checkout.get_total(discounts=discounts)
+    taxed_total = TaxedMoney(total, total)
+    assert data["totalPrice"]["gross"]["amount"] == taxed_total.gross.amount
+    assert data["subtotalPrice"]["gross"]["amount"] == taxed_total.gross.amount
 
     line = checkout.lines.first()
+    line_total = line.get_total(discounts=discounts)
     assert (
         data["lines"][0]["totalPrice"]["gross"]["amount"]
-        == line.get_total(discounts=discounts).gross.amount
+        == TaxedMoney(line_total, line_total).gross.amount
     )
 
 
@@ -297,13 +305,111 @@ def test_checkout_add_voucher_code(api_client, checkout_with_item, voucher):
     assert data["checkout"]["voucherCode"] == voucher.code
 
 
+def test_checkout_add_voucher_code_checkout_with_sale(
+    api_client, checkout_with_item, voucher_percentage, discount_info
+):
+    assert checkout_with_item.get_subtotal() > checkout_with_item.get_subtotal(
+        discounts=[discount_info]
+    )
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
+    variables = {"checkoutId": checkout_id, "promoCode": voucher_percentage.code}
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    checkout_with_item.refresh_from_db()
+    assert not data["errors"]
+    assert checkout_with_item.voucher_code == voucher_percentage.code
+    assert checkout_with_item.discount_amount == Decimal(1.5)
+
+
+def test_checkout_add_specific_product_voucher_code_checkout_with_sale(
+    api_client, checkout_with_item, voucher_specific_product_type, discount_info
+):
+    voucher = voucher_specific_product_type
+    checkout = checkout_with_item
+    expected_discount = Decimal(1.5)
+    assert checkout.get_subtotal() > checkout.get_subtotal(discounts=[discount_info])
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {"checkoutId": checkout_id, "promoCode": voucher.code}
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    checkout.refresh_from_db()
+    assert not data["errors"]
+    assert checkout.voucher_code == voucher.code
+    assert checkout.discount_amount == expected_discount
+    assert checkout.discount == Money(expected_discount, "USD")
+
+
+def test_checkout_add_products_voucher_code_checkout_with_sale(
+    api_client, checkout_with_item, voucher_percentage, discount_info
+):
+    checkout = checkout_with_item
+    product = checkout.lines.first().variant.product
+    voucher = voucher_percentage
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.save()
+    voucher.products.add(product)
+
+    assert checkout.get_subtotal() > checkout.get_subtotal(discounts=[discount_info])
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {"checkoutId": checkout_id, "promoCode": voucher.code}
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    checkout.refresh_from_db()
+    assert not data["errors"]
+    assert checkout.voucher_code == voucher.code
+    assert checkout.discount_amount == Decimal(1.5)
+
+
+def test_checkout_add_collection_voucher_code_checkout_with_sale(
+    api_client, checkout_with_item, voucher_percentage, discount_info, collection
+):
+    checkout = checkout_with_item
+    voucher = voucher_percentage
+    product = checkout.lines.first().variant.product
+    product.collections.add(collection)
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.save()
+    voucher.collections.add(collection)
+
+    assert checkout.get_subtotal() > checkout.get_subtotal(discounts=[discount_info])
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {"checkoutId": checkout_id, "promoCode": voucher.code}
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    checkout.refresh_from_db()
+    assert not data["errors"]
+    assert checkout.voucher_code == voucher.code
+    assert checkout.discount_amount == Decimal(1.5)
+
+
+def test_checkout_add_category_code_checkout_with_sale(
+    api_client, checkout_with_item, voucher_percentage, discount_info
+):
+    checkout = checkout_with_item
+    category = checkout.lines.first().variant.product.category
+    voucher = voucher_percentage
+    voucher.type = VoucherType.SPECIFIC_PRODUCT
+    voucher.save()
+    voucher.categories.add(category)
+
+    assert checkout.get_subtotal() > checkout.get_subtotal(discounts=[discount_info])
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {"checkoutId": checkout_id, "promoCode": voucher.code}
+    data = _mutate_checkout_add_promo_code(api_client, variables)
+
+    checkout.refresh_from_db()
+    assert not data["errors"]
+    assert checkout.voucher_code == voucher.code
+    assert checkout.discount_amount == Decimal(1.5)
+
+
 def test_checkout_add_voucher_code_not_applicable_voucher(
-    api_client, checkout_with_item, voucher_with_high_min_amount_spent
+    api_client, checkout_with_item, voucher_with_high_min_spent_amount
 ):
     checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
     variables = {
         "checkoutId": checkout_id,
-        "promoCode": voucher_with_high_min_amount_spent.code,
+        "promoCode": voucher_with_high_min_spent_amount.code,
     }
     data = _mutate_checkout_add_promo_code(api_client, variables)
 
@@ -343,9 +449,9 @@ def test_checkout_add_many_gift_card_code(
 
 
 def test_checkout_get_total_with_gift_card(api_client, checkout_with_item, gift_card):
-    total_with_gift_card = (
-        checkout_with_item.get_total().gross.amount - gift_card.current_balance
-    )
+    total = checkout_with_item.get_total()
+    taxed_total = TaxedMoney(total, total)
+    total_with_gift_card = taxed_total.gross.amount - gift_card.current_balance_amount
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout_with_item.pk)
     variables = {"checkoutId": checkout_id, "promoCode": gift_card.code}
@@ -360,9 +466,13 @@ def test_checkout_get_total_with_gift_card(api_client, checkout_with_item, gift_
 def test_checkout_get_total_with_many_gift_card(
     api_client, checkout_with_gift_card, gift_card_created_by_staff
 ):
+    total = (
+        checkout_with_gift_card.get_total()
+        - checkout_with_gift_card.get_total_gift_cards_balance()
+    )
+    taxed_total = TaxedMoney(total, total)
     total_with_gift_card = (
-        checkout_with_gift_card.get_total().gross.amount
-        - gift_card_created_by_staff.current_balance
+        taxed_total.gross.amount - gift_card_created_by_staff.current_balance_amount
     )
 
     assert checkout_with_gift_card.gift_cards.count() > 0

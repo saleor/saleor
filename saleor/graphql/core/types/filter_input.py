@@ -9,8 +9,10 @@ from .converter import convert_form_field
 
 class FilterInputObjectType(InputObjectType):
     """Class for storing and serving django-filtres as graphQL input.
+
     FilterSet class which inherits from django-filters.FilterSet should be
-    provided with using fitlerset_class argument."""
+    provided with using fitlerset_class argument.
+    """
 
     @classmethod
     def __init_subclass_with_meta__(
@@ -35,9 +37,10 @@ class FilterInputObjectType(InputObjectType):
 
     @classmethod
     def get_filtering_args_from_filterset(cls):
-        """ Inspect a FilterSet and produce the arguments to pass to
-            a Graphene Field. These arguments will be available to
-            filter against in the GraphQL
+        """Retrieve the filtering arguments from the queryset.
+
+        Inspect a FilterSet and produce the arguments to pass to a Graphene field.
+        These arguments will be available to filter against in the GraphQL.
         """
         if not cls.custom_filterset_class:
             assert cls.model and cls.fields, (

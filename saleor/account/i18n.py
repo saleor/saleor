@@ -2,14 +2,13 @@ from collections import defaultdict
 
 import i18naddress
 from django import forms
+from django.core.exceptions import ValidationError
 from django.forms.forms import BoundField
-from django.utils.translation import pgettext_lazy, ugettext_lazy as _
+from django.utils.translation import pgettext_lazy
 from django_countries import countries
-from phonenumber_field.phonenumber import PhoneNumber
-from phonenumbers import NumberParseException
-from phonenumbers.phonenumberutil import is_possible_number
 
 from .models import Address
+from .validators import validate_possible_number
 from .widgets import DatalistTextWidget, PhonePrefixWidget
 
 COUNTRY_FORMS = {}
@@ -145,24 +144,10 @@ class AddressForm(forms.ModelForm):
         country = data.get("country")
         if phone:
             try:
-                data["phone"] = clean_phone_for_country(phone, country)
+                data["phone"] = validate_possible_number(phone, country)
             except forms.ValidationError as error:
                 self.add_error("phone", error)
         return data
-
-
-def clean_phone_for_country(phone, country):
-    error = _("The phone number entered is not valid.")
-    error_code = "invalid_phone_number"
-    if phone:
-        try:
-            phone = PhoneNumber.from_string(phone, country)
-        except NumberParseException:
-            raise forms.ValidationError(error, code=error_code)
-        else:
-            if not is_possible_number(phone):
-                raise forms.ValidationError(error, code=error_code)
-    return phone
 
 
 class CountryAwareAddressForm(AddressForm):
@@ -192,9 +177,9 @@ class CountryAwareAddressForm(AddressForm):
                     error_msg = self.fields[field].error_messages[error_code]
                 except KeyError:
                     error_msg = pgettext_lazy(
-                        "Address form", "This value is invalid for selected country"
+                        "Address form", "This value is not valid for the address."
                     )
-                self.add_error(field, error_msg)
+                self.add_error(field, ValidationError(error_msg, code=error_code))
 
     def validate_address(self, data):
         try:
@@ -251,8 +236,9 @@ def update_base_fields(form_class, i18n_rules):
         field.placeholder = placeholder_value
 
     if i18n_rules.country_area_choices:
+        required = "country_area" in i18n_rules.required_fields
         form_class.base_fields["country_area"] = CountryAreaChoiceField(
-            choices=i18n_rules.country_area_choices
+            choices=i18n_rules.country_area_choices, required=required
         )
 
     labels_map = {

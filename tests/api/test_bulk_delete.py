@@ -20,7 +20,7 @@ from saleor.product.models import (
 )
 from saleor.shipping.models import ShippingMethod, ShippingZone
 
-from .utils import get_graphql_content
+from .utils import get_graphql_content, menu_item_to_json
 
 MUTATION_DELETE_ORDER_LINES = """
     mutation draftOrderLinesBulkDelete($ids: [ID]!) {
@@ -33,14 +33,6 @@ MUTATION_DELETE_ORDER_LINES = """
         }
     }
     """
-
-
-@pytest.fixture
-def attribute_list():
-    attribute_1 = Attribute.objects.create(slug="size", name="Size")
-    attribute_2 = Attribute.objects.create(slug="weight", name="Weight")
-    attribute_3 = Attribute.objects.create(slug="thickness", name="Thickness")
-    return attribute_1, attribute_2, attribute_3
 
 
 @pytest.fixture
@@ -392,6 +384,9 @@ def test_delete_menu_items(staff_api_client, menu_item_list, permission_manage_m
         }
     }
     """
+    menu = menu_item_list[0].menu
+    items_json = [menu_item_to_json(item) for item in menu_item_list]
+
     variables = {
         "ids": [
             graphene.Node.to_global_id("MenuItem", menu_item.id)
@@ -407,6 +402,10 @@ def test_delete_menu_items(staff_api_client, menu_item_list, permission_manage_m
     assert not MenuItem.objects.filter(
         id__in=[menu_item.id for menu_item in menu_item_list]
     ).exists()
+
+    menu.refresh_from_db()
+    for item_json in items_json:
+        assert item_json not in menu.json_content
 
 
 def test_delete_empty_list_of_ids(staff_api_client, permission_manage_menus):

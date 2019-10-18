@@ -1,4 +1,5 @@
 <mj-raw>
+  {% load display_translated_order_line_name from order_lines %}
   {% load price from taxed_prices %}
   {% load voucher %}
 </mj-raw>
@@ -40,7 +41,7 @@
               {% trans "Discount" context "E-mail order lines summary table" %}
             </td>
             <td style="text-align: right;">
-              {% discount_as_negative order.discount_amount html=True %}
+              {% discount_as_negative order.discount html=True %}
             </td>
           </tr>
         {% endif %}
@@ -64,7 +65,7 @@
       <tbody>
         {% for line in order %}
           <tr class="table-item-row">
-            <td>{{ line.translated_product_name|default:line.product_name }}</td>
+            <td>{% display_translated_order_line_name line %}</td>
             <td style="text-align: right;">{{ line.quantity }}</td>
             <td style="text-align: right;">
               {% price line.unit_price display_gross=order.display_gross_prices html=False %}

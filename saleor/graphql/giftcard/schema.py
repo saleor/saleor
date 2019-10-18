@@ -1,7 +1,7 @@
 import graphene
-from graphql_jwt.decorators import permission_required
 
 from ..core.fields import PrefetchingConnectionField
+from ..decorators import permission_required
 from .mutations import (
     GiftCardActivate,
     GiftCardCreate,
@@ -15,10 +15,12 @@ from .types import GiftCard
 class GiftCardQueries(graphene.ObjectType):
     gift_card = graphene.Field(
         GiftCard,
-        id=graphene.Argument(graphene.ID, required=True),
-        description="Lookup a gift card by ID.",
+        id=graphene.Argument(
+            graphene.ID, description="ID of the gift card.", required=True
+        ),
+        description="Look up a gift card by ID.",
     )
-    gift_cards = PrefetchingConnectionField(GiftCard, description="List of gift cards")
+    gift_cards = PrefetchingConnectionField(GiftCard, description="List of gift cards.")
 
     @permission_required("giftcard.manage_gift_card")
     def resolve_gift_card(self, info, **data):
