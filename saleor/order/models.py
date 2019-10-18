@@ -429,7 +429,7 @@ class OrderLine(models.Model):
         return is_digital and has_digital
 
 
-class Fulfillment(models.Model):
+class Fulfillment(ModelWithMetadata):
     fulfillment_order = models.PositiveIntegerField(editable=False)
     order = models.ForeignKey(
         Order, related_name="fulfillments", editable=False, on_delete=models.CASCADE

@@ -102,6 +102,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added the possibility to customize the sender address and name from the dashboard - #4820 by @NyanKiyoshi
 - Add customer set password url to Site settings - #4863 by @fowczarek
 - Add Fulfilment metadata - # @szewczykmira
+- Add Fulfillment metadata - # @szewczykmira
 
 ## 2.8.0
 
