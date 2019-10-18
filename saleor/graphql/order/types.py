@@ -157,7 +157,7 @@ class FulfillmentLine(CountableDjangoObjectType):
         return root.order_line
 
 
-class Fulfillment(CountableDjangoObjectType):
+class Fulfillment(MetadataObjectType, CountableDjangoObjectType):
     lines = gql_optimizer.field(
         graphene.List(
             FulfillmentLine, description="List of lines for the fulfillment."
@@ -185,6 +185,15 @@ class Fulfillment(CountableDjangoObjectType):
     @staticmethod
     def resolve_status_display(root: models.Fulfillment, _info):
         return root.get_status_display()
+
+    @staticmethod
+    @permission_required("orders.manage_orders")
+    def resolve_private_meta(root: models.Fulfillment, _info):
+        return resolve_private_meta(root, _info)
+
+    @staticmethod
+    def resolve_meta(root: models.Fulfillment, _info):
+        return resolve_meta(root, _info)
 
 
 class OrderLine(CountableDjangoObjectType):
