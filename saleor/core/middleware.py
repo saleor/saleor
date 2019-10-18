@@ -1,15 +1,22 @@
 import logging
+import random
+import re
 
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.exceptions import MiddlewareNotUsed
+from django.http import JsonResponse
+from django.template.response import TemplateResponse
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
 from django.utils.translation import get_language
 from django_countries.fields import Country
+from graphql_jwt.exceptions import PermissionDenied
 
 from ..discount.utils import fetch_discounts
 from ..extensions.manager import get_extensions_manager
+from ..graphql.views import GraphQLView
 from . import analytics
 from .utils import get_client_ip, get_country_by_ip, get_currency_for_country
 
@@ -106,3 +113,80 @@ def extensions(get_response):
         return get_response(request)
 
     return middleware
+
+
+class ReadOnlyMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+        self.blocked_django_url_patterns = [
+            re.compile(r"^/dashboard"),
+            re.compile(r"^/([\w-]+/)?account/$"),
+        ]
+
+    def __call__(self, request):
+        response = self.get_response(request)
+        return response
+
+    def process_view(self, request, *_args, **_kwargs):
+        if request.path == reverse("api"):
+            if not self._is_graphql_request_blocked(request):
+                return None
+
+            error = GraphQLView.format_error(
+                PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+            )
+            return JsonResponse(data=error, status=200, safe=False)
+
+        if self._is_django_request_blocked(request):
+            image = random.randrange(1, 6)
+            domain = Site.objects.get_current().domain
+            url = f"http://{domain}"
+            ctx = {
+                "image_path": "read_only/dashboard/images/pirate-%s.svg" % image,
+                "image_class": "img%s" % image,
+                "back_url": request.headers.get("referer", url),
+            }
+
+            return TemplateResponse(
+                request, "read_only/dashboard/read_only_splash.html", ctx
+            )
+
+    def _is_url_blocked(self, url):
+        for pattern in self.blocked_django_url_patterns:
+            yield pattern.match(url)
+
+    def _is_django_request_blocked(self, request):
+        is_post = request.method == "POST"
+        request_url = request.path_info
+        return is_post and any(self._is_url_blocked(request_url))
+
+    def _is_graphql_request_blocked(self, request):
+        allowed_mutations_startswith = ["checkout", "tokenCreate"]
+
+        body = GraphQLView.parse_body(request)
+        if not isinstance(body, list):
+            body = [body]
+        for data in body:
+            query, _, _ = GraphQLView.get_graphql_params(request, data)
+            document, _ = GraphQLView().parse_query(query)
+            if not document:
+                return False
+
+            definitions = document.document_ast.definitions
+
+            for definition in definitions:
+                operation = getattr(definition, "operation", None)
+                if not operation or operation != "mutation":
+                    continue
+
+                for selection in definition.selection_set.selections:
+                    selection_name = str(selection.name.value)
+                    blocked = not any(
+                        [
+                            part_name in selection_name
+                            for part_name in allowed_mutations_startswith
+                        ]
+                    )
+                    if blocked:
+                        return True
+        return False
