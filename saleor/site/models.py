@@ -1,13 +1,34 @@
+from email.headerregistry import Address
+from email.utils import parseaddr
+from typing import Optional
+
+from django.conf import settings
 from django.contrib.sites.models import Site
+from django.core.exceptions import ImproperlyConfigured
+from django.core.validators import MaxLengthValidator, RegexValidator
 from django.db import models
 from django.utils.translation import pgettext_lazy
 
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits
 from . import AuthenticationBackends
+from .error_codes import SiteErrorCode
 from .patch_sites import patch_contrib_sites
 
 patch_contrib_sites()
+
+
+EMAIL_SENDER_NAME_VALIDATORS = [
+    RegexValidator(
+        r"[\n\r]",
+        inverse_match=True,
+        message=pgettext_lazy(
+            "Email sender name validation error", "New lines are not allowed."
+        ),
+        code=SiteErrorCode.FORBIDDEN_CHARACTER.value,
+    ),
+    MaxLengthValidator(settings.DEFAULT_MAX_EMAIL_DISPLAY_NAME_LENGTH),
+]
 
 
 class SiteSettings(models.Model):
@@ -40,6 +61,15 @@ class SiteSettings(models.Model):
     company_address = models.ForeignKey(
         "account.Address", blank=True, null=True, on_delete=models.CASCADE
     )
+
+    default_mail_sender_name = models.CharField(
+        max_length=settings.DEFAULT_MAX_EMAIL_DISPLAY_NAME_LENGTH,
+        blank=True,
+        default="",
+        validators=EMAIL_SENDER_NAME_VALIDATORS,
+    )
+    default_mail_sender_address = models.EmailField(blank=True, null=True)
+
     translated = TranslationProxy()
 
     class Meta:
@@ -56,6 +86,27 @@ class SiteSettings(models.Model):
 
     def __str__(self):
         return self.site.name
+
+    @property
+    def default_from_email(self) -> str:
+        sender_name: str = self.default_mail_sender_name
+        sender_address: Optional[str] = self.default_mail_sender_address
+
+        if not sender_address:
+            sender_address = settings.DEFAULT_FROM_EMAIL
+
+            if not sender_address:
+                raise ImproperlyConfigured("No sender email address has been set-up")
+
+            sender_name, sender_address = parseaddr(sender_address)
+
+        # Note: we only want to format the address in accordance to RFC 5322
+        # but our job is not to sanitize the values. The sanitized value, encoding, etc.
+        # will depend on the email backend being used.
+        #
+        # Refer to email.header.Header and django.core.mail.message.sanitize_address.
+        value = str(Address(sender_name, addr_spec=sender_address))
+        return value
 
     def available_backends(self):
         return self.authorizationkey_set.values_list("name", flat=True)

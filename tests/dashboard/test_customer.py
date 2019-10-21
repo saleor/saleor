@@ -17,7 +17,6 @@ from saleor.dashboard.customer.forms import (
     CustomerForm,
     CustomerNoteForm,
 )
-from saleor.settings import DEFAULT_FROM_EMAIL
 
 
 def test_ajax_users_list(admin_client, admin_user, customer_user):
@@ -279,7 +278,7 @@ def test_send_set_password_customer_email(customer_user, site_settings):
     }
     send_templated_mail(
         template_name="dashboard/customer/set_password",
-        from_email=DEFAULT_FROM_EMAIL,
+        from_email=site_settings.default_from_email,
         recipient_list=[customer_user.email],
         context=ctx,
     )

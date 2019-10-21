@@ -1,6 +1,5 @@
 from urllib.parse import urlencode, urlsplit
 
-from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.urls import reverse
 from django.utils.encoding import force_bytes
@@ -9,7 +8,7 @@ from templated_email import send_templated_mail
 
 from ..account.models import User
 from ..celeryconf import app
-from ..core.emails import get_email_base_context
+from ..core.emails import get_email_context
 from ..core.utils import build_absolute_uri
 
 
@@ -53,24 +52,24 @@ def _send_set_user_password_email(recipient_email, user_pk, token, template_name
 
 
 def _send_set_password_email(recipient_email, password_set_url, template_name):
-    ctx = get_email_base_context()
+    send_kwargs, ctx = get_email_context()
     ctx["password_set_url"] = password_set_url
     send_templated_mail(
         template_name=template_name,
-        from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[recipient_email],
         context=ctx,
+        **send_kwargs,
     )
 
 
 @app.task
 def send_promote_customer_to_staff_email(staff_pk):
     staff = User.objects.get(pk=staff_pk)
-    ctx = get_email_base_context()
+    send_kwargs, ctx = get_email_context()
     ctx["dashboard_url"] = build_absolute_uri(reverse("dashboard:index"))
     send_templated_mail(
         template_name="dashboard/staff/promote_customer",
-        from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[staff.email],
         context=ctx,
+        **send_kwargs,
     )

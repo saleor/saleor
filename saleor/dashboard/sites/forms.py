@@ -23,6 +23,8 @@ class SiteSettingsForm(forms.ModelForm):
             "description",
             "track_inventory_by_default",
             "default_weight_unit",
+            "default_mail_sender_name",
+            "default_mail_sender_address",
         ]
         labels = {
             "header_text": pgettext_lazy("Header text", "Header text"),
@@ -33,6 +35,12 @@ class SiteSettingsForm(forms.ModelForm):
             ),
             "default_weight_unit": pgettext_lazy(
                 "Default weight unit", "Default weight unit"
+            ),
+            "default_mail_sender_name": pgettext_lazy(
+                "Site settings's default email sender info", "Full Name"
+            ),
+            "default_mail_sender_address": pgettext_lazy(
+                "Site settings's default email sender info", "Email Address"
             ),
         }
         help_texts = {

@@ -3746,6 +3746,8 @@ type Shop {
   currencies: [String]!
   defaultCurrency: String!
   defaultCountry: CountryDisplay
+  defaultMailSenderName: String
+  defaultMailSenderAddress: String
   description: String
   domain: Domain!
   homepageCollection: Collection
@@ -3812,6 +3814,8 @@ input ShopSettingsInput {
   automaticFulfillmentDigitalProducts: Boolean
   defaultDigitalMaxDownloads: Int
   defaultDigitalUrlValidDays: Int
+  defaultMailSenderName: String
+  defaultMailSenderAddress: String
 }
 
 type ShopSettingsTranslate {

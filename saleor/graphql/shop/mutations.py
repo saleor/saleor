@@ -34,7 +34,13 @@ class ShopSettingsInput(graphene.InputObjectType):
         description="Default number of max downloads per digital content URL."
     )
     default_digital_url_valid_days = graphene.Int(
-        description=("Default number of days which digital content URL will be valid.")
+        description="Default number of days which digital content URL will be valid."
+    )
+    default_mail_sender_name = graphene.String(
+        description="Default email sender's name."
+    )
+    default_mail_sender_address = graphene.String(
+        description="Default email sender's address."
     )
 
 
