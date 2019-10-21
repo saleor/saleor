@@ -6,6 +6,7 @@ from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.utils import timezone
 
+from ...account.models import Address
 from ...checkout import models
 from ...checkout.error_codes import CheckoutErrorCode
 from ...checkout.utils import (
@@ -34,7 +35,6 @@ from ...payment.interface import AddressData
 from ...payment.utils import store_customer_id
 from ...product import models as product_models
 from ..account.i18n import I18nMixin
-from ..account.models import Address
 from ..account.types import AddressInput, User
 from ..core.mutations import (
     BaseMutation,
