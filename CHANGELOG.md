@@ -100,6 +100,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix ProductVariant with duplicated AttributeValues - #4829 by @fowczarek
 - Saleor can now be part of Apollo Federation, making seamless GraphQL schema extension possible - #4825 by @salwator
 - Added the possibility to customize the sender address and name from the dashboard - #4820 by @NyanKiyoshi
+- Add customer set password url to Site settings - #4863 by @fowczarek
 
 ## 2.8.0
 

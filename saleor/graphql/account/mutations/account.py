@@ -106,7 +106,12 @@ class AccountRequestDeletion(BaseMutation):
     def perform_mutation(cls, root, info, **data):
         user = info.context.user
         redirect_url = data["redirect_url"]
-        validate_storefront_url(redirect_url)
+        try:
+            validate_storefront_url(redirect_url)
+        except ValidationError as error:
+            raise ValidationError(
+                {"redirect_url": error}, code=AccountErrorCode.INVALID
+            )
         emails.send_account_delete_confirmation_email_with_url(redirect_url, user)
         return AccountRequestDeletion()
 
