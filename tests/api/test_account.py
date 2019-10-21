@@ -646,9 +646,8 @@ CUSTOMER_CREATE_MUTATION = """
                 field
                 message
             }
-            accountErrors{
+            accountErrors {
                 field
-                message
                 code
             }
             user {
@@ -776,7 +775,6 @@ def test_customer_create_without_redirect_url_deprecated_send_mail_flag(
     assert data["accountErrors"][0] == {
         "field": "redirectUrl",
         "code": AccountErrorCode.REQUIRED.name,
-        "message": ANY,
     }
     staff_user = User.objects.filter(email=email)
     assert not staff_user
@@ -793,7 +791,6 @@ def test_customer_create_with_invalid_url(staff_api_client, permission_manage_us
     assert data["accountErrors"][0] == {
         "field": "redirectUrl",
         "code": AccountErrorCode.INVALID.name,
-        "message": ANY,
     }
     staff_user = User.objects.filter(email=email)
     assert not staff_user
@@ -812,7 +809,6 @@ def test_customer_create_with_not_allowed_url(
     assert data["accountErrors"][0] == {
         "field": "redirectUrl",
         "code": AccountErrorCode.INVALID.name,
-        "message": ANY,
     }
     staff_user = User.objects.filter(email=email)
     assert not staff_user
@@ -1118,6 +1114,10 @@ ACCOUNT_REQUEST_DELETION_MUTATION = """
                 field
                 message
             }
+            accountErrors {
+                code
+                field
+            }
         }
     }
 """
@@ -1181,7 +1181,10 @@ def test_account_request_deletion_storefront_hosts_not_allowed(
     content = get_graphql_content(response)
     data = content["data"]["accountRequestDeletion"]
     assert len(data["errors"]) == 1
-    assert data["errors"][0]["field"] == "redirectUrl"
+    assert data["accountErrors"][0] == {
+        "field": "redirectUrl",
+        "code": AccountErrorCode.INVALID.name,
+    }
     send_account_delete_confirmation_email_with_url_mock.assert_not_called()
 
 
@@ -1366,7 +1369,6 @@ STAFF_CREATE_MUTATION = """
             }
             accountErrors {
                 field
-                message
                 code
             }
             user {
@@ -1475,7 +1477,6 @@ def test_staff_create_without_redirect_url_deprecated_send_mail_flag(
     assert data["accountErrors"][0] == {
         "field": "redirectUrl",
         "code": AccountErrorCode.REQUIRED.name,
-        "message": ANY,
     }
     staff_user = User.objects.filter(email=email)
     assert not staff_user
@@ -1494,7 +1495,6 @@ def test_staff_create_with_invalid_url(
     assert data["accountErrors"][0] == {
         "field": "redirectUrl",
         "code": AccountErrorCode.INVALID.name,
-        "message": ANY,
     }
     staff_user = User.objects.filter(email=email)
     assert not staff_user
@@ -1513,7 +1513,6 @@ def test_staff_create_with_not_allowed_url(
     assert data["accountErrors"][0] == {
         "field": "redirectUrl",
         "code": AccountErrorCode.INVALID.name,
-        "message": ANY,
     }
     staff_user = User.objects.filter(email=email)
     assert not staff_user
@@ -1569,7 +1568,6 @@ def test_staff_update_doesnt_change_existing_avatar(
             }
             accountErrors {
                 field
-                message
                 code
             }
         }

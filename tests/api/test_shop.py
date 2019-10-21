@@ -4,6 +4,7 @@ import graphene
 import pytest
 from django_countries import countries
 
+from saleor.core.error_codes import ShopErrorCode
 from saleor.core.permissions import MODELS_PERMISSIONS
 from saleor.graphql.core.utils import str_to_enum
 from saleor.site import AuthenticationBackends
@@ -572,8 +573,11 @@ def test_shop_customer_set_password_url_update_invalid_url(
     )
     content = get_graphql_content(response)
     data = content["data"]["shopSettingsUpdate"]
-    # TODO Add field and Code After fix errors in valitaion
-    assert data["shopErrors"][0] == {"field": ANY, "code": ANY, "message": ANY}
+    assert data["shopErrors"][0] == {
+        "field": "customerSetPasswordUrl",
+        "code": ShopErrorCode.INVALID.name,
+        "message": ANY,
+    }
     site_settings.refresh_from_db()
     assert not site_settings.customer_set_password_url
 

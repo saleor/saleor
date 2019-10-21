@@ -69,7 +69,12 @@ class ShopSettingsUpdate(BaseMutation):
     @classmethod
     def clean_input(cls, _info, _instance, data):
         if data.get("customer_set_password_url"):
-            validate_storefront_url(data["customer_set_password_url"])
+            try:
+                validate_storefront_url(data["customer_set_password_url"])
+            except ValidationError as error:
+                raise ValidationError(
+                    {"customer_set_password_url": error}, code=ShopErrorCode.INVALID
+                )
         return data
 
     @classmethod
