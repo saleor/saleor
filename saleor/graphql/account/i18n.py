@@ -3,7 +3,6 @@ from django_countries import countries
 
 from ...account.error_codes import AccountErrorCode
 from ...account.forms import get_address_form
-from ...account.models import Address
 from ...account.validators import validate_possible_number
 
 
