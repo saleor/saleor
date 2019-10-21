@@ -89,6 +89,12 @@ class Shop(graphene.ObjectType):
     default_country = graphene.Field(
         CountryDisplay, description="Shop's default country."
     )
+    default_mail_sender_name = graphene.String(
+        description="Default shop's email sender's name."
+    )
+    default_mail_sender_address = graphene.String(
+        description="Default shop's email sender's address."
+    )
     description = graphene.String(description="Shop's description.")
     domain = graphene.Field(Domain, required=True, description="Shop's domain data.")
     homepage_collection = graphene.Field(
@@ -138,7 +144,7 @@ class Shop(graphene.ObjectType):
         description="Default number of max downloads per digital content URL."
     )
     default_digital_url_valid_days = graphene.Int(
-        description=("Default number of days which digital content URL will be valid.")
+        description="Default number of days which digital content URL will be valid."
     )
     company_address = graphene.Field(
         Address, description="Company address.", required=False
@@ -268,6 +274,16 @@ class Shop(graphene.ObjectType):
         else:
             default_country = None
         return default_country
+
+    @staticmethod
+    @permission_required("site.manage_settings")
+    def resolve_default_mail_sender_name(_, info):
+        return info.context.site.settings.default_mail_sender_name
+
+    @staticmethod
+    @permission_required("site.manage_settings")
+    def resolve_default_mail_sender_address(_, info):
+        return info.context.site.settings.default_mail_sender_address
 
     @staticmethod
     def resolve_company_address(_, info):

@@ -65,7 +65,7 @@ def setup_dummy_gateway(settings):
 
 
 @pytest.fixture(autouse=True)
-def site_settings(db, settings):
+def site_settings(db, settings) -> SiteSettings:
     """Create a site and matching site settings.
 
     This fixture is autouse because django.contrib.sites.models.Site and
@@ -73,7 +73,11 @@ def site_settings(db, settings):
     should never exist without a matching settings object.
     """
     site = Site.objects.get_or_create(name="mirumee.com", domain="mirumee.com")[0]
-    obj = SiteSettings.objects.get_or_create(site=site)[0]
+    obj = SiteSettings.objects.get_or_create(
+        site=site,
+        default_mail_sender_name="Mirumee Labs",
+        default_mail_sender_address="mirumee@example.com",
+    )[0]
     settings.SITE_ID = site.pk
 
     main_menu = Menu.objects.get_or_create(
