@@ -150,7 +150,7 @@ class Shop(graphene.ObjectType):
         Address, description="Company address.", required=False
     )
     customer_set_password_url = graphene.String(
-        description="storefront url address in which the client sets the password.",
+        description="URL of a view where customers can set their password.",
         required=False,
     )
 

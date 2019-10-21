@@ -176,8 +176,8 @@ class StaffCreate(ModelMutation):
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
 
-        # DEPRECATED: We shoud remove this confition whe drop `send_password_email`
-        # from mutation imput.
+        # DEPRECATED: We should remove this condition when dropping
+        # `send_password_email` from mutation input.
         if cleaned_input.get("send_password_email"):
             if not cleaned_input.get("redirect_url"):
                 raise ValidationError(
