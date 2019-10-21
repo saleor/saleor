@@ -346,8 +346,8 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
             )
             cleaned_input[BILLING_ADDRESS_FIELD] = billing_address
 
-        # DEPRECATED: We shoud remove this confition whe drop `send_password_email`
-        # from mutation imput.
+        # DEPRECATED: We should remove this condition when dropping
+        # `send_password_email` from mutation input.
         if cleaned_input.get("send_password_email"):
             if not cleaned_input.get("redirect_url"):
                 raise ValidationError(
