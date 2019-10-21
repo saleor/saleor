@@ -10,14 +10,14 @@ from django.template.response import TemplateResponse
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
-from django.utils.translation import get_language
+from django.utils.translation import get_language, ugettext_lazy as _
 from django_countries.fields import Country
-from graphql_jwt.exceptions import PermissionDenied
 
 from ..discount.utils import fetch_discounts
 from ..extensions.manager import get_extensions_manager
 from ..graphql.views import GraphQLView
 from . import analytics
+from .exceptions import ReadOnlyException
 from .utils import get_client_ip, get_country_by_ip, get_currency_for_country
 
 logger = logging.getLogger(__name__)
@@ -121,19 +121,21 @@ class ReadOnlyMiddleware:
         self.blocked_django_url_patterns = [
             re.compile(r"^/dashboard"),
             re.compile(r"^/([\w-]+/)?account/$"),
+            re.compile(r"^/([\w-]+/)?account/signup/$"),
         ]
+        self.allowed_mutations_startswith = ["checkout", "tokenCreate", "tokenVerify"]
 
     def __call__(self, request):
-        response = self.get_response(request)
-        return response
+        return self.get_response(request)
 
     def process_view(self, request, *_args, **_kwargs):
         if request.path == reverse("api"):
             if not self._is_graphql_request_blocked(request):
                 return None
-
             error = GraphQLView.format_error(
-                PermissionDenied("Be aware admin pirate! API runs in read only mode!")
+                ReadOnlyException(
+                    _("Be aware admin pirate! API runs in read only mode!")
+                )
             )
             return JsonResponse(data=error, status=200, safe=False)
 
@@ -161,7 +163,6 @@ class ReadOnlyMiddleware:
         return is_post and any(self._is_url_blocked(request_url))
 
     def _is_graphql_request_blocked(self, request):
-        allowed_mutations_startswith = ["checkout", "tokenCreate"]
 
         body = GraphQLView.parse_body(request)
         if not isinstance(body, list):
@@ -184,7 +185,7 @@ class ReadOnlyMiddleware:
                     blocked = not any(
                         [
                             part_name in selection_name
-                            for part_name in allowed_mutations_startswith
+                            for part_name in self.allowed_mutations_startswith
                         ]
                     )
                     if blocked:
