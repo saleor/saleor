@@ -43,8 +43,9 @@ class ShopSettingsInput(graphene.InputObjectType):
     default_mail_sender_address = graphene.String(
         description="Default email sender's address."
     )
-    # TODO: Add description
-    customer_set_password_url = graphene.String(description="XXXXX")
+    customer_set_password_url = graphene.String(
+        description="Storefront url address in which the client sets the password."
+    )
 
 
 class SiteDomainInput(graphene.InputObjectType):

@@ -149,8 +149,10 @@ class Shop(graphene.ObjectType):
     company_address = graphene.Field(
         Address, description="Company address.", required=False
     )
-    # TODO: Add description
-    customer_set_password_url = graphene.String(description="XXXXX", required=False)
+    customer_set_password_url = graphene.String(
+        description="storefront url address in which the client sets the password.",
+        required=False,
+    )
 
     class Meta:
         description = (
