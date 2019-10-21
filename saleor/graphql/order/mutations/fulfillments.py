@@ -50,7 +50,7 @@ class FulfillmentCancelInput(graphene.InputObjectType):
 
 class FulfillmentClearMeta(ClearMetaBaseMutation):
     class Meta:
-        description = "Clears meta for fulfillment"
+        description = "Clears metadata for fulfillment"
         model = models.Fulfillment
         permission = "orders.manage_orders"
         public = True
@@ -58,7 +58,7 @@ class FulfillmentClearMeta(ClearMetaBaseMutation):
 
 class FulfillmentUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
-        description = "Updates meta for fulfillment"
+        description = "Updates metadata for fulfillment"
         model = models.Fulfillment
         permission = "orders.manage_orders"
         public = True
@@ -66,7 +66,7 @@ class FulfillmentUpdateMeta(UpdateMetaBaseMutation):
 
 class FulfillmentClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
-        description = "Clears private meta for fulfillment"
+        description = "Clears private metadata for fulfillment"
         model = models.Fulfillment
         permission = "orders.manage_orders"
         public = False
@@ -74,7 +74,7 @@ class FulfillmentClearPrivateMeta(ClearMetaBaseMutation):
 
 class FulfillmentUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
-        description = "Updates meta for fulfillment"
+        description = "Updates metadata for fulfillment"
         model = models.Fulfillment
         permission = "orders.manage_orders"
         public = False
