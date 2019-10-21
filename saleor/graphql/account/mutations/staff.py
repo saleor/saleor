@@ -186,7 +186,12 @@ class StaffCreate(ModelMutation):
                     }
                 )
         if cleaned_input.get("redirect_url"):
-            validate_storefront_url(cleaned_input.get("redirect_url"))
+            try:
+                validate_storefront_url(cleaned_input.get("redirect_url"))
+            except ValidationError as error:
+                raise ValidationError(
+                    {"redirect_url": error}, code=AccountErrorCode.INVALID
+                )
 
         # set is_staff to True to create a staff user
         cleaned_input["is_staff"] = True

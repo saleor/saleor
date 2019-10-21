@@ -128,7 +128,12 @@ class RequestPasswordReset(BaseMutation):
     def perform_mutation(cls, _root, info, **data):
         email = data["email"]
         redirect_url = data["redirect_url"]
-        validate_storefront_url(redirect_url)
+        try:
+            validate_storefront_url(redirect_url)
+        except ValidationError as error:
+            raise ValidationError(
+                {"redirect_url": error}, code=AccountErrorCode.INVALID
+            )
 
         try:
             user = models.User.objects.get(email=email)
@@ -351,7 +356,12 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
                     }
                 )
         if cleaned_input.get("redirect_url"):
-            validate_storefront_url(cleaned_input.get("redirect_url"))
+            try:
+                validate_storefront_url(cleaned_input.get("redirect_url"))
+            except ValidationError as error:
+                raise ValidationError(
+                    {"redirect_url": error}, code=AccountErrorCode.INVALID
+                )
 
         return cleaned_input
 

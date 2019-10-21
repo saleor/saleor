@@ -4,8 +4,6 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.http.request import split_domain_port, validate_host
 
-from ...account.error_codes import AccountErrorCode
-
 
 def validate_storefront_url(url):
     """Validate the storefront URL.
@@ -16,18 +14,15 @@ def validate_storefront_url(url):
     try:
         parsed_url = urlparse(url)
         domain, _ = split_domain_port(parsed_url.netloc)
-        # TODO: Check if parsed_url.netloc is empty
+        if not parsed_url.netloc:
+            raise ValidationError(
+                "Invalid URL. Please check if URL is in RFC 1808 format."
+            )
     except ValueError as error:
-        # TODO: Move Error code and field outside function
-        raise ValidationError(
-            {"redirectUrl": str(error)}, code=AccountErrorCode.INVALID
-        )
+        raise ValidationError(error)
     if not validate_host(domain, settings.ALLOWED_CLIENT_HOSTS):
         error_message = (
             f"{domain or url} is not allowed. Please check "
             "`ALLOWED_CLIENT_HOSTS` configuration."
         )
-        # TODO: Move Error code and field outside function
-        raise ValidationError(
-            {"redirectUrl": error_message}, code=AccountErrorCode.INVALID
-        )
+        raise ValidationError(error_message)
