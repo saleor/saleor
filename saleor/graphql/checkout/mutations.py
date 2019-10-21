@@ -34,6 +34,7 @@ from ...payment.interface import AddressData
 from ...payment.utils import store_customer_id
 from ...product import models as product_models
 from ..account.i18n import I18nMixin
+from ..account.models import Address
 from ..account.types import AddressInput, User
 from ..core.mutations import (
     BaseMutation,
@@ -477,9 +478,13 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
                 }
             )
 
-        shipping_address = cls.validate_address(
-            shipping_address, instance=checkout.shipping_address
+        cleaned_address_data = cls.validate_address(shipping_address)
+
+        checkout.shipping_address = cls.construct_instance(
+            checkout.shipping_address or Address(),
+            cleaned_address_data
         )
+        cls.clean_instance(checkout.shipping_address)
 
         update_checkout_shipping_method_if_invalid(checkout, info.context.discounts)
 
