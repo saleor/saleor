@@ -1,19 +1,10 @@
-import os
-import os.path
-import random
-
-from django.conf import settings
-from django.core.files import File
-
 from ..checkout import AddressType
-
-AVATARS_PATH = os.path.join(
-    settings.PROJECT_ROOT, "saleor", "static", "images", "avatars"
-)
+from ..extensions.manager import get_extensions_manager
 
 
 def store_user_address(user, address, address_type):
     """Add address to user address book and set as default one."""
+    address = get_extensions_manager().change_user_address(user, address, address_type)
     address_data = address.as_data()
 
     address = user.addresses.filter(**address_data).first()
@@ -39,6 +30,8 @@ def set_user_default_shipping_address(user, address):
 
 
 def change_user_default_address(user, address, address_type):
+    address = get_extensions_manager().change_user_address(user, address, address_type)
+    address.save()
     if address_type == AddressType.BILLING:
         if user.default_billing_address:
             user.addresses.add(user.default_billing_address)
@@ -71,10 +64,3 @@ def get_user_last_name(user):
     if user.default_billing_address:
         return user.default_billing_address.last_name
     return None
-
-
-def get_random_avatar():
-    """Return random avatar picked from a pool of static avatars."""
-    avatar_name = random.choice(os.listdir(AVATARS_PATH))
-    avatar_path = os.path.join(AVATARS_PATH, avatar_name)
-    return File(open(avatar_path, "rb"), name=avatar_name)

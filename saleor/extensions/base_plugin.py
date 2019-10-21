@@ -43,6 +43,15 @@ class BasePlugin:
             self._cached_config = plugin_config
             self.active = plugin_config.active
 
+    def change_user_address(
+        self,
+        user: "User",
+        address: "Address",
+        address_type: str,
+        previous_value: "Address",
+    ) -> "Address":
+        return NotImplemented
+
     def calculate_checkout_total(
         self,
         checkout: "Checkout",

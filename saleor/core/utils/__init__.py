@@ -1,5 +1,7 @@
 import decimal
 import logging
+import os
+import random
 import socket
 from json import JSONEncoder
 from urllib.parse import urljoin
@@ -9,6 +11,7 @@ from django import forms
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core import serializers
+from django.core.files import File
 from django.core.paginator import InvalidPage, Paginator
 from django.http import Http404
 from django.utils.encoding import iri_to_uri, smart_text
@@ -21,12 +24,16 @@ from geolite2 import geolite2
 from prices import MoneyRange
 from versatileimagefield.image_warmer import VersatileImageFieldWarmer
 
-from ...account.utils import get_random_avatar
 from ...celeryconf import app
 from ...core.i18n import COUNTRY_CODE_CHOICES
 
 georeader = geolite2.reader()
 logger = logging.getLogger(__name__)
+
+
+AVATARS_PATH = os.path.join(
+    settings.PROJECT_ROOT, "saleor", "static", "images", "avatars"
+)
 
 
 class CategoryChoiceField(forms.ModelChoiceField):
@@ -212,3 +219,10 @@ def get_country_name_by_code(country_code):
 
 def get_company_address():
     return Site.objects.get_current().settings.company_address
+
+
+def get_random_avatar():
+    """Return random avatar picked from a pool of static avatars."""
+    avatar_name = random.choice(os.listdir(AVATARS_PATH))
+    avatar_path = os.path.join(AVATARS_PATH, avatar_name)
+    return File(open(avatar_path, "rb"), name=avatar_name)
