@@ -3767,6 +3767,7 @@ type Shop {
   defaultDigitalMaxDownloads: Int
   defaultDigitalUrlValidDays: Int
   companyAddress: Address
+  customerSetPasswordUrl: String
 }
 
 type ShopAddressUpdate {
@@ -3816,6 +3817,7 @@ input ShopSettingsInput {
   defaultDigitalUrlValidDays: Int
   defaultMailSenderName: String
   defaultMailSenderAddress: String
+  customerSetPasswordUrl: String
 }
 
 type ShopSettingsTranslate {
