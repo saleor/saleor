@@ -1,7 +1,10 @@
+from unittest.mock import ANY
+
 import graphene
 import pytest
 from django_countries import countries
 
+from saleor.core.error_codes import ShopErrorCode
 from saleor.core.permissions import MODELS_PERMISSIONS
 from saleor.graphql.core.utils import str_to_enum
 from saleor.site import AuthenticationBackends
@@ -511,6 +514,72 @@ def test_shop_domain_update(staff_api_client, permission_manage_settings):
     site.refresh_from_db()
     assert site.domain == "lorem-ipsum.com"
     assert site.name == new_name
+
+
+MUTATION_CUSTOMER_SET_PASSWORD_URL_UPDATE = """
+    mutation updateSettings($customerSetPasswordUrl: String!) {
+        shopSettingsUpdate(input: {customerSetPasswordUrl: $customerSetPasswordUrl}){
+            shop {
+                customerSetPasswordUrl
+            }
+            shopErrors {
+                message
+                field
+                code
+            }
+        }
+    }
+"""
+
+
+def test_shop_customer_set_password_url_update(
+    staff_api_client, site_settings, permission_manage_settings
+):
+    customer_set_password_url = "http://www.example.com/set_pass/"
+    variables = {"customerSetPasswordUrl": customer_set_password_url}
+    assert site_settings.customer_set_password_url != customer_set_password_url
+    response = staff_api_client.post_graphql(
+        MUTATION_CUSTOMER_SET_PASSWORD_URL_UPDATE,
+        variables,
+        permissions=[permission_manage_settings],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shopSettingsUpdate"]
+    assert not data["shopErrors"]
+    site_settings = Site.objects.get_current().settings
+    assert site_settings.customer_set_password_url == customer_set_password_url
+
+
+@pytest.mark.parametrize(
+    "customer_set_password_url",
+    [
+        ("http://not-allowed-storefron.com/pass"),
+        ("http://[value-error-in-urlparse@test/pass"),
+        ("without-protocole.com/pass"),
+    ],
+)
+def test_shop_customer_set_password_url_update_invalid_url(
+    staff_api_client,
+    site_settings,
+    permission_manage_settings,
+    customer_set_password_url,
+):
+    variables = {"customerSetPasswordUrl": customer_set_password_url}
+    assert not site_settings.customer_set_password_url
+    response = staff_api_client.post_graphql(
+        MUTATION_CUSTOMER_SET_PASSWORD_URL_UPDATE,
+        variables,
+        permissions=[permission_manage_settings],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shopSettingsUpdate"]
+    assert data["shopErrors"][0] == {
+        "field": "customerSetPasswordUrl",
+        "code": ShopErrorCode.INVALID.name,
+        "message": ANY,
+    }
+    site_settings.refresh_from_db()
+    assert not site_settings.customer_set_password_url
 
 
 def test_homepage_collection_update(
