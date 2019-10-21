@@ -212,7 +212,6 @@ class GraphQLView(View):
             result["extensions"] = {
                 "exception": {"code": type(exc).__name__, "stacktrace ": lines}
             }
-
         return result
 
 
