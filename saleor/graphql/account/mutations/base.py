@@ -297,7 +297,8 @@ class CustomerInput(UserInput, UserAddressInput):
 
 class UserCreateInput(CustomerInput):
     send_password_email = graphene.Boolean(
-        description="Send an email with a link to set a password."
+        # TODO Add description
+        description="DEPRECATED: XXXX, Send an email with a link to set a password."
     )
     redirect_url = graphene.String(
         description=(
@@ -337,6 +338,8 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
             )
             cleaned_input[BILLING_ADDRESS_FIELD] = billing_address
 
+        # TODO Add description
+        # DEPRECATED: XXX
         if cleaned_input.get("send_password_email"):
             if not cleaned_input.get("redirect_url"):
                 raise ValidationError(
@@ -347,6 +350,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
                         )
                     }
                 )
+        if cleaned_input.get("redirect_url"):
             validate_storefront_url(cleaned_input.get("redirect_url"))
 
         return cleaned_input
@@ -372,7 +376,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
             info.context.extensions.customer_created(customer=instance)
             account_events.customer_account_created_event(user=instance)
 
-        if cleaned_input.get("send_password_email"):
+        if cleaned_input.get("redirect_url"):
             send_set_password_email_with_url(
                 cleaned_input.get("redirect_url"), instance
             )

@@ -46,7 +46,8 @@ class StaffInput(UserInput):
 
 class StaffCreateInput(StaffInput):
     send_password_email = graphene.Boolean(
-        description="Send an email with a link to set the password."
+        # TODO Add description
+        description="DEPRECATED: XXXX, Send an email with a link to set the password."
     )
     redirect_url = graphene.String(
         description=(
@@ -172,6 +173,8 @@ class StaffCreate(ModelMutation):
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
 
+        # TODO Add description
+        # DEPRECATED: XXX
         if cleaned_input.get("send_password_email"):
             if not cleaned_input.get("redirect_url"):
                 raise ValidationError(
@@ -182,6 +185,7 @@ class StaffCreate(ModelMutation):
                         )
                     }
                 )
+        if cleaned_input.get("redirect_url"):
             validate_storefront_url(cleaned_input.get("redirect_url"))
 
         # set is_staff to True to create a staff user
@@ -201,7 +205,7 @@ class StaffCreate(ModelMutation):
         user.save()
         if create_avatar:
             create_user_avatar_thumbnails.delay(user_id=user.pk)
-        if cleaned_input.get("send_password_email"):
+        if cleaned_input.get("redirect_url"):
             send_set_password_email_with_url(
                 redirect_url=cleaned_input.get("redirect_url"), user=user, staff=True
             )
