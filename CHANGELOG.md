@@ -101,9 +101,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Saleor can now be part of Apollo Federation, making seamless GraphQL schema extension possible - #4825 by @salwator
 - Added the possibility to customize the sender address and name from the dashboard - #4820 by @NyanKiyoshi
 - Add customer set password url to Site settings - #4863 by @fowczarek
-- Add Fulfilment metadata - # @szewczykmira
-- Add Fulfillment metadata - # @szewczykmira
-- Add Fulfillment metadata - #4866 @szewczykmira
+- Add Fulfillment metadata - #4866 by @szewczykmira
 
 ## 2.8.0
 
