@@ -19,17 +19,19 @@ class AnonymizePlugin(BasePlugin):
 
     def change_user_address(
         self,
-        user: "User",
         address: "Address",
         address_type: Optional[str],
+        user: Optional["User"],
         previous_value: "Address",
     ) -> "Address":
         if address.phone:
             address.phone = ""
-        return obfuscate_address(address)
+        address = obfuscate_address(address)
+        address.save()
+        return address
 
     def order_created(self, order: "Order", previous_value: Any):
-        obfuscate_order(order)
+        order = obfuscate_order(order)
         order.save()
 
     def customer_created(self, customer: "User", previous_value: Any) -> Any:

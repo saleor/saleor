@@ -1,6 +1,6 @@
 from copy import copy
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, List, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 from django.db.models import QuerySet
 from django_countries.fields import Country
@@ -45,9 +45,9 @@ class BasePlugin:
 
     def change_user_address(
         self,
-        user: "User",
         address: "Address",
-        address_type: str,
+        address_type: Optional[str],
+        user: Optional["User"],
         previous_value: "Address",
     ) -> "Address":
         return NotImplemented
