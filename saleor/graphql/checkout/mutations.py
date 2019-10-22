@@ -480,17 +480,17 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
 
         cleaned_address_data = cls.validate_address(shipping_address)
 
-        checkout.shipping_address = cls.construct_instance(
-            checkout.shipping_address or Address(),
+        shipping_address = cls.construct_instance(
+            shipping_address,
             cleaned_address_data
         )
-        cls.clean_instance(checkout.shipping_address)
-
-        update_checkout_shipping_method_if_invalid(checkout, info.context.discounts)
+        cls.clean_instance(shipping_address)
 
         with transaction.atomic():
             shipping_address.save()
             change_shipping_address_in_checkout(checkout, shipping_address)
+
+        update_checkout_shipping_method_if_invalid(checkout, info.context.discounts)
         recalculate_checkout_discount(checkout, info.context.discounts)
 
         return CheckoutShippingAddressUpdate(checkout=checkout)
