@@ -1895,7 +1895,7 @@ def test_create_address_mutation(
     staff_api_client, customer_user, permission_manage_users
 ):
     query = """
-    mutation CreateUserAddress($user: ID!, $city: String!, $country: String!) {
+    mutation CreateUserAddress($user: ID!, $city: String!, $country: CountryCode!) {
         addressCreate(userId: $user, input: {city: $city, country: $country}) {
             errors {
                 field
