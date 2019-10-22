@@ -296,7 +296,7 @@ class OrderCustomerNoteForm(forms.ModelForm):
         fields = ["customer_note"]
 
     customer_note = forms.CharField(
-        label=pgettext_lazy("Order customer note", "Customer note"),
+        label=pgettext_lazy("Field for updating the customer's note", "Customer note"),
         widget=forms.Textarea(),
     )
 
