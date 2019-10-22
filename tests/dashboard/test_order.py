@@ -1231,9 +1231,7 @@ def test_view_edit_order_customer_note(admin_client, admin_user, order_with_line
     order_with_lines.refresh_from_db()
     assert order_with_lines.customer_note == note_content
     assert OrderEvent.objects.filter(
-        order=order_with_lines,
-        type=OrderEvents.CUSTOMER_NOTE_UPDATED,
-        user=admin_user,
+        order=order_with_lines, type=OrderEvents.CUSTOMER_NOTE_UPDATED, user=admin_user
     ).exists()
     response = admin_client.get(url)
     assert response.status_code == 200
