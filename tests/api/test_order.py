@@ -2246,3 +2246,102 @@ def test_draft_orders_query_with_filter_search_by_id(
     response = staff_api_client.post_graphql(draft_orders_query_with_filter, variables)
     content = get_graphql_content(response)
     assert content["data"]["draftOrders"]["totalCount"] == 1
+
+
+def update_meta(mutation_name):
+    return """
+    mutation %s($id: ID!, $input: MetaInput!) {
+        %s(id: $id, input: $input){
+            errors {
+                message
+            }
+        }
+    }
+    """ % (
+        mutation_name,
+        mutation_name,
+    )
+
+
+@pytest.fixture
+def update_order_meta():
+    return update_meta("orderUpdateMeta")
+
+
+@pytest.fixture
+def update_order_private_meta():
+    return update_meta("orderUpdatePrivateMeta")
+
+
+@pytest.fixture
+def order_meta_update_variables(order):
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    return {
+        "id": order_id,
+        "input": {
+            "namespace": "test",
+            "clientName": "client1",
+            "key": "foo",
+            "value": "bar",
+        },
+    }
+
+
+def test_user_without_permission_cannot_update_meta(
+    staff_api_client, staff_user, update_order_meta, order_meta_update_variables
+):
+    assert not staff_user.has_perm("order.manage_orders")
+    response = staff_api_client.post_graphql(
+        update_order_meta, order_meta_update_variables
+    )
+    assert_no_permission(response)
+
+
+def test_user_without_permission_cannot_update_private_meta(
+    staff_api_client, staff_user, update_order_private_meta, order_meta_update_variables
+):
+    assert not staff_user.has_perm("order.manage_orders")
+    response = staff_api_client.post_graphql(
+        update_order_private_meta, order_meta_update_variables
+    )
+    assert_no_permission(response)
+
+
+def test_user_with_permission_can_update_meta(
+    permission_manage_orders,
+    staff_api_client,
+    staff_user,
+    update_order_meta,
+    order_meta_update_variables,
+    order,
+):
+    staff_user.user_permissions.add(permission_manage_orders)
+    assert staff_user.has_perm("order.manage_orders")
+    response = staff_api_client.post_graphql(
+        update_order_meta, order_meta_update_variables
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["orderUpdateMeta"]["errors"]
+    assert len(errors) == 0
+    order.refresh_from_db()
+    assert order.get_meta(namespace="test", client="client1") == {"foo": "bar"}
+
+
+def test_user_with_permission_can_update_private_meta(
+    permission_manage_orders,
+    staff_api_client,
+    staff_user,
+    update_order_private_meta,
+    order_meta_update_variables,
+    order,
+):
+    staff_user.user_permissions.add(permission_manage_orders)
+    assert staff_user.has_perm("order.manage_orders")
+    response = staff_api_client.post_graphql(
+        update_order_private_meta, order_meta_update_variables
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["orderUpdatePrivateMeta"]["errors"]
+    assert len(errors) == 0
+    order.refresh_from_db()
+    assert order.get_private_meta(namespace="test", client="client1") == {"foo": "bar"}

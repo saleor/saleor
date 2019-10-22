@@ -424,7 +424,7 @@ class OrderUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Updates meta for order."
         model = models.Order
-        permissions = "orders.manage_orders"
+        permissions = ("order.manage_orders",)
         public = True
 
 
@@ -432,7 +432,7 @@ class OrderUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Updates private meta for order."
         model = models.Order
-        permissions = "orders.manage_orders"
+        permissions = ("order.manage_orders",)
         public = False
 
 
@@ -440,7 +440,7 @@ class OrderClearMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clears stored metadata value."
         model = models.Order
-        permissions = "orders.manage_orders"
+        permissions = "order.manage_orders"
         public = True
 
 
@@ -448,5 +448,5 @@ class OrderClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clears stored private metadata value."
         model = models.Order
-        permissions = "orders.manage_orders"
+        permissions = "order.manage_orders"
         public = False
