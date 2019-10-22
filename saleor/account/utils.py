@@ -4,7 +4,7 @@ from ..extensions.manager import get_extensions_manager
 
 def store_user_address(user, address, address_type):
     """Add address to user address book and set as default one."""
-    address = get_extensions_manager().change_user_address(user, address, address_type)
+    address = get_extensions_manager().change_user_address(address, address_type, user)
     address_data = address.as_data()
 
     address = user.addresses.filter(**address_data).first()
@@ -30,8 +30,7 @@ def set_user_default_shipping_address(user, address):
 
 
 def change_user_default_address(user, address, address_type):
-    address = get_extensions_manager().change_user_address(user, address, address_type)
-    address.save()
+    address = get_extensions_manager().change_user_address(address, address_type, user)
     if address_type == AddressType.BILLING:
         if user.default_billing_address:
             user.addresses.add(user.default_billing_address)
