@@ -20,7 +20,6 @@ class CustomerEvents:
     EMAIL_ASSIGNED = "email_assigned"  # the staff user assigned a email to the customer
     NAME_ASSIGNED = "name_assigned"  # the staff user added set a name to the customer
     NOTE_ADDED = "note_added"  # the staff user added a note to the customer
-    CUSTOMER_NOTE_ADDED = "customer_note_added"  # the staff user added a customer note
 
     CHOICES = [
         (
@@ -90,13 +89,6 @@ class CustomerEvents:
             pgettext_lazy(
                 "Event from a staff user assigned a new email address to a customer",
                 "A note was added to the customer",
-            ),
-        ),
-        (
-            CUSTOMER_NOTE_ADDED,
-            pgettext_lazy(
-                "Event from a staff user assigned a new email address to a customer",
-                "A customer's note was added to the customer",
             ),
         ),
     ]
