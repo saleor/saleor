@@ -42,7 +42,10 @@ class AnonymizePlugin(BasePlugin):
     def _get_default_configuration(cls):
         defaults = {
             "name": cls.PLUGIN_NAME,
-            "description": "",
+            "description": (
+                "Hide all user data like shipping and billing addresses, email and "
+                "phone number"
+            ),
             "active": True,
             "configuration": None,
         }
