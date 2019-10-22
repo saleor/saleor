@@ -2382,9 +2382,24 @@ def clear_meta_variables(order):
 
 
 @pytest.fixture
+def clear_meta_private_variables(order):
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    return {
+        "id": order_id,
+        "input": {
+            "namespace": "testPrivate",
+            "clientName": "clientPrivate1",
+            "key": "foo",
+        },
+    }
+
+
+@pytest.fixture
 def order_with_meta(order):
     order.store_meta(namespace="test", client="client1", item={"foo": "bar"})
-    order.store_private_meta(namespace="test", client="client1", item={"foo": "bar"})
+    order.store_private_meta(
+        namespace="testPrivate", client="clientPrivate1", item={"foo": "bar"}
+    )
     order.save()
     return order
 
@@ -2398,11 +2413,11 @@ def test_user_without_permission_cannot_clear_meta(
 
 
 def test_user_without_permission_cannot_clear_private_meta(
-    staff_user, staff_api_client, clear_order_private_meta, clear_meta_variables
+    staff_user, staff_api_client, clear_order_private_meta, clear_meta_private_variables
 ):
     assert not staff_user.has_perm("order.manage_orders")
     response = staff_api_client.post_graphql(
-        clear_order_private_meta, clear_meta_variables
+        clear_order_private_meta, clear_meta_private_variables
     )
     assert_no_permission(response)
 
@@ -2431,14 +2446,14 @@ def test_user_with_permission_can_clear_private_meta(
     staff_user,
     staff_api_client,
     clear_order_private_meta,
-    clear_meta_variables,
+    clear_meta_private_variables,
     order_with_meta,
     permission_manage_orders,
 ):
     staff_user.user_permissions.add(permission_manage_orders)
     assert staff_user.has_perm("order.manage_orders")
     response = staff_api_client.post_graphql(
-        clear_order_private_meta, clear_meta_variables
+        clear_order_private_meta, clear_meta_private_variables
     )
     assert response.status_code == 200
     content = get_graphql_content(response)
