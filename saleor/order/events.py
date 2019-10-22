@@ -244,7 +244,7 @@ def order_customer_note_edited_event(
     return OrderEvent.objects.create(
         order=order,
         type=OrderEvents.CUSTOMER_NOTE_UPDATED,
-        parameters={"content": content},
+        parameters={"message": content},
         user=user,
     )
 
