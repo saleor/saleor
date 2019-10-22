@@ -1220,7 +1220,7 @@ def test_render_cancel_fulfillment_page(admin_client, fulfilled_order):
     assert response.status_code == 200
 
 
-def test_view_edit_order_customer_note(admin_client, order_with_lines):
+def test_view_edit_order_customer_note(admin_client, admin_user, order_with_lines):
     url = reverse(
         "dashboard:order-edit-customer-note", kwargs={"order_pk": order_with_lines.pk}
     )
@@ -1230,6 +1230,13 @@ def test_view_edit_order_customer_note(admin_client, order_with_lines):
     assert response.status_code == 200
     order_with_lines.refresh_from_db()
     assert order_with_lines.customer_note == note_content
+    assert OrderEvent.objects.filter(
+        order=order_with_lines,
+        type=OrderEvents.CUSTOMER_NOTE_ADDED,
+        user=admin_user,
+    ).exists()
+    response = admin_client.get(url)
+    assert response.status_code == 200
 
 
 def test_view_add_order_note(admin_client, order_with_lines):
