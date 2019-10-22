@@ -77,6 +77,11 @@ def clean_shipping_method(
 
 
 def update_checkout_shipping_method_if_invalid(checkout: models.Checkout, discounts):
+    # remove shipping method when empty checkout
+    if checkout.quantity == 0:
+        checkout.shipping_method = None
+        checkout.save(update_fields=["shipping_method"])
+
     is_valid = clean_shipping_method(
         checkout=checkout, method=checkout.shipping_method, discounts=discounts
     )
