@@ -116,14 +116,37 @@ def extensions(get_response):
 
 
 class ReadOnlyMiddleware:
+    ALLOWED_MUTATIONS = [
+        "checkoutAddPromoCode",
+        "checkoutBillingAddressUpdate",
+        "checkoutComplete",
+        "checkoutCreate",
+        "checkoutCustomerAttach",
+        "checkoutCustomerDetach",
+        "checkoutEmailUpdate",
+        "checkoutLineDelete",
+        "checkoutLinesAdd",
+        "checkoutLinesUpdate",
+        "checkoutRemovePromoCode",
+        "checkoutPaymentCreate",
+        "checkoutShippingAddressUpdate",
+        "checkoutShippingMethodUpdate",
+        "checkoutUpdateVoucher",
+        "checkoutUpdateMetadata",
+        "checkoutClearMetadata",
+        "checkoutUpdatePrivateMetadata",
+        "checkoutClearPrivateMetadata",
+        "tokenCreate",
+        "tokenVerify",
+    ]
+    BLOCKED_URL_PATTERNS = [
+        re.compile(r"^/dashboard"),
+        re.compile(r"^/([\w-]+/)?account/$"),
+        re.compile(r"^/([\w-]+/)?account/signup/$"),
+    ]
+
     def __init__(self, get_response):
         self.get_response = get_response
-        self.blocked_django_url_patterns = [
-            re.compile(r"^/dashboard"),
-            re.compile(r"^/([\w-]+/)?account/$"),
-            re.compile(r"^/([\w-]+/)?account/signup/$"),
-        ]
-        self.allowed_mutations_startswith = ["checkout", "tokenCreate", "tokenVerify"]
 
     def __call__(self, request):
         return self.get_response(request)
@@ -134,7 +157,7 @@ class ReadOnlyMiddleware:
                 return None
             error = GraphQLView.format_error(
                 ReadOnlyException(
-                    _("Be aware admin pirate! API runs in read only mode!")
+                    _("Be aware admin pirate! API runs in read-only mode!")
                 )
             )
             return JsonResponse(data=error, status=200, safe=False)
@@ -154,7 +177,7 @@ class ReadOnlyMiddleware:
             )
 
     def _is_url_blocked(self, url):
-        for pattern in self.blocked_django_url_patterns:
+        for pattern in self.BLOCKED_URL_PATTERNS:
             yield pattern.match(url)
 
     def _is_django_request_blocked(self, request):
@@ -182,12 +205,7 @@ class ReadOnlyMiddleware:
 
                 for selection in definition.selection_set.selections:
                     selection_name = str(selection.name.value)
-                    blocked = not any(
-                        [
-                            part_name in selection_name
-                            for part_name in self.allowed_mutations_startswith
-                        ]
-                    )
+                    blocked = selection_name not in self.ALLOWED_MUTATIONS
                     if blocked:
                         return True
         return False
