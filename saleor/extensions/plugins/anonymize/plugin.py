@@ -43,8 +43,8 @@ class AnonymizePlugin(BasePlugin):
         defaults = {
             "name": cls.PLUGIN_NAME,
             "description": (
-                "Hide all user data like shipping and billing addresses, email and "
-                "phone number"
+                "Anonymize customer's personal data in the checkout, such as shipping "
+                "or billing address, email and phone number."
             ),
             "active": True,
             "configuration": None,

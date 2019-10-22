@@ -16,8 +16,8 @@ from prices import Money
 from saleor.account import events as account_events
 from saleor.account.error_codes import AccountErrorCode
 from saleor.account.models import Address, User
+from saleor.account.utils import get_random_avatar
 from saleor.checkout import AddressType
-from saleor.core.utils import get_random_avatar
 from saleor.graphql.account.mutations.base import INVALID_TOKEN
 from saleor.graphql.account.mutations.staff import (
     CustomerDelete,
