@@ -1295,7 +1295,6 @@ enum CustomerEventsEnum {
   NAME_ASSIGNED
   EMAIL_ASSIGNED
   NOTE_ADDED
-  CUSTOMER_NOTE_ADDED
 }
 
 input CustomerFilterInput {
