@@ -239,12 +239,12 @@ def order_note_added_event(*, order: Order, user: UserType, message: str) -> Ord
 
 
 def order_customer_note_edited_event(
-    *, order: Order, user: UserType, message: str
+    *, order: Order, user: UserType, content: str
 ) -> OrderEvent:
     return OrderEvent.objects.create(
         order=order,
-        type=OrderEvents.CUSTOMER_NOTE_ADDED,
-        parameters={"message": message},
+        type=OrderEvents.CUSTOMER_NOTE_UPDATED,
+        parameters={"content": content},
         user=user,
     )
 
