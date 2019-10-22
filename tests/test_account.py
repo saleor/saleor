@@ -19,9 +19,12 @@ from saleor.account import forms, i18n
 from saleor.account.forms import FormWithReCaptcha, NameForm
 from saleor.account.models import User
 from saleor.account.templatetags.i18n_address_tags import format_address
-from saleor.account.utils import get_user_first_name, get_user_last_name
+from saleor.account.utils import (
+    get_random_avatar,
+    get_user_first_name,
+    get_user_last_name,
+)
 from saleor.account.validators import validate_possible_number
-from saleor.core.utils import get_random_avatar
 
 
 @pytest.mark.parametrize("country", ["CN", "PL", "US", "IE"])

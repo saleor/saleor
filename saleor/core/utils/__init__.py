@@ -1,7 +1,5 @@
 import decimal
 import logging
-import os
-import random
 import socket
 from json import JSONEncoder
 from urllib.parse import urljoin
@@ -11,7 +9,6 @@ from django import forms
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core import serializers
-from django.core.files import File
 from django.core.paginator import InvalidPage, Paginator
 from django.http import Http404
 from django.utils.encoding import iri_to_uri, smart_text
@@ -29,11 +26,6 @@ from ...core.i18n import COUNTRY_CODE_CHOICES
 
 georeader = geolite2.reader()
 logger = logging.getLogger(__name__)
-
-
-AVATARS_PATH = os.path.join(
-    settings.PROJECT_ROOT, "saleor", "static", "images", "avatars"
-)
 
 
 class CategoryChoiceField(forms.ModelChoiceField):
@@ -170,26 +162,6 @@ def serialize_decimal(obj):
     return JSONEncoder().default(obj)
 
 
-def create_superuser(credentials):
-    from ...account.models import User
-
-    user, created = User.objects.get_or_create(
-        email=credentials["email"],
-        defaults={"is_active": True, "is_staff": True, "is_superuser": True},
-    )
-    if created:
-        user.avatar = get_random_avatar()
-        user.set_password(credentials["password"])
-        user.save()
-        create_thumbnails(
-            pk=user.pk, model=User, size_set="user_avatars", image_attr="avatar"
-        )
-        msg = "Superuser - %(email)s/%(password)s" % credentials
-    else:
-        msg = "Superuser already exists - %(email)s" % credentials
-    return msg
-
-
 def create_thumbnails(pk, model, size_set, image_attr=None):
     instance = model.objects.get(pk=pk)
     if not image_attr:
@@ -219,10 +191,3 @@ def get_country_name_by_code(country_code):
 
 def get_company_address():
     return Site.objects.get_current().settings.company_address
-
-
-def get_random_avatar():
-    """Return random avatar picked from a pool of static avatars."""
-    avatar_name = random.choice(os.listdir(AVATARS_PATH))
-    avatar_path = os.path.join(AVATARS_PATH, avatar_name)
-    return File(open(avatar_path, "rb"), name=avatar_name)

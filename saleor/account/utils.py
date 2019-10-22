@@ -1,5 +1,17 @@
+import os
+import random
+
+from django.conf import settings
+from django.core.files import File
+
 from ..checkout import AddressType
+from ..core.utils import create_thumbnails
 from ..extensions.manager import get_extensions_manager
+from .models import User
+
+AVATARS_PATH = os.path.join(
+    settings.PROJECT_ROOT, "saleor", "static", "images", "avatars"
+)
 
 
 def store_user_address(user, address, address_type):
@@ -63,3 +75,29 @@ def get_user_last_name(user):
     if user.default_billing_address:
         return user.default_billing_address.last_name
     return None
+
+
+def create_superuser(credentials):
+
+    user, created = User.objects.get_or_create(
+        email=credentials["email"],
+        defaults={"is_active": True, "is_staff": True, "is_superuser": True},
+    )
+    if created:
+        user.avatar = get_random_avatar()
+        user.set_password(credentials["password"])
+        user.save()
+        create_thumbnails(
+            pk=user.pk, model=User, size_set="user_avatars", image_attr="avatar"
+        )
+        msg = "Superuser - %(email)s/%(password)s" % credentials
+    else:
+        msg = "Superuser already exists - %(email)s" % credentials
+    return msg
+
+
+def get_random_avatar():
+    """Return random avatar picked from a pool of static avatars."""
+    avatar_name = random.choice(os.listdir(AVATARS_PATH))
+    avatar_path = os.path.join(AVATARS_PATH, avatar_name)
+    return File(open(avatar_path, "rb"), name=avatar_name)
