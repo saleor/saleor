@@ -17,7 +17,7 @@ from ..core.types import CountryDisplay, Image, MetadataObjectType, PermissionDi
 from ..core.utils import get_node_optimized
 from ..decorators import one_of_permissions_required
 from ..utils import format_permissions_for_display
-from .enums import CustomerEventsEnum
+from .enums import CountryCodeEnum, CustomerEventsEnum
 
 
 class AddressInput(graphene.InputObjectType):
@@ -29,7 +29,7 @@ class AddressInput(graphene.InputObjectType):
     city = graphene.String(description="City.")
     city_area = graphene.String(description="District.")
     postal_code = graphene.String(description="Postal code.")
-    country = graphene.String(description="Country.")
+    country = CountryCodeEnum(description="Country.")
     country_area = graphene.String(description="State or province.")
     phone = graphene.String(description="Phone number.")
 
