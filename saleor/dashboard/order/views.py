@@ -190,7 +190,7 @@ def order_edit_customer_note(request, order_pk):
     if form.is_valid():
         form.save()
         events.order_customer_note_edited_event(
-            order=order, user=request.user, message=form.cleaned_data["customer_note"]
+            order=order, user=request.user, content=form.cleaned_data["customer_note"]
         )
         msg = pgettext_lazy(
             "Dashboard message related to an order", "Customer's note edited"
