@@ -682,6 +682,29 @@ def test_checkout_lines_update_check_lines_quantity(
     assert data["errors"][0]["field"] == "quantity"
 
 
+def test_checkout_lines_update_with_chosen_shipping(
+    user_api_client, checkout, variant, address, shipping_method
+):
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.save()
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    variables = {
+        "checkoutId": checkout_id,
+        "lines": [{"variantId": variant_id, "quantity": 1}],
+    }
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
+    content = get_graphql_content(response)
+
+    data = content["data"]["checkoutLinesUpdate"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.quantity == 1
+
+
 MUTATION_CHECKOUT_LINES_DELETE = """
     mutation checkoutLineDelete($checkoutId: ID!, $lineId: ID!) {
         checkoutLineDelete(checkoutId: $checkoutId, lineId: $lineId) {
