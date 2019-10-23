@@ -85,6 +85,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Implement new menu design - #4476 by @benekex2
 - Refetch attribute list after closing modal - #4615 by @dominik-zeglen
 - Add config for Testcafe - #4553 by @dominik-zeglen
+- Add API update customer note of an order in dashboard - #4799 by @nix010
+- Add validate for query param should be a valid string - #4822 by @nix010
 - Fix product type taxes select - #4453 by @benekex2
 - Fix form reloading - #4467 by @dominik-zeglen
 - Fix voucher limit value when checkbox unchecked - #4456 by @benekex2
