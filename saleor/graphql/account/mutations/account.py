@@ -272,7 +272,7 @@ class AccountSetDefaultAddress(BaseMutation):
 
 class AccountUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
-        description = "Updates metadata of the logged-in user"
+        description = "Updates metadata of the logged-in user."
         model = models.User
         public = True
         error_type_class = AccountError
