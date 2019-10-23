@@ -132,7 +132,7 @@ input AddressInput {
   city: String
   cityArea: String
   postalCode: String
-  country: String
+  country: CountryCode
   countryArea: String
   phone: String
 }
