@@ -385,6 +385,7 @@ class UserUpdateMeta(UpdateMetaBaseMutation):
         public = True
         error_type_class = AccountError
         error_type_field = "account_errors"
+        permissions = ("account.manage_users",)
 
 
 class UserClearMeta(ClearMetaBaseMutation):
@@ -394,3 +395,4 @@ class UserClearMeta(ClearMetaBaseMutation):
         public = True
         error_type_class = AccountError
         error_type_field = "account_errors"
+        permissions = ("account.manage_users",)
