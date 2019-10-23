@@ -2287,16 +2287,6 @@ def order_meta_update_variables(order):
     }
 
 
-def test_user_without_permission_cannot_update_meta(
-    staff_api_client, staff_user, update_order_meta, order_meta_update_variables
-):
-    assert not staff_user.has_perm("order.manage_orders")
-    response = staff_api_client.post_graphql(
-        update_order_meta, order_meta_update_variables
-    )
-    assert_no_permission(response)
-
-
 def test_user_without_permission_cannot_update_private_meta(
     staff_api_client, staff_user, update_order_private_meta, order_meta_update_variables
 ):
@@ -2307,18 +2297,11 @@ def test_user_without_permission_cannot_update_private_meta(
     assert_no_permission(response)
 
 
-def test_user_with_permission_can_update_meta(
-    permission_manage_orders,
-    staff_api_client,
-    staff_user,
-    update_order_meta,
-    order_meta_update_variables,
-    order,
+def test_user_does_not_need_permission_to_update_meta(
+    staff_api_client, update_order_meta, order_meta_update_variables, order
 ):
-    staff_user.user_permissions.add(permission_manage_orders)
-    assert staff_user.has_perm("order.manage_orders")
     response = staff_api_client.post_graphql(
-        update_order_meta, order_meta_update_variables
+        update_order_meta, order_meta_update_variables, permissions=[]
     )
     content = get_graphql_content(response)
     errors = content["data"]["orderUpdateMeta"]["errors"]

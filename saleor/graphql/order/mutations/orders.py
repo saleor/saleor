@@ -424,7 +424,6 @@ class OrderUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Updates meta for order."
         model = models.Order
-        permissions = ("order.manage_orders",)
         public = True
 
 
