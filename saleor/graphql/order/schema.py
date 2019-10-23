@@ -21,7 +21,11 @@ from .mutations.draft_orders import (
 )
 from .mutations.fulfillments import (
     FulfillmentCancel,
+    FulfillmentClearMeta,
+    FulfillmentClearPrivateMeta,
     FulfillmentCreate,
+    FulfillmentUpdateMeta,
+    FulfillmentUpdatePrivateMeta,
     FulfillmentUpdateTracking,
 )
 from .mutations.orders import (
@@ -149,6 +153,10 @@ class OrderMutations(graphene.ObjectType):
     order_fulfillment_cancel = FulfillmentCancel.Field()
     order_fulfillment_create = FulfillmentCreate.Field()
     order_fulfillment_update_tracking = FulfillmentUpdateTracking.Field()
+    order_fulfillment_clear_meta = FulfillmentClearMeta.Field()
+    order_fulfillment_clear_private_meta = FulfillmentClearPrivateMeta.Field()
+    order_fulfillment_update_meta = FulfillmentUpdateMeta.Field()
+    order_fulfillment_update_private_meta = FulfillmentUpdatePrivateMeta.Field()
     order_mark_as_paid = OrderMarkAsPaid.Field()
     order_refund = OrderRefund.Field()
     order_update = OrderUpdate.Field()
