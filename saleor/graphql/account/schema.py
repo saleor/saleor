@@ -17,6 +17,7 @@ from .mutations.account import (
     AccountRequestDeletion,
     AccountSetDefaultAddress,
     AccountUpdate,
+    AccountUpdateMeta,
 )
 from .mutations.base import (
     PasswordChange,
@@ -176,9 +177,6 @@ class AccountMutations(graphene.ObjectType):
     set_password = SetPassword.Field()
     password_change = PasswordChange.Field()
 
-    user_update_metadata = UserUpdateMeta.Field()
-    user_clear_metadata = UserClearMeta.Field()
-
     # Account mutations
     account_address_create = AccountAddressCreate.Field()
     account_address_update = AccountAddressUpdate.Field()
@@ -189,6 +187,8 @@ class AccountMutations(graphene.ObjectType):
     account_update = AccountUpdate.Field()
     account_request_deletion = AccountRequestDeletion.Field()
     account_delete = AccountDelete.Field()
+
+    account_update_meta = AccountUpdateMeta.Field()
 
     # Account deprecated mutations
     customer_password_reset = CustomerPasswordReset.Field()
@@ -218,6 +218,9 @@ class AccountMutations(graphene.ObjectType):
     user_avatar_update = UserAvatarUpdate.Field()
     user_avatar_delete = UserAvatarDelete.Field()
     user_bulk_set_active = UserBulkSetActive.Field()
+
+    user_update_metadata = UserUpdateMeta.Field()
+    user_clear_metadata = UserClearMeta.Field()
 
     user_update_private_metadata = UserUpdatePrivateMeta.Field()
     user_clear_private_metadata = UserClearPrivateMeta.Field()
