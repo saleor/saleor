@@ -167,14 +167,12 @@ class ReadOnlyMiddleware:
             domain = Site.objects.get_current().domain
             url = f"http://{domain}"
             ctx = {
-                "image_path": "read_only/dashboard/images/pirate-%s.svg" % image,
+                "image_path": "read_only/images/pirate-%s.svg" % image,
                 "image_class": "img%s" % image,
                 "back_url": request.headers.get("referer", url),
             }
 
-            return TemplateResponse(
-                request, "read_only/dashboard/read_only_splash.html", ctx
-            )
+            return TemplateResponse(request, "read_only/read_only_splash.html", ctx)
 
     def _is_url_blocked(self, url):
         for pattern in self.BLOCKED_URL_PATTERNS:
