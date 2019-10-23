@@ -4,6 +4,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Add API update customer note of an order in dashboard - #4799 by @nix010
 - Add validate for query param should be a valid string - #4822 by @nix010
 - Fix product type taxes select - #4453 by @benekex2
 - Fix form reloading - #4467 by @dominik-zeglen
