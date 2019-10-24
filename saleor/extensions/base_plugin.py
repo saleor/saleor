@@ -52,8 +52,8 @@ class BasePlugin:
     ) -> TaxedMoney:
         """Calculate the total for checkout.
 
-        Overwrite this method in case you need to apply specific logic for
-        calculation of checkout total. Return TaxedMoney.
+        Overwrite this method if you need to apply specific logic for the calculation
+        of a checkout total. Return TaxedMoney.
         """
         return NotImplemented
 
@@ -65,8 +65,8 @@ class BasePlugin:
     ) -> TaxedMoney:
         """Calculate the subtotal for checkout.
 
-        Overwrite this method in case you need to apply specific logic for
-        calculation of checkout subtotal. Return TaxedMoney.
+        Overwrite this method if you need to apply specific logic for the calculation
+        of a checkout subtotal. Return TaxedMoney.
         """
         return NotImplemented
 
@@ -78,8 +78,8 @@ class BasePlugin:
     ) -> TaxedMoney:
         """Calculate the shipping costs for checkout.
 
-        Overwrite this method in case you need to apply specific logic for
-        calculation of shipping costs. Return TaxedMoney.
+        Overwrite this method if you need to apply specific logic for the calculation
+        of shipping costs. Return TaxedMoney.
         """
         return NotImplemented
 
@@ -101,8 +101,8 @@ class BasePlugin:
     ) -> TaxedMoney:
         """Calculate checkout line total.
 
-        Overwrite this method in case you need to apply specific logic for
-        calculation of checkout line total. Return TaxedMoney.
+        Overwrite this method if you need to apply specific logic for the calculation
+        of a checkout line total. Return TaxedMoney.
         """
         return NotImplemented
 
@@ -112,9 +112,9 @@ class BasePlugin:
         """Calculate order line unit price.
 
         Update order line unit price in the order in case of changes in draft order.
-        Return  TaxedMoney.
-        Overwrite this method in case you need to apply specific logic for calculation
-        of order line unit price.
+        Return TaxedMoney.
+        Overwrite this method if you need to apply specific logic for the calculation
+        of an order line unit price.
         """
         return NotImplemented
 
@@ -133,15 +133,16 @@ class BasePlugin:
     def show_taxes_on_storefront(self, previous_value: bool) -> bool:
         """Define if storefront should add info about taxes to the price.
 
-        It is used only on the old storefront. The returned value determines if
-        storefront should append info to the price about "including/excluding X% Vat".
+        It is used only by the old storefront. The returned value determines if
+        storefront should append info to the price about "including/excluding X% VAT".
         """
         return NotImplemented
 
     def taxes_are_enabled(self, previous_value: bool) -> bool:
         """Define if checkout should add info about included taxes.
 
-        It is used only on the old storefront. It adds tax section to the checkout view.
+        It is used only by the old storefront. It adds a tax section to the checkout
+        view.
         """
         return NotImplemented
 
@@ -150,7 +151,7 @@ class BasePlugin:
     ) -> TaxedMoneyRange:
         """Provide the estimation of shipping costs based on country.
 
-        It is used only in the old strofront in cart view.
+        It is used only by the old storefront in the cart view.
         """
         return NotImplemented
 
@@ -182,16 +183,16 @@ class BasePlugin:
     ):
         """Trigger directly before order creation.
 
-        Overwrite this method in case you need to trigger specific logic before the
-        order will be created.
+        Overwrite this method if you need to trigger specific logic before an order is
+        created.
         """
         return NotImplemented
 
     def order_created(self, order: "Order", previous_value: Any):
         """Trigger when order is created.
 
-        Overwrite this method in case you need to trigger specific logic after order
-        creation.
+        Overwrite this method if you need to trigger specific logic after an order is
+        created.
         """
         return NotImplemented
 
@@ -210,40 +211,40 @@ class BasePlugin:
     def get_tax_rate_percentage_value(
         self, obj: Union["Product", "ProductType"], country: Country, previous_value
     ) -> Decimal:
-        """Return tax rate percentage value for given tax rate type in the country.
+        """Return tax rate percentage value for a given tax rate type in a country.
 
-        It is used only on the old storefront.
+        It is used only by the old storefront.
         """
         return NotImplemented
 
     def customer_created(self, customer: "User", previous_value: Any) -> Any:
         """Trigger when user is created.
 
-        Overwrite this method in case you need to trigger specific logic after user
-        creation.
+        Overwrite this method if you need to trigger specific logic after a user is
+        created.
         """
         return NotImplemented
 
     def product_created(self, product: "Product", previous_value: Any) -> Any:
         """Trigger when product is created.
 
-        Overwrite this method in case you need to trigger specific logic after product
-        creation.
+        Overwrite this method if you need to trigger specific logic after a product is
+        created.
         """
         return NotImplemented
 
     def order_fully_paid(self, order: "Order", previous_value: Any) -> Any:
-        """Trigger when order is fully-paid.
+        """Trigger when order is fully paid.
 
-        Overwrite this method in case you need to trigger specific logic when the order
-        is fully-paid.
+        Overwrite this method if you need to trigger specific logic when an order is
+        fully paid.
         """
         return NotImplemented
 
     def order_updated(self, order: "Order", previous_value: Any) -> Any:
         """Trigger when order is updated.
 
-        Overwrite this method in case you need to trigger specific logic when order is
+        Overwrite this method if you need to trigger specific logic when an order is
         changed.
         """
         return NotImplemented
@@ -251,15 +252,15 @@ class BasePlugin:
     def order_cancelled(self, order: "Order", previous_value: Any) -> Any:
         """Trigger when order is cancelled.
 
-        Overwrite this method in case you need to trigger specific logic when order is
-        cancelled.
+        Overwrite this method if you need to trigger specific logic when an order is
+        canceled.
         """
         return NotImplemented
 
     def order_fulfilled(self, order: "Order", previous_value: Any) -> Any:
         """Trigger when order is fulfilled.
 
-        Overwrite this method in case you need to trigger specific logic when order is
+        Overwrite this method if you need to trigger specific logic when an order is
         fulfilled.
         """
         return NotImplemented
@@ -320,7 +321,7 @@ class BasePlugin:
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
         """Validate if provided configuration is correct.
 
-        Raise django.core.exceptions.ValidationError in the other cases.
+        Raise django.core.exceptions.ValidationError otherwise.
         """
         return
 
@@ -354,7 +355,7 @@ class BasePlugin:
         return defaults
 
     @classmethod
-    def _hide_secret_configuration_fields(cls, configuration: List[dict]):
+    def _hide_secret_configuration_fields(cls, configuration: List[dict]) -> None:
         """Hide secret values of the configuration fields."""
         return
 
@@ -364,7 +365,7 @@ class BasePlugin:
 
         Database stores "key: value" pairs, the definition of fields should be declared
         inside of the plugin. Based on this, the plugin will generate a structure of
-        configuration with current values and provide access over API.
+        configuration with current values and provide access to it via API.
         """
         config_structure = getattr(cls, "CONFIG_STRUCTURE") or {}
         for configuration_field in configuration:
