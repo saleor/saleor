@@ -114,14 +114,18 @@ class ShopAddressUpdate(BaseMutation, I18nMixin):
         site_settings = info.context.site.settings
         data = data.get("input")
 
-        if not site_settings.company_address:
-            company_address = Address()
+        if data:
+            if not site_settings.company_address:
+                company_address = Address()
+            else:
+                company_address = site_settings.company_address
+            company_address = cls.validate_address(data, company_address)
+            company_address.save()
+            site_settings.company_address = company_address
+            site_settings.save(update_fields=["company_address"])
         else:
-            company_address = site_settings.company_address
-        company_address = cls.validate_address(data, company_address)
-        company_address.save()
-        site_settings.company_address = company_address
-        site_settings.save()
+            if site_settings.company_address:
+                site_settings.company_address.delete()
         return ShopAddressUpdate(shop=Shop())
 
 
