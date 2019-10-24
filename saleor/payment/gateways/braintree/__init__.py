@@ -31,13 +31,15 @@ def get_billing_data(payment_information: PaymentData) -> Dict:
     billing = {}
     if payment_information.billing:
         billing_info = payment_information.billing
+        # DEMO: Anonymized addresses fail when sent to Braintree, so we're faking
+        # the address here.
         billing = {
-            "first_name": billing_info.first_name,
-            "last_name": billing_info.last_name,
-            "company": billing_info.company_name,
-            "postal_code": billing_info.postal_code,
-            "street_address": billing_info.street_address_1,
-            "extended_address": billing_info.street_address_2,
+            "first_name": "Saleor",
+            "last_name": "Demo",
+            "company": "Saleor",
+            "postal_code": "00-001",
+            "street_address": "Test Street 1",
+            "extended_address": "",
             "locality": billing_info.city,
             "region": billing_info.country_area,
             "country_code_alpha2": billing_info.country,
