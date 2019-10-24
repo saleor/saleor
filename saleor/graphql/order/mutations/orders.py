@@ -23,6 +23,7 @@ from ...core.mutations import (
     UpdateMetaBaseMutation,
 )
 from ...core.scalars import Decimal
+from ...core.types import MetaInput, MetaPath
 from ...core.types.common import OrderError
 from ...order.mutations.draft_orders import DraftOrderUpdate
 from ...order.types import Order, OrderEvent
@@ -426,6 +427,20 @@ class OrderUpdateMeta(UpdateMetaBaseMutation):
         model = models.Order
         public = True
 
+    class Arguments:
+        token = graphene.UUID(
+            description="Token of an object to update.", required=True
+        )
+        input = MetaInput(
+            description="Fields required to update new or stored metadata item.",
+            required=True,
+        )
+
+    @classmethod
+    def get_instance(cls, info, **data):
+        token = data["token"]
+        return models.Order.objects.get(token=token)
+
 
 class OrderUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
@@ -441,6 +456,18 @@ class OrderClearMeta(ClearMetaBaseMutation):
         model = models.Order
         permissions = ("order.manage_orders",)
         public = True
+
+    class Arguments:
+        token = graphene.UUID(description="Token of an object to clear.", required=True)
+        input = MetaPath(
+            description="Fields required to update new or stored metadata item.",
+            required=True,
+        )
+
+    @classmethod
+    def get_instance(cls, info, **data):
+        token = data["token"]
+        return models.Order.objects.get(token=token)
 
 
 class OrderClearPrivateMeta(ClearMetaBaseMutation):
