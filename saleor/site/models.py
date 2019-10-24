@@ -59,7 +59,7 @@ class SiteSettings(models.Model):
     default_digital_max_downloads = models.IntegerField(blank=True, null=True)
     default_digital_url_valid_days = models.IntegerField(blank=True, null=True)
     company_address = models.ForeignKey(
-        "account.Address", blank=True, null=True, on_delete=models.CASCADE
+        "account.Address", blank=True, null=True, on_delete=models.SET_NULL
     )
     default_mail_sender_name = models.CharField(
         max_length=settings.DEFAULT_MAX_EMAIL_DISPLAY_NAME_LENGTH,
