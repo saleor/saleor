@@ -368,6 +368,9 @@ def order_address(request, order_pk, address_type):
     form = AddressForm(request.POST or None, instance=address)
     if form.is_valid():
         updated_address = form.save()
+        updated_address = request.extensions.change_user_address(
+            updated_address, address_type, order.user
+        )
         if not address:
             save_address_in_order(order, updated_address, address_type)
         if update_prices:

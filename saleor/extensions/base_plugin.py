@@ -1,6 +1,6 @@
 from copy import copy
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, List, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 from django.db.models import QuerySet
 from django_countries.fields import Country
@@ -42,6 +42,15 @@ class BasePlugin:
         if plugin_config:
             self._cached_config = plugin_config
             self.active = plugin_config.active
+
+    def change_user_address(
+        self,
+        address: "Address",
+        address_type: Optional[str],
+        user: Optional["User"],
+        previous_value: "Address",
+    ) -> "Address":
+        return NotImplemented
 
     def calculate_checkout_total(
         self,

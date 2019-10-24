@@ -105,10 +105,16 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             shipping_address = cls.validate_address(
                 shipping_address, instance=instance.shipping_address
             )
+            shipping_address = info.context.extensions.change_user_address(
+                shipping_address, "shipping", user=instance
+            )
             cleaned_input["shipping_address"] = shipping_address
         if billing_address:
             billing_address = cls.validate_address(
                 billing_address, instance=instance.billing_address
+            )
+            billing_address = info.context.extensions.change_user_address(
+                billing_address, "billing", user=instance
             )
             cleaned_input["billing_address"] = billing_address
         return cleaned_input

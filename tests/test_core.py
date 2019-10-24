@@ -12,11 +12,11 @@ from measurement.measures import Weight
 from prices import Money
 
 from saleor.account.models import Address, User
+from saleor.account.utils import create_superuser
 from saleor.core.storages import S3MediaStorage
 from saleor.core.utils import (
     Country,
     build_absolute_uri,
-    create_superuser,
     create_thumbnails,
     format_money,
     get_client_ip,
