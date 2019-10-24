@@ -645,3 +645,7 @@ USE_JSON_CONTENT = get_bool_from_env("USE_JSON_CONTENT", False)
 PLUGINS += ["saleor.extensions.plugins.anonymize.plugin.AnonymizePlugin"]
 
 MIDDLEWARE += ["saleor.core.middleware.ReadOnlyMiddleware"]
+
+BRAINTREE_API_KEY = os.environ.get("BRAINTREE_API_KEY")
+BRAINTREE_MERCHANT_ID = os.environ.get("BRAINTREE_MERCHANT_ID")
+BRAINTREE_SECRET_API_KEY = os.environ.get("BRAINTREE_SECRET_API_KEY")
