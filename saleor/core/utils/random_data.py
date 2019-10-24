@@ -615,7 +615,7 @@ def create_shipping_zones():
     yield create_shipping_zone(
         shipping_zone_name="Europe",
         countries=european_countries,
-        shipping_methods_names=["DHL", "UPS", "Registred priority", "DB Schenker"],
+        shipping_methods_names=["DHL", "UPS", "Registered priority", "DB Schenker"],
     )
     oceanian_countries = [
         "AS",
