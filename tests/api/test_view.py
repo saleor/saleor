@@ -87,7 +87,7 @@ def test_invalid_request_body_with_debug(client):
     errors = content.get("errors")
     assert errors == [
         {
-            "extensions": {"exception": {"code": "str", "stacktrace ": []}},
+            "extensions": {"exception": {"code": "str", "stacktrace": []}},
             "message": "Unable to parse query.",
         }
     ]
