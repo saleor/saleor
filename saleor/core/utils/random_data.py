@@ -7,10 +7,12 @@ import uuid
 from collections import defaultdict
 from typing import Type, Union
 from unittest.mock import patch
+from urllib.parse import urljoin
 
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.files import File
+from django.urls import reverse
 from django.utils import timezone
 from faker import Factory
 from faker.providers import BaseProvider
@@ -1055,11 +1057,22 @@ def create_menus():
         )
 
     page = Page.objects.order_by("?")[0]
-    bottom_menu.items.get_or_create(name=page.title, page=page)
+    item_saleor = bottom_menu.items.get_or_create(name="Saleor", url="/")[0]
+    item_saleor.children.get_or_create(name=page.title, page=page, menu=bottom_menu)
+
+    site = Site.objects.get_current()
+
+    # DEMO: add link to GraphQL API in the footer menu
+    protocol = "https" if settings.ENABLE_SSL else "http"
+    api_url = urljoin("%s://%s" % (protocol, site.domain), reverse("api"))
+    item_saleor.children.get_or_create(
+        name="GraphQL API", url=api_url, menu=bottom_menu
+    )
+
     yield "Created footer menu"
     update_menu(top_menu)
     update_menu(bottom_menu)
-    site = Site.objects.get_current()
+
     site_settings = site.settings
     site_settings.top_menu = top_menu
     site_settings.bottom_menu = bottom_menu
