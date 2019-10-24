@@ -2248,33 +2248,47 @@ def test_draft_orders_query_with_filter_search_by_id(
     assert content["data"]["draftOrders"]["totalCount"] == 1
 
 
-def update_meta(mutation_name):
+@pytest.fixture
+def update_order_meta():
     return """
-    mutation %s($id: ID!, $input: MetaInput!) {
-        %s(id: $id, input: $input){
+    mutation orderUpdateMeta($token: UUID!, $input: MetaInput!) {
+        orderUpdateMeta(token: $token, input: $input){
             errors {
                 message
             }
         }
     }
-    """ % (
-        mutation_name,
-        mutation_name,
-    )
-
-
-@pytest.fixture
-def update_order_meta():
-    return update_meta("orderUpdateMeta")
+    """
 
 
 @pytest.fixture
 def update_order_private_meta():
-    return update_meta("orderUpdatePrivateMeta")
+    return """
+    mutation orderUpdatePrivateMeta($id: ID!, $input: MetaInput!) {
+        orderUpdatePrivateMeta(id: $id, input: $input){
+            errors {
+                message
+            }
+        }
+    }
+    """
 
 
 @pytest.fixture
 def order_meta_update_variables(order):
+    return {
+        "token": order.token,
+        "input": {
+            "namespace": "test",
+            "clientName": "client1",
+            "key": "foo",
+            "value": "bar",
+        },
+    }
+
+
+@pytest.fixture
+def order_private_meta_update_variables(order):
     order_id = graphene.Node.to_global_id("Order", order.id)
     return {
         "id": order_id,
@@ -2288,11 +2302,14 @@ def order_meta_update_variables(order):
 
 
 def test_user_without_permission_cannot_update_private_meta(
-    staff_api_client, staff_user, update_order_private_meta, order_meta_update_variables
+    staff_api_client,
+    staff_user,
+    update_order_private_meta,
+    order_private_meta_update_variables,
 ):
     assert not staff_user.has_perm("order.manage_orders")
     response = staff_api_client.post_graphql(
-        update_order_private_meta, order_meta_update_variables
+        update_order_private_meta, order_private_meta_update_variables
     )
     assert_no_permission(response)
 
@@ -2315,13 +2332,13 @@ def test_user_with_permission_can_update_private_meta(
     staff_api_client,
     staff_user,
     update_order_private_meta,
-    order_meta_update_variables,
+    order_private_meta_update_variables,
     order,
 ):
     staff_user.user_permissions.add(permission_manage_orders)
     assert staff_user.has_perm("order.manage_orders")
     response = staff_api_client.post_graphql(
-        update_order_private_meta, order_meta_update_variables
+        update_order_private_meta, order_private_meta_update_variables
     )
     content = get_graphql_content(response)
     errors = content["data"]["orderUpdatePrivateMeta"]["errors"]
@@ -2330,36 +2347,36 @@ def test_user_with_permission_can_update_private_meta(
     assert order.get_private_meta(namespace="test", client="client1") == {"foo": "bar"}
 
 
-def clear_meta(mutation_name):
+@pytest.fixture
+def clear_order_meta():
     return """
-        mutation %s($id: ID!, $input: MetaPath!) {
-            %s(id: $id, input: $input) {
+        mutation orderClearMeta($token: UUID!, $input: MetaPath!) {
+            orderClearMeta(token: $token, input: $input) {
                 errors {
                     message
                 }
             }
         }
-    """ % (
-        mutation_name,
-        mutation_name,
-    )
-
-
-@pytest.fixture
-def clear_order_meta():
-    return clear_meta("orderClearMeta")
+    """
 
 
 @pytest.fixture
 def clear_order_private_meta():
-    return clear_meta("orderClearPrivateMeta")
+    return """
+        mutation orderClearPrivateMeta($id: ID!, $input: MetaPath!) {
+            orderClearPrivateMeta(id: $id, input: $input) {
+                errors {
+                    message
+                }
+            }
+        }
+    """
 
 
 @pytest.fixture
 def clear_meta_variables(order):
-    order_id = graphene.Node.to_global_id("Order", order.id)
     return {
-        "id": order_id,
+        "token": order.token,
         "input": {"namespace": "test", "clientName": "client1", "key": "foo"},
     }
 
