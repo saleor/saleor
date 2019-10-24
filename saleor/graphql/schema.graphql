@@ -92,6 +92,12 @@ type AccountUpdate {
   user: User
 }
 
+type AccountUpdateMeta {
+  errors: [Error!]
+  accountErrors: [AccountError!]
+  user: User
+}
+
 type Address implements Node {
   id: ID!
   firstName: String!
@@ -2205,8 +2211,6 @@ type Mutation {
   requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
   setPassword(token: String!, email: String!, password: String!): SetPassword
   passwordChange(newPassword: String!, oldPassword: String!): PasswordChange
-  userUpdateMetadata(id: ID!, input: MetaInput!): UserUpdateMeta
-  userClearMetadata(id: ID!, input: MetaPath!): UserClearMeta
   accountAddressCreate(input: AddressInput!, type: AddressTypeEnum): AccountAddressCreate
   accountAddressUpdate(id: ID!, input: AddressInput!): AccountAddressUpdate
   accountAddressDelete(id: ID!): AccountAddressDelete
@@ -2215,6 +2219,7 @@ type Mutation {
   accountUpdate(input: AccountInput!): AccountUpdate
   accountRequestDeletion(redirectUrl: String!): AccountRequestDeletion
   accountDelete(token: String!): AccountDelete
+  accountUpdateMeta(input: MetaInput!): AccountUpdateMeta
   customerPasswordReset(input: CustomerPasswordResetInput!): CustomerPasswordReset
   customerAddressCreate(input: AddressInput!, type: AddressTypeEnum): CustomerAddressCreate
   customerSetDefaultAddress(id: ID!, type: AddressTypeEnum!): CustomerSetDefaultAddress
@@ -2235,6 +2240,8 @@ type Mutation {
   userAvatarUpdate(image: Upload!): UserAvatarUpdate
   userAvatarDelete: UserAvatarDelete
   userBulkSetActive(ids: [ID]!, isActive: Boolean!): UserBulkSetActive
+  userUpdateMetadata(id: ID!, input: MetaInput!): UserUpdateMeta
+  userClearMetadata(id: ID!, input: MetaPath!): UserClearMeta
   userUpdatePrivateMetadata(id: ID!, input: MetaInput!): UserUpdatePrivateMeta
   userClearPrivateMetadata(id: ID!, input: MetaPath!): UserClearPrivateMeta
   serviceAccountCreate(input: ServiceAccountInput!): ServiceAccountCreate
