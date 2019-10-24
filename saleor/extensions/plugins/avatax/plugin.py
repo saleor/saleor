@@ -99,9 +99,9 @@ class AvataxPlugin(BasePlugin):
             self.config = AvataxConfiguration(
                 username_or_account=configuration["Username or account"],
                 password_or_license=configuration["Password or license"],
-                use_sandbox=configuration["Use sandbox"] == "true",
+                use_sandbox=configuration["Use sandbox"],
                 company_name=configuration["Company name"],
-                autocommit=configuration["Autocommit"] == "true",
+                autocommit=configuration["Autocommit"],
             )
         else:
             # This should be removed after we drop an Avatax's settings from Django
