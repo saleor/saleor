@@ -36,6 +36,7 @@ class BasePlugin:
         return self.PLUGIN_NAME
 
     def _initialize_plugin_configuration(self):
+        """Initialize plugin by fetching configuration from internal cache or DB."""
         plugin_config_qs = PluginConfiguration.objects.filter(name=self.PLUGIN_NAME)
         plugin_config = self._cached_config or plugin_config_qs.first()
 
@@ -58,6 +59,11 @@ class BasePlugin:
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
+        """Calculate the total for checkout.
+
+        Overwrite this method if you need to apply specific logic for the calculation
+        of a checkout total. Return TaxedMoney.
+        """
         return NotImplemented
 
     def calculate_checkout_subtotal(
@@ -66,6 +72,11 @@ class BasePlugin:
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
+        """Calculate the subtotal for checkout.
+
+        Overwrite this method if you need to apply specific logic for the calculation
+        of a checkout subtotal. Return TaxedMoney.
+        """
         return NotImplemented
 
     def calculate_checkout_shipping(
@@ -74,11 +85,21 @@ class BasePlugin:
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
+        """Calculate the shipping costs for checkout.
+
+        Overwrite this method if you need to apply specific logic for the calculation
+        of shipping costs. Return TaxedMoney.
+        """
         return NotImplemented
 
     def calculate_order_shipping(
         self, order: "Order", previous_value: TaxedMoney
     ) -> TaxedMoney:
+        """Calculate the shipping costs for the order.
+
+        Update shipping costs in the order in case of changes in shipping address or
+        changes in draft order. Return TaxedMoney.
+        """
         return NotImplemented
 
     def calculate_checkout_line_total(
@@ -87,32 +108,70 @@ class BasePlugin:
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
+        """Calculate checkout line total.
+
+        Overwrite this method if you need to apply specific logic for the calculation
+        of a checkout line total. Return TaxedMoney.
+        """
         return NotImplemented
 
     def calculate_order_line_unit(
         self, order_line: "OrderLine", previous_value: TaxedMoney
     ) -> TaxedMoney:
+        """Calculate order line unit price.
+
+        Update order line unit price in the order in case of changes in draft order.
+        Return TaxedMoney.
+        Overwrite this method if you need to apply specific logic for the calculation
+        of an order line unit price.
+        """
         return NotImplemented
 
     def get_tax_rate_type_choices(
         self, previous_value: List["TaxType"]
     ) -> List["TaxType"]:
+        """Return list of all tax categories.
+
+        The returned list will be used to provide staff users with the possibility to
+        assign tax categories to a product. It can be used by tax plugins to properly
+        calculate taxes for products.
+        Overwrite this method in case your plugin provides a list of tax categories.
+        """
         return NotImplemented
 
     def show_taxes_on_storefront(self, previous_value: bool) -> bool:
+        """Define if storefront should add info about taxes to the price.
+
+        It is used only by the old storefront. The returned value determines if
+        storefront should append info to the price about "including/excluding X% VAT".
+        """
         return NotImplemented
 
     def taxes_are_enabled(self, previous_value: bool) -> bool:
+        """Define if checkout should add info about included taxes.
+
+        It is used only by the old storefront. It adds a tax section to the checkout
+        view.
+        """
         return NotImplemented
 
     def apply_taxes_to_shipping_price_range(
         self, prices: MoneyRange, country: Country, previous_value: TaxedMoneyRange
     ) -> TaxedMoneyRange:
+        """Provide the estimation of shipping costs based on country.
+
+        It is used only by the old storefront in the cart view.
+        """
         return NotImplemented
 
     def apply_taxes_to_shipping(
         self, price: Money, shipping_address: "Address", previous_value: TaxedMoney
     ) -> TaxedMoney:
+        """Apply taxes to the shipping costs based on the shipping address.
+
+        Overwrite this method if you want to show available shipping methods with
+        taxes.
+        """
         return NotImplemented
 
     def apply_taxes_to_product(
@@ -122,47 +181,97 @@ class BasePlugin:
         country: Country,
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
+        """Apply taxes to the product price based on the customer country.
+
+        Overwrite this method if you want to show products with taxes.
+        """
         return NotImplemented
 
     def preprocess_order_creation(
         self, checkout: "Checkout", discounts: List["DiscountInfo"], previous_value: Any
     ):
+        """Trigger directly before order creation.
+
+        Overwrite this method if you need to trigger specific logic before an order is
+        created.
+        """
         return NotImplemented
 
     def order_created(self, order: "Order", previous_value: Any):
+        """Trigger when order is created.
+
+        Overwrite this method if you need to trigger specific logic after an order is
+        created.
+        """
         return NotImplemented
 
     def assign_tax_code_to_object_meta(
         self, obj: Union["Product", "ProductType"], tax_code: str, previous_value: Any
     ):
+        """Assign tax code dedicated to plugin."""
         return NotImplemented
 
     def get_tax_code_from_object_meta(
         self, obj: Union["Product", "ProductType"], previous_value: "TaxType"
     ) -> "TaxType":
+        """Return tax code from object meta."""
         return NotImplemented
 
     def get_tax_rate_percentage_value(
         self, obj: Union["Product", "ProductType"], country: Country, previous_value
     ) -> Decimal:
+        """Return tax rate percentage value for a given tax rate type in a country.
+
+        It is used only by the old storefront.
+        """
         return NotImplemented
 
     def customer_created(self, customer: "User", previous_value: Any) -> Any:
+        """Trigger when user is created.
+
+        Overwrite this method if you need to trigger specific logic after a user is
+        created.
+        """
         return NotImplemented
 
     def product_created(self, product: "Product", previous_value: Any) -> Any:
+        """Trigger when product is created.
+
+        Overwrite this method if you need to trigger specific logic after a product is
+        created.
+        """
         return NotImplemented
 
     def order_fully_paid(self, order: "Order", previous_value: Any) -> Any:
+        """Trigger when order is fully paid.
+
+        Overwrite this method if you need to trigger specific logic when an order is
+        fully paid.
+        """
         return NotImplemented
 
     def order_updated(self, order: "Order", previous_value: Any) -> Any:
+        """Trigger when order is updated.
+
+        Overwrite this method if you need to trigger specific logic when an order is
+        changed.
+        """
         return NotImplemented
 
     def order_cancelled(self, order: "Order", previous_value: Any) -> Any:
+        """Trigger when order is cancelled.
+
+        Overwrite this method if you need to trigger specific logic when an order is
+        canceled.
+        """
         return NotImplemented
 
     def order_fulfilled(self, order: "Order", previous_value: Any) -> Any:
+        """Trigger when order is fulfilled.
+
+        Overwrite this method if you need to trigger specific logic when an order is
+        fulfilled.
+        """
         return NotImplemented
 
     def authorize_payment(
@@ -221,7 +330,7 @@ class BasePlugin:
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
         """Validate if provided configuration is correct.
 
-        Raise django.core.exceptions.ValidationError in the other cases
+        Raise django.core.exceptions.ValidationError otherwise.
         """
         return
 
@@ -245,15 +354,28 @@ class BasePlugin:
 
     @classmethod
     def _get_default_configuration(cls):
+        """Return default configuration for plugin.
+
+        Each configurable plugin has to provide the default structure of the
+        configuration. If plugin configuration is not found in DB, the manager will use
+        the config structure to create a new one in DB.
+        """
         defaults = None
         return defaults
 
     @classmethod
-    def _hide_secret_configuration_fields(cls, configuration: List[dict]):
+    def _hide_secret_configuration_fields(cls, configuration: List[dict]) -> None:
+        """Hide secret values of the configuration fields."""
         return
 
     @classmethod
     def _append_config_structure(cls, configuration):
+        """Append configuration structure to config from the database.
+
+        Database stores "key: value" pairs, the definition of fields should be declared
+        inside of the plugin. Based on this, the plugin will generate a structure of
+        configuration with current values and provide access to it via API.
+        """
         config_structure = getattr(cls, "CONFIG_STRUCTURE") or {}
         for configuration_field in configuration:
 
