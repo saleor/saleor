@@ -89,6 +89,14 @@ class RazorpayGatewayPlugin(BasePlugin):
             )
 
     @classmethod
+    def _hide_secret_configuration_fields(cls, configuration):
+        secret_fields = ["Public API key", "Secret API key"]
+        for field in configuration:
+            # We don't want to share our secret data
+            if field.get("name") in secret_fields and field.get("value"):
+                field["value"] = "*" * 10
+
+    @classmethod
     def _get_default_configuration(cls):
         defaults = {
             "name": cls.PLUGIN_NAME,
