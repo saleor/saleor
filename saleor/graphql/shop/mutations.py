@@ -104,7 +104,10 @@ class ShopAddressUpdate(BaseMutation, I18nMixin):
         input = AddressInput(description="Fields required to update shop address.")
 
     class Meta:
-        description = "Update shop address."
+        description = (
+            "Update the shop's address. If the `null` value is passed, the currently "
+            "selected address will be deleted."
+        )
         permissions = ("site.manage_settings",)
         error_type_class = ShopError
         error_type_field = "shop_errors"
