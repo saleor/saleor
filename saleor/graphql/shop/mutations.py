@@ -104,7 +104,10 @@ class ShopAddressUpdate(BaseMutation, I18nMixin):
         input = AddressInput(description="Fields required to update shop address.")
 
     class Meta:
-        description = "Update shop address."
+        description = (
+            "Update the shop's address. If the `null` value is passed, the currently "
+            "selected address will be deleted."
+        )
         permissions = ("site.manage_settings",)
         error_type_class = ShopError
         error_type_field = "shop_errors"
@@ -114,14 +117,18 @@ class ShopAddressUpdate(BaseMutation, I18nMixin):
         site_settings = info.context.site.settings
         data = data.get("input")
 
-        if not site_settings.company_address:
-            company_address = Address()
+        if data:
+            if not site_settings.company_address:
+                company_address = Address()
+            else:
+                company_address = site_settings.company_address
+            company_address = cls.validate_address(data, company_address)
+            company_address.save()
+            site_settings.company_address = company_address
+            site_settings.save(update_fields=["company_address"])
         else:
-            company_address = site_settings.company_address
-        company_address = cls.validate_address(data, company_address)
-        company_address.save()
-        site_settings.company_address = company_address
-        site_settings.save()
+            if site_settings.company_address:
+                site_settings.company_address.delete()
         return ShopAddressUpdate(shop=Shop())
 
 
