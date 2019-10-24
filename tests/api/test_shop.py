@@ -4,6 +4,7 @@ import graphene
 import pytest
 from django_countries import countries
 
+from saleor.account.models import Address
 from saleor.core.error_codes import ShopErrorCode
 from saleor.core.permissions import MODELS_PERMISSIONS
 from saleor.graphql.core.utils import str_to_enum
@@ -751,15 +752,8 @@ def test_mutation_authorization_key_delete(
     assert content["data"]["authorizationKeyDelete"]["authorizationKey"]
 
 
-def test_mutation_update_company_address(
-    staff_api_client,
-    authorization_key,
-    permission_manage_settings,
-    address,
-    site_settings,
-):
-    query = """
-    mutation updateShopAddress($input: AddressInput!){
+MUTATION_SHOP_ADDRESS_UPDATE = """
+    mutation updateShopAddress($input: AddressInput){
         shopAddressUpdate(input: $input){
             errors{
                 field
@@ -767,7 +761,16 @@ def test_mutation_update_company_address(
             }
         }
     }
-    """
+"""
+
+
+def test_mutation_update_company_address(
+    staff_api_client,
+    authorization_key,
+    permission_manage_settings,
+    address,
+    site_settings,
+):
     variables = {
         "input": {
             "streetAddress1": address.street_address_1,
@@ -778,7 +781,9 @@ def test_mutation_update_company_address(
     }
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_settings]
+        MUTATION_SHOP_ADDRESS_UPDATE,
+        variables,
+        permissions=[permission_manage_settings],
     )
     content = get_graphql_content(response)
     assert "errors" not in content["data"]
@@ -788,3 +793,40 @@ def test_mutation_update_company_address(
     assert site_settings.company_address.street_address_1 == address.street_address_1
     assert site_settings.company_address.city == address.city
     assert site_settings.company_address.country.code == address.country.code
+
+
+def test_mutation_update_company_address_remove_address(
+    staff_api_client, permission_manage_settings, site_settings, address
+):
+    site_settings.company_address = address
+    site_settings.save(update_fields=["company_address"])
+    variables = {"input": None}
+
+    response = staff_api_client.post_graphql(
+        MUTATION_SHOP_ADDRESS_UPDATE,
+        variables,
+        permissions=[permission_manage_settings],
+    )
+    content = get_graphql_content(response)
+    assert "errors" not in content["data"]
+
+    site_settings.refresh_from_db()
+    assert not site_settings.company_address
+    assert not Address.objects.filter(pk=address.pk).exists()
+
+
+def test_mutation_update_company_address_remove_address_without_address(
+    staff_api_client, permission_manage_settings, site_settings
+):
+    variables = {"input": None}
+
+    response = staff_api_client.post_graphql(
+        MUTATION_SHOP_ADDRESS_UPDATE,
+        variables,
+        permissions=[permission_manage_settings],
+    )
+    content = get_graphql_content(response)
+    assert "errors" not in content["data"]
+
+    site_settings.refresh_from_db()
+    assert not site_settings.company_address
