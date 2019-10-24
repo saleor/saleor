@@ -64,6 +64,14 @@ class ExtensionsManager(PaymentInterface):
             return previous_value
         return returned_value
 
+    def change_user_address(
+        self, address: "Address", address_type: Optional[str], user: Optional["User"]
+    ) -> "Address":
+        default_value = address
+        return self.__run_method_on_plugins(
+            "change_user_address", default_value, address, address_type, user
+        )
+
     def calculate_checkout_total(
         self, checkout: "Checkout", discounts: List["DiscountInfo"]
     ) -> TaxedMoney:
