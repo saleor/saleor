@@ -39,14 +39,18 @@
     </style>
     <img src='//cdn.jsdelivr.net/npm/graphql-playground-react/build/logo.png' alt=''>
     <div class="loading"> Loading
-      <span class="title">GraphQL Playground</span>
+      <span class="title">Saleor GraphQL API - Saleor Demo</span>
     </div>
   </div>
   <script>window.addEventListener('load', function (event) {
       GraphQLPlayground.init(document.getElementById('root'), {
         settings: {
           'schema.polling.enable': false
-        }
+        },
+        tabs: [{
+          endpoint: '{{ api_url }}',
+          query: `{{ query|safe }}`
+        }]
       })
     })</script>
 </body>
