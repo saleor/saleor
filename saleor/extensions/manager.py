@@ -280,18 +280,22 @@ class ExtensionsManager(PaymentInterface):
             if self.get_plugin_configuration(plugin.PLUGIN_NAME).active
         ]
 
-    def list_payment_gateways(self, active_only: bool = True) -> List[dict]:
+    def list_payment_plugin_names(self, active_only: bool = False) -> List[str]:
         payment_method = "process_payment"
         plugins = self.plugins
         if active_only:
             plugins = self.get_active_plugins()
         return [
-            {
-                "name": plugin.PLUGIN_NAME,
-                "config": self.__get_payment_config(plugin.PLUGIN_NAME),
-            }
+            plugin.PLUGIN_NAME
             for plugin in plugins
             if payment_method in type(plugin).__dict__
+        ]
+
+    def list_payment_gateways(self, active_only: bool = True) -> List[dict]:
+        payment_plugins = self.list_payment_plugin_names(active_only=active_only)
+        return [
+            {"name": plugin_name, "config": self.__get_payment_config(plugin_name)}
+            for plugin_name in payment_plugins
         ]
 
     def get_payment_template(self, gateway: str) -> str:
