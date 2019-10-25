@@ -10,6 +10,23 @@ from tests.api.utils import get_graphql_content
 
 class PluginSample(BasePlugin):
     PLUGIN_NAME = "PluginSample"
+    CONFIG_STRUCTURE = {
+        "Username": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "Username input field",
+            "label": "Username",
+        },
+        "Password": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "Password input field",
+            "label": "Password",
+        },
+        "Use sandbox": {
+            "type": ConfigurationTypeField.BOOLEAN,
+            "help_text": "Use sandbox",
+            "label": "Use sandbox",
+        },
+    }
 
     @classmethod
     def get_plugin_configuration(cls, queryset) -> "PluginConfiguration":
@@ -34,6 +51,13 @@ class PluginSample(BasePlugin):
                     "type": ConfigurationTypeField.STRING,
                     "help_text": "Password input field",
                     "label": "Password",
+                },
+                {
+                    "name": "Use sandbox",
+                    "value": False,
+                    "type": ConfigurationTypeField.BOOLEAN,
+                    "help_text": "Use sandbox",
+                    "label": "Use sandbox",
                 },
             ],
         }
@@ -90,10 +114,16 @@ def test_query_plugin_configurations(
             configuration_item["type"]
             == plugin_configuration.configuration[index]["type"].upper()
         )
-        assert (
-            configuration_item["value"]
-            == plugin_configuration.configuration[index]["value"]
-        )
+        if configuration_item["type"] == ConfigurationTypeField.CHOICES:
+            assert (
+                configuration_item["value"]
+                == plugin_configuration.configuration[index]["value"]
+            )
+        else:
+            assert (
+                configuration_item["value"]
+                == str(plugin_configuration.configuration[index]["value"]).lower()
+            )
         assert (
             configuration_item["helpText"]
             == plugin_configuration.configuration[index]["help_text"]
@@ -151,21 +181,7 @@ def test_query_plugin_configuration(
     assert configuration_item["label"] == plugin_configuration.configuration[0]["label"]
 
 
-@pytest.mark.parametrize(
-    "active, updated_configuration_item",
-    [
-        (True, {"name": "Username", "value": "user"}),
-        (False, {"name": "Username", "value": "admin@example.com"}),
-    ],
-)
-def test_plugin_configuration_update(
-    staff_api_client,
-    permission_manage_plugins,
-    settings,
-    active,
-    updated_configuration_item,
-):
-    query = """
+PLUGIN_UPDATE_MUTATION = """
         mutation pluginUpdate(
             $id: ID!, $active: Boolean, $configuration: [ConfigurationItemInput]){
             pluginUpdate(
@@ -190,6 +206,23 @@ def test_plugin_configuration_update(
           }
         }
     """
+
+
+@pytest.mark.parametrize(
+    "active, updated_configuration_item",
+    [
+        (True, {"name": "Username", "value": "user"}),
+        (False, {"name": "Username", "value": "admin@example.com"}),
+    ],
+)
+def test_plugin_configuration_update(
+    staff_api_client,
+    permission_manage_plugins,
+    settings,
+    active,
+    updated_configuration_item,
+):
+
     settings.PLUGINS = ["tests.api.test_extensions.PluginSample"]
     manager = get_extensions_manager()
     plugin = manager.get_plugin_configuration(plugin_name="PluginSample")
@@ -201,7 +234,7 @@ def test_plugin_configuration_update(
         "configuration": [updated_configuration_item],
     }
     staff_api_client.user.user_permissions.add(permission_manage_plugins)
-    response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(PLUGIN_UPDATE_MUTATION, variables)
     get_graphql_content(response)
 
     plugin.refresh_from_db()
@@ -220,6 +253,34 @@ def test_plugin_configuration_update(
     assert second_configuration_item["type"] == old_configuration[1]["type"]
     assert second_configuration_item["help_text"] == old_configuration[1]["help_text"]
     assert second_configuration_item["label"] == old_configuration[1]["label"]
+
+
+def get_config_value(field_name, configuration):
+    for elem in configuration:
+        if elem["name"] == field_name:
+            return elem["value"]
+
+
+def test_plugin_update_saves_boolean_as_boolean(
+    staff_api_client, permission_manage_plugins, settings
+):
+    settings.PLUGINS = ["tests.api.test_extensions.PluginSample"]
+    manager = get_extensions_manager()
+    plugin = manager.get_plugin_configuration(plugin_name="PluginSample")
+    use_sandbox = get_config_value("Use sandbox", plugin.configuration)
+    plugin_id = graphene.Node.to_global_id("Plugin", plugin.pk)
+    variables = {
+        "id": plugin_id,
+        "active": plugin.active,
+        "configuration": [{"name": "Use sandbox", "value": True}],
+    }
+    staff_api_client.user.user_permissions.add(permission_manage_plugins)
+    response = staff_api_client.post_graphql(PLUGIN_UPDATE_MUTATION, variables)
+    content = get_graphql_content(response)
+    assert len(content["data"]["pluginUpdate"]["errors"]) == 0
+    plugin.refresh_from_db()
+    use_sandbox_new_value = get_config_value("Use sandbox", plugin.configuration)
+    assert type(use_sandbox) == type(use_sandbox_new_value)
 
 
 class Plugin1(BasePlugin):
