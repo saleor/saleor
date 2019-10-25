@@ -19,9 +19,11 @@ from saleor.extensions.plugins.avatax.plugin import AvataxPlugin
 
 @pytest.fixture
 def plugin_configuration(db):
-    plugin_configuration = PluginConfiguration.objects.create(
-        **AvataxPlugin._get_default_configuration()
-    )
+    default_configuration = AvataxPlugin._get_default_configuration()
+    for elem in default_configuration["configuration"]:
+        if elem["name"] == "Use sandbox":
+            elem["value"] = False
+    plugin_configuration = PluginConfiguration.objects.create(**default_configuration)
     config = [
         {"name": "Username or account", "value": "2000134479"},
         {"name": "Password or license", "value": "697932CFCBDE505B"},
