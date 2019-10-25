@@ -1,6 +1,7 @@
 import graphene
 
 from ....product.templatetags.product_images import get_thumbnail
+from ...account.enums import CountryCodeEnum
 from ...translations.enums import LanguageCodeEnum
 from ..enums import (
     AccountErrorCode,
@@ -20,7 +21,7 @@ from .money import VAT
 
 
 class CountryDisplay(graphene.ObjectType):
-    code = graphene.String(description="Country code.", required=True)
+    code = CountryCodeEnum(description="Country code.", required=True)
     country = graphene.String(description="Country name.", required=True)
     vat = graphene.Field(VAT, description="Country tax.")
 

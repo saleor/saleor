@@ -362,7 +362,7 @@ class ChoiceValue(graphene.ObjectType):
 
 
 class AddressValidationData(graphene.ObjectType):
-    country_code = graphene.String()
+    country_code = CountryCodeEnum()
     country_name = graphene.String()
     address_format = graphene.String()
     address_latin_format = graphene.String()

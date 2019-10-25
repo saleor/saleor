@@ -162,7 +162,7 @@ type AddressUpdate {
 }
 
 type AddressValidationData {
-  countryCode: String
+  countryCode: CountryCode
   countryName: String
   addressFormat: String
   addressLatinFormat: String
@@ -1230,7 +1230,7 @@ enum CountryCode {
 }
 
 type CountryDisplay {
-  code: String!
+  code: CountryCode!
   country: String!
   vat: VAT
 }
