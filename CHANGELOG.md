@@ -8,8 +8,6 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## 2.9.0
 
-# Changelog
-
 ### API
 
 - Add mutation to change customer's first name last name - #4489 by @fowczarek
