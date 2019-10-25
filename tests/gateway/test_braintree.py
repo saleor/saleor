@@ -100,17 +100,18 @@ def gateway_config():
 
 
 def test_get_customer_data(payment_dummy):
+    # DEMO: test returning fake customer data
     payment = payment_dummy
     payment_info = create_payment_information(payment)
     result = get_customer_data(payment_info)
     expected_result = {
         "order_id": payment.order_id,
         "billing": {
-            "first_name": payment.billing_first_name,
-            "last_name": payment.billing_last_name,
-            "company": payment.billing_company_name,
-            "postal_code": payment.billing_postal_code,
-            "street_address": payment.billing_address_1[:255],
+            "first_name": "Saleor",
+            "last_name": "Demo",
+            "company": "Saleor",
+            "postal_code": "00-001",
+            "street_address": "Test Street 1",
             "extended_address": payment.billing_address_2[:255],
             "locality": payment.billing_city,
             "region": payment.billing_country_area,

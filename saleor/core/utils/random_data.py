@@ -1090,18 +1090,28 @@ def get_image(image_dir, image_name):
 
 
 # DEMO: provide Braintree configuration
-
-manager = get_extensions_manager()
-manager.get_plugin_configuration("Braintree")
-manager.save_plugin_configuration(
-    "Braintree",
-    {
-        "active": True,
-        "configuration": [
-            {"name": "Public API key", "value": settings.BRAINTREE_API_KEY},
-            {"name": "Merchant ID", "value": settings.BRAINTREE_MERCHANT_ID},
-            {"name": "Secret API key", "value": settings.BRAINTREE_SECRET_API_KEY},
-            {"name": "Use sandbox", "value": True},
-        ],
-    },
-)
+def configure_braintree():
+    manager = get_extensions_manager()
+    manager.get_plugin_configuration("Braintree")
+    manager.save_plugin_configuration(
+        "Braintree",
+        {
+            "active": True,
+            "configuration": [
+                {
+                    "name": "Public API key",
+                    "value": getattr(settings, "BRAINTREE_API_KEY", ""),
+                },
+                {
+                    "name": "Merchant ID",
+                    "value": getattr(settings, "BRAINTREE_MERCHANT_ID", ""),
+                },
+                {
+                    "name": "Secret API key",
+                    "value": getattr(settings, "BRAINTREE_SECRET_API_KEY", ""),
+                },
+                {"name": "Use sandbox", "value": True},
+            ],
+        },
+    )
+    yield "Configured Braintree"
