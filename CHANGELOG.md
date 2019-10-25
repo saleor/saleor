@@ -4,105 +4,112 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-- Add validate for query param should be a valid string - #4822 by @nix010
+..
+
+## 2.9.0
+
+# Changelog
+
+### API
+
+- Add mutation to change customer's first name last name - #4489 by @fowczarek
+- Add mutation to delete customer's account - #4494 by @fowczarek
+- Add mutation to change customer's password - #4656 by @fowczarek
+- Add ability to customize email sender address in emails sent by Saleor - #4820 by @NyanKiyoshi
+- Add ability to filter attributes per global ID - #4640 by @NyanKiyoshi
+- Add ability to search product types by value (through the name) - #4647 by @NyanKiyoshi
+- Add queries and mutation for serving and saving the configuration of all plugins - #4576 by @korycins
+- Add `redirectUrl` to staff and user create mutations - #4717 by @fowczarek
+- Add error codes to mutations responses - #4676 by @Kwaidan00
+- Add translations to countries in `shop` query - #4732 by @fowczarek
+- Add support for sorting product by their attribute values through given attribute ID - #4740 by @NyanKiyoshi
+- Add descriptions for queries and query arguments - #4758 by @maarcingebala
+- Add support for Apollo Federation - #4825 by @salwator
+- Add mutation to create multiple product variants at once - #4735 by @fowczarek
+- Add default value to custom errors - #4797 by @fowczarek
+- Extend `availablePaymentGateways` field with gateways' configuration data - #4774 by @salwator
+- Change `AddressValidationRules` API - #4655 by @Kwaidan00
+- Use search in a consistent way; add sort by product type name and publication status to `products` query. - #4715 by @fowczarek
+- Unify `menuItemMove` mutation with other reordering mutations - #4734 by @NyanKiyoshi
+- Don't create an order when the payment was unsuccessful - #4500 by @NyanKiyoshi
+- Don't require shipping information in checkout for digital orders - #4573 by @NyanKiyoshi
+- Drop `manage_users` permission from the `permissions` query - #4854 by @maarcingebala
+- Deprecate `inCategory` and `inCollection` attributes filters in favor of `filter` argument - #4700 by @NyanKiyoshi & @khalibloo
+- Remove `PaymentGatewayEnum` from the schema, as gateways now are dynamic plugins - #4756 by @salwator
+- Require `manage_products` permission to query `costPrice` and `stockQuantity` fields - #4753 by @NyanKiyoshi
+- Refactor account mutations - #4510, #4668 by @fowczarek
+- Fix generating random avatars when updating staff accounts - #4521 by @maarcingebala
+- Fix updating JSON menu representation in mutations - #4524 by @maarcingebala
+- Fix setting variant's `priceOverride` and `costPrice` to `null` - #4754 by @NyanKiyoshi
+- Fix fetching staff user without `manage_users` permission - #4835 by @fowczarek
+- Ensure that a GraphQL query is a string - #4836 by @nix010
+- Add ability to configure the password reset link - #4863 by @fowczarek
+
+### Core
+
+- Add enterprise-grade attributes management - #4351 by @dominik-zeglen and @NyanKiyoshix
+- Add extensions manager - #4497 by @korycins
+- Add service accounts - backend support - #4689 by @korycins
+- Add support for webhooks - #4731 by @korycins
+- Migrate the attributes mapping from HStore to many-to-many relation - #4663 by @NyanKiyoshi
+- Create general abstraction for object metadata - #4447 by @salwator
+- Add metadata to `Order` and `Fulfillment` models - #4513, #4866 by @szewczykmira
+- Migrate the tax calculations to plugins - #4497 by @korycins
+- Rewrite payment gateways using plugin architecture - #4669 by @salwator
+- Rewrite Stripe integration to use PaymentIntents API - #4606 by @salwator
+- Refactor password recovery system - #4617 by @fowczarek
+- Add functionality to sort products by their "minimal variant price" - #4416 by @derenio
+- Add voucher's "once per customer" feature - #4442 by @fowczarek
+- Add validations for minimum password length in settings - #4735 by @fowczarek
+- Add form to configure payments in the dashboard - #4807 by @szewczykmira
+- Change `unique_together` in `AttributeValue` - #4805 by @fowczarek
+- Change max length of SKU to 255 characters - #4811 by @lex111
+- Distinguish `OrderLine` product name and variant name - #4702 by @fowczarek
+- Fix updating order status after automatic fulfillment of digital products - #4709 by @korycins
+- Fix error when updating or creating a sale with missing required values - #4778 by @NyanKiyoshi
+- Fix error filtering pages by URL in the dashboard 1.0 - #4776 by @NyanKiyoshi
+- Fix display of the products tax rate in the details page of dashboard 1.0 - #4780 by @NyanKiyoshi
+- Fix adding the same product into a collection multiple times - #4518 by @NyanKiyoshi
+- Fix crash when placing an order when a customer happens to have the same address more than once - #4824 by @NyanKiyoshi
+- Fix time zone based tests - #4468 by @fowczarek
+- Fix serializing empty URLs as a string when creating menu items - #4616 by @maarcingebala
+- The invalid IP address in HTTP requests now fallback to the requester's IP address. - #4597 by @NyanKiyoshi
+
+### Dashboard 2.0
+
+- Allow selecting the number of rows displayed in dashboard's list views - #4414 by @benekex2
+- Add ability to toggle visible columns in product list - #4608 by @dominik-zeglen
+- Add voucher settings - #4556 by @benekex2
+- Contrast improvements - #4508 by @benekex2
+- Display menu item form errors - #4551 by @dominik-zeglen
+- Do not allow random IDs to appear in snapshots - #4495 by @dominik-zeglen
+- Input UI changes - #4542 by @benekex2
+- Implement new menu design - #4476 by @benekex2
+- Refetch attribute list after closing modal - #4615 by @dominik-zeglen
+- Add config for Testcafe - #4553 by @dominik-zeglen
 - Fix product type taxes select - #4453 by @benekex2
 - Fix form reloading - #4467 by @dominik-zeglen
-- Fix time zone based tests - #4468 by @fowczarek
-- Move Django Debug Toolbar requirement to the "dev" one (also downgrade it 2.0 -> 1.11, see PR) - #4454 by @derenio
-- Add voucher once per customer - #4442 by @fowczarek
 - Fix voucher limit value when checkbox unchecked - #4456 by @benekex2
-- New menu design - #4476 by @benekex2
-- Mutation for changing logged user first and last name - #4489 by @fowczarek
-- Add mutation for deleting account - #4494 by @fowczarek
-- New translations:
-  - Greek
-- Extensions Manager - #4497 by @korycins
-- Migration of tax logic into a plugin architecture - #4497 by @korycins
-- Move core.extensions to separate module - #4559 by @korycins
 - Fix searches and pickers - #4487 by @dominik-zeglen
 - Fix dashboard menu styles - #4491 by @benekex2
-- Do not allow random ids to appear in snapshots - #4495 by @dominik-zeglen
-- Order is no longer created when the payment was unsuccessful in the API - #4500 by @NyanKiyoshi
-- Fix navigation rwd - #4511 by @benekex2
-- Create general abstraction for object metadata - #4447 by @salwator
-- Contrast improvements - #4508 by @benekex2
-- Allow selecting the number of rows displayed in dashboard's list views - #4414 by @benekex2
-- Fix generating random avatars when updating staff accounts - #4521 by @maarcingebala
-- Changed license for artwork to CC-BY 4.0
-- Input UI changes - #4542 by @benekex2
-- Fix rendering user avatar when it's null #4546 by @maarcingebala
-- Do not lose focus while typing in product description field - #4549 by @dominik-zeglen
-- Update JSON menu representation in mutations - #4524 by @maarcingebala
-- Display menu item form errors - #4551 by @dominik-zeglen
-- Add voucher settings - #4556 by @benekex2
-- Enforced pydocstyle for Python docstrings over the project - #4562 by @NyanKiyoshi
-- The checkout process of digital orders no longer require shipping information over the API - #4573 by @NyanKiyoshi
-- Add e2e test config - #4553 by @dominik-zeglen
+- Fix menu responsiveness - #4511 by @benekex2
+- Fix loosing focus while typing in the product description field - #4549 by @dominik-zeglen
 - Fix MUI warnings - #4588 by @dominik-zeglen
-- Disabled unneeded reports from uWSGI about broken pipe and write errors from disconnected clients. Preventing from spamming sentry users. - #4596 by @NyanKiyoshi
-- Upgraded to django 2.2.4 - #4603 by @NyanKiyoshi
-- Invalid IP address in HTTP requests now fallback to the requester's IP address. - #4597 by @NyanKiyoshi
-- Add queries and mutation for serving and saving the configuration of all plugins - #4576 by @korycins
-- Refactor account mutations - #4510 by @fowczarek
-- Users cannot add multiple times the same product into a collection anymore - #4518 by @NyanKiyoshi
-- Enterprise-grade attributes management - #4351 by @dominik-zeglen and @NyanKiyoshi
-- Refetch attribute list after closing modal - #4615 by @dominik-zeglen
-- Add ability to toggle visible columns in product list - #4608 by @dominik-zeglen
-- Serialize empty URL as string when creating menu items - #4616 by @maarcingebala
-- Fix bulk actions - #4618 by @dominik-zeglen
-- Remove dashboard 2.0 files - #4631 by @dominik-zeglen
-- Refactoring of password recovery system - #4617 by @fowczarek
-- Added capability to filter attributes per global ID - #4640 by @NyanKiyoshi.
-- Added capability to search product types by value (through the name) - #4647 by @NyanKiyoshi.
-- Add mutation to change the authenticated user's password - #4656 by @fowczarek
-- Add an functionality to sort products by their "minimal variant price" - #4416 by @derenio
-- New stripe gateway implementation based on Stripe PaymentIntents API - #4606 by @salwator
-- Service (bot) accounts - backend support - #4689 by @korycins
-- Change AddressValidationRules API - #4655 by @Kwaidan00
-- Refactor account deletion mutations - #4668 by @fowczarek
-- Upgraded django-prices from v1 to v2.1. Currency codes are now locked at 3 characters max by default for consistency. - #4639 by @NyanKiyoshi
-- Drop deprecated fields from api - #4684 by@fowczarek
-- Drop deprecated fields from api - #4684 by @fowczarek
-- Distinguish OrderLine product name and variant name - #4702 by @fowczarek
-- Fix for Digital products - update order status after automatic fulfillment - #4709 by @korycins
-- Add redirectUrl to staff and user create mutations - #4717 by @fowczarek
-- Filtering: use search in a consistent way. Add sort by product type name and publication status to products query. - #4715 by @fowczarek
-- Migrated the old product attributes mapping to M2M - #4663 by @NyanKiyoshi
-- Add translations to countries in shop query - #4732 by @fowczarek
-- Added validations for minimum password length in settings - #4735 by @fowczarek
-- Add error codes to mutations responses - #4676 by @Kwaidan00
-- Payment gateways are now saleor plugins with dynamic configuration - #4669 by @salwator
-- Added support for sorting product by their attribute values through given attribute ID - #4740 by @NyanKiyoshi
-- Unified MenuItemMove to other reordering mutations. It now uses relative positions instead of absolute ones (breaking change) - #4734 by @NyanKiyoshi.
-- Add descriptions for queries and query arguments - #4758 by @maarcingebala
-- Fixed the inability of users to set a variant's `priceOverride` and `costPrice` to `null` - #4754 by @NyanKiyoshi
-- PaymentGatewayEnum removed from GraphQL schema as gateways now are dynamic plugins. Gateway names changed. - #4756 by @salwator
-- Add support for webhooks - #4731 by @korycins
-- Fixed the random failure of `populatedb` trying to create a new user with an existing email - #4769 by @NyanKiyoshi
-- Fixed the inability of filtering attributes using `inCategory` and `inCollection` and deprecated those fields to use `filter { inCollection: ..., inCategory: ... }` instead - #4700 by @NyanKiyoshi & @khalibloo
-- Fixed internal error when updating or creating a sale with missing required values - #4778 by @NyanKiyoshi
-- Fixed the internal error filtering pages by URL in the dashboard 1.0 - #4776 by @NyanKiyoshi
-- Added product variant bulk create mutation - #4735 by @fowczarek
-- Added product variant bulk create mutation - #4749 by @fowczarek
-- availablePaymentGateways extended with configuration data in GraphQL schema - #4774 by @salwator
-- Add metadata to Order model - #4513 by @szewczykmira
-- Fixed display of the products tax rate in the details page of dashboard 1.0, users can now update the tax rate of products in dashboard 1.0. The tax fields will no longer be shown if no tax support is enabled. - #4780 by @NyanKiyoshi
-- Add default value to custom errors - #4797 by @fowczarek
-- Change `unique_together` in `AttributeValue` - #4805 by @fowczarek
-- Change max length of SKU in order/product variant to 255 - #4811 by @lex111
+- Fix bulk action checkboxes - #4618 by @dominik-zeglen
+- Fix rendering user avatar when it's empty #4546 by @maarcingebala
+- Remove Dashboard 2.0 files form Saleor repository - #4631 by @dominik-zeglen
+
+### Other notable changes
+
 - Replace Pipenv with Poetry - #3894 by @michaljelonek
-- `productVariant` nodes now require `manage_products` permission to query `costPrice` and `stockQuantity` fields - #4753 by @NyanKiyoshi
-- `productVariant` nodes now require `manage_products` permission to query `costPrice` and `stockQuantity` fields. `isAvailable` of a variant is not longer returning false when another variant from the same product is out of stock. - #4753 by @NyanKiyoshi
-- Fixed crash when placing an order when a customer happens to have the same address more than once - #4823 by @NyanKiyoshi
-- Fix fetching staff user without manage_users permission - #4835 by @fowczarek
-- Add form to configure payments in dashboard - #4807 by @szewczykmira
-- Drop `manage_users` permission from the `permissions` query - #4854 by @maarcingebala
-- Fix ProductVariant with duplicated AttributeValues - #4829 by @fowczarek
-- Saleor can now be part of Apollo Federation, making seamless GraphQL schema extension possible - #4825 by @salwator
-- Added the possibility to customize the sender address and name from the dashboard - #4820 by @NyanKiyoshi
-- Add customer set password url to Site settings - #4863 by @fowczarek
-- Add Fulfillment metadata - #4866 by @szewczykmira
-- Add the possibility to remove the company address -#4888 by @fowczarek
+- Upgrade `django-prices` to v2.1 - #4639 by @NyanKiyoshi
+- Disable reports from uWSGI about broken pipe and write errors from disconnected clients - #4596 by @NyanKiyoshi
+- Fix the random failures of `populatedb` trying to create users with an existing email - #4769 by @NyanKiyoshi
+- Enforce `pydocstyle` for Python docstrings over the project - #4562 by @NyanKiyoshi
+- Move Django Debug Toolbar to dev requirements - #4454 by @derenio
+- Change license for artwork to CC-BY 4.0
+- New translations:
+  - Greek
 
 ## 2.8.0
 
