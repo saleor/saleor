@@ -4,8 +4,6 @@ def obfuscate_address(address):
     address.company_name = obfuscate_string(address.company_name)
     address.street_address_1 = obfuscate_string(address.street_address_1)
     address.street_address_2 = obfuscate_string(address.street_address_2)
-    address.city = obfuscate_string(address.city)
-    address.postal_code = obfuscate_string(address.postal_code)
     return address
 
 
