@@ -24,7 +24,8 @@ def test_middleware_dont_generate_sql_requests(client, settings, assert_num_quer
     # Enables the Graphql playground
     settings.DEBUG = True
 
-    with assert_num_queries(0):
+    # DEMO: run 1 query to get product
+    with django_assert_num_queries(1):
         response = client.get(reverse("api"))
         assert response.status_code == 200
 
