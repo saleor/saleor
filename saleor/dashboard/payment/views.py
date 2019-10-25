@@ -1,5 +1,3 @@
-from typing import List
-
 from django.contrib import messages
 from django.contrib.auth.decorators import permission_required
 from django.http import Http404, HttpRequest, HttpResponse
@@ -12,23 +10,10 @@ from ..views import staff_member_required
 from .forms import GatewayConfigurationForm
 
 
-def list_payments_plugins(active_only: bool = False) -> List[str]:
-    payment_method = "process_payment"
-    extension_manager = get_extensions_manager()
-    plugins = extension_manager.plugins
-    if active_only:
-        plugins = extension_manager.get_active_plugins()
-    return [
-        plugin.PLUGIN_NAME
-        for plugin in plugins
-        if payment_method in type(plugin).__dict__
-    ]
-
-
 @staff_member_required
 @permission_required("extensions.manage_plugins")
 def index(request: "HttpRequest") -> TemplateResponse:
-    ctx = {"payment_gateways": list_payments_plugins()}
+    ctx = {"payment_gateways": get_extensions_manager().list_payment_plugin_names()}
     return TemplateResponse(request, "dashboard/payments/index.html", ctx)
 
 
