@@ -27,6 +27,7 @@ class BasePlugin:
 
     PLUGIN_NAME = ""
     CONFIG_STRUCTURE = None
+    REDACTED_FORM = "*" * 10
 
     def __init__(self, *args, **kwargs):
         self._cached_config = None
@@ -324,6 +325,11 @@ class BasePlugin:
             for config_item_to_update in configuration_to_update:
                 if config_item["name"] == config_item_to_update.get("name"):
                     new_value = config_item_to_update.get("value")
+                    # The frontend can send all configuration fields with
+                    # all secrets as **...**, we have to omit all secrets which
+                    # weren't modified
+                    if new_value == cls.REDACTED_FORM:
+                        continue
                     config_item.update([("value", new_value)])
 
     @classmethod

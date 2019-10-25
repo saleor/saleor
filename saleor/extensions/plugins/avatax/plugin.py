@@ -447,7 +447,7 @@ class AvataxPlugin(BasePlugin):
         for field in configuration:
             if field.get("name") == "Password or license" and field.get("value"):
                 # We don't want to share our secret data
-                field["value"] = "*" * 6
+                field["value"] = cls.REDACTED_FORM
 
     @classmethod
     def _get_default_configuration(cls):
