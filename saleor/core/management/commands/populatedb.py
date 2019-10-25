@@ -9,6 +9,7 @@ from django.db import connection
 from ....account.utils import create_superuser
 from ...utils.random_data import (
     add_address_to_admin,
+    configure_braintree,
     create_gift_card,
     create_menus,
     create_orders,
@@ -109,6 +110,9 @@ class Command(BaseCommand):
         for msg in create_page():
             self.stdout.write(msg)
         for msg in create_menus():
+            self.stdout.write(msg)
+
+        for msg in configure_braintree():
             self.stdout.write(msg)
 
         if options["createsuperuser"]:
