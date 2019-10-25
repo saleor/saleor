@@ -4152,7 +4152,7 @@ type UserUpdatePrivateMeta {
 }
 
 type VAT {
-  countryCode: String!
+  countryCode: CountryCode!
   standardRate: Float
   reducedRates: [ReducedRate]!
 }

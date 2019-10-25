@@ -1,6 +1,7 @@
 import graphene
 from django_prices.templatetags import prices
 
+from ...account.enums import CountryCodeEnum
 from ..enums import TaxRateType
 
 
@@ -53,7 +54,7 @@ class TaxedMoneyRange(graphene.ObjectType):
 
 
 class VAT(graphene.ObjectType):
-    country_code = graphene.String(description="Country code.", required=True)
+    country_code = CountryCodeEnum(description="Country code.", required=True)
     standard_rate = graphene.Float(description="Standard VAT rate in percent.")
     reduced_rates = graphene.List(
         lambda: ReducedRate,
