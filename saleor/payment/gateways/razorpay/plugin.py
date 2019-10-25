@@ -94,7 +94,7 @@ class RazorpayGatewayPlugin(BasePlugin):
         for field in configuration:
             # We don't want to share our secret data
             if field.get("name") in secret_fields and field.get("value"):
-                field["value"] = "*" * 10
+                field["value"] = cls.REDACTED_FORM
 
     @classmethod
     def _get_default_configuration(cls):
