@@ -322,17 +322,20 @@ class BasePlugin:
     def _update_config_items(
         cls, configuration_to_update: List[dict], current_config: List[dict]
     ):
-    
+        config_structure = (
+            cls.CONFIG_STRUCTURE if cls.CONFIG_STRUCTURE is not None else {}
+        )
         for config_item in current_config:
             for config_item_to_update in configuration_to_update:
-                if config_item["name"] == config_item_to_update.get("name"):
+                config_item_name = config_item_to_update.get("name")
+                if config_item["name"] == config_item_name:
                     new_value = config_item_to_update.get("value")
                     # The frontend can send all configuration fields with
                     # all secrets as **...**, we have to omit all secrets which
                     # weren't modified
                     if new_value == cls.REDACTED_FORM:
                         continue
-                    item_type = config_item.get("type")
+                    item_type = config_structure.get(config_item_name, {}).get("type")
                     if item_type == ConfigurationTypeField.BOOLEAN and not isinstance(
                         new_value, bool
                     ):

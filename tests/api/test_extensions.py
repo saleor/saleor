@@ -10,6 +10,23 @@ from tests.api.utils import get_graphql_content
 
 class PluginSample(BasePlugin):
     PLUGIN_NAME = "PluginSample"
+    CONFIG_STRUCTURE = {
+        "Username": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "Username input field",
+            "label": "Username",
+        },
+        "Password": {
+            "type": ConfigurationTypeField.STRING,
+            "help_text": "Password input field",
+            "label": "Password",
+        },
+        "Use sandbox": {
+            "type": ConfigurationTypeField.BOOLEAN,
+            "help_text": "Use sandbox",
+            "label": "Use sandbox",
+        },
+    }
 
     @classmethod
     def get_plugin_configuration(cls, queryset) -> "PluginConfiguration":
