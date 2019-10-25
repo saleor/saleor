@@ -2,9 +2,10 @@ import json
 import logging
 import traceback
 
+import graphene
 from django.conf import settings
 from django.http import HttpRequest, HttpResponseNotAllowed, JsonResponse
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, reverse
 from django.views.generic import View
 from graphene_django.settings import graphene_settings
 from graphene_django.views import instantiate_middleware
@@ -17,8 +18,36 @@ from graphql.error import (
 from graphql.execution import ExecutionResult
 from graphql_jwt.exceptions import PermissionDenied
 
+from ..product.models import Product
+
 unhandled_errors_logger = logging.getLogger("saleor.graphql.errors.unhandled")
 handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
+
+logger = logging.getLogger(__name__)
+
+# DEMO: render the default query in Playground
+DEFAULT_QUERY = """# Welcome to Saleor GraphQL API!
+#
+# This explorer lets you browse data from the demo store using
+# GraphQL queries.
+#
+# Type queries into this side of the screen, and you will see
+# intelligent typeaheads aware of the current GraphQL type schema
+# and live syntax and validation errors highlighted within the text.
+#
+# An example query to fetch a product might look like:
+#
+
+{
+  product(id: "%(product_id)s") {
+    name
+    description
+    category {
+      name
+    }
+  }
+}
+"""
 
 
 class GraphQLView(View):
@@ -58,9 +87,14 @@ class GraphQLView(View):
     def dispatch(self, request, *args, **kwargs):
         # Handle options method the GraphQlView restricts it.
         if request.method == "GET":
-            if settings.DEBUG:
-                return render_to_response("graphql/playground.html")
-            return HttpResponseNotAllowed(["OPTIONS", "POST"])
+            # DEMO: render example query in Playground
+            ctx = {}
+            product = Product.objects.order_by("?").first()
+            if product:
+                product_id = graphene.relay.node.to_global_id("Product", product.pk)
+                ctx["query"] = DEFAULT_QUERY % {"product_id": product_id}
+                ctx["api_url"] = request.build_absolute_uri(reverse("api"))
+            return render_to_response("graphql/playground.html", ctx)
 
         if request.method == "OPTIONS":
             response = self.options(request, *args, **kwargs)
