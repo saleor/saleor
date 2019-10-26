@@ -34,9 +34,16 @@ SORT_BY_FIELDS_LABELS_VOUCHER = {
     ),
 }
 
-DISCOUNT_TYPE_CHOICES = (
+DISCOUNT_VALUE_TYPE_CHOICES = (
     ("fixed", pgettext_lazy("Sale type filter choice", "USD")),
     ("percentage", pgettext_lazy("Sale type filter choice", "%")),
+)
+
+VOUCHER_TYPE_CHOICES = (
+    ("shipping", pgettext_lazy("Voucher type filter choice", "Shipping")),
+    ("entire_order", pgettext_lazy("Voucher type filter choice", "Entire Order")),
+    ("specific_product", pgettext_lazy("Voucher type filter choice",
+                                       "Specific Product")),
 )
 
 
@@ -63,7 +70,7 @@ class SaleFilter(SortedFilterSet):
     )
     type = ChoiceFilter(
         label=pgettext_lazy("Sale list filter label", "Discount type"),
-        choices=DISCOUNT_TYPE_CHOICES,
+        choices=DISCOUNT_VALUE_TYPE_CHOICES,
         empty_label=pgettext_lazy("Filter empty choice label", "All"),
         widget=forms.Select,
     )
@@ -102,7 +109,7 @@ class VoucherFilter(SortedFilterSet):
     type = ChoiceFilter(
         field_name="discount_value_type",
         label=pgettext_lazy("Sale list is sale type filter label", "Discount type"),
-        choices=DISCOUNT_TYPE_CHOICES,
+        choices=VOUCHER_TYPE_CHOICES,
         empty_label=pgettext_lazy("Filter empty choice label", "All"),
         widget=forms.Select,
     )
