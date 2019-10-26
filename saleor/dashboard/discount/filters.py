@@ -107,14 +107,21 @@ class VoucherFilter(SortedFilterSet):
         lookup_expr="icontains",
     )
     type = ChoiceFilter(
-        field_name="discount_value_type",
-        label=pgettext_lazy("Sale list is sale type filter label", "Discount type"),
+        field_name="type",
+        label=pgettext_lazy("Voucher list type filter label", "Voucher type"),
         choices=VOUCHER_TYPE_CHOICES,
         empty_label=pgettext_lazy("Filter empty choice label", "All"),
         widget=forms.Select,
     )
+    discount_value_type = ChoiceFilter(
+        field_name="discount_value_type",
+        label=pgettext_lazy("Voucher list is sale type filter label", "Discount type"),
+        choices=DISCOUNT_VALUE_TYPE_CHOICES,
+        empty_label=pgettext_lazy("Filter empty choice label", "All"),
+        widget=forms.Select,
+    )
     discount_value = RangeFilter(
-        label=pgettext_lazy("Sale list filter label", "Discount_value")
+        label=pgettext_lazy("Voucher list filter label", "Discount_value")
     )
     date = DateFromToRangeFilter(
         label=pgettext_lazy("Voucher list sorting filter label", "Period of validity"),
