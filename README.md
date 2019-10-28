@@ -109,7 +109,7 @@ For Dashboard 2.0 go to the [saleor-dashboard](https://github.com/mirumee/saleor
 
 Want to see Saleor in action?
 
-[View Storefront](http://demo.getsaleor.com/) | [View Dashboard (admin area)](http://demo.getsaleor.com/dashboard/)
+[View Storefront](https://pwa.saleor.io/) | [View Dashboard (admin area)](https://pwa.saleor.io/dashboard/)
 
 Or launch the demo on a free Heroku instance.
 
