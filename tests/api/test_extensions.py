@@ -6,45 +6,7 @@ from saleor.extensions.base_plugin import BasePlugin
 from saleor.extensions.manager import get_extensions_manager
 from saleor.extensions.models import PluginConfiguration
 from tests.api.utils import get_graphql_content
-from tests.extensions.helpers import get_config_value
-
-
-class PluginSample(BasePlugin):
-    PLUGIN_NAME = "PluginSample"
-    CONFIG_STRUCTURE = {
-        "Username": {
-            "type": ConfigurationTypeField.STRING,
-            "help_text": "Username input field",
-            "label": "Username",
-        },
-        "Password": {
-            "type": ConfigurationTypeField.STRING,
-            "help_text": "Password input field",
-            "label": "Password",
-        },
-        "Use sandbox": {
-            "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": "Use sandbox",
-            "label": "Use sandbox",
-        },
-    }
-
-    @classmethod
-    def get_plugin_configuration(cls, queryset) -> "PluginConfiguration":
-        qs = queryset.filter(name="PluginSample")
-        if qs.exists():
-            return qs[0]
-        defaults = {
-            "name": "PluginSample",
-            "description": "Test plugin description",
-            "active": True,
-            "configuration": [
-                {"name": "Username", "value": "admin"},
-                {"name": "Password", "value": "123"},
-                {"name": "Use sandbox", "value": False},
-            ],
-        }
-        return PluginConfiguration.objects.create(**defaults)
+from tests.extensions.helpers import PluginSample, get_config_value
 
 
 def test_query_plugin_configurations(
@@ -52,7 +14,7 @@ def test_query_plugin_configurations(
 ):
 
     # Enable test plugin
-    settings.PLUGINS = ["tests.api.test_extensions.PluginSample"]
+    settings.PLUGINS = ["tests.extensions.helpers.PluginSample"]
     query = """
         {
           plugins(first:1){
