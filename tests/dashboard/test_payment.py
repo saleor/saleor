@@ -8,6 +8,7 @@ from saleor.dashboard.payment.forms import (
 )
 from saleor.extensions.models import PluginConfiguration
 from saleor.payment.gateways.braintree.plugin import BraintreeGatewayPlugin
+from tests.extensions.helpers import get_config_value
 
 
 @pytest.fixture
@@ -187,12 +188,6 @@ def test_gateway_configuration_form_json_field_set_to_false(field_name, form_dat
     assert form.is_valid()
     cleaned_data = form.cleaned_data
     assert cleaned_data[field_name]["value"] is False
-
-
-def get_config_value(field_name, configuration):
-    for elem in configuration:
-        if elem["name"] == field_name:
-            return elem["value"]
 
 
 def test_form_properly_save_plugin_config(form_data, plugin_configuration):

@@ -1,9 +1,11 @@
 import importlib
-from typing import List
+from typing import Dict, List, NewType, Union
 
 from django.utils.translation import pgettext_lazy
 
 from .checks import check_extensions  # NOQA: F401
+
+ConfigurationType = NewType("ConfigurationType", Dict[str, Union[str, bool]])
 
 
 def discover_plugins_modules(plugins: List[str]):

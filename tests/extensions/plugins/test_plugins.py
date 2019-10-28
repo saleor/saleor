@@ -3,6 +3,7 @@ import pytest
 from saleor.extensions import ConfigurationTypeField
 from saleor.extensions.base_plugin import BasePlugin
 from saleor.extensions.models import PluginConfiguration
+from tests.extensions.helpers import get_config_value
 
 
 class PluginSample(BasePlugin):
@@ -45,12 +46,6 @@ def settings_plugins(settings):
         "saleor.payment.gateways.braintree.plugin.BraintreeGatewayPlugin",
         "saleor.payment.gateways.razorpay.plugin.RazorpayGatewayPlugin",
     ]
-
-
-def get_config_value(field_name, configuration):
-    for elem in configuration:
-        if elem["name"] == field_name:
-            return elem["value"]
 
 
 def test_update_config_items_keeps_bool_value():
