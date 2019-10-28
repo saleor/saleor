@@ -1,51 +1,5 @@
-import pytest
-
-from saleor.extensions import ConfigurationTypeField
-from saleor.extensions.base_plugin import BasePlugin
 from saleor.extensions.models import PluginConfiguration
-from tests.extensions.helpers import get_config_value
-
-
-class PluginSample(BasePlugin):
-    PLUGIN_NAME = "PluginSample"
-    CONFIG_STRUCTURE = {
-        "Username": {
-            "type": ConfigurationTypeField.STRING,
-            "help_text": "Username of Sample account",
-            "label": "Username",
-        },
-        "Use sandbox": {
-            "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": "Select if you want to test this integration",
-            "label": "Use sandbox",
-        },
-    }
-
-    @classmethod
-    def _get_default_configuration(cls):
-        defaults = {
-            "name": cls.PLUGIN_NAME,
-            "description": "",
-            "active": True,
-            "configuration": [
-                {"name": "Username", "value": "admin@example.com"},
-                {"name": "Use sandbox", "value": True},
-            ],
-        }
-        return defaults
-
-
-@pytest.fixture(autouse=True)
-def settings_plugins(settings):
-    settings.PLUGINS = [
-        "saleor.extensions.plugins.avatax.plugin.AvataxPlugin",
-        "saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin",
-        "saleor.extensions.plugins.webhook.plugin.WebhookPlugin",
-        "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
-        "saleor.payment.gateways.stripe.plugin.StripeGatewayPlugin",
-        "saleor.payment.gateways.braintree.plugin.BraintreeGatewayPlugin",
-        "saleor.payment.gateways.razorpay.plugin.RazorpayGatewayPlugin",
-    ]
+from tests.extensions.helpers import PluginSample, get_config_value
 
 
 def test_update_config_items_keeps_bool_value():
