@@ -9,12 +9,16 @@ from tests.api.utils import get_graphql_content
 from tests.extensions.helpers import PluginSample, get_config_value
 
 
-def test_query_plugin_configurations(
-    staff_api_client, permission_manage_plugins, settings
-):
+@pytest.fixture
+def staff_api_client_with_permission(staff_api_client, permission_manage_plugins):
+    staff_api_client.user.user_permissions.add(permission_manage_plugins)
+    return staff_api_client
+
+
+def test_query_plugin_configurations(staff_api_client_with_permission, settings):
 
     # Enable test plugin
-    settings.PLUGINS = ["tests.extensions.helpers.PluginSample"]
+    settings.PLUGINS = ["tests.api.test_extensions.PluginSample"]
     query = """
         {
           plugins(first:1){
@@ -36,8 +40,7 @@ def test_query_plugin_configurations(
           }
         }
     """
-    staff_api_client.user.user_permissions.add(permission_manage_plugins)
-    response = staff_api_client.post_graphql(query)
+    response = staff_api_client_with_permission.post_graphql(query)
     content = get_graphql_content(response)
 
     plugins = content["data"]["plugins"]["edges"]
@@ -72,9 +75,7 @@ def test_query_plugin_configurations(
             )
 
 
-def test_query_plugin_configuration(
-    staff_api_client, permission_manage_plugins, settings
-):
+def test_query_plugin_configuration(staff_api_client_with_permission, settings):
     settings.PLUGINS = ["tests.api.test_extensions.PluginSample"]
     manager = get_extensions_manager()
     plugin_configuration = manager.get_plugin_configuration("PluginSample")
@@ -97,8 +98,7 @@ def test_query_plugin_configuration(
     }
     """
     variables = {"id": configuration_id}
-    staff_api_client.user.user_permissions.add(permission_manage_plugins)
-    response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client_with_permission.post_graphql(query, variables)
     content = get_graphql_content(response)
     plugin = content["data"]["plugin"]
     assert plugin["name"] == plugin_configuration.name
@@ -145,11 +145,7 @@ PLUGIN_UPDATE_MUTATION = """
     ],
 )
 def test_plugin_configuration_update(
-    staff_api_client,
-    permission_manage_plugins,
-    settings,
-    active,
-    updated_configuration_item,
+    staff_api_client_with_permission, settings, active, updated_configuration_item
 ):
 
     settings.PLUGINS = ["tests.api.test_extensions.PluginSample"]
@@ -162,8 +158,9 @@ def test_plugin_configuration_update(
         "active": active,
         "configuration": [updated_configuration_item],
     }
-    staff_api_client.user.user_permissions.add(permission_manage_plugins)
-    response = staff_api_client.post_graphql(PLUGIN_UPDATE_MUTATION, variables)
+    response = staff_api_client_with_permission.post_graphql(
+        PLUGIN_UPDATE_MUTATION, variables
+    )
     get_graphql_content(response)
 
     plugin.refresh_from_db()
@@ -179,7 +176,7 @@ def test_plugin_configuration_update(
 
 
 def test_plugin_update_saves_boolean_as_boolean(
-    staff_api_client, permission_manage_plugins, settings
+    staff_api_client_with_permission, settings
 ):
     settings.PLUGINS = ["tests.api.test_extensions.PluginSample"]
     manager = get_extensions_manager()
@@ -191,30 +188,14 @@ def test_plugin_update_saves_boolean_as_boolean(
         "active": plugin.active,
         "configuration": [{"name": "Use sandbox", "value": True}],
     }
-    staff_api_client.user.user_permissions.add(permission_manage_plugins)
-    response = staff_api_client.post_graphql(PLUGIN_UPDATE_MUTATION, variables)
+    response = staff_api_client_with_permission.post_graphql(
+        PLUGIN_UPDATE_MUTATION, variables
+    )
     content = get_graphql_content(response)
     assert len(content["data"]["pluginUpdate"]["errors"]) == 0
     plugin.refresh_from_db()
     use_sandbox_new_value = get_config_value("Use sandbox", plugin.configuration)
     assert type(use_sandbox) == type(use_sandbox_new_value)
-
-
-class Plugin1(BasePlugin):
-    PLUGIN_NAME = "Plugin1"
-
-    @classmethod
-    def get_plugin_configuration(cls, queryset) -> "PluginConfiguration":
-        qs = queryset.filter(name="Plugin1")
-        if qs.exists():
-            return qs[0]
-        defaults = {
-            "name": "Plugin1",
-            "description": "Test plugin description_1",
-            "active": True,
-            "configuration": [],
-        }
-        return PluginConfiguration.objects.create(**defaults)
 
 
 class Plugin2Inactive(BasePlugin):
@@ -254,7 +235,7 @@ class Active(BasePlugin):
 @pytest.mark.parametrize(
     "plugin_filter, count",
     [
-        ({"search": "Plugin1"}, 1),
+        ({"search": "PluginSample"}, 1),
         ({"search": "description"}, 2),
         ({"active": True}, 2),
         ({"search": "Plugin"}, 2),
@@ -262,10 +243,10 @@ class Active(BasePlugin):
     ],
 )
 def test_plugins_query_with_filter(
-    plugin_filter, count, staff_api_client, permission_manage_plugins, settings
+    plugin_filter, count, staff_api_client_with_permission, settings
 ):
     settings.PLUGINS = [
-        "tests.api.test_extensions.Plugin1",
+        "tests.api.test_extensions.PluginSample",
         "tests.api.test_extensions.Plugin2Inactive",
         "tests.api.test_extensions.Active",
     ]
@@ -282,7 +263,6 @@ def test_plugins_query_with_filter(
         }
     """
     variables = {"filter": plugin_filter}
-    staff_api_client.user.user_permissions.add(permission_manage_plugins)
-    response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client_with_permission.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert content["data"]["plugins"]["totalCount"] == count
