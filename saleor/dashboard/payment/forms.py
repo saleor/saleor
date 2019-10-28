@@ -13,9 +13,16 @@ TYPE_TO_FIELD = {
 }
 
 
-def create_custom_form_field(structure: Dict[str, str]) -> forms.Field:
+def create_custom_form_field(
+    config: Dict[str, str], structure: Dict[str, str]
+) -> forms.Field:
     elem_type = structure["type"]
-    return TYPE_TO_FIELD[elem_type](structure=structure)
+    elem_name = config["name"]
+    elem_value = config["value"]
+    elem_help_text = structure["help_text"]
+    return TYPE_TO_FIELD[elem_type](
+        initial=elem_value, help_text=elem_help_text, label=elem_name
+    )
 
 
 class GatewayConfigurationForm(forms.ModelForm):
@@ -38,12 +45,15 @@ class GatewayConfigurationForm(forms.ModelForm):
         self, current_configuration: PluginConfiguration
     ) -> Dict[str, forms.Field]:
         parsed_fields = {}
-        structure = current_configuration.configuration
-        if structure is None:
+        configuration = current_configuration.configuration
+        if configuration is None:
             return {}
-        for elem in structure:
-            slug = slugify(elem["name"])
-            self.fields[slug] = create_custom_form_field(elem)
+        for elem in configuration:
+            name = elem["name"]
+            slug = slugify(name)
+            self.fields[slug] = create_custom_form_field(
+                elem, self.plugin.CONFIG_STRUCTURE[name]
+            )
         return parsed_fields
 
     def parse_values(self):
