@@ -97,13 +97,13 @@ To contribute, please see the [`mirumee/saleor-docs` repository](https://github.
 
 For PWA, single-page Storefront 2.0 go to the [saleor-storefront](https://github.com/mirumee/saleor-storefront) repository.
 
-[View Storefront 2.0 demo](https://pwa.getsaleor.com/)
+[View Storefront 2.0 demo](https://pwa.saleor.io/)
 
 ## Dashboard 2.0
 
 For Dashboard 2.0 go to the [saleor-dashboard](https://github.com/mirumee/saleor-dashboard) repository.
 
-[View Dashboard 2.0 demo](https://demo.getsaleor.com/dashboard/next/)
+[View Dashboard 2.0 demo](https://pwa.saleor.io/dashboard/)
 
 ## Demo
 
