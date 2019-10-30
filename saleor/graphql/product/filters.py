@@ -51,7 +51,7 @@ def _clean_product_attributes_filter_input(filter_value) -> T_PRODUCT_FILTER_QUE
         if attr_name not in attributes_map:
             raise ValueError("Unknown attribute name: %r" % (attr_name,))
         attr_pk = attributes_map[attr_name]
-        attr_val_pk = values_map[attr_name].get(val_slug, val_slug)
+        attr_val_pk = values_map[attr_name].get(val_slug)
         queries[attr_pk].append(attr_val_pk)
 
     return queries
