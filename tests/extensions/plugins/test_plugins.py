@@ -1,3 +1,6 @@
+import copy
+
+from saleor.extensions import ConfigurationTypeField
 from saleor.extensions.models import PluginConfiguration
 from tests.extensions.helpers import PluginSample, get_config_value
 
@@ -30,3 +33,50 @@ def test_update_config_items_convert_to_bool_value():
     configuration.save()
     configuration.refresh_from_db()
     assert get_config_value("Use sandbox", configuration.configuration) is False
+
+
+def test_base_plugin__update_configuration_structure_configuration_has_not_change(
+    plugin_configuration
+):
+    plugin = PluginSample()
+    old_configuration = plugin_configuration.configuration.copy()
+    plugin._update_configuration_structure(plugin_configuration)
+    plugin_configuration.refresh_from_db()
+    assert old_configuration == plugin_configuration.configuration
+
+
+def test_base_plugin__update_configuration_structure_configuration_has_change(
+    monkeypatch, plugin_configuration
+):
+    old_configuration = plugin_configuration.configuration.copy()
+    plugin = PluginSample()
+    config_structure = plugin.CONFIG_STRUCTURE
+    config_structure["Private key"] = {
+        "help_text": "Test",
+        "label": "Test",
+        "type": ConfigurationTypeField.STRING,
+    }
+    default_configuration = plugin._get_default_configuration()
+    default_configuration["configuration"].append(
+        {"name": "Private key", "value": "123457"}
+    )
+    monkeypatch.setattr(
+        "tests.extensions.plugins.test_plugins.PluginSample._get_default_configuration",
+        lambda: default_configuration,
+    )
+    plugin._update_configuration_structure(plugin_configuration)
+    plugin_configuration.refresh_from_db()
+    assert len(old_configuration) + 1 == len(plugin_configuration.configuration)
+
+
+def test_base_plugin__append_config_structure_do_not_save_to_db(plugin_configuration):
+    plugin = PluginSample()
+    old_config = copy.deepcopy(plugin_configuration.configuration)
+    # print(type(old_config))
+    plugin._append_config_structure(plugin_configuration.configuration)
+    for elem in old_config:
+        for new_elem in plugin_configuration.configuration:
+            if elem["name"] == new_elem["name"]:
+                assert not elem == new_elem
+    plugin_configuration.refresh_from_db()
+    assert old_config == plugin_configuration.configuration

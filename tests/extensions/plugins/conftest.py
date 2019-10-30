@@ -2,6 +2,9 @@ import pytest
 from django_prices_vatlayer.models import VAT
 from django_prices_vatlayer.utils import get_tax_for_rate
 
+from saleor.extensions.models import PluginConfiguration
+from tests.extensions.helpers import PluginSample
+
 
 @pytest.fixture
 def tax_rates():
@@ -64,3 +67,12 @@ def vatlayer(db, settings, tax_rates, taxes):
     }
     VAT.objects.create(country_code="DE", data=tax_rates_2)
     return taxes
+
+
+@pytest.fixture
+def plugin_configuration(db):
+    plugin = PluginSample()
+    configuration, _ = PluginConfiguration.objects.get_or_create(
+        name=plugin.PLUGIN_NAME, defaults=plugin._get_default_configuration()
+    )
+    return configuration
