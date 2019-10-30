@@ -9,7 +9,7 @@
 </div>
 
 <div align="center">
-  A modular, high performance e-commerce storefront built with GraphQL, Django, and ReactJS.
+  A modular, high-performance e-commerce storefront built with GraphQL, Django, and ReactJS.
 </div>
 
 <br>
@@ -66,10 +66,10 @@ Saleor is a rapidly-growing open source e-commerce platform that has served high
 - **GraphQL API**: Access all data from any web or mobile client using the latest technology
 - **Headless commerce**: Build mobile apps, customize storefronts and externalize processes
 - **UX and UI**: Designed for a user experience that rivals even the top commercial platforms
-- **Dashboard**: Administrators have total control of users, processes and products
-- **Orders**: A comprehensive system for orders, dispatch and refunds
+- **Dashboard**: Administrators have total control of users, processes, and products
+- **Orders**: A comprehensive system for orders, dispatch, and refunds
 - **Cart**: Advanced payment and tax options, with full control over discounts and promotions
-- **Payments**: Flexible API architecture allows integration of any payment method. Comes with Braintree support out of the box.
+- **Payments**: Flexible API architecture allows integration of any payment method. It comes with Braintree support out of the box.
 - **Geo-adaptive**: Automatic localized pricing. Over 20 local languages. Localized checkout experience by country.
 - **SEO**: Packed with features that get stores to a wider audience
 - **Cloud**: Optimized for deployments using Docker
@@ -119,9 +119,9 @@ Login credentials: `admin@example.com`/`admin`
 
 ## Contributing
 
-We love your contributions and do our best to provide you with mentorship and support. If you are looking for an issue to tackle, take a look at issues labelled [`Help Wanted`](https://github.com/mirumee/saleor/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22).
+We love your contributions and do our best to provide you with mentorship and support. If you are looking for an issue to tackle, take a look at issues labeled [`Help Wanted`](https://github.com/mirumee/saleor/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22).
 
-If nothing grabs your attention, check [our roadmap](https://github.com/mirumee/saleor/projects/6) or come up with your own feature. Just drop us a line or [open an issue](https://github.com/mirumee/saleor/issues/new) and we’ll work out how to handle it.
+If nothing grabs your attention, check [our roadmap](https://github.com/mirumee/saleor/projects/6) or come up with your feature. Just drop us a line or [open an issue](https://github.com/mirumee/saleor/issues/new) and we’ll work out how to handle it.
 
 Get more details in our [Contributing Guide](https://docs.getsaleor.com/docs/contributing/intro/).
 
