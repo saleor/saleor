@@ -14,6 +14,7 @@ from ...payment import error_codes as payment_error_codes
 from ...product import error_codes as product_error_codes
 from ...shipping import error_codes as shipping_error_codes
 from ...webhook import error_codes as webhook_error_codes
+from ...wishlist import error_codes as wishlist_error_codes
 from .utils import str_to_enum
 
 # FIXME CoreTaxRateType should be removed after we will drop old api fields dedicated
@@ -84,3 +85,4 @@ ProductErrorCode = graphene.Enum.from_enum(product_error_codes.ProductErrorCode)
 ShopErrorCode = graphene.Enum.from_enum(shop_error_codes.ShopErrorCode)
 ShippingErrorCode = graphene.Enum.from_enum(shipping_error_codes.ShippingErrorCode)
 WebhookErrorCode = graphene.Enum.from_enum(webhook_error_codes.WebhookErrorCode)
+WishlistErrorCode = graphene.Enum.from_enum(wishlist_error_codes.WishlistErrorCode)
