@@ -13,11 +13,7 @@ from .forms import GatewayConfigurationForm
 @staff_member_required
 @permission_required("extensions.manage_plugins")
 def index(request: "HttpRequest") -> TemplateResponse:
-    payment_gateways = [
-        gateway["name"]
-        for gateway in get_extensions_manager().list_payment_gateways(active_only=False)
-    ]
-    ctx = {"payment_gateways": payment_gateways}
+    ctx = {"payment_gateways": get_extensions_manager().list_payment_plugin_names()}
     return TemplateResponse(request, "dashboard/payments/index.html", ctx)
 
 
