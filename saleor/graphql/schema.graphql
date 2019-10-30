@@ -2031,6 +2031,8 @@ input MoveProductInput {
 }
 
 type Mutation {
+  wishlistAddVariant(variantId: ID!): WishlistAddProductVariantMutation
+  wishlistRemoveVariant(variantId: ID!): WishlistRemoveProductVariantMutation
   webhookCreate(input: WebhookCreateInput!): WebhookCreate
   webhookDelete(id: ID!): WebhookDelete
   webhookUpdate(id: ID!, input: WebhookUpdateInput!): WebhookUpdate
@@ -3393,6 +3395,7 @@ type ProductVariantUpdatePrivateMeta {
 }
 
 type Query {
+  wishlistItems: WishlistItem
   webhook(id: ID!): Webhook
   webhooks(filter: WebhookFilterInput, before: String, after: String, first: Int, last: Int): WebhookCountableConnection
   webhookEvents: [WebhookEvent]
@@ -4487,6 +4490,36 @@ enum WeightUnitsEnum {
   LB
   OZ
   G
+}
+
+type WishlistAddProductVariantMutation {
+  errors: [Error!]
+  variants: [ProductVariant]
+  wishlistErrors: [WishlistError!]
+}
+
+type WishlistError {
+  field: String
+  message: String
+  code: WishlistErrorCode
+}
+
+enum WishlistErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+}
+
+type WishlistItem implements Node {
+  id: ID!
+  user: User
+  product: Product!
+  variants(before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection!
+}
+
+type WishlistRemoveProductVariantMutation {
+  errors: [Error!]
+  variants: [ProductVariant]
+  wishlistErrors: [WishlistError!]
 }
 
 scalar _Any
