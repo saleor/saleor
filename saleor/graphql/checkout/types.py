@@ -3,7 +3,7 @@ import graphene_django_optimizer as gql_optimizer
 
 from ...checkout import models
 from ...checkout.utils import get_valid_shipping_methods_for_checkout
-from ...core.taxes import zero_taxed_money
+from ...core.taxes import display_gross_prices, zero_taxed_money
 from ...extensions.manager import get_extensions_manager
 from ..core.connection import CountableDjangoObjectType
 from ..core.resolvers import resolve_meta, resolve_private_meta
@@ -176,6 +176,17 @@ class Checkout(MetadataObjectType, CountableDjangoObjectType):
         )
         if available is None:
             return []
+
+        manager = get_extensions_manager()
+        display_gross = display_gross_prices()
+        for shipping_method in available:
+            taxed_price = manager.apply_taxes_to_shipping(
+                shipping_method.price, root.shipping_address
+            )
+            if display_gross:
+                shipping_method.price = taxed_price.gross
+            else:
+                shipping_method.price = taxed_price.net
         return available
 
     @staticmethod
