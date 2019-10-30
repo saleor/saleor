@@ -22,6 +22,7 @@ from saleor.payment.interface import GatewayResponse
 from saleor.shipping import ShippingMethodType
 from saleor.shipping.models import ShippingMethod
 from tests.api.utils import get_graphql_content
+from saleor.extensions.manager import ExtensionsManager
 
 
 @pytest.fixture
@@ -432,6 +433,57 @@ def test_checkout_available_shipping_methods(
 
     shipping_method = shipping_zone.shipping_methods.first()
     assert data["availableShippingMethods"] == [{"name": shipping_method.name}]
+
+
+@pytest.mark.parametrize(
+    "expected_price_type, expected_price, display_gross_prices",
+    (("gross", 13, True), ("net", 10, False)),
+)
+def test_checkout_available_shipping_methods_with_price_displayed(
+    expected_price_type,
+    expected_price,
+    display_gross_prices,
+    monkeypatch,
+    api_client,
+    checkout_with_item,
+    address,
+    shipping_zone,
+    site_settings,
+):
+    shipping_method = shipping_zone.shipping_methods.first()
+    taxed_price = TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD"))
+    apply_taxes_to_shipping_mock = mock.Mock(return_value=taxed_price)
+    monkeypatch.setattr(
+        ExtensionsManager, "apply_taxes_to_shipping", apply_taxes_to_shipping_mock
+    )
+    site_settings.display_gross_prices = display_gross_prices
+    site_settings.save()
+    checkout_with_item.shipping_address = address
+    checkout_with_item.save()
+
+    query = """
+    query getCheckout($token: UUID!) {
+        checkout(token: $token) {
+            availableShippingMethods {
+                name
+                price {
+                    amount
+                }
+            }
+        }
+    }
+    """
+    variables = {"token": checkout_with_item.token}
+    response = api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkout"]
+
+    apply_taxes_to_shipping_mock.assert_called_once_with(
+        shipping_method.price, mock.ANY
+    )
+    assert data["availableShippingMethods"] == [
+        {"name": "DHL", "price": {"amount": expected_price}}
+    ]
 
 
 def test_checkout_no_available_shipping_methods_without_address(
