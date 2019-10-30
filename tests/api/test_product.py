@@ -568,6 +568,33 @@ def test_filter_products_by_attributes(user_api_client, product):
     assert products[0]["node"]["name"] == product.name
 
 
+def test_filter_products_by_wrong_attributes(user_api_client, product):
+    product_attr = product.product_type.product_attributes.get(slug="color")
+    attr_value = (
+        product.product_type.variant_attributes.get(slug="size").values.first().id
+    )
+    filter_by = "%s:%s" % (product_attr.slug, attr_value)
+    query = """
+    query {
+        products(attributes: ["%(filter_by)s"], first: 1) {
+            edges {
+                node {
+                    name
+                }
+            }
+        }
+    }
+    """ % {
+        "filter_by": filter_by
+    }
+
+    response = user_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+
+    assert products == []
+
+
 def test_filter_products_by_categories(user_api_client, categories_tree, product):
     category = categories_tree.children.first()
     product.category = category
