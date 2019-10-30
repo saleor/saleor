@@ -11,6 +11,7 @@ from ..core.connection import CountableDjangoObjectType
 from ..core.types import LanguageDisplay
 from ..core.utils import str_to_enum
 from .enums import LanguageCodeEnum
+from .resolvers import resolve_translation
 
 
 class BaseTranslationType(CountableDjangoObjectType):
@@ -69,6 +70,42 @@ class ProductTranslation(BaseTranslationType):
             "seo_title",
             "seo_description",
         ]
+
+
+class ProductStrings(CountableDjangoObjectType):
+    translation = graphene.Field(
+        ProductTranslation,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            description="A language code to return the translation for.",
+            required=True,
+        ),
+        description=("Returns translated Product fields for the given language code."),
+        resolver=resolve_translation,
+    )
+    product = graphene.Field(
+        "saleor.graphql.product.types.products.Product",
+        description="Represents an individual item for sale in the storefront.",
+    )
+
+    class Meta:
+        model = product_models.Product
+        interfaces = [graphene.relay.Node]
+        only_fields = [
+            "description",
+            "description_json",
+            "id",
+            "name",
+            "seo_title",
+            "seo_description",
+        ]
+
+    def resolve_product(self, info):
+        return (
+            product_models.Product.objects.visible_to_user(info.context.user)
+            .filter(pk=self.id)
+            .first()
+        )
 
 
 class CollectionTranslation(BaseTranslationType):
