@@ -42,9 +42,12 @@ DISCOUNT_VALUE_TYPE_CHOICES = (
 VOUCHER_TYPE_CHOICES = (
     ("shipping", pgettext_lazy("Voucher type filter choice", "Shipping")),
     ("entire_order", pgettext_lazy("Voucher type filter choice", "Entire Order")),
-    ("specific_product", pgettext_lazy(
-        "Voucher type filter choice", "Specific Product"
-    )),
+    (
+        "specific_product", 
+        pgettext_lazy(
+            "Voucher type filter choice", "Specific Product"
+        )
+    ),
 )
 
 
