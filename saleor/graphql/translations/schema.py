@@ -1,6 +1,6 @@
 import graphene
 
-from ...product.models import Product
+from ...product.models import Collection, Product
 from ..core.connection import CountableConnection
 from ..core.fields import BaseConnectionField
 from ..decorators import permission_required
@@ -43,7 +43,7 @@ class TranslatableItem(graphene.Union):
 # TODO Consider name of this class
 class DefaultTranslationItem(graphene.Union):
     class Meta:
-        types = (translation_types.ProductStrings,)
+        types = (translation_types.ProductStrings, translation_types.CollectionStrings)
 
 
 class TranslatableItemConnection(CountableConnection):
@@ -110,7 +110,10 @@ class TranslationQueries(graphene.ObjectType):
 
     @permission_required("site.manage_translations")
     def resolve_translation(self, info, id, kind, **_kwargs):
+        # TODO Add other translatable items
         if kind == TranslatableKinds.PRODUCT:
             _type, product_id = graphene.Node.from_global_id(id)
             return Product.objects.filter(pk=product_id).first()
-        # TODO Add other translatable items
+        elif kind == TranslatableKinds.COLLECTION:
+            _type, collection_id = graphene.Node.from_global_id(id)
+            return Collection.objects.filter(pk=collection_id).first()

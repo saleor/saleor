@@ -122,6 +122,44 @@ class CollectionTranslation(BaseTranslationType):
         ]
 
 
+class CollectionStrings(CountableDjangoObjectType):
+    translation = graphene.Field(
+        CollectionTranslation,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            description="A language code to return the translation for.",
+            required=True,
+        ),
+        description=(
+            "Returns translated Collection fields " "for the given language code."
+        ),
+        resolver=resolve_translation,
+    )
+    collection = graphene.Field(
+        "saleor.graphql.product.types.products.Collection",
+        description="Represents a collection of products.",
+    )
+
+    class Meta:
+        model = product_models.Collection
+        interfaces = [graphene.relay.Node]
+        only_fields = [
+            "description",
+            "description_json",
+            "id",
+            "name",
+            "seo_title",
+            "seo_description",
+        ]
+
+    def resolve_collection(self, info):
+        return (
+            product_models.Collection.objects.visible_to_user(info.context.user)
+            .filter(pk=self.id)
+            .first()
+        )
+
+
 class CategoryTranslation(BaseTranslationType):
     class Meta:
         model = product_models.CategoryTranslation
