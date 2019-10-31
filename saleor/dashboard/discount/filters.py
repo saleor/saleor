@@ -43,7 +43,7 @@ VOUCHER_TYPE_CHOICES = (
     ("shipping", pgettext_lazy("Voucher type filter choice", "Shipping")),
     ("entire_order", pgettext_lazy("Voucher type filter choice", "Entire Order")),
     (
-        "specific_product", 
+        "specific_product",
         pgettext_lazy(
             "Voucher type filter choice", "Specific Product"
         )
