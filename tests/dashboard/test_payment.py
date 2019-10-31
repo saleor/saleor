@@ -6,6 +6,7 @@ from saleor.dashboard.payment.forms import (
     GatewayConfigurationForm,
     create_custom_form_field,
 )
+from saleor.extensions import ConfigurationTypeField
 from saleor.extensions.models import PluginConfiguration
 from saleor.payment.gateways.braintree.plugin import BraintreeGatewayPlugin
 from tests.extensions.helpers import get_config_value
@@ -44,7 +45,14 @@ def enable_plugin(settings):
 
 @pytest.fixture
 def config_char_structure():
-    return {"name": "Template path", "value": "order/payment/braintree.html"}
+    # This is value from BasePlugin.get_plugin_configuration
+    return {
+        "name": "Template path",
+        "value": "order/payment/braintree.html",
+        "help_text": "Test",
+        "label": "Test label",
+        "type": ConfigurationTypeField.STRING,
+    }
 
 
 @pytest.fixture(autouse=True)
@@ -70,19 +78,18 @@ def form_data():
 
 def test_configuration_form_get_current_configuration(plugin_configuration):
     gateway_config_form = GatewayConfigurationForm(BraintreeGatewayPlugin)
-    assert gateway_config_form._get_current_configuration() == plugin_configuration
+    assert (
+        gateway_config_form._get_or_create_db_configuration().configuration
+        == plugin_configuration.configuration
+    )
 
 
 def test_configuration_form__create_field(config_char_structure):
-    field_name = config_char_structure["name"]
-    plugin_config_structure = BraintreeGatewayPlugin.CONFIG_STRUCTURE[field_name]
-    template_field = create_custom_form_field(
-        config_char_structure, plugin_config_structure
-    )
+    template_field = create_custom_form_field(config_char_structure)
     assert isinstance(template_field, ConfigCharField)
     assert template_field.label == config_char_structure["name"]
     assert template_field.initial == config_char_structure["value"]
-    assert template_field.help_text == plugin_config_structure["help_text"]
+    assert template_field.help_text == config_char_structure["help_text"]
 
 
 def test_config_boolean_field_returned_value():
@@ -119,7 +126,18 @@ def test_gateway_config_returns_empty_dict_when_no_config(plugin_configuration):
     plugin_configuration.configuration = None
     plugin_configuration.save()
     form = GatewayConfigurationForm(BraintreeGatewayPlugin)
-    assert form._prepare_fields_for_given_config(plugin_configuration) == {}
+    assert form._prepare_fields_for_given_config() == {}
+
+
+def test_gateway_config_does_not_save_additional_data_to_db(
+    plugin_configuration, form_data
+):
+    form = GatewayConfigurationForm(BraintreeGatewayPlugin, form_data)
+    assert form.is_valid()
+    form.save()
+    plugin_configuration.refresh_from_db()
+    for elem in plugin_configuration.configuration:
+        assert len(elem) == 2
 
 
 def test_payment_index_display_only_available_gateways(staff_client):
