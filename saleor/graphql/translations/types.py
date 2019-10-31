@@ -51,6 +51,33 @@ class AttributeTranslation(BaseTranslationType):
         only_fields = ["id", "name"]
 
 
+class AttributeStrings(CountableDjangoObjectType):
+    translation = graphene.Field(
+        AttributeTranslation,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            description="A language code to return the translation for.",
+            required=True,
+        ),
+        description=(
+            "Returns translated Attribute fields " "for the given language code."
+        ),
+        resolver=resolve_translation,
+    )
+    attribute = graphene.Field(
+        "saleor.graphql.product.types.products.Attribute",
+        description="Custom attribute of a product.",
+    )
+
+    class Meta:
+        model = product_models.Attribute
+        interfaces = [graphene.relay.Node]
+        only_fields = ["id", "name"]
+
+    def resolve_attribute(self, info):
+        return self
+
+
 class ProductVariantTranslation(BaseTranslationType):
     class Meta:
         model = product_models.ProductVariantTranslation
