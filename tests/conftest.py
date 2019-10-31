@@ -610,7 +610,7 @@ def product(product_type, category):
 
 
 @pytest.fixture
-def product_with_two_variants(color_attribute, size_attribute, category):
+def product_with_variant_with_two_attributes(color_attribute, size_attribute, category):
     product_type = ProductType.objects.create(
         name="Type with two variants", has_variants=True, is_shipping_required=True
     )
