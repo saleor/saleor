@@ -1,6 +1,6 @@
 import graphene
 
-from ...product.models import Collection, Product
+from ...product.models import Category, Collection, Product
 from ..core.connection import CountableConnection
 from ..core.fields import BaseConnectionField
 from ..decorators import permission_required
@@ -43,7 +43,11 @@ class TranslatableItem(graphene.Union):
 # TODO Consider name of this class
 class DefaultTranslationItem(graphene.Union):
     class Meta:
-        types = (translation_types.ProductStrings, translation_types.CollectionStrings)
+        types = (
+            translation_types.ProductStrings,
+            translation_types.CollectionStrings,
+            translation_types.CategoryStrings,
+        )
 
 
 class TranslatableItemConnection(CountableConnection):
@@ -74,6 +78,7 @@ class TranslationQueries(graphene.ObjectType):
             TranslatableKinds, required=True, description="Kind of objects to retrieve."
         ),
     )
+    # TODO Add test for this query
     translation = graphene.Field(
         DefaultTranslationItem,
         id=graphene.Argument(
@@ -117,3 +122,6 @@ class TranslationQueries(graphene.ObjectType):
         elif kind == TranslatableKinds.COLLECTION:
             _type, collection_id = graphene.Node.from_global_id(id)
             return Collection.objects.filter(pk=collection_id).first()
+        elif kind == TranslatableKinds.CATEGORY:
+            _type, category_id = graphene.Node.from_global_id(id)
+            return Category.objects.filter(pk=category_id).first()

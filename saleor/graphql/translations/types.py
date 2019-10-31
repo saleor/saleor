@@ -174,6 +174,38 @@ class CategoryTranslation(BaseTranslationType):
         ]
 
 
+class CategoryStrings(CountableDjangoObjectType):
+    translation = graphene.Field(
+        CategoryTranslation,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            description="A language code to return the translation for.",
+            required=True,
+        ),
+        description=("Returns translated Category fields for the given language code."),
+        resolver=resolve_translation,
+    )
+    category = graphene.Field(
+        "saleor.graphql.product.types.products.Category",
+        description="Represents a single category of products.",
+    )
+
+    class Meta:
+        model = product_models.Category
+        interfaces = [graphene.relay.Node]
+        only_fields = [
+            "description",
+            "description_json",
+            "id",
+            "name",
+            "seo_title",
+            "seo_description",
+        ]
+
+    def resolve_category(self, info):
+        return self
+
+
 class PageTranslation(BaseTranslationType):
     class Meta:
         model = page_models.PageTranslation
