@@ -52,6 +52,8 @@ class FilterInputObjectType(InputObjectType):
         cls.filterset_class = get_filterset_class(cls.custom_filterset_class, **meta)
 
         args = {}
+        descriptions = {}
+        deprecations = {}
         for name, filter_field in six.iteritems(cls.filterset_class.base_filters):
             input_class = getattr(filter_field, "input_class", None)
             if input_class:
@@ -62,4 +64,10 @@ class FilterInputObjectType(InputObjectType):
             kwargs = getattr(field_type, "kwargs", {})
             field_type.kwargs = kwargs
             args[name] = field_type
+            if 'description' in field_type.__members__:
+                descriptions[name] = field_type.description
+            if 'deprecation_reason' in field_type.__members__:
+                deprecations[name] = field_type.deprecation_reason
+        args[descriptions] = descriptions
+        args[deprecations] = deprecations
         return args
