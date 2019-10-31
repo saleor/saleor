@@ -66,6 +66,6 @@ class FilterInputObjectType(InputObjectType):
             args[name] = field_type
             descriptions[name] = getattr(filter_field, "description", None)
             deprecations[name] = getattr(filter_field, "deprecation_reason", None)
-        args[descriptions] = descriptions
-        args[deprecations] = deprecations
+        args["descriptions"] = descriptions
+        args["deprecations"] = deprecations
         return args
