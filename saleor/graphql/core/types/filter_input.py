@@ -64,10 +64,8 @@ class FilterInputObjectType(InputObjectType):
             kwargs = getattr(field_type, "kwargs", {})
             field_type.kwargs = kwargs
             args[name] = field_type
-            if 'description' in field_type.__members__:
-                descriptions[name] = field_type.description
-            if 'deprecation_reason' in field_type.__members__:
-                deprecations[name] = field_type.deprecation_reason
+            descriptions[name] = getattr(filter_field, "description", None)
+            deprecations[name] = getattr(filter_field, "deprecation_reason", None)
         args[descriptions] = descriptions
         args[deprecations] = deprecations
         return args
