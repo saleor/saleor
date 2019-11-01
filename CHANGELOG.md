@@ -94,7 +94,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added possibility to edit customer's note of an order in dashboard - #4799 by @nix010
 - Added possibility to edit customer's note of an order in dashboard - #4845 by @nix010
 - Add API update customer note of an order in dashboard - #4799 by @nix010
-- Added possibility to edit customer's note of an order in dashboard - #4799 by @nix010
 - Added possibility to edit customer's note of an order in dashboard - #4845 by @nix010
 - Add validate for query param should be a valid string - #4822 by @nix010
 - Fix product type taxes select - #4453 by @benekex2
