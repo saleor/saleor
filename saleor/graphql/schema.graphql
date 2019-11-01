@@ -1,6 +1,6 @@
 schema {
   query: Query
-  mutation: Mutation
+  mutation: Mutations
 }
 
 type AccountAddressCreate {
@@ -132,7 +132,7 @@ input AddressInput {
   city: String
   cityArea: String
   postalCode: String
-  country: CountryCode
+  country: String
   countryArea: String
   phone: String
 }
@@ -405,6 +405,7 @@ type AttributeValueDelete {
 
 input AttributeValueInput {
   id: ID
+  slug: String
   values: [String]!
 }
 
@@ -1553,8 +1554,6 @@ type Fulfillment implements Node {
   status: FulfillmentStatus!
   trackingNumber: String!
   shippingDate: DateTime!
-  privateMeta: [MetaStore]!
-  meta: [MetaStore]!
   lines: [FulfillmentLine]
   statusDisplay: String
 }
@@ -1568,16 +1567,6 @@ type FulfillmentCancel {
 
 input FulfillmentCancelInput {
   restock: Boolean
-}
-
-type FulfillmentClearMeta {
-  errors: [Error!]
-  fulfillment: Fulfillment
-}
-
-type FulfillmentClearPrivateMeta {
-  errors: [Error!]
-  fulfillment: Fulfillment
 }
 
 type FulfillmentCreate {
@@ -1607,16 +1596,6 @@ input FulfillmentLineInput {
 enum FulfillmentStatus {
   FULFILLED
   CANCELED
-}
-
-type FulfillmentUpdateMeta {
-  errors: [Error!]
-  fulfillment: Fulfillment
-}
-
-type FulfillmentUpdatePrivateMeta {
-  errors: [Error!]
-  fulfillment: Fulfillment
 }
 
 type FulfillmentUpdateTracking {
@@ -2011,7 +1990,7 @@ input MoveProductInput {
   sortOrder: Int
 }
 
-type Mutation {
+type Mutations {
   webhookCreate(input: WebhookCreateInput!): WebhookCreate
   webhookDelete(id: ID!): WebhookDelete
   webhookUpdate(id: ID!, input: WebhookUpdateInput!): WebhookUpdate
@@ -2138,10 +2117,6 @@ type Mutation {
   orderFulfillmentCancel(id: ID!, input: FulfillmentCancelInput!): FulfillmentCancel
   orderFulfillmentCreate(input: FulfillmentCreateInput!, order: ID): FulfillmentCreate
   orderFulfillmentUpdateTracking(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdateTracking
-  orderFulfillmentClearMeta(id: ID!, input: MetaPath!): FulfillmentClearMeta
-  orderFulfillmentClearPrivateMeta(id: ID!, input: MetaPath!): FulfillmentClearPrivateMeta
-  orderFulfillmentUpdateMeta(id: ID!, input: MetaInput!): FulfillmentUpdateMeta
-  orderFulfillmentUpdatePrivateMeta(id: ID!, input: MetaInput!): FulfillmentUpdatePrivateMeta
   orderMarkAsPaid(id: ID!): OrderMarkAsPaid
   orderRefund(amount: Decimal!, id: ID!): OrderRefund
   orderUpdate(id: ID!, input: OrderUpdateInput!): OrderUpdate
@@ -3353,9 +3328,7 @@ type ProductVariantUpdatePrivateMeta {
 
 type Query {
   webhook(id: ID!): Webhook
-  webhooks(filter: WebhookFilterInput, before: String, after: String, first: Int, last: Int): WebhookCountableConnection
-  webhookEvents: [WebhookEvent]
-  webhookSamplePayload(eventType: WebhookEventTypeEnum!): JSONString
+  webhooks(before: String, after: String, first: Int, last: Int): WebhookCountableConnection
   translations(kind: TranslatableKinds!, before: String, after: String, first: Int, last: Int): TranslatableItemConnection
   shop: Shop
   shippingZone(id: ID!): ShippingZone
@@ -3411,8 +3384,6 @@ type Query {
   serviceAccount(id: ID!): ServiceAccount
   user(id: ID!): User
   node(id: ID!): Node
-  _entities(representations: [_Any]): [_Entity]
-  _service: _Service
 }
 
 type ReducedRate {
@@ -3773,8 +3744,6 @@ type Shop {
   currencies: [String]!
   defaultCurrency: String!
   defaultCountry: CountryDisplay
-  defaultMailSenderName: String
-  defaultMailSenderAddress: String
   description: String
   domain: Domain!
   homepageCollection: Collection
@@ -3794,7 +3763,6 @@ type Shop {
   defaultDigitalMaxDownloads: Int
   defaultDigitalUrlValidDays: Int
   companyAddress: Address
-  customerSetPasswordUrl: String
 }
 
 type ShopAddressUpdate {
@@ -3842,9 +3810,6 @@ input ShopSettingsInput {
   automaticFulfillmentDigitalProducts: Boolean
   defaultDigitalMaxDownloads: Int
   defaultDigitalUrlValidDays: Int
-  defaultMailSenderName: String
-  defaultMailSenderAddress: String
-  customerSetPasswordUrl: String
 }
 
 type ShopSettingsTranslate {
@@ -4352,7 +4317,6 @@ enum WebhookErrorCode {
 
 type WebhookEvent {
   eventType: WebhookEventTypeEnum
-  name: String
 }
 
 enum WebhookEventTypeEnum {
@@ -4361,14 +4325,8 @@ enum WebhookEventTypeEnum {
   ORDER_FULLY_PAID
   ORDER_UPDATED
   ORDER_CANCELLED
-  ORDER_FULFILLED
   CUSTOMER_CREATED
   PRODUCT_CREATED
-}
-
-input WebhookFilterInput {
-  search: String
-  isActive: Boolean
 }
 
 type WebhookUpdate {
@@ -4398,12 +4356,4 @@ enum WeightUnitsEnum {
   LB
   OZ
   G
-}
-
-scalar _Any
-
-union _Entity = Address | ServiceAccount | User | ProductVariant | Product | ProductType | Collection | Category | ProductImage
-
-type _Service {
-  sdl: String
 }
