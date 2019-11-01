@@ -1,6 +1,6 @@
 schema {
   query: Query
-  mutation: Mutations
+  mutation: Mutation
 }
 
 type AccountAddressCreate {
@@ -92,6 +92,12 @@ type AccountUpdate {
   user: User
 }
 
+type AccountUpdateMeta {
+  errors: [Error!]
+  accountErrors: [AccountError!]
+  user: User
+}
+
 type Address implements Node {
   id: ID!
   firstName: String!
@@ -132,7 +138,7 @@ input AddressInput {
   city: String
   cityArea: String
   postalCode: String
-  country: String
+  country: CountryCode
   countryArea: String
   phone: String
 }
@@ -405,7 +411,6 @@ type AttributeValueDelete {
 
 input AttributeValueInput {
   id: ID
-  slug: String
   values: [String]!
 }
 
@@ -1554,6 +1559,8 @@ type Fulfillment implements Node {
   status: FulfillmentStatus!
   trackingNumber: String!
   shippingDate: DateTime!
+  privateMeta: [MetaStore]!
+  meta: [MetaStore]!
   lines: [FulfillmentLine]
   statusDisplay: String
 }
@@ -1567,6 +1574,16 @@ type FulfillmentCancel {
 
 input FulfillmentCancelInput {
   restock: Boolean
+}
+
+type FulfillmentClearMeta {
+  errors: [Error!]
+  fulfillment: Fulfillment
+}
+
+type FulfillmentClearPrivateMeta {
+  errors: [Error!]
+  fulfillment: Fulfillment
 }
 
 type FulfillmentCreate {
@@ -1596,6 +1613,16 @@ input FulfillmentLineInput {
 enum FulfillmentStatus {
   FULFILLED
   CANCELED
+}
+
+type FulfillmentUpdateMeta {
+  errors: [Error!]
+  fulfillment: Fulfillment
+}
+
+type FulfillmentUpdatePrivateMeta {
+  errors: [Error!]
+  fulfillment: Fulfillment
 }
 
 type FulfillmentUpdateTracking {
@@ -1990,7 +2017,7 @@ input MoveProductInput {
   sortOrder: Int
 }
 
-type Mutations {
+type Mutation {
   webhookCreate(input: WebhookCreateInput!): WebhookCreate
   webhookDelete(id: ID!): WebhookDelete
   webhookUpdate(id: ID!, input: WebhookUpdateInput!): WebhookUpdate
@@ -2113,14 +2140,18 @@ type Mutations {
   orderCancel(id: ID!, restock: Boolean!): OrderCancel
   orderCapture(amount: Decimal!, id: ID!): OrderCapture
   orderClearPrivateMeta(id: ID!, input: MetaPath!): OrderClearPrivateMeta
-  orderClearMeta(id: ID!, input: MetaPath!): OrderClearMeta
+  orderClearMeta(input: MetaPath!, token: UUID!): OrderClearMeta
   orderFulfillmentCancel(id: ID!, input: FulfillmentCancelInput!): FulfillmentCancel
   orderFulfillmentCreate(input: FulfillmentCreateInput!, order: ID): FulfillmentCreate
   orderFulfillmentUpdateTracking(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdateTracking
+  orderFulfillmentClearMeta(id: ID!, input: MetaPath!): FulfillmentClearMeta
+  orderFulfillmentClearPrivateMeta(id: ID!, input: MetaPath!): FulfillmentClearPrivateMeta
+  orderFulfillmentUpdateMeta(id: ID!, input: MetaInput!): FulfillmentUpdateMeta
+  orderFulfillmentUpdatePrivateMeta(id: ID!, input: MetaInput!): FulfillmentUpdatePrivateMeta
   orderMarkAsPaid(id: ID!): OrderMarkAsPaid
   orderRefund(amount: Decimal!, id: ID!): OrderRefund
   orderUpdate(id: ID!, input: OrderUpdateInput!): OrderUpdate
-  orderUpdateMeta(id: ID!, input: MetaInput!): OrderUpdateMeta
+  orderUpdateMeta(input: MetaInput!, token: UUID!): OrderUpdateMeta
   orderUpdatePrivateMeta(id: ID!, input: MetaInput!): OrderUpdatePrivateMeta
   orderUpdateShipping(order: ID!, input: OrderUpdateShippingInput): OrderUpdateShipping
   orderVoid(id: ID!): OrderVoid
@@ -2180,8 +2211,6 @@ type Mutations {
   requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
   setPassword(token: String!, email: String!, password: String!): SetPassword
   passwordChange(newPassword: String!, oldPassword: String!): PasswordChange
-  userUpdateMetadata(id: ID!, input: MetaInput!): UserUpdateMeta
-  userClearMetadata(id: ID!, input: MetaPath!): UserClearMeta
   accountAddressCreate(input: AddressInput!, type: AddressTypeEnum): AccountAddressCreate
   accountAddressUpdate(id: ID!, input: AddressInput!): AccountAddressUpdate
   accountAddressDelete(id: ID!): AccountAddressDelete
@@ -2190,6 +2219,7 @@ type Mutations {
   accountUpdate(input: AccountInput!): AccountUpdate
   accountRequestDeletion(redirectUrl: String!): AccountRequestDeletion
   accountDelete(token: String!): AccountDelete
+  accountUpdateMeta(input: MetaInput!): AccountUpdateMeta
   customerPasswordReset(input: CustomerPasswordResetInput!): CustomerPasswordReset
   customerAddressCreate(input: AddressInput!, type: AddressTypeEnum): CustomerAddressCreate
   customerSetDefaultAddress(id: ID!, type: AddressTypeEnum!): CustomerSetDefaultAddress
@@ -2210,6 +2240,8 @@ type Mutations {
   userAvatarUpdate(image: Upload!): UserAvatarUpdate
   userAvatarDelete: UserAvatarDelete
   userBulkSetActive(ids: [ID]!, isActive: Boolean!): UserBulkSetActive
+  userUpdateMetadata(id: ID!, input: MetaInput!): UserUpdateMeta
+  userClearMetadata(id: ID!, input: MetaPath!): UserClearMeta
   userUpdatePrivateMetadata(id: ID!, input: MetaInput!): UserUpdatePrivateMeta
   userClearPrivateMetadata(id: ID!, input: MetaPath!): UserClearPrivateMeta
   serviceAccountCreate(input: ServiceAccountInput!): ServiceAccountCreate
@@ -3328,7 +3360,9 @@ type ProductVariantUpdatePrivateMeta {
 
 type Query {
   webhook(id: ID!): Webhook
-  webhooks(before: String, after: String, first: Int, last: Int): WebhookCountableConnection
+  webhooks(filter: WebhookFilterInput, before: String, after: String, first: Int, last: Int): WebhookCountableConnection
+  webhookEvents: [WebhookEvent]
+  webhookSamplePayload(eventType: WebhookEventTypeEnum!): JSONString
   translations(kind: TranslatableKinds!, before: String, after: String, first: Int, last: Int): TranslatableItemConnection
   shop: Shop
   shippingZone(id: ID!): ShippingZone
@@ -3384,6 +3418,8 @@ type Query {
   serviceAccount(id: ID!): ServiceAccount
   user(id: ID!): User
   node(id: ID!): Node
+  _entities(representations: [_Any]): [_Entity]
+  _service: _Service
 }
 
 type ReducedRate {
@@ -3744,6 +3780,8 @@ type Shop {
   currencies: [String]!
   defaultCurrency: String!
   defaultCountry: CountryDisplay
+  defaultMailSenderName: String
+  defaultMailSenderAddress: String
   description: String
   domain: Domain!
   homepageCollection: Collection
@@ -3763,6 +3801,7 @@ type Shop {
   defaultDigitalMaxDownloads: Int
   defaultDigitalUrlValidDays: Int
   companyAddress: Address
+  customerSetPasswordUrl: String
 }
 
 type ShopAddressUpdate {
@@ -3810,6 +3849,9 @@ input ShopSettingsInput {
   automaticFulfillmentDigitalProducts: Boolean
   defaultDigitalMaxDownloads: Int
   defaultDigitalUrlValidDays: Int
+  defaultMailSenderName: String
+  defaultMailSenderAddress: String
+  customerSetPasswordUrl: String
 }
 
 type ShopSettingsTranslate {
@@ -4317,6 +4359,7 @@ enum WebhookErrorCode {
 
 type WebhookEvent {
   eventType: WebhookEventTypeEnum
+  name: String
 }
 
 enum WebhookEventTypeEnum {
@@ -4325,8 +4368,14 @@ enum WebhookEventTypeEnum {
   ORDER_FULLY_PAID
   ORDER_UPDATED
   ORDER_CANCELLED
+  ORDER_FULFILLED
   CUSTOMER_CREATED
   PRODUCT_CREATED
+}
+
+input WebhookFilterInput {
+  search: String
+  isActive: Boolean
 }
 
 type WebhookUpdate {
@@ -4356,4 +4405,12 @@ enum WeightUnitsEnum {
   LB
   OZ
   G
+}
+
+scalar _Any
+
+union _Entity = Address | ServiceAccount | User | ProductVariant | Product | ProductType | Collection | Category | ProductImage
+
+type _Service {
+  sdl: String
 }
