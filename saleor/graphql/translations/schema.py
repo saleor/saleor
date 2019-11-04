@@ -1,6 +1,13 @@
 import graphene
 
-from ...product.models import Attribute, AttributeValue, Category, Collection, Product
+from ...product.models import (
+    Attribute,
+    AttributeValue,
+    Category,
+    Collection,
+    Product,
+    ProductVariant,
+)
 from ..core.connection import CountableConnection
 from ..core.fields import BaseConnectionField
 from ..decorators import permission_required
@@ -49,6 +56,7 @@ class DefaultTranslationItem(graphene.Union):
             translation_types.CategoryStrings,
             translation_types.AttributeStrings,
             translation_types.AttributeValueStrings,
+            translation_types.ProductVariantStrings,
         )
 
 
@@ -118,10 +126,10 @@ class TranslationQueries(graphene.ObjectType):
     @permission_required("site.manage_translations")
     def resolve_translation(self, info, id, kind, **_kwargs):
         # TODO Add other translatable items
-        if kind == TranslatableKinds.PRODUCT:
+        if kind == TranslatableKinds.PRODUCT:  # TODO test hidden data
             _type, product_id = graphene.Node.from_global_id(id)
             return Product.objects.filter(pk=product_id).first()
-        elif kind == TranslatableKinds.COLLECTION:
+        elif kind == TranslatableKinds.COLLECTION:  # TODO test hidden data
             _type, collection_id = graphene.Node.from_global_id(id)
             return Collection.objects.filter(pk=collection_id).first()
         elif kind == TranslatableKinds.CATEGORY:
@@ -133,3 +141,6 @@ class TranslationQueries(graphene.ObjectType):
         elif kind == TranslatableKinds.ATTRIBUTE_VALUE:
             _type, attribute_value_id = graphene.Node.from_global_id(id)
             return AttributeValue.objects.filter(pk=attribute_value_id).first()
+        elif kind == TranslatableKinds.VARIANT:  # TODO test hidden data
+            _type, product_variant_id = graphene.Node.from_global_id(id)
+            return ProductVariant.objects.filter(pk=product_variant_id).first()

@@ -112,6 +112,40 @@ class ProductVariantTranslation(BaseTranslationType):
         only_fields = ["id", "name"]
 
 
+class ProductVariantStrings(CountableDjangoObjectType):
+    translation = graphene.Field(
+        ProductVariantTranslation,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            description="A language code to return the translation for.",
+            required=True,
+        ),
+        description=(
+            "Returns translated Product Variant fields " "for the given language code."
+        ),
+        resolver=resolve_translation,
+    )
+    product_variant = graphene.Field(
+        "saleor.graphql.product.types.products.ProductVariant",
+        description=(
+            "Represents a version of a product such as different size or color."
+        ),
+    )
+
+    class Meta:
+        model = product_models.ProductVariant
+        interfaces = [graphene.relay.Node]
+        only_fields = ["id", "name"]
+
+    def resolve_product_variant(self, info):
+        visible_products = product_models.Product.objects.visible_to_user(
+            info.context.user
+        ).values_list("pk", flat=True)
+        return product_models.ProductVariant.objects.filter(
+            product__id__in=visible_products, pk=self.id
+        ).first()
+
+
 class ProductTranslation(BaseTranslationType):
     class Meta:
         model = product_models.ProductTranslation
