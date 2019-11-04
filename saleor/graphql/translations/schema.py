@@ -1,6 +1,6 @@
 import graphene
 
-from ...product.models import Attribute, Category, Collection, Product
+from ...product.models import Attribute, AttributeValue, Category, Collection, Product
 from ..core.connection import CountableConnection
 from ..core.fields import BaseConnectionField
 from ..decorators import permission_required
@@ -48,6 +48,7 @@ class DefaultTranslationItem(graphene.Union):
             translation_types.CollectionStrings,
             translation_types.CategoryStrings,
             translation_types.AttributeStrings,
+            translation_types.AttributeValueStrings,
         )
 
 
@@ -129,3 +130,6 @@ class TranslationQueries(graphene.ObjectType):
         elif kind == TranslatableKinds.ATTRIBUTE:
             _type, attribute_id = graphene.Node.from_global_id(id)
             return Attribute.objects.filter(pk=attribute_id).first()
+        elif kind == TranslatableKinds.ATTRIBUTE_VALUE:
+            _type, attribute_value_id = graphene.Node.from_global_id(id)
+            return AttributeValue.objects.filter(pk=attribute_value_id).first()
