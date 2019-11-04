@@ -161,7 +161,7 @@
           </h2>
         {% endif %}
       {% endif %}
-      {% if is_visible and product.is_in_stock %}
+      {% if is_visible and product.is_in_stock and availability.available %}
         {% block orderform %}
           {% if show_variant_picker %}
             {% csrf_token %}
