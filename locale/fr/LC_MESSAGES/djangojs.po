@@ -5,32 +5,23 @@
 # 
 # Translators:
 # benoit barthelet <benoit.barthelet@gmail.com>, 2018
-# Da Costa Faro Rémy <remy@dacostafaro.com>, 2018
-# NyаnKiyoshi <hello@vanille.bid>, 2018
-# Marouane Fawzi <glamarouane@gmail.com>, 2019
+# Da Costa Faro Rémy <remy@dacostafaro.com>, 2019
+# NyаnKiyoshi <hello@vanille.bid>, 2019
 # 
 #, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-05-13 03:43-0500\n"
+"POT-Creation-Date: 2019-07-22 05:53-0500\n"
 "PO-Revision-Date: 2017-02-08 11:00+0000\n"
-"Last-Translator: Marouane Fawzi <glamarouane@gmail.com>, 2019\n"
+"Last-Translator: NyаnKiyoshi <hello@vanille.bid>, 2019\n"
 "Language-Team: French (https://www.transifex.com/mirumee/teams/34782/fr/)\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: fr\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
-
-#: build/static/vendors~preview.3e127659ad09b01744f8.bundle.js:75
-msgid "Missing source"
-msgstr "source manquante"
-
-#: build/static/vendors~preview.3e127659ad09b01744f8.bundle.js:136
-msgid "\n"
-msgstr ""
 
 #: saleor/static/dashboard/js/components/bulk-actions.js:89
 msgid "item selected"
@@ -376,5 +367,5 @@ msgstr "Quantité"
 
 #: saleor/static/js/components/variantPicker/VariantPicker.js:167
 msgctxt "Product details primary action"
-msgid "Add to checkout"
-msgstr ""
+msgid "Add to cart"
+msgstr "Ajouter au panier"

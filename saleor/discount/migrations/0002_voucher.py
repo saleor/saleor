@@ -3,10 +3,10 @@
 from __future__ import unicode_literals
 
 import datetime
+
+import django.db.models.deletion
 from django.conf import settings
 from django.db import migrations, models
-import django.db.models.deletion
-import django_prices.models
 
 
 class Migration(migrations.Migration):
@@ -75,12 +75,8 @@ class Migration(migrations.Migration):
                 ("apply_to", models.CharField(blank=True, max_length=20, null=True)),
                 (
                     "limit",
-                    django_prices.models.MoneyField(
-                        blank=True,
-                        currency=settings.DEFAULT_CURRENCY,
-                        decimal_places=2,
-                        max_digits=12,
-                        null=True,
+                    models.DecimalField(
+                        blank=True, decimal_places=2, max_digits=12, null=True
                     ),
                 ),
                 (

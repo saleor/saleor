@@ -1,18 +1,17 @@
-"""We are NOT handling errors from:
-- Braintree Marketplace
-- Dispute
-- Apple Pay
-- OAuth
-- Venmo
-- Search
-- Recurring Billing
-- 3D Secure
-- Customer
-as they are not currently supported.
-
-For the full list of errors please refer to:
-https://developers.braintreepayments.com/reference/general/validation-errors/all/python#transaction
-"""
+# We are NOT handling errors from:
+#   - Braintree Marketplace
+#   - Dispute
+#   - Apple Pay
+#   - OAuth
+#   - Venmo
+#   - Search
+#   - Recurring Billing
+#   - 3D Secure
+#   - Customer
+# as they are not currently supported.
+#
+# For the full list of errors please refer to:
+# https://developers.braintreepayments.com/reference/general/validation-errors/all/python#transaction
 from ... import TransactionError
 
 INVALID_EXPIRY_DATE_ERRORS = [

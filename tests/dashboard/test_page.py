@@ -36,7 +36,7 @@ def test_page_add(admin_client):
     assert response.status_code == 302
 
 
-@mock.patch("saleor.dashboard.page.views.get_menus_that_needs_update")
+@mock.patch("saleor.dashboard.page.views.get_menus_that_need_update")
 @mock.patch("saleor.dashboard.page.views.update_menus")
 def test_page_delete(mock_update_menus, mock_get_menus, admin_client, page):
     url = reverse("dashboard:page-delete", args=[page.pk])
@@ -51,7 +51,7 @@ def test_page_delete(mock_update_menus, mock_get_menus, admin_client, page):
     mock_update_menus.assert_called_once_with([page.pk])
 
 
-@mock.patch("saleor.dashboard.page.views.get_menus_that_needs_update")
+@mock.patch("saleor.dashboard.page.views.get_menus_that_need_update")
 @mock.patch("saleor.dashboard.page.views.update_menus")
 def test_page_delete_menu_not_updated(
     mock_update_menus, mock_get_menus, admin_client, page
@@ -102,3 +102,43 @@ def test_set_page_seo_description(page):
     assert form.is_valid()
     form.save()
     assert page.seo_description == seo_description
+
+
+def test_filter_pages_by_slug(staff_client, page, staff_user, permission_manage_pages):
+    staff_user.user_permissions.add(permission_manage_pages)
+    url = reverse("dashboard:page-list")
+
+    data = {"slug": page.slug}
+    response = staff_client.get(url, data)
+    assert response.status_code == 200
+
+    found_pages = list(response.context["filter_set"].qs)
+    assert len(found_pages) == 1
+    assert found_pages[0].pk == page.pk
+
+    data = {"slug": "none-existing"}
+    response = staff_client.get(url, data)
+    assert response.status_code == 200
+
+    found_pages = list(response.context["filter_set"].qs)
+    assert len(found_pages) == 0
+
+
+def test_filter_pages_by_title(staff_client, page, staff_user, permission_manage_pages):
+    staff_user.user_permissions.add(permission_manage_pages)
+    url = reverse("dashboard:page-list")
+
+    data = {"title": page.title}
+    response = staff_client.get(url, data)
+    assert response.status_code == 200
+
+    found_pages = list(response.context["filter_set"].qs)
+    assert len(found_pages) == 1
+    assert found_pages[0].pk == page.pk
+
+    data = {"title": "none-existing"}
+    response = staff_client.get(url, data)
+    assert response.status_code == 200
+
+    found_pages = list(response.context["filter_set"].qs)
+    assert len(found_pages) == 0

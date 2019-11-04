@@ -29,7 +29,10 @@ class Migration(migrations.Migration):
             field=models.DecimalField(
                 decimal_places=2,
                 default=0,
-                help_text="Value for a discount. It could be fixed amount or percentage value in range 0-100",
+                help_text=(
+                    "Value for a discount. It could be fixed amount or "
+                    "percentage value in range 0-100"
+                ),
                 max_digits=12,
             ),
         ),

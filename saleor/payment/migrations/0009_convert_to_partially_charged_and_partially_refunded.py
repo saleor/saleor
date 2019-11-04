@@ -4,7 +4,6 @@ from django.db import migrations
 
 from saleor.payment import ChargeStatus, TransactionKind
 
-
 CHARGED = "charged"
 
 

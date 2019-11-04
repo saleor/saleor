@@ -15,9 +15,8 @@ from django.views.decorators.csrf import csrf_exempt
 from ..account.forms import LoginForm
 from ..account.models import User
 from ..core.utils import get_client_ip
-from ..payment import ChargeStatus, TransactionKind, get_payment_gateway
-from ..payment.utils import (
-    create_payment, create_payment_information, gateway_process_payment)
+from ..payment import ChargeStatus, TransactionKind, gateway as payment_gateway
+from ..payment.utils import create_payment, fetch_customer_id
 from . import FulfillmentStatus
 from .forms import (
     CustomerNoteForm, PasswordForm, PaymentDeleteForm, PaymentsForm)
@@ -111,8 +110,7 @@ def payment(request, token):
 
 @check_order_status
 def start_payment(request, order, gateway):
-    payment_gateway, connection_params = get_payment_gateway(gateway)
-    extra_data = {'customer_user_agent': request.META.get('HTTP_USER_AGENT')}
+    extra_data = {"customer_user_agent": request.META.get("HTTP_USER_AGENT")}
     with transaction.atomic():
         payment = create_payment(
             gateway=gateway,

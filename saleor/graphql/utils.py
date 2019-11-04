@@ -1,3 +1,5 @@
+from typing import Union
+
 import graphene
 from django.db.models import Q
 from django.utils import timezone
@@ -17,9 +19,8 @@ registry = get_global_registry()
 def get_database_id(info, node_id, only_type):
     """Get a database ID from a node ID of given type."""
     _type, _id = graphene.relay.Node.from_global_id(node_id)
-    graphene_type = info.schema.get_type(_type).graphene_type
-    if graphene_type != only_type:
-        raise AssertionError("Must receive a %s id." % only_type._meta.name)
+    if _type != str(only_type):
+        raise AssertionError("Must receive a %s id." % str(only_type))
     return _id
 
 
@@ -62,13 +63,17 @@ def _resolve_graphene_type(type_name):
     raise AssertionError("Could not resolve the type {}".format(type_name))
 
 
-def get_nodes(ids, graphene_type=None):
+def get_nodes(
+    ids, graphene_type: Union[graphene.ObjectType, str] = None, model=None, qs=None
+):
     """Return a list of nodes.
 
     If the `graphene_type` argument is provided, the IDs will be validated
     against this type. If the type was not provided, it will be looked up in
     the Graphene's registry. Raises an error if not all IDs are of the same
     type.
+
+    If the `graphene_type` is of type str, the model keyword argument must be provided.
     """
     nodes_type, pks = _resolve_nodes(ids, graphene_type)
 
@@ -78,7 +83,12 @@ def get_nodes(ids, graphene_type=None):
     if nodes_type and not graphene_type:
         graphene_type = _resolve_graphene_type(nodes_type)
 
-    nodes = list(graphene_type._meta.model.objects.filter(pk__in=pks))
+    if qs is None and not isinstance(graphene_type, str):
+        qs = graphene_type._meta.model.objects
+    elif model is not None:
+        qs = model.objects
+
+    nodes = list(qs.filter(pk__in=pks))
     nodes.sort(key=lambda e: pks.index(str(e.pk)))  # preserve order in pks
 
     if not nodes:
@@ -95,10 +105,11 @@ def get_nodes(ids, graphene_type=None):
 def filter_by_query_param(queryset, query, search_fields):
     """Filter queryset according to given parameters.
 
-    Keyword arguments:
-    queryset - queryset to be filtered
-    query - search string
-    search_fields - fields considered in filtering
+    Keyword Arguments:
+        queryset - queryset to be filtered
+        query - search string
+        search_fields - fields considered in filtering
+
     """
     if query:
         query_by = {
@@ -128,18 +139,21 @@ def filter_by_period(queryset, period, field_name):
 
 
 def generate_query_argument_description(search_fields):
+    deprecated_info = (
+        "DEPRECATED: Will be removed in Saleor 2.10,"
+        " use `filter: {search: {}}` instead.\n"
+    )
     header = "Supported filter parameters:\n"
-    supported_list = ""
-    for field in search_fields:
-        supported_list += "* {0}\n".format(field)
-    return header + supported_list
+    supported_list = [f"`{field}`" for field in search_fields]
+    return deprecated_info + header + ", ".join(supported_list)
 
 
 def format_permissions_for_display(permissions):
     """Transform permissions queryset into PermissionDisplay list.
 
-    Keyword arguments:
-    permissions - queryset with permissions
+    Keyword Arguments:
+        permissions - queryset with permissions
+
     """
     formatted_permissions = []
     for permission in permissions:

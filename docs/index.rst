@@ -3,24 +3,8 @@ Saleor
 
 An open source storefront written in Python.
 
-Contents:
 
-.. toctree::
-   :maxdepth: 2
+Documentation has moved!
+------------------------
 
-   gettingstarted
-   customization
-   payment-gateways
-   contributing
-   architecture
-   integrations
-   deployment
-   guides
-
-
-Indices and tables
-------------------
-
-* :ref:`genindex`
-* :ref:`modindex`
-* :ref:`search`
+Saleor documentation has moved to https://docs.getsaleor.com

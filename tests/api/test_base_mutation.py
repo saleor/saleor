@@ -1,3 +1,4 @@
+from enum import Enum
 from unittest.mock import Mock
 
 import graphene
@@ -5,6 +6,7 @@ import pytest
 from django.core.exceptions import ImproperlyConfigured
 
 from saleor.graphql.core.mutations import BaseMutation
+from saleor.graphql.core.types.common import Error
 from saleor.graphql.product import types as product_types
 
 
@@ -25,8 +27,27 @@ class Mutation(BaseMutation):
         return Mutation(name=product.name)
 
 
+class ErrorCodeTest(Enum):
+    INVALID = "invalid"
+
+
+ErrorCodeTest = graphene.Enum.from_enum(ErrorCodeTest)
+
+
+class ErrorTest(Error):
+    code = ErrorCodeTest()
+
+
+class MutationWithCustomErrors(Mutation):
+    class Meta:
+        description = "Base mutation with custom errors"
+        error_type_class = ErrorTest
+        error_type_field = "custom_errors"
+
+
 class Mutations(graphene.ObjectType):
     test = Mutation.Field()
+    test_with_custom_errors = MutationWithCustomErrors.Field()
 
 
 schema = graphene.Schema(
@@ -81,7 +102,30 @@ def test_user_error_nonexistent_id(schema_context):
     user_errors = result.data["test"]["errors"]
     assert user_errors
     assert user_errors[0]["field"] == "productId"
-    assert "Couldn't resolve to a node" in user_errors[0]["message"]
+    assert user_errors[0]["message"] == "Couldn't resolve to a node: not-really"
+
+
+def test_mutation_custom_errors_default_value(product, schema_context):
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    query = """
+        mutation testMutation($productId: ID!) {
+            testWithCustomErrors(productId: $productId) {
+                name
+                errors {
+                    field
+                    message
+                }
+                customErrors {
+                    field
+                    message
+                }
+            }
+        }
+    """
+    variables = {"productId": product_id}
+    result = schema.execute(query, variables=variables, context_value=schema_context)
+    assert result.data["testWithCustomErrors"]["errors"] == []
+    assert result.data["testWithCustomErrors"]["customErrors"] == []
 
 
 def test_user_error_id_of_different_type(product, schema_context):
@@ -109,7 +153,7 @@ def test_user_error_id_of_different_type(product, schema_context):
     user_errors = result.data["test"]["errors"]
     assert user_errors
     assert user_errors[0]["field"] == "productId"
-    assert user_errors[0]["message"] == "Must receive a Product id."
+    assert user_errors[0]["message"] == "Must receive a Product id"
 
 
 def test_get_node_or_error_returns_null_for_empty_id():

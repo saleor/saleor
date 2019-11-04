@@ -1,9 +1,10 @@
 import graphene
 
-from ..core.fields import PrefetchingConnectionField
+from ..core.fields import FilterInputConnectionField
 from ..descriptions import DESCRIPTIONS
 from ..translations.mutations import PageTranslate
 from .bulk_mutations import PageBulkDelete, PageBulkPublish
+from .filters import PageFilterInput
 from .mutations import PageCreate, PageDelete, PageUpdate
 from .resolvers import resolve_page, resolve_pages
 from .types import Page
@@ -12,13 +13,14 @@ from .types import Page
 class PageQueries(graphene.ObjectType):
     page = graphene.Field(
         Page,
-        id=graphene.Argument(graphene.ID),
-        slug=graphene.String(),
-        description="Lookup a page by ID or by slug.",
+        id=graphene.Argument(graphene.ID, description="ID of the page."),
+        slug=graphene.String(description="The slug of the page."),
+        description="Look up a page by ID or slug.",
     )
-    pages = PrefetchingConnectionField(
+    pages = FilterInputConnectionField(
         Page,
         query=graphene.String(description=DESCRIPTIONS["page"]),
+        filter=PageFilterInput(description="Filtering options for pages."),
         description="List of the shop's pages.",
     )
 

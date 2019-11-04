@@ -1,9 +1,9 @@
 import json
 
 from django.contrib.sites.models import Site
-from django.core.serializers.json import DjangoJSONEncoder
 
 from ...core.utils import build_absolute_uri
+from ...core.utils.json_serializer import HTMLSafeJSON
 
 
 def get_organization():
@@ -13,13 +13,16 @@ def get_organization():
 
 def get_product_data(line, organization):
     gross_product_price = line.get_total().gross
+    line_name = str(line)
+    if line.translated_product_name:
+        line_name = (
+            f"{line.translated_product_name} ({line.translated_variant_name})"
+            if line.translated_variant_name
+            else line.translated_product_name
+        )
     product_data = {
         "@type": "Offer",
-        "itemOffered": {
-            "@type": "Product",
-            "name": line.translated_product_name or line.product_name,
-            "sku": line.product_sku,
-        },
+        "itemOffered": {"@type": "Product", "name": line_name, "sku": line.product_sku},
         "price": gross_product_price.amount,
         "priceCurrency": gross_product_price.currency,
         "eligibleQuantity": {"@type": "QuantitativeValue", "value": line.quantity},
@@ -38,7 +41,7 @@ def get_product_data(line, organization):
 
 
 def get_order_confirmation_markup(order):
-    """Generates schema.org markup for order confirmation e-mail message."""
+    """Generate schema.org markup for order confirmation e-mail message."""
     organization = get_organization()
     order_url = build_absolute_uri(order.get_absolute_url())
     data = {
@@ -59,4 +62,4 @@ def get_order_confirmation_markup(order):
     for line in lines:
         product_data = get_product_data(line=line, organization=organization)
         data["acceptedOffer"].append(product_data)
-    return json.dumps(data, cls=DjangoJSONEncoder)
+    return json.dumps(data, cls=HTMLSafeJSON)

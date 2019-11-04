@@ -26,8 +26,10 @@ class DefaultMultipleChoiceField(MultipleChoiceField):
 
 
 class EnumFilter(django_filters.CharFilter):
-    """ Filter class for graphene enum object.
-    enum_class needs to be passed explicitly  as well as the method."""
+    """Filter class for Graphene enum object.
+
+    enum_class needs to be passed explicitly as well as the method.
+    """
 
     def __init__(self, input_class, *args, **kwargs):
         assert kwargs.get(

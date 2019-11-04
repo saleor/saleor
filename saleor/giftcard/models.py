@@ -30,15 +30,26 @@ class GiftCard(models.Model):
     end_date = models.DateField(null=True, blank=True)
     last_used_on = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
+
+    currency = models.CharField(
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+        default=settings.DEFAULT_CURRENCY,
+    )
+
+    initial_balance_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+    )
     initial_balance = MoneyField(
-        currency=settings.DEFAULT_CURRENCY,
+        amount_field="initial_balance_amount", currency_field="currency"
+    )
+
+    current_balance_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
     )
     current_balance = MoneyField(
-        currency=settings.DEFAULT_CURRENCY,
-        max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        amount_field="current_balance_amount", currency_field="currency"
     )
 
     objects = GiftCardQueryset.as_manager()

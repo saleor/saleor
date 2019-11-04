@@ -18,8 +18,11 @@ def get_default_digital_content_settings():
 
 
 def digital_content_url_is_valid(content_url: DigitalContentUrl) -> bool:
-    """ Check if digital url is still valid for customer. It takes default
-    settings or digital product's settings to check if url is still valid"""
+    """Check if digital url is still valid for customer.
+
+    It takes default settings or digital product's settings
+    to check if url is still valid.
+    """
     if content_url.content.use_default_settings:
         digital_content_settings = get_default_digital_content_settings()
         url_valid_days = digital_content_settings["url_valid_days"]

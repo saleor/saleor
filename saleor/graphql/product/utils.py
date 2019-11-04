@@ -1,45 +1,82 @@
-from django.utils.text import slugify
+from collections import defaultdict
+from typing import List
 
-from ...product.models import Attribute
+import graphene
+from django.core.exceptions import ValidationError
+
+from ...product import AttributeInputType, models
+from ...product.error_codes import ProductErrorCode
 
 
-def attributes_to_hstore(attribute_value_input, attributes_queryset):
-    """Transform attributes to the HStore representation.
+def validate_attribute_input_for_product(instance: models.Attribute, values: List[str]):
+    if not values:
+        if not instance.value_required:
+            return
+        raise ValidationError(
+            f"{instance.slug} expects a value but none were given",
+            code=ProductErrorCode.REQUIRED,
+        )
 
-    Attributes configuration per product is stored in a HStore field as
-    a dict of IDs. This function transforms the list of `AttributeValueInput`
-    objects to this format.
-    """
-    attributes_map = {attr.slug: attr.id for attr in attributes_queryset}
+    if instance.input_type != AttributeInputType.MULTISELECT and len(values) != 1:
+        raise ValidationError(
+            f"A {instance.input_type} attribute must take only one value",
+            code=ProductErrorCode.INVALID,
+        )
 
-    attributes_hstore = {}
-
-    values_map = {}
-    for attr in attributes_queryset:
-        for value in attr.values.all():
-            values_map[value.slug] = value.id
-
-    for attribute in attribute_value_input:
-        attr_slug = attribute.get("slug")
-        if attr_slug not in attributes_map:
-            raise ValueError(
-                "Attribute %r doesn't belong to given product type." % (attr_slug,)
+    for value in values:
+        if not value.strip():
+            raise ValidationError(
+                "Attribute values cannot be blank", code=ProductErrorCode.REQUIRED
             )
 
-        value = attribute.get("value")
-        if not value:
-            continue
 
-        attribute_id = attributes_map[attr_slug]
-        value_id = values_map.get(value)
+def validate_attribute_input_for_variant(instance: models.Attribute, values: List[str]):
+    if not values:
+        raise ValidationError(
+            f"{instance.slug} expects a value but none were given",
+            code=ProductErrorCode.REQUIRED,
+        )
 
-        if value_id is None:
-            # `value_id` was not found; create a new AttributeValue
-            # instance from the provided `value`.
-            attr_instance = Attribute.objects.get(slug=attr_slug)
-            obj = attr_instance.values.get_or_create(name=value, slug=slugify(value))[0]
-            value_id = obj.pk
+    if len(values) != 1:
+        raise ValidationError(
+            f"A variant attribute cannot take more than one value",
+            code=ProductErrorCode.INVALID,
+        )
 
-        attributes_hstore[str(attribute_id)] = str(value_id)
+    if not values[0].strip():
+        raise ValidationError(
+            "Attribute values cannot be blank", code=ProductErrorCode.REQUIRED
+        )
 
-    return attributes_hstore
+
+def get_used_variants_attribute_values(product):
+    """Create list of attributes values for all existing `ProductVariants` for product.
+
+    Sample result is:
+    [
+        {
+            "attribute_1_global_id": ["ValueAttr1_1"],
+            "attribute_2_global_id": ["ValueAttr2_1"]
+        },
+        ...
+        {
+            "attribute_1_global_id": ["ValueAttr1_2"],
+            "attribute_2_global_id": ["ValueAttr2_2"]
+        }
+    ]
+    """
+    variants = (
+        product.variants.prefetch_related("attributes__values")
+        .prefetch_related("attributes__assignment")
+        .all()
+    )
+    used_attribute_values = []
+    for variant in variants:
+        attribute_values = defaultdict(list)
+        for assigned_variant_attribute in variant.attributes.all():
+            attribute = assigned_variant_attribute.attribute
+            attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
+            for variant in assigned_variant_attribute.values.all():
+                attribute_values[attribute_id].append(variant.slug)
+        used_attribute_values.append(attribute_values)
+    return used_attribute_values

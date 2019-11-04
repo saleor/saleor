@@ -16,6 +16,7 @@ from measurement.measures import Weight
 from prices import Money
 
 from ..account.models import Address
+from ..core.models import ModelWithMetadata
 from ..core.taxes import zero_money, zero_taxed_money
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.weight import WeightUnits, zero_weight
@@ -44,7 +45,7 @@ class OrderQueryset(models.QuerySet):
         statuses = {OrderStatus.UNFULFILLED, OrderStatus.PARTIALLY_FULFILLED}
         qs = self.filter(status__in=statuses, payments__is_active=True)
         qs = qs.annotate(amount_paid=Sum("payments__captured_amount"))
-        return qs.filter(total_gross__lte=F("amount_paid"))
+        return qs.filter(total_gross_amount__lte=F("amount_paid"))
 
     def ready_to_capture(self):
         """Return orders with payments to capture.
@@ -60,7 +61,7 @@ class OrderQueryset(models.QuerySet):
         return qs.distinct()
 
 
-class Order(models.Model):
+class Order(ModelWithMetadata):
     created = models.DateTimeField(default=now, editable=False)
     status = models.CharField(
         max_length=32, default=OrderStatus.UNFULFILLED, choices=OrderStatus.CHOICES
@@ -81,6 +82,12 @@ class Order(models.Model):
         Address, related_name="+", editable=False, null=True, on_delete=models.SET_NULL
     )
     user_email = models.EmailField(blank=True, default="")
+
+    currency = models.CharField(
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+        default=settings.DEFAULT_CURRENCY,
+    )
+
     shipping_method = models.ForeignKey(
         ShippingMethod,
         blank=True,
@@ -88,52 +95,72 @@ class Order(models.Model):
         related_name="orders",
         on_delete=models.SET_NULL,
     )
+    shipping_method_name = models.CharField(
+        max_length=255, null=True, default=None, blank=True, editable=False
+    )
+
+    shipping_price_net_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=0,
+        editable=False,
+    )
     shipping_price_net = MoneyField(
-        currency=settings.DEFAULT_CURRENCY,
+        amount_field="shipping_price_net_amount", currency_field="currency"
+    )
+
+    shipping_price_gross_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
         default=0,
         editable=False,
     )
     shipping_price_gross = MoneyField(
-        currency=settings.DEFAULT_CURRENCY,
-        max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=0,
-        editable=False,
+        amount_field="shipping_price_gross_amount", currency_field="currency"
     )
+
     shipping_price = TaxedMoneyField(
-        net_field="shipping_price_net", gross_field="shipping_price_gross"
+        net_amount_field="shipping_price_net_amount",
+        gross_amount_field="shipping_price_gross_amount",
+        currency_field="currency",
     )
-    shipping_method_name = models.CharField(
-        max_length=255, null=True, default=None, blank=True, editable=False
-    )
+
     token = models.CharField(max_length=36, unique=True, blank=True)
     # Token of a checkout instance that this order was created from
     checkout_token = models.CharField(max_length=36, blank=True)
-    total_net = MoneyField(
-        currency=settings.DEFAULT_CURRENCY,
+
+    total_net_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=zero_money,
+        default=0,
+    )
+    total_net = MoneyField(amount_field="total_net_amount", currency_field="currency")
+
+    total_gross_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        default=0,
     )
     total_gross = MoneyField(
-        currency=settings.DEFAULT_CURRENCY,
-        max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=zero_money,
+        amount_field="total_gross_amount", currency_field="currency"
     )
-    total = TaxedMoneyField(net_field="total_net", gross_field="total_gross")
+
+    total = TaxedMoneyField(
+        net_amount_field="total_net_amount",
+        gross_amount_field="total_gross_amount",
+        currency_field="currency",
+    )
+
     voucher = models.ForeignKey(
         Voucher, blank=True, null=True, related_name="+", on_delete=models.SET_NULL
     )
     gift_cards = models.ManyToManyField(GiftCard, blank=True, related_name="orders")
-    discount_amount = MoneyField(
-        currency=settings.DEFAULT_CURRENCY,
+    discount_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
-        default=zero_money,
+        default=0,
     )
+    discount = MoneyField(amount_field="discount_amount", currency_field="currency")
     discount_name = models.CharField(max_length=255, default="", blank=True)
     translated_discount_name = models.CharField(max_length=255, default="", blank=True)
     display_gross_prices = models.BooleanField(default=True)
@@ -165,7 +192,7 @@ class Order(models.Model):
         total_paid = self._total_paid()
         return total_paid.gross.amount > 0
 
-    def get_user_current_email(self):
+    def get_customer_email(self):
         return self.user.email if self.user else self.user_email
 
     def _total_paid(self):
@@ -309,13 +336,13 @@ class Order(models.Model):
 
 class OrderLineQueryset(models.QuerySet):
     def digital(self):
-        """Returns lines with digital products"""
+        """Return lines with digital products."""
         for line in self.all():
             if line.is_digital:
                 yield line
 
     def physical(self):
-        """Returns lines with physical products"""
+        """Return lines with physical products."""
         for line in self.all():
             if not line.is_digital:
                 yield line
@@ -334,26 +361,43 @@ class OrderLine(models.Model):
     )
     # max_length is as produced by ProductVariant's display_product method
     product_name = models.CharField(max_length=386)
+    variant_name = models.CharField(max_length=255, default="", blank=True)
     translated_product_name = models.CharField(max_length=386, default="", blank=True)
-    product_sku = models.CharField(max_length=32)
+    translated_variant_name = models.CharField(max_length=255, default="", blank=True)
+    product_sku = models.CharField(max_length=255)
     is_shipping_required = models.BooleanField()
     quantity = models.IntegerField(validators=[MinValueValidator(1)])
     quantity_fulfilled = models.IntegerField(
         validators=[MinValueValidator(0)], default=0
     )
+
+    currency = models.CharField(
+        max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
+        default=settings.DEFAULT_CURRENCY,
+    )
+
+    unit_price_net_amount = models.DecimalField(
+        max_digits=settings.DEFAULT_MAX_DIGITS,
+        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+    )
     unit_price_net = MoneyField(
-        currency=settings.DEFAULT_CURRENCY,
+        amount_field="unit_price_net_amount", currency_field="currency"
+    )
+
+    unit_price_gross_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
     )
     unit_price_gross = MoneyField(
-        currency=settings.DEFAULT_CURRENCY,
-        max_digits=settings.DEFAULT_MAX_DIGITS,
-        decimal_places=settings.DEFAULT_DECIMAL_PLACES,
+        amount_field="unit_price_gross_amount", currency_field="currency"
     )
+
     unit_price = TaxedMoneyField(
-        net_field="unit_price_net", gross_field="unit_price_gross"
+        net_amount_field="unit_price_net_amount",
+        gross_amount_field="unit_price_gross_amount",
+        currency="currency",
     )
+
     tax_rate = models.DecimalField(
         max_digits=5, decimal_places=2, default=Decimal("0.0")
     )
@@ -364,7 +408,11 @@ class OrderLine(models.Model):
         ordering = ("pk",)
 
     def __str__(self):
-        return self.product_name
+        return (
+            f"{self.product_name} ({self.variant_name})"
+            if self.variant_name
+            else self.product_name
+        )
 
     def get_total(self):
         return self.unit_price * self.quantity
@@ -375,14 +423,13 @@ class OrderLine(models.Model):
 
     @property
     def is_digital(self) -> bool:
-        """Return true if product variant is a digital type and has assigned
-        digital content"""
+        """Check if a variant is digital and contains digital content."""
         is_digital = self.variant.is_digital()
         has_digital = hasattr(self.variant, "digital_content")
         return is_digital and has_digital
 
 
-class Fulfillment(models.Model):
+class Fulfillment(ModelWithMetadata):
     fulfillment_order = models.PositiveIntegerField(editable=False)
     order = models.ForeignKey(
         Order, related_name="fulfillments", editable=False, on_delete=models.CASCADE
@@ -437,6 +484,7 @@ class OrderEvent(models.Model):
     Args:
         parameters: Values needed to display the event on the storefront
         type: Type of an order
+
     """
 
     date = models.DateTimeField(default=now, editable=False)

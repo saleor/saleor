@@ -468,7 +468,7 @@ def create_shipping_zone(
         name=shipping_zone_name, defaults={'countries': countries})[0]
     ShippingMethod.objects.bulk_create([
         ShippingMethod(
-            name=name, price=fake.money(), shipping_zone=shipping_zone,
+            name=name, price=Money(0, 'NGN'), shipping_zone=shipping_zone,
             type=(
                 ShippingMethodType.PRICE_BASED if random.randint(0, 1)
                 else ShippingMethodType.WEIGHT_BASED),
@@ -479,41 +479,6 @@ def create_shipping_zone(
 
 
 def create_shipping_zones():
-    european_countries = [
-        'AX', 'AL', 'AD', 'AT', 'BY', 'BE', 'BA', 'BG', 'HR', 'CZ', 'DK', 'EE',
-        'FO', 'FI', 'FR', 'DE', 'GI', 'GR', 'GG', 'VA', 'HU', 'IS', 'IE', 'IM',
-        'IT', 'JE', 'LV', 'LI', 'LT', 'LU', 'MK', 'MT', 'MD', 'MC', 'ME', 'NL',
-        'NO', 'PL', 'PT', 'RO', 'RU', 'SM', 'RS', 'SK', 'SI', 'ES', 'SJ', 'SE',
-        'CH', 'UA', 'GB']
-    yield create_shipping_zone(
-        shipping_zone_name='Europe', countries=european_countries,
-        shipping_methods_names=[
-            'DHL', 'UPS', 'Registred priority', 'DB Schenker'])
-    oceanian_countries = [
-        'AS', 'AU', 'CX', 'CC', 'CK', 'FJ', 'PF', 'GU', 'HM', 'KI', 'MH', 'FM',
-        'NR', 'NC', 'NZ', 'NU', 'NF', 'MP', 'PW', 'PG', 'PN', 'WS', 'SB', 'TK',
-        'TO', 'TV', 'UM', 'VU', 'WF']
-    yield create_shipping_zone(
-        shipping_zone_name='Oceania', countries=oceanian_countries,
-        shipping_methods_names=['FBA', 'FedEx Express', 'Oceania Air Mail'])
-    asian_countries = [
-        'AF', 'AM', 'AZ', 'BH', 'BD', 'BT', 'BN', 'KH', 'CN', 'CY', 'GE', 'HK',
-        'IN', 'ID', 'IR', 'IQ', 'IL', 'JP', 'JO', 'KZ', 'KP', 'KR', 'KW', 'KG',
-        'LA', 'LB', 'MO', 'MY', 'MV', 'MN', 'MM', 'NP', 'OM', 'PK', 'PS', 'PH',
-        'QA', 'SA', 'SG', 'LK', 'SY', 'TW', 'TJ', 'TH', 'TL', 'TR', 'TM', 'AE',
-        'UZ', 'VN', 'YE']
-    yield create_shipping_zone(
-        shipping_zone_name='Asia', countries=asian_countries,
-        shipping_methods_names=['China Post', 'TNT', 'Aramex', 'EMS'])
-    american_countries = [
-        'AI', 'AG', 'AR', 'AW', 'BS', 'BB', 'BZ', 'BM', 'BO', 'BQ', 'BV', 'BR',
-        'CA', 'KY', 'CL', 'CO', 'CR', 'CU', 'CW', 'DM', 'DO', 'EC', 'SV', 'FK',
-        'GF', 'GL', 'GD', 'GP', 'GT', 'GY', 'HT', 'HN', 'JM', 'MQ', 'MX', 'MS',
-        'NI', 'PA', 'PY', 'PE', 'PR', 'BL', 'KN', 'LC', 'MF', 'PM', 'VC', 'SX',
-        'GS', 'SR', 'TT', 'TC', 'US', 'UY', 'VE', 'VG', 'VI']
-    yield create_shipping_zone(
-        shipping_zone_name='Americas', countries=american_countries,
-        shipping_methods_names=['DHL', 'UPS', 'FedEx', 'EMS'])
     african_countries = [
         'DZ', 'AO', 'BJ', 'BW', 'IO', 'BF', 'BI', 'CV', 'CM', 'CF', 'TD', 'KM',
         'CG', 'CD', 'CI', 'DJ', 'EG', 'GQ', 'ER', 'SZ', 'ET', 'TF', 'GA', 'GM',
@@ -523,7 +488,7 @@ def create_shipping_zones():
     yield create_shipping_zone(
         shipping_zone_name='Africa', countries=african_countries,
         shipping_methods_names=[
-            'Royale International', 'ACE', 'fastway couriers', 'Post Office'])
+            'Post Office'])
 
 
 def create_vouchers():

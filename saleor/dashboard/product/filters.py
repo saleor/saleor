@@ -14,7 +14,7 @@ from ..widgets import MoneyRangeWidget
 
 PRODUCT_SORT_BY_FIELDS = {
     "name": pgettext_lazy("Product list sorting option", "name"),
-    "price": pgettext_lazy("Product type list sorting option", "price"),
+    "price_amount": pgettext_lazy("Product type list sorting option", "price"),
 }
 
 PRODUCT_ATTRIBUTE_SORT_BY_FIELDS = {
@@ -48,7 +48,7 @@ class ProductFilter(SortedFilterSet):
     )
     price = RangeFilter(
         label=pgettext_lazy("Product list filter label", "Price"),
-        field_name="price",
+        field_name="price_amount",
         widget=MoneyRangeWidget,
     )
     is_published = ChoiceFilter(

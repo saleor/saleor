@@ -1,16 +1,13 @@
+from functools import partial
 from unittest.mock import Mock, patch
 
 import graphene
 import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.db.models import Q
-from django.http import HttpResponse
 from django.shortcuts import reverse
-from django.test import RequestFactory
-from graphql_jwt.shortcuts import get_token
 from graphql_relay import to_global_id
 
-from saleor.graphql.middleware import jwt_middleware
 from saleor.graphql.product.types import Product
 from saleor.graphql.utils import (
     filter_by_query_param,
@@ -34,25 +31,51 @@ def test_middleware_dont_generate_sql_requests(
         assert response.status_code == 200
 
 
-def test_jwt_middleware(admin_user):
-    def get_response(request):
-        return HttpResponse()
+def test_jwt_middleware(client, admin_user):
+    user_details_query = """
+        {
+          me {
+            email
+          }
+        }
+    """
 
-    rf = RequestFactory()
-    middleware = jwt_middleware(get_response)
+    create_token_query = """
+        mutation {
+          tokenCreate(email: "admin@example.com", password: "password") {
+            token
+          }
+        }
+    """
+
+    api_url = reverse("api")
+    api_client_post = partial(client.post, api_url, content_type="application/json")
 
     # test setting AnonymousUser on unauthorized request to API
-    request = rf.get(reverse("api"))
-    assert not hasattr(request, "user")
-    middleware(request)
-    assert isinstance(request.user, AnonymousUser)
+    response = api_client_post(data={"query": user_details_query})
+    repl_data = response.json()
+    assert response.status_code == 200
+    assert isinstance(response.wsgi_request.user, AnonymousUser)
+    assert "errors" in repl_data
+    assert repl_data["data"]["me"] is None
+
+    # test creating a token for admin user
+    response = api_client_post(data={"query": create_token_query})
+    repl_data = response.json()
+    assert response.status_code == 200
+    assert response.wsgi_request.user == admin_user
+    token = repl_data["data"]["tokenCreate"]["token"]
+    assert token is not None
 
     # test request with proper JWT token authorizes the request to API
-    token = get_token(admin_user)
-    request = rf.get(reverse("api"), **{"HTTP_AUTHORIZATION": "JWT %s" % token})
-    assert not hasattr(request, "user")
-    middleware(request)
-    assert request.user == admin_user
+    response = api_client_post(
+        data={"query": user_details_query}, HTTP_AUTHORIZATION=f"JWT {token}"
+    )
+    repl_data = response.json()
+    assert response.status_code == 200
+    assert response.wsgi_request.user == admin_user
+    assert "errors" not in repl_data
+    assert repl_data["data"]["me"] == {"email": admin_user.email}
 
 
 def test_real_query(user_api_client, product):
@@ -69,7 +92,8 @@ def test_real_query(user_api_client, product):
             __typename
         }
         products(first: $first, sortBy: $sortBy, categories:[$categoryId],
-            attributes: $attributesFilter, priceGte: $minPrice, priceLte: $maxPrice) {
+            attributes: $attributesFilter,
+            filter: {price: {gte: $minPrice, lte: $maxPrice}}) {
 
             ...ProductListFragmentQuery
             __typename
@@ -134,8 +158,12 @@ def test_real_query(user_api_client, product):
             ...ProductPriceFragmentQuery
             __typename
         }
-        thumbnailUrl1x: thumbnailUrl(size: 255)
-        thumbnailUrl2x: thumbnailUrl(size: 510)
+        thumbnailUrl1x: thumbnail(size: 255){
+            url
+        }
+        thumbnailUrl2x:     thumbnail(size: 510){
+            url
+        }
         url
         __typename
     }
@@ -216,32 +244,36 @@ def test_get_nodes(product_list):
     msg = "There is no node of type {} with pk {}".format(
         nonexistent_item.type, nonexistent_item.pk
     )
-    with pytest.raises(AssertionError, message=msg):
+    with pytest.raises(AssertionError) as exc:
         get_nodes(global_ids, Product)
+
+    assert exc.value.args == (msg,)
     global_ids.pop()
 
     # Raise an error if one of the node is of wrong type
     invalid_item = Mock(type="test", pk=123)
     invalid_item_global_id = to_global_id(invalid_item.type, invalid_item.pk)
     global_ids.append(invalid_item_global_id)
-    with pytest.raises(AssertionError, message="Must receive an Product id."):
+    with pytest.raises(AssertionError) as exc:
         get_nodes(global_ids, Product)
+
+    assert exc.value.args == ("Must receive an Product id.",)
 
     # Raise an error if no nodes were found
     global_ids = []
-    msg = "Could not resolve to a node with the global id list of {}.".format(
-        global_ids
-    )
-    with pytest.raises(Exception, message=msg):
+    msg = f"Could not resolve to a node with the global id list of '{global_ids}'."
+    with pytest.raises(Exception) as exc:
         get_nodes(global_ids, Product)
+
+    assert exc.value.args == (msg,)
 
     # Raise an error if pass wrong ids
     global_ids = ["a", "bb"]
-    msg = "Could not resolve to a node with the global id list of {}.".format(
-        global_ids
-    )
-    with pytest.raises(Exception, message=msg):
+    msg = f"Could not resolve to a node with the global id list of '{global_ids}'."
+    with pytest.raises(Exception) as exc:
         get_nodes(global_ids, Product)
+
+    assert exc.value.args == (msg,)
 
 
 @patch("saleor.product.models.Product.objects")
@@ -258,6 +290,10 @@ def test_filter_by_query_param(qs):
 
 
 def test_generate_query_argument_description():
-    expected = "Supported filter parameters:\n* field_1\n* field_2\n"
+    expected = (
+        "DEPRECATED: Will be removed in Saleor 2.10,"
+        " use `filter: {search: {}}` instead."
+        "\nSupported filter parameters:\n`field_1`, `field_2`"
+    )
     field_list = ["field_1", "field_2"]
     assert generate_query_argument_description(field_list) == expected

@@ -32,6 +32,7 @@ def get_search_queries(phrase):
 
     Args:
         phrase (str): searched phrase
+
     """
     return {
         "products": _search_products(phrase),
@@ -47,5 +48,6 @@ def search(phrase):
 
     Args:
         phrase (str): searched phrase
+
     """
     return {k: s.to_queryset() for k, s in get_search_queries(phrase).items()}
