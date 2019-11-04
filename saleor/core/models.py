@@ -1,11 +1,14 @@
 import datetime
 
+from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.db.models import F, Max, Q
 
+from .utils.json_serializer import CustomJsonEncoder
+
 
 class SortableModel(models.Model):
-    sort_order = models.PositiveIntegerField(editable=False, db_index=True, null=True)
+    sort_order = models.IntegerField(editable=False, db_index=True, null=True)
 
     class Meta:
         abstract = True
@@ -19,15 +22,18 @@ class SortableModel(models.Model):
         return existing_max
 
     def save(self, *args, **kwargs):
-        if self.sort_order is None:
+        if self.pk is None:
             qs = self.get_ordering_queryset()
             existing_max = self.get_max_sort_order(qs)
             self.sort_order = 0 if existing_max is None else existing_max + 1
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
-        qs = self.get_ordering_queryset()
-        qs.filter(sort_order__gt=self.sort_order).update(sort_order=F("sort_order") - 1)
+        if self.sort_order is not None:
+            qs = self.get_ordering_queryset()
+            qs.filter(sort_order__gt=self.sort_order).update(
+                sort_order=F("sort_order") - 1
+            )
         super().delete(*args, **kwargs)
 
 
@@ -64,3 +70,35 @@ class PublishableModel(models.Model):
             self.publication_date is None
             or self.publication_date < datetime.date.today()
         )
+
+
+class ModelWithMetadata(models.Model):
+    private_meta = JSONField(
+        blank=True, null=True, default=dict, encoder=CustomJsonEncoder
+    )
+    meta = JSONField(blank=True, null=True, default=dict, encoder=CustomJsonEncoder)
+
+    class Meta:
+        abstract = True
+
+    def get_private_meta(self, namespace: str, client: str) -> dict:
+        return self.private_meta.get(namespace, {}).get(client, {})
+
+    def store_private_meta(self, namespace: str, client: str, item: dict):
+        if namespace not in self.private_meta:
+            self.private_meta[namespace] = {}
+        self.private_meta[namespace][str(client)] = item
+
+    def clear_stored_private_meta_for_client(self, namespace: str, client: str):
+        self.private_meta.get(namespace, {}).pop(client, None)
+
+    def get_meta(self, namespace: str, client: str) -> dict:
+        return self.meta.get(namespace, {}).get(client, {})
+
+    def store_meta(self, namespace: str, client: str, item: dict):
+        if namespace not in self.meta:
+            self.meta[namespace] = {}
+        self.meta[namespace][str(client)] = item
+
+    def clear_stored_meta_for_client(self, namespace: str, client: str):
+        self.meta.get(namespace, {}).pop(client, None)

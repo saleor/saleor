@@ -1,7 +1,6 @@
 import graphene
 import graphql_jwt
 
-from ...core.taxes import interface as tax_interface
 from .mutations import CreateToken, VerifyToken
 from .types.common import TaxType
 
@@ -14,11 +13,12 @@ class CoreMutations(graphene.ObjectType):
 
 class CoreQueries(graphene.ObjectType):
     tax_types = graphene.List(
-        TaxType, description="List of all tax rates available from tax gateway"
+        TaxType, description="List of all tax rates available from tax gateway."
     )
 
-    def resolve_tax_types(self, _info):
+    def resolve_tax_types(self, info):
+        manager = info.context.extensions
         return [
             TaxType(description=tax.description, tax_code=tax.code)
-            for tax in tax_interface.get_tax_rate_type_choices()
+            for tax in manager.get_tax_rate_type_choices()
         ]

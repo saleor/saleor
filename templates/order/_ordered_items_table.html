@@ -4,6 +4,7 @@
 {% load placeholder %}
 {% load price from taxed_prices %}
 {% load get_product_image_thumbnail from product_images %}
+{% load display_translated_order_line_name from order_lines %}
 
 {% if order.user == user %}
   <div class="order-details__addresses">
@@ -61,11 +62,11 @@
                   data-srcset="{% get_product_image_thumbnail line.variant.get_first_image size=60 method="thumbnail" %} 1x, {% get_product_image_thumbnail line.variant.get_first_image size=120 method="thumbnail" %} 2x"
                   class="float-left lazyload lazypreload"
                   src="{% placeholder size=60 %}">
-            <span>{{ line.translated_product_name|default:line.product_name }}</span>
+            <span>{% display_translated_order_line_name line %}</span>
           </a>
         {% else %}
           <img src="{% placeholder size=60 %}" class="float-left">
-          <span>{{ line.translated_product_name|default:line.product_name }}</span>
+          <span>{% display_translated_order_line_name line %}</span>
         {% endif %}
       </div>
       <div class="col-md-4 order-details__product__description">
@@ -129,7 +130,7 @@
     </div>
     <div class="col-4">
       <p class="float-right">
-        {% discount_as_negative order.discount_amount html=True %}
+        {% discount_as_negative order.discount html=True %}
       </p>
     </div>
   </div>
@@ -197,10 +198,10 @@
           {% with variant=fulfillment_line.order_line.variant %}
             {% if variant %}
               <a class="link--clean" href="{{ variant.get_absolute_url }}">
-                <span>{{ fulfillment_line.order_line.translated_product_name|default:fulfillment_line.order_line.product_name }}</span>
+                <span>{% display_translated_order_line_name fulfillment_line.order_line %}</span>
               </a>
             {% else %}
-              <span>{{ fulfillment_line.order_line.translated_product_name|default:fulfillment_line.order_line.product_name }}</span>
+              <span>{% display_translated_order_line_name fulfillment_line.order_line%}</span>
             {% endif %}
           {% endwith %}
         </div>

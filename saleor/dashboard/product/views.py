@@ -8,7 +8,6 @@ from django.template.response import TemplateResponse
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 from django.views.decorators.http import require_POST
 
-from ...core.taxes import interface as tax_interface
 from ...core.utils import get_paginator_items
 from ...product.models import (
     Attribute,
@@ -18,11 +17,13 @@ from ...product.models import (
     ProductType,
     ProductVariant,
 )
+from ...product.tasks import update_product_minimal_variant_price_task
 from ...product.utils.availability import get_product_availability
 from ...product.utils.costs import get_margin_for_variant, get_product_costs_data
 from ..views import staff_member_required
 from . import forms
 from .filters import AttributeFilter, ProductFilter, ProductTypeFilter
+from .utils import get_product_tax_rate
 
 
 @staff_member_required
@@ -56,7 +57,7 @@ def product_details(request, pk):
         product,
         discounts=request.discounts,
         country=request.country,
-        taxes=request.taxes,
+        extensions=request.extensions,
     )
     sale_price = availability.price_range_undiscounted
     discounted_price = availability.price_range
@@ -69,6 +70,7 @@ def product_details(request, pk):
     only_variant = variants.first() if no_variants else None
     ctx = {
         "product": product,
+        "tax_rate_code": get_product_tax_rate(product),
         "sale_price": sale_price,
         "discounted_price": discounted_price,
         "variants": variants,
@@ -141,6 +143,7 @@ def product_create(request, type_pk):
             variant_form.save()
         msg = pgettext_lazy("Dashboard message", "Added product %s") % (product,)
         messages.success(request, msg)
+        request.extensions.product_created(product)
         return redirect("dashboard:product-details", pk=product.pk)
     ctx = {
         "product_form": product_form,
@@ -153,9 +156,13 @@ def product_create(request, type_pk):
 @staff_member_required
 @permission_required("product.manage_products")
 def product_edit(request, pk):
-    product = get_object_or_404(Product.objects.prefetch_related("variants"), pk=pk)
+    product = get_object_or_404(
+        Product.objects.prefetch_related(
+            "variants", "product_type", "product_type__attributeproduct", "attributes"
+        ),
+        pk=pk,
+    )
     form = forms.ProductForm(request.POST or None, instance=product)
-
     edit_variant = not product.product_type.has_variants
     if edit_variant:
         variant = product.variants.first()
@@ -314,7 +321,7 @@ def variant_details(request, product_pk, variant_pk):
 
     images = variant.images.all()
     margin = get_margin_for_variant(variant)
-    discounted_price = tax_interface.apply_taxes_to_product(
+    discounted_price = request.extensions.apply_taxes_to_product(
         variant.product, variant.get_price(discounts=request.discounts), request.country
     ).gross
     ctx = {
@@ -351,7 +358,14 @@ def variant_create(request, product_pk):
 @permission_required("product.manage_products")
 def variant_edit(request, product_pk, variant_pk):
     product = get_object_or_404(Product.objects.all(), pk=product_pk)
-    variant = get_object_or_404(product.variants.all(), pk=variant_pk)
+    variant = get_object_or_404(
+        product.variants.prefetch_related(
+            "product__product_type",
+            "product__product_type__attributevariant",
+            "attributes",
+        ),
+        pk=variant_pk,
+    )
     form = forms.ProductVariantForm(request.POST or None, instance=variant)
     if form.is_valid():
         form.save()
@@ -371,6 +385,7 @@ def variant_delete(request, product_pk, variant_pk):
     variant = get_object_or_404(product.variants, pk=variant_pk)
     if request.method == "POST":
         variant.delete()
+        update_product_minimal_variant_price_task.delay(variant.product_id)
         msg = pgettext_lazy("Dashboard message", "Removed variant %s") % (variant.name,)
         messages.success(request, msg)
         return redirect("dashboard:product-details", pk=product.pk)
@@ -534,14 +549,15 @@ def ajax_upload_image(request, product_pk):
 @permission_required("product.manage_products")
 def attribute_list(request):
     attributes = Attribute.objects.prefetch_related(
-        "values", "product_type", "product_variant_type"
+        "values", "product_types", "product_variant_types"
     ).order_by("name")
     attribute_filter = AttributeFilter(request.GET, queryset=attributes)
     attributes = [
         (
             attribute.pk,
             attribute.name,
-            attribute.product_type or attribute.product_variant_type,
+            list(attribute.product_types.all())
+            + list(attribute.product_variant_types.all()),
             attribute.values.all(),
         )
         for attribute in attribute_filter.qs
@@ -561,12 +577,14 @@ def attribute_list(request):
 @permission_required("product.manage_products")
 def attribute_details(request, pk):
     attributes = Attribute.objects.prefetch_related(
-        "values", "product_type", "product_variant_type"
+        "values", "product_types", "product_variant_types"
     ).all()
     attribute = get_object_or_404(attributes, pk=pk)
-    product_type = attribute.product_type or attribute.product_variant_type
+    product_types = list(attribute.product_types.all()) + list(
+        attribute.product_variant_types.all()
+    )
     values = attribute.values.all()
-    ctx = {"attribute": attribute, "product_type": product_type, "values": values}
+    ctx = {"attribute": attribute, "product_types": product_types, "values": values}
     return TemplateResponse(request, "dashboard/product/attribute/detail.html", ctx)
 
 

@@ -1,3 +1,6 @@
+<mj-raw>
+  {% load display_translated_order_line_name from order_lines %}
+</mj-raw>
 <mj-section>
   <mj-column>
     <mj-text>
@@ -12,7 +15,7 @@
           <tbody>
             {% for line in physical_lines %}
               <tr class="table-item-row">
-                <td>{{ line.order_line.translated_product_name|default:line.order_line.product_name }}</td>
+                <td>{% display_translated_order_line_name line.order_line %}</td>
                 <td style="text-align: right;">{{ line.quantity }}</td>
               </tr>
             {% endfor %}
@@ -30,7 +33,7 @@
           <tbody>
             {% for line in digital_lines %}
               <tr class="table-item-row">
-                <td>{{ line.order_line.translated_product_name|default:line.order_line.product_name }}</td>
+                <td>{% display_translated_order_line_name line.order_line %}</td>
                 <td style="text-align: right;">
                   <a href={{ line.order_line.digital_content_url.get_absolute_url }}>Link</a>
                 </td>

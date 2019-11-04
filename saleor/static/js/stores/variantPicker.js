@@ -1,4 +1,4 @@
-import { extendObservable } from 'mobx';
+import { extendObservable } from "mobx";
 
 class VariantPickerStore {
   constructor() {

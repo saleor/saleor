@@ -153,7 +153,7 @@ def test_collection_update_background_image(
     mock_create_category_thumbnails.assert_called_once_with(collection.pk)
 
 
-@mock.patch("saleor.dashboard.collection.views.get_menus_that_needs_update")
+@mock.patch("saleor.dashboard.collection.views.get_menus_that_need_update")
 @mock.patch("saleor.dashboard.collection.views.update_menus")
 def test_collection_delete_view(
     mock_update_menus, mock_get_menus, admin_client, collection
@@ -174,7 +174,7 @@ def test_collection_delete_view(
     assert Collection.objects.count() == (collections_count - 1)
 
 
-@mock.patch("saleor.dashboard.collection.views.get_menus_that_needs_update")
+@mock.patch("saleor.dashboard.collection.views.get_menus_that_need_update")
 @mock.patch("saleor.dashboard.collection.views.update_menus")
 def test_collection_delete_view_menus_not_updated(
     mock_update_menus, mock_get_menus, admin_client, collection

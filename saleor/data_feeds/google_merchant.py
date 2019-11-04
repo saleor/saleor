@@ -79,7 +79,7 @@ def item_title(item: ProductVariant):
 
 
 def item_description(item: ProductVariant):
-    return item.product.description[:100]
+    return item.product.plain_text_description[:100]
 
 
 def item_condition(item: ProductVariant):
@@ -113,8 +113,8 @@ def item_brand(item: ProductVariant, attributes_dict, attribute_values_dict):
         if brand is None:
             brand = item.product.attributes.get(str(publisher_attribute_pk))
 
-    if brand is not None:
-        brand_name = attribute_values_dict.get(brand)
+    if brand:
+        brand_name = attribute_values_dict.get(brand[0])
         if brand_name is not None:
             return brand_name
     return brand

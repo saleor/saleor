@@ -12,11 +12,10 @@ from django_countries.fields import Country, LazyTypedChoiceField
 
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import display_gross_prices
-from ..core.taxes.interface import apply_taxes_to_shipping, calculate_checkout_subtotal
 from ..core.utils import format_money
 from ..discount.models import NotApplicable, Voucher
+from ..extensions.manager import get_extensions_manager
 from ..shipping.models import ShippingMethod, ShippingZone
-from ..shipping.utils import get_shipping_price_estimate
 from .models import Checkout
 
 
@@ -71,7 +70,7 @@ class AddToCheckoutForm(forms.Form):
         self.product = kwargs.pop("product")
         self.discounts = kwargs.pop("discounts", ())
         self.country = kwargs.pop("country", {})
-        self.taxes = kwargs.pop("taxes", None)
+        self.extensions = kwargs.pop("extensions", None)
         super().__init__(*args, **kwargs)
 
     def add_error_i18n(self, field, error_name, fmt: Any = tuple()):
@@ -156,7 +155,7 @@ class ReplaceCheckoutLineForm(AddToCheckoutForm):
             self.variant.check_quantity(quantity)
         except InsufficientStock as e:
             msg = self.error_messages["insufficient-stock"]
-            raise forms.ValidationError(msg % e.item.quantity_available)
+            raise forms.ValidationError(msg % e.item.quantity_available, code=e.code)
         return quantity
 
     def clean(self):
@@ -200,14 +199,14 @@ class CountryForm(forms.Form):
             available_countries, key=lambda choice: choice[1]
         )
 
-    def get_shipping_price_estimate(self, price, weight):
-        """Return a shipping price range for given order for the selected
-        country.
-        """
+    def get_shipping_price_estimate(self, checkout, discounts):
+        """Return a shipping price range for given order for the selected country."""
+        from .utils import get_shipping_price_estimate
+
         country = self.cleaned_data["country"]
         if isinstance(country, str):
             country = Country(country)
-        return get_shipping_price_estimate(price, weight, country)
+        return get_shipping_price_estimate(checkout, discounts, country)
 
 
 class AnonymousUserShippingForm(forms.ModelForm):
@@ -293,12 +292,13 @@ class ShippingMethodChoiceField(forms.ModelChoiceField):
     """
 
     shipping_address = None
+    extensions = None
     widget = forms.RadioSelect()
 
     def label_from_instance(self, obj):
         """Return a friendly label for the shipping method."""
         if display_gross_prices():
-            price = apply_taxes_to_shipping(
+            price = self.extensions.apply_taxes_to_shipping(
                 obj.price, shipping_address=self.shipping_address
             ).gross
         else:
@@ -320,17 +320,19 @@ class CheckoutShippingMethodForm(forms.ModelForm):
         fields = ["shipping_method"]
 
     def __init__(self, *args, **kwargs):
+        from .utils import get_valid_shipping_methods_for_checkout
+
         discounts = kwargs.pop("discounts")
+        extensions = get_extensions_manager()
         super().__init__(*args, **kwargs)
         shipping_address = self.instance.shipping_address
         country_code = shipping_address.country.code
-        qs = ShippingMethod.objects.applicable_shipping_methods(
-            price=calculate_checkout_subtotal(self.instance, discounts).gross,
-            weight=self.instance.get_total_weight(),
-            country_code=country_code,
+        qs = get_valid_shipping_methods_for_checkout(
+            self.instance, discounts, country_code=country_code
         )
         self.fields["shipping_method"].queryset = qs
         self.fields["shipping_method"].shipping_address = shipping_address
+        self.fields["shipping_method"].extensions = extensions
 
         if self.initial.get("shipping_method") is None:
             shipping_methods = qs.all()
@@ -391,10 +393,8 @@ class CheckoutVoucherForm(forms.ModelForm):
         if "voucher" in cleaned_data:
             voucher = cleaned_data["voucher"]
             try:
-                discount_amount = get_voucher_discount_for_checkout(
-                    voucher, self.instance
-                )
-                cleaned_data["discount_amount"] = discount_amount
+                discount = get_voucher_discount_for_checkout(voucher, self.instance)
+                cleaned_data["discount"] = discount
             except NotApplicable as e:
                 self.add_error("voucher", smart_text(e))
         return cleaned_data
@@ -406,5 +406,5 @@ class CheckoutVoucherForm(forms.ModelForm):
         self.instance.translated_discount_name = (
             voucher.translated.name if voucher.translated.name != voucher.name else ""
         )
-        self.instance.discount_amount = self.cleaned_data["discount_amount"]
+        self.instance.discount = self.cleaned_data["discount"]
         return super().save(commit)

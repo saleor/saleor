@@ -18,7 +18,7 @@ You can track your shipment with the following code: {{ tracking_number }}.
 {% endif %}
 
 {% for line in fulfillment %}
-{{ line.quantity }} x {{ line.order_line.product_name }}
+{{ line.quantity }} x {{ line.order_line }}
 {% endfor %}
 
 {% include 'templated_email/shared/_footer.email' %}

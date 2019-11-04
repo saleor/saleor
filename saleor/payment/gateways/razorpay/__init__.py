@@ -31,10 +31,10 @@ logger = logging.getLogger(__name__)
 def _generate_response(
     payment_information: PaymentData, kind: str, data: Dict
 ) -> GatewayResponse:
-    """Generate Saleor transaction information from
-    Razorpay's success payload or from passed data."""
+    """Generate Saleor transaction information from the payload or from passed data."""
     return GatewayResponse(
         transaction_id=data.get("id", payment_information.token),
+        action_required=False,
         kind=kind,
         amount=data.get("amount", payment_information.amount),
         currency=data.get("currency", payment_information.currency),
@@ -45,14 +45,16 @@ def _generate_response(
 
 
 def check_payment_supported(payment_information: PaymentData):
-    """Checks that a given payment is supported."""
+    """Check that a given payment is supported."""
     if payment_information.currency not in SUPPORTED_CURRENCIES:
         return errors.UNSUPPORTED_CURRENCY % {"currency": payment_information.currency}
 
 
 def get_error_message_from_razorpay_error(exc: BaseException):
-    """Convert a error razorpay error to a user friendly error message
-    and log the exception to stderr."""
+    """Convert a Razorpay error to a user-friendly error message.
+
+    It also logs the exception to stderr.
+    """
     logger.exception(exc)
     if isinstance(exc, razorpay.errors.BadRequestError):
         return errors.INVALID_REQUEST
@@ -61,8 +63,11 @@ def get_error_message_from_razorpay_error(exc: BaseException):
 
 
 def clean_razorpay_response(response: Dict):
-    """As the Razorpay response payload contains the final amount
-    in Indian rupees, we convert the amount to paisa (by dividing by 100)."""
+    """Convert the Razorpay response to our internal representation for easier processing.
+
+    As the Razorpay response payload contains the final amount
+    in Indian rupees, we convert the amount to paisa (by dividing by 100).
+    """
     response["amount"] = Decimal(response["amount"]) / 100
 
 
@@ -88,13 +93,13 @@ def get_client_token(**_):
 
 def capture(payment_information: PaymentData, config: GatewayConfig) -> GatewayResponse:
     """Capture a authorized payment using the razorpay client.
+
     But it first check if the given payment instance is supported
     by the gateway.
 
-    If an error from razorpay occurs,
-    we flag the transaction as failed and return
-    a short user friendly description of the error
-    after logging the error to stderr."""
+    If an error from Razorpay occurs, we flag the transaction as failed and return
+    a short user friendly description of the error after logging the error to stderr.
+    """
     error = check_payment_supported(payment_information=payment_information)
     razorpay_client = get_client(**config.connection_params)
     razorpay_amount = get_amount_for_razorpay(payment_information.amount)
@@ -131,7 +136,8 @@ def refund(payment_information: PaymentData, config: GatewayConfig) -> GatewayRe
     It first retrieve a `charge` transaction to retrieve the
     payment id to refund. And return an error with a failed transaction
     if the there is no such transaction, or if an error
-    from razorpay occurs during the refund."""
+    from Razorpay occurs during the refund.
+    """
     error = check_payment_supported(payment_information=payment_information)
 
     if error:

@@ -1,8 +1,9 @@
 import graphene
 
 from ....order import events, models
-from ....order.utils import cancel_order
+from ....order.actions import cancel_order
 from ...core.mutations import BaseBulkMutation
+from ...core.types.common import OrderError
 from ..mutations.orders import clean_order_cancel
 
 
@@ -19,6 +20,8 @@ class OrderBulkCancel(BaseBulkMutation):
         description = "Cancels orders."
         model = models.Order
         permissions = ("order.manage_orders",)
+        error_type_class = OrderError
+        error_type_field = "order_errors"
 
     @classmethod
     def clean_instance(cls, info, instance):
@@ -32,10 +35,8 @@ class OrderBulkCancel(BaseBulkMutation):
     @classmethod
     def bulk_action(cls, queryset, user, restock):
         for order in queryset:
-            cancel_order(user=user, order=order, restock=restock)
+            cancel_order(order=order, user=user, restock=restock)
             if restock:
                 events.fulfillment_restocked_items_event(
                     order=order, user=user, fulfillment=order
                 )
-
-            events.order_canceled_event(order=order, user=user)

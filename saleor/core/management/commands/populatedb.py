@@ -7,7 +7,7 @@ from django.core.management.base import BaseCommand
 from django.db import connection
 from django.contrib.sites.models import Site
 
-from ...utils import create_superuser
+from ....account.utils import create_superuser
 from ...utils.random_data import (
     add_address_to_admin, create_menus, create_orders, create_page,
     create_product_sales, create_products_by_schema, create_shipping_zones,
@@ -60,7 +60,7 @@ class Command(BaseCommand):
             call_command('search_index', '--rebuild', force=True)
 
     def sequence_reset(self):
-        """Runs SQL sequence reset on all saleor.* apps.
+        """Run a SQL sequence reset on all saleor.* apps.
 
         When a value is manually assigned to an auto-incrementing field
         it doesn't update the field's sequence, which might cause a conflict

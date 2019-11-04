@@ -5,7 +5,6 @@ import graphene
 import pytest
 from django.utils import timezone
 from django_countries import countries
-from freezegun import freeze_time
 
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import Sale, Voucher
@@ -82,6 +81,7 @@ def test_voucher_query(
                     startDate
                     discountValueType
                     discountValue
+                    applyOncePerCustomer
                     countries {
                         code
                         country
@@ -101,6 +101,7 @@ def test_voucher_query(
     assert data["name"] == voucher_countries.name
     assert data["code"] == voucher_countries.code
     assert data["usageLimit"] == voucher_countries.usage_limit
+    assert data["applyOncePerCustomer"] == voucher_countries.apply_once_per_customer
     assert data["used"] == voucher_countries.used
     assert data["startDate"] == voucher_countries.start_date.isoformat()
     assert data["discountValueType"] == voucher_countries.discount_value_type.upper()
@@ -142,21 +143,25 @@ mutation  voucherCreate(
     $type: VoucherTypeEnum, $name: String, $code: String,
     $discountValueType: DiscountValueTypeEnum, $usageLimit: Int,
     $discountValue: Decimal, $minAmountSpent: Decimal, $minCheckoutItemsQuantity: Int,
-    $startDate: DateTime, $endDate: DateTime, $applyOncePerOrder: Boolean) {
+    $startDate: DateTime, $endDate: DateTime, $applyOncePerOrder: Boolean,
+    $applyOncePerCustomer: Boolean) {
         voucherCreate(input: {
                 name: $name, type: $type, code: $code,
                 discountValueType: $discountValueType,
-                discountValue: $discountValue,
-                minAmountSpent: $minAmountSpent,
+                discountValue: $discountValue, minAmountSpent: $minAmountSpent,
                 minCheckoutItemsQuantity: $minCheckoutItemsQuantity,
-                startDate: $startDate, endDate: $endDate,
-                applyOncePerOrder: $applyOncePerOrder, usageLimit: $usageLimit}) {
+                startDate: $startDate, endDate: $endDate, usageLimit: $usageLimit
+                applyOncePerOrder: $applyOncePerOrder,
+                applyOncePerCustomer: $applyOncePerCustomer}) {
             errors {
                 field
                 message
             }
             voucher {
                 type
+                minSpent {
+                    amount
+                }
                 minAmountSpent {
                     amount
                 }
@@ -167,13 +172,13 @@ mutation  voucherCreate(
                 startDate
                 endDate
                 applyOncePerOrder
+                applyOncePerCustomer
             }
         }
     }
 """
 
 
-@freeze_time("2010-05-31 12:00:01")
 def test_create_voucher(staff_api_client, permission_manage_discounts):
     start_date = timezone.now() - timedelta(days=365)
     end_date = timezone.now() + timedelta(days=365)
@@ -188,6 +193,7 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
         "startDate": start_date.isoformat(),
         "endDate": end_date.isoformat(),
         "applyOncePerOrder": True,
+        "applyOncePerCustomer": True,
         "usageLimit": 3,
     }
 
@@ -197,17 +203,17 @@ def test_create_voucher(staff_api_client, permission_manage_discounts):
     get_graphql_content(response)
     voucher = Voucher.objects.get()
     assert voucher.type == VoucherType.ENTIRE_ORDER
-    assert voucher.min_amount_spent.amount == Decimal("1.12")
+    assert voucher.min_spent_amount == Decimal("1.12")
     assert voucher.name == "test voucher"
     assert voucher.code == "testcode123"
     assert voucher.discount_value_type == DiscountValueType.FIXED
     assert voucher.start_date == start_date
     assert voucher.end_date == end_date
     assert voucher.apply_once_per_order
+    assert voucher.apply_once_per_customer
     assert voucher.usage_limit == 3
 
 
-@freeze_time("2010-05-31 12:00:01")
 def test_create_voucher_with_empty_code(staff_api_client, permission_manage_discounts):
     start_date = timezone.now() - timedelta(days=365)
     end_date = timezone.now() + timedelta(days=365)
@@ -217,7 +223,7 @@ def test_create_voucher_with_empty_code(staff_api_client, permission_manage_disc
         "code": "",
         "discountValueType": DiscountValueTypeEnum.FIXED.name,
         "discountValue": 10.12,
-        "minAmountSpent": 1.12,
+        "minSpent": 1.12,
         "startDate": start_date.isoformat(),
         "endDate": end_date.isoformat(),
         "usageLimit": None,
@@ -232,35 +238,6 @@ def test_create_voucher_with_empty_code(staff_api_client, permission_manage_disc
     assert data["code"] != ""
 
 
-@freeze_time("2010-05-31 12:00:01")
-def test_create_voucher_with_deprecated_type(
-    staff_api_client, permission_manage_discounts
-):
-    start_date = timezone.now() - timedelta(days=365)
-    end_date = timezone.now() + timedelta(days=365)
-    variables = {
-        "name": "test voucher",
-        "type": VoucherTypeEnum.VALUE.name,
-        "code": "",
-        "discountValueType": DiscountValueTypeEnum.FIXED.name,
-        "discountValue": 10.12,
-        "minAmountSpent": 1.12,
-        "startDate": start_date.isoformat(),
-        "endDate": end_date.isoformat(),
-        "usageLimit": 0,
-    }
-
-    response = staff_api_client.post_graphql(
-        CREATE_VOUCHER_MUTATION, variables, permissions=[permission_manage_discounts]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["voucherCreate"]["voucher"]
-    assert data["name"] == variables["name"]
-    assert data["code"] != ""
-    assert data["type"] == VoucherTypeEnum.ENTIRE_ORDER.name
-
-
-@freeze_time("2010-05-31 12:00:01")
 def test_create_voucher_with_existing_gift_card_code(
     staff_api_client, gift_card, permission_manage_discounts
 ):
@@ -288,7 +265,6 @@ def test_create_voucher_with_existing_gift_card_code(
     assert errors[0]["field"] == "promoCode"
 
 
-@freeze_time("2010-05-31 12:00:01")
 def test_create_voucher_with_existing_voucher_code(
     staff_api_client, voucher_shipping_type, permission_manage_discounts
 ):
@@ -546,7 +522,6 @@ def test_voucher_remove_no_catalogues(
     assert voucher.collections.exists()
 
 
-@freeze_time("2010-05-31 12:00:01")
 def test_create_sale(staff_api_client, permission_manage_discounts):
     query = """
     mutation  saleCreate(
@@ -787,7 +762,6 @@ def test_sale_remove_no_catalogues(
     assert sale.collections.exists()
 
 
-@freeze_time("2019-05-31 12:00:01")
 @pytest.mark.parametrize(
     "voucher_filter, start_date, end_date, count",
     [
@@ -985,7 +959,6 @@ def test_query_vouchers_with_filter_search(
     assert len(data) == count
 
 
-@freeze_time("2019-05-31 12:00:01")
 @pytest.mark.parametrize(
     "sale_filter, start_date, end_date, count",
     [

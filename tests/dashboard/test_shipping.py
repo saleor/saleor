@@ -85,14 +85,16 @@ def test_add_default_shipping_zone_form():
         (20, 20, False),
     ),
 )
-def test_price_shipping_method_form(min_price, max_price, result):
+def test_price_shipping_method_form(shipping_method, min_price, max_price, result):
     data = {
         "name": "Name",
         "price": 10,
-        "minimum_order_price": min_price,
-        "maximum_order_price": max_price,
+        "minimum_order_price_0": min_price,
+        "minimum_order_price_1": "USD",
+        "maximum_order_price_0": max_price,
+        "maximum_order_price_1": "USD",
     }
-    form = PriceShippingMethodForm(data=data)
+    form = PriceShippingMethodForm(data=data, instance=shipping_method)
     assert form.is_valid() == result
 
 
@@ -109,7 +111,8 @@ def test_price_shipping_method_form(min_price, max_price, result):
 def test_weight_shipping_method_form(min_weight, max_weight, result):
     data = {
         "name": "Name",
-        "price": 10,
+        "price_0": 10,
+        "price_1": "USD",
         "minimum_order_weight": min_weight,
         "maximum_order_weight": max_weight,
     }
@@ -183,7 +186,8 @@ def test_shipping_method_add(admin_client, shipping_zone):
     )
     data = {
         "name": "DHL",
-        "price": "50",
+        "price_0": "50",
+        "price_1": "USD",
         "shipping_zone": shipping_zone.pk,
         "type": ShippingMethodType.PRICE_BASED,
     }
@@ -214,7 +218,8 @@ def test_shipping_method_edit(admin_client, shipping_zone):
     )
     data = {
         "name": "DHL",
-        "price": "50",
+        "price_0": "50",
+        "price_1": "USD",
         "shipping_zone": shipping_zone.pk,
         "type": ShippingMethodType.PRICE_BASED,
     }
@@ -222,7 +227,7 @@ def test_shipping_method_edit(admin_client, shipping_zone):
     assert response.status_code == 200
     assert ShippingMethod.objects.count() == 1
 
-    shipping_price = shipping_zone.shipping_methods.all()[0].price
+    shipping_price = shipping_zone.shipping_methods.only("price").first().price
     assert shipping_price == Money(50, "USD")
 
 

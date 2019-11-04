@@ -13,22 +13,26 @@ from django.http import (
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
+from draftjs_sanitizer import SafeJSONEncoder
 
-from ..checkout.utils import set_checkout_cookie
+from ..checkout.utils import (
+    get_checkout_from_request,
+    get_or_create_checkout_from_request,
+    set_checkout_cookie,
+)
 from ..core.utils import serialize_decimal
 from ..seo.schema.product import product_json_ld
 from .filters import ProductCategoryFilter, ProductCollectionFilter
+from .forms import ProductForm
 from .models import Category, DigitalContentUrl
 from .utils import (
     collections_visible_to_user,
     get_product_images,
     get_product_list_context,
-    handle_checkout_form,
     products_for_checkout,
     products_for_products_list,
     products_with_details,
 )
-from .utils.attributes import get_product_attributes_data
 from .utils.availability import get_product_availability
 from .utils.digital_products import (
     digital_content_url_is_valid,
@@ -74,39 +78,56 @@ def product_details(request, slug, product_id, form=None):
     today = datetime.date.today()
     is_visible = product.publication_date is None or product.publication_date <= today
     if form is None:
-        form = handle_checkout_form(request, product, create_checkout=False)[0]
+        checkout = get_checkout_from_request(request)
+        form = ProductForm(
+            checkout=checkout,
+            product=product,
+            data=request.POST or None,
+            discounts=request.discounts,
+            country=request.country,
+            extensions=request.extensions,
+        )
     availability = get_product_availability(
         product,
         discounts=request.discounts,
         country=request.country,
         local_currency=request.currency,
+        extensions=request.extensions,
     )
     product_images = get_product_images(product)
     variant_picker_data = get_variant_picker_data(
-        product, request.discounts, request.taxes, request.currency, request.country
+        product,
+        request.discounts,
+        request.extensions,
+        request.currency,
+        request.country,
     )
-    product_attributes = get_product_attributes_data(product)
     # show_variant_picker determines if variant picker is used or select input
-    show_variant_picker = all([v.attributes for v in product.variants.all()])
-    json_ld_data = product_json_ld(product, product_attributes)
+    show_variant_picker = all(
+        [v["attributes"] for v in variant_picker_data["variants"]]
+    )
+    json_ld_data = product_json_ld(product)
     ctx = {
+        "description_json": product.translated.description_json,
+        "description_html": product.translated.description,
         "is_visible": is_visible,
         "form": form,
         "availability": availability,
         "product": product,
-        "product_attributes": product_attributes,
         "product_images": product_images,
         "show_variant_picker": show_variant_picker,
         "variant_picker_data": json.dumps(
-            variant_picker_data, default=serialize_decimal
+            variant_picker_data, default=serialize_decimal, cls=SafeJSONEncoder
         ),
-        "json_ld_product_data": json.dumps(json_ld_data, default=serialize_decimal),
+        "json_ld_product_data": json.dumps(
+            json_ld_data, default=serialize_decimal, cls=SafeJSONEncoder
+        ),
     }
     return TemplateResponse(request, "product/details.html", ctx)
 
 
 def digital_product(request, token: str) -> Union[FileResponse, HttpResponseNotFound]:
-    """Returns direct download link to content if given token is still valid"""
+    """Return the direct download link to content if given token is still valid."""
 
     qs = DigitalContentUrl.objects.prefetch_related("line__order__user")
     content_url = get_object_or_404(qs, token=token)  # type: DigitalContentUrl
@@ -140,7 +161,15 @@ def product_add_to_checkout(request, slug, product_id):
 
     products = products_for_checkout(user=request.user)
     product = get_object_or_404(products, pk=product_id)
-    form, checkout = handle_checkout_form(request, product, create_checkout=True)
+    checkout = get_or_create_checkout_from_request(request)
+    form = ProductForm(
+        checkout=checkout,
+        product=product,
+        data=request.POST or None,
+        discounts=request.discounts,
+        country=request.country,
+        extensions=request.extensions,
+    )
     if form.is_valid():
         form.save()
         if request.is_ajax():

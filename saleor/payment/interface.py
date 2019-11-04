@@ -4,18 +4,33 @@ from typing import Any, Dict, Optional
 
 
 @dataclass
+class CreditCardInfo:
+    """Uniform way to represent Credit Card information."""
+
+    last_4: str
+    exp_year: int
+    exp_month: int
+    brand: Optional[str] = None
+    name_on_card: Optional[str] = None
+
+
+@dataclass
 class GatewayResponse:
-    """Dataclass for storing gateway response. Used for unifying the
-    representation of gateway response. It is required to communicate between
-    Saleor and given payment gateway."""
+    """Dataclass for storing gateway response.
+
+    Used for unifying the representation of gateway response.
+    It is required to communicate between Saleor and given payment gateway.
+    """
 
     is_success: bool
+    action_required: bool
     kind: str
     amount: Decimal
     currency: str
     transaction_id: str
     error: Optional[str]
     customer_id: Optional[str] = None
+    card_info: Optional[CreditCardInfo] = None
     raw_response: Optional[Dict[str, str]] = None
 
 
@@ -36,9 +51,11 @@ class AddressData:
 
 @dataclass
 class PaymentData:
-    """Dataclass for storing all payment information. Used for unifying the
-    representation of data. It is required to communicate between Saleor and
-    given payment gateway."""
+    """Dataclass for storing all payment information.
+
+    Used for unifying the representation of data.
+    It is required to communicate between Saleor and given payment gateway.
+    """
 
     amount: Decimal
     currency: str
@@ -54,16 +71,18 @@ class PaymentData:
 
 @dataclass
 class TokenConfig:
-    """Dataclass for payment gateway token fetching customization"""
+    """Dataclass for payment gateway token fetching customization."""
 
     customer_id: Optional[str] = None
 
 
 @dataclass
 class GatewayConfig:
-    """Dataclass for storing gateway config data. Used for unifying the
-    representation of config data. It is required to communicate between
-    Saleor and given payment gateway."""
+    """Dataclass for storing gateway config data.
+
+    Used for unifying the representation of config data.
+    It is required to communicate between Saleor and given payment gateway.
+    """
 
     gateway_name: str
     auto_capture: bool
@@ -72,21 +91,12 @@ class GatewayConfig:
     # a unified structure
     connection_params: Dict[str, Any]
     store_customer: bool = False
-
-
-@dataclass
-class CreditCardInfo:
-    """Uniform way to represent Credit Card information"""
-
-    last_4: str
-    exp_year: int
-    exp_month: int
-    name_on_card: Optional[str] = None
+    require_3d_secure: bool = False
 
 
 @dataclass
 class CustomerSource:
-    """Dataclass for storing information about stored payment sources in gateways"""
+    """Dataclass for storing information about stored payment sources in gateways."""
 
     id: str
     gateway: str

@@ -1,5 +1,6 @@
 import decimal
 import logging
+import socket
 from json import JSONEncoder
 from urllib.parse import urljoin
 
@@ -20,7 +21,6 @@ from geolite2 import geolite2
 from prices import MoneyRange
 from versatileimagefield.image_warmer import VersatileImageFieldWarmer
 
-from ...account.utils import get_random_avatar
 from ...celeryconf import app
 from ...core.i18n import COUNTRY_CODE_CHOICES
 
@@ -51,10 +51,38 @@ def build_absolute_uri(location):
     return iri_to_uri(location)
 
 
+def is_valid_ipv4(ip: str) -> bool:
+    """Check whether the passed IP is a valid V4 IP address."""
+    try:
+        socket.inet_pton(socket.AF_INET, ip)
+    except socket.error:
+        return False
+    return True
+
+
+def is_valid_ipv6(ip: str) -> bool:
+    """Check whether the passed IP is a valid V6 IP address."""
+    try:
+        socket.inet_pton(socket.AF_INET6, ip)
+    except socket.error:
+        return False
+    return True
+
+
 def get_client_ip(request):
-    ip = request.META.get("HTTP_X_FORWARDED_FOR", None)
-    if ip:
-        return ip.split(",")[0].strip()
+    """Retrieve the IP address from the request data.
+
+    Tries to get a valid IP address from X-Forwarded-For, if the user is hiding behind
+    a transparent proxy or if the server is behind a proxy.
+
+    If no forwarded IP was provided or all of them are invalid,
+    it fallback to the requester IP.
+    """
+    ip = request.META.get("HTTP_X_FORWARDED_FOR", "")
+    ips = ip.split(",")
+    for ip in ips:
+        if is_valid_ipv4(ip) or is_valid_ipv6(ip):
+            return ip
     return request.META.get("REMOTE_ADDR", None)
 
 
@@ -132,26 +160,6 @@ def serialize_decimal(obj):
     if isinstance(obj, decimal.Decimal):
         return str(obj)
     return JSONEncoder().default(obj)
-
-
-def create_superuser(credentials):
-    from ...account.models import User
-
-    user, created = User.objects.get_or_create(
-        email=credentials["email"],
-        defaults={"is_active": True, "is_staff": True, "is_superuser": True},
-    )
-    if created:
-        user.avatar = get_random_avatar()
-        user.set_password(credentials["password"])
-        user.save()
-        create_thumbnails(
-            pk=user.pk, model=User, size_set="user_avatars", image_attr="avatar"
-        )
-        msg = "Superuser - %(email)s/%(password)s" % credentials
-    else:
-        msg = "Superuser already exists - %(email)s" % credentials
-    return msg
 
 
 def create_thumbnails(pk, model, size_set, image_attr=None):

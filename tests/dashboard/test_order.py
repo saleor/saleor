@@ -897,9 +897,9 @@ def test_view_edit_discount(admin_client, draft_order, settings):
     assert get_redirect_location(response) == redirect_url
 
     draft_order.refresh_from_db()
-    discount_amount = Money(discount_value, settings.DEFAULT_CURRENCY)
-    assert draft_order.discount_amount == discount_amount
-    assert draft_order.total == total_before - discount_amount
+    discount = Money(discount_value, settings.DEFAULT_CURRENCY)
+    assert draft_order.discount == discount
+    assert draft_order.total == total_before - discount
 
 
 def test_update_order_with_user_addresses(order):
@@ -994,17 +994,17 @@ def test_view_order_voucher_edit(admin_client, draft_order, settings, voucher):
     assert get_redirect_location(response) == redirect_url
 
     draft_order.refresh_from_db()
-    discount_amount = Money(voucher.discount_value, settings.DEFAULT_CURRENCY)
-    assert draft_order.discount_amount == discount_amount
-    assert draft_order.total == total_before - discount_amount
+    discount = Money(voucher.discount_value, settings.DEFAULT_CURRENCY)
+    assert draft_order.discount == discount
+    assert draft_order.total == total_before - discount
 
 
 def test_view_order_voucher_remove(admin_client, draft_order, settings, voucher):
     increase_voucher_usage(voucher)
     draft_order.voucher = voucher
-    discount_amount = Money(voucher.discount_value, settings.DEFAULT_CURRENCY)
-    draft_order.discount_amount = discount_amount
-    draft_order.total -= discount_amount
+    discount = Money(voucher.discount_value, settings.DEFAULT_CURRENCY)
+    draft_order.discount = discount
+    draft_order.total -= discount
     draft_order.save()
     total_before = draft_order.total
     url = reverse("dashboard:order-voucher-remove", kwargs={"order_pk": draft_order.pk})
@@ -1019,8 +1019,8 @@ def test_view_order_voucher_remove(admin_client, draft_order, settings, voucher)
     assert get_redirect_location(response) == redirect_url
 
     draft_order.refresh_from_db()
-    assert draft_order.discount_amount == zero_money()
-    assert draft_order.total == total_before + discount_amount
+    assert draft_order.discount == zero_money()
+    assert draft_order.total == total_before + discount
 
 
 def test_view_mark_order_as_paid(admin_client, order_with_lines):
@@ -1044,7 +1044,7 @@ def test_view_mark_order_as_paid(admin_client, order_with_lines):
     ).exists()
 
 
-@patch("saleor.order.utils.emails.send_fulfillment_confirmation")
+@patch("saleor.order.actions.emails.send_fulfillment_confirmation")
 @pytest.mark.parametrize(
     "has_standard,has_digital", ((True, True), (True, False), (False, True))
 )
@@ -1100,7 +1100,7 @@ def test_send_fulfillment_order_lines_mails(
         assert len(events) == 1
 
 
-@patch("saleor.dashboard.order.views." "send_fulfillment_confirmation_to_customer")
+@patch("saleor.order.actions.send_fulfillment_confirmation_to_customer")
 def test_view_fulfill_order_lines(
     mock_email_fulfillment, admin_client, order_with_lines
 ):
@@ -1129,6 +1129,7 @@ def test_view_fulfill_order_lines(
     for line in order_with_lines.lines.all():
         assert line.quantity_unfulfilled == 0
     assert mock_email_fulfillment.call_count == 1
+    assert order_with_lines.status == OrderStatus.FULFILLED
 
 
 def test_view_fulfill_order_lines_with_empty_quantity(admin_client, order_with_lines):

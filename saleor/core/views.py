@@ -3,6 +3,7 @@ import json
 from django.contrib import messages
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
+from draftjs_sanitizer import SafeJSONEncoder
 from impersonate.views import impersonate as orig_impersonate
 
 from ..account.models import User
@@ -22,7 +23,7 @@ def home(request):
             discounts=request.discounts,
             country=request.country,
             local_currency=request.currency,
-            taxes=request.taxes,
+            extensions=request.extensions,
         )
     )
     webpage_schema = get_webpage_schema(request)
@@ -32,7 +33,7 @@ def home(request):
         {
             "parent": None,
             "products": products,
-            "webpage_schema": json.dumps(webpage_schema),
+            "webpage_schema": json.dumps(webpage_schema, cls=SafeJSONEncoder),
         },
     )
 

@@ -55,6 +55,7 @@ def search(phrase):
 
     Args:
         phrase (str): searched phrase
+
     """
     return {
         "products": search_products(phrase),

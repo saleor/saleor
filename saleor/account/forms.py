@@ -7,6 +7,7 @@ from phonenumbers.phonenumberutil import country_code_for_region
 
 from ..account import events as account_events
 from ..account.models import User
+from ..extensions.manager import get_extensions_manager
 from . import emails
 from .i18n import AddressMetaForm, get_address_form_class
 
@@ -109,6 +110,7 @@ class SignupForm(forms.ModelForm, FormWithReCaptcha):
         if commit:
             user.save()
             account_events.customer_account_created_event(user=user)
+            get_extensions_manager().customer_created(customer=user)
         return user
 
 
@@ -135,7 +137,7 @@ class PasswordResetForm(django_forms.PasswordResetForm, FormWithReCaptcha):
         # error "'User' is not JSON serializable". Since it's not used in our
         # template, we remove it from the context.
         user = context.pop("user")
-        emails.send_password_reset_email.delay(context, to_email, user.pk)
+        emails.send_user_password_reset_email(to_email, context, user.pk)
 
 
 class NameForm(forms.ModelForm):
