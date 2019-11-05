@@ -1,5 +1,6 @@
 import graphene
 
+from ...page.models import Page
 from ...product.models import (
     Attribute,
     AttributeValue,
@@ -47,7 +48,7 @@ class TranslatableItem(graphene.Union):
         )
 
 
-# TODO Consider name of this class
+# TODO Consider name of this class, maby we should replace TranslatableItem
 class DefaultTranslationItem(graphene.Union):
     class Meta:
         types = (
@@ -57,6 +58,7 @@ class DefaultTranslationItem(graphene.Union):
             translation_types.AttributeStrings,
             translation_types.AttributeValueStrings,
             translation_types.ProductVariantStrings,
+            translation_types.PageStrings,
         )
 
 
@@ -144,3 +146,6 @@ class TranslationQueries(graphene.ObjectType):
         elif kind == TranslatableKinds.VARIANT:  # TODO test hidden data
             _type, product_variant_id = graphene.Node.from_global_id(id)
             return ProductVariant.objects.filter(pk=product_variant_id).first()
+        elif kind == TranslatableKinds.PAGE:  # TODO test hidden data
+            _type, page_id = graphene.Node.from_global_id(id)
+            return Page.objects.filter(pk=page_id).first()

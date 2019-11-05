@@ -308,6 +308,45 @@ class PageTranslation(BaseTranslationType):
         ]
 
 
+class PageStrings(CountableDjangoObjectType):
+    translation = graphene.Field(
+        PageTranslation,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            description="A language code to return the translation for.",
+            required=True,
+        ),
+        description="Returns translated Page fields for the given language code.",
+        resolver=resolve_translation,
+    )
+    page = graphene.Field(
+        "saleor.graphql.page.types.Page",
+        description=(
+            "A static page that can be manually added by a shop operator ",
+            "through the dashboard.",
+        ),
+    )
+
+    class Meta:
+        model = page_models.Page
+        interfaces = [graphene.relay.Node]
+        only_fields = [
+            "content",
+            "content_json",
+            "id",
+            "seo_description",
+            "seo_title",
+            "title",
+        ]
+
+    def resolve_page(self, info):
+        return (
+            page_models.Page.objects.visible_to_user(info.context.user)
+            .filter(pk=self.id)
+            .first()
+        )
+
+
 class VoucherTranslation(BaseTranslationType):
     class Meta:
         model = discount_models.VoucherTranslation
