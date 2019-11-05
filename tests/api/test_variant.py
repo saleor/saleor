@@ -7,6 +7,7 @@ from graphene.utils.str_converters import to_camel_case
 
 from saleor.product.error_codes import ProductErrorCode
 from saleor.product.models import ProductVariant
+from saleor.product.utils.attributes import associate_attribute_values_to_instance
 from tests.api.utils import get_graphql_content
 
 
@@ -466,7 +467,7 @@ def test_update_product_variant_unset_amounts(
 QUERY_UPDATE_VARIANT_ATTRIBUTES = """
     mutation updateVariant (
         $id: ID!,
-        $sku: String!,
+        $sku: String,
         $attributes: [AttributeValueInput]!) {
             productVariantUpdate(
                 id: $id,
@@ -477,6 +478,10 @@ QUERY_UPDATE_VARIANT_ATTRIBUTES = """
                 errors {
                     field
                     message
+                }
+                productErrors {
+                    field
+                    code
                 }
             }
         }
@@ -517,6 +522,142 @@ def test_update_product_variant_not_all_attributes(
         "message": "All attributes must take a value",
     }
     assert not product.variants.filter(sku=sku).exists()
+
+
+def test_update_product_variant_with_current_attribut(
+    staff_api_client,
+    product_with_two_variants,
+    color_attribute,
+    size_attribute,
+    permission_manage_products,
+):
+    product = product_with_two_variants
+    variant = product.variants.first()
+    sku = str(uuid4())[:12]
+    assert not variant.sku == sku
+    assert variant.attributes.first().values.first().slug == "red"
+    assert variant.attributes.last().values.first().slug == "small"
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
+    size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "attributes": [
+            {"id": color_attribute_id, "values": ["red"]},
+            {"id": size_attribute_id, "values": ["small"]},
+        ],
+    }
+
+    response = staff_api_client.post_graphql(
+        QUERY_UPDATE_VARIANT_ATTRIBUTES,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    data = content["data"]["productVariantUpdate"]
+    assert not data["errors"]
+    variant.refresh_from_db()
+    assert variant.sku == sku
+    assert variant.attributes.first().values.first().slug == "red"
+    assert variant.attributes.last().values.first().slug == "small"
+
+
+def test_update_product_variant_with_new_attribute(
+    staff_api_client,
+    product_with_two_variants,
+    color_attribute,
+    size_attribute,
+    permission_manage_products,
+):
+    product = product_with_two_variants
+    variant = product.variants.first()
+    sku = str(uuid4())[:12]
+    assert not variant.sku == sku
+    assert variant.attributes.first().values.first().slug == "red"
+    assert variant.attributes.last().values.first().slug == "small"
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
+    size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+
+    variables = {
+        "id": variant_id,
+        "sku": sku,
+        "attributes": [
+            {"id": color_attribute_id, "values": ["red"]},
+            {"id": size_attribute_id, "values": ["big"]},
+        ],
+    }
+
+    response = staff_api_client.post_graphql(
+        QUERY_UPDATE_VARIANT_ATTRIBUTES,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    data = content["data"]["productVariantUpdate"]
+    assert not data["errors"]
+    variant.refresh_from_db()
+    assert variant.sku == sku
+    assert variant.attributes.first().values.first().slug == "red"
+    assert variant.attributes.last().values.first().slug == "big"
+
+
+def test_update_product_variant_with_duplicated_attribute(
+    staff_api_client,
+    product_with_two_variants,
+    color_attribute,
+    size_attribute,
+    permission_manage_products,
+):
+    product = product_with_two_variants
+    variant = product.variants.first()
+    variant2 = product.variants.first()
+
+    variant2.pk = None
+    variant2.sku = str(uuid4())[:12]
+    variant2.save()
+    associate_attribute_values_to_instance(
+        variant2, color_attribute, color_attribute.values.last()
+    )
+    associate_attribute_values_to_instance(
+        variant2, size_attribute, size_attribute.values.last()
+    )
+
+    assert variant.attributes.first().values.first().slug == "red"
+    assert variant.attributes.last().values.first().slug == "small"
+    assert variant2.attributes.first().values.first().slug == "blue"
+    assert variant2.attributes.last().values.first().slug == "big"
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
+    size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+
+    variables = {
+        "id": variant_id,
+        "attributes": [
+            {"id": color_attribute_id, "values": ["blue"]},
+            {"id": size_attribute_id, "values": ["big"]},
+        ],
+    }
+
+    response = staff_api_client.post_graphql(
+        QUERY_UPDATE_VARIANT_ATTRIBUTES,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    data = content["data"]["productVariantUpdate"]
+    assert data["productErrors"][0] == {
+        "field": "attributes",
+        "code": ProductErrorCode.UNIQUE.name,
+    }
 
 
 @pytest.mark.parametrize(
