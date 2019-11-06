@@ -645,8 +645,8 @@ type CheckoutClearPrivateMeta {
 type CheckoutComplete {
   errors: [Error!]
   order: Order
-  redirectUrl: String
   checkoutErrors: [CheckoutError!]
+  redirectUrl: String
 }
 
 type CheckoutCountableConnection {
