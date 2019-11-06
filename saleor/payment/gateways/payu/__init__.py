@@ -16,6 +16,9 @@ from .utils import ClientTokenProvider, PayuSession
 from ....order.models import Order
 
 
+# TODO get_client_token ?
+
+
 def get_payu_gateway(client_id, client_secret_key, merchant_pos_id, sandbox_mode):
     if not all([client_id, client_secret_key, merchant_pos_id]):
         raise ImproperlyConfigured("Incorrectly configured PayU gateway.")
