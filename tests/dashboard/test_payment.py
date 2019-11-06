@@ -189,6 +189,12 @@ def test_gateway_configuration_form_json_field_set_to_false(field_name, form_dat
     assert cleaned_data[field_name]["value"] is False
 
 
+def get_config_value(field_name, configuration):
+    for elem in configuration:
+        if elem["name"] == field_name:
+            return elem["value"]
+
+
 def test_form_properly_save_plugin_config(form_data, plugin_configuration):
     assert plugin_configuration.active
     form = GatewayConfigurationForm(BraintreeGatewayPlugin, form_data)
@@ -196,6 +202,9 @@ def test_form_properly_save_plugin_config(form_data, plugin_configuration):
     form.save()
     plugin_configuration.refresh_from_db()
     assert plugin_configuration.active is False
+    assert isinstance(
+        get_config_value("Use sandbox", plugin_configuration.configuration), bool
+    )
 
 
 def test_configure_payment_gateway_properly_handle_form(

@@ -516,6 +516,11 @@ def braintree_customer_id():
     return "1234"
 
 
+@pytest.fixture
+def dummy_customer_id():
+    return "4321"
+
+
 def test_store_payment_gateway_meta(customer_user, braintree_customer_id):
     gateway_name = "braintree"
     META = {
@@ -541,8 +546,15 @@ def set_braintree_customer_id(customer_user, braintree_customer_id):
     return customer_user
 
 
+@pytest.fixture
+def set_dummy_customer_id(customer_user, dummy_customer_id):
+    gateway_name = "dummy"
+    store_customer_id(customer_user, gateway_name, dummy_customer_id)
+    return customer_user
+
+
 def test_list_payment_sources(
-    mocker, braintree_customer_id, set_braintree_customer_id, user_api_client
+    mocker, dummy_customer_id, set_dummy_customer_id, user_api_client
 ):
     query = """
     {
@@ -559,12 +571,7 @@ def test_list_payment_sources(
     card = CreditCardInfo(
         last_4="5678", exp_year=2020, exp_month=12, name_on_card="JohnDoe"
     )
-    source = CustomerSource(id="test1", gateway="braintree", credit_card_info=card)
-    mocker.patch(
-        "saleor.graphql.account.resolvers.gateway.list_gateways",
-        return_value=["braintree"],
-        autospec=True,
-    )
+    source = CustomerSource(id="test1", gateway="dummy", credit_card_info=card)
     mock_get_source_list = mocker.patch(
         "saleor.graphql.account.resolvers.gateway.list_payment_sources",
         return_value=[source],
@@ -572,10 +579,7 @@ def test_list_payment_sources(
     )
     response = user_api_client.post_graphql(query)
 
-    mock_get_source_list.assert_called_once_with("braintree", braintree_customer_id)
+    mock_get_source_list.assert_called_once_with("Dummy", dummy_customer_id)
     content = get_graphql_content(response)["data"]["me"]["storedPaymentSources"]
     assert content is not None and len(content) == 1
-    assert content[0] == {
-        "gateway": "braintree",
-        "creditCardInfo": {"lastDigits": "5678"},
-    }
+    assert content[0] == {"gateway": "dummy", "creditCardInfo": {"lastDigits": "5678"}}

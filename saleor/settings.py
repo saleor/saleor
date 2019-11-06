@@ -331,6 +331,7 @@ LOGGING = {
             "class": "logging.StreamHandler",
             "formatter": "verbose",
         },
+        "null": {"class": "logging.NullHandler"},
     },
     "loggers": {
         "django": {
@@ -340,6 +341,22 @@ LOGGING = {
         },
         "django.server": {"handlers": ["console"], "level": "INFO", "propagate": True},
         "saleor": {"handlers": ["console"], "level": "DEBUG", "propagate": True},
+        "saleor.graphql.errors.handled": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": True,
+        },
+        # You can configure this logger to go to another file using a file handler.
+        # Refer to https://docs.djangoproject.com/en/2.2/topics/logging/#examples.
+        # This allow easier filtering from GraphQL query/permission errors that may
+        # have been triggered by your frontend applications from the internal errors
+        # that happen in backend
+        "saleor.graphql.errors.unhandled": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": True,
+        },
+        "graphql.execution.utils": {"handlers": ["null"], "propagate": False},
     },
 }
 
