@@ -2,14 +2,83 @@
 {% load i18n %}
 
 {% block forms %}
+
   <form method="POST" id="payment-form" {% if form.action %} action="{{ form.action }}"{% endif %} novalidate>
+    <div class="form-group">
+      <input class="form-control" id='cardholder-name' name="cardholder-name" placeholder="Cardholder Name" required/>
+    </div><!-- form-group -->
+    <div class="form-group">
+      <div id="card-element" class="stripe" style="padding-top: .55rem;"></div>
+    </div><!-- form-group -->
+    <button id="card-button" class="btn btn-primary btn-block">
+      {% trans "Make payment" context "Payment form primary action" %}
+    </button>
+    <div class="outcome">
+      <div class="error"></div>
+    </div>
     {% csrf_token %}
-    {{ form.media }}
-    {{ form }}
-    {% if form.errors %}
+    {% if form.errors or form.non_field_errors %}
+      <blockquote>
+        {% for non_field_error in form.non_field_errors %}
+          {{ non_field_error }}
+        {% endfor %}
+        {% for error in form.errors %}
+          {{ error }}
+        {% endfor %}
+      </blockquote>
       <a class="btn" href="{% url "order:details" token=payment.order.token %}">
         {% trans "Change payment" context "Payment form (Stripe) secondary action" %}
       </a>
     {% endif %}
+    {{ form.payment_method_id.as_hidden }}
   </form>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+stripe = Stripe('{{ client_token }}');
+var options = {
+  fonts:[{cssSrc: 'https://fonts.googleapis.com/css?family=Lato',}]
+};
+var elements = stripe.elements(options);
+
+var cardElement = elements.create('card', {
+  classes: {
+    base: 'form-control',
+  },
+  style: {
+    base: {
+      iconColor: '#333333',
+      color: '#333333',
+      fontFamily: '"Lato", sans-serif',
+      '::placeholder': {
+        color: '#d3d1d0',
+        fontWeight: 300,
+      },
+    },
+  }
+});
+cardElement.mount('#card-element');
+
+var cardholderName = document.getElementById('cardholder-name');
+var cardButton = document.getElementById('card-button');
+var payment_method_id = document.getElementById('id_payment_method_id');
+var form = document.getElementById('payment-form');
+
+cardButton.addEventListener('click', function(ev) {
+  ev.preventDefault();
+  stripe.createPaymentMethod('card', cardElement, {
+    billing_details: {name: cardholderName.value}
+  }).then(function(result) {
+    if (result.error) {
+      // Show error in payment form
+      errorElement.textContent = result.error.message;
+      errorElement.classList.add('visible');
+    } else {
+      // Otherwise send paymentMethod.id to your server (see Step 2)
+      payment_method_id.value = result.paymentMethod.id;
+      form.submit();
+    }
+  });
+});
+</script>
 {% endblock forms %}
