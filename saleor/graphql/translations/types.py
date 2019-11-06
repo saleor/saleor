@@ -362,6 +362,35 @@ class SaleTranslation(BaseTranslationType):
         only_fields = ["id", "name"]
 
 
+class SaleStrings(CountableDjangoObjectType):
+    translation = graphene.Field(
+        SaleTranslation,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            description="A language code to return the translation for.",
+            required=True,
+        ),
+        description="Returns translated sale fields for the given language code.",
+        resolver=resolve_translation,
+    )
+    sale = graphene.Field(
+        "saleor.graphql.discount.types.Sale",
+        description=(
+            "Sales allow creating discounts for categories, collections "
+            "or products and are visible to all the customers."
+        ),
+    )
+
+    class Meta:
+        model = discount_models.Sale
+        interfaces = [graphene.relay.Node]
+        only_fields = ["id", "name"]
+
+    @permission_required("discount.manage_discounts")
+    def resolve_sale(self, info):
+        return self
+
+
 class ShopTranslation(BaseTranslationType):
     class Meta:
         model = site_models.SiteSettingsTranslation
