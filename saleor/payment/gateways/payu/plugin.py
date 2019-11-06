@@ -10,12 +10,13 @@ from . import (
     authorize,
     capture,
     process_payment,
+    get_client_token,
 )
 
 GATEWAY_NAME = "PayU"
 
 if TYPE_CHECKING:
-    from . import GatewayResponse, PaymentData
+    from . import GatewayResponse, PaymentData, TokenConfig
 
 
 def require_active_plugin(fn):
@@ -207,3 +208,7 @@ class PayuGatewayPlugin(BasePlugin):
             {"field": "client_id", "value": config.connection_params["client_id"]},
             {"field": "store_customer_card", "value": config.store_customer},
         ]
+
+    @require_active_plugin
+    def get_client_token(self, token_config: "TokenConfig", previous_value):
+        return get_client_token(self._get_gateway_config(), token_config)

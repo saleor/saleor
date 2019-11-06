@@ -1,3 +1,5 @@
+from typing import Dict, List, Optional
+
 import json
 
 from django.core.exceptions import ImproperlyConfigured
@@ -10,13 +12,27 @@ from ...interface import (
     GatewayConfig,
     GatewayResponse,
     PaymentData,
+    TokenConfig,
 )
 from .utils import ClientTokenProvider, PayuSession
 
 from ....order.models import Order
 
 
-# TODO get_client_token ?
+def get_client_token(
+    config: GatewayConfig, token_config: Optional[TokenConfig] = None
+) -> str:
+    client_id = config.connection_params["client_id"]
+    client_secret_key = config.connection_params["client_secret_key"]
+    sandbox_mode = config.connection_params["sandbox_mode"]
+
+    client_token_provider = ClientTokenProvider(
+        client_id=client_id,
+        client_secret_key=client_secret_key,
+        sandbox_mode=sandbox_mode
+    )
+
+    return client_token_provider.get_client_token()
 
 
 def get_payu_gateway(client_id, client_secret_key, merchant_pos_id, sandbox_mode):
