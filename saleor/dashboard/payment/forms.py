@@ -13,7 +13,7 @@ TYPE_TO_FIELD = {
 }
 
 
-def create_custom_form_field(structure) -> forms.Field:
+def create_custom_form_field(structure: Dict[str, str]) -> forms.Field:
     elem_type = structure["type"]
     elem_name = structure["name"]
     elem_value = structure["value"]
