@@ -2,7 +2,8 @@ import copy
 
 from saleor.extensions import ConfigurationTypeField
 from saleor.extensions.models import PluginConfiguration
-from tests.extensions.helpers import PluginSample, get_config_value
+from tests.extensions.helpers import get_config_value
+from tests.extensions.sample_plugins import PluginSample
 
 
 def test_update_config_items_keeps_bool_value():
