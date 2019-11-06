@@ -622,6 +622,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
 class CheckoutComplete(BaseMutation):
     order = graphene.Field(Order, description="Placed order.")
+    redirect_url = graphene.String(description="URL where user should be redirected")
 
     class Arguments:
         checkout_id = graphene.ID(description="Checkout ID.", required=True)
@@ -646,12 +647,9 @@ class CheckoutComplete(BaseMutation):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
-
         user = info.context.user
         clean_checkout(checkout, info.context.discounts)
-
         payment = checkout.get_last_active_payment()
-
         with transaction.atomic():
             try:
                 order_data = prepare_order_data(
@@ -690,6 +688,11 @@ class CheckoutComplete(BaseMutation):
             if not txn.is_success:
                 raise PaymentError(txn.error)
 
+            redirect_url = None
+
+            if txn.gateway_response["redirectUri"]:
+                redirect_url = txn.gateway_response["redirectUri"]
+
         except PaymentError as e:
             abort_order_data(order_data)
             raise ValidationError(str(e), code=CheckoutErrorCode.PAYMENT_ERROR)
@@ -704,7 +707,7 @@ class CheckoutComplete(BaseMutation):
         checkout.delete()
 
         # return the success response with the newly created order data
-        return CheckoutComplete(order=order)
+        return CheckoutComplete(order=order, redirect_url=redirect_url)
 
 
 class CheckoutUpdateVoucher(BaseMutation):

@@ -3,7 +3,7 @@ import logging
 from django.contrib import auth, messages
 from django.contrib.auth.decorators import login_required
 from django.db import transaction
-from django.http import HttpResponseForbidden
+from django.http import HttpResponseForbidden, HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.urls import reverse
@@ -14,7 +14,9 @@ from ..account.forms import LoginForm
 from ..account.models import User
 from ..core.utils import get_client_ip
 from ..payment import ChargeStatus, TransactionKind, gateway as payment_gateway
-from ..payment.utils import create_payment, fetch_customer_id
+from ..payment.interface import GatewayResponse, PaymentData
+from ..payment.utils import create_payment, fetch_customer_id, create_transaction
+from ..payment.models import Transaction
 from . import FulfillmentStatus
 from .forms import CustomerNoteForm, PasswordForm, PaymentDeleteForm, PaymentsForm
 from .models import Order
@@ -204,3 +206,10 @@ def connect_order_with_user(request, token):
     )
     messages.success(request, msg)
     return redirect("order:details", token=order.token)
+
+
+@csrf_exempt
+def payu_notification(request, token):
+    """Receive notification from payu gateway with order details.
+    """
+    return HttpResponse("OK")

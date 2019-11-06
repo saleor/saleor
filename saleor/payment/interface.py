@@ -32,6 +32,7 @@ class GatewayResponse:
     customer_id: Optional[str] = None
     card_info: Optional[CreditCardInfo] = None
     raw_response: Optional[Dict[str, str]] = None
+    action_url: Optional[str] = None
 
 
 @dataclass
