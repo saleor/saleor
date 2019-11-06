@@ -1,7 +1,9 @@
 import graphene
 import pytest
+from django.contrib.auth.models import Permission
 
 from saleor.graphql.translations.schema import TranslatableKinds
+from saleor.graphql.translations.types import LanguageCodeEnum
 from tests.api.utils import get_graphql_content
 
 
@@ -1361,3 +1363,65 @@ def test_translations_query_inline_fragment(user_api_client, product):
 
     assert data["node"]["name"] == "Test product"
     assert data["node"]["translation"]["name"] == "Produkt testowy"
+
+
+QUERY_TRANSLATION_PRODUCT = """
+    query translation(
+        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCodeEnum!
+    ){
+        translation(kind: $kind, id: $id){
+            __typename
+            ...on ProductStrings{
+                id
+                name
+                translation(languageCode: $languageCode){
+                    name
+                }
+                product{
+                    id
+                    name
+                }
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "is_published, perm_codenames, return_product",
+    [
+        (True, ["manage_translations"], True),
+        (False, ["manage_translations"], False),
+        (False, ["manage_translations", "manage_products"], True),
+    ],
+)
+def test_translation_query_product(
+    staff_api_client,
+    product,
+    product_translation_fr,
+    is_published,
+    perm_codenames,
+    return_product,
+):
+    product.is_published = is_published
+    product.save()
+
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    perms = list(Permission.objects.filter(codename__in=perm_codenames))
+
+    variables = {
+        "id": product_id,
+        "kind": TranslatableKinds.PRODUCT.name,
+        "languageCode": LanguageCodeEnum.FR.name,
+    }
+    response = staff_api_client.post_graphql(
+        QUERY_TRANSLATION_PRODUCT, variables, permissions=perms
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["translation"]
+    assert data["name"] == product.name
+    assert data["translation"]["name"] == product_translation_fr.name
+    if return_product:
+        assert data["product"]["name"] == product.name
+    else:
+        assert not data["product"]

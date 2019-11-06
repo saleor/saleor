@@ -108,7 +108,6 @@ class TranslationQueries(graphene.ObjectType):
         ),
     )
 
-    # TODO Add tra
     def resolve_translations(self, info, kind, **_kwargs):
         if kind == TranslatableKinds.PRODUCT:
             return resolve_products(info)
@@ -137,7 +136,7 @@ class TranslationQueries(graphene.ObjectType):
     def resolve_translation(self, info, id, kind, **_kwargs):
         # TODO add kind validation
         _type, kind_id = graphene.Node.from_global_id(id)
-        if kind == TranslatableKinds.PRODUCT:  # TODO test hidden data
+        if kind == TranslatableKinds.PRODUCT:
             return Product.objects.filter(pk=kind_id).first()
         elif kind == TranslatableKinds.COLLECTION:  # TODO test hidden data
             return Collection.objects.filter(pk=kind_id).first()
