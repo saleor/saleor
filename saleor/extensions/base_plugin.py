@@ -28,7 +28,6 @@ class BasePlugin:
 
     PLUGIN_NAME = ""
     CONFIG_STRUCTURE = None
-    REDACTED_FORM = "*" * 10
 
     def __init__(self, *args, **kwargs):
         self._cached_config = None
@@ -330,11 +329,6 @@ class BasePlugin:
                 config_item_name = config_item_to_update.get("name")
                 if config_item["name"] == config_item_name:
                     new_value = config_item_to_update.get("value")
-                    # The frontend can send all configuration fields with
-                    # all secrets as **...**, we have to omit all secrets which
-                    # weren't modified
-                    if new_value == cls.REDACTED_FORM:
-                        continue
                     item_type = config_structure.get(config_item_name, {}).get("type")
                     if item_type == ConfigurationTypeField.BOOLEAN and not isinstance(
                         new_value, bool
@@ -365,7 +359,6 @@ class BasePlugin:
         if plugin_configuration.configuration:
             # Let's add a translated descriptions and labels
             cls._append_config_structure(plugin_configuration.configuration)
-            cls._hide_secret_configuration_fields(plugin_configuration.configuration)
         return plugin_configuration
 
     @classmethod
@@ -378,11 +371,6 @@ class BasePlugin:
         """
         defaults = None
         return defaults
-
-    @classmethod
-    def _hide_secret_configuration_fields(cls, configuration: List[dict]) -> None:
-        """Hide secret values of the configuration fields."""
-        return
 
     @classmethod
     def _append_config_structure(cls, configuration):
@@ -427,7 +415,11 @@ class BasePlugin:
         configuration.save(update_fields=["configuration"])
 
     @classmethod
-    def get_plugin_configuration(cls, queryset: QuerySet) -> "PluginConfiguration":
+    def get_plugin_configuration(
+        cls, queryset: QuerySet = None
+    ) -> "PluginConfiguration":
+        if not queryset:
+            queryset = PluginConfiguration.objects.all()
         defaults = cls._get_default_configuration()
         configuration = queryset.get_or_create(name=cls.PLUGIN_NAME, defaults=defaults)[
             0
@@ -436,5 +428,4 @@ class BasePlugin:
         if configuration.configuration:
             # Let's add a translated descriptions and labels
             cls._append_config_structure(configuration.configuration)
-            cls._hide_secret_configuration_fields(configuration.configuration)
         return configuration
