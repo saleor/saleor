@@ -31,4 +31,9 @@ urlpatterns = [
         views.connect_order_with_user,
         name="connect-order-with-user",
     ),
+    url(
+        r'^%s/payu-notification/$' % (TOKEN_PATTERN,),
+        views.payu_notification,
+        name='payu-notification'
+    ),
 ]
