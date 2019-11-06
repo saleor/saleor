@@ -72,6 +72,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix time zone based tests - #4468 by @fowczarek
 - Fix serializing empty URLs as a string when creating menu items - #4616 by @maarcingebala
 - The invalid IP address in HTTP requests now fallback to the requester's IP address. - #4597 by @NyanKiyoshi
+- Fix product variant update with current attribute values - #4936 by @fowczarek
 
 ### Dashboard 2.0
 
