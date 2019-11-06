@@ -10,6 +10,7 @@ from ...site import models as site_models
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import LanguageDisplay
 from ..core.utils import str_to_enum
+from ..decorators import permission_required
 from .enums import LanguageCodeEnum
 from .resolvers import resolve_translation
 
@@ -380,3 +381,34 @@ class ShippingMethodTranslation(BaseTranslationType):
         model = shipping_models.ShippingMethodTranslation
         interfaces = [graphene.relay.Node]
         only_fields = ["id", "name"]
+
+
+class ShippingMethodStrings(CountableDjangoObjectType):
+    translation = graphene.Field(
+        ShippingMethodTranslation,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            description="A language code to return the translation for.",
+            required=True,
+        ),
+        description=(
+            "Returns translated shipping method fields " "for the given language code."
+        ),
+        resolver=resolve_translation,
+    )
+    shipping_method = graphene.Field(
+        "saleor.graphql.shipping.types.ShippingMethod",
+        description=(
+            "Shipping method are the methods you'll use to get customer's orders "
+            " to them. They are directly exposed to the customers."
+        ),
+    )
+
+    class Meta:
+        model = shipping_models.ShippingMethod
+        interfaces = [graphene.relay.Node]
+        only_fields = ["id", "name"]
+
+    @permission_required("shipping.manage_shipping")
+    def resolve_shipping_method(self, info):
+        return self
