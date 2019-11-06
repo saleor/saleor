@@ -169,10 +169,12 @@ def test_plugin_configuration_update(
     first_configuration_item = plugin.configuration[0]
     assert first_configuration_item["name"] == updated_configuration_item["name"]
     assert first_configuration_item["value"] == updated_configuration_item["value"]
+    assert set(first_configuration_item.keys()) == {"name", "value"}
 
     second_configuration_item = plugin.configuration[1]
     assert second_configuration_item["name"] == old_configuration[1]["name"]
     assert second_configuration_item["value"] == old_configuration[1]["value"]
+    assert set(second_configuration_item.keys()) == {"name", "value"}
 
 
 def test_plugin_update_saves_boolean_as_boolean(
