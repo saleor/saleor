@@ -36,12 +36,12 @@ class RazorpayGatewayPlugin(BasePlugin):
             "label": pgettext_lazy("Plugin label", "Template path"),
         },
         "Public API key": {
-            "type": ConfigurationTypeField.STRING,
+            "type": ConfigurationTypeField.SECRET,
             "help_text": pgettext_lazy("Plugin help text", "Provide  public API key"),
             "label": pgettext_lazy("Plugin label", "Public API key"),
         },
         "Secret API key": {
-            "type": ConfigurationTypeField.STRING,
+            "type": ConfigurationTypeField.SECRET,
             "help_text": pgettext_lazy(
                 "Plugin help text", "Provide Stripe secret API key"
             ),
@@ -89,14 +89,6 @@ class RazorpayGatewayPlugin(BasePlugin):
             )
 
     @classmethod
-    def _hide_secret_configuration_fields(cls, configuration):
-        secret_fields = ["Public API key", "Secret API key"]
-        for field in configuration:
-            # We don't want to share our secret data
-            if field.get("name") in secret_fields and field.get("value"):
-                field["value"] = cls.REDACTED_FORM
-
-    @classmethod
     def _get_default_configuration(cls):
         defaults = {
             "name": cls.PLUGIN_NAME,
@@ -104,8 +96,8 @@ class RazorpayGatewayPlugin(BasePlugin):
             "active": False,
             "configuration": [
                 {"name": "Template path", "value": "order/payment/razorpay.html"},
-                {"name": "Public API key", "value": ""},
-                {"name": "Secret API key", "value": ""},
+                {"name": "Public API key", "value": None},
+                {"name": "Secret API key", "value": None},
                 {"name": "Store customers card", "value": False},
                 {"name": "Automatic payment capture", "value": True},
             ],

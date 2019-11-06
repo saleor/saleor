@@ -960,7 +960,7 @@ type CollectionUpdatePrivateMeta {
 
 type ConfigurationItem {
   name: String!
-  value: String!
+  value: String
   type: ConfigurationTypeFieldEnum
   helpText: String
   label: String
@@ -974,6 +974,8 @@ input ConfigurationItemInput {
 enum ConfigurationTypeFieldEnum {
   STRING
   BOOLEAN
+  SECRET
+  PASSWORD
 }
 
 enum CountryCode {
