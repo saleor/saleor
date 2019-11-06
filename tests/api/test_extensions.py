@@ -10,12 +10,12 @@ from tests.extensions.sample_plugins import PluginSample
 
 
 @pytest.fixture
-def staff_api_client_with_permission(staff_api_client, permission_manage_plugins):
+def staff_api_client_can_manage_plugins(staff_api_client, permission_manage_plugins):
     staff_api_client.user.user_permissions.add(permission_manage_plugins)
     return staff_api_client
 
 
-def test_query_plugin_configurations(staff_api_client_with_permission, settings):
+def test_query_plugin_configurations(staff_api_client_can_manage_plugins, settings):
 
     # Enable test plugin
     settings.PLUGINS = ["tests.extensions.sample_plugins.PluginSample"]
@@ -40,7 +40,7 @@ def test_query_plugin_configurations(staff_api_client_with_permission, settings)
           }
         }
     """
-    response = staff_api_client_with_permission.post_graphql(query)
+    response = staff_api_client_can_manage_plugins.post_graphql(query)
     content = get_graphql_content(response)
 
     plugins = content["data"]["plugins"]["edges"]
@@ -75,7 +75,7 @@ def test_query_plugin_configurations(staff_api_client_with_permission, settings)
             )
 
 
-def test_query_plugin_configuration(staff_api_client_with_permission, settings):
+def test_query_plugin_configuration(staff_api_client_can_manage_plugins, settings):
     settings.PLUGINS = ["tests.extensions.sample_plugins.PluginSample"]
     manager = get_extensions_manager()
     plugin_configuration = manager.get_plugin_configuration("PluginSample")
@@ -98,7 +98,7 @@ def test_query_plugin_configuration(staff_api_client_with_permission, settings):
     }
     """
     variables = {"id": configuration_id}
-    response = staff_api_client_with_permission.post_graphql(query, variables)
+    response = staff_api_client_can_manage_plugins.post_graphql(query, variables)
     content = get_graphql_content(response)
     plugin = content["data"]["plugin"]
     assert plugin["name"] == plugin_configuration.name
@@ -145,7 +145,7 @@ PLUGIN_UPDATE_MUTATION = """
     ],
 )
 def test_plugin_configuration_update(
-    staff_api_client_with_permission, settings, active, updated_configuration_item
+    staff_api_client_can_manage_plugins, settings, active, updated_configuration_item
 ):
 
     settings.PLUGINS = ["tests.extensions.sample_plugins.PluginSample"]
@@ -158,7 +158,7 @@ def test_plugin_configuration_update(
         "active": active,
         "configuration": [updated_configuration_item],
     }
-    response = staff_api_client_with_permission.post_graphql(
+    response = staff_api_client_can_manage_plugins.post_graphql(
         PLUGIN_UPDATE_MUTATION, variables
     )
     get_graphql_content(response)
@@ -176,7 +176,7 @@ def test_plugin_configuration_update(
 
 
 def test_plugin_update_saves_boolean_as_boolean(
-    staff_api_client_with_permission, settings
+    staff_api_client_can_manage_plugins, settings
 ):
     settings.PLUGINS = ["tests.extensions.sample_plugins.PluginSample"]
     manager = get_extensions_manager()
@@ -188,7 +188,7 @@ def test_plugin_update_saves_boolean_as_boolean(
         "active": plugin.active,
         "configuration": [{"name": "Use sandbox", "value": True}],
     }
-    response = staff_api_client_with_permission.post_graphql(
+    response = staff_api_client_can_manage_plugins.post_graphql(
         PLUGIN_UPDATE_MUTATION, variables
     )
     content = get_graphql_content(response)
@@ -209,7 +209,7 @@ def test_plugin_update_saves_boolean_as_boolean(
     ],
 )
 def test_plugins_query_with_filter(
-    plugin_filter, count, staff_api_client_with_permission, settings
+    plugin_filter, count, staff_api_client_can_manage_plugins, settings
 ):
     settings.PLUGINS = [
         "tests.extensions.sample_plugins.PluginSample",
@@ -229,6 +229,6 @@ def test_plugins_query_with_filter(
         }
     """
     variables = {"filter": plugin_filter}
-    response = staff_api_client_with_permission.post_graphql(query, variables)
+    response = staff_api_client_can_manage_plugins.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert content["data"]["plugins"]["totalCount"] == count
