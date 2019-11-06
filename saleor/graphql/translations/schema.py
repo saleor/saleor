@@ -108,6 +108,7 @@ class TranslationQueries(graphene.ObjectType):
         ),
     )
 
+    # TODO Add tra
     def resolve_translations(self, info, kind, **_kwargs):
         if kind == TranslatableKinds.PRODUCT:
             return resolve_products(info)
@@ -134,42 +135,32 @@ class TranslationQueries(graphene.ObjectType):
 
     @permission_required("site.manage_translations")
     def resolve_translation(self, info, id, kind, **_kwargs):
-        # TODO Add other translatable items
+        # TODO add kind validation
+        _type, kind_id = graphene.Node.from_global_id(id)
         if kind == TranslatableKinds.PRODUCT:  # TODO test hidden data
-            _type, product_id = graphene.Node.from_global_id(id)
-            return Product.objects.filter(pk=product_id).first()
+            return Product.objects.filter(pk=kind_id).first()
         elif kind == TranslatableKinds.COLLECTION:  # TODO test hidden data
-            _type, collection_id = graphene.Node.from_global_id(id)
-            return Collection.objects.filter(pk=collection_id).first()
+            return Collection.objects.filter(pk=kind_id).first()
         elif kind == TranslatableKinds.CATEGORY:
-            _type, category_id = graphene.Node.from_global_id(id)
-            return Category.objects.filter(pk=category_id).first()
+            return Category.objects.filter(pk=kind_id).first()
         elif kind == TranslatableKinds.ATTRIBUTE:
-            _type, attribute_id = graphene.Node.from_global_id(id)
-            return Attribute.objects.filter(pk=attribute_id).first()
+            return Attribute.objects.filter(pk=kind_id).first()
         elif kind == TranslatableKinds.ATTRIBUTE_VALUE:
-            _type, attribute_value_id = graphene.Node.from_global_id(id)
-            return AttributeValue.objects.filter(pk=attribute_value_id).first()
+            return AttributeValue.objects.filter(pk=kind_id).first()
         elif kind == TranslatableKinds.VARIANT:  # TODO test hidden data
-            _type, product_variant_id = graphene.Node.from_global_id(id)
-            return ProductVariant.objects.filter(pk=product_variant_id).first()
+            return ProductVariant.objects.filter(pk=kind_id).first()
         elif kind == TranslatableKinds.PAGE:  # TODO test hidden data
-            _type, page_id = graphene.Node.from_global_id(id)
-            return Page.objects.filter(pk=page_id).first()
+            return Page.objects.filter(pk=kind_id).first()
             # TODO test data not visible without perms
             # TODO No dashbord options to create translation create issue
         elif kind == TranslatableKinds.SHIPPING_METHOD:
-            _type, shipping_method_id = graphene.Node.from_global_id(id)
-            return ShippingMethod.objects.filter(pk=shipping_method_id).first()
+            return ShippingMethod.objects.filter(pk=kind_id).first()
             # TODO test data not visible without perms
         elif kind == TranslatableKinds.SALE:
-            _type, sale_id = graphene.Node.from_global_id(id)
-            return Sale.objects.filter(pk=sale_id).first()
+            return Sale.objects.filter(pk=kind_id).first()
             # TODO test data not visible without perms
         elif kind == TranslatableKinds.VOUCHER:
-            _type, voucher_id = graphene.Node.from_global_id(id)
-            return Voucher.objects.filter(pk=voucher_id).first()
+            return Voucher.objects.filter(pk=kind_id).first()
             # TODO No dashbord options to create translation create issue
         elif kind == TranslatableKinds.MENU_ITEM:
-            _type, menu_item_id = graphene.Node.from_global_id(id)
-            return MenuItem.objects.filter(pk=menu_item_id).first()
+            return MenuItem.objects.filter(pk=kind_id).first()
