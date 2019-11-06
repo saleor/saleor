@@ -103,8 +103,8 @@ def start_payment(request, order, gateway):
         )
 
         if (
-            order.is_fully_paid()
-            or payment.charge_status == ChargeStatus.FULLY_REFUNDED
+                order.is_fully_paid()
+                or payment.charge_status == ChargeStatus.FULLY_REFUNDED
         ):
             return redirect(order.get_absolute_url())
 
@@ -212,11 +212,10 @@ def payu_notification(request, token):
     """Receive notification from payu gateway with order details.
     """
 
-    # TODO we need to clean up all the mess with tokens
+    payment_obj = Payment.objects.get(payment_token=token)
 
-    # payment = Payment.objects.get(payment_token=???)
-    # try:
-    #     payment_gateway.capture(payment)
-    # except Exception:
-    #     return HttpResponseBadRequest()
+    try:
+        payment_gateway.capture(payment_obj)
+    except Exception:
+        return HttpResponseBadRequest()
     return HttpResponse("OK")
