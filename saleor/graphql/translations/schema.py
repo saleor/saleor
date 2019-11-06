@@ -9,6 +9,7 @@ from ...product.models import (
     Product,
     ProductVariant,
 )
+from ...shipping.models import ShippingMethod
 from ..core.connection import CountableConnection
 from ..core.fields import BaseConnectionField
 from ..decorators import permission_required
@@ -59,6 +60,7 @@ class DefaultTranslationItem(graphene.Union):
             translation_types.AttributeValueStrings,
             translation_types.ProductVariantStrings,
             translation_types.PageStrings,
+            translation_types.ShippingMethodStrings,
         )
 
 
@@ -149,3 +151,8 @@ class TranslationQueries(graphene.ObjectType):
         elif kind == TranslatableKinds.PAGE:  # TODO test hidden data
             _type, page_id = graphene.Node.from_global_id(id)
             return Page.objects.filter(pk=page_id).first()
+            # TODO test data not visible without perms
+            # TODO No dashbord options to create translation create issue
+        elif kind == TranslatableKinds.SHIPPING_METHOD:
+            _type, shipping_method_id = graphene.Node.from_global_id(id)
+            return ShippingMethod.objects.filter(pk=shipping_method_id).first()
