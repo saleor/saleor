@@ -1,6 +1,7 @@
 import graphene
 
 from ...discount.models import Sale, Voucher
+from ...menu.models import MenuItem
 from ...page.models import Page
 from ...product.models import (
     Attribute,
@@ -64,6 +65,7 @@ class DefaultTranslationItem(graphene.Union):
             translation_types.ShippingMethodStrings,
             translation_types.SaleStrings,
             translation_types.VoucherStrings,
+            translation_types.MenuItemStrings,
         )
 
 
@@ -159,9 +161,15 @@ class TranslationQueries(graphene.ObjectType):
         elif kind == TranslatableKinds.SHIPPING_METHOD:
             _type, shipping_method_id = graphene.Node.from_global_id(id)
             return ShippingMethod.objects.filter(pk=shipping_method_id).first()
+            # TODO test data not visible without perms
         elif kind == TranslatableKinds.SALE:
             _type, sale_id = graphene.Node.from_global_id(id)
             return Sale.objects.filter(pk=sale_id).first()
+            # TODO test data not visible without perms
         elif kind == TranslatableKinds.VOUCHER:
             _type, voucher_id = graphene.Node.from_global_id(id)
             return Voucher.objects.filter(pk=voucher_id).first()
+            # TODO No dashbord options to create translation create issue
+        elif kind == TranslatableKinds.MENU_ITEM:
+            _type, menu_item_id = graphene.Node.from_global_id(id)
+            return MenuItem.objects.filter(pk=menu_item_id).first()
