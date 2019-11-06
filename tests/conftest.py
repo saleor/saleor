@@ -153,6 +153,17 @@ def checkout_with_gift_card(checkout_with_item, gift_card):
 
 
 @pytest.fixture
+def checkout_with_voucher_percentage_and_shipping(
+    checkout_with_voucher_percentage, shipping_method, address
+):
+    checkout = checkout_with_voucher_percentage
+    checkout.shipping_method = shipping_method
+    checkout.shipping_address = address
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture
 def address(db):  # pylint: disable=W0613
     return Address.objects.create(
         first_name="John",
@@ -785,6 +796,14 @@ def voucher_shipping_type():
     return Voucher.objects.create(
         code="mirumee", discount_value=10, type=VoucherType.SHIPPING, countries="IS"
     )
+
+
+@pytest.fixture
+def voucher_free_shipping(voucher_percentage):
+    voucher_percentage.type = VoucherType.SHIPPING
+    voucher_percentage.discount_value = 100
+    voucher_percentage.save()
+    return voucher_percentage
 
 
 @pytest.fixture
