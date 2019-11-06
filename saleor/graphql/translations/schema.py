@@ -1,5 +1,6 @@
 import graphene
 
+from ...discount.models import Sale
 from ...page.models import Page
 from ...product.models import (
     Attribute,
@@ -61,6 +62,7 @@ class DefaultTranslationItem(graphene.Union):
             translation_types.ProductVariantStrings,
             translation_types.PageStrings,
             translation_types.ShippingMethodStrings,
+            translation_types.SaleStrings,
         )
 
 
@@ -156,3 +158,6 @@ class TranslationQueries(graphene.ObjectType):
         elif kind == TranslatableKinds.SHIPPING_METHOD:
             _type, shipping_method_id = graphene.Node.from_global_id(id)
             return ShippingMethod.objects.filter(pk=shipping_method_id).first()
+        elif kind == TranslatableKinds.SALE:
+            _type, sale_id = graphene.Node.from_global_id(id)
+            return Sale.objects.filter(pk=sale_id).first()
