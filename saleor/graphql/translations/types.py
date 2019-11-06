@@ -436,6 +436,36 @@ class MenuItemTranslation(BaseTranslationType):
         only_fields = ["id", "name"]
 
 
+class MenuItemStrings(CountableDjangoObjectType):
+    translation = graphene.Field(
+        MenuItemTranslation,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            description="A language code to return the translation for.",
+            required=True,
+        ),
+        description=(
+            "Returns translated Menu item fields " "for the given language code."
+        ),
+        resolver=resolve_translation,
+    )
+    menu_item = graphene.Field(
+        "saleor.graphql.menu.types.MenuItem",
+        description=(
+            "Represents a single item of the related menu. Can store categories, "
+            "collection or pages."
+        ),
+    )
+
+    class Meta:
+        model = menu_models.MenuItem
+        interfaces = [graphene.relay.Node]
+        only_fields = ["id", "name"]
+
+    def resolve_menu_item(self, info):
+        return self
+
+
 class ShippingMethodTranslation(BaseTranslationType):
     class Meta:
         model = shipping_models.ShippingMethodTranslation
