@@ -4,7 +4,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-..
+- Fix problem with free shipping voucher - #4942 by @IKarbowiak
 
 ## 2.9.0
 
