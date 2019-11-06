@@ -355,6 +355,37 @@ class VoucherTranslation(BaseTranslationType):
         only_fields = ["id", "name"]
 
 
+class VoucherStrings(CountableDjangoObjectType):
+    translation = graphene.Field(
+        VoucherTranslation,
+        language_code=graphene.Argument(
+            LanguageCodeEnum,
+            description="A language code to return the translation for.",
+            required=True,
+        ),
+        description="Returns translated Voucher fields for the given language code.",
+        resolver=resolve_translation,
+    )
+    voucher = graphene.Field(
+        "saleor.graphql.discount.types.Voucher",
+        # TODO consider move description to variable.
+        description=(
+            "Vouchers allow giving discounts to particular customers on categories, "
+            "collections or specific products. They can be used during checkout by "
+            "providing valid voucher codes."
+        ),
+    )
+
+    class Meta:
+        model = discount_models.Voucher
+        interfaces = [graphene.relay.Node]
+        only_fields = ["id", "name"]
+
+    @permission_required("discount.manage_discounts")
+    def resolve_voucher(self, info):
+        return self
+
+
 class SaleTranslation(BaseTranslationType):
     class Meta:
         model = discount_models.SaleTranslation

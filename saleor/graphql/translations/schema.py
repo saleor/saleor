@@ -1,6 +1,6 @@
 import graphene
 
-from ...discount.models import Sale
+from ...discount.models import Sale, Voucher
 from ...page.models import Page
 from ...product.models import (
     Attribute,
@@ -63,6 +63,7 @@ class DefaultTranslationItem(graphene.Union):
             translation_types.PageStrings,
             translation_types.ShippingMethodStrings,
             translation_types.SaleStrings,
+            translation_types.VoucherStrings,
         )
 
 
@@ -161,3 +162,6 @@ class TranslationQueries(graphene.ObjectType):
         elif kind == TranslatableKinds.SALE:
             _type, sale_id = graphene.Node.from_global_id(id)
             return Sale.objects.filter(pk=sale_id).first()
+        elif kind == TranslatableKinds.VOUCHER:
+            _type, voucher_id = graphene.Node.from_global_id(id)
+            return Voucher.objects.filter(pk=voucher_id).first()
