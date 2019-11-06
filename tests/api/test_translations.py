@@ -1425,3 +1425,65 @@ def test_translation_query_product(
         assert data["product"]["name"] == product.name
     else:
         assert not data["product"]
+
+
+QUERY_TRANSLATION_COLLECTION = """
+    query translation(
+        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCodeEnum!
+    ){
+        translation(kind: $kind, id: $id){
+            __typename
+            ...on CollectionStrings{
+                id
+                name
+                translation(languageCode: $languageCode){
+                    name
+                }
+                collection{
+                    id
+                    name
+                }
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "is_published, perm_codenames, return_product",
+    [
+        (True, ["manage_translations"], True),
+        (False, ["manage_translations"], False),
+        (False, ["manage_translations", "manage_products"], True),
+    ],
+)
+def test_translation_query_collection(
+    staff_api_client,
+    collection,
+    collection_translation_fr,
+    is_published,
+    perm_codenames,
+    return_product,
+):
+    collection.is_published = is_published
+    collection.save()
+
+    collection_id = graphene.Node.to_global_id("Collection", collection.id)
+    perms = list(Permission.objects.filter(codename__in=perm_codenames))
+
+    variables = {
+        "id": collection_id,
+        "kind": TranslatableKinds.COLLECTION.name,
+        "languageCode": LanguageCodeEnum.FR.name,
+    }
+    response = staff_api_client.post_graphql(
+        QUERY_TRANSLATION_COLLECTION, variables, permissions=perms
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["translation"]
+    assert data["name"] == collection.name
+    assert data["translation"]["name"] == collection_translation_fr.name
+    if return_product:
+        assert data["collection"]["name"] == collection.name
+    else:
+        assert not data["collection"]
