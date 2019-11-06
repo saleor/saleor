@@ -57,9 +57,8 @@ def test_base_plugin__update_configuration_structure_configuration_has_change(
         "type": ConfigurationTypeField.STRING,
     }
     default_configuration = plugin._get_default_configuration()
-    default_configuration["configuration"].append(
-        {"name": "Private key", "value": "123457"}
-    )
+    private_key_dict = {"name": "Private key", "value": "123457"}
+    default_configuration["configuration"].append(private_key_dict)
     monkeypatch.setattr(
         "tests.extensions.plugins.test_plugins.PluginSample._get_default_configuration",
         lambda: default_configuration,
@@ -67,6 +66,8 @@ def test_base_plugin__update_configuration_structure_configuration_has_change(
     plugin._update_configuration_structure(plugin_configuration)
     plugin_configuration.refresh_from_db()
     assert len(old_configuration) + 1 == len(plugin_configuration.configuration)
+    old_configuration.append(private_key_dict)
+    assert old_configuration == plugin_configuration.configuration
 
 
 def test_base_plugin__append_config_structure_do_not_save_to_db(plugin_configuration):
@@ -79,3 +80,5 @@ def test_base_plugin__append_config_structure_do_not_save_to_db(plugin_configura
                 assert not elem == new_elem
     plugin_configuration.refresh_from_db()
     assert old_config == plugin_configuration.configuration
+    for elem in plugin_configuration.configuration:
+        assert set(elem.keys()) == {"name", "value"}
