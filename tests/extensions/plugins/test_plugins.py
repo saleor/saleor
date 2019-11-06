@@ -72,7 +72,6 @@ def test_base_plugin__update_configuration_structure_configuration_has_change(
 def test_base_plugin__append_config_structure_do_not_save_to_db(plugin_configuration):
     plugin = PluginSample()
     old_config = copy.deepcopy(plugin_configuration.configuration)
-    # print(type(old_config))
     plugin._append_config_structure(plugin_configuration.configuration)
     for elem in old_config:
         for new_elem in plugin_configuration.configuration:
