@@ -784,7 +784,11 @@ def recalculate_checkout_discount(checkout, discounts):
         else:
             manager = get_extensions_manager()
             subtotal = manager.calculate_checkout_subtotal(checkout, discounts).gross
-            checkout.discount = min(discount, subtotal)
+            checkout.discount = (
+                min(discount, subtotal)
+                if voucher.type != VoucherType.SHIPPING
+                else discount
+            )
             checkout.discount_name = str(voucher)
             checkout.translated_discount_name = (
                 voucher.translated.name
