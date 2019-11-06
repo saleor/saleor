@@ -138,7 +138,7 @@ class TranslationQueries(graphene.ObjectType):
         _type, kind_id = graphene.Node.from_global_id(id)
         if kind == TranslatableKinds.PRODUCT:
             return Product.objects.filter(pk=kind_id).first()
-        elif kind == TranslatableKinds.COLLECTION:  # TODO test hidden data
+        elif kind == TranslatableKinds.COLLECTION:
             return Collection.objects.filter(pk=kind_id).first()
         elif kind == TranslatableKinds.CATEGORY:
             return Category.objects.filter(pk=kind_id).first()
