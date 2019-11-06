@@ -97,7 +97,7 @@ def authorize(payment_information: PaymentData, config: GatewayConfig) -> Gatewa
             is_success=is_success,
             action_required=True,
             kind=TransactionKind.AUTH,
-            amount=Decimal(0),
+            amount=payment_information.amount,
             currency=payment_information.currency,
             transaction_id=gateway_response.get(
                 "orderId", payment_information.token
