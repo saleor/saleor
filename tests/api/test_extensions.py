@@ -2,11 +2,11 @@ import graphene
 import pytest
 
 from saleor.extensions import ConfigurationTypeField
-from saleor.extensions.base_plugin import BasePlugin
 from saleor.extensions.manager import get_extensions_manager
 from saleor.extensions.models import PluginConfiguration
 from tests.api.utils import get_graphql_content
-from tests.extensions.helpers import PluginSample, get_config_value
+from tests.extensions.helpers import get_config_value
+from tests.extensions.sample_plugins import PluginSample
 
 
 @pytest.fixture
@@ -18,7 +18,7 @@ def staff_api_client_with_permission(staff_api_client, permission_manage_plugins
 def test_query_plugin_configurations(staff_api_client_with_permission, settings):
 
     # Enable test plugin
-    settings.PLUGINS = ["tests.api.test_extensions.PluginSample"]
+    settings.PLUGINS = ["tests.extensions.sample_plugins.PluginSample"]
     query = """
         {
           plugins(first:1){
@@ -76,7 +76,7 @@ def test_query_plugin_configurations(staff_api_client_with_permission, settings)
 
 
 def test_query_plugin_configuration(staff_api_client_with_permission, settings):
-    settings.PLUGINS = ["tests.api.test_extensions.PluginSample"]
+    settings.PLUGINS = ["tests.extensions.sample_plugins.PluginSample"]
     manager = get_extensions_manager()
     plugin_configuration = manager.get_plugin_configuration("PluginSample")
     configuration_id = graphene.Node.to_global_id("Plugin", plugin_configuration.pk)
@@ -148,7 +148,7 @@ def test_plugin_configuration_update(
     staff_api_client_with_permission, settings, active, updated_configuration_item
 ):
 
-    settings.PLUGINS = ["tests.api.test_extensions.PluginSample"]
+    settings.PLUGINS = ["tests.extensions.sample_plugins.PluginSample"]
     manager = get_extensions_manager()
     plugin = manager.get_plugin_configuration(plugin_name="PluginSample")
     old_configuration = plugin.configuration
@@ -178,7 +178,7 @@ def test_plugin_configuration_update(
 def test_plugin_update_saves_boolean_as_boolean(
     staff_api_client_with_permission, settings
 ):
-    settings.PLUGINS = ["tests.api.test_extensions.PluginSample"]
+    settings.PLUGINS = ["tests.extensions.sample_plugins.PluginSample"]
     manager = get_extensions_manager()
     plugin = manager.get_plugin_configuration(plugin_name="PluginSample")
     use_sandbox = get_config_value("Use sandbox", plugin.configuration)
@@ -198,40 +198,6 @@ def test_plugin_update_saves_boolean_as_boolean(
     assert type(use_sandbox) == type(use_sandbox_new_value)
 
 
-class Plugin2Inactive(BasePlugin):
-    PLUGIN_NAME = "Plugin2Inactive"
-
-    @classmethod
-    def get_plugin_configuration(cls, queryset) -> "PluginConfiguration":
-        qs = queryset.filter(name="Plugin2Inactive")
-        if qs.exists():
-            return qs[0]
-        defaults = {
-            "name": "Plugin2Inactive",
-            "description": "Test plugin description_2",
-            "active": False,
-            "configuration": [],
-        }
-        return PluginConfiguration.objects.create(**defaults)
-
-
-class Active(BasePlugin):
-    PLUGIN_NAME = "Plugin1"
-
-    @classmethod
-    def get_plugin_configuration(cls, queryset) -> "PluginConfiguration":
-        qs = queryset.filter(name="Active")
-        if qs.exists():
-            return qs[0]
-        defaults = {
-            "name": "Active",
-            "description": "Not working",
-            "active": True,
-            "configuration": [],
-        }
-        return PluginConfiguration.objects.create(**defaults)
-
-
 @pytest.mark.parametrize(
     "plugin_filter, count",
     [
@@ -246,9 +212,9 @@ def test_plugins_query_with_filter(
     plugin_filter, count, staff_api_client_with_permission, settings
 ):
     settings.PLUGINS = [
-        "tests.api.test_extensions.PluginSample",
-        "tests.api.test_extensions.Plugin2Inactive",
-        "tests.api.test_extensions.Active",
+        "tests.extensions.sample_plugins.PluginSample",
+        "tests.extensions.sample_plugins.Plugin2Inactive",
+        "tests.extensions.sample_plugins.Active",
     ]
     query = """
         query ($filter: PluginFilterInput) {
