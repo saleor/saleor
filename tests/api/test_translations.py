@@ -1531,3 +1531,48 @@ def test_translation_query_category(
     assert data["name"] == category.name
     assert data["translation"]["name"] == category_translation_fr.name
     assert data["category"]["name"] == category.name
+
+
+QUERY_TRANSLATION_ATTRIBUTE = """
+    query translation(
+        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCodeEnum!
+    ){
+        translation(kind: $kind, id: $id){
+            __typename
+            ...on AttributeStrings{
+                id
+                name
+                translation(languageCode: $languageCode){
+                    name
+                }
+                attribute {
+                    id
+                    name
+                }
+            }
+        }
+    }
+"""
+
+
+def test_translation_query_attribute(
+    staff_api_client, translated_attribute, permission_manage_translations
+):
+    attribute = translated_attribute.attribute
+    attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
+
+    variables = {
+        "id": attribute_id,
+        "kind": TranslatableKinds.ATTRIBUTE.name,
+        "languageCode": LanguageCodeEnum.FR.name,
+    }
+    response = staff_api_client.post_graphql(
+        QUERY_TRANSLATION_ATTRIBUTE,
+        variables,
+        permissions=[permission_manage_translations],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["translation"]
+    assert data["name"] == attribute.name
+    assert data["translation"]["name"] == translated_attribute.name
+    assert data["attribute"]["name"] == attribute.name
