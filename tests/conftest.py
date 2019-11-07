@@ -51,6 +51,7 @@ from saleor.product.models import (
     ProductTranslation,
     ProductType,
     ProductVariant,
+    ProductVariantTranslation,
 )
 from saleor.product.utils.attributes import associate_attribute_values_to_instance
 from saleor.shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
@@ -1296,6 +1297,13 @@ def product_translation_fr(product):
         product=product,
         name="French name",
         description="French description",
+    )
+
+
+@pytest.fixture
+def variant_translation_fr(variant):
+    return ProductVariantTranslation.objects.create(
+        language_code="fr", product_variant=variant, name="French product variant name"
     )
 
 

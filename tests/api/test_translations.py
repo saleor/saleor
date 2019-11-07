@@ -1625,3 +1625,66 @@ def test_translation_query_attribute_value(
     assert data["name"] == pink_attribute_value.name
     assert data["translation"]["name"] == translated_attribute_value.name
     assert data["attributeValue"]["name"] == pink_attribute_value.name
+
+
+QUERY_TRANSLATION_VARIANT = """
+    query translation(
+        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCodeEnum!
+    ){
+        translation(kind: $kind, id: $id){
+            __typename
+            ...on ProductVariantStrings{
+                id
+                name
+                translation(languageCode: $languageCode){
+                    name
+                }
+                productVariant {
+                    id
+                    name
+                }
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "is_published, perm_codenames, return_product",
+    [
+        (True, ["manage_translations"], True),
+        (False, ["manage_translations"], False),
+        (False, ["manage_translations", "manage_products"], True),
+    ],
+)
+def test_translation_query_variant(
+    staff_api_client,
+    product,
+    variant,
+    variant_translation_fr,
+    is_published,
+    perm_codenames,
+    return_product,
+):
+    product.is_published = is_published
+    product.save()
+
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    perms = list(Permission.objects.filter(codename__in=perm_codenames))
+
+    variables = {
+        "id": variant_id,
+        "kind": TranslatableKinds.VARIANT.name,
+        "languageCode": LanguageCodeEnum.FR.name,
+    }
+    response = staff_api_client.post_graphql(
+        QUERY_TRANSLATION_VARIANT, variables, permissions=perms
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["translation"]
+    assert data["name"] == variant.name
+    assert data["translation"]["name"] == variant_translation_fr.name
+    if return_product:
+        assert data["productVariant"]["name"] == variant.name
+    else:
+        assert not data["productVariant"]
