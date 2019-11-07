@@ -49,6 +49,24 @@ def validate_attribute_input_for_variant(instance: models.Attribute, values: Lis
         )
 
 
+def get_used_attibute_values_for_variant(variant):
+    """Create a dict of attributes values for variant.
+
+    Sample result is:
+    {
+        "attribute_1_global_id": ["ValueAttr1_1"],
+        "attribute_2_global_id": ["ValueAttr2_1"]
+    }
+    """
+    attribute_values = defaultdict(list)
+    for assigned_variant_attribute in variant.attributes.all():
+        attribute = assigned_variant_attribute.attribute
+        attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
+        for variant in assigned_variant_attribute.values.all():
+            attribute_values[attribute_id].append(variant.slug)
+    return attribute_values
+
+
 def get_used_variants_attribute_values(product):
     """Create list of attributes values for all existing `ProductVariants` for product.
 
@@ -72,11 +90,6 @@ def get_used_variants_attribute_values(product):
     )
     used_attribute_values = []
     for variant in variants:
-        attribute_values = defaultdict(list)
-        for assigned_variant_attribute in variant.attributes.all():
-            attribute = assigned_variant_attribute.attribute
-            attribute_id = graphene.Node.to_global_id("Attribute", attribute.id)
-            for variant in assigned_variant_attribute.values.all():
-                attribute_values[attribute_id].append(variant.slug)
+        attribute_values = get_used_attibute_values_for_variant(variant)
         used_attribute_values.append(attribute_values)
     return used_attribute_values
