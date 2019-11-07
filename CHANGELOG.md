@@ -4,7 +4,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-..
+- Add sub-categories to random data - #4949 by @IKarbowiak
 
 ## 2.9.0
 
