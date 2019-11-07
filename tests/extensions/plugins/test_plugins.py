@@ -6,13 +6,12 @@ from tests.extensions.helpers import get_config_value
 from tests.extensions.sample_plugins import PluginSample
 
 
-def test_update_config_items_keeps_bool_value():
+def test_update_config_items_keeps_bool_value(plugin_configuration):
     data_to_update = [
         {"name": "Username", "value": "new_admin@example.com"},
         {"name": "Use sandbox", "value": False},
     ]
     plugin_sample = PluginSample()
-    plugin_sample._initialize_plugin_configuration()
     qs = PluginConfiguration.objects.all()
     configuration = PluginSample.get_plugin_configuration(qs)
     plugin_sample._update_config_items(data_to_update, configuration.configuration)
