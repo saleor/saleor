@@ -146,7 +146,7 @@ class TranslationQueries(graphene.ObjectType):
             return Attribute.objects.filter(pk=kind_id).first()
         elif kind == TranslatableKinds.ATTRIBUTE_VALUE:
             return AttributeValue.objects.filter(pk=kind_id).first()
-        elif kind == TranslatableKinds.VARIANT:  # TODO test hidden data
+        elif kind == TranslatableKinds.VARIANT:
             return ProductVariant.objects.filter(pk=kind_id).first()
         elif kind == TranslatableKinds.PAGE:  # TODO test hidden data
             return Page.objects.filter(pk=kind_id).first()
