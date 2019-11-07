@@ -148,7 +148,7 @@ class TranslationQueries(graphene.ObjectType):
             return AttributeValue.objects.filter(pk=kind_id).first()
         elif kind == TranslatableKinds.VARIANT:
             return ProductVariant.objects.filter(pk=kind_id).first()
-        elif kind == TranslatableKinds.PAGE:  # TODO test hidden data
+        elif kind == TranslatableKinds.PAGE:
             return Page.objects.filter(pk=kind_id).first()
             # TODO test data not visible without perms
             # TODO No dashbord options to create translation create issue

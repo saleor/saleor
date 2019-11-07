@@ -1688,3 +1688,65 @@ def test_translation_query_variant(
         assert data["productVariant"]["name"] == variant.name
     else:
         assert not data["productVariant"]
+
+
+QUERY_TRANSLATION_PAGE = """
+    query translation(
+        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCodeEnum!
+    ){
+        translation(kind: $kind, id: $id){
+            __typename
+            ...on PageStrings{
+                id
+                title
+                translation(languageCode: $languageCode){
+                    title
+                }
+                page {
+                    id
+                    title
+                }
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "is_published, perm_codenames, return_product",
+    [
+        (True, ["manage_translations"], True),
+        (False, ["manage_translations"], False),
+        (False, ["manage_translations", "manage_pages"], True),
+    ],
+)
+def test_translation_query_page(
+    staff_api_client,
+    page,
+    page_translation_fr,
+    is_published,
+    perm_codenames,
+    return_product,
+):
+    page.is_published = is_published
+    page.save()
+
+    page_id = graphene.Node.to_global_id("Page", page.id)
+    perms = list(Permission.objects.filter(codename__in=perm_codenames))
+
+    variables = {
+        "id": page_id,
+        "kind": TranslatableKinds.PAGE.name,
+        "languageCode": LanguageCodeEnum.FR.name,
+    }
+    response = staff_api_client.post_graphql(
+        QUERY_TRANSLATION_PAGE, variables, permissions=perms
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["translation"]
+    assert data["title"] == page.title
+    assert data["translation"]["title"] == page_translation_fr.title
+    if return_product:
+        assert data["page"]["title"] == page.title
+    else:
+        assert not data["page"]
