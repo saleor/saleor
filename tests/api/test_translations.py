@@ -1809,3 +1809,56 @@ def test_translation_query_shipping_method(
         assert data["shippingMethod"]["name"] == shipping_method.name
     else:
         assert not data["shippingMethod"]
+
+
+QUERY_TRANSLATION_SALE = """
+    query translation(
+        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCodeEnum!
+    ){
+        translation(kind: $kind, id: $id){
+            __typename
+            ...on SaleStrings{
+                id
+                name
+                translation(languageCode: $languageCode){
+                    name
+                }
+                sale {
+                    id
+                    name
+                }
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "perm_codenames, return_sale",
+    [
+        (["manage_translations"], False),
+        (["manage_translations", "manage_discounts"], True),
+    ],
+)
+def test_translation_query_sale(
+    staff_api_client, sale, sale_translation_fr, perm_codenames, return_sale
+):
+    sale_id = graphene.Node.to_global_id("Sale", sale.id)
+    perms = list(Permission.objects.filter(codename__in=perm_codenames))
+
+    variables = {
+        "id": sale_id,
+        "kind": TranslatableKinds.SALE.name,
+        "languageCode": LanguageCodeEnum.FR.name,
+    }
+    response = staff_api_client.post_graphql(
+        QUERY_TRANSLATION_SALE, variables, permissions=perms
+    )
+    content = get_graphql_content(response, ignore_errors=True)
+    data = content["data"]["translation"]
+    assert data["name"] == sale.name
+    assert data["translation"]["name"] == sale_translation_fr.name
+    if return_sale:
+        assert data["sale"]["name"] == sale.name
+    else:
+        assert not data["sale"]

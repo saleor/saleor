@@ -22,7 +22,13 @@ from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
 from saleor.core.payments import PaymentInterface
 from saleor.discount import DiscountInfo, DiscountValueType, VoucherType
-from saleor.discount.models import Sale, Voucher, VoucherCustomer, VoucherTranslation
+from saleor.discount.models import (
+    Sale,
+    SaleTranslation,
+    Voucher,
+    VoucherCustomer,
+    VoucherTranslation,
+)
 from saleor.giftcard.models import GiftCard
 from saleor.menu.models import Menu, MenuItem
 from saleor.menu.utils import update_menu
@@ -1348,6 +1354,13 @@ def shipping_method_translation_fr(shipping_method):
         language_code="fr",
         shipping_method=shipping_method,
         name="French shipping method name",
+    )
+
+
+@pytest.fixture
+def sale_translation_fr(sale):
+    return SaleTranslation.objects.create(
+        language_code="fr", sale=sale, name="French sale name"
     )
 
 
