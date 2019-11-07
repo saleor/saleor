@@ -1862,3 +1862,56 @@ def test_translation_query_sale(
         assert data["sale"]["name"] == sale.name
     else:
         assert not data["sale"]
+
+
+QUERY_TRANSLATION_VOUCHER = """
+    query translation(
+        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCodeEnum!
+    ){
+        translation(kind: $kind, id: $id){
+            __typename
+            ...on VoucherStrings{
+                id
+                name
+                translation(languageCode: $languageCode){
+                    name
+                }
+                voucher {
+                    id
+                    name
+                }
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "perm_codenames, return_voucher",
+    [
+        (["manage_translations"], False),
+        (["manage_translations", "manage_discounts"], True),
+    ],
+)
+def test_translation_query_voucher(
+    staff_api_client, voucher, voucher_translation_fr, perm_codenames, return_voucher
+):
+    voucher_id = graphene.Node.to_global_id("Sale", voucher.id)
+    perms = list(Permission.objects.filter(codename__in=perm_codenames))
+
+    variables = {
+        "id": voucher_id,
+        "kind": TranslatableKinds.VOUCHER.name,
+        "languageCode": LanguageCodeEnum.FR.name,
+    }
+    response = staff_api_client.post_graphql(
+        QUERY_TRANSLATION_VOUCHER, variables, permissions=perms
+    )
+    content = get_graphql_content(response, ignore_errors=True)
+    data = content["data"]["translation"]
+    assert data["name"] == voucher.name
+    assert data["translation"]["name"] == voucher_translation_fr.name
+    if return_voucher:
+        assert data["voucher"]["name"] == voucher.name
+    else:
+        assert not data["voucher"]
