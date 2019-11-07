@@ -40,6 +40,7 @@ from saleor.product.models import (
     AttributeTranslation,
     AttributeValue,
     Category,
+    CategoryTranslation,
     Collection,
     CollectionTranslation,
     DigitalContent,
@@ -1295,6 +1296,16 @@ def collection_translation_fr(collection):
         collection=collection,
         name="French collection name",
         description="French description",
+    )
+
+
+@pytest.fixture
+def category_translation_fr(category):
+    return CategoryTranslation.objects.create(
+        language_code="fr",
+        category=category,
+        name="French category name",
+        description="French category description",
     )
 
 

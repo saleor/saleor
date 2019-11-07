@@ -1487,3 +1487,47 @@ def test_translation_query_collection(
         assert data["collection"]["name"] == collection.name
     else:
         assert not data["collection"]
+
+
+QUERY_TRANSLATION_CATEGORY = """
+    query translation(
+        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCodeEnum!
+    ){
+        translation(kind: $kind, id: $id){
+            __typename
+            ...on CategoryStrings{
+                id
+                name
+                translation(languageCode: $languageCode){
+                    name
+                }
+                category {
+                    id
+                    name
+                }
+            }
+        }
+    }
+"""
+
+
+def test_translation_query_category(
+    staff_api_client, category, category_translation_fr, permission_manage_translations
+):
+    category_id = graphene.Node.to_global_id("Category", category.id)
+
+    variables = {
+        "id": category_id,
+        "kind": TranslatableKinds.CATEGORY.name,
+        "languageCode": LanguageCodeEnum.FR.name,
+    }
+    response = staff_api_client.post_graphql(
+        QUERY_TRANSLATION_CATEGORY,
+        variables,
+        permissions=[permission_manage_translations],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["translation"]
+    assert data["name"] == category.name
+    assert data["translation"]["name"] == category_translation_fr.name
+    assert data["category"]["name"] == category.name
