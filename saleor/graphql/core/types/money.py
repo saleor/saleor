@@ -8,7 +8,11 @@ class Money(graphene.ObjectType):
     currency = graphene.String(description="Currency code.", required=True)
     amount = graphene.Float(description="Amount of money.", required=True)
     localized = graphene.String(
-        description="Money formatted according to the current locale.", required=True
+        description="Money formatted according to the current locale.",
+        required=True,
+        deprecation_reason="DEPRECATED: Will be removed in Saleor 2.11. "
+        "Price formatting according to the current locale will be "
+        "handled by the frontend client.",
     )
 
     class Meta:
