@@ -10,7 +10,7 @@ from saleor.extensions.models import PluginConfiguration
 from tests.extensions.sample_plugins import (
     ActivePaymentGateway,
     InactivePaymentGateway,
-    Plugin2Inactive,
+    PluginInactive,
     PluginSample,
 )
 
@@ -192,7 +192,7 @@ def test_manager_get_tax_rate_percentage_value(plugins, amount, product):
 def test_manager_get_plugin_configurations():
     plugins = [
         "tests.extensions.sample_plugins.PluginSample",
-        "tests.extensions.sample_plugins.Plugin2Inactive",
+        "tests.extensions.sample_plugins.PluginInactive",
     ]
     manager = ExtensionsManager(plugins=plugins)
     configurations = manager.get_plugin_configurations()
@@ -203,7 +203,7 @@ def test_manager_get_plugin_configurations():
 def test_manager_get_plugin_configuration(plugin_configuration):
     plugins = [
         "tests.extensions.sample_plugins.PluginSample",
-        "tests.extensions.sample_plugins.Plugin2Inactive",
+        "tests.extensions.sample_plugins.PluginInactive",
     ]
     manager = ExtensionsManager(plugins=plugins)
     configuration = manager.get_plugin_configuration(plugin_name="PluginSample")
@@ -260,17 +260,17 @@ def test_plugin_add_new_configuration(
     @classmethod
     def new_default_configuration(cls):
         defaults = {
-            "name": "Plugin2Inactive",
+            "name": "PluginInactive",
             "description": "",
             "active": True,
             "configuration": [new_config],
         }
         return defaults
 
-    Plugin2Inactive._get_default_configuration = new_default_configuration
-    Plugin2Inactive.CONFIG_STRUCTURE["Foo"] = new_config_structure
+    PluginInactive._get_default_configuration = new_default_configuration
+    PluginInactive.CONFIG_STRUCTURE["Foo"] = new_config_structure
     config = manager_with_plugin_without_configuration_enabled.get_plugin_configuration(
-        plugin_name="Plugin2Inactive"
+        plugin_name="PluginInactive"
     )
     config.refresh_from_db()
     assert len(config.configuration) == 1

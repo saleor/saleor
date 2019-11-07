@@ -93,21 +93,21 @@ class PluginSample(BasePlugin):
         return Decimal("15.0").quantize(Decimal("1."))
 
 
-class Plugin2Inactive(BasePlugin):
-    PLUGIN_NAME = "Plugin2Inactive"
+class PluginInactive(BasePlugin):
+    PLUGIN_NAME = "PluginInactive"
     CONFIG_STRUCTURE = {}
 
     @classmethod
     def _get_default_configuration(cls):
         return {
-            "name": "Plugin2Inactive",
+            "name": "PluginInactive",
             "description": "Test plugin description_2",
             "active": False,
             "configuration": [],
         }
 
 
-class Active(BasePlugin):
+class ActivePlugin(BasePlugin):
     PLUGIN_NAME = "Plugin1"
 
     @classmethod
