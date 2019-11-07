@@ -39,6 +39,7 @@ from saleor.product.models import (
     Attribute,
     AttributeTranslation,
     AttributeValue,
+    AttributeValueTranslation,
     Category,
     CategoryTranslation,
     Collection,
@@ -1268,7 +1269,16 @@ def translated_variant_fr(product):
 def translated_attribute(product):
     attribute = product.product_type.product_attributes.first()
     return AttributeTranslation.objects.create(
-        language_code="fr", attribute=attribute, name="Name tranlsated to french"
+        language_code="fr", attribute=attribute, name="French attribute name"
+    )
+
+
+@pytest.fixture
+def translated_attribute_value(pink_attribute_value):
+    return AttributeValueTranslation.objects.create(
+        language_code="fr",
+        attribute_value=pink_attribute_value,
+        name="French attribute value name",
     )
 
 

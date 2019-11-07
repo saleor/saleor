@@ -1576,3 +1576,52 @@ def test_translation_query_attribute(
     assert data["name"] == attribute.name
     assert data["translation"]["name"] == translated_attribute.name
     assert data["attribute"]["name"] == attribute.name
+
+
+QUERY_TRANSLATION_ATTRIBUTE_VALUE = """
+    query translation(
+        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCodeEnum!
+    ){
+        translation(kind: $kind, id: $id){
+            __typename
+            ...on AttributeValueStrings{
+                id
+                name
+                translation(languageCode: $languageCode){
+                    name
+                }
+                attributeValue {
+                    id
+                    name
+                }
+            }
+        }
+    }
+"""
+
+
+def test_translation_query_attribute_value(
+    staff_api_client,
+    pink_attribute_value,
+    translated_attribute_value,
+    permission_manage_translations,
+):
+    attribute_value_id = graphene.Node.to_global_id(
+        "AttributeValue", pink_attribute_value.id
+    )
+
+    variables = {
+        "id": attribute_value_id,
+        "kind": TranslatableKinds.ATTRIBUTE_VALUE.name,
+        "languageCode": LanguageCodeEnum.FR.name,
+    }
+    response = staff_api_client.post_graphql(
+        QUERY_TRANSLATION_ATTRIBUTE_VALUE,
+        variables,
+        permissions=[permission_manage_translations],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["translation"]
+    assert data["name"] == pink_attribute_value.name
+    assert data["translation"]["name"] == translated_attribute_value.name
+    assert data["attributeValue"]["name"] == pink_attribute_value.name
