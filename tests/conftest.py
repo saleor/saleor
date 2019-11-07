@@ -30,7 +30,7 @@ from saleor.discount.models import (
     VoucherTranslation,
 )
 from saleor.giftcard.models import GiftCard
-from saleor.menu.models import Menu, MenuItem
+from saleor.menu.models import Menu, MenuItem, MenuItemTranslation
 from saleor.menu.utils import update_menu
 from saleor.order import OrderStatus
 from saleor.order.actions import fulfill_order_line
@@ -1361,6 +1361,13 @@ def shipping_method_translation_fr(shipping_method):
 def sale_translation_fr(sale):
     return SaleTranslation.objects.create(
         language_code="fr", sale=sale, name="French sale name"
+    )
+
+
+@pytest.fixture
+def menu_item_translation_fr(menu_item):
+    return MenuItemTranslation.objects.create(
+        language_code="fr", menu_item=menu_item, name="French manu item name"
     )
 
 

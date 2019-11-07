@@ -1915,3 +1915,50 @@ def test_translation_query_voucher(
         assert data["voucher"]["name"] == voucher.name
     else:
         assert not data["voucher"]
+
+
+QUERY_TRANSLATION_MENU_ITEM = """
+    query translation(
+        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCodeEnum!
+    ){
+        translation(kind: $kind, id: $id){
+            __typename
+            ...on MenuItemStrings{
+                id
+                name
+                translation(languageCode: $languageCode){
+                    name
+                }
+                menuItem {
+                    id
+                    name
+                }
+            }
+        }
+    }
+"""
+
+
+def test_translation_query_menu_item(
+    staff_api_client,
+    menu_item,
+    menu_item_translation_fr,
+    permission_manage_translations,
+):
+    menu_item_id = graphene.Node.to_global_id("MenuItem", menu_item.id)
+
+    variables = {
+        "id": menu_item_id,
+        "kind": TranslatableKinds.MENU_ITEM.name,
+        "languageCode": LanguageCodeEnum.FR.name,
+    }
+    response = staff_api_client.post_graphql(
+        QUERY_TRANSLATION_MENU_ITEM,
+        variables,
+        permissions=[permission_manage_translations],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["translation"]
+    assert data["name"] == menu_item.name
+    assert data["translation"]["name"] == menu_item_translation_fr.name
+    assert data["menuItem"]["name"] == menu_item.name
