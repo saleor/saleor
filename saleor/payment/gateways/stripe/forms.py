@@ -1,12 +1,6 @@
 from django import forms
-from django.core.exceptions import ValidationError
-from django.utils.translation import pgettext_lazy
 
-from ...error_codes import PaymentErrorCode
-
-from ...interface import (
-    PaymentData,
-)
+from ...interface import PaymentData
 
 class StripePaymentForm(forms.Form):
     payment_method_id = forms.CharField()
