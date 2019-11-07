@@ -11,7 +11,7 @@ class Money(graphene.ObjectType):
         description="Money formatted according to the current locale.",
         required=True,
         deprecation_reason="DEPRECATED: Will be removed in Saleor 2.11. "
-        "Price formatting according to the current locale will be "
+        "Price formatting according to the current locale should be "
         "handled by the frontend client.",
     )
 
