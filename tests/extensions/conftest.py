@@ -10,7 +10,7 @@ from tests.extensions.sample_plugins import Plugin2Inactive, PluginSample
 def plugin_configuration(db):
     plugin = PluginSample()
     configuration, _ = PluginConfiguration.objects.get_or_create(
-        name=plugin.PLUGIN_NAME, defaults=plugin._get_default_configuration()
+        name=PluginSample.PLUGIN_NAME, defaults=plugin._get_default_configuration()
     )
     return configuration
 
@@ -19,7 +19,7 @@ def plugin_configuration(db):
 def inactive_plugin_configuration(db):
     plugin = Plugin2Inactive()
     return PluginConfiguration.objects.get_or_create(
-        name=plugin.PLUGIN_NAME, defaults=[plugin._get_default_configuration()]
+        name=Plugin2Inactive.PLUGIN_NAME, defaults=[plugin._get_default_configuration()]
     )[0]
 
 
