@@ -80,9 +80,9 @@ def create_form(data, payment_information, connection_params):
     )
 
 
-def get_client(public_key: str, secret_key: str, **_):
+def get_client(public_key: str, private_key: str, **_):
     """Create a Razorpay client from set-up application keys."""
-    razorpay_client = razorpay.Client(auth=(public_key, secret_key))
+    razorpay_client = razorpay.Client(auth=(public_key, private_key))
     return razorpay_client
 
 
