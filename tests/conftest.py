@@ -54,7 +54,12 @@ from saleor.product.models import (
     ProductVariantTranslation,
 )
 from saleor.product.utils.attributes import associate_attribute_values_to_instance
-from saleor.shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
+from saleor.shipping.models import (
+    ShippingMethod,
+    ShippingMethodTranslation,
+    ShippingMethodType,
+    ShippingZone,
+)
 from saleor.site import AuthenticationBackends
 from saleor.site.models import AuthorizationKey, SiteSettings
 from saleor.webhook import WebhookEventType
@@ -1334,6 +1339,15 @@ def page_translation_fr(page):
         page=page,
         title="French page title",
         content="French page content",
+    )
+
+
+@pytest.fixture
+def shipping_method_translation_fr(shipping_method):
+    return ShippingMethodTranslation.objects.create(
+        language_code="fr",
+        shipping_method=shipping_method,
+        name="French shipping method name",
     )
 
 

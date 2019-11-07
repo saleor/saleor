@@ -1450,7 +1450,7 @@ QUERY_TRANSLATION_COLLECTION = """
 
 
 @pytest.mark.parametrize(
-    "is_published, perm_codenames, return_product",
+    "is_published, perm_codenames, return_collection",
     [
         (True, ["manage_translations"], True),
         (False, ["manage_translations"], False),
@@ -1463,7 +1463,7 @@ def test_translation_query_collection(
     collection_translation_fr,
     is_published,
     perm_codenames,
-    return_product,
+    return_collection,
 ):
     collection.is_published = is_published
     collection.save()
@@ -1483,7 +1483,7 @@ def test_translation_query_collection(
     data = content["data"]["translation"]
     assert data["name"] == collection.name
     assert data["translation"]["name"] == collection_translation_fr.name
-    if return_product:
+    if return_collection:
         assert data["collection"]["name"] == collection.name
     else:
         assert not data["collection"]
@@ -1650,7 +1650,7 @@ QUERY_TRANSLATION_VARIANT = """
 
 
 @pytest.mark.parametrize(
-    "is_published, perm_codenames, return_product",
+    "is_published, perm_codenames, return_variant",
     [
         (True, ["manage_translations"], True),
         (False, ["manage_translations"], False),
@@ -1664,7 +1664,7 @@ def test_translation_query_variant(
     variant_translation_fr,
     is_published,
     perm_codenames,
-    return_product,
+    return_variant,
 ):
     product.is_published = is_published
     product.save()
@@ -1684,7 +1684,7 @@ def test_translation_query_variant(
     data = content["data"]["translation"]
     assert data["name"] == variant.name
     assert data["translation"]["name"] == variant_translation_fr.name
-    if return_product:
+    if return_variant:
         assert data["productVariant"]["name"] == variant.name
     else:
         assert not data["productVariant"]
@@ -1713,7 +1713,7 @@ QUERY_TRANSLATION_PAGE = """
 
 
 @pytest.mark.parametrize(
-    "is_published, perm_codenames, return_product",
+    "is_published, perm_codenames, return_page",
     [
         (True, ["manage_translations"], True),
         (False, ["manage_translations"], False),
@@ -1726,7 +1726,7 @@ def test_translation_query_page(
     page_translation_fr,
     is_published,
     perm_codenames,
-    return_product,
+    return_page,
 ):
     page.is_published = is_published
     page.save()
@@ -1746,7 +1746,66 @@ def test_translation_query_page(
     data = content["data"]["translation"]
     assert data["title"] == page.title
     assert data["translation"]["title"] == page_translation_fr.title
-    if return_product:
+    if return_page:
         assert data["page"]["title"] == page.title
     else:
         assert not data["page"]
+
+
+QUERY_TRANSLATION_SHIPPING_METHOD = """
+    query translation(
+        $kind: TranslatableKinds!, $id: ID!, $languageCode: LanguageCodeEnum!
+    ){
+        translation(kind: $kind, id: $id){
+            __typename
+            ...on ShippingMethodStrings{
+                id
+                name
+                translation(languageCode: $languageCode){
+                    name
+                }
+                shippingMethod {
+                    id
+                    name
+                }
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "perm_codenames, return_shipping_method",
+    [
+        (["manage_translations"], False),
+        (["manage_translations", "manage_shipping"], True),
+    ],
+)
+def test_translation_query_shipping_method(
+    staff_api_client,
+    shipping_method,
+    shipping_method_translation_fr,
+    perm_codenames,
+    return_shipping_method,
+):
+    shipping_method_id = graphene.Node.to_global_id(
+        "ShippingMethod", shipping_method.id
+    )
+    perms = list(Permission.objects.filter(codename__in=perm_codenames))
+
+    variables = {
+        "id": shipping_method_id,
+        "kind": TranslatableKinds.SHIPPING_METHOD.name,
+        "languageCode": LanguageCodeEnum.FR.name,
+    }
+    response = staff_api_client.post_graphql(
+        QUERY_TRANSLATION_SHIPPING_METHOD, variables, permissions=perms
+    )
+    content = get_graphql_content(response, ignore_errors=True)
+    data = content["data"]["translation"]
+    assert data["name"] == shipping_method.name
+    assert data["translation"]["name"] == shipping_method_translation_fr.name
+    if return_shipping_method:
+        assert data["shippingMethod"]["name"] == shipping_method.name
+    else:
+        assert not data["shippingMethod"]
