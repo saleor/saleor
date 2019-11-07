@@ -221,7 +221,11 @@ def test_manager_save_plugin_configuration(plugin_configuration):
 
 
 def test_plugin_updates_configuration_shape(
-    new_config, new_config_structure, manager_with_plugin_enabled, plugin_configuration
+    new_config,
+    new_config_structure,
+    manager_with_plugin_enabled,
+    plugin_configuration,
+    monkeypatch,
 ):
     @classmethod
     def new_default_configuration(cls):
@@ -233,7 +237,10 @@ def test_plugin_updates_configuration_shape(
         }
         return defaults
 
-    PluginSample._get_default_configuration = new_default_configuration
+    monkeypatch.setattr(
+        "tests.extensions.sample_plugins.PluginSample._get_default_configuration",
+        new_default_configuration,
+    )
     PluginSample.CONFIG_STRUCTURE["Foo"] = new_config_structure
 
     configuration = manager_with_plugin_enabled.get_plugin_configuration(
