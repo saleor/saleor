@@ -31,7 +31,7 @@ from saleor.order.actions import fulfill_order_line
 from saleor.order.events import OrderEvents
 from saleor.order.models import FulfillmentStatus, Order, OrderEvent
 from saleor.order.utils import recalculate_order
-from saleor.page.models import Page
+from saleor.page.models import Page, PageTranslation
 from saleor.payment import ChargeStatus, TransactionKind
 from saleor.payment.models import Payment
 from saleor.product import AttributeInputType
@@ -1324,6 +1324,16 @@ def category_translation_fr(category):
         category=category,
         name="French category name",
         description="French category description",
+    )
+
+
+@pytest.fixture
+def page_translation_fr(page):
+    return PageTranslation.objects.create(
+        language_code="fr",
+        page=page,
+        title="French page title",
+        content="French page content",
     )
 
 
