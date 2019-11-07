@@ -215,8 +215,8 @@ def test_plugins_query_with_filter(
 ):
     settings.PLUGINS = [
         "tests.extensions.sample_plugins.PluginSample",
-        "tests.extensions.sample_plugins.Plugin2Inactive",
-        "tests.extensions.sample_plugins.Active",
+        "tests.extensions.sample_plugins.PluginInactive",
+        "tests.extensions.sample_plugins.ActivePlugin",
     ]
     query = """
         query ($filter: PluginFilterInput) {

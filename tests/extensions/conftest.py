@@ -3,7 +3,7 @@ import pytest
 from saleor.extensions import ConfigurationTypeField
 from saleor.extensions.manager import ExtensionsManager
 from saleor.extensions.models import PluginConfiguration
-from tests.extensions.sample_plugins import Plugin2Inactive, PluginSample
+from tests.extensions.sample_plugins import PluginInactive, PluginSample
 
 
 @pytest.fixture
@@ -17,9 +17,9 @@ def plugin_configuration(db):
 
 @pytest.fixture
 def inactive_plugin_configuration(db):
-    plugin = Plugin2Inactive()
+    plugin = PluginInactive()
     return PluginConfiguration.objects.get_or_create(
-        name=Plugin2Inactive.PLUGIN_NAME, defaults=[plugin._get_default_configuration()]
+        name=PluginInactive.PLUGIN_NAME, defaults=[plugin._get_default_configuration()]
     )[0]
 
 
@@ -43,7 +43,7 @@ def manager_with_plugin_enabled():
 
 @pytest.fixture
 def manager_with_plugin_without_configuration_enabled():
-    plugins = ["tests.extensions.sample_plugins.Plugin2Inactive"]
+    plugins = ["tests.extensions.sample_plugins.PluginInactive"]
     manager = ExtensionsManager(plugins=plugins)
-    manager.get_plugin_configuration(plugin_name="Plugin2Inactive")
+    manager.get_plugin_configuration(plugin_name="PluginInactive")
     return manager
