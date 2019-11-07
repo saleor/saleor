@@ -83,8 +83,11 @@ class RazorpayGatewayPlugin(BasePlugin):
                 connection_params={
                     "public_key": configuration["Public API key"],
                     "private_key": configuration["Secret API key"],
+                    "prefill": True,
+                    "store_name": None,
+                    "store_image": None,
                 },
-                template_path="",
+                template_path=configuration["Template path"],
                 store_customer=configuration["Store customers card"],
             )
 
@@ -146,3 +149,8 @@ class RazorpayGatewayPlugin(BasePlugin):
             payment_information,
             connection_params=self._get_gateway_config().connection_params,
         )
+
+    @require_active_plugin
+    def get_payment_config(self, previous_value):
+        config = self._get_gateway_config()
+        return [{"field": "api_key", "value": config.connection_params["public_key"]}]
