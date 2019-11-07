@@ -155,7 +155,6 @@ class TranslationQueries(graphene.ObjectType):
             return ShippingMethod.objects.filter(pk=kind_id).first()
         elif kind == TranslatableKinds.SALE:
             return Sale.objects.filter(pk=kind_id).first()
-            # TODO test data not visible without perms
         elif kind == TranslatableKinds.VOUCHER:
             return Voucher.objects.filter(pk=kind_id).first()
             # TODO No dashbord options to create translation create issue
