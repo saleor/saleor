@@ -54,7 +54,7 @@ class AttributeValueTranslatableContent(CountableDjangoObjectType):
             required=True,
         ),
         description=(
-            "Returns translated Attribute Value fields " "for the given language code."
+            "Returns translated Attribute Value fields for the given language code."
         ),
         resolver=resolve_translation,
     )
@@ -88,7 +88,7 @@ class AttributeTranslatableContent(CountableDjangoObjectType):
             required=True,
         ),
         description=(
-            "Returns translated Attribute fields " "for the given language code."
+            "Returns translated Attribute fields for the given language code."
         ),
         resolver=resolve_translation,
     )
@@ -122,7 +122,7 @@ class ProductVariantTranslatableContent(CountableDjangoObjectType):
             required=True,
         ),
         description=(
-            "Returns translated Product Variant fields " "for the given language code."
+            "Returns translated Product Variant fields for the given language code."
         ),
         resolver=resolve_translation,
     )
@@ -220,7 +220,7 @@ class CollectionTranslatableContent(CountableDjangoObjectType):
             required=True,
         ),
         description=(
-            "Returns translated Collection fields " "for the given language code."
+            "Returns translated Collection fields for the given language code."
         ),
         resolver=resolve_translation,
     )
@@ -482,7 +482,7 @@ class ShippingMethodTranslatableContent(CountableDjangoObjectType):
             required=True,
         ),
         description=(
-            "Returns translated shipping method fields " "for the given language code."
+            "Returns translated shipping method fields for the given language code."
         ),
         resolver=resolve_translation,
     )
