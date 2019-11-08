@@ -9,7 +9,7 @@ class WarehouseForm(forms.ModelForm):
         fields = [
             "name",
             "company_name",
-            "shipping_region",
+            "shipping_zones",
             "street_address",
             "city",
             "postal_code",

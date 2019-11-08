@@ -10,7 +10,7 @@ from saleor.shipping.models import ShippingZone
 
 
 class Warehouse(models.Model):
-    uuid = models.UUIDField(default=uuid.uuid4(), primary_key=True)
+    uuid = models.UUIDField(default=uuid.uuid4, primary_key=True)
     name = models.CharField(
         pgettext_lazy("Warehouse field description", "Warehouse name"), max_length=50
     )
@@ -19,22 +19,18 @@ class Warehouse(models.Model):
         max_length=100,
     )
 
-    shipping_region = models.ManyToManyField(ShippingZone)
+    shipping_zones = models.ManyToManyField(ShippingZone)
 
     street_address = models.CharField(
         pgettext_lazy("Warehouse field description", "Street name"), max_length=256
     )
-    city = models.CharField(max_length=256, blank=True)
+    city = models.CharField(max_length=256)
     postal_code = models.CharField(
-        pgettext_lazy("Warehouse field description", "Zip code"),
-        max_length=20,
-        blank=True,
+        pgettext_lazy("Warehouse field description", "Zip code"), max_length=20
     )
     country = CountryField()
     country_area = models.CharField(
-        pgettext_lazy("Warehouse field description", "State/province"),
-        max_length=128,
-        blank=True,
+        pgettext_lazy("Warehouse field description", "State/province"), max_length=128
     )
 
     email = models.EmailField(
