@@ -76,15 +76,15 @@ class TranslatableItemConnection(CountableConnection):
 
 class TranslatableKinds(graphene.Enum):
     ATTRIBUTE = "Attribute"
-    ATTRIBUTE_VALUE = "Attribute value"
+    ATTRIBUTE_VALUE = "AttributeValue"
     CATEGORY = "Category"
     COLLECTION = "Collection"
-    MENU_ITEM = "Menu item"
+    MENU_ITEM = "MenuItem"
     PAGE = "Page"
     PRODUCT = "Product"
     SALE = "Sale"
-    SHIPPING_METHOD = "Shipping method"
-    VARIANT = "Variant"
+    SHIPPING_METHOD = "ShippingMethod"
+    VARIANT = "ProductVariant"
     VOUCHER = "Voucher"
 
 
@@ -97,7 +97,6 @@ class TranslationQueries(graphene.ObjectType):
             TranslatableKinds, required=True, description="Kind of objects to retrieve."
         ),
     )
-    # TODO Add test for this query
     translation = graphene.Field(
         DefaultTranslationItem,
         id=graphene.Argument(
@@ -134,8 +133,9 @@ class TranslationQueries(graphene.ObjectType):
 
     @permission_required("site.manage_translations")
     def resolve_translation(self, info, id, kind, **_kwargs):
-        # TODO add kind validation
         _type, kind_id = graphene.Node.from_global_id(id)
+        if not _type == kind:
+            return None
         if kind == TranslatableKinds.PRODUCT:
             return Product.objects.filter(pk=kind_id).first()
         elif kind == TranslatableKinds.COLLECTION:

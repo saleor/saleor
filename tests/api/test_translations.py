@@ -4,7 +4,7 @@ from django.contrib.auth.models import Permission
 
 from saleor.graphql.translations.schema import TranslatableKinds
 from saleor.graphql.translations.types import LanguageCodeEnum
-from tests.api.utils import get_graphql_content
+from tests.api.utils import assert_no_permission, get_graphql_content
 
 
 def test_product_translation(user_api_client, product):
@@ -1896,7 +1896,7 @@ QUERY_TRANSLATION_VOUCHER = """
 def test_translation_query_voucher(
     staff_api_client, voucher, voucher_translation_fr, perm_codenames, return_voucher
 ):
-    voucher_id = graphene.Node.to_global_id("Sale", voucher.id)
+    voucher_id = graphene.Node.to_global_id("Voucher", voucher.id)
     perms = list(Permission.objects.filter(codename__in=perm_codenames))
 
     variables = {
@@ -1962,3 +1962,34 @@ def test_translation_query_menu_item(
     assert data["name"] == menu_item.name
     assert data["translation"]["name"] == menu_item_translation_fr.name
     assert data["menuItem"]["name"] == menu_item.name
+
+
+def test_translation_query_incorrect_kind(
+    staff_api_client, menu_item, permission_manage_translations
+):
+    menu_item_id = graphene.Node.to_global_id("MenuItem", menu_item.id)
+
+    variables = {
+        "id": menu_item_id,
+        "kind": TranslatableKinds.PRODUCT.name,
+        "languageCode": LanguageCodeEnum.FR.name,
+    }
+    response = staff_api_client.post_graphql(
+        QUERY_TRANSLATION_MENU_ITEM,
+        variables,
+        permissions=[permission_manage_translations],
+    )
+    content = get_graphql_content(response)
+    assert not content["data"]["translation"]
+
+
+def test_translation_query_no_permission(staff_api_client, menu_item):
+    menu_item_id = graphene.Node.to_global_id("MenuItem", menu_item.id)
+
+    variables = {
+        "id": menu_item_id,
+        "kind": TranslatableKinds.MENU_ITEM.name,
+        "languageCode": LanguageCodeEnum.FR.name,
+    }
+    response = staff_api_client.post_graphql(QUERY_TRANSLATION_MENU_ITEM, variables)
+    assert_no_permission(response)
