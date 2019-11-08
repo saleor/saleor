@@ -6,14 +6,14 @@ from ..utils import filter_by_query_param
 PAGE_SEARCH_FIELDS = ("content", "slug", "title")
 
 
-def resolve_page(info, page_global_id=None, slug=None):
-    assert page_global_id or slug, "No page ID or slug provided."
+def resolve_page(info, global_page_id=None, slug=None):
+    assert global_page_id or slug, "No page ID or slug provided."
     user = info.context.user
 
     if slug is not None:
         page = models.Page.objects.visible_to_user(user).filter(slug=slug).first()
     else:
-        _type, page_pk = graphene.Node.from_global_id(page_global_id)
+        _type, page_pk = graphene.Node.from_global_id(global_page_id)
         page = models.Page.objects.visible_to_user(user).filter(pk=page_pk).first()
     return page
 

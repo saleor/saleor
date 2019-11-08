@@ -51,21 +51,22 @@ class TranslatableItem(graphene.Union):
         )
 
 
-# TODO Consider name of this class, maby we should replace TranslatableItem
+# TODO Consider name of this class, we should replace to TranslatableItem after
+# `translations` query refactor. Issue #4957
 class DefaultTranslationItem(graphene.Union):
     class Meta:
         types = (
-            translation_types.ProductStrings,
-            translation_types.CollectionStrings,
-            translation_types.CategoryStrings,
-            translation_types.AttributeStrings,
-            translation_types.AttributeValueStrings,
-            translation_types.ProductVariantStrings,
-            translation_types.PageStrings,
-            translation_types.ShippingMethodStrings,
-            translation_types.SaleStrings,
-            translation_types.VoucherStrings,
-            translation_types.MenuItemStrings,
+            translation_types.ProductTranslatableContent,
+            translation_types.CollectionTranslatableContent,
+            translation_types.CategoryTranslatableContent,
+            translation_types.AttributeTranslatableContent,
+            translation_types.AttributeValueTranslatableContent,
+            translation_types.ProductVariantTranslatableContent,
+            translation_types.PageTranslatableContent,
+            translation_types.ShippingMethodTranslatableContent,
+            translation_types.SaleTranslatableContent,
+            translation_types.VoucherTranslatableContent,
+            translation_types.MenuItemTranslatableContent,
         )
 
 
@@ -89,7 +90,7 @@ class TranslatableKinds(graphene.Enum):
 
 
 class TranslationQueries(graphene.ObjectType):
-    # TODO We nead to change output of this query to new types
+    # TODO We nead to change output of this query to new types. Issue #4957
     translations = BaseConnectionField(
         TranslatableItemConnection,
         description="Returns a list of all translatable items of a given kind.",
@@ -133,30 +134,22 @@ class TranslationQueries(graphene.ObjectType):
 
     @permission_required("site.manage_translations")
     def resolve_translation(self, info, id, kind, **_kwargs):
+        # Disable all the no-member violations in this function
+        # pylint: disable=no-member
         _type, kind_id = graphene.Node.from_global_id(id)
         if not _type == kind:
             return None
-        if kind == TranslatableKinds.PRODUCT:
-            return Product.objects.filter(pk=kind_id).first()
-        elif kind == TranslatableKinds.COLLECTION:
-            return Collection.objects.filter(pk=kind_id).first()
-        elif kind == TranslatableKinds.CATEGORY:
-            return Category.objects.filter(pk=kind_id).first()
-        elif kind == TranslatableKinds.ATTRIBUTE:
-            return Attribute.objects.filter(pk=kind_id).first()
-        elif kind == TranslatableKinds.ATTRIBUTE_VALUE:
-            return AttributeValue.objects.filter(pk=kind_id).first()
-        elif kind == TranslatableKinds.VARIANT:
-            return ProductVariant.objects.filter(pk=kind_id).first()
-        elif kind == TranslatableKinds.PAGE:
-            return Page.objects.filter(pk=kind_id).first()
-            # TODO No dashbord options to create translation create issue
-        elif kind == TranslatableKinds.SHIPPING_METHOD:
-            return ShippingMethod.objects.filter(pk=kind_id).first()
-        elif kind == TranslatableKinds.SALE:
-            return Sale.objects.filter(pk=kind_id).first()
-        elif kind == TranslatableKinds.VOUCHER:
-            return Voucher.objects.filter(pk=kind_id).first()
-            # TODO No dashbord options to create translation create issue
-        elif kind == TranslatableKinds.MENU_ITEM:
-            return MenuItem.objects.filter(pk=kind_id).first()
+        models = {
+            TranslatableKinds.PRODUCT.value: Product,
+            TranslatableKinds.COLLECTION.value: Collection,
+            TranslatableKinds.CATEGORY.value: Category,
+            TranslatableKinds.ATTRIBUTE.value: Attribute,
+            TranslatableKinds.ATTRIBUTE_VALUE.value: AttributeValue,
+            TranslatableKinds.VARIANT.value: ProductVariant,
+            TranslatableKinds.PAGE.value: Page,
+            TranslatableKinds.SHIPPING_METHOD.value: ShippingMethod,
+            TranslatableKinds.SALE.value: Sale,
+            TranslatableKinds.VOUCHER.value: Voucher,
+            TranslatableKinds.MENU_ITEM.value: MenuItem,
+        }
+        return models[kind].objects.filter(pk=kind_id).first()
