@@ -1371,7 +1371,7 @@ QUERY_TRANSLATION_PRODUCT = """
     ){
         translation(kind: $kind, id: $id){
             __typename
-            ...on ProductStrings{
+            ...on ProductTranslatableContent{
                 id
                 name
                 translation(languageCode: $languageCode){
@@ -1433,7 +1433,7 @@ QUERY_TRANSLATION_COLLECTION = """
     ){
         translation(kind: $kind, id: $id){
             __typename
-            ...on CollectionStrings{
+            ...on CollectionTranslatableContent{
                 id
                 name
                 translation(languageCode: $languageCode){
@@ -1495,7 +1495,7 @@ QUERY_TRANSLATION_CATEGORY = """
     ){
         translation(kind: $kind, id: $id){
             __typename
-            ...on CategoryStrings{
+            ...on CategoryTranslatableContent{
                 id
                 name
                 translation(languageCode: $languageCode){
@@ -1539,7 +1539,7 @@ QUERY_TRANSLATION_ATTRIBUTE = """
     ){
         translation(kind: $kind, id: $id){
             __typename
-            ...on AttributeStrings{
+            ...on AttributeTranslatableContent{
                 id
                 name
                 translation(languageCode: $languageCode){
@@ -1584,7 +1584,7 @@ QUERY_TRANSLATION_ATTRIBUTE_VALUE = """
     ){
         translation(kind: $kind, id: $id){
             __typename
-            ...on AttributeValueStrings{
+            ...on AttributeValueTranslatableContent{
                 id
                 name
                 translation(languageCode: $languageCode){
@@ -1633,7 +1633,7 @@ QUERY_TRANSLATION_VARIANT = """
     ){
         translation(kind: $kind, id: $id){
             __typename
-            ...on ProductVariantStrings{
+            ...on ProductVariantTranslatableContent{
                 id
                 name
                 translation(languageCode: $languageCode){
@@ -1696,7 +1696,7 @@ QUERY_TRANSLATION_PAGE = """
     ){
         translation(kind: $kind, id: $id){
             __typename
-            ...on PageStrings{
+            ...on PageTranslatableContent{
                 id
                 title
                 translation(languageCode: $languageCode){
@@ -1758,7 +1758,7 @@ QUERY_TRANSLATION_SHIPPING_METHOD = """
     ){
         translation(kind: $kind, id: $id){
             __typename
-            ...on ShippingMethodStrings{
+            ...on ShippingMethodTranslatableContent{
                 id
                 name
                 translation(languageCode: $languageCode){
@@ -1817,7 +1817,7 @@ QUERY_TRANSLATION_SALE = """
     ){
         translation(kind: $kind, id: $id){
             __typename
-            ...on SaleStrings{
+            ...on SaleTranslatableContent{
                 id
                 name
                 translation(languageCode: $languageCode){
@@ -1870,7 +1870,7 @@ QUERY_TRANSLATION_VOUCHER = """
     ){
         translation(kind: $kind, id: $id){
             __typename
-            ...on VoucherStrings{
+            ...on VoucherTranslatableContent{
                 id
                 name
                 translation(languageCode: $languageCode){
@@ -1923,7 +1923,7 @@ QUERY_TRANSLATION_MENU_ITEM = """
     ){
         translation(kind: $kind, id: $id){
             __typename
-            ...on MenuItemStrings{
+            ...on MenuItemTranslatableContent{
                 id
                 name
                 translation(languageCode: $languageCode){

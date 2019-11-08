@@ -322,7 +322,7 @@ input AttributeSortingInput {
   direction: OrderDirection!
 }
 
-type AttributeStrings implements Node {
+type AttributeTranslatableContent implements Node {
   id: ID!
   name: String!
   translation(languageCode: LanguageCodeEnum!): AttributeTranslation
@@ -421,7 +421,7 @@ input AttributeValueInput {
   values: [String]!
 }
 
-type AttributeValueStrings implements Node {
+type AttributeValueTranslatableContent implements Node {
   id: ID!
   name: String!
   translation(languageCode: LanguageCodeEnum!): AttributeValueTranslation
@@ -570,7 +570,7 @@ input CategoryInput {
   backgroundImageAlt: String
 }
 
-type CategoryStrings implements Node {
+type CategoryTranslatableContent implements Node {
   seoTitle: String
   seoDescription: String
   id: ID!
@@ -950,7 +950,7 @@ type CollectionReorderProducts {
   productErrors: [ProductError!]
 }
 
-type CollectionStrings implements Node {
+type CollectionTranslatableContent implements Node {
   seoTitle: String
   seoDescription: String
   id: ID!
@@ -1398,7 +1398,7 @@ input DateTimeRangeInput {
 
 scalar Decimal
 
-union DefaultTranslationItem = ProductStrings | CollectionStrings | CategoryStrings | AttributeStrings | AttributeValueStrings | ProductVariantStrings | PageStrings | ShippingMethodStrings | SaleStrings | VoucherStrings | MenuItemStrings
+union DefaultTranslationItem = ProductTranslatableContent | CollectionTranslatableContent | CategoryTranslatableContent | AttributeTranslatableContent | AttributeValueTranslatableContent | ProductVariantTranslatableContent | PageTranslatableContent | ShippingMethodTranslatableContent | SaleTranslatableContent | VoucherTranslatableContent | MenuItemTranslatableContent
 
 type DigitalContent implements Node {
   useDefaultSettings: Boolean!
@@ -1990,7 +1990,7 @@ input MenuItemMoveInput {
   sortOrder: Int
 }
 
-type MenuItemStrings implements Node {
+type MenuItemTranslatableContent implements Node {
   id: ID!
   name: String!
   translation(languageCode: LanguageCodeEnum!): MenuItemTranslation
@@ -2696,7 +2696,7 @@ input PageInput {
   seo: SeoInput
 }
 
-type PageStrings implements Node {
+type PageTranslatableContent implements Node {
   seoTitle: String
   seoDescription: String
   id: ID!
@@ -2709,7 +2709,7 @@ type PageStrings implements Node {
 
 type PageTranslate {
   errors: [Error!]
-  page: PageStrings
+  page: PageTranslatableContent
 }
 
 type PageTranslation implements Node {
@@ -3138,7 +3138,7 @@ type ProductPricingInfo {
   priceRangeLocalCurrency: TaxedMoneyRange
 }
 
-type ProductStrings implements Node {
+type ProductTranslatableContent implements Node {
   id: ID!
   seoTitle: String
   seoDescription: String
@@ -3397,7 +3397,7 @@ input ProductVariantInput {
   weight: WeightScalar
 }
 
-type ProductVariantStrings implements Node {
+type ProductVariantTranslatableContent implements Node {
   id: ID!
   name: String!
   translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
@@ -3590,7 +3590,7 @@ type SaleRemoveCatalogues {
   sale: Sale
 }
 
-type SaleStrings implements Node {
+type SaleTranslatableContent implements Node {
   id: ID!
   name: String!
   translation(languageCode: LanguageCodeEnum!): SaleTranslation
@@ -3752,7 +3752,7 @@ type ShippingMethod implements Node {
   translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
 }
 
-type ShippingMethodStrings implements Node {
+type ShippingMethodTranslatableContent implements Node {
   id: ID!
   name: String!
   translation(languageCode: LanguageCodeEnum!): ShippingMethodTranslation
@@ -4369,7 +4369,7 @@ type VoucherRemoveCatalogues {
   voucher: Voucher
 }
 
-type VoucherStrings implements Node {
+type VoucherTranslatableContent implements Node {
   id: ID!
   name: String
   translation(languageCode: LanguageCodeEnum!): VoucherTranslation

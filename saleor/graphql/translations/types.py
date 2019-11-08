@@ -45,7 +45,7 @@ class AttributeValueTranslation(BaseTranslationType):
         only_fields = ["id", "name"]
 
 
-class AttributeValueStrings(CountableDjangoObjectType):
+class AttributeValueTranslatableContent(CountableDjangoObjectType):
     translation = graphene.Field(
         AttributeValueTranslation,
         language_code=graphene.Argument(
@@ -79,7 +79,7 @@ class AttributeTranslation(BaseTranslationType):
         only_fields = ["id", "name"]
 
 
-class AttributeStrings(CountableDjangoObjectType):
+class AttributeTranslatableContent(CountableDjangoObjectType):
     translation = graphene.Field(
         AttributeTranslation,
         language_code=graphene.Argument(
@@ -113,7 +113,7 @@ class ProductVariantTranslation(BaseTranslationType):
         only_fields = ["id", "name"]
 
 
-class ProductVariantStrings(CountableDjangoObjectType):
+class ProductVariantTranslatableContent(CountableDjangoObjectType):
     translation = graphene.Field(
         ProductVariantTranslation,
         language_code=graphene.Argument(
@@ -161,7 +161,7 @@ class ProductTranslation(BaseTranslationType):
         ]
 
 
-class ProductStrings(CountableDjangoObjectType):
+class ProductTranslatableContent(CountableDjangoObjectType):
     translation = graphene.Field(
         ProductTranslation,
         language_code=graphene.Argument(
@@ -211,7 +211,7 @@ class CollectionTranslation(BaseTranslationType):
         ]
 
 
-class CollectionStrings(CountableDjangoObjectType):
+class CollectionTranslatableContent(CountableDjangoObjectType):
     translation = graphene.Field(
         CollectionTranslation,
         language_code=graphene.Argument(
@@ -263,7 +263,7 @@ class CategoryTranslation(BaseTranslationType):
         ]
 
 
-class CategoryStrings(CountableDjangoObjectType):
+class CategoryTranslatableContent(CountableDjangoObjectType):
     translation = graphene.Field(
         CategoryTranslation,
         language_code=graphene.Argument(
@@ -309,7 +309,7 @@ class PageTranslation(BaseTranslationType):
         ]
 
 
-class PageStrings(CountableDjangoObjectType):
+class PageTranslatableContent(CountableDjangoObjectType):
     translation = graphene.Field(
         PageTranslation,
         language_code=graphene.Argument(
@@ -355,7 +355,7 @@ class VoucherTranslation(BaseTranslationType):
         only_fields = ["id", "name"]
 
 
-class VoucherStrings(CountableDjangoObjectType):
+class VoucherTranslatableContent(CountableDjangoObjectType):
     translation = graphene.Field(
         VoucherTranslation,
         language_code=graphene.Argument(
@@ -368,7 +368,7 @@ class VoucherStrings(CountableDjangoObjectType):
     )
     voucher = graphene.Field(
         "saleor.graphql.discount.types.Voucher",
-        # TODO consider move description to variable.
+        # TODO consider move description to variable. Issue #4957
         description=(
             "Vouchers allow giving discounts to particular customers on categories, "
             "collections or specific products. They can be used during checkout by "
@@ -393,7 +393,7 @@ class SaleTranslation(BaseTranslationType):
         only_fields = ["id", "name"]
 
 
-class SaleStrings(CountableDjangoObjectType):
+class SaleTranslatableContent(CountableDjangoObjectType):
     translation = graphene.Field(
         SaleTranslation,
         language_code=graphene.Argument(
@@ -436,7 +436,7 @@ class MenuItemTranslation(BaseTranslationType):
         only_fields = ["id", "name"]
 
 
-class MenuItemStrings(CountableDjangoObjectType):
+class MenuItemTranslatableContent(CountableDjangoObjectType):
     translation = graphene.Field(
         MenuItemTranslation,
         language_code=graphene.Argument(
@@ -445,7 +445,7 @@ class MenuItemStrings(CountableDjangoObjectType):
             required=True,
         ),
         description=(
-            "Returns translated Menu item fields " "for the given language code."
+            "Returns translated Menu item fields for the given language code."
         ),
         resolver=resolve_translation,
     )
@@ -473,7 +473,7 @@ class ShippingMethodTranslation(BaseTranslationType):
         only_fields = ["id", "name"]
 
 
-class ShippingMethodStrings(CountableDjangoObjectType):
+class ShippingMethodTranslatableContent(CountableDjangoObjectType):
     translation = graphene.Field(
         ShippingMethodTranslation,
         language_code=graphene.Argument(
