@@ -968,7 +968,7 @@ type ConfigurationItem {
 
 input ConfigurationItemInput {
   name: String!
-  value: String!
+  value: String
 }
 
 enum ConfigurationTypeFieldEnum {
