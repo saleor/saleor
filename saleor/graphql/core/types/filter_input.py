@@ -52,20 +52,14 @@ class FilterInputObjectType(InputObjectType):
         cls.filterset_class = get_filterset_class(cls.custom_filterset_class, **meta)
 
         args = {}
-        descriptions = {}
-        deprecations = {}
         for name, filter_field in six.iteritems(cls.filterset_class.base_filters):
             input_class = getattr(filter_field, "input_class", None)
             if input_class:
                 field_type = convert_form_field(filter_field)
             else:
                 field_type = convert_form_field(filter_field.field)
-                field_type.description = filter_field.label
+                field_type.description = getattr(filter_field, "help_text", "")
             kwargs = getattr(field_type, "kwargs", {})
             field_type.kwargs = kwargs
             args[name] = field_type
-            descriptions[name] = getattr(filter_field, "description", None)
-            deprecations[name] = getattr(filter_field, "deprecation_reason", None)
-        args["descriptions"] = descriptions
-        args["deprecations"] = deprecations
         return args
