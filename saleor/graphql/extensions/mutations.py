@@ -9,7 +9,7 @@ from .types import Plugin
 class ConfigurationItemInput(graphene.InputObjectType):
     name = graphene.String(required=True, description="Name of the field to update.")
     value = graphene.String(
-        required=True, description="Value of the given field to update."
+        required=False, description="Value of the given field to update."
     )
 
 
