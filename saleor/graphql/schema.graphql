@@ -2860,7 +2860,7 @@ type Product implements Node {
   name: String!
   description: String!
   descriptionJson: JSONString!
-  category: Category!
+  category: Category
   updatedAt: DateTime
   chargeTaxes: Boolean!
   weight: Weight
