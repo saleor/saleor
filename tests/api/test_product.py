@@ -321,6 +321,50 @@ def test_products_query_with_filter_category(
     assert products[0]["node"]["name"] == second_product.name
 
 
+def test_products_query_with_filter_has_category_false(
+    query_products_with_filter, staff_api_client, product, permission_manage_products
+):
+    second_product = product
+    second_product.category = None
+    second_product.id = None
+    second_product.save()
+
+    variables = {"filter": {"hasCategory": False}}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    second_product_id = graphene.Node.to_global_id("Product", second_product.id)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == second_product_id
+    assert products[0]["node"]["name"] == second_product.name
+
+
+def test_products_query_with_filter_has_category_true(
+    query_products_with_filter,
+    staff_api_client,
+    product_without_category,
+    permission_manage_products,
+):
+    category = Category.objects.create(name="Custom", slug="custom")
+    second_product = product_without_category
+    second_product.category = category
+    second_product.id = None
+    second_product.save()
+
+    variables = {"filter": {"hasCategory": True}}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    second_product_id = graphene.Node.to_global_id("Product", second_product.id)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == second_product_id
+    assert products[0]["node"]["name"] == second_product.name
+
+
 def test_products_query_with_filter_collection(
     query_products_with_filter,
     staff_api_client,
