@@ -1,6 +1,6 @@
-from typing import List, Optional
-
 import logging
+
+from typing import List, Optional
 
 import stripe
 
@@ -13,6 +13,7 @@ from ...interface import (
     PaymentData,
     TokenConfig,
 )
+from .forms import StripePaymentForm
 from .utils import (
     get_amount_for_stripe,
     get_amount_from_stripe,
@@ -20,9 +21,9 @@ from .utils import (
     get_currency_from_stripe,
     shipping_to_stripe_dict,
 )
-from .forms import StripePaymentForm
 
 logger = logging.getLogger(__name__)
+
 
 def create_form(data, payment_information):
     return StripePaymentForm(

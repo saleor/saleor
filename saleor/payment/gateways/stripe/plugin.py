@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List
+from typing import List, TYPE_CHECKING
 
 from django.utils.translation import pgettext_lazy
 
@@ -99,7 +99,6 @@ class StripeGatewayPlugin(BasePlugin):
                 store_customer=configuration["Store customers card"],
             )
 
-
     @classmethod
     def _hide_secret_configuration_fields(cls, configuration):
         secret_fields = ["Public API key", "Secret API key"]
@@ -132,7 +131,6 @@ class StripeGatewayPlugin(BasePlugin):
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
         return authorize(payment_information, self._get_gateway_config())
-
 
     @require_active_plugin
     def capture_payment(
@@ -187,4 +185,3 @@ class StripeGatewayPlugin(BasePlugin):
     @require_active_plugin
     def get_payment_template(self, previous_value) -> str:
         return self._get_gateway_config().template_path
-
