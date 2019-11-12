@@ -1,6 +1,6 @@
 import uuid
 from datetime import date, timedelta
-from unittest.mock import MagicMock, Mock
+from unittest.mock import ANY, MagicMock, Mock
 
 import graphene
 import pytest
@@ -10,6 +10,7 @@ from prices import Money, TaxedMoney
 
 from saleor.account.models import CustomerEvent
 from saleor.core.taxes import zero_taxed_money
+from saleor.extensions.manager import ExtensionsManager
 from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.order.mutations.orders import (
     clean_order_cancel,
@@ -209,6 +210,57 @@ def test_order_query(
         method["minimumOrderPrice"]["amount"]
     )
     assert expected_method.type.upper() == method["type"]
+
+
+@pytest.mark.parametrize(
+    "expected_price_type, expected_price, display_gross_prices",
+    (("gross", 13, True), ("net", 10, False)),
+)
+def test_order_available_shipping_methods_query(
+    expected_price_type,
+    expected_price,
+    display_gross_prices,
+    monkeypatch,
+    staff_api_client,
+    permission_manage_orders,
+    fulfilled_order,
+    shipping_zone,
+    site_settings,
+):
+    query = """
+    query OrdersQuery {
+        orders(first: 1) {
+            edges {
+                node {
+                    availableShippingMethods {
+                        id
+                        price {
+                            amount
+                        }
+                        type
+                    }
+                }
+            }
+        }
+    }
+    """
+    shipping_method = shipping_zone.shipping_methods.first()
+    taxed_price = TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD"))
+    apply_taxes_to_shipping_mock = Mock(return_value=taxed_price)
+    monkeypatch.setattr(
+        ExtensionsManager, "apply_taxes_to_shipping", apply_taxes_to_shipping_mock
+    )
+    site_settings.display_gross_prices = display_gross_prices
+    site_settings.save()
+
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    order_data = content["data"]["orders"]["edges"][0]["node"]
+    method = order_data["availableShippingMethods"][0]
+
+    apply_taxes_to_shipping_mock.assert_called_once_with(shipping_method.price, ANY)
+    assert expected_price == method["price"]["amount"]
 
 
 def test_order_query_customer(api_client):
