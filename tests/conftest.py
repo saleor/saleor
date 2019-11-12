@@ -483,6 +483,7 @@ def product(product_type, category):
         price=Money("10.00", "USD"),
         product_type=product_type,
         category=category,
+        is_published=True,
     )
 
     associate_attribute_values_to_instance(product, product_attr, product_attr_value)
@@ -607,6 +608,13 @@ def product_without_shipping(category):
         category=category,
     )
     ProductVariant.objects.create(product=product, sku="SKU_B")
+    return product
+
+
+@pytest.fixture
+def product_without_category(product):
+    product.category = None
+    product.save()
     return product
 
 
@@ -753,6 +761,7 @@ def product_with_images(product_type, category, media_root):
         price=Money("10.00", "USD"),
         product_type=product_type,
         category=category,
+        is_published=True,
     )
     file_mock_0 = MagicMock(spec=File, name="FileMock0")
     file_mock_0.name = "image0.jpg"
