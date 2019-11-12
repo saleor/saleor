@@ -2977,6 +2977,7 @@ input ProductFilterInput {
   isPublished: Boolean
   collections: [ID]
   categories: [ID]
+  hasCategory: Boolean
   price: PriceRangeInput
   attributes: [AttributeInput]
   stockAvailability: StockAvailability
