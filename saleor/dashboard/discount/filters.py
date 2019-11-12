@@ -34,9 +34,18 @@ SORT_BY_FIELDS_LABELS_VOUCHER = {
     ),
 }
 
-DISCOUNT_TYPE_CHOICES = (
+DISCOUNT_VALUE_TYPE_CHOICES = (
     ("fixed", pgettext_lazy("Sale type filter choice", "USD")),
     ("percentage", pgettext_lazy("Sale type filter choice", "%")),
+)
+
+VOUCHER_TYPE_CHOICES = (
+    ("shipping", pgettext_lazy("Voucher type filter choice", "Shipping")),
+    ("entire_order", pgettext_lazy("Voucher type filter choice", "Entire Order")),
+    (
+        "specific_product",
+        pgettext_lazy("Voucher type filter choice", "Specific Product"),
+    ),
 )
 
 
@@ -63,7 +72,7 @@ class SaleFilter(SortedFilterSet):
     )
     type = ChoiceFilter(
         label=pgettext_lazy("Sale list filter label", "Discount type"),
-        choices=DISCOUNT_TYPE_CHOICES,
+        choices=DISCOUNT_VALUE_TYPE_CHOICES,
         empty_label=pgettext_lazy("Filter empty choice label", "All"),
         widget=forms.Select,
     )
@@ -100,14 +109,21 @@ class VoucherFilter(SortedFilterSet):
         lookup_expr="icontains",
     )
     type = ChoiceFilter(
+        field_name="type",
+        label=pgettext_lazy("Voucher list type filter label", "Voucher type"),
+        choices=VOUCHER_TYPE_CHOICES,
+        empty_label=pgettext_lazy("Filter empty choice label", "All"),
+        widget=forms.Select,
+    )
+    discount_value_type = ChoiceFilter(
         field_name="discount_value_type",
-        label=pgettext_lazy("Sale list is sale type filter label", "Discount type"),
-        choices=DISCOUNT_TYPE_CHOICES,
+        label=pgettext_lazy("Voucher list is sale type filter label", "Discount type"),
+        choices=DISCOUNT_VALUE_TYPE_CHOICES,
         empty_label=pgettext_lazy("Filter empty choice label", "All"),
         widget=forms.Select,
     )
     discount_value = RangeFilter(
-        label=pgettext_lazy("Sale list filter label", "Discount_value")
+        label=pgettext_lazy("Voucher list filter label", "Discount_value")
     )
     date = DateFromToRangeFilter(
         label=pgettext_lazy("Voucher list sorting filter label", "Period of validity"),

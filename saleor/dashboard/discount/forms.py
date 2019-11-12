@@ -101,7 +101,7 @@ class VoucherForm(forms.ModelForm):
             "currency",
         ]
         labels = {
-            "type": pgettext_lazy("Discount type", "Discount type"),
+            "type": pgettext_lazy("Voucher type", "Voucher type"),
             "name": pgettext_lazy("Item name", "Name"),
             "code": pgettext_lazy("Coupon code", "Code"),
             "usage_limit": pgettext_lazy("Usage limit", "Usage limit"),

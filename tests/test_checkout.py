@@ -1338,6 +1338,52 @@ def test_recalculate_checkout_discount_expired_voucher(checkout_with_voucher, vo
     assert checkout.discount == zero_money()
 
 
+def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping(
+    checkout_with_voucher_percentage_and_shipping,
+    voucher_free_shipping,
+    shipping_method,
+):
+    checkout = checkout_with_voucher_percentage_and_shipping
+
+    shipping_method.price = checkout.get_subtotal() + Money("10.00", "USD")
+    shipping_method.save()
+
+    recalculate_checkout_discount(checkout, None)
+
+    assert checkout.discount == shipping_method.price
+    assert checkout.discount_name == "Free shipping"
+    assert checkout.get_total() == checkout.get_subtotal()
+
+
+def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shipping(
+    checkout_with_voucher_percentage_and_shipping,
+    voucher_free_shipping,
+    shipping_method,
+):
+    checkout = checkout_with_voucher_percentage_and_shipping
+
+    shipping_method.price = checkout.get_subtotal() - Money("1.00", "USD")
+    shipping_method.save()
+
+    recalculate_checkout_discount(checkout, None)
+
+    assert checkout.discount == shipping_method.price
+    assert checkout.discount_name == "Free shipping"
+    assert checkout.get_total() == checkout.get_subtotal()
+
+
+def test_recalculate_checkout_discount_free_shipping_for_checkout_without_shipping(
+    checkout_with_voucher_percentage, voucher_free_shipping
+):
+    checkout = checkout_with_voucher_percentage
+
+    recalculate_checkout_discount(checkout, None)
+
+    assert not checkout.discount_name
+    assert not checkout.voucher_code
+    assert checkout.discount == zero_money()
+
+
 def test_get_checkout_context(checkout_with_voucher):
     line_price = TaxedMoney(net=Money("30.00", "USD"), gross=Money("30.00", "USD"))
     manager = get_extensions_manager()
