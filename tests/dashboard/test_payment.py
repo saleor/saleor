@@ -9,7 +9,7 @@ from saleor.dashboard.payment.forms import (
 from saleor.extensions import ConfigurationTypeField
 from saleor.extensions.models import PluginConfiguration
 from saleor.payment.gateways.braintree.plugin import BraintreeGatewayPlugin
-from tests.extensions.helpers import get_config_value
+from tests.extensions.utils import get_config_value
 
 
 @pytest.fixture

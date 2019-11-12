@@ -5,8 +5,8 @@ from saleor.extensions import ConfigurationTypeField
 from saleor.extensions.manager import get_extensions_manager
 from saleor.extensions.models import PluginConfiguration
 from tests.api.utils import get_graphql_content
-from tests.extensions.helpers import get_config_value
 from tests.extensions.sample_plugins import PluginSample
+from tests.extensions.utils import get_config_value
 
 
 @pytest.fixture
