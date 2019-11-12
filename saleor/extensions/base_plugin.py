@@ -386,7 +386,6 @@ class BasePlugin:
             structure_to_add = config_structure.get(configuration_field.get("name"))
             if structure_to_add:
                 configuration_field.update(structure_to_add)
-        return config_structure
 
     @classmethod
     def _update_configuration_structure(cls, configuration):

@@ -17,7 +17,12 @@ TYPE_TO_FIELD = {
 
 def create_custom_form_field(structure: Dict[str, str]) -> forms.Field:
     elem_type = structure["type"]
-    return TYPE_TO_FIELD[elem_type](structure=structure)
+    elem_name = structure["name"]
+    elem_value = structure["value"]
+    elem_help_text = structure["help_text"]
+    return TYPE_TO_FIELD[elem_type](
+        initial=elem_value, help_text=elem_help_text, label=elem_name
+    )
 
 
 class GatewayConfigurationForm(forms.ModelForm):
@@ -27,24 +32,26 @@ class GatewayConfigurationForm(forms.ModelForm):
 
     def __init__(self, plugin, *args, **kwargs):
         self.plugin = plugin
-        kwargs["instance"] = self._get_current_configuration()
+        kwargs["instance"] = self._get_or_create_db_configuration()
         super().__init__(*args, **kwargs)
         # add new fields specified for gateway
-        self._prepare_fields_for_given_config(self.instance)
+        self._prepare_fields_for_given_config()
 
-    def _get_current_configuration(self) -> PluginConfiguration:
+    def _get_or_create_db_configuration(self) -> PluginConfiguration:
+        defaults = self.plugin._get_default_configuration()
+        return PluginConfiguration.objects.get_or_create(
+            name=self.plugin.PLUGIN_NAME, defaults=defaults
+        )[0]
+
+    def _prepare_fields_for_given_config(self) -> Dict[str, forms.Field]:
         qs = PluginConfiguration.objects.all()
-        return self.plugin.get_plugin_configuration(qs)
-
-    def _prepare_fields_for_given_config(
-        self, current_configuration: PluginConfiguration
-    ) -> Dict[str, forms.Field]:
+        configuration = self.plugin.get_plugin_configuration(qs).configuration
         parsed_fields = {}
-        structure = current_configuration.configuration
-        if structure is None:
+        if configuration is None:
             return {}
-        for elem in structure:
-            slug = slugify(elem["name"])
+        for elem in configuration:
+            name = elem["name"]
+            slug = slugify(name)
             self.fields[slug] = create_custom_form_field(elem)
         return parsed_fields
 
