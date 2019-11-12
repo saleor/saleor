@@ -1005,3 +1005,72 @@ def test_costs_get_margin_for_variant(variant, price, cost):
     variant.cost_price = cost
     variant.price_override = price
     assert not get_margin_for_variant(variant)
+
+
+def test_save_product_without_category_and_true_is_published_value(product_type):
+    product = Product(
+        name="Test product",
+        product_type=product_type,
+        price=Money("15.00", "USD"),
+        is_published=True,
+    )
+
+    product.save()
+
+    assert not product.is_published
+
+
+def test_save_product_with_category_and_true_is_published_value(product_type, category):
+    product = Product(
+        name="Test product",
+        product_type=product_type,
+        category=category,
+        price=Money("15.00", "USD"),
+        is_published=True,
+    )
+
+    product.save()
+    assert product.is_published
+
+
+def test_publish_product_without_category(product_without_category):
+    product_without_category.is_published = True
+
+    product_without_category.save()
+
+    assert not product_without_category.is_published
+
+
+def test_publish_product_with_category(product_type, category):
+    product = Product.objects.create(
+        name="Test product",
+        product_type=product_type,
+        category=category,
+        price=Money("15.00", "USD"),
+        is_published=False,
+    )
+    product.is_published = True
+
+    product.save()
+
+    assert product.is_published
+
+
+def test_product_category_pre_delete_signal(categories_tree, product):
+    child = categories_tree.children.first()
+    child_product = child.products.first()
+    product.category = categories_tree
+    product.name = "Test parent product"
+
+    for product in [child_product, product]:
+        product.publication_date = datetime.date.today()
+        product.is_published = True
+        product.save()
+
+    categories_tree.delete()
+
+    for product in [child_product, product]:
+        product = Product.objects.get(name=product.name)
+        assert not product.category
+        assert not product.is_published
+        assert not product.publication_date
