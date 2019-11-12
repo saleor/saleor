@@ -209,3 +209,9 @@ class ConfigCharField(forms.CharField):
     def clean(self, value):
         parsed_value = super().clean(value)
         return {"name": self.label, "value": parsed_value}
+
+
+class ConfigPasswordField(ConfigCharField):
+    def __init__(self, *args, **kwargs):
+        self.widget = forms.PasswordInput(render_value=True)
+        super().__init__(*args, **kwargs)

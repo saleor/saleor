@@ -4,7 +4,6 @@ from math import isclose
 
 import pytest
 
-from saleor.extensions.manager import get_extensions_manager
 from saleor.payment import ChargeStatus
 from saleor.payment.gateways.stripe import (
     TransactionKind,
@@ -304,8 +303,8 @@ def test_void_error_response(stripe_payment, sandbox_gateway_config):
 @pytest.mark.vcr(filter_headers=["authorization"])
 def test_confirm__intent(stripe_payment, sandbox_gateway_config):
     PAYMENT_INTENT = (
-        "pi_1F6bslIUmJaD6Oqv1MNDaBSv"
-    )  # PI with status "requires_confirmation"
+        "pi_1F6bslIUmJaD6Oqv1MNDaBSv"  # PI with status "requires_confirmation"
+    )
     payment_info = create_payment_information(stripe_payment, PAYMENT_INTENT)
     response = confirm(payment_info, sandbox_gateway_config)
     assert not response.error
@@ -353,28 +352,3 @@ def test_get_client(gateway_config):
 
 def test_get_client_token():
     assert get_client_token() is None
-
-
-def test_get_plugin_configuration_hides_all_stripe_secrets(settings):
-    settings.PLUGINS = ["saleor.payment.gateways.stripe.plugin.StripeGatewayPlugin"]
-    manager = get_extensions_manager()
-    manager.get_plugin_configuration("Stripe")
-    manager.save_plugin_configuration(
-        "Stripe",
-        {
-            "configuration": [
-                {"name": "Public API key", "value": "123"},
-                {"name": "Secret API key", "value": "456"},
-            ]
-        },
-    )
-    plugin_configuration = manager.get_plugin_configuration("Stripe")
-    configuration = plugin_configuration.configuration
-    public_api_key = [
-        field for field in configuration if field["name"] == "Public API key"
-    ][0]
-    secret_api_key = [
-        field for field in configuration if field["name"] == "Secret API key"
-    ][0]
-    assert public_api_key["value"] == "*" * 10
-    assert secret_api_key["value"] == "*" * 10

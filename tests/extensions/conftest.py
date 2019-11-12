@@ -19,7 +19,7 @@ def plugin_configuration(db):
 def inactive_plugin_configuration(db):
     plugin = PluginInactive()
     return PluginConfiguration.objects.get_or_create(
-        name=PluginInactive.PLUGIN_NAME, defaults=[plugin._get_default_configuration()]
+        name=PluginInactive.PLUGIN_NAME, defaults=plugin._get_default_configuration()
     )[0]
 
 

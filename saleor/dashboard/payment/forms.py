@@ -5,11 +5,13 @@ from django.utils.text import slugify
 
 from ...extensions import ConfigurationTypeField
 from ...extensions.models import PluginConfiguration
-from ..forms import ConfigBooleanField, ConfigCharField
+from ..forms import ConfigBooleanField, ConfigCharField, ConfigPasswordField
 
 TYPE_TO_FIELD = {
     ConfigurationTypeField.STRING: ConfigCharField,
     ConfigurationTypeField.BOOLEAN: ConfigBooleanField,
+    ConfigurationTypeField.SECRET: ConfigPasswordField,
+    ConfigurationTypeField.PASSWORD: ConfigPasswordField,
 }
 
 
