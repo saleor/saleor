@@ -4,7 +4,9 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-..
+- Fix problem with free shipping voucher - #4942 by @IKarbowiak
+- Add sub-categories to random data - #4949 by @IKarbowiak
+- Deprecate `localized` field in Money type - #4952 by @IKarbowiak
 
 ## 2.9.0
 
@@ -72,6 +74,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix time zone based tests - #4468 by @fowczarek
 - Fix serializing empty URLs as a string when creating menu items - #4616 by @maarcingebala
 - The invalid IP address in HTTP requests now fallback to the requester's IP address. - #4597 by @NyanKiyoshi
+- Fix product variant update with current attribute values - #4936 by @fowczarek
 
 ### Dashboard 2.0
 

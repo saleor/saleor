@@ -11,6 +11,7 @@ from unittest.mock import patch
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.files import File
+from django.db.models import Q
 from django.utils import timezone
 from faker import Factory
 from faker.providers import BaseProvider
@@ -140,9 +141,14 @@ def create_categories(categories_data, placeholder_dir):
     for category in categories_data:
         pk = category["pk"]
         defaults = category["fields"]
-        image_name = CATEGORY_IMAGES[pk]
+        parent = defaults["parent"]
+        image_name = (
+            CATEGORY_IMAGES[pk] if pk in CATEGORY_IMAGES else CATEGORY_IMAGES[parent]
+        )
         background_image = get_image(placeholder_dir, image_name)
         defaults["background_image"] = background_image
+        if parent:
+            defaults["parent"] = Category.objects.get(pk=parent)
         Category.objects.update_or_create(pk=pk, defaults=defaults)
         create_category_background_image_thumbnails.delay(pk)
 
@@ -1022,11 +1028,18 @@ def generate_menu_items(menu: Menu, category: Category, parent_menu_item):
 
 
 def generate_menu_tree(menu):
-    categories = Category.tree.get_queryset().filter(products__isnull=False)
+    categories = (
+        Category.tree.get_queryset()
+        .filter(
+            Q(parent__isnull=True) & Q(products__isnull=False)
+            | Q(children__products__isnull=False)
+        )
+        .distinct()
+    )
+
     for category in categories:
-        if not category.parent_id:
-            for msg in generate_menu_items(menu, category, None):
-                yield msg
+        for msg in generate_menu_items(menu, category, None):
+            yield msg
 
 
 def create_menus():
