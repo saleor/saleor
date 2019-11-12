@@ -107,6 +107,28 @@ def test_view_product_list_with_filters_no_results(admin_client, product_list):
     assert list(response.context["filter_set"].qs) == []
 
 
+def test_view_product_list_with_filters_no_category(admin_client, product_list):
+    product_without_category = product_list[0]
+    product_without_category.category = None
+    product_without_category.save()
+
+    url = reverse("dashboard:product-list")
+    data = {
+        "price_max": [""],
+        "price_min": [""],
+        "is_featured": [""],
+        "name": [""],
+        "sort_by": [""],
+        "category": ["null"],
+        "is_published": [""],
+    }
+
+    response = admin_client.get(url, data)
+
+    assert response.status_code == 200
+    assert list(response.context["filter_set"].qs) == [product_without_category]
+
+
 def test_view_product_list_pagination(admin_client, product_list, settings):
     settings.DASHBOARD_PAGINATE_BY = 1
     url = reverse("dashboard:product-list")
