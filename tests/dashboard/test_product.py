@@ -1297,3 +1297,43 @@ def test_product_form_seo_description_too_long(unavailable_product):
         "form sixth. Image moving earth without"
     )
     assert new_seo_description.endswith("...") or new_seo_description[-1] == "…"
+
+
+def test_product_form_publish_product_with_category(product):
+    data = model_to_dict(product)
+    data["price_0"] = 20
+    data["price_1"] = "USD"
+    data["description"] = "Test description"
+
+    form = ProductForm(data, instance=product)
+    assert form.is_valid()
+    assert form.errors == {}
+
+    form.save()
+    assert product.is_published
+
+
+def test_product_form_without_category(product_without_category):
+    data = model_to_dict(product_without_category)
+    data["price_0"] = 20
+    data["price_1"] = "USD"
+    data["description"] = "Test description"
+
+    form = ProductForm(data, instance=product_without_category)
+    assert form.is_valid()
+    assert form.errors == {}
+
+    form.save()
+    assert not product_without_category.is_published
+
+
+def test_product_form_publish_product_without_category(product_without_category):
+    product_without_category.is_published = True
+    data = model_to_dict(product_without_category)
+    data["price_0"] = 20
+    data["price_1"] = "USD"
+    data["description"] = "Test description"
+
+    form = ProductForm(data, instance=product_without_category)
+    assert not form.is_valid()
+    assert form.errors == {"is_published": ["You must add cateogry to publish product"]}
