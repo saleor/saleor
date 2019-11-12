@@ -48,7 +48,7 @@ class AvataxPlugin(BasePlugin):
             "label": pgettext_lazy("Plugin label", "Username or account"),
         },
         "Password or license": {
-            "type": ConfigurationTypeField.STRING,
+            "type": ConfigurationTypeField.PASSWORD,
             "help_text": pgettext_lazy(
                 "Plugin help text", "Provide password or license details"
             ),
@@ -443,21 +443,14 @@ class AvataxPlugin(BasePlugin):
             )
 
     @classmethod
-    def _hide_secret_configuration_fields(cls, configuration):
-        for field in configuration:
-            if field.get("name") == "Password or license" and field.get("value"):
-                # We don't want to share our secret data
-                field["value"] = cls.REDACTED_FORM
-
-    @classmethod
     def _get_default_configuration(cls):
         defaults = {
             "name": cls.PLUGIN_NAME,
             "description": "",
             "active": False,
             "configuration": [
-                {"name": "Username or account", "value": ""},
-                {"name": "Password or license", "value": ""},
+                {"name": "Username or account", "value": None},
+                {"name": "Password or license", "value": None},
                 {"name": "Use sandbox", "value": True},
                 {"name": "Company name", "value": "DEFAULT"},
                 {"name": "Autocommit", "value": False},

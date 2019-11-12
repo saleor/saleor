@@ -19,7 +19,7 @@ class PluginSample(BasePlugin):
             "label": "Username",
         },
         "Password": {
-            "type": ConfigurationTypeField.STRING,
+            "type": ConfigurationTypeField.PASSWORD,
             "help_text": "Password input field",
             "label": "Password",
         },
@@ -27,6 +27,11 @@ class PluginSample(BasePlugin):
             "type": ConfigurationTypeField.BOOLEAN,
             "help_text": "Use sandbox",
             "label": "Use sandbox",
+        },
+        "API private key": {
+            "type": ConfigurationTypeField.SECRET,
+            "help_text": "API key",
+            "label": "Private key",
         },
     }
 
@@ -38,8 +43,9 @@ class PluginSample(BasePlugin):
             "active": True,
             "configuration": [
                 {"name": "Username", "value": "admin"},
-                {"name": "Password", "value": "123"},
+                {"name": "Password", "value": None},
                 {"name": "Use sandbox", "value": False},
+                {"name": "API private key", "value": None},
             ],
         }
 
@@ -95,7 +101,6 @@ class PluginSample(BasePlugin):
 
 class PluginInactive(BasePlugin):
     PLUGIN_NAME = "PluginInactive"
-    CONFIG_STRUCTURE = {}
 
     @classmethod
     def _get_default_configuration(cls):
@@ -103,7 +108,7 @@ class PluginInactive(BasePlugin):
             "name": "PluginInactive",
             "description": "Test plugin description_2",
             "active": False,
-            "configuration": [],
+            "configuration": None,
         }
 
 
