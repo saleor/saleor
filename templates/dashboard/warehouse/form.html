@@ -4,7 +4,11 @@
 {% load static %}
 
 {% block title %}
+  {% if warehouse %}
+    {% trans "Update warehouse" context "Dashboard update warehouse" %} - {{ warehouse }}
+  {% else %}
     {% trans "Add new warehouse" context "Dashboard add warehouse" %}
+  {% endif %}
     - {% trans "Warehouse" context "Dashboard warehouse" %} - {{ block.super }}
 {% endblock %}
 
@@ -12,53 +16,64 @@
 {% block menu_warehouses_class %}active{% endblock %}
 
 {% block header_menu %}
-  {% url "dashboard:warehouse-index" as url %}
+  {% url "dashboard:warehouse-list" as url %}
   {% include "dashboard/includes/_back-link.html" with url=url %}
 {% endblock %}
 
 {% block breadcrumbs %}
   <ul class="breadcrumbs breadcrumbs--history">
     <li>
-      <a href="{% url "dashboard:warehouse-index" %}">
+      <a href="{% url "dashboard:warehouse-list" %}">
         {% trans "Warehouses" context "Dashboard warehouses list" %}
       </a>
     </li>
     <li class="back-mobile">
-      <a href="{% url "dashboard:warehouse-index" %}">
+      <a href="{% url "dashboard:warehouse-list" %}">
         <svg data-src="{% static "dashboard/images/arrow_left.svg" %}" fill="#fff" width="20px" height="20px" />
       </a>
     </li>
+    {% if warehouse %}
+    <li>
+      <a href="{% url "dashboard:warehouse-detail" warehouse.pk %}">
+        {{ warehouse }}
+      </a>
+    </li>
+    <li><span class="breadcrumbs--elipsed-item">{% trans 'Update warehouse' context 'Dashboard update warehouse action' %}</span></li>
+    {% else %}
     <li><span class="breadcrumbs--elipsed-item">{% trans 'Add warehouse' context 'Dashboard add warehouse action' %}</span></li>
+    {% endif %}
   </ul>
 {% endblock %}
 
 {% block content %}
   <div class="row">
     <div class="col s12 l8">
-      {% if form %}
-        <form class="card" method="post">
-          <div class="card-content">
-            <span class="card-title">
-              {% trans 'Warehouse details' context 'Warehouse details header' %}
-            </span>
-            <div class="data">
-              {% csrf_token %}
-              <div class="row">
-                {{ form|materializecss }}
-              </div>
+      <form class="card" method="post">
+        <div class="card-content">
+          <span class="card-title">
+            {% if warehouse %}
+              {% trans "Update warehouse" context "Warehouse form header" %}
+            {% else %}
+              {% trans "Create warehouse" context "Warehouse form header" %}
+            {% endif %}
+          </span>
+          <div class="data">
+            {% csrf_token %}
+            <div class="row">
+              {{ warehouse_form|materializecss }}
+              {{ address_form|materializecss }}
             </div>
           </div>
-          <div class="card-action right-align">
-
-              <a href="{% url 'dashboard:warehouse-index' %}" class="btn-flat waves-effect">
-                {% trans "Cancel" context "Dashboard cancel action" %}
-              </a>
-              <button type="submit" class="btn waves-effect">
-                {% trans 'Add' context 'Dashboard add action' %}
-              </button>
-          </div>
-        </form>
-      {% endif %}
+        </div>
+        <div class="card-action right-align">
+            <a href="{% url 'dashboard:warehouse-list' %}" class="btn-flat waves-effect">
+              {% trans "Cancel" context "Dashboard cancel action" %}
+            </a>
+            <button type="submit" class="btn waves-effect">
+              {% trans 'Add' context 'Dashboard add action' %}
+            </button>
+        </div>
+      </form>
     </div>
   </div>
 {% endblock %}

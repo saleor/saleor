@@ -2,6 +2,7 @@
 {% load i18n %}
 {% load materializecss %}
 {% load static %}
+{% load utils %}
 
 {% block title %}
   {% trans "Warehouses" context "Dashboard warehouses list" %} - {{ block.super }}
@@ -36,28 +37,26 @@
             <table class="bordered highlight responsive data-table">
               <thead>
                 <tr>
-                  {% trans "Name" context "Warehouses table header" as label %}
-                  {# {% sorting_header 'name' label %} #}
-
-                  {% trans "Shipping zones" context "Warehouses table header" as label %}
-                  {# {% sorting_header 'email' label %} #}
-
-                  {% trans "Actions" context "Warehouses table header" as label %}
+                <th>
+                  {% trans "Name" context "Warehouses table header" %}
+                </th>
+                <th>
+                  {% trans "Shipping zones" context "Warehouses table header" %}
+                <th/>
                 </tr>
               </thead>
               <tbody>
                 {% for warehouse in warehouses %}
-                  <tr data-action-go="{% url "dashboard:warehouse-update" warehouse.uuid %}">
+                  <tr data-action-go="{% url "dashboard:warehouse-detail" warehouse.uuid %}">
                     <td> {{ warehouse }} </td>
-                    <td> {{ warehouse.shipping_region.all }} </td>
-                    <td></td>
+                    <td> {% for zone in warehouse.shipping_zones.all %}{{zone}}, {% endfor %} </td>
                   </tr>
                 {% endfor %}
               </tbody>
             </table>
           </div>
         </div>
-        {# {% paginate warehouses %} #}
+        {% paginate warehouses %}
       {% else %}
         {% if is_empty %}
           {% include 'dashboard/customer/zero_page.html' %}
@@ -71,9 +70,6 @@
           </div>
         {% endif %}
       {% endif %}
-    </div>
-    <div class="col s12 l3" id="filters">
-      {# {% if not is_empty %}{% filters filter_set %}{% endif %} #}
     </div>
   </div>
 {% endblock %}
