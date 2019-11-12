@@ -1,12 +1,15 @@
 import uuid
 
 from django.db import models
-from django.forms.models import model_to_dict
 from django.utils.translation import pgettext_lazy
-from django_countries.fields import Country, CountryField
-from phonenumber_field.modelfields import PhoneNumber, PhoneNumberField
 
+from saleor.account.models import Address
 from saleor.shipping.models import ShippingZone
+
+
+class WarehouseQueryset(models.QuerySet):
+    def prefetch_data(self):
+        return self.select_related("address").prefetch_related("shipping_zones")
 
 
 class Warehouse(models.Model):
@@ -20,44 +23,18 @@ class Warehouse(models.Model):
     )
 
     shipping_zones = models.ManyToManyField(ShippingZone)
-
-    street_address = models.CharField(
-        pgettext_lazy("Warehouse field description", "Street name"), max_length=256
-    )
-    city = models.CharField(max_length=256)
-    postal_code = models.CharField(
-        pgettext_lazy("Warehouse field description", "Zip code"), max_length=20
-    )
-    country = CountryField()
-    country_area = models.CharField(
-        pgettext_lazy("Warehouse field description", "State/province"), max_length=128
-    )
+    address = models.ForeignKey(Address, on_delete=models.CASCADE)
 
     email = models.EmailField(
         pgettext_lazy("Warehouse field description", "Email address"),
         blank=True,
         default="",
     )
-    phone = PhoneNumberField(
-        pgettext_lazy("Warehouse field description", "Phone number"),
-        blank=True,
-        default="",
-    )
+
+    objects = WarehouseQueryset.as_manager()
 
     def __str__(self):
         return self.name
-
-    def as_data(self):
-        """Return the address as a dict suitable for passing as kwargs.
-
-        Result does not contain the primary key or an associated user.
-        """
-        data = model_to_dict(self, exclude=["id", "site"])
-        if isinstance(data["country"], Country):
-            data["country"] = data["country"].code
-        if isinstance(data["phone"], PhoneNumber):
-            data["phone"] = data["phone"].as_e164
-        return data
 
     class Meta:
         ordering = ("-name",)
