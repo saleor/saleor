@@ -78,6 +78,7 @@ from saleor.shipping.models import (
 )
 from saleor.site import AuthenticationBackends
 from saleor.site.models import AuthorizationKey, SiteSettings
+from saleor.warehouse.models import Warehouse
 from saleor.webhook.event_types import WebhookEventType
 from saleor.webhook.models import Webhook
 from saleor.wishlist.models import Wishlist
@@ -567,6 +568,11 @@ def permission_manage_plugins():
 @pytest.fixture
 def permission_manage_service_accounts():
     return Permission.objects.get(codename="manage_service_accounts")
+
+
+@pytest.fixture
+def permission_manage_warehouses():
+    return Permission.objects.get(codename="manage_warehouses")
 
 
 @pytest.fixture
@@ -1769,6 +1775,7 @@ def mock_get_manager(mocker, fake_payment_interface):
 
 
 @pytest.fixture
+<<<<<<< HEAD
 def staff_notification_recipient(db, staff_user):
     return StaffNotificationRecipient.objects.create(active=True, user=staff_user)
 
@@ -1797,3 +1804,12 @@ def customer_wishlist_item_with_two_variants(
     item = customer_wishlist.add_variant(variant_1)
     item.variants.add(variant_2)
     return item
+=======
+def warehouse(address, shipping_zone):
+    warehouse = Warehouse.objects.create(
+        address=address, name="Example Warehouse", email="test@example.com"
+    )
+    warehouse.shipping_zones.add(shipping_zone)
+    warehouse.save()
+    return warehouse
+>>>>>>> Test permissions for warehouse views
