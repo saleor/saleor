@@ -22,7 +22,7 @@ class Warehouse(models.Model):
         max_length=100,
     )
 
-    shipping_zones = models.ManyToManyField(ShippingZone)
+    shipping_zones = models.ManyToManyField(ShippingZone, blank=True)
     address = models.ForeignKey(Address, on_delete=models.CASCADE)
 
     email = models.EmailField(
