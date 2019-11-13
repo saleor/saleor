@@ -8,7 +8,6 @@ class WarehouseAddressForm(forms.ModelForm):
     class Meta:
         model = Address
         fields = [
-            "company_name",
             "street_address_1",
             "street_address_2",
             "city",
@@ -23,7 +22,7 @@ class WarehouseAddressForm(forms.ModelForm):
 class WarehouseForm(forms.ModelForm):
     class Meta:
         model = Warehouse
-        fields = ["name", "email", "shipping_zones"]
+        fields = ["name", "email", "shipping_zones", "company_name"]
 
     def save_with_address(self, address: Address, commit: bool = True):
         self.instance.address = address
