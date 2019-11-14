@@ -437,12 +437,14 @@ def test_product_query_search(user_api_client, product_type, category):
         price=Money("10.00", "USD"),
         product_type=product_type,
         category=category,
+        is_published=True,
     )
     Product.objects.create(
         name="Red Paint",
         price=Money("10.00", "USD"),
         product_type=product_type,
         category=category,
+        is_published=True,
     )
 
     query = """

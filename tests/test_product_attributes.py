@@ -9,6 +9,7 @@ from saleor.product.tasks import _update_variants_names
 from saleor.product.utils.attributes import (
     associate_attribute_values_to_instance,
     generate_name_for_variant,
+    unpublished_products_before_category_delete,
 )
 
 
@@ -136,3 +137,18 @@ def test_associate_attribute_to_product_instance_without_values(product):
     # Ensure the values were cleared and no new assignment entry was created
     assert new_assignment.pk == old_assignment.pk
     assert new_assignment.values.count() == 0
+
+
+def test_unpublished_products_before_category_delete_for_category_tree(
+    categories_tree_with_published_products
+):
+    parent = categories_tree_with_published_products
+    parent_product = parent.products.first()
+    child_product = parent.children.first().products.first()
+
+    unpublished_products_before_category_delete(parent)
+
+    for product in [child_product, parent_product]:
+        product.refresh_from_db()
+        assert not product.is_published
+        assert not product.publication_date
