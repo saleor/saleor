@@ -78,8 +78,9 @@ class AttributeValueTranslatableContent(CountableDjangoObjectType):
         interfaces = [graphene.relay.Node]
         only_fields = BASIC_TRANSLATABLE_FIELDS
 
-    def resolve_attribute_value(self, info):
-        return self
+    @staticmethod
+    def resolve_attribute_value(root: product_models.AttributeValue, _info):
+        return root
 
 
 class AttributeTranslation(BaseTranslationType):
@@ -112,8 +113,9 @@ class AttributeTranslatableContent(CountableDjangoObjectType):
         interfaces = [graphene.relay.Node]
         only_fields = BASIC_TRANSLATABLE_FIELDS
 
-    def resolve_attribute(self, info):
-        return self
+    @staticmethod
+    def resolve_attribute(root: product_models.Attribute, _info):
+        return root
 
 
 class ProductVariantTranslation(BaseTranslationType):
@@ -148,12 +150,13 @@ class ProductVariantTranslatableContent(CountableDjangoObjectType):
         interfaces = [graphene.relay.Node]
         only_fields = BASIC_TRANSLATABLE_FIELDS
 
-    def resolve_product_variant(self, info):
+    @staticmethod
+    def resolve_product_variant(root: product_models.ProductVariant, info):
         visible_products = product_models.Product.objects.visible_to_user(
             info.context.user
         ).values_list("pk", flat=True)
         return product_models.ProductVariant.objects.filter(
-            product__id__in=visible_products, pk=self.id
+            product__id__in=visible_products, pk=root.id
         ).first()
 
 
@@ -185,10 +188,11 @@ class ProductTranslatableContent(CountableDjangoObjectType):
         interfaces = [graphene.relay.Node]
         only_fields = EXTENDED_TRANSLATABLE_FIELDS
 
-    def resolve_product(self, info):
+    @staticmethod
+    def resolve_product(root: product_models.Product, info):
         return (
             product_models.Product.objects.visible_to_user(info.context.user)
-            .filter(pk=self.id)
+            .filter(pk=root.id)
             .first()
         )
 
@@ -223,10 +227,11 @@ class CollectionTranslatableContent(CountableDjangoObjectType):
         interfaces = [graphene.relay.Node]
         only_fields = EXTENDED_TRANSLATABLE_FIELDS
 
-    def resolve_collection(self, info):
+    @staticmethod
+    def resolve_collection(root: product_models.Collection, info):
         return (
             product_models.Collection.objects.visible_to_user(info.context.user)
-            .filter(pk=self.id)
+            .filter(pk=root.id)
             .first()
         )
 
@@ -259,8 +264,9 @@ class CategoryTranslatableContent(CountableDjangoObjectType):
         interfaces = [graphene.relay.Node]
         only_fields = EXTENDED_TRANSLATABLE_FIELDS
 
-    def resolve_category(self, info):
-        return self
+    @staticmethod
+    def resolve_category(root: product_models.Category, _info):
+        return root
 
 
 class PageTranslation(BaseTranslationType):
@@ -308,10 +314,11 @@ class PageTranslatableContent(CountableDjangoObjectType):
             "title",
         ]
 
-    def resolve_page(self, info):
+    @staticmethod
+    def resolve_page(root: page_models.Page, info):
         return (
             page_models.Page.objects.visible_to_user(info.context.user)
-            .filter(pk=self.id)
+            .filter(pk=root.id)
             .first()
         )
 
@@ -349,9 +356,10 @@ class VoucherTranslatableContent(CountableDjangoObjectType):
         interfaces = [graphene.relay.Node]
         only_fields = BASIC_TRANSLATABLE_FIELDS
 
+    @staticmethod
     @permission_required("discount.manage_discounts")
-    def resolve_voucher(self, info):
-        return self
+    def resolve_voucher(root: discount_models.Voucher, _info):
+        return root
 
 
 class SaleTranslation(BaseTranslationType):
@@ -385,9 +393,10 @@ class SaleTranslatableContent(CountableDjangoObjectType):
         interfaces = [graphene.relay.Node]
         only_fields = BASIC_TRANSLATABLE_FIELDS
 
+    @staticmethod
     @permission_required("discount.manage_discounts")
-    def resolve_sale(self, info):
-        return self
+    def resolve_sale(root: discount_models.Sale, _info):
+        return root
 
 
 class ShopTranslation(BaseTranslationType):
@@ -430,8 +439,9 @@ class MenuItemTranslatableContent(CountableDjangoObjectType):
         interfaces = [graphene.relay.Node]
         only_fields = BASIC_TRANSLATABLE_FIELDS
 
-    def resolve_menu_item(self, info):
-        return self
+    @staticmethod
+    def resolve_menu_item(root: menu_models.MenuItem, _info):
+        return root
 
 
 class ShippingMethodTranslation(BaseTranslationType):
@@ -467,6 +477,7 @@ class ShippingMethodTranslatableContent(CountableDjangoObjectType):
         interfaces = [graphene.relay.Node]
         only_fields = BASIC_TRANSLATABLE_FIELDS
 
+    @staticmethod
     @permission_required("shipping.manage_shipping")
-    def resolve_shipping_method(self, info):
-        return self
+    def resolve_shipping_method(root: shipping_models.ShippingMethod, _info):
+        return root
