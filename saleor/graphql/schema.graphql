@@ -2078,6 +2078,8 @@ type Mutation {
   webhookCreate(input: WebhookCreateInput!): WebhookCreate
   webhookDelete(id: ID!): WebhookDelete
   webhookUpdate(id: ID!, input: WebhookUpdateInput!): WebhookUpdate
+  createWarehouse(input: WarehouseCreateInput!): WarehouseCreate
+  updateWarehouse(id: ID!, input: WarehouseUpdateInput): WarehouseUpdate
   authorizationKeyAdd(input: AuthorizationKeyInput!, keyType: AuthorizationKeyType!): AuthorizationKeyAdd
   authorizationKeyDelete(keyType: AuthorizationKeyType!): AuthorizationKeyDelete
   staffNotificationRecipientCreate(input: StaffNotificationRecipientInput!): StaffNotificationRecipientCreate
@@ -3485,6 +3487,8 @@ type Query {
   webhooks(sortBy: WebhookSortingInput, filter: WebhookFilterInput, before: String, after: String, first: Int, last: Int): WebhookCountableConnection
   webhookEvents: [WebhookEvent]
   webhookSamplePayload(eventType: WebhookEventTypeEnum!): JSONString
+  warehouse(id: ID!): Warehouse
+  warehouses(before: String, after: String, first: Int, last: Int): WarehouseCountableConnection
   translations(kind: TranslatableKinds!, before: String, after: String, first: Int, last: Int): TranslatableItemConnection
   translation(id: ID!, kind: TranslatableKinds!): TranslatableItem
   shop: Shop
@@ -4521,6 +4525,64 @@ enum VoucherTypeEnum {
 type VoucherUpdate {
   errors: [Error!]
   voucher: Voucher
+}
+
+type Warehouse implements Node {
+  uuid: UUID!
+  name: String!
+  companyName: String!
+  shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection!
+  address: Address!
+  email: String!
+  id: ID!
+}
+
+input WarehouseAddressInput {
+  streetAddress1: String!
+  streetAddress2: String
+  city: String!
+  cityArea: String
+  postalCode: String
+  country: CountryCode!
+  countryArea: String
+  phone: String
+}
+
+type WarehouseCountableConnection {
+  pageInfo: PageInfo!
+  edges: [WarehouseCountableEdge!]!
+  totalCount: Int
+}
+
+type WarehouseCountableEdge {
+  node: Warehouse!
+  cursor: String!
+}
+
+type WarehouseCreate {
+  errors: [Error!]
+  warehouse: Warehouse
+}
+
+input WarehouseCreateInput {
+  name: String!
+  companyName: String
+  shippingZonesInput: [ID]
+  email: String
+  address: WarehouseAddressInput!
+}
+
+type WarehouseUpdate {
+  errors: [Error!]
+  warehouse: Warehouse
+}
+
+input WarehouseUpdateInput {
+  name: String!
+  companyName: String
+  shippingZonesInput: [ID]
+  email: String
+  address: WarehouseAddressInput
 }
 
 type Webhook implements Node {
