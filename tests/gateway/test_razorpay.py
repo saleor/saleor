@@ -4,7 +4,6 @@ from unittest.mock import patch
 import pytest
 from razorpay.errors import BadRequestError, ServerError
 
-from saleor.extensions.manager import get_extensions_manager
 from saleor.payment import ChargeStatus, TransactionKind
 from saleor.payment.gateways.razorpay import (
     capture,
@@ -36,7 +35,7 @@ def gateway_config():
         template_path="template.html",
         connection_params={
             "public_key": "public",
-            "secret_key": "secret",
+            "private_key": "secret",
             "prefill": True,
             "store_name": "Saleor",
             "store_image": "image.png",
@@ -314,28 +313,3 @@ def test_refund_invalid_data(
 
     # Ensure the HTTP error was logged
     assert mocked_logger.call_count == 1
-
-
-def test_get_plugin_configuration_hides_all_razor_secrets(settings):
-    settings.PLUGINS = ["saleor.payment.gateways.razorpay.plugin.RazorpayGatewayPlugin"]
-    manager = get_extensions_manager()
-    manager.get_plugin_configuration("Razorpay")
-    manager.save_plugin_configuration(
-        "Razorpay",
-        {
-            "configuration": [
-                {"name": "Public API key", "value": "123"},
-                {"name": "Secret API key", "value": "456"},
-            ]
-        },
-    )
-    plugin_configuration = manager.get_plugin_configuration("Razorpay")
-    configuration = plugin_configuration.configuration
-    public_api_key = [
-        field for field in configuration if field["name"] == "Public API key"
-    ][0]
-    secret_api_key = [
-        field for field in configuration if field["name"] == "Secret API key"
-    ][0]
-    assert public_api_key["value"] == "*" * 10
-    assert secret_api_key["value"] == "*" * 10
