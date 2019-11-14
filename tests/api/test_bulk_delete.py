@@ -195,19 +195,29 @@ def test_delete_categories(staff_api_client, category_list, permission_manage_pr
     ).exists()
 
 
+@patch(
+    "saleor.graphql.product.bulk_mutations.products"
+    ".update_products_minimal_variant_prices_task"
+)
 def test_delete_categories_with_subcategories_and_products(
-    staff_api_client, category_list, permission_manage_products, product, category
+    mock_update_products_minimal_variant_prices_task,
+    staff_api_client,
+    category_list,
+    permission_manage_products,
+    product,
+    category,
 ):
+    product.category = category
     category.parent = category_list[0]
-    child_product = product
-    child_product.category = category
+    product.save()
+    category.save()
 
-    parent_product = child_product
+    parent_product = Product.objects.get(pk=product.pk)
     parent_product.id = None
     parent_product.category = category_list[0]
-
     parent_product.save()
-    child_product.save()
+
+    product_list = [product, parent_product]
 
     variables = {
         "ids": [
@@ -227,7 +237,11 @@ def test_delete_categories_with_subcategories_and_products(
         id__in=[category.id for category in category_list]
     ).exists()
 
-    for product in [child_product, parent_product]:
+    mock_update_products_minimal_variant_prices_task.delay.assert_called_once_with(
+        product_ids=[p.pk for p in product_list]
+    )
+
+    for product in product_list:
         product.refresh_from_db()
         assert not product.category
         assert not product.is_published
