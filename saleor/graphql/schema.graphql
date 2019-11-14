@@ -1483,6 +1483,7 @@ input DraftOrderCreateInput {
   shippingAddress: AddressInput
   shippingMethod: ID
   voucher: ID
+  customerNote: String
   lines: [OrderLineCreateInput]
 }
 
@@ -1500,6 +1501,7 @@ input DraftOrderInput {
   shippingAddress: AddressInput
   shippingMethod: ID
   voucher: ID
+  customerNote: String
 }
 
 type DraftOrderLineDelete {
