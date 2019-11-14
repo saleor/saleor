@@ -8,6 +8,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add sub-categories to random data - #4949 by @IKarbowiak
 - Deprecate `localized` field in Money type - #4952 by @IKarbowiak
 - Fix for shipping api doesn't apply taxes - #4913 by @kswiatek92
+- Add cutomer note to draft orders api - #4973 by @IKarbowiak
 
 ## 2.9.0
 
