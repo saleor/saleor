@@ -14,6 +14,7 @@ from ....product.error_codes import ProductErrorCode
 from ....product.tasks import (
     update_product_minimal_variant_price_task,
     update_products_minimal_variant_prices_of_catalogues_task,
+    update_products_minimal_variant_prices_task,
     update_variants_names,
 )
 from ....product.thumbnails import (
@@ -24,6 +25,7 @@ from ....product.thumbnails import (
 from ....product.utils.attributes import (
     associate_attribute_values_to_instance,
     generate_name_for_variant,
+    unpublished_products_before_category_delete,
 )
 from ...core.mutations import (
     BaseMutation,
@@ -142,6 +144,16 @@ class CategoryDelete(ModelDeleteMutation):
         permissions = ("product.manage_products",)
         error_type_class = ProductError
         error_type_field = "product_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        node_id = data.get("id")
+        instance = cls.get_node_or_error(info, node_id, only_type=Category)
+        products = unpublished_products_before_category_delete(instance)
+        product_ids = [product.pk for product in products]
+        response = super().perform_mutation(_root, info, **data)
+        update_products_minimal_variant_prices_task.delay(product_ids=product_ids)
+        return response
 
 
 class CollectionInput(graphene.InputObjectType):
