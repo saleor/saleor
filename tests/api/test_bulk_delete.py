@@ -35,6 +35,15 @@ MUTATION_DELETE_ORDER_LINES = """
     """
 
 
+MUTATION_CATEGORY_BULK_DELETE = """
+    mutation categoryBulkDelete($ids: [ID]!) {
+        categoryBulkDelete(ids: $ids) {
+            count
+        }
+    }
+"""
+
+
 @pytest.fixture
 def attribute_value_list(color_attribute):
     value_1 = AttributeValue.objects.create(
@@ -167,13 +176,38 @@ def test_delete_attribute_values(
 
 
 def test_delete_categories(staff_api_client, category_list, permission_manage_products):
-    query = """
-    mutation categoryBulkDelete($ids: [ID]!) {
-        categoryBulkDelete(ids: $ids) {
-            count
-        }
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("Category", category.id)
+            for category in category_list
+        ]
     }
-    """
+    response = staff_api_client.post_graphql(
+        MUTATION_CATEGORY_BULK_DELETE,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+
+    assert content["data"]["categoryBulkDelete"]["count"] == 3
+    assert not Category.objects.filter(
+        id__in=[category.id for category in category_list]
+    ).exists()
+
+
+def test_delete_categories_with_subcategories_and_products(
+    staff_api_client, category_list, permission_manage_products, product, category
+):
+    category.parent = category_list[0]
+    child_product = product
+    child_product.category = category
+
+    parent_product = child_product
+    parent_product.id = None
+    parent_product.category = category_list[0]
+
+    parent_product.save()
+    child_product.save()
 
     variables = {
         "ids": [
@@ -182,7 +216,9 @@ def test_delete_categories(staff_api_client, category_list, permission_manage_pr
         ]
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
+        MUTATION_CATEGORY_BULK_DELETE,
+        variables,
+        permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
 
@@ -190,6 +226,12 @@ def test_delete_categories(staff_api_client, category_list, permission_manage_pr
     assert not Category.objects.filter(
         id__in=[category.id for category in category_list]
     ).exists()
+
+    for product in [child_product, parent_product]:
+        product.refresh_from_db()
+        assert not product.category
+        assert not product.is_published
+        assert not product.publication_date
 
 
 def test_delete_collections(

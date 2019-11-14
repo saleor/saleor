@@ -1054,23 +1054,3 @@ def test_publish_product_with_category(product_type, category):
     product.save()
 
     assert product.is_published
-
-
-def test_product_category_pre_delete_signal(categories_tree, product):
-    child = categories_tree.children.first()
-    child_product = child.products.first()
-    product.category = categories_tree
-    product.name = "Test parent product"
-
-    for product in [child_product, product]:
-        product.publication_date = datetime.date.today()
-        product.is_published = True
-        product.save()
-
-    categories_tree.delete()
-
-    for product in [child_product, product]:
-        product = Product.objects.get(name=product.name)
-        assert not product.category
-        assert not product.is_published
-        assert not product.publication_date
