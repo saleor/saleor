@@ -14,6 +14,16 @@ from ..decorators import permission_required
 from .enums import LanguageCodeEnum
 from .resolvers import resolve_translation
 
+BASIC_TRANSLATABLE_FIELDS = ["id", "name"]
+EXTENDED_TRANSLATABLE_FIELDS = [
+    "id",
+    "name",
+    "description",
+    "description_json",
+    "seo_title",
+    "seo_description",
+]
+
 
 class BaseTranslationType(CountableDjangoObjectType):
     language = graphene.Field(
@@ -42,7 +52,7 @@ class AttributeValueTranslation(BaseTranslationType):
     class Meta:
         model = product_models.AttributeValueTranslation
         interfaces = [graphene.relay.Node]
-        only_fields = ["id", "name"]
+        only_fields = BASIC_TRANSLATABLE_FIELDS
 
 
 class AttributeValueTranslatableContent(CountableDjangoObjectType):
@@ -66,7 +76,7 @@ class AttributeValueTranslatableContent(CountableDjangoObjectType):
     class Meta:
         model = product_models.AttributeValue
         interfaces = [graphene.relay.Node]
-        only_fields = ["id", "name"]
+        only_fields = BASIC_TRANSLATABLE_FIELDS
 
     def resolve_attribute_value(self, info):
         return self
@@ -76,7 +86,7 @@ class AttributeTranslation(BaseTranslationType):
     class Meta:
         model = product_models.AttributeTranslation
         interfaces = [graphene.relay.Node]
-        only_fields = ["id", "name"]
+        only_fields = BASIC_TRANSLATABLE_FIELDS
 
 
 class AttributeTranslatableContent(CountableDjangoObjectType):
@@ -100,7 +110,7 @@ class AttributeTranslatableContent(CountableDjangoObjectType):
     class Meta:
         model = product_models.Attribute
         interfaces = [graphene.relay.Node]
-        only_fields = ["id", "name"]
+        only_fields = BASIC_TRANSLATABLE_FIELDS
 
     def resolve_attribute(self, info):
         return self
@@ -110,7 +120,7 @@ class ProductVariantTranslation(BaseTranslationType):
     class Meta:
         model = product_models.ProductVariantTranslation
         interfaces = [graphene.relay.Node]
-        only_fields = ["id", "name"]
+        only_fields = BASIC_TRANSLATABLE_FIELDS
 
 
 class ProductVariantTranslatableContent(CountableDjangoObjectType):
@@ -136,7 +146,7 @@ class ProductVariantTranslatableContent(CountableDjangoObjectType):
     class Meta:
         model = product_models.ProductVariant
         interfaces = [graphene.relay.Node]
-        only_fields = ["id", "name"]
+        only_fields = BASIC_TRANSLATABLE_FIELDS
 
     def resolve_product_variant(self, info):
         visible_products = product_models.Product.objects.visible_to_user(
@@ -151,14 +161,7 @@ class ProductTranslation(BaseTranslationType):
     class Meta:
         model = product_models.ProductTranslation
         interfaces = [graphene.relay.Node]
-        only_fields = [
-            "description",
-            "description_json",
-            "id",
-            "name",
-            "seo_title",
-            "seo_description",
-        ]
+        only_fields = EXTENDED_TRANSLATABLE_FIELDS
 
 
 class ProductTranslatableContent(CountableDjangoObjectType):
@@ -180,14 +183,7 @@ class ProductTranslatableContent(CountableDjangoObjectType):
     class Meta:
         model = product_models.Product
         interfaces = [graphene.relay.Node]
-        only_fields = [
-            "description",
-            "description_json",
-            "id",
-            "name",
-            "seo_title",
-            "seo_description",
-        ]
+        only_fields = EXTENDED_TRANSLATABLE_FIELDS
 
     def resolve_product(self, info):
         return (
@@ -201,14 +197,7 @@ class CollectionTranslation(BaseTranslationType):
     class Meta:
         model = product_models.CollectionTranslation
         interfaces = [graphene.relay.Node]
-        only_fields = [
-            "description",
-            "description_json",
-            "id",
-            "name",
-            "seo_title",
-            "seo_description",
-        ]
+        only_fields = EXTENDED_TRANSLATABLE_FIELDS
 
 
 class CollectionTranslatableContent(CountableDjangoObjectType):
@@ -232,14 +221,7 @@ class CollectionTranslatableContent(CountableDjangoObjectType):
     class Meta:
         model = product_models.Collection
         interfaces = [graphene.relay.Node]
-        only_fields = [
-            "description",
-            "description_json",
-            "id",
-            "name",
-            "seo_title",
-            "seo_description",
-        ]
+        only_fields = EXTENDED_TRANSLATABLE_FIELDS
 
     def resolve_collection(self, info):
         return (
@@ -253,14 +235,7 @@ class CategoryTranslation(BaseTranslationType):
     class Meta:
         model = product_models.CategoryTranslation
         interfaces = [graphene.relay.Node]
-        only_fields = [
-            "description",
-            "description_json",
-            "id",
-            "name",
-            "seo_title",
-            "seo_description",
-        ]
+        only_fields = EXTENDED_TRANSLATABLE_FIELDS
 
 
 class CategoryTranslatableContent(CountableDjangoObjectType):
@@ -282,14 +257,7 @@ class CategoryTranslatableContent(CountableDjangoObjectType):
     class Meta:
         model = product_models.Category
         interfaces = [graphene.relay.Node]
-        only_fields = [
-            "description",
-            "description_json",
-            "id",
-            "name",
-            "seo_title",
-            "seo_description",
-        ]
+        only_fields = EXTENDED_TRANSLATABLE_FIELDS
 
     def resolve_category(self, info):
         return self
@@ -352,7 +320,7 @@ class VoucherTranslation(BaseTranslationType):
     class Meta:
         model = discount_models.VoucherTranslation
         interfaces = [graphene.relay.Node]
-        only_fields = ["id", "name"]
+        only_fields = BASIC_TRANSLATABLE_FIELDS
 
 
 class VoucherTranslatableContent(CountableDjangoObjectType):
@@ -379,7 +347,7 @@ class VoucherTranslatableContent(CountableDjangoObjectType):
     class Meta:
         model = discount_models.Voucher
         interfaces = [graphene.relay.Node]
-        only_fields = ["id", "name"]
+        only_fields = BASIC_TRANSLATABLE_FIELDS
 
     @permission_required("discount.manage_discounts")
     def resolve_voucher(self, info):
@@ -390,7 +358,7 @@ class SaleTranslation(BaseTranslationType):
     class Meta:
         model = discount_models.SaleTranslation
         interfaces = [graphene.relay.Node]
-        only_fields = ["id", "name"]
+        only_fields = BASIC_TRANSLATABLE_FIELDS
 
 
 class SaleTranslatableContent(CountableDjangoObjectType):
@@ -415,7 +383,7 @@ class SaleTranslatableContent(CountableDjangoObjectType):
     class Meta:
         model = discount_models.Sale
         interfaces = [graphene.relay.Node]
-        only_fields = ["id", "name"]
+        only_fields = BASIC_TRANSLATABLE_FIELDS
 
     @permission_required("discount.manage_discounts")
     def resolve_sale(self, info):
@@ -433,7 +401,7 @@ class MenuItemTranslation(BaseTranslationType):
     class Meta:
         model = menu_models.MenuItemTranslation
         interfaces = [graphene.relay.Node]
-        only_fields = ["id", "name"]
+        only_fields = BASIC_TRANSLATABLE_FIELDS
 
 
 class MenuItemTranslatableContent(CountableDjangoObjectType):
@@ -460,7 +428,7 @@ class MenuItemTranslatableContent(CountableDjangoObjectType):
     class Meta:
         model = menu_models.MenuItem
         interfaces = [graphene.relay.Node]
-        only_fields = ["id", "name"]
+        only_fields = BASIC_TRANSLATABLE_FIELDS
 
     def resolve_menu_item(self, info):
         return self
@@ -470,7 +438,7 @@ class ShippingMethodTranslation(BaseTranslationType):
     class Meta:
         model = shipping_models.ShippingMethodTranslation
         interfaces = [graphene.relay.Node]
-        only_fields = ["id", "name"]
+        only_fields = BASIC_TRANSLATABLE_FIELDS
 
 
 class ShippingMethodTranslatableContent(CountableDjangoObjectType):
@@ -497,7 +465,7 @@ class ShippingMethodTranslatableContent(CountableDjangoObjectType):
     class Meta:
         model = shipping_models.ShippingMethod
         interfaces = [graphene.relay.Node]
-        only_fields = ["id", "name"]
+        only_fields = BASIC_TRANSLATABLE_FIELDS
 
     @permission_required("shipping.manage_shipping")
     def resolve_shipping_method(self, info):
