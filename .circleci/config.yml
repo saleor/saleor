@@ -46,21 +46,14 @@ jobs:
                 -d build_parameters[CIRCLE_JOB]=deploy \
                 https://circleci.com/api/v1.1/project/github/mirumee/saleor-demo/tree/master
             fi
-      - run:
-          name: Deploy saleor master
-          command: |
-            apk add --upgrade --no-cache zip py-pip
-            pip install awscli
-            sh ./scripts/deploy_master.sh > /dev/null 2>&1
-
 
 workflows:
   version: 2
   build-deploy:
     jobs:
-        - build:
-            filters:
-              branches:
-                only: master
-              tags:
-                only: /demo.*/
+      - build:
+          filters:
+            branches:
+              only: master
+            tags:
+              only: /demo.*/

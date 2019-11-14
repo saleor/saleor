@@ -6,8 +6,10 @@ from saleor.dashboard.payment.forms import (
     GatewayConfigurationForm,
     create_custom_form_field,
 )
+from saleor.extensions import ConfigurationTypeField
 from saleor.extensions.models import PluginConfiguration
 from saleor.payment.gateways.braintree.plugin import BraintreeGatewayPlugin
+from tests.extensions.utils import get_config_value
 
 
 @pytest.fixture
@@ -34,11 +36,6 @@ def plugin_configuration(db):
     return plugin_configuration
 
 
-@pytest.fixture
-def gateway_config_form():
-    return GatewayConfigurationForm(BraintreeGatewayPlugin)
-
-
 @pytest.fixture(autouse=True)
 def enable_plugin(settings):
     settings.PLUGINS = [
@@ -48,12 +45,13 @@ def enable_plugin(settings):
 
 @pytest.fixture
 def config_char_structure():
+    # This is value from BasePlugin.get_plugin_configuration
     return {
         "name": "Template path",
         "value": "order/payment/braintree.html",
-        "type": "String",
-        "help_text": "Location of django payment template for gateway.",
-        "label": "Template path",
+        "help_text": "Test",
+        "label": "Test label",
+        "type": ConfigurationTypeField.STRING,
     }
 
 
@@ -78,10 +76,12 @@ def form_data():
     }
 
 
-def test_configuration_form_get_current_configuration(
-    plugin_configuration, gateway_config_form
-):
-    assert gateway_config_form._get_current_configuration() == plugin_configuration
+def test_configuration_form_get_current_configuration(plugin_configuration):
+    gateway_config_form = GatewayConfigurationForm(BraintreeGatewayPlugin)
+    assert (
+        gateway_config_form._get_or_create_db_configuration().configuration
+        == plugin_configuration.configuration
+    )
 
 
 def test_configuration_form__create_field(config_char_structure):
@@ -89,17 +89,16 @@ def test_configuration_form__create_field(config_char_structure):
     assert isinstance(template_field, ConfigCharField)
     assert template_field.label == config_char_structure["name"]
     assert template_field.initial == config_char_structure["value"]
+    assert template_field.help_text == config_char_structure["help_text"]
 
 
 def test_config_boolean_field_returned_value():
-    config_boolean_structure = {
-        "name": "Require 3D secure",
-        "value": True,
-        "type": "Boolean",
-        "help_text": "Determines if Saleor should enforce 3D secure during payment.",
-        "label": "Require 3D secure",
-    }
-    boolean_field = ConfigBooleanField(structure=config_boolean_structure)
+    config_boolean_structure = {"name": "Require 3D secure", "value": True}
+    field_name = config_boolean_structure["name"]
+    boolean_field = ConfigBooleanField(
+        initial=True, label=field_name, help_text="help_text"
+    )
+    assert boolean_field.label == field_name
     assert boolean_field.clean(True) == {
         "name": config_boolean_structure["name"],
         "value": True,
@@ -111,7 +110,11 @@ def test_config_boolean_field_returned_value():
 
 
 def test_config_char_field_returned_value(config_char_structure):
-    char_field = ConfigCharField(structure=config_char_structure)
+    field_name = config_char_structure["name"]
+    field_value = config_char_structure["value"]
+    char_field = ConfigCharField(
+        initial=field_value, label=field_name, help_text="Test text"
+    )
     value = "1234466"
     assert char_field.clean(value) == {
         "name": config_char_structure["name"],
@@ -123,7 +126,18 @@ def test_gateway_config_returns_empty_dict_when_no_config(plugin_configuration):
     plugin_configuration.configuration = None
     plugin_configuration.save()
     form = GatewayConfigurationForm(BraintreeGatewayPlugin)
-    assert form._prepare_fields_for_given_config(plugin_configuration) == {}
+    assert form._prepare_fields_for_given_config() == {}
+
+
+def test_gateway_config_does_not_save_additional_data_to_db(
+    plugin_configuration, form_data
+):
+    form = GatewayConfigurationForm(BraintreeGatewayPlugin, form_data)
+    assert form.is_valid()
+    form.save()
+    plugin_configuration.refresh_from_db()
+    for elem in plugin_configuration.configuration:
+        assert len(elem) == 2
 
 
 def test_payment_index_display_only_available_gateways(staff_client):
@@ -187,12 +201,6 @@ def test_gateway_configuration_form_json_field_set_to_false(field_name, form_dat
     assert form.is_valid()
     cleaned_data = form.cleaned_data
     assert cleaned_data[field_name]["value"] is False
-
-
-def get_config_value(field_name, configuration):
-    for elem in configuration:
-        if elem["name"] == field_name:
-            return elem["value"]
 
 
 def test_form_properly_save_plugin_config(form_data, plugin_configuration):

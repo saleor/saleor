@@ -7,7 +7,6 @@ from braintree.errors import Errors
 from braintree.validation_error import ValidationError
 from django.core.exceptions import ImproperlyConfigured
 
-from saleor.extensions.manager import get_extensions_manager
 from saleor.payment.gateways.braintree import (
     TransactionKind,
     authorize,
@@ -440,35 +439,3 @@ def test_list_customer_sources(sandbox_braintree_gateway_config):
     )
     sources = list_client_sources(sandbox_braintree_gateway_config, CUSTOMER_ID)
     assert sources == [expected_customer_source]
-
-
-def test_get_plugin_configuration_hides_all_braintree_secrets(settings):
-    settings.PLUGINS = [
-        "saleor.payment.gateways.braintree.plugin.BraintreeGatewayPlugin"
-    ]
-    manager = get_extensions_manager()
-    manager.get_plugin_configuration("Braintree")
-    manager.save_plugin_configuration(
-        "Braintree",
-        {
-            "configuration": [
-                {"name": "Public API key", "value": "123"},
-                {"name": "Merchant ID", "value": "456"},
-                {"name": "Secret API key", "value": "456"},
-            ]
-        },
-    )
-    plugin_configuration = manager.get_plugin_configuration("Braintree")
-    configuration = plugin_configuration.configuration
-    public_api_key = [
-        field for field in configuration if field["name"] == "Public API key"
-    ][0]
-    secret_api_key = [
-        field for field in configuration if field["name"] == "Secret API key"
-    ][0]
-    merchant_id = [field for field in configuration if field["name"] == "Merchant ID"][
-        0
-    ]
-    assert public_api_key["value"] == "*" * 10
-    assert secret_api_key["value"] == "*" * 10
-    assert merchant_id["value"] == "*" * 10
