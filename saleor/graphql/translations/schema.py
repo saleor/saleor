@@ -101,7 +101,7 @@ class TranslationQueries(graphene.ObjectType):
     translation = graphene.Field(
         DefaultTranslationItem,
         id=graphene.Argument(
-            graphene.ID, description="ID of the objects to retrieve.", required=True
+            graphene.ID, description="ID of the object to retrieve.", required=True
         ),
         kind=graphene.Argument(
             TranslatableKinds, required=True, description="Kind of objects to retrieve."
