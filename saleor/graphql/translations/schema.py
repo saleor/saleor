@@ -104,7 +104,7 @@ class TranslationQueries(graphene.ObjectType):
             graphene.ID, description="ID of the object to retrieve.", required=True
         ),
         kind=graphene.Argument(
-            TranslatableKinds, required=True, description="Kind of objects to retrieve."
+            TranslatableKinds, required=True, description="Kind of the object to retrieve."
         ),
     )
 
