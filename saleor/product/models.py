@@ -320,9 +320,6 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
         if self.minimal_variant_price_amount is None:
             self.minimal_variant_price_amount = self.price_amount
 
-        # Product can't be published if doesn't have category
-        if not self.category and self.is_published:
-            self.is_published = False
         return super().save(force_insert, force_update, using, update_fields)
 
     @property
