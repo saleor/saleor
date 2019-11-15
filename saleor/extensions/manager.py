@@ -13,10 +13,16 @@ from .models import PluginConfiguration
 if TYPE_CHECKING:
     from .base_plugin import BasePlugin
     from ..checkout.models import Checkout, CheckoutLine
-    from ..product.models import Product
+    from ..discount import DiscountInfo
+    from ..product.models import Product, ProductType
     from ..account.models import Address, User
     from ..order.models import OrderLine, Order
-    from ..payment.interface import PaymentData, TokenConfig
+    from ..payment.interface import (
+        PaymentData,
+        TokenConfig,
+        GatewayResponse,
+        CustomerSource,
+    )
 
 
 class ExtensionsManager(PaymentInterface):
@@ -316,7 +322,7 @@ class ExtensionsManager(PaymentInterface):
         method_name: str,
         payment_information: "PaymentData",
         **kwargs,
-    ) -> Optional["GatewayResposne"]:
+    ) -> Optional["GatewayResponse"]:
         default_value = None
         gtw = self.get_plugin(gateway)
         if gtw is not None:
