@@ -10,6 +10,7 @@ def test_warehouse_form_will_fail_when_no_address(shipping_zone):
         "name": "Test",
         "shipping_zones": [shipping_zone],
         "email": "warehouse@example.com",
+        "company_name": "Comany Inc",
     }
     form = WarehouseForm(data)
     assert form.is_valid()
@@ -22,6 +23,7 @@ def test_warehouse_form_create_object(address, shipping_zone):
         "name": "Test",
         "shipping_zones": [shipping_zone],
         "email": "warehouse@example.com",
+        "company_name": "Comany Inc",
     }
     assert not Warehouse.objects.exists()
     form = WarehouseForm(data)
@@ -35,7 +37,12 @@ def test_warehouse_form_updates_object(warehouse, shipping_zone):
     assert warehouse.shipping_zones.count() == 1
     assert warehouse.shipping_zones.first() == shipping_zone
     new_name = "New name"
-    data = {"name": new_name, "shipping_zones": [], "email": warehouse.email}
+    data = {
+        "name": new_name,
+        "shipping_zones": [],
+        "email": warehouse.email,
+        "company_name": "Company Inc",
+    }
     form = WarehouseForm(data, instance=warehouse)
     assert form.is_valid()
     form.save()
