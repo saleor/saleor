@@ -22,16 +22,22 @@ from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
 from saleor.core.payments import PaymentInterface
 from saleor.discount import DiscountInfo, DiscountValueType, VoucherType
-from saleor.discount.models import Sale, Voucher, VoucherCustomer, VoucherTranslation
+from saleor.discount.models import (
+    Sale,
+    SaleTranslation,
+    Voucher,
+    VoucherCustomer,
+    VoucherTranslation,
+)
 from saleor.giftcard.models import GiftCard
-from saleor.menu.models import Menu, MenuItem
+from saleor.menu.models import Menu, MenuItem, MenuItemTranslation
 from saleor.menu.utils import update_menu
 from saleor.order import OrderStatus
 from saleor.order.actions import fulfill_order_line
 from saleor.order.events import OrderEvents
 from saleor.order.models import FulfillmentStatus, Order, OrderEvent
 from saleor.order.utils import recalculate_order
-from saleor.page.models import Page
+from saleor.page.models import Page, PageTranslation
 from saleor.payment import ChargeStatus, TransactionKind
 from saleor.payment.models import Payment
 from saleor.product import AttributeInputType
@@ -39,8 +45,11 @@ from saleor.product.models import (
     Attribute,
     AttributeTranslation,
     AttributeValue,
+    AttributeValueTranslation,
     Category,
+    CategoryTranslation,
     Collection,
+    CollectionTranslation,
     DigitalContent,
     DigitalContentUrl,
     Product,
@@ -48,9 +57,15 @@ from saleor.product.models import (
     ProductTranslation,
     ProductType,
     ProductVariant,
+    ProductVariantTranslation,
 )
 from saleor.product.utils.attributes import associate_attribute_values_to_instance
-from saleor.shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
+from saleor.shipping.models import (
+    ShippingMethod,
+    ShippingMethodTranslation,
+    ShippingMethodType,
+    ShippingZone,
+)
 from saleor.site import AuthenticationBackends
 from saleor.site.models import AuthorizationKey, SiteSettings
 from saleor.webhook import WebhookEventType
@@ -1266,7 +1281,16 @@ def translated_variant_fr(product):
 def translated_attribute(product):
     attribute = product.product_type.product_attributes.first()
     return AttributeTranslation.objects.create(
-        language_code="fr", attribute=attribute, name="Name tranlsated to french"
+        language_code="fr", attribute=attribute, name="French attribute name"
+    )
+
+
+@pytest.fixture
+def translated_attribute_value(pink_attribute_value):
+    return AttributeValueTranslation.objects.create(
+        language_code="fr",
+        attribute_value=pink_attribute_value,
+        name="French attribute value name",
     )
 
 
@@ -1284,6 +1308,66 @@ def product_translation_fr(product):
         product=product,
         name="French name",
         description="French description",
+    )
+
+
+@pytest.fixture
+def variant_translation_fr(variant):
+    return ProductVariantTranslation.objects.create(
+        language_code="fr", product_variant=variant, name="French product variant name"
+    )
+
+
+@pytest.fixture
+def collection_translation_fr(collection):
+    return CollectionTranslation.objects.create(
+        language_code="fr",
+        collection=collection,
+        name="French collection name",
+        description="French description",
+    )
+
+
+@pytest.fixture
+def category_translation_fr(category):
+    return CategoryTranslation.objects.create(
+        language_code="fr",
+        category=category,
+        name="French category name",
+        description="French category description",
+    )
+
+
+@pytest.fixture
+def page_translation_fr(page):
+    return PageTranslation.objects.create(
+        language_code="fr",
+        page=page,
+        title="French page title",
+        content="French page content",
+    )
+
+
+@pytest.fixture
+def shipping_method_translation_fr(shipping_method):
+    return ShippingMethodTranslation.objects.create(
+        language_code="fr",
+        shipping_method=shipping_method,
+        name="French shipping method name",
+    )
+
+
+@pytest.fixture
+def sale_translation_fr(sale):
+    return SaleTranslation.objects.create(
+        language_code="fr", sale=sale, name="French sale name"
+    )
+
+
+@pytest.fixture
+def menu_item_translation_fr(menu_item):
+    return MenuItemTranslation.objects.create(
+        language_code="fr", menu_item=menu_item, name="French manu item name"
     )
 
 
