@@ -1358,4 +1358,6 @@ def test_product_form_publish_product_without_category(product_without_category)
 
     form = ProductForm(data, instance=product_without_category)
     assert not form.is_valid()
-    assert form.errors == {"is_published": ["You must add cateogry to publish product"]}
+    assert form.errors == {
+        "is_published": ["You must select a category to be able to publish"]
+    }

@@ -1177,6 +1177,40 @@ def test_product_create_without_product_type(
     assert errors[0]["message"] == "This field cannot be null."
 
 
+def test_product_create_without_category_and_true_is_published_value(
+    staff_api_client, permission_manage_products, product_type
+):
+    query = """
+    mutation createProduct($productTypeId: ID!) {
+        productCreate(input: {
+                name: "Product",
+                basePrice: "2.5",
+                productType: $productTypeId,
+                isPublished: true
+            }) {
+            product {
+                id
+            }
+            errors {
+                message
+                field
+            }
+        }
+    }
+    """
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    response = staff_api_client.post_graphql(
+        query,
+        {"productTypeId": product_type_id},
+        permissions=[permission_manage_products],
+    )
+    errors = get_graphql_content(response)["data"]["productCreate"]["errors"]
+
+    assert errors[0]["field"] == "isPublished"
+    assert errors[0]["message"] == "You must select a category to be able to publish"
+
+
 def test_update_product(
     staff_api_client,
     category,
@@ -1561,6 +1595,49 @@ def test_update_product_without_variants_sku_duplication(
     assert data["errors"]
     assert data["errors"][0]["field"] == "sku"
     assert data["errors"][0]["message"] == "Product with this SKU already exists."
+
+
+def test_update_product_withput_category_and_true_is_published_value(
+    staff_api_client, permission_manage_products, product
+):
+    query = """
+    mutation updateProduct(
+        $productId: ID!,
+        $isPublished: Boolean)
+    {
+        productUpdate(
+            id: $productId,
+            input: {
+                isPublished: $isPublished
+            })
+        {
+            product {
+                id
+            }
+            errors {
+                message
+                field
+            }
+        }
+    }"""
+
+    product.category = None
+    product.save()
+
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    variables = {"productId": product_id, "isPublished": True}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    data = get_graphql_content(response)["data"]["productUpdate"]
+    assert data["errors"]
+    assert data["errors"][0]["field"] == "isPublished"
+    assert (
+        data["errors"][0]["message"]
+        == "You must select a category to be able to publish"
+    )
 
 
 def test_delete_product(staff_api_client, product, permission_manage_products):
