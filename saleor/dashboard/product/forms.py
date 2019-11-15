@@ -367,10 +367,10 @@ class ProductForm(MoneyModelForm, AttributesMixin):
         return seo_description
 
     def clean_is_published(self):
-        is_published = self.cleaned_data["is_published"]
-        category = self.data["category"]
+        is_published = self.cleaned_data.get("is_published")
+        category = self.data.get("category")
         if not category and is_published:
-            raise ValidationError("You must add cateogry to publish product")
+            raise ValidationError("You must select a category to be able to publish")
         return is_published
 
     def save(self, commit=True):
