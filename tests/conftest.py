@@ -635,6 +635,7 @@ def product_without_shipping(category):
 @pytest.fixture
 def product_without_category(product):
     product.category = None
+    product.is_published = False
     product.save()
     return product
 
