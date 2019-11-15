@@ -13,8 +13,10 @@ from django.utils.translation import pgettext_lazy
 from requests.auth import HTTPBasicAuth
 
 if TYPE_CHECKING:
+    # flake8: noqa
     from ....checkout.models import Checkout
     from ....order.models import Order
+    from ....product.models import Product, ProductVariant
 
 logger = logging.getLogger(__name__)
 
@@ -217,6 +219,8 @@ def get_checkout_lines_data(
         "variant__product__collections",
         "variant__product__product_type",
     )
+    from saleor.checkout.base_calculations import get_base_checkout_line_total
+
     for line in lines:
         if not line.variant.product.charge_taxes:
             continue
@@ -228,7 +232,7 @@ def get_checkout_lines_data(
         append_line_to_data(
             data=data,
             quantity=line.quantity,
-            amount=str(line.get_total(discounts).amount),
+            amount=str(get_base_checkout_line_total(line, discounts).gross.amount),
             tax_code=tax_code,
             item_code=line.variant.sku,
             description=description,
@@ -337,8 +341,7 @@ def generate_request_data_from_checkout(
     address = checkout.shipping_address or checkout.billing_address
     lines = get_checkout_lines_data(checkout, discounts)
 
-    # FIXME after we introduce multicurrency this should be taken from Checkout obj
-    currency = checkout.get_subtotal().currency
+    currency = checkout.currency
     data = generate_request_data(
         transaction_type=transaction_type,
         lines=lines,
