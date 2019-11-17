@@ -19,9 +19,11 @@ from saleor.extensions.plugins.avatax.plugin import AvataxPlugin
 
 @pytest.fixture
 def plugin_configuration(db):
-    plugin_configuration = PluginConfiguration.objects.create(
-        **AvataxPlugin._get_default_configuration()
-    )
+    default_configuration = AvataxPlugin._get_default_configuration()
+    for elem in default_configuration["configuration"]:
+        if elem["name"] == "Use sandbox":
+            elem["value"] = False
+    plugin_configuration = PluginConfiguration.objects.create(**default_configuration)
     config = [
         {"name": "Username or account", "value": "2000134479"},
         {"name": "Password or license", "value": "697932CFCBDE505B"},
@@ -424,7 +426,7 @@ def test_show_taxes_on_storefront(settings):
     assert manager.show_taxes_on_storefront() is False
 
 
-def test_postprocess_order_creation(settings, order, monkeypatch):
+def test_order_created(settings, order, monkeypatch):
     settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
     settings.AVATAX_USERNAME_OR_ACCOUNT = "test"
     settings.AVATAX_PASSWORD_OR_LICENSE = "test"
@@ -439,7 +441,7 @@ def test_postprocess_order_creation(settings, order, monkeypatch):
         mocked_task,
     )
 
-    manager.postprocess_order_creation(order)
+    manager.order_created(order)
 
     assert mocked_task.called
 

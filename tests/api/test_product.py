@@ -1,12 +1,11 @@
 import json
 from datetime import datetime
 from decimal import Decimal
-from unittest.mock import Mock, patch
+from unittest.mock import ANY, Mock, patch
 
 import graphene
 import pytest
 from django.utils.dateparse import parse_datetime
-from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from graphql_relay import to_global_id
 from prices import Money
@@ -16,6 +15,7 @@ from saleor.extensions.manager import ExtensionsManager
 from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.product.enums import StockAvailability
 from saleor.product import AttributeInputType
+from saleor.product.error_codes import ProductErrorCode
 from saleor.product.models import (
     Attribute,
     AttributeValue,
@@ -27,6 +27,7 @@ from saleor.product.models import (
     ProductVariant,
 )
 from saleor.product.tasks import update_variants_names
+from saleor.product.utils.attributes import associate_attribute_values_to_instance
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image, create_pdf_file_with_image_ext
 
@@ -55,6 +56,24 @@ def query_collections_with_filter():
     query = """
     query ($filter: CollectionFilterInput!, ) {
           collections(first:5, filter: $filter) {
+            edges{
+              node{
+                id
+                name
+              }
+            }
+          }
+        }
+        """
+    return query
+
+
+@pytest.fixture
+def query_categories_with_filter():
+    query = """
+    query ($filter: CategoryFilterInput!, ) {
+          categories(first:5, filter: $filter) {
+            totalCount
             edges{
               node{
                 id
@@ -129,7 +148,6 @@ def test_product_query(staff_api_client, product, permission_manage_products):
                         }
                         variants {
                             name
-                            stockQuantity
                         }
                         isAvailable
                         pricing {
@@ -238,8 +256,8 @@ def test_products_query_with_filter_attributes(
     second_product = product
     second_product.id = None
     second_product.product_type = product_type
-    second_product.attributes = {smart_text(attribute.pk): [smart_text(attr_value.pk)]}
     second_product.save()
+    associate_attribute_values_to_instance(second_product, attribute, attr_value)
 
     variables = {
         "filter": {"attributes": [{"slug": attribute.slug, "value": attr_value.slug}]}
@@ -541,10 +559,40 @@ def test_filter_products_by_attributes(user_api_client, product):
     """ % {
         "filter_by": filter_by
     }
+
     response = user_api_client.post_graphql(query)
     content = get_graphql_content(response)
-    product_data = content["data"]["products"]["edges"][0]["node"]
-    assert product_data["name"] == product.name
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["name"] == product.name
+
+
+def test_filter_products_by_wrong_attributes(user_api_client, product):
+    product_attr = product.product_type.product_attributes.get(slug="color")
+    attr_value = (
+        product.product_type.variant_attributes.get(slug="size").values.first().id
+    )
+    filter_by = "%s:%s" % (product_attr.slug, attr_value)
+    query = """
+    query {
+        products(attributes: ["%(filter_by)s"], first: 1) {
+            edges {
+                node {
+                    name
+                }
+            }
+        }
+    }
+    """ % {
+        "filter_by": filter_by
+    }
+
+    response = user_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    products = content["data"]["products"]["edges"]
+
+    assert products == []
 
 
 def test_filter_products_by_categories(user_api_client, categories_tree, product):
@@ -591,25 +639,15 @@ def test_filter_products_by_collections(user_api_client, collection, product):
     assert product_data["name"] == product.name
 
 
-def test_sort_products(user_api_client, product):
-    # set price and update date of the first product
-    product.price = Money("10.00", "USD")
-    product.minimal_variant_price = Money("10.00", "USD")
-    product.updated_at = datetime.utcnow()
-    product.save()
-
-    # Create the second product with higher price and date
-    product.pk = None
-    product.price = Money("20.00", "USD")
-    product.minimal_variant_price = Money("20.00", "USD")
-    product.updated_at = datetime.utcnow()
-    product.save()
-
-    query = """
+SORT_PRODUCTS_QUERY = """
     query {
         products(sortBy: %(sort_by_product_order)s, first: 2) {
             edges {
                 node {
+                    isPublished
+                    productType{
+                        name
+                    }
                     pricing {
                         priceRangeUndiscounted {
                             start {
@@ -631,7 +669,24 @@ def test_sort_products(user_api_client, product):
             }
         }
     }
-    """
+"""
+
+
+def test_sort_products(user_api_client, product):
+    # set price and update date of the first product
+    product.price = Money("10.00", "USD")
+    product.minimal_variant_price = Money("10.00", "USD")
+    product.updated_at = datetime.utcnow()
+    product.save()
+
+    # Create the second product with higher price and date
+    product.pk = None
+    product.price = Money("20.00", "USD")
+    product.minimal_variant_price = Money("20.00", "USD")
+    product.updated_at = datetime.utcnow()
+    product.save()
+
+    query = SORT_PRODUCTS_QUERY
 
     # Test sorting by PRICE, ascending
     asc_price_query = query % {"sort_by_product_order": "{field: PRICE, direction:ASC}"}
@@ -698,6 +753,62 @@ def test_sort_products(user_api_client, product):
     date_0 = content["data"]["products"]["edges"][0]["node"]["updatedAt"]
     date_1 = content["data"]["products"]["edges"][1]["node"]["updatedAt"]
     assert parse_datetime(date_0) > parse_datetime(date_1)
+
+
+def test_sort_products_published(staff_api_client, product, permission_manage_products):
+    # Create the second not published product
+    product.pk = None
+    product.is_published = False
+    product.save()
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # Test sorting by PUBLISHED, ascending
+    asc_published_query = SORT_PRODUCTS_QUERY % {
+        "sort_by_product_order": "{field: PUBLISHED, direction:ASC}"
+    }
+    response = staff_api_client.post_graphql(asc_published_query)
+    content = get_graphql_content(response)
+    is_published_0 = content["data"]["products"]["edges"][0]["node"]["isPublished"]
+    is_published_1 = content["data"]["products"]["edges"][1]["node"]["isPublished"]
+    assert is_published_0 is False
+    assert is_published_1 is True
+
+    # Test sorting by PUBLISHED, descending
+    desc_published_query = SORT_PRODUCTS_QUERY % {
+        "sort_by_product_order": "{field: PUBLISHED, direction:DESC}"
+    }
+    response = staff_api_client.post_graphql(desc_published_query)
+    content = get_graphql_content(response)
+    is_published_0 = content["data"]["products"]["edges"][0]["node"]["isPublished"]
+    is_published_1 = content["data"]["products"]["edges"][1]["node"]["isPublished"]
+    assert is_published_0 is True
+    assert is_published_1 is False
+
+
+def test_sort_products_product_type_name(
+    user_api_client, product, product_with_default_variant
+):
+    # Test sorting by TYPE, ascending
+    asc_published_query = SORT_PRODUCTS_QUERY % {
+        "sort_by_product_order": "{field: TYPE, direction:ASC}"
+    }
+    response = user_api_client.post_graphql(asc_published_query)
+    content = get_graphql_content(response)
+    edges = content["data"]["products"]["edges"]
+    product_type_name_0 = edges[0]["node"]["productType"]["name"]
+    product_type_name_1 = edges[1]["node"]["productType"]["name"]
+    assert product_type_name_0 < product_type_name_1
+
+    # Test sorting by PUBLISHED, descending
+    desc_published_query = SORT_PRODUCTS_QUERY % {
+        "sort_by_product_order": "{field: TYPE, direction:DESC}"
+    }
+    response = user_api_client.post_graphql(desc_published_query)
+    content = get_graphql_content(response)
+    product_type_name_0 = edges[0]["node"]["productType"]["name"]
+    product_type_name_1 = edges[1]["node"]["productType"]["name"]
+    assert product_type_name_0 < product_type_name_1
 
 
 def test_create_product(
@@ -1153,9 +1264,10 @@ def test_update_product(
 SET_ATTRIBUTES_TO_PRODUCT_QUERY = """
     mutation updateProduct($productId: ID!, $attributes: [AttributeValueInput!]) {
       productUpdate(id: $productId, input: { attributes: $attributes }) {
-        errors {
+        productErrors {
           message
           field
+          code
         }
       }
     }
@@ -1187,11 +1299,8 @@ def test_update_product_can_only_assign_multiple_values_to_valid_input_types(
     data = get_graphql_content(
         staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
     )["data"]["productUpdate"]
-    assert data["errors"] == [
-        {
-            "field": "attributes",
-            "message": "A dropdown attribute must take only one value",
-        }
+    assert data["productErrors"] == [
+        {"field": "attributes", "code": ProductErrorCode.INVALID.name, "message": ANY}
     ]
 
     # Try to assign multiple values from a valid attribute
@@ -1199,7 +1308,114 @@ def test_update_product_can_only_assign_multiple_values_to_valid_input_types(
     data = get_graphql_content(
         staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
     )["data"]["productUpdate"]
-    assert not data["errors"]
+    assert not data["productErrors"]
+
+
+def test_update_product_with_existing_attribute_value(
+    staff_api_client, product, permission_manage_products, color_attribute
+):
+    """Ensure assigning an existing value to a product doesn't create a new
+    attribute value."""
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    expected_attribute_values_count = color_attribute.values.count()
+    color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.id)
+    color = color_attribute.values.only("name").first()
+
+    # Try to assign multiple values from an attribute that does not support such things
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product.pk),
+        "attributes": [{"id": color_attribute_id, "values": [color.name]}],
+    }
+
+    data = get_graphql_content(
+        staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
+    )["data"]["productUpdate"]
+    assert not data["productErrors"]
+
+    assert (
+        color_attribute.values.count() == expected_attribute_values_count
+    ), "A new attribute value shouldn't have been created"
+
+
+def test_update_product_without_supplying_required_product_attribute(
+    staff_api_client, product, permission_manage_products, color_attribute
+):
+    """Ensure assigning an existing value to a product doesn't create a new
+    attribute value."""
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    product_type = product.product_type
+    color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.id)
+
+    # Create and assign a new attribute requiring a value to be always supplied
+    required_attribute = Attribute.objects.create(
+        name="Required One", slug="required-one", value_required=True
+    )
+    product_type.product_attributes.add(required_attribute)
+
+    # Try to assign multiple values from an attribute that does not support such things
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product.pk),
+        "attributes": [{"id": color_attribute_id, "values": ["Blue"]}],
+    }
+
+    data = get_graphql_content(
+        staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
+    )["data"]["productUpdate"]
+    assert data["productErrors"] == [
+        {"field": "attributes", "code": ProductErrorCode.REQUIRED.name, "message": ANY}
+    ]
+
+
+def test_update_product_with_non_existing_attribute(
+    staff_api_client, product, permission_manage_products, color_attribute
+):
+    non_existent_attribute_pk = 0
+    invalid_attribute_id = graphene.Node.to_global_id(
+        "Attribute", non_existent_attribute_pk
+    )
+
+    """Ensure assigning an existing value to a product doesn't create a new
+    attribute value."""
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # Try to assign multiple values from an attribute that does not support such things
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product.pk),
+        "attributes": [{"id": invalid_attribute_id, "values": ["hello"]}],
+    }
+
+    data = get_graphql_content(
+        staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
+    )["data"]["productUpdate"]
+    assert data["productErrors"] == [
+        {"field": "attributes", "code": ProductErrorCode.NOT_FOUND.name, "message": ANY}
+    ]
+
+
+def test_update_product_with_no_attribute_slug_or_id(
+    staff_api_client, product, permission_manage_products, color_attribute
+):
+    """Ensure only supplying values triggers a validation error."""
+
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    # Try to assign multiple values from an attribute that does not support such things
+    variables = {
+        "productId": graphene.Node.to_global_id("Product", product.pk),
+        "attributes": [{"values": ["Oopsie!"]}],
+    }
+
+    data = get_graphql_content(
+        staff_api_client.post_graphql(SET_ATTRIBUTES_TO_PRODUCT_QUERY, variables)
+    )["data"]["productUpdate"]
+    assert data["productErrors"] == [
+        {"field": "attributes", "code": ProductErrorCode.REQUIRED.name, "message": ANY}
+    ]
 
 
 def test_update_product_without_variants(
@@ -2100,98 +2316,140 @@ def test_report_product_sales(
     assert Decimal(amount) == line_b.quantity * line_b.unit_price_gross_amount
 
 
-def test_variant_revenue_permissions(
-    staff_api_client, permission_manage_products, permission_manage_orders, product
+@pytest.mark.parametrize(
+    "field, is_nested",
+    (
+        ("basePrice", True),
+        ("purchaseCost", True),
+        ("margin", True),
+        ("privateMeta", True),
+    ),
+)
+def test_product_restricted_fields_permissions(
+    staff_api_client,
+    permission_manage_products,
+    permission_manage_orders,
+    product,
+    field,
+    is_nested,
 ):
+    """Ensure non-public (restricted) fields are correctly requiring
+    the 'manage_products' permission.
+    """
     query = """
-    query VariantRevenue($id: ID!) {
-        productVariant(id: $id) {
-            revenue(period: TODAY) {
-                gross {
-                    localized
-                }
-            }
+    query Product($id: ID!) {
+        product(id: $id) {
+            %(field)s
         }
     }
+    """ % {
+        "field": field if not is_nested else "%s { __typename }" % field
+    }
+    variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
+    permissions = [permission_manage_orders, permission_manage_products]
+    response = staff_api_client.post_graphql(query, variables, permissions)
+    content = get_graphql_content(response)
+    assert field in content["data"]["product"]
+
+
+@pytest.mark.parametrize(
+    "field, is_nested",
+    (
+        ("digitalContent", True),
+        ("margin", False),
+        ("costPrice", True),
+        ("priceOverride", True),
+        ("quantity", False),
+        ("quantityOrdered", False),
+        ("quantityAllocated", False),
+        ("privateMeta", True),
+    ),
+)
+def test_variant_restricted_fields_permissions(
+    staff_api_client,
+    permission_manage_products,
+    permission_manage_orders,
+    product,
+    field,
+    is_nested,
+):
+    """Ensure non-public (restricted) fields are correctly requiring
+    the 'manage_products' permission.
     """
+    query = """
+    query ProductVariant($id: ID!) {
+        productVariant(id: $id) {
+            %(field)s
+        }
+    }
+    """ % {
+        "field": field if not is_nested else "%s { __typename }" % field
+    }
     variant = product.variants.first()
     variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
     permissions = [permission_manage_orders, permission_manage_products]
     response = staff_api_client.post_graphql(query, variables, permissions)
     content = get_graphql_content(response)
-    assert content["data"]["productVariant"]["revenue"]
+    assert field in content["data"]["productVariant"]
 
 
-def test_variant_quantity_permissions(
-    staff_api_client, permission_manage_products, product
-):
-    query = """
-    query Quantity($id: ID!) {
+VARIANT_QUANTITY_AVAILABLE_IN_STOCK_QUERY = """
+    query ProductVariant($id: ID!) {
         productVariant(id: $id) {
-            quantity
+            stockQuantity
         }
     }
     """
-    variant = product.variants.first()
-    variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
-    permissions = [permission_manage_products]
-    response = staff_api_client.post_graphql(query, variables, permissions)
-    content = get_graphql_content(response)
-    assert "quantity" in content["data"]["productVariant"]
 
 
-def test_variant_quantity_ordered_permissions(
-    staff_api_client, permission_manage_products, permission_manage_orders, product
+def test_variant_available_stock_quantity_is_capped_for_authorized_user(
+    staff_api_client, permission_manage_products, variant, settings
 ):
-    query = """
-    query QuantityOrdered($id: ID!) {
-        productVariant(id: $id) {
-            quantityOrdered
-        }
-    }
     """
-    variant = product.variants.first()
+    The exact quantity available in stock should be accessible for a staff
+    user having the permission to manage products.
+    """
+    actual_stock_available = 60
+    expected_stock_available = settings.MAX_CHECKOUT_LINE_QUANTITY = 50
+
+    variant.quantity = actual_stock_available
+    variant.quantity_allocated = 0
+    variant.save(update_fields=["quantity", "quantity_allocated"])
+
+    query = VARIANT_QUANTITY_AVAILABLE_IN_STOCK_QUERY
     variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
-    permissions = [permission_manage_orders, permission_manage_products]
-    response = staff_api_client.post_graphql(query, variables, permissions)
-    content = get_graphql_content(response)
-    assert "quantityOrdered" in content["data"]["productVariant"]
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+
+    data = get_graphql_content(staff_api_client.post_graphql(query, variables))
+    stock_available = data["data"]["productVariant"]["stockQuantity"]
+
+    assert stock_available == expected_stock_available
 
 
-def test_variant_quantity_allocated_permissions(
-    staff_api_client, permission_manage_products, permission_manage_orders, product
+@pytest.mark.parametrize(
+    "actual_stock_available, expected_stock_available",
+    ((60, 50), (50, 50), (49, 49), (0, 0)),
+)
+def test_variant_available_stock_quantity_is_capped_for_unauthorized_user(
+    api_client, variant, settings, actual_stock_available, expected_stock_available
 ):
-    query = """
-    query QuantityAllocated($id: ID!) {
-        productVariant(id: $id) {
-            quantityAllocated
-        }
-    }
     """
-    variant = product.variants.first()
-    variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
-    permissions = [permission_manage_orders, permission_manage_products]
-    response = staff_api_client.post_graphql(query, variables, permissions)
-    content = get_graphql_content(response)
-    assert "quantityAllocated" in content["data"]["productVariant"]
-
-
-def test_variant_margin_permissions(
-    staff_api_client, permission_manage_products, permission_manage_orders, product
-):
-    query = """
-    query Margin($id: ID!) {
-        productVariant(id: $id) {
-            margin
-        }
-    }
+    The exact quantity available in stock shouldn't be made available to customers
+    and unauthorized staff users. Instead it should be capped to a said value.
     """
-    variant = product.variants.first()
+    settings.MAX_CHECKOUT_LINE_QUANTITY = 50
+
+    variant.quantity = actual_stock_available
+    variant.quantity_allocated = 0
+    variant.save(update_fields=["quantity", "quantity_allocated"])
+
+    query = VARIANT_QUANTITY_AVAILABLE_IN_STOCK_QUERY
     variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
-    permissions = [permission_manage_orders, permission_manage_products]
-    response = staff_api_client.post_graphql(query, variables, permissions)
-    content = get_graphql_content(response)
-    assert "margin" in content["data"]["productVariant"]
+
+    data = get_graphql_content(api_client.post_graphql(query, variables))
+    stock_available = data["data"]["productVariant"]["stockQuantity"]
+
+    assert stock_available == expected_stock_available
 
 
 def test_variant_digital_content(
@@ -2261,6 +2519,41 @@ def test_collections_query_with_filter(
     collections = content["data"]["collections"]["edges"]
 
     assert len(collections) == count
+
+
+@pytest.mark.parametrize(
+    "category_filter, count",
+    [
+        ({"search": "slug_"}, 3),
+        ({"search": "Category1"}, 1),
+        ({"search": "cat1"}, 2),
+        ({"search": "Subcategory_description"}, 1),
+    ],
+)
+def test_categories_query_with_filter(
+    category_filter,
+    count,
+    query_categories_with_filter,
+    staff_api_client,
+    permission_manage_products,
+):
+    Category.objects.create(
+        name="Category1", slug="slug_category1", description="Description cat1"
+    )
+    Category.objects.create(
+        name="Category2", slug="slug_category2", description="Description cat2"
+    )
+    Category.objects.create(
+        name="SubCategory",
+        slug="slug_subcategory",
+        parent=Category.objects.get(name="Category1"),
+        description="Subcategory_description of cat1",
+    )
+    variables = {"filter": category_filter}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query_categories_with_filter, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["categories"]["totalCount"] == count
 
 
 @pytest.mark.parametrize(

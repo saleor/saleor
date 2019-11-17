@@ -1,23 +1,23 @@
-import 'lazysizes';
-import SVGInjector from 'svg-injector-2';
+import "lazysizes";
+import SVGInjector from "svg-injector-2";
 
-export const getAjaxError = (response) => {
+export const getAjaxError = response => {
   let ajaxError = $.parseJSON(response.responseText).error.quantity;
   return ajaxError;
 };
-export const csrftoken = $.cookie('csrftoken');
+export const csrftoken = $.cookie("csrftoken");
 
-export default $(document).ready((e) => {
+export default $(document).ready(e => {
   function csrfSafeMethod(method) {
     return /^(GET|HEAD|OPTIONS|TRACE)$/.test(method);
   }
 
-  new SVGInjector().inject(document.querySelectorAll('svg[data-src]'));
+  new SVGInjector().inject(document.querySelectorAll("svg[data-src]"));
 
   $.ajaxSetup({
-    beforeSend: function (xhr, settings) {
+    beforeSend: function(xhr, settings) {
       if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-        xhr.setRequestHeader('X-CSRFToken', csrftoken);
+        xhr.setRequestHeader("X-CSRFToken", csrftoken);
       }
     }
   });
@@ -25,22 +25,22 @@ export default $(document).ready((e) => {
   // Open tab from the link
 
   let hash = window.location.hash;
-  $('.nav-tabs a[href="' + hash + '"]').tab('show');
+  $('.nav-tabs a[href="' + hash + '"]').tab("show");
 
   // Preload all images
   window.lazySizesConfig.preloadAfterLoad = true;
 
   // Function for update product image height
   function updateProductImageHeight() {
-    let productImageWidth = $('.product-image').width();
-    $('.product-image').css({'height': productImageWidth + 'px'});
+    let productImageWidth = $(".product-image").width();
+    $(".product-image").css({ height: productImageWidth + "px" });
   }
 
   // Update product-image height when window is initialized
   updateProductImageHeight();
 
   // Update product-image height
-  $(window).bind('resized', function() {
+  $(window).bind("resized", function() {
     updateProductImageHeight();
   });
 });

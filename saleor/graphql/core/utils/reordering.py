@@ -1,4 +1,3 @@
-import warnings
 from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Dict, Tuple
@@ -90,11 +89,9 @@ class Reordering:
 
         # Skip if noting to do
         if move == 0:
-            warnings.warn(
-                f"Ignored node's reordering, did not find: {pk} "
-                f"(from {self.qs.model.__name__})"
-            )
             return
+        if move is None:
+            move = +1
 
         node_pos, target_pos, new_sort_order = self.calculate_new_sort_order(pk, move)
 

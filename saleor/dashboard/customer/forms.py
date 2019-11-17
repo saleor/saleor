@@ -3,6 +3,7 @@ from django.utils.translation import pgettext_lazy
 
 from ...account import events as account_events
 from ...account.models import CustomerNote, User
+from ...extensions.manager import get_extensions_manager
 
 
 def get_name_placeholder(name):
@@ -77,6 +78,7 @@ class CustomerForm(forms.ModelForm):
         instance = super(CustomerForm, self).save(commit=commit)  # type: User
         if is_user_creation:
             account_events.customer_account_created_event(user=instance)
+            get_extensions_manager().customer_created(customer=instance)
             return instance
 
         has_new_email = "email" in self.changed_data

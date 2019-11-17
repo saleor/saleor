@@ -1,7 +1,10 @@
+from typing import Set
+
 from django.conf import settings
 from django.contrib.auth.models import (
     AbstractBaseUser,
     BaseUserManager,
+    Permission,
     PermissionsMixin,
 )
 from django.contrib.postgres.fields import JSONField
@@ -9,8 +12,9 @@ from django.db import models
 from django.db.models import Q, Value
 from django.forms.models import model_to_dict
 from django.utils import timezone
-from django.utils.translation import pgettext_lazy
+from django.utils.translation import gettext_lazy as _, pgettext_lazy
 from django_countries.fields import Country, CountryField
+from oauthlib.common import generate_token
 from phonenumber_field.modelfields import PhoneNumber, PhoneNumberField
 from versatileimagefield.fields import VersatileImageField
 
@@ -74,6 +78,8 @@ class Address(models.Model):
         return self.full_name
 
     def __eq__(self, other):
+        if not isinstance(other, Address):
+            return False
         return self.as_data() == other.as_data()
 
     __hash__ = models.Model.__hash__
@@ -180,6 +186,64 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
         if address:
             return "%s %s (%s)" % (address.first_name, address.last_name, self.email)
         return self.email
+
+
+class ServiceAccount(ModelWithMetadata):
+    name = models.CharField(max_length=60)
+    created = models.DateTimeField(auto_now_add=True)
+    is_active = models.BooleanField(default=True)
+    permissions = models.ManyToManyField(
+        Permission,
+        verbose_name=_("service account permissions"),
+        blank=True,
+        help_text=_("Specific permissions for this service."),
+        related_name="service_set",
+        related_query_name="service",
+    )
+
+    class Meta:
+        permissions = (
+            (
+                "manage_service_accounts",
+                pgettext_lazy("Permission description", "Manage service account"),
+            ),
+        )
+
+    def _get_permissions(self) -> Set[str]:
+        """Return the permissions of the service."""
+        if not self.is_active:
+            return set()
+        perm_cache_name = "_service_perm_cache"
+        if not hasattr(self, perm_cache_name):
+            perms = self.permissions.all()
+            perms = perms.values_list("content_type__app_label", "codename").order_by()
+            setattr(self, perm_cache_name, {f"{ct}.{name}" for ct, name in perms})
+        return getattr(self, perm_cache_name)
+
+    def has_perms(self, perm_list):
+        """Return True if the service has each of the specified permissions."""
+        if not self.is_active:
+            return False
+
+        wanted_perms = set(perm_list)
+        actual_perms = self._get_permissions()
+
+        return (wanted_perms & actual_perms) == wanted_perms
+
+    def has_perm(self, perm):
+        """Return True if the service has the specified permission."""
+        if not self.is_active:
+            return False
+
+        return perm in self._get_permissions()
+
+
+class ServiceAccountToken(models.Model):
+    service_account = models.ForeignKey(
+        ServiceAccount, on_delete=models.CASCADE, related_name="tokens"
+    )
+    name = models.CharField(blank=True, default="", max_length=128)
+    auth_token = models.CharField(default=generate_token, unique=True, max_length=30)
 
 
 class CustomerNote(models.Model):

@@ -1,5 +1,5 @@
-import 'materialize-css/dist/js/materialize';
-import 'jquery.cookie';
+import "materialize-css/dist/js/materialize";
+import "jquery.cookie";
 
-import '../scss/dashboard.scss';
-import './components';
+import "../scss/dashboard.scss";
+import "./components";

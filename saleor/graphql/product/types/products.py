@@ -1,12 +1,12 @@
-from collections import OrderedDict
-from typing import Dict
+from typing import List, Union
 
 import graphene
 import graphene_django_optimizer as gql_optimizer
+from django.conf import settings
 from django.db.models import Prefetch
 from graphene import relay
+from graphene_federation import key
 from graphql.error import GraphQLError
-from graphql_jwt.decorators import permission_required
 
 from ....product import models
 from ....product.templatetags.product_images import (
@@ -32,6 +32,7 @@ from ...core.types import (
     TaxedMoneyRange,
     TaxType,
 )
+from ...decorators import permission_required
 from ...translations.enums import LanguageCodeEnum
 from ...translations.resolvers import resolve_translation
 from ...translations.types import (
@@ -75,43 +76,72 @@ def prefetch_products_collection_sorted(info, *_args, **_kwargs):
     )
 
 
-def resolve_attribute_list(attributes_json, attributes_qs):
-    """Resolve attributes dict into a list of `SelectedAttribute`s.
+def resolve_attribute_list(
+    instance: Union[models.Product, models.ProductVariant], *, user
+) -> List[SelectedAttribute]:
+    """Resolve attributes from a product into a list of `SelectedAttribute`s.
 
-    keys = list(attributes.keys())
-    values = list(attributes.values())
-
-    `attributes_qs` is the queryset of attribute objects. If it's prefetch
-    beforehand along with the values, it saves database queries.
+    Note: you have to prefetch the below M2M fields.
+        - product_type -> attribute[rel] -> [rel]assignments -> values
+        - product_type -> attribute[rel] -> attribute
     """
-    attributes_map = OrderedDict()  # type: Dict[str, models.Attribute]
-    values_map = {}  # type: Dict[str, models.AttributeValue]
-    for attr in attributes_qs:
-        attributes_map[str(attr.pk)] = attr
-        for val in attr.values.all():
-            values_map[str(val.pk)] = val
+    resolved_attributes = []
 
-    attributes_list = []
-    for attr_pk, attr in attributes_map.items():
-        values = attributes_json.get(attr_pk, [])
-        values = [values_map[v_pk] for v_pk in values if v_pk in values_map]
-        value = values[0] if values else None
-        attributes_list.append(
-            SelectedAttribute(attribute=attr, value=value, values=values)
+    # Retrieve the product type
+    if isinstance(instance, models.Product):
+        product_type = instance.product_type
+        product_type_attributes_assoc_field = "attributeproduct"
+        assigned_attribute_instance_field = "productassignments"
+        assigned_attribute_instance_filters = {"product_id": instance.pk}
+    elif isinstance(instance, models.ProductVariant):
+        product_type = instance.product.product_type
+        product_type_attributes_assoc_field = "attributevariant"
+        assigned_attribute_instance_field = "variantassignments"
+        assigned_attribute_instance_filters = {"variant_id": instance.pk}
+    else:
+        raise AssertionError(f"{instance.__class__.__name__} is unsupported")
+
+    # Retrieve all the product attributes assigned to this product type
+    attributes_qs = getattr(product_type, product_type_attributes_assoc_field)
+    attributes_qs = attributes_qs.get_visible_to_user(user)
+
+    # An empty QuerySet for unresolved values
+    empty_qs = models.AttributeValue.objects.none()
+
+    # Goes through all the attributes assigned to the product type
+    # The assigned values are returned as a QuerySet, but will assign a
+    # dummy empty QuerySet if no values are assigned to the given instance.
+    for attr_data_rel in attributes_qs:
+        attr_instance_data = getattr(attr_data_rel, assigned_attribute_instance_field)
+
+        # Retrieve the instance's associated data
+        attr_data = attr_instance_data.filter(**assigned_attribute_instance_filters)
+        attr_data = attr_data.first()
+
+        # Return the instance's attribute values if the assignment was found,
+        # otherwise it sets the values as an empty QuerySet
+        values = attr_data.values.all() if attr_data is not None else empty_qs
+        resolved_attributes.append(
+            SelectedAttribute(attribute=attr_data_rel.attribute, values=values)
         )
-    return attributes_list
+    return resolved_attributes
 
 
 class ProductOrder(graphene.InputObjectType):
     field = graphene.Argument(
-        ProductOrderField,
-        required=True,
-        description="Sort products by the selected field.",
+        ProductOrderField, description="Sort products by the selected field."
+    )
+    attribute_id = graphene.Argument(
+        graphene.ID,
+        description=(
+            "Sort product by the selected attribute's values.\n"
+            "Note: this doesn't take translations into account yet."
+        ),
     )
     direction = graphene.Argument(
         OrderDirection,
         required=True,
-        description="Specifies the direction in which to sort products",
+        description="Specifies the direction in which to sort products.",
     )
 
 
@@ -125,7 +155,7 @@ class BasePricingInfo(graphene.ObjectType):
         description="Whether it is in stock and visible or not.",
         deprecation_reason=(
             "DEPRECATED: Will be removed in Saleor 2.10, "
-            "this has been moved to the parent type as 'is_available'."
+            "this has been moved to the parent type as 'isAvailable'."
         ),
     )
     on_sale = graphene.Boolean(description="Whether it is in sale or not.")
@@ -176,39 +206,46 @@ class ProductPricingInfo(BasePricingInfo):
         description = "Represents availability of a product in the storefront."
 
 
+@key(fields="id")
 class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
+    quantity = graphene.Int(
+        required=True,
+        description="Quantity of a product in the store's possession, "
+        "including the allocated stock that is waiting for shipment.",
+    )
     stock_quantity = graphene.Int(
         required=True, description="Quantity of a product available for sale."
     )
     price_override = graphene.Field(
         Money,
-        description="""
-               Override the base price of a product if necessary.
-               A value of `null` indicates that the default product
-               price is used.""",
+        description=(
+            "Override the base price of a product if necessary. A value of `null` "
+            "indicates that the default product price is used."
+        ),
     )
     price = graphene.Field(
         Money,
         description="Price of the product variant.",
         deprecation_reason=(
             "DEPRECATED: Will be removed in Saleor 2.10, "
-            "has been replaced by 'pricing.price_undiscounted'"
+            "has been replaced by 'pricing.priceUndiscounted'"
         ),
     )
     availability = graphene.Field(
         VariantPricingInfo,
-        description="""Informs about variant's availability in the
-               storefront, current price and discounted price.""",
+        description=(
+            "Informs about variant's availability in the storefront, current price and "
+            "discounted price."
+        ),
         deprecation_reason=(
-            "DEPRECATED: Will be removed in Saleor 2.10, "
-            "has been renamed to 'pricing'."
+            "DEPRECATED: Will be removed in Saleor 2.10, has been renamed to `pricing`."
         ),
     )
     pricing = graphene.Field(
         VariantPricingInfo,
         description=(
-            """Lists the storefront variant's pricing,
-            the current price and discounts, only meant for displaying"""
+            "Lists the storefront variant's pricing, the current price and discounts, "
+            "only meant for displaying."
         ),
     )
     is_available = graphene.Boolean(
@@ -227,14 +264,15 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
     revenue = graphene.Field(
         TaxedMoney,
         period=graphene.Argument(ReportingPeriod),
-        description="""Total revenue generated by a variant in given
-        period of time. Note: this field should be queried using
-        `reportProductSales` query as it uses optimizations suitable
-        for such calculations.""",
+        description=(
+            "Total revenue generated by a variant in given period of time. Note: this "
+            "field should be queried using `reportProductSales` query as it uses "
+            "optimizations suitable for such calculations."
+        ),
     )
     images = gql_optimizer.field(
         graphene.List(
-            lambda: ProductImage, description="List of images for the product variant"
+            lambda: ProductImage, description="List of images for the product variant."
         ),
         model_field="images",
     )
@@ -252,19 +290,19 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
     )
     digital_content = gql_optimizer.field(
         graphene.Field(
-            DigitalContent, description="Digital content for the product variant"
+            DigitalContent, description="Digital content for the product variant."
         ),
         model_field="digital_content",
     )
 
     class Meta:
-        description = """Represents a version of a product such as
-        different size or color."""
+        description = (
+            "Represents a version of a product such as different size or color."
+        )
         only_fields = [
             "id",
             "name",
             "product",
-            "quantity",
             "quantity_allocated",
             "sku",
             "track_inventory",
@@ -279,24 +317,26 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         return getattr(root, "digital_content", None)
 
     @staticmethod
-    def resolve_stock_quantity(root: models.ProductVariant, *_args):
-        return root.quantity_available
+    def resolve_stock_quantity(root: models.ProductVariant, _info):
+        exact_quantity_available = root.quantity_available
+        return min(exact_quantity_available, settings.MAX_CHECKOUT_LINE_QUANTITY)
 
     @staticmethod
-    @gql_optimizer.resolver_hints("product__product_type__variant_attributes__values")
+    @gql_optimizer.resolver_hints(
+        prefetch_related=["attributes__values", "attributes__assignment__attribute"]
+    )
     def resolve_attributes(root: models.ProductVariant, info):
-        attr_qs = (
-            root.product.product_type.variant_attributes.prefetch_related("values")
-            .get_visible_to_user(info.context.user)
-            .variant_attributes_sorted()
-        )
-        attr_qs = gql_optimizer.query(attr_qs, info)
-        return resolve_attribute_list(root.attributes, attr_qs)
+        return resolve_attribute_list(root, user=info.context.user)
 
     @staticmethod
     @permission_required("product.manage_products")
     def resolve_margin(root: models.ProductVariant, *_args):
         return get_margin_for_variant(root)
+
+    @staticmethod
+    @permission_required("product.manage_products")
+    def resolve_cost_price(root: models.ProductVariant, *_args):
+        return root.cost_price
 
     @staticmethod
     def resolve_price(root: models.ProductVariant, *_args):
@@ -377,7 +417,12 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
     def resolve_meta(root, _info):
         return resolve_meta(root, _info)
 
+    @staticmethod
+    def __resolve_reference(root, _info, **_kwargs):
+        return graphene.Node.get_node_from_global_id(_info, root.id)
 
+
+@key(fields="id")
 class Product(CountableDjangoObjectType, MetadataObjectType):
     url = graphene.String(
         description="The storefront URL for the product.", required=True
@@ -385,21 +430,24 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
     thumbnail = graphene.Field(
         Image,
         description="The main thumbnail for a product.",
-        size=graphene.Argument(graphene.Int, description="Size of thumbnail"),
+        size=graphene.Argument(graphene.Int, description="Size of thumbnail."),
     )
     availability = graphene.Field(
         ProductPricingInfo,
-        description="""Informs about product's availability in the
-               storefront, current price and discounts.""",
+        description=(
+            "Informs about product's availability in the storefront, current price and "
+            "discounts."
+        ),
         deprecation_reason=(
-            "DEPRECATED: Will be removed in Saleor 2.10, "
-            "Has been renamed to 'pricing'."
+            "DEPRECATED: Will be removed in Saleor 2.10, Has been renamed to `pricing`."
         ),
     )
     pricing = graphene.Field(
         ProductPricingInfo,
-        description="""Lists the storefront product's pricing,
-            the current price and discounts, only meant for displaying.""",
+        description=(
+            "Lists the storefront product's pricing, the current price and discounts, "
+            "only meant for displaying."
+        ),
     )
     is_available = graphene.Boolean(
         description="Whether the product is in stock and visible or not."
@@ -409,8 +457,8 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
         Money,
         description="The product's default base price.",
         deprecation_reason=(
-            "DEPRECATED: Will be removed in Saleor 2.10, "
-            "has been replaced by 'basePrice'"
+            "DEPRECATED: Will be removed in Saleor 2.10, has been replaced by "
+            "`basePrice`"
         ),
     )
     minimal_variant_price = graphene.Field(
@@ -429,21 +477,21 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
     image_by_id = graphene.Field(
         lambda: ProductImage,
         id=graphene.Argument(graphene.ID, description="ID of a product image."),
-        description="Get a single product image by ID",
+        description="Get a single product image by ID.",
     )
     variants = gql_optimizer.field(
-        graphene.List(ProductVariant, description="List of variants for the product"),
+        graphene.List(ProductVariant, description="List of variants for the product."),
         model_field="variants",
     )
     images = gql_optimizer.field(
         graphene.List(
-            lambda: ProductImage, description="List of images for the product"
+            lambda: ProductImage, description="List of images for the product."
         ),
         model_field="images",
     )
     collections = gql_optimizer.field(
         graphene.List(
-            lambda: Collection, description="List of collections for the product"
+            lambda: Collection, description="List of collections for the product."
         ),
         model_field="collections",
     )
@@ -461,8 +509,7 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
     slug = graphene.String(required=True, description="The slug of a product.")
 
     class Meta:
-        description = """Represents an individual item for sale in the
-        storefront."""
+        description = "Represents an individual item for sale in the storefront."
         interfaces = [relay.Node]
         model = models.Product
         only_fields = [
@@ -488,14 +535,13 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
 
     @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related="images")
-    def resolve_thumbnail(root: models.Product, info, *, size=None):
+    def resolve_thumbnail(root: models.Product, info, *, size=255):
         image = root.get_first_image()
-        if not size:
-            size = 255
-        url = get_product_image_thumbnail(image, size, method="thumbnail")
-        url = info.context.build_absolute_uri(url)
-        alt = image.alt if image else None
-        return Image(alt=alt, url=url)
+        if image:
+            url = get_product_image_thumbnail(image, size, method="thumbnail")
+            alt = image.alt
+            return Image(alt=alt, url=info.context.build_absolute_uri(url))
+        return None
 
     @staticmethod
     def resolve_url(root: models.Product, *_args):
@@ -520,6 +566,7 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
     resolve_availability = resolve_pricing
 
     @staticmethod
+    @gql_optimizer.resolver_hints(prefetch_related=("variants"))
     def resolve_is_available(root: models.Product, _info):
         return root.is_available
 
@@ -542,16 +589,13 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
 
     @staticmethod
     @gql_optimizer.resolver_hints(
-        prefetch_related="product_type__product_attributes__values"
+        prefetch_related=[
+            "product_type__attributeproduct__productassignments__values",
+            "product_type__attributeproduct__attribute",
+        ]
     )
     def resolve_attributes(root: models.Product, info):
-        attr_qs = (
-            root.product_type.product_attributes.prefetch_related("values")
-            .get_visible_to_user(info.context.user)
-            .product_attributes_sorted()
-        )
-        attr_qs = gql_optimizer.query(attr_qs, info)
-        return resolve_attribute_list(root.attributes, attr_qs)
+        return resolve_attribute_list(root, user=info.context.user)
 
     @staticmethod
     @permission_required("product.manage_products")
@@ -606,7 +650,12 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
     def resolve_slug(root: models.Product, *_args):
         return root.get_slug()
 
+    @staticmethod
+    def __resolve_reference(root, _info, **_kwargs):
+        return graphene.Node.get_node_from_global_id(_info, root.id)
 
+
+@key(fields="id")
 class ProductType(CountableDjangoObjectType, MetadataObjectType):
     products = gql_optimizer.field(
         PrefetchingConnectionField(
@@ -629,8 +678,10 @@ class ProductType(CountableDjangoObjectType, MetadataObjectType):
     )
 
     class Meta:
-        description = """Represents a type of product. It defines what
-        attributes are available to products of this type."""
+        description = (
+            "Represents a type of product. It defines what attributes are available to "
+            "products of this type."
+        )
         interfaces = [relay.Node]
         model = models.ProductType
         only_fields = [
@@ -692,7 +743,12 @@ class ProductType(CountableDjangoObjectType, MetadataObjectType):
     def resolve_meta(root, _info):
         return resolve_meta(root, _info)
 
+    @staticmethod
+    def __resolve_reference(root, _info, **_kwargs):
+        return graphene.Node.get_node_from_global_id(_info, root.id)
 
+
+@key(fields="id")
 class Collection(CountableDjangoObjectType, MetadataObjectType):
     products = gql_optimizer.field(
         PrefetchingConnectionField(
@@ -701,7 +757,7 @@ class Collection(CountableDjangoObjectType, MetadataObjectType):
         prefetch_related=prefetch_products_collection_sorted,
     )
     background_image = graphene.Field(
-        Image, size=graphene.Int(description="Size of the image")
+        Image, size=graphene.Int(description="Size of the image.")
     )
     translation = graphene.Field(
         CollectionTranslation,
@@ -767,7 +823,12 @@ class Collection(CountableDjangoObjectType, MetadataObjectType):
     def resolve_meta(root, _info):
         return resolve_meta(root, _info)
 
+    @staticmethod
+    def __resolve_reference(root, _info, **_kwargs):
+        return graphene.Node.get_node_from_global_id(_info, root.id)
 
+
+@key(fields="id")
 class Category(CountableDjangoObjectType, MetadataObjectType):
     ancestors = PrefetchingConnectionField(
         lambda: Category, description="List of ancestors of the category."
@@ -783,7 +844,7 @@ class Category(CountableDjangoObjectType, MetadataObjectType):
         lambda: Category, description="List of children of the category."
     )
     background_image = graphene.Field(
-        Image, size=graphene.Int(description="Size of the image")
+        Image, size=graphene.Int(description="Size of the image.")
     )
     translation = graphene.Field(
         CategoryTranslation,
@@ -797,9 +858,11 @@ class Category(CountableDjangoObjectType, MetadataObjectType):
     )
 
     class Meta:
-        description = """Represents a single category of products.
-        Categories allow to organize products in a tree-hierarchies which can
-        be used for navigation in the storefront."""
+        description = (
+            "Represents a single category of products. Categories allow to organize "
+            "products in a tree-hierarchies which can be used for navigation in the "
+            "storefront."
+        )
         only_fields = [
             "description",
             "description_json",
@@ -862,12 +925,17 @@ class Category(CountableDjangoObjectType, MetadataObjectType):
     def resolve_meta(root, _info):
         return resolve_meta(root, _info)
 
+    @staticmethod
+    def __resolve_reference(root, _info, **_kwargs):
+        return graphene.Node.get_node_from_global_id(_info, root.id)
 
+
+@key(fields="id")
 class ProductImage(CountableDjangoObjectType):
     url = graphene.String(
         required=True,
         description="The URL of the image.",
-        size=graphene.Int(description="Size of the image"),
+        size=graphene.Int(description="Size of the image."),
     )
 
     class Meta:
@@ -883,6 +951,10 @@ class ProductImage(CountableDjangoObjectType):
         else:
             url = root.image.url
         return info.context.build_absolute_uri(url)
+
+    @staticmethod
+    def __resolve_reference(root, _info, **_kwargs):
+        return graphene.Node.get_node_from_global_id(_info, root.id)
 
 
 class MoveProductInput(graphene.InputObjectType):

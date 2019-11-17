@@ -41,8 +41,8 @@ ADMINS = (
 )
 MANAGERS = ADMINS
 
-ALLOWED_STOREFRONT_HOSTS = get_list(
-    os.environ.get("ALLOWED_STOREFRONT_HOSTS", "localhost,127.0.0.1")
+ALLOWED_CLIENT_HOSTS = get_list(
+    os.environ.get("ALLOWED_CLIENT_HOSTS", "localhost,127.0.0.1")
 )
 
 INTERNAL_IPS = get_list(os.environ.get("INTERNAL_IPS", "127.0.0.1"))
@@ -122,7 +122,9 @@ if not EMAIL_URL and SENDGRID_USERNAME and SENDGRID_PASSWORD:
         SENDGRID_USERNAME,
         SENDGRID_PASSWORD,
     )
-email_config = dj_email_url.parse(EMAIL_URL or "console://")
+email_config = dj_email_url.parse(
+    EMAIL_URL or "console://demo@example.com:console@example/"
+)
 
 EMAIL_FILE_PATH = email_config["EMAIL_FILE_PATH"]
 EMAIL_HOST_USER = email_config["EMAIL_HOST_USER"]
@@ -139,7 +141,6 @@ if ENABLE_SSL:
     SECURE_SSL_REDIRECT = not DEBUG
 
 DEFAULT_FROM_EMAIL = os.environ.get("DEFAULT_FROM_EMAIL", EMAIL_HOST_USER)
-ORDER_FROM_EMAIL = os.getenv("ORDER_FROM_EMAIL", DEFAULT_FROM_EMAIL)
 
 MEDIA_ROOT = os.path.join(PROJECT_ROOT, "media")
 MEDIA_URL = os.environ.get("MEDIA_URL", "/media/")
@@ -219,6 +220,7 @@ MIDDLEWARE = [
     "social_django.middleware.SocialAuthExceptionMiddleware",
     "impersonate.middleware.ImpersonateMiddleware",
     "saleor.graphql.middleware.jwt_middleware",
+    "saleor.graphql.middleware.service_account_middleware",
 ]
 
 INSTALLED_APPS = [
@@ -253,6 +255,7 @@ INSTALLED_APPS = [
     "saleor.data_feeds",
     "saleor.page",
     "saleor.payment",
+    "saleor.webhook",
     # External apps
     "versatileimagefield",
     "django_babel",
@@ -328,6 +331,7 @@ LOGGING = {
             "class": "logging.StreamHandler",
             "formatter": "verbose",
         },
+        "null": {"class": "logging.NullHandler"},
     },
     "loggers": {
         "django": {
@@ -337,6 +341,22 @@ LOGGING = {
         },
         "django.server": {"handlers": ["console"], "level": "INFO", "propagate": True},
         "saleor": {"handlers": ["console"], "level": "DEBUG", "propagate": True},
+        "saleor.graphql.errors.handled": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": True,
+        },
+        # You can configure this logger to go to another file using a file handler.
+        # Refer to https://docs.djangoproject.com/en/2.2/topics/logging/#examples.
+        # This allow easier filtering from GraphQL query/permission errors that may
+        # have been triggered by your frontend applications from the internal errors
+        # that happen in backend
+        "saleor.graphql.errors.unhandled": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": True,
+        },
+        "graphql.execution.utils": {"handlers": ["null"], "propagate": False},
     },
 }
 
@@ -344,11 +364,23 @@ AUTH_USER_MODEL = "account.User"
 
 LOGIN_URL = "/account/login/"
 
+AUTH_PASSWORD_VALIDATORS = [
+    {
+        "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
+        "OPTIONS": {"min_length": 8},
+    }
+]
+
 DEFAULT_COUNTRY = os.environ.get("DEFAULT_COUNTRY", "US")
 DEFAULT_CURRENCY = os.environ.get("DEFAULT_CURRENCY", "USD")
 DEFAULT_DECIMAL_PLACES = get_currency_fraction(DEFAULT_CURRENCY)
 DEFAULT_MAX_DIGITS = 12
 DEFAULT_CURRENCY_CODE_LENGTH = 3
+
+# The default max length for the display name of the
+# sender email address.
+# Following the recommendation of https://tools.ietf.org/html/rfc5322#section-2.1.1
+DEFAULT_MAX_EMAIL_DISPLAY_NAME_LENGTH = 78
 
 # note: having multiple currencies is not supported yet
 AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
@@ -602,68 +634,6 @@ SENTRY_DSN = os.environ.get("SENTRY_DSN")
 if SENTRY_DSN:
     sentry_sdk.init(dsn=SENTRY_DSN, integrations=[DjangoIntegration()])
 
-DUMMY = "dummy"
-BRAINTREE = "braintree"
-RAZORPAY = "razorpay"
-STRIPE = "stripe"
-
-CHECKOUT_PAYMENT_GATEWAYS = {
-    DUMMY: pgettext_lazy("Payment method name", "Dummy gateway")
-}
-
-PAYMENT_GATEWAYS = {
-    DUMMY: {
-        "module": "saleor.payment.gateways.dummy",
-        "config": {
-            "auto_capture": True,
-            "store_card": False,
-            "connection_params": {},
-            "template_path": "order/payment/dummy.html",
-        },
-    },
-    BRAINTREE: {
-        "module": "saleor.payment.gateways.braintree",
-        "config": {
-            "auto_capture": get_bool_from_env("BRAINTREE_AUTO_CAPTURE", True),
-            "store_card": get_bool_from_env("BRAINTREE_STORE_CARD", False),
-            "template_path": "order/payment/braintree.html",
-            "connection_params": {
-                "sandbox_mode": get_bool_from_env("BRAINTREE_SANDBOX_MODE", True),
-                "merchant_id": os.environ.get("BRAINTREE_MERCHANT_ID"),
-                "public_key": os.environ.get("BRAINTREE_PUBLIC_KEY"),
-                "private_key": os.environ.get("BRAINTREE_PRIVATE_KEY"),
-            },
-        },
-    },
-    RAZORPAY: {
-        "module": "saleor.payment.gateways.razorpay",
-        "config": {
-            "store_card": get_bool_from_env("RAZORPAY_STORE_CARD", False),
-            "auto_capture": get_bool_from_env("RAZORPAY_AUTO_CAPTURE", None),
-            "template_path": "order/payment/razorpay.html",
-            "connection_params": {
-                "public_key": os.environ.get("RAZORPAY_PUBLIC_KEY"),
-                "secret_key": os.environ.get("RAZORPAY_SECRET_KEY"),
-                "prefill": get_bool_from_env("RAZORPAY_PREFILL", True),
-                "store_name": os.environ.get("RAZORPAY_STORE_NAME"),
-                "store_image": os.environ.get("RAZORPAY_STORE_IMAGE"),
-            },
-        },
-    },
-    STRIPE: {
-        "module": "saleor.payment.gateways.stripe",
-        "config": {
-            "store_card": get_bool_from_env("STRIPE_STORE_CARD", False),
-            "auto_capture": get_bool_from_env("STRIPE_AUTO_CAPTURE", True),
-            "template_path": "order/payment/stripe.html",
-            "connection_params": {
-                "public_key": os.environ.get("STRIPE_PUBLIC_KEY"),
-                "secret_key": os.environ.get("STRIPE_SECRET_KEY"),
-            },
-        },
-    },
-}
-
 GRAPHENE = {
     "RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST": True,
     "RELAY_CONNECTION_MAX_LIMIT": 100,
@@ -671,7 +641,15 @@ GRAPHENE = {
 
 EXTENSIONS_MANAGER = "saleor.extensions.manager.ExtensionsManager"
 
-PLUGINS = os.environ.get("PLUGINS", [])
+PLUGINS = [
+    "saleor.extensions.plugins.avatax.plugin.AvataxPlugin",
+    "saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin",
+    "saleor.extensions.plugins.webhook.plugin.WebhookPlugin",
+    "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
+    "saleor.payment.gateways.stripe.plugin.StripeGatewayPlugin",
+    "saleor.payment.gateways.braintree.plugin.BraintreeGatewayPlugin",
+    "saleor.payment.gateways.razorpay.plugin.RazorpayGatewayPlugin",
+]
 
 # Whether DraftJS should be used be used instead of HTML
 # True to use DraftJS (JSON based), for the 2.0 dashboard

@@ -40,7 +40,7 @@ def gateway_config():
         template_path="template.html",
         connection_params={
             "public_key": "public",
-            "secret_key": "secret",
+            "private_key": "secret",
             "store_name": "Saleor",
             "store_image": "image.gif",
             "prefill": True,
@@ -57,7 +57,7 @@ def sandbox_gateway_config(gateway_config):
     if RECORD:
         connection_params = {
             "public_key": os.environ.get("STRIPE_PUBLIC_KEY"),
-            "secret_key": os.environ.get("STRIPE_SECRET_KEY"),
+            "private_key": os.environ.get("STRIPE_SECRET_KEY"),
         }
         gateway_config.connection_params.update(connection_params)
     return gateway_config
@@ -303,8 +303,8 @@ def test_void_error_response(stripe_payment, sandbox_gateway_config):
 @pytest.mark.vcr(filter_headers=["authorization"])
 def test_confirm__intent(stripe_payment, sandbox_gateway_config):
     PAYMENT_INTENT = (
-        "pi_1F6bslIUmJaD6Oqv1MNDaBSv"
-    )  # PI with status "requires_confirmation"
+        "pi_1F6bslIUmJaD6Oqv1MNDaBSv"  # PI with status "requires_confirmation"
+    )
     payment_info = create_payment_information(stripe_payment, PAYMENT_INTENT)
     response = confirm(payment_info, sandbox_gateway_config)
     assert not response.error

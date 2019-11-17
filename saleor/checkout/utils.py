@@ -16,6 +16,7 @@ from prices import Money, MoneyRange, TaxedMoneyRange
 from ..account.forms import get_address_form
 from ..account.models import Address, User
 from ..account.utils import store_user_address
+from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import quantize_price, zero_taxed_money
 from ..core.utils import to_local_currency
@@ -39,7 +40,7 @@ from ..giftcard.utils import (
     add_gift_card_code_to_checkout,
     remove_gift_card_code_from_checkout,
 )
-from ..order import events
+from ..order.actions import order_created
 from ..order.emails import send_order_confirmation
 from ..order.models import Order, OrderLine
 from ..shipping.models import ShippingMethod
@@ -783,7 +784,11 @@ def recalculate_checkout_discount(checkout, discounts):
         else:
             manager = get_extensions_manager()
             subtotal = manager.calculate_checkout_subtotal(checkout, discounts).gross
-            checkout.discount = min(discount, subtotal)
+            checkout.discount = (
+                min(discount, subtotal)
+                if voucher.type != VoucherType.SHIPPING
+                else discount
+            )
             checkout.discount_name = str(voucher)
             checkout.translated_discount_name = (
                 voucher.translated.name
@@ -828,7 +833,12 @@ def add_voucher_code_to_checkout(checkout: Checkout, voucher_code: str, discount
         add_voucher_to_checkout(checkout, voucher, discounts)
     except NotApplicable:
         raise ValidationError(
-            {"promo_code": "Voucher is not applicable to that checkout."}
+            {
+                "promo_code": ValidationError(
+                    "Voucher is not applicable to that checkout.",
+                    code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE,
+                )
+            }
         )
 
 
@@ -1028,13 +1038,20 @@ def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine
 
     quantity = checkout_line.quantity
     variant = checkout_line.variant
+    product = variant.product
     variant.check_quantity(quantity)
 
-    product_name = variant.display_product()
-    translated_product_name = variant.display_product(translated=True)
+    product_name = str(product)
+    variant_name = str(variant)
+
+    translated_product_name = str(product.translated)
+    translated_variant_name = str(variant.translated)
 
     if translated_product_name == product_name:
         translated_product_name = ""
+
+    if translated_variant_name == variant_name:
+        translated_variant_name = ""
 
     manager = get_extensions_manager()
     total_line_price = manager.calculate_checkout_line_total(checkout_line, discounts)
@@ -1043,7 +1060,9 @@ def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine
     )
     line = OrderLine(
         product_name=product_name,
+        variant_name=variant_name,
         translated_product_name=translated_product_name,
+        translated_variant_name=translated_variant_name,
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
         quantity=quantity,
@@ -1149,11 +1168,7 @@ def create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
     # assign checkout payments to the order
     checkout.payments.update(order=order)
 
-    manager = get_extensions_manager()
-    manager.postprocess_order_creation(order)
-
-    # Create the order placed
-    events.order_created_event(order=order, user=user)
+    order_created(order=order, user=user)
 
     # Send the order confirmation email
     send_order_confirmation.delay(order.pk, user.pk)
@@ -1182,18 +1197,28 @@ def clean_checkout(checkout: Checkout, discounts):
     """Check if checkout can be completed."""
     if checkout.is_shipping_required():
         if not checkout.shipping_method:
-            raise ValidationError("Shipping method is not set")
+            raise ValidationError(
+                "Shipping method is not set",
+                code=CheckoutErrorCode.SHIPPING_METHOD_NOT_SET,
+            )
         if not checkout.shipping_address:
-            raise ValidationError("Shipping address is not set")
+            raise ValidationError(
+                "Shipping address is not set",
+                code=CheckoutErrorCode.SHIPPING_ADDRESS_NOT_SET,
+            )
         if not is_valid_shipping_method(checkout, discounts):
             raise ValidationError(
-                "Shipping method is not valid for your shipping address"
+                "Shipping method is not valid for your shipping address",
+                code=CheckoutErrorCode.INVALID_SHIPPING_METHOD,
             )
 
     if not checkout.billing_address:
-        raise ValidationError("Billing address is not set")
+        raise ValidationError(
+            "Billing address is not set", code=CheckoutErrorCode.BILLING_ADDRESS_NOT_SET
+        )
 
     if not is_fully_paid(checkout, discounts):
         raise ValidationError(
-            "Provided payment methods can not cover the checkout's total " "amount"
+            "Provided payment methods can not cover the checkout's total amount",
+            code=CheckoutErrorCode.CHECKOUT_NOT_FULLY_PAID,
         )

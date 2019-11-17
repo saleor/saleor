@@ -21,7 +21,6 @@ from geolite2 import geolite2
 from prices import MoneyRange
 from versatileimagefield.image_warmer import VersatileImageFieldWarmer
 
-from ...account.utils import get_random_avatar
 from ...celeryconf import app
 from ...core.i18n import COUNTRY_CODE_CHOICES
 
@@ -161,26 +160,6 @@ def serialize_decimal(obj):
     if isinstance(obj, decimal.Decimal):
         return str(obj)
     return JSONEncoder().default(obj)
-
-
-def create_superuser(credentials):
-    from ...account.models import User
-
-    user, created = User.objects.get_or_create(
-        email=credentials["email"],
-        defaults={"is_active": True, "is_staff": True, "is_superuser": True},
-    )
-    if created:
-        user.avatar = get_random_avatar()
-        user.set_password(credentials["password"])
-        user.save()
-        create_thumbnails(
-            pk=user.pk, model=User, size_set="user_avatars", image_attr="avatar"
-        )
-        msg = "Superuser - %(email)s/%(password)s" % credentials
-    else:
-        msg = "Superuser already exists - %(email)s" % credentials
-    return msg
 
 
 def create_thumbnails(pk, model, size_set, image_attr=None):

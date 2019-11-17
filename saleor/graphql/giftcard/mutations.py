@@ -8,9 +8,11 @@ from ...core.utils.promo_code import (
     is_available_promo_code,
 )
 from ...giftcard import models
+from ...giftcard.error_codes import GiftCardErrorCode
 from ...giftcard.utils import activate_gift_card, deactivate_gift_card
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.scalars import Decimal
+from ..core.types.common import GiftCardError
 from .types import GiftCard
 
 
@@ -28,7 +30,7 @@ class GiftCardUpdateInput(graphene.InputObjectType):
 
 
 class GiftCardCreateInput(GiftCardUpdateInput):
-    code = graphene.String(required=False, decription="Code to use the gift card.")
+    code = graphene.String(required=False, description="Code to use the gift card.")
 
 
 class GiftCardCreate(ModelMutation):
@@ -38,9 +40,11 @@ class GiftCardCreate(ModelMutation):
         )
 
     class Meta:
-        description = "Creates a new gift card"
+        description = "Creates a new gift card."
         model = models.GiftCard
         permissions = ("giftcard.manage_gift_card",)
+        error_type_class = GiftCardError
+        error_type_field = "gift_card_errors"
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -48,7 +52,7 @@ class GiftCardCreate(ModelMutation):
         if not code and not instance.pk:
             data["code"] = generate_promo_code()
         elif not is_available_promo_code(code):
-            raise PromoCodeAlreadyExists()
+            raise PromoCodeAlreadyExists(code=GiftCardErrorCode.ALREADY_EXISTS)
         cleaned_input = super().clean_input(info, instance, data)
         balance = cleaned_input.get("balance", None)
         if balance:
@@ -60,7 +64,12 @@ class GiftCardCreate(ModelMutation):
                 cleaned_input["user"] = User.objects.get(email=user_email)
             except ObjectDoesNotExist:
                 raise ValidationError(
-                    {"email": "Customer with this email doesn't exist."}
+                    {
+                        "email": ValidationError(
+                            "Customer with this email doesn't exist.",
+                            code=GiftCardErrorCode.NOT_FOUND,
+                        )
+                    }
                 )
         return cleaned_input
 
@@ -76,6 +85,8 @@ class GiftCardUpdate(GiftCardCreate):
         description = "Update a gift card."
         model = models.GiftCard
         permissions = ("giftcard.manage_gift_card",)
+        error_type_class = GiftCardError
+        error_type_field = "gift_card_errors"
 
 
 class GiftCardDeactivate(BaseMutation):
@@ -87,6 +98,8 @@ class GiftCardDeactivate(BaseMutation):
     class Meta:
         description = "Deactivate a gift card."
         permissions = ("giftcard.manage_gift_card",)
+        error_type_class = GiftCardError
+        error_type_field = "gift_card_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -107,6 +120,8 @@ class GiftCardActivate(BaseMutation):
     class Meta:
         description = "Activate a gift card."
         permissions = ("giftcard.manage_gift_card",)
+        error_type_class = GiftCardError
+        error_type_field = "gift_card_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):

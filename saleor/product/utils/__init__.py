@@ -3,14 +3,9 @@ from urllib.parse import urlencode
 from django.conf import settings
 from django.db.models import F
 
-from ...checkout.utils import (
-    get_checkout_from_request,
-    get_or_create_checkout_from_request,
-)
 from ...core.taxes import TaxedMoney, zero_taxed_money
 from ...core.utils import get_paginator_items
 from ...core.utils.filters import get_now_sorted_by
-from ..forms import ProductForm
 from .availability import products_with_availability
 
 
@@ -30,10 +25,13 @@ def products_with_details(user):
         "category__translations",
         "collections__translations",
         "images",
-        "variants__variant_images__image",
-        "attributes__values__translations",
         "product_type__product_attributes__translations",
         "product_type__product_attributes__values__translations",
+        "attributes__values__translations",
+        "attributes__assignment__attribute__translations",
+        "variants__variant_images__image",
+        "variants__attributes__values__translations",
+        "variants__attributes__assignment__attribute__translations",
     )
     return products
 
@@ -58,22 +56,6 @@ def products_for_homepage(user, homepage_collection):
 def get_product_images(product):
     """Return list of product images that will be placed in product gallery."""
     return list(product.images.all())
-
-
-def handle_checkout_form(request, product, create_checkout=False):
-    if create_checkout:
-        checkout = get_or_create_checkout_from_request(request)
-    else:
-        checkout = get_checkout_from_request(request)
-    form = ProductForm(
-        checkout=checkout,
-        product=product,
-        data=request.POST or None,
-        discounts=request.discounts,
-        country=request.country,
-        extensions=request.extensions,
-    )
-    return form, checkout
 
 
 def products_for_checkout(user):

@@ -5,11 +5,7 @@ import pytest
 from prices import TaxedMoney
 
 from saleor.core.utils import get_country_name_by_code
-from saleor.graphql.payment.enums import (
-    OrderAction,
-    PaymentChargeStatusEnum,
-    PaymentGatewayEnum,
-)
+from saleor.graphql.payment.enums import OrderAction, PaymentChargeStatusEnum
 from saleor.payment.interface import CreditCardInfo, CustomerSource, TokenConfig
 from saleor.payment.models import ChargeStatus, Payment, TransactionKind
 from saleor.payment.utils import fetch_customer_id, store_customer_id
@@ -103,7 +99,7 @@ def test_checkout_add_payment(
     variables = {
         "checkoutId": checkout_id,
         "input": {
-            "gateway": "DUMMY",
+            "gateway": "Dummy",
             "token": "sample-token",
             "amount": total.gross.amount,
             "billingAddress": graphql_address_data,
@@ -134,7 +130,7 @@ def test_use_checkout_billing_address_as_payment_billing(
     variables = {
         "checkoutId": checkout_id,
         "input": {
-            "gateway": "DUMMY",
+            "gateway": "Dummy",
             "token": "sample-token",
             "amount": total.gross.amount,
         },
@@ -145,6 +141,10 @@ def test_use_checkout_billing_address_as_payment_billing(
 
     # check if proper error is returned if address is missing
     assert data["errors"][0]["field"] == "billingAddress"
+    assert (
+        data["errors"][0]["message"]
+        == "No billing address associated with this checkout."
+    )
 
     # assign the address and try again
     address.street_address_1 = "spanish-inqusition"
@@ -181,7 +181,7 @@ def test_payment_capture_success(
 ):
     payment = payment_txn_preauth
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
-    payment_id = graphene.Node.to_global_id("Payment", payment_txn_preauth.pk)
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
 
     variables = {"paymentId": payment_id, "amount": str(payment_txn_preauth.total)}
     response = staff_api_client.post_graphql(
@@ -202,7 +202,7 @@ def test_payment_capture_with_invalid_argument(
 ):
     payment = payment_txn_preauth
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
-    payment_id = graphene.Node.to_global_id("Payment", payment_txn_preauth.pk)
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
 
     variables = {"paymentId": payment_id, "amount": 0}
     response = staff_api_client.post_graphql(
@@ -214,12 +214,33 @@ def test_payment_capture_with_invalid_argument(
     assert data["errors"][0]["message"] == "Amount should be a positive number."
 
 
+def test_payment_capture_with_payment_non_authorized_yet(
+    staff_api_client, permission_manage_orders, payment_dummy
+):
+    """Ensure capture a payment that is set as authorized is failing with
+    the proper error message.
+    """
+    payment = payment_dummy
+    assert payment.charge_status == ChargeStatus.NOT_CHARGED
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
+
+    variables = {"paymentId": payment_id, "amount": 1}
+    response = staff_api_client.post_graphql(
+        CAPTURE_QUERY, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["paymentCapture"]
+    assert data["errors"] == [
+        {"field": None, "message": "Cannot find successful auth transaction"}
+    ]
+
+
 def test_payment_capture_gateway_error(
     staff_api_client, permission_manage_orders, payment_txn_preauth, monkeypatch
 ):
     payment = payment_txn_preauth
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
-    payment_id = graphene.Node.to_global_id("Payment", payment_txn_preauth.pk)
+    payment_id = graphene.Node.to_global_id("Payment", payment.pk)
     variables = {"paymentId": payment_id, "amount": str(payment_txn_preauth.total)}
     monkeypatch.setattr("saleor.payment.gateways.dummy.dummy_success", lambda: False)
     response = staff_api_client.post_graphql(
@@ -227,9 +248,7 @@ def test_payment_capture_gateway_error(
     )
     content = get_graphql_content(response)
     data = content["data"]["paymentCapture"]
-    assert data["errors"]
-    assert data["errors"][0]["field"] is None
-    assert data["errors"][0]["message"]
+    assert data["errors"] == [{"field": None, "message": "Unable to process capture"}]
 
     payment_txn_preauth.refresh_from_db()
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
@@ -313,9 +332,7 @@ def test_payment_refund_error(
     content = get_graphql_content(response)
     data = content["data"]["paymentRefund"]
 
-    assert data["errors"]
-    assert data["errors"][0]["field"] is None
-    assert data["errors"][0]["message"]
+    assert data["errors"] == [{"field": None, "message": "Unable to process refund"}]
     payment.refresh_from_db()
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.transactions.count() == 2
@@ -454,7 +471,7 @@ def test_payments_query(
 
 def test_query_payment(payment_dummy, user_api_client, permission_manage_orders):
     query = """
-    query payment($id: ID) {
+    query payment($id: ID!) {
         payment(id: $id) {
             id
         }
@@ -499,8 +516,13 @@ def braintree_customer_id():
     return "1234"
 
 
+@pytest.fixture
+def dummy_customer_id():
+    return "4321"
+
+
 def test_store_payment_gateway_meta(customer_user, braintree_customer_id):
-    gateway_name = PaymentGatewayEnum.BRAINTREE.name
+    gateway_name = "braintree"
     META = {
         "payment-gateways": {
             gateway_name.upper(): {"customer_id": braintree_customer_id}
@@ -510,26 +532,6 @@ def test_store_payment_gateway_meta(customer_user, braintree_customer_id):
     assert customer_user.private_meta == META
     customer_user.refresh_from_db()
     assert fetch_customer_id(customer_user, gateway_name) == braintree_customer_id
-
-
-def test_query_payment_client_token(mocker, user_api_client):
-    query = """
-    query paymentClientToken($gateway: GatewaysEnum) {
-        paymentClientToken(gateway: $gateway)
-    }
-    """
-    example_token = "example-token"
-    mock_get_client_token = mocker.patch(
-        "saleor.graphql.payment.resolvers.gateway_get_client_token",
-        return_value=example_token,
-    )
-    variables = {"gateway": PaymentGatewayEnum.BRAINTREE.name}
-    response = user_api_client.post_graphql(query, variables)
-
-    content = get_graphql_content(response)
-    mock_get_client_token.assert_called_once_with("braintree")
-    token = content["data"]["paymentClientToken"]
-    assert token == example_token
 
 
 @pytest.fixture
@@ -544,46 +546,15 @@ def set_braintree_customer_id(customer_user, braintree_customer_id):
     return customer_user
 
 
-def test_use_customer_id_from_meta_on_client_token_generation(
-    mocker,
-    token_config_with_customer,
-    braintree_customer_id,
-    set_braintree_customer_id,
-    user_api_client,
-):
-    query = """
-    query paymentClientToken($gateway: GatewaysEnum) {
-        paymentClientToken(gateway: $gateway)
-    }
-    """
-    TOKEN = "sample_token"
-    mock_get_token = mocker.patch(
-        "saleor.graphql.payment.resolvers.gateway_get_client_token",
-        return_value=TOKEN,
-        autospec=True,
-    )
-    variables = {"gateway": PaymentGatewayEnum.BRAINTREE.name}
-    response = user_api_client.post_graphql(query, variables)
-
-    mock_get_token.assert_called_once_with(
-        "braintree", TokenConfig(customer_id=braintree_customer_id)
-    )
-    content = get_graphql_content(response)
-    assert content["data"]["paymentClientToken"] == TOKEN
-
-
 @pytest.fixture
-def enable_braintree(settings):
-    settings.CHECKOUT_PAYMENT_GATEWAYS = {"braintree": None}
-    return settings
+def set_dummy_customer_id(customer_user, dummy_customer_id):
+    gateway_name = "dummy"
+    store_customer_id(customer_user, gateway_name, dummy_customer_id)
+    return customer_user
 
 
 def test_list_payment_sources(
-    mocker,
-    enable_braintree,
-    braintree_customer_id,
-    set_braintree_customer_id,
-    user_api_client,
+    mocker, dummy_customer_id, set_dummy_customer_id, user_api_client
 ):
     query = """
     {
@@ -600,18 +571,15 @@ def test_list_payment_sources(
     card = CreditCardInfo(
         last_4="5678", exp_year=2020, exp_month=12, name_on_card="JohnDoe"
     )
-    source = CustomerSource(id="test1", gateway="braintree", credit_card_info=card)
+    source = CustomerSource(id="test1", gateway="dummy", credit_card_info=card)
     mock_get_source_list = mocker.patch(
-        "saleor.graphql.account.resolvers.retrieve_customer_sources",
+        "saleor.graphql.account.resolvers.gateway.list_payment_sources",
         return_value=[source],
         autospec=True,
     )
     response = user_api_client.post_graphql(query)
 
-    mock_get_source_list.assert_called_once_with("braintree", braintree_customer_id)
+    mock_get_source_list.assert_called_once_with("Dummy", dummy_customer_id)
     content = get_graphql_content(response)["data"]["me"]["storedPaymentSources"]
     assert content is not None and len(content) == 1
-    assert content[0] == {
-        "gateway": "braintree",
-        "creditCardInfo": {"lastDigits": "5678"},
-    }
+    assert content[0] == {"gateway": "dummy", "creditCardInfo": {"lastDigits": "5678"}}

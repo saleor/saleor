@@ -1,16 +1,14 @@
 from itertools import chain
 from typing import Optional
 
+import graphene
 import graphene_django_optimizer as gql_optimizer
-from django.db.models import Q
+from graphql_jwt.exceptions import PermissionDenied
 from i18naddress import get_validation_rules
 
 from ...account import models
-from ...payment.utils import (
-    fetch_customer_id,
-    list_enabled_gateways,
-    retrieve_customer_sources,
-)
+from ...payment import gateway
+from ...payment.utils import fetch_customer_id
 from ..utils import filter_by_query_param
 from .types import AddressValidationData, ChoiceValue
 from .utils import get_allowed_fields_camel_case, get_required_fields_camel_case
@@ -27,9 +25,7 @@ USER_SEARCH_FIELDS = (
 
 
 def resolve_customers(info, query):
-    qs = models.User.objects.filter(
-        Q(is_staff=False) | (Q(is_staff=True) & Q(orders__isnull=False))
-    )
+    qs = models.User.objects.customers()
     qs = filter_by_query_param(
         queryset=qs, query=query, search_fields=USER_SEARCH_FIELDS
     )
@@ -39,12 +35,30 @@ def resolve_customers(info, query):
 
 
 def resolve_staff_users(info, query):
-    qs = models.User.objects.filter(is_staff=True)
+    qs = models.User.objects.staff()
     qs = filter_by_query_param(
         queryset=qs, query=query, search_fields=USER_SEARCH_FIELDS
     )
     qs = qs.order_by("email")
     qs = qs.distinct()
+    return gql_optimizer.query(qs, info)
+
+
+def resolve_user(info, id):
+    requester = info.context.user or info.context.service_account
+    if requester:
+        _model, user_pk = graphene.Node.from_global_id(id)
+        if requester.has_perms(["account.manage_staff", "account.manage_users"]):
+            return models.User.objects.filter(pk=user_pk).first()
+        if requester.has_perm("account.manage_staff"):
+            return models.User.objects.staff().filter(pk=user_pk).first()
+        if requester.has_perm("account.manage_users"):
+            return models.User.objects.customers().filter(pk=user_pk).first()
+    return PermissionDenied()
+
+
+def resolve_service_accounts(info):
+    qs = models.ServiceAccount.objects.all()
     return gql_optimizer.query(qs, info)
 
 
@@ -55,6 +69,7 @@ def resolve_address_validation_rules(
     city: Optional[str],
     city_area: Optional[str],
 ):
+
     params = {
         "country_code": country_code,
         "country_area": country_area,
@@ -90,16 +105,17 @@ def resolve_address_validation_rules(
 
 
 def resolve_payment_sources(user: models.User):
-    stored_customer_accounts = {
-        gateway: fetch_customer_id(user, gateway) for gateway in list_enabled_gateways()
-    }
+    stored_customer_accounts = (
+        (gtw["name"], fetch_customer_id(user, gtw["name"]))
+        for gtw in gateway.list_gateways()
+    )
     return list(
         chain(
             *[
                 prepare_graphql_payment_sources_type(
-                    retrieve_customer_sources(gateway, customer_id)
+                    gateway.list_payment_sources(gtw, customer_id)
                 )
-                for gateway, customer_id in stored_customer_accounts.items()
+                for gtw, customer_id in stored_customer_accounts
                 if customer_id is not None
             ]
         )

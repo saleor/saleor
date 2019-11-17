@@ -2,6 +2,7 @@ import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
 from ....account import events as account_events, models, utils
+from ....account.error_codes import AccountErrorCode
 from ....checkout import AddressType
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
@@ -14,7 +15,7 @@ class CustomerRegisterInput(graphene.InputObjectType):
     email = graphene.String(
         description="The unique email address of the user.", required=True
     )
-    password = graphene.String(description="Password", required=True)
+    password = graphene.String(description="Password.", required=True)
 
 
 class CustomerRegister(ModelMutation):
@@ -37,6 +38,7 @@ class CustomerRegister(ModelMutation):
         user.set_password(password)
         user.save()
         account_events.customer_account_created_event(user=user)
+        info.context.extensions.customer_created(customer=user)
 
 
 class LoggedUserUpdate(BaseCustomerCreate):
@@ -54,8 +56,8 @@ class LoggedUserUpdate(BaseCustomerCreate):
         model = models.User
 
     @classmethod
-    def check_permissions(cls, user):
-        return user.is_authenticated
+    def check_permissions(cls, context):
+        return context.user.is_authenticated
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
@@ -71,7 +73,7 @@ class CustomerAddressCreate(ModelMutation):
 
     class Arguments:
         input = AddressInput(
-            description="Fields required to create address", required=True
+            description="Fields required to create address.", required=True
         )
         type = AddressTypeEnum(
             required=False,
@@ -91,8 +93,8 @@ class CustomerAddressCreate(ModelMutation):
         exclude = ["user_addresses"]
 
     @classmethod
-    def check_permissions(cls, user):
-        return user.is_authenticated
+    def check_permissions(cls, context):
+        return context.user.is_authenticated
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
@@ -128,8 +130,8 @@ class CustomerSetDefaultAddress(BaseMutation):
         )
 
     @classmethod
-    def check_permissions(cls, user):
-        return user.is_authenticated
+    def check_permissions(cls, context):
+        return context.user.is_authenticated
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -137,7 +139,14 @@ class CustomerSetDefaultAddress(BaseMutation):
         user = info.context.user
 
         if address not in user.addresses.all():
-            raise ValidationError({"id": "The address doesn't belong to that user."})
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        "The address doesn't belong to that user.",
+                        code=AccountErrorCode.INVALID,
+                    )
+                }
+            )
 
         if data.get("type") == AddressTypeEnum.BILLING.value:
             address_type = AddressType.BILLING
@@ -158,7 +167,7 @@ class CustomerPasswordResetInput(graphene.InputObjectType):
 class CustomerPasswordReset(BaseMutation):
     class Arguments:
         input = CustomerPasswordResetInput(
-            description="Fields required to reset customer's password", required=True
+            description="Fields required to reset customer's password.", required=True
         )
 
     class Meta:
@@ -173,7 +182,14 @@ class CustomerPasswordReset(BaseMutation):
         try:
             user = models.User.objects.get(email=email)
         except ObjectDoesNotExist:
-            raise ValidationError({"email": "User with this email doesn't exist"})
+            raise ValidationError(
+                {
+                    "email": ValidationError(
+                        "User with this email doesn't exist",
+                        code=AccountErrorCode.NOT_FOUND,
+                    )
+                }
+            )
         site = info.context.site
         send_user_password_reset_email(user, site)
         return CustomerPasswordReset()

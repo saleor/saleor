@@ -3,6 +3,7 @@ import graphene
 from ...menu import models
 from ...menu.utils import update_menus
 from ..core.mutations import ModelBulkDeleteMutation
+from ..core.types.common import MenuError
 
 
 class MenuBulkDelete(ModelBulkDeleteMutation):
@@ -15,6 +16,8 @@ class MenuBulkDelete(ModelBulkDeleteMutation):
         description = "Deletes menus."
         model = models.Menu
         permissions = ("menu.manage_menus",)
+        error_type_class = MenuError
+        error_type_field = "menu_errors"
 
 
 class MenuItemBulkDelete(ModelBulkDeleteMutation):
@@ -27,6 +30,8 @@ class MenuItemBulkDelete(ModelBulkDeleteMutation):
         description = "Deletes menu items."
         model = models.MenuItem
         permissions = ("menu.manage_menus",)
+        error_type_class = MenuError
+        error_type_field = "menu_errors"
 
     @classmethod
     def bulk_action(cls, queryset):

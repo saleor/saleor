@@ -98,7 +98,8 @@ class WeightField(forms.FloatField):
                 raise Exception("%r is not a valid weight." % (weight,))
             if weight.unit != unit:
                 raise forms.ValidationError(
-                    "Invalid unit: %r (expected %r)." % (weight.unit, unit)
+                    "Invalid unit: %r (expected %r)." % (weight.unit, unit),
+                    code="invalid",
                 )
             super().validate(weight.value)
 

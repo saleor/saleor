@@ -15,8 +15,10 @@ from graphql.error import (
     format_error as format_graphql_error,
 )
 from graphql.execution import ExecutionResult
+from graphql_jwt.exceptions import PermissionDenied
 
-logger = logging.getLogger(__name__)
+unhandled_errors_logger = logging.getLogger("saleor.graphql.errors.unhandled")
+handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
 
 
 class GraphQLView(View):
@@ -33,6 +35,8 @@ class GraphQLView(View):
     backend = None
     middleware = None
     root_value = None
+
+    HANDLED_EXCEPTIONS = (GraphQLError, PermissionDenied)
 
     def __init__(
         self, schema=None, executor=None, middleware=None, root_value=None, backend=None
@@ -113,11 +117,11 @@ class GraphQLView(View):
     def parse_query(self, query: str) -> (GraphQLDocument, ExecutionResult):
         """Attempt to parse a query (mandatory) to a gql document object.
 
-        If no query was given, it returns an error.
+        If no query was given or query is not a string, it returns an error.
         If the query is invalid, it returns an error as well.
         Otherwise, it returns the parsed gql document.
         """
-        if not query:
+        if not query or not isinstance(query, str):
             return (
                 None,
                 ExecutionResult(
@@ -187,8 +191,8 @@ class GraphQLView(View):
             variables = operations.get("variables")
         return query, variables, operation_name
 
-    @staticmethod
-    def format_error(error):
+    @classmethod
+    def format_error(cls, error):
         if isinstance(error, GraphQLError):
             result = format_graphql_error(error)
         else:
@@ -198,15 +202,21 @@ class GraphQLView(View):
         while isinstance(exc, GraphQLError) and hasattr(exc, "original_error"):
             exc = exc.original_error
 
-        logger.error("Exception information:", exc_info=exc)
+        if isinstance(exc, cls.HANDLED_EXCEPTIONS):
+            handled_errors_logger.error("A query had an error", exc_info=exc)
+        else:
+            unhandled_errors_logger.error("A query failed unexpectedly", exc_info=exc)
 
+        result["extensions"] = {"exception": {"code": type(exc).__name__}}
         if settings.DEBUG:
             lines = []
-            for line in traceback.format_exception(type(exc), exc, exc.__traceback__):
-                lines.extend(line.rstrip().splitlines())
-            result["extensions"] = {
-                "exception": {"code": type(exc).__name__, "stacktrace ": lines}
-            }
+
+            if isinstance(exc, BaseException):
+                for line in traceback.format_exception(
+                    type(exc), exc, exc.__traceback__
+                ):
+                    lines.extend(line.rstrip().splitlines())
+            result["extensions"]["exception"]["stacktrace"] = lines
         return result
 
 

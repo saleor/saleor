@@ -11,6 +11,7 @@ from prices import Money, TaxedMoney, TaxedMoneyRange
 from ....core.taxes import TaxError, TaxType, zero_taxed_money
 from ... import ConfigurationTypeField
 from ...base_plugin import BasePlugin
+from ...error_codes import ExtensionsErrorCode
 from . import (
     META_FIELD,
     META_NAMESPACE,
@@ -47,7 +48,7 @@ class AvataxPlugin(BasePlugin):
             "label": pgettext_lazy("Plugin label", "Username or account"),
         },
         "Password or license": {
-            "type": ConfigurationTypeField.STRING,
+            "type": ConfigurationTypeField.PASSWORD,
             "help_text": pgettext_lazy(
                 "Plugin help text", "Provide password or license details"
             ),
@@ -98,9 +99,9 @@ class AvataxPlugin(BasePlugin):
             self.config = AvataxConfiguration(
                 username_or_account=configuration["Username or account"],
                 password_or_license=configuration["Password or license"],
-                use_sandbox=configuration["Use sandbox"] == "true",
+                use_sandbox=configuration["Use sandbox"],
                 company_name=configuration["Company name"],
-                autocommit=configuration["Autocommit"] == "true",
+                autocommit=configuration["Autocommit"],
             )
         else:
             # This should be removed after we drop an Avatax's settings from Django
@@ -276,7 +277,7 @@ class AvataxPlugin(BasePlugin):
             raise TaxError(customer_msg)
         return previous_value
 
-    def postprocess_order_creation(self, order: "Order", previous_value: Any) -> Any:
+    def order_created(self, order: "Order", previous_value: Any) -> Any:
         self._initialize_plugin_configuration()
 
         if not self.active:
@@ -436,7 +437,10 @@ class AvataxPlugin(BasePlugin):
                 "To enable a plugin, you need to provide values for the "
                 "following fields: "
             )
-            raise ValidationError(error_msg + ", ".join(missing_fields))
+            raise ValidationError(
+                error_msg + ", ".join(missing_fields),
+                code=ExtensionsErrorCode.PLUGIN_MISCONFIGURED,
+            )
 
     @classmethod
     def _get_default_configuration(cls):
@@ -445,8 +449,8 @@ class AvataxPlugin(BasePlugin):
             "description": "",
             "active": False,
             "configuration": [
-                {"name": "Username or account", "value": ""},
-                {"name": "Password or license", "value": ""},
+                {"name": "Username or account", "value": None},
+                {"name": "Password or license", "value": None},
                 {"name": "Use sandbox", "value": True},
                 {"name": "Company name", "value": "DEFAULT"},
                 {"name": "Autocommit", "value": False},

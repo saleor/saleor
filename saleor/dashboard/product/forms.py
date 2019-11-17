@@ -1,10 +1,10 @@
 import bleach
 from django import forms
 from django.conf import settings
+from django.db import transaction
 from django.db.models import Count
 from django.forms.models import ModelChoiceIterator
 from django.forms.widgets import CheckboxSelectMultiple
-from django.utils.encoding import smart_text
 from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from django_prices.forms import MoneyField
@@ -29,7 +29,10 @@ from ...product.tasks import (
     update_variants_names,
 )
 from ...product.thumbnails import create_product_thumbnails
-from ...product.utils.attributes import get_name_from_attributes
+from ...product.utils.attributes import (
+    associate_attribute_values_to_instance,
+    generate_name_for_variant,
+)
 from ..forms import (
     ModelChoiceOrCreationField,
     MoneyModelForm,
@@ -39,6 +42,7 @@ from ..seo.fields import SeoDescriptionField, SeoTitleField
 from ..seo.utils import prepare_seo_description
 from ..widgets import RichTextEditorWidget
 from . import ProductBulkAction
+from .utils import get_product_tax_rate
 from .widgets import ImagePreviewWidget
 
 
@@ -198,55 +202,66 @@ class AttributesMixin:
 
     available_attributes = Attribute.objects.none()
 
-    # Name of a field in self.instance that hold attributes HStore
-    model_attributes_field = None
-
-    def __init__(self, *args, **kwargs):
-        if not self.model_attributes_field:
-            raise Exception(
-                "model_attributes_field must be set in subclasses of "
-                "AttributesMixin."
-            )
-
     def prepare_fields_for_attributes(self):
-        initial_attrs = getattr(self.instance, self.model_attributes_field)
+        initial_attrs = self.instance.attributes
+
         for attribute in self.available_attributes:
+
+            attribute_rel = initial_attrs.filter(
+                assignment__attribute_id=attribute.pk
+            ).first()
+            initial = None if attribute_rel is None else attribute_rel.values.first()
+
             field_defaults = {
                 "label": attribute.name,
                 "required": False,
-                "initial": initial_attrs.get(str(attribute.pk)),
+                "initial": initial,
             }
+
             if attribute.has_values():
                 field = ModelChoiceOrCreationField(
                     queryset=attribute.values.all(), **field_defaults
                 )
             else:
                 field = forms.CharField(**field_defaults)
+
             self.fields[attribute.get_formfield_name()] = field
 
     def iter_attribute_fields(self):
+        """In use in templates to retrieve the attributes input fields."""
         for attr in self.available_attributes:
             yield self[attr.get_formfield_name()]
 
-    def get_saved_attributes(self):
-        attributes = {}
+    def save_attributes(self):
+        assert self.instance.pk is not None, "The instance must be saved first"
+
         for attr in self.available_attributes:
             value = self.cleaned_data.pop(attr.get_formfield_name())
-            if value:
-                # if the passed attribute value is a string,
-                # create the attribute value.
-                if not isinstance(value, AttributeValue):
-                    value = AttributeValue(
-                        attribute_id=attr.pk, name=value, slug=slugify(value)
-                    )
-                    value.save()
-                attributes[smart_text(attr.pk)] = [smart_text(value.pk)]
-        return attributes
+
+            # Skip if no value was supplied for that attribute
+            if not value:
+                continue
+
+            # If the passed attribute value is a string, create the attribute value.
+            if not isinstance(value, AttributeValue):
+                value = AttributeValue.objects.create(
+                    attribute_id=attr.pk, name=value, slug=slugify(value)
+                )
+
+            associate_attribute_values_to_instance(self.instance, attr, value)
 
 
 class ProductForm(MoneyModelForm, AttributesMixin):
     tax_rate = forms.ChoiceField(
-        required=False, label=pgettext_lazy("Product tax rate type", "Tax rate")
+        required=False,
+        label=pgettext_lazy("Product tax rate type", "Tax rate"),
+        help_text=pgettext_lazy(
+            "Help text for the tax rate field over the product update/create form",
+            (
+                "Make sure you have enabled a VAT provider and fetched the rates if "
+                "needed by the plugin."
+            ),
+        ),
     )
     category = TreeNodeChoiceField(
         queryset=Category.objects.all(), label=pgettext_lazy("Category", "Category")
@@ -269,8 +284,6 @@ class ProductForm(MoneyModelForm, AttributesMixin):
         ),
     )
     price = make_money_field()
-
-    model_attributes_field = "attributes"
 
     class Meta:
         model = Product
@@ -296,12 +309,9 @@ class ProductForm(MoneyModelForm, AttributesMixin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        manager = get_extensions_manager()
+        self.manager = get_extensions_manager()
         product_type = self.instance.product_type
-        product_tax_rate = manager.get_tax_code_from_object_meta(self.instance).code
-        self.initial["tax_rate"] = (
-            product_tax_rate or manager.get_tax_code_from_object_meta(product_type).code
-        )
+        self.initial["tax_rate"] = get_product_tax_rate(self.instance, self.manager)
         self.available_attributes = product_type.product_attributes.prefetch_related(
             "values"
         ).product_attributes_sorted()
@@ -318,9 +328,15 @@ class ProductForm(MoneyModelForm, AttributesMixin):
         self.fields["seo_title"] = SeoTitleField(
             extra_attrs={"data-bind": self["name"].auto_id}
         )
-        self.fields["tax_rate"].choices = [
-            (tax.code, tax.description) for tax in manager.get_tax_rate_type_choices()
+        tax_rate_field = self.fields["tax_rate"]
+        tax_rate_field.choices = [
+            (tax.code, tax.description)
+            for tax in self.manager.get_tax_rate_type_choices()
         ]
+
+        if not tax_rate_field.choices:
+            tax_rate_field.disabled = True
+
         if include_taxes_in_prices():
             self.fields["price"].label = pgettext_lazy(
                 "Currency gross amount", "Gross price"
@@ -348,20 +364,26 @@ class ProductForm(MoneyModelForm, AttributesMixin):
         return seo_description
 
     def save(self, commit=True):
-        attributes = self.get_saved_attributes()
-        self.instance.attributes = attributes
+        assert commit is True, "Commit is required to build the M2M structure"
 
-        instance = super().save()
-        instance.collections.clear()
+        with transaction.atomic():
+            super().save()
 
-        for collection in self.cleaned_data["collections"]:
-            instance.collections.add(collection)
-        update_product_minimal_variant_price_task.delay(instance.pk)
-        return instance
+            self.save_attributes()
+            self.instance.collections.clear()
+
+            for collection in self.cleaned_data["collections"]:
+                self.instance.collections.add(collection)
+
+            tax_rate = self.cleaned_data.get("tax_rate")
+            if tax_rate:
+                self.manager.assign_tax_code_to_object_meta(self.instance, tax_rate)
+
+        update_product_minimal_variant_price_task.delay(self.instance.pk)
+        return self.instance
 
 
 class ProductVariantForm(MoneyModelForm, AttributesMixin):
-    model_attributes_field = "attributes"
     weight = WeightField(
         required=False,
         label=pgettext_lazy("ProductVariant weight", "Weight"),
@@ -434,19 +456,19 @@ class ProductVariantForm(MoneyModelForm, AttributesMixin):
                 or self.instance.product.product_type.weight.value
             )
 
+    @transaction.atomic
     def save(self, commit=True):
-        assert commit is True, "Commit is required"
+        assert commit is True, "Commit is required to build the M2M structure"
 
-        attributes = self.get_saved_attributes()
-        self.instance.attributes = attributes
-        attrs = self.instance.product.product_type.variant_attributes.prefetch_related(
-            "values__translations"
-        )
-        self.instance.name = get_name_from_attributes(self.instance, attrs)
+        # We need to save first to create the attribute mapping
+        # and then to update the price cache
+        super().save()
 
-        super().save(commit=commit)
+        self.save_attributes()
 
-        # Note: save must always be called with commit=True
+        self.instance.name = generate_name_for_variant(self.instance)
+        self.instance.save(update_fields=["name"])
+
         update_product_minimal_variant_price_task.delay(self.instance.product_id)
         return self.instance
 
@@ -527,7 +549,7 @@ class VariantImagesSelectForm(forms.Form):
 class AttributeForm(forms.ModelForm):
     class Meta:
         model = Attribute
-        exclude = ["input_type"]
+        fields = ["name", "slug"]
         labels = {
             "name": pgettext_lazy("Product display name", "Display name"),
             "slug": pgettext_lazy("Product internal name", "Internal name"),

@@ -6,7 +6,7 @@ from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import connection
 
-from ...utils import create_superuser
+from ....account.utils import create_superuser
 from ...utils.random_data import (
     add_address_to_admin,
     create_gift_card,

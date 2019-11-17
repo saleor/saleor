@@ -1,18 +1,40 @@
 import graphene
 import graphene_django_optimizer as gql_optimizer
-from django.conf import settings
-from graphql_jwt.decorators import permission_required
 
 from ...checkout import models
 from ...checkout.utils import get_valid_shipping_methods_for_checkout
-from ...core.taxes import zero_taxed_money
+from ...core.taxes import display_gross_prices, zero_taxed_money
+from ...extensions.manager import get_extensions_manager
 from ..core.connection import CountableDjangoObjectType
 from ..core.resolvers import resolve_meta, resolve_private_meta
 from ..core.types.meta import MetadataObjectType
 from ..core.types.money import Money, TaxedMoney
+from ..decorators import permission_required
 from ..giftcard.types import GiftCard
-from ..payment.enums import PaymentGatewayEnum
 from ..shipping.types import ShippingMethod
+
+
+class GatewayConfigLine(graphene.ObjectType):
+    field = graphene.String(required=True, description="Gateway config key.")
+    value = graphene.String(description="Gateway config value for key.")
+
+    class Meta:
+        description = "Payment gateway client configuration key and value pair."
+
+
+class PaymentGateway(graphene.ObjectType):
+    name = graphene.String(required=True, description="Payment gateway name.")
+    config = graphene.List(
+        graphene.NonNull(GatewayConfigLine),
+        required=True,
+        description="Payment gateway client configuration.",
+    )
+
+    class Meta:
+        description = (
+            "Available payment gateway backend with configuration "
+            "necessary to setup client."
+        )
 
 
 class CheckoutLine(CountableDjangoObjectType):
@@ -49,14 +71,12 @@ class Checkout(MetadataObjectType, CountableDjangoObjectType):
         description="Shipping methods that can be used with this order.",
     )
     available_payment_gateways = graphene.List(
-        PaymentGatewayEnum,
-        description="List of available payment gateways.",
-        required=True,
+        PaymentGateway, description="List of available payment gateways.", required=True
     )
-    email = graphene.String(description="Email of a customer", required=True)
+    email = graphene.String(description="Email of a customer.", required=True)
     gift_cards = gql_optimizer.field(
         graphene.List(
-            GiftCard, description="List of gift cards associated with this checkout"
+            GiftCard, description="List of gift cards associated with this checkout."
         ),
         model_field="gift_cards",
     )
@@ -114,7 +134,7 @@ class Checkout(MetadataObjectType, CountableDjangoObjectType):
             "voucher_code",
             "discount",
         ]
-        description = "Checkout object"
+        description = "Checkout object."
         model = models.Checkout
         interfaces = [graphene.relay.Node]
         filter_fields = ["token"]
@@ -156,11 +176,22 @@ class Checkout(MetadataObjectType, CountableDjangoObjectType):
         )
         if available is None:
             return []
+
+        manager = get_extensions_manager()
+        display_gross = display_gross_prices()
+        for shipping_method in available:
+            taxed_price = manager.apply_taxes_to_shipping(
+                shipping_method.price, root.shipping_address
+            )
+            if display_gross:
+                shipping_method.price = taxed_price.gross
+            else:
+                shipping_method.price = taxed_price.net
         return available
 
     @staticmethod
     def resolve_available_payment_gateways(_: models.Checkout, _info):
-        return settings.CHECKOUT_PAYMENT_GATEWAYS.keys()
+        return [gtw for gtw in get_extensions_manager().list_payment_gateways()]
 
     @staticmethod
     def resolve_gift_cards(root: models.Checkout, _info):

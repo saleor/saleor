@@ -1,5 +1,3 @@
-from unittest.mock import patch
-
 import pytest
 
 from saleor.graphql.core.utils.reordering import perform_reordering
@@ -213,8 +211,7 @@ def test_reordering_null_sort_orders(dummy_attribute):
     assert actual == expected
 
 
-@patch("saleor.graphql.core.utils.reordering.warnings.warn")
-def test_reordering_nothing(mocked_warn, sorted_entries_seq, django_assert_num_queries):
+def test_reordering_nothing(sorted_entries_seq, assert_num_queries):
     """
     Ensures giving operations that does nothing, are skipped. Thus only one query should
     have been made: fetching the nodes.
@@ -223,27 +220,22 @@ def test_reordering_nothing(mocked_warn, sorted_entries_seq, django_assert_num_q
     pk = sorted_entries_seq[0].pk
     operations = {pk: 0}
 
-    with django_assert_num_queries(1) as ctx:
+    with assert_num_queries(1) as ctx:
         perform_reordering(qs, operations)
 
-    mocked_warn.assert_called_with(
-        f"Ignored node's reordering, did not find: {pk} (from AttributeValue)"
-    )
     assert ctx[0]["sql"].startswith("SELECT "), "Should only have done a SELECT"
 
 
-def test_giving_no_operation_does_no_query(
-    sorted_entries_seq, django_assert_num_queries
-):
+def test_giving_no_operation_does_no_query(sorted_entries_seq, assert_num_queries):
     """Ensures giving no operations runs no queries at all."""
 
     qs = SortedModel.objects
 
-    with django_assert_num_queries(0):
+    with assert_num_queries(0):
         perform_reordering(qs, {})
 
 
-def test_reordering_concurrently(dummy_attribute, django_assert_num_queries):
+def test_reordering_concurrently(dummy_attribute, assert_num_queries):
     """
     Ensures users cannot concurrently reorder, they need to wait for the other one
     to achieve.
@@ -270,7 +262,7 @@ def test_reordering_concurrently(dummy_attribute, django_assert_num_queries):
 
     operations = {entries[0].pk: +1}
 
-    with django_assert_num_queries(2) as ctx:
+    with assert_num_queries(2) as ctx:
         perform_reordering(qs, operations)
 
     assert ctx[0]["sql"] == (
@@ -289,9 +281,7 @@ def test_reordering_concurrently(dummy_attribute, django_assert_num_queries):
     )
 
 
-def test_reordering_deleted_node_from_concurrent(
-    dummy_attribute, django_assert_num_queries
-):
+def test_reordering_deleted_node_from_concurrent(dummy_attribute, assert_num_queries):
     """
     Ensures if a node was deleted before locking, it just skip it instead of
     raising an error.
@@ -315,7 +305,7 @@ def test_reordering_deleted_node_from_concurrent(
 
     operations = {-1: +1, entries[0].pk: +1}
 
-    with django_assert_num_queries(2) as ctx:
+    with assert_num_queries(2) as ctx:
         perform_reordering(qs, operations)
 
     assert ctx[1]["sql"] == (
