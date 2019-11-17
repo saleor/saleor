@@ -1,11 +1,13 @@
 import os
-import os.path
 import random
 
 from django.conf import settings
 from django.core.files import File
 
 from ..checkout import AddressType
+from ..core.utils import create_thumbnails
+from ..extensions.manager import get_extensions_manager
+from .models import User
 
 AVATARS_PATH = os.path.join(
     settings.PROJECT_ROOT, "saleor", "static", "images", "avatars"
@@ -14,7 +16,12 @@ AVATARS_PATH = os.path.join(
 
 def store_user_address(user, address, address_type):
     """Add address to user address book and set as default one."""
-    address, _ = user.addresses.get_or_create(**address.as_data())
+    address = get_extensions_manager().change_user_address(address, address_type, user)
+    address_data = address.as_data()
+
+    address = user.addresses.filter(**address_data).first()
+    if address is None:
+        address = user.addresses.create(**address_data)
 
     if address_type == AddressType.BILLING:
         if not user.default_billing_address:
@@ -35,6 +42,7 @@ def set_user_default_shipping_address(user, address):
 
 
 def change_user_default_address(user, address, address_type):
+    address = get_extensions_manager().change_user_address(address, address_type, user)
     if address_type == AddressType.BILLING:
         if user.default_billing_address:
             user.addresses.add(user.default_billing_address)
@@ -67,6 +75,25 @@ def get_user_last_name(user):
     if user.default_billing_address:
         return user.default_billing_address.last_name
     return None
+
+
+def create_superuser(credentials):
+
+    user, created = User.objects.get_or_create(
+        email=credentials["email"],
+        defaults={"is_active": True, "is_staff": True, "is_superuser": True},
+    )
+    if created:
+        user.avatar = get_random_avatar()
+        user.set_password(credentials["password"])
+        user.save()
+        create_thumbnails(
+            pk=user.pk, model=User, size_set="user_avatars", image_attr="avatar"
+        )
+        msg = "Superuser - %(email)s/%(password)s" % credentials
+    else:
+        msg = "Superuser already exists - %(email)s" % credentials
+    return msg
 
 
 def get_random_avatar():

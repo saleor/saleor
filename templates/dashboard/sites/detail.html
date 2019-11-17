@@ -59,6 +59,16 @@
               </p>
             </div>
           </div>
+          <div class="row">
+            <div class="col s12 m4 l12">
+              <h4>
+                {% trans "Default Sender" context "Site settings field" %}
+              </h4>
+              <p>
+                {{ site_settings.default_from_email|default:"-" }}
+              </p>
+            </div>
+          </div>
         </div>
         <div class="card-action">
           <a class="btn-flat waves-effect" href="{% url 'dashboard:site-update' pk=site_settings.pk %}">

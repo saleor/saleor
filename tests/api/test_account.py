@@ -5,7 +5,6 @@ from unittest.mock import ANY, MagicMock, Mock, patch
 
 import graphene
 import pytest
-from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 from django.core.files import File
@@ -15,6 +14,7 @@ from freezegun import freeze_time
 from prices import Money
 
 from saleor.account import events as account_events
+from saleor.account.error_codes import AccountErrorCode
 from saleor.account.models import Address, User
 from saleor.account.utils import get_random_avatar
 from saleor.checkout import AddressType
@@ -26,6 +26,7 @@ from saleor.graphql.account.mutations.staff import (
     UserDelete,
 )
 from saleor.graphql.core.enums import PermissionEnum
+from saleor.graphql.core.utils import str_to_enum
 from saleor.order.models import FulfillmentStatus, Order
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image
@@ -294,6 +295,56 @@ def test_user_query_anonymous_user(api_client):
     variables = {"id": ""}
     response = api_client.post_graphql(USER_QUERY, variables)
     assert_no_permission(response)
+
+
+def test_user_query_permission_manage_users_get_customer(
+    staff_api_client, customer_user, permission_manage_users
+):
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+    variables = {"id": customer_id}
+    response = staff_api_client.post_graphql(
+        USER_QUERY, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["user"]
+    assert customer_user.email == data["email"]
+
+
+def test_user_query_permission_manage_users_get_staff(
+    staff_api_client, staff_user, permission_manage_users
+):
+    staff_id = graphene.Node.to_global_id("User", staff_user.pk)
+    variables = {"id": staff_id}
+    response = staff_api_client.post_graphql(
+        USER_QUERY, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+    assert not content["data"]["user"]
+
+
+def test_user_query_permission_manage_staff_get_customer(
+    staff_api_client, customer_user, permission_manage_staff
+):
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+    variables = {"id": customer_id}
+    response = staff_api_client.post_graphql(
+        USER_QUERY, variables, permissions=[permission_manage_staff]
+    )
+    content = get_graphql_content(response)
+    assert not content["data"]["user"]
+
+
+def test_user_query_permission_manage_staff_get_staff(
+    staff_api_client, staff_user, permission_manage_staff
+):
+    staff_id = graphene.Node.to_global_id("User", staff_user.pk)
+    variables = {"id": staff_id}
+    response = staff_api_client.post_graphql(
+        USER_QUERY, variables, permissions=[permission_manage_staff]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["user"]
+    assert staff_user.email == data["email"]
 
 
 def test_query_customers(staff_api_client, user_api_client, permission_manage_users):
@@ -576,18 +627,11 @@ def test_customer_register(user_api_client, query, mutation_name):
     assert customer_creation_event.user == new_user
 
 
-@patch("saleor.dashboard.emails.send_set_password_customer_email.delay")
-def test_customer_create(
-    send_set_password_customer_email_mock,
-    staff_api_client,
-    address,
-    permission_manage_users,
-):
-    query = """
+CUSTOMER_CREATE_MUTATION = """
     mutation CreateCustomer(
         $email: String, $firstName: String, $lastName: String,
         $note: String, $billing: AddressInput, $shipping: AddressInput,
-        $send_mail: Boolean) {
+        $send_mail: Boolean, $redirect_url: String) {
         customerCreate(input: {
             email: $email,
             firstName: $firstName,
@@ -596,10 +640,15 @@ def test_customer_create(
             defaultShippingAddress: $shipping,
             defaultBillingAddress: $billing
             sendPasswordEmail: $send_mail
+            redirectUrl: $redirect_url
         }) {
             errors {
                 field
                 message
+            }
+            accountErrors {
+                field
+                code
             }
             user {
                 id
@@ -618,7 +667,13 @@ def test_customer_create(
             }
         }
     }
-    """
+"""
+
+
+@patch("saleor.dashboard.emails._send_set_password_email")
+def test_customer_create(
+    _send_set_password_email_mock, staff_api_client, address, permission_manage_users
+):
     email = "api_user@example.com"
     first_name = "api_first_name"
     last_name = "api_last_name"
@@ -632,15 +687,14 @@ def test_customer_create(
         "note": note,
         "shipping": address_data,
         "billing": address_data,
-        "send_mail": True,
+        "redirect_url": "https://www.example.com",
     }
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_users]
+        CUSTOMER_CREATE_MUTATION, variables, permissions=[permission_manage_users]
     )
     content = get_graphql_content(response)
 
-    User = get_user_model()
     new_customer = User.objects.get(email=email)
 
     shipping_address, billing_address = (
@@ -660,14 +714,104 @@ def test_customer_create(
     assert not data["user"]["isStaff"]
     assert data["user"]["isActive"]
 
-    assert send_set_password_customer_email_mock.call_count == 1
-    args, kwargs = send_set_password_customer_email_mock.call_args
-    call_pk = args[0]
-    assert call_pk == new_customer.pk
+    _send_set_password_email_mock.assert_called_once_with(
+        new_customer.email, ANY, "dashboard/customer/set_password"
+    )
 
     customer_creation_event = account_events.CustomerEvent.objects.get()
     assert customer_creation_event.type == account_events.CustomerEvents.ACCOUNT_CREATED
     assert customer_creation_event.user == new_customer
+
+
+@patch("saleor.dashboard.emails._send_set_user_password_email_with_url.delay")
+def test_customer_create_send_password_with_url(
+    _send_set_user_password_email_with_url_mock,
+    staff_api_client,
+    permission_manage_users,
+):
+    email = "api_user@example.com"
+    variables = {"email": email, "redirect_url": "https://www.example.com"}
+
+    response = staff_api_client.post_graphql(
+        CUSTOMER_CREATE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["customerCreate"]
+    assert not data["errors"]
+
+    new_customer = User.objects.get(email=email)
+    assert new_customer
+
+    token = default_token_generator.make_token(new_customer)
+    _send_set_user_password_email_with_url_mock.assert_called_once_with(
+        new_customer.email, ANY, token, "dashboard/customer/set_password"
+    )
+
+
+def test_customer_create_without_send_password(
+    staff_api_client, permission_manage_users
+):
+    email = "api_user@example.com"
+    variables = {"email": email}
+    response = staff_api_client.post_graphql(
+        CUSTOMER_CREATE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["customerCreate"]
+    assert not data["errors"]
+    User.objects.get(email=email)
+
+
+def test_customer_create_without_redirect_url_deprecated_send_mail_flag(
+    staff_api_client, permission_manage_users
+):
+    email = "api_user@example.com"
+    variables = {"email": email, "send_mail": True}
+    response = staff_api_client.post_graphql(
+        CUSTOMER_CREATE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["customerCreate"]
+    assert data["accountErrors"][0] == {
+        "field": "redirectUrl",
+        "code": AccountErrorCode.REQUIRED.name,
+    }
+    staff_user = User.objects.filter(email=email)
+    assert not staff_user
+
+
+def test_customer_create_with_invalid_url(staff_api_client, permission_manage_users):
+    email = "api_user@example.com"
+    variables = {"email": email, "redirect_url": "invalid"}
+    response = staff_api_client.post_graphql(
+        CUSTOMER_CREATE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["customerCreate"]
+    assert data["accountErrors"][0] == {
+        "field": "redirectUrl",
+        "code": AccountErrorCode.INVALID.name,
+    }
+    staff_user = User.objects.filter(email=email)
+    assert not staff_user
+
+
+def test_customer_create_with_not_allowed_url(
+    staff_api_client, permission_manage_users
+):
+    email = "api_user@example.com"
+    variables = {"email": email, "redirect_url": "https://www.fake.com"}
+    response = staff_api_client.post_graphql(
+        CUSTOMER_CREATE_MUTATION, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["customerCreate"]
+    assert data["accountErrors"][0] == {
+        "field": "redirectUrl",
+        "code": AccountErrorCode.INVALID.name,
+    }
+    staff_user = User.objects.filter(email=email)
+    assert not staff_user
 
 
 def test_customer_update(
@@ -737,7 +881,6 @@ def test_customer_update(
     )
     content = get_graphql_content(response)
 
-    User = get_user_model()
     customer = User.objects.get(email=customer_user.email)
 
     # check that existing instances are updated
@@ -971,13 +1114,33 @@ ACCOUNT_REQUEST_DELETION_MUTATION = """
                 field
                 message
             }
+            accountErrors {
+                code
+                field
+            }
         }
     }
 """
 
 
+@patch("saleor.account.emails._send_delete_confirmation_email")
+def test_account_request_deletion(send_delete_confirmation_email_mock, user_api_client):
+    user = user_api_client.user
+    variables = {"redirectUrl": "https://www.example.com"}
+    response = user_api_client.post_graphql(
+        ACCOUNT_REQUEST_DELETION_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["accountRequestDeletion"]
+    assert not data["errors"]
+    send_delete_confirmation_email_mock.assert_called_once_with(user.email, ANY)
+    url = send_delete_confirmation_email_mock.mock_calls[0][1][1]
+    url_validator = URLValidator()
+    url_validator(url)
+
+
 @patch("saleor.account.emails._send_account_delete_confirmation_email_with_url.delay")
-def test_account_request_deletion(
+def test_account_request_deletion_token_validation(
     send_account_delete_confirmation_email_with_url_mock, user_api_client
 ):
     user = user_api_client.user
@@ -1018,7 +1181,10 @@ def test_account_request_deletion_storefront_hosts_not_allowed(
     content = get_graphql_content(response)
     data = content["data"]["accountRequestDeletion"]
     assert len(data["errors"]) == 1
-    assert data["errors"][0]["field"] == "redirectUrl"
+    assert data["accountErrors"][0] == {
+        "field": "redirectUrl",
+        "code": AccountErrorCode.INVALID.name,
+    }
     send_account_delete_confirmation_email_with_url_mock.assert_not_called()
 
 
@@ -1028,7 +1194,7 @@ def test_account_request_deletion_all_storefront_hosts_allowed(
 ):
     user = user_api_client.user
     token = default_token_generator.make_token(user)
-    settings.ALLOWED_STOREFRONT_HOSTS = ["*"]
+    settings.ALLOWED_CLIENT_HOSTS = ["*"]
     variables = {"redirectUrl": "https://www.test.com"}
     response = user_api_client.post_graphql(
         ACCOUNT_REQUEST_DELETION_MUTATION, variables
@@ -1050,7 +1216,7 @@ def test_account_request_deletion_subdomain(
 ):
     user = user_api_client.user
     token = default_token_generator.make_token(user)
-    settings.ALLOWED_STOREFRONT_HOSTS = [".example.com"]
+    settings.ALLOWED_CLIENT_HOSTS = [".example.com"]
     variables = {"redirectUrl": "https://sub.example.com"}
     response = user_api_client.post_graphql(
         ACCOUNT_REQUEST_DELETION_MUTATION, variables
@@ -1191,22 +1357,19 @@ def test_customer_delete_errors(customer_user, admin_user, staff_user):
     CustomerDelete.clean_instance(info, customer_user)
 
 
-@patch("saleor.dashboard.emails.send_set_password_staff_email.delay")
-def test_staff_create(
-    send_set_password_staff_email_mock,
-    staff_api_client,
-    media_root,
-    permission_manage_staff,
-):
-    query = """
+STAFF_CREATE_MUTATION = """
     mutation CreateStaff(
             $email: String, $permissions: [PermissionEnum],
-            $send_mail: Boolean) {
+            $send_mail: Boolean, $redirect_url: String) {
         staffCreate(input: {email: $email, permissions: $permissions,
-                sendPasswordEmail: $send_mail}) {
+                sendPasswordEmail: $send_mail, redirectUrl: $redirect_url}) {
             errors {
                 field
                 message
+            }
+            accountErrors {
+                field
+                code
             }
             user {
                 id
@@ -1222,17 +1385,22 @@ def test_staff_create(
             }
         }
     }
-    """
+"""
 
+
+@patch("saleor.dashboard.emails._send_set_password_email")
+def test_staff_create(
+    _send_set_password_email_mock, staff_api_client, media_root, permission_manage_staff
+):
     email = "api_user@example.com"
     variables = {
         "email": email,
         "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
-        "send_mail": True,
+        "redirect_url": "https://www.example.com",
     }
 
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_staff]
+        STAFF_CREATE_MUTATION, variables, permissions=[permission_manage_staff]
     )
     content = get_graphql_content(response)
     data = content["data"]["staffCreate"]
@@ -1247,15 +1415,107 @@ def test_staff_create(
     permissions = data["user"]["permissions"]
     assert permissions[0]["code"] == "MANAGE_PRODUCTS"
 
-    User = get_user_model()
     staff_user = User.objects.get(email=email)
 
     assert staff_user.is_staff
 
-    assert send_set_password_staff_email_mock.call_count == 1
-    args, kwargs = send_set_password_staff_email_mock.call_args
-    call_pk = args[0]
-    assert call_pk == staff_user.pk
+    _send_set_password_email_mock.assert_called_once_with(
+        staff_user.email, ANY, "dashboard/staff/set_password"
+    )
+
+
+@patch("saleor.dashboard.emails._send_set_user_password_email_with_url.delay")
+def test_staff_create_send_password_with_url(
+    _send_set_user_password_email_with_url_mock,
+    staff_api_client,
+    media_root,
+    permission_manage_staff,
+):
+    email = "api_user@example.com"
+    variables = {"email": email, "redirect_url": "https://www.example.com"}
+
+    response = staff_api_client.post_graphql(
+        STAFF_CREATE_MUTATION, variables, permissions=[permission_manage_staff]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["staffCreate"]
+    assert not data["errors"]
+
+    staff_user = User.objects.get(email=email)
+    assert staff_user.is_staff
+
+    token = default_token_generator.make_token(staff_user)
+    _send_set_user_password_email_with_url_mock.assert_called_once_with(
+        staff_user.email, ANY, token, "dashboard/staff/set_password"
+    )
+
+
+def test_staff_create_without_send_password(
+    staff_api_client, media_root, permission_manage_staff
+):
+    email = "api_user@example.com"
+    variables = {"email": email}
+    response = staff_api_client.post_graphql(
+        STAFF_CREATE_MUTATION, variables, permissions=[permission_manage_staff]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["staffCreate"]
+    assert not data["errors"]
+    User.objects.get(email=email)
+
+
+def test_staff_create_without_redirect_url_deprecated_send_mail_flag(
+    staff_api_client, media_root, permission_manage_staff
+):
+    email = "api_user@example.com"
+    variables = {"email": email, "send_mail": True}
+    response = staff_api_client.post_graphql(
+        STAFF_CREATE_MUTATION, variables, permissions=[permission_manage_staff]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["staffCreate"]
+    assert data["accountErrors"][0] == {
+        "field": "redirectUrl",
+        "code": AccountErrorCode.REQUIRED.name,
+    }
+    staff_user = User.objects.filter(email=email)
+    assert not staff_user
+
+
+def test_staff_create_with_invalid_url(
+    staff_api_client, media_root, permission_manage_staff
+):
+    email = "api_user@example.com"
+    variables = {"email": email, "redirect_url": "invalid"}
+    response = staff_api_client.post_graphql(
+        STAFF_CREATE_MUTATION, variables, permissions=[permission_manage_staff]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["staffCreate"]
+    assert data["accountErrors"][0] == {
+        "field": "redirectUrl",
+        "code": AccountErrorCode.INVALID.name,
+    }
+    staff_user = User.objects.filter(email=email)
+    assert not staff_user
+
+
+def test_staff_create_with_not_allowed_url(
+    staff_api_client, media_root, permission_manage_staff
+):
+    email = "api_userrr@example.com"
+    variables = {"email": email, "redirect_url": "https://www.fake.com"}
+    response = staff_api_client.post_graphql(
+        STAFF_CREATE_MUTATION, variables, permissions=[permission_manage_staff]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["staffCreate"]
+    assert data["accountErrors"][0] == {
+        "field": "redirectUrl",
+        "code": AccountErrorCode.INVALID.name,
+    }
+    staff_user = User.objects.filter(email=email)
+    assert not staff_user
 
 
 def test_staff_update(staff_api_client, permission_manage_staff, media_root):
@@ -1305,6 +1565,10 @@ def test_staff_update_doesnt_change_existing_avatar(
             errors {
                 field
                 message
+            }
+            accountErrors {
+                field
+                code
             }
         }
     }
@@ -1415,6 +1679,11 @@ SET_PASSWORD_MUTATION = """
                 field
                 message
             }
+            accountErrors {
+                field
+                message
+                code
+            }
             user {
                 id
             }
@@ -1450,6 +1719,10 @@ def test_set_password_invalid_token(user_api_client, customer_user):
     errors = content["data"]["setPassword"]["errors"]
     assert errors[0]["message"] == INVALID_TOKEN
 
+    account_errors = content["data"]["setPassword"]["accountErrors"]
+    assert account_errors[0]["message"] == INVALID_TOKEN
+    assert account_errors[0]["code"] == AccountErrorCode.INVALID.name
+
 
 def test_set_password_invalid_email(user_api_client):
     variables = {"email": "fake@example.com", "password": "pass", "token": "token"}
@@ -1458,6 +1731,11 @@ def test_set_password_invalid_email(user_api_client):
     errors = content["data"]["setPassword"]["errors"]
     assert len(errors) == 1
     assert errors[0]["field"] == "email"
+
+    account_errors = content["data"]["setPassword"]["accountErrors"]
+    assert len(account_errors) == 1
+    assert account_errors[0]["field"] == "email"
+    assert account_errors[0]["code"] == AccountErrorCode.NOT_FOUND.name
 
 
 def test_set_password_invalid_password(user_api_client, customer_user, settings):
@@ -1480,6 +1758,10 @@ def test_set_password_invalid_password(user_api_client, customer_user, settings)
         == "This password is too short. It must contain at least 5 characters."
     )
     assert errors[1]["message"] == "This password is entirely numeric."
+
+    account_errors = content["data"]["setPassword"]["accountErrors"]
+    assert account_errors[0]["code"] == str_to_enum("password_too_short")
+    assert account_errors[1]["code"] == str_to_enum("password_entirely_numeric")
 
 
 @patch("saleor.account.emails._send_user_password_reset_email.delay")
@@ -1613,7 +1895,7 @@ def test_create_address_mutation(
     staff_api_client, customer_user, permission_manage_users
 ):
     query = """
-    mutation CreateUserAddress($user: ID!, $city: String!, $country: String!) {
+    mutation CreateUserAddress($user: ID!, $city: String!, $country: CountryCode!) {
         addressCreate(userId: $user, input: {city: $city, country: $country}) {
             errors {
                 field
@@ -2058,6 +2340,7 @@ def test_account_reset_password_storefront_hosts_not_allowed(
     content = get_graphql_content(response)
     data = content["data"]["requestPasswordReset"]
     assert len(data["errors"]) == 1
+    assert data["errors"][0]["field"] == "redirectUrl"
     assert not send_password_reset_email_mock.called
 
 
@@ -2065,7 +2348,7 @@ def test_account_reset_password_storefront_hosts_not_allowed(
 def test_account_reset_password_all_storefront_hosts_allowed(
     send_password_reset_email_mock, user_api_client, customer_user, settings
 ):
-    settings.ALLOWED_STOREFRONT_HOSTS = ["*"]
+    settings.ALLOWED_CLIENT_HOSTS = ["*"]
     variables = {"email": customer_user.email, "redirectUrl": "https://www.test.com"}
     response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
     content = get_graphql_content(response)
@@ -2084,7 +2367,7 @@ def test_account_reset_password_all_storefront_hosts_allowed(
 def test_account_reset_password_subdomain(
     send_password_reset_email_mock, user_api_client, customer_user, settings
 ):
-    settings.ALLOWED_STOREFRONT_HOSTS = [".example.com"]
+    settings.ALLOWED_CLIENT_HOSTS = [".example.com"]
     variables = {"email": customer_user.email, "redirectUrl": "https://sub.example.com"}
     response = user_api_client.post_graphql(REQUEST_PASSWORD_RESET_MUTATION, variables)
     content = get_graphql_content(response)
@@ -2118,6 +2401,9 @@ mutation($addressInput: AddressInput!, $addressType: AddressTypeEnum) {
         id,
         city
     }
+    user {
+        email
+    }
   }
 }
 """
@@ -2145,6 +2431,15 @@ def test_customer_create_address(
 
     user.refresh_from_db()
     assert user.addresses.count() == nr_of_addresses + 1
+
+
+def test_account_address_create_return_user(user_api_client, graphql_address_data):
+    user = user_api_client.user
+    variables = {"addressInput": graphql_address_data}
+    response = user_api_client.post_graphql(ACCOUNT_ADDRESS_CREATE_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["accountAddressCreate"]["user"]
+    assert data["email"] == user.email
 
 
 @pytest.mark.parametrize(

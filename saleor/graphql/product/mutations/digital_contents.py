@@ -1,21 +1,24 @@
 import graphene
 from django.core.exceptions import ValidationError
-from graphql_jwt.decorators import permission_required
 
 from ....product import models
+from ....product.error_codes import ProductErrorCode
 from ...core.mutations import BaseMutation, ModelMutation
 from ...core.types import Upload
+from ...core.types.common import ProductError
+from ...decorators import permission_required
 from ..types import DigitalContent, ProductVariant
 
 
 class DigitalContentInput(graphene.InputObjectType):
     use_default_settings = graphene.Boolean(
-        description="Use default digital content settings for this product",
+        description="Use default digital content settings for this product.",
         required=True,
     )
     max_downloads = graphene.Int(
         description=(
-            "Determines how many times a download link can be accessed by a " "customer"
+            "Determines how many times a download link can be accessed by a "
+            "customer."
         ),
         required=False,
     )
@@ -27,7 +30,7 @@ class DigitalContentInput(graphene.InputObjectType):
         required=False,
     )
     automatic_fulfillment = graphene.Boolean(
-        description=("Overwrite default automatic_fulfillment setting for variant"),
+        description="Overwrite default automatic_fulfillment setting for variant.",
         required=False,
     )
 
@@ -52,10 +55,13 @@ class DigitalContentCreate(BaseMutation):
         )
 
     class Meta:
-        description = """Create new digital content. This mutation must
-        be sent as a `multipart` request. More detailed specs of the upload
-        format can be found here:
-        https://github.com/jaydenseric/graphql-multipart-request-spec"""
+        description = (
+            "Create new digital content. This mutation must be sent as a `multipart` "
+            "request. More detailed specs of the upload format can be found here: "
+            "https://github.com/jaydenseric/graphql-multipart-request-spec"
+        )
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     @permission_required("product.manage_products")
@@ -77,7 +83,9 @@ class DigitalContentCreate(BaseMutation):
             missing_fields = set(required_fields).difference(set(data))
             if missing_fields:
                 msg += "{}, " * len(missing_fields)
-                raise ValidationError(msg.format(*missing_fields))
+                raise ValidationError(
+                    msg.format(*missing_fields), code=ProductErrorCode.REQUIRED
+                )
 
         return data
 
@@ -117,7 +125,9 @@ class DigitalContentDelete(BaseMutation):
         )
 
     class Meta:
-        description = "Remove digital content assigned to given variant"
+        description = "Remove digital content assigned to given variant."
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     @permission_required("product.manage_products")
@@ -146,7 +156,9 @@ class DigitalContentUpdate(BaseMutation):
         )
 
     class Meta:
-        description = "Update digital content"
+        description = "Update digital content."
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     @permission_required("product.manage_products")
@@ -165,7 +177,9 @@ class DigitalContentUpdate(BaseMutation):
             missing_fields = set(required_fields).difference(set(data))
             if missing_fields:
                 msg += "{}, " * len(missing_fields)
-                raise ValidationError(msg.format(*missing_fields))
+                raise ValidationError(
+                    msg.format(*missing_fields), code=ProductErrorCode.REQUIRED
+                )
 
         return data
 
@@ -178,7 +192,13 @@ class DigitalContentUpdate(BaseMutation):
 
         if not hasattr(variant, "digital_content"):
             msg = "Variant %s doesn't have any digital content" % variant.id
-            raise ValidationError({"variantId": msg})
+            raise ValidationError(
+                {
+                    "variantId": ValidationError(
+                        msg, code=ProductErrorCode.VARIANT_NO_DIGITAL_CONTENT
+                    )
+                }
+            )
 
         clean_input = cls.clean_input(info, data.get("input"))
 
@@ -202,7 +222,7 @@ class DigitalContentUpdate(BaseMutation):
 
 class DigitalContentUrlCreateInput(graphene.InputObjectType):
     content = graphene.ID(
-        description="Digital content ID which url will belong to",
+        description="Digital content ID which URL will belong to.",
         name="content",
         required=True,
     )
@@ -215,8 +235,10 @@ class DigitalContentUrlCreate(ModelMutation):
         )
 
     class Meta:
-        description = "Generate new url to digital content"
+        description = "Generate new URL to digital content."
         model = models.DigitalContentUrl
+        error_type_class = ProductError
+        error_type_field = "product_errors"
 
     @classmethod
     @permission_required("product.manage_products")

@@ -10,6 +10,15 @@ from saleor.site import utils
 from saleor.site.models import AuthorizationKey, SiteSettings
 
 
+@pytest.fixture
+def site_settings_form_data():
+    return {
+        "header_text": "mirumee",
+        "description": "mirumee.com",
+        "default_weight_unit": "lb",
+    }
+
+
 def test_index_view(admin_client, site_settings):
     response = admin_client.get(reverse("dashboard:site-index"), follow=True)
     assert response.status_code == 200
@@ -28,12 +37,8 @@ def test_site_form():
     assert not form.is_valid()
 
 
-def test_site_settings_form(site_settings):
-    data = {
-        "header_text": "mirumee",
-        "description": "mirumee.com",
-        "default_weight_unit": "lb",
-    }
+def test_site_settings_form(site_settings, site_settings_form_data):
+    data = site_settings_form_data
     form = SiteSettingsForm(data, instance=site_settings)
     assert form.is_valid()
 
@@ -44,6 +49,41 @@ def test_site_settings_form(site_settings):
 
     form = SiteSettingsForm({"default_weight_unit": "lb"})
     assert form.is_valid()
+
+
+@pytest.mark.parametrize(
+    "sender_name, sender_address, expected_errors",
+    (
+        (
+            "hello\nworld",
+            "hello@example.com\n",
+            {"default_mail_sender_name": ["New lines are not allowed."]},
+        ),
+        (
+            "hello\rworld",
+            "hello@example.com",
+            {"default_mail_sender_name": ["New lines are not allowed."]},
+        ),
+        (
+            "\rhello world\r",
+            "hello@example.co\rm",
+            {"default_mail_sender_address": ["Enter a valid email address."]},
+        ),
+    ),
+)
+def test_site_settings_default_sender_name_cannot_have_newlines(
+    site_settings_form_data, sender_name, sender_address, expected_errors
+):
+    data = site_settings_form_data
+    data.update(
+        {
+            "default_mail_sender_name": sender_name,
+            "default_mail_sender_address": sender_address,
+        }
+    )
+    form = SiteSettingsForm(data)
+    assert not form.is_valid()
+    assert form.errors == expected_errors
 
 
 def test_site_update_view(admin_client, site_settings):
@@ -58,15 +98,20 @@ def test_site_update_view(admin_client, site_settings):
         "default_weight_unit": "lb",
         "form-TOTAL_FORMS": 0,
         "form-INITIAL_FORMS": 0,
+        "default_mail_sender_name": "Mirumee Labs Info",
+        "default_mail_sender_address": "hello@example.com",
     }
     response = admin_client.post(url, data)
     assert response.status_code == 302
 
-    site_settings = SiteSettings.objects.get(pk=site_settings.id)
+    site_settings: SiteSettings = SiteSettings.objects.get(pk=site_settings.id)
     assert site_settings.header_text == "We have all the things!"
     assert site_settings.default_weight_unit == "lb"
     assert site_settings.site.domain == "newmirumee.com"
     assert site_settings.site.name == "Mirumee Labs"
+    assert site_settings.default_mail_sender_name == "Mirumee Labs Info"
+    assert site_settings.default_mail_sender_address == "hello@example.com"
+    assert site_settings.default_from_email == "Mirumee Labs Info <hello@example.com>"
 
 
 def test_get_authorization_key_for_backend(

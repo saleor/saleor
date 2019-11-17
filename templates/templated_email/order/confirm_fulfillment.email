@@ -18,7 +18,7 @@ You can track your shipment with {{ tracking_number }} code.
 {% endif %}
 
 {% for line in physical_lines %}
-{{ line.quantity }} x {{ line.order_line.product_name }}
+{{ line.quantity }} x {{ line.order_line }}
 {% endfor %}
 
 {% for line in digital_lines %}

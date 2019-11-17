@@ -1,5 +1,4 @@
 from django.core.exceptions import ValidationError
-from django_countries import countries
 
 from ...account.forms import get_address_form
 from ...account.models import Address
@@ -20,17 +19,17 @@ class I18nMixin:
                 validate_possible_number(phone, address_data.get("country"))
             except ValidationError as exc:
                 raise ValidationError(
-                    {"phone": f"'{phone}' is not a valid phone number."}
+                    {
+                        "phone": ValidationError(
+                            f"'{phone}' is not a valid phone number.", code=exc.code
+                        )
+                    }
                 ) from exc
 
-        country_code = address_data.get("country")
-        if country_code in countries.countries.keys():
-            address_form, _ = get_address_form(address_data, address_data["country"])
-        else:
-            raise ValidationError({"country": "Invalid country code."})
+        address_form, _ = get_address_form(address_data, address_data.get("country"))
 
         if not address_form.is_valid():
-            raise ValidationError(address_form.errors)
+            raise ValidationError(address_form.errors.as_data())
 
         if not instance:
             instance = Address()

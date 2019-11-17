@@ -1,9 +1,10 @@
 import graphene
-from graphql_jwt.decorators import login_required, permission_required
+from graphql_jwt.decorators import login_required
 
 from ..core.enums import ReportingPeriod
 from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
 from ..core.types import FilterInputObjectType, TaxedMoney
+from ..decorators import permission_required
 from ..descriptions import DESCRIPTIONS
 from .bulk_mutations.draft_orders import DraftOrderBulkDelete, DraftOrderLinesBulkDelete
 from .bulk_mutations.orders import OrderBulkCancel
@@ -20,16 +21,24 @@ from .mutations.draft_orders import (
 )
 from .mutations.fulfillments import (
     FulfillmentCancel,
+    FulfillmentClearMeta,
+    FulfillmentClearPrivateMeta,
     FulfillmentCreate,
+    FulfillmentUpdateMeta,
+    FulfillmentUpdatePrivateMeta,
     FulfillmentUpdateTracking,
 )
 from .mutations.orders import (
     OrderAddNote,
     OrderCancel,
     OrderCapture,
+    OrderClearMeta,
+    OrderClearPrivateMeta,
     OrderMarkAsPaid,
     OrderRefund,
     OrderUpdate,
+    OrderUpdateMeta,
+    OrderUpdatePrivateMeta,
     OrderUpdateShipping,
     OrderVoid,
 )
@@ -57,46 +66,48 @@ class OrderDraftFilterInput(FilterInputObjectType):
 class OrderQueries(graphene.ObjectType):
     homepage_events = PrefetchingConnectionField(
         OrderEvent,
-        description="""List of activity events to display on
-        homepage (at the moment it only contains order-events).""",
+        description=(
+            "List of activity events to display on "
+            "homepage (at the moment it only contains order-events)."
+        ),
     )
     order = graphene.Field(
         Order,
-        description="Lookup an order by ID.",
-        id=graphene.Argument(graphene.ID, required=True),
+        description="Look up an order by ID.",
+        id=graphene.Argument(graphene.ID, description="ID of an order.", required=True),
     )
     orders = FilterInputConnectionField(
         Order,
-        filter=OrderFilterInput(),
+        filter=OrderFilterInput(description="Filtering options for orders."),
         query=graphene.String(description=DESCRIPTIONS["order"]),
         created=graphene.Argument(
             ReportingPeriod, description="Filter orders from a selected timespan."
         ),
         status=graphene.Argument(
-            OrderStatusFilter, description="Filter order by status"
+            OrderStatusFilter, description="Filter order by status."
         ),
-        description="List of the shop's orders.",
+        description="List of orders.",
     )
     draft_orders = FilterInputConnectionField(
         Order,
-        filter=OrderDraftFilterInput(),
+        filter=OrderDraftFilterInput(description="Filtering options for draft orders."),
         query=graphene.String(description=DESCRIPTIONS["order"]),
         created=graphene.Argument(
             ReportingPeriod, description="Filter draft orders from a selected timespan."
         ),
-        description="List of the shop's draft orders.",
+        description="List of draft orders.",
     )
     orders_total = graphene.Field(
         TaxedMoney,
-        description="Total sales.",
-        period=graphene.Argument(
-            ReportingPeriod, description="Get total sales for selected span of time."
-        ),
+        description="Return the total sales amount from a specific period.",
+        period=graphene.Argument(ReportingPeriod, description="A period of time."),
     )
     order_by_token = graphene.Field(
         Order,
-        description="Lookup an order by token.",
-        token=graphene.Argument(graphene.String, required=True),
+        description="Look up an order by token.",
+        token=graphene.Argument(
+            graphene.UUID, description="The order's token.", required=True
+        ),
     )
 
     @permission_required("order.manage_orders")
@@ -137,12 +148,20 @@ class OrderMutations(graphene.ObjectType):
     order_add_note = OrderAddNote.Field()
     order_cancel = OrderCancel.Field()
     order_capture = OrderCapture.Field()
+    order_clear_private_meta = OrderClearPrivateMeta.Field()
+    order_clear_meta = OrderClearMeta.Field()
     order_fulfillment_cancel = FulfillmentCancel.Field()
     order_fulfillment_create = FulfillmentCreate.Field()
     order_fulfillment_update_tracking = FulfillmentUpdateTracking.Field()
+    order_fulfillment_clear_meta = FulfillmentClearMeta.Field()
+    order_fulfillment_clear_private_meta = FulfillmentClearPrivateMeta.Field()
+    order_fulfillment_update_meta = FulfillmentUpdateMeta.Field()
+    order_fulfillment_update_private_meta = FulfillmentUpdatePrivateMeta.Field()
     order_mark_as_paid = OrderMarkAsPaid.Field()
     order_refund = OrderRefund.Field()
     order_update = OrderUpdate.Field()
+    order_update_meta = OrderUpdateMeta.Field()
+    order_update_private_meta = OrderUpdatePrivateMeta.Field()
     order_update_shipping = OrderUpdateShipping.Field()
     order_void = OrderVoid.Field()
 

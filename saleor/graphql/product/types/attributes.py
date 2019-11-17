@@ -3,12 +3,13 @@ import re
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from graphene import relay
-from graphql_jwt.decorators import permission_required
 
 from ....product import models
+from ....product.utils.attributes import AttributeAssignmentType
 from ...core.connection import CountableDjangoObjectType
 from ...core.resolvers import resolve_meta, resolve_private_meta
 from ...core.types import MetadataObjectType
+from ...decorators import permission_required
 from ...translations.enums import LanguageCodeEnum
 from ...translations.resolvers import resolve_translation
 from ...translations.types import AttributeTranslation, AttributeValueTranslation
@@ -43,7 +44,7 @@ class AttributeSortingInput(graphene.InputObjectType):
     direction = graphene.Argument(
         OrderDirection,
         required=True,
-        description="Specifies the direction in which to sort the attributes",
+        description="Specifies the direction in which to sort the attributes.",
     )
 
 
@@ -130,9 +131,10 @@ class Attribute(CountableDjangoObjectType, MetadataObjectType):
     )
 
     class Meta:
-        description = """
-            Custom attribute of a product. Attributes can be
-            assigned to products and variants at the product type level."""
+        description = (
+            "Custom attribute of a product. Attributes can be assigned to products and "
+            "variants at the product type level."
+        )
         only_fields = ["id", "product_types", "product_variant_types"]
         interfaces = [relay.Node]
         model = models.Attribute
@@ -202,6 +204,10 @@ class SelectedAttribute(graphene.ObjectType):
 
     class Meta:
         description = "Represents a custom attribute."
+
+    @staticmethod
+    def resolve_value(root: AttributeAssignmentType, _info):
+        return root.values.first()
 
 
 class AttributeInput(graphene.InputObjectType):

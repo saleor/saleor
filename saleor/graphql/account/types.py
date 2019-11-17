@@ -2,7 +2,8 @@ import graphene
 import graphene_django_optimizer as gql_optimizer
 from django.contrib.auth import get_user_model
 from graphene import relay
-from graphql_jwt.decorators import login_required, permission_required
+from graphene_federation import key
+from graphql_jwt.decorators import login_required
 
 from ...account import models
 from ...checkout.utils import get_user_checkout
@@ -14,8 +15,9 @@ from ..core.fields import PrefetchingConnectionField
 from ..core.resolvers import resolve_meta, resolve_private_meta
 from ..core.types import CountryDisplay, Image, MetadataObjectType, PermissionDisplay
 from ..core.utils import get_node_optimized
+from ..decorators import one_of_permissions_required
 from ..utils import format_permissions_for_display
-from .enums import CustomerEventsEnum
+from .enums import CountryCodeEnum, CustomerEventsEnum
 
 
 class AddressInput(graphene.InputObjectType):
@@ -27,20 +29,21 @@ class AddressInput(graphene.InputObjectType):
     city = graphene.String(description="City.")
     city_area = graphene.String(description="District.")
     postal_code = graphene.String(description="Postal code.")
-    country = graphene.String(description="Country.")
+    country = CountryCodeEnum(description="Country.")
     country_area = graphene.String(description="State or province.")
     phone = graphene.String(description="Phone number.")
 
 
+@key(fields="id")
 class Address(CountableDjangoObjectType):
     country = graphene.Field(
-        CountryDisplay, required=True, description="Default shop's country"
+        CountryDisplay, required=True, description="Shop's default country."
     )
     is_default_shipping_address = graphene.Boolean(
-        required=False, description="Address is user's default shipping address"
+        required=False, description="Address is user's default shipping address."
     )
     is_default_billing_address = graphene.Boolean(
-        required=False, description="Address is user's default billing address"
+        required=False, description="Address is user's default billing address."
     )
 
     class Meta:
@@ -104,12 +107,16 @@ class Address(CountableDjangoObjectType):
             return True
         return False
 
+    @staticmethod
+    def __resolve_reference(root, _info, **_kwargs):
+        return graphene.Node.get_node_from_global_id(_info, root.id)
+
 
 class CustomerEvent(CountableDjangoObjectType):
     date = graphene.types.datetime.DateTime(
         description="Date when event happened at in ISO 8601 format."
     )
-    type = CustomerEventsEnum(description="Customer event type")
+    type = CustomerEventsEnum(description="Customer event type.")
     user = graphene.Field(
         lambda: User,
         id=graphene.Argument(graphene.ID),
@@ -153,6 +160,75 @@ class CustomerEvent(CountableDjangoObjectType):
         return None
 
 
+class ServiceAccountToken(CountableDjangoObjectType):
+    name = graphene.String(description="Name of the authenticated token.")
+    auth_token = graphene.String(description="Last 4 characters of the token.")
+
+    class Meta:
+        description = "Represents token data."
+        model = models.ServiceAccountToken
+        interfaces = [relay.Node]
+        permissions = ("account.manage_service_accounts",)
+        only_fields = ["name", "auth_token"]
+
+    @staticmethod
+    def resolve_auth_token(root: models.ServiceAccount, _info, **_kwargs):
+        return root.auth_token[-4:]
+
+
+@key(fields="id")
+class ServiceAccount(MetadataObjectType, CountableDjangoObjectType):
+    permissions = graphene.List(
+        PermissionDisplay, description="List of the service's permissions."
+    )
+    created = graphene.DateTime(
+        description="The date and time when the service account was created."
+    )
+    is_active = graphene.Boolean(
+        description="Determine if service account will be set active or not."
+    )
+    name = graphene.String(description="Name of the service account.")
+
+    tokens = graphene.List(
+        ServiceAccountToken, description="Last 4 characters of the tokens."
+    )
+
+    class Meta:
+        description = "Represents service account data."
+        interfaces = [relay.Node]
+        model = models.ServiceAccount
+        permissions = ("account.manage_service_accounts",)
+        only_fields = [
+            "name" "permissions",
+            "created",
+            "is_active",
+            "tokens",
+            "id",
+            "tokens",
+        ]
+
+    @staticmethod
+    def resolve_permissions(root: models.ServiceAccount, _info, **_kwargs):
+        permissions = root.permissions.prefetch_related("content_type").order_by(
+            "codename"
+        )
+        return format_permissions_for_display(permissions)
+
+    @staticmethod
+    @gql_optimizer.resolver_hints(prefetch_related="tokens")
+    def resolve_tokens(root: models.ServiceAccount, _info, **_kwargs):
+        return root.tokens.all()
+
+    @staticmethod
+    def resolve_meta(root, info):
+        return resolve_meta(root, info)
+
+    @staticmethod
+    def __resolve_reference(root, _info, **_kwargs):
+        return graphene.Node.get_node_from_global_id(_info, root.id)
+
+
+@key(fields="id")
 class User(MetadataObjectType, CountableDjangoObjectType):
     addresses = gql_optimizer.field(
         graphene.List(Address, description="List of all user's addresses."),
@@ -168,7 +244,7 @@ class User(MetadataObjectType, CountableDjangoObjectType):
         ),
         model_field="gift_cards",
     )
-    note = graphene.String(description="A note about the customer")
+    note = graphene.String(description="A note about the customer.")
     orders = gql_optimizer.field(
         PrefetchingConnectionField(
             "saleor.graphql.order.types.Order", description="List of user's orders."
@@ -187,7 +263,7 @@ class User(MetadataObjectType, CountableDjangoObjectType):
     )
     stored_payment_sources = graphene.List(
         "saleor.graphql.payment.types.PaymentSource",
-        description="List of stored payment sources",
+        description="List of stored payment sources.",
     )
 
     class Meta:
@@ -232,13 +308,13 @@ class User(MetadataObjectType, CountableDjangoObjectType):
         return format_permissions_for_display(permissions)
 
     @staticmethod
-    @permission_required("account.manage_users")
-    def resolve_note(root: models.User, _info):
+    @one_of_permissions_required(["account.manage_users", "account.manage_staff"])
+    def resolve_note(root: models.User, info):
         return root.note
 
     @staticmethod
-    @permission_required("account.manage_users")
-    def resolve_events(root: models.User, _info):
+    @one_of_permissions_required(["account.manage_users", "account.manage_staff"])
+    def resolve_events(root: models.User, info):
         return root.events.all()
 
     @staticmethod
@@ -267,13 +343,17 @@ class User(MetadataObjectType, CountableDjangoObjectType):
         return resolve_payment_sources(root)
 
     @staticmethod
-    @permission_required("account.manage_users")
+    @one_of_permissions_required(["account.manage_users", "account.manage_staff"])
     def resolve_private_meta(root, _info):
         return resolve_private_meta(root, _info)
 
     @staticmethod
     def resolve_meta(root, _info):
         return resolve_meta(root, _info)
+
+    @staticmethod
+    def __resolve_reference(root, _info, **_kwargs):
+        return graphene.Node.get_node_from_global_id(_info, root.id)
 
 
 class ChoiceValue(graphene.ObjectType):

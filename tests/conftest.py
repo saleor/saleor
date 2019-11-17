@@ -1,36 +1,48 @@
 import uuid
+from contextlib import contextmanager
 from decimal import Decimal
+from functools import partial
 from io import BytesIO
-from typing import List
+from typing import List, Optional
 from unittest.mock import MagicMock, Mock
 
 import pytest
+from django.conf import settings
 from django.contrib.auth.models import Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
+from django.db import connection
 from django.forms import ModelForm
 from django.test.client import Client
-from django.utils.encoding import smart_text
+from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
 from django_countries import countries
 from PIL import Image
 from prices import Money, TaxedMoney
 
 from saleor.account.backends import BaseBackend
-from saleor.account.models import Address, User
+from saleor.account.models import Address, ServiceAccount, User
 from saleor.checkout import utils
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
+from saleor.core.payments import PaymentInterface
 from saleor.discount import DiscountInfo, DiscountValueType, VoucherType
-from saleor.discount.models import Sale, Voucher, VoucherCustomer, VoucherTranslation
+from saleor.discount.models import (
+    Sale,
+    SaleTranslation,
+    Voucher,
+    VoucherCustomer,
+    VoucherTranslation,
+)
 from saleor.giftcard.models import GiftCard
-from saleor.menu.models import Menu, MenuItem
+from saleor.menu.models import Menu, MenuItem, MenuItemTranslation
 from saleor.menu.utils import update_menu
 from saleor.order import OrderStatus
+from saleor.order.actions import fulfill_order_line
 from saleor.order.events import OrderEvents
 from saleor.order.models import FulfillmentStatus, Order, OrderEvent
-from saleor.order.utils import fulfill_order_line, recalculate_order
-from saleor.page.models import Page
+from saleor.order.utils import recalculate_order
+from saleor.page.models import Page, PageTranslation
 from saleor.payment import ChargeStatus, TransactionKind
 from saleor.payment.models import Payment
 from saleor.product import AttributeInputType
@@ -38,8 +50,11 @@ from saleor.product.models import (
     Attribute,
     AttributeTranslation,
     AttributeValue,
+    AttributeValueTranslation,
     Category,
+    CategoryTranslation,
     Collection,
+    CollectionTranslation,
     DigitalContent,
     DigitalContentUrl,
     Product,
@@ -47,15 +62,115 @@ from saleor.product.models import (
     ProductTranslation,
     ProductType,
     ProductVariant,
+    ProductVariantTranslation,
 )
-from saleor.shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
+from saleor.product.utils.attributes import associate_attribute_values_to_instance
+from saleor.shipping.models import (
+    ShippingMethod,
+    ShippingMethodTranslation,
+    ShippingMethodType,
+    ShippingZone,
+)
 from saleor.site import AuthenticationBackends
 from saleor.site.models import AuthorizationKey, SiteSettings
+from saleor.webhook import WebhookEventType
+from saleor.webhook.models import Webhook
 from tests.utils import create_image
 
 
+class CaptureQueriesContext(BaseCaptureQueriesContext):
+    IGNORED_QUERIES = settings.PATTERNS_IGNORED_IN_QUERY_CAPTURES
+
+    @property
+    def captured_queries(self):
+        # flake8: noqa
+        base_queries = self.connection.queries[
+            self.initial_queries : self.final_queries
+        ]
+        new_queries = []
+
+        def is_query_ignored(sql):
+            for pattern in self.IGNORED_QUERIES:
+                # Ignore the query if matches
+                if pattern.match(sql):
+                    return True
+            return False
+
+        for query in base_queries:
+            if not is_query_ignored(query["sql"]):
+                new_queries.append(query)
+
+        return new_queries
+
+
+def _assert_num_queries(context, *, config, num, exact=True, info=None):
+    """
+    Extracted from pytest_django.fixtures._assert_num_queries
+    """
+    yield context
+
+    verbose = config.getoption("verbose") > 0
+    num_performed = len(context)
+
+    if exact:
+        failed = num != num_performed
+    else:
+        failed = num_performed > num
+
+    if not failed:
+        return
+
+    msg = "Expected to perform {} queries {}{}".format(
+        num,
+        "" if exact else "or less ",
+        "but {} done".format(
+            num_performed == 1 and "1 was" or "%d were" % (num_performed,)
+        ),
+    )
+    if info:
+        msg += "\n{}".format(info)
+    if verbose:
+        sqls = (q["sql"] for q in context.captured_queries)
+        msg += "\n\nQueries:\n========\n\n%s" % "\n\n".join(sqls)
+    else:
+        msg += " (add -v option to show queries)"
+    pytest.fail(msg)
+
+
+@pytest.fixture
+def capture_queries(pytestconfig):
+    cfg = pytestconfig
+
+    @contextmanager
+    def _capture_queries(
+        num: Optional[int] = None, msg: Optional[str] = None, exact=False
+    ):
+        with CaptureQueriesContext(connection) as ctx:
+            yield ctx
+            if num is not None:
+                _assert_num_queries(ctx, config=cfg, num=num, exact=exact, info=msg)
+
+    return _capture_queries
+
+
+@pytest.fixture
+def assert_num_queries(capture_queries):
+    return partial(capture_queries, exact=True)
+
+
+@pytest.fixture
+def assert_max_num_queries(capture_queries):
+    return partial(capture_queries, exact=False)
+
+
 @pytest.fixture(autouse=True)
-def site_settings(db, settings):
+def setup_dummy_gateway(settings):
+    settings.PLUGINS = ["saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin"]
+    return settings
+
+
+@pytest.fixture(autouse=True)
+def site_settings(db, settings) -> SiteSettings:
     """Create a site and matching site settings.
 
     This fixture is autouse because django.contrib.sites.models.Site and
@@ -63,7 +178,11 @@ def site_settings(db, settings):
     should never exist without a matching settings object.
     """
     site = Site.objects.get_or_create(name="mirumee.com", domain="mirumee.com")[0]
-    obj = SiteSettings.objects.get_or_create(site=site)[0]
+    obj = SiteSettings.objects.get_or_create(
+        site=site,
+        default_mail_sender_name="Mirumee Labs",
+        default_mail_sender_address="mirumee@example.com",
+    )[0]
     settings.SITE_ID = site.pk
 
     main_menu = Menu.objects.get_or_create(
@@ -139,6 +258,17 @@ def checkout_with_gift_card(checkout_with_item, gift_card):
 
 
 @pytest.fixture
+def checkout_with_voucher_percentage_and_shipping(
+    checkout_with_voucher_percentage, shipping_method, address
+):
+    checkout = checkout_with_voucher_percentage
+    checkout.shipping_method = shipping_method
+    checkout.shipping_address = address
+    checkout.save()
+    return checkout
+
+
+@pytest.fixture
 def address(db):  # pylint: disable=W0613
     return Address.objects.create(
         first_name="John",
@@ -203,6 +333,8 @@ def customer_user(address):  # pylint: disable=W0613
         "password",
         default_billing_address=default_address,
         default_shipping_address=default_address,
+        first_name="Leslie",
+        last_name="Wade",
     )
     user.addresses.add(default_address)
     return user
@@ -386,16 +518,15 @@ def categories_tree(db, product_type):  # pylint: disable=W0613
 
     product_attr = product_type.product_attributes.first()
     attr_value = product_attr.values.first()
-    attributes = {smart_text(product_attr.pk): [smart_text(attr_value.pk)]}
 
-    Product.objects.create(
+    product = Product.objects.create(
         name="Test product",
-        price=Money("10.00", "USD"),
+        price=Money(10, "USD"),
         product_type=product_type,
-        attributes=attributes,
         category=child,
     )
 
+    associate_attribute_values_to_instance(product, product_attr, attr_value)
     return parent
 
 
@@ -425,6 +556,11 @@ def permission_manage_plugins():
 
 
 @pytest.fixture
+def permission_manage_service_accounts():
+    return Permission.objects.get(codename="manage_service_accounts")
+
+
+@pytest.fixture
 def product_type(color_attribute, size_attribute):
     product_type = ProductType.objects.create(
         name="Default Type", has_variants=True, is_shipping_required=True
@@ -445,31 +581,62 @@ def product_type_without_variant():
 @pytest.fixture
 def product(product_type, category):
     product_attr = product_type.product_attributes.first()
-    attr_value = product_attr.values.first()
-    attributes = {smart_text(product_attr.pk): [smart_text(attr_value.pk)]}
+    product_attr_value = product_attr.values.first()
 
     product = Product.objects.create(
         name="Test product",
         price=Money("10.00", "USD"),
         product_type=product_type,
-        attributes=attributes,
         category=category,
     )
 
+    associate_attribute_values_to_instance(product, product_attr, product_attr_value)
+
     variant_attr = product_type.variant_attributes.first()
     variant_attr_value = variant_attr.values.first()
-    variant_attributes = {
-        smart_text(variant_attr.pk): [smart_text(variant_attr_value.pk)]
-    }
 
-    ProductVariant.objects.create(
+    variant = ProductVariant.objects.create(
         product=product,
         sku="123",
-        attributes=variant_attributes,
         cost_price=Money("1.00", "USD"),
         quantity=10,
         quantity_allocated=1,
     )
+
+    associate_attribute_values_to_instance(variant, variant_attr, variant_attr_value)
+    return product
+
+
+@pytest.fixture
+def product_with_two_variants(color_attribute, size_attribute, category):
+    product_type = ProductType.objects.create(
+        name="Type with two variants", has_variants=True, is_shipping_required=True
+    )
+    product_type.variant_attributes.add(color_attribute)
+    product_type.variant_attributes.add(size_attribute)
+
+    product = Product.objects.create(
+        name="Test product with two variants",
+        price=Money("10.00", "USD"),
+        product_type=product_type,
+        category=category,
+    )
+
+    variant = ProductVariant.objects.create(
+        product=product,
+        sku="prodVar1",
+        cost_price=Money("1.00", "USD"),
+        quantity=10,
+        quantity_allocated=1,
+    )
+
+    associate_attribute_values_to_instance(
+        variant, color_attribute, color_attribute.values.first()
+    )
+    associate_attribute_values_to_instance(
+        variant, size_attribute, size_attribute.values.first()
+    )
+
     return product
 
 
@@ -490,10 +657,7 @@ def product_with_multiple_values_attributes(product, product_type, category) -> 
     product_type.product_attributes.clear()
     product_type.product_attributes.add(attribute)
 
-    product.attributes = {
-        smart_text(attribute.pk): [smart_text(attr_val_1.pk), smart_text(attr_val_2.pk)]
-    }
-    product.save(update_fields=["attributes"])
+    associate_attribute_values_to_instance(product, attribute, attr_val_1, attr_val_2)
     return product
 
 
@@ -501,7 +665,7 @@ def product_with_multiple_values_attributes(product, product_type, category) -> 
 def product_with_default_variant(product_type_without_variant, category):
     product = Product.objects.create(
         name="Test product",
-        price=Money("10.00", "USD"),
+        price=Money(10, "USD"),
         product_type=product_type_without_variant,
         category=category,
     )
@@ -555,38 +719,36 @@ def product_without_shipping(category):
 def product_list(product_type, category):
     product_attr = product_type.product_attributes.first()
     attr_value = product_attr.values.first()
-    attributes = {smart_text(product_attr.pk): [smart_text(attr_value.pk)]}
 
-    products = Product.objects.bulk_create(
-        [
-            Product(
-                pk=1486,
-                name="Test product 1",
-                price=Money("10.00", "USD"),
-                category=category,
-                product_type=product_type,
-                attributes=attributes,
-                is_published=True,
-            ),
-            Product(
-                pk=1487,
-                name="Test product 2",
-                price=Money("20.00", "USD"),
-                category=category,
-                product_type=product_type,
-                attributes=attributes,
-                is_published=False,
-            ),
-            Product(
-                pk=1489,
-                name="Test product 3",
-                price=Money("20.00", "USD"),
-                category=category,
-                product_type=product_type,
-                attributes=attributes,
-                is_published=True,
-            ),
-        ]
+    products = list(
+        Product.objects.bulk_create(
+            [
+                Product(
+                    pk=1486,
+                    name="Test product 1",
+                    price=Money(10, "USD"),
+                    category=category,
+                    product_type=product_type,
+                    is_published=True,
+                ),
+                Product(
+                    pk=1487,
+                    name="Test product 2",
+                    price=Money(20, "USD"),
+                    category=category,
+                    product_type=product_type,
+                    is_published=False,
+                ),
+                Product(
+                    pk=1489,
+                    name="Test product 3",
+                    price=Money(20, "USD"),
+                    category=category,
+                    product_type=product_type,
+                    is_published=True,
+                ),
+            ]
+        )
     )
     ProductVariant.objects.bulk_create(
         [
@@ -610,6 +772,10 @@ def product_list(product_type, category):
             ),
         ]
     )
+
+    for product in products:
+        associate_attribute_values_to_instance(product, product_attr, attr_value)
+
     return products
 
 
@@ -672,19 +838,16 @@ def unavailable_product_with_variant(product_type, category):
 
     variant_attr = product_type.variant_attributes.first()
     variant_attr_value = variant_attr.values.first()
-    variant_attributes = {
-        smart_text(variant_attr.pk): [smart_text(variant_attr_value.pk)]
-    }
 
-    ProductVariant.objects.create(
+    variant = ProductVariant.objects.create(
         product=product,
         sku="123",
-        attributes=variant_attributes,
-        cost_price=Money("1.00", "USD"),
+        cost_price=Money(1, "USD"),
         quantity=10,
         quantity_allocated=1,
     )
 
+    associate_attribute_values_to_instance(variant, variant_attr, variant_attr_value)
     return product
 
 
@@ -741,17 +904,26 @@ def voucher_shipping_type():
 
 
 @pytest.fixture
+def voucher_free_shipping(voucher_percentage):
+    voucher_percentage.type = VoucherType.SHIPPING
+    voucher_percentage.discount_value = 100
+    voucher_percentage.save()
+    return voucher_percentage
+
+
+@pytest.fixture
 def voucher_customer(voucher, customer_user):
     email = customer_user.email
     return VoucherCustomer.objects.create(voucher=voucher, customer_email=email)
 
 
-@pytest.fixture()
+@pytest.fixture
 def order_line(order, variant):
     net = variant.get_price()
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     return order.lines.create(
-        product_name=variant.display_product(),
+        product_name=str(variant.product),
+        variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
         quantity=3,
@@ -789,7 +961,7 @@ def gift_card_created_by_staff(staff_user):
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def order_with_lines(order, product_type, category, shipping_zone):
     product = Product.objects.create(
         name="Test product",
@@ -807,7 +979,8 @@ def order_with_lines(order, product_type, category, shipping_zone):
     net = variant.get_price()
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order.lines.create(
-        product_name=variant.display_product(),
+        product_name=str(variant.product),
+        variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
         quantity=3,
@@ -833,7 +1006,8 @@ def order_with_lines(order, product_type, category, shipping_zone):
     net = variant.get_price()
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
     order.lines.create(
-        product_name=variant.display_product(),
+        product_name=str(variant.product),
+        variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
         quantity=2,
@@ -1049,6 +1223,11 @@ def permission_manage_translations():
 
 
 @pytest.fixture
+def permission_manage_webhooks():
+    return Permission.objects.get(codename="manage_webhooks")
+
+
+@pytest.fixture
 def collection(db):
     collection = Collection.objects.create(
         name="Collection",
@@ -1192,7 +1371,16 @@ def translated_variant_fr(product):
 def translated_attribute(product):
     attribute = product.product_type.product_attributes.first()
     return AttributeTranslation.objects.create(
-        language_code="fr", attribute=attribute, name="Name tranlsated to french"
+        language_code="fr", attribute=attribute, name="French attribute name"
+    )
+
+
+@pytest.fixture
+def translated_attribute_value(pink_attribute_value):
+    return AttributeValueTranslation.objects.create(
+        language_code="fr",
+        attribute_value=pink_attribute_value,
+        name="French attribute value name",
     )
 
 
@@ -1214,9 +1402,69 @@ def product_translation_fr(product):
 
 
 @pytest.fixture
-def payment_dummy(db, settings, order_with_lines):
+def variant_translation_fr(variant):
+    return ProductVariantTranslation.objects.create(
+        language_code="fr", product_variant=variant, name="French product variant name"
+    )
+
+
+@pytest.fixture
+def collection_translation_fr(collection):
+    return CollectionTranslation.objects.create(
+        language_code="fr",
+        collection=collection,
+        name="French collection name",
+        description="French description",
+    )
+
+
+@pytest.fixture
+def category_translation_fr(category):
+    return CategoryTranslation.objects.create(
+        language_code="fr",
+        category=category,
+        name="French category name",
+        description="French category description",
+    )
+
+
+@pytest.fixture
+def page_translation_fr(page):
+    return PageTranslation.objects.create(
+        language_code="fr",
+        page=page,
+        title="French page title",
+        content="French page content",
+    )
+
+
+@pytest.fixture
+def shipping_method_translation_fr(shipping_method):
+    return ShippingMethodTranslation.objects.create(
+        language_code="fr",
+        shipping_method=shipping_method,
+        name="French shipping method name",
+    )
+
+
+@pytest.fixture
+def sale_translation_fr(sale):
+    return SaleTranslation.objects.create(
+        language_code="fr", sale=sale, name="French sale name"
+    )
+
+
+@pytest.fixture
+def menu_item_translation_fr(menu_item):
+    return MenuItemTranslation.objects.create(
+        language_code="fr", menu_item=menu_item, name="French manu item name"
+    )
+
+
+@pytest.fixture
+def payment_dummy(db, order_with_lines):
     return Payment.objects.create(
-        gateway=settings.DUMMY,
+        gateway="Dummy",
         order=order_with_lines,
         is_active=True,
         cc_first_digits="4111",
@@ -1415,3 +1663,33 @@ def other_description_raw():
         "Saleor is powered by a GraphQL server running on top of Python 3 "
         "and a Django 2 framework."
     )
+
+
+@pytest.fixture
+def service_account(db):
+    return ServiceAccount.objects.create(name="Sample service account", is_active=True)
+
+
+@pytest.fixture
+def webhook(service_account):
+    webhook = Webhook.objects.create(
+        service_account=service_account, target_url="http://www.example.com/test"
+    )
+    webhook.events.create(event_type=WebhookEventType.ORDER_CREATED)
+    return webhook
+
+
+@pytest.fixture
+def fake_payment_interface(mocker):
+    return mocker.Mock(spec=PaymentInterface)
+
+
+@pytest.fixture
+def mock_get_manager(mocker, fake_payment_interface):
+    mgr = mocker.patch(
+        "saleor.payment.gateway.get_extensions_manager",
+        autospec=True,
+        return_value=fake_payment_interface,
+    )
+    yield fake_payment_interface
+    mgr.assert_called_once()

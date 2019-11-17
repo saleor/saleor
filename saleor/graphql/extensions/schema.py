@@ -1,7 +1,8 @@
 import graphene
-from graphql_jwt.decorators import permission_required
 
-from ..core.fields import PrefetchingConnectionField
+from ..core.fields import FilterInputConnectionField
+from ..decorators import permission_required
+from .filters import PluginFilterInput
 from .mutations import PluginUpdate
 from .resolvers import resolve_plugin, resolve_plugins
 from .types import Plugin
@@ -10,10 +11,16 @@ from .types import Plugin
 class ExtensionsQueries(graphene.ObjectType):
     plugin = graphene.Field(
         Plugin,
-        id=graphene.Argument(graphene.ID, required=True),
-        description="Lookup a plugin by ID.",
+        id=graphene.Argument(
+            graphene.ID, description="ID of the plugin.", required=True
+        ),
+        description="Look up a plugin by ID.",
     )
-    plugins = PrefetchingConnectionField(Plugin, description="List of plugins")
+    plugins = FilterInputConnectionField(
+        Plugin,
+        filter=PluginFilterInput(description="Filtering options for plugins."),
+        description="List of plugins.",
+    )
 
     @permission_required("extensions.manage_plugins")
     def resolve_plugin(self, info, **data):

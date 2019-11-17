@@ -1044,7 +1044,7 @@ def test_view_mark_order_as_paid(admin_client, order_with_lines):
     ).exists()
 
 
-@patch("saleor.order.utils.emails.send_fulfillment_confirmation")
+@patch("saleor.order.actions.emails.send_fulfillment_confirmation")
 @pytest.mark.parametrize(
     "has_standard,has_digital", ((True, True), (True, False), (False, True))
 )
@@ -1100,7 +1100,7 @@ def test_send_fulfillment_order_lines_mails(
         assert len(events) == 1
 
 
-@patch("saleor.dashboard.order.views." "send_fulfillment_confirmation_to_customer")
+@patch("saleor.order.actions.send_fulfillment_confirmation_to_customer")
 def test_view_fulfill_order_lines(
     mock_email_fulfillment, admin_client, order_with_lines
 ):
@@ -1129,6 +1129,7 @@ def test_view_fulfill_order_lines(
     for line in order_with_lines.lines.all():
         assert line.quantity_unfulfilled == 0
     assert mock_email_fulfillment.call_count == 1
+    assert order_with_lines.status == OrderStatus.FULFILLED
 
 
 def test_view_fulfill_order_lines_with_empty_quantity(admin_client, order_with_lines):

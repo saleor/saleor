@@ -10,8 +10,9 @@ from freezegun import freeze_time
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from saleor.account import CustomerEvents
-from saleor.account.models import Address, CustomerEvent
-from saleor.checkout import views
+from saleor.account.models import Address, CustomerEvent, User
+from saleor.account.utils import store_user_address
+from saleor.checkout import AddressType, views
 from saleor.checkout.forms import CheckoutVoucherForm, CountryForm
 from saleor.checkout.utils import (
     add_variant_to_checkout,
@@ -1337,6 +1338,52 @@ def test_recalculate_checkout_discount_expired_voucher(checkout_with_voucher, vo
     assert checkout.discount == zero_money()
 
 
+def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping(
+    checkout_with_voucher_percentage_and_shipping,
+    voucher_free_shipping,
+    shipping_method,
+):
+    checkout = checkout_with_voucher_percentage_and_shipping
+
+    shipping_method.price = checkout.get_subtotal() + Money("10.00", "USD")
+    shipping_method.save()
+
+    recalculate_checkout_discount(checkout, None)
+
+    assert checkout.discount == shipping_method.price
+    assert checkout.discount_name == "Free shipping"
+    assert checkout.get_total() == checkout.get_subtotal()
+
+
+def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shipping(
+    checkout_with_voucher_percentage_and_shipping,
+    voucher_free_shipping,
+    shipping_method,
+):
+    checkout = checkout_with_voucher_percentage_and_shipping
+
+    shipping_method.price = checkout.get_subtotal() - Money("1.00", "USD")
+    shipping_method.save()
+
+    recalculate_checkout_discount(checkout, None)
+
+    assert checkout.discount == shipping_method.price
+    assert checkout.discount_name == "Free shipping"
+    assert checkout.get_total() == checkout.get_subtotal()
+
+
+def test_recalculate_checkout_discount_free_shipping_for_checkout_without_shipping(
+    checkout_with_voucher_percentage, voucher_free_shipping
+):
+    checkout = checkout_with_voucher_percentage
+
+    recalculate_checkout_discount(checkout, None)
+
+    assert not checkout.discount_name
+    assert not checkout.voucher_code
+    assert checkout.discount == zero_money()
+
+
 def test_get_checkout_context(checkout_with_voucher):
     line_price = TaxedMoney(net=Money("30.00", "USD"), gross=Money("30.00", "USD"))
     manager = get_extensions_manager()
@@ -1466,3 +1513,49 @@ def test_add_voucher_to_checkout_fail(
         add_voucher_to_checkout(checkout_with_item, voucher_with_high_min_spent_amount)
 
     assert checkout_with_item.voucher_code is None
+
+
+def test_store_user_address_uses_existing_one(address):
+    """Ensure storing an address that is already associated to the given user doesn't
+    create a new address, but uses the existing one instead.
+    """
+    user = User.objects.create_user("test@example.com", "password")
+    user.addresses.add(address)
+
+    expected_user_addresses_count = 1
+
+    store_user_address(user, address, AddressType.BILLING)
+
+    assert user.addresses.count() == expected_user_addresses_count
+    assert user.default_billing_address_id == address.pk
+
+
+def test_store_user_address_uses_existing_one_despite_duplicated(address):
+    """Ensure storing an address handles the possibility of an user
+    having the same address associated to them multiple time is handled properly.
+
+    It should use the first identical address associated to the user.
+    """
+    same_address = Address.objects.create(**address.as_data())
+    user = User.objects.create_user("test@example.com", "password")
+    user.addresses.set([address, same_address])
+
+    expected_user_addresses_count = 2
+
+    store_user_address(user, address, AddressType.BILLING)
+
+    assert user.addresses.count() == expected_user_addresses_count
+    assert user.default_billing_address_id == address.pk
+
+
+def test_store_user_address_create_new_address_if_not_associated(address):
+    """Ensure storing an address that is not associated to the given user
+    triggers the creation of a new address, but uses the existing one instead.
+    """
+    user = User.objects.create_user("test@example.com", "password")
+    expected_user_addresses_count = 1
+
+    store_user_address(user, address, AddressType.BILLING)
+
+    assert user.addresses.count() == expected_user_addresses_count
+    assert user.default_billing_address_id != address.pk

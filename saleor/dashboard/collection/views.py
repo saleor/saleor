@@ -55,7 +55,7 @@ def collection_create(request):
         messages.success(request, msg)
         return redirect("dashboard:collection-list")
     ctx = {"collection": collection, "form": form}
-    return TemplateResponse(request, "dashboard/collection/detail.html", ctx)
+    return TemplateResponse(request, "dashboard/collection/form.html", ctx)
 
 
 @staff_member_required
@@ -79,7 +79,7 @@ def collection_update(request, pk=None):
         "form": form,
         "is_unpublish_restricted": is_unpublish_restricted,
     }
-    return TemplateResponse(request, "dashboard/collection/detail.html", ctx)
+    return TemplateResponse(request, "dashboard/collection/form.html", ctx)
 
 
 @staff_member_required

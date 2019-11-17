@@ -5,7 +5,7 @@ from django.utils.html import strip_tags
 from django.utils.translation import pgettext_lazy
 from draftjs_sanitizer import clean_draft_js
 
-from ..core.fields import SanitizedJSONField
+from ..core.db.fields import SanitizedJSONField
 from ..core.models import PublishableModel, PublishedQuerySet
 from ..core.utils import build_absolute_uri
 from ..core.utils.draftjs import json_content_to_raw_text

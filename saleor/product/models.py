@@ -1,13 +1,13 @@
 from decimal import Decimal
-from typing import Iterable
+from typing import Iterable, Union
 from uuid import uuid4
 
 from django.conf import settings
+from django.contrib.postgres.aggregates import StringAgg
 from django.contrib.postgres.fields import JSONField
-from django.core import exceptions
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.db.models import F, Q
+from django.db.models import Case, Count, F, FilteredRelation, Q, When
 from django.urls import reverse
 from django.utils.encoding import smart_text
 from django.utils.html import strip_tags
@@ -24,8 +24,8 @@ from prices import MoneyRange
 from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
+from ..core.db.fields import SanitizedJSONField
 from ..core.exceptions import InsufficientStock
-from ..core.fields import FilterableJSONBField, SanitizedJSONField
 from ..core.models import (
     ModelWithMetadata,
     PublishableModel,
@@ -40,28 +40,6 @@ from ..discount import DiscountInfo
 from ..discount.utils import calculate_discounted_price
 from ..seo.models import SeoModel, SeoModelTranslation
 from . import AttributeInputType
-
-
-def validate_attribute_json(value):
-    for k, values in value.items():
-        if not isinstance(k, str):
-            raise exceptions.ValidationError(
-                f"The key {k!r} should be of type str (got {type(k)})",
-                params={"k": k, "values": values},
-            )
-        if not isinstance(values, list):
-            raise exceptions.ValidationError(
-                f"The values of {k!r} should be of type list (got {type(values)})",
-                params={"k": k, "values": values},
-            )
-
-        for value_pk in values:
-            if not isinstance(value_pk, str):
-                raise exceptions.ValidationError(
-                    f"The values inside {value_pk!r} should be of type str "
-                    f"(got {type(value_pk)})",
-                    params={"k": k, "values": values, "value_pk": value_pk},
-                )
 
 
 class Category(MPTTModel, ModelWithMetadata, SeoModel):
@@ -180,6 +158,90 @@ class ProductsQueryset(PublishedQuerySet):
         )
         return qs
 
+    def sort_by_attribute(self, attribute_pk: Union[int, str], ascending: bool = True):
+        """Sort a query set by the values of the given product attribute.
+
+        :param attribute_pk: The database ID (must be a number) of the attribute
+                             to sort by.
+        :param ascending: The sorting direction.
+        """
+        qs: models.QuerySet = self
+
+        # Retrieve all the products' attribute data IDs (assignments) and
+        # product types that have the given attribute associated to them
+        associated_values = tuple(
+            AttributeProduct.objects.filter(attribute_id=attribute_pk).values_list(
+                "pk", "product_type_id"
+            )
+        )
+
+        if not associated_values:
+            if not ascending:
+                return qs.reverse()
+            return qs
+
+        attribute_associations, product_types_associated_to_attribute = zip(
+            *associated_values
+        )
+
+        qs = qs.annotate(
+            # Contains to retrieve the attribute data (singular) of each product
+            # Refer to `AttributeProduct`.
+            filtered_attribute=FilteredRelation(
+                relation_name="attributes",
+                condition=Q(attributes__assignment_id__in=attribute_associations),
+            ),
+            # Implicit `GROUP BY` required for the `StringAgg` aggregation
+            grouped_ids=Count("id"),
+            # String aggregation of the attribute's values to efficiently sort them
+            concatenated_values=Case(
+                # If the product has no association data but has the given attribute
+                # associated to its product type, then consider the concatenated values
+                # as empty (non-null).
+                When(
+                    Q(product_type_id__in=product_types_associated_to_attribute)
+                    & Q(filtered_attribute=None),
+                    then=models.Value(""),
+                ),
+                default=StringAgg(
+                    F("filtered_attribute__values__name"),
+                    delimiter=",",
+                    ordering=(
+                        [
+                            f"filtered_attribute__values__{field_name}"
+                            for field_name in AttributeValue._meta.ordering
+                        ]
+                    ),
+                ),
+                output_field=models.CharField(),
+            ),
+        )
+
+        qs = qs.extra(
+            order_by=[
+                Case(
+                    # Make the products having no such attribute be last in the sorting
+                    When(concatenated_values=None, then=2),
+                    # Put the products having an empty attribute value at the bottom of
+                    # the other products.
+                    When(concatenated_values="", then=1),
+                    # Put the products having an attribute value to be always at the top
+                    default=0,
+                    output_field=models.IntegerField(),
+                ),
+                # Sort each group of products (0, 1, 2, ...) per attribute values
+                "concatenated_values",
+                # Sort each group of products by name,
+                # if they have the same values or not values
+                "name",
+            ]
+        )
+
+        # Descending sorting
+        if not ascending:
+            return qs.reverse()
+        return qs
+
 
 class Product(SeoModel, ModelWithMetadata, PublishableModel):
     product_type = models.ForeignKey(
@@ -211,10 +273,6 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
     )
     minimal_variant_price = MoneyField(
         amount_field="minimal_variant_price_amount", currency_field="currency"
-    )
-
-    attributes = FilterableJSONBField(
-        default=dict, blank=True, validators=[validate_attribute_json]
     )
     updated_at = models.DateTimeField(auto_now=True, null=True)
     charge_taxes = models.BooleanField(default=True)
@@ -354,7 +412,7 @@ class ProductVariantQueryset(models.QuerySet):
 
 
 class ProductVariant(ModelWithMetadata):
-    sku = models.CharField(max_length=32, unique=True)
+    sku = models.CharField(max_length=255, unique=True)
     name = models.CharField(max_length=255, blank=True)
     currency = models.CharField(
         max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
@@ -373,9 +431,6 @@ class ProductVariant(ModelWithMetadata):
     )
     product = models.ForeignKey(
         Product, related_name="variants", on_delete=models.CASCADE
-    )
-    attributes = FilterableJSONBField(
-        default=dict, blank=True, validators=[validate_attribute_json]
     )
     images = models.ManyToManyField("ProductImage", through="VariantImage")
     track_inventory = models.BooleanField(default=True)
@@ -415,7 +470,7 @@ class ProductVariant(ModelWithMetadata):
 
     @property
     def is_available(self):
-        return self.product.is_available
+        return self.is_visible and self.is_in_stock()
 
     def check_quantity(self, quantity):
         """Check if there is at least the given quantity in stock.
@@ -464,7 +519,7 @@ class ProductVariant(ModelWithMetadata):
             variant_display = str(self)
             product = self.product
         product_display = (
-            "%s (%s)" % (product, variant_display) if variant_display else str(product)
+            f"{product} ({variant_display})" if variant_display else str(product)
         )
         return smart_text(product_display)
 
@@ -548,6 +603,69 @@ class DigitalContentUrl(models.Model):
         return build_absolute_uri(url)
 
 
+class BaseAttributeQuerySet(models.QuerySet):
+    @staticmethod
+    def user_has_access_to_all(user):
+        return user.is_active and user.has_perm("product.manage_products")
+
+    def get_public_attributes(self):
+        raise NotImplementedError
+
+    def get_visible_to_user(self, user):
+        if self.user_has_access_to_all(user):
+            return self.all()
+        return self.get_public_attributes()
+
+
+class BaseAssignedAttribute(models.Model):
+    assignment = None
+    values = models.ManyToManyField("AttributeValue")
+
+    class Meta:
+        abstract = True
+
+    @property
+    def attribute(self):
+        return self.assignment.attribute
+
+    @property
+    def attribute_pk(self):
+        return self.assignment.attribute_id
+
+
+class AssignedProductAttribute(BaseAssignedAttribute):
+    """Associate a product type attribute and selected values to a given product."""
+
+    product = models.ForeignKey(
+        Product, related_name="attributes", on_delete=models.CASCADE
+    )
+    assignment = models.ForeignKey(
+        "AttributeProduct", on_delete=models.CASCADE, related_name="productassignments"
+    )
+
+    class Meta:
+        unique_together = (("product", "assignment"),)
+
+
+class AssignedVariantAttribute(BaseAssignedAttribute):
+    """Associate a product type attribute and selected values to a given variant."""
+
+    variant = models.ForeignKey(
+        ProductVariant, related_name="attributes", on_delete=models.CASCADE
+    )
+    assignment = models.ForeignKey(
+        "AttributeVariant", on_delete=models.CASCADE, related_name="variantassignments"
+    )
+
+    class Meta:
+        unique_together = (("variant", "assignment"),)
+
+
+class AssociatedAttributeQuerySet(BaseAttributeQuerySet):
+    def get_public_attributes(self):
+        return self.filter(attribute__visible_in_storefront=True)
+
+
 class AttributeProduct(SortableModel):
     attribute = models.ForeignKey(
         "Attribute", related_name="attributeproduct", on_delete=models.CASCADE
@@ -555,9 +673,19 @@ class AttributeProduct(SortableModel):
     product_type = models.ForeignKey(
         ProductType, related_name="attributeproduct", on_delete=models.CASCADE
     )
+    assigned_products = models.ManyToManyField(
+        Product,
+        blank=True,
+        through=AssignedProductAttribute,
+        through_fields=["assignment", "product"],
+        related_name="attributesrelated",
+    )
+
+    objects = AssociatedAttributeQuerySet.as_manager()
 
     class Meta:
         unique_together = (("attribute", "product_type"),)
+        ordering = ("sort_order",)
 
     def get_ordering_queryset(self):
         return self.product_type.attributeproduct.all()
@@ -570,15 +698,25 @@ class AttributeVariant(SortableModel):
     product_type = models.ForeignKey(
         ProductType, related_name="attributevariant", on_delete=models.CASCADE
     )
+    assigned_variants = models.ManyToManyField(
+        ProductVariant,
+        blank=True,
+        through=AssignedVariantAttribute,
+        through_fields=["assignment", "variant"],
+        related_name="attributesrelated",
+    )
+
+    objects = AssociatedAttributeQuerySet.as_manager()
 
     class Meta:
         unique_together = (("attribute", "product_type"),)
+        ordering = ("sort_order",)
 
     def get_ordering_queryset(self):
         return self.product_type.attributevariant.all()
 
 
-class AttributeQuerySet(models.QuerySet):
+class AttributeQuerySet(BaseAttributeQuerySet):
     def get_unassigned_attributes(self, product_type_pk: int):
         return self.exclude(
             Q(attributeproduct__product_type_id=product_type_pk)
@@ -591,17 +729,8 @@ class AttributeQuerySet(models.QuerySet):
             | Q(attributevariant__product_type_id=product_type_pk)
         )
 
-    @staticmethod
-    def user_has_access_to_all(user):
-        return user.is_active and user.has_perm("product.manage_products")
-
     def get_public_attributes(self):
         return self.filter(visible_in_storefront=True)
-
-    def get_visible_to_user(self, user):
-        if self.user_has_access_to_all(user):
-            return self.all()
-        return self.get_public_attributes()
 
     def _get_sorted_m2m_field(self, m2m_field_name: str, asc: bool):
         sort_order_field = F(f"{m2m_field_name}__sort_order")
@@ -708,7 +837,7 @@ class AttributeValue(SortableModel):
 
     class Meta:
         ordering = ("sort_order", "id")
-        unique_together = ("name", "attribute")
+        unique_together = ("slug", "attribute")
 
     def __str__(self):
         return self.name

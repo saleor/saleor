@@ -16,6 +16,7 @@ from measurement.measures import Weight
 from prices import Money
 
 from ..account.models import Address
+from ..core.models import ModelWithMetadata
 from ..core.taxes import zero_money, zero_taxed_money
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.weight import WeightUnits, zero_weight
@@ -60,7 +61,7 @@ class OrderQueryset(models.QuerySet):
         return qs.distinct()
 
 
-class Order(models.Model):
+class Order(ModelWithMetadata):
     created = models.DateTimeField(default=now, editable=False)
     status = models.CharField(
         max_length=32, default=OrderStatus.UNFULFILLED, choices=OrderStatus.CHOICES
@@ -360,8 +361,10 @@ class OrderLine(models.Model):
     )
     # max_length is as produced by ProductVariant's display_product method
     product_name = models.CharField(max_length=386)
+    variant_name = models.CharField(max_length=255, default="", blank=True)
     translated_product_name = models.CharField(max_length=386, default="", blank=True)
-    product_sku = models.CharField(max_length=32)
+    translated_variant_name = models.CharField(max_length=255, default="", blank=True)
+    product_sku = models.CharField(max_length=255)
     is_shipping_required = models.BooleanField()
     quantity = models.IntegerField(validators=[MinValueValidator(1)])
     quantity_fulfilled = models.IntegerField(
@@ -405,7 +408,11 @@ class OrderLine(models.Model):
         ordering = ("pk",)
 
     def __str__(self):
-        return self.product_name
+        return (
+            f"{self.product_name} ({self.variant_name})"
+            if self.variant_name
+            else self.product_name
+        )
 
     def get_total(self):
         return self.unit_price * self.quantity
@@ -422,7 +429,7 @@ class OrderLine(models.Model):
         return is_digital and has_digital
 
 
-class Fulfillment(models.Model):
+class Fulfillment(ModelWithMetadata):
     fulfillment_order = models.PositiveIntegerField(editable=False)
     order = models.ForeignKey(
         Order, related_name="fulfillments", editable=False, on_delete=models.CASCADE

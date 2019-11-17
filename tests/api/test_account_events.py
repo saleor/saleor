@@ -31,7 +31,7 @@ query customerEvents($customerId: ID!) {
 
 
 def test_account_events_are_properly_restricted(
-    staff_api_client, permission_manage_users, staff_user
+    staff_api_client, permission_manage_staff, staff_user
 ):
     """Ensure that retrieve events of a customer is properly restricted."""
 
@@ -43,7 +43,7 @@ def test_account_events_are_properly_restricted(
         staff_api_client.post_graphql(
             QUERY_CUSTOMER_EVENTS,
             variables={"customerId": customer_id},
-            permissions=[permission_manage_users],
+            permissions=[permission_manage_staff],
         )
     )["data"]["user"]
 
@@ -209,7 +209,7 @@ def test_account_event_customer_downloaded_a_digital_link_event_resolves_properl
 
 
 def test_account_event_staff_user_deleted_a_customer_event_resolves_properly(
-    staff_api_client, staff_user, permission_manage_users
+    staff_api_client, staff_user, permission_manage_staff
 ):
     event = account_events.staff_user_deleted_a_customer_event(
         staff_user=staff_user, deleted_count=123
@@ -225,7 +225,7 @@ def test_account_event_staff_user_deleted_a_customer_event_resolves_properly(
     }
 
     received_data = _get_event_from_graphql(
-        staff_api_client, staff_user, permission_manage_users
+        staff_api_client, staff_user, permission_manage_staff
     )
 
     assert expected_data == received_data
@@ -274,7 +274,7 @@ def test_account_invalid_or_deleted_order_line_return_null(
 
 
 def test_account_event_staff_user_assigned_new_name_to_customer_event_resolves_properly(
-    staff_api_client, staff_user, permission_manage_users
+    staff_api_client, staff_user, permission_manage_staff
 ):
     event = account_events.staff_user_assigned_name_to_a_customer_event(
         staff_user=staff_user, new_name="Hello World!"
@@ -290,14 +290,14 @@ def test_account_event_staff_user_assigned_new_name_to_customer_event_resolves_p
     }
 
     received_data = _get_event_from_graphql(
-        staff_api_client, staff_user, permission_manage_users
+        staff_api_client, staff_user, permission_manage_staff
     )
 
     assert expected_data == received_data
 
 
 def test_account_event_staff_user_assigned_email_to_customer_event_resolves_properly(
-    staff_api_client, staff_user, permission_manage_users
+    staff_api_client, staff_user, permission_manage_staff
 ):
     event = account_events.staff_user_assigned_email_to_a_customer_event(
         staff_user=staff_user, new_email="hello@example.com"
@@ -313,14 +313,14 @@ def test_account_event_staff_user_assigned_email_to_customer_event_resolves_prop
     }
 
     received_data = _get_event_from_graphql(
-        staff_api_client, staff_user, permission_manage_users
+        staff_api_client, staff_user, permission_manage_staff
     )
 
     assert expected_data == received_data
 
 
 def test_account_event_staff_user_added_note_to_customer_event_resolves_properly(
-    staff_api_client, staff_user, permission_manage_users
+    staff_api_client, staff_user, permission_manage_staff
 ):
     event = account_events.staff_user_added_note_to_a_customer_event(
         staff_user=staff_user, note="New note's content!"
@@ -336,7 +336,7 @@ def test_account_event_staff_user_added_note_to_customer_event_resolves_properly
     }
 
     received_data = _get_event_from_graphql(
-        staff_api_client, staff_user, permission_manage_users
+        staff_api_client, staff_user, permission_manage_staff
     )
 
     assert expected_data == received_data

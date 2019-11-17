@@ -9,7 +9,7 @@
 </div>
 
 <div align="center">
-  A modular, high performance e-commerce storefront built with GraphQL, Django, and ReactJS.
+  A modular, high-performance e-commerce storefront built with GraphQL, Django, and ReactJS.
 </div>
 
 <br>
@@ -66,10 +66,10 @@ Saleor is a rapidly-growing open source e-commerce platform that has served high
 - **GraphQL API**: Access all data from any web or mobile client using the latest technology
 - **Headless commerce**: Build mobile apps, customize storefronts and externalize processes
 - **UX and UI**: Designed for a user experience that rivals even the top commercial platforms
-- **Dashboard**: Administrators have total control of users, processes and products
-- **Orders**: A comprehensive system for orders, dispatch and refunds
+- **Dashboard**: Administrators have total control of users, processes, and products
+- **Orders**: A comprehensive system for orders, dispatch, and refunds
 - **Cart**: Advanced payment and tax options, with full control over discounts and promotions
-- **Payments**: Flexible API architecture allows integration of any payment method. Comes with Braintree support out of the box.
+- **Payments**: Flexible API architecture allows integration of any payment method. It comes with Braintree support out of the box.
 - **Geo-adaptive**: Automatic localized pricing. Over 20 local languages. Localized checkout experience by country.
 - **SEO**: Packed with features that get stores to a wider audience
 - **Cloud**: Optimized for deployments using Docker
@@ -97,19 +97,19 @@ To contribute, please see the [`mirumee/saleor-docs` repository](https://github.
 
 For PWA, single-page Storefront 2.0 go to the [saleor-storefront](https://github.com/mirumee/saleor-storefront) repository.
 
-[View Storefront 2.0 demo](https://pwa.getsaleor.com/)
+[View Storefront 2.0 demo](https://pwa.saleor.io/)
 
 ## Dashboard 2.0
 
 For Dashboard 2.0 go to the [saleor-dashboard](https://github.com/mirumee/saleor-dashboard) repository.
 
-[View Dashboard 2.0 demo](https://demo.getsaleor.com/dashboard/next/)
+[View Dashboard 2.0 demo](https://pwa.saleor.io/dashboard/)
 
 ## Demo
 
 Want to see Saleor in action?
 
-[View Storefront](http://demo.getsaleor.com/) | [View Dashboard (admin area)](http://demo.getsaleor.com/dashboard/)
+[View Storefront](https://pwa.saleor.io/) | [View Dashboard (admin area)](https://pwa.saleor.io/dashboard/)
 
 Or launch the demo on a free Heroku instance.
 
@@ -119,15 +119,15 @@ Login credentials: `admin@example.com`/`admin`
 
 ## Contributing
 
-We love your contributions and do our best to provide you with mentorship and support. If you are looking for an issue to tackle, take a look at issues labelled [`Help Wanted`](https://github.com/mirumee/saleor/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22).
+We love your contributions and do our best to provide you with mentorship and support. If you are looking for an issue to tackle, take a look at issues labeled [`Help Wanted`](https://github.com/mirumee/saleor/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22).
 
-If nothing grabs your attention, check [our roadmap](https://github.com/mirumee/saleor/projects/6) or come up with your own feature. Just drop us a line or [open an issue](https://github.com/mirumee/saleor/issues/new) and we’ll work out how to handle it.
+If nothing grabs your attention, check [our roadmap](https://github.com/mirumee/saleor/projects/6) or come up with your feature. Just drop us a line or [open an issue](https://github.com/mirumee/saleor/issues/new) and we’ll work out how to handle it.
 
 Get more details in our [Contributing Guide](https://docs.getsaleor.com/docs/contributing/intro/).
 
 ## Translations
 
-Did you know that Saleor is available in almost 30 languages, translated entirely by our community?
+Did you know that Saleor is available in more than 30 languages, translated entirely by our community?
 
 If you'd like to help us, you can join one of our translation teams on [the localization platform Transifex](https://www.transifex.com/mirumee/saleor-1/languages/).
 

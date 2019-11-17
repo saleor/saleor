@@ -141,11 +141,11 @@ def test_sale_applies_to_correct_products(product_type, category):
     discount = DiscountInfo(
         sale=sale, product_ids={product.id}, category_ids=set(), collection_ids=set()
     )
-    product_discount = get_product_discount_on_sale(variant.product, discount)
+    product_discount = get_product_discount_on_sale(variant.product, set(), discount)
     discounted_price = product_discount(product.price)
     assert discounted_price == Money(7, "USD")
     with pytest.raises(NotApplicable):
-        get_product_discount_on_sale(sec_variant.product, discount)
+        get_product_discount_on_sale(sec_variant.product, set(), discount)
 
 
 def test_increase_voucher_usage():

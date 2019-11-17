@@ -15,8 +15,8 @@ class PageFilter(SortedFilterSet):
         label=pgettext_lazy("Page list title filter label", "Title"),
         lookup_expr="icontains",
     )
-    url = CharFilter(
-        label=pgettext_lazy("Page list url filter label", "URL"),
+    slug = CharFilter(
+        label=pgettext_lazy("Page list slug filter label", "Slug"),
         lookup_expr="icontains",
     )
     sort_by = OrderingFilter(

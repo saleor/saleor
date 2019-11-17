@@ -1,14 +1,13 @@
 import graphene
-from graphene_django.fields import DjangoConnectionField
-from graphql_jwt.decorators import permission_required
 
-from ..core.fields import PrefetchingConnectionField
+from ..core.fields import BaseDjangoConnectionField, PrefetchingConnectionField
+from ..decorators import permission_required
 from ..payment.mutations import CheckoutPaymentCreate
 from .mutations import (
     CheckoutAddPromoCode,
     CheckoutBillingAddressUpdate,
-    CheckoutClearStoredMeta,
-    CheckoutClearStoredPrivateMeta,
+    CheckoutClearMeta,
+    CheckoutClearPrivateMeta,
     CheckoutComplete,
     CheckoutCreate,
     CheckoutCustomerAttach,
@@ -30,17 +29,19 @@ from .types import Checkout, CheckoutLine
 
 class CheckoutQueries(graphene.ObjectType):
     checkout = graphene.Field(
-        Checkout, description="Single checkout.", token=graphene.Argument(graphene.UUID)
+        Checkout,
+        description="Look up a checkout by token.",
+        token=graphene.Argument(graphene.UUID, description="The checkout's token."),
     )
     # FIXME we could optimize the below field
-    checkouts = DjangoConnectionField(Checkout, description="List of checkouts.")
+    checkouts = BaseDjangoConnectionField(Checkout, description="List of checkouts.")
     checkout_line = graphene.Field(
         CheckoutLine,
-        id=graphene.Argument(graphene.ID),
-        description="Single checkout line.",
+        id=graphene.Argument(graphene.ID, description="ID of the checkout line."),
+        description="Look up a checkout line by ID.",
     )
     checkout_lines = PrefetchingConnectionField(
-        CheckoutLine, description="List of checkout lines"
+        CheckoutLine, description="List of checkout lines."
     )
 
     def resolve_checkout(self, *_args, token):
@@ -75,6 +76,6 @@ class CheckoutMutations(graphene.ObjectType):
     checkout_shipping_method_update = CheckoutShippingMethodUpdate.Field()
     checkout_update_voucher = CheckoutUpdateVoucher.Field()
     checkout_update_metadata = CheckoutUpdateMeta.Field()
-    checkout_clear_metadata = CheckoutClearStoredMeta.Field()
+    checkout_clear_metadata = CheckoutClearMeta.Field()
     checkout_update_private_metadata = CheckoutUpdatePrivateMeta.Field()
-    checkout_clear_private_metadata = CheckoutClearStoredPrivateMeta.Field()
+    checkout_clear_private_metadata = CheckoutClearPrivateMeta.Field()

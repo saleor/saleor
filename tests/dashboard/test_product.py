@@ -1,13 +1,17 @@
 import json
+from unittest import mock
 from unittest.mock import MagicMock, Mock
 
+import pytest
 from django.forms import HiddenInput
 from django.forms.models import model_to_dict
 from django.urls import reverse
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
+from saleor.core.taxes import TaxType
 from saleor.dashboard.product import ProductBulkAction
 from saleor.dashboard.product.forms import ProductForm, ProductVariantForm
+from saleor.extensions.manager import get_extensions_manager
 from saleor.product.forms import VariantChoiceField
 from saleor.product.models import (
     Attribute,
@@ -18,7 +22,7 @@ from saleor.product.models import (
     ProductType,
     ProductVariant,
 )
-from tests.utils import get_redirect_location
+from tests.utils import generate_attribute_map, get_redirect_location
 
 from ..utils import create_image
 
@@ -235,7 +239,10 @@ def test_view_product_create(admin_client, product_type, category):
     assert Product.objects.count() == 1
 
 
-def test_view_product_edit(admin_client, product):
+@mock.patch(
+    "saleor.extensions.manager.ExtensionsManager.assign_tax_code_to_object_meta"
+)
+def test_view_product_edit(mocked_set_tax_rate_code, admin_client, product):
     url = reverse("dashboard:product-update", kwargs={"pk": product.pk})
     data = {
         "name": "Product second name",
@@ -255,6 +262,70 @@ def test_view_product_edit(admin_client, product):
         "dashboard:product-details", kwargs={"pk": product.pk}
     )
     assert product.name == "Product second name"
+    assert (
+        mocked_set_tax_rate_code.call_count == 0
+    ), "The tax code shouldn't have been changed"
+
+
+@pytest.fixture
+def mocked_tax_types():
+    tax_rate_code = "dummy"
+    manager = get_extensions_manager()
+
+    types = [TaxType(code=tax_rate_code, description="")]
+
+    with mock.patch("saleor.extensions.manager.ExtensionsManager") as mocked_manager:
+        mocked_manager = mocked_manager()
+        mocked_manager.assign_tax_code_to_object_meta.side_effect = (
+            manager.assign_tax_code_to_object_meta
+        )
+        mocked_manager.get_tax_rate_type_choices.return_value = types
+        yield mocked_manager, types
+
+
+def test_update_product_tax_rate(admin_client, product, mocked_tax_types):
+    """Ensure tax rates are correctly listed in the form and the form is properly
+    updating the tax rate.
+    """
+    mocked_manager, tax_types = mocked_tax_types
+    tax_rate_code = tax_types[0].code
+
+    url = reverse("dashboard:product-update", kwargs={"pk": product.pk})
+    data = {
+        "name": "Product second name",
+        "description": "Product description.",
+        "price_0": 10,
+        "price_1": product.price.currency,
+        "category": product.category.pk,
+        "variant-sku": "123",
+        "variant-quantity": 10,
+        "tax_rate": tax_rate_code,
+    }
+
+    # Ensure we are able to set a given tax rate code to a product
+    response = admin_client.post(url, data)
+    assert response.status_code == 302
+    assert get_redirect_location(response) == reverse(
+        "dashboard:product-details", kwargs={"pk": product.pk}
+    )
+    mocked_manager.assign_tax_code_to_object_meta.assert_called_once_with(
+        mock.ANY, tax_rate_code
+    )
+
+
+def test_product_update_resolves_tax_types(admin_client, product, mocked_tax_types):
+    """Ensure tax rates are correctly resolved in the product form."""
+    mocked_manager, tax_types = mocked_tax_types
+    tax_rate_code = tax_types[0].code
+
+    url = reverse("dashboard:product-update", kwargs={"pk": product.pk})
+
+    # Ensure the available tax rate codes are properly returned
+    response = admin_client.get(url)
+    assert response.status_code == 200
+    form = response.context["form"]
+    tax_rate_field = form.fields["tax_rate"]
+    assert tax_rate_field.choices == [(tax_rate_code, "")]
 
 
 def test_view_product_delete(db, admin_client, product):
@@ -878,7 +949,14 @@ def test_view_attribute_create(admin_client, color_attribute):
     response = admin_client.post(url, data, follow=True)
 
     assert response.status_code == 200
-    assert Attribute.objects.count() == 2, "An attribute should have been created"
+
+    created_attribute = Attribute.objects.filter(slug="test").first()
+    assert created_attribute is not None, "An attribute should have been created"
+
+    assert created_attribute.name == "test"
+    assert (
+        created_attribute.visible_in_storefront is True
+    ), "The default value should have been used"
 
 
 def test_view_attribute_create_not_valid(admin_client, color_attribute):
@@ -902,6 +980,30 @@ def test_view_attribute_edit(color_attribute, admin_client):
     color_attribute.refresh_from_db()
     assert color_attribute.name == "new_name"
     assert color_attribute.slug == "new_slug"
+    assert (
+        color_attribute.visible_in_storefront is True
+    ), "The default value should have been used"
+
+
+def test_view_attribute_edit_with_product_type(product, admin_client):
+    old_attribute_count = Attribute.objects.count()
+    product_attribute = (
+        product.product_type.product_attributes.first()
+    )  # type: Attribute
+    url = reverse("dashboard:attribute-update", kwargs={"pk": product_attribute.pk})
+    data = {"name": "new_name", "slug": "new_slug"}
+
+    response = admin_client.post(url, data, follow=True)
+
+    assert response.status_code == 200
+    assert (
+        Attribute.objects.count() == old_attribute_count
+    ), "A new attribute shouldn't have been created"
+
+    product_attribute.refresh_from_db()
+    assert (
+        product_attribute.product_types.count() == 1
+    ), "Product type shouldn't have been unassigned"
 
 
 def test_view_attribute_delete(admin_client, color_attribute):
@@ -1077,11 +1179,16 @@ def test_product_form_change_attributes(db, product, color_attribute):
     assert form.is_valid()
 
     product = form.save()
-    assert product.attributes[str(color_attribute.pk)] == [str(color_value.pk)]
+    db_attributes_map = generate_attribute_map(product)
 
-    # Check that new attribute was created for author
-    author_value = AttributeValue.objects.get(name=new_author)
-    assert product.attributes[str(text_attribute.pk)] == [str(author_value.pk)]
+    author_value = AttributeValue.objects.filter(name=new_author).first()
+    assert author_value is not None, "The author value was not created"
+
+    expected_attribute_map = {
+        color_attribute.pk: {color_value.pk},
+        text_attribute.pk: {author_value.pk},
+    }
+    assert db_attributes_map == expected_attribute_map
 
 
 def test_product_form_assign_collection_to_product(product):

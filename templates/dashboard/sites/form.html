@@ -55,6 +55,19 @@
             <div class="row">
               {{ site_settings_form.track_inventory_by_default|materializecss }}
             </div>
+            <div class="row">
+              <div class="col s12">
+                <span class="card-title">
+                  {% trans "Default Sender" context "Site settings field" %}
+                </span>
+              </div>
+              <div class="col s6">
+                {{ site_settings_form.default_mail_sender_name|materializecss }}
+              </div>
+              <div class="col s6">
+                {{ site_settings_form.default_mail_sender_address|materializecss }}
+              </div>
+            </div>
           </div>
           <div class="card-action right-align">
             <a class="btn-flat waves-effect" href="{% url 'dashboard:site-details' pk=site.pk %}" target="_blank">
