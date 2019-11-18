@@ -121,6 +121,10 @@ def filter_categories(qs, _, value):
     return qs
 
 
+def filter_has_category(qs, _, value):
+    return qs.filter(category__isnull=not value)
+
+
 def filter_collections(qs, _, value):
     if value:
         collections = get_nodes(value, types.Collection)
@@ -214,6 +218,7 @@ class ProductFilter(django_filters.FilterSet):
     is_published = django_filters.BooleanFilter()
     collections = GlobalIDMultipleChoiceFilter(method=filter_collections)
     categories = GlobalIDMultipleChoiceFilter(method=filter_categories)
+    has_category = django_filters.BooleanFilter(method=filter_has_category)
     price = ObjectTypeFilter(
         input_class=PriceRangeInput, method=filter_price, field_name="price_amount"
     )
@@ -237,6 +242,7 @@ class ProductFilter(django_filters.FilterSet):
             "is_published",
             "collections",
             "categories",
+            "has_category",
             "price",
             "attributes",
             "stock_availability",

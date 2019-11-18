@@ -107,6 +107,28 @@ def test_view_product_list_with_filters_no_results(admin_client, product_list):
     assert list(response.context["filter_set"].qs) == []
 
 
+def test_view_product_list_with_filters_no_category(admin_client, product_list):
+    product_without_category = product_list[0]
+    product_without_category.category = None
+    product_without_category.save()
+
+    url = reverse("dashboard:product-list")
+    data = {
+        "price_max": [""],
+        "price_min": [""],
+        "is_featured": [""],
+        "name": [""],
+        "sort_by": [""],
+        "category": ["null"],
+        "is_published": [""],
+    }
+
+    response = admin_client.get(url, data)
+
+    assert response.status_code == 200
+    assert list(response.context["filter_set"].qs) == [product_without_category]
+
+
 def test_view_product_list_pagination(admin_client, product_list, settings):
     settings.DASHBOARD_PAGINATE_BY = 1
     url = reverse("dashboard:product-list")
@@ -1297,3 +1319,45 @@ def test_product_form_seo_description_too_long(unavailable_product):
         "form sixth. Image moving earth without"
     )
     assert new_seo_description.endswith("...") or new_seo_description[-1] == "…"
+
+
+def test_product_form_publish_product_with_category(product):
+    data = model_to_dict(product)
+    data["price_0"] = 20
+    data["price_1"] = "USD"
+    data["description"] = "Test description"
+
+    form = ProductForm(data, instance=product)
+    assert form.is_valid()
+    assert form.errors == {}
+
+    form.save()
+    assert product.is_published
+
+
+def test_product_form_without_category(product_without_category):
+    data = model_to_dict(product_without_category)
+    data["price_0"] = 20
+    data["price_1"] = "USD"
+    data["description"] = "Test description"
+
+    form = ProductForm(data, instance=product_without_category)
+    assert form.is_valid()
+    assert form.errors == {}
+
+    form.save()
+    assert not product_without_category.is_published
+
+
+def test_product_form_publish_product_without_category(product_without_category):
+    product_without_category.is_published = True
+    data = model_to_dict(product_without_category)
+    data["price_0"] = 20
+    data["price_1"] = "USD"
+    data["description"] = "Test description"
+
+    form = ProductForm(data, instance=product_without_category)
+    assert not form.is_valid()
+    assert form.errors == {
+        "is_published": ["You must select a category to be able to publish"]
+    }

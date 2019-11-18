@@ -40,6 +40,7 @@ class ProductFilter(SortedFilterSet):
         label=pgettext_lazy("Product list filter label", "Category"),
         field_name="category",
         queryset=Category.objects.all(),
+        null_label="---------",
     )
     product_type = ModelMultipleChoiceFilter(
         label=pgettext_lazy("Product list filter label", "Product type"),

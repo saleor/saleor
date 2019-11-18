@@ -7,6 +7,7 @@ from django.db import transaction
 from ....product import models
 from ....product.error_codes import ProductErrorCode
 from ....product.tasks import update_product_minimal_variant_price_task
+from ....product.utils import delete_categories
 from ....product.utils.attributes import generate_name_for_variant
 from ...core.mutations import (
     BaseBulkMutation,
@@ -37,6 +38,10 @@ class CategoryBulkDelete(ModelBulkDeleteMutation):
         permissions = ("product.manage_products",)
         error_type_class = ProductError
         error_type_field = "product_errors"
+
+    @classmethod
+    def bulk_action(cls, queryset):
+        delete_categories(queryset.values_list("pk", flat=True))
 
 
 class CollectionBulkDelete(ModelBulkDeleteMutation):

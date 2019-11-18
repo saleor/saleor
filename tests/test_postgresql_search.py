@@ -31,6 +31,7 @@ def named_products(category, product_type):
             price=Money(Decimal(6.6), "USD"),
             product_type=product_type,
             category=category,
+            is_published=True,
         )
         return product
 
