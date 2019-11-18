@@ -20,6 +20,7 @@ class Warehouse(models.Model):
     company_name = models.CharField(
         pgettext_lazy("Warehouse field description", "Legal company name"),
         max_length=100,
+        blank=True,
     )
 
     shipping_zones = models.ManyToManyField(ShippingZone, blank=True)
