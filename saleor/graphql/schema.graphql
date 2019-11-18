@@ -1600,7 +1600,7 @@ type Fulfillment implements Node {
   fulfillmentOrder: Int!
   status: FulfillmentStatus!
   trackingNumber: String!
-  shippingDate: DateTime!
+  created: DateTime!
   privateMeta: [MetaStore]!
   meta: [MetaStore]!
   lines: [FulfillmentLine]
