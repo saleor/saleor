@@ -262,10 +262,7 @@ def test_product_variant_delete_updates_minimal_variant_price(
     )
 
 
-@patch(
-    "saleor.graphql.product.mutations.products"
-    ".update_products_minimal_variant_prices_task"
-)
+@patch("saleor.product.utils.update_products_minimal_variant_prices_task")
 def test_category_delete_updates_minimal_variant_price(
     mock_update_products_minimal_variant_prices_task,
     staff_api_client,

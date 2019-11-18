@@ -195,10 +195,7 @@ def test_delete_categories(staff_api_client, category_list, permission_manage_pr
     ).exists()
 
 
-@patch(
-    "saleor.graphql.product.bulk_mutations.products"
-    ".update_products_minimal_variant_prices_task"
-)
+@patch("saleor.product.utils.update_products_minimal_variant_prices_task")
 def test_delete_categories_with_subcategories_and_products(
     mock_update_products_minimal_variant_prices_task,
     staff_api_client,
