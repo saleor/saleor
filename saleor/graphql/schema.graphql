@@ -4566,7 +4566,7 @@ type WarehouseCreate {
 input WarehouseCreateInput {
   name: String!
   companyName: String
-  shippingZonesInput: [ID]
+  shippingZones: [ID]
   email: String
   address: WarehouseAddressInput!
 }
@@ -4579,7 +4579,7 @@ type WarehouseUpdate {
 input WarehouseUpdateInput {
   name: String!
   companyName: String
-  shippingZonesInput: [ID]
+  shippingZones: [ID]
   email: String
   address: WarehouseAddressInput
 }
