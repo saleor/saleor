@@ -1,5 +1,5 @@
 import json
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 
 import graphene
 import pytest
@@ -379,7 +379,9 @@ def test_category_delete_mutation(
         category.refresh_from_db()
 
 
+@patch("saleor.product.utils.update_products_minimal_variant_prices_task")
 def test_category_delete_mutation_for_categories_tree(
+    mock_update_products_minimal_variant_prices_task,
     staff_api_client,
     categories_tree_with_published_products,
     permission_manage_products,
@@ -387,6 +389,8 @@ def test_category_delete_mutation_for_categories_tree(
     parent = categories_tree_with_published_products
     parent_product = parent.products.first()
     child_product = parent.children.first().products.first()
+
+    product_list = [child_product, parent_product]
 
     variables = {"id": graphene.Node.to_global_id("Category", parent.id)}
     response = staff_api_client.post_graphql(
@@ -398,13 +402,19 @@ def test_category_delete_mutation_for_categories_tree(
     with pytest.raises(parent._meta.model.DoesNotExist):
         parent.refresh_from_db()
 
-    for product in [child_product, parent_product]:
+    mock_update_products_minimal_variant_prices_task.delay.assert_called_once_with(
+        product_ids=[p.pk for p in product_list]
+    )
+
+    for product in product_list:
         product.refresh_from_db()
         assert not product.is_published
         assert not product.publication_date
 
 
+@patch("saleor.product.utils.update_products_minimal_variant_prices_task")
 def test_category_delete_mutation_for_children_from_categories_tree(
+    mock_update_products_minimal_variant_prices_task,
     staff_api_client,
     categories_tree_with_published_products,
     permission_manage_products,
@@ -423,6 +433,10 @@ def test_category_delete_mutation_for_children_from_categories_tree(
     assert data["category"]["name"] == child.name
     with pytest.raises(child._meta.model.DoesNotExist):
         child.refresh_from_db()
+
+    mock_update_products_minimal_variant_prices_task.delay.assert_called_once_with(
+        product_ids=[child_product.pk]
+    )
 
     parent_product.refresh_from_db()
     assert parent_product.category
