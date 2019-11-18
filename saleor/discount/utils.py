@@ -46,19 +46,12 @@ def remove_voucher_usage_by_customer(voucher, customer_email):
         voucher_customer.delete()
 
 
-def are_product_collections_on_sale(product, discount: DiscountInfo):
-    """Check if any collection is on sale."""
-    discounted_collections = discount.collection_ids
-    product_collections = set(c.id for c in product.collections.all())
-    return product_collections.intersection(discounted_collections)
-
-
-def get_product_discount_on_sale(product, discount: DiscountInfo):
+def get_product_discount_on_sale(product, product_collections, discount: DiscountInfo):
     """Return discount value if product is on sale or raise NotApplicable."""
     is_product_on_sale = (
         product.id in discount.product_ids
         or product.category_id in discount.category_ids
-        or are_product_collections_on_sale(product, discount)
+        or product_collections.intersection(discount.collection_ids)
     )
     if is_product_on_sale:
         return discount.sale.get_discount()
@@ -69,9 +62,10 @@ def get_product_discount_on_sale(product, discount: DiscountInfo):
 
 def get_product_discounts(product, discounts: Iterable[DiscountInfo]):
     """Return discount values for all discounts applicable to a product."""
+    product_collections = set(product.collections.all().values_list("pk", flat=True))
     for discount in discounts:
         try:
-            yield get_product_discount_on_sale(product, discount)
+            yield get_product_discount_on_sale(product, product_collections, discount)
         except NotApplicable:
             pass
 

@@ -17,16 +17,14 @@ from saleor.graphql.utils import (
 from tests.api.utils import get_graphql_content
 
 
-def test_middleware_dont_generate_sql_requests(
-    client, settings, django_assert_num_queries
-):
+def test_middleware_dont_generate_sql_requests(client, settings, assert_num_queries):
     """When requesting on the GraphQL API endpoint, no SQL request should happen
     indirectly. This test ensures that."""
 
     # Enables the Graphql playground
     settings.DEBUG = True
 
-    with django_assert_num_queries(0):
+    with assert_num_queries(0):
         response = client.get(reverse("api"))
         assert response.status_code == 200
 
