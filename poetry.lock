@@ -1602,6 +1602,7 @@ version = "0.4.15"
 [[package]]
 category = "main"
 description = "File type identification using libmagic binary package"
+marker = "sys_platform == \"win32\""
 name = "python-magic-bin"
 optional = false
 python-versions = "*"
@@ -2056,7 +2057,7 @@ version = "0.6.0"
 more-itertools = "*"
 
 [metadata]
-content-hash = "78d51318ae15031d43d370dcf6ff2de0664e9708274c5e64f4eaa335f54a6746"
+content-hash = "4ac0d9dc296f8872262fa95ea8a414d4eb6a1c7d27bf6be9a5de8ff02a4a11f9"
 python-versions = "~3.7"
 
 [metadata.hashes]

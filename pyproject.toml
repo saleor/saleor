@@ -62,7 +62,7 @@ phonenumberslite = "^8.10.16"
 prices = "^1.0"
 psycopg2-binary = "^2.8.3"
 purl = "^1.5"
-python-magic-bin = "^0.4.14"
+python-magic-bin = {version = "^0.4.14", platform = "win32"}
 razorpay = "^1.2"
 requests = "^2.22"
 sentry-sdk = "^0"
