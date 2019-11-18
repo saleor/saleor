@@ -81,12 +81,3 @@ def associate_attribute_values_to_instance(
     assignment = _associate_attribute_to_instance(instance, attribute.pk)
     assignment.values.set(values)
     return assignment
-
-
-def unpublished_products_before_category_delete(category):
-    products = category.products.all()
-    descendants = category.get_descendants()
-    for descendant in descendants:
-        products = products | descendant.products.all()
-    products.update(is_published=False, publication_date=None)
-    return products

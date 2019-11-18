@@ -7,6 +7,7 @@ from django.db import transaction
 from django.db.models import Q, QuerySet
 from django.template.defaultfilters import slugify
 from graphene.types import InputObjectType
+from graphql_jwt.exceptions import PermissionDenied
 from graphql_relay import from_global_id
 
 from ....product import models
@@ -14,7 +15,6 @@ from ....product.error_codes import ProductErrorCode
 from ....product.tasks import (
     update_product_minimal_variant_price_task,
     update_products_minimal_variant_prices_of_catalogues_task,
-    update_products_minimal_variant_prices_task,
     update_variants_names,
 )
 from ....product.thumbnails import (
@@ -22,10 +22,10 @@ from ....product.thumbnails import (
     create_collection_background_image_thumbnails,
     create_product_thumbnails,
 )
+from ....product.utils import delete_categories
 from ....product.utils.attributes import (
     associate_attribute_values_to_instance,
     generate_name_for_variant,
-    unpublished_products_before_category_delete,
 )
 from ...core.mutations import (
     BaseMutation,
@@ -147,13 +147,17 @@ class CategoryDelete(ModelDeleteMutation):
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
+        if not cls.check_permissions(info.context):
+            raise PermissionDenied()
         node_id = data.get("id")
         instance = cls.get_node_or_error(info, node_id, only_type=Category)
-        products = unpublished_products_before_category_delete(instance)
-        product_ids = [product.pk for product in products]
-        response = super().perform_mutation(_root, info, **data)
-        update_products_minimal_variant_prices_task.delay(product_ids=product_ids)
-        return response
+
+        db_id = instance.id
+
+        delete_categories([db_id])
+
+        instance.id = db_id
+        return cls.success_response(instance)
 
 
 class CollectionInput(graphene.InputObjectType):
