@@ -11,6 +11,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Query object translation with only manage_translation permission - #4914 by @fowczarek
 - Add customer note to draft orders api - #4973 by @IKarbowiak
 - Allow to delete category and leave products - #4970 by @IKarbowiak
+- Add cutomer note to draft orders api - #4973 by @IKarbowiak
+- Remove thumbnail generation from migration - #3494 by @kswiatek92
+
 
 ## 2.9.0
 
