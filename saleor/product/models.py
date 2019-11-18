@@ -253,7 +253,11 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
         blank=True, default=dict, sanitizer=clean_draft_js
     )
     category = models.ForeignKey(
-        Category, related_name="products", on_delete=models.CASCADE
+        Category,
+        related_name="products",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
     )
 
     currency = models.CharField(
@@ -315,6 +319,7 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
         # Make sure the "minimal_variant_price_amount" is set
         if self.minimal_variant_price_amount is None:
             self.minimal_variant_price_amount = self.price_amount
+
         return super().save(force_insert, force_update, using, update_fields)
 
     @property
