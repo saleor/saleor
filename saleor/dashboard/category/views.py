@@ -10,8 +10,7 @@ from django.utils.translation import pgettext_lazy
 from ...core.utils import get_paginator_items
 from ...menu.utils import get_menus_that_need_update, update_menus
 from ...product.models import Category
-from ...product.tasks import update_products_minimal_variant_prices_task
-from ...product.utils.attributes import unpublished_products_before_category_delete
+from ...product.utils import delete_categories
 from ..views import staff_member_required
 from .filters import CategoryFilter
 from .forms import CategoryForm
@@ -112,10 +111,7 @@ def category_delete(request, pk):
     if request.method == "POST":
         descendants = category.get_descendants()
         menus = get_menus_that_need_update(categories=descendants)
-        products = unpublished_products_before_category_delete(category)
-        product_ids = [product.pk for product in products]
-        category.delete()
-        update_products_minimal_variant_prices_task.delay(product_ids)
+        delete_categories([pk])
         if menus:
             update_menus(menus)
         messages.success(
