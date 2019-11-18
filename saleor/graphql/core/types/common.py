@@ -86,6 +86,10 @@ class ExtensionsError(Error):
     code = ExtensionsErrorCode(description="The error code.")
 
 
+class WarehouseError(Error):
+    code = ExtensionsErrorCode(description="The error code.")
+
+
 class WebhookError(Error):
     code = WebhookErrorCode(description="The error code.")
 
