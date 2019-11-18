@@ -4528,13 +4528,12 @@ type VoucherUpdate {
 }
 
 type Warehouse implements Node {
-  uuid: UUID!
+  id: ID!
   name: String!
   companyName: String!
   shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection!
   address: Address!
   email: String!
-  id: ID!
 }
 
 input WarehouseAddressInput {

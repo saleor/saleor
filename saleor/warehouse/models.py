@@ -13,7 +13,7 @@ class WarehouseQueryset(models.QuerySet):
 
 
 class Warehouse(models.Model):
-    uuid = models.UUIDField(default=uuid.uuid4, primary_key=True)
+    id = models.UUIDField(default=uuid.uuid4, primary_key=True)
     name = models.CharField(
         pgettext_lazy("Warehouse field description", "Warehouse name"), max_length=50
     )
