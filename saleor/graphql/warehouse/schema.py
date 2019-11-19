@@ -4,7 +4,11 @@ from graphql_jwt.decorators import login_required
 
 from saleor.graphql.core.fields import PrefetchingConnectionField
 from saleor.graphql.decorators import permission_required
-from saleor.graphql.warehouse.mutations import WarehouseCreate, WarehouseUpdate
+from saleor.graphql.warehouse.mutations import (
+    WarehouseCreate,
+    WarehouseDelete,
+    WarehouseUpdate,
+)
 from saleor.graphql.warehouse.types import Warehouse
 from saleor.warehouse import models
 
@@ -40,3 +44,4 @@ class WarehouseQueries(graphene.ObjectType):
 class WarehouseMutations(graphene.ObjectType):
     create_warehouse = WarehouseCreate.Field()
     update_warehouse = WarehouseUpdate.Field()
+    delete_warehouse = WarehouseDelete.Field()

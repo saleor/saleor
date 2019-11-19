@@ -107,6 +107,18 @@ mutation updateWarehouse($input: WarehouseUpdateInput!, $id: ID!) {
 """
 
 
+MUTATION_DELETE_WAREHOUSE = """
+mutation deleteWarehouse($id: ID!) {
+    deleteWarehouse(id: $id) {
+        errors {
+            message
+            field
+        }
+    }
+}
+"""
+
+
 def test_warehouse_cannot_query_without_permissions(user_api_client, warehouse):
     assert not user_api_client.user.has_perm("warehouse.manage_warehouses")
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
@@ -332,3 +344,45 @@ def test_mutation_update_warehouse_can_update_address(
     address.refresh_from_db()
     assert address.street_address_1 == "Teczowa 8"
     assert address.street_address_2 == "Ground floor"
+
+
+def test_delete_warehouse_requires_permission(staff_api_client, warehouse):
+    assert not staff_api_client.user.has_perm("warehouse.manage_warehouses")
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    response = staff_api_client.post_graphql(
+        MUTATION_DELETE_WAREHOUSE, variables={"id": warehouse_id}
+    )
+    content = get_graphql_content(response, ignore_errors=True)
+    errors = content["errors"]
+    assert len(errors) == 1
+    assert errors[0]["message"] == "You do not have permission to perform this action"
+
+
+def test_delete_warehouse_mutation(
+    staff_api_client, warehouse, permission_manage_warehouses
+):
+    staff_api_client.user.user_permissions.add(permission_manage_warehouses)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    assert Warehouse.objects.count() == 1
+    response = staff_api_client.post_graphql(
+        MUTATION_DELETE_WAREHOUSE, variables={"id": warehouse_id}
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["deleteWarehouse"]["errors"]
+    assert len(errors) == 0
+    assert not Warehouse.objects.exists()
+
+
+def test_delete_warehouse_deletes_associated_address(
+    staff_api_client, warehouse, permission_manage_warehouses
+):
+    staff_api_client.user.user_permissions.add(permission_manage_warehouses)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    assert Address.objects.count() == 1
+    response = staff_api_client.post_graphql(
+        MUTATION_DELETE_WAREHOUSE, variables={"id": warehouse_id}
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["deleteWarehouse"]["errors"]
+    assert len(errors) == 0
+    assert not Address.objects.exists()

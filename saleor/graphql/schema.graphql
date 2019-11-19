@@ -2080,6 +2080,7 @@ type Mutation {
   webhookUpdate(id: ID!, input: WebhookUpdateInput!): WebhookUpdate
   createWarehouse(input: WarehouseCreateInput!): WarehouseCreate
   updateWarehouse(id: ID!, input: WarehouseUpdateInput): WarehouseUpdate
+  deleteWarehouse(id: ID!): WarehouseDelete
   authorizationKeyAdd(input: AuthorizationKeyInput!, keyType: AuthorizationKeyType!): AuthorizationKeyAdd
   authorizationKeyDelete(keyType: AuthorizationKeyType!): AuthorizationKeyDelete
   staffNotificationRecipientCreate(input: StaffNotificationRecipientInput!): StaffNotificationRecipientCreate
@@ -4569,6 +4570,18 @@ input WarehouseCreateInput {
   shippingZones: [ID]
   email: String
   address: WarehouseAddressInput!
+}
+
+type WarehouseDelete {
+  errors: [Error!]
+  warehouseErrors: [WarehouseError!]
+  warehouse: Warehouse
+}
+
+type WarehouseError {
+  field: String
+  message: String
+  code: ExtensionsErrorCode
 }
 
 type WarehouseUpdate {
