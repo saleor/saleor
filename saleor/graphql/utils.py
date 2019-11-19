@@ -5,8 +5,8 @@ from django.db.models import Q
 from django.utils import timezone
 from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
-from graphql_relay import from_global_id
 from graphql_jwt.utils import jwt_payload
+from graphql_relay import from_global_id
 
 from .core.enums import PermissionEnum, ReportingPeriod
 from .core.types import PermissionDisplay
