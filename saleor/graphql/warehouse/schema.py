@@ -2,15 +2,11 @@ import graphene
 import graphene_django_optimizer as gql_optimizer
 from graphql_jwt.decorators import login_required
 
-from saleor.graphql.core.fields import PrefetchingConnectionField
-from saleor.graphql.decorators import permission_required
-from saleor.graphql.warehouse.mutations import (
-    WarehouseCreate,
-    WarehouseDelete,
-    WarehouseUpdate,
-)
-from saleor.graphql.warehouse.types import Warehouse
-from saleor.warehouse import models
+from ...warehouse import models
+from ..core.fields import PrefetchingConnectionField
+from ..decorators import permission_required
+from .mutations import WarehouseCreate, WarehouseDelete, WarehouseUpdate
+from .types import Warehouse
 
 
 class WarehouseQueries(graphene.ObjectType):

@@ -7,14 +7,10 @@ from django.shortcuts import get_object_or_404, redirect
 from django.template.response import TemplateResponse
 from django.utils.translation import pgettext_lazy
 
-from saleor.core.utils import get_paginator_items
-from saleor.dashboard.views import staff_member_required
-from saleor.dashboard.warehouse.forms import (
-    WarehouseAddressForm,
-    WarehouseForm,
-    save_warehouse_from_forms,
-)
-from saleor.warehouse.models import Warehouse
+from ...core.utils import get_paginator_items
+from ...warehouse.models import Warehouse
+from ..views import staff_member_required
+from .forms import WarehouseAddressForm, WarehouseForm, save_warehouse_from_forms
 
 if TYPE_CHECKING:
     from uuid import UUID

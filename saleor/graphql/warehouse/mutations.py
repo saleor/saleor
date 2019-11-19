@@ -1,10 +1,10 @@
 import graphene
 
-from saleor.account.models import Address
-from saleor.graphql.core.mutations import ModelDeleteMutation, ModelMutation
-from saleor.graphql.core.types.common import WarehouseError
-from saleor.graphql.warehouse.types import WarehouseCreateInput, WarehouseUpdateInput
-from saleor.warehouse import models
+from ...account.models import Address
+from ...warehouse import models
+from ..core.mutations import ModelDeleteMutation, ModelMutation
+from ..core.types.common import WarehouseError
+from .types import WarehouseCreateInput, WarehouseUpdateInput
 
 ADDRESS_FIELDS = [
     "street_address_1",
