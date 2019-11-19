@@ -10,6 +10,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix for shipping api doesn't apply taxes - #4913 by @kswiatek92
 - Query object translation with only manage_translation permission - #4914 by @fowczarek
 - Add cutomer note to draft orders api - #4973 by @IKarbowiak
+- Extend JWT token payload with user information - #4987 by @salwator
 
 
 ## 2.9.0
