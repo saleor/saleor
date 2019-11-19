@@ -557,6 +557,9 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
 
+
+GRAPHQL_JWT = {"JWT_PAYLOAD_HANDLER": "saleor.graphql.utils.create_jwt_payload"}
+
 SOCIAL_AUTH_PIPELINE = [
     "social_core.pipeline.social_auth.social_details",
     "social_core.pipeline.social_auth.social_uid",
