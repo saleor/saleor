@@ -1,22 +1,22 @@
 ![github_saleor_readmew_header_01](https://user-images.githubusercontent.com/5421321/47800694-19bec680-dd2d-11e8-8625-2ed7c690bc13.jpg)
 
 <div align="center">
-  <h1>Saleor</h1>
+  <h1>Saleor Commerce</h1>
 </div>
 
 <div align="center">
-  <strong>E-commerce for the PWA era</strong>
+  <strong>Customer-centric e-commerce on a modern stack</strong>
 </div>
 
 <div align="center">
-  A modular, high-performance e-commerce storefront built with GraphQL, Django, and ReactJS.
+  A headless e-commerce platform delivering ultra-fast, dynamic, personalized shopping experiences. Beautiful online stores, anywhere, on any device.
 </div>
 
 <br>
 
 <div align="center">
   Join our active, engaged community: <br>
-  <a href="https://getsaleor.com/">Website</a>
+  <a href="https://saleor.io/">Website</a>
   <span> | </span>
   <a href="https://medium.com/saleor">Blog</a>
   <span> | </span>
@@ -36,7 +36,7 @@
   <a href="http://codecov.io/github/mirumee/saleor?branch=master">
     <img src="http://codecov.io/github/mirumee/saleor/coverage.svg?branch=master" alt="Codecov" />
   </a>
-  <a href="https://docs.getsaleor.com/">
+  <a href="https://docs.saleor.io/">
     <img src="https://img.shields.io/badge/docs-docs.getsaleor.com-brightgreen.svg" alt="Documentation" />
   </a>
   <a href="https://github.com/python/black">
@@ -85,11 +85,11 @@ Help us out… If you love free stuff and great software, give us a star! 🌟
 
 Saleor requires Python 3.6+, Node.js 10.0+, PostgreSQL and OS-specific dependency tools.
 
-[See the Saleor docs](https://docs.getsaleor.com/docs/getting-started/intro/) for step-by-step installation and deployment instructions.
+[See the Saleor docs](https://docs.saleor.io/docs/getting-started/intro/) for step-by-step installation and deployment instructions.
 
 ## Documentation
 
-Saleor documentation is available here: [docs.getsaleor.com](https://docs.getsaleor.com)
+Saleor documentation is available here: [docs.saleor.io](https://docs.saleor.io)
 
 To contribute, please see the [`mirumee/saleor-docs` repository](https://github.com/mirumee/saleor-docs/).
 
