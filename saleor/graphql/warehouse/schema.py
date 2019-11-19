@@ -21,17 +21,15 @@ class WarehouseQueries(graphene.ObjectType):
     )
 
     @permission_required("warehouse.manage_warehouses")
-    def resolve_warehouse(self, _info, **data):
+    def resolve_warehouse(self, info, **data):
         warehouse_pk = data.get("id")
-        warehouse = graphene.Node.get_node_from_global_id(
-            _info, warehouse_pk, Warehouse
-        )
+        warehouse = graphene.Node.get_node_from_global_id(info, warehouse_pk, Warehouse)
         return warehouse
 
     @permission_required("warehouse.manage_warehouses")
-    def resolve_warehouses(self, _info, **kwargs):
+    def resolve_warehouses(self, info, **kwargs):
         qs = models.Warehouse.objects.all()
-        return gql_optimizer.query(qs, _info)
+        return gql_optimizer.query(qs, info)
 
 
 class WarehouseMutations(graphene.ObjectType):

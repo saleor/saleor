@@ -235,7 +235,7 @@ def test_mutation_create_warehouse(
     )
     content = get_graphql_content(response)
     assert Warehouse.objects.count() == 1
-    warehouse = Warehouse.objects.prefetch_data().first()
+    warehouse = Warehouse.objects.first()
     created_warehouse = content["data"]["createWarehouse"]["warehouse"]
     assert created_warehouse["id"] == graphene.Node.to_global_id(
         "Warehouse", warehouse.id
