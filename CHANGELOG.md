@@ -13,6 +13,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Allow to delete category and leave products - #4970 by @IKarbowiak
 - Remove thumbnail generation from migration - #3494 by @kswiatek92
 - Rename 'shipping_date' field in fulfillment model to 'created' - #2433 by @kswiatek92
+- Reduce number of queries for 'completeCheckout' mutation - #4989 by @IKarbowiak
 
 ## 2.9.0
 
