@@ -2079,7 +2079,7 @@ type Mutation {
   webhookDelete(id: ID!): WebhookDelete
   webhookUpdate(id: ID!, input: WebhookUpdateInput!): WebhookUpdate
   createWarehouse(input: WarehouseCreateInput!): WarehouseCreate
-  updateWarehouse(id: ID!, input: WarehouseUpdateInput): WarehouseUpdate
+  updateWarehouse(id: ID!, input: WarehouseUpdateInput!): WarehouseUpdate
   deleteWarehouse(id: ID!): WarehouseDelete
   authorizationKeyAdd(input: AuthorizationKeyInput!, keyType: AuthorizationKeyType!): AuthorizationKeyAdd
   authorizationKeyDelete(keyType: AuthorizationKeyType!): AuthorizationKeyDelete
@@ -4561,6 +4561,7 @@ type WarehouseCountableEdge {
 
 type WarehouseCreate {
   errors: [Error!]
+  warehouseErrors: [WarehouseError!]
   warehouse: Warehouse
 }
 
@@ -4586,6 +4587,7 @@ type WarehouseError {
 
 type WarehouseUpdate {
   errors: [Error!]
+  warehouseErrors: [WarehouseError!]
   warehouse: Warehouse
 }
 
