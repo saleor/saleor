@@ -28,6 +28,8 @@ class WarehouseCreate(ModelMutation):
         description = "Creates new warehouse."
         model = models.Warehouse
         permissions = ("warehouse.manage_warehouses",)
+        error_type_class = WarehouseError
+        error_type_field = "warehouse_errors"
 
     @classmethod
     def create_address(cls, clean_data):
@@ -47,10 +49,12 @@ class WarehouseUpdate(ModelMutation):
         model = models.Warehouse
         permissions = ("warehouse.manage_warehouses",)
         description = "Update given warehouse."
+        error_type_class = WarehouseError
+        error_type_field = "warehouse_errors"
 
     class Arguments:
         id = graphene.ID(description="ID of a warehouse to update.", required=True)
-        input = WarehouseUpdateInput()
+        input = WarehouseUpdateInput(required=True)
 
     @classmethod
     def update_address(cls, instance, cleaned_data):
