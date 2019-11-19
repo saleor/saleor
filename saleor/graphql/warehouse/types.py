@@ -1,8 +1,8 @@
 import graphene
 
-from saleor.graphql.account.enums import CountryCodeEnum
-from saleor.graphql.core.connection import CountableDjangoObjectType
-from saleor.warehouse import models
+from ...warehouse import models
+from ..account.enums import CountryCodeEnum
+from ..core.connection import CountableDjangoObjectType
 
 
 class WarehouseAddressInput(graphene.InputObjectType):

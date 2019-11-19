@@ -1,7 +1,7 @@
 from django import forms
 
-from saleor.account.models import Address
-from saleor.warehouse.models import Warehouse
+from ...account.models import Address
+from ...warehouse.models import Warehouse
 
 
 class WarehouseAddressForm(forms.ModelForm):

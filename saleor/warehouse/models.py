@@ -3,8 +3,8 @@ import uuid
 from django.db import models
 from django.utils.translation import pgettext_lazy
 
-from saleor.account.models import Address
-from saleor.shipping.models import ShippingZone
+from ..account.models import Address
+from ..shipping.models import ShippingZone
 
 
 class WarehouseQueryset(models.QuerySet):
