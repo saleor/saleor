@@ -38,10 +38,9 @@ class WarehouseCreate(ModelMutation):
         return address
 
     @classmethod
-    def clean_input(cls, info, instance, data, input_cls=None):
-        cleaned_data = super().clean_input(info, instance, data, input_cls=input_cls)
+    def construct_instance(cls, instance, cleaned_data):
         cleaned_data["address"] = cls.create_address(cleaned_data)
-        return cleaned_data
+        return super().construct_instance(instance, cleaned_data)
 
 
 class WarehouseUpdate(ModelMutation):
@@ -70,10 +69,9 @@ class WarehouseUpdate(ModelMutation):
         return address
 
     @classmethod
-    def clean_input(cls, info, instance, data, input_cls=None):
-        cleaned_data = super().clean_input(info, instance, data, input_cls=input_cls)
+    def construct_instance(cls, instance, cleaned_data):
         cleaned_data["address"] = cls.update_address(instance, cleaned_data)
-        return cleaned_data
+        return super().construct_instance(instance, cleaned_data)
 
 
 class WarehouseDelete(ModelDeleteMutation):
