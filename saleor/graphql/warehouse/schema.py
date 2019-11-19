@@ -1,6 +1,5 @@
 import graphene
 import graphene_django_optimizer as gql_optimizer
-from graphql_jwt.decorators import login_required
 
 from ...warehouse import models
 from ..core.fields import PrefetchingConnectionField
@@ -21,7 +20,6 @@ class WarehouseQueries(graphene.ObjectType):
         Warehouse, description="List of warehouses."
     )
 
-    @login_required
     @permission_required("warehouse.manage_warehouses")
     def resolve_warehouse(self, _info, **data):
         warehouse_pk = data.get("id")
@@ -30,7 +28,6 @@ class WarehouseQueries(graphene.ObjectType):
         )
         return warehouse
 
-    @login_required
     @permission_required("warehouse.manage_warehouses")
     def resolve_warehouses(self, _info, **kwargs):
         qs = models.Warehouse.objects.all()
