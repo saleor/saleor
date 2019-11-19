@@ -7,6 +7,7 @@ from django.db import transaction
 from django.db.models import Q, QuerySet
 from django.template.defaultfilters import slugify
 from graphene.types import InputObjectType
+from graphql_jwt.exceptions import PermissionDenied
 from graphql_relay import from_global_id
 
 from ....product import models
@@ -21,6 +22,7 @@ from ....product.thumbnails import (
     create_collection_background_image_thumbnails,
     create_product_thumbnails,
 )
+from ....product.utils import delete_categories
 from ....product.utils.attributes import (
     associate_attribute_values_to_instance,
     generate_name_for_variant,
@@ -142,6 +144,20 @@ class CategoryDelete(ModelDeleteMutation):
         permissions = ("product.manage_products",)
         error_type_class = ProductError
         error_type_field = "product_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        if not cls.check_permissions(info.context):
+            raise PermissionDenied()
+        node_id = data.get("id")
+        instance = cls.get_node_or_error(info, node_id, only_type=Category)
+
+        db_id = instance.id
+
+        delete_categories([db_id])
+
+        instance.id = db_id
+        return cls.success_response(instance)
 
 
 class CollectionInput(graphene.InputObjectType):
@@ -794,6 +810,17 @@ class ProductCreate(ModelMutation):
                 )
             except ValidationError as exc:
                 raise ValidationError({"attributes": exc})
+
+        is_published = cleaned_input.get("is_published")
+        category = cleaned_input.get("category")
+        if not category and is_published:
+            raise ValidationError(
+                {
+                    "isPublished": ValidationError(
+                        "You must select a category to be able to publish"
+                    )
+                }
+            )
 
         clean_seo_fields(cleaned_input)
         cls.clean_sku(product_type, cleaned_input)

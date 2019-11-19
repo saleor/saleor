@@ -440,7 +440,7 @@ class Fulfillment(ModelWithMetadata):
         choices=FulfillmentStatus.CHOICES,
     )
     tracking_number = models.CharField(max_length=255, default="", blank=True)
-    shipping_date = models.DateTimeField(default=now, editable=False)
+    created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return pgettext_lazy("Fulfillment str", "Fulfillment #%s") % (self.composed_id,)

@@ -1600,7 +1600,7 @@ type Fulfillment implements Node {
   fulfillmentOrder: Int!
   status: FulfillmentStatus!
   trackingNumber: String!
-  shippingDate: DateTime!
+  created: DateTime!
   privateMeta: [MetaStore]!
   meta: [MetaStore]!
   lines: [FulfillmentLine]
@@ -2920,7 +2920,7 @@ type Product implements Node {
   publicationDate: Date
   isPublished: Boolean!
   productType: ProductType!
-  category: Category!
+  category: Category
   updatedAt: DateTime
   chargeTaxes: Boolean!
   weight: Weight
@@ -3037,6 +3037,7 @@ input ProductFilterInput {
   isPublished: Boolean
   collections: [ID]
   categories: [ID]
+  hasCategory: Boolean
   price: PriceRangeInput
   attributes: [AttributeInput]
   stockAvailability: StockAvailability
