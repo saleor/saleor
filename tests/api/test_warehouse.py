@@ -2,7 +2,7 @@ import graphene
 
 from saleor.account.models import Address
 from saleor.warehouse.models import Warehouse
-from tests.api.utils import get_graphql_content
+from tests.api.utils import assert_no_permission, get_graphql_content
 
 QUERY_WAREHOUSES = """
 query {
@@ -131,7 +131,7 @@ def test_warehouse_cannot_query_without_permissions(user_api_client, warehouse):
     errors = content["errors"]
     assert queried_warehouse is None
     assert len(errors) == 1
-    assert errors[0]["message"] == "You do not have permission to perform this action"
+    assert_no_permission(response)
 
 
 def test_warehouse_query(staff_api_client, warehouse, permission_manage_warehouses):
@@ -166,7 +166,7 @@ def test_query_warehouses_requires_permissions(staff_api_client, warehouse):
     content = get_graphql_content(response, ignore_errors=True)
     errors = content["errors"]
     assert len(errors) == 1
-    assert errors[0]["message"] == "You do not have permission to perform this action"
+    assert_no_permission(response)
 
 
 def test_query_warehouses(staff_api_client, warehouse, permission_manage_warehouses):
@@ -206,7 +206,7 @@ def test_mutation_create_warehouse_requires_permission(staff_api_client):
     assert not Warehouse.objects.exists()
     errors = content["errors"]
     assert len(errors) == 1
-    assert errors[0]["message"] == "You do not have permission to perform this action"
+    assert_no_permission(response)
 
 
 def test_mutation_create_warehouse(
@@ -288,7 +288,7 @@ def test_mutation_update_warehouse_requires_permission(staff_api_client, warehou
     content = get_graphql_content(response, ignore_errors=True)
     errors = content["errors"]
     assert len(errors) == 1
-    assert errors[0]["message"] == "You do not have permission to perform this action"
+    assert_no_permission(response)
 
 
 def test_mutation_update_warehouse(
@@ -355,7 +355,7 @@ def test_delete_warehouse_requires_permission(staff_api_client, warehouse):
     content = get_graphql_content(response, ignore_errors=True)
     errors = content["errors"]
     assert len(errors) == 1
-    assert errors[0]["message"] == "You do not have permission to perform this action"
+    assert_no_permission(response)
 
 
 def test_delete_warehouse_mutation(
