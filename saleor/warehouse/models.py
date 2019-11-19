@@ -34,9 +34,6 @@ class Warehouse(models.Model):
 
     objects = WarehouseQueryset.as_manager()
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         ordering = ("-name",)
         permissions = (
@@ -45,3 +42,10 @@ class Warehouse(models.Model):
                 pgettext_lazy("Permission description", "Manage warehouses."),
             ),
         )
+
+    def __str__(self):
+        return self.name
+
+    def delete(self, *args, **kwargs):
+        self.address.delete()
+        super().delete(*args, **kwargs)
