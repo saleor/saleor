@@ -55,6 +55,7 @@ def indexed_products(product_type, category):
             price=Money(10, "USD"),
             product_type=product_type,
             category=category,
+            is_published=True,
         )
         return product
 

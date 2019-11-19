@@ -36,9 +36,9 @@
     {% if products_count %}
       <p>
         {% blocktrans count counter=products_count trimmed context "Remove category form text about products" %}
-          There is one product in this category that will be removed.
+          There is one product in this category that will be set as unavailable.
           {% plural %}
-          There are {{ counter }} products in this category that will be removed.
+          There are {{ counter }} products in this category that will be set as unavailable.
         {% endblocktrans %}
       </p>
     {% endif %}
