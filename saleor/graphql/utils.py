@@ -6,6 +6,7 @@ from django.utils import timezone
 from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
 from graphql_relay import from_global_id
+from graphql_jwt.utils import jwt_payload
 
 from .core.enums import PermissionEnum, ReportingPeriod
 from .core.types import PermissionDisplay
@@ -162,3 +163,10 @@ def format_permissions_for_display(permissions):
             PermissionDisplay(code=PermissionEnum.get(codename), name=permission.name)
         )
     return formatted_permissions
+
+
+def create_jwt_payload(user, context=None):
+    payload = jwt_payload(user, context)
+    payload["is_staff"] = user.is_staff
+    payload["is_superuser"] = user.is_superuser
+    return payload
