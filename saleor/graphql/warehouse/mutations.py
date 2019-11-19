@@ -1,7 +1,8 @@
 import graphene
 
 from saleor.account.models import Address
-from saleor.graphql.core.mutations import ModelMutation
+from saleor.graphql.core.mutations import ModelDeleteMutation, ModelMutation
+from saleor.graphql.core.types.common import WarehouseError
 from saleor.graphql.warehouse.types import WarehouseCreateInput, WarehouseUpdateInput
 from saleor.warehouse import models
 
@@ -30,11 +31,7 @@ class WarehouseCreate(ModelMutation):
 
     @classmethod
     def create_address(cls, clean_data):
-        address_data = {}
-        for field in ADDRESS_FIELDS:
-            field_value = clean_data.get(field)
-            if field_value is not None:
-                address_data[field] = field_value
+        address_data = clean_data["address"]
         address = Address.objects.create(**address_data)
         return address
 
@@ -58,8 +55,11 @@ class WarehouseUpdate(ModelMutation):
     @classmethod
     def update_address(cls, instance, cleaned_data):
         address = instance.address
+        address_data = cleaned_data.get("address")
+        if address_data is None:
+            return address
         for field in ADDRESS_FIELDS:
-            field_value = cleaned_data.get(field)
+            field_value = address_data.get(field)
             if field_value is not None:
                 setattr(address, field, field_value)
         address.save()
@@ -70,3 +70,15 @@ class WarehouseUpdate(ModelMutation):
         cleaned_data = super().clean_input(info, instance, data, input_cls=input_cls)
         cleaned_data["address"] = cls.update_address(instance, cleaned_data)
         return cleaned_data
+
+
+class WarehouseDelete(ModelDeleteMutation):
+    class Meta:
+        model = models.Warehouse
+        permissions = ("warehouse.manage_warehouses",)
+        description = "Deletes selected warehouse."
+        error_type_class = WarehouseError
+        error_type_field = "warehouse_errors"
+
+    class Arguments:
+        id = graphene.ID(description="ID of a warehouse to delete.", required=True)
