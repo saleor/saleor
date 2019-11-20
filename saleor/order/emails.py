@@ -1,6 +1,7 @@
 from django.urls import reverse
 from templated_email import send_templated_mail
 
+from ..account.models import StaffNotificationRecipient
 from ..celeryconf import app
 from ..core.emails import get_email_context
 from ..core.utils import build_absolute_uri
@@ -9,6 +10,7 @@ from . import events
 from .models import Fulfillment, Order
 
 CONFIRM_ORDER_TEMPLATE = "order/confirm_order"
+STAFF_CONFIRM_ORDER_TEMPLATE = "order/staff_confirm_order"
 CONFIRM_FULFILLMENT_TEMPLATE = "order/confirm_fulfillment"
 UPDATE_FULFILLMENT_TEMPLATE = "order/update_fulfillment"
 CONFIRM_PAYMENT_TEMPLATE = "order/payment/confirm_payment"
@@ -43,6 +45,37 @@ def collect_data_for_email(order_pk, template):
     }
 
 
+def collect_staff_order_notification_data(order_pk, template):
+    """Collect the required data for sending emails.
+
+    Args:
+        order_pk (int): order primary key
+        template (str): email template path
+
+    """
+    order = Order.objects.get(pk=order_pk)
+    staff_notifications = StaffNotificationRecipient.objects.filter(
+        active=True, user__is_active=True, user__is_staff=True
+    )
+    recipient_emails = [
+        notification.get_email() for notification in staff_notifications
+    ]
+    send_kwargs, email_context = get_email_context()
+    email_context["order_details_url"] = build_absolute_uri(
+        reverse("order:details", kwargs={"token": order.token})
+    )
+    email_context["order"] = order
+    email_markup = get_order_confirmation_markup(order)
+    email_context["schema_markup"] = email_markup
+
+    return {
+        "recipient_list": recipient_emails,
+        "template_name": template,
+        "context": email_context,
+        **send_kwargs,
+    }
+
+
 def collect_data_for_fullfillment_email(order_pk, template, fulfillment_pk):
     fulfillment = Fulfillment.objects.get(pk=fulfillment_pk)
     email_data = collect_data_for_email(order_pk, template)
@@ -71,6 +104,16 @@ def send_order_confirmation(order_pk, user_pk=None):
         user_pk=user_pk,
         email_type=events.OrderEventsEmails.ORDER,
     )
+
+
+@app.task
+def send_staff_order_confirmation(order_pk):
+    """Send order confirmation email."""
+    staff_email_data = collect_staff_order_notification_data(
+        order_pk, STAFF_CONFIRM_ORDER_TEMPLATE
+    )
+    if staff_email_data["recipient_list"]:
+        send_templated_mail(**staff_email_data)
 
 
 @app.task

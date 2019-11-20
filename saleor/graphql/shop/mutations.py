@@ -3,14 +3,14 @@ from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.management import call_command
 
-from ...account.models import Address
+from ...account import models as account_models
 from ...core.error_codes import ShopErrorCode
 from ...core.utils.url import validate_storefront_url
 from ...site import models as site_models
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
 from ..core.enums import WeightUnitsEnum
-from ..core.mutations import BaseMutation
+from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import ShopError
 from ..product.types import Collection
 from .types import AuthorizationKey, AuthorizationKeyType, Shop
@@ -119,7 +119,7 @@ class ShopAddressUpdate(BaseMutation, I18nMixin):
 
         if data:
             if not site_settings.company_address:
-                company_address = Address()
+                company_address = account_models.Address()
             else:
                 company_address = site_settings.company_address
             company_address = cls.validate_address(data, company_address)
@@ -288,3 +288,108 @@ class AuthorizationKeyDelete(BaseMutation):
 
         instance.delete()
         return AuthorizationKeyDelete(authorization_key=instance, shop=Shop())
+
+
+class StaffNotificationRecipientInput(graphene.InputObjectType):
+    user = graphene.ID(
+        required=False,
+        description="The ID of the user subscribed to email notifications..",
+    )
+    email = graphene.String(
+        required=False,
+        description="Email address of a user subscribed to email notifications.",
+    )
+    active = graphene.Boolean(
+        required=False, description="Determines if a notification active."
+    )
+
+
+class StaffNotificationRecipientCreate(ModelMutation):
+    class Arguments:
+        input = StaffNotificationRecipientInput(
+            required=True,
+            description="Fields required to create a staff notification recipient.",
+        )
+
+    class Meta:
+        description = "Creates a new staff notification recipient."
+        model = account_models.StaffNotificationRecipient
+        permissions = ("site.manage_settings",)
+        error_type_class = ShopError
+        error_type_field = "shop_errors"
+
+    @classmethod
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
+        cls.validate_input(instance, cleaned_input)
+        email = cleaned_input.pop("email", None)
+        if email:
+            staff_user = account_models.User.objects.filter(email=email).first()
+            if staff_user:
+                cleaned_input["user"] = staff_user
+            else:
+                cleaned_input["staff_email"] = email
+        return cleaned_input
+
+    @staticmethod
+    def validate_input(instance, cleaned_input):
+        email = cleaned_input.get("email")
+        user = cleaned_input.get("user")
+        if not email and not user:
+            if instance.id and "user" in cleaned_input or "email" in cleaned_input:
+                raise ValidationError(
+                    {
+                        "staff_notification": ValidationError(
+                            "User and email cannot be set empty",
+                            code=ShopErrorCode.INVALID,
+                        )
+                    }
+                )
+            if not instance.id:
+                raise ValidationError(
+                    {
+                        "staff_notification": ValidationError(
+                            "User or email is required", code=ShopErrorCode.REQUIRED
+                        )
+                    }
+                )
+        if user and not user.is_staff:
+            raise ValidationError(
+                {
+                    "user": ValidationError(
+                        "User has to be staff user", code=ShopErrorCode.INVALID
+                    )
+                }
+            )
+
+
+class StaffNotificationRecipientUpdate(StaffNotificationRecipientCreate):
+    class Arguments:
+        id = graphene.ID(
+            required=True, description="ID of a staff notification recipient to update."
+        )
+        input = StaffNotificationRecipientInput(
+            required=True,
+            description="Fields required to update a staff notification recipient.",
+        )
+
+    class Meta:
+        description = "Updates a staff notification recipient."
+        model = account_models.StaffNotificationRecipient
+        permissions = ("site.manage_settings",)
+        error_type_class = ShopError
+        error_type_field = "shop_errors"
+
+
+class StaffNotificationRecipientDelete(ModelDeleteMutation):
+    class Arguments:
+        id = graphene.ID(
+            required=True, description="ID of a staff notification recipient to delete."
+        )
+
+    class Meta:
+        description = "Delete staff notification recipient."
+        model = account_models.StaffNotificationRecipient
+        permissions = ("site.manage_settings",)
+        error_type_class = ShopError
+        error_type_field = "shop_errors"

@@ -5,12 +5,13 @@ from django_countries import countries
 from django_prices_vatlayer.models import VAT
 from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 
+from ...account import models as account_models
 from ...core.permissions import get_permissions
 from ...core.utils import get_client_ip, get_country_by_ip
 from ...menu import models as menu_models
 from ...product import models as product_models
 from ...site import models as site_models
-from ..account.types import Address
+from ..account.types import Address, StaffNotificationRecipient
 from ..core.enums import WeightUnitsEnum
 from ..core.types.common import CountryDisplay, LanguageDisplay, PermissionDisplay
 from ..core.utils import get_node_optimized, str_to_enum
@@ -144,6 +145,11 @@ class Shop(graphene.ObjectType):
     )
     customer_set_password_url = graphene.String(
         description="URL of a view where customers can set their password.",
+        required=False,
+    )
+    staff_notification_recipients = graphene.List(
+        StaffNotificationRecipient,
+        description="List of staff notification recipients.",
         required=False,
     )
 
@@ -309,3 +315,8 @@ class Shop(graphene.ObjectType):
     @permission_required("site.manage_settings")
     def resolve_default_digital_url_valid_days(_, info):
         return info.context.site.settings.default_digital_url_valid_days
+
+    @staticmethod
+    @permission_required("site.manage_settings")
+    def resolve_staff_notification_recipients(_, info):
+        return account_models.StaffNotificationRecipient.objects.all()
