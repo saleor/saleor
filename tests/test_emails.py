@@ -95,6 +95,40 @@ def test_send_emails(
     email_connection.get_email_message(to=recipients, **expected_call_kwargs)
 
 
+@mock.patch("saleor.order.emails.send_templated_mail")
+def test_send_staff_emails_without_notification_recipient(
+    mocked_templated_email, order, site_settings
+):
+    emails.send_staff_order_confirmation(order.pk)
+    mocked_templated_email.assert_not_called()
+
+
+@mock.patch("saleor.order.emails.send_templated_mail")
+def test_send_staff_emails(
+    mocked_templated_email, order, site_settings, staff_notification_recipient
+):
+    emails.send_staff_order_confirmation(order.pk)
+    email_data = emails.collect_staff_order_notification_data(
+        order.pk, emails.STAFF_CONFIRM_ORDER_TEMPLATE
+    )
+
+    recipients = [staff_notification_recipient.get_email()]
+
+    expected_call_kwargs = {
+        "context": email_data["context"],
+        "from_email": site_settings.default_from_email,
+        "template_name": emails.STAFF_CONFIRM_ORDER_TEMPLATE,
+    }
+
+    mocked_templated_email.assert_called_once_with(
+        recipient_list=recipients, **expected_call_kwargs
+    )
+
+    # Render the email to ensure there is no error
+    email_connection = get_connection()
+    email_connection.get_email_message(to=recipients, **expected_call_kwargs)
+
+
 @pytest.mark.parametrize(
     "send_email,template",
     [
