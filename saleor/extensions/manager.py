@@ -6,6 +6,11 @@ from django.utils.module_loading import import_string
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
+from ..checkout.base_calculations import (
+    get_base_checkout_line_total,
+    get_base_checkout_subtotal,
+    get_base_checkout_total,
+)
 from ..core.payments import PaymentInterface
 from ..core.taxes import TaxType, quantize_price
 from .models import PluginConfiguration
@@ -82,9 +87,12 @@ class ExtensionsManager(PaymentInterface):
     def calculate_checkout_total(
         self, checkout: "Checkout", discounts: "DiscountsListType"
     ) -> TaxedMoney:
-        from ..checkout.base_calculations import get_base_checkout_total
 
-        default_value = get_base_checkout_total(checkout, discounts)
+        default_value = get_base_checkout_total(
+            checkout,
+            self.calculate_checkout_subtotal(checkout, discounts),
+            self.calculate_checkout_shipping(checkout, discounts),
+        )
         return self.__run_method_on_plugins(
             "calculate_checkout_total", default_value, checkout, discounts
         )
@@ -92,9 +100,10 @@ class ExtensionsManager(PaymentInterface):
     def calculate_checkout_subtotal(
         self, checkout: "Checkout", discounts: "DiscountsListType"
     ) -> TaxedMoney:
-        from ..checkout.base_calculations import get_base_checkout_subtotal
-
-        default_value = get_base_checkout_subtotal(checkout, discounts)
+        line_totals = [
+            self.calculate_checkout_line_total(line, discounts) for line in checkout
+        ]
+        default_value = get_base_checkout_subtotal(checkout, line_totals)
         return self.__run_method_on_plugins(
             "calculate_checkout_subtotal", default_value, checkout, discounts
         )

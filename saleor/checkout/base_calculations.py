@@ -4,12 +4,11 @@ It's recommended to use functions from calculations.py module to take in account
 manager.
 """
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 from prices import TaxedMoney
 
 from ..core.taxes import quantize_price, zero_taxed_money
-from ..extensions.manager import get_extensions_manager
 
 if TYPE_CHECKING:
     from .models import Checkout, CheckoutLine
@@ -31,26 +30,17 @@ def get_base_checkout_shipping_price(
 
 
 def get_base_checkout_subtotal(
-    checkout: "Checkout", discounts: "DiscountsListType" = None
+    checkout: "Checkout", line_totals: List[TaxedMoney]
 ) -> TaxedMoney:
     """Return the total cost of all checkout lines."""
-    extensions = get_extensions_manager()
-    subtotals = (
-        extensions.calculate_checkout_line_total(line, discounts) for line in checkout
-    )
-    return sum(subtotals, zero_taxed_money(checkout.currency))
+    return sum(line_totals, zero_taxed_money(checkout.currency))
 
 
 def get_base_checkout_total(
-    checkout: "Checkout", discounts: "DiscountsListType" = None
+    checkout: "Checkout", subtotal: TaxedMoney, shipping_price: TaxedMoney
 ) -> TaxedMoney:
     """Return the total cost of the checkout."""
-    extensions = get_extensions_manager()
-    total = (
-        extensions.calculate_checkout_subtotal(checkout, discounts)
-        + extensions.calculate_checkout_shipping(checkout, discounts)
-        - checkout.discount
-    )
+    total = subtotal + shipping_price - checkout.discount
     return max(total, zero_taxed_money(checkout.currency))
 
 

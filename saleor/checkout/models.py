@@ -19,6 +19,7 @@ from ..giftcard.models import GiftCard
 from ..shipping.models import ShippingMethod
 
 if TYPE_CHECKING:
+    # flake8: noqa
     from ..product.models import ProductVariant
     from django_measurement import Weight
     from ..payment.models import Payment
@@ -130,7 +131,7 @@ class Checkout(ModelWithMetadata):
         matching_lines = (line for line in self if line.variant.pk == variant.pk)
         return next(matching_lines, None)
 
-    def get_last_active_payment(self) -> "Payment":
+    def get_last_active_payment(self) -> Optional["Payment"]:
         payments = [payment for payment in self.payments.all() if payment.is_active]
         return max(payments, default=None, key=attrgetter("pk"))
 
