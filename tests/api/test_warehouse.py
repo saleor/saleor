@@ -346,6 +346,51 @@ def test_mutation_update_warehouse_can_update_address(
     assert address.street_address_2 == "Ground floor"
 
 
+def test_mutation_update_warehouse_removing_shipping_zones(
+    staff_api_client, warehouse, permission_manage_warehouses
+):
+    staff_api_client.user.user_permissions.add(permission_manage_warehouses)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
+    assert warehouse.shipping_zones.count() == 1
+    variables = {
+        "id": warehouse_id,
+        "input": {
+            "name": warehouse.name,
+            "companyName": warehouse.company_name,
+            "shippingZones": [],
+        },
+    }
+    staff_api_client.post_graphql(MUTATION_UPDATE_WAREHOUSE, variables=variables)
+    warehouse.refresh_from_db()
+    assert not warehouse.shipping_zones.exists()
+
+
+def test_mutation_update_warehouse_adding_shipping_zones(
+    staff_api_client,
+    warehouse,
+    permission_manage_warehouses,
+    shipping_zone_without_countries,
+):
+    staff_api_client.user.user_permissions.add(permission_manage_warehouses)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
+    assert warehouse.shipping_zones.count() == 1
+    current_zone = warehouse.shipping_zones.first()
+    current_zone_id = graphene.Node.to_global_id("ShippingZone", current_zone.id)
+    new_zone = shipping_zone_without_countries
+    new_zone_id = graphene.Node.to_global_id("ShippingZone", new_zone.pk)
+    variables = {
+        "id": warehouse_id,
+        "input": {
+            "name": warehouse.name,
+            "companyName": warehouse.company_name,
+            "shippingZones": [current_zone_id, new_zone_id],
+        },
+    }
+    staff_api_client.post_graphql(MUTATION_UPDATE_WAREHOUSE, variables=variables)
+    warehouse.refresh_from_db()
+    assert warehouse.shipping_zones.count() == 2
+
+
 def test_delete_warehouse_requires_permission(staff_api_client, warehouse):
     assert not staff_api_client.user.has_perm("warehouse.manage_warehouses")
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
