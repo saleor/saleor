@@ -14,6 +14,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Remove thumbnail generation from migration - #3494 by @kswiatek92
 - Rename 'shipping_date' field in fulfillment model to 'created' - #2433 by @kswiatek92
 - Reduce number of queries for 'completeCheckout' mutation - #4989 by @IKarbowiak
+- Now force pytest to ignore the environment variable containing the django settings module - #4992 by @NyanKiyoshi
 
 ## 2.9.0
 
