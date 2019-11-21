@@ -56,7 +56,7 @@ def remove_voucher_usage_by_customer(voucher: "Voucher", customer_email: str):
 
 
 def get_product_discount_on_sale(
-    product: Product, product_collections: Set["Collection"], discount: DiscountInfo
+    product: "Product", product_collections: Set["Collection"], discount: DiscountInfo
 ):
     """Return discount value if product is on sale or raise NotApplicable."""
     is_product_on_sale = (

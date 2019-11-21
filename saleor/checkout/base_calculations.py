@@ -11,6 +11,7 @@ from prices import TaxedMoney
 from ..core.taxes import quantize_price, zero_taxed_money
 
 if TYPE_CHECKING:
+    # flake8: noqa
     from .models import Checkout, CheckoutLine
     from ..discount.types import DiscountsListType
 
