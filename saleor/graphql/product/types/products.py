@@ -1,3 +1,4 @@
+from dataclasses import asdict
 from typing import List, Union
 
 import graphene
@@ -359,7 +360,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
             context.currency,
             extensions=context.extensions,
         )
-        return VariantPricingInfo(**availability._asdict())
+        return VariantPricingInfo(**asdict(availability))
 
     resolve_availability = resolve_pricing
 
@@ -561,7 +562,7 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
             context.currency,
             context.extensions,
         )
-        return ProductPricingInfo(**availability._asdict())
+        return ProductPricingInfo(**asdict(availability))
 
     resolve_availability = resolve_pricing
 

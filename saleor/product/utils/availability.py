@@ -1,4 +1,4 @@
-from collections import namedtuple
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, Iterable, Optional, Tuple, Union
 
 from prices import TaxedMoney, TaxedMoneyRange
@@ -16,31 +16,27 @@ if TYPE_CHECKING:
 
     from ...extensions.manager import ExtensionsManager
 
-ProductAvailability = namedtuple(
-    "ProductAvailability",
-    (
-        "available",
-        "on_sale",
-        "price_range",
-        "price_range_undiscounted",
-        "discount",
-        "price_range_local_currency",
-        "discount_local_currency",
-    ),
-)
 
-VariantAvailability = namedtuple(
-    "ProductAvailability",
-    (
-        "available",
-        "on_sale",
-        "price",
-        "price_undiscounted",
-        "discount",
-        "price_local_currency",
-        "discount_local_currency",
-    ),
-)
+@dataclass
+class ProductAvailability:
+    available: bool
+    on_sale: bool
+    price_range: TaxedMoneyRange
+    price_range_undiscounted: TaxedMoneyRange
+    discount: Optional[TaxedMoney]
+    price_range_local_currency: Optional[TaxedMoneyRange]
+    discount_local_currency: Optional[TaxedMoneyRange]
+
+
+@dataclass
+class VariantAvailability:
+    available: bool
+    on_sale: bool
+    price: TaxedMoney
+    price_undiscounted: TaxedMoney
+    discount: Optional[TaxedMoney]
+    price_local_currency: Optional[TaxedMoney]
+    discount_local_currency: Optional[TaxedMoney]
 
 
 def products_with_availability(
