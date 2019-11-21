@@ -1,7 +1,7 @@
 import graphene
 
-from ...account.models import Address
 from ...warehouse import models
+from ..account.i18n import I18nMixin
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types.common import WarehouseError
 from .types import WarehouseCreateInput, WarehouseUpdateInput
@@ -18,7 +18,7 @@ ADDRESS_FIELDS = [
 ]
 
 
-class WarehouseCreate(ModelMutation):
+class WarehouseCreate(ModelMutation, I18nMixin):
     class Arguments:
         input = WarehouseCreateInput(
             required=True, description="Fields required to create warehouse."
@@ -32,10 +32,9 @@ class WarehouseCreate(ModelMutation):
         error_type_field = "warehouse_errors"
 
     @classmethod
-    def create_address(cls, clean_data):
-        address_data = clean_data["address"]
-        address = Address.objects.create(**address_data)
-        return address
+    def create_address(cls, cleaned_data):
+        address_form = cls.validate_address_form(cleaned_data["address"])
+        return address_form.save()
 
     @classmethod
     def construct_instance(cls, instance, cleaned_data):
@@ -43,7 +42,7 @@ class WarehouseCreate(ModelMutation):
         return super().construct_instance(instance, cleaned_data)
 
 
-class WarehouseUpdate(ModelMutation):
+class WarehouseUpdate(ModelMutation, I18nMixin):
     class Meta:
         model = models.Warehouse
         permissions = ("warehouse.manage_warehouses",)
@@ -57,16 +56,12 @@ class WarehouseUpdate(ModelMutation):
 
     @classmethod
     def update_address(cls, instance, cleaned_data):
-        address = instance.address
         address_data = cleaned_data.get("address")
+        address = instance.address
         if address_data is None:
             return address
-        for field in ADDRESS_FIELDS:
-            field_value = address_data.get(field)
-            if field_value is not None:
-                setattr(address, field, field_value)
-        address.save()
-        return address
+        address_form = cls.validate_address_form(address_data, instance=address)
+        return address_form.save()
 
     @classmethod
     def construct_instance(cls, instance, cleaned_data):

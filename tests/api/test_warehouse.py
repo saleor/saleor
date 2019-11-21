@@ -72,6 +72,7 @@ mutation createWarehouse($input: WarehouseCreateInput!) {
     createWarehouse(input: $input){
         errors {
             message
+            field
         }
         warehouse {
             id
@@ -223,6 +224,7 @@ def test_mutation_create_warehouse(
                 "streetAddress1": "Teczowa 8",
                 "city": "Wroclaw",
                 "country": "PL",
+                "postalCode": "53-601",
             },
             "shippingZones": [
                 graphene.Node.to_global_id("ShippingZone", shipping_zone.id)
@@ -256,6 +258,7 @@ def test_create_warehouse_creates_address(
                 "streetAddress1": "Teczowa 8",
                 "city": "Wroclaw",
                 "country": "PL",
+                "postalCode": "53-601",
             },
             "shippingZones": [
                 graphene.Node.to_global_id("ShippingZone", shipping_zone.id)
@@ -275,7 +278,7 @@ def test_create_warehouse_creates_address(
     warehouse_data = content["data"]["createWarehouse"]["warehouse"]
     assert warehouse_data["address"]["id"] == address_id
     assert address.street_address_1 == "Teczowa 8"
-    assert address.city == "Wroclaw"
+    assert address.city == "WROCLAW"
 
 
 def test_mutation_update_warehouse_requires_permission(staff_api_client, warehouse):
@@ -332,6 +335,7 @@ def test_mutation_update_warehouse_can_update_address(
                 "streetAddress2": "Ground floor",
                 "city": address.city,
                 "country": address.country.code,
+                "postalCode": "53-601",
             },
         },
     }
