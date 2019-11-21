@@ -84,7 +84,7 @@ class ShippingZone(models.Model):
     def countries_display(self):
         countries = self.countries
         if self.default:
-            from ..dashboard.shipping.forms import get_available_countries
+            from .utils import get_available_countries
 
             countries = get_available_countries()
         if countries and len(countries) <= 3:
