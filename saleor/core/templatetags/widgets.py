@@ -3,7 +3,7 @@ from django.conf import settings
 from django.forms import Textarea, TextInput
 from django_filters import widgets
 
-from ..account.widgets import PhonePrefixWidget as StorefrontPhonePrefixWidget
+from ...account.widgets import PhonePrefixWidget as StorefrontPhonePrefixWidget
 
 
 class DateRangeWidget(widgets.DateRangeWidget):
