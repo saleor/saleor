@@ -1,13 +1,13 @@
 import datetime
 from collections import defaultdict
-from typing import TYPE_CHECKING, Iterable, List, Set
+from typing import TYPE_CHECKING, Dict, Iterable, List, Set
 
 from django.db.models import F
 from django.utils import timezone
 from django.utils.translation import pgettext
 from prices import Money
 
-from ..checkout.calculations import get_checkout_subtotal
+from ..checkout import calculations
 from ..core.taxes import zero_money
 from . import DiscountInfo
 from .models import NotApplicable, Sale, VoucherCustomer
@@ -95,7 +95,7 @@ def calculate_discounted_price(
 def validate_voucher_for_checkout(
     voucher: "Voucher", checkout: "Checkout", discounts: "DiscountsListType"
 ):
-    subtotal = get_checkout_subtotal(checkout, discounts)
+    subtotal = calculations.checkout_subtotal(checkout, discounts)
 
     customer_email = checkout.get_customer_email()
     validate_voucher(voucher, subtotal.gross, checkout.quantity, customer_email)
@@ -126,7 +126,7 @@ def get_products_voucher_discount(voucher: "Voucher", prices: Iterable[Money]) -
     return total_amount
 
 
-def _fetch_categories(sale_pks: Iterable[str]) -> dict:
+def _fetch_categories(sale_pks: Iterable[str]) -> Dict[str, Set[str]]:
     from ..product.models import Category
 
     categories = Sale.categories.through.objects.filter(

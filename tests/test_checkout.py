@@ -12,12 +12,7 @@ from prices import Money, TaxedMoney, TaxedMoneyRange
 from saleor.account import CustomerEvents
 from saleor.account.models import Address, CustomerEvent, User
 from saleor.account.utils import store_user_address
-from saleor.checkout import AddressType, views
-from saleor.checkout.calculations import (
-    get_checkout_shipping_price,
-    get_checkout_subtotal,
-    get_checkout_total,
-)
+from saleor.checkout import AddressType, calculations, views
 from saleor.checkout.forms import CheckoutVoucherForm, CountryForm
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import (
@@ -715,8 +710,8 @@ def test_create_order_with_gift_card(
     checkout.shipping_method = shipping_method
     checkout.save()
 
-    subtotal = get_checkout_subtotal(checkout)
-    shipping_price = get_checkout_shipping_price(checkout)
+    subtotal = calculations.checkout_subtotal(checkout)
+    shipping_price = calculations.checkout_shipping_price(checkout)
     total_gross_without_gift_cards = (
         subtotal.gross + shipping_price.gross - checkout.discount
     )
@@ -745,7 +740,7 @@ def test_create_order_with_gift_card_partial_use(
     checkout.shipping_method = shipping_method
     checkout.save()
 
-    price_without_gift_card = get_checkout_total(checkout)
+    price_without_gift_card = calculations.checkout_total(checkout)
     gift_card_balance_before_order = gift_card_used.current_balance_amount
 
     checkout.gift_cards.add(gift_card_used)
@@ -784,7 +779,7 @@ def test_create_order_with_many_gift_cards(
     checkout.shipping_method = shipping_method
     checkout.save()
 
-    price_without_gift_card = get_checkout_total(checkout)
+    price_without_gift_card = calculations.checkout_total(checkout)
     gift_cards_balance_before_order = (
         gift_card_created_by_staff.current_balance.amount
         + gift_card.current_balance.amount
@@ -862,11 +857,11 @@ def test_get_discount_for_checkout_value_voucher(
     checkout = Mock(spec=Checkout, quantity=total_quantity)
     subtotal = TaxedMoney(Money(total, "USD"), Money(total, "USD"))
     monkeypatch.setattr(
-        "saleor.checkout.utils.get_checkout_subtotal",
+        "saleor.checkout.utils.calculations.checkout_subtotal",
         lambda checkout, discounts: subtotal,
     )
     monkeypatch.setattr(
-        "saleor.discount.utils.get_checkout_subtotal",
+        "saleor.discount.utils.calculations.checkout_subtotal",
         lambda checkout, discounts: subtotal,
     )
     discount = get_voucher_discount_for_checkout(voucher, checkout)
@@ -920,11 +915,11 @@ def test_get_discount_for_checkout_entire_order_voucher_not_applicable(
     checkout = Mock(spec=Checkout, quantity=total_quantity)
     subtotal = TaxedMoney(Money(total, "USD"), Money(total, "USD"))
     monkeypatch.setattr(
-        "saleor.checkout.utils.get_checkout_subtotal",
+        "saleor.checkout.utils.calculations.checkout_subtotal",
         lambda checkout, discounts: subtotal,
     )
     monkeypatch.setattr(
-        "saleor.discount.utils.get_checkout_subtotal",
+        "saleor.discount.utils.calculations.checkout_subtotal",
         lambda checkout, discounts: subtotal,
     )
     with pytest.raises(NotApplicable):
@@ -988,17 +983,17 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
         lambda checkout, discounts, product: [],
     )
     monkeypatch.setattr(
-        "saleor.checkout.calculations.get_checkout_shipping_price",
+        "saleor.checkout.calculations.checkout_shipping_price",
         lambda _: TaxedMoney(Money(0, "USD"), Money(0, "USD")),
     )
     monkeypatch.setattr(
-        "saleor.discount.utils.get_checkout_subtotal",
+        "saleor.discount.utils.calculations.checkout_subtotal",
         lambda checkout, discounts: TaxedMoney(
             Money(total, "USD"), Money(total, "USD")
         ),
     )
     monkeypatch.setattr(
-        "saleor.checkout.utils.get_checkout_subtotal",
+        "saleor.checkout.utils.calculations.checkout_subtotal",
         lambda checkout, discounts: TaxedMoney(
             Money(total, "USD"), Money(total, "USD")
         ),
@@ -1040,11 +1035,11 @@ def test_get_discount_for_checkout_shipping_voucher(
 ):
     subtotal = TaxedMoney(Money(100, "USD"), Money(100, "USD"))
     monkeypatch.setattr(
-        "saleor.checkout.utils.get_checkout_subtotal",
+        "saleor.checkout.utils.calculations.checkout_subtotal",
         lambda checkout, discounts: subtotal,
     )
     monkeypatch.setattr(
-        "saleor.discount.utils.get_checkout_subtotal",
+        "saleor.discount.utils.calculations.checkout_subtotal",
         lambda checkout, discounts: subtotal,
     )
     shipping_total = Money(shipping_cost, "USD")
@@ -1069,16 +1064,16 @@ def test_get_discount_for_checkout_shipping_voucher(
 def test_get_discount_for_checkout_shipping_voucher_all_countries(monkeypatch):
     subtotal = TaxedMoney(Money(100, "USD"), Money(100, "USD"))
     monkeypatch.setattr(
-        "saleor.checkout.utils.get_checkout_subtotal",
+        "saleor.checkout.utils.calculations.checkout_subtotal",
         lambda checkout, discounts: subtotal,
     )
     monkeypatch.setattr(
-        "saleor.discount.utils.get_checkout_subtotal",
+        "saleor.discount.utils.calculations.checkout_subtotal",
         lambda checkout, discounts: subtotal,
     )
     shipping_total = TaxedMoney(Money(10, "USD"), Money(10, "USD"))
     monkeypatch.setattr(
-        "saleor.checkout.utils.get_checkout_shipping_price",
+        "saleor.checkout.utils.calculations.checkout_shipping_price",
         lambda checkout, discounts: shipping_total,
     )
     checkout = Mock(
@@ -1104,7 +1099,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(monkeypatc
     subtotal = TaxedMoney(net=Money(100, "USD"), gross=Money(100, "USD"))
     shipping_total = TaxedMoney(net=Money(10, "USD"), gross=Money(10, "USD"))
     monkeypatch.setattr(
-        "saleor.discount.utils.get_checkout_subtotal",
+        "saleor.discount.utils.calculations.checkout_subtotal",
         lambda checkout, discounts: subtotal,
     )
     checkout = Mock(
@@ -1218,11 +1213,11 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
     monkeypatch,
 ):
     monkeypatch.setattr(
-        "saleor.checkout.utils.get_checkout_subtotal",
+        "saleor.checkout.utils.calculations.checkout_subtotal",
         lambda checkout, discounts: subtotal,
     )
     monkeypatch.setattr(
-        "saleor.discount.utils.get_checkout_subtotal",
+        "saleor.discount.utils.calculations.checkout_subtotal",
         lambda checkout, discounts: subtotal,
     )
     checkout = Mock(
@@ -1371,9 +1366,9 @@ def test_recalculate_checkout_discount_with_sale(
     checkout = checkout_with_voucher_percentage
     recalculate_checkout_discount(checkout, [discount_info])
     assert checkout.discount == Money("1.50", "USD")
-    assert get_checkout_total(checkout, discounts=[discount_info]).gross == Money(
-        "13.50", "USD"
-    )
+    assert calculations.checkout_total(
+        checkout, discounts=[discount_info]
+    ).gross == Money("13.50", "USD")
 
 
 def test_recalculate_checkout_discount_voucher_not_applicable(
@@ -1410,7 +1405,7 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping
 ):
     checkout = checkout_with_voucher_percentage_and_shipping
 
-    shipping_method.price = get_checkout_subtotal(checkout).gross + Money(
+    shipping_method.price = calculations.checkout_subtotal(checkout).gross + Money(
         "10.00", "USD"
     )
     shipping_method.save()
@@ -1419,7 +1414,9 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping
 
     assert checkout.discount == shipping_method.price
     assert checkout.discount_name == "Free shipping"
-    assert get_checkout_total(checkout) == get_checkout_subtotal(checkout)
+    assert calculations.checkout_total(checkout) == calculations.checkout_subtotal(
+        checkout
+    )
 
 
 def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shipping(
@@ -1429,14 +1426,18 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shippi
 ):
     checkout = checkout_with_voucher_percentage_and_shipping
 
-    shipping_method.price = get_checkout_subtotal(checkout).gross - Money("1.00", "USD")
+    shipping_method.price = calculations.checkout_subtotal(checkout).gross - Money(
+        "1.00", "USD"
+    )
     shipping_method.save()
 
     recalculate_checkout_discount(checkout, None)
 
     assert checkout.discount == shipping_method.price
     assert checkout.discount_name == "Free shipping"
-    assert get_checkout_total(checkout) == get_checkout_subtotal(checkout)
+    assert calculations.checkout_total(checkout) == calculations.checkout_subtotal(
+        checkout
+    )
 
 
 def test_recalculate_checkout_discount_free_shipping_for_checkout_without_shipping(

@@ -16,12 +16,7 @@ from prices import Money, MoneyRange, TaxedMoneyRange
 from ..account.forms import get_address_form
 from ..account.models import Address, User
 from ..account.utils import store_user_address
-from ..checkout.calculations import (
-    get_checkout_line_total,
-    get_checkout_shipping_price,
-    get_checkout_subtotal,
-    get_checkout_total,
-)
+from ..checkout import calculations
 from ..checkout.error_codes import CheckoutErrorCode
 from ..core.exceptions import InsufficientStock
 from ..core.taxes import quantize_price, zero_taxed_money
@@ -138,7 +133,7 @@ def get_prices_of_discounted_specific_product(
         discounted_lines.extend(list(lines))
 
     for line in discounted_lines:
-        line_total = get_checkout_line_total(line, discounts or []).gross
+        line_total = calculations.checkout_line_total(line, discounts or []).gross
         line_unit_price = quantize_price(
             (line_total / line.quantity), line_total.currency
         )
@@ -677,12 +672,12 @@ def get_checkout_context(
     cards_balance = checkout.get_total_gift_cards_balance()
 
     # FIXME: We are having here parts of checkout total calculation logic
-    checkout_total = get_checkout_total(checkout=checkout, discounts=discounts)
+    checkout_total = calculations.checkout_total(checkout=checkout, discounts=discounts)
     checkout_total.gross -= cards_balance
     checkout_total.net -= cards_balance
     checkout_total = max(checkout_total, zero_taxed_money(checkout_total.currency))
-    checkout_subtotal = get_checkout_subtotal(checkout, discounts)
-    shipping_price = get_checkout_shipping_price(checkout, discounts)
+    checkout_subtotal = calculations.checkout_subtotal(checkout, discounts)
+    shipping_price = calculations.checkout_shipping_price(checkout, discounts)
 
     shipping_required = checkout.is_shipping_required()
     total_with_shipping = TaxedMoneyRange(
@@ -696,7 +691,8 @@ def get_checkout_context(
         "checkout": checkout,
         "checkout_are_taxes_handled": manager.taxes_are_enabled(),
         "checkout_lines": [
-            (line, get_checkout_line_total(line, discounts)) for line in checkout
+            (line, calculations.checkout_line_total(line, discounts))
+            for line in checkout
         ],
         "checkout_shipping_price": shipping_price,
         "checkout_subtotal": checkout_subtotal,
@@ -739,7 +735,7 @@ def _get_shipping_voucher_discount_for_checkout(
         )
         raise NotApplicable(msg)
 
-    shipping_price = get_checkout_shipping_price(checkout, discounts).gross
+    shipping_price = calculations.checkout_shipping_price(checkout, discounts).gross
     return voucher.get_discount_amount_for(shipping_price)
 
 
@@ -767,7 +763,7 @@ def get_voucher_discount_for_checkout(
     """
     validate_voucher_for_checkout(voucher, checkout, discounts)
     if voucher.type == VoucherType.ENTIRE_ORDER:
-        subtotal = get_checkout_subtotal(checkout, discounts).gross
+        subtotal = calculations.checkout_subtotal(checkout, discounts).gross
         return voucher.get_discount_amount_for(subtotal)
     if voucher.type == VoucherType.SHIPPING:
         return _get_shipping_voucher_discount_for_checkout(voucher, checkout, discounts)
@@ -806,7 +802,7 @@ def recalculate_checkout_discount(checkout: Checkout, discounts: "DiscountsListT
         except NotApplicable:
             remove_voucher_from_checkout(checkout)
         else:
-            subtotal = get_checkout_subtotal(checkout, discounts).gross
+            subtotal = calculations.checkout_subtotal(checkout, discounts).gross
             checkout.discount = (
                 min(discount, subtotal)
                 if voucher.type != VoucherType.SHIPPING
@@ -1118,7 +1114,7 @@ def prepare_order_data(*, checkout: Checkout, tracking_code: str, discounts) -> 
     order_data = {}
 
     manager = get_extensions_manager()
-    taxed_total = get_checkout_total(checkout=checkout, discounts=discounts)
+    taxed_total = calculations.checkout_total(checkout=checkout, discounts=discounts)
     cards_total = checkout.get_total_gift_cards_balance()
     taxed_total.gross -= cards_total
     taxed_total.net -= cards_total
@@ -1221,7 +1217,7 @@ def is_fully_paid(checkout: Checkout, discounts: "DiscountsListType"):
     payments = [payment for payment in checkout.payments.all() if payment.is_active]
     total_paid = sum([p.total for p in payments])
     checkout_total = (
-        get_checkout_total(checkout=checkout, discounts=discounts)
+        calculations.checkout_total(checkout=checkout, discounts=discounts)
         - checkout.get_total_gift_cards_balance()
     )
     checkout_total = max(

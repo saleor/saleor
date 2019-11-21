@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from ..discount.types import DiscountsListType
 
 
-def get_checkout_shipping_price(
+def checkout_shipping_price(
     checkout: "Checkout", discounts: "DiscountsListType" = None
 ) -> "TaxedMoney":
     """Return checkout price without taking in account aby plugins and extensions.
@@ -18,7 +18,7 @@ def get_checkout_shipping_price(
     return get_extensions_manager().calculate_checkout_shipping(checkout, discounts)
 
 
-def get_checkout_subtotal(
+def checkout_subtotal(
     checkout: "Checkout", discounts: "DiscountsListType" = None
 ) -> "TaxedMoney":
     """Return the total cost of the checkout prior to shipping.
@@ -28,7 +28,7 @@ def get_checkout_subtotal(
     return get_extensions_manager().calculate_checkout_subtotal(checkout, discounts)
 
 
-def get_checkout_total(
+def checkout_total(
     checkout: "Checkout", discounts: "DiscountsListType" = None
 ) -> "TaxedMoney":
     """Return the total cost of the checkout.
@@ -38,7 +38,7 @@ def get_checkout_total(
     return get_extensions_manager().calculate_checkout_total(checkout, discounts)
 
 
-def get_checkout_line_total(
+def checkout_line_total(
     line: "CheckoutLine", discounts: "DiscountsListType" = None
 ) -> "TaxedMoney":
     """Return the total price of this line.

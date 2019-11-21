@@ -7,7 +7,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from prices import Money, TaxedMoney
 
-from saleor.checkout.calculations import get_checkout_subtotal, get_checkout_total
+from saleor.checkout import calculations
 from saleor.checkout.error_codes import CheckoutErrorCode
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import clean_checkout, is_fully_paid
@@ -1169,7 +1169,7 @@ def test_checkout_complete(
     checkout_line_variant = checkout_line.variant
 
     gift_current_balance = checkout.get_total_gift_cards_balance()
-    total = get_checkout_total(checkout)
+    total = calculations.checkout_total(checkout)
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -1273,7 +1273,7 @@ def test_checkout_complete_does_not_delete_checkout_after_unsuccessful_payment(
     checkout.billing_address = address
     checkout.save()
 
-    taxed_total = get_checkout_total(checkout)
+    taxed_total = calculations.checkout_total(checkout)
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -1349,7 +1349,7 @@ def test_checkout_complete_insufficient_stock(
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
     checkout.save()
-    total = get_checkout_total(checkout)
+    total = calculations.checkout_total(checkout)
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -1439,9 +1439,9 @@ def test_checkout_prices(user_api_client, checkout_with_item):
     data = content["data"]["checkout"]
     assert data["token"] == str(checkout_with_item.token)
     assert len(data["lines"]) == checkout_with_item.lines.count()
-    total = get_checkout_total(checkout_with_item)
+    total = calculations.checkout_total(checkout_with_item)
     assert data["totalPrice"]["gross"]["amount"] == (total.gross.amount)
-    subtotal = get_checkout_subtotal(checkout_with_item)
+    subtotal = calculations.checkout_subtotal(checkout_with_item)
     assert data["subtotalPrice"]["gross"]["amount"] == (subtotal.gross.amount)
 
 
@@ -1577,7 +1577,7 @@ def test_clean_checkout(checkout_with_item, payment_dummy, address, shipping_met
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
     checkout.save()
-    total = get_checkout_total(checkout)
+    total = calculations.checkout_total(checkout)
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -1658,7 +1658,7 @@ def test_clean_checkout_no_payment(checkout_with_item, shipping_method, address)
 
 def test_is_fully_paid(checkout_with_item, payment_dummy):
     checkout = checkout_with_item
-    total = get_checkout_total(checkout)
+    total = calculations.checkout_total(checkout)
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -1672,7 +1672,7 @@ def test_is_fully_paid(checkout_with_item, payment_dummy):
 
 def test_is_fully_paid_many_payments(checkout_with_item, payment_dummy):
     checkout = checkout_with_item
-    total = get_checkout_total(checkout)
+    total = calculations.checkout_total(checkout)
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -1694,7 +1694,7 @@ def test_is_fully_paid_many_payments(checkout_with_item, payment_dummy):
 
 def test_is_fully_paid_partially_paid(checkout_with_item, payment_dummy):
     checkout = checkout_with_item
-    total = get_checkout_total(checkout)
+    total = calculations.checkout_total(checkout)
     payment = payment_dummy
     payment.is_active = True
     payment.order = None

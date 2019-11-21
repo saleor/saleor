@@ -8,11 +8,7 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import pgettext_lazy
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
-from ....checkout.base_calculations import (
-    get_base_checkout_line_total,
-    get_base_checkout_shipping_price,
-    get_base_checkout_total,
-)
+from ....checkout import base_calculations
 from ....core.taxes import TaxError, TaxType, zero_taxed_money
 from ... import ConfigurationTypeField
 from ...base_plugin import BasePlugin
@@ -154,7 +150,8 @@ class AvataxPlugin(BasePlugin):
         if self._skip_plugin(previous_value):
             return previous_value
 
-        checkout_total = get_base_checkout_total(checkout, discounts)
+        checkout_total = previous_value
+
         if not _validate_checkout(checkout):
             return checkout_total
         response = get_checkout_tax_data(checkout, discounts, self.config)
@@ -197,8 +194,7 @@ class AvataxPlugin(BasePlugin):
         if self._skip_plugin(previous_value):
             return previous_value
 
-        # TODO: Isn't previous value for that?
-        base_subtotal = get_base_checkout_total(checkout, discounts)
+        base_subtotal = previous_value
         if not _validate_checkout(checkout):
             return base_subtotal
 
@@ -235,7 +231,7 @@ class AvataxPlugin(BasePlugin):
         if self._skip_plugin(previous_value):
             return previous_value
 
-        base_shipping_price = get_base_checkout_shipping_price(checkout)
+        base_shipping_price = base_calculations.base_checkout_shipping_price(checkout)
         if not _validate_checkout(checkout):
             return base_shipping_price
 
@@ -310,7 +306,9 @@ class AvataxPlugin(BasePlugin):
             return previous_value
 
         checkout = checkout_line.checkout
-        base_total = get_base_checkout_line_total(checkout_line, discounts)
+        base_total = base_calculations.base_checkout_line_total(
+            checkout_line, discounts
+        )
         if not _validate_checkout(checkout):
             return base_total
 
@@ -324,7 +322,7 @@ class AvataxPlugin(BasePlugin):
                 line_net = Money(amount=line_net, currency=currency)
                 return TaxedMoney(net=line_net, gross=line_gross)
 
-        return get_base_checkout_line_total(checkout_line, discounts)
+        return base_calculations.base_checkout_line_total(checkout_line, discounts)
 
     def _calculate_order_line_unit(self, order_line):
         order = order_line.order

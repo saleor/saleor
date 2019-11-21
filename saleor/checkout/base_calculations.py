@@ -15,11 +15,8 @@ if TYPE_CHECKING:
     from ..discount.types import DiscountsListType
 
 
-def get_base_checkout_shipping_price(
-    checkout: "Checkout", discounts: "DiscountsListType" = None
-) -> TaxedMoney:
+def base_checkout_shipping_price(checkout: "Checkout") -> TaxedMoney:
     """Return checkout shipping price."""
-    # FIXME: should it take discounts in account?
     if not checkout.shipping_method or not checkout.is_shipping_required():
         return zero_taxed_money(checkout.currency)
 
@@ -29,14 +26,14 @@ def get_base_checkout_shipping_price(
     )
 
 
-def get_base_checkout_subtotal(
+def base_checkout_subtotal(
     checkout: "Checkout", line_totals: List[TaxedMoney]
 ) -> TaxedMoney:
     """Return the total cost of all checkout lines."""
     return sum(line_totals, zero_taxed_money(checkout.currency))
 
 
-def get_base_checkout_total(
+def base_checkout_total(
     checkout: "Checkout", subtotal: TaxedMoney, shipping_price: TaxedMoney
 ) -> TaxedMoney:
     """Return the total cost of the checkout."""
@@ -44,7 +41,7 @@ def get_base_checkout_total(
     return max(total, zero_taxed_money(checkout.currency))
 
 
-def get_base_checkout_line_total(
+def base_checkout_line_total(
     line: "CheckoutLine", discounts: "DiscountsListType" = None
 ) -> TaxedMoney:
     """Return the total price of this line."""

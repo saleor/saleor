@@ -3,7 +3,7 @@ from decimal import Decimal
 import graphene
 import pytest
 
-from saleor.checkout.calculations import get_checkout_total
+from saleor.checkout import calculations
 from saleor.core.utils import get_country_name_by_code
 from saleor.graphql.payment.enums import OrderAction, PaymentChargeStatusEnum
 from saleor.payment.interface import CreditCardInfo, CustomerSource, TokenConfig
@@ -94,7 +94,7 @@ def test_checkout_add_payment(
 ):
     checkout = checkout_with_item
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    total = get_checkout_total(checkout)
+    total = calculations.checkout_total(checkout)
     variables = {
         "checkoutId": checkout_id,
         "input": {
@@ -176,7 +176,7 @@ def test_use_checkout_billing_address_as_payment_billing(
 ):
     checkout = checkout_with_item
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    total = get_checkout_total(checkout)
+    total = calculations.checkout_total(checkout)
     variables = {
         "checkoutId": checkout_id,
         "input": {
