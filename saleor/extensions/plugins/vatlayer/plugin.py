@@ -81,30 +81,6 @@ class VatlayerPlugin(BasePlugin):
             - checkout.discount
         )
 
-    def calculate_checkout_subtotal(
-        self,
-        checkout: "Checkout",
-        discounts: List["DiscountInfo"],
-        previous_value: TaxedMoney,
-    ) -> TaxedMoney:
-        """Calculate subtotal gross for checkout."""
-        self._initialize_plugin_configuration()
-
-        if self._skip_plugin(previous_value):
-            return previous_value
-
-        address = checkout.shipping_address or checkout.billing_address
-        lines = checkout.lines.prefetch_related("variant__product__product_type")
-        zero_total = Money(0, currency=previous_value.currency)
-
-        lines_total = TaxedMoney(net=zero_total, gross=zero_total)
-        for line in lines:
-            price = line.variant.get_price(discounts)
-            lines_total += line.quantity * self.__apply_taxes_to_product(
-                line.variant.product, price, address.country if address else None
-            )
-        return lines_total
-
     def _get_taxes_for_country(self, country: Country):
         """Try to fetch cached taxes on the plugin level.
 
@@ -172,10 +148,11 @@ class VatlayerPlugin(BasePlugin):
             checkout_line.checkout.shipping_address
             or checkout_line.checkout.billing_address
         )
-        price = checkout_line.variant.get_price(discounts) * checkout_line.quantity
+        price = checkout_line.variant.get_price(discounts)
         country = address.country if address else None
-        return self.__apply_taxes_to_product(
-            checkout_line.variant.product, price, country
+        return (
+            self.__apply_taxes_to_product(checkout_line.variant.product, price, country)
+            * checkout_line.quantity
         )
 
     def calculate_order_line_unit(
