@@ -10,6 +10,7 @@ from ...core.connection import CountableDjangoObjectType
 from ...core.resolvers import resolve_meta, resolve_private_meta
 from ...core.types import MetadataObjectType
 from ...decorators import permission_required
+from ...translations.descriptions import TranslationFieldDecriptions
 from ...translations.enums import LanguageCodeEnum
 from ...translations.resolvers import resolve_translation
 from ...translations.types import AttributeTranslation, AttributeValueTranslation
@@ -56,11 +57,13 @@ class AttributeValue(CountableDjangoObjectType):
         AttributeValueTranslation,
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description="A language code to return the translation for.",
+            description=TranslationFieldDecriptions.LANGUAGE_CODE.format(
+                type_name="attribute value"
+            ),
             required=True,
         ),
-        description=(
-            "Returns translated Attribute Value fields " "for the given language code."
+        description=TranslationFieldDecriptions.DESCRIPTION.format(
+            type_name="attribute value"
         ),
         resolver=resolve_translation,
     )
@@ -117,11 +120,13 @@ class Attribute(CountableDjangoObjectType, MetadataObjectType):
         AttributeTranslation,
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description="A language code to return the translation for.",
+            description=TranslationFieldDecriptions.LANGUAGE_CODE.format(
+                type_name="attribute"
+            ),
             required=True,
         ),
-        description=(
-            "Returns translated Attribute fields " "for the given language code."
+        description=TranslationFieldDecriptions.DESCRIPTION.format(
+            type_name="attribute"
         ),
         resolver=resolve_translation,
     )
