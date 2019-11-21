@@ -435,3 +435,40 @@ def test_delete_warehouse_deletes_associated_address(
     errors = content["data"]["deleteWarehouse"]["errors"]
     assert len(errors) == 0
     assert not Address.objects.exists()
+
+
+def test_shipping_zone_can_be_assigned_only_to_one_warehouse(
+    staff_api_client, warehouse, permission_manage_warehouses
+):
+    staff_api_client.user.user_permissions.add(permission_manage_warehouses)
+    used_shipping_zone = warehouse.shipping_zones.first()
+    used_shipping_zone_id = graphene.Node.to_global_id(
+        "ShippingZone", used_shipping_zone.pk
+    )
+
+    variables = {
+        "input": {
+            "name": "Warehouse #q",
+            "companyName": "Big Company",
+            "email": "test@example.com",
+            "address": {
+                "streetAddress1": "Teczowa 8",
+                "city": "Wroclaw",
+                "country": "PL",
+                "postalCode": "53-601",
+            },
+            "shippingZones": [used_shipping_zone_id],
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        MUTATION_CREATE_WAREHOUSE, variables=variables
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["createWarehouse"]["errors"]
+    assert len(errors) == 1
+    assert (
+        errors[0]["message"] == "Shipping zone can be assigned only to one warehouse."
+    )
+    used_shipping_zone.refresh_from_db()
+    assert used_shipping_zone.warehouse_set.count() == 1

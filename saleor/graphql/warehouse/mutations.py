@@ -1,9 +1,11 @@
 import graphene
+from django.core.exceptions import ValidationError
 
 from ...warehouse import models
 from ..account.i18n import I18nMixin
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types.common import WarehouseError
+from .forms import WarehouseForm
 from .types import WarehouseCreateInput, WarehouseUpdateInput
 
 ADDRESS_FIELDS = [
@@ -18,7 +20,22 @@ ADDRESS_FIELDS = [
 ]
 
 
-class WarehouseCreate(ModelMutation, I18nMixin):
+class WarehouseMixin:
+    @classmethod
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
+        warehouse_form = WarehouseForm(cleaned_input, instance=instance)
+        if not warehouse_form.is_valid():
+            raise ValidationError(warehouse_form.errors.as_data())
+        return cleaned_input
+
+    @classmethod
+    def construct_instance(cls, instance, cleaned_data):
+        cleaned_data["address"] = cls.prepare_address(cleaned_data, instance)
+        return super().construct_instance(instance, cleaned_data)
+
+
+class WarehouseCreate(WarehouseMixin, ModelMutation, I18nMixin):
     class Arguments:
         input = WarehouseCreateInput(
             required=True, description="Fields required to create warehouse."
@@ -32,17 +49,12 @@ class WarehouseCreate(ModelMutation, I18nMixin):
         error_type_field = "warehouse_errors"
 
     @classmethod
-    def create_address(cls, cleaned_data):
+    def prepare_address(cls, cleaned_data, *args):
         address_form = cls.validate_address_form(cleaned_data["address"])
         return address_form.save()
 
-    @classmethod
-    def construct_instance(cls, instance, cleaned_data):
-        cleaned_data["address"] = cls.create_address(cleaned_data)
-        return super().construct_instance(instance, cleaned_data)
 
-
-class WarehouseUpdate(ModelMutation, I18nMixin):
+class WarehouseUpdate(WarehouseMixin, ModelMutation, I18nMixin):
     class Meta:
         model = models.Warehouse
         permissions = ("warehouse.manage_warehouses",)
@@ -55,18 +67,13 @@ class WarehouseUpdate(ModelMutation, I18nMixin):
         input = WarehouseUpdateInput(required=True)
 
     @classmethod
-    def update_address(cls, instance, cleaned_data):
+    def prepare_address(cls, cleaned_data, instance):
         address_data = cleaned_data.get("address")
         address = instance.address
         if address_data is None:
             return address
         address_form = cls.validate_address_form(address_data, instance=address)
         return address_form.save()
-
-    @classmethod
-    def construct_instance(cls, instance, cleaned_data):
-        cleaned_data["address"] = cls.update_address(instance, cleaned_data)
-        return super().construct_instance(instance, cleaned_data)
 
 
 class WarehouseDelete(ModelDeleteMutation):
