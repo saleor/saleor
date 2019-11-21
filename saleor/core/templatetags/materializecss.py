@@ -2,7 +2,7 @@ from django import forms, template
 from django.template.loader import get_template
 from django_filters.widgets import RangeWidget
 
-from ...dashboard.widgets import CharsLeftWidget, DateRangeWidget, MoneyRangeWidget
+from .widgets import CharsLeftWidget, DateRangeWidget, MoneyRangeWidget
 
 register = template.Library()
 
