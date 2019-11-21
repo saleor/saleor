@@ -4,14 +4,15 @@ from django.conf import settings
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
+from django.utils.translation import pgettext
 from prices import Money, TaxedMoney
 
 from ..account.utils import store_user_address
 from ..checkout import AddressType
 from ..core.taxes import zero_money
 from ..core.weight import zero_weight
-from ..dashboard.order.utils import get_voucher_discount_for_order
-from ..discount.models import NotApplicable
+from ..discount.models import NotApplicable, VoucherType
+from ..discount.utils import get_products_voucher_discount, validate_voucher_in_order
 from ..extensions.manager import get_extensions_manager
 from ..order import OrderStatus
 from ..order.models import Order, OrderLine
@@ -321,3 +322,32 @@ def get_valid_shipping_methods_for_order(order: Order):
     return ShippingMethod.objects.applicable_shipping_methods_for_instance(
         order, price=order.get_subtotal().gross
     )
+
+
+def get_products_voucher_discount_for_order(order, voucher):
+    """Calculate products discount value for a voucher, depending on its type."""
+    prices = None
+    if not prices:
+        msg = pgettext(
+            "Voucher not applicable", "This offer is only valid for selected items."
+        )
+        raise NotApplicable(msg)
+    return get_products_voucher_discount(voucher, prices)
+
+
+def get_voucher_discount_for_order(order):
+    """Calculate discount value depending on voucher and discount types.
+
+    Raise NotApplicable if voucher of given type cannot be applied.
+    """
+    if not order.voucher:
+        return zero_money(order.currency)
+    validate_voucher_in_order(order)
+    subtotal = order.get_subtotal()
+    if order.voucher.type == VoucherType.ENTIRE_ORDER:
+        return order.voucher.get_discount_amount_for(subtotal.gross)
+    if order.voucher.type == VoucherType.SHIPPING:
+        return order.voucher.get_discount_amount_for(order.shipping_price)
+    if order.voucher.type == VoucherType.SPECIFIC_PRODUCT:
+        return get_products_voucher_discount_for_order(order, order.voucher)
+    raise NotImplementedError("Unknown discount type")
