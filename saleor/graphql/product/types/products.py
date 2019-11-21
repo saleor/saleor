@@ -33,6 +33,7 @@ from ...core.types import (
     TaxType,
 )
 from ...decorators import permission_required
+from ...translations.descriptions import TranslationFieldDecriptions
 from ...translations.enums import LanguageCodeEnum
 from ...translations.resolvers import resolve_translation
 from ...translations.types import (
@@ -284,11 +285,13 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         ProductVariantTranslation,
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description="A language code to return the translation for.",
+            description=TranslationFieldDecriptions.LANGUAGE_CODE.format(
+                type_name="product variant"
+            ),
             required=True,
         ),
-        description=(
-            "Returns translated Product Variant fields " "for the given language code."
+        description=TranslationFieldDecriptions.DESCRIPTION.format(
+            type_name="product variant"
         ),
         resolver=resolve_translation,
     )
@@ -503,10 +506,12 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
         ProductTranslation,
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description="A language code to return the translation for.",
+            description=TranslationFieldDecriptions.LANGUAGE_CODE.format(
+                type_name="product"
+            ),
             required=True,
         ),
-        description=("Returns translated Product fields for the given language code."),
+        description=TranslationFieldDecriptions.DESCRIPTION.format(type_name="product"),
         resolver=resolve_translation,
     )
 
@@ -772,11 +777,13 @@ class Collection(CountableDjangoObjectType, MetadataObjectType):
         CollectionTranslation,
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description="A language code to return the translation for.",
+            description=TranslationFieldDecriptions.LANGUAGE_CODE.format(
+                type_name="collection"
+            ),
             required=True,
         ),
-        description=(
-            "Returns translated Collection fields " "for the given language code."
+        description=TranslationFieldDecriptions.DESCRIPTION.format(
+            type_name="collection"
         ),
         resolver=resolve_translation,
     )
@@ -859,10 +866,14 @@ class Category(CountableDjangoObjectType, MetadataObjectType):
         CategoryTranslation,
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description="A language code to return the translation for.",
+            description=TranslationFieldDecriptions.LANGUAGE_CODE.format(
+                type_name="category"
+            ),
             required=True,
         ),
-        description=("Returns translated Category fields for the given language code."),
+        description=TranslationFieldDecriptions.DESCRIPTION.format(
+            type_name="category"
+        ),
         resolver=resolve_translation,
     )
 
