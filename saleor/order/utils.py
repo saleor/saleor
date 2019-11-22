@@ -324,7 +324,7 @@ def get_valid_shipping_methods_for_order(order: Order):
     )
 
 
-def get_products_voucher_discount_for_order(order, voucher):
+def get_products_voucher_discount_for_order(voucher):
     """Calculate products discount value for a voucher, depending on its type."""
     prices = None
     if not prices:
