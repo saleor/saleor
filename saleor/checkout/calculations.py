@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 def checkout_shipping_price(
     checkout: "Checkout", discounts: "DiscountsListType" = None
 ) -> "TaxedMoney":
-    """Return checkout price without taking in account aby plugins and extensions.
+    """Return checkout shipping price.
 
     It takes in account all extensions.
     """
@@ -21,7 +21,7 @@ def checkout_shipping_price(
 def checkout_subtotal(
     checkout: "Checkout", discounts: "DiscountsListType" = None
 ) -> "TaxedMoney":
-    """Return the total cost of the checkout prior to shipping.
+    """Return the total cost of all the checkout lines, taxes included.
 
     It takes in account all extensions.
     """
@@ -33,6 +33,9 @@ def checkout_total(
 ) -> "TaxedMoney":
     """Return the total cost of the checkout.
 
+    Total is a cost of all lines and shipping fees, minus checkout discounts,
+    taxes included.
+
     It takes in account all extensions.
     """
     return get_extensions_manager().calculate_checkout_total(checkout, discounts)
@@ -41,7 +44,7 @@ def checkout_total(
 def checkout_line_total(
     line: "CheckoutLine", discounts: "DiscountsListType" = None
 ) -> "TaxedMoney":
-    """Return the total price of this line.
+    """Return the total price of provided line, taxes included.
 
     It takes in account all extensions.
     """
