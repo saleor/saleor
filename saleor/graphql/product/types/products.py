@@ -86,6 +86,7 @@ def resolve_attribute_list(
         - product_type -> attribute[rel] -> attribute
     """
     resolved_attributes = []
+    attributes_qs = None
 
     # Retrieve the product type
     if isinstance(instance, models.Product):
@@ -93,6 +94,8 @@ def resolve_attribute_list(
         product_type_attributes_assoc_field = "attributeproduct"
         assigned_attribute_instance_field = "productassignments"
         assigned_attribute_instance_filters = {"product_id": instance.pk}
+        if hasattr(product_type, "storefront_attributes"):
+            attributes_qs = product_type.storefront_attributes
     elif isinstance(instance, models.ProductVariant):
         product_type = instance.product.product_type
         product_type_attributes_assoc_field = "attributevariant"
@@ -102,8 +105,9 @@ def resolve_attribute_list(
         raise AssertionError(f"{instance.__class__.__name__} is unsupported")
 
     # Retrieve all the product attributes assigned to this product type
-    attributes_qs = getattr(product_type, product_type_attributes_assoc_field)
-    attributes_qs = attributes_qs.get_visible_to_user(user)
+    if not attributes_qs:
+        attributes_qs = getattr(product_type, product_type_attributes_assoc_field)
+        attributes_qs = attributes_qs.get_visible_to_user(user)
 
     # An empty QuerySet for unresolved values
     empty_qs = models.AttributeValue.objects.none()
@@ -590,8 +594,13 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
     @staticmethod
     @gql_optimizer.resolver_hints(
         prefetch_related=[
-            "product_type__attributeproduct__productassignments__values",
-            "product_type__attributeproduct__attribute",
+            Prefetch(
+                "product_type__attributeproduct",
+                queryset=models.AttributeProduct.objects.filter(
+                    attribute__visible_in_storefront=True
+                ).prefetch_related("productassignments__values", "attribute"),
+                to_attr="storefront_attributes",
+            )
         ]
     )
     def resolve_attributes(root: models.Product, info):
