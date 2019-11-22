@@ -96,16 +96,15 @@ def product_details(request, slug, product_id, form=None):
     )
     product_images = get_product_images(product)
     variant_picker_data = get_variant_picker_data(
-        product,
-        request.discounts,
-        request.extensions,
-        request.currency,
-        request.country,
+        product=product,
+        discounts=request.discounts,
+        extensions=request.extensions,
+        local_currency=request.currency,
+        country=request.country,
+        product_availability=availability,
     )
     # show_variant_picker determines if variant picker is used or select input
-    show_variant_picker = all(
-        [v["attributes"] for v in variant_picker_data["variants"]]
-    )
+    show_variant_picker = all([v.attributes for v in variant_picker_data.variants])
     json_ld_data = product_json_ld(product)
     ctx = {
         "description_json": product.translated.description_json,

@@ -7,7 +7,7 @@ from ...account import events as account_events
 from ..models import DigitalContentUrl
 
 
-def get_default_digital_content_settings():
+def get_default_digital_content_settings() -> dict:
     site = Site.objects.get_current()
     settings = site.settings
     return {
