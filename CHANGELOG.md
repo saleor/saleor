@@ -16,6 +16,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Reduce number of queries for 'completeCheckout' mutation - #4989 by @IKarbowiak
 - Now force pytest to ignore the environment variable containing the django settings module - #4992 by @NyanKiyoshi
 - Extend JWT token payload with user information - #4987 by @salwator
+- Optimize the queries for product list in the dashboard - #4995 by @IKarbowiak
+- Drop dashboard 1.0 - #5000 by @IKarbowiak
 
 ## 2.9.0
 
