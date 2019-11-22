@@ -1,5 +1,5 @@
 from decimal import Decimal
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 from django.urls import reverse
@@ -10,14 +10,23 @@ from saleor.account.models import User
 from saleor.checkout.utils import create_order, prepare_order_data
 from saleor.core.exceptions import InsufficientStock
 from saleor.core.weight import zero_weight
+from saleor.discount.models import (
+    DiscountValueType,
+    NotApplicable,
+    Voucher,
+    VoucherType,
+)
 from saleor.discount.utils import validate_voucher_in_order
 from saleor.order import OrderStatus, events as order_events, models
+from saleor.order.emails import send_fulfillment_confirmation_to_customer
+from saleor.order.events import OrderEvent, OrderEventsEmails
 from saleor.order.models import Order
 from saleor.order.templatetags.order_lines import display_translated_order_line_name
 from saleor.order.utils import (
     add_variant_to_order,
     change_order_line_quantity,
     delete_order_line,
+    get_voucher_discount_for_order,
     recalculate_order,
     restock_fulfillment_lines,
     restock_order_lines,
@@ -26,6 +35,7 @@ from saleor.order.utils import (
 )
 from saleor.payment import ChargeStatus
 from saleor.payment.models import Payment
+from saleor.product.models import Collection
 
 from .utils import get_redirect_location
 
@@ -653,3 +663,197 @@ def test_display_translated_order_line_name(
     )
     display_name = display_translated_order_line_name(order_line)
     assert display_name == expected_display_name
+
+
+@pytest.mark.parametrize(
+    "subtotal, discount_value, discount_type, min_spent_amount, expected_value",
+    [
+        ("100", 10, DiscountValueType.FIXED, None, 10),
+        ("100.05", 10, DiscountValueType.PERCENTAGE, 100, 10),
+    ],
+)
+def test_value_voucher_order_discount(
+    subtotal, discount_value, discount_type, min_spent_amount, expected_value
+):
+    voucher = Voucher(
+        code="unique",
+        type=VoucherType.ENTIRE_ORDER,
+        discount_value_type=discount_type,
+        discount_value=discount_value,
+        min_spent=Money(min_spent_amount, "USD")
+        if min_spent_amount is not None
+        else None,
+    )
+    subtotal = Money(subtotal, "USD")
+    subtotal = TaxedMoney(net=subtotal, gross=subtotal)
+    order = Mock(get_subtotal=Mock(return_value=subtotal), voucher=voucher)
+    discount = get_voucher_discount_for_order(order)
+    assert discount == Money(expected_value, "USD")
+
+
+@pytest.mark.parametrize(
+    "shipping_cost, discount_value, discount_type, expected_value",
+    [(10, 50, DiscountValueType.PERCENTAGE, 5), (10, 20, DiscountValueType.FIXED, 10)],
+)
+def test_shipping_voucher_order_discount(
+    shipping_cost, discount_value, discount_type, expected_value
+):
+    voucher = Voucher(
+        code="unique",
+        type=VoucherType.SHIPPING,
+        discount_value_type=discount_type,
+        discount_value=discount_value,
+        min_spent_amount=None,
+    )
+    subtotal = Money(100, "USD")
+    subtotal = TaxedMoney(net=subtotal, gross=subtotal)
+    shipping_total = Money(shipping_cost, "USD")
+    order = Mock(
+        get_subtotal=Mock(return_value=subtotal),
+        shipping_price=shipping_total,
+        voucher=voucher,
+    )
+    discount = get_voucher_discount_for_order(order)
+    assert discount == Money(expected_value, "USD")
+
+
+@pytest.mark.parametrize(
+    "total, total_quantity, min_spent_amount, min_checkout_items_quantity,"
+    "voucher_type",
+    [
+        (99, 10, 100, 10, VoucherType.SHIPPING),
+        (100, 9, 100, 10, VoucherType.SHIPPING),
+        (99, 9, 100, 10, VoucherType.SHIPPING),
+        (99, 10, 100, 10, VoucherType.ENTIRE_ORDER),
+        (100, 9, 100, 10, VoucherType.ENTIRE_ORDER),
+        (99, 9, 100, 10, VoucherType.ENTIRE_ORDER),
+        (99, 10, 100, 10, VoucherType.SPECIFIC_PRODUCT),
+        (100, 9, 100, 10, VoucherType.SPECIFIC_PRODUCT),
+        (99, 9, 100, 10, VoucherType.SPECIFIC_PRODUCT),
+    ],
+)
+def test_shipping_voucher_checkout_discount_not_applicable_returns_zero(
+    total, total_quantity, min_spent_amount, min_checkout_items_quantity, voucher_type
+):
+    voucher = Voucher(
+        code="unique",
+        type=voucher_type,
+        discount_value_type=DiscountValueType.FIXED,
+        discount_value=10,
+        min_spent=(
+            Money(min_spent_amount, "USD") if min_spent_amount is not None else None
+        ),
+        min_checkout_items_quantity=min_checkout_items_quantity,
+    )
+    price = Money(total, "USD")
+    price = TaxedMoney(net=price, gross=price)
+    order = Mock(
+        get_subtotal=Mock(return_value=price),
+        get_total_quantity=Mock(return_value=total_quantity),
+        shipping_price=price,
+        voucher=voucher,
+    )
+    with pytest.raises(NotApplicable):
+        get_voucher_discount_for_order(order)
+
+
+def test_product_voucher_checkout_discount_raises_not_applicable(
+    order_with_lines, product_with_images
+):
+    discounted_product = product_with_images
+    voucher = Voucher(
+        code="unique",
+        type=VoucherType.SPECIFIC_PRODUCT,
+        discount_value_type=DiscountValueType.FIXED,
+        discount_value=10,
+    )
+    voucher.save()
+    voucher.products.add(discounted_product)
+    order_with_lines.voucher = voucher
+    order_with_lines.save()
+    # Offer is valid only for products listed in voucher
+    with pytest.raises(NotApplicable):
+        get_voucher_discount_for_order(order_with_lines)
+
+
+def test_category_voucher_checkout_discount_raises_not_applicable(order_with_lines):
+    discounted_collection = Collection.objects.create(
+        name="Discounted", slug="discount"
+    )
+    voucher = Voucher(
+        code="unique",
+        type=VoucherType.SPECIFIC_PRODUCT,
+        discount_value_type=DiscountValueType.FIXED,
+        discount_value=10,
+    )
+    voucher.save()
+    voucher.collections.add(discounted_collection)
+    order_with_lines.voucher = voucher
+    order_with_lines.save()
+    # Discount should be valid only for items in the discounted collections
+    with pytest.raises(NotApplicable):
+        get_voucher_discount_for_order(order_with_lines)
+
+
+def test_ordered_item_change_quantity(transactional_db, order_with_lines):
+    assert not order_with_lines.events.count()
+    lines = order_with_lines.lines.all()
+    change_order_line_quantity(None, lines[1], lines[1].quantity, 0)
+    change_order_line_quantity(None, lines[0], lines[0].quantity, 0)
+    assert order_with_lines.get_total_quantity() == 0
+
+
+@patch("saleor.order.actions.emails.send_fulfillment_confirmation")
+@pytest.mark.parametrize(
+    "has_standard,has_digital", ((True, True), (True, False), (False, True))
+)
+def test_send_fulfillment_order_lines_mails(
+    mocked_send_fulfillment_confirmation,
+    staff_user,
+    fulfilled_order,
+    fulfillment,
+    digital_content,
+    has_standard,
+    has_digital,
+):
+
+    order = fulfilled_order
+    assert order.lines.count() == 2
+
+    if not has_standard:
+        line = order.lines.all()[0]
+        line.variant = digital_content.product_variant
+        assert line.is_digital
+        line.save()
+
+    if has_digital:
+        line = order.lines.all()[1]
+        line.variant = digital_content.product_variant
+        assert line.is_digital
+        line.save()
+
+    send_fulfillment_confirmation_to_customer(
+        order=order, fulfillment=fulfillment, user=staff_user
+    )
+    events = OrderEvent.objects.all()
+
+    mocked_send_fulfillment_confirmation.delay.assert_called_once_with(
+        order.pk, fulfillment.pk
+    )
+
+    # Ensure the standard fulfillment event was triggered
+    assert events[0].user == staff_user
+    assert events[0].parameters == {
+        "email": order.user_email,
+        "email_type": OrderEventsEmails.FULFILLMENT,
+    }
+
+    if has_digital:
+        assert len(events) == 2
+        assert events[1].user == staff_user
+        assert events[1].parameters == {
+            "email": order.user_email,
+            "email_type": OrderEventsEmails.DIGITAL_LINKS,
+        }
+    else:
+        assert len(events) == 1

@@ -2,8 +2,14 @@ import pytest
 from measurement.measures import Weight
 from prices import Money
 
+from saleor.account.i18n import COUNTRY_CHOICES
 from saleor.core.utils import format_money
 from saleor.shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
+from saleor.shipping.utils import (
+    currently_used_countries,
+    default_shipping_zone_exists,
+    get_available_countries,
+)
 
 from .utils import money
 
@@ -162,3 +168,24 @@ def test_countries_display(shipping_zone, countries, result):
     shipping_zone.countries = countries
     shipping_zone.save()
     assert shipping_zone.countries_display() == result
+
+
+def test_default_shipping_zone_exists(shipping_zone):
+    shipping_zone.default = True
+    shipping_zone.save()
+    assert default_shipping_zone_exists()
+    assert not default_shipping_zone_exists(shipping_zone.pk)
+
+
+def test_get_available_countries(shipping_zone):
+    assert get_available_countries(shipping_zone.pk) == set(COUNTRY_CHOICES)
+    assert get_available_countries() == (
+        set(COUNTRY_CHOICES) - currently_used_countries()
+    )
+
+
+def test_currently_used_countries():
+    zone_1 = ShippingZone.objects.create(name="Zone 1", countries=["PL"])
+    ShippingZone.objects.create(name="Zone 2", countries=["DE"])
+    result = currently_used_countries(zone_1.pk)
+    assert list(result)[0][0] == "DE"
