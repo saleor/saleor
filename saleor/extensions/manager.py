@@ -85,9 +85,10 @@ class ExtensionsManager(PaymentInterface):
     ) -> TaxedMoney:
 
         default_value = base_calculations.base_checkout_total(
-            checkout,
-            self.calculate_checkout_subtotal(checkout, discounts),
-            self.calculate_checkout_shipping(checkout, discounts),
+            subtotal=self.calculate_checkout_subtotal(checkout, discounts),
+            shipping_price=self.calculate_checkout_shipping(checkout, discounts),
+            discount=checkout.discount,
+            currency=checkout.currency,
         )
         return self.__run_method_on_plugins(
             "calculate_checkout_total", default_value, checkout, discounts
@@ -99,7 +100,9 @@ class ExtensionsManager(PaymentInterface):
         line_totals = [
             self.calculate_checkout_line_total(line, discounts) for line in checkout
         ]
-        default_value = base_calculations.base_checkout_subtotal(checkout, line_totals)
+        default_value = base_calculations.base_checkout_subtotal(
+            line_totals, checkout.currency
+        )
         return self.__run_method_on_plugins(
             "calculate_checkout_subtotal", default_value, checkout, discounts
         )

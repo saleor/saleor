@@ -27,19 +27,20 @@ def base_checkout_shipping_price(checkout: "Checkout") -> TaxedMoney:
     )
 
 
-def base_checkout_subtotal(
-    checkout: "Checkout", line_totals: List[TaxedMoney]
-) -> TaxedMoney:
+def base_checkout_subtotal(line_totals: List[TaxedMoney], currency: str) -> TaxedMoney:
     """Return the total cost of all checkout lines."""
-    return sum(line_totals, zero_taxed_money(checkout.currency))
+    return sum(line_totals, zero_taxed_money(currency))
 
 
 def base_checkout_total(
-    checkout: "Checkout", subtotal: TaxedMoney, shipping_price: TaxedMoney
+    subtotal: TaxedMoney,
+    shipping_price: TaxedMoney,
+    discount: TaxedMoney,
+    currency: str,
 ) -> TaxedMoney:
     """Return the total cost of the checkout."""
-    total = subtotal + shipping_price - checkout.discount
-    return max(total, zero_taxed_money(checkout.currency))
+    total = subtotal + shipping_price - discount
+    return max(total, zero_taxed_money(currency))
 
 
 def base_checkout_line_total(
