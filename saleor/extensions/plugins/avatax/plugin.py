@@ -8,7 +8,6 @@ from django.core.exceptions import ValidationError
 from django.utils.translation import pgettext_lazy
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
-from ....checkout import base_calculations
 from ....core.taxes import TaxError, TaxType, zero_taxed_money
 from ... import ConfigurationTypeField
 from ...base_plugin import BasePlugin
@@ -231,7 +230,7 @@ class AvataxPlugin(BasePlugin):
         if self._skip_plugin(previous_value):
             return previous_value
 
-        base_shipping_price = base_calculations.base_checkout_shipping_price(checkout)
+        base_shipping_price = previous_value
         if not _validate_checkout(checkout):
             return base_shipping_price
 
@@ -306,9 +305,8 @@ class AvataxPlugin(BasePlugin):
             return previous_value
 
         checkout = checkout_line.checkout
-        base_total = base_calculations.base_checkout_line_total(
-            checkout_line, discounts
-        )
+        base_total = previous_value
+
         if not _validate_checkout(checkout):
             return base_total
 
@@ -322,7 +320,7 @@ class AvataxPlugin(BasePlugin):
                 line_net = Money(amount=line_net, currency=currency)
                 return TaxedMoney(net=line_net, gross=line_gross)
 
-        return base_calculations.base_checkout_line_total(checkout_line, discounts)
+        return base_total
 
     def _calculate_order_line_unit(self, order_line):
         order = order_line.order
