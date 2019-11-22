@@ -1,10 +1,14 @@
 from unittest import mock
 
 import pytest
+from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
 from django.core.exceptions import ImproperlyConfigured
 from django.templatetags.static import static
-from templated_email import get_connection
+from django.urls import reverse
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+from templated_email import get_connection, send_templated_mail
 
 import saleor.account.emails as account_emails
 import saleor.order.emails as emails
@@ -222,3 +226,33 @@ def test_email_with_email_not_configured_raises_error(settings, site_settings):
         _ = site_settings.default_from_email
 
     assert exc.value.args == ("No sender email address has been set-up",)
+
+
+def test_send_set_password_email(staff_user, site_settings):
+    site = site_settings.site
+    uid = urlsafe_base64_encode(force_bytes(staff_user.pk))
+    token = default_token_generator.make_token(staff_user)
+    logo_url = build_absolute_uri(static("images/logo-light.svg"))
+    password_set_url = build_absolute_uri(
+        reverse(
+            "account:reset-password-confirm", kwargs={"token": token, "uidb64": uid}
+        )
+    )
+    ctx = {
+        "logo_url": logo_url,
+        "password_set_url": password_set_url,
+        "site_name": site.name,
+    }
+    send_templated_mail(
+        template_name="dashboard/staff/set_password",
+        from_email=site_settings.default_from_email,
+        recipient_list=[staff_user.email],
+        context=ctx,
+    )
+    assert len(mail.outbox) == 1
+    generated_link = reverse(
+        "account:reset-password-confirm", kwargs={"uidb64": uid, "token": token}
+    )
+    absolute_generated_link = build_absolute_uri(generated_link)
+    sended_message = mail.outbox[0].body
+    assert absolute_generated_link in sended_message

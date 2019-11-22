@@ -90,7 +90,7 @@ def test_category_create_mutation(
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
         (
-            "saleor.dashboard.category.forms."
+            "saleor.product.thumbnails."
             "create_category_background_image_thumbnails.delay"
         ),
         mock_create_thumbnails,
@@ -167,7 +167,7 @@ def test_category_create_mutation_without_background_image(
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
         (
-            "saleor.dashboard.category.forms."
+            "saleor.product.thumbnails."
             "create_category_background_image_thumbnails.delay"
         ),
         mock_create_thumbnails,
@@ -230,7 +230,7 @@ def test_category_update_mutation(
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
         (
-            "saleor.dashboard.category.forms."
+            "saleor.product.thumbnails."
             "create_category_background_image_thumbnails.delay"
         ),
         mock_create_thumbnails,
@@ -325,7 +325,7 @@ def test_category_update_mutation_without_background_image(
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
         (
-            "saleor.dashboard.category.forms."
+            "saleor.product.thumbnails."
             "create_category_background_image_thumbnails.delay"
         ),
         mock_create_thumbnails,
