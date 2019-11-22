@@ -19,6 +19,7 @@ from .utils import (
 )
 
 if TYPE_CHECKING:
+    # flake8: noqa
     from ..payment.interface import CustomerSource
 
 

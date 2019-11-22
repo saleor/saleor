@@ -10,6 +10,7 @@ from . import ConfigurationTypeField
 from .models import PluginConfiguration
 
 if TYPE_CHECKING:
+    # flake8: noqa
     from ..core.taxes import TaxType
     from ..checkout.models import Checkout, CheckoutLine
     from ..discount import DiscountInfo
