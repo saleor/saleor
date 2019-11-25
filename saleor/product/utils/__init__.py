@@ -84,7 +84,7 @@ def get_variant_url_from_product(product: "Product", attributes) -> str:
     return "%s?%s" % (product.get_absolute_url(), urlencode(attributes))
 
 
-def get_variant_url(variant: "ProductVariant"):
+def get_variant_url(variant: "ProductVariant") -> str:
     attributes = {
         str(attribute.pk): attribute
         for attribute in variant.product.product_type.variant_attributes.all()
