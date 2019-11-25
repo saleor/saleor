@@ -4111,8 +4111,6 @@ enum TransactionKind {
   CONFIRM
 }
 
-union TranslatableItem = Product | Category | Collection | Attribute | AttributeValue | ProductVariant | Page | ShippingMethod | Sale | Voucher | MenuItem
-
 type TranslatableItemConnection {
   pageInfo: PageInfo!
   edges: [TranslatableItemEdge!]!
@@ -4120,7 +4118,7 @@ type TranslatableItemConnection {
 }
 
 type TranslatableItemEdge {
-  node: TranslatableItem!
+  node: DefaultTranslationItem!
   cursor: String!
 }
 
