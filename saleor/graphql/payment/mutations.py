@@ -92,7 +92,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         )
         checkout_total = max(checkout_total, zero_taxed_money(checkout_total.currency))
         amount = data.get("amount", checkout_total.gross.amount)
-        if amount < checkout_total.gross.amount:
+        if amount != checkout_total.gross.amount:
             raise ValidationError(
                 {
                     "amount": ValidationError(
