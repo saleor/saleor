@@ -18,6 +18,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Extend JWT token payload with user information - #4987 by @salwator
 - Optimize the queries for product list in the dashboard - #4995 by @IKarbowiak
 - Drop dashboard 1.0 - #5000 by @IKarbowiak
+- Fixed serialization error on weight fields when running `loaddata` and `dumpdb` - #5005 by @NyanKiyoshi
+- Fixed JSON encoding error on Google Analytics reporting - #5004 by @NyanKiyoshi
 
 ## 2.9.0
 
