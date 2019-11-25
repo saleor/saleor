@@ -33,7 +33,7 @@ from ...core.types import (
     TaxType,
 )
 from ...decorators import permission_required
-from ...translations.descriptions import TranslationFieldDecriptions
+from ...translations.descriptions import TranslationDescriptions
 from ...translations.enums import LanguageCodeEnum
 from ...translations.resolvers import resolve_translation
 from ...translations.types import (
@@ -285,12 +285,12 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         ProductVariantTranslation,
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description=TranslationFieldDecriptions.LANGUAGE_CODE.format(
+            description=TranslationDescriptions.LANGUAGE_CODE.format(
                 type_name="product variant"
             ),
             required=True,
         ),
-        description=TranslationFieldDecriptions.DESCRIPTION.format(
+        description=TranslationDescriptions.DESCRIPTION.format(
             type_name="product variant"
         ),
         resolver=resolve_translation,
@@ -506,12 +506,12 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
         ProductTranslation,
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description=TranslationFieldDecriptions.LANGUAGE_CODE.format(
+            description=TranslationDescriptions.LANGUAGE_CODE.format(
                 type_name="product"
             ),
             required=True,
         ),
-        description=TranslationFieldDecriptions.DESCRIPTION.format(type_name="product"),
+        description=TranslationDescriptions.DESCRIPTION.format(type_name="product"),
         resolver=resolve_translation,
     )
 
@@ -777,14 +777,12 @@ class Collection(CountableDjangoObjectType, MetadataObjectType):
         CollectionTranslation,
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description=TranslationFieldDecriptions.LANGUAGE_CODE.format(
+            description=TranslationDescriptions.LANGUAGE_CODE.format(
                 type_name="collection"
             ),
             required=True,
         ),
-        description=TranslationFieldDecriptions.DESCRIPTION.format(
-            type_name="collection"
-        ),
+        description=TranslationDescriptions.DESCRIPTION.format(type_name="collection"),
         resolver=resolve_translation,
     )
 
@@ -866,14 +864,12 @@ class Category(CountableDjangoObjectType, MetadataObjectType):
         CategoryTranslation,
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description=TranslationFieldDecriptions.LANGUAGE_CODE.format(
+            description=TranslationDescriptions.LANGUAGE_CODE.format(
                 type_name="category"
             ),
             required=True,
         ),
-        description=TranslationFieldDecriptions.DESCRIPTION.format(
-            type_name="category"
-        ),
+        description=TranslationDescriptions.DESCRIPTION.format(type_name="category"),
         resolver=resolve_translation,
     )
 
