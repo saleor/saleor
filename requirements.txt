@@ -31,7 +31,7 @@ django-filter==2.2.0
 django-graphql-jwt==0.2.1
 django-impersonate==1.4.1
 django-js-asset==1.2.2
-django-measurement==3.0.0
+django-measurement==3.2.0
 django-mptt==0.10.0
 django-phonenumber-field==2.4.0
 django-prices==2.1.0
@@ -41,7 +41,7 @@ django-recaptcha==1.5.0
 django-redis==4.10.0
 django-render-block==0.6
 django-silk==2.0.0
-django-storages==1.7.2
+django-storages==1.8
 django-templated-email==2.3.0
 django-versatileimagefield==1.11
 django-webpack-loader==0.6.0
@@ -121,7 +121,7 @@ stripe==2.40.0
 sympy==1.4
 text-unidecode==1.3
 tinycss2==1.0.2
-tqdm==4.38.0
+tqdm==4.39.0
 typing==3.7.4.1
 urllib3==1.25.7
 uwsgi==2.0.18; sys_platform != "win32"
