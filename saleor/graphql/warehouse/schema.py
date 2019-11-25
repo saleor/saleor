@@ -2,8 +2,9 @@ import graphene
 import graphene_django_optimizer as gql_optimizer
 
 from ...warehouse import models
-from ..core.fields import PrefetchingConnectionField
+from ..core.fields import FilterInputConnectionField
 from ..decorators import permission_required
+from .filters import WarehouseFilterInput
 from .mutations import WarehouseCreate, WarehouseDelete, WarehouseUpdate
 from .types import Warehouse
 
@@ -16,8 +17,11 @@ class WarehouseQueries(graphene.ObjectType):
             graphene.ID, description="ID of an warehouse", required=True
         ),
     )
-    warehouses = PrefetchingConnectionField(
-        Warehouse, description="List of warehouses."
+    warehouses = FilterInputConnectionField(
+        Warehouse,
+        description="List of warehouses.",
+        filter=WarehouseFilterInput(),
+        query=graphene.String(),
     )
 
     @permission_required("warehouse.manage_warehouses")
