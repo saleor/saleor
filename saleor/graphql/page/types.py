@@ -3,7 +3,7 @@ from graphene import relay
 
 from ...page import models
 from ..core.connection import CountableDjangoObjectType
-from ..translations.descriptions import TranslationFieldDecriptions
+from ..translations.descriptions import TranslationDescriptions
 from ..translations.enums import LanguageCodeEnum
 from ..translations.resolvers import resolve_translation
 from ..translations.types import PageTranslation
@@ -14,12 +14,10 @@ class Page(CountableDjangoObjectType):
         PageTranslation,
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description=TranslationFieldDecriptions.LANGUAGE_CODE.format(
-                type_name="page"
-            ),
+            description=TranslationDescriptions.LANGUAGE_CODE.format(type_name="page"),
             required=True,
         ),
-        description=TranslationFieldDecriptions.DESCRIPTION.format(type_name="page"),
+        description=TranslationDescriptions.DESCRIPTION.format(type_name="page"),
         resolver=resolve_translation,
     )
 

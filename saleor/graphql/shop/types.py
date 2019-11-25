@@ -17,7 +17,7 @@ from ..core.utils import get_node_optimized, str_to_enum
 from ..decorators import permission_required
 from ..menu.types import Menu
 from ..product.types import Collection
-from ..translations.descriptions import TranslationFieldDecriptions
+from ..translations.descriptions import TranslationDescriptions
 from ..translations.enums import LanguageCodeEnum
 from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation
@@ -132,12 +132,10 @@ class Shop(graphene.ObjectType):
         ShopTranslation,
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description=TranslationFieldDecriptions.LANGUAGE_CODE.format(
-                type_name="shop"
-            ),
+            description=TranslationDescriptions.LANGUAGE_CODE.format(type_name="shop"),
             required=True,
         ),
-        description=TranslationFieldDecriptions.DESCRIPTION.format(type_name="shop"),
+        description=TranslationDescriptions.DESCRIPTION.format(type_name="shop"),
     )
     automatic_fulfillment_digital_products = graphene.Boolean(
         description="Enable automatic fulfillment for all digital products."

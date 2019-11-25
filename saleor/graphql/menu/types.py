@@ -5,7 +5,7 @@ from graphene import relay
 
 from ...menu import models
 from ..core.connection import CountableDjangoObjectType
-from ..translations.descriptions import TranslationFieldDecriptions
+from ..translations.descriptions import TranslationDescriptions
 from ..translations.enums import LanguageCodeEnum
 from ..translations.resolvers import resolve_translation
 from ..translations.types import MenuItemTranslation
@@ -48,14 +48,12 @@ class MenuItem(CountableDjangoObjectType):
         MenuItemTranslation,
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description=TranslationFieldDecriptions.LANGUAGE_CODE.format(
+            description=TranslationDescriptions.LANGUAGE_CODE.format(
                 type_name="menu item"
             ),
             required=True,
         ),
-        description=TranslationFieldDecriptions.DESCRIPTION.format(
-            type_name="menu item"
-        ),
+        description=TranslationDescriptions.DESCRIPTION.format(type_name="menu item"),
         resolver=resolve_translation,
     )
 

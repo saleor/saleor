@@ -11,7 +11,7 @@ from ..core.connection import CountableDjangoObjectType
 from ..core.types import LanguageDisplay
 from ..core.utils import str_to_enum
 from ..decorators import permission_required
-from .descriptions import TranslationFieldDecriptions
+from .descriptions import TranslationDescriptions
 from .enums import LanguageCodeEnum
 from .resolvers import resolve_translation
 
@@ -61,12 +61,12 @@ class AttributeValueTranslatableContent(CountableDjangoObjectType):
         AttributeValueTranslation,
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description=TranslationFieldDecriptions.LANGUAGE_CODE.format(
+            description=TranslationDescriptions.LANGUAGE_CODE.format(
                 type_name="attribute value"
             ),
             required=True,
         ),
-        description=TranslationFieldDecriptions.DESCRIPTION.format(
+        description=TranslationDescriptions.DESCRIPTION.format(
             type_name="attribute value"
         ),
         resolver=resolve_translation,
@@ -98,14 +98,12 @@ class AttributeTranslatableContent(CountableDjangoObjectType):
         AttributeTranslation,
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description=TranslationFieldDecriptions.LANGUAGE_CODE.format(
+            description=TranslationDescriptions.LANGUAGE_CODE.format(
                 type_name="attribute"
             ),
             required=True,
         ),
-        description=TranslationFieldDecriptions.DESCRIPTION.format(
-            type_name="attribute"
-        ),
+        description=TranslationDescriptions.DESCRIPTION.format(type_name="attribute"),
         resolver=resolve_translation,
     )
     attribute = graphene.Field(
@@ -135,12 +133,12 @@ class ProductVariantTranslatableContent(CountableDjangoObjectType):
         ProductVariantTranslation,
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description=TranslationFieldDecriptions.LANGUAGE_CODE.format(
+            description=TranslationDescriptions.LANGUAGE_CODE.format(
                 type_name="product variant"
             ),
             required=True,
         ),
-        description=TranslationFieldDecriptions.DESCRIPTION.format(
+        description=TranslationDescriptions.DESCRIPTION.format(
             type_name="product variant"
         ),
         resolver=resolve_translation,
@@ -179,12 +177,12 @@ class ProductTranslatableContent(CountableDjangoObjectType):
         ProductTranslation,
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description=TranslationFieldDecriptions.LANGUAGE_CODE.format(
+            description=TranslationDescriptions.LANGUAGE_CODE.format(
                 type_name="product"
             ),
             required=True,
         ),
-        description=TranslationFieldDecriptions.DESCRIPTION.format(type_name="product"),
+        description=TranslationDescriptions.DESCRIPTION.format(type_name="product"),
         resolver=resolve_translation,
     )
     product = graphene.Field(
@@ -218,14 +216,12 @@ class CollectionTranslatableContent(CountableDjangoObjectType):
         CollectionTranslation,
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description=TranslationFieldDecriptions.LANGUAGE_CODE.format(
+            description=TranslationDescriptions.LANGUAGE_CODE.format(
                 type_name="collection"
             ),
             required=True,
         ),
-        description=TranslationFieldDecriptions.DESCRIPTION.format(
-            type_name="collection"
-        ),
+        description=TranslationDescriptions.DESCRIPTION.format(type_name="collection"),
         resolver=resolve_translation,
     )
     collection = graphene.Field(
@@ -259,14 +255,12 @@ class CategoryTranslatableContent(CountableDjangoObjectType):
         CategoryTranslation,
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description=TranslationFieldDecriptions.LANGUAGE_CODE.format(
+            description=TranslationDescriptions.LANGUAGE_CODE.format(
                 type_name="category"
             ),
             required=True,
         ),
-        description=TranslationFieldDecriptions.DESCRIPTION.format(
-            type_name="category"
-        ),
+        description=TranslationDescriptions.DESCRIPTION.format(type_name="category"),
         resolver=resolve_translation,
     )
     category = graphene.Field(
@@ -303,12 +297,10 @@ class PageTranslatableContent(CountableDjangoObjectType):
         PageTranslation,
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description=TranslationFieldDecriptions.LANGUAGE_CODE.format(
-                type_name="page"
-            ),
+            description=TranslationDescriptions.LANGUAGE_CODE.format(type_name="page"),
             required=True,
         ),
-        description=TranslationFieldDecriptions.DESCRIPTION.format(type_name="page"),
+        description=TranslationDescriptions.DESCRIPTION.format(type_name="page"),
         resolver=resolve_translation,
     )
     page = graphene.Field(
@@ -352,12 +344,12 @@ class VoucherTranslatableContent(CountableDjangoObjectType):
         VoucherTranslation,
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description=TranslationFieldDecriptions.LANGUAGE_CODE.format(
+            description=TranslationDescriptions.LANGUAGE_CODE.format(
                 type_name="voucher"
             ),
             required=True,
         ),
-        description=TranslationFieldDecriptions.DESCRIPTION.format(type_name="voucher"),
+        description=TranslationDescriptions.DESCRIPTION.format(type_name="voucher"),
         resolver=resolve_translation,
     )
     voucher = graphene.Field(
@@ -392,12 +384,10 @@ class SaleTranslatableContent(CountableDjangoObjectType):
         SaleTranslation,
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description=TranslationFieldDecriptions.LANGUAGE_CODE.format(
-                type_name="sale"
-            ),
+            description=TranslationDescriptions.LANGUAGE_CODE.format(type_name="sale"),
             required=True,
         ),
-        description=TranslationFieldDecriptions.DESCRIPTION.format(type_name="sale"),
+        description=TranslationDescriptions.DESCRIPTION.format(type_name="sale"),
         resolver=resolve_translation,
     )
     sale = graphene.Field(
@@ -438,14 +428,12 @@ class MenuItemTranslatableContent(CountableDjangoObjectType):
         MenuItemTranslation,
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description=TranslationFieldDecriptions.LANGUAGE_CODE.format(
+            description=TranslationDescriptions.LANGUAGE_CODE.format(
                 type_name="menu item"
             ),
             required=True,
         ),
-        description=TranslationFieldDecriptions.DESCRIPTION.format(
-            type_name="menu item"
-        ),
+        description=TranslationDescriptions.DESCRIPTION.format(type_name="menu item"),
         resolver=resolve_translation,
     )
     menu_item = graphene.Field(
@@ -478,12 +466,12 @@ class ShippingMethodTranslatableContent(CountableDjangoObjectType):
         ShippingMethodTranslation,
         language_code=graphene.Argument(
             LanguageCodeEnum,
-            description=TranslationFieldDecriptions.LANGUAGE_CODE.format(
+            description=TranslationDescriptions.LANGUAGE_CODE.format(
                 type_name="shipping method"
             ),
             required=True,
         ),
-        description=TranslationFieldDecriptions.DESCRIPTION.format(
+        description=TranslationDescriptions.DESCRIPTION.format(
             type_name="shipping method"
         ),
         resolver=resolve_translation,
