@@ -6,11 +6,11 @@ from graphql_jwt.decorators import staff_member_required
 from graphql_jwt.exceptions import PermissionDenied
 
 from ....account import events as account_events, models, utils
+from ....account.emails import send_set_password_email_with_url
 from ....account.error_codes import AccountErrorCode
 from ....account.thumbnails import create_user_avatar_thumbnails
 from ....account.utils import get_random_avatar, remove_staff_member
 from ....checkout import AddressType
-from ....core.emails import send_set_password_email_with_url
 from ....core.permissions import get_permissions
 from ....core.utils.url import validate_storefront_url
 from ...account.enums import AddressTypeEnum
