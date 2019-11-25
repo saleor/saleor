@@ -72,7 +72,7 @@ class DefaultTranslationItem(graphene.Union):
 
 class TranslatableItemConnection(CountableConnection):
     class Meta:
-        node = TranslatableItem
+        node = DefaultTranslationItem
 
 
 class TranslatableKinds(graphene.Enum):
@@ -90,7 +90,6 @@ class TranslatableKinds(graphene.Enum):
 
 
 class TranslationQueries(graphene.ObjectType):
-    # TODO We nead to change output of this query to new types. Issue #4957
     translations = BaseConnectionField(
         TranslatableItemConnection,
         description="Returns a list of all translatable items of a given kind.",
