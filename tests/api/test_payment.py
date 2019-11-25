@@ -124,8 +124,7 @@ def test_checkout_add_payment_default_amount(
 ):
     checkout = checkout_with_item
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    total = checkout.get_total()
-    total = TaxedMoney(net=total, gross=total)
+    total = calculations.checkout_total(checkout)
 
     variables = {
         "checkoutId": checkout_id,
@@ -161,7 +160,9 @@ def test_checkout_add_payment_bad_amount(
         "input": {
             "gateway": "DUMMY",
             "token": "sample-token",
-            "amount": str(checkout.get_total().amount + Decimal(1)),
+            "amount": str(
+                calculations.checkout_total(checkout).gross.amount + Decimal(1)
+            ),
             "billingAddress": graphql_address_data,
         },
     }
