@@ -774,7 +774,7 @@ def get_voucher_discount_for_checkout(
 
 def get_voucher_for_checkout(
     checkout: Checkout, vouchers=None, with_lock: bool = False
-):
+) -> Optional[Voucher]:
     """Return voucher with voucher code saved in checkout if active or None."""
     if checkout.voucher_code is not None:
         if vouchers is None:
@@ -948,7 +948,7 @@ def is_valid_shipping_method(checkout: Checkout, discounts: "DiscountsListType")
 
 def get_shipping_price_estimate(
     checkout: Checkout, discounts: "DiscountsListType", country_code: str
-):
+) -> Optional[TaxedMoneyRange]:
     """Return the estimated price range for shipping for given order."""
 
     shipping_methods = get_valid_shipping_methods_for_checkout(
