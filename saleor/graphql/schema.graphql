@@ -3496,7 +3496,6 @@ type Query {
   serviceAccounts(filter: ServiceAccountFilterInput, before: String, after: String, first: Int, last: Int): ServiceAccountCountableConnection
   serviceAccount(id: ID!): ServiceAccount
   user(id: ID!): User
-  node(id: ID!): Node
   _entities(representations: [_Any]): [_Entity]
   _service: _Service
 }
