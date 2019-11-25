@@ -15,12 +15,12 @@ class WarehouseQueryset(models.QuerySet):
 class Warehouse(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
     name = models.CharField(
-        pgettext_lazy("Warehouse field description", "Warehouse name"), max_length=50
+        pgettext_lazy("Warehouse field description", "Warehouse name"), max_length=255
     )
     company_name = models.CharField(
         pgettext_lazy("Warehouse field description", "Legal company name"),
-        max_length=100,
         blank=True,
+        max_length=255,
     )
 
     shipping_zones = models.ManyToManyField(ShippingZone, blank=True)
