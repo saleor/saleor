@@ -11,7 +11,7 @@ from django.db.models import Max, Min, Sum
 from django.utils import timezone
 from django.utils.encoding import smart_text
 from django.utils.translation import get_language, pgettext, pgettext_lazy
-from prices import Money, MoneyRange, TaxedMoneyRange
+from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from ..account.forms import get_address_form
 from ..account.models import Address, User
@@ -41,7 +41,6 @@ from ..giftcard.utils import (
     add_gift_card_code_to_checkout,
     remove_gift_card_code_from_checkout,
 )
-from ..graphql.core.types.money import TaxedMoney
 from ..order.actions import order_created
 from ..order.emails import send_order_confirmation
 from ..order.models import Order, OrderLine
