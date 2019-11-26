@@ -17,8 +17,8 @@ from ..core.utils import get_node_optimized, str_to_enum
 from ..decorators import permission_required
 from ..menu.types import Menu
 from ..product.types import Collection
-from ..translations.descriptions import TranslationDescriptions
 from ..translations.enums import LanguageCodeEnum
+from ..translations.fields import TranslationField
 from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation
 from ..utils import format_permissions_for_display
@@ -128,15 +128,7 @@ class Shop(graphene.ObjectType):
         description="Enable inventory tracking."
     )
     default_weight_unit = WeightUnitsEnum(description="Default weight unit.")
-    translation = graphene.Field(
-        ShopTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description=TranslationDescriptions.LANGUAGE_CODE.format(type_name="shop"),
-            required=True,
-        ),
-        description=TranslationDescriptions.DESCRIPTION.format(type_name="shop"),
-    )
+    translation = TranslationField(ShopTranslation, type_name="shop", resolver=None)
     automatic_fulfillment_digital_products = graphene.Boolean(
         description="Enable automatic fulfillment for all digital products."
     )
