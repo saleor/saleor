@@ -7,9 +7,7 @@ from ..core import types
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import PrefetchingConnectionField
 from ..product.types import Category, Collection, Product
-from ..translations.descriptions import TranslationDescriptions
-from ..translations.enums import LanguageCodeEnum
-from ..translations.resolvers import resolve_translation
+from ..translations.fields import TranslationField
 from ..translations.types import SaleTranslation, VoucherTranslation
 from .enums import DiscountValueTypeEnum, VoucherTypeEnum
 
@@ -33,16 +31,7 @@ class Sale(CountableDjangoObjectType):
         ),
         model_field="products",
     )
-    translation = graphene.Field(
-        SaleTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description=TranslationDescriptions.LANGUAGE_CODE.format(type_name="sale"),
-            required=True,
-        ),
-        description=TranslationDescriptions.DESCRIPTION.format(type_name="sale"),
-        resolver=resolve_translation,
-    )
+    translation = TranslationField(SaleTranslation, type_name="sale")
 
     class Meta:
         description = (
@@ -89,18 +78,7 @@ class Voucher(CountableDjangoObjectType):
         types.CountryDisplay,
         description="List of countries available for the shipping voucher.",
     )
-    translation = graphene.Field(
-        VoucherTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description=TranslationDescriptions.LANGUAGE_CODE.format(
-                type_name="voucher"
-            ),
-            required=True,
-        ),
-        description=TranslationDescriptions.DESCRIPTION.format(type_name="voucher"),
-        resolver=resolve_translation,
-    )
+    translation = TranslationField(VoucherTranslation, type_name="voucher")
     discount_value_type = DiscountValueTypeEnum(
         description="Determines a type of discount for voucher - value or percentage",
         required=True,

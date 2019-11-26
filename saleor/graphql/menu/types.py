@@ -5,9 +5,7 @@ from graphene import relay
 
 from ...menu import models
 from ..core.connection import CountableDjangoObjectType
-from ..translations.descriptions import TranslationDescriptions
-from ..translations.enums import LanguageCodeEnum
-from ..translations.resolvers import resolve_translation
+from ..translations.fields import TranslationField
 from ..translations.types import MenuItemTranslation
 
 
@@ -44,18 +42,7 @@ class MenuItem(CountableDjangoObjectType):
         graphene.List(lambda: MenuItem), model_field="children"
     )
     url = graphene.String(description="URL to the menu item.")
-    translation = graphene.Field(
-        MenuItemTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description=TranslationDescriptions.LANGUAGE_CODE.format(
-                type_name="menu item"
-            ),
-            required=True,
-        ),
-        description=TranslationDescriptions.DESCRIPTION.format(type_name="menu item"),
-        resolver=resolve_translation,
-    )
+    translation = TranslationField(MenuItemTranslation, type_name="menu item")
 
     sort_order = graphene.Field(
         graphene.Int,

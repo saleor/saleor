@@ -33,9 +33,7 @@ from ...core.types import (
     TaxType,
 )
 from ...decorators import permission_required
-from ...translations.descriptions import TranslationDescriptions
-from ...translations.enums import LanguageCodeEnum
-from ...translations.resolvers import resolve_translation
+from ...translations.fields import TranslationField
 from ...translations.types import (
     CategoryTranslation,
     CollectionTranslation,
@@ -281,19 +279,8 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         ),
         model_field="images",
     )
-    translation = graphene.Field(
-        ProductVariantTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description=TranslationDescriptions.LANGUAGE_CODE.format(
-                type_name="product variant"
-            ),
-            required=True,
-        ),
-        description=TranslationDescriptions.DESCRIPTION.format(
-            type_name="product variant"
-        ),
-        resolver=resolve_translation,
+    translation = TranslationField(
+        ProductVariantTranslation, type_name="product variant"
     )
     digital_content = gql_optimizer.field(
         graphene.Field(
@@ -502,18 +489,7 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
         ),
         model_field="collections",
     )
-    translation = graphene.Field(
-        ProductTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description=TranslationDescriptions.LANGUAGE_CODE.format(
-                type_name="product"
-            ),
-            required=True,
-        ),
-        description=TranslationDescriptions.DESCRIPTION.format(type_name="product"),
-        resolver=resolve_translation,
-    )
+    translation = TranslationField(ProductTranslation, type_name="product")
 
     slug = graphene.String(required=True, description="The slug of a product.")
 
@@ -773,18 +749,7 @@ class Collection(CountableDjangoObjectType, MetadataObjectType):
     background_image = graphene.Field(
         Image, size=graphene.Int(description="Size of the image.")
     )
-    translation = graphene.Field(
-        CollectionTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description=TranslationDescriptions.LANGUAGE_CODE.format(
-                type_name="collection"
-            ),
-            required=True,
-        ),
-        description=TranslationDescriptions.DESCRIPTION.format(type_name="collection"),
-        resolver=resolve_translation,
-    )
+    translation = TranslationField(CollectionTranslation, type_name="collection")
 
     class Meta:
         description = "Represents a collection of products."
@@ -860,18 +825,7 @@ class Category(CountableDjangoObjectType, MetadataObjectType):
     background_image = graphene.Field(
         Image, size=graphene.Int(description="Size of the image.")
     )
-    translation = graphene.Field(
-        CategoryTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description=TranslationDescriptions.LANGUAGE_CODE.format(
-                type_name="category"
-            ),
-            required=True,
-        ),
-        description=TranslationDescriptions.DESCRIPTION.format(type_name="category"),
-        resolver=resolve_translation,
-    )
+    translation = TranslationField(CategoryTranslation, type_name="category")
 
     class Meta:
         description = (

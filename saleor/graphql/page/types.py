@@ -1,25 +1,13 @@
-import graphene
 from graphene import relay
 
 from ...page import models
 from ..core.connection import CountableDjangoObjectType
-from ..translations.descriptions import TranslationDescriptions
-from ..translations.enums import LanguageCodeEnum
-from ..translations.resolvers import resolve_translation
+from ..translations.fields import TranslationField
 from ..translations.types import PageTranslation
 
 
 class Page(CountableDjangoObjectType):
-    translation = graphene.Field(
-        PageTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description=TranslationDescriptions.LANGUAGE_CODE.format(type_name="page"),
-            required=True,
-        ),
-        description=TranslationDescriptions.DESCRIPTION.format(type_name="page"),
-        resolver=resolve_translation,
-    )
+    translation = TranslationField(PageTranslation, type_name="page")
 
     class Meta:
         description = (

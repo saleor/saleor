@@ -11,9 +11,8 @@ from ..core.connection import CountableDjangoObjectType
 from ..core.types import LanguageDisplay
 from ..core.utils import str_to_enum
 from ..decorators import permission_required
-from .descriptions import TranslationDescriptions
 from .enums import LanguageCodeEnum
-from .resolvers import resolve_translation
+from .fields import TranslationField
 
 BASIC_TRANSLATABLE_FIELDS = ["id", "name"]
 EXTENDED_TRANSLATABLE_FIELDS = [
@@ -57,19 +56,8 @@ class AttributeValueTranslation(BaseTranslationType):
 
 
 class AttributeValueTranslatableContent(CountableDjangoObjectType):
-    translation = graphene.Field(
-        AttributeValueTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description=TranslationDescriptions.LANGUAGE_CODE.format(
-                type_name="attribute value"
-            ),
-            required=True,
-        ),
-        description=TranslationDescriptions.DESCRIPTION.format(
-            type_name="attribute value"
-        ),
-        resolver=resolve_translation,
+    translation = TranslationField(
+        AttributeValueTranslation, type_name="attribute value"
     )
     attribute_value = graphene.Field(
         "saleor.graphql.product.types.attributes.AttributeValue",
@@ -94,18 +82,7 @@ class AttributeTranslation(BaseTranslationType):
 
 
 class AttributeTranslatableContent(CountableDjangoObjectType):
-    translation = graphene.Field(
-        AttributeTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description=TranslationDescriptions.LANGUAGE_CODE.format(
-                type_name="attribute"
-            ),
-            required=True,
-        ),
-        description=TranslationDescriptions.DESCRIPTION.format(type_name="attribute"),
-        resolver=resolve_translation,
-    )
+    translation = TranslationField(AttributeTranslation, type_name="attribute")
     attribute = graphene.Field(
         "saleor.graphql.product.types.attributes.Attribute",
         description="Custom attribute of a product.",
@@ -129,19 +106,8 @@ class ProductVariantTranslation(BaseTranslationType):
 
 
 class ProductVariantTranslatableContent(CountableDjangoObjectType):
-    translation = graphene.Field(
-        ProductVariantTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description=TranslationDescriptions.LANGUAGE_CODE.format(
-                type_name="product variant"
-            ),
-            required=True,
-        ),
-        description=TranslationDescriptions.DESCRIPTION.format(
-            type_name="product variant"
-        ),
-        resolver=resolve_translation,
+    translation = TranslationField(
+        ProductVariantTranslation, type_name="product variant"
     )
     product_variant = graphene.Field(
         "saleor.graphql.product.types.products.ProductVariant",
@@ -173,18 +139,7 @@ class ProductTranslation(BaseTranslationType):
 
 
 class ProductTranslatableContent(CountableDjangoObjectType):
-    translation = graphene.Field(
-        ProductTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description=TranslationDescriptions.LANGUAGE_CODE.format(
-                type_name="product"
-            ),
-            required=True,
-        ),
-        description=TranslationDescriptions.DESCRIPTION.format(type_name="product"),
-        resolver=resolve_translation,
-    )
+    translation = TranslationField(ProductTranslation, type_name="product")
     product = graphene.Field(
         "saleor.graphql.product.types.products.Product",
         description="Represents an individual item for sale in the storefront.",
@@ -212,18 +167,7 @@ class CollectionTranslation(BaseTranslationType):
 
 
 class CollectionTranslatableContent(CountableDjangoObjectType):
-    translation = graphene.Field(
-        CollectionTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description=TranslationDescriptions.LANGUAGE_CODE.format(
-                type_name="collection"
-            ),
-            required=True,
-        ),
-        description=TranslationDescriptions.DESCRIPTION.format(type_name="collection"),
-        resolver=resolve_translation,
-    )
+    translation = TranslationField(CollectionTranslation, type_name="collection")
     collection = graphene.Field(
         "saleor.graphql.product.types.products.Collection",
         description="Represents a collection of products.",
@@ -251,18 +195,7 @@ class CategoryTranslation(BaseTranslationType):
 
 
 class CategoryTranslatableContent(CountableDjangoObjectType):
-    translation = graphene.Field(
-        CategoryTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description=TranslationDescriptions.LANGUAGE_CODE.format(
-                type_name="category"
-            ),
-            required=True,
-        ),
-        description=TranslationDescriptions.DESCRIPTION.format(type_name="category"),
-        resolver=resolve_translation,
-    )
+    translation = TranslationField(CategoryTranslation, type_name="category")
     category = graphene.Field(
         "saleor.graphql.product.types.products.Category",
         description="Represents a single category of products.",
@@ -293,16 +226,7 @@ class PageTranslation(BaseTranslationType):
 
 
 class PageTranslatableContent(CountableDjangoObjectType):
-    translation = graphene.Field(
-        PageTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description=TranslationDescriptions.LANGUAGE_CODE.format(type_name="page"),
-            required=True,
-        ),
-        description=TranslationDescriptions.DESCRIPTION.format(type_name="page"),
-        resolver=resolve_translation,
-    )
+    translation = TranslationField(PageTranslation, type_name="page")
     page = graphene.Field(
         "saleor.graphql.page.types.Page",
         description=(
@@ -340,18 +264,7 @@ class VoucherTranslation(BaseTranslationType):
 
 
 class VoucherTranslatableContent(CountableDjangoObjectType):
-    translation = graphene.Field(
-        VoucherTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description=TranslationDescriptions.LANGUAGE_CODE.format(
-                type_name="voucher"
-            ),
-            required=True,
-        ),
-        description=TranslationDescriptions.DESCRIPTION.format(type_name="voucher"),
-        resolver=resolve_translation,
-    )
+    translation = TranslationField(VoucherTranslation, type_name="voucher")
     voucher = graphene.Field(
         "saleor.graphql.discount.types.Voucher",
         description=(
@@ -380,16 +293,7 @@ class SaleTranslation(BaseTranslationType):
 
 
 class SaleTranslatableContent(CountableDjangoObjectType):
-    translation = graphene.Field(
-        SaleTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description=TranslationDescriptions.LANGUAGE_CODE.format(type_name="sale"),
-            required=True,
-        ),
-        description=TranslationDescriptions.DESCRIPTION.format(type_name="sale"),
-        resolver=resolve_translation,
-    )
+    translation = TranslationField(SaleTranslation, type_name="sale")
     sale = graphene.Field(
         "saleor.graphql.discount.types.Sale",
         description=(
@@ -424,18 +328,7 @@ class MenuItemTranslation(BaseTranslationType):
 
 
 class MenuItemTranslatableContent(CountableDjangoObjectType):
-    translation = graphene.Field(
-        MenuItemTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description=TranslationDescriptions.LANGUAGE_CODE.format(
-                type_name="menu item"
-            ),
-            required=True,
-        ),
-        description=TranslationDescriptions.DESCRIPTION.format(type_name="menu item"),
-        resolver=resolve_translation,
-    )
+    translation = TranslationField(MenuItemTranslation, type_name="menu item")
     menu_item = graphene.Field(
         "saleor.graphql.menu.types.MenuItem",
         description=(
@@ -462,19 +355,8 @@ class ShippingMethodTranslation(BaseTranslationType):
 
 
 class ShippingMethodTranslatableContent(CountableDjangoObjectType):
-    translation = graphene.Field(
-        ShippingMethodTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description=TranslationDescriptions.LANGUAGE_CODE.format(
-                type_name="shipping method"
-            ),
-            required=True,
-        ),
-        description=TranslationDescriptions.DESCRIPTION.format(
-            type_name="shipping method"
-        ),
-        resolver=resolve_translation,
+    translation = TranslationField(
+        ShippingMethodTranslation, type_name="shipping method"
     )
     shipping_method = graphene.Field(
         "saleor.graphql.shipping.types.ShippingMethod",
