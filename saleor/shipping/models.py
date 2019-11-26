@@ -69,19 +69,6 @@ class ShippingZone(models.Model):
     def __str__(self):
         return self.name
 
-    def countries_display(self):
-        countries = self.countries
-        if self.default:
-            from .utils import get_available_countries
-
-            countries = get_available_countries()
-        if countries and len(countries) <= 3:
-            return ", ".join((country.name for country in countries))
-        return pgettext_lazy(
-            "Number of countries shipping zone apply to",
-            "%(num_of_countries)d countries" % {"num_of_countries": len(countries)},
-        )
-
     @property
     def price_range(self):
         prices = [
