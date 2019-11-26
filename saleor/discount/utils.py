@@ -1,6 +1,6 @@
 import datetime
 from collections import defaultdict
-from typing import TYPE_CHECKING, Dict, Iterable, List, Set
+from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Set, Union
 
 from django.db.models import F
 from django.utils import timezone
@@ -14,26 +14,25 @@ from .models import NotApplicable, Sale, VoucherCustomer
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from .types import DiscountsListType
     from .models import Voucher
+    from ..product.models import Product
     from ..checkout.models import Checkout
-    from ..product.models import Product, Collection
     from ..order.models import Order
 
 
-def increase_voucher_usage(voucher: "Voucher"):
+def increase_voucher_usage(voucher: "Voucher") -> None:
     """Increase voucher uses by 1."""
     voucher.used = F("used") + 1
     voucher.save(update_fields=["used"])
 
 
-def decrease_voucher_usage(voucher: "Voucher"):
+def decrease_voucher_usage(voucher: "Voucher") -> None:
     """Decrease voucher uses by 1."""
     voucher.used = F("used") - 1
     voucher.save(update_fields=["used"])
 
 
-def add_voucher_usage_by_customer(voucher: "Voucher", customer_email: str):
+def add_voucher_usage_by_customer(voucher: "Voucher", customer_email: str) -> None:
     voucher_customer = VoucherCustomer.objects.filter(
         voucher=voucher, customer_email=customer_email
     )
@@ -47,7 +46,7 @@ def add_voucher_usage_by_customer(voucher: "Voucher", customer_email: str):
     VoucherCustomer.objects.create(voucher=voucher, customer_email=customer_email)
 
 
-def remove_voucher_usage_by_customer(voucher: "Voucher", customer_email: str):
+def remove_voucher_usage_by_customer(voucher: "Voucher", customer_email: str) -> None:
     voucher_customer = VoucherCustomer.objects.filter(
         voucher=voucher, customer_email=customer_email
     )
@@ -56,7 +55,7 @@ def remove_voucher_usage_by_customer(voucher: "Voucher", customer_email: str):
 
 
 def get_product_discount_on_sale(
-    product: "Product", product_collections: Set["Collection"], discount: DiscountInfo
+    product: "Product", product_collections: Set[str], discount: DiscountInfo
 ):
     """Return discount value if product is on sale or raise NotApplicable."""
     is_product_on_sale = (
@@ -71,7 +70,7 @@ def get_product_discount_on_sale(
     )
 
 
-def get_product_discounts(product: "Product", discounts: "DiscountsListType"):
+def get_product_discounts(product: "Product", discounts: "DiscountsListType") -> Money:
     """Return discount values for all discounts applicable to a product."""
     product_collections = set(product.collections.all().values_list("pk", flat=True))
     for discount in discounts:
@@ -110,7 +109,7 @@ def validate_voucher_in_order(order: "Order"):
 
 def validate_voucher(
     voucher: "Voucher", total_price: Money, quantity: int, customer_email: str
-):
+) -> None:
     voucher.validate_min_spent(total_price)
     voucher.validate_min_checkout_items_quantity(quantity)
     if voucher.apply_once_per_customer:
@@ -145,7 +144,7 @@ def _fetch_categories(sale_pks: Iterable[str]) -> Dict[str, Set[str]]:
     return subcategory_map
 
 
-def _fetch_collections(sale_pks: Iterable[str]) -> dict:
+def _fetch_collections(sale_pks: Iterable[str]) -> Dict[str, set]:
     collections = Sale.collections.through.objects.filter(
         sale_id__in=sale_pks
     ).values_list("sale_id", "collection_id")
@@ -155,7 +154,7 @@ def _fetch_collections(sale_pks: Iterable[str]) -> dict:
     return collection_map
 
 
-def _fetch_products(sale_pks: Iterable[str]) -> dict:
+def _fetch_products(sale_pks: Iterable[str]) -> Dict[str, set]:
     products = Sale.products.through.objects.filter(sale_id__in=sale_pks).values_list(
         "sale_id", "product_id"
     )
