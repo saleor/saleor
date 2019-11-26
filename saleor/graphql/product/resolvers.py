@@ -8,8 +8,9 @@ from graphql_relay import from_global_id
 from ...order import OrderStatus
 from ...product import models
 from ...search.backends import picker
+from ..core.enums import OrderDirection
 from ..utils import filter_by_period, filter_by_query_param, get_database_id, get_nodes
-from .enums import AttributeSortField, OrderDirection
+from .enums import AttributeSortField
 from .filters import (
     filter_attributes_by_product_types,
     filter_products_by_attributes,
