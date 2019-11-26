@@ -14,8 +14,6 @@ from .models import NotApplicable, Sale, VoucherCustomer
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from prices import Money
-
     from .models import Voucher
     from ..product.models import Product
     from ..checkout.models import Checkout
