@@ -579,7 +579,7 @@ def test_product_filter_sorted_by_wrong_parameter(authorized_client, product, ca
 def test_get_variant_picker_data_proper_variant_count(product):
     data = get_variant_picker_data(
         product, discounts=None, extensions=None, local_currency=None
-    )
+    ).as_dict()
 
     assert len(data["variantAttributes"][0]["values"]) == 1
 
@@ -608,7 +608,9 @@ def test_get_variant_picker_data_no_nested_attributes(variant, product_type, cat
     )
 
     product = variant.product
-    data = get_variant_picker_data(product, discounts=None, local_currency=None)
+    data = get_variant_picker_data(
+        product, discounts=None, local_currency=None
+    ).as_dict()
 
     assert len(data["variantAttributes"]) == 0
 
@@ -862,7 +864,7 @@ def test_variant_picker_data_with_translations(
     product, translated_variant_fr, settings
 ):
     settings.LANGUAGE_CODE = "fr"
-    variant_picker_data = get_variant_picker_data(product)
+    variant_picker_data = get_variant_picker_data(product).as_dict()
     attribute = variant_picker_data["variantAttributes"][0]
     assert attribute["name"] == translated_variant_fr.name
 
@@ -980,7 +982,9 @@ def test_variant_picker_data_price_range(product_type, category):
     start = TaxedMoney(net=Money("11.00", "USD"), gross=Money("11.00", "USD"))
     stop = TaxedMoney(net=Money("20.00", "USD"), gross=Money("20.00", "USD"))
 
-    picker_data = get_variant_picker_data(product, discounts=None, local_currency=None)
+    picker_data = get_variant_picker_data(
+        product, discounts=None, local_currency=None
+    ).as_dict()
 
     min_price = picker_data["availability"]["priceRange"]["minPrice"]
     min_price = TaxedMoney(

@@ -1,9 +1,28 @@
+from dataclasses import dataclass
+from typing import TYPE_CHECKING, Iterable, List, Optional, Tuple
+
 from prices import MoneyRange
 
 from ...core.taxes import zero_money
 
+if TYPE_CHECKING:
+    from prices import Money
+    from ..models import Product, ProductVariant
 
-def get_product_costs_data(product):
+
+@dataclass
+class CostsData:
+    costs: List["Money"]
+    margins: List[float]
+
+    def __post_init__(self):
+        self.costs = sorted(self.costs)
+        self.margins = sorted(self.margins)
+
+
+def get_product_costs_data(
+    product: "Product"
+) -> Tuple[MoneyRange, Tuple[float, float]]:
 
     purchase_costs_range = MoneyRange(start=zero_money(), stop=zero_money())
     margin = (0, 0)
@@ -20,15 +39,7 @@ def get_product_costs_data(product):
     return purchase_costs_range, margin
 
 
-class CostsData:
-    __slots__ = ("costs", "margins")
-
-    def __init__(self, costs, margins):
-        self.costs = sorted(costs)
-        self.margins = sorted(margins)
-
-
-def get_cost_data_from_variants(variants):
+def get_cost_data_from_variants(variants: Iterable["ProductVariant"]) -> CostsData:
     costs = []
     margins = []
     for variant in variants:
@@ -38,7 +49,7 @@ def get_cost_data_from_variants(variants):
     return CostsData(costs, margins)
 
 
-def get_variant_costs_data(variant):
+def get_variant_costs_data(variant: "ProductVariant") -> CostsData:
     costs = []
     margins = []
     costs.append(get_cost_price(variant))
@@ -48,13 +59,13 @@ def get_variant_costs_data(variant):
     return CostsData(costs, margins)
 
 
-def get_cost_price(variant):
+def get_cost_price(variant: "ProductVariant") -> "Money":
     if not variant.cost_price:
         return zero_money()
     return variant.cost_price
 
 
-def get_margin_for_variant(variant):
+def get_margin_for_variant(variant: "ProductVariant") -> Optional[float]:
     if variant.cost_price is None:
         return None
     base_price = variant.base_price
