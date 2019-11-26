@@ -1,9 +1,9 @@
 """Test the API's checkout process over full digital orders."""
 import pytest
 from graphene import Node
-from prices import TaxedMoney
 
 from saleor.account.models import Address
+from saleor.checkout import calculations
 from saleor.checkout.error_codes import CheckoutErrorCode
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
@@ -176,8 +176,7 @@ def test_checkout_complete(
     checkout.save(update_fields=["billing_address"])
 
     # Create a dummy payment to charge
-    total = checkout.get_total()
-    total = TaxedMoney(total, total)
+    total = calculations.checkout_total(checkout)
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
