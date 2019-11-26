@@ -111,7 +111,7 @@ def _validate_adddress_details(
 
 def _validate_order(order: "Order") -> bool:
     """Validate the order object if it is ready to generate a request to avatax."""
-    if not len(order.lines.all()):
+    if not order.lines.exists():
         return False
     shipping_address = order.shipping_address
     is_shipping_required = order.is_shipping_required()
@@ -123,7 +123,7 @@ def _validate_order(order: "Order") -> bool:
 
 def _validate_checkout(checkout: "Checkout") -> bool:
     """Validate the checkout object if it is ready to generate a request to avatax."""
-    if not len(checkout.lines.all()):
+    if not checkout.lines.exists():
         return False
 
     shipping_address = checkout.shipping_address
