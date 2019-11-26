@@ -21,7 +21,7 @@ from ....product.utils.availability import (
 )
 from ....product.utils.costs import get_margin_for_variant, get_product_costs_data
 from ...core.connection import CountableDjangoObjectType
-from ...core.enums import ReportingPeriod, TaxRateType
+from ...core.enums import OrderDirection, ReportingPeriod, TaxRateType
 from ...core.fields import FilterInputConnectionField, PrefetchingConnectionField
 from ...core.resolvers import resolve_meta, resolve_private_meta
 from ...core.types import (
@@ -42,7 +42,7 @@ from ...translations.types import (
     ProductVariantTranslation,
 )
 from ...utils import get_database_id, reporting_period_to_date
-from ..enums import OrderDirection, ProductOrderField
+from ..enums import ProductOrderField
 from ..filters import AttributeFilterInput
 from ..resolvers import resolve_attributes
 from .attributes import Attribute, SelectedAttribute
