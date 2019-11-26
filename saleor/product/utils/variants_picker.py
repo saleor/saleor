@@ -63,16 +63,7 @@ class VariantAttributes:
     slug: str
     values: List[VariantValues]
 
-    def as_dict(self):
-        return {
-            "pk": self.pk,
-            "name": self.name,
-            "slug": self.slug,
-            "values": [asdict(v) for v in self.values],
-        }
 
-
-# TODO: probably we need price dataclass anyway - investigate later
 @dataclass
 class MoneyAsDict:
     currency: str
@@ -84,73 +75,28 @@ class MoneyAsDict:
 
 @dataclass
 class MoneyRangeAsDict:
-    minPrice: Optional[MoneyAsDict]
-    maxPrice: Optional[MoneyAsDict]
-
-    def as_dict(self) -> dict:
-        return {
-            "minPrice": asdict(self.minPrice) if self.minPrice else None,
-            "maxPrice": asdict(self.maxPrice) if self.maxPrice else None,
-        }
+    minPrice: Optional[MoneyAsDict] = None
+    maxPrice: Optional[MoneyAsDict] = None
 
 
 @dataclass
 class VariantData:
     id: str
     availability: bool
-    price: Optional[MoneyAsDict]
-    priceUndiscounted: Optional[MoneyAsDict]
     attributes: AttributesMapType
-    priceLocalCurrency: Optional[MoneyAsDict]
     schemaData: dict  # TODO: Can it be changed to schema?
-
-    def as_dict(self):
-        price = asdict(self.price) if self.price else None
-        priceLocalCurrency = (
-            asdict(self.priceLocalCurrency) if self.priceLocalCurrency else None
-        )
-        priceUndiscounted = (
-            asdict(self.priceUndiscounted) if self.priceUndiscounted else None
-        )
-        return {
-            "id": self.id,
-            "availability": self.availability,
-            "price": price,
-            "priceUndiscounted": priceUndiscounted,
-            "attributes": self.attributes,
-            "priceLocalCurrency": priceLocalCurrency,
-            "schemaData": self.schemaData,
-        }
+    price: Optional[MoneyAsDict] = None
+    priceUndiscounted: Optional[MoneyAsDict] = None
+    priceLocalCurrency: Optional[MoneyAsDict] = None
 
 
 @dataclass
 class ProductAvailability:
-    discount: Optional[MoneyAsDict]
-    taxRate: Decimal
-    priceRange: Optional[MoneyRangeAsDict]
-    priceRangeUndiscounted: Optional[MoneyRangeAsDict]
-    priceRangeLocalCurrency: Optional[MoneyRangeAsDict]
-
-    def as_dict(self) -> dict:
-        discount = asdict(self.discount) if self.discount else None
-        priceRange = self.priceRange.as_dict() if self.priceRange else None
-        priceRangeUndiscounted = (
-            self.priceRangeUndiscounted.as_dict()
-            if self.priceRangeUndiscounted
-            else None
-        )
-        priceRangeLocalCurrency = (
-            self.priceRangeLocalCurrency.as_dict()
-            if self.priceRangeLocalCurrency
-            else None
-        )
-        return {
-            "discount": discount,
-            "taxRate": self.taxRate,
-            "priceRange": priceRange,
-            "priceRangeUndiscounted": priceRangeUndiscounted,
-            "priceRangeLocalCurrency": priceRangeLocalCurrency,
-        }
+    discount: Optional[MoneyAsDict] = None
+    taxRate: Decimal = Decimal(0)
+    priceRange: Optional[MoneyRangeAsDict] = None
+    priceRangeUndiscounted: Optional[MoneyRangeAsDict] = None
+    priceRangeLocalCurrency: Optional[MoneyRangeAsDict] = None
 
 
 @dataclass
@@ -167,12 +113,7 @@ class VariantPickerData:
     variants: List[VariantData] = field(default_factory=list)
 
     def as_dict(self):
-        return {
-            "availability": self.availability.as_dict(),
-            "priceDisplay": asdict(self.priceDisplay),
-            "variantAttributes": [v.as_dict() for v in self.variantAttributes],
-            "variants": [v.as_dict() for v in self.variants],
-        }
+        return asdict(self)
 
 
 def get_variant_picker_data(
