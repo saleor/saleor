@@ -9,7 +9,7 @@ from django.urls import reverse
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
-from saleor.checkout import forms, utils
+from saleor.checkout import calculations, forms, utils
 from saleor.checkout.context_processors import checkout_counter
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import (
@@ -253,8 +253,8 @@ def test_adding_same_variant(checkout, product):
     add_variant_to_checkout(checkout, variant, 2)
     assert len(checkout) == 1
     assert checkout.quantity == 3
-    subtotal = Money("30.00", "USD")
-    assert checkout.get_subtotal() == subtotal
+    subtotal = TaxedMoney(Money("30.00", "USD"), Money("30.00", "USD"))
+    assert calculations.checkout_subtotal(checkout) == subtotal
 
 
 def test_replacing_same_variant(checkout, product):
@@ -531,8 +531,8 @@ def test_view_checkout(client, request_checkout_with_item):
     checkout_line = request_checkout_with_item.lines.first()
     assert response.status_code == 200
     assert not response_checkout_line["get_total"].tax.amount
-    total = checkout_line.get_total()
-    assert response_checkout_line["get_total"] == TaxedMoney(total, total)
+    total = calculations.checkout_line_total(checkout_line)
+    assert response_checkout_line["get_total"] == total
 
 
 def test_view_update_checkout_quantity(client, request_checkout_with_item, monkeypatch):
@@ -603,8 +603,8 @@ def test_checkout_summary_page(settings, client, request_checkout_with_item):
     assert response.status_code == 200
     content = response.context
     assert content["quantity"] == request_checkout_with_item.quantity
-    checkout_total = request_checkout_with_item.get_subtotal()
-    assert content["total"] == TaxedMoney(checkout_total, checkout_total)
+    checkout_total = calculations.checkout_subtotal(request_checkout_with_item)
+    assert content["total"] == checkout_total
     assert len(content["lines"]) == 1
     checkout_line = content["lines"][0]
     variant = request_checkout_with_item.lines.get().variant

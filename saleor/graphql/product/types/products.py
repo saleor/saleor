@@ -344,11 +344,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
 
     @staticmethod
     def resolve_price(root: models.ProductVariant, *_args):
-        return (
-            root.price_override
-            if root.price_override is not None
-            else root.product.price
-        )
+        return root.base_price
 
     @staticmethod
     @gql_optimizer.resolver_hints(
