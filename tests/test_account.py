@@ -263,16 +263,6 @@ def test_compare_addresses_different_country(address):
     assert address != copied_address
 
 
-def test_user_ajax_label(customer_user):
-    address = customer_user.default_billing_address
-    label = "%s %s (%s)" % (address.first_name, address.last_name, customer_user.email)
-    assert customer_user.get_ajax_label() == label
-
-
-def test_user_ajax_label_without_address(admin_user):
-    assert admin_user.get_ajax_label() == admin_user.email
-
-
 @pytest.mark.parametrize(
     "email, first_name, last_name, full_name",
     [

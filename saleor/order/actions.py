@@ -21,7 +21,7 @@ from .utils import (
 
 if TYPE_CHECKING:
     from .models import Order
-    from ..account.models import User, Address
+    from ..account.models import User
     from ..payment.models import Payment
 
 
@@ -126,11 +126,6 @@ def order_fulfilled(
 
 def order_shipping_updated(order: "Order"):
     recalculate_order(order)
-    get_extensions_manager().order_updated(order)
-
-
-def order_address_updated(order: "Order", user: "User", address: "Address"):
-    events.order_updated_address_event(order=order, user=user, address=address)
     get_extensions_manager().order_updated(order)
 
 
