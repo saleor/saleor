@@ -1,4 +1,5 @@
 import uuid
+from typing import Set
 
 from django.db import models
 from django.utils.translation import pgettext_lazy
@@ -45,6 +46,15 @@ class Warehouse(models.Model):
 
     def __str__(self):
         return self.name
+
+    @property
+    def countries(self) -> Set[str]:
+        countries_zone = ",".join(
+            ShippingZone.objects.prefetch_related("warehouse_set")
+            .filter(warehouse=self)
+            .values_list("countries", flat=True)
+        )
+        return set(countries_zone.split(","))
 
     def delete(self, *args, **kwargs):
         self.address.delete()
