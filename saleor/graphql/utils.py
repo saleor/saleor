@@ -1,7 +1,7 @@
 from typing import Union
 
 import graphene
-from django.db.models import Q
+from django.db.models import Q, QuerySet
 from django.utils import timezone
 from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
@@ -120,6 +120,25 @@ def filter_by_query_param(queryset, query, search_fields):
         for q in query_by:
             query_objects |= Q(**{q: query_by[q]})
         return queryset.filter(query_objects).distinct()
+    return queryset
+
+
+def sort_queryset(queryset: QuerySet, sort_by: dict):
+    """Sort queryset according to given parameters.
+
+    Keyword Arguments:
+        queryset - queryset to be filtered
+        sort_by - dictionary with sorting field and direction
+
+    """
+    if sort_by is None or not sort_by.field:
+        return queryset
+
+    direction = sort_by.direction
+    sorting_field = sort_by.field
+
+    queryset = queryset.order_by(f"{direction}{sorting_field}")
+
     return queryset
 
 

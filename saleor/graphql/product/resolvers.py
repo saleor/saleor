@@ -9,7 +9,13 @@ from ...order import OrderStatus
 from ...product import models
 from ...search.backends import picker
 from ..core.enums import OrderDirection
-from ..utils import filter_by_period, filter_by_query_param, get_database_id, get_nodes
+from ..utils import (
+    filter_by_period,
+    filter_by_query_param,
+    get_database_id,
+    get_nodes,
+    sort_queryset,
+)
 from .enums import AttributeSortField
 from .filters import (
     filter_attributes_by_product_types,
@@ -75,11 +81,11 @@ def resolve_categories(info, query, level=None):
     return gql_optimizer.query(qs, info)
 
 
-def resolve_collections(info, query):
+def resolve_collections(info, query, sort_by=None, **_kwargs):
     user = info.context.user
     qs = models.Collection.objects.visible_to_user(user)
     qs = filter_by_query_param(qs, query, COLLECTION_SEARCH_FIELDS)
-    qs = qs.order_by("name")
+    qs = sort_queryset(qs, sort_by)
     return gql_optimizer.query(qs, info)
 
 

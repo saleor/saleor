@@ -950,6 +950,16 @@ type CollectionReorderProducts {
   productErrors: [ProductError!]
 }
 
+enum CollectionSortEnum {
+  NAME
+  AVAILABILITY
+}
+
+input CollectionSortInput {
+  direction: OrderDirection!
+  field: CollectionSortEnum
+}
+
 type CollectionTranslatableContent implements Node {
   seoTitle: String
   seoDescription: String
@@ -3409,7 +3419,7 @@ type Query {
   categories(query: String, filter: CategoryFilterInput, level: Int, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   category(id: ID!): Category
   collection(id: ID!): Collection
-  collections(filter: CollectionFilterInput, query: String, before: String, after: String, first: Int, last: Int): CollectionCountableConnection
+  collections(filter: CollectionFilterInput, sortBy: CollectionSortInput, query: String, before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   product(id: ID!): Product
   products(filter: ProductFilterInput, attributes: [AttributeScalar], categories: [ID], collections: [ID], sortBy: ProductOrder, stockAvailability: StockAvailability, query: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   productType(id: ID!): ProductType
