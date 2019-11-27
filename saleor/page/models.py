@@ -1,14 +1,10 @@
-from django.conf import settings
 from django.db import models
 from django.urls import reverse
-from django.utils.html import strip_tags
 from django.utils.translation import pgettext_lazy
 from draftjs_sanitizer import clean_draft_js
 
 from ..core.db.fields import SanitizedJSONField
 from ..core.models import PublishableModel, PublishedQuerySet
-from ..core.utils import build_absolute_uri
-from ..core.utils.draftjs import json_content_to_raw_text
 from ..core.utils.translations import TranslationProxy
 from ..seo.models import SeoModel, SeoModelTranslation
 
@@ -40,17 +36,8 @@ class Page(SeoModel, PublishableModel):
     def __str__(self):
         return self.title
 
-    @property
-    def plain_text_content(self):
-        if settings.USE_JSON_CONTENT:
-            return json_content_to_raw_text(self.content_json)
-        return strip_tags(self.content)
-
     def get_absolute_url(self):
         return reverse("page:details", kwargs={"slug": self.slug})
-
-    def get_full_url(self):
-        return build_absolute_uri(self.get_absolute_url())
 
 
 class PageTranslation(SeoModelTranslation):

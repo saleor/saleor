@@ -7,7 +7,7 @@ from draftjs_sanitizer import SafeJSONEncoder
 from impersonate.views import impersonate as orig_impersonate
 
 from ..account.models import User
-from ..dashboard.views import staff_member_required
+from ..account.utils import staff_member_required
 from ..product.utils import products_for_homepage
 from ..product.utils.availability import products_with_availability
 from ..seo.schema.webpage import get_webpage_schema

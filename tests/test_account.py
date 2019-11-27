@@ -7,13 +7,18 @@ import pytest
 from captcha import constants as recaptcha_constants
 from captcha.client import RecaptchaResponse
 from django.contrib.auth.tokens import default_token_generator
+from django.core import mail
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.forms import Form
 from django.http import QueryDict
 from django.template import Context, Template
+from django.templatetags.static import static
 from django.urls import reverse
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
 from django_countries.fields import Country
+from templated_email import send_templated_mail
 
 from saleor.account import forms, i18n
 from saleor.account.forms import FormWithReCaptcha, NameForm
@@ -23,8 +28,10 @@ from saleor.account.utils import (
     get_random_avatar,
     get_user_first_name,
     get_user_last_name,
+    remove_staff_member,
 )
 from saleor.account.validators import validate_possible_number
+from saleor.core.utils import build_absolute_uri
 
 
 @pytest.mark.parametrize("country", ["CN", "PL", "US", "IE"])
@@ -256,16 +263,6 @@ def test_compare_addresses_different_country(address):
     assert address != copied_address
 
 
-def test_user_ajax_label(customer_user):
-    address = customer_user.default_billing_address
-    label = "%s %s (%s)" % (address.first_name, address.last_name, customer_user.email)
-    assert customer_user.get_ajax_label() == label
-
-
-def test_user_ajax_label_without_address(admin_user):
-    assert admin_user.get_ajax_label() == admin_user.email
-
-
 @pytest.mark.parametrize(
     "email, first_name, last_name, full_name",
     [
@@ -455,3 +452,45 @@ def test_view_add_names_to_user(customer_user, authorized_client):
     updated_user = User.objects.get(pk=customer_user.pk)
     assert updated_user.first_name == "Jan"
     assert updated_user.last_name == "Nowak"
+
+
+def test_remove_staff_member_with_orders(staff_user, permission_manage_products, order):
+    order.user = staff_user
+    order.save()
+    staff_user.user_permissions.add(permission_manage_products)
+
+    remove_staff_member(staff_user)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert not staff_user.is_staff
+    assert not staff_user.user_permissions.exists()
+
+
+def test_remove_staff_member(staff_user):
+    remove_staff_member(staff_user)
+    assert not User.objects.filter(pk=staff_user.pk).exists()
+
+
+def test_send_set_password_customer_email(customer_user, site_settings):
+    site = site_settings.site
+    uid = urlsafe_base64_encode(force_bytes(customer_user.pk))
+    token = default_token_generator.make_token(customer_user)
+    logo_url = build_absolute_uri(static("images/logo-light.svg"))
+    password_set_url = build_absolute_uri(
+        reverse(
+            "account:reset-password-confirm", kwargs={"token": token, "uidb64": uid}
+        )
+    )
+    ctx = {
+        "logo_url": logo_url,
+        "password_set_url": password_set_url,
+        "site_name": site.name,
+    }
+    send_templated_mail(
+        template_name="dashboard/customer/set_password",
+        from_email=site_settings.default_from_email,
+        recipient_list=[customer_user.email],
+        context=ctx,
+    )
+    assert len(mail.outbox) == 1
+    sended_message = mail.outbox[0].body
+    assert password_set_url in sended_message

@@ -98,7 +98,7 @@ def test_create_collection(
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
         (
-            "saleor.dashboard.collection.forms."
+            "saleor.product.thumbnails."
             "create_collection_background_image_thumbnails.delay"
         ),
         mock_create_thumbnails,
@@ -162,7 +162,7 @@ def test_create_collection_without_background_image(
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
         (
-            "saleor.dashboard.collection.forms."
+            "saleor.product.thumbnails."
             "create_collection_background_image_thumbnails.delay"
         ),
         mock_create_thumbnails,
@@ -201,7 +201,7 @@ def test_update_collection(
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
         (
-            "saleor.dashboard.collection.forms."
+            "saleor.product.thumbnails."
             "create_collection_background_image_thumbnails.delay"
         ),
         mock_create_thumbnails,
@@ -264,7 +264,7 @@ def test_update_collection_with_background_image(
     mock_create_thumbnails = Mock(return_value=None)
     monkeypatch.setattr(
         (
-            "saleor.dashboard.collection.forms."
+            "saleor.product.thumbnails."
             "create_collection_background_image_thumbnails.delay"
         ),
         mock_create_thumbnails,

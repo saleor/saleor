@@ -1,9 +1,9 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ...dashboard.shipping.forms import default_shipping_zone_exists
 from ...shipping import models
 from ...shipping.error_codes import ShippingErrorCode
+from ...shipping.utils import default_shipping_zone_exists
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import Decimal, WeightScalar
 from ..core.types.common import ShippingError

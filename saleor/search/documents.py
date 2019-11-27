@@ -1,9 +1,6 @@
 from django_elasticsearch_dsl import DocType, Index, fields
 from elasticsearch_dsl import analyzer, token_filter
 
-from ..account.models import User
-from ..account.utils import get_user_first_name, get_user_last_name
-from ..order.models import Order
 from ..product.models import Product
 
 storefront = Index("storefront")
@@ -31,53 +28,3 @@ class ProductDocument(DocType):
 
 users = Index("users")
 users.settings(number_of_shards=1, number_of_replicas=0)
-
-
-@users.doc_type
-class UserDocument(DocType):
-    user = fields.StringField(analyzer=email_analyzer)
-    first_name = fields.StringField()
-    last_name = fields.StringField()
-
-    def prepare_user(self, instance):
-        return instance.email
-
-    def prepare_first_name(self, instance):
-        return get_user_first_name(instance)
-
-    def prepare_last_name(self, instance):
-        return get_user_last_name(instance)
-
-    class Meta:
-        model = User
-        fields = ["email"]
-
-
-orders = Index("orders")
-orders.settings(number_of_shards=1, number_of_replicas=0)
-
-
-@orders.doc_type
-class OrderDocument(DocType):
-    user = fields.StringField(analyzer=email_analyzer)
-    first_name = fields.StringField()
-    last_name = fields.StringField()
-
-    def prepare_user(self, instance):
-        if instance.user:
-            return instance.user.email
-        return instance.user_email
-
-    def prepare_first_name(self, instance):
-        if instance.user:
-            return get_user_first_name(instance.user)
-        return None
-
-    def prepare_last_name(self, instance):
-        if instance.user:
-            return get_user_last_name(instance.user)
-        return None
-
-    class Meta:
-        model = Order
-        fields = ["user_email", "discount_name"]

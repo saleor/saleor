@@ -62,23 +62,6 @@ class MenuItem(MPTTModel, SortableModel):
     def linked_object(self):
         return self.category or self.collection or self.page
 
-    @property
-    def destination_display(self):
-        linked_object = self.linked_object
-
-        if not linked_object:
-            prefix = pgettext_lazy("Link object type description", "URL: ")
-            return prefix + self.url
-
-        if isinstance(linked_object, Category):
-            prefix = pgettext_lazy("Link object type description", "Category: ")
-        elif isinstance(linked_object, Collection):
-            prefix = pgettext_lazy("Link object type description", "Collection: ")
-        else:
-            prefix = pgettext_lazy("Link object type description", "Page: ")
-
-        return prefix + str(linked_object)
-
     def get_url(self):
         linked_object = self.linked_object
         return linked_object.get_absolute_url() if linked_object else self.url

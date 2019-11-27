@@ -2,6 +2,9 @@ import os
 import random
 
 from django.conf import settings
+from django.contrib.admin.views.decorators import (
+    staff_member_required as django_staff_member_required,
+)
 from django.core.files import File
 
 from ..checkout import AddressType
@@ -101,3 +104,20 @@ def get_random_avatar():
     avatar_name = random.choice(os.listdir(AVATARS_PATH))
     avatar_path = os.path.join(AVATARS_PATH, avatar_name)
     return File(open(avatar_path, "rb"), name=avatar_name)
+
+
+def remove_staff_member(staff):
+    """Remove staff member account only if it has no orders placed.
+
+    Otherwise, switches is_staff status to False.
+    """
+    if staff.orders.exists():
+        staff.is_staff = False
+        staff.user_permissions.clear()
+        staff.save()
+    else:
+        staff.delete()
+
+
+def staff_member_required(f):
+    return django_staff_member_required(f, login_url="account:login")

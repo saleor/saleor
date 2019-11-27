@@ -6,10 +6,12 @@ from django.db import transaction
 from graphql_jwt.exceptions import PermissionDenied
 
 from ....account import events as account_events, models
-from ....account.emails import send_user_password_reset_email_with_url
+from ....account.emails import (
+    send_set_password_email_with_url,
+    send_user_password_reset_email_with_url,
+)
 from ....account.error_codes import AccountErrorCode
 from ....core.utils.url import validate_storefront_url
-from ....dashboard.emails import send_set_password_email_with_url
 from ...account.i18n import I18nMixin
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import (

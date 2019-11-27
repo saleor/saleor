@@ -56,8 +56,6 @@ module.exports = (_, argv) => {
 
   return {
     entry: {
-      dashboard: './saleor/static/dashboard/js/dashboard.js',
-      document: './saleor/static/dashboard/js/document.js',
       storefront: './saleor/static/js/storefront.js'
     },
     output: output,
@@ -102,7 +100,6 @@ module.exports = (_, argv) => {
             resolve('node_modules'),
             resolve('saleor/static/fonts'),
             resolve('saleor/static/images'),
-            resolve('saleor/static/dashboard/images')
           ]
         }
       ]

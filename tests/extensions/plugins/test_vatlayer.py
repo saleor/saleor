@@ -1,18 +1,15 @@
 from decimal import Decimal
-from unittest import mock
 from unittest.mock import Mock
 from urllib.parse import urlparse
 
 import pytest
-from django.core.exceptions import ImproperlyConfigured, ValidationError
+from django.core.exceptions import ValidationError
 from django.urls import reverse
 from django_countries.fields import Country
-from django_prices_vatlayer.models import VAT
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from saleor.checkout.utils import add_variant_to_checkout
 from saleor.core.taxes import quantize_price
-from saleor.dashboard.taxes.filters import get_country_choices_for_vat
 from saleor.extensions.manager import get_extensions_manager
 from saleor.extensions.plugins.vatlayer import (
     DEFAULT_TAX_RATE_NAME,
@@ -128,137 +125,6 @@ def test_get_taxed_shipping_price(
     shipping_price = get_taxed_shipping_price(price, taxes=vatlayer)
 
     assert shipping_price == expected_price
-
-
-def test_view_taxes_list(admin_client, vatlayer):
-    url = reverse("dashboard:taxes")
-
-    response = admin_client.get(url)
-
-    tax_list = response.context["taxes"].object_list
-    assert response.status_code == 200
-    assert tax_list == list(VAT.objects.order_by("country_code"))
-
-
-def test_view_tax_details(admin_client, vatlayer):
-    tax = VAT.objects.get(country_code="PL")
-    tax_rates = [(rate_name, tax["value"]) for rate_name, tax in vatlayer.items()]
-    tax_rates = sorted(tax_rates)
-    url = reverse("dashboard:tax-details", kwargs={"country_code": "PL"})
-
-    response = admin_client.get(url)
-    assert response.status_code == 200
-    assert response.context["tax"] == tax
-    assert response.context["tax_rates"] == tax_rates
-
-
-def test_configure_taxes(admin_client, site_settings):
-    url = reverse("dashboard:configure-taxes")
-    data = {
-        "include_taxes_in_prices": False,
-        "display_gross_prices": False,
-        "charge_taxes_on_shipping": False,
-    }
-
-    response = admin_client.post(url, data)
-
-    assert response.status_code == 302
-    assert get_redirect_location(response) == reverse("dashboard:taxes")
-
-    site_settings.refresh_from_db()
-    assert not site_settings.include_taxes_in_prices
-    assert not site_settings.display_gross_prices
-    assert not site_settings.charge_taxes_on_shipping
-
-
-@mock.patch("saleor.dashboard.taxes.views.messages", create=True)
-@mock.patch("saleor.dashboard.taxes.views.call_command", create=True)
-def test_fetch_tax_rates(mocked_call_command, mocked_messages, admin_client):
-    # Ensure a valid fetch VAT rates request is correctly handled,
-    # and is leading to the proper VAT fetching command being invoked.
-    url = reverse("dashboard:fetch-tax-rates")
-    response = admin_client.post(url)
-
-    # Ensure the request was successful
-    assert response.status_code == 302
-    assert get_redirect_location(response) == reverse("dashboard:taxes")
-    assert mocked_messages.success.call_count == 1
-
-    # Ensure the get VAT rates (mocked) command was invoked
-    mocked_call_command.assert_called_once_with("get_vat_rates")
-
-
-@mock.patch("saleor.dashboard.taxes.views.messages", create=True)
-@mock.patch("saleor.dashboard.taxes.views.logger", create=True)
-@mock.patch(
-    "saleor.dashboard.taxes.views.call_command",
-    side_effect=ImproperlyConfigured("Test"),
-    create=True,
-)
-def test_fetch_tax_rates_improperly_configured(
-    mocked_call_command, mocked_logger, mocked_messages, admin_client
-):
-    # Ensure a failing VAT rate fetching is leading to an error being
-    # returned, and that error is handled.
-    url = reverse("dashboard:fetch-tax-rates")
-    response = admin_client.post(url)
-
-    # Ensure the request was successful
-    assert response.status_code == 302
-    assert get_redirect_location(response) == reverse("dashboard:taxes")
-
-    # Ensure error was logged to the logger
-    # and the error was returned to the client
-    assert mocked_logger.exception.call_count == 1
-    assert mocked_messages.warning.call_count == 1
-
-    # Ensure the get VAT rates (mocked) command was invoked
-    mocked_call_command.assert_called_once_with("get_vat_rates")
-
-
-def test_fetch_tax_rates_invalid_method(admin_client):
-    # Ensure the GET method is not allowed for tax rates fetching
-    url = reverse("dashboard:fetch-tax-rates")
-    assert admin_client.get(url).status_code == 405
-
-
-def test_tax_list_filters_empty(admin_client, vatlayer):
-    qs = VAT.objects.order_by("country_code")
-    url = reverse("dashboard:taxes")
-    data = {"country_code": [""], "sort_by": [""]}
-
-    response = admin_client.get(url, data)
-
-    assert response.status_code == 200
-    assert list(response.context["filter_set"].qs) == list(qs)
-
-
-def test_tax_list_filters_country_code(admin_client, vatlayer):
-    qs = VAT.objects.filter(country_code="PL")
-    url = reverse("dashboard:taxes")
-    data = {"country_code": ["PL"], "sort_by": [""]}
-
-    response = admin_client.get(url, data)
-
-    assert response.status_code == 200
-    assert list(response.context["filter_set"].qs) == list(qs)
-
-
-def test_tax_list_filters_sort_by(admin_client, vatlayer):
-    qs = VAT.objects.order_by("-country_code")
-    url = reverse("dashboard:taxes")
-    data = {"country_code": [""], "sort_by": ["-country_code"]}
-
-    response = admin_client.get(url, data)
-
-    assert response.status_code == 200
-    assert list(response.context["filter_set"].qs) == list(qs)
-
-
-def test_get_country_choices_for_vat(vatlayer):
-    expected_choices = [("DE", "Germany"), ("PL", "Poland")]
-    choices = get_country_choices_for_vat()
-    assert choices == expected_choices
 
 
 def test_get_taxes_for_country(vatlayer, compare_taxes):
