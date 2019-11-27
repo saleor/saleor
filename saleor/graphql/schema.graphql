@@ -953,6 +953,7 @@ type CollectionReorderProducts {
 enum CollectionSortEnum {
   NAME
   AVAILABILITY
+  PRODUCT_COUNT
 }
 
 input CollectionSortInput {

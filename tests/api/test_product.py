@@ -2661,12 +2661,12 @@ QUERY_COLLECTIONS_WITH_SEARCH = """
         ({"field": "NAME", "direction": "DESC"}, ["Coll3", "Coll2", "Coll1"]),
         ({"field": "AVAILABILITY", "direction": "ASC"}, ["Coll2", "Coll1", "Coll3"]),
         ({"field": "AVAILABILITY", "direction": "DESC"}, ["Coll1", "Coll3", "Coll2"]),
-        # ({"field": "PRODUCT_COUNT", "direction": "ASC"}),
-        # ({"field": "PRODUCT_COUNT", "direction": "DESC"}),
+        ({"field": "PRODUCT_COUNT", "direction": "ASC"}, ["Coll3", "Coll1", "Coll2"]),
+        ({"field": "PRODUCT_COUNT", "direction": "DESC"}, ["Coll2", "Coll3", "Coll1"]),
     ],
 )
 def test_collections_query_with_search(
-    collection_sort, result_order, staff_api_client, permission_manage_products
+    collection_sort, result_order, staff_api_client, permission_manage_products, product
 ):
     Collection.objects.bulk_create(
         [
@@ -2677,6 +2677,7 @@ def test_collections_query_with_search(
             Collection(name="Coll3", slug="collection-published", is_published=True),
         ]
     )
+    product.collections.add(Collection.objects.get(name="Coll2"))
 
     variables = {"sort_by": collection_sort}
     staff_api_client.user.user_permissions.add(permission_manage_products)

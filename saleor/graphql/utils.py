@@ -9,7 +9,7 @@ from graphql_jwt.utils import jwt_payload
 from graphql_relay import from_global_id
 
 from .core.enums import PermissionEnum, ReportingPeriod
-from .core.types import PermissionDisplay
+from .core.types import PermissionDisplay, SortInputObjectType
 
 ERROR_COULD_NO_RESOLVE_GLOBAL_ID = (
     "Could not resolve to a node with the global id list of '%s'."
@@ -123,7 +123,7 @@ def filter_by_query_param(queryset, query, search_fields):
     return queryset
 
 
-def sort_queryset(queryset: QuerySet, sort_by: dict):
+def sort_queryset(queryset: QuerySet, sort_by: dict, sort_enum: SortInputObjectType):
     """Sort queryset according to given parameters.
 
     Keyword Arguments:
@@ -137,7 +137,13 @@ def sort_queryset(queryset: QuerySet, sort_by: dict):
     direction = sort_by.direction
     sorting_field = sort_by.field
 
-    queryset = queryset.order_by(f"{direction}{sorting_field}")
+    custom_sort_by_name = f"sort_by_{sorting_field}"
+
+    if custom_sort_by_name in dir(sort_enum):
+        custom_sort_by = getattr(sort_enum, custom_sort_by_name)
+        queryset = custom_sort_by(queryset, sort_by)
+    else:
+        queryset = queryset.order_by(f"{direction}{sorting_field}")
 
     return queryset
 
