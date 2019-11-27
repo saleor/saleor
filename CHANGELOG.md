@@ -22,6 +22,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixed serialization error on weight fields when running `loaddata` and `dumpdb` - #5005 by @NyanKiyoshi
 - Fixed JSON encoding error on Google Analytics reporting - #5004 by @NyanKiyoshi
 - Create custom field to translation, use new translation types in translations query - #5007 by @fowczarek
+- Take allocated stock in account in `StockAvailability` filter - #5019 by @simonbru
 
 ## 2.9.0
 
