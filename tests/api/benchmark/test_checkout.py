@@ -1,7 +1,7 @@
 import pytest
 from graphene import Node
-from prices import TaxedMoney
 
+from saleor.checkout import calculations
 from saleor.checkout.utils import add_variant_to_checkout
 from saleor.payment import ChargeStatus, TransactionKind
 from saleor.payment.models import Payment
@@ -39,8 +39,7 @@ def checkout_with_billing_address(checkout_with_shipping_method, address):
 def checkout_with_charged_payment(checkout_with_billing_address):
     checkout = checkout_with_billing_address
 
-    total = checkout.get_total()
-    taxed_total = TaxedMoney(total, total)
+    taxed_total = calculations.checkout_total(checkout)
     payment = Payment.objects.create(
         gateway="Dummy", is_active=True, total=taxed_total.gross.amount, currency="USD"
     )

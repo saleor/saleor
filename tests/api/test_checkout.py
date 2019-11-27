@@ -7,11 +7,13 @@ import pytest
 from django.core.exceptions import ValidationError
 from prices import Money, TaxedMoney
 
+from saleor.checkout import calculations
 from saleor.checkout.error_codes import CheckoutErrorCode
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import clean_checkout, is_fully_paid
 from saleor.core.payments import PaymentInterface
 from saleor.core.taxes import zero_money
+from saleor.extensions.manager import ExtensionsManager
 from saleor.graphql.checkout.mutations import (
     clean_shipping_method,
     update_checkout_shipping_method_if_invalid,
@@ -22,7 +24,6 @@ from saleor.payment.interface import GatewayResponse
 from saleor.shipping import ShippingMethodType
 from saleor.shipping.models import ShippingMethod
 from tests.api.utils import get_graphql_content
-from saleor.extensions.manager import ExtensionsManager
 
 
 @pytest.fixture
@@ -1168,8 +1169,7 @@ def test_checkout_complete(
     checkout_line_variant = checkout_line.variant
 
     gift_current_balance = checkout.get_total_gift_cards_balance()
-    total = checkout.get_total()
-    total = TaxedMoney(total, total)
+    total = calculations.checkout_total(checkout)
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -1273,8 +1273,7 @@ def test_checkout_complete_does_not_delete_checkout_after_unsuccessful_payment(
     checkout.billing_address = address
     checkout.save()
 
-    total = checkout.get_total()
-    taxed_total = TaxedMoney(total, total)
+    taxed_total = calculations.checkout_total(checkout)
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -1350,8 +1349,7 @@ def test_checkout_complete_insufficient_stock(
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
     checkout.save()
-    total = checkout.get_total()
-    total = TaxedMoney(total, total)
+    total = calculations.checkout_total(checkout)
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -1441,14 +1439,10 @@ def test_checkout_prices(user_api_client, checkout_with_item):
     data = content["data"]["checkout"]
     assert data["token"] == str(checkout_with_item.token)
     assert len(data["lines"]) == checkout_with_item.lines.count()
-    total = checkout_with_item.get_total()
-    assert data["totalPrice"]["gross"]["amount"] == (
-        TaxedMoney(total, total).gross.amount
-    )
-    subtotal = checkout_with_item.get_subtotal()
-    assert data["subtotalPrice"]["gross"]["amount"] == (
-        TaxedMoney(subtotal, subtotal).gross.amount
-    )
+    total = calculations.checkout_total(checkout_with_item)
+    assert data["totalPrice"]["gross"]["amount"] == (total.gross.amount)
+    subtotal = calculations.checkout_subtotal(checkout_with_item)
+    assert data["subtotalPrice"]["gross"]["amount"] == (subtotal.gross.amount)
 
 
 MUTATION_UPDATE_SHIPPING_METHOD = """
@@ -1583,8 +1577,7 @@ def test_clean_checkout(checkout_with_item, payment_dummy, address, shipping_met
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
     checkout.save()
-    total = checkout.get_total()
-    total = TaxedMoney(total, total)
+    total = calculations.checkout_total(checkout)
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -1665,8 +1658,7 @@ def test_clean_checkout_no_payment(checkout_with_item, shipping_method, address)
 
 def test_is_fully_paid(checkout_with_item, payment_dummy):
     checkout = checkout_with_item
-    total = checkout.get_total()
-    total = TaxedMoney(total, total)
+    total = calculations.checkout_total(checkout)
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -1680,8 +1672,7 @@ def test_is_fully_paid(checkout_with_item, payment_dummy):
 
 def test_is_fully_paid_many_payments(checkout_with_item, payment_dummy):
     checkout = checkout_with_item
-    total = checkout.get_total()
-    total = TaxedMoney(total, total)
+    total = calculations.checkout_total(checkout)
     payment = payment_dummy
     payment.is_active = True
     payment.order = None
@@ -1703,8 +1694,7 @@ def test_is_fully_paid_many_payments(checkout_with_item, payment_dummy):
 
 def test_is_fully_paid_partially_paid(checkout_with_item, payment_dummy):
     checkout = checkout_with_item
-    total = checkout.get_total()
-    total = TaxedMoney(total, total)
+    total = calculations.checkout_total(checkout)
     payment = payment_dummy
     payment.is_active = True
     payment.order = None

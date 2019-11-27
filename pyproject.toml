@@ -12,13 +12,12 @@ repository = "https://github.com/mirumee/saleor"
 documentation = "https://docs.getsaleor.com/en/latest/"
 
 [tool.poetry.dependencies]
-python = "~3.7"
+python = "~3.8"
 babel = "~2.7"
 bleach = "~2"
 boto3 = "^1.9"
 braintree = "~3.49.0"
 celery = { version = "^4.3.0", extras = ["redis"] }
-dataclasses = { version = "^0.6", markers = "python_version < '3.7'" }
 dj-database-url = "^0"
 dj-email-url = "^0"
 django = "~2.2"
@@ -99,6 +98,8 @@ pytest-xdist = "^1.29"
 tox = "^3.13.2"
 transifex-client = "^0"
 yapf = "^0.28"
+django-stubs = "^1.2"
+mypy = "^0.740.0"
 
 [tool.black]
 target_version = ['py35', 'py36', 'py37', 'py38']

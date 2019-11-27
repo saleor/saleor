@@ -30,7 +30,7 @@ def test_get_extensions_manager():
 def test_manager_calculates_checkout_total(
     checkout_with_item, discount_info, plugins, total_amount
 ):
-    currency = checkout_with_item.get_total().currency
+    currency = checkout_with_item.currency
     expected_total = Money(total_amount, currency)
     manager = ExtensionsManager(plugins=plugins)
     taxed_total = manager.calculate_checkout_total(checkout_with_item, [discount_info])
@@ -44,7 +44,7 @@ def test_manager_calculates_checkout_total(
 def test_manager_calculates_checkout_subtotal(
     checkout_with_item, discount_info, plugins, subtotal_amount
 ):
-    currency = checkout_with_item.get_total().currency
+    currency = checkout_with_item.currency
     expected_subtotal = Money(subtotal_amount, currency)
     taxed_subtotal = ExtensionsManager(plugins=plugins).calculate_checkout_subtotal(
         checkout_with_item, [discount_info]
@@ -59,7 +59,7 @@ def test_manager_calculates_checkout_subtotal(
 def test_manager_calculates_checkout_shipping(
     checkout_with_item, discount_info, plugins, shipping_amount
 ):
-    currency = checkout_with_item.get_total().currency
+    currency = checkout_with_item.currency
     expected_shipping_price = Money(shipping_amount, currency)
     taxed_shipping_price = ExtensionsManager(
         plugins=plugins
@@ -95,7 +95,7 @@ def test_manager_calculates_checkout_line_total(
     checkout_with_item, discount_info, plugins, amount
 ):
     line = checkout_with_item.lines.all()[0]
-    currency = line.get_total().currency
+    currency = checkout_with_item.currency
     expected_total = Money(amount, currency)
     taxed_total = ExtensionsManager(plugins=plugins).calculate_checkout_line_total(
         line, [discount_info]

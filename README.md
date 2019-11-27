@@ -83,7 +83,7 @@ Help us out… If you love free stuff and great software, give us a star! 🌟
 
 ## Installation
 
-Saleor requires Python 3.6+, Node.js 10.0+, PostgreSQL and OS-specific dependency tools.
+Saleor requires Python 3.8, Node.js 10.0+, PostgreSQL and OS-specific dependency tools.
 
 [See the Saleor docs](https://docs.saleor.io/docs/getting-started/intro/) for step-by-step installation and deployment instructions.
 
