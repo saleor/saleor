@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-from typing import List
+from typing import TYPE_CHECKING, Callable, List
 
 from django import forms
 
@@ -18,12 +18,17 @@ from .utils import (
     validate_gateway_response,
 )
 
+if TYPE_CHECKING:
+    # flake8: noqa
+    from ..payment.interface import CustomerSource
+
+
 logger = logging.getLogger(__name__)
 ERROR_MSG = "Oops! Something went wrong."
 GENERIC_TRANSACTION_ERROR = "Transaction was unsuccessful"
 
 
-def raise_payment_error(fn):
+def raise_payment_error(fn: Callable) -> Callable:
     def wrapped(*args, **kwargs):
         result = fn(*args, **kwargs)
         if not result.is_success:
@@ -33,7 +38,7 @@ def raise_payment_error(fn):
     return wrapped
 
 
-def payment_postprocess(fn):
+def payment_postprocess(fn: Callable) -> Callable:
     def wrapped(*args, **kwargs):
         txn = fn(*args, **kwargs)
         gateway_postprocess(txn, txn.payment)
@@ -42,7 +47,7 @@ def payment_postprocess(fn):
     return wrapped
 
 
-def require_active_payment(fn):
+def require_active_payment(fn: Callable) -> Callable:
     def wrapped(payment: Payment, *args, **kwargs):
         if not payment.is_active:
             raise PaymentError("This payment is no longer active.")
@@ -129,7 +134,7 @@ def refund(payment: Payment, amount: Decimal = None) -> Transaction:
     plugin_manager = get_extensions_manager()
     if amount is None:
         amount = payment.captured_amount
-    _validate_refund_amound(payment, amount)
+    _validate_refund_amount(payment, amount)
     if not payment.can_refund():
         raise PaymentError("This payment cannot be refunded.")
     token = _get_past_transaction_token(payment, TransactionKind.CAPTURE)
@@ -218,7 +223,7 @@ def _fetch_gateway_response(fn, *args, **kwargs):
         response = fn(*args, **kwargs)
         validate_gateway_response(response)
     except GatewayError:
-        logger.exception("Gateway reponse validation failed!")
+        logger.exception("Gateway response validation failed!")
         response = None
         error = ERROR_MSG
     except Exception:
@@ -235,7 +240,7 @@ def _get_past_transaction_token(payment: Payment, kind: TransactionKind):
     return txn.token
 
 
-def _validate_refund_amound(payment: Payment, amount: Decimal):
+def _validate_refund_amount(payment: Payment, amount: Decimal):
     if amount <= 0:
         raise PaymentError("Amount should be a positive number.")
     if amount > payment.captured_amount:

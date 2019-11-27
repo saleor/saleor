@@ -1,3 +1,4 @@
+from typing import TYPE_CHECKING, List, Union
 from urllib.parse import urlencode
 
 from django.conf import settings
@@ -10,8 +11,19 @@ from ...core.utils.filters import get_now_sorted_by
 from ..tasks import update_products_minimal_variant_prices_task
 from .availability import products_with_availability
 
+if TYPE_CHECKING:
+    # flake8: noqa
+    from datetime import date, datetime
 
-def products_visible_to_user(user):
+    from django.db.models.query import QuerySet
+    from django.http import HttpRequest
+
+    from ...account.models import User
+    from ..models import Product, ProductVariant, Collection, ProductImage, Category
+    from ..filters import ProductCategoryFilter
+
+
+def products_visible_to_user(user: "User") -> "QuerySet[User]":
     # pylint: disable=cyclic-import
     from ..models import Product
 
@@ -20,7 +32,7 @@ def products_visible_to_user(user):
     return Product.objects.published()
 
 
-def products_with_details(user):
+def products_with_details(user: "User") -> "QuerySet[Product]":
     products = products_visible_to_user(user)
     products = products.prefetch_related(
         "translations",
@@ -38,7 +50,7 @@ def products_with_details(user):
     return products
 
 
-def products_for_products_list(user):
+def products_for_products_list(user: "User") -> "QuerySet[Product]":
     products = products_visible_to_user(user)
     products = products.prefetch_related(
         "translations", "images", "variants__variant_images__image"
@@ -46,7 +58,9 @@ def products_for_products_list(user):
     return products
 
 
-def products_for_homepage(user, homepage_collection):
+def products_for_homepage(
+    user: "User", homepage_collection: "Collection"
+) -> "QuerySet[Product]":
     products = products_visible_to_user(user)
     products = products.prefetch_related(
         "translations", "images", "variants__variant_images__image", "collections"
@@ -55,22 +69,22 @@ def products_for_homepage(user, homepage_collection):
     return products
 
 
-def get_product_images(product):
+def get_product_images(product: "Product") -> List["ProductImage"]:
     """Return list of product images that will be placed in product gallery."""
     return list(product.images.all())
 
 
-def products_for_checkout(user):
+def products_for_checkout(user: "User") -> "QuerySet[Product]":
     products = products_visible_to_user(user)
     products = products.prefetch_related("variants__variant_images__image")
     return products
 
 
-def get_variant_url_from_product(product, attributes):
+def get_variant_url_from_product(product: "Product", attributes) -> str:
     return "%s?%s" % (product.get_absolute_url(), urlencode(attributes))
 
 
-def get_variant_url(variant):
+def get_variant_url(variant: "ProductVariant") -> str:
     attributes = {
         str(attribute.pk): attribute
         for attribute in variant.product.product_type.variant_attributes.all()
@@ -78,23 +92,23 @@ def get_variant_url(variant):
     return get_variant_url_from_product(variant.product, attributes)
 
 
-def allocate_stock(variant, quantity):
+def allocate_stock(variant: "ProductVariant", quantity: int):
     variant.quantity_allocated = F("quantity_allocated") + quantity
     variant.save(update_fields=["quantity_allocated"])
 
 
-def deallocate_stock(variant, quantity):
+def deallocate_stock(variant: "ProductVariant", quantity: int):
     variant.quantity_allocated = F("quantity_allocated") - quantity
     variant.save(update_fields=["quantity_allocated"])
 
 
-def decrease_stock(variant, quantity):
+def decrease_stock(variant: "ProductVariant", quantity: int):
     variant.quantity = F("quantity") - quantity
     variant.quantity_allocated = F("quantity_allocated") - quantity
     variant.save(update_fields=["quantity", "quantity_allocated"])
 
 
-def increase_stock(variant, quantity, allocate=False):
+def increase_stock(variant: "ProductVariant", quantity, allocate: bool = False):
     """Return given quantity of product to a stock."""
     variant.quantity = F("quantity") + quantity
     update_fields = ["quantity"]
@@ -104,13 +118,10 @@ def increase_stock(variant, quantity, allocate=False):
     variant.save(update_fields=update_fields)
 
 
-def get_product_list_context(request, filter_set):
-    """Build a context from the given filter set.
-
-    :param request: request object
-    :param filter_set: filter set for product list
-    :return: context dictionary
-    """
+def get_product_list_context(
+    request: "HttpRequest", filter_set: "ProductCategoryFilter"
+) -> dict:
+    """Build a context from the given filter set."""
     # Avoiding circular dependency
     from ..filters import SORT_BY_FIELDS
 
@@ -142,7 +153,7 @@ def get_product_list_context(request, filter_set):
     }
 
 
-def collections_visible_to_user(user):
+def collections_visible_to_user(user: "User") -> "QuerySet[Collection]":
     # pylint: disable=cyclic-import
     from ..models import Collection
 
@@ -151,7 +162,9 @@ def collections_visible_to_user(user):
     return Collection.objects.published()
 
 
-def calculate_revenue_for_variant(variant, start_date):
+def calculate_revenue_for_variant(
+    variant: "ProductVariant", start_date: Union["date", "datetime"]
+) -> TaxedMoney:
     """Calculate total revenue generated by a product variant."""
     revenue = zero_taxed_money()
     for order_line in variant.order_lines.all():
@@ -162,7 +175,7 @@ def calculate_revenue_for_variant(variant, start_date):
     return revenue
 
 
-def collect_categories_tree_products(category):
+def collect_categories_tree_products(category: "Category") -> "QuerySet[Product]":
     """Collect products from all levels in category tree."""
     products = category.products.all()
     descendants = category.get_descendants()
@@ -172,7 +185,7 @@ def collect_categories_tree_products(category):
 
 
 @transaction.atomic
-def delete_categories(categories_ids):
+def delete_categories(categories_ids: List[str]):
     """Delete categories and perform all necessary actions.
 
     Set products of deleted categories as unpublished, delete categories

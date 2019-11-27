@@ -6,17 +6,25 @@ from django.utils.module_loading import import_string
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
+from ..checkout import base_calculations
 from ..core.payments import PaymentInterface
 from ..core.taxes import TaxType, quantize_price
 from .models import PluginConfiguration
 
 if TYPE_CHECKING:
+    # flake8: noqa
     from .base_plugin import BasePlugin
     from ..checkout.models import Checkout, CheckoutLine
-    from ..product.models import Product
+    from ..discount.types import DiscountsListType
+    from ..product.models import Product, ProductType
     from ..account.models import Address, User
     from ..order.models import OrderLine, Order
-    from ..payment.interface import PaymentData, TokenConfig
+    from ..payment.interface import (
+        PaymentData,
+        TokenConfig,
+        GatewayResponse,
+        CustomerSource,
+    )
 
 
 class ExtensionsManager(PaymentInterface):
@@ -73,33 +81,36 @@ class ExtensionsManager(PaymentInterface):
         )
 
     def calculate_checkout_total(
-        self, checkout: "Checkout", discounts: List["DiscountInfo"]
+        self, checkout: "Checkout", discounts: "DiscountsListType"
     ) -> TaxedMoney:
-        total = checkout.get_total(discounts)
-        default_value = quantize_price(
-            TaxedMoney(net=total, gross=total), total.currency
+
+        default_value = base_calculations.base_checkout_total(
+            subtotal=self.calculate_checkout_subtotal(checkout, discounts),
+            shipping_price=self.calculate_checkout_shipping(checkout, discounts),
+            discount=checkout.discount,
+            currency=checkout.currency,
         )
         return self.__run_method_on_plugins(
             "calculate_checkout_total", default_value, checkout, discounts
         )
 
     def calculate_checkout_subtotal(
-        self, checkout: "Checkout", discounts: List["DiscountInfo"]
+        self, checkout: "Checkout", discounts: "DiscountsListType"
     ) -> TaxedMoney:
-        subtotal = checkout.get_subtotal(discounts)
-        default_value = quantize_price(
-            TaxedMoney(net=subtotal, gross=subtotal), subtotal.currency
+        line_totals = [
+            self.calculate_checkout_line_total(line, discounts) for line in checkout
+        ]
+        default_value = base_calculations.base_checkout_subtotal(
+            line_totals, checkout.currency
         )
         return self.__run_method_on_plugins(
             "calculate_checkout_subtotal", default_value, checkout, discounts
         )
 
     def calculate_checkout_shipping(
-        self, checkout: "Checkout", discounts: List["DiscountInfo"]
+        self, checkout: "Checkout", discounts: "DiscountsListType"
     ) -> TaxedMoney:
-        total = checkout.get_shipping_price()
-        total = TaxedMoney(net=total, gross=total)
-        default_value = quantize_price(total, total.currency)
+        default_value = base_calculations.base_checkout_shipping_price(checkout)
         return self.__run_method_on_plugins(
             "calculate_checkout_shipping", default_value, checkout, discounts
         )
@@ -115,11 +126,10 @@ class ExtensionsManager(PaymentInterface):
         )
 
     def calculate_checkout_line_total(
-        self, checkout_line: "CheckoutLine", discounts: List["DiscountInfo"]
+        self, checkout_line: "CheckoutLine", discounts: "DiscountsListType"
     ):
-        total = checkout_line.get_total(discounts)
-        default_value = quantize_price(
-            TaxedMoney(net=total, gross=total), total.currency
+        default_value = base_calculations.base_checkout_line_total(
+            checkout_line, discounts
         )
         return self.__run_method_on_plugins(
             "calculate_checkout_line_total", default_value, checkout_line, discounts
@@ -175,7 +185,7 @@ class ExtensionsManager(PaymentInterface):
         )
 
     def preprocess_order_creation(
-        self, checkout: "Checkout", discounts: List["DiscountInfo"]
+        self, checkout: "Checkout", discounts: "DiscountsListType"
     ):
         default_value = None
         return self.__run_method_on_plugins(
@@ -316,7 +326,7 @@ class ExtensionsManager(PaymentInterface):
         method_name: str,
         payment_information: "PaymentData",
         **kwargs,
-    ) -> Optional["GatewayResposne"]:
+    ) -> Optional["GatewayResponse"]:
         default_value = None
         gtw = self.get_plugin(gateway)
         if gtw is not None:

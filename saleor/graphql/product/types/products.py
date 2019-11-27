@@ -1,3 +1,4 @@
+from dataclasses import asdict
 from typing import List, Union
 
 import graphene
@@ -344,11 +345,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
 
     @staticmethod
     def resolve_price(root: models.ProductVariant, *_args):
-        return (
-            root.price_override
-            if root.price_override is not None
-            else root.product.price
-        )
+        return root.base_price
 
     @staticmethod
     @gql_optimizer.resolver_hints(
@@ -363,7 +360,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
             context.currency,
             extensions=context.extensions,
         )
-        return VariantPricingInfo(**availability._asdict())
+        return VariantPricingInfo(**asdict(availability))
 
     resolve_availability = resolve_pricing
 
@@ -565,7 +562,7 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
             context.currency,
             context.extensions,
         )
-        return ProductPricingInfo(**availability._asdict())
+        return ProductPricingInfo(**asdict(availability))
 
     resolve_availability = resolve_pricing
 

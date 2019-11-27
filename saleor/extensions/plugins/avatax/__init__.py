@@ -12,9 +12,13 @@ from django.core.cache import cache
 from django.utils.translation import pgettext_lazy
 from requests.auth import HTTPBasicAuth
 
+from ....checkout import base_calculations
+
 if TYPE_CHECKING:
+    # flake8: noqa
     from ....checkout.models import Checkout
     from ....order.models import Order
+    from ....product.models import Product, ProductVariant
 
 logger = logging.getLogger(__name__)
 
@@ -107,7 +111,7 @@ def _validate_adddress_details(
 
 def _validate_order(order: "Order") -> bool:
     """Validate the order object if it is ready to generate a request to avatax."""
-    if not order.lines.count():
+    if not order.lines.exists():
         return False
     shipping_address = order.shipping_address
     is_shipping_required = order.is_shipping_required()
@@ -119,7 +123,7 @@ def _validate_order(order: "Order") -> bool:
 
 def _validate_checkout(checkout: "Checkout") -> bool:
     """Validate the checkout object if it is ready to generate a request to avatax."""
-    if not checkout.lines.count():
+    if not checkout.lines.exists():
         return False
 
     shipping_address = checkout.shipping_address
@@ -228,7 +232,9 @@ def get_checkout_lines_data(
         append_line_to_data(
             data=data,
             quantity=line.quantity,
-            amount=str(line.get_total(discounts).amount),
+            amount=str(
+                base_calculations.base_checkout_line_total(line, discounts).gross.amount
+            ),
             tax_code=tax_code,
             item_code=line.variant.sku,
             description=description,
@@ -337,8 +343,7 @@ def generate_request_data_from_checkout(
     address = checkout.shipping_address or checkout.billing_address
     lines = get_checkout_lines_data(checkout, discounts)
 
-    # FIXME after we introduce multicurrency this should be taken from Checkout obj
-    currency = checkout.get_subtotal().currency
+    currency = checkout.currency
     data = generate_request_data(
         transaction_type=transaction_type,
         lines=lines,

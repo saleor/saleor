@@ -1,7 +1,9 @@
+from enum import Enum
+
 from django.utils.translation import pgettext_lazy
 
 
-class ProductAvailabilityStatus:
+class ProductAvailabilityStatus(str, Enum):
     NOT_PUBLISHED = "not-published"
     VARIANTS_MISSSING = "variants-missing"
     OUT_OF_STOCK = "out-of-stock"
@@ -27,7 +29,7 @@ class ProductAvailabilityStatus:
             raise NotImplementedError("Unknown status: %s" % status)
 
 
-class VariantAvailabilityStatus:
+class VariantAvailabilityStatus(str, Enum):
     AVAILABLE = "available"
     OUT_OF_STOCK = "out-of-stock"
 

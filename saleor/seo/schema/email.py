@@ -1,9 +1,13 @@
 import json
+from typing import TYPE_CHECKING
 
 from django.contrib.sites.models import Site
 
 from ...core.utils import build_absolute_uri
 from ...core.utils.json_serializer import HTMLSafeJSON
+
+if TYPE_CHECKING:
+    from ...order.models import OrderLine, Order
 
 
 def get_organization():
@@ -11,7 +15,7 @@ def get_organization():
     return {"@type": "Organization", "name": site.name}
 
 
-def get_product_data(line, organization):
+def get_product_data(line: "OrderLine", organization: dict) -> dict:
     gross_product_price = line.get_total().gross
     line_name = str(line)
     if line.translated_product_name:
@@ -40,7 +44,7 @@ def get_product_data(line, organization):
     return product_data
 
 
-def get_order_confirmation_markup(order):
+def get_order_confirmation_markup(order: "Order") -> str:
     """Generate schema.org markup for order confirmation e-mail message."""
     organization = get_organization()
     order_url = build_absolute_uri(order.get_absolute_url())
