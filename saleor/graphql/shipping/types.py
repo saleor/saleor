@@ -5,25 +5,15 @@ from graphene import relay
 from ...shipping import models
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import CountryDisplay, MoneyRange
-from ..translations.enums import LanguageCodeEnum
-from ..translations.resolvers import resolve_translation
+from ..translations.fields import TranslationField
 from ..translations.types import ShippingMethodTranslation
 from .enums import ShippingMethodTypeEnum
 
 
 class ShippingMethod(CountableDjangoObjectType):
     type = ShippingMethodTypeEnum(description="Type of the shipping method.")
-    translation = graphene.Field(
-        ShippingMethodTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description="A language code to return the translation for.",
-            required=True,
-        ),
-        description=(
-            "Returns translated shipping method fields " "for the given language code."
-        ),
-        resolver=resolve_translation,
+    translation = TranslationField(
+        ShippingMethodTranslation, type_name="shipping method"
     )
 
     class Meta:

@@ -10,8 +10,7 @@ from ...core.connection import CountableDjangoObjectType
 from ...core.resolvers import resolve_meta, resolve_private_meta
 from ...core.types import MetadataObjectType
 from ...decorators import permission_required
-from ...translations.enums import LanguageCodeEnum
-from ...translations.resolvers import resolve_translation
+from ...translations.fields import TranslationField
 from ...translations.types import AttributeTranslation, AttributeValueTranslation
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..enums import (
@@ -52,17 +51,8 @@ class AttributeValue(CountableDjangoObjectType):
     name = graphene.String(description=AttributeValueDescriptions.NAME)
     slug = graphene.String(description=AttributeValueDescriptions.SLUG)
     type = AttributeValueType(description=AttributeValueDescriptions.TYPE)
-    translation = graphene.Field(
-        AttributeValueTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description="A language code to return the translation for.",
-            required=True,
-        ),
-        description=(
-            "Returns translated Attribute Value fields " "for the given language code."
-        ),
-        resolver=resolve_translation,
+    translation = TranslationField(
+        AttributeValueTranslation, type_name="attribute value"
     )
 
     input_type = gql_optimizer.field(
@@ -113,18 +103,7 @@ class Attribute(CountableDjangoObjectType, MetadataObjectType):
         description=AttributeDescriptions.AVAILABLE_IN_GRID, required=True
     )
 
-    translation = graphene.Field(
-        AttributeTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description="A language code to return the translation for.",
-            required=True,
-        ),
-        description=(
-            "Returns translated Attribute fields " "for the given language code."
-        ),
-        resolver=resolve_translation,
-    )
+    translation = TranslationField(AttributeTranslation, type_name="attribute")
 
     storefront_search_position = graphene.Int(
         description=AttributeDescriptions.STOREFRONT_SEARCH_POSITION, required=True

@@ -1,4 +1,3 @@
-import graphene
 from graphene_federation import build_schema
 
 from .account.schema import AccountMutations, AccountQueries
@@ -35,7 +34,7 @@ class Query(
     TranslationQueries,
     WebhookQueries,
 ):
-    node = graphene.Node.Field()
+    pass
 
 
 class Mutation(
