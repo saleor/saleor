@@ -27,6 +27,7 @@ from .filters import (
     filter_products_by_stock_availability,
     sort_qs,
 )
+from .sorters import CollectionSortEnum
 
 if TYPE_CHECKING:
     from ..product.types import ProductOrder  # noqa
@@ -85,7 +86,7 @@ def resolve_collections(info, query, sort_by=None, **_kwargs):
     user = info.context.user
     qs = models.Collection.objects.visible_to_user(user)
     qs = filter_by_query_param(qs, query, COLLECTION_SEARCH_FIELDS)
-    qs = sort_queryset(qs, sort_by)
+    qs = sort_queryset(qs, sort_by, CollectionSortEnum)
     return gql_optimizer.query(qs, info)
 
 
