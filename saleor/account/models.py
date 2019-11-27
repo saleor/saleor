@@ -181,12 +181,6 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
     def get_short_name(self):
         return self.email
 
-    def get_ajax_label(self):
-        address = self.default_billing_address
-        if address:
-            return "%s %s (%s)" % (address.first_name, address.last_name, self.email)
-        return self.email
-
 
 class ServiceAccount(ModelWithMetadata):
     name = models.CharField(max_length=60)
