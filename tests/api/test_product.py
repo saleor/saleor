@@ -2641,6 +2641,53 @@ def test_collections_query_with_filter(
     assert len(collections) == count
 
 
+QUERY_COLLECTIONS_WITH_SEARCH = """
+    query ($sort_by: CollectionSortInput!) {
+        collections(first:5, sortBy: $sort_by) {
+                edges{
+                    node{
+                        name
+                    }
+                }
+            }
+        }
+"""
+
+
+@pytest.mark.parametrize(
+    "collection_sort, result_order",
+    [
+        ({"field": "NAME", "direction": "ASC"}, ["Coll1", "Coll2", "Coll3"]),
+        ({"field": "NAME", "direction": "DESC"}, ["Coll3", "Coll2", "Coll1"]),
+        ({"field": "AVAILABILITY", "direction": "ASC"}, ["Coll2", "Coll1", "Coll3"]),
+        ({"field": "AVAILABILITY", "direction": "DESC"}, ["Coll1", "Coll3", "Coll2"]),
+        # ({"field": "PRODUCT_COUNT", "direction": "ASC"}),
+        # ({"field": "PRODUCT_COUNT", "direction": "DESC"}),
+    ],
+)
+def test_collections_query_with_search(
+    collection_sort, result_order, staff_api_client, permission_manage_products
+):
+    Collection.objects.bulk_create(
+        [
+            Collection(name="Coll1", slug="collection-published1", is_published=True),
+            Collection(
+                name="Coll2", slug="collection-unpublished2", is_published=False
+            ),
+            Collection(name="Coll3", slug="collection-published", is_published=True),
+        ]
+    )
+
+    variables = {"sort_by": collection_sort}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(QUERY_COLLECTIONS_WITH_SEARCH, variables)
+    content = get_graphql_content(response)
+    collections = content["data"]["collections"]["edges"]
+
+    for order, colllection_name in enumerate(result_order):
+        assert collections[order]["node"]["name"] == colllection_name
+
+
 @pytest.mark.parametrize(
     "category_filter, count",
     [
