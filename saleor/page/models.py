@@ -7,7 +7,6 @@ from draftjs_sanitizer import clean_draft_js
 
 from ..core.db.fields import SanitizedJSONField
 from ..core.models import PublishableModel, PublishedQuerySet
-from ..core.utils import build_absolute_uri
 from ..core.utils.draftjs import json_content_to_raw_text
 from ..core.utils.translations import TranslationProxy
 from ..seo.models import SeoModel, SeoModelTranslation
@@ -48,9 +47,6 @@ class Page(SeoModel, PublishableModel):
 
     def get_absolute_url(self):
         return reverse("page:details", kwargs={"slug": self.slug})
-
-    def get_full_url(self):
-        return build_absolute_uri(self.get_absolute_url())
 
 
 class PageTranslation(SeoModelTranslation):

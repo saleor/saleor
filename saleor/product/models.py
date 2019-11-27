@@ -15,7 +15,6 @@ from django.utils.text import slugify
 from django.utils.translation import pgettext_lazy
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField
-from django_prices.templatetags import prices
 from draftjs_sanitizer import clean_draft_js
 from measurement.measures import Weight
 from mptt.managers import TreeManager
@@ -536,10 +535,6 @@ class ProductVariant(ModelWithMetadata):
     def get_first_image(self) -> "ProductImage":
         images = list(self.images.all())
         return images[0] if images else self.product.get_first_image()
-
-    def get_ajax_label(self, discounts=None) -> str:
-        price = self.get_price(discounts)
-        return "%s, %s, %s" % (self.sku, self.display_product(), prices.amount(price))
 
 
 class ProductVariantTranslation(models.Model):
