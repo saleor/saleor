@@ -4,7 +4,6 @@ from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.db.models import Q
-from django.utils.safestring import mark_safe
 from django.utils.translation import pgettext_lazy
 from django_countries.fields import CountryField
 from django_measurement.models import MeasurementField
@@ -12,7 +11,6 @@ from django_prices.models import MoneyField
 from measurement.measures import Weight
 from prices import Money, MoneyRange
 
-from ..core.utils import format_money
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import (
@@ -218,11 +216,6 @@ class ShippingMethod(models.Model):
 
     def get_total(self):
         return self.price
-
-    def get_ajax_label(self):
-        price_html = format_money(self.price)
-        label = mark_safe("%s %s" % (self, price_html))
-        return label
 
 
 class ShippingMethodTranslation(models.Model):
