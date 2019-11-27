@@ -1,11 +1,8 @@
-from decimal import Decimal
 from unittest.mock import patch
 
 from django.core.management import call_command
-from django.urls import reverse
 from prices import Money
 
-from saleor.discount import DiscountValueType
 from saleor.product.models import Product, ProductVariant
 from saleor.product.tasks import (
     update_all_products_minimal_variant_prices_task,
@@ -194,135 +191,6 @@ def test_product_variant_objects_bulk_create_updates_minimal_variant_price(produ
     )
     product.refresh_from_db()
     assert product.minimal_variant_price == Money("1.00", "USD")
-
-
-def test_dashboard_product_create_view_sets_minimal_variant_price(
-    admin_client, product_type, category
-):
-    url = reverse("dashboard:product-add", kwargs={"type_pk": product_type.pk})
-    data = {
-        "name": "Product name",
-        "description": "Description.",
-        "price_0": "9.99",
-        "price_1": "USD",
-        "category": category.pk,
-    }
-
-    response = admin_client.post(url, data)
-    assert response.status_code == 302
-    assert Product.objects.count() == 1
-    product = Product.objects.get()
-    assert product.minimal_variant_price == product.price == Money("9.99", "USD")
-
-
-def test_dashboard_product_variant_create_view_updates_minimal_variant_price(
-    admin_client, product
-):
-    url = reverse("dashboard:variant-add", kwargs={"product_pk": product.pk})
-    data = {
-        "sku": "ACME/1/2/3",
-        "price_override_0": "4.99",
-        "price_override_1": product.currency,
-        "quantity": 1,
-    }
-
-    response = admin_client.post(url, data)
-    assert response.status_code == 302
-
-    product.refresh_from_db()
-
-    assert product.variants.count() == 2
-    assert product.minimal_variant_price != product.price
-    assert product.minimal_variant_price == Money("4.99", "USD")
-
-
-def test_dashboard_product_variant_delete_view_updates_minimal_variant_price(
-    admin_client, product
-):
-    # Set "price_override" on the variant to lower the "minimal_variant_price"
-    assert product.minimal_variant_price == product.price == Money("10", "USD")
-    variant = product.variants.get()
-    variant.price_override = Money("4.99", "USD")
-    variant.save()
-    update_product_minimal_variant_price(product)
-    product.refresh_from_db()
-    assert product.minimal_variant_price == variant.price_override
-
-    url = reverse(
-        "dashboard:variant-delete",
-        kwargs={"product_pk": product.pk, "variant_pk": variant.pk},
-    )
-
-    response = admin_client.post(url)
-    assert response.status_code == 302
-
-    product.refresh_from_db()
-    assert product.minimal_variant_price == product.price
-
-
-def test_dashboard_sale_of_product_create_view_updates_minimal_variant_price(
-    admin_client, product
-):
-    # Store the old "minimal_variant_price"
-    old_minimal_variant_price = product.minimal_variant_price
-    # Create the "Sale" object of the given product
-    url = reverse("dashboard:sale-add")
-    data = {
-        "name": "Half price products",
-        "type": DiscountValueType.PERCENTAGE,
-        "value": "50",
-        "start_date": "2019-07-11 00:00:01",
-        "products": [product.pk],
-    }
-    response = admin_client.post(url, data)
-    assert response.status_code == 302
-
-    product.refresh_from_db()
-    assert product.minimal_variant_price == Decimal("0.5") * old_minimal_variant_price
-
-
-def test_dashboard_sale_of_category_create_view_updates_minimal_variant_price(
-    admin_client, product
-):
-    category = product.category
-    # Store the old "minimal_variant_price"
-    old_minimal_variant_price = product.minimal_variant_price
-    # Create the "Sale" object of the given category
-    url = reverse("dashboard:sale-add")
-    data = {
-        "name": "Half price category",
-        "type": DiscountValueType.PERCENTAGE,
-        "value": "50",
-        "start_date": "2019-07-11 00:00:01",
-        "categories": [category.pk],
-    }
-    response = admin_client.post(url, data)
-    assert response.status_code == 302
-
-    product.refresh_from_db()
-    assert product.minimal_variant_price == Decimal("0.5") * old_minimal_variant_price
-
-
-def test_dashboard_sale_of_collection_create_view_updates_minimal_variant_price(
-    admin_client, product, collection
-):
-    collection.products.add(product)
-    # Store the old "minimal_variant_price"
-    old_minimal_variant_price = product.minimal_variant_price
-    # Create the "Sale" object of the given collection
-    url = reverse("dashboard:sale-add")
-    data = {
-        "name": "Half price collection",
-        "type": DiscountValueType.PERCENTAGE,
-        "value": "50",
-        "start_date": "2019-07-11 00:00:01",
-        "collections": [collection.pk],
-    }
-    response = admin_client.post(url, data)
-    assert response.status_code == 302
-
-    product.refresh_from_db()
-    assert product.minimal_variant_price == Decimal("0.5") * old_minimal_variant_price
 
 
 @patch(

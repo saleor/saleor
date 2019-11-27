@@ -25,7 +25,6 @@ from saleor.core.utils import (
     get_currency_for_country,
     random_data,
 )
-from saleor.core.utils.text import get_cleaner, strip_html
 from saleor.core.weight import WeightUnits, convert_weight
 from saleor.discount.models import Sale, Voucher
 from saleor.giftcard.models import GiftCard
@@ -191,17 +190,6 @@ def test_manifest(client, site_settings):
     assert content["name"] == site_settings.site.name
     assert content["short_name"] == site_settings.site.name
     assert content["description"] == site_settings.description
-
-
-def test_utils_get_cleaner_invalid_parameters():
-    with pytest.raises(ValueError):
-        get_cleaner(bad=True)
-
-
-def test_utils_strip_html():
-    base_text = "<p>Hello</p>" "\n\n" "\t<b>World</b>"
-    text = strip_html(base_text, strip_whitespace=True)
-    assert text == "Hello World"
 
 
 @override_settings(VERSATILEIMAGEFIELD_SETTINGS={"create_images_on_demand": False})

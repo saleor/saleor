@@ -2,7 +2,7 @@ from decimal import Decimal
 from typing import Dict, List, Optional, Tuple, Union
 
 from ..account import events as account_events
-from ..account.models import Address, User
+from ..account.models import User
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..payment.models import Payment
 from . import OrderEvents, OrderEventsEmails
@@ -235,15 +235,4 @@ def order_note_added_event(*, order: Order, user: UserType, message: str) -> Ord
         type=OrderEvents.NOTE_ADDED,
         parameters={"message": message},
         **kwargs,
-    )
-
-
-def order_updated_address_event(
-    *, order: Order, user: UserType, address: Address
-) -> OrderEvent:
-    return OrderEvent.objects.create(
-        order=order,
-        type=OrderEvents.UPDATED_ADDRESS,
-        user=user,
-        parameters={"new_address": str(address)},
     )

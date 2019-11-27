@@ -670,7 +670,7 @@ CUSTOMER_CREATE_MUTATION = """
 """
 
 
-@patch("saleor.dashboard.emails._send_set_password_email")
+@patch("saleor.account.emails._send_set_password_email")
 def test_customer_create(
     _send_set_password_email_mock, staff_api_client, address, permission_manage_users
 ):
@@ -723,7 +723,7 @@ def test_customer_create(
     assert customer_creation_event.user == new_customer
 
 
-@patch("saleor.dashboard.emails._send_set_user_password_email_with_url.delay")
+@patch("saleor.account.emails._send_set_user_password_email_with_url.delay")
 def test_customer_create_send_password_with_url(
     _send_set_user_password_email_with_url_mock,
     staff_api_client,
@@ -1388,7 +1388,7 @@ STAFF_CREATE_MUTATION = """
 """
 
 
-@patch("saleor.dashboard.emails._send_set_password_email")
+@patch("saleor.account.emails._send_set_password_email")
 def test_staff_create(
     _send_set_password_email_mock, staff_api_client, media_root, permission_manage_staff
 ):
@@ -1424,7 +1424,7 @@ def test_staff_create(
     )
 
 
-@patch("saleor.dashboard.emails._send_set_user_password_email_with_url.delay")
+@patch("saleor.account.emails._send_set_user_password_email_with_url.delay")
 def test_staff_create_send_password_with_url(
     _send_set_user_password_email_with_url_mock,
     staff_api_client,

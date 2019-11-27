@@ -119,13 +119,6 @@
       <h1 class="product__info__name">
         {{ product.translated }}
       </h1>
-      {% if user.is_staff %}
-        <p>
-          <a href="{% url "dashboard:product-details" pk=product.pk %}">
-            {% trans "Edit in dashboard" context "Product details link text" %}
-          </a>
-        </p>
-      {% endif %}
       {% if availability.available %}
         {% if show_variant_picker %}
           <div id="variant-price-component"></div>
