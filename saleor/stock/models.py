@@ -17,6 +17,14 @@ class StockQuerySet(models.QuerySet):
             product_variant=product_variant,
         )
 
+    def for_country(self, country_code: str):
+        query_warehouse = models.Subquery(
+            Warehouse.objects.prefetch_related("shipping_zones")
+            .filter(shipping_zones__countries__contains=country_code)
+            .values("pk")
+        )
+        return self.filter(warehouse__in=query_warehouse)
+
 
 class Stock(models.Model):
     warehouse = models.ForeignKey(Warehouse, null=False, on_delete=models.PROTECT)
