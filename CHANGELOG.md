@@ -30,6 +30,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Made middleware path resolving lazy and refactored middleware names - #5041 by @NyanKiyoshi
 - Generate slug in attribute value save - #5055 by @fowczarek
 - Fix order status after order update - #5072 by @fowczarek
+- Add `Wishlist` models and GraphQL endpoints - #5021 by @derenio
 
 ## 2.9.0
 
