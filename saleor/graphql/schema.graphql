@@ -3084,9 +3084,9 @@ input ProductInput {
 }
 
 input ProductOrder {
-  field: ProductOrderField
-  attributeId: ID
   direction: OrderDirection!
+  attributeId: ID
+  field: ProductOrderField
 }
 
 enum ProductOrderField {

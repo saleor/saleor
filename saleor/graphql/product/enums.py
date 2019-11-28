@@ -23,31 +23,6 @@ class StockAvailability(graphene.Enum):
     OUT_OF_STOCK = "OUT_OF_STOCK"
 
 
-class ProductOrderField(graphene.Enum):
-    NAME = "name"
-    PRICE = "price_amount"
-    MINIMAL_PRICE = "minimal_variant_price_amount"
-    DATE = "updated_at"
-    TYPE = "product_type__name"
-    PUBLISHED = "is_published"
-
-    @property
-    def description(self):
-        if self == ProductOrderField.NAME:
-            return "Sort products by name."
-        if self == ProductOrderField.PRICE:
-            return "Sort products by price."
-        if self == ProductOrderField.MINIMAL_PRICE:
-            return "Sort products by a minimal price of a product's variant."
-        if self == ProductOrderField.DATE:
-            return "Sort products by update date."
-        if self == ProductOrderField.TYPE:
-            return "Sort products by type."
-        if self == ProductOrderField.PUBLISHED:
-            return "Sort products by publication status."
-        raise ValueError("Unsupported enum value: %s" % self.value)
-
-
 class CollectionPublished(graphene.Enum):
     PUBLISHED = "published"
     HIDDEN = "hidden"

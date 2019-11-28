@@ -111,14 +111,13 @@ from .resolvers import (
     resolve_report_product_sales,
 )
 from .scalars import AttributeScalar
-from .sorters import CollectionSortInput
+from .sorters import CollectionSortInput, ProductOrder
 from .types import (
     Attribute,
     Category,
     Collection,
     DigitalContent,
     Product,
-    ProductOrder,
     ProductType,
     ProductVariant,
 )
@@ -230,7 +229,7 @@ class ProductQueries(graphene.ObjectType):
                 "Saleor 2.10, use the `filter` field instead."
             ),
         ),
-        sort_by=graphene.Argument(ProductOrder, description="Sort products."),
+        sort_by=ProductOrder(description="Sort products."),
         stock_availability=graphene.Argument(
             StockAvailability, description="Filter products by stock availability."
         ),

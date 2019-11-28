@@ -32,3 +32,44 @@ class CollectionSortInput(SortInputObjectType):
     class Meta:
         sort_enum = CollectionSortEnum
         type_name = "collection"
+
+
+class ProductOrderField(graphene.Enum):
+    NAME = "name"
+    PRICE = "price_amount"
+    MINIMAL_PRICE = "minimal_variant_price_amount"
+    DATE = "updated_at"
+    TYPE = "product_type__name"
+    PUBLISHED = "is_published"
+
+    @property
+    def description(self):
+        # pylint: disable=no-member
+        if self in [
+            ProductOrderField.NAME,
+            ProductOrderField.PRICE,
+            ProductOrderField.TYPE,
+        ]:
+            sort_name = self.name.lower().replace("_", " ")
+            return f"Sort products by {sort_name}."
+        if self == ProductOrderField.MINIMAL_PRICE:
+            return "Sort products by a minimal price of a product's variant."
+        if self == ProductOrderField.DATE:
+            return "Sort products by update date."
+        if self == ProductOrderField.PUBLISHED:
+            return "Sort products by publication status."
+        raise ValueError("Unsupported enum value: %s" % self.value)
+
+
+class ProductOrder(SortInputObjectType):
+    attribute_id = graphene.Argument(
+        graphene.ID,
+        description=(
+            "Sort product by the selected attribute's values.\n"
+            "Note: this doesn't take translations into account yet."
+        ),
+    )
+
+    class Meta:
+        sort_enum = ProductOrderField
+        type_name = "product"
