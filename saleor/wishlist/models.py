@@ -49,6 +49,11 @@ class Wishlist(models.Model):
                 item.delete()
 
 
+class WishlistItemQuerySet(models.QuerySet):
+    def move_items_between_wishlists(self, src_wishlist, dst_wishlist):
+        self.filter(wishlist=src_wishlist).update(wishlist=dst_wishlist)
+
+
 class WishlistItem(models.Model):
     wishlist = models.ForeignKey(
         Wishlist, related_name="items", on_delete=models.CASCADE
@@ -60,6 +65,8 @@ class WishlistItem(models.Model):
         ProductVariant, related_name="wishlist_items", blank=True
     )
     created_at = models.DateTimeField(auto_now_add=True)
+
+    objects = WishlistItemQuerySet.as_manager()
 
     class Meta:
         unique_together = ("wishlist", "product")
