@@ -1,6 +1,6 @@
 from django.contrib.auth.signals import user_logged_in
 
-from .models import Wishlist
+from .models import Wishlist, WishlistItem
 
 SESSION_WISHLIST_TOKEN_NAME = "WISHLIST"
 
@@ -23,6 +23,7 @@ class WishlistSessionHelper:
                 return Wishlist.objects.get(token=token)
             except Wishlist.DoesNotExist:
                 return None
+        return None
 
     def get_or_create_wishlist(self):
         wishlist = self.get_wishlist()
@@ -38,9 +39,17 @@ class WishlistSessionHelper:
 
 def update_wishlist_on_user_login(sender, request, user, **kwargs):
     wsh = WishlistSessionHelper(request.session)
-    wishlist = wsh.get_or_create_wishlist()
-    wishlist.set_user(user)
-    wsh.clear()
+    wishlist = wsh.get_wishlist()
+    if wishlist:
+        if hasattr(user, "wishlist"):
+            # User already has a wishlist, lets copy the WishlistItems from
+            # the session's one to the user's one
+            WishlistItem.objects.move_items_between_wishlists(wishlist, user.wishlist)
+            wishlist.delete()
+        else:
+            wishlist.set_user(user)
+        # Remove the Wishlist's token from the session
+        wsh.clear()
 
 
 user_logged_in.connect(update_wishlist_on_user_login)
