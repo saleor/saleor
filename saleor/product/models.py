@@ -24,7 +24,6 @@ from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
 from ..core.db.fields import SanitizedJSONField
-from ..core.exceptions import InsufficientStock
 from ..core.models import (
     ModelWithMetadata,
     PublishableModel,
@@ -479,14 +478,6 @@ class ProductVariant(ModelWithMetadata):
     @property
     def is_available(self) -> bool:
         return self.is_visible and self.is_in_stock()
-
-    def check_quantity(self, quantity):
-        """Check if there is at least the given quantity in stock.
-
-        If stock handling is disabled, it simply run no check.
-        """
-        if self.track_inventory and quantity > self.quantity_available:
-            raise InsufficientStock(self)
 
     @property
     def base_price(self) -> "Money":
