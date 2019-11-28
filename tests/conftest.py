@@ -731,7 +731,9 @@ def product_with_default_variant(product_type_without_variant, category, warehou
         category=category,
         is_published=True,
     )
-    ProductVariant.objects.create(product=product, sku="1234", track_inventory=True)
+    variant = ProductVariant.objects.create(
+        product=product, sku="1234", track_inventory=True
+    )
     Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=100)
     return product
 
