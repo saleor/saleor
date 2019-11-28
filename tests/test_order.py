@@ -2,12 +2,8 @@ from decimal import Decimal
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
-from django.urls import reverse
 from prices import Money, TaxedMoney
 
-from saleor.account import events as account_events
-from saleor.account.models import User
-from saleor.checkout.utils import create_order, prepare_order_data
 from saleor.core.exceptions import InsufficientStock
 from saleor.core.weight import zero_weight
 from saleor.discount.models import (
@@ -17,7 +13,7 @@ from saleor.discount.models import (
     VoucherType,
 )
 from saleor.discount.utils import validate_voucher_in_order
-from saleor.order import OrderStatus, events as order_events, models
+from saleor.order import OrderStatus, models
 from saleor.order.emails import send_fulfillment_confirmation_to_customer
 from saleor.order.events import OrderEvent, OrderEventsEmails
 from saleor.order.models import Order
@@ -36,8 +32,6 @@ from saleor.order.utils import (
 from saleor.payment import ChargeStatus
 from saleor.payment.models import Payment
 from saleor.product.models import Collection
-
-from .utils import get_redirect_location
 
 
 def test_total_setter():
@@ -138,65 +132,6 @@ def test_add_variant_to_order_allow_overselling(order_with_lines):
     add_variant_to_order(order_with_lines, variant, quantity, allow_overselling=True)
     variant.refresh_from_db()
     assert variant.quantity_allocated == stock_before + quantity
-
-
-def test_view_connect_order_with_user_authorized_user(
-    order, authorized_client, customer_user
-):
-    order.user_email = customer_user.email
-    order.save()
-
-    url = reverse("order:connect-order-with-user", kwargs={"token": order.token})
-    response = authorized_client.post(url)
-
-    redirect_location = get_redirect_location(response)
-    assert redirect_location == reverse("order:details", args=[order.token])
-    order.refresh_from_db()
-    assert order.user == customer_user
-
-
-def test_view_connect_order_with_user_different_email(
-    order, authorized_client, customer_user
-):
-    """Order was placed from different email, than user's
-    we are trying to assign it to."""
-    order.user = None
-    order.user_email = "example_email@email.email"
-    order.save()
-
-    assert order.user_email != customer_user.email
-
-    url = reverse("order:connect-order-with-user", kwargs={"token": order.token})
-    response = authorized_client.post(url)
-
-    redirect_location = get_redirect_location(response)
-    assert redirect_location == reverse("account:details")
-    order.refresh_from_db()
-    assert order.user is None
-
-
-def test_view_order_with_deleted_variant(authorized_client, order_with_lines):
-    order = order_with_lines
-    order_details_url = reverse("order:details", kwargs={"token": order.token})
-
-    # delete a variant associated to the order
-    order.lines.first().variant.delete()
-
-    # check if the order details view handles the deleted variant
-    response = authorized_client.get(order_details_url)
-    assert response.status_code == 200
-
-
-def test_view_fulfilled_order_with_deleted_variant(authorized_client, fulfilled_order):
-    order = fulfilled_order
-    order_details_url = reverse("order:details", kwargs={"token": order.token})
-
-    # delete a variant associated to the order
-    order.lines.first().variant.delete()
-
-    # check if the order details view handles the deleted variant
-    response = authorized_client.get(order_details_url)
-    assert response.status_code == 200
 
 
 @pytest.mark.parametrize("track_inventory", (True, False))
@@ -405,154 +340,6 @@ def test_update_order_prices(order_with_lines):
     assert order_with_lines.shipping_price == shipping_price
     total = line_1.quantity * price_1 + line_2.quantity * price_2 + shipping_price
     assert order_with_lines.total == total
-
-
-def test_order_payment_flow(
-    request_checkout_with_item, client, address, customer_user, shipping_zone
-):
-    request_checkout_with_item.shipping_address = address
-    request_checkout_with_item.billing_address = address.get_copy()
-    request_checkout_with_item.email = "test@example.com"
-    request_checkout_with_item.shipping_method = shipping_zone.shipping_methods.first()
-    request_checkout_with_item.save()
-
-    order = create_order(
-        checkout=request_checkout_with_item,
-        order_data=prepare_order_data(
-            checkout=request_checkout_with_item,
-            tracking_code="tracking_code",
-            discounts=None,
-        ),
-        user=customer_user,
-    )
-
-    gateway = "Dummy"
-    # Select payment
-    url = reverse("order:payment", kwargs={"token": order.token})
-    data = {"gateway": gateway}
-    response = client.post(url, data, follow=True)
-
-    assert len(response.redirect_chain) == 1
-    assert response.status_code == 200
-    redirect_url = reverse(
-        "order:payment", kwargs={"token": order.token, "gateway": gateway}
-    )
-    assert response.request["PATH_INFO"] == redirect_url
-
-    # Go to payment details page, enter payment data
-    data = {
-        "gateway": gateway,
-        "is_active": True,
-        "total": order.total.gross.amount,
-        "currency": order.total.gross.currency,
-        "charge_status": ChargeStatus.FULLY_CHARGED,
-    }
-    response = client.post(redirect_url, data)
-
-    assert response.status_code == 302
-    redirect_url = reverse("order:payment-success", kwargs={"token": order.token})
-    assert get_redirect_location(response) == redirect_url
-
-    # Assert that payment object was created and contains correct data
-    payment = order.payments.all()[0]
-    assert payment.total == order.total.gross.amount
-    assert payment.currency == order.total.gross.currency
-    assert payment.transactions.count() == 1
-    assert payment.transactions.last().kind == "capture"
-
-
-def test_create_user_after_order(order, client):
-    order.user_email = "hello@mirumee.com"
-    order.save()
-    url = reverse("order:checkout-success", kwargs={"token": order.token})
-    data = {"password": "password"}
-
-    response = client.post(url, data)
-
-    redirect_url = reverse("order:details", kwargs={"token": order.token})
-    assert get_redirect_location(response) == redirect_url
-    user = User.objects.filter(email="hello@mirumee.com").first()
-    assert user is not None
-    assert user.orders.filter(token=order.token).exists()
-
-
-def test_view_order_details(order, client):
-    url = reverse("order:details", kwargs={"token": order.token})
-    response = client.get(url)
-    assert response.status_code == 200
-
-
-def test_add_order_note_view(order, authorized_client, customer_user):
-    order.user_email = customer_user.email
-    order.save()
-    url = reverse("order:details", kwargs={"token": order.token})
-    customer_note = "bla-bla note"
-    data = {"customer_note": customer_note}
-
-    response = authorized_client.post(url, data)
-
-    redirect_url = reverse("order:details", kwargs={"token": order.token})
-    assert get_redirect_location(response) == redirect_url
-    order.refresh_from_db()
-    assert order.customer_note == customer_note
-
-    # Ensure an order event was triggered
-    note_event = order_events.OrderEvent.objects.get()  # type: order_events.OrderEvent
-    assert note_event.type == order_events.OrderEvents.NOTE_ADDED
-    assert note_event.user == customer_user
-    assert note_event.order == order
-    assert note_event.parameters == {"message": customer_note}
-
-    # Ensure a customer event was triggered
-    note_event = account_events.CustomerEvent.objects.get()
-    assert note_event.type == account_events.CustomerEvents.NOTE_ADDED_TO_ORDER
-    assert note_event.user == customer_user
-    assert note_event.order == order
-    assert note_event.parameters == {"message": customer_note}
-
-
-def test_add_order_note_view_anonymous_order(order, authorized_client, customer_user):
-    order.user_email = customer_user.email
-    order.user = None
-    order.save(update_fields=["user_email", "user"])
-    url = reverse("order:details", kwargs={"token": order.token})
-    customer_note = "bla-bla note"
-    data = {"customer_note": customer_note}
-
-    response = authorized_client.post(url, data)
-    assert response.status_code == 302
-
-    # Ensure an order event was triggered
-    note_event = order_events.OrderEvent.objects.last()  # type: order_events.OrderEvent
-    assert note_event.type == order_events.OrderEvents.NOTE_ADDED
-    assert note_event.user == customer_user
-    assert note_event.order == order
-    assert note_event.parameters == {"message": customer_note}
-
-    # Ensure a customer event was not triggered because the order has no user
-    assert not account_events.CustomerEvent.objects.exists()
-
-
-def test_anonymously_add_order_note_view_anonymous_order(order, client, customer_user):
-    order.user_email = customer_user.email
-    order.user = None
-    order.save(update_fields=["user_email", "user"])
-    url = reverse("order:details", kwargs={"token": order.token})
-    customer_note = "bla-bla note"
-    data = {"customer_note": customer_note}
-
-    response = client.post(url, data)
-    assert response.status_code == 302
-
-    # Ensure an order event was triggered
-    note_event = order_events.OrderEvent.objects.last()  # type: order_events.OrderEvent
-    assert note_event.type == order_events.OrderEvents.NOTE_ADDED
-    assert note_event.user is None
-    assert note_event.order == order
-    assert note_event.parameters == {"message": customer_note}
-
-    # Ensure a customer event was not triggered because the order has no user
-    assert not account_events.CustomerEvent.objects.exists()
 
 
 def _calculate_order_weight_from_lines(order):
