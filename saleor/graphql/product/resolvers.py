@@ -27,7 +27,7 @@ from .filters import (
     filter_products_by_stock_availability,
     sort_qs,
 )
-from .sorters import CollectionSortEnum
+from .sorters import CollectionSortEnum, ProductOrderField
 
 if TYPE_CHECKING:
     from ..product.types import ProductOrder  # noqa
@@ -108,8 +108,18 @@ def sort_products(qs: models.ProductsQueryset, sort_by: Optional["ProductOrder"]
     if not sort_by.field and not sort_by.attribute_id:
         return qs
 
+    if sort_by.field:
+        qs = sort_queryset(qs, sort_by, ProductOrderField)
+    else:
+        qs = sort_products_by_attribute(qs, sort_by)
+
+    return qs
+
+
+def sort_products_by_attribute(
+    qs: models.ProductsQueryset, sort_by: Optional["ProductOrder"]
+):
     direction = sort_by.direction
-    sorting_field = sort_by.field
 
     # If an attribute ID was passed, attempt to convert it
     if sort_by.attribute_id:
@@ -119,8 +129,6 @@ def sort_products(qs: models.ProductsQueryset, sort_by: Optional["ProductOrder"]
         # If the passed attribute ID is valid, execute the sorting
         if attribute_pk.isnumeric() and graphene_type == "Attribute":
             qs = qs.sort_by_attribute(attribute_pk, ascending=is_ascending)
-    elif sorting_field:
-        qs = qs.order_by(f"{direction}{sorting_field}")
 
     return qs
 
