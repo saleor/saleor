@@ -526,12 +526,12 @@ def test_update_product_variant_not_all_attributes(
 
 def test_update_product_variant_with_current_attribut(
     staff_api_client,
-    product_with_two_variants,
+    product_with_variant_with_two_attributes,
     color_attribute,
     size_attribute,
     permission_manage_products,
 ):
-    product = product_with_two_variants
+    product = product_with_variant_with_two_attributes
     variant = product.variants.first()
     sku = str(uuid4())[:12]
     assert not variant.sku == sku
@@ -568,12 +568,12 @@ def test_update_product_variant_with_current_attribut(
 
 def test_update_product_variant_with_new_attribute(
     staff_api_client,
-    product_with_two_variants,
+    product_with_variant_with_two_attributes,
     color_attribute,
     size_attribute,
     permission_manage_products,
 ):
-    product = product_with_two_variants
+    product = product_with_variant_with_two_attributes
     variant = product.variants.first()
     sku = str(uuid4())[:12]
     assert not variant.sku == sku
@@ -610,12 +610,12 @@ def test_update_product_variant_with_new_attribute(
 
 def test_update_product_variant_with_duplicated_attribute(
     staff_api_client,
-    product_with_two_variants,
+    product_with_variant_with_two_attributes,
     color_attribute,
     size_attribute,
     permission_manage_products,
 ):
-    product = product_with_two_variants
+    product = product_with_variant_with_two_attributes
     variant = product.variants.first()
     variant2 = product.variants.first()
 
