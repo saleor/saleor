@@ -3395,7 +3395,7 @@ type ProductVariantUpdatePrivateMeta {
 }
 
 type Query {
-  wishlistItems: WishlistItem
+  wishlistItems(before: String, after: String, first: Int, last: Int): WishlistItemCountableConnection
   webhook(id: ID!): Webhook
   webhooks(filter: WebhookFilterInput, before: String, after: String, first: Int, last: Int): WebhookCountableConnection
   webhookEvents: [WebhookEvent]
@@ -4492,9 +4492,13 @@ enum WeightUnitsEnum {
   G
 }
 
+type Wishlist implements Node {
+  id: ID!
+}
+
 type WishlistAddProductVariantMutation {
   errors: [Error!]
-  variants: [ProductVariant]
+  wishlistItems: [WishlistItem]
   wishlistErrors: [WishlistError!]
 }
 
@@ -4506,19 +4510,33 @@ type WishlistError {
 
 enum WishlistErrorCode {
   GRAPHQL_ERROR
+  INVALID
   NOT_FOUND
+  REQUIRED
+  UNIQUE
 }
 
 type WishlistItem implements Node {
   id: ID!
-  user: User
+  wishlist: Wishlist!
   product: Product!
   variants(before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection!
 }
 
+type WishlistItemCountableConnection {
+  pageInfo: PageInfo!
+  edges: [WishlistItemCountableEdge!]!
+  totalCount: Int
+}
+
+type WishlistItemCountableEdge {
+  node: WishlistItem!
+  cursor: String!
+}
+
 type WishlistRemoveProductVariantMutation {
   errors: [Error!]
-  variants: [ProductVariant]
+  wishlistItems: [WishlistItem]
   wishlistErrors: [WishlistError!]
 }
 
