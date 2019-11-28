@@ -4,7 +4,7 @@ from django.db.models import Count, QuerySet
 from ..core.types import SortInputObjectType
 
 
-class CollectionSortEnum(graphene.Enum):
+class CollectionOrderField(graphene.Enum):
     NAME = "name"
     AVAILABILITY = "is_published"
     PRODUCT_COUNT = "product_count"
@@ -13,9 +13,9 @@ class CollectionSortEnum(graphene.Enum):
     def description(self):
         # pylint: disable=no-member
         if self in [
-            CollectionSortEnum.NAME,
-            CollectionSortEnum.AVAILABILITY,
-            CollectionSortEnum.PRODUCT_COUNT,
+            CollectionOrderField.NAME,
+            CollectionOrderField.AVAILABILITY,
+            CollectionOrderField.PRODUCT_COUNT,
         ]:
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort collections by {sort_name}."
@@ -28,9 +28,9 @@ class CollectionSortEnum(graphene.Enum):
         )
 
 
-class CollectionSortInput(SortInputObjectType):
+class CollectionOrder(SortInputObjectType):
     class Meta:
-        sort_enum = CollectionSortEnum
+        sort_enum = CollectionOrderField
         type_name = "collection"
 
 

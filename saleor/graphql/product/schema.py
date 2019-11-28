@@ -111,7 +111,7 @@ from .resolvers import (
     resolve_report_product_sales,
 )
 from .scalars import AttributeScalar
-from .sorters import CollectionSortInput, ProductOrder
+from .sorters import CollectionOrder, ProductOrder
 from .types import (
     Attribute,
     Category,
@@ -194,7 +194,7 @@ class ProductQueries(graphene.ObjectType):
     collections = FilterInputConnectionField(
         Collection,
         filter=CollectionFilterInput(description="Filtering options for collections."),
-        sort_by=CollectionSortInput(description="Sort collections."),
+        sort_by=CollectionOrder(description="Sort collections."),
         query=graphene.String(description=DESCRIPTIONS["collection"]),
         description="List of the shop's collections.",
     )
