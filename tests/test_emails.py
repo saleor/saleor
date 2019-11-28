@@ -1,13 +1,9 @@
 from unittest import mock
 
 import pytest
-from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
 from django.core.exceptions import ImproperlyConfigured
 from django.templatetags.static import static
-from django.urls import reverse
-from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode
 from templated_email import get_connection
 
 import saleor.account.emails as account_emails
@@ -229,13 +225,7 @@ def test_email_with_email_not_configured_raises_error(settings, site_settings):
 
 
 def test_send_set_password_email(staff_user, site_settings):
-    uid = urlsafe_base64_encode(force_bytes(staff_user.pk))
-    token = default_token_generator.make_token(staff_user)
-    password_set_url = build_absolute_uri(
-        reverse(
-            "account:reset-password-confirm", kwargs={"token": token, "uidb64": uid}
-        )
-    )
+    password_set_url = "https://www.example.com"
     template_name = "dashboard/staff/set_password"
     recipient_email = staff_user.email
 
@@ -244,9 +234,5 @@ def test_send_set_password_email(staff_user, site_settings):
     )
 
     assert len(mail.outbox) == 1
-    generated_link = reverse(
-        "account:reset-password-confirm", kwargs={"uidb64": uid, "token": token}
-    )
-    absolute_generated_link = build_absolute_uri(generated_link)
     sended_message = mail.outbox[0].body
-    assert absolute_generated_link in sended_message
+    assert password_set_url in sended_message

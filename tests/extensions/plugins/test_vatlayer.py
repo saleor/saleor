@@ -4,7 +4,6 @@ from urllib.parse import urlparse
 
 import pytest
 from django.core.exceptions import ValidationError
-from django.urls import reverse
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
@@ -63,42 +62,6 @@ def test_get_tax_rate_by_name_empty_taxes(product):
     tax_rate = get_tax_rate_by_name(rate_name)
 
     assert tax_rate == 0
-
-
-def test_view_checkout_with_taxes(
-    settings, client, request_checkout_with_item, vatlayer, address
-):
-    settings.DEFAULT_COUNTRY = "PL"
-    checkout = request_checkout_with_item
-    checkout.shipping_address = address
-    checkout.save()
-    product = checkout.lines.first().variant.product
-    product.meta = {"taxes": {"vatlayer": {"code": "standard", "description": ""}}}
-    product.save()
-    response = client.get(reverse("checkout:index"))
-    response_checkout_line = response.context[0]["checkout_lines"][0]
-    line_net = Money(amount="8.13", currency="USD")
-    line_gross = Money(amount="10.00", currency="USD")
-
-    assert response_checkout_line["get_total"].tax.amount
-    assert response_checkout_line["get_total"] == TaxedMoney(line_net, line_gross)
-    assert response.status_code == 200
-
-
-def test_view_update_checkout_quantity_with_taxes(
-    client, request_checkout_with_item, vatlayer, monkeypatch
-):
-    monkeypatch.setattr(
-        "saleor.checkout.views.to_local_currency", lambda price, currency: price
-    )
-    variant = request_checkout_with_item.lines.get().variant
-    response = client.post(
-        reverse("checkout:update-line", kwargs={"variant_id": variant.id}),
-        {"quantity": 3},
-        HTTP_X_REQUESTED_WITH="XMLHttpRequest",
-    )
-    assert response.status_code == 200
-    assert request_checkout_with_item.quantity == 3
 
 
 @pytest.mark.parametrize(

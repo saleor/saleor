@@ -1,27 +1,15 @@
 import re
-from unittest.mock import patch
 from urllib.parse import urlencode
 
 import i18naddress
 import pytest
-from captcha import constants as recaptcha_constants
-from captcha.client import RecaptchaResponse
-from django.contrib.auth.tokens import default_token_generator
-from django.core import mail
 from django.core.exceptions import ValidationError
 from django.core.files import File
-from django.forms import Form
 from django.http import QueryDict
 from django.template import Context, Template
-from django.templatetags.static import static
-from django.urls import reverse
-from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode
 from django_countries.fields import Country
-from templated_email import send_templated_mail
 
 from saleor.account import forms, i18n
-from saleor.account.forms import FormWithReCaptcha, NameForm
 from saleor.account.models import User
 from saleor.account.templatetags.i18n_address_tags import format_address
 from saleor.account.utils import (
@@ -31,7 +19,6 @@ from saleor.account.utils import (
     remove_staff_member,
 )
 from saleor.account.validators import validate_possible_number
-from saleor.core.utils import build_absolute_uri
 
 
 @pytest.mark.parametrize("country", ["CN", "PL", "US", "IE"])
@@ -178,19 +165,6 @@ def test_validate_possible_number(input_data, is_valid):
             validate_possible_number(**input_data)
     else:
         validate_possible_number(**input_data)
-
-
-def test_order_with_lines_pagination(authorized_client, order_list, settings):
-    settings.PAGINATE_BY = 1
-    data = {"page": "1"}
-    url = reverse("account:details")
-    response = authorized_client.get(url, data)
-    assert response.status_code == 200
-
-    data = {"page": "2"}
-    url = reverse("account:details")
-    response = authorized_client.get(url, data)
-    assert response.status_code == 200
 
 
 def test_format_address(address):
@@ -353,107 +327,6 @@ def test_get_random_avatar():
     assert re.match(r"avatar\d+.png", avatar.name)
 
 
-def test_disabled_recaptcha():
-    """
-    This test creates a new form that should not contain any recaptcha field.
-    """
-
-    class TestForm(Form, FormWithReCaptcha):
-        pass
-
-    form = TestForm({})
-    assert form.is_valid()
-
-
-@patch("captcha.fields.client.submit")
-def test_requires_recaptcha(captcha_submit_mock, settings):
-    """
-    This test creates a new form
-    that should contain a (required) recaptcha field.
-    """
-    captcha_submit_mock.return_value = RecaptchaResponse(is_valid=True)
-
-    settings.RECAPTCHA_PUBLIC_KEY = recaptcha_constants.TEST_PUBLIC_KEY
-    settings.RECAPTCHA_PRIVATE_KEY = recaptcha_constants.TEST_PRIVATE_KEY
-
-    class TestForm(Form, FormWithReCaptcha):
-        pass
-
-    form = TestForm({})
-    assert not form.is_valid()
-
-    form = TestForm({"g-recaptcha-response": "PASSED"})
-    assert form.is_valid()
-
-
-def test_view_account_delete_login_required(customer_user, client):
-    url = reverse("account:delete")
-    response = client.post(url)
-    assert response.status_code == 302
-
-
-def test_view_account_post_required(customer_user, authorized_client):
-    url = reverse("account:delete")
-    response = authorized_client.get(url)
-    assert response.status_code == 405
-
-
-@patch("saleor.account.views.send_account_delete_confirmation_email")
-def test_view_account_delete(
-    send_confirmation_mock, customer_user, authorized_client, staff_user
-):
-    url = reverse("account:delete")
-    response = authorized_client.post(url)
-    assert response.status_code == 302
-    send_confirmation_mock.assert_called_once_with(customer_user)
-
-
-def test_view_account_delete_confirm(customer_user, staff_user, authorized_client):
-    # Non existing token
-    invalid_token = default_token_generator.make_token(staff_user)
-    url = reverse("account:delete-confirm", args=[invalid_token])
-    response = authorized_client.get(url)
-    assert response.status_code == 404
-
-    authorized_client.force_login(customer_user)
-    token = default_token_generator.make_token(customer_user)
-    deletion_url = reverse("account:delete-confirm", args=[token])
-
-    # getting the page should not delete the user
-    response = authorized_client.get(deletion_url)
-    assert response.status_code == 200
-    customer_user = User.objects.filter(pk=customer_user.pk).first()
-    assert customer_user is not None
-
-    # posting onto the page should delete the user
-    response = authorized_client.post(deletion_url)
-    assert response.status_code == 302
-    customer_user = User.objects.filter(pk=customer_user.pk).first()
-    assert customer_user is None
-
-
-def test_form_add_names_to_user(customer_user):
-    name_form = NameForm(
-        {"first_name": "Jan", "last_name": "Nowak"}, instance=customer_user
-    )
-    name_form.is_valid()
-    name_form.save()
-    updated_user = User.objects.get(pk=customer_user.pk)
-    assert updated_user.first_name == "Jan"
-    assert updated_user.last_name == "Nowak"
-
-
-def test_view_add_names_to_user(customer_user, authorized_client):
-    url = reverse("account:details")
-    response = authorized_client.post(
-        url, data={"first_name": "Jan", "last_name": "Nowak"}
-    )
-    assert response.status_code == 200
-    updated_user = User.objects.get(pk=customer_user.pk)
-    assert updated_user.first_name == "Jan"
-    assert updated_user.last_name == "Nowak"
-
-
 def test_remove_staff_member_with_orders(staff_user, permission_manage_products, order):
     order.user = staff_user
     order.save()
@@ -468,29 +341,3 @@ def test_remove_staff_member_with_orders(staff_user, permission_manage_products,
 def test_remove_staff_member(staff_user):
     remove_staff_member(staff_user)
     assert not User.objects.filter(pk=staff_user.pk).exists()
-
-
-def test_send_set_password_customer_email(customer_user, site_settings):
-    site = site_settings.site
-    uid = urlsafe_base64_encode(force_bytes(customer_user.pk))
-    token = default_token_generator.make_token(customer_user)
-    logo_url = build_absolute_uri(static("images/logo-light.svg"))
-    password_set_url = build_absolute_uri(
-        reverse(
-            "account:reset-password-confirm", kwargs={"token": token, "uidb64": uid}
-        )
-    )
-    ctx = {
-        "logo_url": logo_url,
-        "password_set_url": password_set_url,
-        "site_name": site.name,
-    }
-    send_templated_mail(
-        template_name="dashboard/customer/set_password",
-        from_email=site_settings.default_from_email,
-        recipient_list=[customer_user.email],
-        context=ctx,
-    )
-    assert len(mail.outbox) == 1
-    sended_message = mail.outbox[0].body
-    assert password_set_url in sended_message
