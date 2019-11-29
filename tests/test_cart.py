@@ -8,20 +8,7 @@ from prices import Money, TaxedMoney
 from saleor.checkout import calculations, utils
 from saleor.checkout.context_processors import checkout_counter
 from saleor.checkout.models import Checkout
-<<<<<<< HEAD
 from saleor.checkout.utils import add_variant_to_checkout
-=======
-from saleor.checkout.utils import (
-    add_variant_to_checkout,
-    change_checkout_user,
-    check_variant_in_stock,
-    find_open_checkout_for_user,
-    get_shipping_price_estimate,
-)
-from saleor.checkout.views import clear_checkout, update_checkout_line
-from saleor.core.exceptions import InsufficientStock
-from saleor.discount.models import Sale
->>>>>>> Add tests for check_variant_in_stock function
 from saleor.product.models import Category
 from saleor.stock.models import Stock
 
