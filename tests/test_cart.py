@@ -1,11 +1,7 @@
-import json
 from unittest.mock import MagicMock, Mock
 from uuid import uuid4
 
 import pytest
-from django.contrib.auth.models import AnonymousUser
-from django.core import signing
-from django.urls import reverse
 from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
@@ -18,26 +14,8 @@ from saleor.checkout.utils import (
     find_open_checkout_for_user,
     get_shipping_price_estimate,
 )
-from saleor.checkout.views import clear_checkout, update_checkout_line
 from saleor.core.exceptions import InsufficientStock
-from saleor.discount.models import Sale
 from saleor.product.models import Category
-
-
-@pytest.fixture()
-def checkout_request_factory(rf, monkeypatch):
-    def create_request(user=None, token=None):
-        request = rf.get(reverse("home"))
-        if user is None:
-            request.user = AnonymousUser()
-        else:
-            request.user = user
-        request.discounts = Sale.objects.all()
-        request.extensions = None
-        monkeypatch.setattr(request, "get_signed_cookie", Mock(return_value=token))
-        return request
-
-    return create_request
 
 
 @pytest.fixture()
@@ -108,137 +86,6 @@ def test_get_user_checkout(
     assert Checkout.objects.all().count() == 2
     assert checkout == user_checkout
     assert not created
-
-
-def test_get_or_create_checkout_from_request(
-    checkout_request_factory, monkeypatch, customer_user
-):
-    token = uuid4()
-    queryset = Checkout.objects.all()
-    request = checkout_request_factory(user=customer_user, token=token)
-    user_checkout = Checkout(user=customer_user)
-    anonymous_checkout = Checkout()
-    mock_get_for_user = Mock(return_value=(user_checkout, False))
-    mock_get_for_anonymous = Mock(return_value=anonymous_checkout)
-    monkeypatch.setattr("saleor.checkout.utils.get_user_checkout", mock_get_for_user)
-    monkeypatch.setattr(
-        "saleor.checkout.utils.get_or_create_anonymous_checkout_from_token",
-        mock_get_for_anonymous,
-    )
-    returned_checkout = utils.get_or_create_checkout_from_request(request, queryset)
-    mock_get_for_user.assert_called_once_with(customer_user, queryset, auto_create=True)
-    assert returned_checkout == user_checkout
-
-    request = checkout_request_factory(user=None, token=token)
-    returned_checkout = utils.get_or_create_checkout_from_request(request, queryset)
-    mock_get_for_anonymous.assert_called_once_with(token, queryset)
-    assert returned_checkout == anonymous_checkout
-
-
-def test_get_checkout_from_request(
-    monkeypatch, customer_user, checkout_request_factory
-):
-    queryset = Checkout.objects.all()
-    token = uuid4()
-    request = checkout_request_factory(user=customer_user, token=token)
-
-    user_checkout = Checkout(user=customer_user)
-    mock_get_for_user = Mock(return_value=(user_checkout, False))
-    monkeypatch.setattr("saleor.checkout.utils.get_user_checkout", mock_get_for_user)
-    returned_checkout = utils.get_checkout_from_request(request, queryset)
-    mock_get_for_user.assert_called_once_with(customer_user, queryset)
-    assert returned_checkout == user_checkout
-
-    mock_get_for_user = Mock(return_value=(None, False))
-    monkeypatch.setattr("saleor.checkout.utils.get_user_checkout", mock_get_for_user)
-    returned_checkout = utils.get_checkout_from_request(request, queryset)
-    mock_get_for_user.assert_called_once_with(customer_user, queryset)
-    assert not Checkout.objects.filter(token=returned_checkout.token).exists()
-
-    anonymous_checkout = Checkout()
-    mock_get_for_anonymous = Mock(return_value=anonymous_checkout)
-    monkeypatch.setattr(
-        "saleor.checkout.utils.get_anonymous_checkout_from_token",
-        mock_get_for_anonymous,
-    )
-    request = checkout_request_factory(user=None, token=token)
-    returned_checkout = utils.get_checkout_from_request(request, queryset)
-    mock_get_for_user.assert_called_once_with(customer_user, queryset)
-    assert returned_checkout == anonymous_checkout
-
-    mock_get_for_anonymous = Mock(return_value=None)
-    monkeypatch.setattr(
-        "saleor.checkout.utils.get_anonymous_checkout_from_token",
-        mock_get_for_anonymous,
-    )
-    returned_checkout = utils.get_checkout_from_request(request, queryset)
-    assert not Checkout.objects.filter(token=returned_checkout.token).exists()
-
-
-def test_find_and_assign_anonymous_checkout(anonymous_checkout, customer_user, client):
-    checkout_token = anonymous_checkout.token
-    # Anonymous user has a checkout with token stored in cookie
-    value = signing.get_cookie_signer(salt=utils.COOKIE_NAME).sign(checkout_token)
-    client.cookies[utils.COOKIE_NAME] = value
-    # Anonymous logs in
-    response = client.post(
-        reverse("account:login"),
-        {"username": customer_user.email, "password": "password"},
-        follow=True,
-    )
-    assert response.context["user"] == customer_user
-    # User should have only one checkout, the same as he had previously in
-    # anonymous session
-    authenticated_user_checkouts = customer_user.checkouts.all()
-    assert authenticated_user_checkouts.count() == 1
-    assert authenticated_user_checkouts[0].token == checkout_token
-
-
-def test_login_without_a_checkout(customer_user, client):
-    assert utils.COOKIE_NAME not in client.cookies
-    response = client.post(
-        reverse("account:login"),
-        {"username": customer_user.email, "password": "password"},
-        follow=True,
-    )
-    assert response.context["user"] == customer_user
-    authenticated_user_checkouts = customer_user.checkouts.all()
-    assert authenticated_user_checkouts.count() == 0
-
-
-def test_login_with_incorrect_cookie_token(customer_user, client):
-    value = signing.get_cookie_signer(salt=utils.COOKIE_NAME).sign("incorrect")
-    client.cookies[utils.COOKIE_NAME] = value
-    response = client.post(
-        reverse("account:login"),
-        {"username": customer_user.email, "password": "password"},
-        follow=True,
-    )
-    assert response.context["user"] == customer_user
-    authenticated_user_checkouts = customer_user.checkouts.all()
-    assert authenticated_user_checkouts.count() == 0
-
-
-def test_find_and_assign_anonymous_checkout_and_close_opened(
-    customer_user, user_checkout, anonymous_checkout, checkout_request_factory
-):
-    token = anonymous_checkout.token
-    token_user = user_checkout.token
-    request = checkout_request_factory(user=customer_user, token=token)
-    utils.find_and_assign_anonymous_checkout()(
-        lambda request: Mock(delete_cookie=lambda name: None)
-    )(request)
-    token_checkout = Checkout.objects.filter(token=token).first()
-    user_checkout = Checkout.objects.filter(token=token_user).first()
-    assert token_checkout is not None
-    assert token_checkout.user.pk == customer_user.pk
-    assert not user_checkout
-
-
-def test_adding_without_checking(checkout, product):
-    variant = product.variants.get()
-    add_variant_to_checkout(checkout, variant, 1000, check_quantity=False)
-    assert len(checkout) == 1
 
 
 def test_adding_zero_quantity(checkout, product):
@@ -520,105 +367,6 @@ def test_replace_checkout_line_form_when_insufficient_stock(
     assert checkout.quantity == initial_quantity
 
 
-def test_view_empty_checkout(client, request_checkout):
-    response = client.get(reverse("checkout:index"))
-    assert response.status_code == 200
-
-
-def test_view_checkout(client, request_checkout_with_item):
-    response = client.get(reverse("checkout:index"))
-    response_checkout_line = response.context[0]["checkout_lines"][0]
-    checkout_line = request_checkout_with_item.lines.first()
-    assert response.status_code == 200
-    assert not response_checkout_line["get_total"].tax.amount
-    total = calculations.checkout_line_total(checkout_line)
-    assert response_checkout_line["get_total"] == total
-
-
-def test_view_update_checkout_quantity(client, request_checkout_with_item, monkeypatch):
-    monkeypatch.setattr(
-        "saleor.checkout.views.to_local_currency", lambda price, currency: price
-    )
-    variant = request_checkout_with_item.lines.get().variant
-    response = client.post(
-        reverse("checkout:update-line", kwargs={"variant_id": variant.pk}),
-        data={"quantity": 3},
-        HTTP_X_REQUESTED_WITH="XMLHttpRequest",
-    )
-    assert response.status_code == 200
-    assert request_checkout_with_item.quantity == 3
-
-
-def test_view_invalid_update_checkout(client, request_checkout_with_item):
-    variant = request_checkout_with_item.lines.get().variant
-    response = client.post(
-        reverse("checkout:update-line", kwargs={"variant_id": variant.pk}),
-        data={},
-        HTTP_X_REQUESTED_WITH="XMLHttpRequest",
-    )
-    resp_decoded = json.loads(response.content.decode("utf-8"))
-    assert response.status_code == 400
-    assert "error" in resp_decoded.keys()
-    assert request_checkout_with_item.quantity == 1
-
-
-def test_view_invalid_variant_update_checkout(client, checkout_with_single_item):
-    response = client.post(
-        reverse("checkout:update-line", kwargs={"variant_id": "123"}),
-        data={},
-        HTTP_X_REQUESTED_WITH="XMLHttpRequest",
-    )
-    assert response.status_code == 404
-
-
-def test_checkout_page_without_openexchagerates(
-    client, checkout_with_single_item, settings
-):
-    settings.OPENEXCHANGERATES_API_KEY = None
-    response = client.get(reverse("checkout:index"))
-    context = response.context
-    assert context["local_checkout_total"] is None
-
-
-def test_checkout_page_with_openexchagerates(
-    client, monkeypatch, checkout_with_single_item, settings
-):
-    settings.DEFAULT_COUNTRY = "PL"
-    settings.OPENEXCHANGERATES_API_KEY = "fake-key"
-    response = client.get(reverse("checkout:index"))
-    context = response.context
-    assert context["local_checkout_total"] is None
-    monkeypatch.setattr(
-        "django_prices_openexchangerates.models.get_rates",
-        lambda c: {"PLN": Mock(rate=2)},
-    )
-    response = client.get(reverse("checkout:index"))
-    context = response.context
-    assert context["local_checkout_total"].currency == "PLN"
-
-
-def test_checkout_summary_page(settings, client, request_checkout_with_item):
-    settings.DEFAULT_COUNTRY = "PL"
-    response = client.get(reverse("checkout:dropdown"))
-    assert response.status_code == 200
-    content = response.context
-    assert content["quantity"] == request_checkout_with_item.quantity
-    checkout_total = calculations.checkout_subtotal(request_checkout_with_item)
-    assert content["total"] == checkout_total
-    assert len(content["lines"]) == 1
-    checkout_line = content["lines"][0]
-    variant = request_checkout_with_item.lines.get().variant
-    assert checkout_line["variant"] == variant
-    assert checkout_line["quantity"] == 1
-
-
-def test_checkout_summary_page_empty_checkout(client, request_checkout):
-    response = client.get(reverse("checkout:dropdown"))
-    assert response.status_code == 200
-    data = response.context
-    assert data["quantity"] == 0
-
-
 def test_find_open_checkout_for_user(customer_user, user_checkout):
     assert find_open_checkout_for_user(customer_user) == user_checkout
 
@@ -666,36 +414,6 @@ def test_checkout_line_state(product, checkout_with_single_item):
     assert line.quantity == 2
 
 
-def test_update_view_must_be_ajax(customer_user, rf):
-    request = rf.post(reverse("home"))
-    request.user = customer_user
-    request.discounts = None
-    result = update_checkout_line(request, 1)
-    assert result.status_code == 302
-
-
-def test_update_checkout_line_qunatity_zero(
-    request_checkout_with_item, client, product
-):
-    variant = product.variants.filter().first()
-    data = {"quantity": 0}
-    # response = client.post(API_PATH, data, content_type="application/json")
-    response = client.post(
-        reverse("checkout:update-line", kwargs={"variant_id": variant.id}),
-        data=data,
-        HTTP_X_REQUESTED_WITH="XMLHttpRequest",
-    )
-    assert response.status_code == 200
-    expected_response = {
-        "variantId": str(variant.id),
-        "subtotal": "$0.00",
-        "total": "$0.00",
-        "checkout": {"numItems": 0, "numLines": 0},
-    }
-    data = response.json()
-    assert data == expected_response
-
-
 def test_get_checkout_context(checkout_with_single_item, shipping_zone, address):
     checkout = checkout_with_single_item
     checkout.shipping_address = address
@@ -731,22 +449,6 @@ def test_get_checkout_context_no_shipping(checkout_with_single_item, address):
         net=Money("10.00", "USD"), gross=Money("10.00", "USD")
     )
     assert checkout_data["total_with_shipping"].start == checkout_total
-
-
-def test_clear_checkout_must_be_ajax(rf, customer_user):
-    request = rf.post(reverse("home"))
-    request.user = customer_user
-    request.discounts = None
-    response = clear_checkout(request)
-    assert response.status_code == 302
-
-
-def test_clear_checkout(request_checkout_with_item, client):
-    response = client.post(
-        reverse("checkout:clear"), data={}, HTTP_X_REQUESTED_WITH="XMLHttpRequest"
-    )
-    assert response.status_code == 200
-    assert len(request_checkout_with_item.lines.all()) == 0
 
 
 def test_get_total_weight(checkout_with_item):
