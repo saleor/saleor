@@ -42,6 +42,7 @@ def test_get_menu_item_as_dict_with_translations(menu, collection):
     result = get_menu_item_as_dict(item)
     assert result == {
         "name": "Name",
+        # TODO: in #5022
         "url": collection.get_absolute_url(),
         "translations": {"pl": {"name": "Polish Name"}},
     }

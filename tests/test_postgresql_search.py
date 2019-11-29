@@ -5,7 +5,7 @@ from prices import Money
 
 from saleor.account.models import Address
 from saleor.product.models import Product
-from saleor.search.backends import picker
+from saleor.search.backends.postgresql import search_storefront
 
 PRODUCTS = [
     ("Arabica Coffee", "The best grains in galactic"),
@@ -30,10 +30,9 @@ def named_products(category, product_type):
     return [gen_product(name, desc) for name, desc in PRODUCTS]
 
 
-def search_storefront(phrase):
+def execute_search(phrase):
     """Execute storefront search."""
-    search = picker.pick_backend()
-    return search(phrase)
+    return search_storefront(phrase)
 
 
 @pytest.mark.parametrize(
@@ -51,7 +50,7 @@ def search_storefront(phrase):
 @pytest.mark.integration
 @pytest.mark.django_db
 def test_storefront_product_fuzzy_name_search(named_products, phrase, product_num):
-    results = search_storefront(phrase)
+    results = execute_search(phrase)
     assert 1 == len(results)
     assert named_products[product_num] in results
 
@@ -66,7 +65,7 @@ def unpublish_product(product):
 @pytest.mark.django_db
 def test_storefront_filter_published_products(named_products):
     unpublish_product(named_products[0])
-    assert not search_storefront("Coffee")
+    assert not execute_search("Coffee")
 
 
 USERS = [
