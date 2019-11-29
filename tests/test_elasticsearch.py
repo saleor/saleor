@@ -1,9 +1,9 @@
 import pytest
-from django.urls import reverse
 from elasticsearch_dsl.connections import connections
 from prices import Money
 
 from saleor.product.models import Product
+from saleor.search.backends.elasticsearch import search_storefront
 
 MATCH_SEARCH_REQUEST = ["method", "host", "port", "path"]
 STOREFRONT_PRODUCTS = {15, 56}  # same as in recorded data!
@@ -60,23 +60,21 @@ def indexed_products(product_type, category):
     return [gen_product_with_id(prod) for prod in PRODUCTS_INDEXED]
 
 
-def execute_search(client, phrase):
-    response = client.get(reverse("search:search"), {"q": phrase})
-    assert phrase == response.context["query"]
-    found_objs = response.context["results"].object_list
-    return [prod.pk for prod, _ in found_objs]
+def execute_search(phrase):
+    response = search_storefront(phrase)
+    return response.values_list("pk", flat=True)
 
 
 @pytest.mark.integration
 @pytest.mark.vcr(record_mode="once", match_on=MATCH_SEARCH_REQUEST)
-def test_new_search_with_empty_results(db, client):
-    assert 0 == len(execute_search(client, PHRASE_WITHOUT_RESULTS))
+def test_new_search_with_empty_results(db):
+    assert 0 == len(execute_search(PHRASE_WITHOUT_RESULTS))
 
 
 @pytest.mark.integration
 @pytest.mark.vcr(record_mode="once", match_on=MATCH_SEARCH_REQUEST)
-def test_new_search_with_result(db, indexed_products, client):
-    found_products = execute_search(client, PHRASE_WITH_RESULTS)
+def test_new_search_with_result(db, indexed_products):
+    found_products = execute_search(PHRASE_WITH_RESULTS)
     assert STOREFRONT_PRODUCTS == set(found_products)
 
 
@@ -91,7 +89,7 @@ def products_with_mixed_publishing(indexed_products):
 
 @pytest.mark.integration
 @pytest.mark.vcr(record_mode="once", match_on=MATCH_SEARCH_REQUEST)
-def test_new_search_doesnt_show_unpublished(db, products_with_mixed_publishing, client):
+def test_new_search_doesnt_show_unpublished(db, products_with_mixed_publishing):
     published_products = STOREFRONT_PRODUCTS - PRODUCTS_TO_UNPUBLISH
-    found_products = execute_search(client, PHRASE_WITH_RESULTS)
+    found_products = execute_search(PHRASE_WITH_RESULTS)
     assert published_products == set(found_products)

@@ -10,8 +10,6 @@ from freezegun import freeze_time
 from prices import Money, MoneyRange, TaxedMoney
 
 from saleor.account import events as account_events
-from saleor.menu.models import MenuItemTranslation
-from saleor.menu.utils import update_menu
 from saleor.product import AttributeInputType, models
 from saleor.product.filters import filter_products_by_attributes_values
 from saleor.product.forms import VariantChoiceField
@@ -126,44 +124,7 @@ def test_filtering_by_attribute(db, color_attribute, category, settings):
     assert product_b.pk in list(filtered)
 
 
-def test_render_home_page(client, product, site_settings, settings):
-    # Tests if menu renders properly if none is assigned
-    settings.LANGUAGE_CODE = "fr"
-    site_settings.top_menu = None
-    site_settings.save()
-
-    response = client.get(reverse("home"))
-    assert response.status_code == 200
-
-
-def test_render_home_page_with_translated_menu_items(
-    client, product, menu_with_items, site_settings, settings
-):
-    settings.LANGUAGE_CODE = "fr"
-    site_settings.top_menu = menu_with_items
-    site_settings.save()
-
-    for item in menu_with_items.items.all():
-        MenuItemTranslation.objects.create(
-            menu_item=item, language_code="fr", name="Translated name in French"
-        )
-    update_menu(menu_with_items)
-
-    response = client.get(reverse("home"))
-    assert response.status_code == 200
-    assert "Translated name in French" in str(response.content)
-
-
-def test_render_home_page_with_sale(client, product, sale):
-    response = client.get(reverse("home"))
-    assert response.status_code == 200
-
-
-def test_render_home_page_with_taxes(client, product):
-    response = client.get(reverse("home"))
-    assert response.status_code == 200
-
-
+# TODO: to remove in #5022 (to line 157)
 def test_render_category(client, category, product):
     response = client.get(category.get_absolute_url())
     assert response.status_code == 200

@@ -179,38 +179,6 @@ def test_email_having_display_name_in_settings(customer_user, site_settings, set
     assert site_settings.default_from_email == expected_from_email
 
 
-def test_send_dummy_email_with_utf_8(customer_user, site_settings):
-    site_settings.default_mail_sender_address = "hello@example.com"
-    site_settings.default_mail_sender_name = "徐 欣"
-    site_settings.save(
-        update_fields=["default_mail_sender_address", "default_mail_sender_name"]
-    )
-
-    account_emails.send_account_delete_confirmation_email(customer_user)
-
-    assert len(mail.outbox) > 0
-    message: mail.EmailMessage = mail.outbox[-1]
-    assert message.from_email == "徐 欣 <hello@example.com>"
-    assert message.extra_headers == {}
-
-
-@pytest.mark.parametrize(
-    "sender_name, sender_address",
-    (("徐 欣", "hello@example.com\nOopsie: Hello"), ("徐\n欣", "hello@example.com")),
-)
-def test_send_dummy_email_with_header_injection(
-    customer_user, site_settings, sender_name, sender_address
-):
-    site_settings.default_mail_sender_address = sender_name
-    site_settings.default_mail_sender_name = sender_address
-    site_settings.save(
-        update_fields=["default_mail_sender_address", "default_mail_sender_name"]
-    )
-
-    account_emails.send_account_delete_confirmation_email(customer_user)
-    assert len(mail.outbox) == 0
-
-
 def test_email_with_email_not_configured_raises_error(settings, site_settings):
     """Ensure an exception is thrown when not default sender is set;
     both missing in the settings.py and in the site settings table.

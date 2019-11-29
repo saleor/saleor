@@ -3,6 +3,7 @@ from django.urls import reverse, translate_url
 from saleor.core.utils import build_absolute_uri
 
 
+# TODO: to remove in #5022
 def test_sitemap(client, product, settings):
     product_url = build_absolute_uri(product.get_absolute_url())
     category_url = build_absolute_uri(product.category.get_absolute_url())
