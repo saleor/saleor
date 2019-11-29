@@ -6,7 +6,7 @@
 {% load static %}
 {% load translate_url from urls %}
 
-<html lang="{{ LANGUAGE_CODE }}" class="no-js" data-shipping-options-url="{% url 'checkout:shipping-options' %}" data-checkout-summary-url="{% url 'checkout:dropdown' %}">
+<html lang="{{ LANGUAGE_CODE }}" class="no-js">
 <head>
   <title>{% block title %}{{ site.name }}{% endblock %}</title>
   {% block meta %}
@@ -71,34 +71,6 @@
                 </div>
               </li>
             {% endif %}
-            {% if user.is_authenticated %}
-              <li>
-                <a href="{% url "account:details" %}">
-                  {% trans "Your account" context "Main navigation item" %}</a>
-              </li>
-              {% if user.is_impersonate %}
-                <li>
-                  <a href="{% url "impersonate-stop" %}">
-                    {% trans 'Stop impersonating' context 'Main navigation item' %}
-                  </a>
-                </li>
-              {% else %}
-                <li>
-                  <a href="{% url "account:logout" %}">
-                    {% trans "Log out" context "Main navigation item" %}</a>
-                </li>
-              {% endif %}
-            {% else %}
-              <li>
-                <a rel="nofollow" href="{% url "account:signup" %}">
-                  {% trans "Register" context "Main navigation item" %}</a>
-              </li>
-              <li>
-                <a rel="nofollow" href="{% url "account:login" %}">
-                  {% trans "Log in" context "Main navigation item" %}
-                </a>
-              </li>
-            {% endif %}
           </ul>
         </div>
       </div>
@@ -114,26 +86,6 @@
             <a href="{% url 'home' %}">
               <svg data-src="{% static "images/logo-light.svg" %}"/>
             </a>
-          </div>
-          <div class="col-2 col-md-5 navbar__search static">
-            {% if SEARCH_IS_ENABLED %}
-              <div class="d-md-none mobile-search-icon">
-                <svg data-src="{% static "images/search.svg" %}" width="30" height="30"/>
-              </div>
-              <form class="form-inline search-form" action="{% url "search:search" %}">
-                <div class="mobile-close-search d-md-none">
-                  <svg data-src="{% static "images/close.svg" %}" width="30" height="30"/>
-                </div>
-                <input class="form-control" type="text" name="q"
-                       value="{% if query %}{{ query }}{% endif %}"
-                       placeholder="{% trans "Search for product" %}"
-                       autocomplete="off"
-                       required>
-                <button class="btn btn-primary" type="submit">
-                  {% trans "Search" %} <svg data-src="{% static "images/search.svg" %}" width="18" height="18"/>
-                </button>
-              </form>
-            {% endif %}
           </div>
           <div class="col-2 col-md-3">
             <div class="navbar__brand__checkout float-right">
@@ -202,43 +154,6 @@
                 {% trans "Your cart" context "Main navigation item" %}
               </a>
             </li>
-            {% if user.is_authenticated %}
-              {% if user.is_staff %}
-                <li>
-                  <a href="{% url "styleguide" %}" target="_blank">
-                    {% trans "Style guide" context "Main navigation item" %}
-                  </a>
-                </li>
-              {% endif %}
-              <li>
-                <a href="{% url "account:details" %}">
-                  {% trans "Your account" context "Main navigation item" %}
-                </a>
-              </li>
-              {% if user.is_impersonate %}
-                <li>
-                  <a href="{% url "impersonate-stop" %}">
-                    {% trans 'Stop impersonating' context 'Main navigation item' %}
-                  </a>
-                </li>
-              {% else %}
-                <li>
-                  <a href="{% url "account:logout" %}">
-                    {% trans "Log out" context "Main navigation item" %}</a>
-                </li>
-              {% endif %}
-            {% else %}
-              <li>
-                <a rel="nofollow" href="{% url "account:signup" %}">
-                  {% trans "Register" context "Main navigation item" %}
-                </a>
-              </li>
-              <li>
-                <a rel="nofollow" href="{% url "account:login" %}">
-                  {% trans "Log in" context "Main navigation item" %}
-                </a>
-              </li>
-            {% endif %}
           </ul>
         </div>
         <div class="offset-md-2 col-md-4 col-12">
