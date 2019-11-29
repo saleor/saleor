@@ -45,19 +45,18 @@ class ProductOrderField(graphene.Enum):
     @property
     def description(self):
         # pylint: disable=no-member
-        if self in [
-            ProductOrderField.NAME,
-            ProductOrderField.PRICE,
-            ProductOrderField.TYPE,
-        ]:
-            sort_name = self.name.lower().replace("_", " ")
-            return f"Sort products by {sort_name}."
-        if self == ProductOrderField.MINIMAL_PRICE:
-            return "Sort products by a minimal price of a product's variant."
-        if self == ProductOrderField.DATE:
-            return "Sort products by update date."
-        if self == ProductOrderField.PUBLISHED:
-            return "Sort products by publication status."
+        descrtiptions = {
+            ProductOrderField.NAME.name: "name",
+            ProductOrderField.PRICE.name: "price",
+            ProductOrderField.TYPE.name: "type",
+            ProductOrderField.MINIMAL_PRICE.name: (
+                "a minimal price of a product's variant"
+            ),
+            ProductOrderField.DATE.name: "update date",
+            ProductOrderField.PUBLISHED.name: "publication status",
+        }
+        if self.name in descrtiptions:
+            return f"Sort products by {descrtiptions[self.name]}."
         raise ValueError("Unsupported enum value: %s" % self.value)
 
 
