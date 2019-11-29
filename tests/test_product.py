@@ -1,18 +1,14 @@
-import datetime
 import os
 from decimal import Decimal
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import patch
 
 import pytest
-from django.forms import HiddenInput
-from django.urls import reverse
 from freezegun import freeze_time
 from prices import Money, MoneyRange, TaxedMoney
 
 from saleor.account import events as account_events
 from saleor.product import AttributeInputType, models
 from saleor.product.filters import filter_products_by_attributes_values
-from saleor.product.forms import VariantChoiceField
 from saleor.product.models import Attribute, AttributeValue, DigitalContentUrl
 from saleor.product.thumbnails import create_product_thumbnails
 from saleor.product.utils import (
@@ -45,26 +41,6 @@ def test_stock_utils(product, func, expected_quantity, expected_quantity_allocat
     variant.refresh_from_db()
     assert variant.quantity == expected_quantity
     assert variant.quantity_allocated == expected_quantity_allocated
-
-
-def test_product_page_redirects_to_correct_slug(client, product):
-    uri = product.get_absolute_url()
-    uri = uri.replace(product.get_slug(), "spanish-inquisition")
-    response = client.get(uri)
-    assert response.status_code == 301
-    location = response["location"]
-    if location.startswith("http"):
-        location = location.split("http://testserver")[1]
-    assert location == product.get_absolute_url()
-
-
-def test_product_preview(admin_client, client, product):
-    product.publication_date = datetime.date.today() + datetime.timedelta(days=7)
-    product.save()
-    response = client.get(product.get_absolute_url())
-    assert response.status_code == 404
-    response = admin_client.get(product.get_absolute_url())
-    assert response.status_code == 200
 
 
 def test_filtering_by_attribute(db, color_attribute, category, settings):
@@ -122,37 +98,6 @@ def test_filtering_by_attribute(db, color_attribute, category, settings):
     filtered = filter_products_by_attributes_values(product_qs, filters)
     assert product_a.pk in list(filtered)
     assert product_b.pk in list(filtered)
-
-
-# TODO: to remove in #5022 (to line 157)
-def test_render_category(client, category, product):
-    response = client.get(category.get_absolute_url())
-    assert response.status_code == 200
-
-
-def test_render_category_with_sale(client, category, product, sale):
-    response = client.get(category.get_absolute_url())
-    assert response.status_code == 200
-
-
-def test_render_category_with_taxes(client, category, product):
-    response = client.get(category.get_absolute_url())
-    assert response.status_code == 200
-
-
-def test_render_product_detail(client, product):
-    response = client.get(product.get_absolute_url())
-    assert response.status_code == 200
-
-
-def test_render_product_detail_with_sale(client, product, sale):
-    response = client.get(product.get_absolute_url())
-    assert response.status_code == 200
-
-
-def test_render_product_detail_with_taxes(client, product):
-    response = client.get(product.get_absolute_url())
-    assert response.status_code == 200
 
 
 def test_get_variant_picker_data_proper_variant_count(product):
@@ -328,18 +273,6 @@ def test_variant_picker_data_with_translations(
     assert attribute["name"] == translated_variant_fr.name
 
 
-def test_homepage_collection_render(client, site_settings, collection, product_list):
-    collection.products.add(*product_list)
-    site_settings.homepage_collection = collection
-    site_settings.save()
-
-    response = client.get(reverse("home"))
-    assert response.status_code == 200
-    products_in_context = {product[0] for product in response.context["products"]}
-    products_available = {product for product in product_list if product.is_published}
-    assert products_in_context == products_available
-
-
 def test_digital_product_view(client, digital_content_url):
     """Ensure a user (anonymous or not) can download a non-expired digital good
     using its associated token and that all associated events
@@ -468,15 +401,3 @@ def test_costs_get_margin_for_variant(variant, price, cost):
     variant.cost_price = cost
     variant.price_override = price
     assert not get_margin_for_variant(variant)
-
-
-def test_hide_field_in_variant_choice_field_form():
-    form = VariantChoiceField(Mock())
-    variants = MagicMock()
-    variants.count.return_value = variants.all().count.return_value = 1
-    variants.all()[0].pk = "test"
-
-    form.update_field_data(variants, discounts=None, country=None)
-
-    assert isinstance(form.widget, HiddenInput)
-    assert form.widget.attrs.get("value") == "test"
