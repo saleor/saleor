@@ -570,6 +570,17 @@ input CategoryInput {
   backgroundImageAlt: String
 }
 
+input CategoryOrder {
+  direction: OrderDirection!
+  field: CategoryOrderField
+}
+
+enum CategoryOrderField {
+  NAME
+  PRODUCT_COUNT
+  SUBCATEGORY_COUNT
+}
+
 type CategoryTranslatableContent implements Node {
   seoTitle: String
   seoDescription: String
@@ -3417,7 +3428,7 @@ type Query {
   digitalContents(before: String, after: String, first: Int, last: Int): DigitalContentCountableConnection
   attributes(query: String, inCategory: ID, inCollection: ID, filter: AttributeFilterInput, sortBy: AttributeSortingInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
   attribute(id: ID!): Attribute
-  categories(query: String, filter: CategoryFilterInput, level: Int, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
+  categories(query: String, filter: CategoryFilterInput, sortBy: CategoryOrder, level: Int, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   category(id: ID!): Category
   collection(id: ID!): Collection
   collections(filter: CollectionFilterInput, sortBy: CollectionOrder, query: String, before: String, after: String, first: Int, last: Int): CollectionCountableConnection

@@ -27,7 +27,7 @@ from .filters import (
     filter_products_by_stock_availability,
     sort_qs,
 )
-from .sorters import CollectionOrderField, ProductOrderField
+from .sorters import CategoryOrderField, CollectionOrderField, ProductOrderField
 
 if TYPE_CHECKING:
     from ..product.types import ProductOrder  # noqa
@@ -72,12 +72,12 @@ def resolve_attributes(
     return gql_optimizer.query(qs, info)
 
 
-def resolve_categories(info, query, level=None):
+def resolve_categories(info, query, level=None, sort_by=None, **_kwargs):
     qs = models.Category.objects.prefetch_related("children")
     if level is not None:
         qs = qs.filter(level=level)
     qs = filter_by_query_param(qs, query, CATEGORY_SEARCH_FIELDS)
-    qs = qs.order_by("name")
+    qs = sort_queryset(qs, sort_by, CategoryOrderField)
     qs = qs.distinct()
     return gql_optimizer.query(qs, info)
 
