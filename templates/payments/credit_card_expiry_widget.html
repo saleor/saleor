@@ -1,9 +1,0 @@
-<div class="row">
-  {% with widget.subwidgets.0 as month %}
-    {% with widget.subwidgets.1 as year %}
-      <div class="col-6">{% include month.template_name with widget=month %}</div>
-      <span class="text-center align-bottom position-absolute w-100 checkout__payments-card-expiry-slash">/</span>
-      <div class="col-6">{% include year.template_name with widget=year %}</div>
-    {% endwith %}
-  {% endwith %}
-</div>
