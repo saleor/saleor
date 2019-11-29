@@ -760,7 +760,7 @@ def product_variant_list(product):
 
 
 @pytest.fixture
-def product_without_shipping(category):
+def product_without_shipping(category, warehouse):
     product_type = ProductType.objects.create(
         name="Type with no shipping", has_variants=False, is_shipping_required=False
     )
@@ -771,7 +771,8 @@ def product_without_shipping(category):
         category=category,
         is_published=True,
     )
-    ProductVariant.objects.create(product=product, sku="SKU_B")
+    variant = ProductVariant.objects.create(product=product, sku="SKU_B")
+    Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=1)
     return product
 
 

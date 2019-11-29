@@ -8,7 +8,7 @@ from django.utils.translation import pgettext_lazy
 from ..core import analytics
 from ..extensions.manager import get_extensions_manager
 from ..payment import ChargeStatus, CustomPaymentChoices, PaymentError
-from ..product.utils import decrease_stock
+from ..stock.stock_management import decrease_stock
 from . import FulfillmentStatus, OrderStatus, emails, events, utils
 from .emails import send_fulfillment_confirmation_to_customer, send_payment_confirmation
 from .models import Fulfillment, FulfillmentLine
