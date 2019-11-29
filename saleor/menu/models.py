@@ -62,6 +62,7 @@ class MenuItem(MPTTModel, SortableModel):
     def linked_object(self):
         return self.category or self.collection or self.page
 
+    # TODO: in #5022
     def get_url(self):
         linked_object = self.linked_object
         return linked_object.get_absolute_url() if linked_object else self.url
