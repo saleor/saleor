@@ -80,18 +80,6 @@ def products_for_checkout(user: "User") -> "QuerySet[Product]":
     return products
 
 
-def get_variant_url_from_product(product: "Product", attributes) -> str:
-    return "%s?%s" % (product.get_absolute_url(), urlencode(attributes))
-
-
-def get_variant_url(variant: "ProductVariant") -> str:
-    attributes = {
-        str(attribute.pk): attribute
-        for attribute in variant.product.product_type.variant_attributes.all()
-    }
-    return get_variant_url_from_product(variant.product, attributes)
-
-
 def allocate_stock(variant: "ProductVariant", quantity: int):
     variant.quantity_allocated = F("quantity_allocated") + quantity
     variant.save(update_fields=["quantity_allocated"])
