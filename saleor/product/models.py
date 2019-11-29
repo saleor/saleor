@@ -1,11 +1,9 @@
-from decimal import Decimal
 from typing import TYPE_CHECKING, Iterable, Optional, Union
 from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
 from django.contrib.postgres.fields import JSONField
-from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Case, Count, F, FilteredRelation, Q, When
 from django.urls import reverse
@@ -441,12 +439,7 @@ class ProductVariant(ModelWithMetadata):
     )
     images = models.ManyToManyField("ProductImage", through="VariantImage")
     track_inventory = models.BooleanField(default=True)
-    quantity = models.IntegerField(
-        validators=[MinValueValidator(0)], default=Decimal(1)
-    )
-    quantity_allocated = models.IntegerField(
-        validators=[MinValueValidator(0)], default=Decimal(0)
-    )
+
     cost_price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
@@ -466,10 +459,6 @@ class ProductVariant(ModelWithMetadata):
 
     def __str__(self) -> str:
         return self.name or self.sku
-
-    @property
-    def quantity_available(self) -> int:
-        return max(self.quantity - self.quantity_allocated, 0)
 
     @property
     def is_visible(self) -> bool:
