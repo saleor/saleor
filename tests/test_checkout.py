@@ -34,6 +34,7 @@ from saleor.extensions.manager import get_extensions_manager
 from saleor.order import OrderEvents, OrderEventsEmails
 from saleor.order.models import OrderEvent
 from saleor.shipping.models import ShippingZone
+from saleor.stock.models import Stock
 
 
 def test_is_valid_shipping_method(checkout_with_item, address, shipping_zone):

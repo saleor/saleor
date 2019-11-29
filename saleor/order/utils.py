@@ -13,9 +13,9 @@ from ..discount.utils import get_products_voucher_discount, validate_voucher_in_
 from ..extensions.manager import get_extensions_manager
 from ..order import OrderStatus
 from ..order.models import Order, OrderLine
-from ..product.utils import allocate_stock, deallocate_stock, increase_stock
 from ..product.utils.digital_products import get_default_digital_content_settings
 from ..shipping.models import ShippingMethod
+from ..stock.stock_management import allocate_stock, deallocate_stock, increase_stock
 from . import events
 
 

@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import F
 from django.utils.translation import pgettext_lazy
 
 from ..core.exceptions import InsufficientStock
@@ -56,6 +57,34 @@ class Stock(models.Model):
     def is_available(self):
         return self.quantity > 0
 
-    def check_quantity(self, quantity):
+    def check_quantity(self, quantity: int):
         if quantity > self.quantity_available:
             raise InsufficientStock(self)
+
+    def allocate_stock(self, quantity: int, commit: bool = True):
+        self.quantity_allocated = F("quantity_allocated") + quantity
+        if commit:
+            self.save(update_fields=["quantity_allocated"])
+
+    def deallocate_stock(self, quantity: int, commit: bool = True):
+        self.quantity_allocated = F("quantity_allocated") - quantity
+        if commit:
+            self.save(update_fields=["quantity_allocated"])
+
+    def increase_stock(
+        self, quantity: int, allocate: bool = False, commit: bool = True
+    ):
+        """Return given quantity of product to a stock."""
+        self.quantity = F("quantity") + quantity
+        update_fields = ["quantity"]
+        if allocate:
+            self.quantity_allocated = F("quantity_allocated") + quantity
+            update_fields.append("quantity_allocated")
+        if commit:
+            self.save(update_fields=update_fields)
+
+    def decrease_stock(self, quantity: int, commit: bool = True):
+        self.quantity = F("quantity") - quantity
+        self.quantity_allocated = F("quantity_allocated") - quantity
+        if commit:
+            self.save(update_fields=["quantity", "quantity_allocated"])
