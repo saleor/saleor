@@ -35,7 +35,7 @@ class WishlistAddProductVariantMutation(BaseMutation):
 
 class WishlistRemoveProductVariantMutation(BaseMutation):
     wishlist_items = graphene.List(
-        WishlistItem, description="The list of WIshlistItems of the current user."
+        WishlistItem, description="The list of WishlistItems of the current user."
     )
 
     class Arguments:
