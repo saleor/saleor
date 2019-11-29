@@ -1,7 +1,44 @@
 import graphene
 from django.db.models import Count, QuerySet
 
+from ...product.models import Category, Product
 from ..core.types import SortInputObjectType
+
+
+class CategoryOrderField(graphene.Enum):
+    NAME = "name"
+    PRODUCT_COUNT = "product_count"
+    SUBCATEGORY_COUNT = "subcategory_count"
+
+    @property
+    def description(self):
+        # pylint: disable=no-member
+        if self in [
+            CategoryOrderField.NAME,
+            CategoryOrderField.PRODUCT_COUNT,
+            CategoryOrderField.SUBCATEGORY_COUNT,
+        ]:
+            sort_name = self.name.lower().replace("_", " ")
+            return f"Sort categories by {sort_name}."
+        raise ValueError("Unsupported enum value: %s" % self.value)
+
+    @staticmethod
+    def sort_by_product_count(queryset: QuerySet, sort_by: dict):
+        return Category.tree.add_related_count(
+            queryset, Product, "category", "product_count", cumulative=True
+        ).order_by(f"{sort_by.direction}product_count")
+
+    @staticmethod
+    def sort_by_subcategory_count(queryset: QuerySet, sort_by: dict):
+        return queryset.annotate(subcategory_count=Count("children__id")).order_by(
+            f"{sort_by.direction}subcategory_count", "pk"
+        )
+
+
+class CategoryOrder(SortInputObjectType):
+    class Meta:
+        sort_enum = CategoryOrderField
+        type_name = "category"
 
 
 class CollectionOrderField(graphene.Enum):

@@ -2665,7 +2665,7 @@ QUERY_COLLECTIONS_WITH_SEARCH = """
         ({"field": "PRODUCT_COUNT", "direction": "DESC"}, ["Coll2", "Coll3", "Coll1"]),
     ],
 )
-def test_collections_query_with_search(
+def test_collections_query_with_sort(
     collection_sort, result_order, staff_api_client, permission_manage_products, product
 ):
     Collection.objects.bulk_create(
@@ -2722,6 +2722,97 @@ def test_categories_query_with_filter(
     response = staff_api_client.post_graphql(query_categories_with_filter, variables)
     content = get_graphql_content(response)
     assert content["data"]["categories"]["totalCount"] == count
+
+
+QUERY_CATEGORIES_WITH_SEARCH = """
+    query ($sort_by: CategoryOrder!) {
+        categories(first:5, sortBy: $sort_by) {
+                edges{
+                    node{
+                        name
+                    }
+                }
+            }
+        }
+"""
+
+
+@pytest.mark.parametrize(
+    "category_sort, result_order",
+    [
+        (
+            {"field": "NAME", "direction": "ASC"},
+            ["Cat1", "Cat2", "SubCat", "SubSubCat"],
+        ),
+        (
+            {"field": "NAME", "direction": "DESC"},
+            ["SubSubCat", "SubCat", "Cat2", "Cat1"],
+        ),
+        (
+            {"field": "SUBCATEGORY_COUNT", "direction": "ASC"},
+            ["Cat2", "SubSubCat", "Cat1", "SubCat"],
+        ),
+        (
+            {"field": "SUBCATEGORY_COUNT", "direction": "DESC"},
+            ["Cat1", "SubCat", "Cat2", "SubSubCat"],
+        ),
+        (
+            {"field": "PRODUCT_COUNT", "direction": "ASC"},
+            ["Cat2", "SubCat", "SubSubCat", "Cat1"],
+        ),
+        (
+            {"field": "PRODUCT_COUNT", "direction": "DESC"},
+            ["Cat1", "SubCat", "SubSubCat", "Cat2"],
+        ),
+    ],
+)
+def test_categories_query_with_sort(
+    category_sort,
+    result_order,
+    staff_api_client,
+    permission_manage_products,
+    product_type,
+):
+    cat1 = Category.objects.create(
+        name="Cat1", slug="slug_category1", description="Description cat1"
+    )
+    Product.objects.create(
+        name="Test",
+        price=Money(10, "USD"),
+        product_type=product_type,
+        category=cat1,
+        is_published=True,
+    )
+    Category.objects.create(
+        name="Cat2", slug="slug_category2", description="Description cat2"
+    )
+    Category.objects.create(
+        name="SubCat",
+        slug="slug_subcategory",
+        parent=Category.objects.get(name="Cat1"),
+        description="Subcategory_description of cat1",
+    )
+    subsubcat = Category.objects.create(
+        name="SubSubCat",
+        slug="slug_subcategory",
+        parent=Category.objects.get(name="SubCat"),
+        description="Subcategory_description of cat1",
+    )
+    Product.objects.create(
+        name="Test2",
+        price=Money(10, "USD"),
+        product_type=product_type,
+        category=subsubcat,
+        is_published=True,
+    )
+    variables = {"sort_by": category_sort}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(QUERY_CATEGORIES_WITH_SEARCH, variables)
+    content = get_graphql_content(response)
+    categories = content["data"]["categories"]["edges"]
+
+    for order, category_name in enumerate(result_order):
+        assert categories[order]["node"]["name"] == category_name
 
 
 @pytest.mark.parametrize(
