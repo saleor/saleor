@@ -34,6 +34,7 @@ def get_product_data(line: "OrderLine", organization: dict) -> dict:
     }
 
     product = line.variant.product
+    # TODO: in #5022
     product_url = build_absolute_uri(product.get_absolute_url())
     product_data["itemOffered"]["url"] = product_url
 
@@ -47,6 +48,7 @@ def get_product_data(line: "OrderLine", organization: dict) -> dict:
 def get_order_confirmation_markup(order: "Order") -> str:
     """Generate schema.org markup for order confirmation e-mail message."""
     organization = get_organization()
+    # TODO: in #5022
     order_url = build_absolute_uri(order.get_absolute_url())
     data = {
         "@context": "http://schema.org",

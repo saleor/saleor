@@ -45,6 +45,7 @@ def get_menus_that_need_update(collection=None, categories=None, page=None):
 
 def get_menu_item_as_dict(menu_item):
     data = {}
+    # TODO: in #5022
     if menu_item.linked_object:
         data["url"] = menu_item.linked_object.get_absolute_url()
     else:

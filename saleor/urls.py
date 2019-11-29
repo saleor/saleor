@@ -11,6 +11,7 @@ from .core.sitemaps import sitemaps
 from .data_feeds.urls import urlpatterns as feed_urls
 from .graphql.api import schema
 from .graphql.views import GraphQLView
+from .product.views import digital_product
 
 non_translatable_urlpatterns = [
     url(r"^graphql/", csrf_exempt(GraphQLView.as_view(schema=schema)), name="api"),
@@ -27,6 +28,11 @@ non_translatable_urlpatterns = [
 translatable_urlpatterns = [
     url(r"^jsi18n/$", JavaScriptCatalog.as_view(), name="javascript-catalog"),
     url(r"^feeds/", include((feed_urls, "data_feeds"), namespace="data_feeds")),
+    url(
+        r"^digital-download/(?P<token>[0-9A-Za-z_\-]+)/$",
+        digital_product,
+        name="digital-product",
+    ),
 ]
 
 urlpatterns = non_translatable_urlpatterns + i18n_patterns(*translatable_urlpatterns)
