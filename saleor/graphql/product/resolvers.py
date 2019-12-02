@@ -30,6 +30,7 @@ from .sorters import (
     CategorySortField,
     CollectionSortField,
     ProductOrderField,
+    ProductTypeSortField,
 )
 
 if TYPE_CHECKING:
@@ -174,10 +175,13 @@ def resolve_products(
     return gql_optimizer.query(qs, info)
 
 
-def resolve_product_types(info, query):
+def resolve_product_types(info, query, sort_by=None, **_kwargs):
     qs = models.ProductType.objects.all()
     qs = filter_by_query_param(qs, query, PRODUCT_TYPE_SEARCH_FIELDS)
-    qs = qs.order_by("name")
+    if sort_by:
+        qs = sort_queryset(qs, sort_by, ProductTypeSortField)
+    else:
+        qs = qs.order_by("name")
     return gql_optimizer.query(qs, info)
 
 

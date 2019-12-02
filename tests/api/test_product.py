@@ -2641,7 +2641,7 @@ def test_collections_query_with_filter(
     assert len(collections) == count
 
 
-QUERY_COLLECTIONS_WITH_SEARCH = """
+QUERY_COLLECTIONS_WITH_SORT = """
     query ($sort_by: CollectionSortingInput!) {
         collections(first:5, sortBy: $sort_by) {
                 edges{
@@ -2681,7 +2681,7 @@ def test_collections_query_with_sort(
 
     variables = {"sort_by": collection_sort}
     staff_api_client.user.user_permissions.add(permission_manage_products)
-    response = staff_api_client.post_graphql(QUERY_COLLECTIONS_WITH_SEARCH, variables)
+    response = staff_api_client.post_graphql(QUERY_COLLECTIONS_WITH_SORT, variables)
     content = get_graphql_content(response)
     collections = content["data"]["collections"]["edges"]
 
@@ -2724,7 +2724,7 @@ def test_categories_query_with_filter(
     assert content["data"]["categories"]["totalCount"] == count
 
 
-QUERY_CATEGORIES_WITH_SEARCH = """
+QUERY_CATEGORIES_WITH_SORT = """
     query ($sort_by: CategorySortingInput!) {
         categories(first:5, sortBy: $sort_by) {
                 edges{
@@ -2807,7 +2807,7 @@ def test_categories_query_with_sort(
     )
     variables = {"sort_by": category_sort}
     staff_api_client.user.user_permissions.add(permission_manage_products)
-    response = staff_api_client.post_graphql(QUERY_CATEGORIES_WITH_SEARCH, variables)
+    response = staff_api_client.post_graphql(QUERY_CATEGORIES_WITH_SORT, variables)
     content = get_graphql_content(response)
     categories = content["data"]["categories"]["edges"]
 
@@ -2816,7 +2816,7 @@ def test_categories_query_with_sort(
 
 
 @pytest.mark.parametrize(
-    "collection_filter, count",
+    "product_type_filter, count",
     [
         ({"configurable": "CONFIGURABLE"}, 2),  # has_variants
         ({"configurable": "SIMPLE"}, 1),  # !has_variants
@@ -2825,7 +2825,7 @@ def test_categories_query_with_sort(
     ],
 )
 def test_product_type_query_with_filter(
-    collection_filter, count, staff_api_client, permission_manage_products
+    product_type_filter, count, staff_api_client, permission_manage_products
 ):
     query = """
         query ($filter: ProductTypeFilterInput!, ) {
@@ -2862,13 +2862,87 @@ def test_product_type_query_with_filter(
         ]
     )
 
-    variables = {"filter": collection_filter}
+    variables = {"filter": product_type_filter}
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     product_types = content["data"]["productTypes"]["edges"]
 
     assert len(product_types) == count
+
+
+QUERY_PRODUCT_TYPE_WITH_SORT = """
+    query ($sort_by: ProductTypeSortingInput!) {
+        productTypes(first:5, sortBy: $sort_by) {
+                edges{
+                    node{
+                        name
+                    }
+                }
+            }
+        }
+"""
+
+
+@pytest.mark.parametrize(
+    "product_type_sort, result_order",
+    [
+        ({"field": "NAME", "direction": "ASC"}, ["Digital", "Subscription", "Tools"]),
+        ({"field": "NAME", "direction": "DESC"}, ["Tools", "Subscription", "Digital"]),
+        # is_digital
+        (
+            {"field": "DIGITAL", "direction": "ASC"},
+            ["Tools", "Subscription", "Digital"],
+        ),
+        (
+            {"field": "DIGITAL", "direction": "DESC"},
+            ["Digital", "Tools", "Subscription"],
+        ),
+        # is_shipping_required
+        (
+            {"field": "SHIPPING_REQUIRED", "direction": "ASC"},
+            ["Digital", "Subscription", "Tools"],
+        ),
+        (
+            {"field": "SHIPPING_REQUIRED", "direction": "DESC"},
+            ["Tools", "Digital", "Subscription"],
+        ),
+    ],
+)
+def test_product_type_query_with_sort(
+    product_type_sort, result_order, staff_api_client, permission_manage_products
+):
+    ProductType.objects.bulk_create(
+        [
+            ProductType(
+                name="Digital",
+                has_variants=True,
+                is_shipping_required=False,
+                is_digital=True,
+            ),
+            ProductType(
+                name="Tools",
+                has_variants=True,
+                is_shipping_required=True,
+                is_digital=False,
+            ),
+            ProductType(
+                name="Subscription",
+                has_variants=False,
+                is_shipping_required=False,
+                is_digital=False,
+            ),
+        ]
+    )
+
+    variables = {"sort_by": product_type_sort}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(QUERY_PRODUCT_TYPE_WITH_SORT, variables)
+    content = get_graphql_content(response)
+    product_types = content["data"]["productTypes"]["edges"]
+
+    for order, product_type_name in enumerate(result_order):
+        assert product_types[order]["node"]["name"] == product_type_name
 
 
 MUTATION_BULK_PUBLISH_PRODUCTS = """
