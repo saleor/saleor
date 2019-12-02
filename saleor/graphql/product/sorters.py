@@ -23,7 +23,7 @@ class AttributeSortField(graphene.Enum):
     @property
     def description(self):
         # pylint: disable=no-member
-        descrtiptions = {
+        descriptions = {
             AttributeSortField.NAME.name: "name",
             AttributeSortField.SLUG.name: "slug",
             AttributeSortField.VALUE_REQUIRED.name: "the value required flag",
@@ -41,8 +41,8 @@ class AttributeSortField(graphene.Enum):
                 "their position in storefront"
             ),
         }
-        if self.name in descrtiptions:
-            return f"Sort attributes by {descrtiptions[self.name]}."
+        if self.name in descriptions:
+            return f"Sort attributes by {descriptions[self.name]}."
         if self == AttributeSortField.DASHBOARD_VARIANT_POSITION:
             return "Sort variant attributes by their position in dashboard."
         if self == AttributeSortField.DASHBOARD_PRODUCT_POSITION:
@@ -55,13 +55,17 @@ class AttributeSortField(graphene.Enum):
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod
-    def sort_by_dashboard_variant_position(queryset: QuerySet, sort_by: dict):
+    def sort_by_dashboard_variant_position(
+        queryset: QuerySet, sort_by: SortInputObjectType
+    ) -> QuerySet:
         # pylint: disable=no-member
         is_asc = sort_by["direction"] == OrderDirection.ASC.value
         return queryset.variant_attributes_sorted(is_asc)
 
     @staticmethod
-    def sort_by_dashboard_product_position(queryset: QuerySet, sort_by: dict):
+    def sort_by_dashboard_product_position(
+        queryset: QuerySet, sort_by: SortInputObjectType
+    ) -> QuerySet:
         # pylint: disable=no-member
         is_asc = sort_by["direction"] == OrderDirection.ASC.value
         return queryset.product_attributes_sorted(is_asc)
@@ -73,7 +77,7 @@ class AttributeSortingInput(SortInputObjectType):
         type_name = "attributes"
 
 
-class CategoryOrderField(graphene.Enum):
+class CategorySortField(graphene.Enum):
     NAME = "name"
     PRODUCT_COUNT = "product_count"
     SUBCATEGORY_COUNT = "subcategory_count"
@@ -82,34 +86,38 @@ class CategoryOrderField(graphene.Enum):
     def description(self):
         # pylint: disable=no-member
         if self in [
-            CategoryOrderField.NAME,
-            CategoryOrderField.PRODUCT_COUNT,
-            CategoryOrderField.SUBCATEGORY_COUNT,
+            CategorySortField.NAME,
+            CategorySortField.PRODUCT_COUNT,
+            CategorySortField.SUBCATEGORY_COUNT,
         ]:
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort categories by {sort_name}."
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod
-    def sort_by_product_count(queryset: QuerySet, sort_by: dict):
+    def sort_by_product_count(
+        queryset: QuerySet, sort_by: SortInputObjectType
+    ) -> QuerySet:
         return Category.tree.add_related_count(
             queryset, Product, "category", "product_count", cumulative=True
         ).order_by(f"{sort_by.direction}product_count")
 
     @staticmethod
-    def sort_by_subcategory_count(queryset: QuerySet, sort_by: dict):
+    def sort_by_subcategory_count(
+        queryset: QuerySet, sort_by: SortInputObjectType
+    ) -> QuerySet:
         return queryset.annotate(subcategory_count=Count("children__id")).order_by(
             f"{sort_by.direction}subcategory_count", "pk"
         )
 
 
-class CategoryOrder(SortInputObjectType):
+class CategorySortingInput(SortInputObjectType):
     class Meta:
-        sort_enum = CategoryOrderField
+        sort_enum = CategorySortField
         type_name = "categories"
 
 
-class CollectionOrderField(graphene.Enum):
+class CollectionSortField(graphene.Enum):
     NAME = "name"
     AVAILABILITY = "is_published"
     PRODUCT_COUNT = "product_count"
@@ -118,24 +126,26 @@ class CollectionOrderField(graphene.Enum):
     def description(self):
         # pylint: disable=no-member
         if self in [
-            CollectionOrderField.NAME,
-            CollectionOrderField.AVAILABILITY,
-            CollectionOrderField.PRODUCT_COUNT,
+            CollectionSortField.NAME,
+            CollectionSortField.AVAILABILITY,
+            CollectionSortField.PRODUCT_COUNT,
         ]:
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort collections by {sort_name}."
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod
-    def sort_by_product_count(queryset: QuerySet, sort_by: dict):
+    def sort_by_product_count(
+        queryset: QuerySet, sort_by: SortInputObjectType
+    ) -> QuerySet:
         return queryset.annotate(product_count=Count("collectionproduct__id")).order_by(
             f"{sort_by.direction}product_count", "slug"
         )
 
 
-class CollectionOrder(SortInputObjectType):
+class CollectionSortingInput(SortInputObjectType):
     class Meta:
-        sort_enum = CollectionOrderField
+        sort_enum = CollectionSortField
         type_name = "collections"
 
 
@@ -150,7 +160,7 @@ class ProductOrderField(graphene.Enum):
     @property
     def description(self):
         # pylint: disable=no-member
-        descrtiptions = {
+        descriptions = {
             ProductOrderField.NAME.name: "name",
             ProductOrderField.PRICE.name: "price",
             ProductOrderField.TYPE.name: "type",
@@ -160,8 +170,8 @@ class ProductOrderField(graphene.Enum):
             ProductOrderField.DATE.name: "update date",
             ProductOrderField.PUBLISHED.name: "publication status",
         }
-        if self.name in descrtiptions:
-            return f"Sort products by {descrtiptions[self.name]}."
+        if self.name in descriptions:
+            return f"Sort products by {descriptions[self.name]}."
         raise ValueError("Unsupported enum value: %s" % self.value)
 
 

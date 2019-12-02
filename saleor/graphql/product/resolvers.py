@@ -27,8 +27,8 @@ from .filters import (
 )
 from .sorters import (
     AttributeSortField,
-    CategoryOrderField,
-    CollectionOrderField,
+    CategorySortField,
+    CollectionSortField,
     ProductOrderField,
 )
 
@@ -74,7 +74,7 @@ def resolve_categories(info, query, level=None, sort_by=None, **_kwargs):
     if level is not None:
         qs = qs.filter(level=level)
     qs = filter_by_query_param(qs, query, CATEGORY_SEARCH_FIELDS)
-    qs = sort_queryset(qs, sort_by, CategoryOrderField)
+    qs = sort_queryset(qs, sort_by, CategorySortField)
     qs = qs.distinct()
     return gql_optimizer.query(qs, info)
 
@@ -83,7 +83,7 @@ def resolve_collections(info, query, sort_by=None, **_kwargs):
     user = info.context.user
     qs = models.Collection.objects.visible_to_user(user)
     qs = filter_by_query_param(qs, query, COLLECTION_SEARCH_FIELDS)
-    qs = sort_queryset(qs, sort_by, CollectionOrderField)
+    qs = sort_queryset(qs, sort_by, CollectionSortField)
     return gql_optimizer.query(qs, info)
 
 

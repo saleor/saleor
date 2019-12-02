@@ -111,7 +111,12 @@ from .resolvers import (
     resolve_report_product_sales,
 )
 from .scalars import AttributeScalar
-from .sorters import AttributeSortingInput, CategoryOrder, CollectionOrder, ProductOrder
+from .sorters import (
+    AttributeSortingInput,
+    CategorySortingInput,
+    CollectionSortingInput,
+    ProductOrder,
+)
 from .types import (
     Attribute,
     Category,
@@ -168,7 +173,7 @@ class ProductQueries(graphene.ObjectType):
         Category,
         query=graphene.String(description=DESCRIPTIONS["category"]),
         filter=CategoryFilterInput(description="Filtering options for categories."),
-        sort_by=CategoryOrder(description="Sort categories."),
+        sort_by=CategorySortingInput(description="Sort categories."),
         level=graphene.Argument(
             graphene.Int,
             description="Filter categories by the nesting level in the category tree.",
@@ -192,7 +197,7 @@ class ProductQueries(graphene.ObjectType):
     collections = FilterInputConnectionField(
         Collection,
         filter=CollectionFilterInput(description="Filtering options for collections."),
-        sort_by=CollectionOrder(description="Sort collections."),
+        sort_by=CollectionSortingInput(description="Sort collections."),
         query=graphene.String(description=DESCRIPTIONS["collection"]),
         description="List of the shop's collections.",
     )

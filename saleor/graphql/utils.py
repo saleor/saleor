@@ -123,7 +123,9 @@ def filter_by_query_param(queryset, query, search_fields):
     return queryset
 
 
-def sort_queryset(queryset: QuerySet, sort_by: dict, sort_enum: SortInputObjectType):
+def sort_queryset(
+    queryset: QuerySet, sort_by: SortInputObjectType, sort_enum: graphene.Enum
+) -> QuerySet:
     """Sort queryset according to given parameters.
 
     Keyword Arguments:
