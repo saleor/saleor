@@ -47,7 +47,7 @@
               </thead>
               <tbody>
                 {% for warehouse in warehouses %}
-                  <tr data-action-go="{% url "dashboard:warehouse-detail" warehouse.uuid %}">
+                  <tr data-action-go="{% url "dashboard:warehouse-detail" warehouse.id %}">
                     <td> {{ warehouse }} </td>
                     <td> {% for zone in warehouse.shipping_zones.all %}{{zone}}, {% endfor %} </td>
                   </tr>
