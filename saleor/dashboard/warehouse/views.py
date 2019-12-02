@@ -37,7 +37,7 @@ def warehouse_create(request: "HttpRequest") -> "HttpResponse":
         warehouse = save_warehouse_from_forms(warehouse_form, address_form)
         msg = pgettext_lazy("Dashboard message", "Warehouse created")
         messages.success(request, msg)
-        return redirect("dashboard:warehouse-detail", uuid=warehouse.uuid)
+        return redirect("dashboard:warehouse-detail", uuid=warehouse.id)
     ctx = {"warehouse_form": warehouse_form, "address_form": address_form}
     return TemplateResponse(request, "dashboard/warehouse/form.html", ctx)
 
@@ -55,7 +55,7 @@ def warehouse_update(request: "HttpRequest", uuid: "UUID") -> "HttpResponse":
         save_warehouse_from_forms(warehouse_form, address_form)
         msg = pgettext_lazy("Dashboard message", "Warehouse updated")
         messages.success(request, msg)
-        return redirect("dashboard:warehouse-detail", uuid=warehouse.uuid)
+        return redirect("dashboard:warehouse-detail", uuid=warehouse.id)
     ctx = {
         "warehouse": warehouse,
         "warehouse_form": warehouse_form,
