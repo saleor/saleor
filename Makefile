@@ -1,10 +1,10 @@
 APPVERSION=0.1
 APPMAIL="soporte@zentek.com.mx"
-GROUPREPO=proto
 NOCLR=\x1b[0m
 OKCLR=\x1b[32;01m
 ERRCLR=\x1b[31;01m
 WARNCLR=\x1b[33;01m
+EXECUTABLES=docker pip python3 screen npm yarn
 include .env
 export $(shell sed 's/=.*//' .env)
 
@@ -27,6 +27,13 @@ help: env
 	@echo -e "\n  Available targets:"
 	@egrep -o "^#: (.+)" [Mm]akefile  | sed 's/#: /    /'
 	@echo "  Report errors to ${APPMAIL}"
+
+#: check - Check that system requirements are met
+check:
+	$(info Required programs:)
+	$(foreach bin,$(EXECUTABLES),\
+	    $(if $(shell command -v $(bin) 2> /dev/null),$(info Found `$(bin)`),$(error Please install `$(bin)`)))
+	@make help
 
 # clean-build - Remove build and python files
 clean-build:
@@ -114,7 +121,6 @@ backend-stop:
 
 #: migrations - Initializes and apply changes to DB
 migrations: env clean backend-start
-# 	@python manage.py makemigrations --merge
 	@python manage.py makemigrations
 	@python manage.py migrate
 
@@ -179,12 +185,12 @@ deploy: env backend-start migrations fixtures run
 
 # build - Push to upload
 build:
-	docker login registry.gitlab.com
-	docker build -t registry.gitlab.com/zentekmx/${GROUPREPO}/${PROJECT} .
+	docker login
+	docker build -t ${UREPO}/${PROJECT} .
 
 # push - Push to upload
 push: build
-	docker push registry.gitlab.com/zentekmx/${GROUPREPO}/${PROJECT}
+	docker push ${UREPO}/${PROJECT}
 
 #: release - Build and push
 release: build push
@@ -194,4 +200,4 @@ compose: build
 	docker-compose up
 
 .PHONY: clean-pyc clean-build docs clean
-.DEFAULT_GOAL := help
+.DEFAULT_GOAL := check
