@@ -12,7 +12,7 @@ from .types import Warehouse
 class WarehouseQueries(graphene.ObjectType):
     warehouse = graphene.Field(
         Warehouse,
-        description="Look up an order by ID.",
+        description="Look up a warehouse by ID.",
         id=graphene.Argument(
             graphene.ID, description="ID of an warehouse", required=True
         ),

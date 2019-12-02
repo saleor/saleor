@@ -2081,6 +2081,10 @@ type Mutation {
   createWarehouse(input: WarehouseCreateInput!): WarehouseCreate
   updateWarehouse(id: ID!, input: WarehouseUpdateInput!): WarehouseUpdate
   deleteWarehouse(id: ID!): WarehouseDelete
+  createStock(input: StockInput!): StockCreate
+  updateStock(id: ID!, input: StockInput!): StockUpdate
+  deleteStock(id: ID!): StockDelete
+  bulkDeleteStock(ids: [ID]!): StockBulkDelete
   authorizationKeyAdd(input: AuthorizationKeyInput!, keyType: AuthorizationKeyType!): AuthorizationKeyAdd
   authorizationKeyDelete(keyType: AuthorizationKeyType!): AuthorizationKeyDelete
   staffNotificationRecipientCreate(input: StaffNotificationRecipientInput!): StaffNotificationRecipientCreate
@@ -3491,6 +3495,7 @@ type Query {
   warehouses(filter: WarehouseFilterInput, query: String, before: String, after: String, first: Int, last: Int): WarehouseCountableConnection
   translations(kind: TranslatableKinds!, before: String, after: String, first: Int, last: Int): TranslatableItemConnection
   translation(id: ID!, kind: TranslatableKinds!): TranslatableItem
+  stock(id: ID!): Stock
   shop: Shop
   shippingZone(id: ID!): ShippingZone
   shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
@@ -4135,9 +4140,73 @@ input StaffUserInput {
   search: String
 }
 
+type Stock implements Node {
+  id: ID!
+  warehouse: Warehouse!
+  productVariant: ProductVariant!
+  quantity: Int!
+  quantityAllocated: Int!
+}
+
 enum StockAvailability {
   IN_STOCK
   OUT_OF_STOCK
+}
+
+type StockBulkDelete {
+  errors: [Error!]
+  count: Int!
+  stockError: [StockError!]
+}
+
+type StockCountableConnection {
+  pageInfo: PageInfo!
+  edges: [StockCountableEdge!]!
+  totalCount: Int
+}
+
+type StockCountableEdge {
+  node: Stock!
+  cursor: String!
+}
+
+type StockCreate {
+  errors: [Error!]
+  stockErrors: [StockError!]
+  stock: Stock
+}
+
+type StockDelete {
+  errors: [Error!]
+  stock: Stock
+}
+
+enum StockErorrCode {
+  ALREADY_EXISTS
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+}
+
+type StockError {
+  field: String
+  message: String
+  code: StockErorrCode
+}
+
+input StockInput {
+  productVariant: ID!
+  warehouse: ID!
+  quantity: ID
+  quantityAllocated: ID
+}
+
+type StockUpdate {
+  errors: [Error!]
+  stockError: [StockError!]
+  stock: Stock
 }
 
 enum TaxRateType {
@@ -4534,6 +4603,7 @@ type Warehouse implements Node {
   shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection!
   address: Address!
   email: String!
+  stockSet(before: String, after: String, first: Int, last: Int): StockCountableConnection!
 }
 
 input WarehouseAddressInput {
