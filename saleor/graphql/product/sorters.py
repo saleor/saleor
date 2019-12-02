@@ -2,7 +2,75 @@ import graphene
 from django.db.models import Count, QuerySet
 
 from ...product.models import Category, Product
+from ..core.enums import OrderDirection
 from ..core.types import SortInputObjectType
+
+
+class AttributeSortField(graphene.Enum):
+    NAME = "name"
+    SLUG = "slug"
+    VALUE_REQUIRED = "value_required"
+    IS_VARIANT_ONLY = "is_variant_only"
+    VISIBLE_IN_STOREFRONT = "visible_in_storefront"
+    FILTERABLE_IN_STOREFRONT = "filterable_in_storefront"
+    FILTERABLE_IN_DASHBOARD = "filterable_in_dashboard"
+
+    DASHBOARD_VARIANT_POSITION = "dashboard_variant_position"
+    DASHBOARD_PRODUCT_POSITION = "dashboard_product_position"
+    STOREFRONT_SEARCH_POSITION = "storefront_search_position"
+    AVAILABLE_IN_GRID = "available_in_grid"
+
+    @property
+    def description(self):
+        # pylint: disable=no-member
+        descrtiptions = {
+            AttributeSortField.NAME.name: "name",
+            AttributeSortField.SLUG.name: "slug",
+            AttributeSortField.VALUE_REQUIRED.name: "the value required flag",
+            AttributeSortField.IS_VARIANT_ONLY.name: "the variant only flag",
+            AttributeSortField.VISIBLE_IN_STOREFRONT.name: (
+                "visibility in the storefront"
+            ),
+            AttributeSortField.FILTERABLE_IN_STOREFRONT.name: (
+                "the filterable in storefront flag"
+            ),
+            AttributeSortField.FILTERABLE_IN_DASHBOARD.name: (
+                "the filterable in dashboard flag"
+            ),
+            AttributeSortField.STOREFRONT_SEARCH_POSITION.name: (
+                "their position in storefront"
+            ),
+        }
+        if self.name in descrtiptions:
+            return f"Sort attributes by {descrtiptions[self.name]}."
+        if self == AttributeSortField.DASHBOARD_VARIANT_POSITION:
+            return "Sort variant attributes by their position in dashboard."
+        if self == AttributeSortField.DASHBOARD_PRODUCT_POSITION:
+            return "Sort product attributes by their position in dashboard."
+        if self == AttributeSortField.AVAILABLE_IN_GRID:
+            return (
+                "Sort attributes based on whether they can be displayed "
+                "or not in a product grid."
+            )
+        raise ValueError("Unsupported enum value: %s" % self.value)
+
+    @staticmethod
+    def sort_by_dashboard_variant_position(queryset: QuerySet, sort_by: dict):
+        # pylint: disable=no-member
+        is_asc = sort_by["direction"] == OrderDirection.ASC.value
+        return queryset.variant_attributes_sorted(is_asc)
+
+    @staticmethod
+    def sort_by_dashboard_product_position(queryset: QuerySet, sort_by: dict):
+        # pylint: disable=no-member
+        is_asc = sort_by["direction"] == OrderDirection.ASC.value
+        return queryset.product_attributes_sorted(is_asc)
+
+
+class AttributeSortingInput(SortInputObjectType):
+    class Meta:
+        sort_enum = AttributeSortField
+        type_name = "attributes"
 
 
 class CategoryOrderField(graphene.Enum):
@@ -38,7 +106,7 @@ class CategoryOrderField(graphene.Enum):
 class CategoryOrder(SortInputObjectType):
     class Meta:
         sort_enum = CategoryOrderField
-        type_name = "category"
+        type_name = "categories"
 
 
 class CollectionOrderField(graphene.Enum):
@@ -68,7 +136,7 @@ class CollectionOrderField(graphene.Enum):
 class CollectionOrder(SortInputObjectType):
     class Meta:
         sort_enum = CollectionOrderField
-        type_name = "collection"
+        type_name = "collections"
 
 
 class ProductOrderField(graphene.Enum):
@@ -108,4 +176,4 @@ class ProductOrder(SortInputObjectType):
 
     class Meta:
         sort_enum = ProductOrderField
-        type_name = "product"
+        type_name = "products"

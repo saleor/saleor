@@ -318,8 +318,8 @@ enum AttributeSortField {
 }
 
 input AttributeSortingInput {
-  field: AttributeSortField!
   direction: OrderDirection!
+  field: AttributeSortField
 }
 
 type AttributeTranslatableContent implements Node {
