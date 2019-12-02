@@ -102,7 +102,7 @@
                   {% else %}
                     0
                   {% endif %}
-                </span>
+              </span>
               </a>
               <div class="checkout-preview-dropdown d-none">
                 {% include 'checkout_dropdown.html' %}
@@ -149,11 +149,6 @@
               </strong>
             </a>
             <hr />
-            <li>
-              <a rel="nofollow" href="{% url "checkout:index" %}">
-                {% trans "Your cart" context "Main navigation item" %}
-              </a>
-            </li>
           </ul>
         </div>
         <div class="offset-md-2 col-md-4 col-12">
