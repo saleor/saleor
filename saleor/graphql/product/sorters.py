@@ -187,3 +187,27 @@ class ProductOrder(SortInputObjectType):
     class Meta:
         sort_enum = ProductOrderField
         type_name = "products"
+
+
+class ProductTypeSortField(graphene.Enum):
+    NAME = "name"
+    DIGITAL = "is_digital"
+    SHIPPING_REQUIRED = "is_shipping_required"
+
+    @property
+    def description(self):
+        # pylint: disable=no-member
+        descriptions = {
+            ProductTypeSortField.NAME.name: "name",
+            ProductTypeSortField.DIGITAL.name: "type",
+            ProductTypeSortField.SHIPPING_REQUIRED.name: "shipping",
+        }
+        if self.name in descriptions:
+            return f"Sort products by {descriptions[self.name]}."
+        raise ValueError("Unsupported enum value: %s" % self.value)
+
+
+class ProductTypeSortingInput(SortInputObjectType):
+    class Meta:
+        sort_enum = ProductTypeSortField
+        type_name = "product types"
