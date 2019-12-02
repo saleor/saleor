@@ -1,0 +1,10 @@
+- model: menu.menu
+  pk: 1
+  fields:
+    name: navbar
+    json_content: []
+- model: menu.menu
+  pk: 2
+  fields:
+    name: footer
+    json_content: []

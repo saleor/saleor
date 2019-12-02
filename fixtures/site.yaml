@@ -1,0 +1,21 @@
+- model: site.sitesettings
+  pk: 1
+  fields:
+    site: 1
+    header_text: Test Saleor - a sample shop!
+    description: ''
+    top_menu: 1
+    bottom_menu: 2
+    include_taxes_in_prices: true
+    display_gross_prices: true
+    charge_taxes_on_shipping: true
+    track_inventory_by_default: true
+    homepage_collection: null
+    default_weight_unit: kg
+    automatic_fulfillment_digital_products: false
+    default_digital_max_downloads: null
+    default_digital_url_valid_days: null
+    company_address: null
+    default_mail_sender_name: ''
+    default_mail_sender_address: null
+    customer_set_password_url: null
