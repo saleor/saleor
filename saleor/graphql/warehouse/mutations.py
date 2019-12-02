@@ -64,7 +64,9 @@ class WarehouseUpdate(WarehouseMixin, ModelMutation, I18nMixin):
 
     class Arguments:
         id = graphene.ID(description="ID of a warehouse to update.", required=True)
-        input = WarehouseUpdateInput(required=True)
+        input = WarehouseUpdateInput(
+            required=True, description="Fields required to update warehouse."
+        )
 
     @classmethod
     def prepare_address(cls, cleaned_data, instance):
