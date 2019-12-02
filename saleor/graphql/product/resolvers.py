@@ -16,7 +16,6 @@ from ..utils import (
     get_nodes,
     sort_queryset,
 )
-from .enums import AttributeSortField
 from .filters import (
     filter_attributes_by_product_types,
     filter_products_by_attributes,
@@ -25,9 +24,13 @@ from .filters import (
     filter_products_by_minimal_price,
     filter_products_by_price,
     filter_products_by_stock_availability,
-    sort_qs,
 )
-from .sorters import CategoryOrderField, CollectionOrderField, ProductOrderField
+from .sorters import (
+    AttributeSortField,
+    CategoryOrderField,
+    CollectionOrderField,
+    ProductOrderField,
+)
 
 if TYPE_CHECKING:
     from ..product.types import ProductOrder  # noqa
@@ -58,13 +61,7 @@ def resolve_attributes(
         qs = filter_attributes_by_product_types(qs, "in_collection", in_collection)
 
     if sort_by:
-        is_asc = sort_by["direction"] == OrderDirection.ASC.value
-        if sort_by["field"] == AttributeSortField.DASHBOARD_VARIANT_POSITION.value:
-            qs = qs.variant_attributes_sorted(is_asc)
-        elif sort_by["field"] == AttributeSortField.DASHBOARD_PRODUCT_POSITION.value:
-            qs = qs.product_attributes_sorted(is_asc)
-        else:
-            qs = sort_qs(qs, sort_by)
+        qs = sort_queryset(qs, sort_by, AttributeSortField)
     else:
         qs = qs.order_by("name")
 

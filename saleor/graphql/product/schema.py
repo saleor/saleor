@@ -111,7 +111,7 @@ from .resolvers import (
     resolve_report_product_sales,
 )
 from .scalars import AttributeScalar
-from .sorters import CategoryOrder, CollectionOrder, ProductOrder
+from .sorters import AttributeSortingInput, CategoryOrder, CollectionOrder, ProductOrder
 from .types import (
     Attribute,
     Category,
@@ -121,7 +121,6 @@ from .types import (
     ProductType,
     ProductVariant,
 )
-from .types.attributes import AttributeSortingInput
 
 
 class ProductQueries(graphene.ObjectType):
@@ -156,9 +155,7 @@ class ProductQueries(graphene.ObjectType):
             ),
         ),
         filter=AttributeFilterInput(description="Filtering options for attributes."),
-        sort_by=graphene.Argument(
-            AttributeSortingInput, description="Sorting options for attributes."
-        ),
+        sort_by=AttributeSortingInput(description="Sorting options for attributes."),
     )
     attribute = graphene.Field(
         Attribute,
