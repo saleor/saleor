@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 from django.contrib.sitemaps.views import sitemap
 from django.contrib.staticfiles.views import serve
 from django.views.decorators.csrf import csrf_exempt
-from django.views.i18n import JavaScriptCatalog, set_language
+from django.views.i18n import set_language
 
 from .core.sitemaps import sitemaps
 from .data_feeds.urls import urlpatterns as feed_urls
@@ -26,7 +26,6 @@ non_translatable_urlpatterns = [
 ]
 
 translatable_urlpatterns = [
-    url(r"^jsi18n/$", JavaScriptCatalog.as_view(), name="javascript-catalog"),
     url(r"^feeds/", include((feed_urls, "data_feeds"), namespace="data_feeds")),
     url(
         r"^digital-download/(?P<token>[0-9A-Za-z_\-]+)/$",
