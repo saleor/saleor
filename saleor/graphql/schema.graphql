@@ -4578,10 +4578,19 @@ type WarehouseDelete {
   warehouse: Warehouse
 }
 
+enum WarehouseErorrCode {
+  ALREADY_EXISTS
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+}
+
 type WarehouseError {
   field: String
   message: String
-  code: ExtensionsErrorCode
+  code: WarehouseErorrCode
 }
 
 input WarehouseFilterInput {
