@@ -139,10 +139,8 @@ def sort_queryset(
     direction = sort_by.direction
     sorting_field = sort_by.field
 
-    custom_sort_by_name = f"sort_by_{sorting_field}"
-
-    if custom_sort_by_name in dir(sort_enum):
-        custom_sort_by = getattr(sort_enum, custom_sort_by_name)
+    custom_sort_by = getattr(sort_enum, f"sort_by_{sorting_field}", None)
+    if custom_sort_by:
         queryset = custom_sort_by(queryset, sort_by)
     else:
         queryset = queryset.order_by(f"{direction}{sorting_field}")
