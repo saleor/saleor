@@ -4199,8 +4199,8 @@ type StockError {
 input StockInput {
   productVariant: ID!
   warehouse: ID!
-  quantity: ID
-  quantityAllocated: ID
+  quantity: Int
+  quantityAllocated: Int
 }
 
 type StockUpdate {
