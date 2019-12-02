@@ -13,6 +13,7 @@ from .payment.schema import PaymentMutations, PaymentQueries
 from .product.schema import ProductMutations, ProductQueries
 from .shipping.schema import ShippingMutations, ShippingQueries
 from .shop.schema import ShopMutations, ShopQueries
+from .stock.schema import StockMutations, StockQueries
 from .translations.schema import TranslationQueries
 from .warehouse.schema import WarehouseMutations, WarehouseQueries
 from .webhook.schema import WebhookMutations, WebhookQueries
@@ -33,6 +34,7 @@ class Query(
     ProductQueries,
     ShippingQueries,
     ShopQueries,
+    StockQueries,
     TranslationQueries,
     WarehouseQueries,
     WebhookQueries,
@@ -54,6 +56,7 @@ class Mutation(
     ProductMutations,
     ShippingMutations,
     ShopMutations,
+    StockMutations,
     WarehouseMutations,
     WebhookMutations,
     WishlistMutations,

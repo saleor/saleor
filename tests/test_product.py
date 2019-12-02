@@ -14,7 +14,7 @@ from saleor.product.thumbnails import create_product_thumbnails
 from saleor.product.utils.attributes import associate_attribute_values_to_instance
 from saleor.product.utils.costs import get_margin_for_variant
 from saleor.product.utils.digital_products import increment_download_count
-from saleor.stock.stock_management import (
+from saleor.stock.utils.management import (
     allocate_stock,
     deallocate_stock,
     decrease_stock,

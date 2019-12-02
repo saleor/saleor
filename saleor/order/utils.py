@@ -15,7 +15,8 @@ from ..order import OrderStatus
 from ..order.models import Order, OrderLine
 from ..product.utils.digital_products import get_default_digital_content_settings
 from ..shipping.models import ShippingMethod
-from ..stock.stock_management import allocate_stock, deallocate_stock, increase_stock
+from ..stock.utils.availability import check_stock_quantity
+from ..stock.utils.management import allocate_stock, deallocate_stock, increase_stock
 from . import events
 
 
@@ -167,8 +168,9 @@ def add_variant_to_order(
     By default, raises InsufficientStock exception if  quantity could not be
     fulfilled. This can be disabled by setting `allow_overselling` to True.
     """
+    country = order.shipping_address.country
     if not allow_overselling:
-        variant.check_quantity(quantity)
+        check_stock_quantity(variant, country, quantity)
 
     try:
         line = order.lines.get(variant=variant)
