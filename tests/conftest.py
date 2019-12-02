@@ -1564,7 +1564,7 @@ def payment_dummy(db, order_with_lines):
 
 
 @pytest.fixture
-def digital_content(category, media_root) -> DigitalContent:
+def digital_content(category, media_root, warehouse) -> DigitalContent:
     product_type = ProductType.objects.create(
         name="Digital Type",
         has_variants=True,
@@ -1579,9 +1579,11 @@ def digital_content(category, media_root) -> DigitalContent:
         is_published=True,
     )
     product_variant = ProductVariant.objects.create(
-        product=product,
-        sku="SKU_554",
-        cost_price=Money(1, "USD"),
+        product=product, sku="SKU_554", cost_price=Money(1, "USD")
+    )
+    Stock.objects.create(
+        product_variant=product_variant,
+        warehouse=warehouse,
         quantity=5,
         quantity_allocated=3,
     )
