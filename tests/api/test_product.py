@@ -2642,7 +2642,7 @@ def test_collections_query_with_filter(
 
 
 QUERY_COLLECTIONS_WITH_SEARCH = """
-    query ($sort_by: CollectionOrder!) {
+    query ($sort_by: CollectionSortingInput!) {
         collections(first:5, sortBy: $sort_by) {
                 edges{
                     node{
@@ -2725,7 +2725,7 @@ def test_categories_query_with_filter(
 
 
 QUERY_CATEGORIES_WITH_SEARCH = """
-    query ($sort_by: CategoryOrder!) {
+    query ($sort_by: CategorySortingInput!) {
         categories(first:5, sortBy: $sort_by) {
                 edges{
                     node{
