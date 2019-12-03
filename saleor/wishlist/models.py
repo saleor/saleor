@@ -33,7 +33,7 @@ class Wishlist(models.Model):
         ).distinct()
 
     def add_variant(self, variant: ProductVariant):
-        item, is_created = self.items.get_or_create(product_id=variant.product_id)
+        item, _is_created = self.items.get_or_create(product_id=variant.product_id)
         item.variants.add(variant)
         return item
 

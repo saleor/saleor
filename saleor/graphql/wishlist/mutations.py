@@ -9,16 +9,16 @@ from .types import WishlistItem
 
 class WishlistAddProductVariantMutation(BaseMutation):
     wishlist_items = graphene.List(
-        WishlistItem, description="The list of WishlistItems of the current user."
+        WishlistItem, description="The wishlist of the current user."
     )
 
     class Arguments:
         variant_id = graphene.ID(
-            description="The ID of the ProductVariant.", required=True
+            description="The ID of the product variant.", required=True
         )
 
     class Meta:
-        description = "Add ProductVariant to the current user's Wishlist."
+        description = "Add product variant to the current user's wishlist."
         error_type_class = WishlistError
         error_type_field = "wishlist_errors"
 
@@ -35,16 +35,16 @@ class WishlistAddProductVariantMutation(BaseMutation):
 
 class WishlistRemoveProductVariantMutation(BaseMutation):
     wishlist_items = graphene.List(
-        WishlistItem, description="The list of WishlistItems of the current user."
+        WishlistItem, description="The wishlist of the current user."
     )
 
     class Arguments:
         variant_id = graphene.ID(
-            description="The ID of the ProductVariant.", required=True
+            description="The ID of the product variant.", required=True
         )
 
     class Meta:
-        description = "Remove ProductVariant from the current user's wishlist."
+        description = "Remove product variant from the current user's wishlist."
         error_type_class = WishlistError
         error_type_field = "wishlist_errors"
 

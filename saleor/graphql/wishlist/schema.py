@@ -14,7 +14,7 @@ class WishlistQueries(graphene.ObjectType):
         WishlistItem, description="Get wishlist items of the current user."
     )
 
-    def resolve_wishlist_items(self, info, **kwargs):
+    def resolve_wishlist_items(self, info, **_kwargs):
         return resolve_wishlist_items(info)
 
 
