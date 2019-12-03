@@ -58,6 +58,7 @@ from .resolvers import (
     resolve_staff_users,
     resolve_user,
 )
+from .sorters import UserSortingInput
 from .types import AddressValidationData, ServiceAccount, User
 
 
@@ -96,6 +97,7 @@ class AccountQueries(graphene.ObjectType):
     customers = FilterInputConnectionField(
         User,
         filter=CustomerFilterInput(description="Filtering options for customers."),
+        sort_by=UserSortingInput(description="Sort customers."),
         description="List of the shop's customers.",
         query=graphene.String(description=DESCRIPTIONS["user"]),
     )
@@ -103,6 +105,7 @@ class AccountQueries(graphene.ObjectType):
     staff_users = FilterInputConnectionField(
         User,
         filter=StaffUserInput(description="Filtering options for staff users."),
+        sort_by=UserSortingInput(description="Sort staff users."),
         description="List of the shop's staff users.",
         query=graphene.String(description=DESCRIPTIONS["user"]),
     )
@@ -148,7 +151,7 @@ class AccountQueries(graphene.ObjectType):
 
     @permission_required("account.manage_users")
     def resolve_customers(self, info, query=None, **_kwargs):
-        return resolve_customers(info, query=query)
+        return resolve_customers(info, query=query, **_kwargs)
 
     @login_required
     def resolve_me(self, info):
@@ -156,7 +159,7 @@ class AccountQueries(graphene.ObjectType):
 
     @permission_required("account.manage_staff")
     def resolve_staff_users(self, info, query=None, **_kwargs):
-        return resolve_staff_users(info, query=query)
+        return resolve_staff_users(info, query=query, **_kwargs)
 
     @one_of_permissions_required(["account.manage_staff", "account.manage_users"])
     def resolve_user(self, info, id):
