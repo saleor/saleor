@@ -27,11 +27,6 @@
         </label>
       </div>
     {% endfor %}
-    {% if form.errors %}
-      <a class="btn" href="{% url "order:details" token=payment.order.token %}">
-        {% trans "Change payment" context "Payment form (Stripe) secondary action" %}
-      </a>
-    {% endif %}
     {% if not form.autosubmit %}
       <button type="submit" class="btn btn-primary">
         {% trans "Make payment" context "Payment form primary action" %}
