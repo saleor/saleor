@@ -3,7 +3,7 @@ from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib.staticfiles.views import serve
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import TemplateView
+from django.views.generic.base import RedirectView
 
 from .data_feeds.urls import urlpatterns as feed_urls
 from .graphql.api import schema
@@ -18,7 +18,6 @@ urlpatterns = [
         digital_product,
         name="digital-product",
     ),
-    url(r"", TemplateView.as_view(template_name="base.html")),
 ]
 
 if settings.DEBUG:
@@ -30,10 +29,10 @@ if settings.DEBUG:
     else:
         urlpatterns += [url(r"^__debug__/", include(debug_toolbar.urls))]
 
-    urlpatterns += [
-        # static files (images, css, javascript, etc.)
-        url(r"^static/(?P<path>.*)$", serve)
-    ] + static("/media/", document_root=settings.MEDIA_ROOT)
+    urlpatterns += static("/media/", document_root=settings.MEDIA_ROOT) + [
+        url(r"^static/(?P<path>.*)$", serve),
+        url(r"^", RedirectView.as_view(url="graphql/")),
+    ]
 
 if settings.ENABLE_SILK:
     urlpatterns += [url(r"^silk/", include("silk.urls", namespace="silk"))]
