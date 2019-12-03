@@ -66,6 +66,7 @@ class Category(MPTTModel, ModelWithMetadata, SeoModel):
     def __str__(self) -> str:
         return self.name
 
+    # TODO: in #5022
     def get_absolute_url(self) -> str:
         return ""
 
@@ -334,6 +335,7 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
     def is_available(self) -> bool:
         return self.is_visible and self.is_in_stock()
 
+    # TODO: in #5022
     def get_absolute_url(self) -> str:
         return ""
 
@@ -499,6 +501,7 @@ class ProductVariant(ModelWithMetadata):
     def get_weight(self):
         return self.weight or self.product.weight or self.product.product_type.weight
 
+    # TODO: in #5022
     def get_absolute_url(self) -> str:
         return ""
 
@@ -935,6 +938,7 @@ class Collection(SeoModel, ModelWithMetadata, PublishableModel):
     def __str__(self) -> str:
         return self.name
 
+    # TODO: in #5022
     def get_absolute_url(self) -> str:
         return ""
 
