@@ -1,6 +1,6 @@
 import uuid
 
-from django.db import models
+from django.db import models, transaction
 
 from ..account.models import User
 from ..product.models import Product, ProductVariant
@@ -50,7 +50,24 @@ class Wishlist(models.Model):
 
 
 class WishlistItemQuerySet(models.QuerySet):
+    @transaction.atomic()
     def move_items_between_wishlists(self, src_wishlist, dst_wishlist):
+        dst_wishlist_map = {}
+        for dst_item in dst_wishlist.items.all():
+            dst_wishlist_map[dst_item.product_id] = dst_item
+        # Copying the items from the source to the destination wishlist.
+        for src_item in src_wishlist.items.all():
+            if src_item.product_id in dst_wishlist_map:
+                # This wishlist item's product already exist.
+                # Adding and the variants, "add" already handles duplicates.
+                dst_item = dst_wishlist_map[src_item.product_id]
+                dst_item.variants.add(*src_item.variants.all())
+                src_item.delete()
+            else:
+                # This wishlist item contains a new product.
+                # It can be reassigned to the destination wishlist.
+                src_item.wishlist = dst_wishlist
+                src_item.save()
         self.filter(wishlist=src_wishlist).update(wishlist=dst_wishlist)
 
 

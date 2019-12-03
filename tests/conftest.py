@@ -612,6 +612,25 @@ def product(product_type, category):
 
 
 @pytest.fixture
+def product_with_single_variant(product_type, category):
+    product = Product.objects.create(
+        name="Test product with single variant",
+        price=Money("1.99", "USD"),
+        product_type=product_type,
+        category=category,
+        is_published=True,
+    )
+    variant = ProductVariant.objects.create(
+        product=product,
+        sku="SKU_SINGLE_VARIANT",
+        cost_price=Money("1.00", "USD"),
+        quantity=101,
+        quantity_allocated=1,
+    )
+    return product
+
+
+@pytest.fixture
 def product_with_two_variants(product_type, category):
     product = Product.objects.create(
         name="Test product with two variants",
@@ -1745,12 +1764,13 @@ def staff_notification_recipient(db, staff_user):
 
 
 @pytest.fixture
-def customer_wishlist(customer_user, product):
+def customer_wishlist(customer_user):
     return Wishlist.objects.create(user=customer_user)
 
 
 @pytest.fixture
-def customer_wishlist_item(customer_wishlist, product):
+def customer_wishlist_item(customer_wishlist, product_with_single_variant):
+    product = product_with_single_variant
     assert product.variants.count() == 1
     variant = product.variants.first()
     item = customer_wishlist.add_variant(variant)
@@ -1761,8 +1781,9 @@ def customer_wishlist_item(customer_wishlist, product):
 def customer_wishlist_item_with_two_variants(
     customer_wishlist, product_with_two_variants
 ):
-    assert product_with_two_variants.variants.count() == 2
-    [variant_1, variant_2] = product_with_two_variants.variants.all()
+    product = product_with_two_variants
+    assert product.variants.count() == 2
+    [variant_1, variant_2] = product.variants.all()
     item = customer_wishlist.add_variant(variant_1)
     item.variants.add(variant_2)
     return item
