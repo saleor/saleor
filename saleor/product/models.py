@@ -340,9 +340,6 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
     def get_slug(self) -> str:
         return slugify(smart_text(unidecode(self.name)))
 
-    def is_in_stock(self) -> bool:
-        return any(variant.is_in_stock() for variant in self)
-
     def get_first_image(self):
         images = list(self.images.all())
         return images[0] if images else None
