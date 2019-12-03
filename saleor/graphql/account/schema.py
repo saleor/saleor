@@ -58,7 +58,7 @@ from .resolvers import (
     resolve_staff_users,
     resolve_user,
 )
-from .sorters import UserSortingInput
+from .sorters import ServiceAccountSortingInput, UserSortingInput
 from .types import AddressValidationData, ServiceAccount, User
 
 
@@ -114,6 +114,7 @@ class AccountQueries(graphene.ObjectType):
         filter=ServiceAccountFilterInput(
             description="Filtering options for service accounts."
         ),
+        sort_by=ServiceAccountSortingInput(description="Sort service accounts."),
         description="List of the service accounts.",
     )
     service_account = graphene.Field(
@@ -143,7 +144,7 @@ class AccountQueries(graphene.ObjectType):
 
     @permission_required("account.manage_service_accounts")
     def resolve_service_accounts(self, info, **_kwargs):
-        return resolve_service_accounts(info)
+        return resolve_service_accounts(info, **_kwargs)
 
     @permission_required("account.manage_service_accounts")
     def resolve_service_account(self, info, id):

@@ -11,7 +11,7 @@ from ...account import models
 from ...payment import gateway
 from ...payment.utils import fetch_customer_id
 from ..utils import filter_by_query_param, sort_queryset
-from .sorters import UserSortField, UserSortingInput
+from .sorters import ServiceAccountSortField, UserSortField, UserSortingInput
 from .types import AddressValidationData, ChoiceValue
 from .utils import get_allowed_fields_camel_case, get_required_fields_camel_case
 
@@ -67,8 +67,9 @@ def resolve_user(info, id):
     return PermissionDenied()
 
 
-def resolve_service_accounts(info):
+def resolve_service_accounts(info, sort_by=None, **_kwargs):
     qs = models.ServiceAccount.objects.all()
+    qs = sort_queryset(qs, sort_by, ServiceAccountSortField)
     return gql_optimizer.query(qs, info)
 
 

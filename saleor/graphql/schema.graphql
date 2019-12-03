@@ -3482,7 +3482,7 @@ type Query {
   customers(filter: CustomerFilterInput, sortBy: UserSortingInput, query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
   me: User
   staffUsers(filter: StaffUserInput, sortBy: UserSortingInput, query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
-  serviceAccounts(filter: ServiceAccountFilterInput, before: String, after: String, first: Int, last: Int): ServiceAccountCountableConnection
+  serviceAccounts(filter: ServiceAccountFilterInput, sortBy: ServiceAccountSortingInput, before: String, after: String, first: Int, last: Int): ServiceAccountCountableConnection
   serviceAccount(id: ID!): ServiceAccount
   user(id: ID!): User
   _entities(representations: [_Any]): [_Entity]
@@ -3670,6 +3670,16 @@ input ServiceAccountInput {
   name: String
   isActive: Boolean
   permissions: [PermissionEnum]
+}
+
+enum ServiceAccountSortField {
+  NAME
+  CREATION_DATE
+}
+
+input ServiceAccountSortingInput {
+  direction: OrderDirection!
+  field: ServiceAccountSortField
 }
 
 type ServiceAccountToken implements Node {
