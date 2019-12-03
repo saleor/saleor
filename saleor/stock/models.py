@@ -4,27 +4,27 @@ from django.utils.translation import pgettext_lazy
 
 from ..core.exceptions import InsufficientStock
 from ..product.models import ProductVariant
-from ..shipping.models import ShippingZone
 from ..warehouse.models import Warehouse
 
 
 class StockQuerySet(models.QuerySet):
-    def get_stock_for_country(self, product_variant: ProductVariant, country_code: str):
-        shipping_zone = ShippingZone.objects.prefetch_related("warehouse_set").get(
-            countries__icontains=country_code
-        )
-        return self.get(
-            warehouse=models.Subquery(shipping_zone.warehouse_set.get()),
-            product_variant=product_variant,
-        )
+    def annotate_available_quantity(self):
+        return self.annotate(available_quantity=F("quantity") - F("quantity_allocated"))
 
     def for_country(self, country_code: str):
         query_warehouse = models.Subquery(
-            Warehouse.objects.prefetch_related("shipping_zones")
-            .filter(shipping_zones__countries__contains=country_code)
-            .values("pk")
+            Warehouse.objects.filter(
+                shipping_zones__countries__contains=country_code
+            ).values("pk")
         )
-        return self.filter(warehouse__in=query_warehouse)
+        return self.select_related("product_variant", "warehouse").filter(
+            warehouse__in=query_warehouse
+        )
+
+    def get_variant_stock_for_country(
+        self, country_code: str, product_variant: ProductVariant
+    ):
+        return self.for_country(country_code).get(product_variant=product_variant)
 
 
 class Stock(models.Model):
@@ -58,7 +58,7 @@ class Stock(models.Model):
         return self.quantity > 0
 
     def check_quantity(self, quantity: int):
-        if quantity > self.quantity_available:
+        if quantity > self.quantity_available():
             raise InsufficientStock(self)
 
     def allocate_stock(self, quantity: int, commit: bool = True):
