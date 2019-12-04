@@ -328,10 +328,6 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
             return json_content_to_raw_text(self.description_json)
         return strip_tags(self.description)
 
-    @property
-    def is_available(self) -> bool:
-        return self.is_visible and self.is_in_stock()
-
     # Deprecated. To remove in #5022
     @staticmethod
     def get_absolute_url() -> str:
