@@ -959,6 +959,116 @@ def test_query_vouchers_with_filter_search(
     assert len(data) == count
 
 
+QUERY_VOUCHER_WITH_SORT = """
+    query ($sort_by: VoucherSortingInput!) {
+        vouchers(first:5, sortBy: $sort_by) {
+            edges{
+                node{
+                    name
+                }
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "voucher_sort, result_order",
+    [
+        (
+            {"field": "NAME", "direction": "ASC"},
+            ["FreeShipping", "Voucher1", "Voucher2"],
+        ),
+        (
+            {"field": "NAME", "direction": "DESC"},
+            ["Voucher2", "Voucher1", "FreeShipping"],
+        ),
+        (
+            {"field": "VALUE", "direction": "ASC"},
+            ["Voucher2", "FreeShipping", "Voucher1"],
+        ),
+        (
+            {"field": "VALUE", "direction": "DESC"},
+            ["Voucher1", "FreeShipping", "Voucher2"],
+        ),
+        (
+            {"field": "TYPE", "direction": "ASC"},
+            ["Voucher1", "Voucher2", "FreeShipping"],
+        ),
+        (
+            {"field": "TYPE", "direction": "DESC"},
+            ["FreeShipping", "Voucher1", "Voucher2"],
+        ),
+        (
+            {"field": "START_DATE", "direction": "ASC"},
+            ["FreeShipping", "Voucher2", "Voucher1"],
+        ),
+        (
+            {"field": "START_DATE", "direction": "DESC"},
+            ["Voucher1", "Voucher2", "FreeShipping"],
+        ),
+        (
+            {"field": "END_DATE", "direction": "ASC"},
+            ["Voucher2", "FreeShipping", "Voucher1"],
+        ),
+        (
+            {"field": "END_DATE", "direction": "DESC"},
+            ["Voucher1", "FreeShipping", "Voucher2"],
+        ),
+        (
+            {"field": "USAGE_LIMIT", "direction": "ASC"},
+            ["Voucher1", "FreeShipping", "Voucher2"],
+        ),
+        (
+            {"field": "USAGE_LIMIT", "direction": "DESC"},
+            ["Voucher2", "FreeShipping", "Voucher1"],
+        ),
+    ],
+)
+def test_query_vouchers_with_sort(
+    voucher_sort, result_order, staff_api_client, permission_manage_discounts
+):
+    Voucher.objects.bulk_create(
+        [
+            Voucher(
+                name="Voucher1",
+                discount_value=123,
+                code="abc",
+                discount_value_type=DiscountValueType.FIXED,
+                type=VoucherType.ENTIRE_ORDER,
+                usage_limit=10,
+            ),
+            Voucher(
+                name="Voucher2",
+                discount_value=23,
+                code="123",
+                discount_value_type=DiscountValueType.FIXED,
+                type=VoucherType.ENTIRE_ORDER,
+                start_date=timezone.now().replace(year=2012, month=1, day=5),
+                end_date=timezone.now().replace(year=2013, month=1, day=5),
+            ),
+            Voucher(
+                name="FreeShipping",
+                discount_value=100,
+                code="xyz",
+                discount_value_type=DiscountValueType.PERCENTAGE,
+                type=VoucherType.SHIPPING,
+                start_date=timezone.now().replace(year=2011, month=1, day=5),
+                end_date=timezone.now().replace(year=2015, month=12, day=31),
+                usage_limit=1000,
+            ),
+        ]
+    )
+    variables = {"sort_by": voucher_sort}
+    staff_api_client.user.user_permissions.add(permission_manage_discounts)
+    response = staff_api_client.post_graphql(QUERY_VOUCHER_WITH_SORT, variables)
+    content = get_graphql_content(response)
+    vouchers = content["data"]["vouchers"]["edges"]
+
+    for order, voucher_name in enumerate(result_order):
+        assert vouchers[order]["node"]["name"] == voucher_name
+
+
 @pytest.mark.parametrize(
     "sale_filter, start_date, end_date, count",
     [
@@ -1119,13 +1229,13 @@ def test_query_sales_with_filter_search(
 QUERY_SALE_WITH_SORT = """
     query ($sort_by: SaleSortingInput!) {
         sales(first:5, sortBy: $sort_by) {
-                edges{
-                    node{
-                        name
-                    }
+            edges{
+                node{
+                    name
                 }
             }
         }
+    }
 """
 
 
@@ -1144,7 +1254,7 @@ QUERY_SALE_WITH_SORT = """
         ({"field": "END_DATE", "direction": "DESC"}, ["BigSale", "Sale3", "Sale2"]),
     ],
 )
-def test_query_staff_members_with_sort(
+def test_query_sales_with_sort(
     sale_sort, result_order, staff_api_client, permission_manage_discounts
 ):
     Sale.objects.bulk_create(
