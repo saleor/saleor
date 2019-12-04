@@ -69,9 +69,11 @@ def process_view(self, request, view_func, *args):
 
 
 if settings.ENABLE_DEBUG_TOOLBAR:
+    import warnings
+
     try:
         from graphiql_debug_toolbar.middleware import DebugToolbarMiddleware
     except ImportError:
-        """The graphiql debug toolbar was not installed."""
+        warnings.warn("The graphiql debug toolbar was not installed.")
     else:
         DebugToolbarMiddleware.process_view = process_view
