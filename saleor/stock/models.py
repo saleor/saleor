@@ -55,7 +55,7 @@ class Stock(models.Model):
 
     @property
     def is_available(self):
-        return self.quantity > 0
+        return self.quantity_available > 0
 
     def check_quantity(self, quantity: int):
         if quantity > self.quantity_available():
