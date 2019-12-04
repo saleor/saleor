@@ -1,5 +1,6 @@
 import graphene
 
+from ...core.permissions import OrderPermissions, ProductPermissions
 from ..core.enums import ReportingPeriod
 from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
 from ..decorators import permission_required
@@ -296,11 +297,11 @@ class ProductQueries(graphene.ObjectType):
     def resolve_collections(self, info, query=None, **kwargs):
         return resolve_collections(info, query, **kwargs)
 
-    @permission_required("product.manage_products")
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_digital_content(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, DigitalContent)
 
-    @permission_required("product.manage_products")
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_digital_contents(self, info, **_kwargs):
         return resolve_digital_contents(info)
 
@@ -322,7 +323,9 @@ class ProductQueries(graphene.ObjectType):
     def resolve_product_variants(self, info, ids=None, **_kwargs):
         return resolve_product_variants(info, ids)
 
-    @permission_required(["order.manage_orders", "product.manage_products"])
+    @permission_required(
+        [OrderPermissions.MANAGE_ORDERS, ProductPermissions.MANAGE_PRODUCTS]
+    )
     def resolve_report_product_sales(self, *_args, period, **_kwargs):
         return resolve_report_product_sales(period)
 

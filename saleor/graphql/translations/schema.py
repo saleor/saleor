@@ -1,5 +1,6 @@
 import graphene
 
+from ...core.permissions import SitePermissions
 from ...discount.models import Sale, Voucher
 from ...menu.models import MenuItem
 from ...page.models import Page
@@ -109,10 +110,8 @@ class TranslationQueries(graphene.ObjectType):
         elif kind == TranslatableKinds.SALE:
             return resolve_sales(info, query=None)
 
-    @permission_required("site.manage_translations")
+    @permission_required(SitePermissions.MANAGE_TRANSLATIONS)
     def resolve_translation(self, info, id, kind, **_kwargs):
-        # Disable all the no-member violations in this function
-        # pylint: disable=no-member
         _type, kind_id = graphene.Node.from_global_id(id)
         if not _type == kind:
             return None

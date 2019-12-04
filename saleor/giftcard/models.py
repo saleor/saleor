@@ -6,6 +6,8 @@ from django.db.models import Q
 from django.utils.translation import pgettext_lazy
 from django_prices.models import MoneyField
 
+from ..core.permissions import GiftcardPermissions
+
 
 class GiftCardQueryset(models.QuerySet):
     def active(self, date):
@@ -57,7 +59,7 @@ class GiftCard(models.Model):
     class Meta:
         permissions = (
             (
-                "manage_gift_card",
+                GiftcardPermissions.MANAGE_GIFT_CARD.codename,
                 pgettext_lazy("Permission description", "Manage gift cards."),
             ),
         )

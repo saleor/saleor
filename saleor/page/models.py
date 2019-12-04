@@ -4,6 +4,7 @@ from draftjs_sanitizer import clean_draft_js
 
 from ..core.db.fields import SanitizedJSONField
 from ..core.models import PublishableModel, PublishedQuerySet
+from ..core.permissions import PagePermissions
 from ..core.utils.translations import TranslationProxy
 from ..seo.models import SeoModel, SeoModelTranslation
 
@@ -11,7 +12,7 @@ from ..seo.models import SeoModel, SeoModelTranslation
 class PagePublishedQuerySet(PublishedQuerySet):
     @staticmethod
     def user_has_access_to_all(user):
-        return user.is_active and user.has_perm("page.manage_pages")
+        return user.is_active and user.has_perm(PagePermissions.MANAGE_PAGES)
 
 
 class Page(SeoModel, PublishableModel):
@@ -29,7 +30,10 @@ class Page(SeoModel, PublishableModel):
     class Meta:
         ordering = ("slug",)
         permissions = (
-            ("manage_pages", pgettext_lazy("Permission description", "Manage pages.")),
+            (
+                PagePermissions.MANAGE_PAGES.codename,
+                pgettext_lazy("Permission description", "Manage pages."),
+            ),
         )
 
     def __str__(self):

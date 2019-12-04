@@ -4,6 +4,7 @@ from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.db.models import F, Max, Q
 
+from .permissions import ProductPermissions
 from .utils.json_serializer import CustomJsonEncoder
 
 
@@ -47,7 +48,7 @@ class PublishedQuerySet(models.QuerySet):
 
     @staticmethod
     def user_has_access_to_all(user):
-        return user.is_active and user.has_perm("product.manage_products")
+        return user.is_active and user.has_perm(ProductPermissions.MANAGE_PRODUCTS)
 
     def visible_to_user(self, user):
         if self.user_has_access_to_all(user):

@@ -1,6 +1,6 @@
 import graphene
 
-from ...webhook import WebhookEventType
+from ...webhook.event_types import WebhookEventType
 from ..core.utils import str_to_enum
 
 WebhookEventTypeEnum = graphene.Enum(

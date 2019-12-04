@@ -3,7 +3,7 @@ import graphene
 from ...account import error_codes as account_error_codes
 from ...checkout import error_codes as checkout_error_codes
 from ...core import error_codes as shop_error_codes
-from ...core.permissions import MODELS_PERMISSIONS
+from ...core.permissions import get_permissions_enum_list
 from ...core.weight import WeightUnits
 from ...extensions import error_codes as extensions_error_codes
 from ...extensions.plugins.vatlayer import TaxRateType as CoreTaxRateType
@@ -72,13 +72,7 @@ TaxRateType = graphene.Enum(
 )
 
 
-PermissionEnum = graphene.Enum(
-    "PermissionEnum",
-    [
-        (str_to_enum(codename.split(".")[1]), codename)
-        for codename in MODELS_PERMISSIONS
-    ],
-)
+PermissionEnum = graphene.Enum("PermissionEnum", get_permissions_enum_list())
 
 
 WeightUnitsEnum = graphene.Enum(

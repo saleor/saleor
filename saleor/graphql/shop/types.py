@@ -6,7 +6,7 @@ from django_prices_vatlayer.models import VAT
 from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 
 from ...account import models as account_models
-from ...core.permissions import get_permissions
+from ...core.permissions import SitePermissions, get_permissions
 from ...core.utils import get_client_ip, get_country_by_ip
 from ...menu import models as menu_models
 from ...product import models as product_models
@@ -159,7 +159,7 @@ class Shop(graphene.ObjectType):
         )
 
     @staticmethod
-    @permission_required("site.manage_settings")
+    @permission_required(SitePermissions.MANAGE_SETTINGS)
     def resolve_authorization_keys(_, _info):
         return site_models.AuthorizationKey.objects.all()
 
@@ -279,12 +279,12 @@ class Shop(graphene.ObjectType):
         return default_country
 
     @staticmethod
-    @permission_required("site.manage_settings")
+    @permission_required(SitePermissions.MANAGE_SETTINGS)
     def resolve_default_mail_sender_name(_, info):
         return info.context.site.settings.default_mail_sender_name
 
     @staticmethod
-    @permission_required("site.manage_settings")
+    @permission_required(SitePermissions.MANAGE_SETTINGS)
     def resolve_default_mail_sender_address(_, info):
         return info.context.site.settings.default_mail_sender_address
 
@@ -301,22 +301,22 @@ class Shop(graphene.ObjectType):
         return resolve_translation(info.context.site.settings, info, language_code)
 
     @staticmethod
-    @permission_required("site.manage_settings")
+    @permission_required(SitePermissions.MANAGE_SETTINGS)
     def resolve_automatic_fulfillment_digital_products(_, info):
         site_settings = info.context.site.settings
         return site_settings.automatic_fulfillment_digital_products
 
     @staticmethod
-    @permission_required("site.manage_settings")
+    @permission_required(SitePermissions.MANAGE_SETTINGS)
     def resolve_default_digital_max_downloads(_, info):
         return info.context.site.settings.default_digital_max_downloads
 
     @staticmethod
-    @permission_required("site.manage_settings")
+    @permission_required(SitePermissions.MANAGE_SETTINGS)
     def resolve_default_digital_url_valid_days(_, info):
         return info.context.site.settings.default_digital_url_valid_days
 
     @staticmethod
-    @permission_required("site.manage_settings")
+    @permission_required(SitePermissions.MANAGE_SETTINGS)
     def resolve_staff_notification_recipients(_, info):
         return account_models.StaffNotificationRecipient.objects.all()

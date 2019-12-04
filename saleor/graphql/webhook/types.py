@@ -1,7 +1,8 @@
 import graphene
 import graphene_django_optimizer as gql_optimizer
 
-from ...webhook import WebhookEventType, models
+from ...webhook import models
+from ...webhook.event_types import WebhookEventType
 from ..core.connection import CountableDjangoObjectType
 from .enums import WebhookEventTypeEnum
 

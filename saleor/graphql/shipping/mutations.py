@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ...core.permissions import ShippingPermissions
 from ...shipping import models
 from ...shipping.error_codes import ShippingErrorCode
 from ...shipping.utils import default_shipping_zone_exists
@@ -80,7 +81,7 @@ class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):
     class Meta:
         description = "Creates a new shipping zone."
         model = models.ShippingZone
-        permissions = ("shipping.manage_shipping",)
+        permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
 
@@ -97,7 +98,7 @@ class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
     class Meta:
         description = "Updates a new shipping zone."
         model = models.ShippingZone
-        permissions = ("shipping.manage_shipping",)
+        permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
 
@@ -109,7 +110,7 @@ class ShippingZoneDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes a shipping zone."
         model = models.ShippingZone
-        permissions = ("shipping.manage_shipping",)
+        permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
 
@@ -188,7 +189,7 @@ class ShippingPriceCreate(ShippingPriceMixin, ModelMutation):
     class Meta:
         description = "Creates a new shipping price."
         model = models.ShippingMethod
-        permissions = ("shipping.manage_shipping",)
+        permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
 
@@ -214,7 +215,7 @@ class ShippingPriceUpdate(ShippingPriceMixin, ModelMutation):
     class Meta:
         description = "Updates a new shipping price."
         model = models.ShippingMethod
-        permissions = ("shipping.manage_shipping",)
+        permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
 
@@ -239,7 +240,7 @@ class ShippingPriceDelete(BaseMutation):
 
     class Meta:
         description = "Deletes a shipping price."
-        permissions = ("shipping.manage_shipping",)
+        permissions = (ShippingPermissions.MANAGE_SHIPPING,)
         error_type_class = ShippingError
         error_type_field = "shipping_errors"
 
