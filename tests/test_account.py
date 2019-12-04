@@ -32,6 +32,7 @@ from saleor.account.utils import (
 )
 from saleor.account.validators import validate_possible_number
 from saleor.core.utils import build_absolute_uri
+from saleor.account.i18n import AddressForm
 
 
 @pytest.mark.parametrize("country", ["CN", "PL", "US", "IE"])
@@ -138,6 +139,11 @@ def test_get_address_form(form_data, form_valid, expected_preview, expected_coun
     assert preview is expected_preview
     assert form.is_valid() is form_valid
     assert form.i18n_country_code == expected_country
+
+
+def test_get_address_form_no_country_code():
+    form, _ = forms.get_address_form(data={}, country_code=None)
+    assert isinstance(form, AddressForm)
 
 
 def test_country_aware_form_has_only_supported_countries():

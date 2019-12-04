@@ -1,5 +1,6 @@
 from typing import Optional
 
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.shortcuts import reverse
 from django.utils.functional import SimpleLazyObject
@@ -7,6 +8,7 @@ from graphene_django.settings import graphene_settings
 from graphql_jwt.middleware import JSONWebTokenMiddleware
 
 from ..account.models import ServiceAccount
+from .views import GraphQLView
 
 
 def jwt_middleware(get_response):
@@ -57,3 +59,21 @@ def service_account_middleware(get_response):
         return get_response(request)
 
     return middleware
+
+
+def process_view(self, request, view_func, *args):
+    if hasattr(view_func, "view_class") and issubclass(
+        view_func.view_class, GraphQLView
+    ):
+        request._graphql_view = True
+
+
+if settings.ENABLE_DEBUG_TOOLBAR:
+    import warnings
+
+    try:
+        from graphiql_debug_toolbar.middleware import DebugToolbarMiddleware
+    except ImportError:
+        warnings.warn("The graphiql debug toolbar was not installed.")
+    else:
+        DebugToolbarMiddleware.process_view = process_view
