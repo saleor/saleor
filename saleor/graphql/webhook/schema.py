@@ -11,6 +11,7 @@ from .resolvers import (
     resolve_webhook_events,
     resolve_webhooks,
 )
+from .sorters import WebhookSortingInput
 from .types import Webhook, WebhookEvent
 
 
@@ -25,6 +26,7 @@ class WebhookQueries(graphene.ObjectType):
     webhooks = FilterInputConnectionField(
         Webhook,
         description="List of webhooks.",
+        sort_by=WebhookSortingInput(description="Sort webhooks."),
         filter=WebhookFilterInput(description="Filtering options for webhooks."),
     )
     webhook_events = graphene.List(
@@ -50,7 +52,7 @@ class WebhookQueries(graphene.ObjectType):
 
     @staticmethod
     def resolve_webhooks(_, info, **_kwargs):
-        return resolve_webhooks(info)
+        return resolve_webhooks(info, **_kwargs)
 
     @staticmethod
     def resolve_webhook(_, info, **data):
