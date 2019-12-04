@@ -330,3 +330,56 @@ def test_plugins_query_with_filter(
     response = staff_api_client_can_manage_plugins.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert content["data"]["plugins"]["totalCount"] == count
+
+
+QUERY_PLUGIN_WITH_SORT = """
+    query ($sort_by: PluginSortingInput!) {
+        plugins(first:5, sortBy: $sort_by) {
+            edges{
+                node{
+                    name
+                }
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "plugin_sort, result_order",
+    [
+        (
+            {"field": "NAME", "direction": "ASC"},
+            ["Active", "PluginInactive", "PluginSample"],
+        ),
+        (
+            {"field": "NAME", "direction": "DESC"},
+            ["PluginSample", "PluginInactive", "Active"],
+        ),
+        (
+            {"field": "IS_ACTIVE", "direction": "ASC"},
+            ["PluginInactive", "PluginSample", "Active"],
+        ),
+        (
+            {"field": "IS_ACTIVE", "direction": "DESC"},
+            ["PluginSample", "Active", "PluginInactive"],
+        ),
+    ],
+)
+def test_query_plugins_with_sort(
+    plugin_sort, result_order, staff_api_client_can_manage_plugins, settings
+):
+    settings.PLUGINS = [
+        "tests.extensions.sample_plugins.PluginSample",
+        "tests.extensions.sample_plugins.PluginInactive",
+        "tests.extensions.sample_plugins.ActivePlugin",
+    ]
+    variables = {"sort_by": plugin_sort}
+    response = staff_api_client_can_manage_plugins.post_graphql(
+        QUERY_PLUGIN_WITH_SORT, variables
+    )
+    content = get_graphql_content(response)
+    plugins = content["data"]["plugins"]["edges"]
+
+    for order, plugin_name in enumerate(result_order):
+        assert plugins[order]["node"]["name"] == plugin_name

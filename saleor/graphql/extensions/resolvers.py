@@ -1,6 +1,8 @@
 import graphene
 
 from ...extensions.manager import get_extensions_manager
+from ..utils import sort_queryset
+from .sorters import PluginSortField
 from .types import Plugin
 
 
@@ -12,6 +14,8 @@ def resolve_plugin(info, plugin_global_id):
     return manager.get_plugin_configuration(plugin.name)
 
 
-def resolve_plugins():
+def resolve_plugins(sort_by=None, **_kwargs):
     manager = get_extensions_manager()
-    return manager.get_plugin_configurations()
+    qs = manager.get_plugin_configurations()
+    qs = sort_queryset(qs, sort_by, PluginSortField)
+    return qs
