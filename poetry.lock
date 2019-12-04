@@ -546,6 +546,19 @@ version = "2.2.0"
 Django = ">=1.11"
 
 [[package]]
+category = "dev"
+description = "Django Debug Toolbar for GraphiQL IDE"
+name = "django-graphiql-debug-toolbar"
+optional = false
+python-versions = "*"
+version = "0.1.4"
+
+[package.dependencies]
+Django = ">=2.0"
+django-debug-toolbar = ">=2.0"
+graphene-django = ">=2.0.0"
+
+[[package]]
 category = "main"
 description = "JSON Web Token for Django GraphQL"
 name = "django-graphql-jwt"
@@ -2330,7 +2343,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["pathlib2", "contextlib2", "unittest2"]
 
 [metadata]
-content-hash = "9c4b60cea31ff0d6c702e1ab32cae68c25466057ad48b0ec84ab6172e30c2f12"
+content-hash = "0c234fdf02a1d0ddf94001aafb6d70b6c6c73ae26c35d7ef1aea0730bc3574dd"
 python-versions = "~3.8"
 
 [metadata.files]
@@ -2571,6 +2584,9 @@ django-extensions = [
 django-filter = [
     {file = "django-filter-2.2.0.tar.gz", hash = "sha256:c3deb57f0dd7ff94d7dce52a047516822013e2b441bed472b722a317658cfd14"},
     {file = "django_filter-2.2.0-py3-none-any.whl", hash = "sha256:558c727bce3ffa89c4a7a0b13bc8976745d63e5fd576b3a9a851650ef11c401b"},
+]
+django-graphiql-debug-toolbar = [
+    {file = "django-graphiql-debug-toolbar-0.1.4.tar.gz", hash = "sha256:946fba21418b3fd57e7e357d4cd110fb7881e08d3b7a0a8a00400fa2e75965f5"},
 ]
 django-graphql-jwt = [
     {file = "django-graphql-jwt-0.2.1.tar.gz", hash = "sha256:6dcf9dd4990098e289d76ab4220edbf436a2e26dc6af1d4a526ac699ad93bf14"},
