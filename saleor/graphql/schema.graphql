@@ -3472,7 +3472,7 @@ type Query {
   sale(id: ID!): Sale
   sales(filter: SaleFilterInput, sortBy: SaleSortingInput, query: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection
   voucher(id: ID!): Voucher
-  vouchers(filter: VoucherFilterInput, query: String, before: String, after: String, first: Int, last: Int): VoucherCountableConnection
+  vouchers(filter: VoucherFilterInput, sortBy: VoucherSortingInput, query: String, before: String, after: String, first: Int, last: Int): VoucherCountableConnection
   taxTypes: [TaxType]
   checkout(token: UUID): Checkout
   checkouts(before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
@@ -4420,6 +4420,20 @@ input VoucherInput {
 type VoucherRemoveCatalogues {
   errors: [Error!]
   voucher: Voucher
+}
+
+enum VoucherSortField {
+  NAME
+  START_DATE
+  END_DATE
+  VALUE
+  TYPE
+  USAGE_LIMIT
+}
+
+input VoucherSortingInput {
+  direction: OrderDirection!
+  field: VoucherSortField
 }
 
 type VoucherTranslatableContent implements Node {
