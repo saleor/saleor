@@ -1,5 +1,6 @@
 from typing import Optional
 
+from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.shortcuts import reverse
 from django.utils.functional import SimpleLazyObject
@@ -57,3 +58,21 @@ def service_account_middleware(get_response):
         return get_response(request)
 
     return middleware
+
+
+if settings.ENABLE_DEBUG_TOOLBAR:
+    try:
+        from graphiql_debug_toolbar.middleware import DebugToolbarMiddleware
+    except ImportError:
+        """The graphiql debug toolbar was not installed. Ignore the error.
+        settings.py should already have warned the user about it."""
+    else:
+        from .views import GraphQLView
+
+        def process_view(self, request, view_func, *args):
+            if hasattr(view_func, "view_class") and issubclass(
+                view_func.view_class, GraphQLView
+            ):
+                request._graphql_view = True
+
+        DebugToolbarMiddleware.process_view = process_view
