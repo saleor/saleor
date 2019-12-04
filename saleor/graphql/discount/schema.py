@@ -19,6 +19,7 @@ from .mutations import (
     VoucherUpdate,
 )
 from .resolvers import resolve_sales, resolve_vouchers
+from .sorters import SaleSortingInput
 from .types import Sale, Voucher
 
 
@@ -41,6 +42,7 @@ class DiscountQueries(graphene.ObjectType):
     sales = FilterInputConnectionField(
         Sale,
         filter=SaleFilterInput(description="Filtering options for sales."),
+        sort_by=SaleSortingInput(description="Sort sales."),
         query=graphene.String(description="Search sales by name, value or type."),
         description="List of the shop's sales.",
     )
@@ -64,7 +66,7 @@ class DiscountQueries(graphene.ObjectType):
 
     @permission_required("discount.manage_discounts")
     def resolve_sales(self, info, query=None, **_kwargs):
-        return resolve_sales(info, query)
+        return resolve_sales(info, query, **_kwargs)
 
     @permission_required("discount.manage_discounts")
     def resolve_voucher(self, info, id):

@@ -3470,7 +3470,7 @@ type Query {
   plugin(id: ID!): Plugin
   plugins(filter: PluginFilterInput, before: String, after: String, first: Int, last: Int): PluginCountableConnection
   sale(id: ID!): Sale
-  sales(filter: SaleFilterInput, query: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection
+  sales(filter: SaleFilterInput, sortBy: SaleSortingInput, query: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection
   voucher(id: ID!): Voucher
   vouchers(filter: VoucherFilterInput, query: String, before: String, after: String, first: Int, last: Int): VoucherCountableConnection
   taxTypes: [TaxType]
@@ -3579,6 +3579,19 @@ input SaleInput {
 type SaleRemoveCatalogues {
   errors: [Error!]
   sale: Sale
+}
+
+enum SaleSortField {
+  NAME
+  START_DATE
+  END_DATE
+  VALUE
+  TYPE
+}
+
+input SaleSortingInput {
+  direction: OrderDirection!
+  field: SaleSortField
 }
 
 type SaleTranslatableContent implements Node {
