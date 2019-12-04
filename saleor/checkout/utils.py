@@ -42,7 +42,7 @@ from ..giftcard.utils import (
     remove_gift_card_code_from_checkout,
 )
 from ..order.actions import order_created
-from ..order.emails import send_order_confirmation
+from ..order.emails import send_order_confirmation, send_staff_order_confirmation
 from ..order.models import Order, OrderLine
 from ..shipping.models import ShippingMethod
 from . import AddressType, logger
@@ -1205,6 +1205,7 @@ def create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
 
     # Send the order confirmation email
     send_order_confirmation.delay(order.pk, user.pk)
+    send_staff_order_confirmation.delay(order.pk)
     return order
 
 

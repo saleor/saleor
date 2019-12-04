@@ -830,3 +830,293 @@ def test_mutation_update_company_address_remove_address_without_address(
 
     site_settings.refresh_from_db()
     assert not site_settings.company_address
+
+
+def test_staff_notification_query(
+    staff_api_client,
+    staff_user,
+    permission_manage_settings,
+    staff_notification_recipient,
+):
+    query = """
+        {
+            shop {
+                staffNotificationRecipients {
+                    active
+                    email
+                    user {
+                        firstName
+                        lastName
+                        email
+                    }
+                }
+            }
+        }
+    """
+
+    response = staff_api_client.post_graphql(
+        query, permissions=[permission_manage_settings]
+    )
+    content = get_graphql_content(response)
+
+    assert content["data"]["shop"]["staffNotificationRecipients"] == [
+        {
+            "active": True,
+            "email": staff_user.email,
+            "user": {
+                "firstName": staff_user.first_name,
+                "lastName": staff_user.last_name,
+                "email": staff_user.email,
+            },
+        }
+    ]
+
+
+MUTATION_STAFF_NOTIFICATION_RECIPIENT_CREATE = """
+    mutation StaffNotificationRecipient ($input: StaffNotificationRecipientInput!) {
+        staffNotificationRecipientCreate(input: $input) {
+            staffNotificationRecipient {
+                active
+                email
+                user {
+                    id
+                    firstName
+                    lastName
+                    email
+                }
+            }
+            shopErrors {
+                field
+                message
+                code
+            }
+        }
+    }
+"""
+
+
+def test_staff_notification_create_mutation(
+    staff_api_client, staff_user, permission_manage_settings
+):
+    user_id = graphene.Node.to_global_id("User", staff_user.id)
+    variables = {"input": {"user": user_id}}
+    response = staff_api_client.post_graphql(
+        MUTATION_STAFF_NOTIFICATION_RECIPIENT_CREATE,
+        variables,
+        permissions=[permission_manage_settings],
+    )
+    content = get_graphql_content(response)
+
+    assert content["data"]["staffNotificationRecipientCreate"] == {
+        "staffNotificationRecipient": {
+            "active": True,
+            "email": staff_user.email,
+            "user": {
+                "id": user_id,
+                "firstName": staff_user.first_name,
+                "lastName": staff_user.last_name,
+                "email": staff_user.email,
+            },
+        },
+        "shopErrors": [],
+    }
+
+
+def test_staff_notification_create_mutation_with_staffs_email(
+    staff_api_client, staff_user, permission_manage_settings
+):
+    user_id = graphene.Node.to_global_id("User", staff_user.id)
+    variables = {"input": {"email": staff_user.email}}
+    response = staff_api_client.post_graphql(
+        MUTATION_STAFF_NOTIFICATION_RECIPIENT_CREATE,
+        variables,
+        permissions=[permission_manage_settings],
+    )
+    content = get_graphql_content(response)
+
+    assert content["data"]["staffNotificationRecipientCreate"] == {
+        "staffNotificationRecipient": {
+            "active": True,
+            "email": staff_user.email,
+            "user": {
+                "id": user_id,
+                "firstName": staff_user.first_name,
+                "lastName": staff_user.last_name,
+                "email": staff_user.email,
+            },
+        },
+        "shopErrors": [],
+    }
+
+
+def test_staff_notification_create_mutation_with_customer_user(
+    staff_api_client, customer_user, permission_manage_settings
+):
+    user_id = graphene.Node.to_global_id("User", customer_user.id)
+    variables = {"input": {"user": user_id}}
+    response = staff_api_client.post_graphql(
+        MUTATION_STAFF_NOTIFICATION_RECIPIENT_CREATE,
+        variables,
+        permissions=[permission_manage_settings],
+    )
+    content = get_graphql_content(response)
+
+    assert content["data"]["staffNotificationRecipientCreate"] == {
+        "staffNotificationRecipient": None,
+        "shopErrors": [
+            {"code": "INVALID", "field": "user", "message": "User has to be staff user"}
+        ],
+    }
+
+
+def test_staff_notification_create_mutation_with_email(
+    staff_api_client, permission_manage_settings
+):
+    staff_email = "test_email@example.com"
+    variables = {"input": {"email": staff_email}}
+    response = staff_api_client.post_graphql(
+        MUTATION_STAFF_NOTIFICATION_RECIPIENT_CREATE,
+        variables,
+        permissions=[permission_manage_settings],
+    )
+    content = get_graphql_content(response)
+
+    assert content["data"]["staffNotificationRecipientCreate"] == {
+        "staffNotificationRecipient": {
+            "active": True,
+            "email": staff_email,
+            "user": None,
+        },
+        "shopErrors": [],
+    }
+
+
+def test_staff_notification_create_mutation_with_empty_email(
+    staff_api_client, permission_manage_settings
+):
+    staff_email = ""
+    variables = {"input": {"email": staff_email}}
+    response = staff_api_client.post_graphql(
+        MUTATION_STAFF_NOTIFICATION_RECIPIENT_CREATE,
+        variables,
+        permissions=[permission_manage_settings],
+    )
+    content = get_graphql_content(response)
+
+    assert content["data"]["staffNotificationRecipientCreate"] == {
+        "staffNotificationRecipient": None,
+        "shopErrors": [
+            {
+                "code": "INVALID",
+                "field": "staffNotification",
+                "message": "User and email cannot be set empty",
+            }
+        ],
+    }
+
+
+MUTATION_STAFF_NOTIFICATION_RECIPIENT_UPDATE = """
+    mutation StaffNotificationRecipient (
+        $id: ID!,
+        $input: StaffNotificationRecipientInput!
+    ) {
+        staffNotificationRecipientUpdate(id: $id, input: $input) {
+            staffNotificationRecipient {
+                active
+                email
+                user {
+                    firstName
+                    lastName
+                    email
+                }
+            }
+            shopErrors {
+                field
+                message
+                code
+            }
+        }
+    }
+"""
+
+
+def test_staff_notification_update_mutation(
+    staff_api_client,
+    staff_user,
+    permission_manage_settings,
+    staff_notification_recipient,
+):
+    old_email = staff_notification_recipient.get_email()
+    assert staff_notification_recipient.active
+    staff_notification_recipient_id = graphene.Node.to_global_id(
+        "StaffNotificationRecipient", staff_notification_recipient.id
+    )
+    variables = {"id": staff_notification_recipient_id, "input": {"active": False}}
+    staff_api_client.post_graphql(
+        MUTATION_STAFF_NOTIFICATION_RECIPIENT_UPDATE,
+        variables,
+        permissions=[permission_manage_settings],
+    )
+    staff_notification_recipient.refresh_from_db()
+    assert not staff_notification_recipient.active
+    assert staff_notification_recipient.get_email() == old_email
+
+
+def test_staff_notification_update_mutation_with_empty_user(
+    staff_api_client,
+    staff_user,
+    permission_manage_settings,
+    staff_notification_recipient,
+):
+    staff_notification_recipient_id = graphene.Node.to_global_id(
+        "StaffNotificationRecipient", staff_notification_recipient.id
+    )
+    variables = {"id": staff_notification_recipient_id, "input": {"user": ""}}
+    response = staff_api_client.post_graphql(
+        MUTATION_STAFF_NOTIFICATION_RECIPIENT_UPDATE,
+        variables,
+        permissions=[permission_manage_settings],
+    )
+    content = get_graphql_content(response)
+
+    staff_notification_recipient.refresh_from_db()
+    assert content["data"]["staffNotificationRecipientUpdate"] == {
+        "staffNotificationRecipient": None,
+        "shopErrors": [
+            {
+                "code": "INVALID",
+                "field": "staffNotification",
+                "message": "User and email cannot be set empty",
+            }
+        ],
+    }
+
+
+def test_staff_notification_update_mutation_with_empty_email(
+    staff_api_client,
+    staff_user,
+    permission_manage_settings,
+    staff_notification_recipient,
+):
+    staff_notification_recipient_id = graphene.Node.to_global_id(
+        "StaffNotificationRecipient", staff_notification_recipient.id
+    )
+    variables = {"id": staff_notification_recipient_id, "input": {"email": ""}}
+    response = staff_api_client.post_graphql(
+        MUTATION_STAFF_NOTIFICATION_RECIPIENT_UPDATE,
+        variables,
+        permissions=[permission_manage_settings],
+    )
+    content = get_graphql_content(response)
+
+    staff_notification_recipient.refresh_from_db()
+    assert content["data"]["staffNotificationRecipientUpdate"] == {
+        "staffNotificationRecipient": None,
+        "shopErrors": [
+            {
+                "code": "INVALID",
+                "field": "staffNotification",
+                "message": "User and email cannot be set empty",
+            }
+        ],
+    }
