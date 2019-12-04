@@ -23,6 +23,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixed JSON encoding error on Google Analytics reporting - #5004 by @NyanKiyoshi
 - Create custom field to translation, use new translation types in translations query - #5007 by @fowczarek
 - Take allocated stock in account in `StockAvailability` filter - #5019 by @simonbru
+- Update debug toolbar - #5032 by @IKarbowiak
 
 ## 2.9.0
 
