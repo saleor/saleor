@@ -2,7 +2,10 @@ import pytest
 
 from saleor.core.exceptions import InsufficientStock
 from saleor.stock.models import Stock
-from saleor.stock.utils.availability import check_stock_quantity
+from saleor.stock.utils.availability import (
+    are_all_product_variants_in_stock,
+    check_stock_quantity,
+)
 
 COUNTRY_CODE = "US"
 
@@ -38,3 +41,20 @@ def test_check_stock_quantity_is_not_sufficient(product):
     new_quantity = stock.quantity_available + 1
     with pytest.raises(InsufficientStock):
         check_stock_quantity(variant, COUNTRY_CODE, new_quantity)
+
+
+def test_are_all_product_variants_in_stock_all_in_stock(product):
+    assert are_all_product_variants_in_stock(product, COUNTRY_CODE)
+
+
+def test_are_all_product_variants_in_stock_stock_empty(product):
+    stock = Stock.objects.first()
+    stock.quantity_allocated = stock.quantity
+    stock.save(update_fields=["quantity_allocated"])
+
+    assert not are_all_product_variants_in_stock(product, COUNTRY_CODE)
+
+
+def test_are_all_product_variants_in_stock_lack_of_stocks(product):
+    Stock.objects.all().delete()
+    assert not are_all_product_variants_in_stock(product, COUNTRY_CODE)

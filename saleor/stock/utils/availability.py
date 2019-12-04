@@ -1,10 +1,11 @@
 from typing import TYPE_CHECKING
 
 from ...core.exceptions import InsufficientStock
+from ...product.models import Product
 from ..models import Stock
 
 if TYPE_CHECKING:
-    from ...product.models import Product, ProductVariant
+    from ...product.models import ProductVariant
 
 
 def check_stock_quantity(variant: "ProductVariant", country_code: str, quantity: int):
@@ -26,16 +27,34 @@ def get_available_quantity(variant: "ProductVariant", country_code: str) -> int:
 
 
 def is_variant_in_stock(variant: "ProductVariant", country_code: str) -> bool:
-    stocks = Stock.objects.for_country(country_code).filter(
-        product_variant__pk=variant.pk
+    stock = Stock.objects.for_country(country_code).get(product_variant__pk=variant.pk)
+    return stock.is_available
+
+
+def stocks_for_product(product: "Product", country_code: str):
+    return (
+        Stock.objects.annotate_available_quantity()
+        .for_country(country_code)
+        .filter(product_variant__product_id=product.pk)
     )
-    return stocks.exists()
 
 
 def is_product_in_stock(product: "Product", country_code: str) -> bool:
-    stocks = (
-        Stock.objects.select_related("product_variant__product")
-        .for_country(country_code)
-        .filter(product_variant__product=product)
+    return any(
+        stocks_for_product(product, country_code).values_list(
+            "available_quantity", flat=True
+        )
     )
-    return stocks.exists()
+
+
+def are_all_product_variants_in_stock(product: "Product", country_code: str) -> bool:
+    product_stocks = (
+        stocks_for_product(product, country_code)
+        .values_list("available_quantity", "product_variant_id")
+        .all()
+    )
+    are_all_available = all([elem[0] for elem in product_stocks])
+    variants_with_stocks = [elem[1] for elem in product_stocks]
+
+    product_variants = product.variants.exclude(id__in=variants_with_stocks).exists()
+    return are_all_available and not product_variants
