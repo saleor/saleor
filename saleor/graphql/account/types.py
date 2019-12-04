@@ -379,3 +379,32 @@ class AddressValidationData(graphene.ObjectType):
     postal_code_matchers = graphene.List(graphene.String)
     postal_code_examples = graphene.List(graphene.String)
     postal_code_prefix = graphene.String()
+
+
+class StaffNotificationRecipient(CountableDjangoObjectType):
+    user = graphene.Field(
+        User,
+        description="Returns a user subscribed to email notifications.",
+        required=False,
+    )
+    email = graphene.String(
+        description=(
+            "Returns email address of a user subscribed to email notifications."
+        ),
+        required=False,
+    )
+    active = graphene.Boolean(description="Determines if a notification active.")
+
+    class Meta:
+        description = (
+            "Represents a recipient of email notifications send by Saleor, "
+            "such as notifications about new orders. Notifications can be "
+            "assigned to staff users or arbitrary email addresses."
+        )
+        interfaces = [relay.Node]
+        model = models.StaffNotificationRecipient
+        only_fields = ["user", "active"]
+
+    @staticmethod
+    def resolve_email(root: models.StaffNotificationRecipient, _info):
+        return root.get_email()
