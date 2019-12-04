@@ -8,6 +8,7 @@ from graphene_django.settings import graphene_settings
 from graphql_jwt.middleware import JSONWebTokenMiddleware
 
 from ..account.models import ServiceAccount
+from .views import GraphQLView
 
 
 def jwt_middleware(get_response):
@@ -60,19 +61,17 @@ def service_account_middleware(get_response):
     return middleware
 
 
+def process_view(self, request, view_func, *args):
+    if hasattr(view_func, "view_class") and issubclass(
+        view_func.view_class, GraphQLView
+    ):
+        request._graphql_view = True
+
+
 if settings.ENABLE_DEBUG_TOOLBAR:
     try:
         from graphiql_debug_toolbar.middleware import DebugToolbarMiddleware
     except ImportError:
-        """The graphiql debug toolbar was not installed. Ignore the error.
-        settings.py should already have warned the user about it."""
+        """The graphiql debug toolbar was not installed."""
     else:
-        from .views import GraphQLView
-
-        def process_view(self, request, view_func, *args):
-            if hasattr(view_func, "view_class") and issubclass(
-                view_func.view_class, GraphQLView
-            ):
-                request._graphql_view = True
-
         DebugToolbarMiddleware.process_view = process_view
