@@ -2872,6 +2872,16 @@ input PluginFilterInput {
   search: String
 }
 
+enum PluginSortField {
+  NAME
+  IS_ACTIVE
+}
+
+input PluginSortingInput {
+  direction: OrderDirection!
+  field: PluginSortField
+}
+
 type PluginUpdate {
   errors: [Error!]
   plugin: Plugin
@@ -3468,7 +3478,7 @@ type Query {
   giftCard(id: ID!): GiftCard
   giftCards(before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
   plugin(id: ID!): Plugin
-  plugins(filter: PluginFilterInput, before: String, after: String, first: Int, last: Int): PluginCountableConnection
+  plugins(filter: PluginFilterInput, sortBy: PluginSortingInput, before: String, after: String, first: Int, last: Int): PluginCountableConnection
   sale(id: ID!): Sale
   sales(filter: SaleFilterInput, sortBy: SaleSortingInput, query: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection
   voucher(id: ID!): Voucher
