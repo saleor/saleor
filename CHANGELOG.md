@@ -24,6 +24,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Create custom field to translation, use new translation types in translations query - #5007 by @fowczarek
 - Take allocated stock in account in `StockAvailability` filter - #5019 by @simonbru
 - Generate matching postal codes for US addresses - #5033 by @maarcingebala
+- Update debug toolbar - #5032 by @IKarbowiak
 
 ## 2.9.0
 

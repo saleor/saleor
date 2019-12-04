@@ -48,11 +48,15 @@ translatable_urlpatterns = [
 urlpatterns = non_translatable_urlpatterns + i18n_patterns(*translatable_urlpatterns)
 
 if settings.DEBUG:
+    import warnings
+
     try:
         import debug_toolbar
     except ImportError:
-        """The debug toolbar was not installed. Ignore the error.
-        settings.py should already have warned the user about it."""
+        warnings.warn(
+            "The debug toolbar was not installed. Ignore the error. \
+            settings.py should already have warned the user about it."
+        )
     else:
         urlpatterns += [url(r"^__debug__/", include(debug_toolbar.urls))]
 
