@@ -1,5 +1,6 @@
 import graphene
 
+from ...core.permissions import ExtensionsPermissions
 from ..core.fields import FilterInputConnectionField
 from ..decorators import permission_required
 from .filters import PluginFilterInput
@@ -24,11 +25,11 @@ class ExtensionsQueries(graphene.ObjectType):
         description="List of plugins.",
     )
 
-    @permission_required("extensions.manage_plugins")
+    @permission_required(ExtensionsPermissions.MANAGE_PLUGINS)
     def resolve_plugin(self, info, **data):
         return resolve_plugin(info, data.get("id"))
 
-    @permission_required("extensions.manage_plugins")
+    @permission_required(ExtensionsPermissions.MANAGE_PLUGINS)
     def resolve_plugins(self, _info, **kwargs):
         return resolve_plugins(**kwargs)
 

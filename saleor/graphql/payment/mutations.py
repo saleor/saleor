@@ -2,6 +2,7 @@ import graphene
 from django.conf import settings
 from django.core.exceptions import ValidationError
 
+from ...core.permissions import OrderPermissions
 from ...core.taxes import zero_taxed_money
 from ...core.utils import get_client_ip
 from ...payment import PaymentError, gateway, models
@@ -128,7 +129,7 @@ class PaymentCapture(BaseMutation):
 
     class Meta:
         description = "Captures the authorized payment amount."
-        permissions = ("order.manage_orders",)
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
 
@@ -147,7 +148,7 @@ class PaymentCapture(BaseMutation):
 class PaymentRefund(PaymentCapture):
     class Meta:
         description = "Refunds the captured payment amount."
-        permissions = ("order.manage_orders",)
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
 
@@ -171,7 +172,7 @@ class PaymentVoid(BaseMutation):
 
     class Meta:
         description = "Voids the authorized payment."
-        permissions = ("order.manage_orders",)
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = common_types.PaymentError
         error_type_field = "payment_errors"
 

@@ -1,6 +1,7 @@
 import graphene
 from graphql_jwt.decorators import login_required
 
+from ...core.permissions import OrderPermissions
 from ..core.enums import ReportingPeriod
 from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
 from ..core.types import FilterInputObjectType, TaxedMoney
@@ -113,7 +114,7 @@ class OrderQueries(graphene.ObjectType):
         ),
     )
 
-    @permission_required("order.manage_orders")
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_homepage_events(self, *_args, **_kwargs):
         return resolve_homepage_events()
 
@@ -121,19 +122,19 @@ class OrderQueries(graphene.ObjectType):
     def resolve_order(self, info, **data):
         return resolve_order(info, data.get("id"))
 
-    @permission_required("order.manage_orders")
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_orders(
         self, info, created=None, status=None, query=None, sort_by=None, **_kwargs
     ):
         return resolve_orders(info, created, status, query, sort_by)
 
-    @permission_required("order.manage_orders")
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_draft_orders(
         self, info, created=None, query=None, sort_by=None, **_kwargs
     ):
         return resolve_draft_orders(info, created, query, sort_by)
 
-    @permission_required("order.manage_orders")
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_orders_total(self, info, period, **_kwargs):
         return resolve_orders_total(info, period)
 

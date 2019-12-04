@@ -7,7 +7,6 @@ from django_countries.fields import Country
 from django_prices_vatlayer.utils import get_tax_rate_types
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-
 from ....checkout import calculations
 from ....core.taxes import TaxType
 from ....graphql.core.utils.error_codes import ExtensionsErrorCode

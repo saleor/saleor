@@ -4,7 +4,7 @@ import requests
 from requests.exceptions import RequestException
 
 from ....celeryconf import app
-from ....webhook import WebhookEventType
+from ....webhook.event_types import WebhookEventType
 from ....webhook.models import Webhook
 from . import create_webhook_headers
 
@@ -16,7 +16,7 @@ WEBHOOK_TIMEOUT = 10
 @app.task
 def trigger_webhooks_for_event(event_type, data):
     permissions = {}
-    required_permission = WebhookEventType.PERMISSIONS[event_type]
+    required_permission = WebhookEventType.PERMISSIONS[event_type].value
     if required_permission:
         app_label, codename = required_permission.split(".")
         permissions["service_account__permissions__content_type__app_label"] = app_label
