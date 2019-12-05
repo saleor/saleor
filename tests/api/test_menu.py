@@ -114,6 +114,47 @@ def test_menus_query_with_filter(
     assert content["data"]["menus"]["totalCount"] == count
 
 
+QUERY_MENU_WITH_SORT = """
+    query ($sort_by: MenuSortingInput!) {
+        menus(first:5, sortBy: $sort_by) {
+            edges{
+                node{
+                    name
+                }
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "menu_sort, result_order",
+    [
+        # We have "footer" and "navbar" from default saleor configuration
+        ({"field": "NAME", "direction": "ASC"}, ["Menu1", "footer", "navbar"]),
+        ({"field": "NAME", "direction": "DESC"}, ["navbar", "footer", "Menu1"]),
+        ({"field": "ITEMS_COUNT", "direction": "ASC"}, ["footer", "navbar", "Menu1"]),
+        ({"field": "ITEMS_COUNT", "direction": "DESC"}, ["Menu1", "navbar", "footer"]),
+    ],
+)
+def test_query_menus_with_sort(
+    menu_sort, result_order, staff_api_client, permission_manage_menus
+):
+    menu = Menu.objects.create(name="Menu1")
+    MenuItem.objects.create(name="MenuItem1", menu=menu)
+    MenuItem.objects.create(name="MenuItem2", menu=menu)
+    navbar = Menu.objects.get(name="navbar")
+    MenuItem.objects.create(name="NavbarMenuItem", menu=navbar)
+    variables = {"sort_by": menu_sort}
+    staff_api_client.user.user_permissions.add(permission_manage_menus)
+    response = staff_api_client.post_graphql(QUERY_MENU_WITH_SORT, variables)
+    content = get_graphql_content(response)
+    menus = content["data"]["menus"]["edges"]
+
+    for order, menu_name in enumerate(result_order):
+        assert menus[order]["node"]["name"] == menu_name
+
+
 def test_menu_items_query(user_api_client, menu_item, collection):
     query = """
     query menuitem($id: ID!) {

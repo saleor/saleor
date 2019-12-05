@@ -16,6 +16,7 @@ from .mutations import (
     MenuUpdate,
 )
 from .resolvers import resolve_menu, resolve_menu_items, resolve_menus
+from .sorters import MenuSortingInput
 from .types import Menu, MenuItem
 
 
@@ -29,6 +30,7 @@ class MenuQueries(graphene.ObjectType):
     menus = FilterInputConnectionField(
         Menu,
         query=graphene.String(description=DESCRIPTIONS["menu"]),
+        sort_by=MenuSortingInput(description="Sort menus."),
         filter=MenuFilterInput(description="Filtering options for menus."),
         description="List of the storefront's menus.",
     )
@@ -50,7 +52,7 @@ class MenuQueries(graphene.ObjectType):
         return resolve_menu(info, data.get("id"), data.get("name"))
 
     def resolve_menus(self, info, query=None, **_kwargs):
-        return resolve_menus(info, query)
+        return resolve_menus(info, query, **_kwargs)
 
     def resolve_menu_item(self, info, **data):
         return graphene.Node.get_node_from_global_id(info, data.get("id"), MenuItem)
