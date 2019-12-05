@@ -1978,6 +1978,11 @@ input MenuItemMoveInput {
   sortOrder: Int
 }
 
+input MenuItemSortingInput {
+  direction: OrderDirection!
+  field: MenuItemsSortField
+}
+
 type MenuItemTranslatableContent implements Node {
   id: ID!
   name: String!
@@ -2000,6 +2005,10 @@ type MenuItemUpdate {
   errors: [Error!]
   menuErrors: [MenuError!]
   menuItem: MenuItem
+}
+
+enum MenuItemsSortField {
+  NAME
 }
 
 enum MenuSortField {
@@ -3497,7 +3506,7 @@ type Query {
   menu(id: ID, name: String): Menu
   menus(query: String, sortBy: MenuSortingInput, filter: MenuFilterInput, before: String, after: String, first: Int, last: Int): MenuCountableConnection
   menuItem(id: ID!): MenuItem
-  menuItems(query: String, filter: MenuItemFilterInput, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
+  menuItems(query: String, sortBy: MenuItemSortingInput, filter: MenuItemFilterInput, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
   giftCard(id: ID!): GiftCard
   giftCards(before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
   plugin(id: ID!): Plugin
