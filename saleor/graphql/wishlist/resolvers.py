@@ -1,28 +1,25 @@
-from typing import List
+from typing import TYPE_CHECKING, List, Optional
 
-from graphene.types import ResolveInfo
+from graphql_jwt.decorators import login_required
 
 from ...wishlist.models import Wishlist, WishlistItem
-from ...wishlist.session_helpers import WishlistSessionHelper
+
+if TYPE_CHECKING:
+    # flake8: noqa
+    from graphene.types import ResolveInfo
+    from ...account.models import User
 
 
-def get_wishlist_from_info(info: ResolveInfo) -> Wishlist:
-    """Return wishlist depending on the user.
-
-    For anonymous users return wishlist stored in the session
-    and for the logged in its private one.
-    """
+@login_required
+def resolve_wishlist_from_info(info: "ResolveInfo") -> Wishlist:
+    """Return wishlist of the logged in user."""
     user = info.context.user
-    if user.is_anonymous:
-        session = info.context.session
-        wsh = WishlistSessionHelper(session)
-        wishlist = wsh.get_or_create_wishlist()
-    else:
-        wishlist = Wishlist.objects.get_or_create_wishlist_for_user(user)
-    return wishlist
+    return Wishlist.objects.get_or_create_wishlist_for_user(user)
 
 
-def resolve_wishlist_items(info: ResolveInfo) -> List[WishlistItem]:
-    """Return all the items of a wishlist obtained from the "info" object."""
-    wishlist = get_wishlist_from_info(info)
+@login_required
+def resolve_wishlist_items_from_info(info: "ResolveInfo") -> List[WishlistItem]:
+    """Return wishlist of the logged in user."""
+    user = info.context.user
+    wishlist = Wishlist.objects.get_or_create_wishlist_for_user(user)
     return wishlist.items.all()

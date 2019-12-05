@@ -3395,7 +3395,6 @@ type ProductVariantUpdatePrivateMeta {
 }
 
 type Query {
-  wishlistItems(before: String, after: String, first: Int, last: Int): WishlistItemCountableConnection
   webhook(id: ID!): Webhook
   webhooks(filter: WebhookFilterInput, before: String, after: String, first: Int, last: Int): WebhookCountableConnection
   webhookEvents: [WebhookEvent]
@@ -4163,6 +4162,7 @@ type User implements Node {
   avatar(size: Int): Image
   events: [CustomerEvent]
   storedPaymentSources: [PaymentSource]
+  wishlist(before: String, after: String, first: Int, last: Int): WishlistItemCountableConnection
 }
 
 type UserAvatarDelete {
@@ -4494,11 +4494,13 @@ enum WeightUnitsEnum {
 
 type Wishlist implements Node {
   id: ID!
+  createdAt: DateTime!
+  items(before: String, after: String, first: Int, last: Int, id: ID): WishlistItemCountableConnection!
 }
 
 type WishlistAddProductVariantMutation {
   errors: [Error!]
-  wishlistItems: [WishlistItem]
+  wishlist: [WishlistItem]
   wishlistErrors: [WishlistError!]
 }
 
@@ -4536,7 +4538,7 @@ type WishlistItemCountableEdge {
 
 type WishlistRemoveProductVariantMutation {
   errors: [Error!]
-  wishlistItems: [WishlistItem]
+  wishlist: [WishlistItem]
   wishlistErrors: [WishlistError!]
 }
 
