@@ -1,11 +1,11 @@
-from urllib.parse import urlencode, urlsplit
+from urllib.parse import urlencode
 
 from django.contrib.auth.tokens import default_token_generator
 from templated_email import send_templated_mail
 
 from ..account import events as account_events
 from ..celeryconf import app
-from ..core.emails import get_email_context
+from ..core.emails import get_email_context, prepare_url
 
 
 def send_user_password_reset_email_with_url(redirect_url, user):
@@ -17,9 +17,8 @@ def send_user_password_reset_email_with_url(redirect_url, user):
 @app.task
 def _send_password_reset_email_with_url(recipient_email, redirect_url, user_id, token):
     params = urlencode({"email": recipient_email, "token": token})
-    reset_url = urlsplit(redirect_url)
-    reset_url = reset_url._replace(query=params)
-    _send_password_reset_email(recipient_email, reset_url.geturl(), user_id)
+    reset_url = prepare_url(params, redirect_url)
+    _send_password_reset_email(recipient_email, reset_url, user_id)
 
 
 def _send_password_reset_email(recipient_email, reset_url, user_id):
@@ -80,9 +79,8 @@ def _send_set_user_password_email_with_url(
     recipient_email, redirect_url, token, template_name
 ):
     params = urlencode({"email": recipient_email, "token": token})
-    password_set_url = urlsplit(redirect_url)
-    password_set_url = password_set_url._replace(query=params)
-    _send_set_password_email(recipient_email, password_set_url.geturl(), template_name)
+    password_set_url = prepare_url(params, redirect_url)
+    _send_set_password_email(recipient_email, password_set_url, template_name)
 
 
 def _send_set_password_email(recipient_email, password_set_url, template_name):

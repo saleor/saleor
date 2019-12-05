@@ -103,6 +103,7 @@ def test_create_order_creates_expected_events(
             checkout=checkout, tracking_code="tracking_code", discounts=None
         ),
         user=customer_user if not is_anonymous_user else AnonymousUser(),
+        redirect_url="https://www.example.com",
     )
 
     # Ensure only two events were created, and retrieve them
@@ -167,10 +168,20 @@ def test_create_order_doesnt_duplicate_order(
 
     order_data = prepare_order_data(checkout=checkout, tracking_code="", discounts=None)
 
-    order_1 = create_order(checkout=checkout, order_data=order_data, user=customer_user)
+    order_1 = create_order(
+        checkout=checkout,
+        order_data=order_data,
+        user=customer_user,
+        redirect_url="https://www.example.com",
+    )
     assert order_1.checkout_token == checkout.token
 
-    order_2 = create_order(checkout=checkout, order_data=order_data, user=customer_user)
+    order_2 = create_order(
+        checkout=checkout,
+        order_data=order_data,
+        user=customer_user,
+        redirect_url="https://www.example.com",
+    )
     assert order_1.pk == order_2.pk
 
 
@@ -199,6 +210,7 @@ def test_create_order_with_gift_card(
             checkout=checkout, tracking_code="tracking_code", discounts=None
         ),
         user=customer_user if not is_anonymous_user else AnonymousUser(),
+        redirect_url="https://www.example.com",
     )
 
     assert order.gift_cards.count() == 1
@@ -228,6 +240,7 @@ def test_create_order_with_gift_card_partial_use(
             checkout=checkout, tracking_code="tracking_code", discounts=None
         ),
         user=customer_user,
+        redirect_url="https://www.example.com",
     )
 
     gift_card_used.refresh_from_db()
@@ -271,6 +284,7 @@ def test_create_order_with_many_gift_cards(
             checkout=checkout, tracking_code="tracking_code", discounts=None
         ),
         user=customer_user,
+        redirect_url="https://www.example.com",
     )
 
     gift_card_created_by_staff.refresh_from_db()
@@ -296,6 +310,7 @@ def test_note_in_created_order(request_checkout_with_item, address, customer_use
             discounts=None,
         ),
         user=customer_user,
+        redirect_url="https://www.example.com",
     )
     assert order.customer_note == request_checkout_with_item.note
 

@@ -1,3 +1,5 @@
+from urllib.parse import urlsplit
+
 from django.contrib.sites.models import Site
 from django.templatetags.static import static
 
@@ -14,3 +16,9 @@ def get_email_context():
         "site_name": site.name,
     }
     return send_email_kwargs, email_template_context
+
+
+def prepare_url(params: str, redirect_url: str) -> str:
+    split_url = urlsplit(redirect_url)
+    split_url = split_url._replace(query=params)
+    return split_url.geturl()

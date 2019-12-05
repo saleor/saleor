@@ -1,4 +1,5 @@
 from unittest import mock
+from urllib.parse import urlencode
 
 import pytest
 from django.core import mail
@@ -8,7 +9,7 @@ from templated_email import get_connection
 
 import saleor.account.emails as account_emails
 import saleor.order.emails as emails
-from saleor.core.emails import get_email_context
+from saleor.core.emails import get_email_context, prepare_url
 from saleor.core.utils import build_absolute_uri
 from saleor.order.utils import add_variant_to_order
 
@@ -60,18 +61,10 @@ def test_collect_data_for_email(order):
     assert "schema_markup" not in email_context
 
 
-@pytest.mark.parametrize(
-    "send_email,template",
-    [
-        (emails.send_payment_confirmation, emails.CONFIRM_PAYMENT_TEMPLATE),
-        (emails.send_order_confirmation, emails.CONFIRM_ORDER_TEMPLATE),
-    ],
-)
 @mock.patch("saleor.order.emails.send_templated_mail")
-def test_send_emails(
-    mocked_templated_email, order, template, send_email, site_settings
-):
-    send_email(order.pk)
+def test_send_email_payment_confirmation(mocked_templated_email, order, site_settings):
+    template = emails.CONFIRM_PAYMENT_TEMPLATE
+    emails.send_payment_confirmation(order.pk)
     email_data = emails.collect_data_for_email(order.pk, template)
 
     recipients = [order.get_customer_email()]
@@ -91,28 +84,81 @@ def test_send_emails(
     email_connection.get_email_message(to=recipients, **expected_call_kwargs)
 
 
-@pytest.mark.parametrize(
-    "send_email,template",
-    [
-        (emails.send_payment_confirmation, emails.CONFIRM_PAYMENT_TEMPLATE),
-        (emails.send_order_confirmation, emails.CONFIRM_ORDER_TEMPLATE),
-    ],
-)
 @mock.patch("saleor.order.emails.send_templated_mail")
-def test_send_confirmation_emails_without_addresses(
-    mocked_templated_email, order, template, send_email, site_settings, digital_content
+def test_send_email_order_confirmation(mocked_templated_email, order, site_settings):
+    template = emails.CONFIRM_ORDER_TEMPLATE
+    redirect_url = "https://www.example.com"
+    emails.send_order_confirmation(order.pk, redirect_url)
+    email_data = emails.collect_data_for_email(order.pk, template, redirect_url)
+
+    recipients = [order.get_customer_email()]
+
+    expected_call_kwargs = {
+        "context": email_data["context"],
+        "from_email": site_settings.default_from_email,
+        "template_name": template,
+    }
+
+    mocked_templated_email.assert_called_once_with(
+        recipient_list=recipients, **expected_call_kwargs
+    )
+
+    # Render the email to ensure there is no error
+    email_connection = get_connection()
+    email_connection.get_email_message(to=recipients, **expected_call_kwargs)
+
+
+@mock.patch("saleor.order.emails.send_templated_mail")
+def test_send_confirmation_emails_without_addresses_for_payment(
+    mocked_templated_email, order, site_settings, digital_content
 ):
 
     assert not order.lines.count()
 
+    template = emails.CONFIRM_PAYMENT_TEMPLATE
     add_variant_to_order(order, digital_content.product_variant, quantity=1)
     order.shipping_address = None
     order.shipping_method = None
     order.billing_address = None
     order.save(update_fields=["shipping_address", "shipping_method", "billing_address"])
 
-    send_email(order.pk)
+    emails.send_payment_confirmation(order.pk)
     email_data = emails.collect_data_for_email(order.pk, template)
+
+    recipients = [order.get_customer_email()]
+
+    expected_call_kwargs = {
+        "context": email_data["context"],
+        "from_email": site_settings.default_from_email,
+        "template_name": template,
+    }
+
+    mocked_templated_email.assert_called_once_with(
+        recipient_list=recipients, **expected_call_kwargs
+    )
+
+    # Render the email to ensure there is no error
+    email_connection = get_connection()
+    email_connection.get_email_message(to=recipients, **expected_call_kwargs)
+
+
+@mock.patch("saleor.order.emails.send_templated_mail")
+def test_send_confirmation_emails_without_addresses_for_order(
+    mocked_templated_email, order, site_settings, digital_content
+):
+
+    assert not order.lines.count()
+
+    template = emails.CONFIRM_ORDER_TEMPLATE
+    add_variant_to_order(order, digital_content.product_variant, quantity=1)
+    order.shipping_address = None
+    order.shipping_method = None
+    order.billing_address = None
+    order.save(update_fields=["shipping_address", "shipping_method", "billing_address"])
+
+    redirect_url = "https://www.example.com"
+    emails.send_order_confirmation(order.pk, redirect_url)
+    email_data = emails.collect_data_for_email(order.pk, template, redirect_url)
 
     recipients = [order.get_customer_email()]
 
@@ -204,3 +250,10 @@ def test_send_set_password_email(staff_user, site_settings):
     assert len(mail.outbox) == 1
     sended_message = mail.outbox[0].body
     assert password_set_url in sended_message
+
+
+def test_prepare_url():
+    redirect_url = "https://www.example.com"
+    params = urlencode({"param1": "abc", "param2": "xyz"})
+    result = prepare_url(params, redirect_url)
+    assert result == "https://www.example.com?param1=abc&param2=xyz"
