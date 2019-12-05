@@ -32,23 +32,25 @@ class SaleSortingInput(SortInputObjectType):
 
 
 class VoucherSortField(graphene.Enum):
-    NAME = "name"
+    CODE = "code"
     START_DATE = "start_date"
     END_DATE = "end_date"
     VALUE = "discount_value"
     TYPE = "type"
     USAGE_LIMIT = "usage_limit"
+    MINIMUM_SPENT_AMOUNT = "min_spent_amount"
 
     @property
     def description(self):
         # pylint: disable=no-member
         if self in [
-            VoucherSortField.NAME,
+            VoucherSortField.CODE,
             VoucherSortField.START_DATE,
             VoucherSortField.END_DATE,
             VoucherSortField.VALUE,
             VoucherSortField.TYPE,
             VoucherSortField.USAGE_LIMIT,
+            VoucherSortField.MINIMUM_SPENT_AMOUNT,
         ]:
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort vouchers by {sort_name}."
