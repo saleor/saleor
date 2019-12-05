@@ -6,7 +6,7 @@ from ..core.connection import CountableDjangoObjectType
 
 class Wishlist(CountableDjangoObjectType):
     class Meta:
-        only_fields = ["id", "wishlist_items"]
+        only_fields = ["id", "created_at", "items"]
         description = "Wishlist item."
         interfaces = [graphene.relay.Node]
         model = models.Wishlist
