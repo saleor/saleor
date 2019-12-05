@@ -3,9 +3,9 @@ from typing import TYPE_CHECKING, Optional
 from django.conf import settings
 from django.db.models import Sum
 
-from ...core.exceptions import InsufficientStock
-from ...product.models import Product
-from ..models import Stock
+from ..core.exceptions import InsufficientStock
+from ..product.models import Product
+from .models import Stock
 
 if TYPE_CHECKING:
     from ...product.models import ProductVariant

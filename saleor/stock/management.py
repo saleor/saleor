@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from ..models import Stock
+from .models import Stock
 
 if TYPE_CHECKING:
     from ..product.models import ProductVariant

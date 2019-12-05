@@ -19,7 +19,7 @@ class WarehouseForm(forms.ModelForm):
                 "warehouse", flat=True
             )
         )
-        if len(warehouses) == 0:
+        if not bool(warehouses):
             return True
         if len(warehouses) > 1:
             return False

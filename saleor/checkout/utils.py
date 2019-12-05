@@ -40,8 +40,8 @@ from ..order.actions import order_created
 from ..order.emails import send_order_confirmation, send_staff_order_confirmation
 from ..order.models import Order, OrderLine
 from ..shipping.models import ShippingMethod
-from ..stock.utils.availability import check_stock_quantity, get_available_quantity
-from ..stock.utils.management import allocate_stock
+from ..stock.availability import check_stock_quantity, get_available_quantity
+from ..stock.management import allocate_stock
 from . import AddressType
 
 from .models import Checkout, CheckoutLine

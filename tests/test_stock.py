@@ -1,12 +1,12 @@
 import pytest
 
 from saleor.core.exceptions import InsufficientStock
-from saleor.stock.models import Stock
-from saleor.stock.utils.availability import (
+from saleor.stock.availability import (
     are_all_product_variants_in_stock,
     check_stock_quantity,
     products_with_low_stock,
 )
+from saleor.stock.models import Stock
 
 COUNTRY_CODE = "US"
 
