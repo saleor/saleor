@@ -976,12 +976,12 @@ QUERY_VOUCHER_WITH_SORT = """
     "voucher_sort, result_order",
     [
         (
-            {"field": "NAME", "direction": "ASC"},
-            ["FreeShipping", "Voucher1", "Voucher2"],
+            {"field": "CODE", "direction": "ASC"},
+            ["Voucher2", "Voucher1", "FreeShipping"],
         ),
         (
-            {"field": "NAME", "direction": "DESC"},
-            ["Voucher2", "Voucher1", "FreeShipping"],
+            {"field": "CODE", "direction": "DESC"},
+            ["FreeShipping", "Voucher1", "Voucher2"],
         ),
         (
             {"field": "VALUE", "direction": "ASC"},
@@ -1023,6 +1023,14 @@ QUERY_VOUCHER_WITH_SORT = """
             {"field": "USAGE_LIMIT", "direction": "DESC"},
             ["Voucher2", "FreeShipping", "Voucher1"],
         ),
+        (
+            {"field": "MINIMUM_SPENT_AMOUNT", "direction": "ASC"},
+            ["Voucher2", "FreeShipping", "Voucher1"],
+        ),
+        (
+            {"field": "MINIMUM_SPENT_AMOUNT", "direction": "DESC"},
+            ["Voucher1", "FreeShipping", "Voucher2"],
+        ),
     ],
 )
 def test_query_vouchers_with_sort(
@@ -1046,6 +1054,7 @@ def test_query_vouchers_with_sort(
                 type=VoucherType.ENTIRE_ORDER,
                 start_date=timezone.now().replace(year=2012, month=1, day=5),
                 end_date=timezone.now().replace(year=2013, month=1, day=5),
+                min_spent_amount=50,
             ),
             Voucher(
                 name="FreeShipping",
@@ -1056,6 +1065,7 @@ def test_query_vouchers_with_sort(
                 start_date=timezone.now().replace(year=2011, month=1, day=5),
                 end_date=timezone.now().replace(year=2015, month=12, day=31),
                 usage_limit=1000,
+                min_spent_amount=500,
             ),
         ]
     )
