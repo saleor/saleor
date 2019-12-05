@@ -25,7 +25,7 @@ class Warehouse(models.Model):
     )
 
     shipping_zones = models.ManyToManyField(ShippingZone, blank=True)
-    address = models.ForeignKey(Address, on_delete=models.CASCADE)
+    address = models.ForeignKey(Address, on_delete=models.PROTECT)
 
     email = models.EmailField(
         pgettext_lazy("Warehouse field description", "Email address"),
@@ -57,5 +57,6 @@ class Warehouse(models.Model):
         return set(countries_zone.split(","))
 
     def delete(self, *args, **kwargs):
-        self.address.delete()
+        address = self.address
         super().delete(*args, **kwargs)
+        address.delete()
