@@ -21,6 +21,7 @@ class PayloadSerializer(JSONSerializer):
 
     def serialize(self, queryset, **options):
         self.additional_fields = options.pop("additional_fields", {})
+        self.obj_id_name = options.pop("obj_id_name", "id")
         return super().serialize(
             queryset,
             stream=options.pop("stream", None),
@@ -33,8 +34,12 @@ class PayloadSerializer(JSONSerializer):
         )
 
     def get_dump_object(self, obj):
-        obj_id = graphene.Node.to_global_id(obj._meta.object_name, obj.id)
-        data = OrderedDict([("type", str(obj._meta.object_name)), ("id", obj_id)])
+        obj_id = graphene.Node.to_global_id(
+            obj._meta.object_name, getattr(obj, self.obj_id_name)
+        )
+        data = OrderedDict(
+            [("type", str(obj._meta.object_name)), (self.obj_id_name, obj_id)]
+        )
         python_serializer = PythonSerializer()
         for field_name, (qs, fields) in self.additional_fields.items():
             data_to_serialize = qs(obj)

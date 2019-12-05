@@ -80,6 +80,9 @@ class ExtensionsManager(PaymentInterface):
             "change_user_address", default_value, address, address_type, user
         )
 
+    def checkout_quantity_changed(self, checkout: "Checkout") -> None:
+        self.__run_method_on_plugins("checkout_quantity_changed", None, checkout)
+
     def calculate_checkout_total(
         self, checkout: "Checkout", discounts: "DiscountsListType"
     ) -> TaxedMoney:

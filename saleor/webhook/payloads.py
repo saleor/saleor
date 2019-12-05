@@ -1,5 +1,5 @@
 import json
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
 
 from django.db.models import Model, QuerySet
 
@@ -10,6 +10,11 @@ from ..payment import ChargeStatus
 from ..product.models import Product
 from .event_types import WebhookEventType
 from .payload_serializers import PayloadSerializer
+
+if TYPE_CHECKING:
+    # flake8: noqa
+    from ..checkout.models import Checkout, CheckoutLine
+
 
 ADDRESS_FIELDS = (
     "first_name",
@@ -94,6 +99,37 @@ def generate_order_payload(order: "Order"):
         },
     )
     return order_data
+
+
+def generate_checkout_payload(checkout: "Checkout"):
+    serializer = PayloadSerializer()
+    checkout_fields = (
+        "created",
+        "last_change" "status",
+        "email",
+        "quantity",
+        "currency",
+        "discount_amount",
+        "discount_name",
+        "private_meta",
+        "meta",
+    )
+    user_fields = ("email", "first_name", "last_name")
+    shipping_method_fields = ("name", "type", "currency", "price_amount")
+    lines_fields = ("quantity",)
+    checkout_data = serializer.serialize(
+        [checkout],
+        fields=checkout_fields,
+        obj_id_name="token",
+        additional_fields={
+            "user": (lambda c: c.user, user_fields),
+            "billing_address": (lambda c: c.billing_address, ADDRESS_FIELDS),
+            "shipping_address": (lambda c: c.shipping_address, ADDRESS_FIELDS),
+            "shipping_method": (lambda c: c.shipping_method, shipping_method_fields),
+            "lines": (lambda c: c.lines.all(), lines_fields),
+        },
+    )
+    return checkout_data
 
 
 def generate_customer_payload(customer: "User"):
