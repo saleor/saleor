@@ -2002,6 +2002,16 @@ type MenuItemUpdate {
   menuItem: MenuItem
 }
 
+enum MenuSortField {
+  NAME
+  ITEMS_COUNT
+}
+
+input MenuSortingInput {
+  direction: OrderDirection!
+  field: MenuSortField
+}
+
 type MenuUpdate {
   errors: [Error!]
   menuErrors: [MenuError!]
@@ -3485,7 +3495,7 @@ type Query {
   ordersTotal(period: ReportingPeriod): TaxedMoney
   orderByToken(token: UUID!): Order
   menu(id: ID, name: String): Menu
-  menus(query: String, filter: MenuFilterInput, before: String, after: String, first: Int, last: Int): MenuCountableConnection
+  menus(query: String, sortBy: MenuSortingInput, filter: MenuFilterInput, before: String, after: String, first: Int, last: Int): MenuCountableConnection
   menuItem(id: ID!): MenuItem
   menuItems(query: String, filter: MenuItemFilterInput, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
   giftCard(id: ID!): GiftCard
