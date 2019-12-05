@@ -12,7 +12,7 @@ from .types import Stock
 class StockQueries(graphene.ObjectType):
     stock = graphene.Field(
         Stock,
-        description="Look up a stok by ID",
+        description="Look up a stock by ID",
         id=graphene.ID(required=True, description="ID of an warehouse"),
     )
     stocks = FilterInputConnectionField(

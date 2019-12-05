@@ -58,7 +58,7 @@ class Stock(models.Model):
         return self.quantity_available > 0
 
     def check_quantity(self, quantity: int):
-        if quantity > self.quantity_available():
+        if quantity > self.quantity_available:
             raise InsufficientStock(self)
 
     def allocate_stock(self, quantity: int, commit: bool = True):
