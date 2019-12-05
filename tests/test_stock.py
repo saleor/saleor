@@ -5,6 +5,7 @@ from saleor.stock.models import Stock
 from saleor.stock.utils.availability import (
     are_all_product_variants_in_stock,
     check_stock_quantity,
+    products_with_low_stock,
 )
 
 COUNTRY_CODE = "US"
@@ -58,3 +59,30 @@ def test_are_all_product_variants_in_stock_stock_empty(product):
 def test_are_all_product_variants_in_stock_lack_of_stocks(product):
     Stock.objects.all().delete()
     assert not are_all_product_variants_in_stock(product, COUNTRY_CODE)
+
+
+def test_products_with_low_stock_one_stock(product, settings):
+    settings.LOW_STOCK_THRESHOLD = 70
+    stock = Stock.objects.first()
+    result = products_with_low_stock()
+    assert len(result) == 1
+    stock_result = result[0]
+    assert (
+        stock_result["product_variant__product_id"] == stock.product_variant.product_id
+    )
+    assert stock_result["warehouse_id"] == stock.warehouse_id
+    assert stock_result["total_stock"] == stock.quantity
+
+
+def test_products_with_low_stock_many_stocks(stock, settings):
+    settings.LOW_STOCK_THRESHOLD = 70
+    quantity = Stock.objects.all().values_list("quantity", flat=True)
+    result = products_with_low_stock()
+    assert result[0]["total_stock"] == sum(quantity)
+
+
+def test_products_with_low_stock_filter_properly(stock, settings):
+    quantities = Stock.objects.order_by("quantity").values_list("quantity", flat=True)
+    settings.LOW_STOCK_THRESHOLD = quantities[0] + 1
+    result = products_with_low_stock()
+    assert len(result) == 0

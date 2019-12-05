@@ -1,4 +1,7 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
+
+from django.conf import settings
+from django.db.models import Sum
 
 from ...core.exceptions import InsufficientStock
 from ...product.models import Product
@@ -58,3 +61,14 @@ def are_all_product_variants_in_stock(product: "Product", country_code: str) -> 
 
     product_variants = product.variants.exclude(id__in=variants_with_stocks).exists()
     return are_all_available and not product_variants
+
+
+def products_with_low_stock(threshold: Optional[int] = None):
+    if threshold is None:
+        threshold = getattr(settings, "LOW_STOCK_THRESHOLD", 3000)
+    stocks = (
+        Stock.objects.select_related("product_variant")
+        .values("product_variant__product_id", "warehouse_id")
+        .annotate(total_stock=Sum("quantity"))
+    )
+    return stocks.filter(total_stock__lte=threshold).distinct()
