@@ -1,8 +1,9 @@
+from urllib.parse import urlencode
+
 from templated_email import send_templated_mail
 
 from ..celeryconf import app
-from ..core.emails import get_email_context
-from ..core.utils import build_absolute_uri
+from ..core.emails import get_email_context, prepare_url
 from ..seo.schema.email import get_order_confirmation_markup
 from . import events
 from .models import Fulfillment, Order
@@ -13,19 +14,17 @@ UPDATE_FULFILLMENT_TEMPLATE = "order/update_fulfillment"
 CONFIRM_PAYMENT_TEMPLATE = "order/payment/confirm_payment"
 
 
-def collect_data_for_email(order_pk, template):
-    """Collect the required data for sending emails.
-
-    Args:
-        order_pk (int): order primary key
-        template (str): email template path
-
-    """
+def collect_data_for_email(
+    order_pk: int, template: str, redirect_url: str = ""
+) -> dict:
+    """Collect the required data for sending emails."""
     order = Order.objects.get(pk=order_pk)
     recipient_email = order.get_customer_email()
     send_kwargs, email_context = get_email_context()
-    # TODO: in #5022
-    email_context["order_details_url"] = build_absolute_uri(order.get_absolute_url())
+
+    email_context["order_details_url"] = (
+        prepare_order_details_url(order, redirect_url) if redirect_url else ""
+    )
     email_context["order"] = order
 
     # Order confirmation template requires additional information
@@ -39,6 +38,11 @@ def collect_data_for_email(order_pk, template):
         "context": email_context,
         **send_kwargs,
     }
+
+
+def prepare_order_details_url(order: Order, redirect_url: str) -> str:
+    params = urlencode({"token": order.token})
+    return prepare_url(params, redirect_url)
 
 
 def collect_data_for_fullfillment_email(order_pk, template, fulfillment_pk):
@@ -59,9 +63,9 @@ def collect_data_for_fullfillment_email(order_pk, template, fulfillment_pk):
 
 
 @app.task
-def send_order_confirmation(order_pk, user_pk=None):
+def send_order_confirmation(order_pk, redirect_url, user_pk=None):
     """Send order confirmation email."""
-    email_data = collect_data_for_email(order_pk, CONFIRM_ORDER_TEMPLATE)
+    email_data = collect_data_for_email(order_pk, CONFIRM_ORDER_TEMPLATE, redirect_url)
     send_templated_mail(**email_data)
     events.email_sent_event(
         order=email_data["context"]["order"],

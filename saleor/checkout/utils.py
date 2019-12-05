@@ -1163,7 +1163,9 @@ def abort_order_data(order_data: dict):
 
 
 @transaction.atomic
-def create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
+def create_order(
+    *, checkout: Checkout, order_data: dict, user: User, redirect_url: str
+) -> Order:
     """Create an order from the checkout.
 
     Each order will get a private copy of both the billing and the shipping
@@ -1204,7 +1206,7 @@ def create_order(*, checkout: Checkout, order_data: dict, user: User) -> Order:
     order_created(order=order, user=user)
 
     # Send the order confirmation email
-    send_order_confirmation.delay(order.pk, user.pk)
+    send_order_confirmation.delay(order.pk, redirect_url, user.pk)
     return order
 
 
