@@ -22,7 +22,7 @@ def jwt_middleware(get_response):
     jwt_middleware_inst = JSONWebTokenMiddleware(get_response=get_response)
     graphene_settings.MIDDLEWARE.remove(JSONWebTokenMiddleware)
 
-    def middleware(request):
+    def _jwt_middleware(request):
         if request.path == API_PATH:
             # clear user authenticated by AuthenticationMiddleware
             request._cached_user = AnonymousUser()
@@ -32,7 +32,7 @@ def jwt_middleware(get_response):
             jwt_middleware_inst.process_request(request)
         return get_response(request)
 
-    return middleware
+    return _jwt_middleware
 
 
 def get_service_account(auth_token) -> Optional[ServiceAccount]:
@@ -45,7 +45,7 @@ def service_account_middleware(get_response):
     service_account_auth_header = "HTTP_AUTHORIZATION"
     prefix = "bearer"
 
-    def middleware(request):
+    def _service_account_middleware(request):
         if request.path == API_PATH:
             request.service_account = None
             auth = request.META.get(service_account_auth_header, "").split()
@@ -57,7 +57,7 @@ def service_account_middleware(get_response):
                     )
         return get_response(request)
 
-    return middleware
+    return _service_account_middleware
 
 
 def process_view(self, request, view_func, *args):
