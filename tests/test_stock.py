@@ -6,6 +6,12 @@ from saleor.stock.availability import (
     check_stock_quantity,
     products_with_low_stock,
 )
+from saleor.stock.management import (
+    allocate_stock,
+    deallocate_stock,
+    decrease_stock,
+    increase_stock,
+)
 from saleor.stock.models import Stock
 
 COUNTRY_CODE = "US"
@@ -86,3 +92,24 @@ def test_products_with_low_stock_filter_properly(stock, settings):
     settings.LOW_STOCK_THRESHOLD = quantities[0] + 1
     result = products_with_low_stock()
     assert len(result) == 0
+
+
+@pytest.mark.parametrize(
+    "func, expected_quantity, expected_quantity_allocated",
+    (
+        (increase_stock, 150, 80),
+        (decrease_stock, 50, 30),
+        (deallocate_stock, 100, 30),
+        (allocate_stock, 100, 130),
+    ),
+)
+def test_changing_stock(product, func, expected_quantity, expected_quantity_allocated):
+    stock = Stock.objects.first()
+    stock.quantity = 100
+    stock.quantity_allocated = 80
+    stock.save()
+    variant = stock.product_variant
+    func(variant, COUNTRY_CODE, 50)
+    stock.refresh_from_db()
+    assert stock.quantity == expected_quantity
+    assert stock.quantity_allocated == expected_quantity_allocated
