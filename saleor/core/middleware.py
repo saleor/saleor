@@ -7,7 +7,6 @@ from django.contrib.sites.models import Site
 from django.core.exceptions import MiddlewareNotUsed
 from django.http import JsonResponse
 from django.template.response import TemplateResponse
-from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
 from django.utils.translation import get_language, ugettext_lazy as _
@@ -15,7 +14,7 @@ from django_countries.fields import Country
 
 from ..discount.utils import fetch_discounts
 from ..extensions.manager import get_extensions_manager
-from ..graphql.views import GraphQLView
+from ..graphql.views import API_PATH, GraphQLView
 from . import analytics
 from .exceptions import ReadOnlyException
 from .utils import get_client_ip, get_country_by_ip, get_currency_for_country
@@ -152,7 +151,7 @@ class ReadOnlyMiddleware:
         return self.get_response(request)
 
     def process_view(self, request, *_args, **_kwargs):
-        if request.path == reverse("api"):
+        if request.path == API_PATH:
             if not self._is_graphql_request_blocked(request):
                 return None
             error = GraphQLView.format_error(

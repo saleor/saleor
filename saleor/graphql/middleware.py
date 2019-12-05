@@ -2,13 +2,12 @@ from typing import Optional
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
-from django.shortcuts import reverse
 from django.utils.functional import SimpleLazyObject
 from graphene_django.settings import graphene_settings
 from graphql_jwt.middleware import JSONWebTokenMiddleware
 
 from ..account.models import ServiceAccount
-from .views import GraphQLView
+from .views import API_PATH, GraphQLView
 
 
 def jwt_middleware(get_response):
@@ -24,7 +23,7 @@ def jwt_middleware(get_response):
     graphene_settings.MIDDLEWARE.remove(JSONWebTokenMiddleware)
 
     def middleware(request):
-        if request.path == reverse("api"):
+        if request.path == API_PATH:
             # clear user authenticated by AuthenticationMiddleware
             request._cached_user = AnonymousUser()
             request.user = AnonymousUser()
@@ -47,7 +46,7 @@ def service_account_middleware(get_response):
     prefix = "bearer"
 
     def middleware(request):
-        if request.path == reverse("api"):
+        if request.path == API_PATH:
             request.service_account = None
             auth = request.META.get(service_account_auth_header, "").split()
             if len(auth) == 2:

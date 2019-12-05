@@ -5,6 +5,8 @@ import traceback
 from django.conf import settings
 from django.http import HttpRequest, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import render_to_response
+from django.urls import reverse
+from django.utils.functional import SimpleLazyObject
 from django.views.generic import View
 from graphene_django.settings import graphene_settings
 from graphene_django.views import instantiate_middleware
@@ -16,6 +18,8 @@ from graphql.error import (
 )
 from graphql.execution import ExecutionResult
 from graphql_jwt.exceptions import PermissionDenied
+
+API_PATH = SimpleLazyObject(lambda: reverse("api"))
 
 unhandled_errors_logger = logging.getLogger("saleor.graphql.errors.unhandled")
 handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
