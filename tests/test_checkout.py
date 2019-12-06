@@ -123,6 +123,8 @@ def test_create_order_creates_expected_events(
     assert placement_event.date  # ensure a date was set
     assert not placement_event.parameters  # should not have any additional parameters
 
+    # mock_send_staff_order_confirmation.assert_called_once_with(order.pk)
+
 
 def test_create_order_insufficient_stock(
     request_checkout, customer_user, product_without_shipping

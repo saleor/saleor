@@ -2,6 +2,7 @@ from urllib.parse import urlencode
 
 from templated_email import send_templated_mail
 
+from ..account.models import StaffNotificationRecipient
 from ..celeryconf import app
 from ..core.emails import get_email_context, prepare_url
 from ..seo.schema.email import get_order_confirmation_markup
@@ -9,9 +10,24 @@ from . import events
 from .models import Fulfillment, Order
 
 CONFIRM_ORDER_TEMPLATE = "order/confirm_order"
+STAFF_CONFIRM_ORDER_TEMPLATE = "order/staff_confirm_order"
 CONFIRM_FULFILLMENT_TEMPLATE = "order/confirm_fulfillment"
 UPDATE_FULFILLMENT_TEMPLATE = "order/update_fulfillment"
 CONFIRM_PAYMENT_TEMPLATE = "order/payment/confirm_payment"
+
+
+def collect_staff_order_notification_data(
+    order_pk: int, template: str, redirect_url: str
+) -> dict:
+    data = collect_data_for_email(order_pk, template, redirect_url)
+    staff_notifications = StaffNotificationRecipient.objects.filter(
+        active=True, user__is_active=True, user__is_staff=True
+    )
+    recipient_emails = [
+        notification.get_email() for notification in staff_notifications
+    ]
+    data["recipient_list"] = recipient_emails
+    return data
 
 
 def collect_data_for_email(
@@ -28,7 +44,7 @@ def collect_data_for_email(
     email_context["order"] = order
 
     # Order confirmation template requires additional information
-    if template == CONFIRM_ORDER_TEMPLATE:
+    if template in [CONFIRM_ORDER_TEMPLATE, STAFF_CONFIRM_ORDER_TEMPLATE]:
         email_markup = get_order_confirmation_markup(order)
         email_context["schema_markup"] = email_markup
 
@@ -73,6 +89,16 @@ def send_order_confirmation(order_pk, redirect_url, user_pk=None):
         user_pk=user_pk,
         email_type=events.OrderEventsEmails.ORDER,
     )
+
+
+@app.task
+def send_staff_order_confirmation(order_pk, redirect_url):
+    """Send order confirmation email."""
+    staff_email_data = collect_staff_order_notification_data(
+        order_pk, STAFF_CONFIRM_ORDER_TEMPLATE, redirect_url
+    )
+    if staff_email_data["recipient_list"]:
+        send_templated_mail(**staff_email_data)
 
 
 @app.task

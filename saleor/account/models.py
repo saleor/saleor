@@ -276,3 +276,18 @@ class CustomerEvent(models.Model):
 
     def __repr__(self):
         return f"{self.__class__.__name__}(type={self.type!r}, user={self.user!r})"
+
+
+class StaffNotificationRecipient(models.Model):
+    user = models.OneToOneField(
+        User,
+        related_name="staff_notification",
+        on_delete=models.CASCADE,
+        blank=True,
+        null=True,
+    )
+    staff_email = models.EmailField(unique=True, blank=True, null=True)
+    active = models.BooleanField(default=True)
+
+    def get_email(self):
+        return self.user.email if self.user else self.staff_email

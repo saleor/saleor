@@ -22,6 +22,12 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fixed serialization error on weight fields when running `loaddata` and `dumpdb` - #5005 by @NyanKiyoshi
 - Fixed JSON encoding error on Google Analytics reporting - #5004 by @NyanKiyoshi
 - Create custom field to translation, use new translation types in translations query - #5007 by @fowczarek
+- Take allocated stock in account in `StockAvailability` filter - #5019 by @simonbru
+- Generate matching postal codes for US addresses - #5033 by @maarcingebala
+- Update debug toolbar - #5032 by @IKarbowiak
+- Allow staff member to receive notification about customers orders - #4993 by @kswiatek92
+- JWT payload now contains user global id - #5039 by @salwator
+- Made middleware path resolving lazy and refactored middleware names - #5041 by @NyanKiyoshi
 
 ## 2.9.0
 

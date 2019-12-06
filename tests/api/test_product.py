@@ -216,7 +216,8 @@ def test_product_query(staff_api_client, product, permission_manage_products):
     [
         ("IN_STOCK", 5, 1),
         ("OUT_OF_STOCK", 0, 1),
-        ("OUT_OF_STOCK", 1, 0),
+        ("OUT_OF_STOCK", 1, 1),
+        ("OUT_OF_STOCK", 2, 0),
         ("IN_STOCK", 0, 0),
     ],
 )

@@ -344,14 +344,22 @@ def create_product_image(product, placeholder_dir, image_name):
 
 
 def create_address():
-    address = Address.objects.create(
+    address = Address(
         first_name=fake.first_name(),
         last_name=fake.last_name(),
         street_address_1=fake.street_address(),
         city=fake.city(),
-        postal_code=fake.postcode(),
         country=settings.DEFAULT_COUNTRY,
     )
+
+    if address.country == "US":
+        state = fake.state_abbr()
+        address.country_area = state
+        address.postal_code = fake.postalcode_in_state(state)
+    else:
+        address.postal_code = fake.postalcode()
+
+    address.save()
     return address
 
 
