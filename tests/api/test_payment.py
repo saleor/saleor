@@ -2,9 +2,9 @@ from decimal import Decimal
 
 import graphene
 import pytest
+from django_countries.fields import Country
 
 from saleor.checkout import calculations
-from saleor.core.utils import get_country_name_by_code
 from saleor.graphql.payment.enums import OrderAction, PaymentChargeStatusEnum
 from saleor.payment.interface import CreditCardInfo, CustomerSource, TokenConfig
 from saleor.payment.models import ChargeStatus, Payment, TransactionKind
@@ -503,7 +503,7 @@ def test_payments_query(
         "postalCode": pay.billing_postal_code,
         "country": {
             "code": pay.billing_country_code,
-            "country": get_country_name_by_code(pay.billing_country_code),
+            "country": Country(pay.billing_country_code).name,
         },
     }
     assert data["actions"] == [OrderAction.REFUND.name]

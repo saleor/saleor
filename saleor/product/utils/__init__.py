@@ -6,8 +6,6 @@ from django.db import transaction
 from django.db.models import F
 
 from ...core.taxes import TaxedMoney, zero_taxed_money
-from ...core.utils import get_paginator_items
-from ...core.utils.filters import get_now_sorted_by
 from ..tasks import update_products_minimal_variant_prices_task
 from .availability import products_with_availability
 
@@ -21,63 +19,6 @@ if TYPE_CHECKING:
     from ...account.models import User
     from ..models import Product, ProductVariant, Collection, ProductImage, Category
     from ..filters import ProductCategoryFilter
-
-
-def products_visible_to_user(user: "User") -> "QuerySet[User]":
-    # pylint: disable=cyclic-import
-    from ..models import Product
-
-    if user.is_authenticated and user.is_active and user.is_staff:
-        return Product.objects.all()
-    return Product.objects.published()
-
-
-def products_with_details(user: "User") -> "QuerySet[Product]":
-    products = products_visible_to_user(user)
-    products = products.prefetch_related(
-        "translations",
-        "category__translations",
-        "collections__translations",
-        "images",
-        "product_type__product_attributes__translations",
-        "product_type__product_attributes__values__translations",
-        "attributes__values__translations",
-        "attributes__assignment__attribute__translations",
-        "variants__variant_images__image",
-        "variants__attributes__values__translations",
-        "variants__attributes__assignment__attribute__translations",
-    )
-    return products
-
-
-def products_for_products_list(user: "User") -> "QuerySet[Product]":
-    products = products_visible_to_user(user)
-    products = products.prefetch_related(
-        "translations", "images", "variants__variant_images__image"
-    )
-    return products
-
-
-def products_for_homepage(
-    user: "User", homepage_collection: "Collection"
-) -> "QuerySet[Product]":
-    products = products_visible_to_user(user)
-    products = products.prefetch_related(
-        "translations", "images", "variants__variant_images__image", "collections"
-    )
-    products = products.filter(collections=homepage_collection)
-    return products
-
-
-def get_product_images(product: "Product") -> List["ProductImage"]:
-    """Return list of product images that will be placed in product gallery."""
-    return list(product.images.all())
-
-
-def products_for_checkout(user: "User") -> "QuerySet[Product]":
-    products = products_visible_to_user(user)
-    products = products.prefetch_related("variants__variant_images__image")
-    return products
 
 
 def allocate_stock(variant: "ProductVariant", quantity: int):
@@ -106,50 +47,6 @@ def increase_stock(variant: "ProductVariant", quantity, allocate: bool = False):
     variant.save(update_fields=update_fields)
 
 
-def get_product_list_context(
-    request: "HttpRequest", filter_set: "ProductCategoryFilter"
-) -> dict:
-    """Build a context from the given filter set."""
-    # Avoiding circular dependency
-    from ..filters import SORT_BY_FIELDS
-
-    qs = filter_set.qs
-    if not filter_set.form.is_valid():
-        qs = qs.none()
-    products_paginated = get_paginator_items(
-        qs, settings.PAGINATE_BY, request.GET.get("page")
-    )
-    products_and_availability = list(
-        products_with_availability(
-            products_paginated,
-            request.discounts,
-            request.country,
-            request.currency,
-            request.extensions,
-        )
-    )
-    now_sorted_by = get_now_sorted_by(filter_set)
-    arg_sort_by = request.GET.get("sort_by")
-    is_descending = arg_sort_by.startswith("-") if arg_sort_by else False
-    return {
-        "filter_set": filter_set,
-        "products": products_and_availability,
-        "products_paginated": products_paginated,
-        "sort_by_choices": SORT_BY_FIELDS,
-        "now_sorted_by": now_sorted_by,
-        "is_descending": is_descending,
-    }
-
-
-def collections_visible_to_user(user: "User") -> "QuerySet[Collection]":
-    # pylint: disable=cyclic-import
-    from ..models import Collection
-
-    if user.is_authenticated and user.is_active and user.is_staff:
-        return Collection.objects.all()
-    return Collection.objects.published()
-
-
 def calculate_revenue_for_variant(
     variant: "ProductVariant", start_date: Union["date", "datetime"]
 ) -> TaxedMoney:
@@ -161,15 +58,6 @@ def calculate_revenue_for_variant(
             gross = order_line.unit_price_gross * order_line.quantity
             revenue += TaxedMoney(net, gross)
     return revenue
-
-
-def collect_categories_tree_products(category: "Category") -> "QuerySet[Product]":
-    """Collect products from all levels in category tree."""
-    products = category.products.all()
-    descendants = category.get_descendants()
-    for descendant in descendants:
-        products = products | descendant.products.all()
-    return products
 
 
 @transaction.atomic
@@ -192,3 +80,12 @@ def delete_categories(categories_ids: List[str]):
     product_ids = list(products.values_list("id", flat=True))
     categories.delete()
     update_products_minimal_variant_prices_task.delay(product_ids=product_ids)
+
+
+def collect_categories_tree_products(category: "Category") -> "QuerySet[Product]":
+    """Collect products from all levels in category tree."""
+    products = category.products.all()
+    descendants = category.get_descendants()
+    for descendant in descendants:
+        products = products | descendant.products.all()
+    return products
