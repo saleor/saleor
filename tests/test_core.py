@@ -7,7 +7,6 @@ import pytest
 from django.templatetags.static import static
 from django.test import RequestFactory, override_settings
 from measurement.measures import Weight
-from prices import Money
 
 from saleor.account.models import Address, User
 from saleor.account.utils import create_superuser
@@ -16,10 +15,8 @@ from saleor.core.utils import (
     Country,
     build_absolute_uri,
     create_thumbnails,
-    format_money,
     get_client_ip,
     get_country_by_ip,
-    get_country_name_by_code,
     get_currency_for_country,
     random_data,
 )
@@ -42,11 +39,6 @@ type_schema = {
         "is_shipping_required": True,
     }
 }
-
-
-def test_format_money():
-    money = Money("123.99", "USD")
-    assert format_money(money) == "$123.99"
 
 
 @pytest.mark.parametrize(
@@ -249,8 +241,3 @@ def test_delete_sort_order_with_null_value(menu_item):
     menu_item.sort_order = None
     menu_item.save(update_fields=["sort_order"])
     menu_item.delete()
-
-
-def test_get_country_name_by_code():
-    country_name = get_country_name_by_code("PL")
-    assert country_name == "Poland"
