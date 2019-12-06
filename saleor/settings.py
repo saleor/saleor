@@ -164,7 +164,6 @@ context_processors = [
     "django.template.context_processors.tz",
     "django.contrib.messages.context_processors.messages",
     "django.template.context_processors.request",
-    "saleor.core.context_processors.default_currency",
     "saleor.checkout.context_processors.checkout_counter",
     "saleor.site.context_processors.site",
     "social_django.context_processors.backends",
