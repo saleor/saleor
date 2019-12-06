@@ -41,7 +41,6 @@ django-silk = "~2.0"
 django-storages = { version = "^1.7.1", extras = [ "google" ] }
 django-templated-email = "^2.3.0"
 django-versatileimagefield = "^1.11"
-django-webpack-loader = "^0"
 draftjs-sanitizer = "^1.0.0"
 elasticsearch = "~6.3.1"
 elasticsearch-dsl = "~6.0.1"

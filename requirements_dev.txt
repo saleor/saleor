@@ -234,9 +234,6 @@ django-templated-email==2.3.0 \
 django-versatileimagefield==1.11 \
     --hash=sha256:8322ee9d7bf5ffa5360990320d2cc2efc7017feff35422636d49f625721edf82 \
     --hash=sha256:90e1614db9ee593f502f4e5ec0942611589e1d91567a20447c8cf48459ee52d5
-django-webpack-loader==0.6.0 \
-    --hash=sha256:60bab6b9a037a5346fad12d2a70a6bc046afb33154cf75ed640b93d3ebd5f520 \
-    --hash=sha256:970b968c2a8975fb7eff56a3bab5d0d90d396740852d1e0c50c5cfe2b824199a
 docutils==0.15.2 \
     --hash=sha256:9e4d7ecfc600058e07ba661411a2b7de2fd0fafa17d1a7f7361cd47b1175c827 \
     --hash=sha256:6c4f696463b79f1fb8ba0c594b63840ebd41f059e92b31957c46b74a4599b6d0 \
