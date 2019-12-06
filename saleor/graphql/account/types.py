@@ -228,7 +228,8 @@ class ServiceAccount(MetadataObjectType, CountableDjangoObjectType):
         return graphene.Node.get_node_from_global_id(_info, root.id)
 
 
-@key(fields="id")
+@key("id")
+@key("email")
 class User(MetadataObjectType, CountableDjangoObjectType):
     addresses = gql_optimizer.field(
         graphene.List(Address, description="List of all user's addresses."),
@@ -353,7 +354,9 @@ class User(MetadataObjectType, CountableDjangoObjectType):
 
     @staticmethod
     def __resolve_reference(root, _info, **_kwargs):
-        return graphene.Node.get_node_from_global_id(_info, root.id)
+        if root.id is not None:
+            return graphene.Node.get_node_from_global_id(_info, root.id)
+        return get_user_model().objects.get(email=root.email)
 
 
 class ChoiceValue(graphene.ObjectType):
@@ -379,3 +382,32 @@ class AddressValidationData(graphene.ObjectType):
     postal_code_matchers = graphene.List(graphene.String)
     postal_code_examples = graphene.List(graphene.String)
     postal_code_prefix = graphene.String()
+
+
+class StaffNotificationRecipient(CountableDjangoObjectType):
+    user = graphene.Field(
+        User,
+        description="Returns a user subscribed to email notifications.",
+        required=False,
+    )
+    email = graphene.String(
+        description=(
+            "Returns email address of a user subscribed to email notifications."
+        ),
+        required=False,
+    )
+    active = graphene.Boolean(description="Determines if a notification active.")
+
+    class Meta:
+        description = (
+            "Represents a recipient of email notifications send by Saleor, "
+            "such as notifications about new orders. Notifications can be "
+            "assigned to staff users or arbitrary email addresses."
+        )
+        interfaces = [relay.Node]
+        model = models.StaffNotificationRecipient
+        only_fields = ["user", "active"]
+
+    @staticmethod
+    def resolve_email(root: models.StaffNotificationRecipient, _info):
+        return root.get_email()

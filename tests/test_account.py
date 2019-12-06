@@ -10,6 +10,7 @@ from django.template import Context, Template
 from django_countries.fields import Country
 
 from saleor.account import forms, i18n
+from saleor.account.i18n import AddressForm
 from saleor.account.models import User
 from saleor.account.templatetags.i18n_address_tags import format_address
 from saleor.account.utils import (
@@ -125,6 +126,11 @@ def test_get_address_form(form_data, form_valid, expected_preview, expected_coun
     assert preview is expected_preview
     assert form.is_valid() is form_valid
     assert form.i18n_country_code == expected_country
+
+
+def test_get_address_form_no_country_code():
+    form, _ = forms.get_address_form(data={}, country_code=None)
+    assert isinstance(form, AddressForm)
 
 
 def test_country_aware_form_has_only_supported_countries():

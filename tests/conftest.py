@@ -22,7 +22,12 @@ from PIL import Image
 from prices import Money, TaxedMoney
 
 from saleor.account.backends import BaseBackend
-from saleor.account.models import Address, ServiceAccount, User
+from saleor.account.models import (
+    Address,
+    ServiceAccount,
+    User,
+    StaffNotificationRecipient,
+)
 from saleor.checkout import utils
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
@@ -1743,3 +1748,8 @@ def mock_get_manager(mocker, fake_payment_interface):
     )
     yield fake_payment_interface
     mgr.assert_called_once()
+
+
+@pytest.fixture
+def staff_notification_recipient(db, staff_user):
+    return StaffNotificationRecipient.objects.create(active=True, user=staff_user)

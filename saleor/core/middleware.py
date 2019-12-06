@@ -7,7 +7,6 @@ from django.contrib.sites.models import Site
 from django.core.exceptions import MiddlewareNotUsed
 from django.http import JsonResponse
 from django.template.response import TemplateResponse
-from django.urls import reverse
 from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
 from django.utils.translation import get_language, ugettext_lazy as _
@@ -15,7 +14,7 @@ from django_countries.fields import Country
 
 from ..discount.utils import fetch_discounts
 from ..extensions.manager import get_extensions_manager
-from ..graphql.views import GraphQLView
+from ..graphql.views import API_PATH, GraphQLView
 from . import analytics
 from .exceptions import ReadOnlyException
 from .utils import get_client_ip, get_country_by_ip, get_currency_for_country
@@ -29,7 +28,7 @@ def google_analytics(get_response):
     if not settings.GOOGLE_ANALYTICS_TRACKING_ID:
         raise MiddlewareNotUsed()
 
-    def middleware(request):
+    def _google_analytics_middleware(request):
         client_id = analytics.get_client_id(request)
         path = request.path
         language = get_language()
@@ -42,23 +41,23 @@ def google_analytics(get_response):
             logger.exception("Unable to update analytics")
         return get_response(request)
 
-    return middleware
+    return _google_analytics_middleware
 
 
 def discounts(get_response):
     """Assign active discounts to `request.discounts`."""
 
-    def middleware(request):
+    def _discounts_middleware(request):
         request.discounts = SimpleLazyObject(lambda: fetch_discounts(timezone.now()))
         return get_response(request)
 
-    return middleware
+    return _discounts_middleware
 
 
 def country(get_response):
     """Detect the user's country and assign it to `request.country`."""
 
-    def middleware(request):
+    def _country_middleware(request):
         client_ip = get_client_ip(request)
         if client_ip:
             request.country = get_country_by_ip(client_ip)
@@ -66,20 +65,20 @@ def country(get_response):
             request.country = Country(settings.DEFAULT_COUNTRY)
         return get_response(request)
 
-    return middleware
+    return _country_middleware
 
 
 def currency(get_response):
     """Take a country and assign a matching currency to `request.currency`."""
 
-    def middleware(request):
+    def _currency_middleware(request):
         if hasattr(request, "country") and request.country is not None:
             request.currency = get_currency_for_country(request.country)
         else:
             request.currency = settings.DEFAULT_CURRENCY
         return get_response(request)
 
-    return middleware
+    return _currency_middleware
 
 
 def site(get_response):
@@ -95,11 +94,11 @@ def site(get_response):
         Site.objects.clear_cache()
         return Site.objects.get_current()
 
-    def middleware(request):
+    def _site_middleware(request):
         request.site = SimpleLazyObject(_get_site)
         return get_response(request)
 
-    return middleware
+    return _site_middleware
 
 
 def extensions(get_response):
@@ -108,11 +107,11 @@ def extensions(get_response):
     def _get_manager():
         return get_extensions_manager(plugins=settings.PLUGINS)
 
-    def middleware(request):
+    def _extensions_middleware(request):
         request.extensions = SimpleLazyObject(lambda: _get_manager())
         return get_response(request)
 
-    return middleware
+    return _extensions_middleware
 
 
 class ReadOnlyMiddleware:
@@ -152,7 +151,7 @@ class ReadOnlyMiddleware:
         return self.get_response(request)
 
     def process_view(self, request, *_args, **_kwargs):
-        if request.path == reverse("api"):
+        if request.path == API_PATH:
             if not self._is_graphql_request_blocked(request):
                 return None
             error = GraphQLView.format_error(

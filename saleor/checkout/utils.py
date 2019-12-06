@@ -36,7 +36,7 @@ from ..giftcard.utils import (
     remove_gift_card_code_from_checkout,
 )
 from ..order.actions import order_created
-from ..order.emails import send_order_confirmation
+from ..order.emails import send_order_confirmation, send_staff_order_confirmation
 from ..order.models import Order, OrderLine
 from ..shipping.models import ShippingMethod
 from . import AddressType
@@ -743,6 +743,8 @@ def create_order(
 
     # Send the order confirmation email
     send_order_confirmation.delay(order.pk, redirect_url, user.pk)
+    send_staff_order_confirmation.delay(order.pk, redirect_url)
+
     return order
 
 

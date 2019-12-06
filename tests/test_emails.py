@@ -85,6 +85,47 @@ def test_send_email_payment_confirmation(mocked_templated_email, order, site_set
 
 
 @mock.patch("saleor.order.emails.send_templated_mail")
+def test_send_staff_emails_without_notification_recipient(
+    mocked_templated_email, order, site_settings
+):
+    emails.send_staff_order_confirmation(order.pk, "http://www.example.com/")
+    mocked_templated_email.assert_not_called()
+
+
+@mock.patch("saleor.order.emails.send_templated_mail")
+def test_send_staff_emails(
+    mocked_templated_email, order, site_settings, staff_notification_recipient
+):
+    emails.send_staff_order_confirmation(order.pk, "http://www.example.com/")
+    email_data = emails.collect_staff_order_notification_data(
+        order.pk, emails.STAFF_CONFIRM_ORDER_TEMPLATE
+    )
+
+    recipients = [staff_notification_recipient.get_email()]
+
+    expected_call_kwargs = {
+        "context": email_data["context"],
+        "from_email": site_settings.default_from_email,
+        "template_name": emails.STAFF_CONFIRM_ORDER_TEMPLATE,
+    }
+
+    mocked_templated_email.assert_called_once_with(
+        recipient_list=recipients, **expected_call_kwargs
+    )
+
+    # Render the email to ensure there is no error
+    email_connection = get_connection()
+    email_connection.get_email_message(to=recipients, **expected_call_kwargs)
+
+
+@pytest.mark.parametrize(
+    "send_email,template",
+    [
+        (emails.send_payment_confirmation, emails.CONFIRM_PAYMENT_TEMPLATE),
+        (emails.send_order_confirmation, emails.CONFIRM_ORDER_TEMPLATE),
+    ],
+)
+@mock.patch("saleor.order.emails.send_templated_mail")
 def test_send_email_order_confirmation(mocked_templated_email, order, site_settings):
     template = emails.CONFIRM_ORDER_TEMPLATE
     redirect_url = "https://www.example.com"
