@@ -2204,7 +2204,7 @@ QUERY_ORDER_WITH_SORT = """
 
 
 @pytest.mark.parametrize(
-    "number_sort, result_order",
+    "order_sort, result_order",
     [
         ({"field": "NUMBER", "direction": "ASC"}, [0, 1, 2]),
         ({"field": "NUMBER", "direction": "DESC"}, [2, 1, 0]),
@@ -2219,7 +2219,7 @@ QUERY_ORDER_WITH_SORT = """
     ],
 )
 def test_query_orders_with_sort(
-    number_sort, result_order, staff_api_client, permission_manage_orders, address
+    order_sort, result_order, staff_api_client, permission_manage_orders, address
 ):
     created_orders = []
     with freeze_time("2017-01-14"):
@@ -2254,7 +2254,7 @@ def test_query_orders_with_sort(
             total=TaxedMoney(net=Money(20, "USD"), gross=Money(26, "USD")),
         )
     )
-    variables = {"sort_by": number_sort}
+    variables = {"sort_by": order_sort}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(QUERY_ORDER_WITH_SORT, variables)
     content = get_graphql_content(response)
@@ -2262,52 +2262,80 @@ def test_query_orders_with_sort(
 
     for order, order_number in enumerate(result_order):
         assert orders[order]["node"]["number"] == str(created_orders[order_number].pk)
+
+
+QUERY_DRAFT_ORDER_WITH_SORT = """
+    query ($sort_by: OrderSortingInput!) {
+        draftOrders(first:5, sortBy: $sort_by) {
+            edges{
+                node{
+                    number
+                }
+            }
+        }
+    }
+"""
 
 
 @pytest.mark.parametrize(
-    "number_sort, result_order",
+    "draft_order_sort, result_order",
     [
-        ({"field": "PAYMENT", "direction": "ASC"}, [1, 0, 2]),
-        ({"field": "PAYMENT", "direction": "DESC"}, [2, 0, 1]),
+        ({"field": "NUMBER", "direction": "ASC"}, [0, 1, 2]),
+        ({"field": "NUMBER", "direction": "DESC"}, [2, 1, 0]),
+        ({"field": "CREATION_DATE", "direction": "ASC"}, [1, 0, 2]),
+        ({"field": "CREATION_DATE", "direction": "DESC"}, [2, 0, 1]),
+        ({"field": "CUSTOMER", "direction": "ASC"}, [2, 0, 1]),
+        ({"field": "CUSTOMER", "direction": "DESC"}, [1, 0, 2]),
+        ({"field": "TOTAL", "direction": "ASC"}, [0, 2, 1]),
+        ({"field": "TOTAL", "direction": "DESC"}, [1, 2, 0]),
     ],
 )
-def test_query_orders_with_sort_by_payments(
-    number_sort, result_order, staff_api_client, permission_manage_orders
+def test_query_draft_orders_with_sort(
+    draft_order_sort, result_order, staff_api_client, permission_manage_orders, address
 ):
-    created_orders = Order.objects.bulk_create(
-        [
-            Order(token=str(uuid.uuid4())),
-            Order(token=str(uuid.uuid4())),
-            Order(token=str(uuid.uuid4())),
-        ]
+    created_orders = []
+    with freeze_time("2017-01-14"):
+        created_orders.append(
+            Order.objects.create(
+                token=str(uuid.uuid4()),
+                billing_address=address,
+                status=OrderStatus.DRAFT,
+                total=TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD")),
+            )
+        )
+    with freeze_time("2012-01-14"):
+        address2 = address.get_copy()
+        address2.first_name = "Walter"
+        address2.save()
+        created_orders.append(
+            Order.objects.create(
+                token=str(uuid.uuid4()),
+                billing_address=address2,
+                status=OrderStatus.DRAFT,
+                total=TaxedMoney(net=Money(100, "USD"), gross=Money(130, "USD")),
+            )
+        )
+    address3 = address.get_copy()
+    address3.last_name = "Alice"
+    address3.save()
+    created_orders.append(
+        Order.objects.create(
+            token=str(uuid.uuid4()),
+            billing_address=address3,
+            status=OrderStatus.DRAFT,
+            total=TaxedMoney(net=Money(20, "USD"), gross=Money(26, "USD")),
+        )
     )
-    Payment.objects.bulk_create(
-        [
-            Payment(
-                gateway="Dummy",
-                order=created_orders[1],
-                charge_status=ChargeStatus.NOT_CHARGED,
-            ),
-            Payment(
-                gateway="Dummy",
-                order=created_orders[1],
-                charge_status=ChargeStatus.FULLY_CHARGED,
-            ),
-            Payment(
-                gateway="Dummy",
-                order=created_orders[0],
-                charge_status=ChargeStatus.FULLY_REFUNDED,
-            ),
-        ]
-    )
-    variables = {"sort_by": number_sort}
+    variables = {"sort_by": draft_order_sort}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
-    response = staff_api_client.post_graphql(QUERY_ORDER_WITH_SORT, variables)
+    response = staff_api_client.post_graphql(QUERY_DRAFT_ORDER_WITH_SORT, variables)
     content = get_graphql_content(response)
-    orders = content["data"]["orders"]["edges"]
+    draft_orders = content["data"]["draftOrders"]["edges"]
 
     for order, order_number in enumerate(result_order):
-        assert orders[order]["node"]["number"] == str(created_orders[order_number].pk)
+        assert draft_orders[order]["node"]["number"] == str(
+            created_orders[order_number].pk
+        )
 
 
 @pytest.mark.parametrize(
