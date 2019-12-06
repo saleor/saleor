@@ -4,6 +4,7 @@ import uuid
 from unittest.mock import ANY, MagicMock, Mock, patch
 
 import graphene
+import jwt
 import pytest
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
@@ -76,7 +77,7 @@ def query_staff_users_with_filter():
     return query
 
 
-def test_create_token_mutation(admin_client, staff_user):
+def test_create_token_mutation(admin_client, staff_user, settings):
     query = """
     mutation TokenCreate($email: String!, $password: String!) {
         tokenCreate(email: $email, password: $password) {
@@ -96,7 +97,10 @@ def test_create_token_mutation(admin_client, staff_user):
     )
     content = get_graphql_content(response)
     token_data = content["data"]["tokenCreate"]
-    assert token_data["token"]
+    token = jwt.decode(token_data["token"], settings.SECRET_KEY)
+    assert token["email"] == staff_user.email
+    assert token["user_id"] == graphene.Node.to_global_id("User", staff_user.id)
+
     assert token_data["errors"] == []
 
     incorrect_variables = {"email": staff_user.email, "password": "incorrect"}

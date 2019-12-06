@@ -26,6 +26,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Generate matching postal codes for US addresses - #5033 by @maarcingebala
 - Update debug toolbar - #5032 by @IKarbowiak
 - Allow staff member to receive notification about customers orders - #4993 by @kswiatek92
+- JWT payload now contains user global id - #5039 by @salwator
 
 ## 2.9.0
 
