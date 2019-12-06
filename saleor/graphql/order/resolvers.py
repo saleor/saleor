@@ -36,8 +36,9 @@ def resolve_orders(info, created, status, query, sort_by=None):
     return filter_orders(qs, info, created, status, query)
 
 
-def resolve_draft_orders(info, created, query):
+def resolve_draft_orders(info, created, query, sort_by=None):
     qs = models.Order.objects.drafts()
+    qs = sort_queryset(qs, sort_by, OrderSortField)
     return filter_orders(qs, info, created, None, query)
 
 

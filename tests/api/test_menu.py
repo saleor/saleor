@@ -131,16 +131,16 @@ QUERY_MENU_WITH_SORT = """
     "menu_sort, result_order",
     [
         # We have "footer" and "navbar" from default saleor configuration
-        ({"field": "NAME", "direction": "ASC"}, ["Menu1", "footer", "navbar"]),
-        ({"field": "NAME", "direction": "DESC"}, ["navbar", "footer", "Menu1"]),
-        ({"field": "ITEMS_COUNT", "direction": "ASC"}, ["footer", "navbar", "Menu1"]),
-        ({"field": "ITEMS_COUNT", "direction": "DESC"}, ["Menu1", "navbar", "footer"]),
+        ({"field": "NAME", "direction": "ASC"}, ["footer", "menu1", "navbar"]),
+        ({"field": "NAME", "direction": "DESC"}, ["navbar", "menu1", "footer"]),
+        ({"field": "ITEMS_COUNT", "direction": "ASC"}, ["footer", "navbar", "menu1"]),
+        ({"field": "ITEMS_COUNT", "direction": "DESC"}, ["menu1", "navbar", "footer"]),
     ],
 )
 def test_query_menus_with_sort(
     menu_sort, result_order, staff_api_client, permission_manage_menus
 ):
-    menu = Menu.objects.create(name="Menu1")
+    menu = Menu.objects.create(name="menu1")
     MenuItem.objects.create(name="MenuItem1", menu=menu)
     MenuItem.objects.create(name="MenuItem2", menu=menu)
     navbar = Menu.objects.get(name="navbar")
