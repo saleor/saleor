@@ -1,25 +1,12 @@
 from unittest import mock
 
-from saleor.menu.models import Menu, MenuItem, MenuItemTranslation
+from saleor.menu.models import MenuItem, MenuItemTranslation
 from saleor.menu.utils import (
     get_menu_as_json,
     get_menu_item_as_dict,
-    get_menus_that_need_update,
     update_menu,
-    update_menu_item_linked_object,
     update_menus,
 )
-
-
-def test_update_menu_item_linked_object(menu, category, page):
-    menu_item = menu.items.create(category=category)
-
-    update_menu_item_linked_object(menu_item, page)
-
-    assert menu_item.linked_object == page
-    assert menu_item.get_url() == page.get_absolute_url()
-    assert not menu_item.category
-    assert not menu_item.collection
 
 
 def test_get_menu_item_as_dict(menu):
@@ -85,23 +72,6 @@ def test_update_menu(mock_json_menu, menu):
     mock_json_menu.assert_called_once_with(menu)
     menu.refresh_from_db()
     assert menu.json_content == "Return value"
-
-
-def test_get_menus_that_need_update(category, collection, page):
-    assert not get_menus_that_need_update()
-
-    menus = Menu.objects.bulk_create(
-        [Menu(name="category"), Menu(name="collection"), Menu(name="page")]
-    )
-
-    MenuItem.objects.create(name="item", menu=menus[0], category=category),
-    MenuItem.objects.create(name="item", menu=menus[1], collection=collection),
-    MenuItem.objects.create(name="item", menu=menus[2], page=page)
-
-    result = get_menus_that_need_update(
-        categories=[category], collection=collection, page=page
-    )
-    assert sorted(list(result)) == sorted([m.pk for m in menus])
 
 
 def test_menu_item_status(menu, category, collection, page):
