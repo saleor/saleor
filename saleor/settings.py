@@ -166,7 +166,6 @@ context_processors = [
     "django.template.context_processors.request",
     "saleor.core.context_processors.default_currency",
     "saleor.checkout.context_processors.checkout_counter",
-    "saleor.core.context_processors.search_enabled",
     "saleor.site.context_processors.site",
     "social_django.context_processors.backends",
     "social_django.context_processors.login_redirect",
@@ -511,24 +510,7 @@ DEFAULT_PLACEHOLDER = "images/placeholder255x255.png"
 
 LOGOUT_ON_PASSWORD_CHANGE = False
 
-# SEARCH CONFIGURATION
-DB_SEARCH_ENABLED = True
-
-# support deployment-dependant elastic environment variable
-ES_URL = (
-    os.environ.get("ELASTICSEARCH_URL")
-    or os.environ.get("SEARCHBOX_URL")
-    or os.environ.get("BONSAI_URL")
-)
-
-ENABLE_SEARCH = bool(ES_URL) or DB_SEARCH_ENABLED  # global search disabling
-
 SEARCH_BACKEND = "saleor.search.backends.postgresql"
-
-if ES_URL:
-    SEARCH_BACKEND = "saleor.search.backends.elasticsearch"
-    INSTALLED_APPS.append("django_elasticsearch_dsl")
-    ELASTICSEARCH_DSL = {"default": {"hosts": ES_URL}}
 
 AUTHENTICATION_BACKENDS = [
     "saleor.account.backends.facebook.CustomFacebookOAuth2",

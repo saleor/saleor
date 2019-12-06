@@ -280,7 +280,6 @@ couchbase = ["couchbase", "couchbase-cffi"]
 couchdb = ["pycouchdb"]
 django = ["Django (>=1.8)"]
 dynamodb = ["boto3 (>=1.4.6)"]
-elasticsearch = ["elasticsearch"]
 eventlet = ["eventlet (>=0.24.1)"]
 gevent = ["gevent"]
 librabbitmq = ["librabbitmq (>=1.5.0)"]
@@ -511,17 +510,6 @@ version = "0.1.0"
 
 [package.dependencies]
 django-debug-toolbar = ">=2.0"
-
-[[package]]
-category = "main"
-description = "Wrapper around elasticsearch-dsl-py for django models"
-name = "django-elasticsearch-dsl"
-optional = false
-python-versions = "*"
-version = "0.5.1"
-
-[package.dependencies]
-elasticsearch-dsl = ">=2.1.0,<6.2.0"
 
 [[package]]
 category = "dev"
@@ -791,38 +779,6 @@ urllib3 = "*"
 
 [package.extras]
 dev = ["pre-commit", "pytest", "mock"]
-
-[[package]]
-category = "main"
-description = "Python client for Elasticsearch"
-name = "elasticsearch"
-optional = false
-python-versions = "*"
-version = "6.3.1"
-
-[package.dependencies]
-urllib3 = ">=1.21.1"
-
-[package.extras]
-develop = ["requests (>=2.0.0,<3.0.0)", "nose", "coverage", "mock", "pyaml", "nosexcover", "sphinx", "sphinx-rtd-theme"]
-requests = ["requests (>=2.4.0,<3.0.0)"]
-
-[[package]]
-category = "main"
-description = "Python client for Elasticsearch"
-name = "elasticsearch-dsl"
-optional = false
-python-versions = "*"
-version = "6.0.1"
-
-[package.dependencies]
-elasticsearch = ">=6.0.0,<7.0.0"
-ipaddress = "*"
-python-dateutil = "*"
-six = "*"
-
-[package.extras]
-develop = ["mock", "pytest (>=3.0.0)", "pytest-cov", "pytz", "sphinx", "sphinx-rtd-theme"]
 
 [[package]]
 category = "dev"
@@ -1173,14 +1129,6 @@ zipp = ">=0.5"
 [package.extras]
 docs = ["sphinx", "rst.linker"]
 testing = ["packaging", "importlib-resources"]
-
-[[package]]
-category = "main"
-description = "IPv4/IPv6 manipulation library"
-name = "ipaddress"
-optional = false
-python-versions = "*"
-version = "1.0.23"
 
 [[package]]
 category = "dev"
@@ -2322,7 +2270,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["pathlib2", "contextlib2", "unittest2"]
 
 [metadata]
-content-hash = "7670c765c3e1a1291a2e55e849b88adf2a5b3323993d090a65974e9d852f7fe7"
+content-hash = "1ee91cd4db26b127e36efae7b61a0611d2e0c8e1d14df02a9cf727276afa1e51"
 python-versions = "~3.8"
 
 [metadata.files]
@@ -2552,10 +2500,6 @@ django-debug-toolbar = [
 django-debug-toolbar-request-history = [
     {file = "django_debug_toolbar_request_history-0.1.0-py2.py3-none-any.whl", hash = "sha256:b258919bc9f0b863a20783ceda51e4a52c187f93a859de0fcb289423d9aff453"},
 ]
-django-elasticsearch-dsl = [
-    {file = "django-elasticsearch-dsl-0.5.1.tar.gz", hash = "sha256:8c96714d8eef30763e820a2909663b236df765e5c6c8508721489dc9713dfef7"},
-    {file = "django_elasticsearch_dsl-0.5.1-py2.py3-none-any.whl", hash = "sha256:114889f0f70d584e300953b9fc75f312b447e3ff96136dad03028654ba9f4cbd"},
-]
 django-extensions = [
     {file = "django-extensions-2.2.5.tar.gz", hash = "sha256:b58320d3fe3d6ae7d1d8e38959713fa92272f4921e662d689058d942a5b444f7"},
     {file = "django_extensions-2.2.5-py2.py3-none-any.whl", hash = "sha256:a9db7c56a556d244184f589f2437b4228de86ee45e5ebb837fb20c6d54e95ea5"},
@@ -2631,14 +2575,6 @@ docutils = [
 ]
 draftjs-sanitizer = [
     {file = "draftjs-sanitizer-1.0.0.tar.gz", hash = "sha256:4603a9296153cd06d5a1d76a45a1ff0295363516af983d8dde28cafc5cd67583"},
-]
-elasticsearch = [
-    {file = "elasticsearch-6.3.1-py2.py3-none-any.whl", hash = "sha256:7546cc08e3899716e12fe67d12d7cfe9a64647014d1134b014c3c392b63cad42"},
-    {file = "elasticsearch-6.3.1.tar.gz", hash = "sha256:aada5cfdc4a543c47098eb3aca6663848ef5d04b4324935ced441debc11ec98b"},
-]
-elasticsearch-dsl = [
-    {file = "elasticsearch-dsl-6.0.1.tar.gz", hash = "sha256:8c340995388544662598299a63357acd576579eb939e500956d58a5fd8c17cd1"},
-    {file = "elasticsearch_dsl-6.0.1-py2.py3-none-any.whl", hash = "sha256:e4254061442fded9721d4ed07db398f66453c402ab60409a2b9a88be433c27ba"},
 ]
 entrypoints = [
     {file = "entrypoints-0.3-py2.py3-none-any.whl", hash = "sha256:589f874b313739ad35be6e0cd7efde2a4e9b6fea91edcc34e58ecbb8dbe56d19"},
@@ -2738,10 +2674,6 @@ idna = [
 importlib-metadata = [
     {file = "importlib_metadata-0.23-py2.py3-none-any.whl", hash = "sha256:d5f18a79777f3aa179c145737780282e27b508fc8fd688cb17c7a813e8bd39af"},
     {file = "importlib_metadata-0.23.tar.gz", hash = "sha256:aa18d7378b00b40847790e7c27e11673d7fed219354109d0e7b9e5b25dc3ad26"},
-]
-ipaddress = [
-    {file = "ipaddress-1.0.23-py2.py3-none-any.whl", hash = "sha256:6e0f4a39e66cb5bb9a137b00276a2eff74f93b71dcbdad6f10ff7df9d3557fcc"},
-    {file = "ipaddress-1.0.23.tar.gz", hash = "sha256:b7f8e0369580bb4a24d5ba1d7cc29660a4a6987763faf1d8a8046830e020e7e2"},
 ]
 isort = [
     {file = "isort-4.3.21-py2.py3-none-any.whl", hash = "sha256:6e811fcb295968434526407adb8796944f1988c5b65e8139058f2014cbe100fd"},
