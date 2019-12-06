@@ -1,26 +1,20 @@
 """Checkout-related utility functions."""
-from datetime import date, timedelta
-from functools import wraps
+from datetime import date
 from typing import TYPE_CHECKING, List, Optional, Tuple
-from uuid import UUID
 
-from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.db import transaction
 from django.db.models import Max, Min, Sum
 from django.utils import timezone
 from django.utils.encoding import smart_text
-from django.utils.translation import get_language, pgettext, pgettext_lazy
+from django.utils.translation import get_language, pgettext
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from ..account.forms import get_address_form
-from ..account.models import Address, User
+from ..account.models import User
 from ..account.utils import store_user_address
 from ..checkout import calculations
 from ..checkout.error_codes import CheckoutErrorCode
-from ..core.exceptions import InsufficientStock
 from ..core.taxes import quantize_price, zero_taxed_money
-from ..core.utils import to_local_currency
 from ..core.utils.promo_code import (
     InvalidPromoCode,
     promo_code_is_gift_card,
@@ -45,13 +39,7 @@ from ..order.actions import order_created
 from ..order.emails import send_order_confirmation
 from ..order.models import Order, OrderLine
 from ..shipping.models import ShippingMethod
-from . import AddressType, logger
-from .forms import (
-    AddressChoiceForm,
-    AnonymousUserBillingForm,
-    AnonymousUserShippingForm,
-    BillingAddressChoiceForm,
-)
+from . import AddressType
 from .models import Checkout, CheckoutLine
 
 if TYPE_CHECKING:
@@ -60,135 +48,20 @@ if TYPE_CHECKING:
 COOKIE_NAME = "checkout"
 
 
-def set_checkout_cookie(simple_checkout, response):
-    """Update response with a checkout token cookie."""
-    # FIXME: document why session is not used
-    max_age = int(timedelta(days=30).total_seconds())
-    response.set_signed_cookie(COOKIE_NAME, simple_checkout.token, max_age=max_age)
-
-
-def contains_unavailable_variants(checkout):
-    """Return `True` if checkout contains any unfulfillable lines."""
-    try:
-        for line in checkout:
-            line.variant.check_quantity(line.quantity)
-    except InsufficientStock:
-        return True
-    return False
-
-
-def token_is_valid(token):
-    """Validate a checkout token."""
-    if token is None:
-        return False
-    if isinstance(token, UUID):
-        return True
-    try:
-        UUID(token)
-    except ValueError:
-        return False
-    return True
-
-
-def remove_unavailable_variants(checkout):
-    """Remove any unavailable items from checkout."""
-    for line in checkout:
-        try:
-            add_variant_to_checkout(checkout, line.variant, line.quantity, replace=True)
-        except InsufficientStock as e:
-            quantity = e.item.quantity_available
-            add_variant_to_checkout(checkout, line.variant, quantity, replace=True)
-
-
-def get_prices_of_discounted_specific_product(
-    lines: List[CheckoutLine], voucher: Voucher, discounts: "DiscountsListType" = None
-) -> List[Money]:
-    """Get prices of variants belonging to the discounted specific products.
-
-    Specific products are products, collections and categories.
-    Product must be assigned directly to the discounted category, assigning
-    product to child category won't work.
-    """
-    discounted_products = voucher.products.all()
-    discounted_categories = set(voucher.categories.all())
-    discounted_collections = set(voucher.collections.all())
-
-    line_prices = []
-    discounted_lines = []
-    if discounted_products or discounted_collections or discounted_categories:
-        for line in lines:
-            line_product = line.variant.product
-            line_category = line.variant.product.category
-            line_collections = set(line.variant.product.collections.all())
-            if line.variant and (
-                line_product in discounted_products
-                or line_category in discounted_categories
-                or line_collections.intersection(discounted_collections)
-            ):
-                discounted_lines.append(line)
+def get_checkout_from_request(request, checkout_queryset=Checkout.objects.all()):
+    """Fetch checkout from database or return a new instance based on cookie."""
+    if request.user.is_authenticated:
+        checkout, _ = get_user_checkout(request.user, checkout_queryset)
+        user = request.user
     else:
-        # If there's no discounted products, collections or categories,
-        # it means that all products are discounted
-        discounted_lines.extend(list(lines))
-
-    for line in discounted_lines:
-        line_total = calculations.checkout_line_total(line, discounts or []).gross
-        line_unit_price = quantize_price(
-            (line_total / line.quantity), line_total.currency
-        )
-        line_prices.extend([line_unit_price] * line.quantity)
-
-    return line_prices
-
-
-def check_product_availability_and_warn(request, checkout):
-    """Warn if checkout contains any lines that cannot be fulfilled."""
-    if contains_unavailable_variants(checkout):
-        msg = pgettext_lazy(
-            "Checkout warning message",
-            "Sorry. We don't have that many items in stock. "
-            "Quantity was set to maximum available for now.",
-        )
-        messages.warning(request, msg)
-        remove_unavailable_variants(checkout)
-
-
-def find_and_assign_anonymous_checkout(queryset=Checkout.objects.all()):
-    """Assign checkout from cookie to request user."""
-
-    def get_checkout(view):
-        @wraps(view)
-        def func(request, *args, **kwargs):
-            response = view(request, *args, **kwargs)
-            token = request.get_signed_cookie(COOKIE_NAME, default=None)
-            if not token_is_valid(token):
-                return response
-            checkout = get_anonymous_checkout_from_token(
-                token=token, checkout_queryset=queryset
-            )
-            if checkout is None:
-                return response
-            if request.user.is_authenticated:
-                with transaction.atomic():
-                    change_checkout_user(checkout, request.user)
-                    checkouts_to_close = Checkout.objects.filter(user=request.user)
-                    checkouts_to_close = checkouts_to_close.exclude(token=token)
-                    checkouts_to_close.delete()
-                response.delete_cookie(COOKIE_NAME)
-            return response
-
-        return func
-
-    return get_checkout
-
-
-def get_or_create_anonymous_checkout_from_token(
-    token, checkout_queryset=Checkout.objects.all()
-):
-    """Return an open unassigned checkout with given token or create a new one."""
-    return checkout_queryset.filter(token=token, user=None).get_or_create(
-        defaults={"user": None}
-    )[0]
+        token = request.get_signed_cookie(COOKIE_NAME, default=None)
+        checkout = get_anonymous_checkout_from_token(token, checkout_queryset)
+        user = None
+    if checkout is not None:
+        return checkout
+    if user:
+        return Checkout(user=user)
+    return Checkout()
 
 
 def get_user_checkout(
@@ -213,76 +86,6 @@ def get_user_checkout(
 def get_anonymous_checkout_from_token(token, checkout_queryset=Checkout.objects.all()):
     """Return an open unassigned checkout with given token if any."""
     return checkout_queryset.filter(token=token, user=None).first()
-
-
-def get_or_create_checkout_from_request(
-    request, checkout_queryset=Checkout.objects.all()
-) -> Checkout:
-    """Fetch checkout from database or create a new one based on cookie."""
-    if request.user.is_authenticated:
-        return get_user_checkout(request.user, checkout_queryset, auto_create=True)[0]
-    token = request.get_signed_cookie(COOKIE_NAME, default=None)
-    return get_or_create_anonymous_checkout_from_token(token, checkout_queryset)
-
-
-def get_checkout_from_request(request, checkout_queryset=Checkout.objects.all()):
-    """Fetch checkout from database or return a new instance based on cookie."""
-    if request.user.is_authenticated:
-        checkout, _ = get_user_checkout(request.user, checkout_queryset)
-        user = request.user
-    else:
-        token = request.get_signed_cookie(COOKIE_NAME, default=None)
-        checkout = get_anonymous_checkout_from_token(token, checkout_queryset)
-        user = None
-    if checkout is not None:
-        return checkout
-    if user:
-        return Checkout(user=user)
-    return Checkout()
-
-
-def get_or_empty_db_checkout(checkout_queryset=Checkout.objects.all()):
-    """Decorate view to receive a checkout if one exists.
-
-    Changes the view signature from `func(request, ...)` to
-    `func(request, checkout, ...)`.
-
-    If no matching checkout is found, an unsaved `Checkout` instance will be used.
-    """
-    # FIXME: behave like middleware and assign checkout to request instead
-    def get_checkout(view):
-        @wraps(view)
-        def func(request, *args, **kwargs):
-            checkout = get_checkout_from_request(request, checkout_queryset)
-            return view(request, checkout, *args, **kwargs)
-
-        return func
-
-    return get_checkout
-
-
-def find_open_checkout_for_user(user):
-    """Find an open checkout for the given user."""
-    checkouts = user.checkouts.all()
-    open_checkout = checkouts.first()
-    if len(checkouts) > 1:
-        logger.warning("%s has more than one open basket", user)
-        checkouts.exclude(token=open_checkout.token).delete()
-    return open_checkout
-
-
-def change_checkout_user(checkout, user):
-    """Assign checkout to a user.
-
-    If the user already has an open checkout assigned, cancel it.
-    """
-    open_checkout = find_open_checkout_for_user(user)
-    if open_checkout is not None:
-        open_checkout.delete()
-    checkout.user = user
-    checkout.shipping_address = user.default_shipping_address
-    checkout.billing_address = user.default_billing_address
-    checkout.save(update_fields=["user", "shipping_address", "billing_address"])
 
 
 def update_checkout_quantity(checkout):
@@ -348,265 +151,6 @@ def add_variant_to_checkout(
     update_checkout_quantity(checkout)
 
 
-def get_shipping_address_forms(checkout, user_addresses, data, country):
-    """Retrieve a form initialized with data based on the checkout shipping address."""
-    shipping_address = (
-        checkout.shipping_address or checkout.user.default_shipping_address
-    )
-
-    if shipping_address and shipping_address in user_addresses:
-        address_form, preview = get_address_form(
-            data, country_code=country.code, initial={"country": country}
-        )
-        addresses_form = AddressChoiceForm(
-            data, addresses=user_addresses, initial={"address": shipping_address.id}
-        )
-    elif shipping_address:
-        address_form, preview = get_address_form(
-            data, country_code=shipping_address.country.code, instance=shipping_address
-        )
-        addresses_form = AddressChoiceForm(data, addresses=user_addresses)
-    else:
-        address_form, preview = get_address_form(
-            data, country_code=country.code, initial={"country": country}
-        )
-        addresses_form = AddressChoiceForm(data, addresses=user_addresses)
-
-    return address_form, addresses_form, preview
-
-
-def update_shipping_address_in_checkout(checkout, user_addresses, data, country):
-    """Return shipping address choice forms and if an address was updated."""
-    address_form, addresses_form, preview = get_shipping_address_forms(
-        checkout, user_addresses, data, country
-    )
-
-    updated = False
-
-    if addresses_form.is_valid() and not preview:
-        use_existing_address = (
-            addresses_form.cleaned_data["address"] != AddressChoiceForm.NEW_ADDRESS
-        )
-
-        if use_existing_address:
-            address_id = addresses_form.cleaned_data["address"]
-            address = Address.objects.get(id=address_id)
-            change_shipping_address_in_checkout(checkout, address)
-            updated = True
-
-        elif address_form.is_valid():
-            address = address_form.save()
-            change_shipping_address_in_checkout(checkout, address)
-            updated = True
-
-    return addresses_form, address_form, updated
-
-
-def update_shipping_address_in_anonymous_checkout(checkout, data, country):
-    """Return shipping address choice forms and if an address was updated."""
-    address_form, preview = get_address_form(
-        data,
-        country_code=country.code,
-        autocomplete_type="shipping",
-        instance=checkout.shipping_address,
-        initial={"country": country},
-    )
-    user_form = AnonymousUserShippingForm(
-        data if not preview else None, instance=checkout
-    )
-
-    updated = False
-
-    if user_form.is_valid() and address_form.is_valid():
-        user_form.save()
-        address = address_form.save()
-        change_shipping_address_in_checkout(checkout, address)
-        updated = True
-
-    return user_form, address_form, updated
-
-
-def get_billing_forms_with_shipping(checkout, data, user_addresses, country):
-    """Get billing form based on a the current billing and shipping data."""
-    shipping_address = checkout.shipping_address
-    billing_address = checkout.billing_address or Address(country=country)
-
-    if not billing_address.id or billing_address == shipping_address:
-        address_form, preview = get_address_form(
-            data,
-            country_code=shipping_address.country.code,
-            autocomplete_type="billing",
-            initial={"country": shipping_address.country},
-        )
-        addresses_form = BillingAddressChoiceForm(
-            data,
-            addresses=user_addresses,
-            initial={"address": BillingAddressChoiceForm.SHIPPING_ADDRESS},
-        )
-    elif billing_address in user_addresses:
-        address_form, preview = get_address_form(
-            data,
-            country_code=billing_address.country.code,
-            autocomplete_type="billing",
-            initial={"country": billing_address.country},
-        )
-        addresses_form = BillingAddressChoiceForm(
-            data, addresses=user_addresses, initial={"address": billing_address.id}
-        )
-    else:
-        address_form, preview = get_address_form(
-            data,
-            country_code=billing_address.country.code,
-            autocomplete_type="billing",
-            initial={"country": billing_address.country},
-            instance=billing_address,
-        )
-        addresses_form = BillingAddressChoiceForm(
-            data,
-            addresses=user_addresses,
-            initial={"address": BillingAddressChoiceForm.NEW_ADDRESS},
-        )
-
-    return address_form, addresses_form, preview
-
-
-def update_billing_address_in_checkout_with_shipping(
-    checkout, user_addresses, data, country
-):
-    """Return shipping address choice forms and if an address was updated."""
-    address_form, addresses_form, preview = get_billing_forms_with_shipping(
-        checkout, data, user_addresses, country
-    )
-
-    updated = False
-
-    if addresses_form.is_valid() and not preview:
-        address = None
-        address_id = addresses_form.cleaned_data["address"]
-
-        if address_id == BillingAddressChoiceForm.SHIPPING_ADDRESS:
-            if checkout.user and checkout.shipping_address in user_addresses:
-                address = checkout.shipping_address
-            else:
-                address = checkout.shipping_address.get_copy()
-        elif address_id != BillingAddressChoiceForm.NEW_ADDRESS:
-            address = user_addresses.get(id=address_id)
-        elif address_form.is_valid():
-            address = address_form.save()
-
-        if address:
-            change_billing_address_in_checkout(checkout, address)
-            updated = True
-
-    return addresses_form, address_form, updated
-
-
-def get_anonymous_summary_without_shipping_forms(checkout, data, country):
-    """Build a form initialized with data depending on addresses in checkout."""
-    billing_address = checkout.billing_address
-
-    if billing_address:
-        address_form, preview = get_address_form(
-            data,
-            country_code=billing_address.country.code,
-            autocomplete_type="billing",
-            instance=billing_address,
-        )
-    else:
-        address_form, preview = get_address_form(
-            data,
-            country_code=country.code,
-            autocomplete_type="billing",
-            initial={"country": country},
-        )
-
-    return address_form, preview
-
-
-def update_billing_address_in_anonymous_checkout(checkout, data, country):
-    """Return shipping address choice forms and if an address was updated."""
-    address_form, preview = get_anonymous_summary_without_shipping_forms(
-        checkout, data, country
-    )
-    user_form = AnonymousUserBillingForm(data, instance=checkout)
-
-    updated = False
-
-    if user_form.is_valid() and address_form.is_valid() and not preview:
-        user_form.save()
-        address = address_form.save()
-        change_billing_address_in_checkout(checkout, address)
-        updated = True
-
-    return user_form, address_form, updated
-
-
-def get_summary_without_shipping_forms(checkout, user_addresses, data, country):
-    """Build a forms initialized with data depending on addresses in checkout."""
-    billing_address = checkout.billing_address
-
-    if billing_address and billing_address in user_addresses:
-        address_form, preview = get_address_form(
-            data,
-            autocomplete_type="billing",
-            country_code=billing_address.country.code,
-            initial={"country": billing_address.country},
-        )
-        initial_address = billing_address.id
-    elif billing_address:
-        address_form, preview = get_address_form(
-            data,
-            autocomplete_type="billing",
-            country_code=billing_address.country.code,
-            initial={"country": billing_address.country},
-            instance=billing_address,
-        )
-        initial_address = AddressChoiceForm.NEW_ADDRESS
-    else:
-        address_form, preview = get_address_form(
-            data,
-            autocomplete_type="billing",
-            country_code=country.code,
-            initial={"country": country},
-        )
-        if checkout.user and checkout.user.default_billing_address:
-            initial_address = checkout.user.default_billing_address.id
-        else:
-            initial_address = AddressChoiceForm.NEW_ADDRESS
-
-    addresses_form = AddressChoiceForm(
-        data, addresses=user_addresses, initial={"address": initial_address}
-    )
-    return address_form, addresses_form, preview
-
-
-def update_billing_address_in_checkout(checkout, user_addresses, data, country):
-    """Return shipping address choice forms and if an address was updated."""
-    address_form, addresses_form, preview = get_summary_without_shipping_forms(
-        checkout, user_addresses, data, country
-    )
-
-    updated = False
-
-    if addresses_form.is_valid():
-        use_existing_address = (
-            addresses_form.cleaned_data["address"] != AddressChoiceForm.NEW_ADDRESS
-        )
-
-        if use_existing_address:
-            address_id = addresses_form.cleaned_data["address"]
-            address = Address.objects.get(id=address_id)
-            change_billing_address_in_checkout(checkout, address)
-            updated = True
-
-        elif address_form.is_valid():
-            address = address_form.save()
-            change_billing_address_in_checkout(checkout, address)
-            updated = True
-
-    return addresses_form, address_form, updated
-
-
 def _check_new_checkout_address(checkout, address, address_type):
     """Check if and address in checkout has changed and if to remove old one."""
     if address_type == AddressType.BILLING:
@@ -661,55 +205,6 @@ def change_shipping_address_in_checkout(checkout, address):
         checkout.save(update_fields=["shipping_address"])
 
 
-def get_checkout_context(
-    checkout: Checkout,
-    discounts: "DiscountsListType",
-    currency: Optional[str] = None,
-    shipping_range=None,
-) -> dict:
-    """Retrieve the data shared between views in checkout process."""
-    cards_balance = checkout.get_total_gift_cards_balance()
-
-    # FIXME: We are having here parts of checkout total calculation logic
-    checkout_total = calculations.checkout_total(checkout=checkout, discounts=discounts)
-    checkout_total.gross -= cards_balance
-    checkout_total.net -= cards_balance
-    checkout_total = max(checkout_total, zero_taxed_money(checkout_total.currency))
-    checkout_subtotal = calculations.checkout_subtotal(checkout, discounts)
-    shipping_price = calculations.checkout_shipping_price(checkout, discounts)
-
-    shipping_required = checkout.is_shipping_required()
-    total_with_shipping = TaxedMoneyRange(
-        start=checkout_subtotal, stop=checkout_subtotal
-    )
-    if shipping_required and shipping_range:
-        total_with_shipping = shipping_range + checkout_subtotal
-
-    manager = get_extensions_manager()
-    context = {
-        "checkout": checkout,
-        "checkout_are_taxes_handled": manager.taxes_are_enabled(),
-        "checkout_lines": [
-            (line, calculations.checkout_line_total(line, discounts))
-            for line in checkout
-        ],
-        "checkout_shipping_price": shipping_price,
-        "checkout_subtotal": checkout_subtotal,
-        "checkout_total": checkout_total,
-        "shipping_required": checkout.is_shipping_required(),
-        "total_with_shipping": total_with_shipping,
-    }
-
-    if currency:
-        context.update(
-            local_checkout_total=to_local_currency(checkout_total, currency),
-            local_checkout_subtotal=to_local_currency(checkout_subtotal, currency),
-            local_total_with_shipping=to_local_currency(total_with_shipping, currency),
-        )
-
-    return context
-
-
 def _get_shipping_voucher_discount_for_checkout(
     voucher, checkout, discounts: "DiscountsListType" = None
 ):
@@ -751,6 +246,47 @@ def _get_products_voucher_discount(
         )
         raise NotApplicable(msg)
     return get_products_voucher_discount(voucher, prices)
+
+
+def get_prices_of_discounted_specific_product(
+    lines: List[CheckoutLine], voucher: Voucher, discounts: "DiscountsListType" = None
+) -> List[Money]:
+    """Get prices of variants belonging to the discounted specific products.
+
+    Specific products are products, collections and categories.
+    Product must be assigned directly to the discounted category, assigning
+    product to child category won't work.
+    """
+    discounted_products = voucher.products.all()
+    discounted_categories = set(voucher.categories.all())
+    discounted_collections = set(voucher.collections.all())
+
+    line_prices = []
+    discounted_lines = []
+    if discounted_products or discounted_collections or discounted_categories:
+        for line in lines:
+            line_product = line.variant.product
+            line_category = line.variant.product.category
+            line_collections = set(line.variant.product.collections.all())
+            if line.variant and (
+                line_product in discounted_products
+                or line_category in discounted_categories
+                or line_collections.intersection(discounted_collections)
+            ):
+                discounted_lines.append(line)
+    else:
+        # If there's no discounted products, collections or categories,
+        # it means that all products are discounted
+        discounted_lines.extend(list(lines))
+
+    for line in discounted_lines:
+        line_total = calculations.checkout_line_total(line, discounts or []).gross
+        line_unit_price = quantize_price(
+            (line_total / line.quantity), line_total.currency
+        )
+        line_prices.extend([line_unit_price] * line.quantity)
+
+    return line_prices
 
 
 def get_voucher_discount_for_checkout(

@@ -5,14 +5,12 @@ import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.utils import timezone
 from django_countries.fields import Country
-from freezegun import freeze_time
-from prices import Money, TaxedMoney, TaxedMoneyRange
+from prices import Money, TaxedMoney
 
 from saleor.account import CustomerEvents
 from saleor.account.models import Address, CustomerEvent, User
 from saleor.account.utils import store_user_address
 from saleor.checkout import AddressType, calculations
-from saleor.checkout.forms import CheckoutVoucherForm, CountryForm
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import (
     add_variant_to_checkout,
@@ -21,8 +19,6 @@ from saleor.checkout.utils import (
     change_shipping_address_in_checkout,
     clear_shipping_method,
     create_order,
-    get_checkout_context,
-    get_shipping_price_estimate,
     get_voucher_discount_for_checkout,
     get_voucher_for_checkout,
     is_valid_shipping_method,
@@ -34,22 +30,10 @@ from saleor.core.exceptions import InsufficientStock
 from saleor.core.taxes import zero_money, zero_taxed_money
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import NotApplicable, Voucher
-from saleor.extensions.manager import ExtensionsManager, get_extensions_manager
+from saleor.extensions.manager import get_extensions_manager
 from saleor.order import OrderEvents, OrderEventsEmails
 from saleor.order.models import OrderEvent
 from saleor.shipping.models import ShippingZone
-
-
-def test_country_form_country_choices():
-    form = CountryForm(data={"csrf": "", "country": "PL"})
-    assert form.fields["country"].choices == []
-
-    zone = ShippingZone.objects.create(countries=["PL", "DE"], name="Europe")
-    form = CountryForm(data={"csrf": "", "country": "PL"})
-
-    expected_choices = [(country.code, country.name) for country in zone.countries]
-    expected_choices = sorted(expected_choices, key=lambda choice: choice[1])
-    assert form.fields["country"].choices == expected_choices
 
 
 def test_is_valid_shipping_method(checkout_with_item, address, shipping_zone):
@@ -734,81 +718,6 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
     assert str(e.value) == error_msg
 
 
-def test_checkout_voucher_form_invalid_voucher_code(
-    monkeypatch, request_checkout_with_item
-):
-    form = CheckoutVoucherForm(
-        {"voucher": "invalid"}, instance=request_checkout_with_item
-    )
-    assert not form.is_valid()
-    assert "voucher" in form.errors
-
-
-def test_checkout_voucher_form_voucher_not_applicable(
-    voucher, request_checkout_with_item
-):
-    voucher.min_spent = Money(200, "USD")
-    voucher.save()
-    form = CheckoutVoucherForm(
-        {"voucher": voucher.code}, instance=request_checkout_with_item
-    )
-    assert not form.is_valid()
-    assert "voucher" in form.errors
-
-
-def test_checkout_voucher_form_active_queryset_voucher_not_active(
-    voucher, request_checkout_with_item
-):
-    assert Voucher.objects.count() == 1
-    voucher.start_date = timezone.now() + datetime.timedelta(days=1)
-    voucher.save()
-    form = CheckoutVoucherForm(
-        {"voucher": voucher.code}, instance=request_checkout_with_item
-    )
-    qs = form.fields["voucher"].queryset
-    assert qs.count() == 0
-
-
-def test_checkout_voucher_form_active_queryset_voucher_active(
-    voucher, request_checkout_with_item
-):
-    assert Voucher.objects.count() == 1
-    voucher.start_date = timezone.now()
-    voucher.save()
-    form = CheckoutVoucherForm(
-        {"voucher": voucher.code}, instance=request_checkout_with_item
-    )
-    qs = form.fields["voucher"].queryset
-    assert qs.count() == 1
-
-
-def test_checkout_voucher_form_active_queryset_after_some_time(
-    voucher, request_checkout_with_item
-):
-    assert Voucher.objects.count() == 1
-    voucher.start_date = timezone.now().replace(year=2016, month=6, day=1, hour=0)
-    voucher.end_date = timezone.now().replace(year=2016, month=6, day=2, hour=0)
-    voucher.save()
-
-    with freeze_time("2016-05-31"):
-        form = CheckoutVoucherForm(
-            {"voucher": voucher.code}, instance=request_checkout_with_item
-        )
-        assert form.fields["voucher"].queryset.count() == 0
-
-    with freeze_time("2016-06-01T05:00:00+00:00"):
-        form = CheckoutVoucherForm(
-            {"voucher": voucher.code}, instance=request_checkout_with_item
-        )
-        assert form.fields["voucher"].queryset.count() == 1
-
-    with freeze_time("2016-06-03"):
-        form = CheckoutVoucherForm(
-            {"voucher": voucher.code}, instance=request_checkout_with_item
-        )
-        assert form.fields["voucher"].queryset.count() == 0
-
-
 def test_get_voucher_for_checkout(checkout_with_voucher, voucher):
     checkout_voucher = get_voucher_for_checkout(checkout_with_voucher)
     assert checkout_voucher == voucher
@@ -941,49 +850,6 @@ def test_recalculate_checkout_discount_free_shipping_for_checkout_without_shippi
     assert not checkout.discount_name
     assert not checkout.voucher_code
     assert checkout.discount == zero_money()
-
-
-def test_get_checkout_context(checkout_with_voucher):
-    line_price = TaxedMoney(net=Money("30.00", "USD"), gross=Money("30.00", "USD"))
-    manager = get_extensions_manager()
-    expected_data = {
-        "checkout": checkout_with_voucher,
-        "checkout_are_taxes_handled": manager.taxes_are_enabled(),
-        "checkout_lines": [(checkout_with_voucher.lines.first(), line_price)],
-        "checkout_shipping_price": zero_taxed_money(),
-        "checkout_subtotal": line_price,
-        "checkout_total": line_price - checkout_with_voucher.discount,
-        "shipping_required": checkout_with_voucher.is_shipping_required(),
-        "total_with_shipping": TaxedMoneyRange(start=line_price, stop=line_price),
-    }
-
-    data = get_checkout_context(checkout_with_voucher, discounts=None)
-
-    assert data == expected_data
-
-
-def test_get_checkout_context_with_shipping_range(
-    checkout_with_voucher, shipping_method, address, monkeypatch
-):
-    checkout_with_voucher.shipping_method = shipping_method
-    checkout_with_voucher.shipping_address = address
-    line_price = TaxedMoney(net=Money("30.00", "USD"), gross=Money("45.00", "USD"))
-
-    monkeypatch.setattr(
-        ExtensionsManager, "calculate_checkout_subtotal", Mock(return_value=line_price)
-    )
-
-    shipping_range = get_shipping_price_estimate(
-        checkout_with_voucher, discounts=None, country_code="US"
-    )
-    expected_total_with_shipping = TaxedMoneyRange(start=line_price, stop=line_price)
-    expected_total_with_shipping += shipping_range
-
-    data = get_checkout_context(
-        checkout_with_voucher, discounts=None, shipping_range=shipping_range
-    )
-
-    assert data["total_with_shipping"] == expected_total_with_shipping
 
 
 def test_change_address_in_checkout(checkout, address):
