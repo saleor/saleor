@@ -96,9 +96,10 @@ def test_send_staff_emails_without_notification_recipient(
 def test_send_staff_emails(
     mocked_templated_email, order, site_settings, staff_notification_recipient
 ):
-    emails.send_staff_order_confirmation(order.pk, "http://www.example.com/")
+    redirect_url = "http://www.example.com/"
+    emails.send_staff_order_confirmation(order.pk, redirect_url)
     email_data = emails.collect_staff_order_notification_data(
-        order.pk, emails.STAFF_CONFIRM_ORDER_TEMPLATE
+        order.pk, emails.STAFF_CONFIRM_ORDER_TEMPLATE, redirect_url
     )
 
     recipients = [staff_notification_recipient.get_email()]
@@ -118,13 +119,6 @@ def test_send_staff_emails(
     email_connection.get_email_message(to=recipients, **expected_call_kwargs)
 
 
-@pytest.mark.parametrize(
-    "send_email,template",
-    [
-        (emails.send_payment_confirmation, emails.CONFIRM_PAYMENT_TEMPLATE),
-        (emails.send_order_confirmation, emails.CONFIRM_ORDER_TEMPLATE),
-    ],
-)
 @mock.patch("saleor.order.emails.send_templated_mail")
 def test_send_email_order_confirmation(mocked_templated_email, order, site_settings):
     template = emails.CONFIRM_ORDER_TEMPLATE
