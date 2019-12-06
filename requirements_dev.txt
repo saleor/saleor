@@ -182,9 +182,6 @@ django-debug-toolbar==2.1 \
     --hash=sha256:77cfba1d6e91b9bc3d36dc7dc74a9bb80be351948db5f880f2562a0cbf20b6c5
 django-debug-toolbar-request-history==0.1.0 \
     --hash=sha256:b258919bc9f0b863a20783ceda51e4a52c187f93a859de0fcb289423d9aff453
-django-elasticsearch-dsl==0.5.1 \
-    --hash=sha256:8c96714d8eef30763e820a2909663b236df765e5c6c8508721489dc9713dfef7 \
-    --hash=sha256:114889f0f70d584e300953b9fc75f312b447e3ff96136dad03028654ba9f4cbd
 django-extensions==2.2.5 \
     --hash=sha256:b58320d3fe3d6ae7d1d8e38959713fa92272f4921e662d689058d942a5b444f7 \
     --hash=sha256:a9db7c56a556d244184f589f2437b4228de86ee45e5ebb837fb20c6d54e95ea5
@@ -240,12 +237,6 @@ docutils==0.15.2 \
     --hash=sha256:a2aeea129088da402665e92e0b25b04b073c04b2dce4ab65caaa38b7ce2e1a99
 draftjs-sanitizer==1.0.0 \
     --hash=sha256:4603a9296153cd06d5a1d76a45a1ff0295363516af983d8dde28cafc5cd67583
-elasticsearch==6.3.1 \
-    --hash=sha256:7546cc08e3899716e12fe67d12d7cfe9a64647014d1134b014c3c392b63cad42 \
-    --hash=sha256:aada5cfdc4a543c47098eb3aca6663848ef5d04b4324935ced441debc11ec98b
-elasticsearch-dsl==6.0.1 \
-    --hash=sha256:8c340995388544662598299a63357acd576579eb939e500956d58a5fd8c17cd1 \
-    --hash=sha256:e4254061442fded9721d4ed07db398f66453c402ab60409a2b9a88be433c27ba
 entrypoints==0.3 \
     --hash=sha256:589f874b313739ad35be6e0cd7efde2a4e9b6fea91edcc34e58ecbb8dbe56d19 \
     --hash=sha256:c70dd71abe5a8c85e55e12c19bd91ccfeec11a6e99044204511f9ed547d48451
@@ -319,9 +310,6 @@ idna==2.8 \
 importlib-metadata==0.23 \
     --hash=sha256:d5f18a79777f3aa179c145737780282e27b508fc8fd688cb17c7a813e8bd39af \
     --hash=sha256:aa18d7378b00b40847790e7c27e11673d7fed219354109d0e7b9e5b25dc3ad26
-ipaddress==1.0.23 \
-    --hash=sha256:6e0f4a39e66cb5bb9a137b00276a2eff74f93b71dcbdad6f10ff7df9d3557fcc \
-    --hash=sha256:b7f8e0369580bb4a24d5ba1d7cc29660a4a6987763faf1d8a8046830e020e7e2
 isort==4.3.21 \
     --hash=sha256:6e811fcb295968434526407adb8796944f1988c5b65e8139058f2014cbe100fd \
     --hash=sha256:54da7e92468955c4fceacd0c86bd0ec997b0e1ee80d97f67c35a78b719dccab1
