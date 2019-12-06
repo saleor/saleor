@@ -2,13 +2,12 @@ from typing import Optional
 
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
-from django.shortcuts import reverse
 from django.utils.functional import SimpleLazyObject
 from graphene_django.settings import graphene_settings
 from graphql_jwt.middleware import JSONWebTokenMiddleware
 
 from ..account.models import ServiceAccount
-from .views import GraphQLView
+from .views import API_PATH, GraphQLView
 
 
 def jwt_middleware(get_response):
@@ -23,8 +22,8 @@ def jwt_middleware(get_response):
     jwt_middleware_inst = JSONWebTokenMiddleware(get_response=get_response)
     graphene_settings.MIDDLEWARE.remove(JSONWebTokenMiddleware)
 
-    def middleware(request):
-        if request.path == reverse("api"):
+    def _jwt_middleware(request):
+        if request.path == API_PATH:
             # clear user authenticated by AuthenticationMiddleware
             request._cached_user = AnonymousUser()
             request.user = AnonymousUser()
@@ -33,7 +32,7 @@ def jwt_middleware(get_response):
             jwt_middleware_inst.process_request(request)
         return get_response(request)
 
-    return middleware
+    return _jwt_middleware
 
 
 def get_service_account(auth_token) -> Optional[ServiceAccount]:
@@ -46,8 +45,8 @@ def service_account_middleware(get_response):
     service_account_auth_header = "HTTP_AUTHORIZATION"
     prefix = "bearer"
 
-    def middleware(request):
-        if request.path == reverse("api"):
+    def _service_account_middleware(request):
+        if request.path == API_PATH:
             request.service_account = None
             auth = request.META.get(service_account_auth_header, "").split()
             if len(auth) == 2:
@@ -58,7 +57,7 @@ def service_account_middleware(get_response):
                     )
         return get_response(request)
 
-    return middleware
+    return _service_account_middleware
 
 
 def process_view(self, request, view_func, *args):

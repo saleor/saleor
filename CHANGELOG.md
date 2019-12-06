@@ -27,6 +27,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Update debug toolbar - #5032 by @IKarbowiak
 - Allow staff member to receive notification about customers orders - #4993 by @kswiatek92
 - JWT payload now contains user global id - #5039 by @salwator
+- Made middleware path resolving lazy and refactored middleware names - #5041 by @NyanKiyoshi
 
 ## 2.9.0
 
