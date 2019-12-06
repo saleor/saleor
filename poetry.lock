@@ -772,14 +772,6 @@ python-magic = ">=0.4.15,<1.0.0"
 
 [[package]]
 category = "main"
-description = "Transparently use webpack with django"
-name = "django-webpack-loader"
-optional = false
-python-versions = "*"
-version = "0.6.0"
-
-[[package]]
-category = "main"
 description = "Docutils -- Python Documentation Utilities"
 name = "docutils"
 optional = false
@@ -2330,7 +2322,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["pathlib2", "contextlib2", "unittest2"]
 
 [metadata]
-content-hash = "9c4b60cea31ff0d6c702e1ab32cae68c25466057ad48b0ec84ab6172e30c2f12"
+content-hash = "7670c765c3e1a1291a2e55e849b88adf2a5b3323993d090a65974e9d852f7fe7"
 python-versions = "~3.8"
 
 [metadata.files]
@@ -2631,10 +2623,6 @@ django-templated-email = [
 django-versatileimagefield = [
     {file = "django-versatileimagefield-1.11.tar.gz", hash = "sha256:8322ee9d7bf5ffa5360990320d2cc2efc7017feff35422636d49f625721edf82"},
     {file = "django_versatileimagefield-1.11-py2.py3-none-any.whl", hash = "sha256:90e1614db9ee593f502f4e5ec0942611589e1d91567a20447c8cf48459ee52d5"},
-]
-django-webpack-loader = [
-    {file = "django-webpack-loader-0.6.0.tar.gz", hash = "sha256:60bab6b9a037a5346fad12d2a70a6bc046afb33154cf75ed640b93d3ebd5f520"},
-    {file = "django_webpack_loader-0.6.0-py2.py3-none-any.whl", hash = "sha256:970b968c2a8975fb7eff56a3bab5d0d90d396740852d1e0c50c5cfe2b824199a"},
 ]
 docutils = [
     {file = "docutils-0.15.2-py2-none-any.whl", hash = "sha256:9e4d7ecfc600058e07ba661411a2b7de2fd0fafa17d1a7f7361cd47b1175c827"},

@@ -148,8 +148,7 @@ MEDIA_URL = os.environ.get("MEDIA_URL", "/media/")
 STATIC_ROOT = os.path.join(PROJECT_ROOT, "static")
 STATIC_URL = os.environ.get("STATIC_URL", "/static/")
 STATICFILES_DIRS = [
-    ("assets", os.path.join(PROJECT_ROOT, "saleor", "static", "assets")),
-    ("images", os.path.join(PROJECT_ROOT, "saleor", "static", "images")),
+    ("images", os.path.join(PROJECT_ROOT, "saleor", "static", "images"))
 ]
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
@@ -259,7 +258,6 @@ INSTALLED_APPS = [
     "django_prices_vatlayer",
     "graphene_django",
     "mptt",
-    "webpack_loader",
     "social_django",
     "django_countries",
     "django_filters",
@@ -510,17 +508,6 @@ PLACEHOLDER_IMAGES = {
 }
 
 DEFAULT_PLACEHOLDER = "images/placeholder255x255.png"
-
-WEBPACK_LOADER = {
-    "DEFAULT": {
-        "CACHE": not DEBUG,
-        "BUNDLE_DIR_NAME": "assets/",
-        "STATS_FILE": os.path.join(PROJECT_ROOT, "webpack-bundle.json"),
-        "POLL_INTERVAL": 0.1,
-        "IGNORE": [r".+\.hot-update\.js", r".+\.map"],
-    }
-}
-
 
 LOGOUT_ON_PASSWORD_CHANGE = False
 
