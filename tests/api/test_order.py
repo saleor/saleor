@@ -2190,6 +2190,126 @@ def test_order_query_with_filter_created_(
     assert len(orders) == count
 
 
+QUERY_ORDER_WITH_SORT = """
+    query ($sort_by: OrderSortingInput!) {
+        orders(first:5, sortBy: $sort_by) {
+            edges{
+                node{
+                    number
+                }
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "number_sort, result_order",
+    [
+        ({"field": "NUMBER", "direction": "ASC"}, [0, 1, 2]),
+        ({"field": "NUMBER", "direction": "DESC"}, [2, 1, 0]),
+        ({"field": "CREATION_DATE", "direction": "ASC"}, [1, 0, 2]),
+        ({"field": "CREATION_DATE", "direction": "DESC"}, [2, 0, 1]),
+        ({"field": "CUSTOMER", "direction": "ASC"}, [2, 0, 1]),
+        ({"field": "CUSTOMER", "direction": "DESC"}, [1, 0, 2]),
+        ({"field": "FULFILLMENT_STATUS", "direction": "ASC"}, [2, 1, 0]),
+        ({"field": "FULFILLMENT_STATUS", "direction": "DESC"}, [0, 1, 2]),
+        ({"field": "TOTAL", "direction": "ASC"}, [0, 2, 1]),
+        ({"field": "TOTAL", "direction": "DESC"}, [1, 2, 0]),
+    ],
+)
+def test_query_orders_with_sort(
+    number_sort, result_order, staff_api_client, permission_manage_orders, address
+):
+    created_orders = []
+    with freeze_time("2017-01-14"):
+        created_orders.append(
+            Order.objects.create(
+                token=str(uuid.uuid4()),
+                billing_address=address,
+                status=OrderStatus.PARTIALLY_FULFILLED,
+                total=TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD")),
+            )
+        )
+    with freeze_time("2012-01-14"):
+        address2 = address.get_copy()
+        address2.first_name = "Walter"
+        address2.save()
+        created_orders.append(
+            Order.objects.create(
+                token=str(uuid.uuid4()),
+                billing_address=address2,
+                status=OrderStatus.FULFILLED,
+                total=TaxedMoney(net=Money(100, "USD"), gross=Money(130, "USD")),
+            )
+        )
+    address3 = address.get_copy()
+    address3.last_name = "Alice"
+    address3.save()
+    created_orders.append(
+        Order.objects.create(
+            token=str(uuid.uuid4()),
+            billing_address=address3,
+            status=OrderStatus.CANCELED,
+            total=TaxedMoney(net=Money(20, "USD"), gross=Money(26, "USD")),
+        )
+    )
+    variables = {"sort_by": number_sort}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(QUERY_ORDER_WITH_SORT, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+
+    for order, order_number in enumerate(result_order):
+        assert orders[order]["node"]["number"] == str(created_orders[order_number].pk)
+
+
+@pytest.mark.parametrize(
+    "number_sort, result_order",
+    [
+        ({"field": "PAYMENT", "direction": "ASC"}, [1, 0, 2]),
+        ({"field": "PAYMENT", "direction": "DESC"}, [2, 0, 1]),
+    ],
+)
+def test_query_orders_with_sort_by_payments(
+    number_sort, result_order, staff_api_client, permission_manage_orders
+):
+    created_orders = Order.objects.bulk_create(
+        [
+            Order(token=str(uuid.uuid4())),
+            Order(token=str(uuid.uuid4())),
+            Order(token=str(uuid.uuid4())),
+        ]
+    )
+    Payment.objects.bulk_create(
+        [
+            Payment(
+                gateway="Dummy",
+                order=created_orders[1],
+                charge_status=ChargeStatus.NOT_CHARGED,
+            ),
+            Payment(
+                gateway="Dummy",
+                order=created_orders[1],
+                charge_status=ChargeStatus.FULLY_CHARGED,
+            ),
+            Payment(
+                gateway="Dummy",
+                order=created_orders[0],
+                charge_status=ChargeStatus.FULLY_REFUNDED,
+            ),
+        ]
+    )
+    variables = {"sort_by": number_sort}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(QUERY_ORDER_WITH_SORT, variables)
+    content = get_graphql_content(response)
+    orders = content["data"]["orders"]["edges"]
+
+    for order, order_number in enumerate(result_order):
+        assert orders[order]["node"]["number"] == str(created_orders[order_number].pk)
+
+
 @pytest.mark.parametrize(
     "orders_filter, count",
     [
