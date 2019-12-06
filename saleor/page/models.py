@@ -35,7 +35,9 @@ class Page(SeoModel, PublishableModel):
     def __str__(self):
         return self.title
 
-    def get_absolute_url(self):
+    # Deprecated. To remove in #5022
+    @staticmethod
+    def get_absolute_url():
         return ""
 
 

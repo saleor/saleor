@@ -815,7 +815,7 @@ class Category(CountableDjangoObjectType, MetadataObjectType):
         ),
         prefetch_related=prefetch_products,
     )
-    # TODO: To remove in #5022
+    # Deprecated. To remove in #5022
     url = graphene.String(description="The storefront's URL for the category.")
     children = PrefetchingConnectionField(
         lambda: Category, description="List of children of the category."
@@ -866,7 +866,7 @@ class Category(CountableDjangoObjectType, MetadataObjectType):
         qs = root.children.all()
         return gql_optimizer.query(qs, info)
 
-    # TODO: To remove in #5022
+    # Deprecated. To remove in #5022
     @staticmethod
     def resolve_url(root: models.Category, _info):
         return root.get_absolute_url()

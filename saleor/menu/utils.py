@@ -5,8 +5,8 @@ from ..menu.models import Menu
 
 def get_menu_item_as_dict(menu_item):
     data = {}
-    # TODO: in #5022
     if menu_item.linked_object:
+        # Deprecated. To remove in #5022
         data["url"] = menu_item.linked_object.get_absolute_url()
     else:
         data["url"] = menu_item.url or ""

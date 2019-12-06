@@ -223,7 +223,9 @@ class Order(ModelWithMetadata):
     def __str__(self):
         return "#%d" % (self.id,)
 
-    def get_absolute_url(self):
+    # Deprecated. To remove in #5022
+    @staticmethod
+    def get_absolute_url():
         return ""
 
     def get_last_payment(self):
