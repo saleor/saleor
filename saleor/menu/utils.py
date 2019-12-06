@@ -1,46 +1,6 @@
 from django.db import transaction
-from django.db.models import Q
 
-from ..menu.models import Menu, MenuItem
-from ..page.models import Page
-from ..product.models import Category, Collection
-
-
-def update_menu_item_linked_object(menu_item, linked_object):
-    """Assign new linked object to a menu item. Clear other links."""
-    menu_item.category = None
-    menu_item.collection = None
-    menu_item.page = None
-
-    if isinstance(linked_object, Category):
-        menu_item.category = linked_object
-    elif isinstance(linked_object, Collection):
-        menu_item.collection = linked_object
-    elif isinstance(linked_object, Page):
-        menu_item.page = linked_object
-
-    return menu_item.save()
-
-
-def get_menus_that_need_update(collection=None, categories=None, page=None):
-    """Return the primary keys of the Menu instances.
-
-    They that will be affected by deleting one of the listed objects,
-    therefore needs to be updated afterwards.
-    """
-    if not any([page, collection, categories]):
-        return []
-    q = Q()
-    if collection is not None:
-        q |= Q(collection=collection)
-    if categories is not None:
-        q |= Q(category__in=categories)
-    if page is not None:
-        q |= Q(page=page)
-    menus_to_be_updated = (
-        MenuItem.objects.filter(q).distinct().values_list("menu", flat=True)
-    )
-    return menus_to_be_updated
+from ..menu.models import Menu
 
 
 def get_menu_item_as_dict(menu_item):
