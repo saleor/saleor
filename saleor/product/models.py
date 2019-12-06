@@ -66,8 +66,9 @@ class Category(MPTTModel, ModelWithMetadata, SeoModel):
     def __str__(self) -> str:
         return self.name
 
-    # TODO: in #5022
-    def get_absolute_url(self) -> str:
+    # Deprecated. To remove in #5022
+    @staticmethod
+    def get_absolute_url() -> str:
         return ""
 
 
@@ -335,8 +336,9 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
     def is_available(self) -> bool:
         return self.is_visible and self.is_in_stock()
 
-    # TODO: in #5022
-    def get_absolute_url(self) -> str:
+    # Deprecated. To remove in #5022
+    @staticmethod
+    def get_absolute_url() -> str:
         return ""
 
     def get_slug(self) -> str:
@@ -501,8 +503,9 @@ class ProductVariant(ModelWithMetadata):
     def get_weight(self):
         return self.weight or self.product.weight or self.product.product_type.weight
 
-    # TODO: in #5022
-    def get_absolute_url(self) -> str:
+    # Deprecated. To remove in #5022
+    @staticmethod
+    def get_absolute_url() -> str:
         return ""
 
     def is_shipping_required(self) -> bool:
@@ -938,8 +941,9 @@ class Collection(SeoModel, ModelWithMetadata, PublishableModel):
     def __str__(self) -> str:
         return self.name
 
-    # TODO: in #5022
-    def get_absolute_url(self) -> str:
+    # Deprecated. To remove in #5022
+    @staticmethod
+    def get_absolute_url() -> str:
         return ""
 
 
