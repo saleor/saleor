@@ -1,25 +1,26 @@
 from typing import TYPE_CHECKING, List
 
-from graphql_jwt.decorators import login_required
-
-from ...wishlist.models import Wishlist, WishlistItem
+from ...wishlist.models import Wishlist
 
 if TYPE_CHECKING:
-    # flake8: noqa
+    # pylint: disable=unused-import
     from graphene.types import ResolveInfo
     from ...account.models import User
 
 
-@login_required
+def resolve_wishlist_from_user(user: "User") -> Wishlist:
+    """Return wishlist of the logged in user."""
+    wishlist = Wishlist.objects.get_or_create(user)
+    return wishlist
+
+
 def resolve_wishlist_from_info(info: "ResolveInfo") -> Wishlist:
     """Return wishlist of the logged in user."""
     user = info.context.user
-    return Wishlist.objects.get_or_create(user)
+    return resolve_wishlist_from_user(user)
 
 
-@login_required
-def resolve_wishlist_items_from_info(info: "ResolveInfo") -> List[WishlistItem]:
-    """Return wishlist of the logged in user."""
-    user = info.context.user
-    wishlist = Wishlist.objects.get_or_create(user)
+def resolve_wishlist_items_from_user(user: "User") -> List[Wishlist]:
+    """Return wishlist items of the logged in user."""
+    wishlist = resolve_wishlist_from_user(user)
     return wishlist.items.all()
