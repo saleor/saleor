@@ -113,8 +113,6 @@ django-filter==2.2.0 \
     --hash=sha256:558c727bce3ffa89c4a7a0b13bc8976745d63e5fd576b3a9a851650ef11c401b
 django-graphql-jwt==0.2.1 \
     --hash=sha256:6dcf9dd4990098e289d76ab4220edbf436a2e26dc6af1d4a526ac699ad93bf14
-django-impersonate==1.4.1 \
-    --hash=sha256:63b62d06f93b0318698c68f7314c78473914c262d4164eb66ad860bb83e04771
 django-js-asset==1.2.2 \
     --hash=sha256:c163ae80d2e0b22d8fb598047cd0dcef31f81830e127cfecae278ad574167260 \
     --hash=sha256:8ec12017f26eec524cab436c64ae73033368a372970af4cf42d9354fcb166bdd

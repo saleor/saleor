@@ -280,6 +280,7 @@ couchbase = ["couchbase", "couchbase-cffi"]
 couchdb = ["pycouchdb"]
 django = ["Django (>=1.8)"]
 dynamodb = ["boto3 (>=1.4.6)"]
+elasticsearch = ["elasticsearch"]
 eventlet = ["eventlet (>=0.24.1)"]
 gevent = ["gevent"]
 librabbitmq = ["librabbitmq (>=1.5.0)"]
@@ -534,6 +535,19 @@ version = "2.2.0"
 Django = ">=1.11"
 
 [[package]]
+category = "dev"
+description = "Django Debug Toolbar for GraphiQL IDE"
+name = "django-graphiql-debug-toolbar"
+optional = false
+python-versions = "*"
+version = "0.1.4"
+
+[package.dependencies]
+Django = ">=2.0"
+django-debug-toolbar = ">=2.0"
+graphene-django = ">=2.0.0"
+
+[[package]]
 category = "main"
 description = "JSON Web Token for Django GraphQL"
 name = "django-graphql-jwt"
@@ -545,14 +559,6 @@ version = "0.2.1"
 Django = ">=1.11"
 PyJWT = ">=1.5.0"
 graphene-django = ">=2.0.0"
-
-[[package]]
-category = "main"
-description = "Django app to allow superusers to impersonate other users."
-name = "django-impersonate"
-optional = false
-python-versions = "*"
-version = "1.4.1"
 
 [[package]]
 category = "main"
@@ -2270,7 +2276,7 @@ docs = ["sphinx", "jaraco.packaging (>=3.2)", "rst.linker (>=1.9)"]
 testing = ["pathlib2", "contextlib2", "unittest2"]
 
 [metadata]
-content-hash = "1ee91cd4db26b127e36efae7b61a0611d2e0c8e1d14df02a9cf727276afa1e51"
+content-hash = "055ed0b43d81ca92b6b73e232754ef093c25d59cb946937efeb1d7db80db18ad"
 python-versions = "~3.8"
 
 [metadata.files]
@@ -2508,11 +2514,11 @@ django-filter = [
     {file = "django-filter-2.2.0.tar.gz", hash = "sha256:c3deb57f0dd7ff94d7dce52a047516822013e2b441bed472b722a317658cfd14"},
     {file = "django_filter-2.2.0-py3-none-any.whl", hash = "sha256:558c727bce3ffa89c4a7a0b13bc8976745d63e5fd576b3a9a851650ef11c401b"},
 ]
+django-graphiql-debug-toolbar = [
+    {file = "django-graphiql-debug-toolbar-0.1.4.tar.gz", hash = "sha256:946fba21418b3fd57e7e357d4cd110fb7881e08d3b7a0a8a00400fa2e75965f5"},
+]
 django-graphql-jwt = [
     {file = "django-graphql-jwt-0.2.1.tar.gz", hash = "sha256:6dcf9dd4990098e289d76ab4220edbf436a2e26dc6af1d4a526ac699ad93bf14"},
-]
-django-impersonate = [
-    {file = "django-impersonate-1.4.1.tar.gz", hash = "sha256:63b62d06f93b0318698c68f7314c78473914c262d4164eb66ad860bb83e04771"},
 ]
 django-js-asset = [
     {file = "django-js-asset-1.2.2.tar.gz", hash = "sha256:c163ae80d2e0b22d8fb598047cd0dcef31f81830e127cfecae278ad574167260"},

@@ -27,7 +27,6 @@ django-cache-url = "^3.0"
 django-countries = "^5.3"
 django-filter = "^2.2"
 django-graphql-jwt = "<=0.2.1" # https://github.com/mirumee/saleor/issues/4652
-django-impersonate = "^1.4.1"
 django-measurement = "^3.0"
 django-mptt = "^0"
 django-phonenumber-field = "^2.4"
