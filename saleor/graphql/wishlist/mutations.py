@@ -35,7 +35,7 @@ class WishlistAddProductMutation(_BaseWishlistProductMutation):
         error_type_field = "wishlist_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, product_id):
+    def perform_mutation(cls, _root, info, product_id):  # pylint: disable=W0221
         wishlist = resolve_wishlist_from_info(info)
         product = cls.get_node_or_error(
             info, product_id, only_type=Product, field="product_id"
@@ -52,7 +52,7 @@ class WishlistRemoveProductMutation(_BaseWishlistProductMutation):
         error_type_field = "wishlist_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, product_id):
+    def perform_mutation(cls, _root, info, product_id):  # pylint: disable=W0221
         wishlist = resolve_wishlist_from_info(info)
         product = cls.get_node_or_error(
             info, product_id, only_type=Product, field="product_id"
@@ -79,7 +79,7 @@ class WishlistAddProductVariantMutation(_BaseWishlistVariantMutation):
         error_type_field = "wishlist_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, variant_id):
+    def perform_mutation(cls, _root, info, variant_id):  # pylint: disable=W0221
         wishlist = resolve_wishlist_from_info(info)
         variant = cls.get_node_or_error(
             info, variant_id, only_type=ProductVariant, field="variant_id"
@@ -96,7 +96,7 @@ class WishlistRemoveProductVariantMutation(_BaseWishlistVariantMutation):
         error_type_field = "wishlist_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, variant_id):
+    def perform_mutation(cls, _root, info, variant_id):  # pylint: disable=W0221
         wishlist = resolve_wishlist_from_info(info)
         variant = cls.get_node_or_error(
             info, variant_id, only_type=ProductVariant, field="variant_id"
