@@ -14,12 +14,12 @@ if TYPE_CHECKING:
 def resolve_wishlist_from_info(info: "ResolveInfo") -> Wishlist:
     """Return wishlist of the logged in user."""
     user = info.context.user
-    return Wishlist.objects.get_or_create_wishlist_for_user(user)
+    return Wishlist.objects.get_or_create(user)
 
 
 @login_required
 def resolve_wishlist_items_from_info(info: "ResolveInfo") -> List[WishlistItem]:
     """Return wishlist of the logged in user."""
     user = info.context.user
-    wishlist = Wishlist.objects.get_or_create_wishlist_for_user(user)
+    wishlist = Wishlist.objects.get_or_create(user)
     return wishlist.items.all()
