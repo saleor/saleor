@@ -639,14 +639,18 @@ def product_with_two_variants(product_type, category):
         category=category,
     )
 
-    for i in (1, 2):
-        ProductVariant.objects.create(
-            product=product,
-            sku=f"prodVar{i}",
-            cost_price=Money("1.00", "USD"),
-            quantity=10,
-            quantity_allocated=1,
-        )
+    ProductVariant.objects.bulk_create(
+        [
+            ProductVariant(
+                product=product,
+                sku=f"Product variant #{i}",
+                cost_price=Money("1.00", "USD"),
+                quantity=10,
+                quantity_allocated=1,
+            )
+            for i in (1, 2)
+        ]
+    )
 
     return product
 
