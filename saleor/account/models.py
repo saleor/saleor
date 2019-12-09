@@ -162,10 +162,6 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
                 pgettext_lazy("Permission description", "Manage customers."),
             ),
             ("manage_staff", pgettext_lazy("Permission description", "Manage staff.")),
-            (
-                "impersonate_users",
-                pgettext_lazy("Permission description", "Impersonate customers."),
-            ),
         )
 
     def get_full_name(self):

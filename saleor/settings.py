@@ -210,7 +210,6 @@ MIDDLEWARE = [
     "saleor.core.middleware.site",
     "saleor.core.middleware.extensions",
     "social_django.middleware.SocialAuthExceptionMiddleware",
-    "impersonate.middleware.ImpersonateMiddleware",
     "saleor.graphql.middleware.jwt_middleware",
     "saleor.graphql.middleware.service_account_middleware",
 ]
@@ -259,7 +258,6 @@ INSTALLED_APPS = [
     "social_django",
     "django_countries",
     "django_filters",
-    "impersonate",
     "phonenumber_field",
     "captcha",
 ]
@@ -548,15 +546,6 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", None)
-
-# Impersonate module settings
-IMPERSONATE = {
-    "URI_EXCLUSIONS": [r"^dashboard/"],
-    "CUSTOM_USER_QUERYSET": "saleor.account.impersonate.get_impersonatable_users",  # noqa
-    "USE_HTTP_REFERER": True,
-    "CUSTOM_ALLOW": "saleor.account.impersonate.can_impersonate",
-}
-
 
 # Rich-text editor
 ALLOWED_TAGS = [

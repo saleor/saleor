@@ -25,8 +25,8 @@ from saleor.account.backends import BaseBackend
 from saleor.account.models import (
     Address,
     ServiceAccount,
-    User,
     StaffNotificationRecipient,
+    User,
 )
 from saleor.checkout import utils
 from saleor.checkout.models import Checkout
@@ -1238,11 +1238,6 @@ def permission_manage_users():
 @pytest.fixture
 def permission_manage_settings():
     return Permission.objects.get(codename="manage_settings")
-
-
-@pytest.fixture
-def permission_impersonate_users():
-    return Permission.objects.get(codename="impersonate_users")
 
 
 @pytest.fixture
