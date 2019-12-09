@@ -3356,8 +3356,6 @@ type ProductVariant implements Node {
   weight: Weight
   privateMeta: [MetaStore]!
   meta: [MetaStore]!
-  quantity: Int!
-  stockQuantity: Int!
   priceOverride: Money
   pricing: VariantPricingInfo
   isAvailable: Boolean
@@ -3369,6 +3367,8 @@ type ProductVariant implements Node {
   images: [ProductImage]
   translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
   digitalContent: DigitalContent
+  stocks: Stock
+  stockForCountry: Stock
 }
 
 type ProductVariantBulkCreate {
@@ -4147,6 +4147,7 @@ type Stock implements Node {
   productVariant: ProductVariant!
   quantity: Int!
   quantityAllocated: Int!
+  available: Int
 }
 
 enum StockAvailability {
