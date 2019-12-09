@@ -28,10 +28,8 @@ USER_SEARCH_FIELDS = (
 
 def sort_users(qs: QuerySet, sort_by: UserSortingInput) -> QuerySet:
     if sort_by:
-        qs = sort_queryset(qs, sort_by, UserSortField)
-    else:
-        qs = qs.order_by("email")
-    return qs
+        return sort_queryset(qs, sort_by, UserSortField)
+    return qs.order_by("email")
 
 
 def resolve_customers(info, query, sort_by=None, **_kwargs):

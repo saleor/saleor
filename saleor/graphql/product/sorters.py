@@ -24,34 +24,39 @@ class AttributeSortField(graphene.Enum):
     def description(self):
         # pylint: disable=no-member
         descriptions = {
-            AttributeSortField.NAME.name: "name",
-            AttributeSortField.SLUG.name: "slug",
-            AttributeSortField.VALUE_REQUIRED.name: "the value required flag",
-            AttributeSortField.IS_VARIANT_ONLY.name: "the variant only flag",
+            AttributeSortField.NAME.name: "Sort attributes by name",
+            AttributeSortField.SLUG.name: "Sort attributes by slug",
+            AttributeSortField.VALUE_REQUIRED.name: (
+                "Sort attributes by the value required flag"
+            ),
+            AttributeSortField.IS_VARIANT_ONLY.name: (
+                "Sort attributes by the variant only flag"
+            ),
             AttributeSortField.VISIBLE_IN_STOREFRONT.name: (
-                "visibility in the storefront"
+                "Sort attributes by visibility in the storefront"
             ),
             AttributeSortField.FILTERABLE_IN_STOREFRONT.name: (
-                "the filterable in storefront flag"
+                "Sort attributes by the filterable in storefront flag"
             ),
             AttributeSortField.FILTERABLE_IN_DASHBOARD.name: (
-                "the filterable in dashboard flag"
+                "Sort attributes by the filterable in dashboard flag"
             ),
             AttributeSortField.STOREFRONT_SEARCH_POSITION.name: (
-                "their position in storefront"
+                "Sort attributes by their position in storefront"
+            ),
+            AttributeSortField.DASHBOARD_VARIANT_POSITION.name: (
+                "Sort variant attributes by their position in dashboard."
+            ),
+            AttributeSortField.DASHBOARD_PRODUCT_POSITION.name: (
+                "Sort product attributes by their position in dashboard."
+            ),
+            AttributeSortField.AVAILABLE_IN_GRID.name: (
+                "Sort attributes based on whether they can be displayed "
+                "or not in a product grid."
             ),
         }
         if self.name in descriptions:
-            return f"Sort attributes by {descriptions[self.name]}."
-        if self == AttributeSortField.DASHBOARD_VARIANT_POSITION:
-            return "Sort variant attributes by their position in dashboard."
-        if self == AttributeSortField.DASHBOARD_PRODUCT_POSITION:
-            return "Sort product attributes by their position in dashboard."
-        if self == AttributeSortField.AVAILABLE_IN_GRID:
-            return (
-                "Sort attributes based on whether they can be displayed "
-                "or not in a product grid."
-            )
+            return descriptions[self.name]
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod
@@ -183,10 +188,9 @@ class ProductOrder(SortInputObjectType):
             "Note: this doesn't take translations into account yet."
         ),
     )
-
-    class Meta:
-        sort_enum = ProductOrderField
-        type_name = "products"
+    field = graphene.Argument(
+        ProductOrderField, description=f"Sort products by the selected field."
+    )
 
 
 class ProductTypeSortField(graphene.Enum):

@@ -15,7 +15,10 @@ class SortInputObjectType(graphene.InputObjectType):
         cls, container=None, _meta=None, sort_enum=None, type_name=None, **options
     ):
         super().__init_subclass_with_meta__(container, _meta, **options)
-        field = graphene.Argument(
-            sort_enum, description=f"Sort {type_name} by the selected field."
-        )
-        cls._meta.fields.update({"field": field})
+        if sort_enum and type_name:
+            field = graphene.Argument(
+                sort_enum,
+                required=True,
+                description=f"Sort {type_name} by the selected field.",
+            )
+            cls._meta.fields.update({"field": field})

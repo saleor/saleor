@@ -319,7 +319,7 @@ enum AttributeSortField {
 
 input AttributeSortingInput {
   direction: OrderDirection!
-  field: AttributeSortField
+  field: AttributeSortField!
 }
 
 type AttributeTranslatableContent implements Node {
@@ -578,7 +578,7 @@ enum CategorySortField {
 
 input CategorySortingInput {
   direction: OrderDirection!
-  field: CategorySortField
+  field: CategorySortField!
 }
 
 type CategoryTranslatableContent implements Node {
@@ -969,7 +969,7 @@ enum CollectionSortField {
 
 input CollectionSortingInput {
   direction: OrderDirection!
-  field: CollectionSortField
+  field: CollectionSortField!
 }
 
 type CollectionTranslatableContent implements Node {
@@ -1980,7 +1980,7 @@ input MenuItemMoveInput {
 
 input MenuItemSortingInput {
   direction: OrderDirection!
-  field: MenuItemsSortField
+  field: MenuItemsSortField!
 }
 
 type MenuItemTranslatableContent implements Node {
@@ -2018,7 +2018,7 @@ enum MenuSortField {
 
 input MenuSortingInput {
   direction: OrderDirection!
-  field: MenuSortField
+  field: MenuSortField!
 }
 
 type MenuUpdate {
@@ -2590,7 +2590,7 @@ enum OrderSortField {
 
 input OrderSortingInput {
   direction: OrderDirection!
-  field: OrderSortField
+  field: OrderSortField!
 }
 
 enum OrderStatus {
@@ -2724,7 +2724,7 @@ enum PageSortField {
 
 input PageSortingInput {
   direction: OrderDirection!
-  field: PageSortField
+  field: PageSortField!
 }
 
 type PageTranslatableContent implements Node {
@@ -2925,7 +2925,7 @@ enum PluginSortField {
 
 input PluginSortingInput {
   direction: OrderDirection!
-  field: PluginSortField
+  field: PluginSortField!
 }
 
 type PluginUpdate {
@@ -3300,7 +3300,7 @@ enum ProductTypeSortField {
 
 input ProductTypeSortingInput {
   direction: OrderDirection!
-  field: ProductTypeSortField
+  field: ProductTypeSortField!
 }
 
 type ProductTypeUpdate {
@@ -3647,7 +3647,7 @@ enum SaleSortField {
 
 input SaleSortingInput {
   direction: OrderDirection!
-  field: SaleSortField
+  field: SaleSortField!
 }
 
 type SaleTranslatableContent implements Node {
@@ -3748,7 +3748,7 @@ enum ServiceAccountSortField {
 
 input ServiceAccountSortingInput {
   direction: OrderDirection!
-  field: ServiceAccountSortField
+  field: ServiceAccountSortField!
 }
 
 type ServiceAccountToken implements Node {
@@ -4336,7 +4336,7 @@ enum UserSortField {
 
 input UserSortingInput {
   direction: OrderDirection!
-  field: UserSortField
+  field: UserSortField!
 }
 
 type UserUpdateMeta {
@@ -4490,7 +4490,7 @@ enum VoucherSortField {
 
 input VoucherSortingInput {
   direction: OrderDirection!
-  field: VoucherSortField
+  field: VoucherSortField!
 }
 
 type VoucherTranslatableContent implements Node {
@@ -4607,7 +4607,7 @@ enum WebhookSortField {
 
 input WebhookSortingInput {
   direction: OrderDirection!
-  field: WebhookSortField
+  field: WebhookSortField!
 }
 
 type WebhookUpdate {

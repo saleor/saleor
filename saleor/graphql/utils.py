@@ -141,11 +141,8 @@ def sort_queryset(
 
     custom_sort_by = getattr(sort_enum, f"sort_by_{sorting_field}", None)
     if custom_sort_by:
-        queryset = custom_sort_by(queryset, sort_by)
-    else:
-        queryset = queryset.order_by(f"{direction}{sorting_field}")
-
-    return queryset
+        return custom_sort_by(queryset, sort_by)
+    return queryset.order_by(f"{direction}{sorting_field}")
 
 
 def reporting_period_to_date(period):

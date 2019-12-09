@@ -1,4 +1,5 @@
 import graphene
+from django.db.models import QuerySet
 
 from ..core.types import SortInputObjectType
 
@@ -17,6 +18,10 @@ class PluginSortField(graphene.Enum):
         if self.name in descriptions:
             return f"Sort plugins by {descriptions[self.name]}."
         raise ValueError("Unsupported enum value: %s" % self.value)
+
+    @staticmethod
+    def sort_by_active(queryset: QuerySet, sort_by: SortInputObjectType) -> QuerySet:
+        return queryset.order_by(f"{sort_by.direction}{sort_by.field}", "name")
 
 
 class PluginSortingInput(SortInputObjectType):
