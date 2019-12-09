@@ -32,6 +32,13 @@ class Wishlist(models.Model):
             wishlist_items__wishlist_id=self.pk
         ).distinct()
 
+    def add_product(self, product: Product):
+        item, _is_created = self.items.get_or_create(product_id=product.pk)
+        return item
+
+    def remove_product(self, product: Product):
+        self.items.filter(product_id=product.pk).delete()
+
     def add_variant(self, variant: ProductVariant):
         item, _is_created = self.items.get_or_create(product_id=variant.product_id)
         item.variants.add(variant)

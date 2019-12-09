@@ -115,6 +115,71 @@ def test_wishlist_remove_variant_from_logged_user(
     assert wishlist.items.count() == 0
 
 
+def test_wishlist_add_product_to_logged_user(user_api_client, product):
+    user = user_api_client.user
+    # Assert that user doesn't have a wishlist
+    with pytest.raises(Wishlist.DoesNotExist):
+        user.wishlist
+    query = """
+    mutation WishlistAddProduct($product_id: ID!) {
+        wishlistAddProduct(productId: $product_id) {
+            errors{
+                field
+                message
+            }
+            wishlist {
+                id
+            }
+        }
+    }
+    """
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    variables = {"product_id": product_id}
+    response = user_api_client.post_graphql(query, variables=variables)
+    content = get_graphql_content(response)
+    items = content["data"]["wishlistAddProduct"]["wishlist"]
+    assert len(items) == 1
+    _, item_id = graphene.Node.from_global_id(items[0]["id"])
+    # Assert that user has a single wishlist item
+    user.refresh_from_db()
+    wishlist = user.wishlist
+    assert wishlist.items.count() == 1
+    item = wishlist.items.first()
+    assert item_id == str(item.pk)
+
+
+def test_wishlist_remove_product_from_logged_user(
+    user_api_client, customer_wishlist_item
+):
+    user = user_api_client.user
+    wishlist = customer_wishlist_item.wishlist
+    # Assert initial conditions are correct
+    assert user.wishlist == wishlist
+    assert wishlist.items.count() == 1
+    query = """
+    mutation WishlistRemoveProduct($product_id: ID!) {
+        wishlistRemoveProduct(productId: $product_id) {
+            errors{
+                field
+                message
+            }
+            wishlist {
+                id
+            }
+        }
+    }
+    """
+    product = customer_wishlist_item.product
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    variables = {"product_id": product_id}
+    response = user_api_client.post_graphql(query, variables=variables)
+    content = get_graphql_content(response)
+    items = content["data"]["wishlistRemoveProduct"]["wishlist"]
+    assert len(items) == 0
+    # Check that the wishlist_item was removed
+    assert wishlist.items.count() == 0
+
+
 def test_wishlist_get_items_from_anonymous_user(api_client):
     query = """
     query WishlistItems {

@@ -2031,6 +2031,8 @@ input MoveProductInput {
 }
 
 type Mutation {
+  wishlistAddProduct(productId: ID!): WishlistAddProductMutation
+  wishlistRemoveProduct(productId: ID!): WishlistRemoveProductMutation
   wishlistAddVariant(variantId: ID!): WishlistAddProductVariantMutation
   wishlistRemoveVariant(variantId: ID!): WishlistRemoveProductVariantMutation
   webhookCreate(input: WebhookCreateInput!): WebhookCreate
@@ -4498,6 +4500,12 @@ type Wishlist implements Node {
   items(before: String, after: String, first: Int, last: Int, id: ID): WishlistItemCountableConnection!
 }
 
+type WishlistAddProductMutation {
+  errors: [Error!]
+  wishlist: [WishlistItem]
+  wishlistErrors: [WishlistError!]
+}
+
 type WishlistAddProductVariantMutation {
   errors: [Error!]
   wishlist: [WishlistItem]
@@ -4534,6 +4542,12 @@ type WishlistItemCountableConnection {
 type WishlistItemCountableEdge {
   node: WishlistItem!
   cursor: String!
+}
+
+type WishlistRemoveProductMutation {
+  errors: [Error!]
+  wishlist: [WishlistItem]
+  wishlistErrors: [WishlistError!]
 }
 
 type WishlistRemoveProductVariantMutation {
