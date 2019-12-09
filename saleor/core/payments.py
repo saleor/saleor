@@ -61,7 +61,3 @@ class PaymentInterface(ABC):
         self, gateway: str, customer_id: str
     ) -> List["CustomerSource"]:
         pass
-
-    @abstractmethod
-    def get_payment_template(self, gateway: str) -> str:
-        pass

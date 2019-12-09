@@ -213,10 +213,6 @@ def list_gateways() -> List[dict]:
     return get_extensions_manager().list_payment_gateways()
 
 
-def get_template_path(gateway: str) -> str:
-    return get_extensions_manager().get_payment_template(gateway)
-
-
 def _fetch_gateway_response(fn, *args, **kwargs):
     response, error = None, None
     try:

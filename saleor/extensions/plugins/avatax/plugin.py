@@ -418,13 +418,6 @@ class AvataxPlugin(BasePlugin):
             return previous_value
         return False
 
-    def taxes_are_enabled(self, previous_value: bool) -> bool:
-        self._initialize_plugin_configuration()
-
-        if not self.active:
-            return previous_value
-        return True
-
     @classmethod
     def validate_plugin_configuration(cls, plugin_configuration: "PluginConfiguration"):
         """Validate if provided configuration is correct."""

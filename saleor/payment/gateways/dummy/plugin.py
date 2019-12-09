@@ -152,10 +152,6 @@ class DummyGatewayPlugin(BasePlugin):
         return get_client_token()
 
     @require_active_plugin
-    def get_payment_template(self, previous_value) -> str:
-        return self._get_gateway_config().template_path
-
-    @require_active_plugin
     def get_payment_config(self, previous_value):
         config = self._get_gateway_config()
         return [{"field": "store_customer_card", "value": config.store_customer}]

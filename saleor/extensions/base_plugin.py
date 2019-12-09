@@ -150,14 +150,6 @@ class BasePlugin:
         """
         return NotImplemented
 
-    def taxes_are_enabled(self, previous_value: bool) -> bool:
-        """Define if checkout should add info about included taxes.
-
-        It is used only by the old storefront. It adds a tax section to the checkout
-        view.
-        """
-        return NotImplemented
-
     def apply_taxes_to_shipping_price_range(
         self, prices: MoneyRange, country: Country, previous_value: TaxedMoneyRange
     ) -> TaxedMoneyRange:
@@ -311,9 +303,6 @@ class BasePlugin:
         return NotImplemented
 
     def get_client_token(self, token_config, previous_value):
-        return NotImplemented
-
-    def get_payment_template(self, previous_value):
         return NotImplemented
 
     def get_payment_config(self, previous_value):

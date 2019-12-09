@@ -141,14 +141,6 @@ def test_manager_show_taxes_on_storefront(plugins, show_taxes):
 
 
 @pytest.mark.parametrize(
-    "plugins, taxes_enabled",
-    [(["tests.extensions.sample_plugins.PluginSample"], True), ([], False)],
-)
-def test_manager_taxes_are_enabled(plugins, taxes_enabled):
-    assert taxes_enabled == ExtensionsManager(plugins=plugins).taxes_are_enabled()
-
-
-@pytest.mark.parametrize(
     "plugins, price",
     [(["tests.extensions.sample_plugins.PluginSample"], "1.0"), ([], "10.0")],
 )
