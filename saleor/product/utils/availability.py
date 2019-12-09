@@ -12,8 +12,7 @@ from ...extensions.manager import get_extensions_manager
 from .. import ProductAvailabilityStatus, VariantAvailabilityStatus
 
 if TYPE_CHECKING:
-    from django.db.models.query import QuerySet
-
+    # flake8: noqa
     from ...extensions.manager import ExtensionsManager
 
 
@@ -37,22 +36,6 @@ class VariantAvailability:
     discount: Optional[TaxedMoney]
     price_local_currency: Optional[TaxedMoney]
     discount_local_currency: Optional[TaxedMoney]
-
-
-def products_with_availability(
-    products: "QuerySet[Product]",
-    discounts,
-    country: str,
-    local_currency: str,
-    extensions: "ExtensionsManager",
-):
-    for product in products:
-        yield (
-            product,
-            get_product_availability(
-                product, discounts, country, local_currency, extensions=extensions
-            ),
-        )
 
 
 def get_product_availability_status(product: "Product") -> ProductAvailabilityStatus:
