@@ -7,18 +7,14 @@ from django.db.models import F
 
 from ...core.taxes import TaxedMoney, zero_taxed_money
 from ..tasks import update_products_minimal_variant_prices_task
-from .availability import products_with_availability
 
 if TYPE_CHECKING:
     # flake8: noqa
     from datetime import date, datetime
 
     from django.db.models.query import QuerySet
-    from django.http import HttpRequest
 
-    from ...account.models import User
-    from ..models import Product, ProductVariant, Collection, ProductImage, Category
-    from ..filters import ProductCategoryFilter
+    from ..models import Product, ProductVariant, Category
 
 
 def allocate_stock(variant: "ProductVariant", quantity: int):
