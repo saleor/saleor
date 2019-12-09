@@ -3,7 +3,6 @@ from typing import List, Union
 
 import graphene
 import graphene_django_optimizer as gql_optimizer
-from django.conf import settings
 from django.db.models import Prefetch
 from graphene import relay
 from graphene_federation import key
@@ -21,6 +20,7 @@ from ....product.utils.availability import (
     get_variant_availability,
 )
 from ....product.utils.costs import get_margin_for_variant, get_product_costs_data
+from ....stock import models as stock_models
 from ...core.connection import CountableDjangoObjectType
 from ...core.enums import ReportingPeriod, TaxRateType
 from ...core.fields import FilterInputConnectionField, PrefetchingConnectionField
@@ -35,6 +35,7 @@ from ...core.types import (
     TaxType,
 )
 from ...decorators import permission_required
+from ...stock.types import Stock
 from ...translations.fields import TranslationField
 from ...translations.types import (
     CategoryTranslation,
@@ -187,14 +188,6 @@ class ProductPricingInfo(BasePricingInfo):
 
 @key(fields="id")
 class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
-    quantity = graphene.Int(
-        required=True,
-        description="Quantity of a product in the store's possession, "
-        "including the allocated stock that is waiting for shipment.",
-    )
-    stock_quantity = graphene.Int(
-        required=True, description="Quantity of a product available for sale."
-    )
     price_override = graphene.Field(
         Money,
         description=(
@@ -209,6 +202,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
             "only meant for displaying."
         ),
     )
+    # FIXME
     is_available = graphene.Boolean(
         description="Whether the variant is in stock and visible or not."
     )
@@ -247,6 +241,14 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         model_field="digital_content",
     )
 
+    stocks = gql_optimizer.field(
+        graphene.Field(Stock, description="Stocks for the product variant.")
+    )
+
+    stock_for_country = graphene.Field(
+        Stock, description="Stock available in current country."
+    )
+
     class Meta:
         description = (
             "Represents a version of a product such as different size or color."
@@ -264,14 +266,23 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         model = models.ProductVariant
 
     @staticmethod
+    @permission_required("stock.manage_stocks")
+    def resolve_stocks(root: models.ProductVariant, *_args):
+        stocks = stock_models.Stock.objects.select_related("warehouse").filter(
+            product_variant=root
+        )
+        return stocks
+
+    @staticmethod
+    @permission_required("stock.manage_stocks")
+    def resolve_stock_for_country(root: models.ProductVariant, info):
+        country = info.context.country
+        return stock_models.Stock.get_variant_stock_for_country(country, root)
+
+    @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_digital_content(root: models.ProductVariant, *_args):
         return getattr(root, "digital_content", None)
-
-    @staticmethod
-    def resolve_stock_quantity(root: models.ProductVariant, _info):
-        exact_quantity_available = root.quantity_available
-        return min(exact_quantity_available, settings.MAX_CHECKOUT_LINE_QUANTITY)
 
     @staticmethod
     @gql_optimizer.resolver_hints(
@@ -333,12 +344,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         return getattr(root, "quantity_ordered", None)
 
     @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_quantity_allocated(root: models.ProductVariant, *_args):
-        return root.quantity_allocated
-
-    @staticmethod
-    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    @permission_required(["order.manage_orders", ProductPermissions.MANAGE_PRODUCTS])
     def resolve_revenue(root: models.ProductVariant, *_args, period):
         start_date = reporting_period_to_date(period)
         return calculate_revenue_for_variant(root, start_date)
