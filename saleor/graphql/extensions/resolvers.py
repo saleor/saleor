@@ -17,5 +17,4 @@ def resolve_plugin(info, plugin_global_id):
 def resolve_plugins(sort_by=None, **_kwargs):
     manager = get_extensions_manager()
     qs = manager.get_plugin_configurations()
-    qs = sort_queryset(qs, sort_by, PluginSortField)
-    return qs
+    return sort_queryset(qs, sort_by, PluginSortField)

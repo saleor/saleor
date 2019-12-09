@@ -105,11 +105,8 @@ def sort_products(
         return qs
 
     if sort_by.field:
-        qs = sort_queryset(qs, sort_by, ProductOrderField)
-    else:
-        qs = sort_products_by_attribute(qs, sort_by)
-
-    return qs
+        return sort_queryset(qs, sort_by, ProductOrderField)
+    return sort_products_by_attribute(qs, sort_by)
 
 
 def sort_products_by_attribute(

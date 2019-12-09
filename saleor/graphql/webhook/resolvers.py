@@ -16,8 +16,7 @@ def resolve_webhooks(info, sort_by=None, **_kwargs):
         if not user.has_perm("webhook.manage_webhooks"):
             raise PermissionDenied()
         qs = models.Webhook.objects.all()
-    qs = sort_queryset(qs, sort_by, WebhookSortField)
-    return qs
+    return sort_queryset(qs, sort_by, WebhookSortField)
 
 
 def resolve_webhook(info, webhook_id):

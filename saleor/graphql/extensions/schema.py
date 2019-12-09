@@ -29,8 +29,8 @@ class ExtensionsQueries(graphene.ObjectType):
         return resolve_plugin(info, data.get("id"))
 
     @permission_required("extensions.manage_plugins")
-    def resolve_plugins(self, _info, **_kwargs):
-        return resolve_plugins(**_kwargs)
+    def resolve_plugins(self, _info, **kwargs):
+        return resolve_plugins(**kwargs)
 
 
 class ExtensionsMutations(graphene.ObjectType):
