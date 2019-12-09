@@ -192,13 +192,6 @@ class VatlayerPlugin(BasePlugin):
             return previous_value
         return True
 
-    def taxes_are_enabled(self, previous_value: bool) -> bool:
-        self._initialize_plugin_configuration()
-
-        if not self.active:
-            return previous_value
-        return True
-
     def apply_taxes_to_shipping_price_range(
         self, prices: MoneyRange, country: Country, previous_value: TaxedMoneyRange
     ) -> TaxedMoneyRange:

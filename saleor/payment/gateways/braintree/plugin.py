@@ -202,10 +202,6 @@ class BraintreeGatewayPlugin(BasePlugin):
         return get_client_token(self._get_gateway_config(), token_config)
 
     @require_active_plugin
-    def get_payment_template(self, previous_value) -> str:
-        return self._get_gateway_config().template_path
-
-    @require_active_plugin
     def get_payment_config(self, previous_value):
         config = self._get_gateway_config()
         return [
