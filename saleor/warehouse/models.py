@@ -1,3 +1,4 @@
+import itertools
 import uuid
 from typing import Set
 
@@ -49,12 +50,8 @@ class Warehouse(models.Model):
 
     @property
     def countries(self) -> Set[str]:
-        countries_zone = ",".join(
-            ShippingZone.objects.prefetch_related("warehouse_set")
-            .filter(warehouse=self)
-            .values_list("countries", flat=True)
-        )
-        return set(countries_zone.split(","))
+        shipping_zones = self.shipping_zones.all()
+        return set(itertools.chain(*[zone.countries for zone in shipping_zones]))
 
     def delete(self, *args, **kwargs):
         address = self.address
