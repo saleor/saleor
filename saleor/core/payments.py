@@ -47,12 +47,6 @@ class PaymentInterface(ABC):
         pass
 
     @abstractmethod
-    def create_payment_form(
-        self, data, gateway: str, payment_information: "PaymentData"
-    ) -> "GatewayResponse":
-        pass
-
-    @abstractmethod
     def get_client_token(self, gateway: str, token_config: "TokenConfig") -> str:
         pass
 

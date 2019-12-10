@@ -11,7 +11,6 @@ from saleor.payment.gateways.braintree import (
     TransactionKind,
     authorize,
     capture,
-    create_form,
     extract_gateway_response,
     get_braintree_gateway,
     get_client_token,
@@ -25,7 +24,6 @@ from saleor.payment.gateways.braintree.errors import (
     DEFAULT_ERROR_MESSAGE,
     BraintreeException,
 )
-from saleor.payment.gateways.braintree.forms import BraintreePaymentForm
 from saleor.payment.interface import (
     CreditCardInfo,
     CustomerSource,
@@ -235,29 +233,6 @@ def test_get_client_token_with_no_customer_id_when_disabled(
     mock_gateway.assert_called_once_with(**gateway_config.connection_params)
     mock_generate.assert_called_once_with({})
     assert token == expected_token
-
-
-def test_braintree_payment_form_incorrect_amount(payment_dummy):
-    amount = Decimal("0.01")
-    data = {"amount": amount, "payment_method_nonce": "fake-nonce"}
-    assert amount != payment_dummy.total
-    payment_info = create_payment_information(payment_dummy)
-
-    form = BraintreePaymentForm(data=data, payment_information=payment_info)
-    assert not form.is_valid()
-    assert form.non_field_errors
-
-
-def test_braintree_payment_form(payment_dummy):
-    payment = payment_dummy
-
-    data = {"amount": payment.total, "payment_method_nonce": "fake-nonce"}
-    payment_info = create_payment_information(payment)
-
-    form = create_form(data=data, payment_information=payment_info)
-
-    assert isinstance(form, BraintreePaymentForm)
-    assert form.is_valid()
 
 
 @pytest.mark.integration

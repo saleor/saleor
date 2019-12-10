@@ -14,7 +14,6 @@ from ...interface import (
     TokenConfig,
 )
 from .errors import DEFAULT_ERROR_MESSAGE, BraintreeException
-from .forms import BraintreePaymentForm
 
 # Error codes whitelist should be a dict of code: error_msg_override
 # if no error_msg_override is provided,
@@ -88,10 +87,6 @@ def extract_gateway_response(braintree_result) -> Dict:
         "customer_id": bt_transaction.customer_details.id,
         "errors": errors,
     }
-
-
-def create_form(data, payment_information):
-    return BraintreePaymentForm(data=data, payment_information=payment_information)
 
 
 def get_braintree_gateway(sandbox_mode, merchant_id, public_key, private_key):
