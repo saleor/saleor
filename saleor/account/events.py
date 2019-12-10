@@ -84,17 +84,6 @@ def staff_user_assigned_email_to_a_customer_event(
     )
 
 
-def staff_user_added_note_to_a_customer_event(
-    *, staff_user: UserType, note: str
-) -> CustomerEvent:
-    return CustomerEvent.objects.create(
-        user=staff_user,
-        order=None,
-        type=CustomerEvents.NOTE_ADDED,
-        parameters={"message": note},
-    )
-
-
 def staff_user_assigned_name_to_a_customer_event(
     *, staff_user: UserType, new_name: str
 ) -> CustomerEvent:

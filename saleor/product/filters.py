@@ -140,29 +140,3 @@ class ProductFilter(SortedFilterSet):
         if attribute_values:
             queryset = filter_products_by_attributes_values(queryset, attribute_values)
         return queryset
-
-
-class ProductCategoryFilter(ProductFilter):
-    def __init__(self, *args, **kwargs):
-        self.category = kwargs.pop("category")
-        super().__init__(*args, **kwargs)
-
-    def _get_product_attributes_lookup(self):
-        categories = self.category.get_descendants(include_self=True)
-        return Q(product_types__products__category__in=categories)
-
-    def _get_variant_attributes_lookup(self):
-        categories = self.category.get_descendants(include_self=True)
-        return Q(product_variant_types__products__category__in=categories)
-
-
-class ProductCollectionFilter(ProductFilter):
-    def __init__(self, *args, **kwargs):
-        self.collection = kwargs.pop("collection")
-        super().__init__(*args, **kwargs)
-
-    def _get_product_attributes_lookup(self):
-        return Q(product_types__products__collections=self.collection)
-
-    def _get_variant_attributes_lookup(self):
-        return Q(product_variant_types__products__collections=self.collection)

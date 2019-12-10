@@ -1,16 +1,14 @@
 import os
 from decimal import Decimal
-from unittest.mock import patch
 
 import pytest
 from freezegun import freeze_time
-from prices import Money, MoneyRange, TaxedMoney
+from prices import Money, MoneyRange
 
 from saleor.account import events as account_events
-from saleor.product import AttributeInputType, models
+from saleor.product import models
 from saleor.product.filters import filter_products_by_attributes_values
-from saleor.product.models import Attribute, AttributeValue, DigitalContentUrl
-from saleor.product.thumbnails import create_product_thumbnails
+from saleor.product.models import DigitalContentUrl
 from saleor.product.utils import (
     allocate_stock,
     deallocate_stock,
@@ -20,7 +18,6 @@ from saleor.product.utils import (
 from saleor.product.utils.attributes import associate_attribute_values_to_instance
 from saleor.product.utils.costs import get_margin_for_variant
 from saleor.product.utils.digital_products import increment_download_count
-from saleor.product.utils.variants_picker import get_variant_picker_data
 
 
 @pytest.mark.parametrize(
@@ -98,54 +95,6 @@ def test_filtering_by_attribute(db, color_attribute, category, settings):
     filtered = filter_products_by_attributes_values(product_qs, filters)
     assert product_a.pk in list(filtered)
     assert product_b.pk in list(filtered)
-
-
-def test_get_variant_picker_data_proper_variant_count(product):
-    data = get_variant_picker_data(
-        product, discounts=None, extensions=None, local_currency=None
-    ).as_dict()
-
-    assert len(data["variantAttributes"][0]["values"]) == 1
-
-
-def test_get_variant_picker_data_no_nested_attributes(variant, product_type, category):
-    """Ensures that if someone bypassed variant attributes checks (e.g. a raw SQL query)
-    and inserted an attribute with multiple values, it doesn't return invalid data
-    to the storefront that would crash it."""
-
-    variant_attr = Attribute.objects.create(
-        slug="modes", name="Available Modes", input_type=AttributeInputType.MULTISELECT
-    )
-
-    attr_val_1 = AttributeValue.objects.create(
-        attribute=variant_attr, name="Eco Mode", slug="eco"
-    )
-    attr_val_2 = AttributeValue.objects.create(
-        attribute=variant_attr, name="Performance Mode", slug="power"
-    )
-
-    product_type.variant_attributes.clear()
-    product_type.variant_attributes.add(variant_attr)
-
-    associate_attribute_values_to_instance(
-        variant, variant_attr, attr_val_1, attr_val_2
-    )
-
-    product = variant.product
-    data = get_variant_picker_data(
-        product, discounts=None, local_currency=None
-    ).as_dict()
-
-    assert len(data["variantAttributes"]) == 0
-
-
-@patch("saleor.product.thumbnails.create_thumbnails")
-def test_create_product_thumbnails(mock_create_thumbnails, product_with_image):
-    product_image = product_with_image.images.first()
-    create_product_thumbnails(product_image.pk)
-    assert mock_create_thumbnails.called_once_with(
-        product_image.pk, models.ProductImage, "products"
-    )
 
 
 @pytest.mark.parametrize(
@@ -264,15 +213,6 @@ def test_variant_base_price(product, price_override):
     assert variant.base_price == variant.price_override
 
 
-def test_variant_picker_data_with_translations(
-    product, translated_variant_fr, settings
-):
-    settings.LANGUAGE_CODE = "fr"
-    variant_picker_data = get_variant_picker_data(product).as_dict()
-    attribute = variant_picker_data["variantAttributes"][0]
-    assert attribute["name"] == translated_variant_fr.name
-
-
 def test_digital_product_view(client, digital_content_url):
     """Ensure a user (anonymous or not) can download a non-expired digital good
     using its associated token and that all associated events
@@ -361,37 +301,6 @@ def test_digital_product_view_url_expired(client, digital_content):
     response = client.get(url)
 
     assert response.status_code == 404
-
-
-def test_variant_picker_data_price_range(product_type, category):
-    product = models.Product.objects.create(
-        product_type=product_type, category=category, price=Money("15.00", "USD")
-    )
-    product.variants.create(sku="1")
-    product.variants.create(sku="2", price_override=Money("20.00", "USD"))
-    product.variants.create(sku="3", price_override=Money("11.00", "USD"))
-
-    start = TaxedMoney(net=Money("11.00", "USD"), gross=Money("11.00", "USD"))
-    stop = TaxedMoney(net=Money("20.00", "USD"), gross=Money("20.00", "USD"))
-
-    picker_data = get_variant_picker_data(
-        product, discounts=None, local_currency=None
-    ).as_dict()
-
-    min_price = picker_data["availability"]["priceRange"]["minPrice"]
-    min_price = TaxedMoney(
-        net=Money(min_price["net"], min_price["currency"]),
-        gross=Money(min_price["gross"], min_price["currency"]),
-    )
-
-    max_price = picker_data["availability"]["priceRange"]["maxPrice"]
-    max_price = TaxedMoney(
-        net=Money(max_price["net"], max_price["currency"]),
-        gross=Money(max_price["gross"], max_price["currency"]),
-    )
-
-    assert min_price == start
-    assert max_price == stop
 
 
 @pytest.mark.parametrize(
