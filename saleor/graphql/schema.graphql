@@ -2974,7 +2974,7 @@ type Product implements Node {
   url: String!
   thumbnail(size: Int): Image
   pricing: ProductPricingInfo
-  isAvailable: Boolean
+  isAvailableInCountry: Boolean
   basePrice: Money
   minimalVariantPrice: Money
   taxType: TaxType
