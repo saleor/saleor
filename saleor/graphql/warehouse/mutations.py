@@ -1,11 +1,11 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ...shipping.models import ShippingZone
 from ...warehouse import models
 from ..account.i18n import I18nMixin
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types.common import WarehouseError
-from .forms import WarehouseForm
 from .types import WarehouseCreateInput, WarehouseUpdateInput
 
 ADDRESS_FIELDS = [
@@ -22,11 +22,29 @@ ADDRESS_FIELDS = [
 
 class WarehouseMixin:
     @classmethod
+    def validate_warehouse_count(cls, shipping_zones, instance):
+        warehouses = set(
+            ShippingZone.objects.filter(
+                id__in=[shipping_zone.id for shipping_zone in shipping_zones]
+            )
+            .filter(warehouse__isnull=False)
+            .values_list("warehouse", flat=True)
+        )
+        if not bool(warehouses):
+            return True
+        if len(warehouses) > 1:
+            return False
+        if instance.id is None:
+            return False
+        return warehouses == {instance.id}
+
+    @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
-        warehouse_form = WarehouseForm(cleaned_input, instance=instance)
-        if not warehouse_form.is_valid():
-            raise ValidationError(warehouse_form.errors.as_data())
+        shipping_zones = cleaned_input.get("shipping_zones", [])
+        if not cls.validate_warehouse_count(shipping_zones, instance):
+            msg = "Shipping zone can be assigned only to one warehouse."
+            raise ValidationError({"shipping_zones": msg})
         return cleaned_input
 
     @classmethod
