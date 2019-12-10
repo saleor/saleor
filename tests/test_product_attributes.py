@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock, Mock
 
 import pytest
+from django.utils.text import slugify
 from prices import Money
 
 from saleor.product import AttributeInputType
@@ -32,6 +33,11 @@ def variant_with_no_attributes(category):
     )
     variant = ProductVariant.objects.create(product=product, sku="123")
     return variant
+
+
+def test_generate_slug_in_attribute_value_save(color_attribute):
+    value = AttributeValue.objects.create(attribute=color_attribute, name="Yellow")
+    assert value.slug == slugify("Yellow")
 
 
 def test_generate_name_for_variant(
