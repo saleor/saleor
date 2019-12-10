@@ -21,6 +21,7 @@ from ....product.utils.availability import (
 )
 from ....product.utils.costs import get_margin_for_variant, get_product_costs_data
 from ....stock import models as stock_models
+from ....stock.availability import is_product_in_stock
 from ...core.connection import CountableDjangoObjectType
 from ...core.enums import ReportingPeriod, TaxRateType
 from ...core.fields import FilterInputConnectionField, PrefetchingConnectionField
@@ -393,7 +394,7 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
             "only meant for displaying."
         ),
     )
-    is_available = graphene.Boolean(
+    is_available_in_country = graphene.Boolean(
         description="Whether the product is in stock and visible or not."
     )
     base_price = graphene.Field(Money, description="The product's default base price.")
@@ -494,8 +495,10 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
 
     @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related=("variants"))
-    def resolve_is_available(root: models.Product, _info):
-        return root.is_available
+    def resolve_is_available_in_country(root: models.Product, _info):
+        country = _info.context.country
+        in_stock = is_product_in_stock(root, country)
+        return root.is_visible and in_stock
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
