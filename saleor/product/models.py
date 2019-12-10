@@ -458,10 +458,6 @@ class ProductVariant(ModelWithMetadata):
         return self.product.is_visible
 
     @property
-    def is_available(self) -> bool:
-        return self.is_visible and self.is_in_stock()
-
-    @property
     def base_price(self) -> "Money":
         return (
             self.price_override
@@ -487,8 +483,6 @@ class ProductVariant(ModelWithMetadata):
         is_digital = self.product.product_type.is_digital
         return not self.is_shipping_required() and is_digital
 
-    def is_in_stock(self) -> bool:
-        return self.quantity_available > 0
 
     def display_product(self, translated: bool = False) -> str:
         if translated:
