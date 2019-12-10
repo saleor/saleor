@@ -68,9 +68,3 @@ def update_products_minimal_variant_prices_of_discount_task(discount_pk: int):
 def update_products_minimal_variant_prices_task(product_ids: List[int]):
     products = Product.objects.filter(pk__in=product_ids)
     update_products_minimal_variant_prices(products)
-
-
-@app.task
-def update_all_products_minimal_variant_prices_task():
-    products = Product.objects.iterator()
-    update_products_minimal_variant_prices(products)

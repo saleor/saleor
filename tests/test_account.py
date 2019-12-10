@@ -13,12 +13,7 @@ from saleor.account import forms, i18n
 from saleor.account.i18n import AddressForm
 from saleor.account.models import User
 from saleor.account.templatetags.i18n_address_tags import format_address
-from saleor.account.utils import (
-    get_random_avatar,
-    get_user_first_name,
-    get_user_last_name,
-    remove_staff_member,
-)
+from saleor.account.utils import get_random_avatar, remove_staff_member
 from saleor.account.validators import validate_possible_number
 
 
@@ -296,35 +291,6 @@ def test_get_full_name(email, first_name, last_name, full_name, address):
         default_billing_address=address,
     )
     assert user.get_full_name() == full_name
-
-
-@pytest.mark.parametrize(
-    "first_name, default_billing_address_first_name, result",
-    [
-        ("John", "Arnold", "John"),
-        ("John", "", "John"),
-        ("", "Arnold", "Arnold"),
-        ("", "", ""),
-    ],
-)
-def test_get_user_first_name(
-    first_name, default_billing_address_first_name, result, address
-):
-    address.first_name = default_billing_address_first_name
-    user = User(first_name=first_name, default_billing_address=address)
-    assert get_user_first_name(user) == result
-
-
-@pytest.mark.parametrize(
-    "last_name, default_billing_address_last_name, result",
-    [("Doe", "Green", "Doe"), ("Doe", "", "Doe"), ("", "Green", "Green"), ("", "", "")],
-)
-def test_get_user_last_name(
-    last_name, default_billing_address_last_name, result, address
-):
-    address.last_name = default_billing_address_last_name
-    user = User(last_name=last_name, default_billing_address=address)
-    assert get_user_last_name(user) == result
 
 
 def test_get_random_avatar():
