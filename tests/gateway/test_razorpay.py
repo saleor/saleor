@@ -9,17 +9,12 @@ from saleor.payment.gateways.razorpay import (
     capture,
     check_payment_supported,
     clean_razorpay_response,
-    create_form,
     errors,
     get_amount_for_razorpay,
     get_client,
     get_client_token,
     logger,
     refund,
-)
-from saleor.payment.gateways.razorpay.forms import (
-    RazorPayCheckoutWidget,
-    RazorPaymentForm,
 )
 from saleor.payment.interface import GatewayConfig
 from saleor.payment.utils import create_payment_information
@@ -71,50 +66,6 @@ def charged_payment(razorpay_payment):
         is_success=True,
     )
     return razorpay_payment
-
-
-def test_checkout_widget_render_without_prefill(razorpay_payment, gateway_config):
-    gateway_config.connection_params["prefill"] = False
-    payment_info = create_payment_information(razorpay_payment)
-    widget = RazorPayCheckoutWidget(
-        payment_information=payment_info,
-        attrs={"data-custom": "123"},
-        **gateway_config.connection_params,
-    )
-    assert widget.render() == (
-        '<script data-amount="9840" data-buttontext="Pay now with Razorpay" '
-        'data-currency="INR" data-custom="123" '
-        'data-description="Total payment" '
-        'data-image="image.png" data-key="public" data-name="Saleor" '
-        'src="https://checkout.razorpay.com/v1/checkout.js"></script>'
-    )
-
-
-def test_checkout_widget_render_with_prefill(razorpay_payment, gateway_config):
-    payment_info = create_payment_information(razorpay_payment)
-    widget = RazorPayCheckoutWidget(
-        payment_information=payment_info, **gateway_config.connection_params
-    )
-    assert widget.render() == (
-        '<script data-amount="9840" data-buttontext="Pay now with Razorpay" '
-        'data-currency="INR" data-description="Total payment" '
-        'data-image="image.png" data-key="public" data-name="Saleor" '
-        'data-prefill.email="test@example.com" '
-        'data-prefill.name="Doe John" '
-        'src="https://checkout.razorpay.com/v1/checkout.js"></script>'
-    )
-
-
-def test_checkout_form(razorpay_payment, gateway_config):
-    payment_info = create_payment_information(razorpay_payment)
-    form = create_form(
-        data={"razorpay_payment_id": "123"},
-        payment_information=payment_info,
-        connection_params=gateway_config.connection_params,
-    )
-
-    assert isinstance(form, RazorPaymentForm)
-    assert form.is_valid()
 
 
 def test_check_payment_supported(razorpay_payment):
