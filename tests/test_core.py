@@ -11,6 +11,7 @@ from measurement.measures import Weight
 from saleor.account.models import Address, User
 from saleor.account.utils import create_superuser
 from saleor.core.storages import S3MediaStorage
+from saleor.core.templatetags.placeholder import placeholder
 from saleor.core.utils import (
     Country,
     build_absolute_uri,
@@ -241,3 +242,9 @@ def test_delete_sort_order_with_null_value(menu_item):
     menu_item.sort_order = None
     menu_item.save(update_fields=["sort_order"])
     menu_item.delete()
+
+
+def test_placeholder(settings):
+    size = 60
+    result = placeholder(size)
+    assert result == "/static/" + settings.PLACEHOLDER_IMAGES[size]

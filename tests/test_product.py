@@ -1,5 +1,6 @@
 import os
 from decimal import Decimal
+from unittest.mock import patch
 
 import pytest
 from freezegun import freeze_time
@@ -9,6 +10,7 @@ from saleor.account import events as account_events
 from saleor.product import models
 from saleor.product.filters import filter_products_by_attributes_values
 from saleor.product.models import DigitalContentUrl
+from saleor.product.thumbnails import create_product_thumbnails
 from saleor.product.utils import (
     allocate_stock,
     deallocate_stock,
@@ -310,3 +312,12 @@ def test_costs_get_margin_for_variant(variant, price, cost):
     variant.cost_price = cost
     variant.price_override = price
     assert not get_margin_for_variant(variant)
+
+
+@patch("saleor.product.thumbnails.create_thumbnails")
+def test_create_product_thumbnails(mock_create_thumbnails, product_with_image):
+    product_image = product_with_image.images.first()
+    create_product_thumbnails(product_image.pk)
+    assert mock_create_thumbnails.called_once_with(
+        product_image.pk, models.ProductImage, "products"
+    )
