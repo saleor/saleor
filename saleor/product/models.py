@@ -854,6 +854,11 @@ class AttributeValue(SortableModel):
     def get_ordering_queryset(self):
         return self.attribute.values.all()
 
+    def save(self, *args, **kwargs):
+        if not self.slug and self.name:
+            self.slug = slugify(self.name)
+        return super().save(*args, **kwargs)
+
 
 class AttributeValueTranslation(models.Model):
     language_code = models.CharField(max_length=10)
