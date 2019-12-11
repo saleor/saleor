@@ -143,16 +143,24 @@ class Checkout(ModelWithMetadata):
         payments = [payment for payment in self.payments.all() if payment.is_active]
         return max(payments, default=None, key=attrgetter("pk"))
 
-    def set_country(self, country_code):
-        if self.country is None:
-            self.store_private_meta("Shipping_info", "", {"country_code": country_code})
-            # self.save(update_fields=["private_meta"])
+    def set_country(self, country_code: str, commit: bool = False, replace=False):
+        if not replace and self.country is not None:
+            return
+        self.store_private_meta("Shipping_info", "", {"country_code": country_code})
+        if commit:
+            self.save(update_fields=["private_meta"])
 
     @property
     def country(self):
-        if self.shipping_address:
-            return self.shipping_address.country
-        return self.get_private_meta("Shipping_info", "").get("country_code")
+        address = self.shipping_address or self.billing_address
+        meta_country = self.get_private_meta("Shipping_info", "").get("country_code")
+        if address is None or not address.country:
+            return meta_country
+
+        country_code = address.country.code
+        if not country_code == meta_country:
+            self.set_country(country_code, commit=True, replace=True)
+        return country_code
 
 
 class CheckoutLine(models.Model):
