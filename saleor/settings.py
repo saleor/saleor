@@ -4,7 +4,6 @@ import warnings
 
 import dj_database_url
 import dj_email_url
-import django_cache_url
 import sentry_sdk
 from django.contrib.messages import constants as messages
 from django.utils.translation import gettext_lazy as _, pgettext_lazy
@@ -46,12 +45,6 @@ ALLOWED_CLIENT_HOSTS = get_list(
 )
 
 INTERNAL_IPS = get_list(os.environ.get("INTERNAL_IPS", "127.0.0.1"))
-
-# Some cloud providers (Heroku) export REDIS_URL variable instead of CACHE_URL
-REDIS_URL = os.environ.get("REDIS_URL")
-if REDIS_URL:
-    CACHE_URL = os.environ.setdefault("CACHE_URL", REDIS_URL)
-CACHES = {"default": django_cache_url.config()}
 
 DATABASES = {
     "default": dj_database_url.config(
@@ -174,9 +167,6 @@ loaders = [
     "django.template.loaders.filesystem.Loader",
     "django.template.loaders.app_directories.Loader",
 ]
-
-if not DEBUG:
-    loaders = [("django.template.loaders.cached.Loader", loaders)]
 
 TEMPLATES = [
     {
@@ -411,11 +401,6 @@ PAYMENT_MODEL = "order.Payment"
 
 SESSION_SERIALIZER = "django.contrib.sessions.serializers.JSONSerializer"
 
-# Do not use cached session if locmem cache backend is used but fallback to use
-# default django.contrib.sessions.backends.db instead
-if not CACHES["default"]["BACKEND"].endswith("LocMemCache"):
-    SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
-
 MESSAGE_TAGS = {messages.ERROR: "danger"}
 
 LOW_STOCK_THRESHOLD = 10
@@ -473,8 +458,6 @@ if AWS_MEDIA_BUCKET_NAME:
 elif GS_MEDIA_BUCKET_NAME:
     DEFAULT_FILE_STORAGE = "saleor.core.storages.GCSMediaStorage"
     THUMBNAIL_DEFAULT_STORAGE = DEFAULT_FILE_STORAGE
-
-MESSAGE_STORAGE = "django.contrib.messages.storage.session.SessionStorage"
 
 VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
     "products": [

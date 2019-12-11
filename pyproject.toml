@@ -23,7 +23,6 @@ dj-email-url = "^0"
 django = "~2.2"
 django-babel = "^0"
 django-bootstrap4 = "~1"
-django-cache-url = "^3.0"
 django-countries = "^5.3"
 django-filter = "^2.2"
 django-graphql-jwt = "<=0.2.1" # https://github.com/mirumee/saleor/issues/4652
