@@ -21,7 +21,6 @@ from django_countries import countries
 from PIL import Image
 from prices import Money, TaxedMoney
 
-from saleor.account.backends import BaseBackend
 from saleor.account.models import (
     Address,
     ServiceAccount,
@@ -1206,13 +1205,6 @@ def authorization_key(site_settings, authorization_backend_name):
         key="Key",
         password="Password",
     )
-
-
-@pytest.fixture
-def base_backend(authorization_backend_name):
-    base_backend = BaseBackend()
-    base_backend.DB_NAME = authorization_backend_name
-    return base_backend
 
 
 @pytest.fixture

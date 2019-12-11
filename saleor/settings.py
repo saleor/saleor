@@ -338,8 +338,6 @@ LOGGING = {
 
 AUTH_USER_MODEL = "account.User"
 
-LOGIN_URL = "/account/login/"
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
@@ -405,10 +403,6 @@ MESSAGE_TAGS = {messages.ERROR: "danger"}
 
 LOW_STOCK_THRESHOLD = 10
 MAX_CHECKOUT_LINE_QUANTITY = int(os.environ.get("MAX_CHECKOUT_LINE_QUANTITY", 50))
-
-PAGINATE_BY = 16
-DASHBOARD_PAGINATE_BY = 30
-DASHBOARD_SEARCH_LIMIT = 5
 
 bootstrap4 = {
     "set_placeholder": False,
@@ -492,33 +486,12 @@ LOGOUT_ON_PASSWORD_CHANGE = False
 SEARCH_BACKEND = "saleor.search.backends.postgresql"
 
 AUTHENTICATION_BACKENDS = [
-    "saleor.account.backends.facebook.CustomFacebookOAuth2",
-    "saleor.account.backends.google.CustomGoogleOAuth2",
     "graphql_jwt.backends.JSONWebTokenBackend",
     "django.contrib.auth.backends.ModelBackend",
 ]
 
 
 GRAPHQL_JWT = {"JWT_PAYLOAD_HANDLER": "saleor.graphql.utils.create_jwt_payload"}
-
-SOCIAL_AUTH_PIPELINE = [
-    "social_core.pipeline.social_auth.social_details",
-    "social_core.pipeline.social_auth.social_uid",
-    "social_core.pipeline.social_auth.auth_allowed",
-    "social_core.pipeline.social_auth.social_user",
-    "social_core.pipeline.social_auth.associate_by_email",
-    "social_core.pipeline.user.create_user",
-    "social_core.pipeline.social_auth.associate_user",
-    "social_core.pipeline.social_auth.load_extra_data",
-    "social_core.pipeline.user.user_details",
-]
-
-SOCIAL_AUTH_USERNAME_IS_FULL_EMAIL = True
-SOCIAL_AUTH_USER_MODEL = AUTH_USER_MODEL
-SOCIAL_AUTH_FACEBOOK_SCOPE = ["email"]
-SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {"fields": "id, email"}
-# As per March 2018, Facebook requires all traffic to go through HTTPS only
-SOCIAL_AUTH_REDIRECT_IS_HTTPS = True
 
 # CELERY SETTINGS
 CELERY_BROKER_URL = (
