@@ -17,15 +17,17 @@ from saleor.order.actions import (
 from saleor.order.models import Fulfillment
 from saleor.payment import ChargeStatus, PaymentError
 from saleor.product.models import DigitalContent
+from saleor.stock.models import Stock
 
 from .utils import create_image
 
 
 @pytest.fixture
-def order_with_digital_line(order, digital_content, variant, site_settings):
+def order_with_digital_line(order, digital_content, stock, site_settings):
     site_settings.automatic_fulfillment_digital_products = True
     site_settings.save()
 
+    variant = stock.product_variant
     variant.digital_content = digital_content
     variant.digital_content.save()
 
@@ -165,12 +167,13 @@ def test_fulfill_order_line(order_with_lines):
     line = order.lines.first()
     quantity_fulfilled_before = line.quantity_fulfilled
     variant = line.variant
-    stock_quantity_after = variant.quantity - line.quantity
+    stock = Stock.objects.get(product_variant=variant)
+    stock_quantity_after = stock.quantity - line.quantity
 
     fulfill_order_line(line, line.quantity)
 
-    variant.refresh_from_db()
-    assert variant.quantity == stock_quantity_after
+    stock.refresh_from_db()
+    assert stock.quantity == stock_quantity_after
     assert line.quantity_fulfilled == quantity_fulfilled_before + line.quantity
 
 
@@ -190,14 +193,15 @@ def test_fulfill_order_line_without_inventory_tracking(order_with_lines):
     variant = line.variant
     variant.track_inventory = False
     variant.save()
+    stock = Stock.objects.get(product_variant=variant)
 
     # stock should not change
-    stock_quantity_after = variant.quantity
+    stock_quantity_after = stock.quantity
 
     fulfill_order_line(line, line.quantity)
 
-    variant.refresh_from_db()
-    assert variant.quantity == stock_quantity_after
+    stock.refresh_from_db()
+    assert stock.quantity == stock_quantity_after
     assert line.quantity_fulfilled == quantity_fulfilled_before + line.quantity
 
 
