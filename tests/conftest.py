@@ -21,7 +21,6 @@ from django_countries import countries
 from PIL import Image
 from prices import Money, TaxedMoney
 
-from saleor.account.backends import BaseBackend
 from saleor.account.models import (
     Address,
     ServiceAccount,
@@ -384,14 +383,6 @@ def admin_user(db):
 
 
 @pytest.fixture
-def admin_client(admin_user):
-    """Return a Django test client logged in as an admin user."""
-    client = Client()
-    client.login(username=admin_user.email, password="password")
-    return client
-
-
-@pytest.fixture
 def staff_user(db):
     """Return a staff member."""
     return User.objects.create_user(
@@ -400,19 +391,6 @@ def staff_user(db):
         is_staff=True,
         is_active=True,
     )
-
-
-@pytest.fixture
-def staff_client(client, staff_user):
-    """Return a Django test client logged in as an staff member."""
-    client.login(username=staff_user.email, password="password")
-    return client
-
-
-@pytest.fixture
-def authorized_client(client, customer_user):
-    client.login(username=customer_user.email, password="password")
-    return client
 
 
 @pytest.fixture
@@ -1206,13 +1184,6 @@ def authorization_key(site_settings, authorization_backend_name):
         key="Key",
         password="Password",
     )
-
-
-@pytest.fixture
-def base_backend(authorization_backend_name):
-    base_backend = BaseBackend()
-    base_backend.DB_NAME = authorization_backend_name
-    return base_backend
 
 
 @pytest.fixture
