@@ -15,8 +15,6 @@ class PhonePrefixWidget(PhoneNumberPrefixWidget):
     https://github.com/stefanfoulis/django-phonenumber-field/issues/82
     """
 
-    template_name = "account/snippets/phone_prefix_widget.html"
-
     def __init__(self, attrs=None):
         widgets = (Select(attrs=attrs, choices=phone_prefixes), TextInput())
         # pylint: disable=bad-super-call
@@ -32,7 +30,6 @@ class PhonePrefixWidget(PhoneNumberPrefixWidget):
 
 
 class DatalistTextWidget(Select):
-    template_name = "account/snippets/datalist.html"
     input_type = "text"
 
     def get_context(self, *args):
