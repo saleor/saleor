@@ -27,13 +27,6 @@ def require_active_plugin(fn):
 class RazorpayGatewayPlugin(BasePlugin):
     PLUGIN_NAME = GATEWAY_NAME
     CONFIG_STRUCTURE = {
-        "Template path": {
-            "type": ConfigurationTypeField.STRING,
-            "help_text": pgettext_lazy(
-                "Plugin help text", "Location of django payment template for gateway."
-            ),
-            "label": pgettext_lazy("Plugin label", "Template path"),
-        },
         "Public API key": {
             "type": ConfigurationTypeField.SECRET,
             "help_text": pgettext_lazy("Plugin help text", "Provide  public API key"),
@@ -86,7 +79,6 @@ class RazorpayGatewayPlugin(BasePlugin):
                     "store_name": None,
                     "store_image": None,
                 },
-                template_path=configuration["Template path"],
                 store_customer=configuration["Store customers card"],
             )
 
@@ -97,7 +89,6 @@ class RazorpayGatewayPlugin(BasePlugin):
             "description": "",
             "active": False,
             "configuration": [
-                {"name": "Template path", "value": "order/payment/razorpay.html"},
                 {"name": "Public API key", "value": None},
                 {"name": "Secret API key", "value": None},
                 {"name": "Store customers card", "value": False},

@@ -84,7 +84,6 @@ def braintree_error_response(braintree_error):
 def gateway_config():
     return GatewayConfig(
         gateway_name="braintree",
-        template_path="template.html",
         auto_capture=False,
         store_customer=False,
         connection_params={
