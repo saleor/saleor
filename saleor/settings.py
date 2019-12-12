@@ -149,18 +149,11 @@ STATICFILES_FINDERS = [
 ]
 
 context_processors = [
-    "django.contrib.auth.context_processors.auth",
     "django.template.context_processors.debug",
-    "django.template.context_processors.i18n",
     "django.template.context_processors.media",
     "django.template.context_processors.static",
-    "django.template.context_processors.tz",
-    "django.contrib.messages.context_processors.messages",
-    "django.template.context_processors.request",
     "saleor.checkout.context_processors.checkout_counter",
     "saleor.site.context_processors.site",
-    "social_django.context_processors.backends",
-    "social_django.context_processors.login_redirect",
 ]
 
 loaders = [
@@ -185,21 +178,14 @@ TEMPLATES = [
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
 MIDDLEWARE = [
-    "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.locale.LocaleMiddleware",
-    "django_babel.middleware.LocaleMiddleware",
     "saleor.core.middleware.discounts",
     "saleor.core.middleware.google_analytics",
     "saleor.core.middleware.country",
     "saleor.core.middleware.currency",
     "saleor.core.middleware.site",
     "saleor.core.middleware.extensions",
-    "social_django.middleware.SocialAuthExceptionMiddleware",
     "saleor.graphql.middleware.jwt_middleware",
     "saleor.graphql.middleware.service_account_middleware",
 ]
@@ -209,13 +195,10 @@ INSTALLED_APPS = [
     "storages",
     # Django modules
     "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
     "django.contrib.sites",
     "django.contrib.staticfiles",
     "django.contrib.auth",
     "django.contrib.postgres",
-    "django.forms",
     # Local apps
     "saleor.extensions",
     "saleor.account",
@@ -237,19 +220,15 @@ INSTALLED_APPS = [
     "saleor.webhook",
     # External apps
     "versatileimagefield",
-    "django_babel",
-    "bootstrap4",
     "django_measurement",
     "django_prices",
     "django_prices_openexchangerates",
     "django_prices_vatlayer",
     "graphene_django",
     "mptt",
-    "social_django",
     "django_countries",
     "django_filters",
     "phonenumber_field",
-    "captcha",
 ]
 
 

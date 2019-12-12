@@ -383,14 +383,6 @@ def admin_user(db):
 
 
 @pytest.fixture
-def admin_client(admin_user):
-    """Return a Django test client logged in as an admin user."""
-    client = Client()
-    client.login(username=admin_user.email, password="password")
-    return client
-
-
-@pytest.fixture
 def staff_user(db):
     """Return a staff member."""
     return User.objects.create_user(
@@ -399,19 +391,6 @@ def staff_user(db):
         is_staff=True,
         is_active=True,
     )
-
-
-@pytest.fixture
-def staff_client(client, staff_user):
-    """Return a Django test client logged in as an staff member."""
-    client.login(username=staff_user.email, password="password")
-    return client
-
-
-@pytest.fixture
-def authorized_client(client, customer_user):
-    client.login(username=customer_user.email, password="password")
-    return client
 
 
 @pytest.fixture
