@@ -20,6 +20,13 @@ from ..stock.management import allocate_stock, deallocate_stock, increase_stock
 from . import events
 
 
+def get_order_country(order) -> str:
+    address = order.billing_address
+    if order.is_shipping_required():
+        address = order.shipping_address
+    return address.country.code
+
+
 def order_line_needs_automatic_fulfillment(line: OrderLine) -> bool:
     """Check if given line is digital and should be automatically fulfilled."""
     digital_content_settings = get_default_digital_content_settings()
@@ -168,7 +175,7 @@ def add_variant_to_order(
     By default, raises InsufficientStock exception if  quantity could not be
     fulfilled. This can be disabled by setting `allow_overselling` to True.
     """
-    country = order.shipping_address.country
+    country = get_order_country(order)
     if not allow_overselling:
         check_stock_quantity(variant, country, quantity)
 
@@ -213,7 +220,7 @@ def add_variant_to_order(
         )
 
     if variant.track_inventory and track_inventory:
-        allocate_stock(variant, quantity)
+        allocate_stock(variant, country, quantity)
     return line
 
 
@@ -263,12 +270,14 @@ def delete_order_line(line):
 
 def restock_order_lines(order):
     """Return ordered products to corresponding stocks."""
+    country = get_order_country(order)
+
     for line in order:
         if line.variant and line.variant.track_inventory:
             if line.quantity_unfulfilled > 0:
-                deallocate_stock(line.variant, line.quantity_unfulfilled)
+                deallocate_stock(line.variant, country, line.quantity_unfulfilled)
             if line.quantity_fulfilled > 0:
-                increase_stock(line.variant, line.quantity_fulfilled)
+                increase_stock(line.variant, country, line.quantity_fulfilled)
 
         if line.quantity_fulfilled > 0:
             line.quantity_fulfilled = 0
@@ -277,9 +286,12 @@ def restock_order_lines(order):
 
 def restock_fulfillment_lines(fulfillment):
     """Return fulfilled products to corresponding stocks."""
+    country = get_order_country(fulfillment.order)
     for line in fulfillment:
         if line.order_line.variant and line.order_line.variant.track_inventory:
-            increase_stock(line.order_line.variant, line.quantity, allocate=True)
+            increase_stock(
+                line.order_line.variant, country, line.quantity, allocate=True
+            )
 
 
 def sum_order_totals(qs):

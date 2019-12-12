@@ -13,6 +13,7 @@ from . import FulfillmentStatus, OrderStatus, emails, events, utils
 from .emails import send_fulfillment_confirmation_to_customer, send_payment_confirmation
 from .models import Fulfillment, FulfillmentLine
 from .utils import (
+    get_order_country,
     order_line_needs_automatic_fulfillment,
     recalculate_order,
     restock_fulfillment_lines,
@@ -216,8 +217,9 @@ def clean_mark_order_as_paid(order: "Order"):
 
 def fulfill_order_line(order_line, quantity):
     """Fulfill order line with given quantity."""
+    country = get_order_country(order_line.order)
     if order_line.variant and order_line.variant.track_inventory:
-        decrease_stock(order_line.variant, quantity)
+        decrease_stock(order_line.variant, country, quantity)
     order_line.quantity_fulfilled += quantity
     order_line.save(update_fields=["quantity_fulfilled"])
 
