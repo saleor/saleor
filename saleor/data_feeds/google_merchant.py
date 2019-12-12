@@ -13,6 +13,7 @@ from ..core.taxes import zero_money
 from ..discount import DiscountInfo
 from ..discount.utils import fetch_discounts
 from ..product.models import Attribute, AttributeValue, Category, ProductVariant
+from ..stock.availability import is_variant_in_stock
 
 CATEGORY_SEPARATOR = " > "
 
@@ -144,7 +145,7 @@ def item_image_link(item: ProductVariant, current_site):
 
 
 def item_availability(item: ProductVariant):
-    if item.quantity_available:
+    if is_variant_in_stock(item, settings.DEFAULT_COUNTRY):
         return "in stock"
     return "out of stock"
 
