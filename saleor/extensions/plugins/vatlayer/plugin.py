@@ -7,6 +7,8 @@ from django_countries.fields import Country
 from django_prices_vatlayer.utils import get_tax_rate_types
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
+
+from ....checkout import calculations
 from ....core.taxes import TaxType
 from ....graphql.core.utils.error_codes import ExtensionsErrorCode
 from ...base_plugin import BasePlugin
@@ -72,12 +74,9 @@ class VatlayerPlugin(BasePlugin):
         if self._skip_plugin(previous_value):
             return previous_value
 
-        zero_total = Money(0, currency=previous_value.currency)
-        taxed_zero = TaxedMoney(zero_total, zero_total)
-
         return (
-            self.calculate_checkout_subtotal(checkout, discounts, previous_value)
-            + self.calculate_checkout_shipping(checkout, discounts, taxed_zero)
+            calculations.checkout_subtotal(checkout, discounts)
+            + calculations.checkout_shipping_price(checkout, discounts)
             - checkout.discount
         )
 
