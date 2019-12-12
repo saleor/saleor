@@ -36,13 +36,6 @@ def require_active_plugin(fn):
 class DummyGatewayPlugin(BasePlugin):
     PLUGIN_NAME = GATEWAY_NAME
     CONFIG_STRUCTURE = {
-        "Template path": {
-            "type": ConfigurationTypeField.STRING,
-            "help_text": pgettext_lazy(
-                "Plugin help text", "Location of django payment template for gateway."
-            ),
-            "label": pgettext_lazy("Plugin label", "Template path"),
-        },
         "Store customers card": {
             "type": ConfigurationTypeField.BOOLEAN,
             "help_text": pgettext_lazy(
@@ -67,7 +60,6 @@ class DummyGatewayPlugin(BasePlugin):
             gateway_name=GATEWAY_NAME,
             auto_capture=True,
             connection_params={},
-            template_path="",
             store_customer=False,
         )
 
@@ -82,7 +74,6 @@ class DummyGatewayPlugin(BasePlugin):
                 gateway_name=GATEWAY_NAME,
                 auto_capture=configuration["Automatic payment capture"],
                 connection_params={},
-                template_path=configuration["Template path"],
                 store_customer=configuration["Store customers card"],
             )
 
@@ -95,7 +86,6 @@ class DummyGatewayPlugin(BasePlugin):
             "configuration": [
                 {"name": "Store customers card", "value": False},
                 {"name": "Automatic payment capture", "value": True},
-                {"name": "Template path", "value": "order/payment/dummy.html"},
             ],
         }
         return defaults
