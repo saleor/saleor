@@ -13,7 +13,7 @@ if TYPE_CHECKING:
 
 def check_stock_quantity(variant: "ProductVariant", country_code: str, quantity: int):
     try:
-        stock = Stock.objects.for_country(country_code).get(product_variant=variant)
+        stock = Stock.objects.get_variant_stock_for_country(country_code, variant)
     except Stock.DoesNotExist:
         raise InsufficientStock(variant)
 
@@ -23,14 +23,14 @@ def check_stock_quantity(variant: "ProductVariant", country_code: str, quantity:
 
 def get_available_quantity(variant: "ProductVariant", country_code: str) -> int:
     try:
-        stock = Stock.objects.for_country(country_code).get(product_variant=variant)
+        stock = Stock.objects.get_variant_stock_for_country(country_code, variant)
     except Stock.DoesNotExist:
         return 0
     return stock.quantity_available
 
 
 def is_variant_in_stock(variant: "ProductVariant", country_code: str) -> bool:
-    stock = Stock.objects.for_country(country_code).get(product_variant__pk=variant.pk)
+    stock = Stock.objects.get_variant_stock_for_country(country_code, variant)
     return stock.is_available
 
 
