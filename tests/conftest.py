@@ -210,7 +210,7 @@ def site_settings(db, settings) -> SiteSettings:
 @pytest.fixture
 def checkout(db):
     checkout = Checkout.objects.create()
-    checkout.set_country("US")
+    checkout.set_country("US", commit=True)
     return checkout
 
 
