@@ -160,6 +160,26 @@ def test_create_stock_mutation(
     assert len(content_errors) == 0
 
 
+def test_create_stock_negative_quantity(
+    staff_api_client, variant, warehouse, permission_manage_stocks
+):
+    staff_api_client.user.user_permissions.add(permission_manage_stocks)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    variables = {
+        "input": {
+            "productVariant": variant_id,
+            "warehouse": warehouse_id,
+            "quantity": -100,
+        }
+    }
+
+    response = staff_api_client.post_graphql(MUTATION_CREATE_STOCK, variables=variables)
+    content = get_graphql_content(response)
+    errors = content["data"]["createStock"]["errors"]
+    assert len(errors) == 1
+
+
 def test_update_stock_required_permission(staff_api_client, stock):
     assert not staff_api_client.user.has_perm("stock.manage_stocks")
     stock_id = graphene.Node.to_global_id("Stock", stock.pk)

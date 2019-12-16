@@ -14,9 +14,11 @@ from ....order.utils import (
     allocate_stock,
     change_order_line_quantity,
     delete_order_line,
+    get_order_country,
     recalculate_order,
     update_order_prices,
 )
+from ....stock.availability import check_stock_quantity, get_available_quantity
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -266,14 +268,16 @@ class DraftOrderComplete(BaseMutation):
                 order.shipping_address.delete()
 
         order.save()
+        country = get_order_country(order)
 
         oversold_items = []
         for line in order:
             try:
-                line.variant.check_quantity(line.quantity)
-                allocate_stock(line.variant, line.quantity)
+                check_stock_quantity(line.variant, country, line.quantity)
+                allocate_stock(line.variant, country, line.quantity)
             except InsufficientStock:
-                allocate_stock(line.variant, line.variant.quantity_available)
+                available_stock = get_available_quantity(line.variant, country)
+                allocate_stock(line.variant, country, available_stock)
                 oversold_items.append(str(line))
         order_created(order, user=info.context.user, from_draft=True)
 
