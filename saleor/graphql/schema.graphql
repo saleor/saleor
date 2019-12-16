@@ -3492,7 +3492,7 @@ type Query {
   webhookEvents: [WebhookEvent]
   webhookSamplePayload(eventType: WebhookEventTypeEnum!): JSONString
   warehouse(id: ID!): Warehouse
-  warehouses(filter: WarehouseFilterInput, query: String, before: String, after: String, first: Int, last: Int): WarehouseCountableConnection
+  warehouses(filter: WarehouseFilterInput, before: String, after: String, first: Int, last: Int): WarehouseCountableConnection
   translations(kind: TranslatableKinds!, before: String, after: String, first: Int, last: Int): TranslatableItemConnection
   translation(id: ID!, kind: TranslatableKinds!): TranslatableItem
   stock(id: ID!): Stock
@@ -4201,8 +4201,7 @@ type StockError {
 input StockFilterInput {
   quantity: Float
   quantityAllocated: Float
-  productVariant: String
-  warehouse: String
+  search: String
 }
 
 input StockInput {
@@ -4673,10 +4672,7 @@ type WarehouseError {
 }
 
 input WarehouseFilterInput {
-  name: String
-  companyName: String
-  email: String
-  address: String
+  search: String
 }
 
 type WarehouseUpdate {

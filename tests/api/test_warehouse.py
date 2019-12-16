@@ -206,7 +206,7 @@ def test_query_warehouses_with_filters_name(
     staff_api_client, permission_manage_warehouses, warehouse
 ):
     staff_api_client.user.user_permissions.add(permission_manage_warehouses)
-    variables_exists = {"filters": {"name": "warehouse"}}
+    variables_exists = {"filters": {"search": "warehouse"}}
     response = staff_api_client.post_graphql(
         QUERY_WAREHOUSES_WITH_FILTERS, variables=variables_exists
     )
@@ -214,7 +214,7 @@ def test_query_warehouses_with_filters_name(
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
     content_warehouse = content["data"]["warehouses"]["edges"][0]["node"]
     assert content_warehouse["id"] == warehouse_id
-    variables_does_not_exists = {"filters": {"name": "Absolutelywrong name"}}
+    variables_does_not_exists = {"filters": {"search": "Absolutelywrong name"}}
     response1 = staff_api_client.post_graphql(
         QUERY_WAREHOUSES_WITH_FILTERS, variables=variables_does_not_exists
     )
@@ -227,7 +227,7 @@ def test_query_warehouse_with_filters_email(
     staff_api_client, permission_manage_warehouses, warehouse
 ):
     staff_api_client.user.user_permissions.add(permission_manage_warehouses)
-    variables_exists = {"filters": {"email": "test"}}
+    variables_exists = {"filters": {"search": "test"}}
     response_exists = staff_api_client.post_graphql(
         QUERY_WAREHOUSES_WITH_FILTERS, variables=variables_exists
     )
@@ -236,7 +236,7 @@ def test_query_warehouse_with_filters_email(
     content_warehouse = content_exists["data"]["warehouses"]["edges"][0]["node"]
     assert content_warehouse["id"] == warehouse_id
 
-    variable_does_not_exists = {"filters": {"email": "Bad@email.pl"}}
+    variable_does_not_exists = {"filters": {"search": "Bad@email.pl"}}
     response_not_exists = staff_api_client.post_graphql(
         QUERY_WAREHOUSES_WITH_FILTERS, variables=variable_does_not_exists
     )

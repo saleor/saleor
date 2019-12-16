@@ -1,31 +1,34 @@
 import django_filters
-from django.db.models import Q
 
 from ...warehouse.models import Warehouse
 from ..core.types import FilterInputObjectType
+from ..utils import filter_by_query_param
 
 
-def filter_string(qs, name, value):
-    lookup = "__".join([name, "icontains"])
-    return qs.filter(**{lookup: value})
+def prefech_qs_for_filter(qs):
+    return qs.select_related("address")
 
 
-def filter_address(qs, _, value):
-    qs = qs.filter(
-        Q(address__street_address_1__icontains=value)
-        | Q(address__street_address_2__icontains=value)
-        | Q(address__city__icontains=value)
-        | Q(address__postal_code=value)
-        | Q(address__phone__contains=value)
-    )
+def filter_search(qs, _, value):
+    search_fields = [
+        "name",
+        "company_name",
+        "email",
+        "address__street_address_1",
+        "address__street_address_2",
+        "address__city",
+        "address__postal_code",
+        "address__phone",
+    ]
+    qs = prefech_qs_for_filter(qs)
+
+    if value:
+        qs = filter_by_query_param(qs, value, search_fields)
     return qs
 
 
 class WarehouseFilter(django_filters.FilterSet):
-    name = django_filters.CharFilter(method=filter_string)
-    company_name = django_filters.CharFilter(method=filter_string)
-    email = django_filters.CharFilter(method=filter_string)
-    address = django_filters.CharFilter(method=filter_address)
+    search = django_filters.CharFilter(method=filter_search)
 
     class Meta:
         model = Warehouse

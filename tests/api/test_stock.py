@@ -365,7 +365,7 @@ def test_query_stocks_with_filters_warehouse(
     staff_api_client.user.user_permissions.add(permission_manage_stocks)
     warehouse = stock.warehouse
     response_name = staff_api_client.post_graphql(
-        QUERY_STOCKS_WITH_FILTERS, variables={"filter": {"warehouse": warehouse.name}}
+        QUERY_STOCKS_WITH_FILTERS, variables={"filter": {"search": warehouse.name}}
     )
     content = get_graphql_content(response_name)
     total_count = content["data"]["stocks"]["totalCount"]
@@ -379,7 +379,7 @@ def test_query_stocks_with_filters_product_variant(
     product_variant = stock.product_variant
     response_name = staff_api_client.post_graphql(
         QUERY_STOCKS_WITH_FILTERS,
-        variables={"filter": {"productVariant": product_variant.name}},
+        variables={"filter": {"search": product_variant.name}},
     )
     content = get_graphql_content(response_name)
     total_count = content["data"]["stocks"]["totalCount"]
@@ -395,8 +395,7 @@ def test_query_stocks_with_filters_product_variant__product(
     staff_api_client.user.user_permissions.add(permission_manage_stocks)
     product = stock.product_variant.product
     response_name = staff_api_client.post_graphql(
-        QUERY_STOCKS_WITH_FILTERS,
-        variables={"filter": {"productVariant": product.name}},
+        QUERY_STOCKS_WITH_FILTERS, variables={"filter": {"search": product.name}}
     )
     content = get_graphql_content(response_name)
     total_count = content["data"]["stocks"]["totalCount"]

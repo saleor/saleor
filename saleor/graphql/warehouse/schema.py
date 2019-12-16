@@ -18,10 +18,7 @@ class WarehouseQueries(graphene.ObjectType):
         ),
     )
     warehouses = FilterInputConnectionField(
-        Warehouse,
-        description="List of warehouses.",
-        filter=WarehouseFilterInput(),
-        query=graphene.String(),
+        Warehouse, description="List of warehouses.", filter=WarehouseFilterInput()
     )
 
     @permission_required("warehouse.manage_warehouses")
