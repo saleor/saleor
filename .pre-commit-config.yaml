@@ -40,7 +40,7 @@ repos:
       - id: migrations-check
         language: system
         name: Check for uncreated migrations.
-        entry: bash -c "./manage.py makemigrations --check --dry-run"
+        entry: sh -c "./manage.py makemigrations --check --dry-run"
         files: "models\\.py$"
         stages: [commit]
 
@@ -49,5 +49,5 @@ repos:
       - id: gql-schema-check
         language: system
         name: Check for up-to-date GraphQL schema.
-        entry: bash -c "./manage.py get_graphql_schema | diff saleor/graphql/schema.graphql -"
+        entry: sh -c "./manage.py get_graphql_schema | diff saleor/graphql/schema.graphql -"
         stages: [commit]
