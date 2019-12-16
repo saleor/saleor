@@ -12,6 +12,11 @@ if TYPE_CHECKING:
 
 
 def check_stock_quantity(variant: "ProductVariant", country_code: str, quantity: int):
+    """Validate if there is stock available for given variant in given country.
+
+    If so - returns None. If there is less stock then required rise InsufficientStock
+    exception.
+    """
     try:
         stock = Stock.objects.get_variant_stock_for_country(country_code, variant)
     except Stock.DoesNotExist:
@@ -22,6 +27,7 @@ def check_stock_quantity(variant: "ProductVariant", country_code: str, quantity:
 
 
 def get_available_quantity(variant: "ProductVariant", country_code: str) -> int:
+    """Return available quantity for given product in given country."""
     try:
         stock = Stock.objects.get_variant_stock_for_country(country_code, variant)
     except Stock.DoesNotExist:
@@ -30,6 +36,7 @@ def get_available_quantity(variant: "ProductVariant", country_code: str) -> int:
 
 
 def is_variant_in_stock(variant: "ProductVariant", country_code: str) -> bool:
+    """Check if variant is available in given country."""
     stock = Stock.objects.get_variant_stock_for_country(country_code, variant)
     return stock.is_available
 
@@ -43,6 +50,7 @@ def stocks_for_product(product: "Product", country_code: str):
 
 
 def is_product_in_stock(product: "Product", country_code: str) -> bool:
+    """Check if there is any variant of given product available in given country."""
     return any(
         stocks_for_product(product, country_code).values_list(
             "available_quantity", flat=True
@@ -51,6 +59,7 @@ def is_product_in_stock(product: "Product", country_code: str) -> bool:
 
 
 def are_all_product_variants_in_stock(product: "Product", country_code: str) -> bool:
+    """Check if all variants of given product are available in given country."""
     product_stocks = (
         stocks_for_product(product, country_code)
         .values_list("available_quantity", "product_variant_id")
@@ -64,8 +73,9 @@ def are_all_product_variants_in_stock(product: "Product", country_code: str) -> 
 
 
 def products_with_low_stock(threshold: Optional[int] = None):
+    """Return queryset with stock lower than given threshold."""
     if threshold is None:
-        threshold = getattr(settings, "LOW_STOCK_THRESHOLD", 3000)
+        threshold = settings.LOW_STOCK_THRESHOLD
     stocks = (
         Stock.objects.select_related("product_variant")
         .values("product_variant__product_id", "warehouse_id")

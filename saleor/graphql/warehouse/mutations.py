@@ -23,6 +23,11 @@ ADDRESS_FIELDS = [
 class WarehouseMixin:
     @classmethod
     def validate_warehouse_count(cls, shipping_zones, instance):
+        """Every ShippingZone can be assigned to only one warehouse.
+
+        If not there would be issue with automatically selecting stock for operation.
+        """
+
         warehouses = set(
             ShippingZone.objects.filter(
                 id__in=[shipping_zone.id for shipping_zone in shipping_zones]
