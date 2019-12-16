@@ -27,6 +27,7 @@ from saleor.order.models import Order, OrderEvent
 from saleor.payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from saleor.payment.models import Payment
 from saleor.shipping.models import ShippingMethod
+from saleor.stock.models import Stock
 
 from .utils import assert_no_permission, get_graphql_content
 
@@ -784,8 +785,10 @@ def test_draft_order_complete(
     line_1, line_2 = order.lines.order_by("-quantity").all()
     line_1.quantity = 1
     line_1.save(update_fields=["quantity"])
-    assert line_1.variant.quantity_available >= line_1.quantity
-    assert line_2.variant.quantity_available < line_2.quantity
+    stock_1 = Stock.objects.get(product_variant=line_1.variant)
+    stock_2 = Stock.objects.get(product_variant=line_2.variant)
+    assert stock_1.quantity_available >= line_1.quantity
+    assert stock_2.quantity_available < line_2.quantity
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
@@ -1947,7 +1950,12 @@ MUTATION_CANCEL_ORDERS = """
 
 
 def test_order_bulk_cancel_with_restock(
-    staff_api_client, orders, order_with_lines, permission_manage_orders
+    staff_api_client,
+    orders,
+    order_with_lines,
+    permission_manage_orders,
+    address,
+    permission_manage_stocks,
 ):
     assert order_with_lines.can_cancel()
     orders.append(order_with_lines)
@@ -1957,7 +1965,9 @@ def test_order_bulk_cancel_with_restock(
         "restock": True,
     }
     response = staff_api_client.post_graphql(
-        MUTATION_CANCEL_ORDERS, variables, permissions=[permission_manage_orders]
+        MUTATION_CANCEL_ORDERS,
+        variables,
+        permissions=[permission_manage_orders, permission_manage_stocks],
     )
     order_with_lines.refresh_from_db()
     content = get_graphql_content(response)

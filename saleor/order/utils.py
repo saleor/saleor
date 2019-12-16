@@ -24,6 +24,8 @@ def get_order_country(order) -> str:
     address = order.billing_address
     if order.is_shipping_required():
         address = order.shipping_address
+    if address is None:
+        return settings.DEFAULT_COUNTRY
     return address.country.code
 
 
