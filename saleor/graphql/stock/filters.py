@@ -1,35 +1,27 @@
 import django_filters
-from django.db.models import Q
 
 from ...stock.models import Stock
 from ..core.types import FilterInputObjectType
+from ..utils import filter_by_query_param
 
 
-def qs_prefetched_for_filters(qs):
-    return qs.prefetch_related("product_variant__product").select_related(
-        "product_variant"
+def filter_search(qs, _, value):
+    search_fields = [
+        "product_variant__product__name",
+        "product_variant__name",
+        "warehouse__name",
+        "warehouse__company_name",
+    ]
+    qs = qs.select_related("product_variant", "warehouse").prefetch_related(
+        "product_variant__product"
     )
-
-
-def filter_product_variant(qs, _, value):
-    qs = qs_prefetched_for_filters(qs).filter(
-        Q(product_variant__product__name__icontains=value)
-        | Q(product_variant__name__icontains=value)
-    )
-    return qs
-
-
-def filter_warehouse(qs, _, value):
-    qs = qs_prefetched_for_filters(qs).filter(
-        Q(warehouse__name__icontains=value)
-        | Q(warehouse__company_name__icontains=value)
-    )
+    if value:
+        qs = filter_by_query_param(qs, value, search_fields)
     return qs
 
 
 class StockFilter(django_filters.FilterSet):
-    product_variant = django_filters.CharFilter(method=filter_product_variant)
-    warehouse = django_filters.CharFilter(method=filter_warehouse)
+    search = django_filters.CharFilter(method=filter_search)
 
     class Meta:
         model = Stock
