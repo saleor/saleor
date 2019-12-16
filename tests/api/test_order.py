@@ -1238,6 +1238,7 @@ def test_order_update(
     assert order.billing_address.last_name == graphql_address_data["lastName"]
     assert order.user_email == email
     assert order.user is None
+    assert order.status == OrderStatus.UNFULFILLED
 
 
 def test_order_update_anonymous_user_no_user_email(
@@ -1259,7 +1260,6 @@ def test_order_update_anonymous_user_no_user_email(
                     }
                     order {
                         id
-                        status
                     }
                 }
             }
@@ -1271,13 +1271,13 @@ def test_order_update_anonymous_user_no_user_email(
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
-    content = get_graphql_content(response)
+    get_graphql_content(response)
+    order.refresh_from_db()
     order.shipping_address.refresh_from_db()
     order.billing_address.refresh_from_db()
     assert order.shipping_address.first_name != first_name
     assert order.billing_address.last_name != last_name
-    data = content["data"]["orderUpdate"]["order"]
-    assert data["status"] == OrderStatus.DRAFT.upper()
+    assert order.status == OrderStatus.UNFULFILLED
 
 
 def test_order_update_user_email_existing_user(
@@ -1365,6 +1365,9 @@ def test_order_add_note_as_staff_user(
     assert data["order"]["id"] == order_id
     assert data["event"]["user"]["email"] == staff_user.email
     assert data["event"]["message"] == message
+
+    order.refresh_from_db()
+    assert order.status == OrderStatus.UNFULFILLED
 
     # Ensure the correct order event was created
     event = order.events.get()
@@ -1772,6 +1775,7 @@ def test_order_update_shipping(
     order.refresh_from_db()
     shipping_total = shipping_method.get_total()
     shipping_price = TaxedMoney(shipping_total, shipping_total)
+    assert order.status == OrderStatus.UNFULFILLED
     assert order.shipping_method == shipping_method
     assert order.shipping_price_net == shipping_price.net
     assert order.shipping_price_gross == shipping_price.gross
