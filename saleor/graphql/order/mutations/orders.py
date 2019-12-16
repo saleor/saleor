@@ -155,6 +155,18 @@ class OrderUpdate(DraftOrderUpdate):
         error_type_field = "order_errors"
 
     @classmethod
+    def clean_input(cls, info, instance, data):
+        draft_order_cleaned_input = super().clean_input(info, instance, data)
+
+        # We must to filter out field added by DraftOrderUpdate
+        editable_fields = ["billing_address", "shipping_address", "user_email"]
+        cleaned_input = {}
+        for key in draft_order_cleaned_input:
+            if key in editable_fields:
+                cleaned_input[key] = draft_order_cleaned_input[key]
+        return cleaned_input
+
+    @classmethod
     def save(cls, info, instance, cleaned_input):
         super().save(info, instance, cleaned_input)
         if instance.user_email:

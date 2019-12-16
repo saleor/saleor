@@ -29,6 +29,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - JWT payload now contains user global id - #5039 by @salwator
 - Made middleware path resolving lazy and refactored middleware names - #5041 by @NyanKiyoshi
 - Generate slug in attribute value save - #5055 by @fowczarek
+- Fix order status after order update - #5072 by @fowczarek
 
 ## 2.9.0
 
