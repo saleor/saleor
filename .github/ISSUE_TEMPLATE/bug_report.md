@@ -18,5 +18,4 @@ about: Create a report to help us improve
 <!-- If applicable, add screenshots to help explain your problem. -->
 
 **System information**
-Operating system: 
-Browser:
+Operating system:
