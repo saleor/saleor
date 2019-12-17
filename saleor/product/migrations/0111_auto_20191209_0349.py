@@ -33,6 +33,7 @@ def forward(apps, schema_editor):
     if not ProductVariant.objects.exists():
         return
 
+    product_variants = ProductVariant.objects.all()
     warehouse = get_or_create_warehouse(apps)
     stocks = [
         Stock(
@@ -41,7 +42,7 @@ def forward(apps, schema_editor):
             quantity=variant.quantity,
             quantity_allocated=variant.quantity_allocated,
         )
-        for variant in ProductVariant.objects.all()
+        for variant in product_variants.iterator()
     ]
     Stock.objects.bulk_create(stocks)
 
@@ -50,18 +51,18 @@ def backward(apps, schema_editor):
     ProductVariant = apps.get_model("product", "ProductVariant")
     Stock = apps.get_model("stock", "Stock")
 
-    variants = []
     stocks = (
         Stock.objects.values("product_variant_id")
         .annotate(quantity_sum=Sum("quantity"))
         .annotate(quantity_allocated_sum=Sum("quantity_allocated"))
     )
-    for variant in ProductVariant.objects.all():
+    product_variants = ProductVariant.objects.all()
+    for variant in product_variants.iterator():
         variant_dict = stocks.get(product_variant=variant)
         variant.quantity = variant_dict["quantity_sum"]
         variant.quantity_allocated = variant_dict["quantity_allocated_sum"]
-        variants.append(variant)
-    ProductVariant.objects.bulk_update(variants, ["quantity", "quantity_allocated"])
+        variant.save(update_fields=["quantity", "quantity_allocated"])
+
     Stock.objects.all().delete()
 
 
