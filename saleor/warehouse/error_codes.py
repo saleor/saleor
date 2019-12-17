@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class WarehouseErorrCode(str, Enum):
+class WarehouseErrorCode(str, Enum):
     ALREADY_EXISTS = "already_exists"
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
