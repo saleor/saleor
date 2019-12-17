@@ -4,7 +4,6 @@ import warnings
 
 import dj_database_url
 import dj_email_url
-import django_cache_url
 import sentry_sdk
 from django.contrib.messages import constants as messages
 from django.utils.translation import gettext_lazy as _, pgettext_lazy
@@ -46,12 +45,6 @@ ALLOWED_CLIENT_HOSTS = get_list(
 )
 
 INTERNAL_IPS = get_list(os.environ.get("INTERNAL_IPS", "127.0.0.1"))
-
-# Some cloud providers (Heroku) export REDIS_URL variable instead of CACHE_URL
-REDIS_URL = os.environ.get("REDIS_URL")
-if REDIS_URL:
-    CACHE_URL = os.environ.setdefault("CACHE_URL", REDIS_URL)
-CACHES = {"default": django_cache_url.config()}
 
 DATABASES = {
     "default": dj_database_url.config(
@@ -148,9 +141,7 @@ MEDIA_URL = os.environ.get("MEDIA_URL", "/media/")
 STATIC_ROOT = os.path.join(PROJECT_ROOT, "static")
 STATIC_URL = os.environ.get("STATIC_URL", "/static/")
 STATICFILES_DIRS = [
-    ("assets", os.path.join(PROJECT_ROOT, "saleor", "static", "assets")),
-    ("favicons", os.path.join(PROJECT_ROOT, "saleor", "static", "favicons")),
-    ("images", os.path.join(PROJECT_ROOT, "saleor", "static", "images")),
+    ("images", os.path.join(PROJECT_ROOT, "saleor", "static", "images"))
 ]
 STATICFILES_FINDERS = [
     "django.contrib.staticfiles.finders.FileSystemFinder",
@@ -158,29 +149,17 @@ STATICFILES_FINDERS = [
 ]
 
 context_processors = [
-    "django.contrib.auth.context_processors.auth",
     "django.template.context_processors.debug",
-    "django.template.context_processors.i18n",
     "django.template.context_processors.media",
     "django.template.context_processors.static",
-    "django.template.context_processors.tz",
-    "django.contrib.messages.context_processors.messages",
-    "django.template.context_processors.request",
-    "saleor.core.context_processors.default_currency",
     "saleor.checkout.context_processors.checkout_counter",
-    "saleor.core.context_processors.search_enabled",
     "saleor.site.context_processors.site",
-    "social_django.context_processors.backends",
-    "social_django.context_processors.login_redirect",
 ]
 
 loaders = [
     "django.template.loaders.filesystem.Loader",
     "django.template.loaders.app_directories.Loader",
 ]
-
-if not DEBUG:
-    loaders = [("django.template.loaders.cached.Loader", loaders)]
 
 TEMPLATES = [
     {
@@ -199,22 +178,14 @@ TEMPLATES = [
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
 MIDDLEWARE = [
-    "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.locale.LocaleMiddleware",
-    "django_babel.middleware.LocaleMiddleware",
     "saleor.core.middleware.discounts",
     "saleor.core.middleware.google_analytics",
     "saleor.core.middleware.country",
     "saleor.core.middleware.currency",
     "saleor.core.middleware.site",
     "saleor.core.middleware.extensions",
-    "social_django.middleware.SocialAuthExceptionMiddleware",
-    "impersonate.middleware.ImpersonateMiddleware",
     "saleor.graphql.middleware.jwt_middleware",
     "saleor.graphql.middleware.service_account_middleware",
 ]
@@ -224,14 +195,10 @@ INSTALLED_APPS = [
     "storages",
     # Django modules
     "django.contrib.contenttypes",
-    "django.contrib.sessions",
-    "django.contrib.messages",
-    "django.contrib.sitemaps",
     "django.contrib.sites",
     "django.contrib.staticfiles",
     "django.contrib.auth",
     "django.contrib.postgres",
-    "django.forms",
     # Local apps
     "saleor.extensions",
     "saleor.account",
@@ -253,21 +220,15 @@ INSTALLED_APPS = [
     "saleor.webhook",
     # External apps
     "versatileimagefield",
-    "django_babel",
-    "bootstrap4",
     "django_measurement",
     "django_prices",
     "django_prices_openexchangerates",
     "django_prices_vatlayer",
     "graphene_django",
     "mptt",
-    "webpack_loader",
-    "social_django",
     "django_countries",
     "django_filters",
-    "impersonate",
     "phonenumber_field",
-    "captcha",
 ]
 
 
@@ -356,8 +317,6 @@ LOGGING = {
 
 AUTH_USER_MODEL = "account.User"
 
-LOGIN_URL = "/account/login/"
-
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": "django.contrib.auth.password_validation.MinimumLengthValidator",
@@ -419,26 +378,10 @@ PAYMENT_MODEL = "order.Payment"
 
 SESSION_SERIALIZER = "django.contrib.sessions.serializers.JSONSerializer"
 
-# Do not use cached session if locmem cache backend is used but fallback to use
-# default django.contrib.sessions.backends.db instead
-if not CACHES["default"]["BACKEND"].endswith("LocMemCache"):
-    SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
-
 MESSAGE_TAGS = {messages.ERROR: "danger"}
 
 LOW_STOCK_THRESHOLD = 10
 MAX_CHECKOUT_LINE_QUANTITY = int(os.environ.get("MAX_CHECKOUT_LINE_QUANTITY", 50))
-
-PAGINATE_BY = 16
-DASHBOARD_PAGINATE_BY = 30
-DASHBOARD_SEARCH_LIMIT = 5
-
-bootstrap4 = {
-    "set_placeholder": False,
-    "set_required": False,
-    "success_css_class": "",
-    "form_renderers": {"default": "saleor.core.utils.form_renderer.FormRenderer"},
-}
 
 TEST_RUNNER = "tests.runner.PytestTestRunner"
 
@@ -482,8 +425,6 @@ elif GS_MEDIA_BUCKET_NAME:
     DEFAULT_FILE_STORAGE = "saleor.core.storages.GCSMediaStorage"
     THUMBNAIL_DEFAULT_STORAGE = DEFAULT_FILE_STORAGE
 
-MESSAGE_STORAGE = "django.contrib.messages.storage.session.SessionStorage"
-
 VERSATILEIMAGEFIELD_RENDITION_KEY_SETS = {
     "products": [
         ("product_gallery", "thumbnail__540x540"),
@@ -512,66 +453,17 @@ PLACEHOLDER_IMAGES = {
 
 DEFAULT_PLACEHOLDER = "images/placeholder255x255.png"
 
-WEBPACK_LOADER = {
-    "DEFAULT": {
-        "CACHE": not DEBUG,
-        "BUNDLE_DIR_NAME": "assets/",
-        "STATS_FILE": os.path.join(PROJECT_ROOT, "webpack-bundle.json"),
-        "POLL_INTERVAL": 0.1,
-        "IGNORE": [r".+\.hot-update\.js", r".+\.map"],
-    }
-}
-
-
 LOGOUT_ON_PASSWORD_CHANGE = False
-
-# SEARCH CONFIGURATION
-DB_SEARCH_ENABLED = True
-
-# support deployment-dependant elastic environment variable
-ES_URL = (
-    os.environ.get("ELASTICSEARCH_URL")
-    or os.environ.get("SEARCHBOX_URL")
-    or os.environ.get("BONSAI_URL")
-)
-
-ENABLE_SEARCH = bool(ES_URL) or DB_SEARCH_ENABLED  # global search disabling
 
 SEARCH_BACKEND = "saleor.search.backends.postgresql"
 
-if ES_URL:
-    SEARCH_BACKEND = "saleor.search.backends.elasticsearch"
-    INSTALLED_APPS.append("django_elasticsearch_dsl")
-    ELASTICSEARCH_DSL = {"default": {"hosts": ES_URL}}
-
 AUTHENTICATION_BACKENDS = [
-    "saleor.account.backends.facebook.CustomFacebookOAuth2",
-    "saleor.account.backends.google.CustomGoogleOAuth2",
     "graphql_jwt.backends.JSONWebTokenBackend",
     "django.contrib.auth.backends.ModelBackend",
 ]
 
 
 GRAPHQL_JWT = {"JWT_PAYLOAD_HANDLER": "saleor.graphql.utils.create_jwt_payload"}
-
-SOCIAL_AUTH_PIPELINE = [
-    "social_core.pipeline.social_auth.social_details",
-    "social_core.pipeline.social_auth.social_uid",
-    "social_core.pipeline.social_auth.auth_allowed",
-    "social_core.pipeline.social_auth.social_user",
-    "social_core.pipeline.social_auth.associate_by_email",
-    "social_core.pipeline.user.create_user",
-    "social_core.pipeline.social_auth.associate_user",
-    "social_core.pipeline.social_auth.load_extra_data",
-    "social_core.pipeline.user.user_details",
-]
-
-SOCIAL_AUTH_USERNAME_IS_FULL_EMAIL = True
-SOCIAL_AUTH_USER_MODEL = AUTH_USER_MODEL
-SOCIAL_AUTH_FACEBOOK_SCOPE = ["email"]
-SOCIAL_AUTH_FACEBOOK_PROFILE_EXTRA_PARAMS = {"fields": "id, email"}
-# As per March 2018, Facebook requires all traffic to go through HTTPS only
-SOCIAL_AUTH_REDIRECT_IS_HTTPS = True
 
 # CELERY SETTINGS
 CELERY_BROKER_URL = (
@@ -582,15 +474,6 @@ CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", None)
-
-# Impersonate module settings
-IMPERSONATE = {
-    "URI_EXCLUSIONS": [r"^dashboard/"],
-    "CUSTOM_USER_QUERYSET": "saleor.account.impersonate.get_impersonatable_users",  # noqa
-    "USE_HTTP_REFERER": True,
-    "CUSTOM_ALLOW": "saleor.account.impersonate.can_impersonate",
-}
-
 
 # Rich-text editor
 ALLOWED_TAGS = [

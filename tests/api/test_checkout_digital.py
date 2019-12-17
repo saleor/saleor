@@ -169,7 +169,7 @@ def test_checkout_complete(
     order_count = Order.objects.count()
     checkout = checkout_with_digital_item
     checkout_id = Node.to_global_id("Checkout", checkout.pk)
-    variables = {"checkoutId": checkout_id}
+    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
 
     # Set a billing address
     checkout.billing_address = address

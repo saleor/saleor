@@ -2,9 +2,6 @@ import os
 import random
 
 from django.conf import settings
-from django.contrib.admin.views.decorators import (
-    staff_member_required as django_staff_member_required,
-)
 from django.core.files import File
 
 from ..checkout import AddressType
@@ -56,30 +53,6 @@ def change_user_default_address(user, address, address_type):
         set_user_default_shipping_address(user, address)
 
 
-def get_user_first_name(user):
-    """Return a user's first name from their default belling address.
-
-    Return nothing if none where found.
-    """
-    if user.first_name:
-        return user.first_name
-    if user.default_billing_address:
-        return user.default_billing_address.first_name
-    return None
-
-
-def get_user_last_name(user):
-    """Return a user's last name from their default belling address.
-
-    Return nothing if none where found.
-    """
-    if user.last_name:
-        return user.last_name
-    if user.default_billing_address:
-        return user.default_billing_address.last_name
-    return None
-
-
 def create_superuser(credentials):
 
     user, created = User.objects.get_or_create(
@@ -117,7 +90,3 @@ def remove_staff_member(staff):
         staff.save()
     else:
         staff.delete()
-
-
-def staff_member_required(f):
-    return django_staff_member_required(f, login_url="account:login")

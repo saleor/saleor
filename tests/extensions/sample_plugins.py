@@ -85,9 +85,6 @@ class PluginSample(BasePlugin):
     def show_taxes_on_storefront(self, previous_value: bool) -> bool:
         return True
 
-    def taxes_are_enabled(self, previous_value: bool) -> bool:
-        return True
-
     def apply_taxes_to_product(self, product, price, country, previous_value, **kwargs):
         price = Money("1.0", price.currency)
         return TaxedMoney(price, price)

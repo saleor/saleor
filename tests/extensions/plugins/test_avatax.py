@@ -410,14 +410,6 @@ def test_save_plugin_configuration_cannot_be_enabled_without_config(settings):
         manager.save_plugin_configuration("Avalara", {"active": True})
 
 
-def test_taxes_are_enabled(settings):
-    settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
-    settings.AVATAX_USERNAME_OR_ACCOUNT = "test"
-    settings.AVATAX_PASSWORD_OR_LICENSE = "test"
-    manager = get_extensions_manager()
-    assert manager.taxes_are_enabled() is True
-
-
 def test_show_taxes_on_storefront(settings):
     settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
     settings.AVATAX_USERNAME_OR_ACCOUNT = "test"

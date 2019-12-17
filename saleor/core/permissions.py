@@ -4,7 +4,6 @@ MODELS_PERMISSIONS = [
     "account.manage_users",
     "account.manage_staff",
     "account.manage_service_accounts",
-    "account.impersonate_users",
     "discount.manage_discounts",
     "giftcard.manage_gift_card",
     "extensions.manage_plugins",

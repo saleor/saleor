@@ -1,18 +1,15 @@
 from unittest import mock
+from urllib.parse import urlencode
 
 import pytest
-from django.contrib.auth.tokens import default_token_generator
 from django.core import mail
 from django.core.exceptions import ImproperlyConfigured
 from django.templatetags.static import static
-from django.urls import reverse
-from django.utils.encoding import force_bytes
-from django.utils.http import urlsafe_base64_encode
 from templated_email import get_connection
 
 import saleor.account.emails as account_emails
 import saleor.order.emails as emails
-from saleor.core.emails import get_email_context
+from saleor.core.emails import get_email_context, prepare_url
 from saleor.core.utils import build_absolute_uri
 from saleor.order.utils import add_variant_to_order
 
@@ -64,18 +61,10 @@ def test_collect_data_for_email(order):
     assert "schema_markup" not in email_context
 
 
-@pytest.mark.parametrize(
-    "send_email,template",
-    [
-        (emails.send_payment_confirmation, emails.CONFIRM_PAYMENT_TEMPLATE),
-        (emails.send_order_confirmation, emails.CONFIRM_ORDER_TEMPLATE),
-    ],
-)
 @mock.patch("saleor.order.emails.send_templated_mail")
-def test_send_emails(
-    mocked_templated_email, order, template, send_email, site_settings
-):
-    send_email(order.pk)
+def test_send_email_payment_confirmation(mocked_templated_email, order, site_settings):
+    template = emails.CONFIRM_PAYMENT_TEMPLATE
+    emails.send_payment_confirmation(order.pk)
     email_data = emails.collect_data_for_email(order.pk, template)
 
     recipients = [order.get_customer_email()]
@@ -99,7 +88,7 @@ def test_send_emails(
 def test_send_staff_emails_without_notification_recipient(
     mocked_templated_email, order, site_settings
 ):
-    emails.send_staff_order_confirmation(order.pk)
+    emails.send_staff_order_confirmation(order.pk, "http://www.example.com/")
     mocked_templated_email.assert_not_called()
 
 
@@ -107,9 +96,10 @@ def test_send_staff_emails_without_notification_recipient(
 def test_send_staff_emails(
     mocked_templated_email, order, site_settings, staff_notification_recipient
 ):
-    emails.send_staff_order_confirmation(order.pk)
+    redirect_url = "http://www.example.com/"
+    emails.send_staff_order_confirmation(order.pk, redirect_url)
     email_data = emails.collect_staff_order_notification_data(
-        order.pk, emails.STAFF_CONFIRM_ORDER_TEMPLATE
+        order.pk, emails.STAFF_CONFIRM_ORDER_TEMPLATE, redirect_url
     )
 
     recipients = [staff_notification_recipient.get_email()]
@@ -129,28 +119,81 @@ def test_send_staff_emails(
     email_connection.get_email_message(to=recipients, **expected_call_kwargs)
 
 
-@pytest.mark.parametrize(
-    "send_email,template",
-    [
-        (emails.send_payment_confirmation, emails.CONFIRM_PAYMENT_TEMPLATE),
-        (emails.send_order_confirmation, emails.CONFIRM_ORDER_TEMPLATE),
-    ],
-)
 @mock.patch("saleor.order.emails.send_templated_mail")
-def test_send_confirmation_emails_without_addresses(
-    mocked_templated_email, order, template, send_email, site_settings, digital_content
+def test_send_email_order_confirmation(mocked_templated_email, order, site_settings):
+    template = emails.CONFIRM_ORDER_TEMPLATE
+    redirect_url = "https://www.example.com"
+    emails.send_order_confirmation(order.pk, redirect_url)
+    email_data = emails.collect_data_for_email(order.pk, template, redirect_url)
+
+    recipients = [order.get_customer_email()]
+
+    expected_call_kwargs = {
+        "context": email_data["context"],
+        "from_email": site_settings.default_from_email,
+        "template_name": template,
+    }
+
+    mocked_templated_email.assert_called_once_with(
+        recipient_list=recipients, **expected_call_kwargs
+    )
+
+    # Render the email to ensure there is no error
+    email_connection = get_connection()
+    email_connection.get_email_message(to=recipients, **expected_call_kwargs)
+
+
+@mock.patch("saleor.order.emails.send_templated_mail")
+def test_send_confirmation_emails_without_addresses_for_payment(
+    mocked_templated_email, order, site_settings, digital_content
 ):
 
     assert not order.lines.count()
 
+    template = emails.CONFIRM_PAYMENT_TEMPLATE
     add_variant_to_order(order, digital_content.product_variant, quantity=1)
     order.shipping_address = None
     order.shipping_method = None
     order.billing_address = None
     order.save(update_fields=["shipping_address", "shipping_method", "billing_address"])
 
-    send_email(order.pk)
+    emails.send_payment_confirmation(order.pk)
     email_data = emails.collect_data_for_email(order.pk, template)
+
+    recipients = [order.get_customer_email()]
+
+    expected_call_kwargs = {
+        "context": email_data["context"],
+        "from_email": site_settings.default_from_email,
+        "template_name": template,
+    }
+
+    mocked_templated_email.assert_called_once_with(
+        recipient_list=recipients, **expected_call_kwargs
+    )
+
+    # Render the email to ensure there is no error
+    email_connection = get_connection()
+    email_connection.get_email_message(to=recipients, **expected_call_kwargs)
+
+
+@mock.patch("saleor.order.emails.send_templated_mail")
+def test_send_confirmation_emails_without_addresses_for_order(
+    mocked_templated_email, order, site_settings, digital_content
+):
+
+    assert not order.lines.count()
+
+    template = emails.CONFIRM_ORDER_TEMPLATE
+    add_variant_to_order(order, digital_content.product_variant, quantity=1)
+    order.shipping_address = None
+    order.shipping_method = None
+    order.billing_address = None
+    order.save(update_fields=["shipping_address", "shipping_method", "billing_address"])
+
+    redirect_url = "https://www.example.com"
+    emails.send_order_confirmation(order.pk, redirect_url)
+    email_data = emails.collect_data_for_email(order.pk, template, redirect_url)
 
     recipients = [order.get_customer_email()]
 
@@ -217,38 +260,6 @@ def test_email_having_display_name_in_settings(customer_user, site_settings, set
     assert site_settings.default_from_email == expected_from_email
 
 
-def test_send_dummy_email_with_utf_8(customer_user, site_settings):
-    site_settings.default_mail_sender_address = "hello@example.com"
-    site_settings.default_mail_sender_name = "徐 欣"
-    site_settings.save(
-        update_fields=["default_mail_sender_address", "default_mail_sender_name"]
-    )
-
-    account_emails.send_account_delete_confirmation_email(customer_user)
-
-    assert len(mail.outbox) > 0
-    message: mail.EmailMessage = mail.outbox[-1]
-    assert message.from_email == "徐 欣 <hello@example.com>"
-    assert message.extra_headers == {}
-
-
-@pytest.mark.parametrize(
-    "sender_name, sender_address",
-    (("徐 欣", "hello@example.com\nOopsie: Hello"), ("徐\n欣", "hello@example.com")),
-)
-def test_send_dummy_email_with_header_injection(
-    customer_user, site_settings, sender_name, sender_address
-):
-    site_settings.default_mail_sender_address = sender_name
-    site_settings.default_mail_sender_name = sender_address
-    site_settings.save(
-        update_fields=["default_mail_sender_address", "default_mail_sender_name"]
-    )
-
-    account_emails.send_account_delete_confirmation_email(customer_user)
-    assert len(mail.outbox) == 0
-
-
 def test_email_with_email_not_configured_raises_error(settings, site_settings):
     """Ensure an exception is thrown when not default sender is set;
     both missing in the settings.py and in the site settings table.
@@ -263,13 +274,7 @@ def test_email_with_email_not_configured_raises_error(settings, site_settings):
 
 
 def test_send_set_password_email(staff_user, site_settings):
-    uid = urlsafe_base64_encode(force_bytes(staff_user.pk))
-    token = default_token_generator.make_token(staff_user)
-    password_set_url = build_absolute_uri(
-        reverse(
-            "account:reset-password-confirm", kwargs={"token": token, "uidb64": uid}
-        )
-    )
+    password_set_url = "https://www.example.com"
     template_name = "dashboard/staff/set_password"
     recipient_email = staff_user.email
 
@@ -278,9 +283,12 @@ def test_send_set_password_email(staff_user, site_settings):
     )
 
     assert len(mail.outbox) == 1
-    generated_link = reverse(
-        "account:reset-password-confirm", kwargs={"uidb64": uid, "token": token}
-    )
-    absolute_generated_link = build_absolute_uri(generated_link)
     sended_message = mail.outbox[0].body
-    assert absolute_generated_link in sended_message
+    assert password_set_url in sended_message
+
+
+def test_prepare_url():
+    redirect_url = "https://www.example.com"
+    params = urlencode({"param1": "abc", "param2": "xyz"})
+    result = prepare_url(params, redirect_url)
+    assert result == "https://www.example.com?param1=abc&param2=xyz"

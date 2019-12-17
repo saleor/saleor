@@ -24,7 +24,6 @@ install:
     if [ -n "$DJANGO" ]; then
       nvm install 10 \
         && npm i \
-        && npm run build-assets --production \
         && npm run build-emails
     fi
 

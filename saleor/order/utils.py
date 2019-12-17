@@ -2,13 +2,10 @@ from functools import wraps
 
 from django.conf import settings
 from django.db import transaction
-from django.shortcuts import get_object_or_404, redirect
 from django.utils import timezone
 from django.utils.translation import pgettext
 from prices import Money, TaxedMoney
 
-from ..account.utils import store_user_address
-from ..checkout import AddressType
 from ..core.taxes import zero_money
 from ..core.weight import zero_weight
 from ..discount.models import NotApplicable, Voucher, VoucherType
@@ -40,28 +37,6 @@ def order_needs_automatic_fullfilment(order: Order) -> bool:
         if order_line_needs_automatic_fulfillment(line):
             return True
     return False
-
-
-def check_order_status(func):
-    """Check if order meets preconditions of payment process.
-
-    Order can not have draft status or be fully paid. Billing address
-    must be provided.
-    If not, redirect to order details page.
-    """
-    # pylint: disable=cyclic-import
-    from .models import Order
-
-    @wraps(func)
-    def decorator(*args, **kwargs):
-        token = kwargs.pop("token")
-        order = get_object_or_404(Order.objects.confirmed(), token=token)
-        if not order.billing_address or order.is_fully_paid():
-            return redirect("order:details", token=order.token)
-        kwargs["order"] = order
-        return func(*args, **kwargs)
-
-    return decorator
 
 
 def update_voucher_discount(func):
@@ -172,15 +147,6 @@ def update_order_status(order):
     if status != order.status:
         order.status = status
         order.save(update_fields=["status"])
-
-
-def attach_order_to_user(order, user):
-    """Associate existing order with user account."""
-    order.user = user
-    store_user_address(user, order.billing_address, AddressType.BILLING)
-    if order.shipping_address:
-        store_user_address(user, order.shipping_address, AddressType.SHIPPING)
-    order.save(update_fields=["user"])
 
 
 @transaction.atomic

@@ -9,8 +9,14 @@
 {% block plain %}
 {% include 'templated_email/shared/_header.email' %}
 {% blocktrans context "Order confirmation e-mail text" %}
-Thank you for your order. Below is the list of ordered products. To see your payment details please visit:
-{{ order_details_url }}{% endblocktrans %}
+Thank you for your order. Below is the list of ordered products.
+{% endblocktrans %}
+{% if order_details_url %}
+{% blocktrans context "Order confirmation e-mail payment details" %}
+To see your payment details please visit:
+{{ order_details_url }}
+{% endblocktrans %}
+{% endif %}
 {% for line in order %}
 {{ line.quantity }} x {{ line }}, {% price line.get_total display_gross=order.display_gross_prices html=False %}
 {% endfor %}
