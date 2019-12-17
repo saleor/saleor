@@ -7,6 +7,11 @@ from ..account import events as account_events
 from ..celeryconf import app
 from ..core.emails import get_email_context, prepare_url
 
+REQUEST_EMAIL_CHANGE_TEMPLATE = "account/request_email_change"
+EMAIL_CHANGED_NOTIFICATION_TEMPLATE = "account/email_changed_notification"
+ACCOUNT_DELETE_TEMPLATE = "account/account_delete"
+PASSWORD_RESET_TEMPLATE = "account/password_reset"
+
 
 def send_user_password_reset_email_with_url(redirect_url, user):
     """Trigger sending a password reset email for the given user."""
@@ -33,6 +38,49 @@ def _send_password_reset_email(recipient_email, reset_url, user_id):
     account_events.customer_password_reset_link_sent_event(user_id=user_id)
 
 
+def send_user_change_email_url(redirect_url, user, new_email, token):
+    """Trigger sending a email change email for the given user."""
+    event_parameters = {"old_email": user.email, "new_email": new_email}
+    _send_request_email_change_email.delay(
+        new_email, redirect_url, user.pk, token, event_parameters
+    )
+
+
+@app.task
+def _send_request_email_change_email(
+    recipient_email, redirect_url, user_id, token, event_parameters
+):
+    params = urlencode({"token": token})
+    redirect_url = prepare_url(params, redirect_url)
+    send_kwargs, ctx = get_email_context()
+    ctx["redirect_url"] = redirect_url
+    send_templated_mail(
+        template_name=REQUEST_EMAIL_CHANGE_TEMPLATE,
+        recipient_list=[recipient_email],
+        context=ctx,
+        **send_kwargs,
+    )
+    account_events.customer_email_change_request_event(
+        user_id=user_id, parameters=event_parameters
+    )
+
+
+def send_user_change_email_notification(recipient_email):
+    """Trigger sending a email change notification email for the given user."""
+    _send_user_change_email_notification.delay(recipient_email)
+
+
+@app.task
+def _send_user_change_email_notification(recipient_email):
+    send_kwargs, ctx = get_email_context()
+    send_templated_mail(
+        template_name=EMAIL_CHANGED_NOTIFICATION_TEMPLATE,
+        recipient_list=[recipient_email],
+        context=ctx,
+        **send_kwargs,
+    )
+
+
 def send_account_delete_confirmation_email_with_url(redirect_url, user):
     """Trigger sending a account delete email for the given user."""
     token = default_token_generator.make_token(user)
@@ -57,7 +105,7 @@ def _send_delete_confirmation_email(recipient_email, delete_url):
     send_kwargs, ctx = get_email_context()
     ctx["delete_url"] = delete_url
     send_templated_mail(
-        template_name="account/account_delete",
+        template_name=ACCOUNT_DELETE_TEMPLATE,
         recipient_list=[recipient_email],
         context=ctx,
         **send_kwargs,
