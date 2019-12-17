@@ -7,6 +7,7 @@ from django.core.exceptions import ValidationError
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
+from saleor.checkout import calculations
 from saleor.checkout.utils import add_variant_to_checkout
 from saleor.core.taxes import quantize_price
 from saleor.extensions.manager import get_extensions_manager
@@ -424,3 +425,33 @@ def test_apply_taxes_to_product(vatlayer, settings, variant, discount_info):
         variant.product, variant.get_price([discount_info]), country
     )
     assert price == TaxedMoney(net=Money("4.07", "USD"), gross=Money("5.00", "USD"))
+
+
+def test_calculations_checkout_total_with_vatlayer(
+    vatlayer, settings, checkout_with_item
+):
+    settings.PLUGINS = ["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+    checkout_subtotal = calculations.checkout_total(checkout_with_item)
+    assert checkout_subtotal == TaxedMoney(
+        net=Money("30", "USD"), gross=Money("30", "USD")
+    )
+
+
+def test_calculations_checkout_subtotal_with_vatlayer(
+    vatlayer, settings, checkout_with_item
+):
+    settings.PLUGINS = ["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+    checkout_subtotal = calculations.checkout_subtotal(checkout_with_item)
+    assert checkout_subtotal == TaxedMoney(
+        net=Money("30", "USD"), gross=Money("30", "USD")
+    )
+
+
+def test_calculations_checkout_shipping_price_with_vatlayer(
+    vatlayer, settings, checkout_with_item
+):
+    settings.PLUGINS = ["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+    checkout_shipping_price = calculations.checkout_shipping_price(checkout_with_item)
+    assert checkout_shipping_price == TaxedMoney(
+        net=Money("0", "USD"), gross=Money("0", "USD")
+    )

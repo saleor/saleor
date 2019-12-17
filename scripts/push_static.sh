@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 # Push static to AWS S3
 

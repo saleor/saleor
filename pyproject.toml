@@ -116,6 +116,5 @@ exclude = '''
   |infrastructure
   |templates
   |locale
-  |docs
 )/
 '''
