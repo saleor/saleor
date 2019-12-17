@@ -1,6 +1,7 @@
 import graphene
 import graphene_django_optimizer as gql_optimizer
 
+from ...core.permissions import OrderPermissions
 from ...order import OrderStatus, models
 from ...order.events import OrderEvents
 from ...order.models import OrderEvent
@@ -52,7 +53,7 @@ def resolve_order(info, order_id):
     """Return order only for user assigned to it or proper staff user."""
     user = info.context.user
     order = graphene.Node.get_node_from_global_id(info, order_id, Order)
-    if user.has_perm("order.manage_orders") or order.user == user:
+    if user.has_perm(OrderPermissions.MANAGE_ORDERS) or order.user == user:
         return order
     return None
 

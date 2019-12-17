@@ -9,6 +9,7 @@ from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
 from saleor.account.models import CustomerEvent
+from saleor.core.permissions import OrderPermissions
 from saleor.core.taxes import zero_taxed_money
 from saleor.extensions.manager import ExtensionsManager
 from saleor.graphql.core.enums import ReportingPeriod
@@ -2520,7 +2521,7 @@ def test_user_without_permission_cannot_update_private_meta(
     update_order_private_meta,
     order_private_meta_update_variables,
 ):
-    assert not staff_user.has_perm("order.manage_orders")
+    assert not staff_user.has_perm(OrderPermissions.MANAGE_ORDERS)
     response = staff_api_client.post_graphql(
         update_order_private_meta, order_private_meta_update_variables
     )
@@ -2549,7 +2550,7 @@ def test_user_with_permission_can_update_private_meta(
     order,
 ):
     staff_user.user_permissions.add(permission_manage_orders)
-    assert staff_user.has_perm("order.manage_orders")
+    assert staff_user.has_perm(OrderPermissions.MANAGE_ORDERS)
     response = staff_api_client.post_graphql(
         update_order_private_meta, order_private_meta_update_variables
     )
@@ -2620,7 +2621,7 @@ def order_with_meta(order):
 def test_user_without_permission_cannot_clear_meta(
     staff_user, staff_api_client, clear_order_meta, clear_meta_variables
 ):
-    assert not staff_user.has_perm("order.manage_orders")
+    assert not staff_user.has_perm(OrderPermissions.MANAGE_ORDERS)
     response = staff_api_client.post_graphql(clear_order_meta, clear_meta_variables)
     assert_no_permission(response)
 
@@ -2628,7 +2629,7 @@ def test_user_without_permission_cannot_clear_meta(
 def test_user_without_permission_cannot_clear_private_meta(
     staff_user, staff_api_client, clear_order_private_meta, clear_meta_private_variables
 ):
-    assert not staff_user.has_perm("order.manage_orders")
+    assert not staff_user.has_perm(OrderPermissions.MANAGE_ORDERS)
     response = staff_api_client.post_graphql(
         clear_order_private_meta, clear_meta_private_variables
     )
@@ -2644,7 +2645,7 @@ def test_user_with_permission_can_clear_meta(
     permission_manage_orders,
 ):
     staff_user.user_permissions.add(permission_manage_orders)
-    assert staff_user.has_perm("order.manage_orders")
+    assert staff_user.has_perm(OrderPermissions.MANAGE_ORDERS)
     response = staff_api_client.post_graphql(clear_order_meta, clear_meta_variables)
     assert response.status_code == 200
     content = get_graphql_content(response)
@@ -2664,7 +2665,7 @@ def test_user_with_permission_can_clear_private_meta(
     permission_manage_orders,
 ):
     staff_user.user_permissions.add(permission_manage_orders)
-    assert staff_user.has_perm("order.manage_orders")
+    assert staff_user.has_perm(OrderPermissions.MANAGE_ORDERS)
     response = staff_api_client.post_graphql(
         clear_order_private_meta, clear_meta_private_variables
     )

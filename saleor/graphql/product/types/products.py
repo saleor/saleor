@@ -9,6 +9,7 @@ from graphene import relay
 from graphene_federation import key
 from graphql.error import GraphQLError
 
+from ....core.permissions import OrderPermissions, ProductPermissions
 from ....product import models
 from ....product.templatetags.product_images import (
     get_product_image_thumbnail,
@@ -288,7 +289,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         model = models.ProductVariant
 
     @staticmethod
-    @permission_required("product.manage_products")
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_digital_content(root: models.ProductVariant, *_args):
         return getattr(root, "digital_content", None)
 
@@ -305,12 +306,12 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         return resolve_attribute_list(root, user=info.context.user)
 
     @staticmethod
-    @permission_required("product.manage_products")
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_margin(root: models.ProductVariant, *_args):
         return get_margin_for_variant(root)
 
     @staticmethod
-    @permission_required("product.manage_products")
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_cost_price(root: models.ProductVariant, *_args):
         return root.cost_price
 
@@ -340,29 +341,35 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         return root.is_available
 
     @staticmethod
-    @permission_required("product.manage_products")
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_price_override(root: models.ProductVariant, *_args):
         return root.price_override
 
     @staticmethod
-    @permission_required("product.manage_products")
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_quantity(root: models.ProductVariant, *_args):
         return root.quantity
 
     @staticmethod
-    @permission_required(["order.manage_orders", "product.manage_products"])
+    @permission_required(
+        [OrderPermissions.MANAGE_ORDERS, ProductPermissions.MANAGE_PRODUCTS]
+    )
     def resolve_quantity_ordered(root: models.ProductVariant, *_args):
         # This field is added through annotation when using the
         # `resolve_report_product_sales` resolver.
         return getattr(root, "quantity_ordered", None)
 
     @staticmethod
-    @permission_required(["order.manage_orders", "product.manage_products"])
+    @permission_required(
+        [OrderPermissions.MANAGE_ORDERS, ProductPermissions.MANAGE_PRODUCTS]
+    )
     def resolve_quantity_allocated(root: models.ProductVariant, *_args):
         return root.quantity_allocated
 
     @staticmethod
-    @permission_required(["order.manage_orders", "product.manage_products"])
+    @permission_required(
+        [OrderPermissions.MANAGE_ORDERS, ProductPermissions.MANAGE_PRODUCTS]
+    )
     def resolve_revenue(root: models.ProductVariant, *_args, period):
         start_date = reporting_period_to_date(period)
         return calculate_revenue_for_variant(root, start_date)
@@ -381,7 +388,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         return cls.maybe_optimize(info, qs, id)
 
     @staticmethod
-    @permission_required("product.manage_products")
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_private_meta(root, _info):
         return resolve_private_meta(root, _info)
 
@@ -534,7 +541,7 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
         return root.is_available
 
     @staticmethod
-    @permission_required("product.manage_products")
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_base_price(root: models.Product, _info):
         return root.price
 
@@ -566,13 +573,13 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
         return resolve_attribute_list(root, user=info.context.user)
 
     @staticmethod
-    @permission_required("product.manage_products")
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_purchase_cost(root: models.Product, *_args):
         purchase_cost, _ = get_product_costs_data(root)
         return purchase_cost
 
     @staticmethod
-    @permission_required("product.manage_products")
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_margin(root: models.Product, *_args):
         _, margin = get_product_costs_data(root)
         return Margin(margin[0], margin[1])
@@ -606,7 +613,7 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
         return None
 
     @staticmethod
-    @permission_required("product.manage_products")
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_private_meta(root, _info):
         return resolve_private_meta(root, _info)
 
@@ -697,13 +704,13 @@ class ProductType(CountableDjangoObjectType, MetadataObjectType):
         return gql_optimizer.query(qs, info)
 
     @staticmethod
-    @permission_required("product.manage_products")
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_available_attributes(root: models.ProductType, info, **kwargs):
         qs = models.Attribute.objects.get_unassigned_attributes(root.pk)
         return resolve_attributes(info, qs=qs, **kwargs)
 
     @staticmethod
-    @permission_required("account.manage_products")
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_private_meta(root, _info):
         return resolve_private_meta(root, _info)
 
@@ -772,7 +779,7 @@ class Collection(CountableDjangoObjectType, MetadataObjectType):
         return None
 
     @staticmethod
-    @permission_required("product.manage_products")
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_private_meta(root, _info):
         return resolve_private_meta(root, _info)
 
@@ -867,7 +874,7 @@ class Category(CountableDjangoObjectType, MetadataObjectType):
         return gql_optimizer.query(qs, info)
 
     @staticmethod
-    @permission_required("product.manage_products")
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_private_meta(root, _info):
         return resolve_private_meta(root, _info)
 

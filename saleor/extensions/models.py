@@ -2,6 +2,7 @@ from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.utils.translation import pgettext_lazy
 
+from saleor.core.permissions import ExtensionsPermissions
 from saleor.core.utils.json_serializer import CustomJsonEncoder
 
 
@@ -15,7 +16,10 @@ class PluginConfiguration(models.Model):
 
     class Meta:
         permissions = (
-            ("manage_plugins", pgettext_lazy("Plugin description", "Manage plugins")),
+            (
+                ExtensionsPermissions.MANAGE_PLUGINS.codename,
+                pgettext_lazy("Plugin description", "Manage plugins"),
+            ),
         )
 
     def __str__(self):
