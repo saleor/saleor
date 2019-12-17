@@ -3,6 +3,7 @@ from django.core.exceptions import ValidationError
 
 from ...shipping.models import ShippingZone
 from ...warehouse import models
+from ...warehouse.error_codes import WarehouseErrorCode
 from ..account.i18n import I18nMixin
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types.common import WarehouseError
@@ -49,7 +50,9 @@ class WarehouseMixin:
         shipping_zones = cleaned_input.get("shipping_zones", [])
         if not cls.validate_warehouse_count(shipping_zones, instance):
             msg = "Shipping zone can be assigned only to one warehouse."
-            raise ValidationError({"shipping_zones": msg})
+            raise ValidationError(
+                {"shipping_zones": msg}, code=WarehouseErrorCode.INVALID
+            )
         return cleaned_input
 
     @classmethod
@@ -81,7 +84,7 @@ class WarehouseUpdate(WarehouseMixin, ModelMutation, I18nMixin):
     class Meta:
         model = models.Warehouse
         permissions = ("warehouse.manage_warehouses",)
-        description = "Update given warehouse."
+        description = "Updates given warehouse."
         error_type_class = WarehouseError
         error_type_field = "warehouse_errors"
 

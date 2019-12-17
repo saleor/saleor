@@ -4656,19 +4656,19 @@ type WarehouseDelete {
   warehouse: Warehouse
 }
 
-enum WarehouseErorrCode {
+type WarehouseError {
+  field: String
+  message: String
+  code: WarehouseErrorCode
+}
+
+enum WarehouseErrorCode {
   ALREADY_EXISTS
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND
   REQUIRED
   UNIQUE
-}
-
-type WarehouseError {
-  field: String
-  message: String
-  code: WarehouseErorrCode
 }
 
 input WarehouseFilterInput {
