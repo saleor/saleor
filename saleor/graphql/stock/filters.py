@@ -12,10 +12,10 @@ def filter_search(qs, _, value):
         "warehouse__name",
         "warehouse__company_name",
     ]
-    qs = qs.select_related("product_variant", "warehouse").prefetch_related(
-        "product_variant__product"
-    )
     if value:
+        qs = qs.select_related("product_variant", "warehouse").prefetch_related(
+            "product_variant__product"
+        )
         qs = filter_by_query_param(qs, value, search_fields)
     return qs
 
