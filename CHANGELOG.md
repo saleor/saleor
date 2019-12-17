@@ -31,6 +31,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Generate slug in attribute value save - #5055 by @fowczarek
 - Fix order status after order update - #5072 by @fowczarek
 - Extend top-level connection resolvers with ability to sort results - #5018 by @fowczarek
+- Drop storefront 1.0 - #5043 by @IKarbowiak
 
 ## 2.9.0
 
@@ -568,7 +569,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add database sequence reset to `populatedb` - #3406 by @michaljelonek
 - Get authorized amount from succeeded auth transactions - #3417 by @jxltom
 - Resort imports by `isort` - #3412 by @jxltom
-- Drop storefront 1.0 - #5043 by @IKarbowiak
 
 ### Dashboard 2.0
 
