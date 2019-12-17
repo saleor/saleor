@@ -3,13 +3,15 @@ from typing import Optional
 
 import graphene
 import graphene_django_optimizer as gql_optimizer
+from django.db.models import QuerySet
 from graphql_jwt.exceptions import PermissionDenied
 from i18naddress import get_validation_rules
 
 from ...account import models
 from ...payment import gateway
 from ...payment.utils import fetch_customer_id
-from ..utils import filter_by_query_param
+from ..utils import filter_by_query_param, sort_queryset
+from .sorters import ServiceAccountSortField, UserSortField, UserSortingInput
 from .types import AddressValidationData, ChoiceValue
 from .utils import get_allowed_fields_camel_case, get_required_fields_camel_case
 
@@ -24,22 +26,28 @@ USER_SEARCH_FIELDS = (
 )
 
 
-def resolve_customers(info, query):
+def sort_users(qs: QuerySet, sort_by: UserSortingInput) -> QuerySet:
+    if sort_by:
+        return sort_queryset(qs, sort_by, UserSortField)
+    return qs.order_by("email")
+
+
+def resolve_customers(info, query, sort_by=None, **_kwargs):
     qs = models.User.objects.customers()
     qs = filter_by_query_param(
         queryset=qs, query=query, search_fields=USER_SEARCH_FIELDS
     )
-    qs = qs.order_by("email")
+    qs = sort_users(qs, sort_by)
     qs = qs.distinct()
     return gql_optimizer.query(qs, info)
 
 
-def resolve_staff_users(info, query):
+def resolve_staff_users(info, query, sort_by=None, **_kwargs):
     qs = models.User.objects.staff()
     qs = filter_by_query_param(
         queryset=qs, query=query, search_fields=USER_SEARCH_FIELDS
     )
-    qs = qs.order_by("email")
+    qs = sort_users(qs, sort_by)
     qs = qs.distinct()
     return gql_optimizer.query(qs, info)
 
@@ -57,8 +65,9 @@ def resolve_user(info, id):
     return PermissionDenied()
 
 
-def resolve_service_accounts(info):
+def resolve_service_accounts(info, sort_by=None, **_kwargs):
     qs = models.ServiceAccount.objects.all()
+    qs = sort_queryset(qs, sort_by, ServiceAccountSortField)
     return gql_optimizer.query(qs, info)
 
 

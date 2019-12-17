@@ -50,6 +50,7 @@ from .resolvers import (
     resolve_orders,
     resolve_orders_total,
 )
+from .sorters import OrderSortingInput
 from .types import Order, OrderEvent
 
 
@@ -78,6 +79,7 @@ class OrderQueries(graphene.ObjectType):
     )
     orders = FilterInputConnectionField(
         Order,
+        sort_by=OrderSortingInput(description="Sort orders."),
         filter=OrderFilterInput(description="Filtering options for orders."),
         query=graphene.String(description=DESCRIPTIONS["order"]),
         created=graphene.Argument(
@@ -90,6 +92,7 @@ class OrderQueries(graphene.ObjectType):
     )
     draft_orders = FilterInputConnectionField(
         Order,
+        sort_by=OrderSortingInput(description="Sort draft orders."),
         filter=OrderDraftFilterInput(description="Filtering options for draft orders."),
         query=graphene.String(description=DESCRIPTIONS["order"]),
         created=graphene.Argument(
@@ -119,12 +122,16 @@ class OrderQueries(graphene.ObjectType):
         return resolve_order(info, data.get("id"))
 
     @permission_required("order.manage_orders")
-    def resolve_orders(self, info, created=None, status=None, query=None, **_kwargs):
-        return resolve_orders(info, created, status, query)
+    def resolve_orders(
+        self, info, created=None, status=None, query=None, sort_by=None, **_kwargs
+    ):
+        return resolve_orders(info, created, status, query, sort_by)
 
     @permission_required("order.manage_orders")
-    def resolve_draft_orders(self, info, created=None, query=None, **_kwargs):
-        return resolve_draft_orders(info, created, query)
+    def resolve_draft_orders(
+        self, info, created=None, query=None, sort_by=None, **_kwargs
+    ):
+        return resolve_draft_orders(info, created, query, sort_by)
 
     @permission_required("order.manage_orders")
     def resolve_orders_total(self, info, period, **_kwargs):

@@ -30,6 +30,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Made middleware path resolving lazy and refactored middleware names - #5041 by @NyanKiyoshi
 - Generate slug in attribute value save - #5055 by @fowczarek
 - Fix order status after order update - #5072 by @fowczarek
+- Extend top-level connection resolvers with ability to sort results - #5018 by @fowczarek
 
 ## 2.9.0
 
