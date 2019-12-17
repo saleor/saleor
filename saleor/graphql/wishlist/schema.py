@@ -7,14 +7,11 @@ from .mutations import (
     WishlistRemoveProductVariantMutation,
 )
 
-
 # User's wishlist queries are located in the "saleor.graphql.account" module:
 #
 #     me {
 #         wishlist
 #     }
-class WishlistQueries(graphene.ObjectType):
-    pass
 
 
 class WishlistMutations(graphene.ObjectType):
