@@ -1,4 +1,3 @@
-import json
 import re
 import uuid
 from unittest.mock import ANY, MagicMock, Mock, patch
@@ -10,7 +9,6 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.core.validators import URLValidator
-from django.shortcuts import reverse
 from freezegun import freeze_time
 from prices import Money
 
@@ -77,7 +75,7 @@ def query_staff_users_with_filter():
     return query
 
 
-def test_create_token_mutation(admin_client, staff_user, settings):
+def test_create_token_mutation(api_client, staff_user, settings):
     query = """
     mutation TokenCreate($email: String!, $password: String!) {
         tokenCreate(email: $email, password: $password) {
@@ -90,11 +88,7 @@ def test_create_token_mutation(admin_client, staff_user, settings):
     }
     """
     variables = {"email": staff_user.email, "password": "password"}
-    response = admin_client.post(
-        reverse("api"),
-        json.dumps({"query": query, "variables": variables}),
-        content_type="application/json",
-    )
+    response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     token_data = content["data"]["tokenCreate"]
     token = jwt.decode(token_data["token"], settings.SECRET_KEY)
@@ -104,11 +98,7 @@ def test_create_token_mutation(admin_client, staff_user, settings):
     assert token_data["errors"] == []
 
     incorrect_variables = {"email": staff_user.email, "password": "incorrect"}
-    response = admin_client.post(
-        reverse("api"),
-        json.dumps({"query": query, "variables": incorrect_variables}),
-        content_type="application/json",
-    )
+    response = api_client.post_graphql(query, incorrect_variables)
     content = get_graphql_content(response)
     token_data = content["data"]["tokenCreate"]
     errors = token_data["errors"]
@@ -573,21 +563,6 @@ def test_user_with_cancelled_fulfillments(
     assert fulfillments[1]["status"] == FulfillmentStatus.CANCELED.upper()
 
 
-CUSTOMER_REGISTER_MUTATION = """
-    mutation RegisterCustomer($password: String!, $email: String!) {
-        customerRegister(input: {password: $password, email: $email}) {
-            errors {
-                field
-                message
-            }
-            user {
-                id
-            }
-        }
-    }
-"""
-
-
 ACCOUNT_REGISTER_MUTATION = """
     mutation RegisterAccount($password: String!, $email: String!) {
         accountRegister(input: {password: $password, email: $email}) {
@@ -603,16 +578,11 @@ ACCOUNT_REGISTER_MUTATION = """
 """
 
 
-@pytest.mark.parametrize(
-    "query, mutation_name",
-    [
-        (CUSTOMER_REGISTER_MUTATION, "customerRegister"),
-        (ACCOUNT_REGISTER_MUTATION, "accountRegister"),
-    ],
-)
-def test_customer_register(user_api_client, query, mutation_name):
+def test_customer_register(user_api_client):
     email = "customer@example.com"
     variables = {"email": email, "password": "Password"}
+    query = ACCOUNT_REGISTER_MUTATION
+    mutation_name = "accountRegister"
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"][mutation_name]
@@ -1042,42 +1012,7 @@ def test_logged_customer_update_names(user_api_client):
     assert user.last_name == last_name
 
 
-UPDATE_LOGGED_CUSTOMER_QUERY = """
-    mutation UpdateLoggedCustomer($billing: AddressInput,
-                                  $shipping: AddressInput) {
-        loggedUserUpdate(
-          input: {
-            defaultBillingAddress: $billing,
-            defaultShippingAddress: $shipping,
-        }) {
-            errors {
-                field
-                message
-            }
-            user {
-                email
-                defaultBillingAddress {
-                    id
-                }
-                defaultShippingAddress {
-                    id
-                }
-            }
-        }
-    }
-"""
-
-
-@pytest.mark.parametrize(
-    "query, mutation_name",
-    [
-        (UPDATE_LOGGED_CUSTOMER_QUERY, "loggedUserUpdate"),
-        (ACCOUNT_UPDATE_QUERY, "accountUpdate"),
-    ],
-)
-def test_logged_customer_update_addresses(
-    user_api_client, graphql_address_data, query, mutation_name
-):
+def test_logged_customer_update_addresses(user_api_client, graphql_address_data):
     # this test requires addresses to be set and checks whether new address
     # instances weren't created, but the existing ones got updated
     user = user_api_client.user
@@ -1086,6 +1021,9 @@ def test_logged_customer_update_addresses(
     assert user.default_shipping_address
     assert user.default_billing_address.first_name != new_first_name
     assert user.default_shipping_address.first_name != new_first_name
+
+    query = ACCOUNT_UPDATE_QUERY
+    mutation_name = "accountUpdate"
     variables = {"billing": graphql_address_data, "shipping": graphql_address_data}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -1103,10 +1041,8 @@ def test_logged_customer_update_addresses(
     assert user.default_shipping_address.first_name == new_first_name
 
 
-@pytest.mark.parametrize(
-    "query", [(UPDATE_LOGGED_CUSTOMER_QUERY), (ACCOUNT_UPDATE_QUERY)]
-)
-def test_logged_customer_update_anonymous_user(api_client, query):
+def test_logged_customer_update_anonymous_user(api_client):
+    query = ACCOUNT_UPDATE_QUERY
     response = api_client.post_graphql(query, {})
     assert_no_permission(response)
 
@@ -1768,61 +1704,6 @@ def test_set_password_invalid_password(user_api_client, customer_user, settings)
     assert account_errors[1]["code"] == str_to_enum("password_entirely_numeric")
 
 
-@patch("saleor.account.emails._send_user_password_reset_email.delay")
-def test_deprecated_password_reset_email(
-    send_password_reset_mock, staff_api_client, customer_user, permission_manage_users
-):
-    query = """
-    mutation ResetPassword($email: String!) {
-        passwordReset(email: $email) {
-            errors {
-                field
-                message
-            }
-        }
-    }
-    """
-    email = customer_user.email
-    variables = {"email": email}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_users]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["passwordReset"]
-    assert data == {"errors": []}
-    assert send_password_reset_mock.call_count == 1
-    send_password_reset_mock.assert_called_once_with(
-        customer_user.email, ANY, customer_user.pk
-    )
-
-
-@patch("saleor.account.emails._send_user_password_reset_email.delay")
-def test_password_reset_email_non_existing_user(
-    send_password_reset_mock, staff_api_client, permission_manage_users
-):
-    query = """
-    mutation ResetPassword($email: String!) {
-        passwordReset(email: $email) {
-            errors {
-                field
-                message
-            }
-        }
-    }
-    """
-    email = "not_exists@example.com"
-    variables = {"email": email}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_users]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["passwordReset"]
-    assert data["errors"] == [
-        {"field": "email", "message": "User with this email doesn't exist"}
-    ]
-    send_password_reset_mock.assert_not_called()
-
-
 CHANGE_PASSWORD_MUTATION = """
     mutation PasswordChange($oldPassword: String!, $newPassword: String!) {
         passwordChange(oldPassword: $oldPassword, newPassword: $newPassword) {
@@ -2242,35 +2123,6 @@ def test_address_validation_rules_fields_in_camel_case(user_api_client):
     assert "streetAddress2" in allowed_fields
 
 
-CUSTOMER_PASSWORD_RESET_MUTATION = """
-    mutation CustomerPasswordReset($email: String!) {
-        customerPasswordReset(input: {email: $email}) {
-            errors {
-                field
-                message
-            }
-        }
-    }
-"""
-
-
-@patch("saleor.account.emails._send_password_reset_email")
-def test_deprecated_account_reset_password(
-    send_password_reset_mock, user_api_client, customer_user
-):
-    # we have no user with given email
-    variables = {"email": "non-existing-email@email.com"}
-    response = user_api_client.post_graphql(CUSTOMER_PASSWORD_RESET_MUTATION, variables)
-    get_graphql_content(response)
-    assert not send_password_reset_mock.called
-
-    variables = {"email": customer_user.email}
-    response = user_api_client.post_graphql(CUSTOMER_PASSWORD_RESET_MUTATION, variables)
-    get_graphql_content(response)
-    assert send_password_reset_mock.called
-    assert send_password_reset_mock.mock_calls[0][1][0] == customer_user.email
-
-
 REQUEST_PASSWORD_RESET_MUTATION = """
     mutation RequestPasswordReset($email: String!, $redirectUrl: String!) {
         requestPasswordReset(email: $email, redirectUrl: $redirectUrl) {
@@ -2386,18 +2238,6 @@ def test_account_reset_password_subdomain(
     url_validator(url)
 
 
-CUSTOMER_ADDRESS_CREATE_MUTATION = """
-mutation($addressInput: AddressInput!, $addressType: AddressTypeEnum) {
-  customerAddressCreate(input: $addressInput, type: $addressType) {
-    address {
-        id,
-        city
-    }
-  }
-}
-"""
-
-
 ACCOUNT_ADDRESS_CREATE_MUTATION = """
 mutation($addressInput: AddressInput!, $addressType: AddressTypeEnum) {
   accountAddressCreate(input: $addressInput, type: $addressType) {
@@ -2413,18 +2253,12 @@ mutation($addressInput: AddressInput!, $addressType: AddressTypeEnum) {
 """
 
 
-@pytest.mark.parametrize(
-    "query, mutation_name",
-    [
-        (CUSTOMER_ADDRESS_CREATE_MUTATION, "customerAddressCreate"),
-        (ACCOUNT_ADDRESS_CREATE_MUTATION, "accountAddressCreate"),
-    ],
-)
-def test_customer_create_address(
-    user_api_client, graphql_address_data, query, mutation_name
-):
+def test_customer_create_address(user_api_client, graphql_address_data):
     user = user_api_client.user
     nr_of_addresses = user.addresses.count()
+
+    query = ACCOUNT_ADDRESS_CREATE_MUTATION
+    mutation_name = "accountAddressCreate"
 
     variables = {"addressInput": graphql_address_data}
     response = user_api_client.post_graphql(query, variables)
@@ -2446,18 +2280,12 @@ def test_account_address_create_return_user(user_api_client, graphql_address_dat
     assert data["email"] == user.email
 
 
-@pytest.mark.parametrize(
-    "query, mutation_name",
-    [
-        (CUSTOMER_ADDRESS_CREATE_MUTATION, "customerAddressCreate"),
-        (ACCOUNT_ADDRESS_CREATE_MUTATION, "accountAddressCreate"),
-    ],
-)
-def test_customer_create_default_address(
-    user_api_client, graphql_address_data, query, mutation_name
-):
+def test_customer_create_default_address(user_api_client, graphql_address_data):
     user = user_api_client.user
     nr_of_addresses = user.addresses.count()
+
+    query = ACCOUNT_ADDRESS_CREATE_MUTATION
+    mutation_name = "accountAddressCreate"
 
     address_type = AddressType.SHIPPING.upper()
     variables = {"addressInput": graphql_address_data, "addressType": address_type}
@@ -2486,25 +2314,11 @@ def test_customer_create_default_address(
     )
 
 
-@pytest.mark.parametrize(
-    "query", [CUSTOMER_ADDRESS_CREATE_MUTATION, ACCOUNT_ADDRESS_CREATE_MUTATION]
-)
-def test_anonymous_user_create_address(api_client, graphql_address_data, query):
+def test_anonymous_user_create_address(api_client, graphql_address_data):
+    query = ACCOUNT_ADDRESS_CREATE_MUTATION
     variables = {"addressInput": graphql_address_data}
     response = api_client.post_graphql(query, variables)
     assert_no_permission(response)
-
-
-CUSTOMER_SET_DEFAULT_ADDRESS_MUTATION = """
-mutation($id: ID!, $type: AddressTypeEnum!) {
-  customerSetDefaultAddress(id: $id, type: $type) {
-    errors {
-      field,
-      message
-    }
-  }
-}
-"""
 
 
 ACCOUNT_SET_DEFAULT_ADDRESS_MUTATION = """
@@ -2519,14 +2333,7 @@ mutation($id: ID!, $type: AddressTypeEnum!) {
 """
 
 
-@pytest.mark.parametrize(
-    "query, mutation_name",
-    [
-        (CUSTOMER_SET_DEFAULT_ADDRESS_MUTATION, "customerSetDefaultAddress"),
-        (ACCOUNT_SET_DEFAULT_ADDRESS_MUTATION, "accountSetDefaultAddress"),
-    ],
-)
-def test_customer_set_address_as_default(user_api_client, query, mutation_name):
+def test_customer_set_address_as_default(user_api_client):
     user = user_api_client.user
     user.default_billing_address = None
     user.default_shipping_address = None
@@ -2536,6 +2343,8 @@ def test_customer_set_address_as_default(user_api_client, query, mutation_name):
     assert user.addresses.exists()
 
     address = user.addresses.first()
+    query = ACCOUNT_SET_DEFAULT_ADDRESS_MUTATION
+    mutation_name = "accountSetDefaultAddress"
 
     variables = {
         "id": graphene.Node.to_global_id("Address", address.id),
@@ -2559,16 +2368,7 @@ def test_customer_set_address_as_default(user_api_client, query, mutation_name):
     assert user.default_billing_address == address
 
 
-@pytest.mark.parametrize(
-    "query, mutation_name",
-    [
-        (CUSTOMER_SET_DEFAULT_ADDRESS_MUTATION, "customerSetDefaultAddress"),
-        (ACCOUNT_SET_DEFAULT_ADDRESS_MUTATION, "accountSetDefaultAddress"),
-    ],
-)
-def test_customer_change_default_address(
-    user_api_client, address_other_country, query, mutation_name
-):
+def test_customer_change_default_address(user_api_client, address_other_country):
     user = user_api_client.user
     assert user.default_billing_address
     assert user.default_billing_address
@@ -2580,6 +2380,9 @@ def test_customer_change_default_address(
     user.save()
     user.refresh_from_db()
     assert address_other_country not in user.addresses.all()
+
+    query = ACCOUNT_SET_DEFAULT_ADDRESS_MUTATION
+    mutation_name = "accountSetDefaultAddress"
 
     variables = {
         "id": graphene.Node.to_global_id("Address", address.id),
@@ -2595,18 +2398,14 @@ def test_customer_change_default_address(
     assert address_other_country in user.addresses.all()
 
 
-@pytest.mark.parametrize(
-    "query, mutation_name",
-    [
-        (CUSTOMER_SET_DEFAULT_ADDRESS_MUTATION, "customerSetDefaultAddress"),
-        (ACCOUNT_SET_DEFAULT_ADDRESS_MUTATION, "accountSetDefaultAddress"),
-    ],
-)
 def test_customer_change_default_address_invalid_address(
-    user_api_client, address_other_country, query, mutation_name
+    user_api_client, address_other_country
 ):
     user = user_api_client.user
     assert address_other_country not in user.addresses.all()
+
+    query = ACCOUNT_SET_DEFAULT_ADDRESS_MUTATION
+    mutation_name = "accountSetDefaultAddress"
 
     variables = {
         "id": graphene.Node.to_global_id("Address", address_other_country.id),

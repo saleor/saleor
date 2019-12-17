@@ -7,6 +7,7 @@ from django.db import transaction
 from django.db.models import Prefetch
 from django.utils import timezone
 
+from ...account.error_codes import AccountErrorCode
 from ...checkout import models
 from ...checkout.error_codes import CheckoutErrorCode
 from ...checkout.utils import (
@@ -29,6 +30,7 @@ from ...checkout.utils import (
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
 from ...core.taxes import TaxError
+from ...core.utils.url import validate_storefront_url
 from ...discount import models as voucher_model
 from ...payment import PaymentError, gateway, models as payment_models
 from ...payment.interface import AddressData
@@ -632,6 +634,13 @@ class CheckoutComplete(BaseMutation):
                 "Determines whether to store the payment source for future usage."
             ),
         )
+        redirect_url = graphene.String(
+            required=False,
+            description=(
+                "URL of a view where users should be redirected to "
+                "see the order details. URL in RFC 1808 format."
+            ),
+        )
 
     class Meta:
         description = (
@@ -643,7 +652,7 @@ class CheckoutComplete(BaseMutation):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id, store_source):
+    def perform_mutation(cls, _root, info, checkout_id, store_source, **data):
         checkout = cls.get_node_or_error(
             info,
             checkout_id,
@@ -712,8 +721,22 @@ class CheckoutComplete(BaseMutation):
         if txn.customer_id and user.is_authenticated:
             store_customer_id(user, payment.gateway, txn.customer_id)
 
+        redirect_url = data.get("redirect_url", "")
+        if redirect_url:
+            try:
+                validate_storefront_url(redirect_url)
+            except ValidationError as error:
+                raise ValidationError(
+                    {"redirect_url": error}, code=AccountErrorCode.INVALID
+                )
+
         # create the order into the database
-        order = create_order(checkout=checkout, order_data=order_data, user=user)
+        order = create_order(
+            checkout=checkout,
+            order_data=order_data,
+            user=user,
+            redirect_url=redirect_url,
+        )
 
         # remove checkout after order is successfully paid
         checkout.delete()

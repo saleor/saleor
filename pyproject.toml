@@ -22,35 +22,26 @@ dj-database-url = "^0"
 dj-email-url = "^0"
 django = "~2.2"
 django-babel = "^0"
-django-bootstrap4 = "~1"
-django-cache-url = "^3.0"
 django-countries = "^5.3"
-django-elasticsearch-dsl = "^0.5"
 django-filter = "^2.2"
 django-graphql-jwt = "<=0.2.1" # https://github.com/mirumee/saleor/issues/4652
-django-impersonate = "^1.4.1"
 django-measurement = "^3.0"
 django-mptt = "^0"
 django-phonenumber-field = "^2.4"
 django-prices = "^2.1"
 django-prices-openexchangerates = "^1.0.1"
 django-prices-vatlayer = "^1.0.2"
-django-recaptcha = "^1.5"
-django-redis = "^4.10"
 django-silk = "~2.0"
 django-storages = { version = "^1.7.1", extras = [ "google" ] }
 django-templated-email = "^2.3.0"
 django-versatileimagefield = "^1.11"
-django-webpack-loader = "^0"
 draftjs-sanitizer = "^1.0.0"
-elasticsearch = "~6.3.1"
-elasticsearch-dsl = "~6.0.1"
 faker = "^2.0"
 freezegun = "^0"
 google-cloud-storage = "^1.18.0"
 google-i18n-address = "^2.3.5"
 google-measurement-protocol = "^1.0"
-graphene-django = "^2.4"
+graphene-django = "2.6.0"
 graphene-django-optimizer = "^0.6"
 graphene-federation = "^0.0.3"
 html-to-draftjs = "^1.0.1"
@@ -65,12 +56,12 @@ python-magic-bin = {version = "^0.4.14", platform = "win32"}
 razorpay = "^1.2"
 requests = "^2.22"
 sentry-sdk = "^0"
-social-auth-app-django = "^3.1"
 stripe = "^2.33.2"
 text-unidecode = "^1.2"
 tqdm = "^4.36"
 uwsgi = {version = "^2.0.8", platform = "!=win32"}
 weasyprint = ">=48"
+oauthlib = "^3.0"
 
 [tool.poetry.dev-dependencies]
 black = "19.3b0"
@@ -125,6 +116,5 @@ exclude = '''
   |infrastructure
   |templates
   |locale
-  |docs
 )/
 '''

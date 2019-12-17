@@ -7,7 +7,6 @@ from django.contrib.postgres.fields import JSONField
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import F, Max, Sum
-from django.urls import reverse
 from django.utils.timezone import now
 from django.utils.translation import pgettext_lazy
 from django_measurement.models import MeasurementField
@@ -224,8 +223,10 @@ class Order(ModelWithMetadata):
     def __str__(self):
         return "#%d" % (self.id,)
 
-    def get_absolute_url(self):
-        return reverse("order:details", kwargs={"token": self.token})
+    # Deprecated. To remove in #5022
+    @staticmethod
+    def get_absolute_url():
+        return ""
 
     def get_last_payment(self):
         return max(self.payments.all(), default=None, key=attrgetter("pk"))

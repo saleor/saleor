@@ -1,13 +1,11 @@
-from urllib.parse import urlencode, urlsplit
+from urllib.parse import urlencode
 
 from django.contrib.auth.tokens import default_token_generator
-from django.urls import reverse
 from templated_email import send_templated_mail
 
 from ..account import events as account_events
 from ..celeryconf import app
-from ..core.emails import get_email_context
-from ..core.utils import build_absolute_uri
+from ..core.emails import get_email_context, prepare_url
 
 
 def send_user_password_reset_email_with_url(redirect_url, user):
@@ -16,28 +14,11 @@ def send_user_password_reset_email_with_url(redirect_url, user):
     _send_password_reset_email_with_url.delay(user.email, redirect_url, user.pk, token)
 
 
-def send_user_password_reset_email(recipient_email, context, user_id):
-    """Trigger sending a password reset email for the given user."""
-    _send_user_password_reset_email.delay(recipient_email, context, user_id)
-
-
-@app.task
-def _send_user_password_reset_email(recipient_email, context, user_id):
-    reset_url = build_absolute_uri(
-        reverse(
-            "account:reset-password-confirm",
-            kwargs={"uidb64": context["uid"], "token": context["token"]},
-        )
-    )
-    _send_password_reset_email(recipient_email, reset_url, user_id)
-
-
 @app.task
 def _send_password_reset_email_with_url(recipient_email, redirect_url, user_id, token):
     params = urlencode({"email": recipient_email, "token": token})
-    reset_url = urlsplit(redirect_url)
-    reset_url = reset_url._replace(query=params)
-    _send_password_reset_email(recipient_email, reset_url.geturl(), user_id)
+    reset_url = prepare_url(params, redirect_url)
+    _send_password_reset_email(recipient_email, reset_url, user_id)
 
 
 def _send_password_reset_email(recipient_email, reset_url, user_id):
@@ -60,12 +41,6 @@ def send_account_delete_confirmation_email_with_url(redirect_url, user):
     )
 
 
-def send_account_delete_confirmation_email(user):
-    """Trigger sending a account delete email for the given user."""
-    token = default_token_generator.make_token(user)
-    _send_account_delete_confirmation_email.delay(user.email, token)
-
-
 @app.task
 def _send_account_delete_confirmation_email_with_url(
     recipient_email, redirect_url, token
@@ -75,14 +50,6 @@ def _send_account_delete_confirmation_email_with_url(
         "redirect_url": redirect_url,
         "params": params,
     }
-    _send_delete_confirmation_email(recipient_email, delete_url)
-
-
-@app.task
-def _send_account_delete_confirmation_email(recipient_email, token):
-    delete_url = build_absolute_uri(
-        reverse("account:delete-confirm", kwargs={"token": token})
-    )
     _send_delete_confirmation_email(recipient_email, delete_url)
 
 
@@ -112,9 +79,8 @@ def _send_set_user_password_email_with_url(
     recipient_email, redirect_url, token, template_name
 ):
     params = urlencode({"email": recipient_email, "token": token})
-    password_set_url = urlsplit(redirect_url)
-    password_set_url = password_set_url._replace(query=params)
-    _send_set_password_email(recipient_email, password_set_url.geturl(), template_name)
+    password_set_url = prepare_url(params, redirect_url)
+    _send_set_password_email(recipient_email, password_set_url, template_name)
 
 
 def _send_set_password_email(recipient_email, password_set_url, template_name):
