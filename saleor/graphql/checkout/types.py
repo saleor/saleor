@@ -1,7 +1,7 @@
 import graphene
 import graphene_django_optimizer as gql_optimizer
 
-from ...checkout import models
+from ...checkout import calculations, models
 from ...checkout.utils import get_valid_shipping_methods_for_checkout
 from ...core.taxes import display_gross_prices, zero_taxed_money
 from ...extensions.manager import get_extensions_manager
@@ -146,22 +146,20 @@ class Checkout(MetadataObjectType, CountableDjangoObjectType):
     @staticmethod
     def resolve_total_price(root: models.Checkout, info):
         taxed_total = (
-            info.context.extensions.calculate_checkout_total(
-                checkout=root, discounts=info.context.discounts
-            )
+            calculations.checkout_total(checkout=root, discounts=info.context.discounts)
             - root.get_total_gift_cards_balance()
         )
         return max(taxed_total, zero_taxed_money())
 
     @staticmethod
     def resolve_subtotal_price(root: models.Checkout, info):
-        return info.context.extensions.calculate_checkout_subtotal(
+        return calculations.checkout_subtotal(
             checkout=root, discounts=info.context.discounts
         )
 
     @staticmethod
     def resolve_shipping_price(root: models.Checkout, info):
-        return info.context.extensions.calculate_checkout_shipping(
+        return calculations.checkout_shipping_price(
             checkout=root, discounts=info.context.discounts
         )
 

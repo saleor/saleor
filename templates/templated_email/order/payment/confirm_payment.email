@@ -8,7 +8,7 @@
 {% include 'templated_email/shared/_header.email' %}
 {% blocktrans context "Payment confirmation email text" %}
 Thank you for your payment.
-Your payment was successful charged.
+Your payment was successfully charged.
 {% endblocktrans %}
 {% include 'templated_email/shared/_footer.email' %}
 {% endblock %}
