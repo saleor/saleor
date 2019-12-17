@@ -20,9 +20,9 @@ def filter_search(qs, _, value):
         "address__postal_code",
         "address__phone",
     ]
-    qs = prefech_qs_for_filter(qs)
 
     if value:
+        qs = prefech_qs_for_filter(qs)
         qs = filter_by_query_param(qs, value, search_fields)
     return qs
 
