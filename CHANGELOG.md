@@ -32,6 +32,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix order status after order update - #5072 by @fowczarek
 - Extend top-level connection resolvers with ability to sort results - #5018 by @fowczarek
 - Drop storefront 1.0 - #5043 by @IKarbowiak
+- Replace permissions strings with enums - #5038 by @kswiatek92
 
 ## 2.9.0
 

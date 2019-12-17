@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ....core.permissions import OrderPermissions
 from ....order import OrderStatus, models
 from ....order.error_codes import OrderErrorCode
 from ...core.mutations import ModelBulkDeleteMutation
@@ -16,7 +17,7 @@ class DraftOrderBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = "Deletes draft orders."
         model = models.Order
-        permissions = ("order.manage_orders",)
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
 
@@ -42,7 +43,7 @@ class DraftOrderLinesBulkDelete(ModelBulkDeleteMutation):
     class Meta:
         description = "Deletes order lines."
         model = models.OrderLine
-        permissions = ("order.manage_orders",)
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
 

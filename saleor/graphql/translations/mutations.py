@@ -1,5 +1,6 @@
 import graphene
 
+from ...core.permissions import SitePermissions
 from ...discount import models as discount_models
 from ...menu import models as menu_models
 from ...page import models as page_models
@@ -19,7 +20,7 @@ class BaseTranslateMutation(ModelMutation):
 
     @classmethod
     def check_permissions(cls, context):
-        return context.user.has_perm("site.manage_translations")
+        return context.user.has_perm(SitePermissions.MANAGE_TRANSLATIONS)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -213,7 +214,7 @@ class ShopSettingsTranslate(BaseMutation):
 
     class Meta:
         description = "Creates/Updates translations for Shop Settings."
-        permissions = ("site.manage_translations",)
+        permissions = (SitePermissions.MANAGE_TRANSLATIONS,)
 
     @classmethod
     def perform_mutation(cls, _root, info, language_code, **data):

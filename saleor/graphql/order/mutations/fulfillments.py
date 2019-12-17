@@ -2,6 +2,7 @@ import graphene
 from django.core.exceptions import ValidationError
 from django.utils.translation import npgettext_lazy, pgettext_lazy
 
+from ....core.permissions import OrderPermissions
 from ....order import models
 from ....order.actions import (
     cancel_fulfillment,
@@ -52,7 +53,7 @@ class FulfillmentClearMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clears metadata for fulfillment."
         model = models.Fulfillment
-        permissions = ("order.manage_orders",)
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
         public = True
 
 
@@ -60,7 +61,7 @@ class FulfillmentUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Updates metadata for fulfillment."
         model = models.Fulfillment
-        permissions = ("order.manage_orders",)
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
         public = True
 
 
@@ -68,7 +69,7 @@ class FulfillmentClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clears private metadata for fulfillment."
         model = models.Fulfillment
-        permissions = ("order.manage_orders",)
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
         public = False
 
 
@@ -76,7 +77,7 @@ class FulfillmentUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Updates metadata for fulfillment."
         model = models.Fulfillment
-        permissions = ("order.manage_orders",)
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
         public = False
 
 
@@ -94,7 +95,7 @@ class FulfillmentCreate(BaseMutation):
 
     class Meta:
         description = "Creates a new fulfillment for an order."
-        permissions = ("order.manage_orders",)
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
 
@@ -197,7 +198,7 @@ class FulfillmentUpdateTracking(BaseMutation):
 
     class Meta:
         description = "Updates a fulfillment for an order."
-        permissions = ("order.manage_orders",)
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
 
@@ -224,7 +225,7 @@ class FulfillmentCancel(BaseMutation):
 
     class Meta:
         description = "Cancels existing fulfillment and optionally restocks items."
-        permissions = ("order.manage_orders",)
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
 

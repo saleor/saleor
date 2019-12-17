@@ -5,7 +5,7 @@ import pytest
 
 from saleor.account.models import ServiceAccount
 from saleor.graphql.webhook.enums import WebhookEventTypeEnum
-from saleor.webhook import WebhookEventType
+from saleor.webhook.event_types import WebhookEventType
 from saleor.webhook.models import Webhook
 
 from .utils import assert_no_permission, get_graphql_content

@@ -1,5 +1,6 @@
 import graphene
 
+from ...core.permissions import ShippingPermissions
 from ..core.fields import PrefetchingConnectionField
 from ..decorators import permission_required
 from ..translations.mutations import ShippingPriceTranslate
@@ -28,11 +29,11 @@ class ShippingQueries(graphene.ObjectType):
         ShippingZone, description="List of the shop's shipping zones."
     )
 
-    @permission_required("shipping.manage_shipping")
+    @permission_required(ShippingPermissions.MANAGE_SHIPPING)
     def resolve_shipping_zone(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, ShippingZone)
 
-    @permission_required("shipping.manage_shipping")
+    @permission_required(ShippingPermissions.MANAGE_SHIPPING)
     def resolve_shipping_zones(self, info, **_kwargs):
         return resolve_shipping_zones(info)
 

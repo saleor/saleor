@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Any
 
-from ....webhook import WebhookEventType
+from ....webhook.event_types import WebhookEventType
 from ....webhook.payloads import (
     generate_customer_payload,
     generate_order_payload,

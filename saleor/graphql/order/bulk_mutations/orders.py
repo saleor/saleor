@@ -1,5 +1,6 @@
 import graphene
 
+from ....core.permissions import OrderPermissions
 from ....order import events, models
 from ....order.actions import cancel_order
 from ...core.mutations import BaseBulkMutation
@@ -19,7 +20,7 @@ class OrderBulkCancel(BaseBulkMutation):
     class Meta:
         description = "Cancels orders."
         model = models.Order
-        permissions = ("order.manage_orders",)
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
 
