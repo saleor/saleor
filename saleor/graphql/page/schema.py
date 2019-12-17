@@ -7,6 +7,7 @@ from .bulk_mutations import PageBulkDelete, PageBulkPublish
 from .filters import PageFilterInput
 from .mutations import PageCreate, PageDelete, PageUpdate
 from .resolvers import resolve_page, resolve_pages
+from .sorters import PageSortingInput
 from .types import Page
 
 
@@ -20,6 +21,7 @@ class PageQueries(graphene.ObjectType):
     pages = FilterInputConnectionField(
         Page,
         query=graphene.String(description=DESCRIPTIONS["page"]),
+        sort_by=PageSortingInput(description="Sort pages."),
         filter=PageFilterInput(description="Filtering options for pages."),
         description="List of the shop's pages.",
     )
@@ -27,8 +29,8 @@ class PageQueries(graphene.ObjectType):
     def resolve_page(self, info, id=None, slug=None):
         return resolve_page(info, id, slug)
 
-    def resolve_pages(self, info, query=None, **_kwargs):
-        return resolve_pages(info, query=query)
+    def resolve_pages(self, info, query=None, **kwargs):
+        return resolve_pages(info, query=query, **kwargs)
 
 
 class PageMutations(graphene.ObjectType):

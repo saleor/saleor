@@ -58,6 +58,7 @@ from .resolvers import (
     resolve_staff_users,
     resolve_user,
 )
+from .sorters import ServiceAccountSortingInput, UserSortingInput
 from .types import AddressValidationData, ServiceAccount, User
 
 
@@ -96,6 +97,7 @@ class AccountQueries(graphene.ObjectType):
     customers = FilterInputConnectionField(
         User,
         filter=CustomerFilterInput(description="Filtering options for customers."),
+        sort_by=UserSortingInput(description="Sort customers."),
         description="List of the shop's customers.",
         query=graphene.String(description=DESCRIPTIONS["user"]),
     )
@@ -103,6 +105,7 @@ class AccountQueries(graphene.ObjectType):
     staff_users = FilterInputConnectionField(
         User,
         filter=StaffUserInput(description="Filtering options for staff users."),
+        sort_by=UserSortingInput(description="Sort staff users."),
         description="List of the shop's staff users.",
         query=graphene.String(description=DESCRIPTIONS["user"]),
     )
@@ -111,6 +114,7 @@ class AccountQueries(graphene.ObjectType):
         filter=ServiceAccountFilterInput(
             description="Filtering options for service accounts."
         ),
+        sort_by=ServiceAccountSortingInput(description="Sort service accounts."),
         description="List of the service accounts.",
     )
     service_account = graphene.Field(
@@ -139,24 +143,24 @@ class AccountQueries(graphene.ObjectType):
         )
 
     @permission_required("account.manage_service_accounts")
-    def resolve_service_accounts(self, info, **_kwargs):
-        return resolve_service_accounts(info)
+    def resolve_service_accounts(self, info, **kwargs):
+        return resolve_service_accounts(info, **kwargs)
 
     @permission_required("account.manage_service_accounts")
     def resolve_service_account(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, ServiceAccount)
 
     @permission_required("account.manage_users")
-    def resolve_customers(self, info, query=None, **_kwargs):
-        return resolve_customers(info, query=query)
+    def resolve_customers(self, info, query=None, **kwargs):
+        return resolve_customers(info, query=query, **kwargs)
 
     @login_required
     def resolve_me(self, info):
         return info.context.user
 
     @permission_required("account.manage_staff")
-    def resolve_staff_users(self, info, query=None, **_kwargs):
-        return resolve_staff_users(info, query=query)
+    def resolve_staff_users(self, info, query=None, **kwargs):
+        return resolve_staff_users(info, query=query, **kwargs)
 
     @one_of_permissions_required(["account.manage_staff", "account.manage_users"])
     def resolve_user(self, info, id):
