@@ -28,11 +28,9 @@ coverage/
 dist/
 *\.egg*
 # data
-/docs/_build/
 /media/
 /node_modules/
 /static/
-/saleor/static/assets/
 /templates/templated_email/compiled/*
 !/templates/templated_email/compiled/.gitkeep
 
