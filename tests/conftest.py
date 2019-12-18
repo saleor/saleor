@@ -80,6 +80,7 @@ from saleor.site import AuthenticationBackends
 from saleor.site.models import AuthorizationKey, SiteSettings
 from saleor.webhook.event_types import WebhookEventType
 from saleor.webhook.models import Webhook
+from saleor.wishlist.models import Wishlist
 from tests.utils import create_image
 
 
@@ -342,6 +343,7 @@ def customer_user(address):  # pylint: disable=W0613
         last_name="Wade",
     )
     user.addresses.add(default_address)
+    user._password = "password"
     return user
 
 
@@ -610,7 +612,51 @@ def product(product_type, category):
 
 
 @pytest.fixture
-def product_with_two_variants(color_attribute, size_attribute, category):
+def product_with_single_variant(product_type, category):
+    product = Product.objects.create(
+        name="Test product with single variant",
+        price=Money("1.99", "USD"),
+        product_type=product_type,
+        category=category,
+        is_published=True,
+    )
+    variant = ProductVariant.objects.create(
+        product=product,
+        sku="SKU_SINGLE_VARIANT",
+        cost_price=Money("1.00", "USD"),
+        quantity=101,
+        quantity_allocated=1,
+    )
+    return product
+
+
+@pytest.fixture
+def product_with_two_variants(product_type, category):
+    product = Product.objects.create(
+        name="Test product with two variants",
+        price=Money("10.00", "USD"),
+        product_type=product_type,
+        category=category,
+    )
+
+    ProductVariant.objects.bulk_create(
+        [
+            ProductVariant(
+                product=product,
+                sku=f"Product variant #{i}",
+                cost_price=Money("1.00", "USD"),
+                quantity=10,
+                quantity_allocated=1,
+            )
+            for i in (1, 2)
+        ]
+    )
+
+    return product
+
+
+@pytest.fixture
+def product_with_variant_with_two_attributes(color_attribute, size_attribute, category):
     product_type = ProductType.objects.create(
         name="Type with two variants", has_variants=True, is_shipping_required=True
     )
@@ -1719,3 +1765,29 @@ def mock_get_manager(mocker, fake_payment_interface):
 @pytest.fixture
 def staff_notification_recipient(db, staff_user):
     return StaffNotificationRecipient.objects.create(active=True, user=staff_user)
+
+
+@pytest.fixture
+def customer_wishlist(customer_user):
+    return Wishlist.objects.create(user=customer_user)
+
+
+@pytest.fixture
+def customer_wishlist_item(customer_wishlist, product_with_single_variant):
+    product = product_with_single_variant
+    assert product.variants.count() == 1
+    variant = product.variants.first()
+    item = customer_wishlist.add_variant(variant)
+    return item
+
+
+@pytest.fixture
+def customer_wishlist_item_with_two_variants(
+    customer_wishlist, product_with_two_variants
+):
+    product = product_with_two_variants
+    assert product.variants.count() == 2
+    [variant_1, variant_2] = product.variants.all()
+    item = customer_wishlist.add_variant(variant_1)
+    item.variants.add(variant_2)
+    return item

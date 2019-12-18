@@ -75,7 +75,7 @@ def test_retrieve_variant_list(product_variant_list, api_client, count_queries):
 @pytest.mark.count_queries(autouse=False)
 def test_product_variant_bulk_create(
     staff_api_client,
-    product_with_two_variants,
+    product_with_variant_with_two_attributes,
     permission_manage_products,
     color_attribute,
     size_attribute,
@@ -100,7 +100,7 @@ def test_product_variant_bulk_create(
         }
     }
     """
-    product = product_with_two_variants
+    product = product_with_variant_with_two_attributes
     product_variant_count = ProductVariant.objects.count()
     product_id = graphene.Node.to_global_id("Product", product.pk)
     color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.id)
