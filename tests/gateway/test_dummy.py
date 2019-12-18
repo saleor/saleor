@@ -212,22 +212,3 @@ def test_refund_gateway_error(payment_txn_captured, monkeypatch):
     assert txn.payment == payment
     assert payment.charge_status == ChargeStatus.FULLY_CHARGED
     assert payment.captured_amount == Decimal("80.00")
-
-
-@pytest.mark.parametrize(
-    "kind, charge_status",
-    (
-        (TransactionKind.AUTH, ChargeStatus.NOT_CHARGED),
-        (TransactionKind.CAPTURE, ChargeStatus.FULLY_CHARGED),
-        (TransactionKind.REFUND, ChargeStatus.FULLY_REFUNDED),
-    ),
-)
-def test_dummy_payment_form(kind, charge_status, payment_dummy):
-    payment = payment_dummy
-    data = {"charge_status": charge_status}
-
-    form = gateway.create_payment_form(payment=payment, data=data)
-    assert form.is_valid()
-    gateway.process_payment(payment=payment, token=form.get_payment_token())
-    payment.refresh_from_db()
-    assert payment.transactions.last().kind == kind

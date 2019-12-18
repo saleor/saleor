@@ -3,7 +3,7 @@ import json
 import pytest
 
 from saleor.order import OrderStatus
-from saleor.webhook import WebhookEventType
+from saleor.webhook.event_types import WebhookEventType
 from saleor.webhook.payloads import (
     generate_customer_payload,
     generate_order_payload,

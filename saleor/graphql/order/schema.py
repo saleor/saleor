@@ -1,6 +1,7 @@
 import graphene
 from graphql_jwt.decorators import login_required
 
+from ...core.permissions import OrderPermissions
 from ..core.enums import ReportingPeriod
 from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
 from ..core.types import FilterInputObjectType, TaxedMoney
@@ -50,6 +51,7 @@ from .resolvers import (
     resolve_orders,
     resolve_orders_total,
 )
+from .sorters import OrderSortingInput
 from .types import Order, OrderEvent
 
 
@@ -78,6 +80,7 @@ class OrderQueries(graphene.ObjectType):
     )
     orders = FilterInputConnectionField(
         Order,
+        sort_by=OrderSortingInput(description="Sort orders."),
         filter=OrderFilterInput(description="Filtering options for orders."),
         query=graphene.String(description=DESCRIPTIONS["order"]),
         created=graphene.Argument(
@@ -90,6 +93,7 @@ class OrderQueries(graphene.ObjectType):
     )
     draft_orders = FilterInputConnectionField(
         Order,
+        sort_by=OrderSortingInput(description="Sort draft orders."),
         filter=OrderDraftFilterInput(description="Filtering options for draft orders."),
         query=graphene.String(description=DESCRIPTIONS["order"]),
         created=graphene.Argument(
@@ -110,7 +114,7 @@ class OrderQueries(graphene.ObjectType):
         ),
     )
 
-    @permission_required("order.manage_orders")
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_homepage_events(self, *_args, **_kwargs):
         return resolve_homepage_events()
 
@@ -118,15 +122,19 @@ class OrderQueries(graphene.ObjectType):
     def resolve_order(self, info, **data):
         return resolve_order(info, data.get("id"))
 
-    @permission_required("order.manage_orders")
-    def resolve_orders(self, info, created=None, status=None, query=None, **_kwargs):
-        return resolve_orders(info, created, status, query)
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
+    def resolve_orders(
+        self, info, created=None, status=None, query=None, sort_by=None, **_kwargs
+    ):
+        return resolve_orders(info, created, status, query, sort_by)
 
-    @permission_required("order.manage_orders")
-    def resolve_draft_orders(self, info, created=None, query=None, **_kwargs):
-        return resolve_draft_orders(info, created, query)
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
+    def resolve_draft_orders(
+        self, info, created=None, query=None, sort_by=None, **_kwargs
+    ):
+        return resolve_draft_orders(info, created, query, sort_by)
 
-    @permission_required("order.manage_orders")
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_orders_total(self, info, period, **_kwargs):
         return resolve_orders_total(info, period)
 

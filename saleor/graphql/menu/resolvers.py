@@ -2,7 +2,8 @@ import graphene
 import graphene_django_optimizer as gql_optimizer
 
 from ...menu import models
-from ..utils import filter_by_query_param
+from ..utils import filter_by_query_param, sort_queryset
+from .sorters import MenuItemsSortField, MenuSortField
 from .types import Menu
 
 MENU_SEARCH_FIELDS = ("name",)
@@ -18,13 +19,15 @@ def resolve_menu(info, menu_id=None, name=None):
     return graphene.Node.get_node_from_global_id(info, menu_id, Menu)
 
 
-def resolve_menus(info, query):
+def resolve_menus(info, query, sort_by=None, **_kwargs):
     qs = models.Menu.objects.all()
     qs = filter_by_query_param(qs, query, MENU_SEARCH_FIELDS)
+    qs = sort_queryset(qs, sort_by, MenuSortField)
     return gql_optimizer.query(qs, info)
 
 
-def resolve_menu_items(info, query):
+def resolve_menu_items(info, query, sort_by=None, **_kwargs):
     qs = models.MenuItem.objects.all()
     qs = filter_by_query_param(qs, query, MENU_ITEM_SEARCH_FIELDS)
+    qs = sort_queryset(qs, sort_by, MenuItemsSortField)
     return gql_optimizer.query(qs, info)

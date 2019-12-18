@@ -11,7 +11,7 @@ from ....account.error_codes import AccountErrorCode
 from ....account.thumbnails import create_user_avatar_thumbnails
 from ....account.utils import get_random_avatar, remove_staff_member
 from ....checkout import AddressType
-from ....core.permissions import get_permissions
+from ....core.permissions import AccountPermissions, get_permissions
 from ....core.utils.url import validate_storefront_url
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
@@ -64,7 +64,7 @@ class CustomerCreate(BaseCustomerCreate):
         description = "Creates a new customer."
         exclude = ["password"]
         model = models.User
-        permissions = ("account.manage_users",)
+        permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -80,7 +80,7 @@ class CustomerUpdate(CustomerCreate):
         description = "Updates an existing customer."
         exclude = ["password"]
         model = models.User
-        permissions = ("account.manage_users",)
+        permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -143,7 +143,7 @@ class CustomerDelete(CustomerDeleteMixin, UserDelete):
     class Meta:
         description = "Deletes a customer."
         model = models.User
-        permissions = ("account.manage_users",)
+        permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -167,7 +167,7 @@ class StaffCreate(ModelMutation):
         description = "Creates a new staff user."
         exclude = ["password"]
         model = models.User
-        permissions = ("account.manage_staff",)
+        permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -230,7 +230,7 @@ class StaffUpdate(StaffCreate):
         description = "Updates an existing staff user."
         exclude = ["password"]
         model = models.User
-        permissions = ("account.manage_staff",)
+        permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -269,7 +269,7 @@ class StaffDelete(StaffDeleteMixin, UserDelete):
     class Meta:
         description = "Deletes a staff user."
         model = models.User
-        permissions = ("account.manage_staff",)
+        permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -309,7 +309,7 @@ class AddressCreate(ModelMutation):
     class Meta:
         description = "Creates user address."
         model = models.Address
-        permissions = ("account.manage_users",)
+        permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -331,7 +331,7 @@ class AddressUpdate(BaseAddressUpdate):
     class Meta:
         description = "Updates an address."
         model = models.Address
-        permissions = ("account.manage_users",)
+        permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -340,7 +340,7 @@ class AddressDelete(BaseAddressDelete):
     class Meta:
         description = "Deletes an address."
         model = models.Address
-        permissions = ("account.manage_users",)
+        permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -357,7 +357,7 @@ class AddressSetDefault(BaseMutation):
 
     class Meta:
         description = "Sets a default address for the given user."
-        permissions = ("account.manage_users",)
+        permissions = (AccountPermissions.MANAGE_USERS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -442,7 +442,7 @@ class UserAvatarDelete(BaseMutation):
 class UserUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Updates private metadata for user."
-        permissions = ("account.manage_users",)
+        permissions = (AccountPermissions.MANAGE_USERS,)
         model = models.User
         public = False
         error_type_class = AccountError
@@ -453,7 +453,7 @@ class UserClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clear private metadata for user."
         model = models.User
-        permissions = ("account.manage_users",)
+        permissions = (AccountPermissions.MANAGE_USERS,)
         public = False
         error_type_class = AccountError
         error_type_field = "account_errors"

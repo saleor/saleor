@@ -5,7 +5,7 @@ import pytest
 
 from saleor.account.models import ServiceAccount
 from saleor.graphql.webhook.enums import WebhookEventTypeEnum
-from saleor.webhook import WebhookEventType
+from saleor.webhook.event_types import WebhookEventType
 from saleor.webhook.models import Webhook
 
 from .utils import assert_no_permission, get_graphql_content
@@ -417,6 +417,70 @@ def test_query_webhooks_with_filters(
     webhook_id = webhook_data["node"]["id"]
     _, webhook_id = graphene.Node.from_global_id(webhook_id)
     assert webhook_id == str(second_webhook.id)
+
+
+QUERY_WEBHOOKS_WITH_SORT = """
+    query ($sort_by: WebhookSortingInput!) {
+        webhooks(first:5, sortBy: $sort_by) {
+            edges{
+                node{
+                    name
+                }
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "webhooks_sort, result_order",
+    [
+        ({"field": "NAME", "direction": "ASC"}, ["backup", "hook1", "hook2"]),
+        ({"field": "NAME", "direction": "DESC"}, ["hook2", "hook1", "backup"]),
+        (
+            {"field": "SERVICE_ACCOUNT", "direction": "ASC"},
+            ["hook2", "backup", "hook1"],
+        ),
+        (
+            {"field": "SERVICE_ACCOUNT", "direction": "DESC"},
+            ["backup", "hook1", "hook2"],
+        ),
+        ({"field": "TARGET_URL", "direction": "ASC"}, ["hook2", "hook1", "backup"]),
+        ({"field": "TARGET_URL", "direction": "DESC"}, ["backup", "hook1", "hook2"]),
+    ],
+)
+def test_query_webhooks_with_sort(
+    webhooks_sort, result_order, staff_api_client, permission_manage_webhooks
+):
+    backupAccount = ServiceAccount.objects.create(name="backupAccount", is_active=True)
+    account = ServiceAccount.objects.create(name="account", is_active=True)
+    Webhook.objects.bulk_create(
+        [
+            Webhook(
+                name="hook1",
+                service_account=backupAccount,
+                target_url="http://example.com/activate2",
+            ),
+            Webhook(
+                name="hook2",
+                service_account=account,
+                target_url="http://example.com/activate",
+            ),
+            Webhook(
+                name="backup",
+                service_account=backupAccount,
+                target_url="http://example.com/backup",
+            ),
+        ]
+    )
+    variables = {"sort_by": webhooks_sort}
+    staff_api_client.user.user_permissions.add(permission_manage_webhooks)
+    response = staff_api_client.post_graphql(QUERY_WEBHOOKS_WITH_SORT, variables)
+    content = get_graphql_content(response)
+    webhooks = content["data"]["webhooks"]["edges"]
+
+    for order, webhook_name in enumerate(result_order):
+        assert webhooks[order]["node"]["name"] == webhook_name
 
 
 def test_query_webhooks_by_service_account_without_permissions(

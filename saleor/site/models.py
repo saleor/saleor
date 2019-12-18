@@ -9,6 +9,7 @@ from django.core.validators import MaxLengthValidator, RegexValidator
 from django.db import models
 from django.utils.translation import pgettext_lazy
 
+from ..core.permissions import SitePermissions
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits
 from . import AuthenticationBackends
@@ -74,11 +75,11 @@ class SiteSettings(models.Model):
     class Meta:
         permissions = (
             (
-                "manage_settings",
+                SitePermissions.MANAGE_SETTINGS.codename,
                 pgettext_lazy("Permission description", "Manage settings."),
             ),
             (
-                "manage_translations",
+                SitePermissions.MANAGE_TRANSLATIONS.codename,
                 pgettext_lazy("Permission description", "Manage translations."),
             ),
         )
