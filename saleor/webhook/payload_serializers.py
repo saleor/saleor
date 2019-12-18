@@ -21,6 +21,7 @@ class PayloadSerializer(JSONSerializer):
 
     def serialize(self, queryset, **options):
         self.additional_fields = options.pop("additional_fields", {})
+        self.extra_dict_data = options.pop("extra_dict_data", {})
         self.obj_id_name = options.pop("obj_id_name", "id")
         return super().serialize(
             queryset,
@@ -40,6 +41,7 @@ class PayloadSerializer(JSONSerializer):
         data = OrderedDict(
             [("type", str(obj._meta.object_name)), (self.obj_id_name, obj_id)]
         )
+        # Evaluate and add the "additional fields"
         python_serializer = PythonSerializer()
         for field_name, (qs, fields) in self.additional_fields.items():
             data_to_serialize = qs(obj)
@@ -53,5 +55,8 @@ class PayloadSerializer(JSONSerializer):
                 data[field_name] = python_serializer.serialize(
                     [data_to_serialize], fields=fields
                 )[0]
+        # Update the data with the  "extra dict data"
+        data.update(self.extra_dict_data)
+        # Finally update the data with the super class' "self._current" content
         data.update(self._current)
         return data

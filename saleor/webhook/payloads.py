@@ -10,10 +10,10 @@ from ..payment import ChargeStatus
 from ..product.models import Product
 from .event_types import WebhookEventType
 from .payload_serializers import PayloadSerializer
+from .serializers import serialize_checkout_lines
 
 if TYPE_CHECKING:
-    # flake8: noqa
-    from ..checkout.models import Checkout, CheckoutLine
+    from ..checkout.models import Checkout
 
 
 ADDRESS_FIELDS = (
@@ -116,7 +116,8 @@ def generate_checkout_payload(checkout: "Checkout"):
     )
     user_fields = ("email", "first_name", "last_name")
     shipping_method_fields = ("name", "type", "currency", "price_amount")
-    lines_fields = ("quantity",)
+    lines_dict_data = serialize_checkout_lines(checkout)
+
     checkout_data = serializer.serialize(
         [checkout],
         fields=checkout_fields,
@@ -126,7 +127,10 @@ def generate_checkout_payload(checkout: "Checkout"):
             "billing_address": (lambda c: c.billing_address, ADDRESS_FIELDS),
             "shipping_address": (lambda c: c.shipping_address, ADDRESS_FIELDS),
             "shipping_method": (lambda c: c.shipping_method, shipping_method_fields),
-            "lines": (lambda c: c.lines.all(), lines_fields),
+        },
+        extra_dict_data={
+            # Casting to list to make it json-serializable
+            "lines": list(lines_dict_data)
         },
     )
     return checkout_data
