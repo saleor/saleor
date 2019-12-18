@@ -907,7 +907,7 @@ def create_gift_card():
 
 
 def set_homepage_collection():
-    homepage_collection = Collection.objects.order_by("?").first()
+    homepage_collection = Collection.objects.filter(name="Summer collection").first()
     site = Site.objects.get_current()
     site_settings = site.settings
     site_settings.homepage_collection = homepage_collection

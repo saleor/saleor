@@ -191,7 +191,6 @@ class ReadOnlyMiddleware:
         return is_post and any(self._is_url_blocked(request_url))
 
     def _is_graphql_request_blocked(self, request):
-
         body = GraphQLView.parse_body(request)
         if not isinstance(body, list):
             body = [body]
@@ -207,6 +206,12 @@ class ReadOnlyMiddleware:
                 operation = getattr(definition, "operation", None)
                 if not operation or operation != "mutation":
                     continue
+
+                user_email = (
+                    request.user.email if not request.user.is_anonymous else None
+                )
+                if settings.ROOT_EMAIL and user_email == settings.ROOT_EMAIL:
+                    return False
 
                 for selection in definition.selection_set.selections:
                     selection_name = str(selection.name.value)

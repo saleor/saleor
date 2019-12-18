@@ -1,3 +1,4 @@
+# flake8: noqa: F405
 import logging
 import re
 
@@ -7,9 +8,9 @@ logger = logging.getLogger(__name__)
 
 # DEMO-specific settings
 
-PLUGINS += ["saleor.extensions.plugins.anonymize.plugin.AnonymizePlugin"]  # noqa: F405
+PLUGINS += ["saleor.extensions.plugins.anonymize.plugin.AnonymizePlugin"]
 
-MIDDLEWARE += ["saleor.core.middleware.ReadOnlyMiddleware"]  # noqa: F405
+MIDDLEWARE += ["saleor.core.middleware.ReadOnlyMiddleware"]
 
 BRAINTREE_API_KEY = os.environ.get("BRAINTREE_API_KEY")
 BRAINTREE_MERCHANT_ID = os.environ.get("BRAINTREE_MERCHANT_ID")
@@ -17,8 +18,10 @@ BRAINTREE_SECRET_API_KEY = os.environ.get("BRAINTREE_SECRET_API_KEY")
 
 USE_JSON_CONTENT = True
 
-PWA_ORIGIN = "pwa.saleor.io"
+PWA_ORIGIN = get_list(os.environ.get("PWA_ORIGIN", "pwa.saleor.io"))
 PWA_DASHBOARD_URL_RE = re.compile("^https?://%s/dashboard/.*" % PWA_ORIGIN)
+
+ROOT_EMAIL = os.environ.get("ROOT_EMAIL")
 
 
 def _get_project_name_from_url(url: str) -> str:
