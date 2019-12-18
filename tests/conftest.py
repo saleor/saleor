@@ -78,7 +78,7 @@ from saleor.shipping.models import (
 )
 from saleor.site import AuthenticationBackends
 from saleor.site.models import AuthorizationKey, SiteSettings
-from saleor.webhook import WebhookEventType
+from saleor.webhook.event_types import WebhookEventType
 from saleor.webhook.models import Webhook
 from tests.utils import create_image
 

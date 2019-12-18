@@ -8,7 +8,7 @@ from saleor.account.models import ServiceAccount
 from saleor.extensions.manager import get_extensions_manager
 from saleor.extensions.plugins.webhook import create_hmac_signature
 from saleor.extensions.plugins.webhook.tasks import trigger_webhooks_for_event
-from saleor.webhook import WebhookEventType
+from saleor.webhook.event_types import WebhookEventType
 from saleor.webhook.payloads import (
     generate_customer_payload,
     generate_order_payload,

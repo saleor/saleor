@@ -2641,6 +2641,54 @@ def test_collections_query_with_filter(
     assert len(collections) == count
 
 
+QUERY_COLLECTIONS_WITH_SORT = """
+    query ($sort_by: CollectionSortingInput!) {
+        collections(first:5, sortBy: $sort_by) {
+                edges{
+                    node{
+                        name
+                    }
+                }
+            }
+        }
+"""
+
+
+@pytest.mark.parametrize(
+    "collection_sort, result_order",
+    [
+        ({"field": "NAME", "direction": "ASC"}, ["Coll1", "Coll2", "Coll3"]),
+        ({"field": "NAME", "direction": "DESC"}, ["Coll3", "Coll2", "Coll1"]),
+        ({"field": "AVAILABILITY", "direction": "ASC"}, ["Coll2", "Coll1", "Coll3"]),
+        ({"field": "AVAILABILITY", "direction": "DESC"}, ["Coll1", "Coll3", "Coll2"]),
+        ({"field": "PRODUCT_COUNT", "direction": "ASC"}, ["Coll3", "Coll1", "Coll2"]),
+        ({"field": "PRODUCT_COUNT", "direction": "DESC"}, ["Coll2", "Coll3", "Coll1"]),
+    ],
+)
+def test_collections_query_with_sort(
+    collection_sort, result_order, staff_api_client, permission_manage_products, product
+):
+    Collection.objects.bulk_create(
+        [
+            Collection(name="Coll1", slug="collection-published1", is_published=True),
+            Collection(
+                name="Coll2", slug="collection-unpublished2", is_published=False
+            ),
+            Collection(name="Coll3", slug="collection-published", is_published=True),
+        ]
+    )
+    product.collections.add(Collection.objects.get(name="Coll2"))
+
+    variables = {"sort_by": collection_sort}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(QUERY_COLLECTIONS_WITH_SORT, variables)
+    content = get_graphql_content(response)
+    collections = content["data"]["collections"]["edges"]
+
+    for order, colllection_name in enumerate(result_order):
+        assert collections[order]["node"]["name"] == colllection_name
+
+
 @pytest.mark.parametrize(
     "category_filter, count",
     [
@@ -2676,8 +2724,99 @@ def test_categories_query_with_filter(
     assert content["data"]["categories"]["totalCount"] == count
 
 
+QUERY_CATEGORIES_WITH_SORT = """
+    query ($sort_by: CategorySortingInput!) {
+        categories(first:5, sortBy: $sort_by) {
+                edges{
+                    node{
+                        name
+                    }
+                }
+            }
+        }
+"""
+
+
 @pytest.mark.parametrize(
-    "collection_filter, count",
+    "category_sort, result_order",
+    [
+        (
+            {"field": "NAME", "direction": "ASC"},
+            ["Cat1", "Cat2", "SubCat", "SubSubCat"],
+        ),
+        (
+            {"field": "NAME", "direction": "DESC"},
+            ["SubSubCat", "SubCat", "Cat2", "Cat1"],
+        ),
+        (
+            {"field": "SUBCATEGORY_COUNT", "direction": "ASC"},
+            ["Cat2", "SubSubCat", "Cat1", "SubCat"],
+        ),
+        (
+            {"field": "SUBCATEGORY_COUNT", "direction": "DESC"},
+            ["Cat1", "SubCat", "Cat2", "SubSubCat"],
+        ),
+        (
+            {"field": "PRODUCT_COUNT", "direction": "ASC"},
+            ["Cat2", "SubCat", "SubSubCat", "Cat1"],
+        ),
+        (
+            {"field": "PRODUCT_COUNT", "direction": "DESC"},
+            ["Cat1", "SubCat", "SubSubCat", "Cat2"],
+        ),
+    ],
+)
+def test_categories_query_with_sort(
+    category_sort,
+    result_order,
+    staff_api_client,
+    permission_manage_products,
+    product_type,
+):
+    cat1 = Category.objects.create(
+        name="Cat1", slug="slug_category1", description="Description cat1"
+    )
+    Product.objects.create(
+        name="Test",
+        price=Money(10, "USD"),
+        product_type=product_type,
+        category=cat1,
+        is_published=True,
+    )
+    Category.objects.create(
+        name="Cat2", slug="slug_category2", description="Description cat2"
+    )
+    Category.objects.create(
+        name="SubCat",
+        slug="slug_subcategory",
+        parent=Category.objects.get(name="Cat1"),
+        description="Subcategory_description of cat1",
+    )
+    subsubcat = Category.objects.create(
+        name="SubSubCat",
+        slug="slug_subcategory",
+        parent=Category.objects.get(name="SubCat"),
+        description="Subcategory_description of cat1",
+    )
+    Product.objects.create(
+        name="Test2",
+        price=Money(10, "USD"),
+        product_type=product_type,
+        category=subsubcat,
+        is_published=True,
+    )
+    variables = {"sort_by": category_sort}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(QUERY_CATEGORIES_WITH_SORT, variables)
+    content = get_graphql_content(response)
+    categories = content["data"]["categories"]["edges"]
+
+    for order, category_name in enumerate(result_order):
+        assert categories[order]["node"]["name"] == category_name
+
+
+@pytest.mark.parametrize(
+    "product_type_filter, count",
     [
         ({"configurable": "CONFIGURABLE"}, 2),  # has_variants
         ({"configurable": "SIMPLE"}, 1),  # !has_variants
@@ -2686,7 +2825,7 @@ def test_categories_query_with_filter(
     ],
 )
 def test_product_type_query_with_filter(
-    collection_filter, count, staff_api_client, permission_manage_products
+    product_type_filter, count, staff_api_client, permission_manage_products
 ):
     query = """
         query ($filter: ProductTypeFilterInput!, ) {
@@ -2723,13 +2862,87 @@ def test_product_type_query_with_filter(
         ]
     )
 
-    variables = {"filter": collection_filter}
+    variables = {"filter": product_type_filter}
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     product_types = content["data"]["productTypes"]["edges"]
 
     assert len(product_types) == count
+
+
+QUERY_PRODUCT_TYPE_WITH_SORT = """
+    query ($sort_by: ProductTypeSortingInput!) {
+        productTypes(first:5, sortBy: $sort_by) {
+                edges{
+                    node{
+                        name
+                    }
+                }
+            }
+        }
+"""
+
+
+@pytest.mark.parametrize(
+    "product_type_sort, result_order",
+    [
+        ({"field": "NAME", "direction": "ASC"}, ["Digital", "Subscription", "Tools"]),
+        ({"field": "NAME", "direction": "DESC"}, ["Tools", "Subscription", "Digital"]),
+        # is_digital
+        (
+            {"field": "DIGITAL", "direction": "ASC"},
+            ["Tools", "Subscription", "Digital"],
+        ),
+        (
+            {"field": "DIGITAL", "direction": "DESC"},
+            ["Digital", "Tools", "Subscription"],
+        ),
+        # is_shipping_required
+        (
+            {"field": "SHIPPING_REQUIRED", "direction": "ASC"},
+            ["Digital", "Subscription", "Tools"],
+        ),
+        (
+            {"field": "SHIPPING_REQUIRED", "direction": "DESC"},
+            ["Tools", "Digital", "Subscription"],
+        ),
+    ],
+)
+def test_product_type_query_with_sort(
+    product_type_sort, result_order, staff_api_client, permission_manage_products
+):
+    ProductType.objects.bulk_create(
+        [
+            ProductType(
+                name="Digital",
+                has_variants=True,
+                is_shipping_required=False,
+                is_digital=True,
+            ),
+            ProductType(
+                name="Tools",
+                has_variants=True,
+                is_shipping_required=True,
+                is_digital=False,
+            ),
+            ProductType(
+                name="Subscription",
+                has_variants=False,
+                is_shipping_required=False,
+                is_digital=False,
+            ),
+        ]
+    )
+
+    variables = {"sort_by": product_type_sort}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(QUERY_PRODUCT_TYPE_WITH_SORT, variables)
+    content = get_graphql_content(response)
+    product_types = content["data"]["productTypes"]["edges"]
+
+    for order, product_type_name in enumerate(result_order):
+        assert product_types[order]["node"]["name"] == product_type_name
 
 
 MUTATION_BULK_PUBLISH_PRODUCTS = """
