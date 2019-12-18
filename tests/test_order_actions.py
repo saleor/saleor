@@ -62,9 +62,12 @@ def test_handle_fully_paid_order_digital_lines(
 
     fulfillment = order.fulfillments.first()
 
-    event_order_paid, event_email_sent, event_order_fulfilled, event_digital_links = (
-        order.events.all()
-    )
+    (
+        event_order_paid,
+        event_email_sent,
+        event_order_fulfilled,
+        event_digital_links,
+    ) = order.events.all()
     assert event_order_paid.type == OrderEvents.ORDER_FULLY_PAID
 
     assert event_email_sent.type == OrderEvents.EMAIL_SENT
