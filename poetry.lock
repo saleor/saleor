@@ -2114,14 +2114,6 @@ version = "1.11.2"
 
 [[package]]
 category = "dev"
-description = "A formatter for Python code."
-name = "yapf"
-optional = false
-python-versions = "*"
-version = "0.28.0"
-
-[[package]]
-category = "dev"
 description = "Yet another URL library"
 marker = "python_version >= \"3.6\""
 name = "yarl"
@@ -2134,7 +2126,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "02fbf6b4ca8138059d81fea84dbeb051e7985d45ad38a0d8e202ca32ab820fc2"
+content-hash = "0ef25bbc976160de0224894aa9f914b90dc87bb6ff574145ad36ca9cabf1ba51"
 python-versions = "~3.8"
 
 [metadata.files]
@@ -3089,10 +3081,6 @@ webencodings = [
 ]
 wrapt = [
     {file = "wrapt-1.11.2.tar.gz", hash = "sha256:565a021fd19419476b9362b05eeaa094178de64f8361e44468f9e9d7843901e1"},
-]
-yapf = [
-    {file = "yapf-0.28.0-py2.py3-none-any.whl", hash = "sha256:02ace10a00fa2e36c7ebd1df2ead91dbfbd7989686dc4ccbdc549e95d19f5780"},
-    {file = "yapf-0.28.0.tar.gz", hash = "sha256:6f94b6a176a7c114cfa6bad86d40f259bbe0f10cf2fa7f2f4b3596fc5802a41b"},
 ]
 yarl = [
     {file = "yarl-1.4.2-cp35-cp35m-macosx_10_13_x86_64.whl", hash = "sha256:3ce3d4f7c6b69c4e4f0704b32eca8123b9c58ae91af740481aa57d7857b5e41b"},

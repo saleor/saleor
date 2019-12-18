@@ -7,7 +7,7 @@ from graphql_jwt.decorators import login_required
 
 from ...account import models
 from ...checkout.utils import get_user_checkout
-from ...core.permissions import get_permissions
+from ...core.permissions import AccountPermissions, OrderPermissions, get_permissions
 from ...order import models as order_models
 from ..checkout.types import Checkout
 from ..core.connection import CountableDjangoObjectType
@@ -170,7 +170,7 @@ class ServiceAccountToken(CountableDjangoObjectType):
         description = "Represents token data."
         model = models.ServiceAccountToken
         interfaces = [relay.Node]
-        permissions = ("account.manage_service_accounts",)
+        permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
         only_fields = ["name", "auth_token"]
 
     @staticmethod
@@ -199,7 +199,7 @@ class ServiceAccount(MetadataObjectType, CountableDjangoObjectType):
         description = "Represents service account data."
         interfaces = [relay.Node]
         model = models.ServiceAccount
-        permissions = ("account.manage_service_accounts",)
+        permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
         only_fields = [
             "name" "permissions",
             "created",
@@ -312,19 +312,23 @@ class User(MetadataObjectType, CountableDjangoObjectType):
         return format_permissions_for_display(permissions)
 
     @staticmethod
-    @one_of_permissions_required(["account.manage_users", "account.manage_staff"])
+    @one_of_permissions_required(
+        [AccountPermissions.MANAGE_USERS, AccountPermissions.MANAGE_STAFF]
+    )
     def resolve_note(root: models.User, info):
         return root.note
 
     @staticmethod
-    @one_of_permissions_required(["account.manage_users", "account.manage_staff"])
+    @one_of_permissions_required(
+        [AccountPermissions.MANAGE_USERS, AccountPermissions.MANAGE_STAFF]
+    )
     def resolve_events(root: models.User, info):
         return root.events.all()
 
     @staticmethod
     def resolve_orders(root: models.User, info, **_kwargs):
         viewer = info.context.user
-        if viewer.has_perm("order.manage_orders"):
+        if viewer.has_perm(OrderPermissions.MANAGE_ORDERS):
             return root.orders.all()
         return root.orders.confirmed()
 
@@ -347,7 +351,9 @@ class User(MetadataObjectType, CountableDjangoObjectType):
         return resolve_payment_sources(root)
 
     @staticmethod
-    @one_of_permissions_required(["account.manage_users", "account.manage_staff"])
+    @one_of_permissions_required(
+        [AccountPermissions.MANAGE_USERS, AccountPermissions.MANAGE_STAFF]
+    )
     def resolve_private_meta(root, _info):
         return resolve_private_meta(root, _info)
 

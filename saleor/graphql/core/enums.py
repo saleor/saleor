@@ -3,7 +3,7 @@ import graphene
 from ...account import error_codes as account_error_codes
 from ...checkout import error_codes as checkout_error_codes
 from ...core import error_codes as shop_error_codes
-from ...core.permissions import MODELS_PERMISSIONS
+from ...core.permissions import get_permissions_enum_list
 from ...core.weight import WeightUnits
 from ...extensions import error_codes as extensions_error_codes
 from ...extensions.plugins.vatlayer import TaxRateType as CoreTaxRateType
@@ -19,6 +19,21 @@ from .utils import str_to_enum
 
 # FIXME CoreTaxRateType should be removed after we will drop old api fields dedicated
 #  to taxes
+
+
+class OrderDirection(graphene.Enum):
+    ASC = ""
+    DESC = "-"
+
+    @property
+    def description(self):
+        # Disable all the no-member violations in this function
+        # pylint: disable=no-member
+        if self == OrderDirection.ASC:
+            return "Specifies an ascending sort order."
+        if self == OrderDirection.DESC:
+            return "Specifies a descending sort order."
+        raise ValueError("Unsupported enum value: %s" % self.value)
 
 
 class ReportingPeriod(graphene.Enum):
@@ -58,13 +73,7 @@ TaxRateType = graphene.Enum(
 )
 
 
-PermissionEnum = graphene.Enum(
-    "PermissionEnum",
-    [
-        (str_to_enum(codename.split(".")[1]), codename)
-        for codename in MODELS_PERMISSIONS
-    ],
-)
+PermissionEnum = graphene.Enum("PermissionEnum", get_permissions_enum_list())
 
 
 WeightUnitsEnum = graphene.Enum(

@@ -11,6 +11,7 @@ from ....account.emails import (
     send_user_password_reset_email_with_url,
 )
 from ....account.error_codes import AccountErrorCode
+from ....core.permissions import AccountPermissions
 from ....core.utils.url import validate_storefront_url
 from ...account.i18n import I18nMixin
 from ...account.types import Address, AddressInput, User
@@ -38,7 +39,7 @@ def can_edit_address(user, address):
     - customers associated to the given address.
     """
     return (
-        user.has_perm("account.manage_users")
+        user.has_perm(AccountPermissions.MANAGE_USERS)
         or user.addresses.filter(pk=address.pk).exists()
     )
 
@@ -415,7 +416,7 @@ class UserUpdateMeta(UpdateMetaBaseMutation):
         public = True
         error_type_class = AccountError
         error_type_field = "account_errors"
-        permissions = ("account.manage_users",)
+        permissions = (AccountPermissions.MANAGE_USERS,)
 
 
 class UserClearMeta(ClearMetaBaseMutation):
@@ -425,4 +426,4 @@ class UserClearMeta(ClearMetaBaseMutation):
         public = True
         error_type_class = AccountError
         error_type_field = "account_errors"
-        permissions = ("account.manage_users",)
+        permissions = (AccountPermissions.MANAGE_USERS,)

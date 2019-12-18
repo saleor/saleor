@@ -31,6 +31,7 @@ from ..core.models import (
     PublishedQuerySet,
     SortableModel,
 )
+from ..core.permissions import ProductPermissions
 from ..core.utils import build_absolute_uri
 from ..core.utils.draftjs import json_content_to_raw_text
 from ..core.utils.translations import TranslationProxy
@@ -295,7 +296,7 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
         ordering = ("name",)
         permissions = (
             (
-                "manage_products",
+                ProductPermissions.MANAGE_PRODUCTS.codename,
                 pgettext_lazy("Permission description", "Manage products."),
             ),
         )
@@ -609,7 +610,7 @@ class DigitalContentUrl(models.Model):
 class BaseAttributeQuerySet(models.QuerySet):
     @staticmethod
     def user_has_access_to_all(user: "User") -> bool:
-        return user.is_active and user.has_perm("product.manage_products")
+        return user.is_active and user.has_perm(ProductPermissions.MANAGE_PRODUCTS)
 
     def get_public_attributes(self):
         raise NotImplementedError

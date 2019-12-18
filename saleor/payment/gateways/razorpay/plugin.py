@@ -5,13 +5,12 @@ from django.utils.translation import pgettext_lazy
 from saleor.extensions import ConfigurationTypeField
 from saleor.extensions.base_plugin import BasePlugin
 
-from . import GatewayConfig, capture, create_form, process_payment, refund
+from . import GatewayConfig, capture, process_payment, refund
 
 GATEWAY_NAME = "Razorpay"
 
 if TYPE_CHECKING:
     from . import GatewayResponse, PaymentData
-    from django import forms
 
 
 def require_active_plugin(fn):
@@ -28,13 +27,6 @@ def require_active_plugin(fn):
 class RazorpayGatewayPlugin(BasePlugin):
     PLUGIN_NAME = GATEWAY_NAME
     CONFIG_STRUCTURE = {
-        "Template path": {
-            "type": ConfigurationTypeField.STRING,
-            "help_text": pgettext_lazy(
-                "Plugin help text", "Location of django payment template for gateway."
-            ),
-            "label": pgettext_lazy("Plugin label", "Template path"),
-        },
         "Public API key": {
             "type": ConfigurationTypeField.SECRET,
             "help_text": pgettext_lazy("Plugin help text", "Provide  public API key"),
@@ -87,7 +79,6 @@ class RazorpayGatewayPlugin(BasePlugin):
                     "store_name": None,
                     "store_image": None,
                 },
-                template_path=configuration["Template path"],
                 store_customer=configuration["Store customers card"],
             )
 
@@ -98,7 +89,6 @@ class RazorpayGatewayPlugin(BasePlugin):
             "description": "",
             "active": False,
             "configuration": [
-                {"name": "Template path", "value": "order/payment/razorpay.html"},
                 {"name": "Public API key", "value": None},
                 {"name": "Secret API key", "value": None},
                 {"name": "Store customers card", "value": False},
@@ -127,16 +117,6 @@ class RazorpayGatewayPlugin(BasePlugin):
         self, payment_information: "PaymentData", previous_value
     ) -> "GatewayResponse":
         return process_payment(payment_information, self._get_gateway_config())
-
-    @require_active_plugin
-    def create_form(
-        self, data, payment_information: "PaymentData", previous_value
-    ) -> "forms.Form":
-        return create_form(
-            data,
-            payment_information,
-            connection_params=self._get_gateway_config().connection_params,
-        )
 
     @require_active_plugin
     def get_payment_config(self, previous_value):

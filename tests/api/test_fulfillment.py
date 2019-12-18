@@ -3,6 +3,7 @@ from unittest.mock import patch
 import graphene
 import pytest
 
+from saleor.core.permissions import OrderPermissions
 from saleor.order.events import OrderEvents
 from saleor.order.models import FulfillmentStatus
 from tests.api.utils import assert_no_permission, get_graphql_content
@@ -363,7 +364,7 @@ def update_metadata_variables(staff_user, fulfillment):
 def test_fulfillment_update_metadata_user_has_no_permision(
     staff_api_client, staff_user, update_metadata_mutation, update_metadata_variables
 ):
-    assert not staff_user.has_perm("order.manage_orders")
+    assert not staff_user.has_perm(OrderPermissions.MANAGE_ORDERS)
 
     response = staff_api_client.post_graphql(
         update_metadata_mutation,
@@ -383,7 +384,7 @@ def test_fulfillment_update_metadata_user_has_permission(
     update_metadata_variables,
 ):
     staff_user.user_permissions.add(permission_manage_orders)
-    assert staff_user.has_perm("order.manage_orders")
+    assert staff_user.has_perm(OrderPermissions.MANAGE_ORDERS)
     response = staff_api_client.post_graphql(
         update_metadata_mutation,
         update_metadata_variables,
@@ -404,7 +405,7 @@ def test_fulfillment_update_private_metadata_user_has_no_permision(
     update_private_metadata_mutation,
     update_metadata_variables,
 ):
-    assert not staff_user.has_perm("order.manage_orders")
+    assert not staff_user.has_perm(OrderPermissions.MANAGE_ORDERS)
 
     response = staff_api_client.post_graphql(
         update_private_metadata_mutation,
@@ -424,7 +425,7 @@ def test_fulfillment_update_private_metadata_user_has_permission(
     update_metadata_variables,
 ):
     staff_user.user_permissions.add(permission_manage_orders)
-    assert staff_user.has_perm("order.manage_orders")
+    assert staff_user.has_perm(OrderPermissions.MANAGE_ORDERS)
     response = staff_api_client.post_graphql(
         update_private_metadata_mutation,
         update_metadata_variables,
@@ -446,7 +447,7 @@ def test_fulfillment_clear_meta_user_has_no_permission(
     clear_meta_variables,
     clear_metadata_mutation,
 ):
-    assert not staff_user.has_perm("order.manage_orders")
+    assert not staff_user.has_perm(OrderPermissions.MANAGE_ORDERS)
     fulfillment.store_meta(namespace="test", client=staff_user, item={"foo": "bar"})
     fulfillment.save()
     response = staff_api_client.post_graphql(
@@ -464,7 +465,7 @@ def test_fulfillment_clear_meta_user_has_permission(
     clear_metadata_mutation,
 ):
     staff_user.user_permissions.add(permission_manage_orders)
-    assert staff_user.has_perm("order.manage_orders")
+    assert staff_user.has_perm(OrderPermissions.MANAGE_ORDERS)
     fulfillment.store_meta(namespace="test", client="client1", item={"foo": "bar"})
     fulfillment.save()
     fulfillment.refresh_from_db()
@@ -485,7 +486,7 @@ def test_fulfillment_clear_private_meta_user_has_no_permission(
     clear_meta_variables,
     clear_private_metadata_mutation,
 ):
-    assert not staff_user.has_perm("order.manage_orders")
+    assert not staff_user.has_perm(OrderPermissions.MANAGE_ORDERS)
     fulfillment.store_private_meta(
         namespace="test", client="client1", item={"foo": "bar"}
     )
@@ -505,7 +506,7 @@ def test_fulfillment_clear_private_meta_user_has_permission(
     clear_private_metadata_mutation,
 ):
     staff_user.user_permissions.add(permission_manage_orders)
-    assert staff_user.has_perm("order.manage_orders")
+    assert staff_user.has_perm(OrderPermissions.MANAGE_ORDERS)
     fulfillment.store_private_meta(
         namespace="test", client="client1", item={"foo": "bar"}
     )

@@ -10,6 +10,7 @@ from graphene.types import InputObjectType
 from graphql_jwt.exceptions import PermissionDenied
 from graphql_relay import from_global_id
 
+from ....core.permissions import ProductPermissions
 from ....product import models
 from ....product.error_codes import ProductErrorCode
 from ....product.tasks import (
@@ -85,7 +86,7 @@ class CategoryCreate(ModelMutation):
     class Meta:
         description = "Creates a new category."
         model = models.Category
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
@@ -129,7 +130,7 @@ class CategoryUpdate(CategoryCreate):
     class Meta:
         description = "Updates a category."
         model = models.Category
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
@@ -141,7 +142,7 @@ class CategoryDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes a category."
         model = models.Category
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
@@ -195,7 +196,7 @@ class CollectionCreate(ModelMutation):
     class Meta:
         description = "Creates a new collection."
         model = models.Collection
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
@@ -227,7 +228,7 @@ class CollectionUpdate(CollectionCreate):
     class Meta:
         description = "Updates a collection."
         model = models.Collection
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
@@ -245,7 +246,7 @@ class CollectionDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes a collection."
         model = models.Collection
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
@@ -257,7 +258,7 @@ class CollectionReorderProducts(BaseMutation):
 
     class Meta:
         description = "Reorder the products of a collection."
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
@@ -334,7 +335,7 @@ class CollectionAddProducts(BaseMutation):
 
     class Meta:
         description = "Adds products to a collection."
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
@@ -369,7 +370,7 @@ class CollectionRemoveProducts(BaseMutation):
 
     class Meta:
         description = "Remove products from a collection."
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
@@ -392,7 +393,7 @@ class CollectionUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.Collection
         description = "Update public metadata for collection."
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -402,7 +403,7 @@ class CollectionClearMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.Collection
         description = "Clears public metadata for collection."
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -412,7 +413,7 @@ class CollectionUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.Collection
         description = "Update private metadata for collection."
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -422,7 +423,7 @@ class CollectionClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.Collection
         description = "Clears private metadata item for collection."
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -432,7 +433,7 @@ class CategoryUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.Category
         description = "Update public metadata for category."
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -442,7 +443,7 @@ class CategoryClearMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.Category
         description = "Clears public metadata for category."
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -452,7 +453,7 @@ class CategoryUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.Category
         description = "Update private metadata for category."
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -462,7 +463,7 @@ class CategoryClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.Category
         description = "Clears private metadata for category."
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -758,7 +759,7 @@ class ProductCreate(ModelMutation):
     class Meta:
         description = "Creates a new product."
         model = models.Product
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
@@ -914,7 +915,7 @@ class ProductUpdate(ProductCreate):
     class Meta:
         description = "Updates an existing product."
         model = models.Product
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
@@ -968,7 +969,7 @@ class ProductDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes a product."
         model = models.Product
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
@@ -977,7 +978,7 @@ class ProductUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.Product
         description = "Update public metadata for product."
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -987,7 +988,7 @@ class ProductClearMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clears public metadata item for product."
         model = models.Product
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -997,7 +998,7 @@ class ProductUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Update private metadata for product."
         model = models.Product
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -1007,7 +1008,7 @@ class ProductClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clears private metadata item for product."
         model = models.Product
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -1056,7 +1057,7 @@ class ProductVariantCreate(ModelMutation):
     class Meta:
         description = "Creates a new variant for a product."
         model = models.ProductVariant
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
@@ -1175,7 +1176,7 @@ class ProductVariantUpdate(ProductVariantCreate):
     class Meta:
         description = "Updates an existing variant for product."
         model = models.ProductVariant
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
@@ -1205,7 +1206,7 @@ class ProductVariantDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes a product variant."
         model = models.ProductVariant
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
@@ -1220,7 +1221,7 @@ class ProductVariantUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.ProductVariant
         description = "Update public metadata for product variant."
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -1230,7 +1231,7 @@ class ProductVariantClearMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.ProductVariant
         description = "Clears public metadata for product variant."
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -1240,7 +1241,7 @@ class ProductVariantUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.ProductVariant
         description = "Update private metadata for product variant."
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -1250,7 +1251,7 @@ class ProductVariantClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.ProductVariant
         description = "Clears private metadata for product variant."
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -1297,7 +1298,7 @@ class ProductTypeCreate(ModelMutation):
     class Meta:
         description = "Creates a new product type."
         model = models.ProductType
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
@@ -1341,7 +1342,7 @@ class ProductTypeUpdate(ProductTypeCreate):
     class Meta:
         description = "Updates an existing product type."
         model = models.ProductType
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
@@ -1362,7 +1363,7 @@ class ProductTypeDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes a product type."
         model = models.ProductType
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
@@ -1371,7 +1372,7 @@ class ProductTypeUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.ProductType
         description = "Update public metadata for product type."
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -1381,7 +1382,7 @@ class ProductTypeClearMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clears public metadata for product type."
         model = models.ProductType
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -1391,7 +1392,7 @@ class ProductTypeUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Update private metadata for product type."
         model = models.ProductType
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -1401,7 +1402,7 @@ class ProductTypeClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clears private metadata for product type."
         model = models.ProductType
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False
         error_type_class = ProductError
         error_type_field = "product_errors"
@@ -1432,7 +1433,7 @@ class ProductImageCreate(BaseMutation):
             "request. More detailed specs of the upload format can be found here: "
             "https://github.com/jaydenseric/graphql-multipart-request-spec"
         )
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
@@ -1466,7 +1467,7 @@ class ProductImageUpdate(BaseMutation):
 
     class Meta:
         description = "Updates a product image."
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
@@ -1498,7 +1499,7 @@ class ProductImageReorder(BaseMutation):
 
     class Meta:
         description = "Changes ordering of the product image."
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
@@ -1550,7 +1551,7 @@ class ProductImageDelete(BaseMutation):
 
     class Meta:
         description = "Deletes a product image."
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
@@ -1575,7 +1576,7 @@ class VariantImageAssign(BaseMutation):
 
     class Meta:
         description = "Assign an image to a product variant."
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 
@@ -1619,7 +1620,7 @@ class VariantImageUnassign(BaseMutation):
 
     class Meta:
         description = "Unassign an image from a product variant."
-        permissions = ("product.manage_products",)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
 

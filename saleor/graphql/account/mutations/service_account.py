@@ -1,8 +1,7 @@
 import graphene
 
-from saleor.core.permissions import get_permissions
-
 from ....account import models
+from ....core.permissions import AccountPermissions, get_permissions
 from ...core.enums import PermissionEnum
 from ...core.mutations import (
     ClearMetaBaseMutation,
@@ -42,7 +41,7 @@ class ServiceAccountTokenCreate(ModelMutation):
     class Meta:
         description = "Creates a new token."
         model = models.ServiceAccountToken
-        permissions = ("account.manage_service_accounts",)
+        permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -67,7 +66,7 @@ class ServiceAccountTokenDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes an authentication token assigned to service account."
         model = models.ServiceAccountToken
-        permissions = ("account.manage_service_accounts",)
+        permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -86,7 +85,7 @@ class ServiceAccountCreate(ModelMutation):
     class Meta:
         description = "Creates a new service account."
         model = models.ServiceAccount
-        permissions = ("account.manage_service_accounts",)
+        permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -124,7 +123,7 @@ class ServiceAccountUpdate(ModelMutation):
     class Meta:
         description = "Updates an existing service account."
         model = models.ServiceAccount
-        permissions = ("account.manage_service_accounts",)
+        permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -146,7 +145,7 @@ class ServiceAccountDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes a service account."
         model = models.ServiceAccount
-        permissions = ("account.manage_service_accounts",)
+        permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -154,7 +153,7 @@ class ServiceAccountDelete(ModelDeleteMutation):
 class ServiceAccountUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Updates private metadata for a service account."
-        permissions = ("account.manage_service_accounts",)
+        permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
         model = models.ServiceAccount
         public = False
         error_type_class = AccountError
@@ -165,7 +164,7 @@ class ServiceAccountClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clear private metadata for a service account."
         model = models.ServiceAccount
-        permissions = ("account.manage_service_accounts",)
+        permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
         public = False
         error_type_class = AccountError
         error_type_field = "account_errors"

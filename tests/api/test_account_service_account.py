@@ -1,5 +1,6 @@
 import graphene
 import pytest
+from freezegun import freeze_time
 
 from saleor.account.models import ServiceAccount, ServiceAccountToken
 from saleor.graphql.core.enums import PermissionEnum
@@ -205,6 +206,50 @@ def test_service_accounts_query(
         assert len(tokens) == 1
         assert len(tokens[0]["authToken"]) == 4
     assert len(service_accounts_data) == count
+
+
+QUERY_SERVICE_ACCOUNTS_WITH_SORT = """
+    query ($sort_by: ServiceAccountSortingInput!) {
+        serviceAccounts(first:5, sortBy: $sort_by) {
+                edges{
+                    node{
+                        name
+                    }
+                }
+            }
+        }
+"""
+
+
+@pytest.mark.parametrize(
+    "service_accounts_sort, result_order",
+    [
+        ({"field": "NAME", "direction": "ASC"}, ["facebook", "google"]),
+        ({"field": "NAME", "direction": "DESC"}, ["google", "facebook"]),
+        ({"field": "CREATION_DATE", "direction": "ASC"}, ["google", "facebook"]),
+        ({"field": "CREATION_DATE", "direction": "DESC"}, ["facebook", "google"]),
+    ],
+)
+def test_query_service_accounts_with_sort(
+    service_accounts_sort,
+    result_order,
+    staff_api_client,
+    permission_manage_service_accounts,
+):
+    with freeze_time("2018-05-31 12:00:01"):
+        ServiceAccount.objects.create(name="google", is_active=True)
+    with freeze_time("2019-05-31 12:00:01"):
+        ServiceAccount.objects.create(name="facebook", is_active=True)
+    variables = {"sort_by": service_accounts_sort}
+    staff_api_client.user.user_permissions.add(permission_manage_service_accounts)
+    response = staff_api_client.post_graphql(
+        QUERY_SERVICE_ACCOUNTS_WITH_SORT, variables
+    )
+    content = get_graphql_content(response)
+    service_accounts = content["data"]["serviceAccounts"]["edges"]
+
+    for order, account_name in enumerate(result_order):
+        assert service_accounts[order]["node"]["name"] == account_name
 
 
 def test_service_accounts_query_no_permission(

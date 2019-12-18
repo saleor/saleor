@@ -16,6 +16,7 @@ from prices import Money
 
 from ..account.models import Address
 from ..core.models import ModelWithMetadata
+from ..core.permissions import OrderPermissions
 from ..core.taxes import zero_money, zero_taxed_money
 from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.weight import WeightUnits, zero_weight
@@ -173,7 +174,7 @@ class Order(ModelWithMetadata):
         ordering = ("-pk",)
         permissions = (
             (
-                "manage_orders",
+                OrderPermissions.MANAGE_ORDERS.codename,
                 pgettext_lazy("Permission description", "Manage orders."),
             ),
         )
