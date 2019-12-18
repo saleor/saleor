@@ -211,7 +211,7 @@ def test_create_product_variant_not_all_attributes(
 
 def test_create_product_variant_duplicated_attributes(
     staff_api_client,
-    product_with_two_variants,
+    product_with_variant_with_two_attributes,
     color_attribute,
     size_attribute,
     permission_manage_products,
@@ -236,7 +236,7 @@ def test_create_product_variant_duplicated_attributes(
             }
         }
     """
-    product = product_with_two_variants
+    product = product_with_variant_with_two_attributes
     product_id = graphene.Node.to_global_id("Product", product.pk)
     color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.id)
     size_attribute_id = graphene.Node.to_global_id("Attribute", size_attribute.id)
@@ -526,12 +526,12 @@ def test_update_product_variant_not_all_attributes(
 
 def test_update_product_variant_with_current_attribut(
     staff_api_client,
-    product_with_two_variants,
+    product_with_variant_with_two_attributes,
     color_attribute,
     size_attribute,
     permission_manage_products,
 ):
-    product = product_with_two_variants
+    product = product_with_variant_with_two_attributes
     variant = product.variants.first()
     sku = str(uuid4())[:12]
     assert not variant.sku == sku
@@ -568,12 +568,12 @@ def test_update_product_variant_with_current_attribut(
 
 def test_update_product_variant_with_new_attribute(
     staff_api_client,
-    product_with_two_variants,
+    product_with_variant_with_two_attributes,
     color_attribute,
     size_attribute,
     permission_manage_products,
 ):
-    product = product_with_two_variants
+    product = product_with_variant_with_two_attributes
     variant = product.variants.first()
     sku = str(uuid4())[:12]
     assert not variant.sku == sku
@@ -610,12 +610,12 @@ def test_update_product_variant_with_new_attribute(
 
 def test_update_product_variant_with_duplicated_attribute(
     staff_api_client,
-    product_with_two_variants,
+    product_with_variant_with_two_attributes,
     color_attribute,
     size_attribute,
     permission_manage_products,
 ):
-    product = product_with_two_variants
+    product = product_with_variant_with_two_attributes
     variant = product.variants.first()
     variant2 = product.variants.first()
 
@@ -1113,12 +1113,12 @@ def test_product_variant_bulk_create_many_errors(
 
 def test_product_variant_bulk_create_two_variants_duplicated_attribute_value(
     staff_api_client,
-    product_with_two_variants,
+    product_with_variant_with_two_attributes,
     color_attribute,
     size_attribute,
     permission_manage_products,
 ):
-    product = product_with_two_variants
+    product = product_with_variant_with_two_attributes
     product_variant_count = ProductVariant.objects.count()
     product_id = graphene.Node.to_global_id("Product", product.pk)
     color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.id)
@@ -1149,12 +1149,12 @@ def test_product_variant_bulk_create_two_variants_duplicated_attribute_value(
 
 def test_product_variant_bulk_create_two_variants_duplicated_attribute_value_in_input(
     staff_api_client,
-    product_with_two_variants,
+    product_with_variant_with_two_attributes,
     permission_manage_products,
     color_attribute,
     size_attribute,
 ):
-    product = product_with_two_variants
+    product = product_with_variant_with_two_attributes
     product_id = graphene.Node.to_global_id("Product", product.pk)
     product_variant_count = ProductVariant.objects.count()
     color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.id)
@@ -1184,12 +1184,12 @@ def test_product_variant_bulk_create_two_variants_duplicated_attribute_value_in_
 
 def test_product_variant_bulk_create_two_variants_duplicated_one_attribute_value(
     staff_api_client,
-    product_with_two_variants,
+    product_with_variant_with_two_attributes,
     color_attribute,
     size_attribute,
     permission_manage_products,
 ):
-    product = product_with_two_variants
+    product = product_with_variant_with_two_attributes
     product_variant_count = ProductVariant.objects.count()
     product_id = graphene.Node.to_global_id("Product", product.pk)
     color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.id)

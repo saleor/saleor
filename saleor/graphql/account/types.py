@@ -17,6 +17,8 @@ from ..core.types import CountryDisplay, Image, MetadataObjectType, PermissionDi
 from ..core.utils import get_node_optimized
 from ..decorators import one_of_permissions_required
 from ..utils import format_permissions_for_display
+from ..wishlist.resolvers import resolve_wishlist_items_from_user
+from ..wishlist.types import WishlistItem
 from .enums import CountryCodeEnum, CustomerEventsEnum
 
 
@@ -266,6 +268,7 @@ class User(MetadataObjectType, CountableDjangoObjectType):
         "saleor.graphql.payment.types.PaymentSource",
         description="List of stored payment sources.",
     )
+    wishlist = PrefetchingConnectionField(WishlistItem, description="User's wishlist.")
 
     class Meta:
         description = "Represents user data."
@@ -357,6 +360,10 @@ class User(MetadataObjectType, CountableDjangoObjectType):
     @staticmethod
     def resolve_meta(root, _info):
         return resolve_meta(root, _info)
+
+    @staticmethod
+    def resolve_wishlist(root: models.User, info, **_kwargs):
+        return resolve_wishlist_items_from_user(root)
 
     @staticmethod
     def __resolve_reference(root, _info, **_kwargs):

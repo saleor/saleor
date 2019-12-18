@@ -2072,6 +2072,10 @@ input MoveProductInput {
 }
 
 type Mutation {
+  wishlistAddProduct(productId: ID!): WishlistAddProductMutation
+  wishlistRemoveProduct(productId: ID!): WishlistRemoveProductMutation
+  wishlistAddVariant(variantId: ID!): WishlistAddProductVariantMutation
+  wishlistRemoveVariant(variantId: ID!): WishlistRemoveProductVariantMutation
   webhookCreate(input: WebhookCreateInput!): WebhookCreate
   webhookDelete(id: ID!): WebhookDelete
   webhookUpdate(id: ID!, input: WebhookUpdateInput!): WebhookUpdate
@@ -4272,6 +4276,7 @@ type User implements Node {
   avatar(size: Int): Image
   events: [CustomerEvent]
   storedPaymentSources: [PaymentSource]
+  wishlist(before: String, after: String, first: Int, last: Int): WishlistItemCountableConnection
 }
 
 type UserAvatarDelete {
@@ -4637,6 +4642,68 @@ enum WeightUnitsEnum {
   LB
   OZ
   G
+}
+
+type Wishlist implements Node {
+  id: ID!
+  createdAt: DateTime!
+  items(before: String, after: String, first: Int, last: Int, id: ID): WishlistItemCountableConnection!
+}
+
+type WishlistAddProductMutation {
+  errors: [Error!]
+  wishlist: [WishlistItem]
+  wishlistErrors: [WishlistError!]
+}
+
+type WishlistAddProductVariantMutation {
+  errors: [Error!]
+  wishlist: [WishlistItem]
+  wishlistErrors: [WishlistError!]
+}
+
+type WishlistError {
+  field: String
+  message: String
+  code: WishlistErrorCode
+}
+
+enum WishlistErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+}
+
+type WishlistItem implements Node {
+  id: ID!
+  wishlist: Wishlist!
+  product: Product!
+  variants(before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection!
+}
+
+type WishlistItemCountableConnection {
+  pageInfo: PageInfo!
+  edges: [WishlistItemCountableEdge!]!
+  totalCount: Int
+}
+
+type WishlistItemCountableEdge {
+  node: WishlistItem!
+  cursor: String!
+}
+
+type WishlistRemoveProductMutation {
+  errors: [Error!]
+  wishlist: [WishlistItem]
+  wishlistErrors: [WishlistError!]
+}
+
+type WishlistRemoveProductVariantMutation {
+  errors: [Error!]
+  wishlist: [WishlistItem]
+  wishlistErrors: [WishlistError!]
 }
 
 scalar _Any
