@@ -2,6 +2,7 @@ import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 
 from ...account.models import User
+from ...core.permissions import GiftcardPermissions
 from ...core.utils.promo_code import (
     PromoCodeAlreadyExists,
     generate_promo_code,
@@ -42,7 +43,7 @@ class GiftCardCreate(ModelMutation):
     class Meta:
         description = "Creates a new gift card."
         model = models.GiftCard
-        permissions = ("giftcard.manage_gift_card",)
+        permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
         error_type_field = "gift_card_errors"
 
@@ -84,7 +85,7 @@ class GiftCardUpdate(GiftCardCreate):
     class Meta:
         description = "Update a gift card."
         model = models.GiftCard
-        permissions = ("giftcard.manage_gift_card",)
+        permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
         error_type_field = "gift_card_errors"
 
@@ -97,7 +98,7 @@ class GiftCardDeactivate(BaseMutation):
 
     class Meta:
         description = "Deactivate a gift card."
-        permissions = ("giftcard.manage_gift_card",)
+        permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
         error_type_field = "gift_card_errors"
 
@@ -119,7 +120,7 @@ class GiftCardActivate(BaseMutation):
 
     class Meta:
         description = "Activate a gift card."
-        permissions = ("giftcard.manage_gift_card",)
+        permissions = (GiftcardPermissions.MANAGE_GIFT_CARD,)
         error_type_class = GiftCardError
         error_type_field = "gift_card_errors"
 

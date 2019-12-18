@@ -1,5 +1,6 @@
 import graphene
 
+from ...core.permissions import OrderPermissions
 from ..core.fields import PrefetchingConnectionField
 from ..decorators import permission_required
 from .mutations import PaymentCapture, PaymentRefund, PaymentSecureConfirm, PaymentVoid
@@ -25,11 +26,11 @@ class PaymentQueries(graphene.ObjectType):
         ),
     )
 
-    @permission_required("order.manage_orders")
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_payment(self, info, **data):
         return graphene.Node.get_node_from_global_id(info, data.get("id"), Payment)
 
-    @permission_required("order.manage_orders")
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_payments(self, info, query=None, **_kwargs):
         return resolve_payments(info, query)
 
