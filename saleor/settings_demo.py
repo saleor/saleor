@@ -18,7 +18,7 @@ BRAINTREE_SECRET_API_KEY = os.environ.get("BRAINTREE_SECRET_API_KEY")
 
 USE_JSON_CONTENT = True
 
-PWA_ORIGIN = "pwa.saleor.io"
+PWA_ORIGIN = get_list(os.environ.get("PWA_ORIGIN", "pwa.saleor.io"))
 PWA_DASHBOARD_URL_RE = re.compile("^https?://%s/dashboard/.*" % PWA_ORIGIN)
 
 ROOT_EMAIL = os.environ.get("ROOT_EMAIL")
