@@ -89,7 +89,6 @@ class GatewayConfig:
 
     gateway_name: str
     auto_capture: bool
-    template_path: str
     # Each gateway has different connection data so we are not able to create
     # a unified structure
     connection_params: Dict[str, Any]
