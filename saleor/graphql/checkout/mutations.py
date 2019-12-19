@@ -81,18 +81,13 @@ def clean_shipping_method(
 
 def update_checkout_shipping_method_if_invalid(checkout: models.Checkout, discounts):
     # remove shipping method when empty checkout
-    if checkout.quantity == 0:
+    if checkout.quantity == 0 or not checkout.is_shipping_required():
         checkout.shipping_method = None
         checkout.save(update_fields=["shipping_method"])
 
-    is_valid = True
-    try:
-        is_valid = clean_shipping_method(
-            checkout=checkout, method=checkout.shipping_method, discounts=discounts
-        )
-    except ValidationError:
-        checkout.shipping_method = None
-        checkout.save(update_fields=["shipping_method"])
+    is_valid = clean_shipping_method(
+        checkout=checkout, method=checkout.shipping_method, discounts=discounts
+    )
 
     if not is_valid:
         cheapest_alternative = get_valid_shipping_methods_for_checkout(
@@ -340,7 +335,6 @@ class CheckoutLinesAdd(BaseMutation):
         quantities = [line.get("quantity") for line in lines]
 
         check_lines_quantity(variants, quantities)
-        # update_checkout_shipping_method_if_invalid(checkout, info.context.discounts)
 
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
