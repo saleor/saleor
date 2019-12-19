@@ -18,8 +18,8 @@ BRAINTREE_SECRET_API_KEY = os.environ.get("BRAINTREE_SECRET_API_KEY")
 
 USE_JSON_CONTENT = True
 
-PWA_ORIGIN = get_list(os.environ.get("PWA_ORIGIN", "pwa.saleor.io"))
-PWA_DASHBOARD_URL_RE = re.compile("^https?://%s/dashboard/.*" % PWA_ORIGIN)
+PWA_ORIGINS = get_list(os.environ.get("PWA_ORIGIN", "pwa.saleor.io"))
+PWA_DASHBOARD_URL_RE = re.compile("^https?://.*/dashboard/.*")
 
 ROOT_EMAIL = os.environ.get("ROOT_EMAIL")
 
@@ -44,7 +44,7 @@ def before_send(event: dict, _hint: dict):
         return event
 
     # RFC6454, origin is the triple: uri-scheme, uri-host[, uri-port]
-    if origin_url.endswith(PWA_ORIGIN):
+    if any(origin_url.endswith(pwa_origin) for pwa_origin in PWA_ORIGINS):
         return event
 
     logger.info(f"Skipped error from ignored origin: {origin_url!r}")
