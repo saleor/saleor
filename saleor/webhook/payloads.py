@@ -1,9 +1,10 @@
 import json
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
 from django.db.models import Model, QuerySet
 
 from ..account.models import User
+from ..checkout.models import Checkout
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import Order
 from ..payment import ChargeStatus
@@ -11,11 +12,6 @@ from ..product.models import Product
 from .event_types import WebhookEventType
 from .payload_serializers import PayloadSerializer
 from .serializers import serialize_checkout_lines
-
-if TYPE_CHECKING:
-    # pylint: disable=unused-import
-    from ..checkout.models import Checkout
-
 
 ADDRESS_FIELDS = (
     "first_name",
@@ -249,6 +245,11 @@ def generate_sample_payload(event_name: str) -> Optional[dict]:
             Product.objects.prefetch_related("category", "collections", "variants")
         )
         payload = generate_product_payload(product) if product else None
+    elif event_name == WebhookEventType.CHECKOUT_QUANTITY_CHANGED:
+        checkout = _get_sample_object(
+            Checkout.objects.prefetch_related("lines__variant__product")
+        )
+        payload = generate_checkout_payload(checkout) if checkout else None
     else:
         payload = _generate_sample_order_payload(event_name)
     return json.loads(payload) if payload else None
