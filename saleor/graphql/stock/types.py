@@ -14,7 +14,7 @@ class StockInput(graphene.InputObjectType):
         required=True, description="Warehouse in which stock is lockated."
     )
     quantity = graphene.Int(description="Quantity of items available for sell.")
-    quantity_allocated = graphene.Int()
+    quantity_allocated = graphene.Int(description="Quantity allocated for orders.")
 
 
 class Stock(CountableDjangoObjectType):

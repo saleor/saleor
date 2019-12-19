@@ -37,7 +37,7 @@ class StockUpdate(ModelMutation):
 
 class StockDelete(ModelDeleteMutation):
     class Arguments:
-        id = graphene.ID(required=True, description="ID fo stock to delete.")
+        id = graphene.ID(required=True, description="ID of stock to delete.")
 
     class Meta:
         model = models.Stock
