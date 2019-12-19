@@ -10,6 +10,7 @@ from saleor.extensions.plugins.webhook import create_hmac_signature
 from saleor.extensions.plugins.webhook.tasks import trigger_webhooks_for_event
 from saleor.webhook.event_types import WebhookEventType
 from saleor.webhook.payloads import (
+    generate_checkout_payload,
     generate_customer_payload,
     generate_order_payload,
     generate_product_payload,
@@ -206,4 +207,18 @@ def test_order_cancelled(mocked_webhook_trigger, settings, order_with_lines):
     expected_data = generate_order_payload(order_with_lines)
     mocked_webhook_trigger.assert_called_once_with(
         WebhookEventType.ORDER_CANCELLED, expected_data
+    )
+
+
+@mock.patch("saleor.extensions.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+def test_checkout_quantity_changed(
+    mocked_webhook_trigger, settings, checkout_with_items
+):
+    settings.PLUGINS = ["saleor.extensions.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_extensions_manager()
+    manager.checkout_quantity_changed(checkout_with_items)
+
+    expected_data = generate_checkout_payload(checkout_with_items)
+    mocked_webhook_trigger.assert_called_once_with(
+        WebhookEventType.CHECKOUT_QUANTITY_CHANGED, expected_data
     )
