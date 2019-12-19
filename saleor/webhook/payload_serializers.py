@@ -18,6 +18,8 @@ class PayloadSerializer(JSONSerializer):
     def __init__(self):
         super().__init__()
         self.additional_fields = {}
+        self.extra_dict_data = {}
+        self.obj_id_name = "id"
 
     def serialize(self, queryset, **options):
         self.additional_fields = options.pop("additional_fields", {})

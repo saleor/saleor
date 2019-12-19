@@ -13,6 +13,7 @@ from .payload_serializers import PayloadSerializer
 from .serializers import serialize_checkout_lines
 
 if TYPE_CHECKING:
+    # pylint: disable=unused-import
     from ..checkout.models import Checkout
 
 
