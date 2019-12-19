@@ -1,6 +1,11 @@
 from django.utils.translation import pgettext_lazy
 
-from ..core.permissions import AccountPermissions, OrderPermissions, ProductPermissions
+from ..core.permissions import (
+    AccountPermissions,
+    CheckoutPermissions,
+    OrderPermissions,
+    ProductPermissions,
+)
 
 
 class WebhookEventType:
@@ -80,5 +85,5 @@ class WebhookEventType:
         ORDER_FULFILLED: OrderPermissions.MANAGE_ORDERS,
         CUSTOMER_CREATED: AccountPermissions.MANAGE_USERS,
         PRODUCT_CREATED: ProductPermissions.MANAGE_PRODUCTS,
-        CHECKOUT_QUANTITY_CHANGED: OrderPermissions.MANAGE_ORDERS,
+        CHECKOUT_QUANTITY_CHANGED: CheckoutPermissions.MANAGE_CHECKOUTS,
     }
