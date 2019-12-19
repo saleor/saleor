@@ -4066,7 +4066,6 @@ input StaffCreateInput {
   isActive: Boolean
   note: String
   permissions: [PermissionEnum]
-  sendPasswordEmail: Boolean
   redirectUrl: String
 }
 
@@ -4328,7 +4327,6 @@ input UserCreateInput {
   email: String
   isActive: Boolean
   note: String
-  sendPasswordEmail: Boolean
   redirectUrl: String
 }
 
