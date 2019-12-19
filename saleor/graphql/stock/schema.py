@@ -1,7 +1,6 @@
 import graphene
 import graphene_django_optimizer as gql_optimizer
 
-from ...stock import models
 from ..core.fields import FilterInputConnectionField
 from ..decorators import permission_required
 from .filters import StockFilterInput
@@ -24,17 +23,13 @@ class StockQueries(graphene.ObjectType):
 
     @permission_required("stock.manage_stocks")
     def resolve_stock(self, info, **kwargs):
-        stock_pk = kwargs.get("id")
-        stock = graphene.Node.get_node_from_global_id(info, stock_pk, Stock)
+        stock_id = kwargs.get("id")
+        stock = graphene.Node.get_node_from_global_id(info, stock_id, Stock)
         return stock
 
     @permission_required("stock.manage_stocks")
     def resolve_stocks(self, info, **data):
-        qs = (
-            models.Stock.objects.select_related("warehouse")
-            .prefetch_related("product_variant__product")
-            .all()
-        )
+        qs = Stock.objects.all()
         return gql_optimizer.query(qs, info)
 
 
