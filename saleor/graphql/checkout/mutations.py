@@ -85,9 +85,14 @@ def update_checkout_shipping_method_if_invalid(checkout: models.Checkout, discou
         checkout.shipping_method = None
         checkout.save(update_fields=["shipping_method"])
 
-    is_valid = clean_shipping_method(
-        checkout=checkout, method=checkout.shipping_method, discounts=discounts
-    )
+    is_valid = True
+    try:
+        is_valid = clean_shipping_method(
+            checkout=checkout, method=checkout.shipping_method, discounts=discounts
+        )
+    except ValidationError:
+        checkout.shipping_method = None
+        checkout.save(update_fields=["shipping_method"])
 
     if not is_valid:
         cheapest_alternative = get_valid_shipping_methods_for_checkout(
