@@ -14,6 +14,7 @@ from tests.api.utils import get_graphql_content
 from .test_checkout import (
     MUTATION_CHECKOUT_COMPLETE,
     MUTATION_CHECKOUT_CREATE,
+    MUTATION_CHECKOUT_LINES_DELETE,
     MUTATION_CHECKOUT_LINES_UPDATE,
     MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE,
     MUTATION_UPDATE_SHIPPING_METHOD,
@@ -237,6 +238,31 @@ def test_checkout_lines_update_remove_shipping_if_removed_product_with_shipping(
     content = get_graphql_content(response)
 
     data = content["data"]["checkoutLinesUpdate"]
+    assert not data["errors"]
+    checkout.refresh_from_db()
+    assert checkout.lines.count() == 1
+    assert not checkout.shipping_method
+
+
+def test_checkout_line_delete_remove_shipping_if_removed_product_with_shipping(
+    user_api_client, checkout_with_item, digital_content, address, shipping_method
+):
+    checkout = checkout_with_item
+    digital_variant = digital_content.product_variant
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.save()
+    add_variant_to_checkout(checkout, digital_variant, 1)
+    line = checkout.lines.first()
+
+    line_id = graphene.Node.to_global_id("CheckoutLine", line.pk)
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    variables = {"checkoutId": checkout_id, "lineId": line_id}
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_DELETE, variables)
+    content = get_graphql_content(response)
+
+    data = content["data"]["checkoutLineDelete"]
     assert not data["errors"]
     checkout.refresh_from_db()
     assert checkout.lines.count() == 1
