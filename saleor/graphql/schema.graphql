@@ -635,7 +635,6 @@ type Checkout implements Node {
   shippingAddress: Address
   shippingMethod: ShippingMethod
   note: String!
-  discountAmount: Money @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, use discount instead.")
   discount: Money
   discountName: String
   translatedDiscountName: String
@@ -831,12 +830,6 @@ type CheckoutUpdatePrivateMeta {
   errors: [Error!]
   checkoutErrors: [CheckoutError!]
   checkout: Checkout
-}
-
-type CheckoutUpdateVoucher {
-  errors: [Error!]
-  checkout: Checkout
-  checkoutErrors: [CheckoutError!]
 }
 
 type ChoiceValue {
@@ -2264,7 +2257,6 @@ type Mutation {
   checkoutPaymentCreate(checkoutId: ID!, input: PaymentInput!): CheckoutPaymentCreate
   checkoutShippingAddressUpdate(checkoutId: ID!, shippingAddress: AddressInput!): CheckoutShippingAddressUpdate
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!): CheckoutShippingMethodUpdate
-  checkoutUpdateVoucher(checkoutId: ID!, voucherCode: String): CheckoutUpdateVoucher
   checkoutUpdateMetadata(id: ID!, input: MetaInput!): CheckoutUpdateMeta
   checkoutClearMetadata(id: ID!, input: MetaPath!): CheckoutClearMeta
   checkoutUpdatePrivateMetadata(id: ID!, input: MetaInput!): CheckoutUpdatePrivateMeta
