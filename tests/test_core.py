@@ -125,9 +125,9 @@ def test_create_fake_users(db):
 
 
 def test_create_address(db):
-    assert Address.objects.all().count() == 0
-    random_data.create_address()
     assert Address.objects.all().count() == 1
+    random_data.create_address()
+    assert Address.objects.all().count() == 2
 
 
 def test_create_fake_order(db, monkeypatch, image, media_root, warehouse):
