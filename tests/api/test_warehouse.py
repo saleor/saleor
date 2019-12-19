@@ -246,6 +246,7 @@ def test_query_warehouse_with_filters_email(
 
 
 def test_mutation_create_warehouse_requires_permission(staff_api_client):
+    Warehouse.objects.all().delete()
     assert not staff_api_client.user.has_perm("warehouse.manage_warehouses")
     variables = {
         "input": {
@@ -272,7 +273,7 @@ def test_mutation_create_warehouse_requires_permission(staff_api_client):
 def test_mutation_create_warehouse(
     staff_api_client, permission_manage_warehouses, shipping_zone
 ):
-    assert not Warehouse.objects.exists()
+    Warehouse.objects.all().delete()
     staff_api_client.user.user_permissions.add(permission_manage_warehouses)
     variables = {
         "input": {
@@ -324,15 +325,15 @@ def test_create_warehouse_creates_address(
             ],
         }
     }
-    assert not Address.objects.exists()
+    assert Address.objects.count() == 1
     response = staff_api_client.post_graphql(
         MUTATION_CREATE_WAREHOUSE, variables=variables
     )
     content = get_graphql_content(response)
     errors = content["data"]["createWarehouse"]["errors"]
     assert len(errors) == 0
-    assert Address.objects.exists()
-    address = Address.objects.first()
+    assert Address.objects.count() == 2
+    address = Address.objects.get(street_address_1="Teczowa 8", city="WROCLAW")
     address_id = graphene.Node.to_global_id("Address", address.id)
     warehouse_data = content["data"]["createWarehouse"]["warehouse"]
     assert warehouse_data["address"]["id"] == address_id
@@ -471,14 +472,14 @@ def test_delete_warehouse_mutation(
 ):
     staff_api_client.user.user_permissions.add(permission_manage_warehouses)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
-    assert Warehouse.objects.count() == 1
+    assert Warehouse.objects.count() == 2
     response = staff_api_client.post_graphql(
         MUTATION_DELETE_WAREHOUSE, variables={"id": warehouse_id}
     )
     content = get_graphql_content(response)
     errors = content["data"]["deleteWarehouse"]["errors"]
     assert len(errors) == 0
-    assert not Warehouse.objects.exists()
+    assert Warehouse.objects.count() == 1
 
 
 def test_delete_warehouse_deletes_associated_address(
@@ -486,14 +487,14 @@ def test_delete_warehouse_deletes_associated_address(
 ):
     staff_api_client.user.user_permissions.add(permission_manage_warehouses)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
-    assert Address.objects.count() == 1
+    assert Address.objects.count() == 2
     response = staff_api_client.post_graphql(
         MUTATION_DELETE_WAREHOUSE, variables={"id": warehouse_id}
     )
     content = get_graphql_content(response)
     errors = content["data"]["deleteWarehouse"]["errors"]
     assert len(errors) == 0
-    assert not Address.objects.exists()
+    assert Address.objects.count() == 1
 
 
 def test_shipping_zone_can_be_assigned_only_to_one_warehouse(

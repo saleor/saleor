@@ -25,12 +25,12 @@ def test_warehouse_form_create_object(address, shipping_zone):
         "email": "warehouse@example.com",
         "company_name": "Comany Inc",
     }
-    assert not Warehouse.objects.exists()
+    assert Warehouse.objects.count() == 1
     form = WarehouseForm(data)
     assert form.is_valid()
     # warehouse must have address
     form.save_with_address(address)
-    assert Warehouse.objects.count() == 1
+    assert Warehouse.objects.count() == 2
 
 
 def test_warehouse_form_updates_object(warehouse, shipping_zone):
