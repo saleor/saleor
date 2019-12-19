@@ -340,7 +340,7 @@ class CheckoutLinesAdd(BaseMutation):
         quantities = [line.get("quantity") for line in lines]
 
         check_lines_quantity(variants, quantities)
-        update_checkout_shipping_method_if_invalid(checkout, info.context.discounts)
+        # update_checkout_shipping_method_if_invalid(checkout, info.context.discounts)
 
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
@@ -353,6 +353,7 @@ class CheckoutLinesAdd(BaseMutation):
                         f"Insufficient product stock: {exc.item}", code=exc.code
                     )
 
+        update_checkout_shipping_method_if_invalid(checkout, info.context.discounts)
         recalculate_checkout_discount(checkout, info.context.discounts)
 
         return CheckoutLinesAdd(checkout=checkout)
