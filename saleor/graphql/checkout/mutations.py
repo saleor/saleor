@@ -5,7 +5,6 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.db.models import Prefetch
-from django.utils import timezone
 
 from ...account.error_codes import AccountErrorCode
 from ...checkout import models
@@ -14,18 +13,15 @@ from ...checkout.utils import (
     abort_order_data,
     add_promo_code_to_checkout,
     add_variant_to_checkout,
-    add_voucher_to_checkout,
     change_billing_address_in_checkout,
     change_shipping_address_in_checkout,
     clean_checkout,
     create_order,
     get_user_checkout,
     get_valid_shipping_methods_for_checkout,
-    get_voucher_for_checkout,
     prepare_order_data,
     recalculate_checkout_discount,
     remove_promo_code_from_checkout,
-    remove_voucher_from_checkout,
 )
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
@@ -746,62 +742,6 @@ class CheckoutComplete(BaseMutation):
         return CheckoutComplete(order=order)
 
 
-class CheckoutUpdateVoucher(BaseMutation):
-    checkout = graphene.Field(Checkout, description="An checkout with updated voucher.")
-
-    class Arguments:
-        checkout_id = graphene.ID(description="Checkout ID.", required=True)
-        voucher_code = graphene.String(description="Voucher code.")
-
-    class Meta:
-        description = (
-            "DEPRECATED: Will be removed in Saleor 2.10, use CheckoutAddPromoCode "
-            "or CheckoutRemovePromoCode instead. Adds voucher to the checkout. Query "
-            "it without voucher_code field to remove voucher from checkout."
-        )
-        error_type_class = CheckoutError
-        error_type_field = "checkout_errors"
-
-    @classmethod
-    def perform_mutation(cls, _root, info, checkout_id, voucher_code=None):
-        checkout = cls.get_node_or_error(
-            info, checkout_id, only_type=Checkout, field="checkout_id"
-        )
-
-        if voucher_code:
-            try:
-                voucher = voucher_model.Voucher.objects.active(date=timezone.now()).get(
-                    code=voucher_code
-                )
-            except voucher_model.Voucher.DoesNotExist:
-                raise ValidationError(
-                    {
-                        "voucher_code": ValidationError(
-                            "Voucher with given code does not exist.",
-                            code=CheckoutErrorCode.NOT_FOUND,
-                        )
-                    }
-                )
-
-            try:
-                add_voucher_to_checkout(checkout, voucher)
-            except voucher_model.NotApplicable:
-                raise ValidationError(
-                    {
-                        "voucher_code": ValidationError(
-                            "Voucher is not applicable to that checkout.",
-                            code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE,
-                        )
-                    }
-                )
-        else:
-            existing_voucher = get_voucher_for_checkout(checkout)
-            if existing_voucher:
-                remove_voucher_from_checkout(checkout)
-
-        return CheckoutUpdateVoucher(checkout=checkout)
-
-
 class CheckoutAddPromoCode(BaseMutation):
     checkout = graphene.Field(
         Checkout, description="The checkout with the added gift card or voucher."
@@ -849,7 +789,7 @@ class CheckoutRemovePromoCode(BaseMutation):
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
         remove_promo_code_from_checkout(checkout, promo_code)
-        return CheckoutUpdateVoucher(checkout=checkout)
+        return CheckoutRemovePromoCode(checkout=checkout)
 
 
 class CheckoutUpdateMeta(UpdateMetaBaseMutation):
