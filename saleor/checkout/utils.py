@@ -120,7 +120,7 @@ def check_variant_in_stock(
         )
 
     if new_quantity > 0 and check_quantity:
-        check_stock_quantity(variant, checkout.country, new_quantity)
+        check_stock_quantity(variant, checkout.get_country(), new_quantity)
 
     return new_quantity, line
 
@@ -618,7 +618,7 @@ def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine
     quantity = checkout_line.quantity
     variant = checkout_line.variant
     product = variant.product
-    country = checkout_line.checkout.country
+    country = checkout_line.checkout.get_country()
     check_stock_quantity(variant, country, quantity)
 
     product_name = str(product)
@@ -747,7 +747,7 @@ def create_order(
     for line in order_lines:  # type: OrderLine
         variant = line.variant
         if variant and variant.track_inventory:
-            allocate_stock(variant, checkout.country, line.quantity)
+            allocate_stock(variant, checkout.get_country(), line.quantity)
 
     # Add gift cards to the order
     for gift_card in checkout.gift_cards.select_for_update():

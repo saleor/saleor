@@ -9,6 +9,7 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.encoding import smart_str
 from django.utils.translation import pgettext_lazy
+from django_countries.fields import Country, CountryField
 from django_prices.models import MoneyField
 from prices import Money
 
@@ -78,6 +79,7 @@ class Checkout(ModelWithMetadata):
         max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
         default=settings.DEFAULT_CURRENCY,
     )
+    country = CountryField(default=settings.DEFAULT_COUNTRY)
 
     discount_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
@@ -143,23 +145,25 @@ class Checkout(ModelWithMetadata):
         payments = [payment for payment in self.payments.all() if payment.is_active]
         return max(payments, default=None, key=attrgetter("pk"))
 
-    def set_country(self, country_code: str, commit: bool = False, replace=False):
+    def set_country(
+        self, country_code: str, commit: bool = False, replace: bool = True
+    ):
+        """Set country for checkout."""
         if not replace and self.country is not None:
             return
-        self.store_private_meta("Shipping_info", "", {"country_code": country_code})
+        self.country = Country(country_code)
         if commit:
-            self.save(update_fields=["private_meta"])
+            self.save(update_fields=["country"])
 
-    @property
-    def country(self):
+    def get_country(self):
         address = self.shipping_address or self.billing_address
-        meta_country = self.get_private_meta("Shipping_info", "").get("country_code")
+        saved_country = self.country
         if address is None or not address.country:
-            return meta_country
+            return saved_country.code
 
         country_code = address.country.code
-        if not country_code == meta_country:
-            self.set_country(country_code, commit=True, replace=True)
+        if not country_code == saved_country.code:
+            self.set_country(country_code, commit=True)
         return country_code
 
 
