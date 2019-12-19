@@ -1896,7 +1896,7 @@ input MenuInput {
 type MenuItem implements Node {
   id: ID!
   name: String!
-  sortOrder: Int @deprecated(reason: "Will be dropped in 2.10 and is deprecated since 2.9: use the position in list instead and relative calculus to determine shift position.")
+  sortOrder: Int
   menu: Menu!
   parent: MenuItem
   category: Category
@@ -2361,7 +2361,6 @@ type Order implements Node {
   totalBalance: Money!
   userEmail: String
   isShippingRequired: Boolean!
-  discountAmount: Money! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, use discount instead.")
 }
 
 enum OrderAction {
@@ -4401,7 +4400,6 @@ type Voucher implements Node {
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   countries: [CountryDisplay]
   translation(languageCode: LanguageCodeEnum!): VoucherTranslation
-  minAmountSpent: Money @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, use the minSpent field instead.")
 }
 
 type VoucherAddCatalogues {
