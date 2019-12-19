@@ -20,7 +20,8 @@ from ..stock.management import allocate_stock, deallocate_stock, increase_stock
 from . import events
 
 
-def get_order_country(order) -> str:
+def get_order_country(order: Order) -> str:
+    """Return country to which order will be shipped."""
     address = order.billing_address
     if order.is_shipping_required():
         address = order.shipping_address
