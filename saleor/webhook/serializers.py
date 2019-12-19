@@ -1,6 +1,7 @@
 from typing import TYPE_CHECKING, List
 
 if TYPE_CHECKING:
+    # pylint: disable=unused-import
     from ..checkout.models import Checkout
 
 
