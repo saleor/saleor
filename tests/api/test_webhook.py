@@ -622,7 +622,7 @@ SAMPLE_PAYLOAD_QUERY = """
         (WebhookEventTypeEnum.ORDER_FULFILLED, True),
         (WebhookEventTypeEnum.CUSTOMER_CREATED, False),
         (WebhookEventTypeEnum.PRODUCT_CREATED, False),
-        (WebhookEventTypeEnum.CHECKOUT_QUANTITY_CHANGED, True),
+        (WebhookEventTypeEnum.CHECKOUT_QUANTITY_CHANGED, False),
     ],
 )
 def test_sample_payload_query_by_service_account(
@@ -659,7 +659,7 @@ def test_sample_payload_query_by_service_account(
         (WebhookEventTypeEnum.ORDER_FULFILLED, False),
         (WebhookEventTypeEnum.CUSTOMER_CREATED, True),
         (WebhookEventTypeEnum.PRODUCT_CREATED, True),
-        (WebhookEventTypeEnum.CHECKOUT_QUANTITY_CHANGED, False),
+        (WebhookEventTypeEnum.CHECKOUT_QUANTITY_CHANGED, True),
     ],
 )
 def test_sample_payload_query_by_staff(
@@ -669,11 +669,13 @@ def test_sample_payload_query_by_staff(
     staff_api_client,
     permission_manage_users,
     permission_manage_products,
+    permission_manage_checkouts,
 ):
     mock_generate_sample_payload.return_value = {"mocked_response": ""}
     query = SAMPLE_PAYLOAD_QUERY
     staff_api_client.user.user_permissions.add(permission_manage_users)
     staff_api_client.user.user_permissions.add(permission_manage_products)
+    staff_api_client.user.user_permissions.add(permission_manage_checkouts)
     variables = {"event_type": event_type.name}
     response = staff_api_client.post_graphql(query, variables=variables)
     if not has_access:

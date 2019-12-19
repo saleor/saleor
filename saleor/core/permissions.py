@@ -72,6 +72,7 @@ PERMISSIONS_ENUMS = [
     ShippingPermissions,
     SitePermissions,
     WebhookPermissions,
+    CheckoutPermissions,
 ]
 
 

@@ -2884,6 +2884,7 @@ enum PermissionEnum {
   MANAGE_SETTINGS
   MANAGE_TRANSLATIONS
   MANAGE_WEBHOOKS
+  MANAGE_CHECKOUTS
 }
 
 type Plugin implements Node {
