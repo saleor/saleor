@@ -1,7 +1,7 @@
 import graphene
-from django.conf import settings
 
 from ...stock import models
+from ...stock.availability import get_available_quantity_for_customer
 from ..core.connection import CountableDjangoObjectType
 from ..decorators import permission_required
 
@@ -28,4 +28,4 @@ class Stock(CountableDjangoObjectType):
     @staticmethod
     @permission_required("stock.manage_stocks")
     def resolve_available(root, *_args):
-        return min(root.quantity_available, settings.MAX_CHECKOUT_LINE_QUANTITY)
+        return get_available_quantity_for_customer(root)

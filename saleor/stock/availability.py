@@ -82,3 +82,8 @@ def products_with_low_stock(threshold: Optional[int] = None):
         .annotate(total_stock=Sum("quantity"))
     )
     return stocks.filter(total_stock__lte=threshold).distinct()
+
+
+def get_available_quantity_for_customer(stock: Stock) -> int:
+    """Return maximum checkout line quantity."""
+    return min(stock.quantity_available, settings.MAX_CHECKOUT_LINE_QUANTITY)
