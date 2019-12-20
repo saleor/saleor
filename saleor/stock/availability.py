@@ -4,11 +4,10 @@ from django.conf import settings
 from django.db.models import Sum
 
 from ..core.exceptions import InsufficientStock
-from ..product.models import Product
 from .models import Stock
 
 if TYPE_CHECKING:
-    from ...product.models import ProductVariant
+    from ...product.models import Product, ProductVariant
 
 
 def check_stock_quantity(variant: "ProductVariant", country_code: str, quantity: int):
