@@ -493,7 +493,6 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
         )
 
         update_checkout_shipping_method_if_invalid(checkout, info.context.discounts)
-        # TODO: should we change checkout country and recalculate checkout?
 
         with transaction.atomic():
             shipping_address.save()
