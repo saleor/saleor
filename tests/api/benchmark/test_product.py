@@ -82,9 +82,7 @@ def test_product_details(product, api_client, count_queries):
             }
             seoDescription
             seoTitle
-            availability {
-              available
-            }
+            isAvailable
           }
         }
     """

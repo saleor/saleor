@@ -13,8 +13,8 @@ query {
     edges {
       node {
         variants {
+          isAvailable
           pricing {
-            available
             onSale
 
             discount {
@@ -59,7 +59,6 @@ def test_get_variant_pricing_on_sale(api_client, sale, product):
     assert pricing
 
     # check availability
-    assert pricing["available"] is True
     assert pricing["onSale"] is True
 
     # check the discount
@@ -85,7 +84,6 @@ def test_get_variant_pricing_not_on_sale(api_client, product):
     assert pricing
 
     # check availability
-    assert pricing["available"] is True
     assert pricing["onSale"] is False
 
     # check the discount
@@ -120,10 +118,8 @@ def test_variant_pricing(variant: ProductVariant, monkeypatch, settings):
 
     pricing = get_variant_availability(variant, local_currency="PLN")
     assert pricing.price_local_currency.currency == "PLN"
-    assert pricing.available
 
     pricing = get_variant_availability(variant)
     assert pricing.price.tax.amount
     assert pricing.price_undiscounted.tax.amount
     assert pricing.price_undiscounted.tax.amount
-    assert pricing.available

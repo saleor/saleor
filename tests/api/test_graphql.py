@@ -149,6 +149,7 @@ def test_real_query(user_api_client, product):
 
     fragment ProductFragmentQuery on Product {
         id
+        isAvailable
         name
         pricing {
             ...ProductPriceFragmentQuery
@@ -165,7 +166,6 @@ def test_real_query(user_api_client, product):
     }
 
     fragment ProductPriceFragmentQuery on ProductPricingInfo {
-        available
         discount {
             gross {
                 amount
