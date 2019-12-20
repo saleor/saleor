@@ -305,12 +305,6 @@ def test_create_product_variant_update_with_new_attributes(
                   }
                   __typename
                 }
-                value {
-                  id
-                  name
-                  slug
-                  __typename
-                }
                 __typename
               }
             }
@@ -344,8 +338,6 @@ def test_create_product_variant_update_with_new_attributes(
     attributes = data["productVariant"]["attributes"]
     assert len(attributes) == 1
     assert attributes[0]["attribute"]["id"] == size_attribute_id
-    assert attributes[0]["value"]["name"] == "XXXL"
-    assert attributes[0]["value"]["slug"] == "xxxl"
 
 
 def test_update_product_variant(staff_api_client, product, permission_manage_products):

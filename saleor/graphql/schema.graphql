@@ -3672,7 +3672,6 @@ type SaleUpdate {
 
 type SelectedAttribute {
   attribute: Attribute!
-  value: AttributeValue @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, use values instead.")
   values: [AttributeValue]!
 }
 
