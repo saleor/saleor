@@ -224,9 +224,10 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         # Resolve and process the lines, retrieving the variants and quantities
         lines = data.pop("lines", None)
         if lines:
-            cleaned_input["variants"], cleaned_input[
-                "quantities"
-            ] = cls.process_checkout_lines(lines)
+            (
+                cleaned_input["variants"],
+                cleaned_input["quantities"],
+            ) = cls.process_checkout_lines(lines)
 
         cleaned_input["shipping_address"] = cls.retrieve_shipping_address(user, data)
         cleaned_input["billing_address"] = cls.retrieve_billing_address(user, data)

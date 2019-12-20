@@ -21,7 +21,7 @@ class CostsData:
 
 
 def get_product_costs_data(
-    product: "Product"
+    product: "Product",
 ) -> Tuple[MoneyRange, Tuple[float, float]]:
 
     purchase_costs_range = MoneyRange(start=zero_money(), stop=zero_money())
