@@ -517,7 +517,7 @@ def test_filter_product_by_category(user_api_client, product):
     category = product.category
     query = """
     query getProducts($categoryId: ID) {
-        products(categories: [$categoryId], first: 1) {
+        products(filter: {categories: [$categoryId]}, first: 1) {
             edges {
                 node {
                     name
@@ -588,10 +588,10 @@ def test_fetch_unpublished_product_anonymous_user(api_client, unavailable_produc
 def test_filter_products_by_attributes(user_api_client, product):
     product_attr = product.product_type.product_attributes.first()
     attr_value = product_attr.values.first()
-    filter_by = "%s:%s" % (product_attr.slug, attr_value.slug)
     query = """
     query {
-        products(attributes: ["%(filter_by)s"], first: 1) {
+        products(filter:
+                    {attributes: {slug: "%(slug)s", value: "%(value)s"}}, first: 1) {
             edges {
                 node {
                     name
@@ -600,7 +600,8 @@ def test_filter_products_by_attributes(user_api_client, product):
         }
     }
     """ % {
-        "filter_by": filter_by
+        "slug": product_attr.slug,
+        "value": attr_value.slug,
     }
 
     response = user_api_client.post_graphql(query)
@@ -616,10 +617,10 @@ def test_filter_products_by_wrong_attributes(user_api_client, product):
     attr_value = (
         product.product_type.variant_attributes.get(slug="size").values.first().id
     )
-    filter_by = "%s:%s" % (product_attr.slug, attr_value)
     query = """
     query {
-        products(attributes: ["%(filter_by)s"], first: 1) {
+        products(filter:
+                    {attributes: {slug: "%(slug)s", value: "%(value)s"}}, first: 1) {
             edges {
                 node {
                     name
@@ -628,7 +629,8 @@ def test_filter_products_by_wrong_attributes(user_api_client, product):
         }
     }
     """ % {
-        "filter_by": filter_by
+        "slug": product_attr.slug,
+        "value": attr_value,
     }
 
     response = user_api_client.post_graphql(query)
@@ -644,7 +646,7 @@ def test_filter_products_by_categories(user_api_client, categories_tree, product
     product.save()
     query = """
     query {
-        products(categories: ["%(category_id)s"], first: 1) {
+        products(filter: {categories: ["%(category_id)s"]}, first: 1) {
             edges {
                 node {
                     name
@@ -665,7 +667,7 @@ def test_filter_products_by_collections(user_api_client, collection, product):
     collection.products.add(product)
     query = """
     query {
-        products(collections: ["%(collection_id)s"], first: 1) {
+        products(filter: {collections: ["%(collection_id)s"]}, first: 1) {
             edges {
                 node {
                     name
