@@ -15,7 +15,7 @@ def test_remove_only_variant_also_removes_wishlist_item(customer_wishlist_item):
 
 
 def test_remove_single_variant_from_wishlist_item(
-    customer_wishlist_item_with_two_variants
+    customer_wishlist_item_with_two_variants,
 ):
     assert customer_wishlist_item_with_two_variants.variants.count() == 2
     [variant_1, variant_2] = customer_wishlist_item_with_two_variants.variants.all()
