@@ -3488,7 +3488,7 @@ type Query {
   shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
   digitalContent(id: ID!): DigitalContent
   digitalContents(before: String, after: String, first: Int, last: Int): DigitalContentCountableConnection
-  attributes(query: String, inCategory: ID, inCollection: ID, filter: AttributeFilterInput, sortBy: AttributeSortingInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
+  attributes(query: String, filter: AttributeFilterInput, sortBy: AttributeSortingInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
   attribute(id: ID!): Attribute
   categories(query: String, filter: CategoryFilterInput, sortBy: CategorySortingInput, level: Int, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   category(id: ID!): Category

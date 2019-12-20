@@ -96,7 +96,7 @@ def test_real_query(user_api_client, product):
             ...ProductListFragmentQuery
             __typename
         }
-        attributes(inCategory: $categoryId, first: 20) {
+        attributes(first: 20, filter: {inCategory: $categoryId}) {
             edges {
                 node {
                     ...ProductFiltersFragmentQuery

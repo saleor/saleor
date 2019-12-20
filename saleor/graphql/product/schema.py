@@ -145,22 +145,6 @@ class ProductQueries(graphene.ObjectType):
         Attribute,
         description="List of the shop's attributes.",
         query=graphene.String(description=DESCRIPTIONS["attributes"]),
-        in_category=graphene.Argument(
-            graphene.ID,
-            description=(
-                "Return attributes for products belonging to the given category. "
-                "DEPRECATED: Will be removed in Saleor 2.10, use the `filter` field "
-                "instead."
-            ),
-        ),
-        in_collection=graphene.Argument(
-            graphene.ID,
-            description=(
-                "Return attributes for products belonging to the given collection. "
-                "DEPRECATED: Will be removed in Saleor 2.10, use the `filter` "
-                "field instead."
-            ),
-        ),
         filter=AttributeFilterInput(description="Filtering options for attributes."),
         sort_by=AttributeSortingInput(description="Sorting options for attributes."),
     )
