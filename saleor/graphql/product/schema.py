@@ -111,7 +111,6 @@ from .resolvers import (
     resolve_products,
     resolve_report_product_sales,
 )
-from .scalars import AttributeScalar
 from .sorters import (
     AttributeSortingInput,
     CategorySortingInput,
@@ -197,27 +196,6 @@ class ProductQueries(graphene.ObjectType):
     products = FilterInputConnectionField(
         Product,
         filter=ProductFilterInput(description="Filtering options for products."),
-        attributes=graphene.List(
-            AttributeScalar,
-            description=(
-                "Filter products by attributes. DEPRECATED: Will be removed in "
-                "Saleor 2.10, use the `filter` field instead."
-            ),
-        ),
-        categories=graphene.List(
-            graphene.ID,
-            description=(
-                "Filter products by category. DEPRECATED: Will be removed in "
-                "Saleor 2.10, use the `filter` field instead."
-            ),
-        ),
-        collections=graphene.List(
-            graphene.ID,
-            description=(
-                "Filter products by collections. DEPRECATED: Will be removed in "
-                "Saleor 2.10, use the `filter` field instead."
-            ),
-        ),
         sort_by=ProductOrder(description="Sort products."),
         stock_availability=graphene.Argument(
             StockAvailability, description="Filter products by stock availability."
