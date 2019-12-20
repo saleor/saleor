@@ -3159,7 +3159,6 @@ enum ProductOrderField {
 }
 
 type ProductPricingInfo {
-  available: Boolean @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, this has been moved to the parent type as 'isAvailable'.")
   onSale: Boolean
   discount: TaxedMoney
   discountLocalCurrency: TaxedMoney
@@ -4362,7 +4361,6 @@ type VariantImageUnassign {
 }
 
 type VariantPricingInfo {
-  available: Boolean @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, this has been moved to the parent type as 'isAvailable'.")
   onSale: Boolean
   discount: TaxedMoney
   discountLocalCurrency: TaxedMoney

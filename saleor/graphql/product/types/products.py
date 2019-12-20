@@ -137,13 +137,6 @@ class Margin(graphene.ObjectType):
 
 
 class BasePricingInfo(graphene.ObjectType):
-    available = graphene.Boolean(
-        description="Whether it is in stock and visible or not.",
-        deprecation_reason=(
-            "DEPRECATED: Will be removed in Saleor 2.10, "
-            "this has been moved to the parent type as 'isAvailable'."
-        ),
-    )
     on_sale = graphene.Boolean(description="Whether it is in sale or not.")
     discount = graphene.Field(
         TaxedMoney, description="The discount amount if in sale (null otherwise)."
