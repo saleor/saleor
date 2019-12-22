@@ -554,6 +554,11 @@ def permission_manage_orders():
 
 
 @pytest.fixture
+def permission_manage_checkouts():
+    return Permission.objects.get(codename="manage_checkouts")
+
+
+@pytest.fixture
 def permission_manage_plugins():
     return Permission.objects.get(codename="manage_plugins")
 

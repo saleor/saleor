@@ -1776,3 +1776,214 @@ def test_is_fully_paid_no_payment(checkout_with_item):
     checkout = checkout_with_item
     is_paid = is_fully_paid(checkout, None)
     assert not is_paid
+
+
+@pytest.fixture
+def update_checkout_metadata():
+    return """
+    mutation checkoutUpdateMeta($token: UUID!, $input: MetaInput!) {
+        checkoutUpdateMeta(token: $token, input: $input){
+            errors {
+                message
+            }
+        }
+    }
+    """
+
+@pytest.fixture
+def update_checkout_private_metadata():
+    return """
+    mutation checkoutUpdatePrivateMeta($id: ID!, $input: MetaInput!) {
+        checkoutUpdatePrivateMeta(id: $id, input: $input){
+            errors {
+                message
+            }
+        }
+    }
+    """
+
+@pytest.fixture
+def checkout_meta_update_variables(checkout):
+    return {
+        "token": checkout.token,
+        "input": {
+            "namespace": "test",
+            "clientName": "client1",
+            "key": "foo",
+            "value": "bar",
+        },
+    }
+
+@pytest.fixture
+def checkout_private_meta_update_variables(checkout):
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.id)
+    return {
+        "id": checkout_id,
+        "input": {
+            "namespace": "test",
+            "clientName": "client1",
+            "key": "foo",
+            "value": "bar",
+        },
+    }
+
+def test_user_without_permission_cannot_update_private_meta(
+    staff_api_client,
+    staff_user,
+    update_checkout_private_meta,
+    checkout_private_meta_update_variables,
+):
+    assert not staff_user.has_perm("checkout.manage_checkouts")
+    response = staff_api_client.post_graphql(
+        update_checkout_private_meta, checkout_private_meta_update_variables
+    )
+    assert_no_permission(response)
+
+def test_user_does_not_need_permission_to_update_meta(
+    staff_api_client, update_checkout_meta, checkout_meta_update_variables, checkout
+):
+    response = staff_api_client.post_graphql(
+        update_checkout_meta, checkout_meta_update_variables, permissions=[]
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["checkoutUpdateMeta"]["errors"]
+    assert len(errors) == 0
+    checkout.refresh_from_db()
+    assert checkout.get_meta(namespace="test", client="client1") == {"foo": "bar"}
+
+
+def test_user_with_permission_can_update_private_meta(
+    permission_manage_checkouts,
+    staff_api_client,
+    staff_user,
+    update_checkout_private_meta,
+    checkout_private_meta_update_variables,
+    checkout,
+):
+    staff_user.user_permissions.add(permission_manage_checkouts)
+    assert staff_user.has_perm("checkout.manage_checkouts")
+    response = staff_api_client.post_graphql(
+        update_checkout_private_meta, checkout_private_meta_update_variables
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["checkoutUpdatePrivateMeta"]["errors"]
+    assert len(errors) == 0
+    checkout.refresh_from_db()
+    assert checkout.get_private_meta(namespace="test", client="client1") == {"foo": "bar"}
+
+
+@pytest.fixture
+def clear_checkout_meta():
+    return """
+        mutation checkoutClearMeta($token: UUID!, $input: MetaPath!) {
+            checkoutClearMeta(token: $token, input: $input) {
+                errors {
+                    message
+                }
+            }
+        }
+    """
+
+
+@pytest.fixture
+def clear_checkout_private_meta():
+    return """
+        mutation checkoutClearPrivateMeta($id: ID!, $input: MetaPath!) {
+            checkoutClearPrivateMeta(id: $id, input: $input) {
+                errors {
+                    message
+                }
+            }
+        }
+    """
+
+
+@pytest.fixture
+def clear_meta_variables(checkout):
+    return {
+        "token": checkout.token,
+        "input": {"namespace": "test", "clientName": "client1", "key": "foo"},
+    }
+
+
+@pytest.fixture
+def clear_meta_private_variables(checkout):
+    checkout_id = graphene.Node.to_global_id("Order", checkout.id)
+    return {
+        "id": checkout_id,
+        "input": {
+            "namespace": "testPrivate",
+            "clientName": "clientPrivate1",
+            "key": "foo",
+        },
+    }
+
+
+@pytest.fixture
+def checkout_with_meta(checkout):
+    checkout.store_meta(namespace="test", client="client1", item={"foo": "bar"})
+    checkout.store_private_meta(
+        namespace="testPrivate", client="clientPrivate1", item={"foo": "bar"}
+    )
+    checkout.save()
+    return checkout
+
+
+def test_user_without_permission_cannot_clear_meta(
+    staff_user, staff_api_client, clear_checkout_meta, clear_meta_variables
+):
+    assert not staff_user.has_perm("checkout.manage_checkouts")
+    response = staff_api_client.post_graphql(clear_checkout_meta, clear_meta_variables)
+    assert_no_permission(response)
+
+
+def test_user_without_permission_cannot_clear_private_meta(
+    staff_user, staff_api_client, clear_checkout_private_meta, clear_meta_private_variables
+):
+    assert not staff_user.has_perm("checkout.manage_checkouts")
+    response = staff_api_client.post_graphql(
+        clear_checkout_private_meta, clear_meta_private_variables
+    )
+    assert_no_permission(response)
+
+
+def test_user_with_permission_can_clear_meta(
+    staff_user,
+    staff_api_client,
+    clear_checkout_meta,
+    clear_meta_variables,
+    checkout_with_meta,
+    permission_manage_checkouts,
+):
+    staff_user.user_permissions.add(permission_manage_checkouts)
+    assert staff_user.has_perm("checkout.manage_checkouts")
+    response = staff_api_client.post_graphql(clear_checkout_meta, clear_meta_variables)
+    assert response.status_code == 200
+    content = get_graphql_content(response)
+    errors = content["data"]["checkoutClearMeta"]["errors"]
+    assert len(errors) == 0
+    checkout_with_meta.refresh_from_db()
+    current_meta = checkout_with_meta.get_meta(namespace="test", client="client1")
+    assert current_meta == {}
+
+
+def test_user_with_permission_can_clear_private_meta(
+    staff_user,
+    staff_api_client,
+    clear_checkout_private_meta,
+    clear_meta_private_variables,
+    checkout_with_meta,
+    permission_manage_checkouts,
+):
+    staff_user.user_permissions.add(permission_manage_checkouts)
+    assert staff_user.has_perm("checkout.manage_checkouts")
+    response = staff_api_client.post_graphql(
+        clear_checkout_private_meta, clear_meta_private_variables
+    )
+    assert response.status_code == 200
+    content = get_graphql_content(response)
+    errors = content["data"]["checkoutClearPrivateMeta"]["errors"]
+    assert len(errors) == 0
+    checkout_with_meta.refresh_from_db()
+    current_meta = checkout_with_meta.get_private_meta(namespace="test", client="client1")
+    assert current_meta == {}

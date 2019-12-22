@@ -44,7 +44,7 @@ class CheckoutQueryset(models.QuerySet):
 
 class Checkout(ModelWithMetadata):
     """A shopping checkout."""
-
+    id = ""
     created = models.DateTimeField(auto_now_add=True)
     last_change = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(

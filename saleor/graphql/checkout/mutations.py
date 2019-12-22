@@ -46,6 +46,7 @@ from ..core.mutations import (
     UpdateMetaBaseMutation,
 )
 from ..core.types.common import CheckoutError
+from ..core.types import MetaInput, MetaPath
 from ..core.utils import from_global_id_strict_type
 from ..order.types import Order
 from ..product.types import ProductVariant
@@ -861,6 +862,22 @@ class CheckoutUpdateMeta(UpdateMetaBaseMutation):
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
 
+    class Arguments:
+        token = graphene.UUID(
+            description="Token of an object to update.",
+            required=True,
+        )
+
+        input = MetaInput(
+            description="Fields required to update new or stored metadata item.",
+            required=True,
+        )
+
+    @classmethod
+    def get_instance(cls, info, **data):
+        token = data["token"]
+        return models.Checkout.objects.get(token=token)
+
 
 class CheckoutUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
@@ -881,6 +898,18 @@ class CheckoutClearMeta(ClearMetaBaseMutation):
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
 
+
+    class Arguments:
+        token = graphene.UUID(description="Token of an object to clear.", required=True)
+        input = MetaPath(
+            description="Fields required to update new or stored metadata item.",
+            required=True,
+        )
+
+    @classmethod
+    def get_instance(cls, info, **data):
+        token = data["token"]
+        return models.Checkout.objects.get(token=token)
 
 class CheckoutClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:

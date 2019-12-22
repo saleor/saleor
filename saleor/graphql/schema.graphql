@@ -2265,8 +2265,8 @@ type Mutation {
   checkoutShippingAddressUpdate(checkoutId: ID!, shippingAddress: AddressInput!): CheckoutShippingAddressUpdate
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!): CheckoutShippingMethodUpdate
   checkoutUpdateVoucher(checkoutId: ID!, voucherCode: String): CheckoutUpdateVoucher
-  checkoutUpdateMetadata(id: ID!, input: MetaInput!): CheckoutUpdateMeta
-  checkoutClearMetadata(id: ID!, input: MetaPath!): CheckoutClearMeta
+  checkoutUpdateMetadata(input: MetaInput!, token: UUID!): CheckoutUpdateMeta
+  checkoutClearMetadata(input: MetaPath!, token: UUID!): CheckoutClearMeta
   checkoutUpdatePrivateMetadata(id: ID!, input: MetaInput!): CheckoutUpdatePrivateMeta
   checkoutClearPrivateMetadata(id: ID!, input: MetaPath!): CheckoutClearPrivateMeta
   requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
