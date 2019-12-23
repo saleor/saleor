@@ -86,24 +86,41 @@ def query_categories_with_filter():
     return query
 
 
-def test_fetch_all_products(user_api_client, product):
-    query = """
+QUERY_FETCH_ALL_PRODUCTS = """
     query {
         products(first: 1) {
             totalCount
             edges {
                 node {
-                    id
+                    name
+                    isPublished
                 }
             }
         }
     }
-    """
-    response = user_api_client.post_graphql(query)
+"""
+
+
+def test_fetch_all_products(user_api_client, product):
+    response = user_api_client.post_graphql(QUERY_FETCH_ALL_PRODUCTS)
     content = get_graphql_content(response)
     num_products = Product.objects.count()
     assert content["data"]["products"]["totalCount"] == num_products
     assert len(content["data"]["products"]["edges"]) == num_products
+
+
+def test_fetch_all_products_service_account(
+    service_account_api_client,
+    service_account,
+    unavailable_product,
+    permission_manage_products,
+):
+    service_account.permissions.add(permission_manage_products)
+    response = service_account_api_client.post_graphql(QUERY_FETCH_ALL_PRODUCTS)
+    content = get_graphql_content(response)
+    product_data = content["data"]["products"]["edges"][0]["node"]
+    assert product_data["name"] == unavailable_product.name
+    assert product_data["isPublished"] == unavailable_product.is_published
 
 
 def test_fetch_unavailable_products(user_api_client, product):
