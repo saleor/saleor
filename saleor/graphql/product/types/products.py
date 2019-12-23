@@ -202,24 +202,6 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
             "indicates that the default product price is used."
         ),
     )
-    price = graphene.Field(
-        Money,
-        description="Price of the product variant.",
-        deprecation_reason=(
-            "DEPRECATED: Will be removed in Saleor 2.10, "
-            "has been replaced by 'pricing.priceUndiscounted'"
-        ),
-    )
-    availability = graphene.Field(
-        VariantPricingInfo,
-        description=(
-            "Informs about variant's availability in the storefront, current price and "
-            "discounted price."
-        ),
-        deprecation_reason=(
-            "DEPRECATED: Will be removed in Saleor 2.10, has been renamed to `pricing`."
-        ),
-    )
     pricing = graphene.Field(
         VariantPricingInfo,
         description=(
@@ -404,16 +386,6 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
         description="The main thumbnail for a product.",
         size=graphene.Argument(graphene.Int, description="Size of thumbnail."),
     )
-    availability = graphene.Field(
-        ProductPricingInfo,
-        description=(
-            "Informs about product's availability in the storefront, current price and "
-            "discounts."
-        ),
-        deprecation_reason=(
-            "DEPRECATED: Will be removed in Saleor 2.10, Has been renamed to `pricing`."
-        ),
-    )
     pricing = graphene.Field(
         ProductPricingInfo,
         description=(
@@ -425,14 +397,6 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
         description="Whether the product is in stock and visible or not."
     )
     base_price = graphene.Field(Money, description="The product's default base price.")
-    price = graphene.Field(
-        Money,
-        description="The product's default base price.",
-        deprecation_reason=(
-            "DEPRECATED: Will be removed in Saleor 2.10, has been replaced by "
-            "`basePrice`"
-        ),
-    )
     minimal_variant_price = graphene.Field(
         Money, description="The price of the cheapest variant (including discounts)."
     )
