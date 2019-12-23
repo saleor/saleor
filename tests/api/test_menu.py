@@ -51,42 +51,6 @@ def test_menu_query(user_api_client, menu):
     assert not content["data"]["menu"]
 
 
-def test_menus_query(user_api_client, menu, menu_item):
-    query = """
-    query menus($menu_name: String){
-        menus(query: $menu_name, first: 1) {
-            edges {
-                node {
-                    name
-                    items {
-                        name
-                        menu {
-                            name
-                        }
-                        url
-                    }
-                }
-            }
-        }
-    }
-    """
-
-    menu.items.add(menu_item)
-    menu.save()
-    menu_name = menu.name
-    variables = {"menu_name": menu_name}
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    menu_data = content["data"]["menus"]["edges"][0]["node"]
-    assert menu_data["name"] == menu.name
-    items = menu_data["items"]
-    assert len(items) == 1
-    item = items[0]
-    assert item["name"] == menu_item.name
-    assert item["url"] == menu_item.url
-    assert item["menu"]["name"] == menu.name
-
-
 @pytest.mark.parametrize(
     "menu_filter, count", [({"search": "Menu1"}, 1), ({"search": "Menu"}, 2)]
 )

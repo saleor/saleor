@@ -9,11 +9,7 @@ from django.shortcuts import reverse
 from graphql_relay import to_global_id
 
 from saleor.graphql.product.types import Product
-from saleor.graphql.utils import (
-    filter_by_query_param,
-    generate_query_argument_description,
-    get_nodes,
-)
+from saleor.graphql.utils import filter_by_query_param, get_nodes
 from tests.api.utils import get_graphql_content
 
 
@@ -285,13 +281,3 @@ def test_filter_by_query_param(qs):
         q_objects |= Q(**{q: test_kwargs[q]})
     # FIXME: django 1.11 fails on called_once_with(q_objects)
     qs.filter.call_count == 1
-
-
-def test_generate_query_argument_description():
-    expected = (
-        "DEPRECATED: Will be removed in Saleor 2.10,"
-        " use `filter: {search: {}}` instead."
-        "\nSupported filter parameters:\n`field_1`, `field_2`"
-    )
-    field_list = ["field_1", "field_2"]
-    assert generate_query_argument_description(field_list) == expected
