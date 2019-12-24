@@ -1,6 +1,6 @@
 from django.utils.translation import pgettext_lazy
 
-from ..core.permissions import AccountPermissions, OrderPermissions, ProductPermissions
+from ..core.permissions import AccountPermissions, OrderPermissions, ProductPermissions, CheckoutPermissions
 
 
 class WebhookEventType:

@@ -7,6 +7,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.core.validators import MinValueValidator
 from django.db import models
+from django.utils.translation import pgettext_lazy
 from django.utils.encoding import smart_str
 from django_prices.models import MoneyField
 from prices import Money
@@ -17,6 +18,8 @@ from ..core.taxes import zero_money
 from ..core.weight import zero_weight
 from ..giftcard.models import GiftCard
 from ..shipping.models import ShippingMethod
+from ..core.permissions import CheckoutPermissions
+
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -93,6 +96,12 @@ class Checkout(ModelWithMetadata):
 
     class Meta:
         ordering = ("-last_change",)
+        permissions = (
+            (
+                CheckoutPermissions.MANAGE_CHECKOUTS.codename,
+                pgettext_lazy("Permission description", "Manage checkouts."),
+            ),
+        )
 
     def __repr__(self):
         return "Checkout(quantity=%s)" % (self.quantity,)

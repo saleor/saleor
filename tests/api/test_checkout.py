@@ -7,6 +7,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from prices import Money, TaxedMoney
 
+from saleor.core.permissions import CheckoutPermissions
 from saleor.checkout import calculations
 from saleor.checkout.error_codes import CheckoutErrorCode
 from saleor.checkout.models import Checkout
@@ -25,6 +26,7 @@ from saleor.shipping import ShippingMethodType
 from saleor.shipping.models import ShippingMethod
 from tests.api.utils import get_graphql_content
 
+from .utils import assert_no_permission, get_graphql_content
 
 @pytest.fixture
 def other_shipping_method(shipping_zone):
@@ -1588,7 +1590,7 @@ def test_query_checkout_line(checkout_with_item, user_api_client):
 
 
 def test_query_checkouts(
-    checkout_with_item, staff_api_client, permission_manage_orders
+    checkout_with_item, staff_api_client, permission_manage_orders, permission_manage_checkouts
 ):
     query = """
     {
@@ -1603,7 +1605,10 @@ def test_query_checkouts(
     """
     checkout = checkout_with_item
     response = staff_api_client.post_graphql(
-        query, {}, permissions=[permission_manage_orders]
+        query, {}, permissions=[
+            permission_manage_orders,
+            permission_manage_checkouts,
+        ],
     )
     content = get_graphql_content(response)
     received_checkout = content["data"]["checkouts"]["edges"][0]["node"]
@@ -1611,7 +1616,7 @@ def test_query_checkouts(
 
 
 def test_query_checkout_lines(
-    checkout_with_item, staff_api_client, permission_manage_orders
+    checkout_with_item, staff_api_client, permission_manage_orders, permission_manage_checkouts
 ):
     query = """
     {
@@ -1626,7 +1631,7 @@ def test_query_checkout_lines(
     """
     checkout = checkout_with_item
     response = staff_api_client.post_graphql(
-        query, permissions=[permission_manage_orders]
+        query, permissions=[permission_manage_orders, permission_manage_checkouts]
     )
     content = get_graphql_content(response)
     lines = content["data"]["checkoutLines"]["edges"]
@@ -1779,10 +1784,10 @@ def test_is_fully_paid_no_payment(checkout_with_item):
 
 
 @pytest.fixture
-def update_checkout_metadata():
+def update_checkout_meta():
     return """
     mutation checkoutUpdateMeta($token: UUID!, $input: MetaInput!) {
-        checkoutUpdateMeta(token: $token, input: $input){
+        checkoutUpdateMetadata(token: $token, input: $input){
             errors {
                 message
             }
@@ -1791,10 +1796,10 @@ def update_checkout_metadata():
     """
 
 @pytest.fixture
-def update_checkout_private_metadata():
+def update_checkout_private_meta():
     return """
     mutation checkoutUpdatePrivateMeta($id: ID!, $input: MetaInput!) {
-        checkoutUpdatePrivateMeta(id: $id, input: $input){
+        checkoutUpdatePrivateMetadata(id: $id, input: $input){
             errors {
                 message
             }
@@ -1833,7 +1838,7 @@ def test_user_without_permission_cannot_update_private_meta(
     update_checkout_private_meta,
     checkout_private_meta_update_variables,
 ):
-    assert not staff_user.has_perm("checkout.manage_checkouts")
+    assert not staff_user.has_perm(CheckoutPermissions.MANAGE_CHECKOUTS)
     response = staff_api_client.post_graphql(
         update_checkout_private_meta, checkout_private_meta_update_variables
     )
@@ -1861,7 +1866,7 @@ def test_user_with_permission_can_update_private_meta(
     checkout,
 ):
     staff_user.user_permissions.add(permission_manage_checkouts)
-    assert staff_user.has_perm("checkout.manage_checkouts")
+    assert staff_user.has_perm(CheckoutPermissions.MANAGE_CHECKOUTS)
     response = staff_api_client.post_graphql(
         update_checkout_private_meta, checkout_private_meta_update_variables
     )
@@ -1876,7 +1881,7 @@ def test_user_with_permission_can_update_private_meta(
 def clear_checkout_meta():
     return """
         mutation checkoutClearMeta($token: UUID!, $input: MetaPath!) {
-            checkoutClearMeta(token: $token, input: $input) {
+            checkoutClearMetadata(token: $token, input: $input) {
                 errors {
                     message
                 }
@@ -1889,7 +1894,7 @@ def clear_checkout_meta():
 def clear_checkout_private_meta():
     return """
         mutation checkoutClearPrivateMeta($id: ID!, $input: MetaPath!) {
-            checkoutClearPrivateMeta(id: $id, input: $input) {
+            checkoutClearPrivateMetadata(id: $id, input: $input) {
                 errors {
                     message
                 }
@@ -1932,7 +1937,7 @@ def checkout_with_meta(checkout):
 def test_user_without_permission_cannot_clear_meta(
     staff_user, staff_api_client, clear_checkout_meta, clear_meta_variables
 ):
-    assert not staff_user.has_perm("checkout.manage_checkouts")
+    assert not staff_user.has_perm(CheckoutPermissions.MANAGE_CHECKOUTS)
     response = staff_api_client.post_graphql(clear_checkout_meta, clear_meta_variables)
     assert_no_permission(response)
 
@@ -1940,7 +1945,7 @@ def test_user_without_permission_cannot_clear_meta(
 def test_user_without_permission_cannot_clear_private_meta(
     staff_user, staff_api_client, clear_checkout_private_meta, clear_meta_private_variables
 ):
-    assert not staff_user.has_perm("checkout.manage_checkouts")
+    assert not staff_user.has_perm(CheckoutPermissions.MANAGE_CHECKOUTS)
     response = staff_api_client.post_graphql(
         clear_checkout_private_meta, clear_meta_private_variables
     )
@@ -1956,11 +1961,11 @@ def test_user_with_permission_can_clear_meta(
     permission_manage_checkouts,
 ):
     staff_user.user_permissions.add(permission_manage_checkouts)
-    assert staff_user.has_perm("checkout.manage_checkouts")
+    assert staff_user.has_perm(CheckoutPermissions.MANAGE_CHECKOUTS)
     response = staff_api_client.post_graphql(clear_checkout_meta, clear_meta_variables)
     assert response.status_code == 200
     content = get_graphql_content(response)
-    errors = content["data"]["checkoutClearMeta"]["errors"]
+    errors = content["data"]["checkoutClearPrivateMeta"]["errors"]
     assert len(errors) == 0
     checkout_with_meta.refresh_from_db()
     current_meta = checkout_with_meta.get_meta(namespace="test", client="client1")
@@ -1976,7 +1981,7 @@ def test_user_with_permission_can_clear_private_meta(
     permission_manage_checkouts,
 ):
     staff_user.user_permissions.add(permission_manage_checkouts)
-    assert staff_user.has_perm("checkout.manage_checkouts")
+    assert staff_user.has_perm(CheckoutPermissions.MANAGE_CHECKOUTS)
     response = staff_api_client.post_graphql(
         clear_checkout_private_meta, clear_meta_private_variables
     )

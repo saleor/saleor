@@ -29,7 +29,7 @@ from ...checkout.utils import (
 )
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
-from ...core.permissions import OrderPermissions
+from ...core.permissions import OrderPermissions, CheckoutPermissions
 from ...core.taxes import TaxError
 from ...core.utils.url import validate_storefront_url
 from ...discount import models as voucher_model
@@ -856,7 +856,7 @@ class CheckoutRemovePromoCode(BaseMutation):
 class CheckoutUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Updates metadata for checkout."
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        permissions = (OrderPermissions.MANAGE_ORDERS, CheckoutPermissions.MANAGE_CHECKOUTS, )
         model = models.Checkout
         public = True
         error_type_class = CheckoutError
@@ -882,7 +882,7 @@ class CheckoutUpdateMeta(UpdateMetaBaseMutation):
 class CheckoutUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Updates private metadata for checkout."
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        permissions = (CheckoutPermissions.MANAGE_CHECKOUTS, )
         model = models.Checkout
         public = False
         error_type_class = CheckoutError
@@ -892,7 +892,7 @@ class CheckoutUpdatePrivateMeta(UpdateMetaBaseMutation):
 class CheckoutClearMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clear metadata for checkout."
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        permissions = (CheckoutPermissions.MANAGE_CHECKOUTS, )
         model = models.Checkout
         public = True
         error_type_class = CheckoutError
@@ -911,10 +911,11 @@ class CheckoutClearMeta(ClearMetaBaseMutation):
         token = data["token"]
         return models.Checkout.objects.get(token=token)
 
+
 class CheckoutClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clear private metadata for checkout."
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        permissions = (CheckoutPermissions.MANAGE_CHECKOUTS, )
         model = models.Checkout
         public = False
         error_type_class = CheckoutError
