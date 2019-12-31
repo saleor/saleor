@@ -8,11 +8,12 @@ from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from ..checkout import base_calculations
 from ..core.payments import PaymentInterface
-from ..core.taxes import TaxType, quantize_price
+from ..core.taxes import TaxType, quantize_price, zero_taxed_money
 from .models import PluginConfiguration
 
 if TYPE_CHECKING:
     # flake8: noqa
+    from django.db.models.query import QuerySet
     from .base_plugin import BasePlugin
     from ..checkout.models import Checkout, CheckoutLine
     from ..discount.types import DiscountsListType
@@ -30,7 +31,7 @@ if TYPE_CHECKING:
 class ExtensionsManager(PaymentInterface):
     """Base manager for handling plugins logic."""
 
-    plugins = None
+    plugins: list = []
 
     def __init__(self, plugins: List[str]):
         self.plugins = []
@@ -51,7 +52,7 @@ class ExtensionsManager(PaymentInterface):
 
     def __run_method_on_single_plugin(
         self,
-        plugin: "BasePlugin",
+        plugin: Optional["BasePlugin"],
         method_name: str,
         previous_value: Any,
         *args,
@@ -116,6 +117,8 @@ class ExtensionsManager(PaymentInterface):
         )
 
     def calculate_order_shipping(self, order: "Order") -> TaxedMoney:
+        if not order.shipping_method:
+            return zero_taxed_money(order.currency)
         shipping_price = order.shipping_method.price
         default_value = quantize_price(
             TaxedMoney(net=shipping_price, gross=shipping_price),
@@ -143,7 +146,7 @@ class ExtensionsManager(PaymentInterface):
         )
 
     def get_tax_rate_type_choices(self) -> List[TaxType]:
-        default_value = []
+        default_value: list = []
         return self.__run_method_on_plugins("get_tax_rate_type_choices", default_value)
 
     def show_taxes_on_storefront(self) -> bool:
@@ -218,37 +221,37 @@ class ExtensionsManager(PaymentInterface):
 
     def authorize_payment(
         self, gateway: str, payment_information: "PaymentData"
-    ) -> Optional["GatewayResponse"]:
+    ) -> "GatewayResponse":
         method_name = "authorize_payment"
         return self.__run_payment_method(gateway, method_name, payment_information)
 
     def capture_payment(
         self, gateway: str, payment_information: "PaymentData"
-    ) -> Optional["GatewayResponse"]:
+    ) -> "GatewayResponse":
         method_name = "capture_payment"
         return self.__run_payment_method(gateway, method_name, payment_information)
 
     def refund_payment(
         self, gateway: str, payment_information: "PaymentData"
-    ) -> Optional["GatewayResponse"]:
+    ) -> "GatewayResponse":
         method_name = "refund_payment"
         return self.__run_payment_method(gateway, method_name, payment_information)
 
     def void_payment(
         self, gateway: str, payment_information: "PaymentData"
-    ) -> Optional["GatewayResponse"]:
+    ) -> "GatewayResponse":
         method_name = "void_payment"
         return self.__run_payment_method(gateway, method_name, payment_information)
 
     def confirm_payment(
         self, gateway: str, payment_information: "PaymentData"
-    ) -> Optional["GatewayResponse"]:
+    ) -> "GatewayResponse":
         method_name = "confirm_payment"
         return self.__run_payment_method(gateway, method_name, payment_information)
 
     def process_payment(
         self, gateway: str, payment_information: "PaymentData"
-    ) -> Optional["GatewayResponse"]:
+    ) -> "GatewayResponse":
         method_name = "process_payment"
         return self.__run_payment_method(gateway, method_name, payment_information)
 
@@ -263,7 +266,7 @@ class ExtensionsManager(PaymentInterface):
     def list_payment_sources(
         self, gateway: str, customer_id: str
     ) -> List["CustomerSource"]:
-        default_value = []
+        default_value: list = []
         gtw = self.get_plugin(gateway)
         if gtw is not None:
             return self.__run_method_on_single_plugin(
@@ -277,7 +280,7 @@ class ExtensionsManager(PaymentInterface):
         return [
             plugin
             for plugin in plugins
-            if self.get_plugin_configuration(plugin.PLUGIN_NAME).active
+            if getattr(self.get_plugin_configuration(plugin.PLUGIN_NAME), "active")
         ]
 
     def list_payment_plugin_names(self, active_only: bool = False) -> List[str]:
@@ -291,7 +294,7 @@ class ExtensionsManager(PaymentInterface):
             if payment_method in type(plugin).__dict__
         ]
 
-    def list_payment_gateways(self, active_only: bool = True) -> List[dict]:
+    def list_payment_gateways(self, active_only: bool = True) -> List[dict]:  # type: ignore
         payment_plugins = self.list_payment_plugin_names(active_only=active_only)
         return [
             {"name": plugin_name, "config": self.__get_payment_config(plugin_name)}
@@ -300,7 +303,7 @@ class ExtensionsManager(PaymentInterface):
 
     def __get_payment_config(self, gateway: str) -> List[dict]:
         method_name = "get_payment_config"
-        default_value = []
+        default_value: list = []
         gtw = self.get_plugin(gateway)
         return self.__run_method_on_single_plugin(gtw, method_name, default_value)
 
@@ -310,7 +313,7 @@ class ExtensionsManager(PaymentInterface):
         method_name: str,
         payment_information: "PaymentData",
         **kwargs,
-    ) -> Optional["GatewayResponse"]:
+    ) -> "GatewayResponse":
         default_value = None
         gtw = self.get_plugin(gateway)
         if gtw is not None:
@@ -367,14 +370,16 @@ class ExtensionsManager(PaymentInterface):
         for plugin in self.plugins:
             if plugin.PLUGIN_NAME == plugin_name:
                 return plugin
+        return None
 
     def get_plugin_configuration(self, plugin_name) -> Optional["PluginConfiguration"]:
         plugin = self.get_plugin(plugin_name)
         if plugin is not None:
             plugin_configurations_qs = PluginConfiguration.objects.all()
             return plugin.get_plugin_configuration(plugin_configurations_qs)
+        return None
 
-    def get_plugin_configurations(self) -> List["PluginConfiguration"]:
+    def get_plugin_configurations(self) -> "QuerySet[PluginConfiguration]":
         plugin_configuration_ids = []
         plugin_configurations_qs = PluginConfiguration.objects.all()
         for plugin in self.plugins:

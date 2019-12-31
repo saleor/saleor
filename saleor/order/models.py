@@ -1,5 +1,6 @@
 from decimal import Decimal
 from operator import attrgetter
+from typing import Optional
 from uuid import uuid4
 
 from django.conf import settings
@@ -416,8 +417,10 @@ class OrderLine(models.Model):
         return self.quantity - self.quantity_fulfilled
 
     @property
-    def is_digital(self) -> bool:
+    def is_digital(self) -> Optional[bool]:
         """Check if a variant is digital and contains digital content."""
+        if not self.variant:
+            return None
         is_digital = self.variant.is_digital()
         has_digital = hasattr(self.variant, "digital_content")
         return is_digital and has_digital

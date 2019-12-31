@@ -53,5 +53,8 @@ def check_single_plugin(plugin_path: str, errors: List[Error]):
 def check_plugin_name(plugin_class: "BasePlugin", errors: List[Error]):
     if not getattr(plugin_class, "PLUGIN_NAME", None):
         errors.append(
-            Error("Missing field PLUGIN_NAME for plugin - %s" % plugin_class.__name__)
+            Error(
+                "Missing field PLUGIN_NAME for plugin - %s"
+                % plugin_class.__name__  # type: ignore
+            )
         )

@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Iterable, Union
+from typing import TYPE_CHECKING, Iterable, Optional, Union
 from uuid import uuid4
 
 from django.conf import settings
@@ -214,7 +214,7 @@ class ProductsQueryset(PublishedQuerySet):
                     ordering=(
                         [
                             f"filtered_attribute__values__{field_name}"
-                            for field_name in AttributeValue._meta.ordering
+                            for field_name in AttributeValue._meta.ordering or []
                         ]
                     ),
                 ),
@@ -224,7 +224,7 @@ class ProductsQueryset(PublishedQuerySet):
 
         qs = qs.extra(
             order_by=[
-                Case(
+                Case(  # type: ignore
                     # Make the products having no such attribute be last in the sorting
                     When(concatenated_values=None, then=2),
                     # Put the products having an empty attribute value at the bottom of
@@ -602,7 +602,7 @@ class DigitalContentUrl(models.Model):
             self.token = str(uuid4()).replace("-", "")
         super().save(force_insert, force_update, using, update_fields)
 
-    def get_absolute_url(self) -> str:
+    def get_absolute_url(self) -> Optional[str]:
         url = reverse("digital-product", kwargs={"token": str(self.token)})
         return build_absolute_uri(url)
 
@@ -681,7 +681,7 @@ class AttributeProduct(SortableModel):
         Product,
         blank=True,
         through=AssignedProductAttribute,
-        through_fields=["assignment", "product"],
+        through_fields=("assignment", "product"),
         related_name="attributesrelated",
     )
 
@@ -706,7 +706,7 @@ class AttributeVariant(SortableModel):
         ProductVariant,
         blank=True,
         through=AssignedVariantAttribute,
-        through_fields=["assignment", "variant"],
+        through_fields=("assignment", "variant"),
         related_name="attributesrelated",
     )
 
@@ -744,7 +744,7 @@ class AttributeQuerySet(BaseAttributeQuerySet):
             id_sort = id_field
         else:
             sort_method = sort_order_field.desc(nulls_first=True)
-            id_sort = id_field.desc()
+            id_sort = id_field.desc()  # type: ignore
 
         return self.order_by(sort_method, id_sort)
 
@@ -770,14 +770,14 @@ class Attribute(ModelWithMetadata):
         blank=True,
         related_name="product_attributes",
         through=AttributeProduct,
-        through_fields=["attribute", "product_type"],
+        through_fields=("attribute", "product_type"),
     )
     product_variant_types = models.ManyToManyField(
         ProductType,
         blank=True,
         related_name="variant_attributes",
         through=AttributeVariant,
-        through_fields=["attribute", "product_type"],
+        through_fields=("attribute", "product_type"),
     )
 
     value_required = models.BooleanField(default=False, blank=True)
@@ -930,7 +930,7 @@ class Collection(SeoModel, ModelWithMetadata, PublishableModel):
         blank=True,
         related_name="collections",
         through=CollectionProduct,
-        through_fields=["collection", "product"],
+        through_fields=("collection", "product"),
     )
     background_image = VersatileImageField(
         upload_to="collection-backgrounds", blank=True, null=True
