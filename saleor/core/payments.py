@@ -2,7 +2,13 @@ from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, List
 
 if TYPE_CHECKING:
-    from saleor.payment.interface import PaymentData, GatewayResponse, TokenConfig
+    # flake8: noqa
+    from saleor.payment.interface import (
+        PaymentData,
+        GatewayResponse,
+        TokenConfig,
+        CustomerSource,
+    )
 
 
 class PaymentInterface(ABC):

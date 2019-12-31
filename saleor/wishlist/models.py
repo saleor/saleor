@@ -7,7 +7,8 @@ from ..product.models import Product, ProductVariant
 
 
 class WishlistQuerySet(models.QuerySet):
-    def get_or_create(self, user: "User"):  # pylint: disable=W0221
+    def get_or_create(self, user: "User"):  # type: ignore
+        # pylint: disable=W0221
         try:
             return user.wishlist
         except self.model.DoesNotExist:

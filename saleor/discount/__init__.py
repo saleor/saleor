@@ -1,8 +1,12 @@
 from dataclasses import dataclass
-from typing import Any, List
+from typing import TYPE_CHECKING, List, Set, Union
 
 from django.conf import settings
 from django.utils.translation import pgettext_lazy
+
+if TYPE_CHECKING:
+    # flake8: noqa
+    from .models import Sale, Voucher
 
 
 class DiscountValueType:
@@ -34,7 +38,7 @@ class VoucherType:
 
 @dataclass
 class DiscountInfo:
-    sale: Any
-    product_ids: List[int]
-    category_ids: List[int]
-    collection_ids: List[int]
+    sale: Union["Sale", "Voucher"]
+    product_ids: Union[List[int], Set[int]]
+    category_ids: Union[List[int], Set[int]]
+    collection_ids: Union[List[int], Set[int]]
