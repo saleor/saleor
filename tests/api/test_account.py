@@ -2152,6 +2152,32 @@ def test_account_confirmation(user_api_client, customer_user):
     assert customer_user.is_active == True
 
 
+def test_account_confirmation_invalid_user(user_api_client, customer_user):
+    variables = {
+        "email": "non-existing@nope.com",
+        "token": default_token_generator.make_token(customer_user)
+    }
+    response = user_api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["confirmAccount"]["errors"] == [{
+        "field": "email",
+        "message": "User with this email doesn't exist"
+    }]
+
+
+def test_account_confirmation_invalid_token(user_api_client, customer_user):
+    variables = {
+        "email": customer_user.email,
+        "token": "invalid_token"
+    }
+    response = user_api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["confirmAccount"]["errors"] == [{
+        "field": "token",
+        "message": "Invalid or expired token."
+    }]
+
+
 @patch("saleor.account.emails._send_password_reset_email")
 def test_request_password_reset_email_for_staff(
     send_password_reset_email_mock, staff_api_client
