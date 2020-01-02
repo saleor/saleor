@@ -32,14 +32,14 @@ def email_sent_event(
     *,
     order: Order,
     user: Optional[UserType],
-    email_type: OrderEventsEmails,
+    email_type: str,  # use "OrderEventsEmails" class
     user_pk: int = None,
 ) -> OrderEvent:
 
-    if user is not None and not user.is_anonymous:
+    if user and not user.is_anonymous:
         kwargs = {"user": user}
     elif user_pk:
-        kwargs = {"user_id": user_pk}
+        kwargs = {"user_id": user_pk}  # type: ignore
     else:
         kwargs = {}
 
@@ -97,7 +97,7 @@ def order_created_event(
         account_events.customer_placed_order_event(user=user, order=order)
 
     if user.is_anonymous:
-        user = None
+        user = None  # type: ignore
 
     return OrderEvent.objects.create(order=order, type=event_type, user=user)
 

@@ -181,6 +181,9 @@ def mark_order_as_paid(order: "Order", request_user: "User"):
     # pylint: disable=cyclic-import
     from ..payment.utils import create_payment
 
+    if not order.billing_address:
+        raise Exception("Order does not have billing address")
+
     payment = create_payment(
         gateway=CustomPaymentChoices.MANUAL,
         payment_token="",
@@ -235,8 +238,9 @@ def automatically_fulfill_digital_lines(order: "Order"):
     for line in digital_lines:
         if not order_line_needs_automatic_fulfillment(line):
             continue
-        digital_content = line.variant.digital_content
-        digital_content.urls.create(line=line)
+        if line.variant:
+            digital_content = line.variant.digital_content
+            digital_content.urls.create(line=line)
         quantity = line.quantity
         FulfillmentLine.objects.create(
             fulfillment=fulfillment, order_line=line, quantity=quantity
