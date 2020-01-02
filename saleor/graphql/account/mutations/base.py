@@ -159,7 +159,8 @@ class ConfirmAccount(BaseMutation):
             description="A one-time token required to set the password.", required=True
         )
         email = graphene.String(
-            description="E-mail of the user performing account confirmation.", required=True
+            description="E-mail of the user performing account confirmation.",
+            required=True
         )
 
     class Meta:
