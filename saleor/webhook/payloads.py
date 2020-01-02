@@ -1,7 +1,7 @@
 import json
 from typing import Optional
 
-from django.db.models import Model, QuerySet
+from django.db.models import QuerySet
 
 from ..account.models import User
 from ..order import FulfillmentStatus, OrderStatus
@@ -165,7 +165,7 @@ def generate_product_payload(product: "Product"):
     return product_payload
 
 
-def _get_sample_object(qs: QuerySet) -> Optional[Model]:
+def _get_sample_object(qs: QuerySet):
     """Return random object from query."""
     random_object = qs.order_by("?").first()
     return random_object
