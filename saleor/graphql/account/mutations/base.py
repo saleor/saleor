@@ -163,7 +163,7 @@ class ConfirmAccount(BaseMutation):
         )
 
     class Meta:
-        description = "Sends an email with the account confirmation link."
+        description = "Confirm user account by token sent by email during registration"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):

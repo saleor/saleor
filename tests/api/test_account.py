@@ -9,6 +9,7 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.core.validators import URLValidator
+from django.test import override_settings
 from freezegun import freeze_time
 from prices import Money
 
@@ -601,6 +602,14 @@ def test_customer_register(send_account_confirmation_email_mock, user_api_client
     customer_creation_event = account_events.CustomerEvent.objects.get()
     assert customer_creation_event.type == account_events.CustomerEvents.ACCOUNT_CREATED
     assert customer_creation_event.user == new_user
+
+
+@override_settings(ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=False)
+@patch("saleor.account.emails._send_account_confirmation_email")
+def test_customer_register_disabled_email_confirmation(send_account_confirmation_email_mock, user_api_client):
+    variables = {"email": "customer@example.com", "password": "Password"}
+    user_api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
+    assert send_account_confirmation_email_mock.delay.call_count == 0
 
 
 CUSTOMER_CREATE_MUTATION = """
@@ -2129,20 +2138,18 @@ def test_account_reset_password(
     url_validator(url)
 
 
-def test_account_confirmation(
-    user_api_client, customer_user
-):
+def test_account_confirmation(user_api_client, customer_user):
     customer_user.is_active = False
     customer_user.save()
-    token = default_token_generator.make_token(customer_user)
 
-    variables = {"email": customer_user.email, "token": token}
-    response = user_api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
-    content = get_graphql_content(response)
+    variables = {
+        "email": customer_user.email,
+        "token": default_token_generator.make_token(customer_user)
+    }
+    user_api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
 
     customer_user.refresh_from_db()
     assert customer_user.is_active == True
-
 
 
 @patch("saleor.account.emails._send_password_reset_email")

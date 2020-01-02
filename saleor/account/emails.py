@@ -7,7 +7,6 @@ from templated_email import send_templated_mail
 from ..account import events as account_events
 from ..celeryconf import app
 from ..core.emails import get_email_context, prepare_url
-from ..core.utils import build_absolute_uri
 
 
 def send_user_password_reset_email_with_url(redirect_url, user):
