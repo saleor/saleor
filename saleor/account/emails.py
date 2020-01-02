@@ -15,7 +15,6 @@ def send_user_password_reset_email_with_url(redirect_url, user):
     _send_password_reset_email_with_url.delay(user.email, redirect_url, user.pk, token)
 
 
-
 def send_account_confirmation_email(user):
     """Trigger sending an account confirmation email for the given user."""
     token = default_token_generator.make_token(user)
