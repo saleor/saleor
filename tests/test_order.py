@@ -13,9 +13,9 @@ from saleor.discount.models import (
     VoucherType,
 )
 from saleor.discount.utils import validate_voucher_in_order
-from saleor.order import OrderStatus, models
+from saleor.order import OrderEvents, OrderStatus, models
 from saleor.order.emails import send_fulfillment_confirmation_to_customer
-from saleor.order.events import OrderEvent, OrderEventsEmails
+from saleor.order.events import OrderEvent, OrderEventsEmails, email_sent_event
 from saleor.order.models import Order
 from saleor.order.templatetags.order_lines import display_translated_order_line_name
 from saleor.order.utils import (
@@ -644,3 +644,56 @@ def test_send_fulfillment_order_lines_mails(
         }
     else:
         assert len(events) == 1
+
+
+def test_email_sent_event_with_user_pk(order):
+    user = order.user
+    email_type = OrderEventsEmails.PAYMENT
+    email_sent_event(order=order, user=None, email_type=email_type, user_pk=user.pk)
+    events = order.events.all()
+    assert len(events) == 1
+    event = events[0]
+    assert event
+    assert event.type == OrderEvents.EMAIL_SENT
+    assert event.user == user
+    assert event.order is order
+    assert event.date
+    assert event.parameters == {
+        "email": order.get_customer_email(),
+        "email_type": email_type,
+    }
+
+
+def test_email_sent_event_with_user(order):
+    user = order.user
+    email_type = OrderEventsEmails.PAYMENT
+    email_sent_event(order=order, user=user, email_type=email_type)
+    events = order.events.all()
+    assert len(events) == 1
+    event = events[0]
+    assert event
+    assert event.type == OrderEvents.EMAIL_SENT
+    assert event.user == user
+    assert event.order is order
+    assert event.date
+    assert event.parameters == {
+        "email": order.get_customer_email(),
+        "email_type": email_type,
+    }
+
+
+def test_email_sent_event_without_user_and_user_pk(order):
+    email_type = OrderEventsEmails.PAYMENT
+    email_sent_event(order=order, user=None, email_type=email_type)
+    events = order.events.all()
+    assert len(events) == 1
+    event = events[0]
+    assert event
+    assert event.type == OrderEvents.EMAIL_SENT
+    assert not event.user
+    assert event.order is order
+    assert event.date
+    assert event.parameters == {
+        "email": order.get_customer_email(),
+        "email_type": email_type,
+    }

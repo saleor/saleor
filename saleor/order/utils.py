@@ -23,7 +23,9 @@ def order_line_needs_automatic_fulfillment(line: OrderLine) -> bool:
     """Check if given line is digital and should be automatically fulfilled."""
     digital_content_settings = get_default_digital_content_settings()
     default_automatic_fulfillment = digital_content_settings["automatic_fulfillment"]
-    content = line.variant.digital_content
+    content = line.variant.digital_content if line.variant else None
+    if not content:
+        return False
     if default_automatic_fulfillment and content.use_default_settings:
         return True
     if content.automatic_fulfillment:
