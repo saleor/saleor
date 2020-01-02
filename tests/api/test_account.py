@@ -578,7 +578,8 @@ ACCOUNT_REGISTER_MUTATION = """
 """
 
 
-def test_customer_register(user_api_client):
+@patch("saleor.account.emails._send_account_confirmation_email")
+def test_customer_register(send_account_confirmation_email_mock, user_api_client):
     email = "customer@example.com"
     variables = {"email": email, "password": "Password"}
     query = ACCOUNT_REGISTER_MUTATION
@@ -587,6 +588,7 @@ def test_customer_register(user_api_client):
     content = get_graphql_content(response)
     data = content["data"][mutation_name]
     assert not data["errors"]
+    assert send_account_confirmation_email_mock.delay.call_count == 1
     new_user = User.objects.get(email=email)
 
     response = user_api_client.post_graphql(query, variables)
@@ -2097,6 +2099,18 @@ REQUEST_PASSWORD_RESET_MUTATION = """
 """
 
 
+CONFIRM_ACCOUNT_MUTATION = """
+    mutation ConfirmAccount($email: String!, $token: String!) {
+        confirmAccount(email: $email, token: $token) {
+            errors {
+                field
+                message
+            }
+        }
+    }
+"""
+
+
 @patch("saleor.account.emails._send_password_reset_email")
 def test_account_reset_password(
     send_password_reset_email_mock, user_api_client, customer_user
@@ -2113,6 +2127,22 @@ def test_account_reset_password(
     url = send_password_reset_email_mock.mock_calls[0][1][1]
     url_validator = URLValidator()
     url_validator(url)
+
+
+def test_account_confirmation(
+    user_api_client, customer_user
+):
+    customer_user.is_active = False
+    customer_user.save()
+    token = default_token_generator.make_token(customer_user)
+
+    variables = {"email": customer_user.email, "token": token}
+    response = user_api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
+    content = get_graphql_content(response)
+
+    customer_user.refresh_from_db()
+    assert customer_user.is_active == True
+
 
 
 @patch("saleor.account.emails._send_password_reset_email")

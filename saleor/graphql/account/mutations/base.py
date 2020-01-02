@@ -153,6 +153,43 @@ class RequestPasswordReset(BaseMutation):
         return RequestPasswordReset()
 
 
+class ConfirmAccount(BaseMutation):
+    class Arguments:
+        token = graphene.String(
+            description="A one-time token required to set the password.", required=True
+        )
+        email = graphene.String(
+            description="E-mail of the user performing account confirmation.", required=True
+        )
+
+    class Meta:
+        description = "Sends an email with the account confirmation link."
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        try:
+            user = models.User.objects.get(email=data["email"])
+        except ObjectDoesNotExist:
+            raise ValidationError(
+                {
+                    "email": ValidationError(
+                        "User with this email doesn't exist",
+                        code=AccountErrorCode.NOT_FOUND,
+                    )
+                }
+            )
+
+        if not default_token_generator.check_token(user, data["token"]):
+            raise ValidationError(
+                {"token": ValidationError(INVALID_TOKEN, code=AccountErrorCode.INVALID)}
+            )
+
+        user.is_active = True
+        user.save()
+
+        return ConfirmAccount()
+
+
 class PasswordChange(BaseMutation):
     user = graphene.Field(User, description="A user instance with a new password.")
 
