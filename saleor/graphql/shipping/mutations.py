@@ -70,7 +70,7 @@ class ShippingZoneMixin:
         return cleaned_input
 
 
-class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):
+class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):  # type: ignore
     shipping_zone = graphene.Field(ShippingZone, description="Created shipping zone.")
 
     class Arguments:
@@ -86,7 +86,7 @@ class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):
         error_type_field = "shipping_errors"
 
 
-class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
+class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):  # type: ignore
     shipping_zone = graphene.Field(ShippingZone, description="Updated shipping zone.")
 
     class Arguments:
@@ -175,7 +175,7 @@ class ShippingPriceMixin:
         return cleaned_input
 
 
-class ShippingPriceCreate(ShippingPriceMixin, ModelMutation):
+class ShippingPriceCreate(ShippingPriceMixin, ModelMutation):  # type: ignore
     shipping_zone = graphene.Field(
         ShippingZone,
         description="A shipping zone to which the shipping method belongs.",
@@ -200,7 +200,7 @@ class ShippingPriceCreate(ShippingPriceMixin, ModelMutation):
         return response
 
 
-class ShippingPriceUpdate(ShippingPriceMixin, ModelMutation):
+class ShippingPriceUpdate(ShippingPriceMixin, ModelMutation):  # type: ignore
     shipping_zone = graphene.Field(
         ShippingZone,
         description="A shipping zone to which the shipping method belongs.",
