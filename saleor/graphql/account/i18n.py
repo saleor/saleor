@@ -34,6 +34,6 @@ class I18nMixin:
         if not instance:
             instance = Address()
 
-        cls.construct_instance(instance, address_form.cleaned_data)
-        cls.clean_instance(instance)
+        cls.construct_instance(instance, address_form.cleaned_data)  # type: ignore
+        cls.clean_instance(instance)  # type: ignore
         return instance
