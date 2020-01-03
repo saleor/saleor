@@ -87,7 +87,7 @@ def calculate_discounted_price(
     """Return minimum product's price of all prices with discounts applied."""
     if discounts:
         discount_prices = list(get_product_discounts(product, discounts))
-        if discounts:
+        if discount_prices:
             price = min(discount(price) for discount in discount_prices)
     return price
 
