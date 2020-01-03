@@ -33,7 +33,7 @@ class Menu(CountableDjangoObjectType):
     @staticmethod
     def resolve_items(root: models.Menu, _info, **_kwargs):
         if hasattr(root, "prefetched_items"):
-            return root.prefetched_items
+            return root.prefetched_items  # type: ignore
         return root.items.filter(level=0)
 
 
