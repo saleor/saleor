@@ -44,9 +44,13 @@ def filter_discount_type(
     if value:
         query = Q()
         if VoucherDiscountType.FIXED in value:
-            query |= Q(discount_value_type=VoucherDiscountType.FIXED.value)
+            query |= Q(
+                discount_value_type=VoucherDiscountType.FIXED.value  # type: ignore
+            )
         if VoucherDiscountType.PERCENTAGE in value:
-            query |= Q(discount_value_type=VoucherDiscountType.PERCENTAGE.value)
+            query |= Q(
+                discount_value_type=VoucherDiscountType.PERCENTAGE.value  # type: ignore
+            )
         if VoucherDiscountType.SHIPPING in value:
             query |= Q(type=VoucherDiscountType.SHIPPING)
         qs = qs.filter(query).distinct()
