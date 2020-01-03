@@ -20,9 +20,10 @@ from . import (
 )
 
 if TYPE_CHECKING:
-
+    # flake8: noqa
     from ....checkout.models import Checkout, CheckoutLine
-    from ....product.models import Product
+    from ....discount import DiscountInfo
+    from ....product.models import Product, ProductType
     from ....account.models import Address
     from ....order.models import OrderLine, Order
     from ...models import PluginConfiguration
@@ -164,6 +165,8 @@ class VatlayerPlugin(BasePlugin):
         address = order_line.order.shipping_address or order_line.order.billing_address
         country = address.country if address else None
         variant = order_line.variant
+        if not variant:
+            return previous_value
         return self.__apply_taxes_to_product(
             variant.product, order_line.unit_price, country
         )
@@ -297,7 +300,7 @@ class VatlayerPlugin(BasePlugin):
         if not settings.VATLAYER_ACCESS_KEY and plugin_configuration.active:
             raise ValidationError(
                 "Cannot be enabled without provided 'settings.VATLAYER_ACCESS_KEY'",
-                code=ExtensionsErrorCode.PLUGIN_MISCONFIGURED,
+                code=str(ExtensionsErrorCode.PLUGIN_MISCONFIGURED),
             )
 
     @classmethod
