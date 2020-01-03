@@ -179,8 +179,10 @@ class Checkout(MetadataObjectType, CountableDjangoObjectType):
         manager = get_extensions_manager()
         display_gross = display_gross_prices()
         for shipping_method in available:
+            # ignore mypy checking because it is checked in
+            # get_valid_shipping_methods_for_checkout
             taxed_price = manager.apply_taxes_to_shipping(
-                shipping_method.price, root.shipping_address
+                shipping_method.price, root.shipping_address  # type: ignore
             )
             if display_gross:
                 shipping_method.price = taxed_price.gross

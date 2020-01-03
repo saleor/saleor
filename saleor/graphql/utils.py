@@ -84,7 +84,7 @@ def get_nodes(
     if nodes_type and not graphene_type:
         graphene_type = _resolve_graphene_type(nodes_type)
 
-    if qs is None and not isinstance(graphene_type, str):
+    if qs is None and graphene_type and not isinstance(graphene_type, str):
         qs = graphene_type._meta.model.objects
     elif model is not None:
         qs = model.objects

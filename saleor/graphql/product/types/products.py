@@ -95,7 +95,7 @@ def resolve_attribute_list(
         assigned_attribute_instance_field = "productassignments"
         assigned_attribute_instance_filters = {"product_id": instance.pk}
         if hasattr(product_type, "storefront_attributes"):
-            attributes_qs = product_type.storefront_attributes
+            attributes_qs = product_type.storefront_attributes  # type: ignore
     elif isinstance(instance, models.ProductVariant):
         product_type = instance.product.product_type
         product_type_attributes_assoc_field = "attributevariant"
@@ -699,7 +699,7 @@ class ProductType(CountableDjangoObjectType, MetadataObjectType):
     @staticmethod
     def resolve_products(root: models.ProductType, info, **_kwargs):
         if hasattr(root, "prefetched_products"):
-            return root.prefetched_products
+            return root.prefetched_products  # type: ignore
         qs = root.products.visible_to_user(info.context.user)
         return gql_optimizer.query(qs, info)
 
@@ -766,7 +766,7 @@ class Collection(CountableDjangoObjectType, MetadataObjectType):
     @staticmethod
     def resolve_products(root: models.Collection, info, **_kwargs):
         if hasattr(root, "prefetched_products"):
-            return root.prefetched_products
+            return root.prefetched_products  # type: ignore
         qs = root.products.collection_sorted(info.context.user)
         return gql_optimizer.query(qs, info)
 
