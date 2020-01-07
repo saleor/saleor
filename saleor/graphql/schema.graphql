@@ -1894,7 +1894,6 @@ input MenuInput {
 type MenuItem implements Node {
   id: ID!
   name: String!
-  sortOrder: Int
   menu: Menu!
   parent: MenuItem
   category: Category
