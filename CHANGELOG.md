@@ -38,6 +38,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Remove deprecated code - #5107 by @IKarbowiak
 - Fix voucher start date filtering - #5133 by @dominik-zeglen
 - Search by sku in products query - #5117 by @fowczarek
+- Send fulfillment update email - #5118 by @IKarbowiak
 
 ## 2.9.0
 
