@@ -84,13 +84,6 @@ class Voucher(CountableDjangoObjectType):
         required=True,
     )
     type = VoucherTypeEnum(description="Determines a type of voucher.", required=True)
-    min_amount_spent = graphene.Field(
-        types.Money,
-        deprecation_reason=(
-            "DEPRECATED: Will be removed in Saleor 2.10, "
-            "use the minSpent field instead."
-        ),
-    )
 
     class Meta:
         description = (
@@ -135,7 +128,3 @@ class Voucher(CountableDjangoObjectType):
             types.CountryDisplay(code=country.code, country=country.name)
             for country in root.countries
         ]
-
-    @staticmethod
-    def resolve_min_amount_spent(root: models.Voucher, *_args, **_kwargs):
-        return root.min_spent

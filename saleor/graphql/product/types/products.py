@@ -137,13 +137,6 @@ class Margin(graphene.ObjectType):
 
 
 class BasePricingInfo(graphene.ObjectType):
-    available = graphene.Boolean(
-        description="Whether it is in stock and visible or not.",
-        deprecation_reason=(
-            "DEPRECATED: Will be removed in Saleor 2.10, "
-            "this has been moved to the parent type as 'isAvailable'."
-        ),
-    )
     on_sale = graphene.Boolean(description="Whether it is in sale or not.")
     discount = graphene.Field(
         TaxedMoney, description="The discount amount if in sale (null otherwise)."
@@ -207,24 +200,6 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         description=(
             "Override the base price of a product if necessary. A value of `null` "
             "indicates that the default product price is used."
-        ),
-    )
-    price = graphene.Field(
-        Money,
-        description="Price of the product variant.",
-        deprecation_reason=(
-            "DEPRECATED: Will be removed in Saleor 2.10, "
-            "has been replaced by 'pricing.priceUndiscounted'"
-        ),
-    )
-    availability = graphene.Field(
-        VariantPricingInfo,
-        description=(
-            "Informs about variant's availability in the storefront, current price and "
-            "discounted price."
-        ),
-        deprecation_reason=(
-            "DEPRECATED: Will be removed in Saleor 2.10, has been renamed to `pricing`."
         ),
     )
     pricing = graphene.Field(
@@ -411,16 +386,6 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
         description="The main thumbnail for a product.",
         size=graphene.Argument(graphene.Int, description="Size of thumbnail."),
     )
-    availability = graphene.Field(
-        ProductPricingInfo,
-        description=(
-            "Informs about product's availability in the storefront, current price and "
-            "discounts."
-        ),
-        deprecation_reason=(
-            "DEPRECATED: Will be removed in Saleor 2.10, Has been renamed to `pricing`."
-        ),
-    )
     pricing = graphene.Field(
         ProductPricingInfo,
         description=(
@@ -432,14 +397,6 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
         description="Whether the product is in stock and visible or not."
     )
     base_price = graphene.Field(Money, description="The product's default base price.")
-    price = graphene.Field(
-        Money,
-        description="The product's default base price.",
-        deprecation_reason=(
-            "DEPRECATED: Will be removed in Saleor 2.10, has been replaced by "
-            "`basePrice`"
-        ),
-    )
     minimal_variant_price = graphene.Field(
         Money, description="The price of the cheapest variant (including discounts)."
     )
