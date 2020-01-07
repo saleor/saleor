@@ -484,7 +484,7 @@ def test_query_webhooks_with_sort(
 
 
 def test_query_webhooks_by_service_account_without_permissions(
-    service_account_api_client
+    service_account_api_client,
 ):
     second_sa = ServiceAccount.objects.create(
         name="Sample service account", is_active=True
@@ -557,7 +557,7 @@ def test_query_webhook_by_service_account(service_account_api_client, webhook):
 
 
 def test_query_webhook_by_service_account_without_permission(
-    service_account_api_client
+    service_account_api_client,
 ):
     second_sa = ServiceAccount.objects.create(
         name="Sample service account", is_active=True

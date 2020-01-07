@@ -61,7 +61,7 @@ def get_product_availability_status(product: "Product") -> ProductAvailabilitySt
 
 
 def get_variant_availability_status(
-    variant: ProductVariant
+    variant: ProductVariant,
 ) -> VariantAvailabilityStatus:
     if not variant.is_in_stock():
         return VariantAvailabilityStatus.OUT_OF_STOCK

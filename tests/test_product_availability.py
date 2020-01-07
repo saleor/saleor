@@ -86,7 +86,7 @@ def test_variant_availability_status(variant, stock, expected_status):
 
 
 def test_variant_is_still_available_when_another_variant_is_unavailable(
-    product_variant_list
+    product_variant_list,
 ):
     """
     Ensure a variant is not incorrectly flagged as out of stock when another variant

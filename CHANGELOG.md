@@ -36,6 +36,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Remove gateways forms and templates - #5075 by @IKarbowiak
 - Add `Wishlist` models and GraphQL endpoints - #5021 by @derenio
 - Remove deprecated code - #5107 by @IKarbowiak
+- Fix voucher start date filtering - #5133 by @dominik-zeglen
+- Search by sku in products query - #5117 by @fowczarek
 
 ## 2.9.0
 

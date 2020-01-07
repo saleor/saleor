@@ -36,7 +36,7 @@ def test_update_config_items_convert_to_bool_value():
 
 
 def test_base_plugin__update_configuration_structure_configuration_has_not_change(
-    plugin_configuration
+    plugin_configuration,
 ):
     plugin = PluginSample()
     old_configuration = plugin_configuration.configuration.copy()

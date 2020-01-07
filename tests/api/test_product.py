@@ -86,24 +86,41 @@ def query_categories_with_filter():
     return query
 
 
-def test_fetch_all_products(user_api_client, product):
-    query = """
+QUERY_FETCH_ALL_PRODUCTS = """
     query {
         products(first: 1) {
             totalCount
             edges {
                 node {
-                    id
+                    name
+                    isPublished
                 }
             }
         }
     }
-    """
-    response = user_api_client.post_graphql(query)
+"""
+
+
+def test_fetch_all_products(user_api_client, product):
+    response = user_api_client.post_graphql(QUERY_FETCH_ALL_PRODUCTS)
     content = get_graphql_content(response)
     num_products = Product.objects.count()
     assert content["data"]["products"]["totalCount"] == num_products
     assert len(content["data"]["products"]["edges"]) == num_products
+
+
+def test_fetch_all_products_service_account(
+    service_account_api_client,
+    service_account,
+    unavailable_product,
+    permission_manage_products,
+):
+    service_account.permissions.add(permission_manage_products)
+    response = service_account_api_client.post_graphql(QUERY_FETCH_ALL_PRODUCTS)
+    content = get_graphql_content(response)
+    product_data = content["data"]["products"]["edges"][0]["node"]
+    assert product_data["name"] == unavailable_product.name
+    assert product_data["isPublished"] == unavailable_product.is_published
 
 
 def test_fetch_unavailable_products(user_api_client, product):
@@ -428,6 +445,29 @@ def test_products_query_with_filter(
     assert len(products) == 1
     assert products[0]["node"]["id"] == second_product_id
     assert products[0]["node"]["name"] == second_product.name
+
+
+@pytest.mark.parametrize("is_published", [(True), (False)])
+def test_products_query_with_filter_search_by_sku(
+    is_published,
+    query_products_with_filter,
+    staff_api_client,
+    product_with_two_variants,
+    product_with_default_variant,
+    permission_manage_products,
+):
+    product_with_default_variant.is_published = is_published
+    product_with_default_variant.save(update_fields=["is_published"])
+    variables = {"filter": {"search": "1234"}}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    product_id = graphene.Node.to_global_id("Product", product_with_default_variant.id)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == product_id
+    assert products[0]["node"]["name"] == product_with_default_variant.name
 
 
 def test_query_product_image_by_id(user_api_client, product_with_image):

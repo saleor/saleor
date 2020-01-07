@@ -78,7 +78,7 @@ def clean_shipping_method(
 
 def update_checkout_shipping_method_if_invalid(checkout: models.Checkout, discounts):
     # remove shipping method when empty checkout
-    if checkout.quantity == 0:
+    if checkout.quantity == 0 or not checkout.is_shipping_required():
         checkout.shipping_method = None
         checkout.save(update_fields=["shipping_method"])
 
@@ -220,9 +220,10 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         # Resolve and process the lines, retrieving the variants and quantities
         lines = data.pop("lines", None)
         if lines:
-            cleaned_input["variants"], cleaned_input[
-                "quantities"
-            ] = cls.process_checkout_lines(lines)
+            (
+                cleaned_input["variants"],
+                cleaned_input["quantities"],
+            ) = cls.process_checkout_lines(lines)
 
         cleaned_input["shipping_address"] = cls.retrieve_shipping_address(user, data)
         cleaned_input["billing_address"] = cls.retrieve_billing_address(user, data)
@@ -332,7 +333,6 @@ class CheckoutLinesAdd(BaseMutation):
         quantities = [line.get("quantity") for line in lines]
 
         check_lines_quantity(variants, quantities)
-        update_checkout_shipping_method_if_invalid(checkout, info.context.discounts)
 
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
@@ -345,6 +345,7 @@ class CheckoutLinesAdd(BaseMutation):
                         f"Insufficient product stock: {exc.item}", code=exc.code
                     )
 
+        update_checkout_shipping_method_if_invalid(checkout, info.context.discounts)
         recalculate_checkout_discount(checkout, info.context.discounts)
 
         return CheckoutLinesAdd(checkout=checkout)
