@@ -856,7 +856,7 @@ class CheckoutRemovePromoCode(BaseMutation):
 class CheckoutUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Updates metadata for checkout."
-        permissions = (OrderPermissions.MANAGE_ORDERS, CheckoutPermissions.MANAGE_CHECKOUTS, )
+        permissions = (CheckoutPermissions.MANAGE_CHECKOUTS)
         model = models.Checkout
         public = True
         error_type_class = CheckoutError
@@ -876,6 +876,7 @@ class CheckoutUpdateMeta(UpdateMetaBaseMutation):
     @classmethod
     def get_instance(cls, info, **data):
         token = data["token"]
+        # cls.get_node_or_error(info, token, field="checkout_id")
         return models.Checkout.objects.get(token=token)
 
 
