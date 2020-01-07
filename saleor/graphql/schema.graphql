@@ -2974,7 +2974,7 @@ type Product implements Node {
   url: String!
   thumbnail(size: Int): Image
   pricing: ProductPricingInfo
-  isAvailableInCountry: Boolean
+  isAvailable: Boolean
   basePrice: Money
   minimalVariantPrice: Money
   taxType: TaxType
@@ -3367,8 +3367,7 @@ type ProductVariant implements Node {
   images: [ProductImage]
   translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
   digitalContent: DigitalContent
-  stocks: Stock
-  stockForCountry: Stock
+  stock(country: String): Stock
 }
 
 type ProductVariantBulkCreate {

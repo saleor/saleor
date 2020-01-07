@@ -167,7 +167,7 @@ def test_product_query(staff_api_client, product, permission_manage_products, st
                         variants {
                             name
                         }
-                        isAvailableInCountry
+                        isAvailable
                         pricing {
                             priceRange {
                                 start {
@@ -222,7 +222,7 @@ def test_product_query(staff_api_client, product, permission_manage_products, st
     purchase_cost, margin = get_product_costs_data(product)
     assert purchase_cost.start.amount == product_data["purchaseCost"]["start"]["amount"]
     assert purchase_cost.stop.amount == product_data["purchaseCost"]["stop"]["amount"]
-    assert product_data["isAvailableInCountry"] is product.is_visible
+    assert product_data["isAvailable"] is product.is_visible
     assert margin[0] == product_data["margin"]["start"]
     assert margin[1] == product_data["margin"]["stop"]
 
