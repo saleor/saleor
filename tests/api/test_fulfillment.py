@@ -162,8 +162,12 @@ def test_create_fulfillment_with_invalid_input(
     )
 
 
+@patch("saleor.order.emails.send_fulfillment_update.delay")
 def test_fulfillment_update_tracking(
-    staff_api_client, fulfillment, permission_manage_orders
+    send_fulfillment_update_mock,
+    staff_api_client,
+    fulfillment,
+    permission_manage_orders,
 ):
     query = """
     mutation updateFulfillment($id: ID!, $tracking: String) {
@@ -184,6 +188,64 @@ def test_fulfillment_update_tracking(
     content = get_graphql_content(response)
     data = content["data"]["orderFulfillmentUpdateTracking"]["fulfillment"]
     assert data["trackingNumber"] == tracking
+    send_fulfillment_update_mock.assert_not_called()
+
+
+FULFILLMENT_UPDATE_TRACKING_WITH_SEND_NOTIFICATION_QUERY = """
+    mutation updateFulfillment($id: ID!, $tracking: String, $notifyCustomer: Boolean) {
+            orderFulfillmentUpdateTracking(
+                id: $id
+                input: {trackingNumber: $tracking, notifyCustomer: $notifyCustomer}) {
+                    fulfillment {
+                        trackingNumber
+                    }
+                }
+        }
+    """
+
+
+@patch("saleor.order.emails.send_fulfillment_update.delay")
+def test_fulfillment_update_tracking_send_notification_true(
+    send_fulfillment_update_mock,
+    staff_api_client,
+    fulfillment,
+    permission_manage_orders,
+):
+    fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.id)
+    tracking = "stationary tracking"
+    variables = {"id": fulfillment_id, "tracking": tracking, "notifyCustomer": True}
+    response = staff_api_client.post_graphql(
+        FULFILLMENT_UPDATE_TRACKING_WITH_SEND_NOTIFICATION_QUERY,
+        variables,
+        permissions=[permission_manage_orders],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfillmentUpdateTracking"]["fulfillment"]
+    assert data["trackingNumber"] == tracking
+    send_fulfillment_update_mock.assert_called_once_with(
+        fulfillment.order.pk, fulfillment.pk
+    )
+
+
+@patch("saleor.order.emails.send_fulfillment_update.delay")
+def test_fulfillment_update_tracking_send_notification_false(
+    send_fulfillment_update_mock,
+    staff_api_client,
+    fulfillment,
+    permission_manage_orders,
+):
+    fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.id)
+    tracking = "stationary tracking"
+    variables = {"id": fulfillment_id, "tracking": tracking, "notifyCustomer": False}
+    response = staff_api_client.post_graphql(
+        FULFILLMENT_UPDATE_TRACKING_WITH_SEND_NOTIFICATION_QUERY,
+        variables,
+        permissions=[permission_manage_orders],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfillmentUpdateTracking"]["fulfillment"]
+    assert data["trackingNumber"] == tracking
+    send_fulfillment_update_mock.assert_not_called()
 
 
 def test_cancel_fulfillment_restock_items(

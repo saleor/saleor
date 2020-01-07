@@ -152,9 +152,6 @@ QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES = """
               values {
                 slug
               }
-              value {
-                slug
-              }
             }
             variants {
               attributes {
@@ -162,9 +159,6 @@ QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES = """
                   slug
                 }
                 values {
-                  slug
-                }
-                value {
                   slug
                 }
               }
@@ -251,11 +245,9 @@ def test_resolve_attribute_values(user_api_client, product, staff_user):
 
     assert product_attributes[0]["attribute"]["slug"] == "color"
     assert product_attributes[0]["values"][0]["slug"] == product_attribute_values[0]
-    assert product_attributes[0]["value"]["slug"] == product_attribute_values[0]
 
     assert variant_attributes[0]["attribute"]["slug"] == "size"
     assert variant_attributes[0]["values"][0]["slug"] == variant_attribute_values[0]
-    assert variant_attributes[0]["value"]["slug"] == variant_attribute_values[0]
 
 
 def test_resolve_attribute_values_non_assigned_to_node(
@@ -308,11 +300,9 @@ def test_resolve_attribute_values_non_assigned_to_node(
 
     assert product_attributes[0]["attribute"]["slug"] == "product"
     assert product_attributes[0]["values"] == []
-    assert variant_attributes[0]["value"] is None
 
     assert variant_attributes[0]["attribute"]["slug"] == "variant"
     assert variant_attributes[0]["values"] == []
-    assert variant_attributes[0]["value"] is None
 
 
 def test_attributes_filter_by_product_type_with_empty_value():
@@ -348,7 +338,6 @@ def test_attributes_filter_by_non_existing_category_id():
     assert qs == mocked_qs.none.return_value
 
 
-@pytest.mark.parametrize("test_deprecated_filter", [True, False])
 @pytest.mark.parametrize("tested_field", ["inCategory", "inCollection"])
 def test_attributes_in_collection_query(
     user_api_client,
@@ -356,7 +345,6 @@ def test_attributes_in_collection_query(
     category,
     collection,
     collection_with_products,
-    test_deprecated_filter,
     tested_field,
 ):
     if "Collection" in tested_field:
@@ -409,10 +397,7 @@ def test_attributes_in_collection_query(
     }
     """
 
-    if test_deprecated_filter:
-        query = query % {"filter_input": f"{tested_field}: $nodeID"}
-    else:
-        query = query % {"filter_input": "filter: { %s: $nodeID }" % tested_field}
+    query = query % {"filter_input": "filter: { %s: $nodeID }" % tested_field}
 
     variables = {"nodeID": filtered_by_node_id}
     content = get_graphql_content(user_api_client.post_graphql(query, variables))

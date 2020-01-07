@@ -61,13 +61,6 @@ def unpublish_product(product):
     prod_to_unpublish.save()
 
 
-@pytest.mark.integration
-@pytest.mark.django_db
-def test_storefront_filter_published_products(named_products):
-    unpublish_product(named_products[0])
-    assert not execute_search("Coffee")
-
-
 USERS = [
     ("Andreas", "Knop", "adreas.knop@example.com"),
     ("Euzebiusz", "Ziemniak", "euzeb.potato@cebula.pl"),
