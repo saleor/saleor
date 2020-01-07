@@ -22,7 +22,6 @@ from .mutations import (
     CheckoutShippingMethodUpdate,
     CheckoutUpdateMeta,
     CheckoutUpdatePrivateMeta,
-    CheckoutUpdateVoucher,
 )
 from .resolvers import resolve_checkout, resolve_checkout_lines, resolve_checkouts
 from .types import Checkout, CheckoutLine
@@ -75,7 +74,6 @@ class CheckoutMutations(graphene.ObjectType):
     checkout_payment_create = CheckoutPaymentCreate.Field()
     checkout_shipping_address_update = CheckoutShippingAddressUpdate.Field()
     checkout_shipping_method_update = CheckoutShippingMethodUpdate.Field()
-    checkout_update_voucher = CheckoutUpdateVoucher.Field()
     checkout_update_metadata = CheckoutUpdateMeta.Field()
     checkout_clear_metadata = CheckoutClearMeta.Field()
     checkout_update_private_metadata = CheckoutUpdatePrivateMeta.Field()

@@ -168,7 +168,6 @@ def test_product_query(staff_api_client, product, permission_manage_products):
                         }
                         isAvailable
                         pricing {
-                            available,
                             priceRange {
                                 start {
                                     gross {
@@ -223,7 +222,6 @@ def test_product_query(staff_api_client, product, permission_manage_products):
     assert purchase_cost.start.amount == product_data["purchaseCost"]["start"]["amount"]
     assert purchase_cost.stop.amount == product_data["purchaseCost"]["stop"]["amount"]
     assert product_data["isAvailable"] is product.is_visible
-    assert product_data["pricing"]["available"] is product.is_visible
     assert margin[0] == product_data["margin"]["start"]
     assert margin[1] == product_data["margin"]["stop"]
 
@@ -472,42 +470,6 @@ def test_products_query_with_filter_search_by_sku(
     assert products[0]["node"]["name"] == product_with_default_variant.name
 
 
-def test_product_query_search(user_api_client, product_type, category):
-    blue_product = Product.objects.create(
-        name="Blue Paint",
-        price=Money("10.00", "USD"),
-        product_type=product_type,
-        category=category,
-        is_published=True,
-    )
-    Product.objects.create(
-        name="Red Paint",
-        price=Money("10.00", "USD"),
-        product_type=product_type,
-        category=category,
-        is_published=True,
-    )
-
-    query = """
-    query productSearch($query: String) {
-        products(query: $query, first: 10) {
-            edges {
-                node {
-                    name
-                }
-            }
-        }
-    }
-    """
-
-    response = user_api_client.post_graphql(query, {"query": "blu p4int"})
-    content = get_graphql_content(response)
-    products = content["data"]["products"]["edges"]
-
-    assert len(products) == 1
-    assert products[0]["node"]["name"] == blue_product.name
-
-
 def test_query_product_image_by_id(user_api_client, product_with_image):
     image = product_with_image.images.first()
     query = """
@@ -551,26 +513,6 @@ def test_product_with_collections(
     data = content["data"]["product"]
     assert data["collections"][0]["name"] == collection.name
     assert len(data["collections"]) == 1
-
-
-def test_filter_product_by_category(user_api_client, product):
-    category = product.category
-    query = """
-    query getProducts($categoryId: ID) {
-        products(categories: [$categoryId], first: 1) {
-            edges {
-                node {
-                    name
-                }
-            }
-        }
-    }
-    """
-    variables = {"categoryId": graphene.Node.to_global_id("Category", category.id)}
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    product_data = content["data"]["products"]["edges"][0]["node"]
-    assert product_data["name"] == product.name
 
 
 def test_fetch_product_by_id(user_api_client, product):
@@ -625,41 +567,15 @@ def test_fetch_unpublished_product_anonymous_user(api_client, unavailable_produc
     assert product_data is None
 
 
-def test_filter_products_by_attributes(user_api_client, product):
-    product_attr = product.product_type.product_attributes.first()
-    attr_value = product_attr.values.first()
-    filter_by = "%s:%s" % (product_attr.slug, attr_value.slug)
-    query = """
-    query {
-        products(attributes: ["%(filter_by)s"], first: 1) {
-            edges {
-                node {
-                    name
-                }
-            }
-        }
-    }
-    """ % {
-        "filter_by": filter_by
-    }
-
-    response = user_api_client.post_graphql(query)
-    content = get_graphql_content(response)
-    products = content["data"]["products"]["edges"]
-
-    assert len(products) == 1
-    assert products[0]["node"]["name"] == product.name
-
-
 def test_filter_products_by_wrong_attributes(user_api_client, product):
     product_attr = product.product_type.product_attributes.get(slug="color")
     attr_value = (
         product.product_type.variant_attributes.get(slug="size").values.first().id
     )
-    filter_by = "%s:%s" % (product_attr.slug, attr_value)
     query = """
     query {
-        products(attributes: ["%(filter_by)s"], first: 1) {
+        products(filter:
+                    {attributes: {slug: "%(slug)s", value: "%(value)s"}}, first: 1) {
             edges {
                 node {
                     name
@@ -668,7 +584,8 @@ def test_filter_products_by_wrong_attributes(user_api_client, product):
         }
     }
     """ % {
-        "filter_by": filter_by
+        "slug": product_attr.slug,
+        "value": attr_value,
     }
 
     response = user_api_client.post_graphql(query)
@@ -676,50 +593,6 @@ def test_filter_products_by_wrong_attributes(user_api_client, product):
     products = content["data"]["products"]["edges"]
 
     assert products == []
-
-
-def test_filter_products_by_categories(user_api_client, categories_tree, product):
-    category = categories_tree.children.first()
-    product.category = category
-    product.save()
-    query = """
-    query {
-        products(categories: ["%(category_id)s"], first: 1) {
-            edges {
-                node {
-                    name
-                }
-            }
-        }
-    }
-    """ % {
-        "category_id": graphene.Node.to_global_id("Category", category.id)
-    }
-    response = user_api_client.post_graphql(query)
-    content = get_graphql_content(response)
-    product_data = content["data"]["products"]["edges"][0]["node"]
-    assert product_data["name"] == product.name
-
-
-def test_filter_products_by_collections(user_api_client, collection, product):
-    collection.products.add(product)
-    query = """
-    query {
-        products(collections: ["%(collection_id)s"], first: 1) {
-            edges {
-                node {
-                    name
-                }
-            }
-        }
-    }
-    """ % {
-        "collection_id": graphene.Node.to_global_id("Collection", collection.id)
-    }
-    response = user_api_client.post_graphql(query)
-    content = get_graphql_content(response)
-    product_data = content["data"]["products"]["edges"][0]["node"]
-    assert product_data["name"] == product.name
 
 
 SORT_PRODUCTS_QUERY = """

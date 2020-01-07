@@ -1,7 +1,6 @@
 import graphene
 
 from ..core.fields import FilterInputConnectionField
-from ..descriptions import DESCRIPTIONS
 from ..translations.mutations import MenuItemTranslate
 from .bulk_mutations import MenuBulkDelete, MenuItemBulkDelete
 from .filters import MenuFilterInput, MenuItemFilterInput
@@ -29,7 +28,6 @@ class MenuQueries(graphene.ObjectType):
     )
     menus = FilterInputConnectionField(
         Menu,
-        query=graphene.String(description=DESCRIPTIONS["menu"]),
         sort_by=MenuSortingInput(description="Sort menus."),
         filter=MenuFilterInput(description="Filtering options for menus."),
         description="List of the storefront's menus.",
@@ -43,7 +41,6 @@ class MenuQueries(graphene.ObjectType):
     )
     menu_items = FilterInputConnectionField(
         MenuItem,
-        query=graphene.String(description=DESCRIPTIONS["menu_item"]),
         sort_by=MenuItemSortingInput(description="Sort menus items."),
         filter=MenuItemFilterInput(description="Filtering options for menu items."),
         description="List of the storefronts's menu items.",

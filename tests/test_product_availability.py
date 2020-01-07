@@ -124,14 +124,12 @@ def test_availability(product, monkeypatch, settings):
     settings.OPENEXCHANGERATES_API_KEY = "fake-key"
     availability = get_product_availability(product, local_currency="PLN")
     assert availability.price_range_local_currency.start.currency == "PLN"
-    assert availability.available
 
     availability = get_product_availability(product)
     assert availability.price_range.start.tax.amount
     assert availability.price_range.stop.tax.amount
     assert availability.price_range_undiscounted.start.tax.amount
     assert availability.price_range_undiscounted.stop.tax.amount
-    assert availability.available
 
 
 def test_available_products_only_published(product_list):
