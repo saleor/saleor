@@ -64,7 +64,7 @@ weasyprint = ">=48"
 oauthlib = "^3.0"
 
 [tool.poetry.dev-dependencies]
-black = "19.3b0"
+black = "19.10b0"
 codecov = "^2.0.15"
 coverage = "^4.5.4"
 django-debug-toolbar = "^2.0"
