@@ -1913,7 +1913,7 @@ def clear_meta_variables(checkout):
 
 @pytest.fixture
 def clear_meta_private_variables(checkout):
-    checkout_id = graphene.Node.to_global_id("Order", checkout.id)
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.id)
     return {
         "id": checkout_id,
         "input": {
