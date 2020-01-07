@@ -66,14 +66,14 @@ def clean_shipping_method(
 
     if not checkout.is_shipping_required():
         raise ValidationError(
-            ERROR_DOES_NOT_SHIP, code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED
+            ERROR_DOES_NOT_SHIP, code=str(CheckoutErrorCode.SHIPPING_NOT_REQUIRED)
         )
 
     if not checkout.shipping_address:
         raise ValidationError(
             "Cannot choose a shipping method for a checkout without the "
             "shipping address.",
-            code=CheckoutErrorCode.SHIPPING_ADDRESS_NOT_SET,
+            code=str(CheckoutErrorCode.SHIPPING_ADDRESS_NOT_SET),
         )
 
     valid_methods = get_valid_shipping_methods_for_checkout(checkout, discounts)
@@ -217,7 +217,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return None
 
     @classmethod
-    def clean_input(cls, info, instance: models.Checkout, data):
+    def clean_input(cls, info, instance: models.Checkout, data):  # type: ignore
         cleaned_input = super().clean_input(info, instance, data)
         user = info.context.user
 
