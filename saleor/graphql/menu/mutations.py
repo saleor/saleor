@@ -155,13 +155,13 @@ def _validate_menu_item_instance(
     """Check if the value to assign as a menu item matches the expected model."""
     item = cleaned_input.get(field)
     if item is not None:
-        if not isinstance(item, expected_model):
+        if not isinstance(item, expected_model):  # type: ignore
             msg = (
                 f"Enter a valid {expected_model._meta.verbose_name} ID "
                 f"(got {item._meta.verbose_name} ID)."
             )
             raise ValidationError(
-                {field: ValidationError(msg, code=MenuErrorCode.INVALID_MENU_ITEM)}
+                {field: ValidationError(msg, code=str(MenuErrorCode.INVALID_MENU_ITEM))}
             )
 
 
@@ -289,7 +289,7 @@ class MenuItemMove(BaseMutation):
                     {
                         "parent_id": ValidationError(
                             "Cannot assign a node to itself.",
-                            code=MenuErrorCode.CANNOT_ASSIGN_NODE,
+                            code=str(MenuErrorCode.CANNOT_ASSIGN_NODE),
                         )
                     }
                 )
@@ -307,7 +307,7 @@ class MenuItemMove(BaseMutation):
                                 "Cannot assign a node as child of "
                                 "one of its descendants."
                             ),
-                            code=MenuErrorCode.CANNOT_ASSIGN_NODE,
+                            code=str(MenuErrorCode.CANNOT_ASSIGN_NODE),
                         )
                     }
                 )
@@ -371,7 +371,7 @@ class MenuItemMove(BaseMutation):
 
     @classmethod
     @transaction.atomic
-    def perform_mutation(cls, _root, info, menu: str, moves):
+    def perform_mutation(cls, _root, info, menu: str, moves):  # type: ignore
         qs = models.Menu.objects.prefetch_related("items")
         menu = cls.get_node_or_error(info, menu, only_type=Menu, field="menu", qs=qs)
 
