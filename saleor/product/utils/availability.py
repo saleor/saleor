@@ -18,7 +18,6 @@ if TYPE_CHECKING:
 
 @dataclass
 class ProductAvailability:
-    available: bool
     on_sale: bool
     price_range: TaxedMoneyRange
     price_range_undiscounted: TaxedMoneyRange
@@ -29,7 +28,6 @@ class ProductAvailability:
 
 @dataclass
 class VariantAvailability:
-    available: bool
     on_sale: bool
     price: TaxedMoney
     price_undiscounted: TaxedMoney
@@ -63,7 +61,7 @@ def get_product_availability_status(product: "Product") -> ProductAvailabilitySt
 
 
 def get_variant_availability_status(
-    variant: ProductVariant
+    variant: ProductVariant,
 ) -> VariantAvailabilityStatus:
     if not variant.is_in_stock():
         return VariantAvailabilityStatus.OUT_OF_STOCK
@@ -148,7 +146,6 @@ def get_product_availability(
     is_on_sale = product.is_visible and discount is not None
 
     return ProductAvailability(
-        available=product.is_available,
         on_sale=is_on_sale,
         price_range=discounted,
         price_range_undiscounted=undiscounted,
@@ -187,7 +184,6 @@ def get_variant_availability(
     is_on_sale = variant.is_visible and discount is not None
 
     return VariantAvailability(
-        available=variant.is_available,
         on_sale=is_on_sale,
         price=discounted,
         price_undiscounted=undiscounted,
