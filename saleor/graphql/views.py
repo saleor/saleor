@@ -1,6 +1,7 @@
 import json
 import logging
 import traceback
+from typing import Any, Dict, Optional, Tuple
 
 from django.conf import settings
 from django.http import HttpRequest, HttpResponseNotAllowed, JsonResponse
@@ -112,13 +113,15 @@ class GraphQLView(View):
                 response["data"] = execution_result.data
             result = response
         else:
-            result = None
+            result = None  # type: ignore
         return result, status_code
 
     def get_root_value(self):
         return self.root_value
 
-    def parse_query(self, query: str) -> (GraphQLDocument, ExecutionResult):
+    def parse_query(
+        self, query: str
+    ) -> Tuple[Optional[GraphQLDocument], Optional[ExecutionResult]]:
         """Attempt to parse a query (mandatory) to a gql document object.
 
         If no query was given or query is not a string, it returns an error.
@@ -135,7 +138,10 @@ class GraphQLView(View):
 
         # Attempt to parse the query, if it fails, return the error
         try:
-            return self.backend.document_from_string(self.schema, query), None
+            return (
+                self.backend.document_from_string(self.schema, query),  # type: ignore
+                None,
+            )
         except (ValueError, GraphQLSyntaxError) as e:
             return None, ExecutionResult(errors=[e], invalid=True)
 
@@ -146,13 +152,13 @@ class GraphQLView(View):
         if error:
             return error
 
-        extra_options = {}
+        extra_options: Dict[str, Optional[Any]] = {}
         if self.executor:
             # We only include it optionally since
             # executor is not a valid argument in all backends
             extra_options["executor"] = self.executor
         try:
-            return document.execute(
+            return document.execute(  # type: ignore
                 root=self.get_root_value(),
                 variables=variables,
                 operation_name=operation_name,
