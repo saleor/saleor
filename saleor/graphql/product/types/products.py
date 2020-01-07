@@ -242,12 +242,12 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         model_field="digital_content",
     )
 
-    stocks = gql_optimizer.field(
-        graphene.Field(Stock, description="Stocks for the product variant.")
-    )
-
-    stock_for_country = graphene.Field(
-        Stock, description="Stock available in current country."
+    stock = gql_optimizer.field(
+        graphene.Field(
+            Stock,
+            description="Stocks for the product variant.",
+            country=graphene.String(required=False),
+        )
     )
 
     class Meta:
@@ -268,16 +268,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
 
     @staticmethod
     @permission_required("stock.manage_stocks")
-    def resolve_stocks(root: models.ProductVariant, *_args):
-        stocks = stock_models.Stock.objects.select_related("warehouse").filter(
-            product_variant=root
-        )
-        return stocks
-
-    @staticmethod
-    @permission_required("stock.manage_stocks")
-    def resolve_stock_for_country(root: models.ProductVariant, info):
-        country = info.context.country
+    def resolve_stock(root: models.ProductVariant, info, country):
         return stock_models.Stock.objects.get_variant_stock_for_country(country, root)
 
     @staticmethod
@@ -394,7 +385,7 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
             "only meant for displaying."
         ),
     )
-    is_available_in_country = graphene.Boolean(
+    is_available = graphene.Boolean(
         description="Whether the product is in stock and visible or not."
     )
     base_price = graphene.Field(Money, description="The product's default base price.")
@@ -495,7 +486,7 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
 
     @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related=("variants"))
-    def resolve_is_available_in_country(root: models.Product, _info):
+    def resolve_is_available(root: models.Product, _info):
         country = _info.context.country
         in_stock = is_product_in_stock(root, country)
         return root.is_visible and in_stock
