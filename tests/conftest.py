@@ -635,11 +635,11 @@ def product_with_single_variant(product_type, category, warehouse):
         is_published=True,
     )
     variant = ProductVariant.objects.create(
-        product=product,
-        sku="SKU_SINGLE_VARIANT",
-        cost_price=Money("1.00", "USD"),
+        product=product, sku="SKU_SINGLE_VARIANT", cost_price=Money("1.00", "USD"),
     )
-    Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=101, quantity_allocated=1)
+    Stock.objects.create(
+        product_variant=variant, warehouse=warehouse, quantity=101, quantity_allocated=1
+    )
     return product
 
 
@@ -653,23 +653,32 @@ def product_with_two_variants(product_type, category, warehouse):
     )
 
     variants = [
-            ProductVariant(
-                product=product,
-                sku=f"Product variant #{i}",
-                cost_price=Money("1.00", "USD"),
-            )
-            for i in (1, 2)
-        ]
+        ProductVariant(
+            product=product,
+            sku=f"Product variant #{i}",
+            cost_price=Money("1.00", "USD"),
+        )
+        for i in (1, 2)
+    ]
     ProductVariant.objects.bulk_create(variants)
     Stock.objects.bulk_create(
-        [Stock(warehouse=warehouse, product_variant=variant, quantity=10, quantity_allocated=1)]
+        [
+            Stock(
+                warehouse=warehouse,
+                product_variant=variant,
+                quantity=10,
+                quantity_allocated=1,
+            )
+        ]
     )
 
     return product
 
 
 @pytest.fixture
-def product_with_variant_with_two_attributes(color_attribute, size_attribute, category, warehouse):
+def product_with_variant_with_two_attributes(
+    color_attribute, size_attribute, category, warehouse
+):
     product_type = ProductType.objects.create(
         name="Type with two variants", has_variants=True, is_shipping_required=True
     )
@@ -1780,7 +1789,6 @@ def mock_get_manager(mocker, fake_payment_interface):
 
 
 @pytest.fixture
-<<<<<<< HEAD
 def staff_notification_recipient(db, staff_user):
     return StaffNotificationRecipient.objects.create(active=True, user=staff_user)
 
@@ -1809,7 +1817,8 @@ def customer_wishlist_item_with_two_variants(
     item = customer_wishlist.add_variant(variant_1)
     item.variants.add(variant_2)
     return item
-=======
+
+
 def warehouse(address, shipping_zone):
     warehouse = Warehouse.objects.create(
         address=address, name="Example Warehouse", email="test@example.com"
@@ -1817,9 +1826,6 @@ def warehouse(address, shipping_zone):
     warehouse.shipping_zones.add(shipping_zone)
     warehouse.save()
     return warehouse
-<<<<<<< HEAD
->>>>>>> Test permissions for warehouse views
-=======
 
 
 @pytest.fixture
@@ -1829,4 +1835,3 @@ def stock(variant, warehouse):
         warehouse=warehouse,
         defaults={"quantity": 5, "quantity_allocated": 3},
     )[0]
->>>>>>> Add option to get only stock available in given country

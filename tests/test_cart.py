@@ -10,6 +10,7 @@ from saleor.checkout.context_processors import checkout_counter
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
 from saleor.product.models import Category
+from saleor.shipping.models import ShippingMethod
 from saleor.stock.models import Stock
 
 
