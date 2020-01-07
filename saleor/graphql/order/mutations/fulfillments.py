@@ -212,8 +212,8 @@ class FulfillmentUpdateTracking(BaseMutation):
         fulfillment.save()
         order = fulfillment.order
         fulfillment_tracking_updated(fulfillment, info.context.user, tracking_number)
-        input_data = data.get("input")
-        notify_customer = input_data.get("notify_customer") if input_data else None
+        input_data = data.get("input", {})
+        notify_customer = input_data.get("notify_customer")
         if notify_customer:
             send_fulfillment_update.delay(order.pk, fulfillment.pk)
         return FulfillmentUpdateTracking(fulfillment=fulfillment, order=order)
