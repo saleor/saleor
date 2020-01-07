@@ -528,13 +528,11 @@ mutation menuItemMove($menu: ID!, $moves: [MenuItemMoveInput]!) {
       id
       items {
         id
-        sortOrder
         parent {
           id
         }
         children {
           id
-          sortOrder
           parent {
             id
           }
@@ -569,9 +567,9 @@ def test_menu_reorder(staff_api_client, permission_manage_menus, menu_item_list)
     expected_data = {
         "id": menu_global_id,
         "items": [
-            {"id": items_global_ids[1], "sortOrder": 0, "parent": None, "children": []},
-            {"id": items_global_ids[0], "sortOrder": 1, "parent": None, "children": []},
-            {"id": items_global_ids[2], "sortOrder": 2, "parent": None, "children": []},
+            {"id": items_global_ids[1], "parent": None, "children": []},
+            {"id": items_global_ids[0], "parent": None, "children": []},
+            {"id": items_global_ids[2], "parent": None, "children": []},
         ],
     }
 
@@ -630,24 +628,20 @@ def test_menu_reorder_assign_parent(
         "items": [
             {
                 "id": items_global_ids[1],
-                "sortOrder": 0,
                 "parent": None,
                 "children": [
                     {
                         "id": items_global_ids[0],
-                        "sortOrder": 0,
                         "parent": {"id": parent_global_id},
                         "children": [],
                     },
                     {
                         "id": items_global_ids[2],
-                        "sortOrder": 1,
                         "parent": {"id": parent_global_id},
                         "children": [],
                     },
                     {
                         "id": items_global_ids[3],
-                        "sortOrder": 2,
                         "parent": {"id": parent_global_id},
                         "children": [],
                     },
@@ -703,24 +697,9 @@ def test_menu_reorder_assign_parent_to_top_level(
     expected_data = {
         "id": menu_global_id,
         "items": [
-            {
-                "id": previous_parent_global_id,
-                "sortOrder": 1,
-                "parent": None,
-                "children": [],
-            },
-            {
-                "id": unchanged_item_global_id,
-                "sortOrder": 2,
-                "parent": None,
-                "children": [],
-            },
-            {
-                "id": root_candidate_global_id,
-                "sortOrder": 3,
-                "parent": None,
-                "children": [],
-            },
+            {"id": previous_parent_global_id, "parent": None, "children": []},
+            {"id": unchanged_item_global_id, "parent": None, "children": []},
+            {"id": root_candidate_global_id, "parent": None, "children": []},
         ],
     }
 

@@ -59,7 +59,6 @@ class MenuItem(CountableDjangoObjectType):
             "name",
             "page",
             "parent",
-            "sort_order",
         ]
         model = models.MenuItem
 
