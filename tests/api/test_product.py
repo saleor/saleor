@@ -449,6 +449,29 @@ def test_products_query_with_filter(
     assert products[0]["node"]["name"] == second_product.name
 
 
+@pytest.mark.parametrize("is_published", [(True), (False)])
+def test_products_query_with_filter_search_by_sku(
+    is_published,
+    query_products_with_filter,
+    staff_api_client,
+    product_with_two_variants,
+    product_with_default_variant,
+    permission_manage_products,
+):
+    product_with_default_variant.is_published = is_published
+    product_with_default_variant.save(update_fields=["is_published"])
+    variables = {"filter": {"search": "1234"}}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    product_id = graphene.Node.to_global_id("Product", product_with_default_variant.id)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == product_id
+    assert products[0]["node"]["name"] == product_with_default_variant.name
+
+
 def test_product_query_search(user_api_client, product_type, category):
     blue_product = Product.objects.create(
         name="Blue Paint",
