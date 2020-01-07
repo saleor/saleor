@@ -538,9 +538,6 @@ def test_draft_order_create(
                         message
                     }
                     order {
-                        discountAmount {
-                            amount
-                        }
                         discount {
                             amount
                         }

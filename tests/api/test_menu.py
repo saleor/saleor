@@ -51,42 +51,6 @@ def test_menu_query(user_api_client, menu):
     assert not content["data"]["menu"]
 
 
-def test_menus_query(user_api_client, menu, menu_item):
-    query = """
-    query menus($menu_name: String){
-        menus(query: $menu_name, first: 1) {
-            edges {
-                node {
-                    name
-                    items {
-                        name
-                        menu {
-                            name
-                        }
-                        url
-                    }
-                }
-            }
-        }
-    }
-    """
-
-    menu.items.add(menu_item)
-    menu.save()
-    menu_name = menu.name
-    variables = {"menu_name": menu_name}
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    menu_data = content["data"]["menus"]["edges"][0]["node"]
-    assert menu_data["name"] == menu.name
-    items = menu_data["items"]
-    assert len(items) == 1
-    item = items[0]
-    assert item["name"] == menu_item.name
-    assert item["url"] == menu_item.url
-    assert item["menu"]["name"] == menu.name
-
-
 @pytest.mark.parametrize(
     "menu_filter, count", [({"search": "Menu1"}, 1), ({"search": "Menu"}, 2)]
 )
@@ -564,13 +528,11 @@ mutation menuItemMove($menu: ID!, $moves: [MenuItemMoveInput]!) {
       id
       items {
         id
-        sortOrder
         parent {
           id
         }
         children {
           id
-          sortOrder
           parent {
             id
           }
@@ -605,9 +567,9 @@ def test_menu_reorder(staff_api_client, permission_manage_menus, menu_item_list)
     expected_data = {
         "id": menu_global_id,
         "items": [
-            {"id": items_global_ids[1], "sortOrder": 0, "parent": None, "children": []},
-            {"id": items_global_ids[0], "sortOrder": 1, "parent": None, "children": []},
-            {"id": items_global_ids[2], "sortOrder": 2, "parent": None, "children": []},
+            {"id": items_global_ids[1], "parent": None, "children": []},
+            {"id": items_global_ids[0], "parent": None, "children": []},
+            {"id": items_global_ids[2], "parent": None, "children": []},
         ],
     }
 
@@ -666,24 +628,20 @@ def test_menu_reorder_assign_parent(
         "items": [
             {
                 "id": items_global_ids[1],
-                "sortOrder": 0,
                 "parent": None,
                 "children": [
                     {
                         "id": items_global_ids[0],
-                        "sortOrder": 0,
                         "parent": {"id": parent_global_id},
                         "children": [],
                     },
                     {
                         "id": items_global_ids[2],
-                        "sortOrder": 1,
                         "parent": {"id": parent_global_id},
                         "children": [],
                     },
                     {
                         "id": items_global_ids[3],
-                        "sortOrder": 2,
                         "parent": {"id": parent_global_id},
                         "children": [],
                     },
@@ -739,24 +697,9 @@ def test_menu_reorder_assign_parent_to_top_level(
     expected_data = {
         "id": menu_global_id,
         "items": [
-            {
-                "id": previous_parent_global_id,
-                "sortOrder": 1,
-                "parent": None,
-                "children": [],
-            },
-            {
-                "id": unchanged_item_global_id,
-                "sortOrder": 2,
-                "parent": None,
-                "children": [],
-            },
-            {
-                "id": root_candidate_global_id,
-                "sortOrder": 3,
-                "parent": None,
-                "children": [],
-            },
+            {"id": previous_parent_global_id, "parent": None, "children": []},
+            {"id": unchanged_item_global_id, "parent": None, "children": []},
+            {"id": root_candidate_global_id, "parent": None, "children": []},
         ],
     }
 

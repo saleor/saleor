@@ -162,9 +162,6 @@ mutation  voucherCreate(
                 minSpent {
                     amount
                 }
-                minAmountSpent {
-                    amount
-                }
                 minCheckoutItemsQuantity
                 name
                 code

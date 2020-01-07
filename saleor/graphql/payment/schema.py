@@ -4,7 +4,7 @@ from ...core.permissions import OrderPermissions
 from ..core.fields import PrefetchingConnectionField
 from ..decorators import permission_required
 from .mutations import PaymentCapture, PaymentRefund, PaymentSecureConfirm, PaymentVoid
-from .resolvers import resolve_client_token, resolve_payments
+from .resolvers import resolve_payments
 from .types import Payment
 
 
@@ -17,14 +17,6 @@ class PaymentQueries(graphene.ObjectType):
         ),
     )
     payments = PrefetchingConnectionField(Payment, description="List of payments.")
-    payment_client_token = graphene.Field(
-        graphene.String,
-        gateway=graphene.String(required=True, description="A payment gateway."),
-        deprecation_reason=(
-            "DEPRECATED: Will be removed in Saleor 2.10, "
-            "use payment gateway config instead in availablePaymentGateways."
-        ),
-    )
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_payment(self, info, **data):
@@ -33,9 +25,6 @@ class PaymentQueries(graphene.ObjectType):
     @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_payments(self, info, query=None, **_kwargs):
         return resolve_payments(info, query)
-
-    def resolve_payment_client_token(self, info, gateway, **_kwargs):
-        return resolve_client_token(info.context.user, gateway)
 
 
 class PaymentMutations(graphene.ObjectType):
