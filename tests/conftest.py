@@ -555,11 +555,8 @@ def permission_manage_orders():
 
 @pytest.fixture
 def permission_manage_checkouts():
-    test = Permission.objects.get(codename="manage_checkouts")
-    print("test permission")
-    print(test)
-    print("=====")
-    return test
+    return Permission.objects.get(codename="manage_checkouts")
+
 
 @pytest.fixture
 def permission_manage_plugins():
