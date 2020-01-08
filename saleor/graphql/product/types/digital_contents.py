@@ -15,7 +15,7 @@ class DigitalContentUrl(CountableDjangoObjectType):
 
     class Meta:
         model = models.DigitalContentUrl
-        only_fields = ["content", "created", "download_num", "token", "url"]
+        only_fields = ["content", "created", "download_num", "token"]
         interfaces = (relay.Node,)
 
     @staticmethod

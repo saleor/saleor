@@ -95,10 +95,7 @@ class PrefetchingConnectionField(BaseDjangoConnectionField):
         )
 
     @classmethod
-    def resolve_connection(cls, connection, default_manager, args, iterable):
-        if iterable is None:
-            iterable = default_manager
-
+    def resolve_connection(cls, connection, args, iterable):
         connection = connection_from_queryset_slice(
             iterable,
             args,
