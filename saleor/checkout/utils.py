@@ -395,7 +395,7 @@ def add_voucher_code_to_checkout(
             {
                 "promo_code": ValidationError(
                     "Voucher is not applicable to that checkout.",
-                    code=str(CheckoutErrorCode.VOUCHER_NOT_APPLICABLE),
+                    code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value,
                 )
             }
         )
@@ -783,27 +783,27 @@ def clean_checkout(checkout: Checkout, discounts: "DiscountsListType"):
         if not checkout.shipping_method:
             raise ValidationError(
                 "Shipping method is not set",
-                code=str(CheckoutErrorCode.SHIPPING_METHOD_NOT_SET),
+                code=CheckoutErrorCode.SHIPPING_METHOD_NOT_SET.value,
             )
         if not checkout.shipping_address:
             raise ValidationError(
                 "Shipping address is not set",
-                code=str(CheckoutErrorCode.SHIPPING_ADDRESS_NOT_SET),
+                code=CheckoutErrorCode.SHIPPING_ADDRESS_NOT_SET.value,
             )
         if not is_valid_shipping_method(checkout, discounts):
             raise ValidationError(
                 "Shipping method is not valid for your shipping address",
-                code=str(CheckoutErrorCode.INVALID_SHIPPING_METHOD),
+                code=CheckoutErrorCode.INVALID_SHIPPING_METHOD.value,
             )
 
     if not checkout.billing_address:
         raise ValidationError(
             "Billing address is not set",
-            code=str(CheckoutErrorCode.BILLING_ADDRESS_NOT_SET),
+            code=CheckoutErrorCode.BILLING_ADDRESS_NOT_SET.value,
         )
 
     if not is_fully_paid(checkout, discounts):
         raise ValidationError(
             "Provided payment methods can not cover the checkout's total amount",
-            code=str(CheckoutErrorCode.CHECKOUT_NOT_FULLY_PAID),
+            code=CheckoutErrorCode.CHECKOUT_NOT_FULLY_PAID.value,
         )

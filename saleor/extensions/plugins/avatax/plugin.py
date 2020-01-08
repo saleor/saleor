@@ -440,7 +440,7 @@ class AvataxPlugin(BasePlugin):
             )
             raise ValidationError(
                 error_msg + ", ".join(missing_fields),
-                code=str(ExtensionsErrorCode.PLUGIN_MISCONFIGURED),
+                code=ExtensionsErrorCode.PLUGIN_MISCONFIGURED.value,
             )
 
     @classmethod
