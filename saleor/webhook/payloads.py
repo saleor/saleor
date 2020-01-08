@@ -102,7 +102,8 @@ def generate_checkout_payload(checkout: "Checkout"):
     serializer = PayloadSerializer()
     checkout_fields = (
         "created",
-        "last_change" "status",
+        "last_change",
+        "status",
         "email",
         "quantity",
         "currency",
