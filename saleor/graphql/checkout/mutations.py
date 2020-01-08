@@ -817,8 +817,13 @@ class CheckoutUpdateMeta(UpdateMetaBaseMutation):
     @classmethod
     def get_instance(cls, info, **data):
         token = data["token"]
-        # cls.get_node_or_error(info, token, field="checkout_id")
-        return models.Checkout.objects.get(token=token)
+        try:
+            return models.Checkout.objects.get(token=token)
+        except Exception:
+            raise ValidationError(
+                "Couldn't resolve to a node: %s" % token,
+                code="not_found",
+            )
 
 
 class CheckoutUpdatePrivateMeta(UpdateMetaBaseMutation):
@@ -851,7 +856,13 @@ class CheckoutClearMeta(ClearMetaBaseMutation):
     @classmethod
     def get_instance(cls, info, **data):
         token = data["token"]
-        return models.Checkout.objects.get(token=token)
+        try:
+            return models.Checkout.objects.get(token=token)
+        except Exception:
+            raise ValidationError(
+                "Couldn't resolve to a node: %s" % token,
+                code="not_found",
+            )
 
 
 class CheckoutClearPrivateMeta(ClearMetaBaseMutation):
