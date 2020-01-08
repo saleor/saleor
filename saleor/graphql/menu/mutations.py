@@ -154,7 +154,7 @@ def _validate_menu_item_instance(
 ):
     """Check if the value to assign as a menu item matches the expected model."""
     item = cleaned_input.get(field)
-    if item is not None:
+    if item:
         if not isinstance(item, expected_model):  # type: ignore
             msg = (
                 f"Enter a valid {expected_model._meta.verbose_name} ID "
@@ -375,7 +375,9 @@ class MenuItemMove(BaseMutation):
 
     @classmethod
     @transaction.atomic
-    def perform_mutation(cls, _root, info, menu: str, moves):  # type: ignore
+    def perform_mutation(cls, _root, info, **data):
+        menu: str = data["menu"]
+        moves: List[MenuItemMoveInput] = data["moves"]
         qs = models.Menu.objects.prefetch_related("items")
         menu = cls.get_node_or_error(info, menu, only_type=Menu, field="menu", qs=qs)
 

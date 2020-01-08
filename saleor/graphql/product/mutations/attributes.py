@@ -232,7 +232,7 @@ class AttributeCreate(AttributeMixin, ModelMutation):
 
         # Construct the attribute
         instance = cls.construct_instance(instance, cleaned_input)
-        cls.clean_instance(instance)
+        cls.clean_instance(info, instance)
 
         # Commit it
         instance.save()
@@ -296,7 +296,7 @@ class AttributeUpdate(AttributeMixin, ModelMutation):
 
         # Construct the attribute
         instance = cls.construct_instance(instance, cleaned_input)
-        cls.clean_instance(instance)
+        cls.clean_instance(info, instance)
 
         # Commit it
         instance.save()
@@ -597,9 +597,9 @@ class AttributeValueCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    def clean_instance(cls, instance):
+    def clean_instance(cls, info, instance):
         validate_value_is_unique(instance.attribute, instance)
-        super().clean_instance(instance)
+        super().clean_instance(info, instance)
 
     @classmethod
     def perform_mutation(cls, _root, info, attribute_id, input):
@@ -607,7 +607,7 @@ class AttributeValueCreate(ModelMutation):
         instance = models.AttributeValue(attribute=attribute)
         cleaned_input = cls.clean_input(info, instance, input)
         instance = cls.construct_instance(instance, cleaned_input)
-        cls.clean_instance(instance)
+        cls.clean_instance(info, instance)
 
         instance.save()
         cls._save_m2m(info, instance, cleaned_input)
@@ -640,9 +640,9 @@ class AttributeValueUpdate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    def clean_instance(cls, instance):
+    def clean_instance(cls, info, instance):
         validate_value_is_unique(instance.attribute, instance)
-        super().clean_instance(instance)
+        super().clean_instance(info, instance)
 
     @classmethod
     def success_response(cls, instance):

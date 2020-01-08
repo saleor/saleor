@@ -51,7 +51,7 @@ class ServiceAccountTokenCreate(ModelMutation):
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
         instance = cls.construct_instance(instance, cleaned_input)
-        cls.clean_instance(instance)
+        cls.clean_instance(info, instance)
         cls.save(info, instance, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)
         response = cls.success_response(instance)

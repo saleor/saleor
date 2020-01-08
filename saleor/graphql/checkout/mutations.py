@@ -217,7 +217,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         return None
 
     @classmethod
-    def clean_input(cls, info, instance: models.Checkout, data):  # type: ignore
+    def clean_input(cls, info, instance: models.Checkout, data, input_cls=None):
         cleaned_input = super().clean_input(info, instance, data)
         user = info.context.user
 
@@ -301,7 +301,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
         cleaned_input = cls.clean_input(info, checkout, data.get("input"))
         checkout = cls.construct_instance(checkout, cleaned_input)
-        cls.clean_instance(checkout)
+        cls.clean_instance(info, checkout)
         cls.save(info, checkout, cleaned_input)
         cls._save_m2m(info, checkout, cleaned_input)
         return CheckoutCreate(checkout=checkout, created=True)
@@ -488,7 +488,7 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             )
 
         shipping_address = cls.validate_address(
-            shipping_address, instance=checkout.shipping_address
+            shipping_address, instance=checkout.shipping_address, info=info
         )
 
         update_checkout_shipping_method_if_invalid(checkout, info.context.discounts)
@@ -522,7 +522,7 @@ class CheckoutBillingAddressUpdate(CheckoutShippingAddressUpdate):
         )
 
         billing_address = cls.validate_address(
-            billing_address, instance=checkout.billing_address
+            billing_address, instance=checkout.billing_address, info=info
         )
         with transaction.atomic():
             billing_address.save()
@@ -549,7 +549,7 @@ class CheckoutEmailUpdate(BaseMutation):
         )
 
         checkout.email = email
-        cls.clean_instance(checkout)
+        cls.clean_instance(info, checkout)
         checkout.save(update_fields=["email"])
         return CheckoutEmailUpdate(checkout=checkout)
 
