@@ -421,13 +421,13 @@ class AttributeAssign(BaseMutation):
 
     @classmethod
     @transaction.atomic()
-    def perform_mutation(
-        cls, _root, info, product_type_id: str, operations: List[AttributeAssignInput]
-    ):
+    def perform_mutation(cls, _root, info, **data):
+        product_type_id: str = data["product_type_id"]
+        operations: List[AttributeAssignInput] = data["operations"]
         # Retrieve the requested product type
-        product_type = graphene.Node.get_node_from_global_id(
+        product_type: models.ProductType = graphene.Node.get_node_from_global_id(
             info, product_type_id, only_type=ProductType
-        )  # type: models.ProductType
+        )
 
         # Resolve all the passed IDs to ints
         product_attrs_pks, variant_attrs_pks = cls.get_operations(info, operations)
@@ -437,7 +437,7 @@ class AttributeAssign(BaseMutation):
                 {
                     "operations": ValidationError(
                         "Variants are disabled in this product type.",
-                        code=ProductErrorCode.ATTRIBUTE_VARIANTS_DISABLED,
+                        code=ProductErrorCode.ATTRIBUTE_VARIANTS_DISABLED.value,
                     )
                 }
             )
@@ -481,9 +481,9 @@ class AttributeUnassign(BaseMutation):
         getattr(product_type, field).remove(*pks)
 
     @classmethod
-    def perform_mutation(
-        cls, _root, info, product_type_id: str, attribute_ids: List[str]
-    ):
+    def perform_mutation(cls, _root, info, **data):
+        product_type_id: str = data["product_type_id"]
+        attribute_ids: List[str] = data["attribute_ids"]
         # Retrieve the requested product type
         product_type = graphene.Node.get_node_from_global_id(
             info, product_type_id, only_type=ProductType
@@ -564,7 +564,7 @@ def validate_value_is_unique(attribute: models.Attribute, value: models.Attribut
             {
                 "name": ValidationError(
                     f"Value with slug {value.slug} already exists.",
-                    code=ProductErrorCode.ALREADY_EXISTS,
+                    code=ProductErrorCode.ALREADY_EXISTS.value,
                 )
             }
         )
@@ -604,7 +604,6 @@ class AttributeValueCreate(ModelMutation):
     @classmethod
     def perform_mutation(cls, _root, info, attribute_id, input):
         attribute = cls.get_node_or_error(info, attribute_id, only_type=Attribute)
-
         instance = models.AttributeValue(attribute=attribute)
         cleaned_input = cls.clean_input(info, instance, input)
         instance = cls.construct_instance(instance, cleaned_input)
