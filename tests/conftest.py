@@ -85,7 +85,7 @@ from tests.utils import create_image
 
 
 class CaptureQueriesContext(BaseCaptureQueriesContext):
-    IGNORED_QUERIES = settings.PATTERNS_IGNORED_IN_QUERY_CAPTURES
+    IGNORED_QUERIES = "" #settings.PATTERNS_IGNORED_IN_QUERY_CAPTURES
 
     @property
     def captured_queries(self):
@@ -555,6 +555,7 @@ def permission_manage_orders():
 
 @pytest.fixture
 def permission_manage_checkouts():
+    print(Permission.objects.list())
     return Permission.objects.get(codename="manage_checkouts")
 
 

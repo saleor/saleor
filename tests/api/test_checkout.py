@@ -1590,7 +1590,7 @@ def test_query_checkout_line(checkout_with_item, user_api_client):
 
 
 def test_query_checkouts(
-    checkout_with_item, staff_api_client, permission_manage_orders, permission_manage_checkouts
+    checkout_with_item, staff_api_client, permission_manage_checkouts
 ):
     query = """
     {
@@ -1606,7 +1606,6 @@ def test_query_checkouts(
     checkout = checkout_with_item
     response = staff_api_client.post_graphql(
         query, {}, permissions=[
-            permission_manage_orders,
             permission_manage_checkouts,
         ],
     )
@@ -1616,7 +1615,7 @@ def test_query_checkouts(
 
 
 def test_query_checkout_lines(
-    checkout_with_item, staff_api_client, permission_manage_orders, permission_manage_checkouts
+    checkout_with_item, staff_api_client, permission_manage_checkouts
 ):
     query = """
     {
@@ -1631,7 +1630,7 @@ def test_query_checkout_lines(
     """
     checkout = checkout_with_item
     response = staff_api_client.post_graphql(
-        query, permissions=[permission_manage_orders, permission_manage_checkouts]
+        query, permissions=[permission_manage_checkouts]
     )
     content = get_graphql_content(response)
     lines = content["data"]["checkoutLines"]["edges"]
@@ -1786,7 +1785,7 @@ def test_is_fully_paid_no_payment(checkout_with_item):
 @pytest.fixture
 def update_checkout_meta():
     return """
-    mutation checkoutUpdateMeta($token: UUID!, $input: MetaInput!) {
+    mutation checkoutUpdateMetadata($token: UUID!, $input: MetaInput!) {
         checkoutUpdateMetadata(token: $token, input: $input){
             errors {
                 message
@@ -1798,7 +1797,7 @@ def update_checkout_meta():
 @pytest.fixture
 def update_checkout_private_meta():
     return """
-    mutation checkoutUpdatePrivateMeta($id: ID!, $input: MetaInput!) {
+    mutation checkoutUpdatePrivateMetadata($id: ID!, $input: MetaInput!) {
         checkoutUpdatePrivateMetadata(id: $id, input: $input){
             errors {
                 message
@@ -1851,7 +1850,7 @@ def test_user_does_not_need_permission_to_update_meta(
         update_checkout_meta, checkout_meta_update_variables, permissions=[]
     )
     content = get_graphql_content(response)
-    errors = content["data"]["checkoutUpdateMeta"]["errors"]
+    errors = content["data"]["checkoutUpdateMetadata"]["errors"]
     assert len(errors) == 0
     checkout.refresh_from_db()
     assert checkout.get_meta(namespace="test", client="client1") == {"foo": "bar"}
@@ -1871,7 +1870,7 @@ def test_user_with_permission_can_update_private_meta(
         update_checkout_private_meta, checkout_private_meta_update_variables
     )
     content = get_graphql_content(response)
-    errors = content["data"]["checkoutUpdatePrivateMeta"]["errors"]
+    errors = content["data"]["checkoutUpdatePrivateMetadata"]["errors"]
     assert len(errors) == 0
     checkout.refresh_from_db()
     assert checkout.get_private_meta(namespace="test", client="client1") == {"foo": "bar"}
@@ -1880,7 +1879,7 @@ def test_user_with_permission_can_update_private_meta(
 @pytest.fixture
 def clear_checkout_meta():
     return """
-        mutation checkoutClearMeta($token: UUID!, $input: MetaPath!) {
+        mutation checkoutClearMetadata($token: UUID!, $input: MetaPath!) {
             checkoutClearMetadata(token: $token, input: $input) {
                 errors {
                     message
@@ -1893,7 +1892,7 @@ def clear_checkout_meta():
 @pytest.fixture
 def clear_checkout_private_meta():
     return """
-        mutation checkoutClearPrivateMeta($id: ID!, $input: MetaPath!) {
+        mutation checkoutClearPrivateMetadata($id: ID!, $input: MetaPath!) {
             checkoutClearPrivateMetadata(id: $id, input: $input) {
                 errors {
                     message
@@ -1965,7 +1964,7 @@ def test_user_with_permission_can_clear_meta(
     response = staff_api_client.post_graphql(clear_checkout_meta, clear_meta_variables)
     assert response.status_code == 200
     content = get_graphql_content(response)
-    errors = content["data"]["checkoutClearPrivateMeta"]["errors"]
+    errors = content["data"]["checkoutClearPrivateMetadata"]["errors"]
     assert len(errors) == 0
     checkout_with_meta.refresh_from_db()
     current_meta = checkout_with_meta.get_meta(namespace="test", client="client1")
@@ -1987,7 +1986,7 @@ def test_user_with_permission_can_clear_private_meta(
     )
     assert response.status_code == 200
     content = get_graphql_content(response)
-    errors = content["data"]["checkoutClearPrivateMeta"]["errors"]
+    errors = content["data"]["checkoutClearPrivateMetadata"]["errors"]
     assert len(errors) == 0
     checkout_with_meta.refresh_from_db()
     current_meta = checkout_with_meta.get_private_meta(namespace="test", client="client1")
