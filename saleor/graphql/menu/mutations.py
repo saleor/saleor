@@ -161,7 +161,11 @@ def _validate_menu_item_instance(
                 f"(got {item._meta.verbose_name} ID)."
             )
             raise ValidationError(
-                {field: ValidationError(msg, code=str(MenuErrorCode.INVALID_MENU_ITEM))}
+                {
+                    field: ValidationError(
+                        msg, code=MenuErrorCode.INVALID_MENU_ITEM.value
+                    )
+                }
             )
 
 
@@ -289,7 +293,7 @@ class MenuItemMove(BaseMutation):
                     {
                         "parent_id": ValidationError(
                             "Cannot assign a node to itself.",
-                            code=str(MenuErrorCode.CANNOT_ASSIGN_NODE),
+                            code=MenuErrorCode.CANNOT_ASSIGN_NODE.value,
                         )
                     }
                 )
@@ -307,7 +311,7 @@ class MenuItemMove(BaseMutation):
                                 "Cannot assign a node as child of "
                                 "one of its descendants."
                             ),
-                            code=str(MenuErrorCode.CANNOT_ASSIGN_NODE),
+                            code=MenuErrorCode.CANNOT_ASSIGN_NODE.value,
                         )
                     }
                 )

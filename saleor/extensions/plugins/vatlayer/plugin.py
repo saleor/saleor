@@ -300,7 +300,7 @@ class VatlayerPlugin(BasePlugin):
         if not settings.VATLAYER_ACCESS_KEY and plugin_configuration.active:
             raise ValidationError(
                 "Cannot be enabled without provided 'settings.VATLAYER_ACCESS_KEY'",
-                code=str(ExtensionsErrorCode.PLUGIN_MISCONFIGURED),
+                code=ExtensionsErrorCode.PLUGIN_MISCONFIGURED.value,
             )
 
     @classmethod

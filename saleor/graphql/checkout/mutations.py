@@ -66,14 +66,14 @@ def clean_shipping_method(
 
     if not checkout.is_shipping_required():
         raise ValidationError(
-            ERROR_DOES_NOT_SHIP, code=str(CheckoutErrorCode.SHIPPING_NOT_REQUIRED)
+            ERROR_DOES_NOT_SHIP, code=CheckoutErrorCode.SHIPPING_NOT_REQUIRED.value
         )
 
     if not checkout.shipping_address:
         raise ValidationError(
             "Cannot choose a shipping method for a checkout without the "
             "shipping address.",
-            code=str(CheckoutErrorCode.SHIPPING_ADDRESS_NOT_SET),
+            code=CheckoutErrorCode.SHIPPING_ADDRESS_NOT_SET.value,
         )
 
     valid_methods = get_valid_shipping_methods_for_checkout(checkout, discounts)
