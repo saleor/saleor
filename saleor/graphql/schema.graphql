@@ -2257,8 +2257,8 @@ type Mutation {
   checkoutUpdateVoucher(checkoutId: ID!, voucherCode: String): CheckoutUpdateVoucher
   checkoutUpdateMetadata(input: MetaInput!, token: UUID!): CheckoutUpdateMeta
   checkoutClearMetadata(input: MetaPath!, token: UUID!): CheckoutClearMeta
-  checkoutUpdatePrivateMeta(id: ID!, input: MetaInput!): CheckoutUpdatePrivateMeta
-  checkoutClearPrivateMeta(id: ID!, input: MetaPath!): CheckoutClearPrivateMeta
+  checkoutUpdatePrivateMetadata(id: ID!, input: MetaInput!): CheckoutUpdatePrivateMeta
+  checkoutClearPrivateMetadata(id: ID!, input: MetaPath!): CheckoutClearPrivateMeta
   requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
   setPassword(token: String!, email: String!, password: String!): SetPassword
   passwordChange(newPassword: String!, oldPassword: String!): PasswordChange
