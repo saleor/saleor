@@ -19,7 +19,7 @@ def test_category_query(user_api_client, product):
         category(id: "%(category_pk)s") {
             id
             name
-            ancestors(last: 20) {
+            ancestors(first: 20) {
                 edges {
                     node {
                         name
