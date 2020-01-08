@@ -3002,3 +3002,53 @@ def test_change_active_status_for_himself(staff_api_client, permission_manage_us
         data["errors"][0]["message"] == "Cannot activate or deactivate "
         "your own account."
     )
+
+
+ADDRESS_QUERY = """
+query address($id: ID!) {
+    address(id: $id) {
+        postalCode
+        lastName
+        firstName
+        city
+        country {
+          code
+        }
+    }
+}
+"""
+
+
+def test_address_query_as_owner(user_api_client, customer_user):
+    address = customer_user.addresses.first()
+    variables = {"id": graphene.Node.to_global_id("Address", address.pk)}
+    response = user_api_client.post_graphql(ADDRESS_QUERY, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["address"]
+    assert data["country"]["code"] == address.country.code
+
+
+def test_address_query_as_not_owner(
+    user_api_client, customer_user, address_other_country
+):
+    variables = {"id": graphene.Node.to_global_id("Address", address_other_country.pk)}
+    response = user_api_client.post_graphql(ADDRESS_QUERY, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["address"]
+    assert not data
+
+
+def test_address_query_as_service_account(
+    service_account_api_client, service_account, address_other_country
+):
+    variables = {"id": graphene.Node.to_global_id("Address", address_other_country.pk)}
+    response = service_account_api_client.post_graphql(ADDRESS_QUERY, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["address"]
+    assert data["country"]["code"] == address_other_country.country.code
+
+
+def test_address_query_as_anonymous_user(api_client, address_other_country):
+    variables = {"id": graphene.Node.to_global_id("Address", address_other_country.pk)}
+    response = api_client.post_graphql(ADDRESS_QUERY, variables)
+    assert_no_permission(response)

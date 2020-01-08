@@ -52,6 +52,7 @@ from .mutations.staff import (
     UserUpdatePrivateMeta,
 )
 from .resolvers import (
+    resolve_address,
     resolve_address_validation_rules,
     resolve_customers,
     resolve_service_accounts,
@@ -59,7 +60,7 @@ from .resolvers import (
     resolve_user,
 )
 from .sorters import ServiceAccountSortingInput, UserSortingInput
-from .types import AddressValidationData, ServiceAccount, User
+from .types import Address, AddressValidationData, ServiceAccount, User
 
 
 class CustomerFilterInput(FilterInputObjectType):
@@ -93,6 +94,13 @@ class AccountQueries(graphene.ObjectType):
         city_area=graphene.Argument(
             graphene.String, description="Sublocality like a district."
         ),
+    )
+    address = graphene.Field(
+        Address,
+        id=graphene.Argument(
+            graphene.ID, description="ID of an address.", required=True
+        ),
+        description="Look up an address by ID.",
     )
     customers = FilterInputConnectionField(
         User,
@@ -165,6 +173,9 @@ class AccountQueries(graphene.ObjectType):
     )
     def resolve_user(self, info, id):
         return resolve_user(info, id)
+
+    def resolve_address(self, info, id):
+        return resolve_address(info, id)
 
 
 class AccountMutations(graphene.ObjectType):
