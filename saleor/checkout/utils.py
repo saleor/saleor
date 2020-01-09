@@ -98,6 +98,9 @@ def update_checkout_quantity(checkout):
     checkout.quantity = total_lines
     checkout.save(update_fields=["quantity"])
 
+    manager = get_extensions_manager()
+    manager.checkout_quantity_changed(checkout)
+
 
 def check_variant_in_stock(
     checkout, variant, quantity=1, replace=False, check_quantity=True
