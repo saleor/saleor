@@ -1818,7 +1818,7 @@ def checkout_meta_update_variables(checkout):
 
 @pytest.fixture
 def checkout_private_meta_update_variables(checkout):
-    checkout_id = checkout.token
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.id)
     return {
         "id": checkout_id,
         "input": {
@@ -1962,7 +1962,7 @@ def test_user_with_permission_can_clear_meta(
     response = staff_api_client.post_graphql(clear_checkout_meta, clear_meta_variables)
     assert response.status_code == 200
     content = get_graphql_content(response)
-    errors = content["data"]["checkoutClearPrivateMetadata"]["errors"]
+    errors = content["data"]["checkoutClearPrivateMeta"]["errors"]
     assert len(errors) == 0
     checkout_with_meta.refresh_from_db()
     current_meta = checkout_with_meta.get_meta(namespace="test", client="client1")

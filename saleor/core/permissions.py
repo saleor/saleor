@@ -15,10 +15,6 @@ class AccountPermissions(BasePermissionEnum):
     MANAGE_SERVICE_ACCOUNTS = "account.manage_service_accounts"
 
 
-class CheckoutPermissions(BasePermissionEnum):
-    MANAGE_CHECKOUTS = "checkout.manage_checkouts"
-
-
 class DiscountPermissions(BasePermissionEnum):
     MANAGE_DISCOUNTS = "discount.manage_discounts"
 
@@ -77,7 +73,6 @@ PERMISSIONS_ENUMS = [
     ShippingPermissions,
     SitePermissions,
     WebhookPermissions,
-    CheckoutPermissions,
 ]
 
 
