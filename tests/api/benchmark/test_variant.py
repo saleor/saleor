@@ -29,10 +29,35 @@ def test_retrieve_variant_list(product_variant_list, api_client, count_queries):
           name
           stockQuantity
           isAvailable
-          price {
-            currency
-            amount
-            localized
+          pricing {
+            discountLocalCurrency {
+              currency
+              gross {
+                amount
+                localized
+              }
+            }
+            price {
+              currency
+              gross {
+                amount
+                localized
+              }
+            }
+            priceUndiscounted {
+              currency
+              gross {
+                amount
+                localized
+              }
+            }
+            priceLocalCurrency {
+              currency
+              gross {
+                amount
+                localized
+              }
+            }
           }
           attributes {
             attribute {

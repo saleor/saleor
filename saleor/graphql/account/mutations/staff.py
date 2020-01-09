@@ -44,13 +44,6 @@ class StaffInput(UserInput):
 
 
 class StaffCreateInput(StaffInput):
-    send_password_email = graphene.Boolean(
-        description=(
-            "DEPRECATED: Will be removed in Saleor 2.10, if mutation has `redirect_url`"
-            " in input then staff get email with link to set a password. "
-            "Send an email with a link to set the password."
-        )
-    )
     redirect_url = graphene.String(
         description=(
             "URL of a view where users should be redirected to "
@@ -174,19 +167,6 @@ class StaffCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
-
-        # DEPRECATED: We should remove this condition when dropping
-        # `send_password_email` from mutation input.
-        if cleaned_input.get("send_password_email"):
-            if not cleaned_input.get("redirect_url"):
-                raise ValidationError(
-                    {
-                        "redirect_url": ValidationError(
-                            "Redirect url is required to send a password.",
-                            AccountErrorCode.REQUIRED,
-                        )
-                    }
-                )
 
         if cleaned_input.get("redirect_url"):
             try:

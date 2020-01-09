@@ -233,6 +233,7 @@ def checkout_with_items(checkout, product_list, product):
     for prod in product_list:
         variant = prod.variants.get()
         add_variant_to_checkout(checkout, variant, 1)
+    checkout.refresh_from_db()
     return checkout
 
 
@@ -551,6 +552,11 @@ def permission_manage_gift_card():
 @pytest.fixture
 def permission_manage_orders():
     return Permission.objects.get(codename="manage_orders")
+
+
+@pytest.fixture
+def permission_manage_checkouts():
+    return Permission.objects.get(codename="manage_checkouts")
 
 
 @pytest.fixture

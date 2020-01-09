@@ -5,6 +5,7 @@ import pytest
 from saleor.order import OrderStatus
 from saleor.webhook.event_types import WebhookEventType
 from saleor.webhook.payloads import (
+    generate_checkout_payload,
     generate_customer_payload,
     generate_order_payload,
     generate_product_payload,
@@ -58,3 +59,8 @@ def test_generate_sample_customer_payload(customer_user):
 def test_generate_sample_product_payload(variant):
     payload = generate_sample_payload(WebhookEventType.PRODUCT_CREATED)
     assert payload == json.loads(generate_product_payload(variant.product))
+
+
+def test_generate_sample_checkout_payload(checkout_with_items):
+    payload = generate_sample_payload(WebhookEventType.CHECKOUT_QUANTITY_CHANGED)
+    assert payload == json.loads(generate_checkout_payload(checkout_with_items))

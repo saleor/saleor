@@ -1,0 +1,22 @@
+{% load i18n %}
+
+{% block subject %}
+  {% trans "Email change e-mail" context "Email change e-mail subject" %}
+{% endblock %}
+
+{% block plain %}
+{% include 'templated_email/shared/_header.email' %}
+{% blocktrans context "Email change e-mail text" %}
+
+You're receiving this e-mail because you or someone else has changed email for your user account at {{ domain }}.
+If you didn't request this change, please contact the administrator.
+{% endblocktrans %}
+
+{{ reset_url }}
+
+{% include 'templated_email/shared/_footer.email' %}
+{% endblock %}
+
+{% block html %}
+{% include 'templated_email/compiled/password_reset.html' %}
+{% endblock %}

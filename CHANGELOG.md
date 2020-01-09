@@ -35,6 +35,14 @@ All notable, unreleased changes to this project will be documented in this file.
 - Replace permissions strings with enums - #5038 by @kswiatek92
 - Remove gateways forms and templates - #5075 by @IKarbowiak
 - Add `Wishlist` models and GraphQL endpoints - #5021 by @derenio
+- Remove deprecated code - #5107 by @IKarbowiak
+- Fix voucher start date filtering - #5133 by @dominik-zeglen
+- Search by sku in products query - #5117 by @fowczarek
+- Send fulfillment update email - #5118 by @IKarbowiak
+- Add address query - #5148 by @kswiatek92
+- Add `checkout_quantity_changed` webhook - #5042 by @derenio
+- Remove unnecessary manage_orders permission - #5142 by @kswiatek92
+- Mutation to change user email - #5076 by @kswiatek92
 
 ## 2.9.0
 
