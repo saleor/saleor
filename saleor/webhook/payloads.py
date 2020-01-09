@@ -4,12 +4,14 @@ from typing import Optional
 from django.db.models import Model, QuerySet
 
 from ..account.models import User
+from ..checkout.models import Checkout
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import Order
 from ..payment import ChargeStatus
 from ..product.models import Product
 from .event_types import WebhookEventType
 from .payload_serializers import PayloadSerializer
+from .serializers import serialize_checkout_lines
 
 ADDRESS_FIELDS = (
     "first_name",
@@ -94,6 +96,42 @@ def generate_order_payload(order: "Order"):
         },
     )
     return order_data
+
+
+def generate_checkout_payload(checkout: "Checkout"):
+    serializer = PayloadSerializer()
+    checkout_fields = (
+        "created",
+        "last_change",
+        "status",
+        "email",
+        "quantity",
+        "currency",
+        "discount_amount",
+        "discount_name",
+        "private_meta",
+        "meta",
+    )
+    user_fields = ("email", "first_name", "last_name")
+    shipping_method_fields = ("name", "type", "currency", "price_amount")
+    lines_dict_data = serialize_checkout_lines(checkout)
+
+    checkout_data = serializer.serialize(
+        [checkout],
+        fields=checkout_fields,
+        obj_id_name="token",
+        additional_fields={
+            "user": (lambda c: c.user, user_fields),
+            "billing_address": (lambda c: c.billing_address, ADDRESS_FIELDS),
+            "shipping_address": (lambda c: c.shipping_address, ADDRESS_FIELDS),
+            "shipping_method": (lambda c: c.shipping_method, shipping_method_fields),
+        },
+        extra_dict_data={
+            # Casting to list to make it json-serializable
+            "lines": list(lines_dict_data)
+        },
+    )
+    return checkout_data
 
 
 def generate_customer_payload(customer: "User"):
@@ -208,6 +246,11 @@ def generate_sample_payload(event_name: str) -> Optional[dict]:
             Product.objects.prefetch_related("category", "collections", "variants")
         )
         payload = generate_product_payload(product) if product else None
+    elif event_name == WebhookEventType.CHECKOUT_QUANTITY_CHANGED:
+        checkout = _get_sample_object(
+            Checkout.objects.prefetch_related("lines__variant__product")
+        )
+        payload = generate_checkout_payload(checkout) if checkout else None
     else:
         payload = _generate_sample_order_payload(event_name)
     return json.loads(payload) if payload else None

@@ -1,7 +1,10 @@
 from django.utils.translation import pgettext_lazy
-
-from ..core.permissions import AccountPermissions, OrderPermissions, ProductPermissions, CheckoutPermissions
-
+from ..core.permissions import (
+    AccountPermissions,
+    CheckoutPermissions,
+    OrderPermissions,
+    ProductPermissions,
+)
 
 class WebhookEventType:
     ANY = "any_events"
@@ -15,6 +18,8 @@ class WebhookEventType:
 
     PRODUCT_CREATED = "product_created"
 
+    CHECKOUT_QUANTITY_CHANGED = "checkout_quantity_changed"
+
     DISPLAY_LABELS = {
         ANY: "Any events",
         ORDER_CREATED: "Order created",
@@ -24,6 +29,7 @@ class WebhookEventType:
         ORDER_FULFILLED: "Order fulfilled",
         CUSTOMER_CREATED: "Customer created",
         PRODUCT_CREATED: "Product created",
+        CHECKOUT_QUANTITY_CHANGED: "Checkout quantity changed",
     }
 
     CHOICES = [
@@ -60,6 +66,13 @@ class WebhookEventType:
             PRODUCT_CREATED,
             pgettext_lazy("Product has been created", DISPLAY_LABELS[PRODUCT_CREATED]),
         ),
+        (
+            CHECKOUT_QUANTITY_CHANGED,
+            pgettext_lazy(
+                "Checkout's quantity has changed",
+                DISPLAY_LABELS[CHECKOUT_QUANTITY_CHANGED],
+            ),
+        ),
     ]
 
     PERMISSIONS = {
@@ -70,4 +83,5 @@ class WebhookEventType:
         ORDER_FULFILLED: OrderPermissions.MANAGE_ORDERS,
         CUSTOMER_CREATED: AccountPermissions.MANAGE_USERS,
         PRODUCT_CREATED: ProductPermissions.MANAGE_PRODUCTS,
+        CHECKOUT_QUANTITY_CHANGED: CheckoutPermissions.MANAGE_CHECKOUTS,
     }

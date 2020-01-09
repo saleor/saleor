@@ -233,6 +233,7 @@ def checkout_with_items(checkout, product_list, product):
     for prod in product_list:
         variant = prod.variants.get()
         add_variant_to_checkout(checkout, variant, 1)
+    checkout.refresh_from_db()
     return checkout
 
 

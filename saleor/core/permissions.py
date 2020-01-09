@@ -35,6 +35,10 @@ class MenuPermissions(BasePermissionEnum):
     MANAGE_MENUS = "menu.manage_menus"
 
 
+class CheckoutPermissions(BasePermissionEnum):
+    MANAGE_CHECKOUTS = "checkout.manage_checkouts"
+
+
 class OrderPermissions(BasePermissionEnum):
     MANAGE_ORDERS = "order.manage_orders"
 
@@ -73,6 +77,7 @@ PERMISSIONS_ENUMS = [
     ShippingPermissions,
     SitePermissions,
     WebhookPermissions,
+    CheckoutPermissions,
 ]
 
 
