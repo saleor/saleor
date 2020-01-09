@@ -1,7 +1,7 @@
 import json
 import logging
 import traceback
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from django.conf import settings
 from django.http import HttpRequest, HttpResponseNotAllowed, JsonResponse
@@ -92,13 +92,17 @@ class GraphQLView(View):
 
         if isinstance(data, list):
             responses = [self.get_response(request, entry) for entry in data]
-            result = [response for response, code in responses]
+            result: Union[list, Optional[dict]] = [
+                response for response, code in responses
+            ]
             status_code = max((code for response, code in responses), default=200)
         else:
             result, status_code = self.get_response(request, data)
         return JsonResponse(data=result, status=status_code, safe=False)
 
-    def get_response(self, request: HttpRequest, data: dict):
+    def get_response(
+        self, request: HttpRequest, data: dict
+    ) -> Tuple[Optional[Dict[str, List[Any]]], int]:
         execution_result = self.execute_graphql_request(request, data)
         status_code = 200
         if execution_result:
@@ -111,9 +115,9 @@ class GraphQLView(View):
                 status_code = 400
             else:
                 response["data"] = execution_result.data
-            result = response
+            result: Optional[Dict[str, List[Any]]] = response
         else:
-            result = None  # type: ignore
+            result = None
         return result, status_code
 
     def get_root_value(self):
@@ -139,7 +143,9 @@ class GraphQLView(View):
         # Attempt to parse the query, if it fails, return the error
         try:
             return (
-                self.backend.document_from_string(self.schema, query),  # type: ignore
+                self.backend.document_from_string(  # type: ignore
+                    self.schema, query
+                ),
                 None,
             )
         except (ValueError, GraphQLSyntaxError) as e:

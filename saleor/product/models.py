@@ -42,9 +42,11 @@ from ..seo.models import SeoModel, SeoModelTranslation
 from . import AttributeInputType
 
 if TYPE_CHECKING:
+    # flake8: noqa
     from prices import Money
 
     from ..account.models import User
+    from django.db.models import OrderBy
 
 
 class Category(MPTTModel, ModelWithMetadata, SeoModel):
@@ -220,27 +222,23 @@ class ProductsQueryset(PublishedQuerySet):
                 ),
                 output_field=models.CharField(),
             ),
+            concatenated_values_order=Case(
+                # Make the products having no such attribute be last in the sorting
+                When(concatenated_values=None, then=2),
+                # Put the products having an empty attribute value at the bottom of
+                # the other products.
+                When(concatenated_values="", then=1),
+                # Put the products having an attribute value to be always at the top
+                default=0,
+                output_field=models.IntegerField(),
+            ),
         )
 
-        qs = qs.extra(
-            order_by=[
-                Case(  # type: ignore
-                    # Make the products having no such attribute be last in the sorting
-                    When(concatenated_values=None, then=2),
-                    # Put the products having an empty attribute value at the bottom of
-                    # the other products.
-                    When(concatenated_values="", then=1),
-                    # Put the products having an attribute value to be always at the top
-                    default=0,
-                    output_field=models.IntegerField(),
-                ),
-                # Sort each group of products (0, 1, 2, ...) per attribute values
-                "concatenated_values",
-                # Sort each group of products by name,
-                # if they have the same values or not values
-                "name",
-            ]
-        )
+        # Sort by concatenated_values_order then
+        # Sort each group of products (0, 1, 2, ...) per attribute values
+        # Sort each group of products by name,
+        # if they have the same values or not values
+        qs = qs.order_by("concatenated_values_order", "concatenated_values", "name")
 
         # Descending sorting
         if not ascending:
@@ -741,10 +739,10 @@ class AttributeQuerySet(BaseAttributeQuerySet):
         id_field = F(f"{m2m_field_name}__id")
         if asc:
             sort_method = sort_order_field.asc(nulls_last=True)
-            id_sort = id_field
+            id_sort: Union["OrderBy", "F"] = id_field
         else:
             sort_method = sort_order_field.desc(nulls_first=True)
-            id_sort = id_field.desc()  # type: ignore
+            id_sort = id_field.desc()
 
         return self.order_by(sort_method, id_sort)
 

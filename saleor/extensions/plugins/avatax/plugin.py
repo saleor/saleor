@@ -369,7 +369,7 @@ class AvataxPlugin(BasePlugin):
                 net = Money(amount=net, currency=currency)
                 return TaxedMoney(net=net, gross=gross)
         return TaxedMoney(
-            # Ignore mypy checking because it is checked in _validate_order
+            # Ignore typing checks because it is checked in _validate_order
             net=order.shipping_method.price,  # type: ignore
             gross=order.shipping_method.price,  # type: ignore
         )
