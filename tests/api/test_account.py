@@ -304,6 +304,18 @@ def test_user_query_permission_manage_users_get_customer(
     assert customer_user.email == data["email"]
 
 
+def test_user_query_as_service_account(
+    service_account_api_client, customer_user, permission_manage_users, service_account
+):
+    service_account.permissions.add(permission_manage_users)
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+    variables = {"id": customer_id}
+    response = service_account_api_client.post_graphql(USER_QUERY, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["user"]
+    assert customer_user.email == data["email"]
+
+
 def test_user_query_permission_manage_users_get_staff(
     staff_api_client, staff_user, permission_manage_users
 ):
