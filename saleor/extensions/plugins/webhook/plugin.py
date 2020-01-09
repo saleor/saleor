@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING, Any
 
 from ....webhook.event_types import WebhookEventType
 from ....webhook.payloads import (
+    generate_checkout_payload,
     generate_customer_payload,
     generate_order_payload,
     generate_product_payload,
@@ -13,6 +14,7 @@ if TYPE_CHECKING:
     from ....order.models import Order
     from ....account.models import User
     from ....product.models import Product
+    from ....checkout.models import Checkout
 
 
 class WebhookPlugin(BasePlugin):
@@ -73,6 +75,17 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         product_data = generate_product_payload(product)
         trigger_webhooks_for_event.delay(WebhookEventType.PRODUCT_CREATED, product_data)
+
+    def checkout_quantity_changed(
+        self, checkout: "Checkout", previous_value: Any
+    ) -> Any:
+        self._initialize_plugin_configuration()
+        if not self.active:
+            return previous_value
+        checkout_data = generate_checkout_payload(checkout)
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.CHECKOUT_QUANTITY_CHANGED, checkout_data
+        )
 
     @classmethod
     def _get_default_configuration(cls):

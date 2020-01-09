@@ -23,6 +23,22 @@ def customer_password_changed_event(*, user: User) -> Optional[CustomerEvent]:
     return CustomerEvent.objects.create(user=user, type=CustomerEvents.PASSWORD_CHANGED)
 
 
+def customer_email_change_request_event(
+    *, user_id: int, parameters: dict
+) -> Optional[CustomerEvent]:
+    return CustomerEvent.objects.create(
+        user_id=user_id, type=CustomerEvents.EMAIL_CHANGE_REQUEST, parameters=parameters
+    )
+
+
+def customer_email_changed_event(
+    *, user: User, parameters: dict
+) -> Optional[CustomerEvent]:
+    return CustomerEvent.objects.create(
+        user=user, type=CustomerEvents.EMAIL_CHANGED, parameters=parameters
+    )
+
+
 def customer_placed_order_event(*, user: User, order: Order) -> Optional[CustomerEvent]:
     if user.is_anonymous:
         return None

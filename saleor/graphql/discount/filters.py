@@ -63,7 +63,7 @@ def filter_started(qs, _, value):
     if gte:
         qs = qs.filter(start_date__gte=gte)
     if lte:
-        qs = qs.filter(start_date__gte=lte)
+        qs = qs.filter(start_date__lte=lte)
     return qs
 
 

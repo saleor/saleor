@@ -301,8 +301,6 @@ type AttributeReorderValues {
   productErrors: [ProductError!]
 }
 
-scalar AttributeScalar
-
 enum AttributeSortField {
   NAME
   SLUG
@@ -635,7 +633,6 @@ type Checkout implements Node {
   shippingAddress: Address
   shippingMethod: ShippingMethod
   note: String!
-  discountAmount: Money @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, use discount instead.")
   discount: Money
   discountName: String
   translatedDiscountName: String
@@ -833,12 +830,6 @@ type CheckoutUpdatePrivateMeta {
   checkout: Checkout
 }
 
-type CheckoutUpdateVoucher {
-  errors: [Error!]
-  checkout: Checkout
-  checkoutErrors: [CheckoutError!]
-}
-
 type ChoiceValue {
   raw: String
   verbose: String
@@ -1034,6 +1025,12 @@ enum ConfigurationTypeFieldEnum {
   BOOLEAN
   SECRET
   PASSWORD
+}
+
+type ConfirmEmailChange {
+  errors: [Error!]
+  user: User
+  accountErrors: [AccountError!]
 }
 
 enum CountryCode {
@@ -1342,6 +1339,9 @@ enum CustomerEventsEnum {
   ACCOUNT_CREATED
   PASSWORD_RESET_LINK_SENT
   PASSWORD_RESET
+  EMAIL_CHANGED_REQUEST
+  PASSWORD_CHANGED
+  EMAIL_CHANGED
   PLACED_ORDER
   NOTE_ADDED_TO_ORDER
   DIGITAL_LINK_DOWNLOADED
@@ -1667,7 +1667,7 @@ type FulfillmentUpdateTracking {
 
 input FulfillmentUpdateTrackingInput {
   trackingNumber: String
-  notifyCustomer: Boolean
+  notifyCustomer: Boolean = false
 }
 
 type GatewayConfigLine {
@@ -1903,7 +1903,6 @@ input MenuInput {
 type MenuItem implements Node {
   id: ID!
   name: String!
-  sortOrder: Int @deprecated(reason: "Will be dropped in 2.10 and is deprecated since 2.9: use the position in list instead and relative calculus to determine shift position.")
   menu: Menu!
   parent: MenuItem
   category: Category
@@ -2264,7 +2263,6 @@ type Mutation {
   checkoutPaymentCreate(checkoutId: ID!, input: PaymentInput!): CheckoutPaymentCreate
   checkoutShippingAddressUpdate(checkoutId: ID!, shippingAddress: AddressInput!): CheckoutShippingAddressUpdate
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!): CheckoutShippingMethodUpdate
-  checkoutUpdateVoucher(checkoutId: ID!, voucherCode: String): CheckoutUpdateVoucher
   checkoutUpdateMetadata(id: ID!, input: MetaInput!): CheckoutUpdateMeta
   checkoutClearMetadata(id: ID!, input: MetaPath!): CheckoutClearMeta
   checkoutUpdatePrivateMetadata(id: ID!, input: MetaInput!): CheckoutUpdatePrivateMeta
@@ -2272,6 +2270,8 @@ type Mutation {
   requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
   setPassword(token: String!, email: String!, password: String!): SetPassword
   passwordChange(newPassword: String!, oldPassword: String!): PasswordChange
+  requestEmailChange(newEmail: String!, password: String!, redirectUrl: String!): RequestEmailChange
+  confirmEmailChange(token: String!): ConfirmEmailChange
   accountAddressCreate(input: AddressInput!, type: AddressTypeEnum): AccountAddressCreate
   accountAddressUpdate(id: ID!, input: AddressInput!): AccountAddressUpdate
   accountAddressDelete(id: ID!): AccountAddressDelete
@@ -2369,7 +2369,6 @@ type Order implements Node {
   totalBalance: Money!
   userEmail: String
   isShippingRequired: Boolean!
-  discountAmount: Money! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, use discount instead.")
 }
 
 enum OrderAction {
@@ -2896,6 +2895,7 @@ enum PermissionEnum {
   MANAGE_SETTINGS
   MANAGE_TRANSLATIONS
   MANAGE_WEBHOOKS
+  MANAGE_CHECKOUTS
 }
 
 type Plugin implements Node {
@@ -2966,11 +2966,9 @@ type Product implements Node {
   meta: [MetaStore]!
   url: String!
   thumbnail(size: Int): Image
-  availability: ProductPricingInfo @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, Has been renamed to `pricing`.")
   pricing: ProductPricingInfo
   isAvailable: Boolean
   basePrice: Money
-  price: Money @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, has been replaced by `basePrice`")
   minimalVariantPrice: Money
   taxType: TaxType
   attributes: [SelectedAttribute!]!
@@ -3085,8 +3083,8 @@ input ProductFilterInput {
 }
 
 type ProductImage implements Node {
-  sortOrder: Int
   id: ID!
+  sortOrder: Int
   alt: String!
   url(size: Int): String!
 }
@@ -3170,7 +3168,6 @@ enum ProductOrderField {
 }
 
 type ProductPricingInfo {
-  available: Boolean @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, this has been moved to the parent type as 'isAvailable'.")
   onSale: Boolean
   discount: TaxedMoney
   discountLocalCurrency: TaxedMoney
@@ -3356,8 +3353,6 @@ type ProductVariant implements Node {
   quantity: Int!
   stockQuantity: Int!
   priceOverride: Money
-  price: Money @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, has been replaced by 'pricing.priceUndiscounted'")
-  availability: VariantPricingInfo @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, has been renamed to `pricing`.")
   pricing: VariantPricingInfo
   isAvailable: Boolean
   attributes: [SelectedAttribute!]!
@@ -3497,34 +3492,33 @@ type Query {
   shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
   digitalContent(id: ID!): DigitalContent
   digitalContents(before: String, after: String, first: Int, last: Int): DigitalContentCountableConnection
-  attributes(query: String, inCategory: ID, inCollection: ID, filter: AttributeFilterInput, sortBy: AttributeSortingInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
+  attributes(filter: AttributeFilterInput, sortBy: AttributeSortingInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
   attribute(id: ID!): Attribute
-  categories(query: String, filter: CategoryFilterInput, sortBy: CategorySortingInput, level: Int, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
+  categories(filter: CategoryFilterInput, sortBy: CategorySortingInput, level: Int, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   category(id: ID!): Category
   collection(id: ID!): Collection
-  collections(filter: CollectionFilterInput, sortBy: CollectionSortingInput, query: String, before: String, after: String, first: Int, last: Int): CollectionCountableConnection
+  collections(filter: CollectionFilterInput, sortBy: CollectionSortingInput, before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   product(id: ID!): Product
-  products(filter: ProductFilterInput, attributes: [AttributeScalar], categories: [ID], collections: [ID], sortBy: ProductOrder, stockAvailability: StockAvailability, query: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  products(filter: ProductFilterInput, sortBy: ProductOrder, stockAvailability: StockAvailability, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   productType(id: ID!): ProductType
-  productTypes(filter: ProductTypeFilterInput, query: String, sortBy: ProductTypeSortingInput, before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
+  productTypes(filter: ProductTypeFilterInput, sortBy: ProductTypeSortingInput, before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
   productVariant(id: ID!): ProductVariant
   productVariants(ids: [ID], before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   reportProductSales(period: ReportingPeriod!, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   payment(id: ID!): Payment
   payments(before: String, after: String, first: Int, last: Int): PaymentCountableConnection
-  paymentClientToken(gateway: String!): String @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, use payment gateway config instead in availablePaymentGateways.")
   page(id: ID, slug: String): Page
-  pages(query: String, sortBy: PageSortingInput, filter: PageFilterInput, before: String, after: String, first: Int, last: Int): PageCountableConnection
+  pages(sortBy: PageSortingInput, filter: PageFilterInput, before: String, after: String, first: Int, last: Int): PageCountableConnection
   homepageEvents(before: String, after: String, first: Int, last: Int): OrderEventCountableConnection
   order(id: ID!): Order
-  orders(sortBy: OrderSortingInput, filter: OrderFilterInput, query: String, created: ReportingPeriod, status: OrderStatusFilter, before: String, after: String, first: Int, last: Int): OrderCountableConnection
-  draftOrders(sortBy: OrderSortingInput, filter: OrderDraftFilterInput, query: String, created: ReportingPeriod, before: String, after: String, first: Int, last: Int): OrderCountableConnection
+  orders(sortBy: OrderSortingInput, filter: OrderFilterInput, created: ReportingPeriod, status: OrderStatusFilter, before: String, after: String, first: Int, last: Int): OrderCountableConnection
+  draftOrders(sortBy: OrderSortingInput, filter: OrderDraftFilterInput, created: ReportingPeriod, before: String, after: String, first: Int, last: Int): OrderCountableConnection
   ordersTotal(period: ReportingPeriod): TaxedMoney
   orderByToken(token: UUID!): Order
   menu(id: ID, name: String): Menu
-  menus(query: String, sortBy: MenuSortingInput, filter: MenuFilterInput, before: String, after: String, first: Int, last: Int): MenuCountableConnection
+  menus(sortBy: MenuSortingInput, filter: MenuFilterInput, before: String, after: String, first: Int, last: Int): MenuCountableConnection
   menuItem(id: ID!): MenuItem
-  menuItems(query: String, sortBy: MenuItemSortingInput, filter: MenuItemFilterInput, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
+  menuItems(sortBy: MenuItemSortingInput, filter: MenuItemFilterInput, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
   giftCard(id: ID!): GiftCard
   giftCards(before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
   plugin(id: ID!): Plugin
@@ -3539,9 +3533,10 @@ type Query {
   checkoutLine(id: ID): CheckoutLine
   checkoutLines(before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection
   addressValidationRules(countryCode: CountryCode!, countryArea: String, city: String, cityArea: String): AddressValidationData
-  customers(filter: CustomerFilterInput, sortBy: UserSortingInput, query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
+  address(id: ID!): Address
+  customers(filter: CustomerFilterInput, sortBy: UserSortingInput, before: String, after: String, first: Int, last: Int): UserCountableConnection
   me: User
-  staffUsers(filter: StaffUserInput, sortBy: UserSortingInput, query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
+  staffUsers(filter: StaffUserInput, sortBy: UserSortingInput, before: String, after: String, first: Int, last: Int): UserCountableConnection
   serviceAccounts(filter: ServiceAccountFilterInput, sortBy: ServiceAccountSortingInput, before: String, after: String, first: Int, last: Int): ServiceAccountCountableConnection
   serviceAccount(id: ID!): ServiceAccount
   user(id: ID!): User
@@ -3567,6 +3562,12 @@ input ReorderInput {
 enum ReportingPeriod {
   TODAY
   THIS_MONTH
+}
+
+type RequestEmailChange {
+  errors: [Error!]
+  user: User
+  accountErrors: [AccountError!]
 }
 
 type RequestPasswordReset {
@@ -3684,7 +3685,6 @@ type SaleUpdate {
 
 type SelectedAttribute {
   attribute: Attribute!
-  value: AttributeValue @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, use values instead.")
   values: [AttributeValue]!
 }
 
@@ -4066,7 +4066,6 @@ input StaffCreateInput {
   isActive: Boolean
   note: String
   permissions: [PermissionEnum]
-  sendPasswordEmail: Boolean
   redirectUrl: String
 }
 
@@ -4328,7 +4327,6 @@ input UserCreateInput {
   email: String
   isActive: Boolean
   note: String
-  sendPasswordEmail: Boolean
   redirectUrl: String
 }
 
@@ -4377,7 +4375,6 @@ type VariantImageUnassign {
 }
 
 type VariantPricingInfo {
-  available: Boolean @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, this has been moved to the parent type as 'isAvailable'.")
   onSale: Boolean
   discount: TaxedMoney
   discountLocalCurrency: TaxedMoney
@@ -4411,7 +4408,6 @@ type Voucher implements Node {
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   countries: [CountryDisplay]
   translation(languageCode: LanguageCodeEnum!): VoucherTranslation
-  minAmountSpent: Money @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, use the minSpent field instead.")
 }
 
 type VoucherAddCatalogues {
@@ -4597,6 +4593,7 @@ enum WebhookEventTypeEnum {
   ORDER_FULFILLED
   CUSTOMER_CREATED
   PRODUCT_CREATED
+  CHECKOUT_QUANTITY_CHANGED
 }
 
 input WebhookFilterInput {

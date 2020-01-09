@@ -161,16 +161,6 @@ def filter_by_period(queryset, period, field_name):
     return queryset.filter(**{"%s__gte" % field_name: start_date})
 
 
-def generate_query_argument_description(search_fields):
-    deprecated_info = (
-        "DEPRECATED: Will be removed in Saleor 2.10,"
-        " use `filter: {search: {}}` instead.\n"
-    )
-    header = "Supported filter parameters:\n"
-    supported_list = [f"`{field}`" for field in search_fields]
-    return deprecated_info + header + ", ".join(supported_list)
-
-
 def format_permissions_for_display(permissions):
     """Transform permissions queryset into PermissionDisplay list.
 

@@ -150,3 +150,14 @@ def prepare_graphql_payment_sources_type(payment_sources):
             }
         )
     return sources
+
+
+def resolve_address(info, id):
+    user = info.context.user
+    service_account = info.context.service_account
+    _model, address_pk = graphene.Node.from_global_id(id)
+    if service_account:
+        return models.Address.objects.filter(pk=address_pk).first()
+    if user and not user.is_anonymous:
+        return user.addresses.filter(id=address_pk).first()
+    return PermissionDenied()

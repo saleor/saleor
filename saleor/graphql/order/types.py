@@ -339,13 +339,6 @@ class Order(MetadataObjectType, CountableDjangoObjectType):
     is_shipping_required = graphene.Boolean(
         description="Returns True, if order requires shipping.", required=True
     )
-    discount_amount = graphene.Field(
-        Money,
-        deprecation_reason=(
-            "DEPRECATED: Will be removed in Saleor 2.10, use discount instead."
-        ),
-        required=True,
-    )
 
     class Meta:
         description = "Represents an order in the shop."
@@ -501,10 +494,6 @@ class Order(MetadataObjectType, CountableDjangoObjectType):
     @staticmethod
     def resolve_gift_cards(root: models.Order, _info):
         return root.gift_cards.all()
-
-    @staticmethod
-    def resolve_discount_amount(root: models.Order, _info):
-        return root.discount
 
     @staticmethod
     @permission_required(OrderPermissions.MANAGE_ORDERS)
