@@ -579,6 +579,7 @@ ACCOUNT_REGISTER_MUTATION = """
 """
 
 
+@override_settings(ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True)
 @patch("saleor.account.emails._send_account_confirmation_email")
 def test_customer_register(send_account_confirmation_email_mock, user_api_client):
     email = "customer@example.com"
@@ -606,7 +607,9 @@ def test_customer_register(send_account_confirmation_email_mock, user_api_client
 
 @override_settings(ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=False)
 @patch("saleor.account.emails._send_account_confirmation_email")
-def test_customer_register_disabled_email_confirmation(send_account_confirmation_email_mock, user_api_client):
+def test_customer_register_disabled_email_confirmation(
+    send_account_confirmation_email_mock, user_api_client
+):
     variables = {"email": "customer@example.com", "password": "Password"}
     user_api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
     assert send_account_confirmation_email_mock.delay.call_count == 0
@@ -2144,38 +2147,33 @@ def test_account_confirmation(user_api_client, customer_user):
 
     variables = {
         "email": customer_user.email,
-        "token": default_token_generator.make_token(customer_user)
+        "token": default_token_generator.make_token(customer_user),
     }
     user_api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
 
     customer_user.refresh_from_db()
-    assert customer_user.is_active == True
+    assert customer_user.is_active is True
 
 
 def test_account_confirmation_invalid_user(user_api_client, customer_user):
     variables = {
         "email": "non-existing@nope.com",
-        "token": default_token_generator.make_token(customer_user)
+        "token": default_token_generator.make_token(customer_user),
     }
     response = user_api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
     content = get_graphql_content(response)
-    assert content["data"]["confirmAccount"]["errors"] == [{
-        "field": "email",
-        "message": "User with this email doesn't exist"
-    }]
+    assert content["data"]["confirmAccount"]["errors"] == [
+        {"field": "email", "message": "User with this email doesn't exist"}
+    ]
 
 
 def test_account_confirmation_invalid_token(user_api_client, customer_user):
-    variables = {
-        "email": customer_user.email,
-        "token": "invalid_token"
-    }
+    variables = {"email": customer_user.email, "token": "invalid_token"}
     response = user_api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
     content = get_graphql_content(response)
-    assert content["data"]["confirmAccount"]["errors"] == [{
-        "field": "token",
-        "message": "Invalid or expired token."
-    }]
+    assert content["data"]["confirmAccount"]["errors"] == [
+        {"field": "token", "message": "Invalid or expired token."}
+    ]
 
 
 @patch("saleor.account.emails._send_password_reset_email")

@@ -1027,6 +1027,10 @@ enum ConfigurationTypeFieldEnum {
   PASSWORD
 }
 
+type ConfirmAccount {
+  errors: [Error!]
+}
+
 enum CountryCode {
   AF
   AX
@@ -2259,6 +2263,7 @@ type Mutation {
   checkoutUpdatePrivateMetadata(id: ID!, input: MetaInput!): CheckoutUpdatePrivateMeta
   checkoutClearPrivateMetadata(id: ID!, input: MetaPath!): CheckoutClearPrivateMeta
   requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
+  confirmAccount(email: String!, token: String!): ConfirmAccount
   setPassword(token: String!, email: String!, password: String!): SetPassword
   passwordChange(newPassword: String!, oldPassword: String!): PasswordChange
   accountAddressCreate(input: AddressInput!, type: AddressTypeEnum): AccountAddressCreate
