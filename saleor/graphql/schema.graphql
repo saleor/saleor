@@ -2254,7 +2254,6 @@ type Mutation {
   checkoutPaymentCreate(checkoutId: ID!, input: PaymentInput!): CheckoutPaymentCreate
   checkoutShippingAddressUpdate(checkoutId: ID!, shippingAddress: AddressInput!): CheckoutShippingAddressUpdate
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!): CheckoutShippingMethodUpdate
-  checkoutUpdateVoucher(checkoutId: ID!, voucherCode: String): CheckoutUpdateVoucher
   checkoutUpdateMetadata(input: MetaInput!, token: UUID!): CheckoutUpdateMeta
   checkoutClearMetadata(input: MetaPath!, token: UUID!): CheckoutClearMeta
   checkoutUpdatePrivateMetadata(id: ID!, input: MetaInput!): CheckoutUpdatePrivateMeta
@@ -2874,6 +2873,7 @@ enum PermissionEnum {
   MANAGE_USERS
   MANAGE_STAFF
   MANAGE_SERVICE_ACCOUNTS
+  MANAGE_CHECKOUTS
   MANAGE_DISCOUNTS
   MANAGE_PLUGINS
   MANAGE_GIFT_CARD
@@ -2885,7 +2885,6 @@ enum PermissionEnum {
   MANAGE_SETTINGS
   MANAGE_TRANSLATIONS
   MANAGE_WEBHOOKS
-  MANAGE_CHECKOUTS
 }
 
 type Plugin implements Node {

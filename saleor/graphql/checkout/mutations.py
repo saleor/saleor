@@ -4,7 +4,7 @@ import graphene
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
-from django.db.models import Prefetch
+from django.db.models import Prefetch, Model
 
 from ...account.error_codes import AccountErrorCode
 from ...checkout import models
@@ -819,7 +819,7 @@ class CheckoutUpdateMeta(UpdateMetaBaseMutation):
         token = data["token"]
         try:
             return models.Checkout.objects.get(token=token)
-        except Exception:
+        except Model.DoesNotExist:
             raise ValidationError(
                 "Couldn't resolve to a node: %s" % token,
                 code="not_found",
@@ -858,7 +858,7 @@ class CheckoutClearMeta(ClearMetaBaseMutation):
         token = data["token"]
         try:
             return models.Checkout.objects.get(token=token)
-        except Exception:
+        except Model.DoesNotExist:
             raise ValidationError(
                 "Couldn't resolve to a node: %s" % token,
                 code="not_found",
