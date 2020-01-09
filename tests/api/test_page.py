@@ -375,6 +375,7 @@ def test_query_pages_with_sort(
     response = staff_api_client.post_graphql(QUERY_PAGE_WITH_SORT, variables)
     content = get_graphql_content(response)
     pages = content["data"]["pages"]["edges"]
+    print(result_order)
 
     for order, page_name in enumerate(result_order):
         assert pages[order]["node"]["title"] == page_name

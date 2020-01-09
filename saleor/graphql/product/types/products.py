@@ -8,7 +8,7 @@ from graphene import relay
 from graphene_federation import key
 from graphql.error import GraphQLError
 
-from ....core.permissions import ProductPermissions
+from ....core.permissions import OrderPermissions, ProductPermissions, StockPermissions
 from ....product import models
 from ....product.templatetags.product_images import (
     get_product_image_thumbnail,
@@ -203,10 +203,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
             "only meant for displaying."
         ),
     )
-    # FIXME
-    is_available = graphene.Boolean(
-        description="Whether the variant is in stock and visible or not."
-    )
+
     attributes = gql_optimizer.field(
         graphene.List(
             graphene.NonNull(SelectedAttribute),
@@ -267,7 +264,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         model = models.ProductVariant
 
     @staticmethod
-    @permission_required("stock.manage_stocks")
+    @permission_required(StockPermissions.MANAGE_STOCKS)
     def resolve_stock(root: models.ProductVariant, info, country):
         return stock_models.Stock.objects.get_variant_stock_for_country(country, root)
 
@@ -315,10 +312,6 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
     resolve_availability = resolve_pricing
 
     @staticmethod
-    def resolve_is_available(root: models.ProductVariant, _info):
-        return root.is_available
-
-    @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_price_override(root: models.ProductVariant, *_args):
         return root.price_override
@@ -336,7 +329,9 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         return getattr(root, "quantity_ordered", None)
 
     @staticmethod
-    @permission_required(["order.manage_orders", ProductPermissions.MANAGE_PRODUCTS])
+    @permission_required(
+        [OrderPermissions.MANAGE_ORDERS, ProductPermissions.MANAGE_PRODUCTS]
+    )
     def resolve_revenue(root: models.ProductVariant, *_args, period):
         start_date = reporting_period_to_date(period)
         return calculate_revenue_for_variant(root, start_date)

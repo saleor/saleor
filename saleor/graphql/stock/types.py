@@ -1,5 +1,6 @@
 import graphene
 
+from ...core.permissions import StockPermissions
 from ...stock import models
 from ...stock.availability import get_available_quantity_for_customer
 from ..core.connection import CountableDjangoObjectType
@@ -26,6 +27,6 @@ class Stock(CountableDjangoObjectType):
         interfaces = [graphene.relay.Node]
 
     @staticmethod
-    @permission_required("stock.manage_stocks")
+    @permission_required(StockPermissions.MANAGE_STOCKS)
     def resolve_available(root, *_args):
         return get_available_quantity_for_customer(root)

@@ -1,6 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
+from ...core.permissions import WarehousePermissions
 from ...warehouse import models
 from ...warehouse.error_codes import WarehouseErrorCode
 from ...warehouse.validation import validate_warehouse_count
@@ -48,7 +49,7 @@ class WarehouseCreate(WarehouseMixin, ModelMutation, I18nMixin):
     class Meta:
         description = "Creates new warehouse."
         model = models.Warehouse
-        permissions = ("warehouse.manage_warehouses",)
+        permissions = (WarehousePermissions.MANAGE_WAREHOUSES,)
         error_type_class = WarehouseError
         error_type_field = "warehouse_errors"
 
@@ -61,7 +62,7 @@ class WarehouseCreate(WarehouseMixin, ModelMutation, I18nMixin):
 class WarehouseUpdate(WarehouseMixin, ModelMutation, I18nMixin):
     class Meta:
         model = models.Warehouse
-        permissions = ("warehouse.manage_warehouses",)
+        permissions = (WarehousePermissions.MANAGE_WAREHOUSES,)
         description = "Updates given warehouse."
         error_type_class = WarehouseError
         error_type_field = "warehouse_errors"
@@ -85,7 +86,7 @@ class WarehouseUpdate(WarehouseMixin, ModelMutation, I18nMixin):
 class WarehouseDelete(ModelDeleteMutation):
     class Meta:
         model = models.Warehouse
-        permissions = ("warehouse.manage_warehouses",)
+        permissions = (WarehousePermissions.MANAGE_WAREHOUSES,)
         description = "Deletes selected warehouse."
         error_type_class = WarehouseError
         error_type_field = "warehouse_errors"

@@ -1,5 +1,6 @@
 import graphene
 
+from saleor.core.permissions import StockPermissions
 from saleor.stock.models import Stock
 from tests.api.utils import assert_no_permission, get_graphql_content
 
@@ -121,7 +122,7 @@ QUERY_STOCKS_WITH_FILTERS = """
 def test_stock_cannot_be_created_without_permission(
     staff_api_client, variant, warehouse
 ):
-    assert not staff_api_client.user.has_perm("stock.manage_stocks")
+    assert not staff_api_client.user.has_perm(StockPermissions.MANAGE_STOCKS)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
     variables = {
@@ -181,7 +182,7 @@ def test_create_stock_negative_quantity(
 
 
 def test_update_stock_required_permission(staff_api_client, stock):
-    assert not staff_api_client.user.has_perm("stock.manage_stocks")
+    assert not staff_api_client.user.has_perm(StockPermissions.MANAGE_STOCKS)
     stock_id = graphene.Node.to_global_id("Stock", stock.pk)
     variant_id = graphene.Node.to_global_id("ProductVariant", stock.product_variant.pk)
     warehouse_id = graphene.Node.to_global_id("Warehouse", stock.warehouse.pk)
@@ -212,7 +213,9 @@ def test_update_stock_mutation(staff_api_client, permission_manage_stocks, stock
             "quantity": old_stock_quantity + 12,
         },
     }
-    response = staff_api_client.post_graphql(MUTATION_UPDATE_STOCK, variables=variables)
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_STOCK, variables=variables,
+    )
     content = get_graphql_content(response)
     content_errors = content["data"]["updateStock"]["errors"]
     assert len(content_errors) == 0
@@ -221,7 +224,7 @@ def test_update_stock_mutation(staff_api_client, permission_manage_stocks, stock
 
 
 def test_delete_stock_requires_permission(staff_api_client, stock):
-    assert not staff_api_client.user.has_perm("stock.manage_stocks")
+    assert not staff_api_client.user.has_perm(StockPermissions.MANAGE_STOCKS)
     stock_id = graphene.Node.to_global_id("Stock", stock.pk)
     variables = {"id": stock_id}
     response = staff_api_client.post_graphql(MUTATION_DELETE_STOCK, variables=variables)
@@ -242,7 +245,7 @@ def test_delete_stock_mutation(staff_api_client, permission_manage_stocks, stock
 
 
 def test_bulk_delete_stock_requires_permission(staff_api_client):
-    assert not staff_api_client.user.has_perm("stock.manage_stocks")
+    assert not staff_api_client.user.has_perm(StockPermissions.MANAGE_STOCKS)
     variables = {
         "ids": [
             graphene.Node.to_global_id("Stock", stock.pk)
@@ -276,7 +279,7 @@ def test_bulk_delete_bulk_stock_mutation(staff_api_client, permission_manage_sto
 
 
 def test_query_stock_requires_permission(staff_api_client, stock):
-    assert not staff_api_client.user.has_perm("stock.manage_stocks")
+    assert not staff_api_client.user.has_perm(StockPermissions.MANAGE_STOCKS)
     stock_id = graphene.Node.to_global_id("Stock", stock.pk)
     response = staff_api_client.post_graphql(QUERY_STOCK, variables={"id": stock_id})
     assert_no_permission(response)
@@ -298,7 +301,7 @@ def test_query_stock(staff_api_client, stock, permission_manage_stocks):
 
 
 def test_query_stocks_requires_permissions(staff_api_client):
-    assert not staff_api_client.user.has_perm("stock.manage_stocks")
+    assert not staff_api_client.user.has_perm(StockPermissions.MANAGE_STOCKS)
     response = staff_api_client.post_graphql(QUERY_STOCKS)
     assert_no_permission(response)
 

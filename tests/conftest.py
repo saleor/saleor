@@ -669,6 +669,7 @@ def product_with_two_variants(product_type, category, warehouse):
                 quantity=10,
                 quantity_allocated=1,
             )
+            for variant in variants
         ]
     )
 
@@ -1819,6 +1820,7 @@ def customer_wishlist_item_with_two_variants(
     return item
 
 
+@pytest.fixture
 def warehouse(address, shipping_zone):
     warehouse = Warehouse.objects.create(
         address=address, name="Example Warehouse", email="test@example.com"

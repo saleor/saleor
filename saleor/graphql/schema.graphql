@@ -3358,7 +3358,6 @@ type ProductVariant implements Node {
   meta: [MetaStore]!
   priceOverride: Money
   pricing: VariantPricingInfo
-  isAvailable: Boolean
   attributes: [SelectedAttribute!]!
   costPrice: Money
   margin: Int

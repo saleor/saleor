@@ -1,6 +1,7 @@
 import graphene
 import graphene_django_optimizer as gql_optimizer
 
+from ...core.permissions import WarehousePermissions
 from ...warehouse import models
 from ..core.fields import FilterInputConnectionField
 from ..decorators import permission_required
@@ -21,13 +22,13 @@ class WarehouseQueries(graphene.ObjectType):
         Warehouse, description="List of warehouses.", filter=WarehouseFilterInput()
     )
 
-    @permission_required("warehouse.manage_warehouses")
+    @permission_required(WarehousePermissions.MANAGE_WAREHOUSES)
     def resolve_warehouse(self, info, **data):
         warehouse_pk = data.get("id")
         warehouse = graphene.Node.get_node_from_global_id(info, warehouse_pk, Warehouse)
         return warehouse
 
-    @permission_required("warehouse.manage_warehouses")
+    @permission_required(WarehousePermissions.MANAGE_WAREHOUSES)
     def resolve_warehouses(self, info, **kwargs):
         qs = models.Warehouse.objects.select_related("address").all()
         return gql_optimizer.query(qs, info)
