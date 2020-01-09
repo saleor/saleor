@@ -16,7 +16,7 @@ from prices import Money
 from saleor.account import events as account_events
 from saleor.account.error_codes import AccountErrorCode
 from saleor.account.models import Address, User
-from saleor.account.utils import get_random_avatar
+from saleor.account.utils import create_jwt_token, get_random_avatar
 from saleor.checkout import AddressType
 from saleor.graphql.account.mutations.base import INVALID_TOKEN
 from saleor.graphql.account.mutations.staff import (
@@ -3099,9 +3099,13 @@ def test_address_query_as_not_owner(
     assert not data
 
 
-def test_address_query_as_service_account(
-    service_account_api_client, service_account, address_other_country
+def test_address_query_as_service_account_with_permission(
+    service_account_api_client,
+    service_account,
+    address_other_country,
+    permission_manage_users,
 ):
+    service_account.permissions.add(permission_manage_users)
     variables = {"id": graphene.Node.to_global_id("Address", address_other_country.pk)}
     response = service_account_api_client.post_graphql(ADDRESS_QUERY, variables)
     content = get_graphql_content(response)
@@ -3109,7 +3113,147 @@ def test_address_query_as_service_account(
     assert data["country"]["code"] == address_other_country.country.code
 
 
+def test_address_query_as_service_account_without_permission(
+    service_account_api_client, service_account, address_other_country
+):
+
+    variables = {"id": graphene.Node.to_global_id("Address", address_other_country.pk)}
+    response = service_account_api_client.post_graphql(ADDRESS_QUERY, variables)
+    assert_no_permission(response)
+
+
 def test_address_query_as_anonymous_user(api_client, address_other_country):
     variables = {"id": graphene.Node.to_global_id("Address", address_other_country.pk)}
     response = api_client.post_graphql(ADDRESS_QUERY, variables)
     assert_no_permission(response)
+
+
+REQUEST_EMAIL_CHANGE_QUERY = """
+mutation requestEmailChange(
+    $password: String!, $new_email: String!, $redirect_url: String!
+) {
+    requestEmailChange(
+        password: $password, newEmail: $new_email, redirectUrl: $redirect_url
+    ) {
+        user {
+            email
+        }
+        accountErrors {
+            code
+            message
+            field
+        }
+  }
+}
+"""
+
+
+def test_request_email_change(user_api_client, customer_user):
+    variables = {
+        "password": "password",
+        "new_email": "new_email@example.com",
+        "redirect_url": "http://www.example.com",
+    }
+
+    response = user_api_client.post_graphql(REQUEST_EMAIL_CHANGE_QUERY, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["requestEmailChange"]
+    assert data["user"]["email"] == customer_user.email
+
+
+def test_request_email_change_to_existing_email(
+    user_api_client, customer_user, staff_user
+):
+    variables = {
+        "password": "password",
+        "new_email": staff_user.email,
+        "redirect_url": "http://www.example.com",
+    }
+
+    response = user_api_client.post_graphql(REQUEST_EMAIL_CHANGE_QUERY, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["requestEmailChange"]
+    assert not data["user"]
+    assert data["accountErrors"] == [
+        {
+            "code": "UNIQUE",
+            "message": "Email is used by other user.",
+            "field": "newEmail",
+        }
+    ]
+
+
+def test_request_email_change_with_invalid_redirect_url(
+    user_api_client, customer_user, staff_user
+):
+    variables = {
+        "password": "password",
+        "new_email": "new_email@example.com",
+        "redirect_url": "www.example.com",
+    }
+
+    response = user_api_client.post_graphql(REQUEST_EMAIL_CHANGE_QUERY, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["requestEmailChange"]
+    assert not data["user"]
+    assert data["accountErrors"] == [
+        {
+            "code": "INVALID",
+            "message": "Invalid URL. Please check if URL is in RFC 1808 format.",
+            "field": "redirectUrl",
+        }
+    ]
+
+
+EMAIL_UPDATE_QUERY = """
+mutation emailUpdate($token: String!) {
+    confirmEmailChange(token: $token){
+        user {
+            email
+        }
+        accountErrors {
+            code
+            message
+            field
+        }
+  }
+}
+"""
+
+
+def test_email_update(user_api_client, customer_user):
+    new_email = "new_email@example.com"
+    token_kwargs = {
+        "old_email": customer_user.email,
+        "new_email": new_email,
+        "user_pk": customer_user.pk,
+    }
+    token = create_jwt_token(token_kwargs)
+    variables = {"token": token}
+
+    response = user_api_client.post_graphql(EMAIL_UPDATE_QUERY, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["confirmEmailChange"]
+    assert data["user"]["email"] == new_email
+
+
+def test_email_update_to_existing_email(user_api_client, customer_user, staff_user):
+    token_kwargs = {
+        "old_email": customer_user.email,
+        "new_email": staff_user.email,
+        "user_pk": customer_user.pk,
+    }
+    token = create_jwt_token(token_kwargs)
+    variables = {"token": token}
+
+    response = user_api_client.post_graphql(EMAIL_UPDATE_QUERY, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["confirmEmailChange"]
+    assert not data["user"]
+    assert data["accountErrors"] == [
+        {
+            "code": "UNIQUE",
+            "message": "Email is used by other user.",
+            "field": "newEmail",
+        }
+    ]

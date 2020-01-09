@@ -1,9 +1,13 @@
 import os
 import random
 
+import jwt
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.files import File
+from django.utils import timezone
 
+from ..account.error_codes import AccountErrorCode
 from ..checkout import AddressType
 from ..core.utils import create_thumbnails
 from ..extensions.manager import get_extensions_manager
@@ -90,3 +94,29 @@ def remove_staff_member(staff):
         staff.save()
     else:
         staff.delete()
+
+
+def create_jwt_token(token_data):
+    expiration_date = timezone.now() + timezone.timedelta(hours=1)
+    token_kwargs = {"exp": expiration_date}
+    token_kwargs.update(token_data)
+    token = jwt.encode(
+        token_kwargs, settings.JWT_TOKEN_SECRET, algorithm="HS256"
+    ).decode()
+    return token
+
+
+def decode_jwt_token(token):
+    try:
+        decoded_token = jwt.decode(
+            token.encode(), settings.JWT_TOKEN_SECRET, algorithms=["HS256"]
+        )
+    except jwt.PyJWTError:
+        raise ValidationError(
+            {
+                "token": ValidationError(
+                    "Invalid or expired token.", code=AccountErrorCode.INVALID
+                )
+            }
+        )
+    return decoded_token
