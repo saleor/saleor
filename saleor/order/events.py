@@ -37,9 +37,9 @@ def email_sent_event(
 ) -> OrderEvent:
 
     if user and not user.is_anonymous:
-        kwargs = {"user": user}
+        kwargs: Dict[str, Union[User, int]] = {"user": user}
     elif user_pk:
-        kwargs = {"user_id": user_pk}  # type: ignore
+        kwargs = {"user_id": user_pk}
     else:
         kwargs = {}
 
@@ -96,10 +96,11 @@ def order_created_event(
         event_type = OrderEvents.PLACED
         account_events.customer_placed_order_event(user=user, order=order)
 
-    if user.is_anonymous:
-        user = None  # type: ignore
+    order_event_user = None if user.is_anonymous else user
 
-    return OrderEvent.objects.create(order=order, type=event_type, user=user)
+    return OrderEvent.objects.create(
+        order=order, type=event_type, user=order_event_user
+    )
 
 
 def draft_order_oversold_items_event(

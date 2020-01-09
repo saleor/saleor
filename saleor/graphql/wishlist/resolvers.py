@@ -12,8 +12,8 @@ if TYPE_CHECKING:
 
 def resolve_wishlist_from_user(user: "User") -> Wishlist:
     """Return wishlist of the logged in user."""
-    wishlist = Wishlist.objects.get_or_create(user=user)
-    return wishlist  # type: ignore
+    wishlist, _ = Wishlist.objects.get_or_create(user=user)
+    return wishlist
 
 
 def resolve_wishlist_from_info(info: "ResolveInfo") -> Wishlist:

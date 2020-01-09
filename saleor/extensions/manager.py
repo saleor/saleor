@@ -294,7 +294,7 @@ class ExtensionsManager(PaymentInterface):
             if payment_method in type(plugin).__dict__
         ]
 
-    def list_payment_gateways(self, active_only: bool = True) -> List[dict]:  # type: ignore
+    def list_payment_gateways(self, active_only: bool = True) -> List[dict]:
         payment_plugins = self.list_payment_plugin_names(active_only=active_only)
         return [
             {"name": plugin_name, "config": self.__get_payment_config(plugin_name)}

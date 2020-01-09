@@ -74,7 +74,7 @@ def get_product_discount_on_sale(
 def get_product_discounts(product: "Product", discounts: "DiscountsListType") -> Money:
     """Return discount values for all discounts applicable to a product."""
     product_collections = set(product.collections.all().values_list("pk", flat=True))
-    for discount in discounts:  # type: ignore
+    for discount in discounts or []:
         try:
             yield get_product_discount_on_sale(product, product_collections, discount)
         except NotApplicable:
