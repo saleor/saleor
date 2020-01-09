@@ -47,8 +47,9 @@ class CheckoutQueries(graphene.ObjectType):
     def resolve_checkout(self, *_args, token):
         return resolve_checkout(token)
 
+    @permission_required(CheckoutPermissions.MANAGE_CHECKOUTS)
     def resolve_checkouts(self, *_args, **_kwargs):
-        resolve_checkouts()
+        return resolve_checkouts()
 
     def resolve_checkout_line(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, CheckoutLine)
