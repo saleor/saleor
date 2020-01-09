@@ -25,7 +25,7 @@ class AnonymizePlugin(BasePlugin):
         previous_value: "Address",
     ) -> "Address":
         if address.phone:
-            address.phone = address.phone.default
+            address.phone = ""  # type: ignore
         address = obfuscate_address(address)
         address.save()
         return address
