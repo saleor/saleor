@@ -39,6 +39,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix voucher start date filtering - #5133 by @dominik-zeglen
 - Search by sku in products query - #5117 by @fowczarek
 - Send fulfillment update email - #5118 by @IKarbowiak
+- Add address query - #5148 by @kswiatek92
+- Add `checkout_quantity_changed` webhook - #5042 by @derenio
+- Remove unnecessary manage_orders permission - #5142 by @kswiatek92
 
 ## 2.9.0
 
