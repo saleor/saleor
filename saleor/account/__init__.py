@@ -9,6 +9,8 @@ class CustomerEvents:
     PASSWORD_RESET_LINK_SENT = "password_reset_link_sent"
     PASSWORD_RESET = "password_reset"
     PASSWORD_CHANGED = "password_changed"
+    EMAIL_CHANGE_REQUEST = "email_changed_request"
+    EMAIL_CHANGED = "email_changed"
 
     # Order related events
     PLACED_ORDER = "placed_order"  # created an order
@@ -26,7 +28,7 @@ class CustomerEvents:
             ACCOUNT_CREATED,
             pgettext_lazy(
                 "Event from a customer that got their account created",
-                "The account account was created",
+                "The account was created",
             ),
         ),
         (
@@ -41,6 +43,27 @@ class CustomerEvents:
             pgettext_lazy(
                 "Event from a customer that reset their password",
                 "The account password was reset",
+            ),
+        ),
+        (
+            EMAIL_CHANGE_REQUEST,
+            pgettext_lazy(
+                "Event from a customer that requested email address change",
+                "The user requested to change the account's email address.",
+            ),
+        ),
+        (
+            PASSWORD_CHANGED,
+            pgettext_lazy(
+                "Event from a customer that changed their password",
+                "The account password was changed",
+            ),
+        ),
+        (
+            EMAIL_CHANGED,
+            pgettext_lazy(
+                "Event from a customer that changed their email address",
+                "The account email address was changed",
             ),
         ),
         (
