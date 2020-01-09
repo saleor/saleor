@@ -6,7 +6,7 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [("checkout", "0021_django_price_2")]
+    dependencies = [("checkout", "0022_auto_20191219_1137")]
 
     operations = [
         migrations.AddField(
