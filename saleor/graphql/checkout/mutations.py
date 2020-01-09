@@ -797,7 +797,6 @@ class CheckoutRemovePromoCode(BaseMutation):
 class CheckoutUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Updates metadata for checkout."
-        permissions = (CheckoutPermissions.MANAGE_CHECKOUTS,)
         model = models.Checkout
         public = True
         error_type_class = CheckoutError
@@ -839,7 +838,6 @@ class CheckoutUpdatePrivateMeta(UpdateMetaBaseMutation):
 class CheckoutClearMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clear metadata for checkout."
-        permissions = (CheckoutPermissions.MANAGE_CHECKOUTS, )
         model = models.Checkout
         public = True
         error_type_class = CheckoutError
