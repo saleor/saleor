@@ -1,6 +1,7 @@
 import graphene
 import graphene_django_optimizer as gql_optimizer
 
+from ...core.permissions import StockPermissions
 from ...stock import models
 from ..core.fields import FilterInputConnectionField
 from ..decorators import permission_required
@@ -22,13 +23,13 @@ class StockQueries(graphene.ObjectType):
         query=graphene.String(),
     )
 
-    @permission_required("stock.manage_stocks")
+    @permission_required(StockPermissions.MANAGE_STOCKS)
     def resolve_stock(self, info, **kwargs):
         stock_id = kwargs.get("id")
         stock = graphene.Node.get_node_from_global_id(info, stock_id, Stock)
         return stock
 
-    @permission_required("stock.manage_stocks")
+    @permission_required(StockPermissions.MANAGE_STOCKS)
     def resolve_stocks(self, info, **data):
         qs = models.Stock.objects.all()
         return gql_optimizer.query(qs, info)

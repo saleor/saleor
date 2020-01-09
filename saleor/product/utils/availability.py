@@ -42,7 +42,9 @@ class VariantAvailability:
     discount_local_currency: Optional[TaxedMoney]
 
 
-def get_product_availability_status(product: "Product") -> ProductAvailabilityStatus:
+def get_product_availability_status(
+    product: "Product", country: str
+) -> ProductAvailabilityStatus:
     is_visible = product.is_visible
     are_all_variants_in_stock = are_all_product_variants_in_stock(product, country)
     is_in_stock = is_product_in_stock(product, country)

@@ -1,6 +1,7 @@
 import graphene
 
 from saleor.account.models import Address
+from saleor.core.permissions import WarehousePermissions
 from saleor.warehouse.models import Warehouse
 from tests.api.utils import assert_no_permission, get_graphql_content
 
@@ -137,7 +138,7 @@ mutation deleteWarehouse($id: ID!) {
 
 
 def test_warehouse_cannot_query_without_permissions(user_api_client, warehouse):
-    assert not user_api_client.user.has_perm("warehouse.manage_warehouses")
+    assert not user_api_client.user.has_perm(WarehousePermissions.MANAGE_WAREHOUSES)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
 
     response = user_api_client.post_graphql(
@@ -178,7 +179,7 @@ def test_warehouse_query(staff_api_client, warehouse, permission_manage_warehous
 
 
 def test_query_warehouses_requires_permissions(staff_api_client, warehouse):
-    assert not staff_api_client.user.has_perm("warehouse.manage_warehouses")
+    assert not staff_api_client.user.has_perm(WarehousePermissions.MANAGE_WAREHOUSES)
     response = staff_api_client.post_graphql(QUERY_WAREHOUSES)
     content = get_graphql_content(response, ignore_errors=True)
     errors = content["errors"]
@@ -247,7 +248,7 @@ def test_query_warehouse_with_filters_email(
 
 def test_mutation_create_warehouse_requires_permission(staff_api_client):
     Warehouse.objects.all().delete()
-    assert not staff_api_client.user.has_perm("warehouse.manage_warehouses")
+    assert not staff_api_client.user.has_perm(WarehousePermissions.MANAGE_WAREHOUSES)
     variables = {
         "input": {
             "name": "Test warehouse",
@@ -342,7 +343,7 @@ def test_create_warehouse_creates_address(
 
 
 def test_mutation_update_warehouse_requires_permission(staff_api_client, warehouse):
-    assert not staff_api_client.user.has_perm("warehouse.manage_warehouses")
+    assert not staff_api_client.user.has_perm(WarehousePermissions.MANAGE_WAREHOUSES)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
     variables = {"input": {"name": "New test name"}, "id": warehouse_id}
     response = staff_api_client.post_graphql(
@@ -456,7 +457,7 @@ def test_mutation_update_warehouse_adding_shipping_zones(
 
 
 def test_delete_warehouse_requires_permission(staff_api_client, warehouse):
-    assert not staff_api_client.user.has_perm("warehouse.manage_warehouses")
+    assert not staff_api_client.user.has_perm(WarehousePermissions.MANAGE_WAREHOUSES)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
     response = staff_api_client.post_graphql(
         MUTATION_DELETE_WAREHOUSE, variables={"id": warehouse_id}

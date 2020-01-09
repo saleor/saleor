@@ -1,5 +1,6 @@
 import graphene
 
+from ...core.permissions import StockPermissions
 from ...stock import models
 from ..core.mutations import ModelBulkDeleteMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import StockError
@@ -15,7 +16,7 @@ class StockCreate(ModelMutation):
     class Meta:
         description = "Creates new stock."
         model = models.Stock
-        permissions = ("stock.manage_stocks",)
+        permissions = (StockPermissions.MANAGE_STOCKS,)
         error_type_class = StockError
         error_type_field = "stock_errors"
 
@@ -29,7 +30,7 @@ class StockUpdate(ModelMutation):
 
     class Meta:
         model = models.Stock
-        permissions = ("stock.manage_stocks",)
+        permissions = (StockPermissions.MANAGE_STOCKS,)
         description = "Update given stock."
         error_type_class = StockError
         error_type_field = "stock_error"
@@ -41,7 +42,7 @@ class StockDelete(ModelDeleteMutation):
 
     class Meta:
         model = models.Stock
-        permissions = ("stock.manage_stocks",)
+        permissions = (StockPermissions.MANAGE_STOCKS,)
         description = "Deletes selected stock."
         erorr_type_class = StockError
         error_type_field = "stock_error"
@@ -53,7 +54,7 @@ class StockBulkDelete(ModelBulkDeleteMutation):
 
     class Meta:
         model = models.Stock
-        permissions = ("stock.manage_stocks",)
+        permissions = (StockPermissions.MANAGE_STOCKS,)
         description = "Deletes stocks in bulk"
         error_type_class = StockError
         error_type_field = "stock_error"

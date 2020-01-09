@@ -13,7 +13,6 @@ query {
     edges {
       node {
         variants {
-          isAvailable
           pricing {
             onSale
 

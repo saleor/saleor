@@ -13,7 +13,6 @@ from prices import Money
 from saleor.core.taxes import TaxType
 from saleor.extensions.manager import ExtensionsManager
 from saleor.graphql.core.enums import ReportingPeriod
-from saleor.graphql.product.enums import StockAvailability
 from saleor.product import AttributeInputType
 from saleor.product.error_codes import ProductErrorCode
 from saleor.product.models import (
@@ -28,7 +27,6 @@ from saleor.product.models import (
 )
 from saleor.product.tasks import update_variants_names
 from saleor.product.utils.attributes import associate_attribute_values_to_instance
-from saleor.stock.models import Stock
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image, create_pdf_file_with_image_ext
 
@@ -2257,43 +2255,6 @@ def test_product_variant_price(
     data = content["data"]["product"]
     variant_price = data["variants"][0]["pricing"]["priceUndiscounted"]["gross"]
     assert variant_price["amount"] == api_variant_price
-
-
-@pytest.mark.skip(reason="Decision needs to be made about how usage of this function")
-def test_stock_availability_filter(user_api_client, product):
-    query = """
-    query Products($stockAvailability: StockAvailability) {
-        products(stockAvailability: $stockAvailability, first: 1) {
-            totalCount
-            edges {
-                node {
-                    id
-                }
-            }
-        }
-    }
-    """
-
-    # fetch products in stock
-    variables = {"stockAvailability": StockAvailability.IN_STOCK.name}
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    assert content["data"]["products"]["totalCount"] == 1
-
-    # fetch out of stock
-    variables = {"stockAvailability": StockAvailability.OUT_OF_STOCK.name}
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    assert content["data"]["products"]["totalCount"] == 0
-
-    # Change product stock availability and test again
-    Stock.objects.update(quantity=0)
-
-    # There should be no products in stock
-    variables = {"stockAvailability": StockAvailability.IN_STOCK.name}
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    assert content["data"]["products"]["totalCount"] == 0
 
 
 def test_report_product_sales(
