@@ -292,3 +292,70 @@ def test_prepare_url():
     params = urlencode({"param1": "abc", "param2": "xyz"})
     result = prepare_url(params, redirect_url)
     assert result == "https://www.example.com?param1=abc&param2=xyz"
+
+
+@mock.patch("saleor.account.emails.send_templated_mail")
+def test_send_email_request_change(
+    mocked_templated_email, site_settings, customer_user
+):
+    new_email = "example@example.com"
+    template = account_emails.REQUEST_EMAIL_CHANGE_TEMPLATE
+    redirect_url = "localhost"
+    token = "token_example"
+    event_parameters = {"old_email": customer_user.email, "new_email": new_email}
+
+    account_emails._send_request_email_change_email(
+        new_email, redirect_url, customer_user.pk, token, event_parameters
+    )
+    ctx = {
+        "domain": "mirumee.com",
+        "logo_url": "http://mirumee.com/static/images/logo-light.svg",
+        "redirect_url": "localhost?token=token_example",
+        "site_name": "mirumee.com",
+    }
+    recipients = [new_email]
+
+    expected_call_kwargs = {
+        "context": ctx,
+        "from_email": site_settings.default_from_email,
+        "template_name": template,
+    }
+
+    # mocked_templated_email.assert_called_once()
+    mocked_templated_email.assert_called_once_with(
+        recipient_list=recipients, **expected_call_kwargs
+    )
+
+    # Render the email to ensure there is no error
+    email_connection = get_connection()
+    email_connection.get_email_message(to=recipients, **expected_call_kwargs)
+
+
+@mock.patch("saleor.account.emails.send_templated_mail")
+def test_send_email_changed_notification(
+    mocked_templated_email, site_settings, customer_user
+):
+    old_email = "example@example.com"
+    template = account_emails.EMAIL_CHANGED_NOTIFICATION_TEMPLATE
+    account_emails.send_user_change_email_notification(old_email)
+    ctx = {
+        "domain": "mirumee.com",
+        "logo_url": "http://mirumee.com/static/images/logo-light.svg",
+        "site_name": "mirumee.com",
+    }
+    recipients = [old_email]
+
+    expected_call_kwargs = {
+        "context": ctx,
+        "from_email": site_settings.default_from_email,
+        "template_name": template,
+    }
+
+    # mocked_templated_email.assert_called_once()
+    mocked_templated_email.assert_called_once_with(
+        recipient_list=recipients, **expected_call_kwargs
+    )
+
+    # Render the email to ensure there is no error
+    email_connection = get_connection()
+    email_connection.get_email_message(to=recipients, **expected_call_kwargs)

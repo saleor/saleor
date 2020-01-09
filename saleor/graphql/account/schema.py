@@ -18,6 +18,8 @@ from .mutations.account import (
     AccountSetDefaultAddress,
     AccountUpdate,
     AccountUpdateMeta,
+    ConfirmEmailChange,
+    RequestEmailChange,
 )
 from .mutations.base import (
     ConfirmAccount,
@@ -185,6 +187,8 @@ class AccountMutations(graphene.ObjectType):
     confirm_account = ConfirmAccount.Field()
     set_password = SetPassword.Field()
     password_change = PasswordChange.Field()
+    request_email_change = RequestEmailChange.Field()
+    confirm_email_change = ConfirmEmailChange.Field()
 
     # Account mutations
     account_address_create = AccountAddressCreate.Field()
