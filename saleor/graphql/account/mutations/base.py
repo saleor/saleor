@@ -160,7 +160,7 @@ class ConfirmAccount(BaseMutation):
         )
         email = graphene.String(
             description="E-mail of the user performing account confirmation.",
-            required=True
+            required=True,
         )
 
     class Meta:
