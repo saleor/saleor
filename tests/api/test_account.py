@@ -3038,14 +3038,27 @@ def test_address_query_as_not_owner(
     assert not data
 
 
-def test_address_query_as_service_account(
-    service_account_api_client, service_account, address_other_country
+def test_address_query_as_service_account_with_permission(
+    service_account_api_client,
+    service_account,
+    address_other_country,
+    permission_manage_users,
 ):
+    service_account.permissions.add(permission_manage_users)
     variables = {"id": graphene.Node.to_global_id("Address", address_other_country.pk)}
     response = service_account_api_client.post_graphql(ADDRESS_QUERY, variables)
     content = get_graphql_content(response)
     data = content["data"]["address"]
     assert data["country"]["code"] == address_other_country.country.code
+
+
+def test_address_query_as_service_account_without_permission(
+    service_account_api_client, service_account, address_other_country
+):
+
+    variables = {"id": graphene.Node.to_global_id("Address", address_other_country.pk)}
+    response = service_account_api_client.post_graphql(ADDRESS_QUERY, variables)
+    assert_no_permission(response)
 
 
 def test_address_query_as_anonymous_user(api_client, address_other_country):
