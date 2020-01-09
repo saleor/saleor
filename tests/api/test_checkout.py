@@ -1605,9 +1605,7 @@ def test_query_checkouts(
     """
     checkout = checkout_with_item
     response = staff_api_client.post_graphql(
-        query, {}, permissions=[
-            permission_manage_checkouts,
-        ],
+        query, {}, permissions=[],
     )
     content = get_graphql_content(response)
     received_checkout = content["data"]["checkouts"]["edges"][0]["node"]
@@ -1820,7 +1818,7 @@ def checkout_meta_update_variables(checkout):
 
 @pytest.fixture
 def checkout_private_meta_update_variables(checkout):
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.id)
+    checkout_id = checkout.token
     return {
         "id": checkout_id,
         "input": {
@@ -1850,7 +1848,7 @@ def test_user_does_not_need_permission_to_update_meta(
         update_checkout_meta, checkout_meta_update_variables, permissions=[]
     )
     content = get_graphql_content(response)
-    errors = content["data"]["checkoutUpdateMetadata"]["errors"]
+    errors = content["data"]["checkoutUpdateMeta"]["errors"]
     assert len(errors) == 0
     checkout.refresh_from_db()
     assert checkout.get_meta(namespace="test", client="client1") == {"foo": "bar"}
@@ -1912,7 +1910,7 @@ def clear_meta_variables(checkout):
 
 @pytest.fixture
 def clear_meta_private_variables(checkout):
-    checkout_id = graphene.Node.to_global_id("Checkout", checkout.id)
+    checkout_id = checkout.token
     return {
         "id": checkout_id,
         "input": {
