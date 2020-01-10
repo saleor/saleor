@@ -423,6 +423,19 @@ def test_get_voucher_discount_for_order_voucher_validation(
     )
 
 
+@patch("saleor.discount.utils.validate_voucher")
+def test_validate_voucher_in_order_without_voucher(
+    mock_validate_voucher, order_with_lines
+):
+    order_with_lines.voucher = None
+    order_with_lines.save()
+
+    assert not order_with_lines.voucher
+
+    validate_voucher_in_order(order_with_lines)
+    mock_validate_voucher.assert_not_called()
+
+
 @pytest.mark.parametrize(
     "product_name, variant_name, translated_product_name, translated_variant_name,"
     "expected_display_name",
