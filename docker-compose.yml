@@ -36,7 +36,7 @@ services:
       - saleor-redis:/data
 
   celery:
-    image: saelor-django-backend
+    image: saleor-django-backend
     command: celery -A saleor worker --app=saleor.celeryconf:app --loglevel=info
     restart: unless-stopped
     networks:
