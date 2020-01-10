@@ -483,7 +483,6 @@ class ProductVariant(ModelWithMetadata):
         is_digital = self.product.product_type.is_digital
         return not self.is_shipping_required() and is_digital
 
-
     def display_product(self, translated: bool = False) -> str:
         if translated:
             product = self.product.translated
