@@ -1,6 +1,7 @@
 import json
 import logging
 import traceback
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from django.conf import settings
 from django.http import HttpRequest, HttpResponseNotAllowed, JsonResponse
@@ -91,13 +92,17 @@ class GraphQLView(View):
 
         if isinstance(data, list):
             responses = [self.get_response(request, entry) for entry in data]
-            result = [response for response, code in responses]
+            result: Union[list, Optional[dict]] = [
+                response for response, code in responses
+            ]
             status_code = max((code for response, code in responses), default=200)
         else:
             result, status_code = self.get_response(request, data)
         return JsonResponse(data=result, status=status_code, safe=False)
 
-    def get_response(self, request: HttpRequest, data: dict):
+    def get_response(
+        self, request: HttpRequest, data: dict
+    ) -> Tuple[Optional[Dict[str, List[Any]]], int]:
         execution_result = self.execute_graphql_request(request, data)
         status_code = 200
         if execution_result:
@@ -110,7 +115,7 @@ class GraphQLView(View):
                 status_code = 400
             else:
                 response["data"] = execution_result.data
-            result = response
+            result: Optional[Dict[str, List[Any]]] = response
         else:
             result = None
         return result, status_code
@@ -118,7 +123,9 @@ class GraphQLView(View):
     def get_root_value(self):
         return self.root_value
 
-    def parse_query(self, query: str) -> (GraphQLDocument, ExecutionResult):
+    def parse_query(
+        self, query: str
+    ) -> Tuple[Optional[GraphQLDocument], Optional[ExecutionResult]]:
         """Attempt to parse a query (mandatory) to a gql document object.
 
         If no query was given or query is not a string, it returns an error.
@@ -135,7 +142,12 @@ class GraphQLView(View):
 
         # Attempt to parse the query, if it fails, return the error
         try:
-            return self.backend.document_from_string(self.schema, query), None
+            return (
+                self.backend.document_from_string(  # type: ignore
+                    self.schema, query
+                ),
+                None,
+            )
         except (ValueError, GraphQLSyntaxError) as e:
             return None, ExecutionResult(errors=[e], invalid=True)
 
@@ -146,13 +158,13 @@ class GraphQLView(View):
         if error:
             return error
 
-        extra_options = {}
+        extra_options: Dict[str, Optional[Any]] = {}
         if self.executor:
             # We only include it optionally since
             # executor is not a valid argument in all backends
             extra_options["executor"] = self.executor
         try:
-            return document.execute(
+            return document.execute(  # type: ignore
                 root=self.get_root_value(),
                 variables=variables,
                 operation_name=operation_name,

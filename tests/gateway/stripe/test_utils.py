@@ -61,6 +61,14 @@ def test_get_payment_billing_fullname(payment_dummy):
     assert get_payment_billing_fullname(payment_info) == expected_fullname
 
 
+def test_get_payment_billing_fullname_no_billing(payment_dummy):
+    payment_info = create_payment_information(payment_dummy)
+    payment_info.billing = None
+
+    assert not payment_info.billing
+    assert get_payment_billing_fullname(payment_info) == ""
+
+
 def test_shipping_address_to_stripe_dict(address):
     address_data = AddressData(**address.as_data())
     expected_address_dict = {
