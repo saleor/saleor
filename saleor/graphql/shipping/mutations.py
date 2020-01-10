@@ -50,7 +50,7 @@ class ShippingZoneInput(graphene.InputObjectType):
 
 class ShippingZoneMixin:
     @classmethod
-    def clean_input(cls, info, instance, data):
+    def clean_input(cls, info, instance, data, input_cls=None):
         cleaned_input = super().clean_input(info, instance, data)
         default = cleaned_input.get("default")
         if default:
@@ -117,7 +117,7 @@ class ShippingZoneDelete(ModelDeleteMutation):
 
 class ShippingPriceMixin:
     @classmethod
-    def clean_input(cls, info, instance, data):
+    def clean_input(cls, info, instance, data, input_cls=None):
         cleaned_input = super().clean_input(info, instance, data)
 
         # Rename the price field to price_amount (the model's)

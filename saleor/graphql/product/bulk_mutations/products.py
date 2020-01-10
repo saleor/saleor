@@ -193,7 +193,7 @@ class ProductVariantBulkCreate(BaseMutation):
                 instance = models.ProductVariant()
                 cleaned_input["product"] = product
                 instance = cls.construct_instance(instance, cleaned_input)
-                cls.clean_instance(instance)
+                cls.clean_instance(info, instance)
                 instances.append(instance)
             except ValidationError as exc:
                 cls.add_indexes_to_errors(index, exc, errors)

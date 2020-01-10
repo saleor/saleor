@@ -30,8 +30,10 @@ from . import (
 from .tasks import api_post_request_task
 
 if TYPE_CHECKING:
+    # flake8: noqa
     from ....checkout.models import Checkout, CheckoutLine
     from ....order.models import Order, OrderLine
+    from ....product.models import Product, ProductType
     from ...models import PluginConfiguration
     from ....discount.types import DiscountsListType
 
@@ -201,7 +203,7 @@ class AvataxPlugin(BasePlugin):
         if not response or "error" in response:
             return base_subtotal
 
-        currency = response.get("currencyCode")
+        currency = str(response.get("currencyCode"))
         return self._calculate_checkout_subtotal(currency, response.get("lines", []))
 
     def _calculate_checkout_shipping(
@@ -238,7 +240,7 @@ class AvataxPlugin(BasePlugin):
         if not response or "error" in response:
             return base_shipping_price
 
-        currency = response.get("currencyCode")
+        currency = str(response.get("currencyCode"))
         return self._calculate_checkout_shipping(
             currency, response.get("lines", []), base_shipping_price
         )
@@ -367,7 +369,9 @@ class AvataxPlugin(BasePlugin):
                 net = Money(amount=net, currency=currency)
                 return TaxedMoney(net=net, gross=gross)
         return TaxedMoney(
-            net=order.shipping_method.price, gross=order.shipping_method.price
+            # Ignore typing checks because it is checked in _validate_order
+            net=order.shipping_method.price,  # type: ignore
+            gross=order.shipping_method.price,  # type: ignore
         )
 
     def get_tax_rate_type_choices(self, previous_value: Any) -> List[TaxType]:
@@ -436,7 +440,7 @@ class AvataxPlugin(BasePlugin):
             )
             raise ValidationError(
                 error_msg + ", ".join(missing_fields),
-                code=ExtensionsErrorCode.PLUGIN_MISCONFIGURED,
+                code=ExtensionsErrorCode.PLUGIN_MISCONFIGURED.value,
             )
 
     @classmethod

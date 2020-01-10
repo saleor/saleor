@@ -174,7 +174,7 @@ class ServiceAccountToken(CountableDjangoObjectType):
         only_fields = ["name", "auth_token"]
 
     @staticmethod
-    def resolve_auth_token(root: models.ServiceAccount, _info, **_kwargs):
+    def resolve_auth_token(root: models.ServiceAccountToken, _info, **_kwargs):
         return root.auth_token[-4:]
 
 

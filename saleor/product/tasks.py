@@ -12,7 +12,7 @@ from .utils.variant_prices import (
 )
 
 
-def _update_variants_names(instance: ProductVariant, saved_attributes: Iterable):
+def _update_variants_names(instance: ProductType, saved_attributes: Iterable):
     """Product variant names are created from names of assigned attributes.
 
     After change in attribute value name, for all product variants using this
@@ -35,7 +35,7 @@ def _update_variants_names(instance: ProductVariant, saved_attributes: Iterable)
 
 
 @app.task
-def update_variants_names(product_type_pk: List[int], saved_attributes_ids: List[int]):
+def update_variants_names(product_type_pk: int, saved_attributes_ids: List[int]):
     instance = ProductType.objects.get(pk=product_type_pk)
     saved_attributes = Attribute.objects.filter(pk__in=saved_attributes_ids)
     _update_variants_names(instance, saved_attributes)

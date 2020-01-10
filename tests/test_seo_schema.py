@@ -40,6 +40,19 @@ def test_get_product_data_with_image(order_with_lines, product_with_image):
     assert result["itemOffered"]["name"] == variant.display_product()
 
 
+def test_get_product_data_without_line_variant(order_with_lines):
+    """Tested OrderLine Product has no image assigned."""
+    line = order_with_lines.lines.first()
+    organization = get_organization()
+    line.variant = None
+    line.save()
+
+    assert not line.variant
+    result = get_product_data(line, organization)
+
+    assert result == {}
+
+
 def test_get_order_confirmation_markup(order_with_lines):
     try:
         result = get_order_confirmation_markup(order_with_lines)
