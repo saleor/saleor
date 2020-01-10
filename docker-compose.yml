@@ -7,7 +7,7 @@ services:
       dockerfile: ./Dockerfile
       args:
         STATIC_URL: '/static/'
-    container_name: saelor-django-backend
+    container_name: saleor-django-backend
     restart: unless-stopped
     networks:
       - saleor-backend-tier
@@ -36,13 +36,14 @@ services:
       - saleor-redis:/data
 
   celery:
-    image: saelor-django-backend
+    image: saleor-django-backend:latest
     command: celery -A saleor worker --app=saleor.celeryconf:app --loglevel=info
     restart: unless-stopped
     networks:
       - saleor-backend-tier
     env_file: common.env
     depends_on:
+      - web
       - redis
 
 volumes:
