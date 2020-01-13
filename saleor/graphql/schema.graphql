@@ -3356,8 +3356,12 @@ type ProductVariant implements Node {
   weight: Weight
   privateMeta: [MetaStore]!
   meta: [MetaStore]!
+  quantity: Int!
+  quantityAllocated: Int
+  stockQuantity: Int!
   priceOverride: Money
   pricing: VariantPricingInfo
+  isAvailable: Boolean
   attributes: [SelectedAttribute!]!
   costPrice: Money
   margin: Int
