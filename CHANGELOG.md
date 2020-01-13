@@ -46,6 +46,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add mypy checks - #5150 by @IKarbowiak
 - Move extracting user or service_account from context to utils - #5152 by @kswiatek92
 - Add deprecate description to order status/created arguments - #5076 by @kswiatek92
+- Fix getting title field in page mutations #5160 by @maarcingebala
 
 ## 2.9.0
 
