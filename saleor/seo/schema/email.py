@@ -33,6 +33,9 @@ def get_product_data(line: "OrderLine", organization: dict) -> dict:
         "seller": organization,
     }
 
+    if not line.variant:
+        return {}
+
     product = line.variant.product
     # Deprecated. To remove in #5022
     product_url = build_absolute_uri(product.get_absolute_url())

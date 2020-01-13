@@ -1,4 +1,4 @@
-from typing import Set, Union
+from typing import TYPE_CHECKING, Optional, Set, Union
 
 from ..models import (
     AssignedProductAttribute,
@@ -10,6 +10,11 @@ from ..models import (
 )
 
 AttributeAssignmentType = Union[AssignedProductAttribute, AssignedVariantAttribute]
+
+
+if TYPE_CHECKING:
+    # flake8: noqa
+    from ..models import AttributeProduct, AttributeVariant
 
 
 def generate_name_for_variant(variant: ProductVariant) -> str:
@@ -25,13 +30,14 @@ def generate_name_for_variant(variant: ProductVariant) -> str:
 
 
 def _associate_attribute_to_instance(
-    instance: Union[Product, ProductVariant], attribute_pk: Attribute
+    instance: Union[Product, ProductVariant], attribute_pk: int
 ) -> AttributeAssignmentType:
     """Associate a given attribute to an instance."""
+    assignment: Union["AssignedProductAttribute", "AssignedVariantAttribute"]
     if isinstance(instance, Product):
-        attribute_rel = instance.product_type.attributeproduct.get(
-            attribute_id=attribute_pk
-        )
+        attribute_rel: Union[
+            "AttributeProduct", "AttributeVariant"
+        ] = instance.product_type.attributeproduct.get(attribute_id=attribute_pk)
 
         assignment, _ = AssignedProductAttribute.objects.get_or_create(
             product=instance, assignment=attribute_rel

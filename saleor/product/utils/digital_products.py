@@ -49,7 +49,7 @@ def increment_download_count(content_url: DigitalContentUrl):
     line = content_url.line
     user = line.order.user if line else None
 
-    if user is not None:
+    if user and line:
         account_events.customer_downloaded_a_digital_link_event(
             user=user, order_line=line
         )
