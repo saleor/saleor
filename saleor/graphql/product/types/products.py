@@ -21,7 +21,11 @@ from ....product.utils.availability import (
 )
 from ....product.utils.costs import get_margin_for_variant, get_product_costs_data
 from ....stock import models as stock_models
-from ....stock.availability import is_product_in_stock
+from ....stock.availability import (
+    get_available_quantity_for_customer,
+    is_product_in_stock,
+    is_variant_in_stock,
+)
 from ...core.connection import CountableDjangoObjectType
 from ...core.enums import ReportingPeriod, TaxRateType
 from ...core.fields import FilterInputConnectionField, PrefetchingConnectionField
@@ -189,6 +193,20 @@ class ProductPricingInfo(BasePricingInfo):
 
 @key(fields="id")
 class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
+    # DEPRECATED
+    quantity = graphene.Int(
+        required=True,
+        description="DEPRECATED: Will be removed in favour of stock. "
+        "Quantity of a product in the store's possession, "
+        "including the allocated stock that is waiting for shipment.",
+    )
+    quantity_allocated = graphene.Int(required=False, description="DEPRECATED")
+    # DEPRECATED
+    stock_quantity = graphene.Int(
+        required=True,
+        description="DEPRECATED: Will be removed in favour to stock. "
+        "Quantity of a product available for sale.",
+    )
     price_override = graphene.Field(
         Money,
         description=(
@@ -202,6 +220,11 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
             "Lists the storefront variant's pricing, the current price and discounts, "
             "only meant for displaying."
         ),
+    )
+    # DEPRECATED
+    is_available = graphene.Boolean(
+        description="DEPRECATED: Will be removed in favour of stock. "
+        "Whether the variant is in stock and visible or not."
     )
 
     attributes = gql_optimizer.field(
@@ -255,7 +278,6 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
             "id",
             "name",
             "product",
-            "quantity_allocated",
             "sku",
             "track_inventory",
             "weight",
@@ -265,13 +287,25 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
 
     @staticmethod
     @permission_required(StockPermissions.MANAGE_STOCKS)
-    def resolve_stock(root: models.ProductVariant, info, country):
-        return stock_models.Stock.objects.get_variant_stock_for_country(country, root)
+    def resolve_stock(root: models.ProductVariant, info, country=None):
+        if country is not None:
+            return stock_models.Stock.objects.get_variant_stock_for_country(
+                country, root
+            )
+        return stock_models.Stock.objects.annotate_available_quantity().filter(
+            product_variant=root
+        )
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_digital_content(root: models.ProductVariant, *_args):
         return getattr(root, "digital_content", None)
+
+    @staticmethod
+    def resolve_stock_quantity(root: models.ProductVariant, info):
+        country = info.context.country
+        stock = stock_models.Stock.objects.get_variant_stock_for_country(country, root)
+        return get_available_quantity_for_customer(stock)
 
     @staticmethod
     @gql_optimizer.resolver_hints(
@@ -312,14 +346,21 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
     resolve_availability = resolve_pricing
 
     @staticmethod
+    def resolve_is_available(root: models.ProductVariant, info):
+        country = info.context.country
+        return is_variant_in_stock(root, country)
+
+    @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_price_override(root: models.ProductVariant, *_args):
         return root.price_override
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_quantity(root: models.ProductVariant, *_args):
-        return root.quantity
+    def resolve_quantity(root: models.ProductVariant, info):
+        country = info.context.country
+        stock = stock_models.Stock.objects.get_variant_stock_for_country(country, root)
+        return stock.quantity
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -327,6 +368,12 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         # This field is added through annotation when using the
         # `resolve_report_product_sales` resolver.
         return getattr(root, "quantity_ordered", None)
+
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    def resolve_quantity_allocated(root: models.ProductVariant, info):
+        country = info.context.country
+        stock = stock_models.Stock.objects.get_variant_stock_for_country(country, root)
+        return stock.quantity_allocated
 
     @staticmethod
     @permission_required(
