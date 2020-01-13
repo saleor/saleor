@@ -6,22 +6,12 @@ from ..account.models import User
 from ..product.models import Product, ProductVariant
 
 
-class WishlistQuerySet(models.QuerySet):
-    def get_or_create(self, user: "User"):  # pylint: disable=W0221
-        try:
-            return user.wishlist
-        except self.model.DoesNotExist:
-            return self.create(user=user)
-
-
 class Wishlist(models.Model):
     token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     user = models.OneToOneField(
         User, related_name="wishlist", on_delete=models.CASCADE, blank=True, null=True
     )
     created_at = models.DateTimeField(auto_now_add=True)
-
-    objects = WishlistQuerySet.as_manager()
 
     def set_user(self, user):
         self.user = user

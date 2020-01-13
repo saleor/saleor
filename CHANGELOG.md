@@ -43,6 +43,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `checkout_quantity_changed` webhook - #5042 by @derenio
 - Remove unnecessary manage_orders permission - #5142 by @kswiatek92
 - Mutation to change user email - #5076 by @kswiatek92
+- Add mypy checks - #5150 by @IKarbowiak
+- Move extracting user or service_account from context to utils - #5152 by @kswiatek92
 - Add deprecate description to order status/created arguments - #5076 by @kswiatek92
 
 ## 2.9.0

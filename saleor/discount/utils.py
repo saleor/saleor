@@ -15,6 +15,7 @@ from .models import NotApplicable, Sale, VoucherCustomer
 if TYPE_CHECKING:
     # flake8: noqa
     from .models import Voucher
+    from .types import DiscountsListType
     from ..product.models import Product
     from ..checkout.models import Checkout
     from ..order.models import Order
@@ -55,7 +56,7 @@ def remove_voucher_usage_by_customer(voucher: "Voucher", customer_email: str) ->
 
 
 def get_product_discount_on_sale(
-    product: "Product", product_collections: Set[str], discount: DiscountInfo
+    product: "Product", product_collections: Set[int], discount: DiscountInfo
 ):
     """Return discount value if product is on sale or raise NotApplicable."""
     is_product_on_sale = (
@@ -73,7 +74,7 @@ def get_product_discount_on_sale(
 def get_product_discounts(product: "Product", discounts: "DiscountsListType") -> Money:
     """Return discount values for all discounts applicable to a product."""
     product_collections = set(product.collections.all().values_list("pk", flat=True))
-    for discount in discounts:
+    for discount in discounts or []:
         try:
             yield get_product_discount_on_sale(product, product_collections, discount)
         except NotApplicable:
@@ -85,9 +86,9 @@ def calculate_discounted_price(
 ) -> Money:
     """Return minimum product's price of all prices with discounts applied."""
     if discounts:
-        discounts = list(get_product_discounts(product, discounts))
-        if discounts:
-            price = min(discount(price) for discount in discounts)
+        discount_prices = list(get_product_discounts(product, discounts))
+        if discount_prices:
+            price = min(discount(price) for discount in discount_prices)
     return price
 
 
@@ -104,6 +105,8 @@ def validate_voucher_in_order(order: "Order"):
     subtotal = order.get_subtotal()
     quantity = order.get_total_quantity()
     customer_email = order.get_customer_email()
+    if not order.voucher:
+        return
     validate_voucher(order.voucher, subtotal.gross, quantity, customer_email)
 
 
@@ -125,16 +128,16 @@ def get_products_voucher_discount(voucher: "Voucher", prices: Iterable[Money]) -
     return total_amount
 
 
-def _fetch_categories(sale_pks: Iterable[str]) -> Dict[str, Set[str]]:
+def _fetch_categories(sale_pks: Iterable[str]) -> Dict[int, Set[int]]:
     from ..product.models import Category
 
     categories = Sale.categories.through.objects.filter(
         sale_id__in=sale_pks
     ).values_list("sale_id", "category_id")
-    category_map = defaultdict(set)
+    category_map: Dict[int, Set[int]] = defaultdict(set)
     for sale_pk, category_pk in categories:
         category_map[sale_pk].add(category_pk)
-    subcategory_map = defaultdict(set)
+    subcategory_map: Dict[int, Set[int]] = defaultdict(set)
     for sale_pk, category_pks in category_map.items():
         subcategory_map[sale_pk] = set(
             Category.tree.filter(pk__in=category_pks)
@@ -144,21 +147,21 @@ def _fetch_categories(sale_pks: Iterable[str]) -> Dict[str, Set[str]]:
     return subcategory_map
 
 
-def _fetch_collections(sale_pks: Iterable[str]) -> Dict[str, set]:
+def _fetch_collections(sale_pks: Iterable[str]) -> Dict[int, Set[int]]:
     collections = Sale.collections.through.objects.filter(
         sale_id__in=sale_pks
     ).values_list("sale_id", "collection_id")
-    collection_map = defaultdict(set)
+    collection_map: Dict[int, Set[int]] = defaultdict(set)
     for sale_pk, collection_pk in collections:
         collection_map[sale_pk].add(collection_pk)
     return collection_map
 
 
-def _fetch_products(sale_pks: Iterable[str]) -> Dict[str, set]:
+def _fetch_products(sale_pks: Iterable[str]) -> Dict[int, Set[int]]:
     products = Sale.products.through.objects.filter(sale_id__in=sale_pks).values_list(
         "sale_id", "product_id"
     )
-    product_map = defaultdict(set)
+    product_map: Dict[int, Set[int]] = defaultdict(set)
     for sale_pk, product_pk in products:
         product_map[sale_pk].add(product_pk)
     return product_map

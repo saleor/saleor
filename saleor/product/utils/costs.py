@@ -25,7 +25,7 @@ def get_product_costs_data(
 ) -> Tuple[MoneyRange, Tuple[float, float]]:
 
     purchase_costs_range = MoneyRange(start=zero_money(), stop=zero_money())
-    margin = (0, 0)
+    margin = (0.0, 0.0)
 
     if not product.variants.exists():
         return purchase_costs_range, margin
@@ -40,8 +40,8 @@ def get_product_costs_data(
 
 
 def get_cost_data_from_variants(variants: Iterable["ProductVariant"]) -> CostsData:
-    costs = []
-    margins = []
+    costs: List[CostsData] = []
+    margins: List[float] = []
     for variant in variants:
         costs_data = get_variant_costs_data(variant)
         costs += costs_data.costs
