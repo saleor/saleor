@@ -2307,6 +2307,7 @@ type Mutation {
   serviceAccountClearPrivateMetadata(id: ID!, input: MetaPath!): ServiceAccountClearPrivateMeta
   serviceAccountTokenCreate(input: ServiceAccountTokenInput!): ServiceAccountTokenCreate
   serviceAccountTokenDelete(id: ID!): ServiceAccountTokenDelete
+  permissionGroupCreate(input: PermissionGroupInput!, permissions: [PermissionEnum!]): PermissionGroupCreate
 }
 
 input NameTranslationInput {
@@ -2896,6 +2897,23 @@ enum PermissionEnum {
   MANAGE_TRANSLATIONS
   MANAGE_WEBHOOKS
   MANAGE_CHECKOUTS
+}
+
+type PermissionGroup implements Node {
+  name: String!
+  permissions: [PermissionDisplay]
+  id: ID!
+  users: [User]
+}
+
+type PermissionGroupCreate {
+  errors: [Error!]
+  group: PermissionGroup
+  accountErrors: [AccountError!]
+}
+
+input PermissionGroupInput {
+  name: String
 }
 
 type Plugin implements Node {
@@ -4705,7 +4723,7 @@ type WishlistRemoveProductVariantMutation {
 
 scalar _Any
 
-union _Entity = Address | ServiceAccount | User | ProductVariant | Product | ProductType | Collection | Category | ProductImage
+union _Entity = Address | ServiceAccount | User | PermissionGroup | ProductVariant | Product | ProductType | Collection | Category | ProductImage
 
 type _Service {
   sdl: String
