@@ -195,7 +195,7 @@ class BaseMutation(graphene.Mutation):
         return instances
 
     @classmethod
-    def clean_instance(cls, instance):
+    def clean_instance(cls, info, instance):
         """Clean the instance that was created using the input data.
 
         Once an instance is created, this method runs `full_clean()` to perform
@@ -447,7 +447,7 @@ class ModelMutation(BaseMutation):
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
         instance = cls.construct_instance(instance, cleaned_input)
-        cls.clean_instance(instance)
+        cls.clean_instance(info, instance)
         cls.save(info, instance, cleaned_input)
         cls._save_m2m(info, instance, cleaned_input)
         return cls.success_response(instance)
