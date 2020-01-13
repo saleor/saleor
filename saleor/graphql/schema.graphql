@@ -2307,7 +2307,7 @@ type Mutation {
   serviceAccountClearPrivateMetadata(id: ID!, input: MetaPath!): ServiceAccountClearPrivateMeta
   serviceAccountTokenCreate(input: ServiceAccountTokenInput!): ServiceAccountTokenCreate
   serviceAccountTokenDelete(id: ID!): ServiceAccountTokenDelete
-  permissionGroupCreate(input: PermissionGroupInput!, permissions: [PermissionEnum!]): PermissionGroupCreate
+  permissionGroupCreate(input: PermissionGroupInput!): PermissionGroupCreate
 }
 
 input NameTranslationInput {
@@ -2913,7 +2913,8 @@ type PermissionGroupCreate {
 }
 
 input PermissionGroupInput {
-  name: String
+  name: String!
+  permissions: [PermissionEnum!]
 }
 
 type Plugin implements Node {
