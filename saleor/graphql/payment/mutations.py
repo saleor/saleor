@@ -74,7 +74,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         data = data.get("input")
         billing_address = checkout.billing_address
         if "billing_address" in data:
-            billing_address = cls.validate_address(data["billing_address"])
+            billing_address = cls.validate_address(data["billing_address"], info=info)
         if billing_address is None:
             raise ValidationError(
                 {

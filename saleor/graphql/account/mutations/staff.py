@@ -116,7 +116,7 @@ class CustomerUpdate(CustomerCreate):
         new_instance = cls.construct_instance(copy(original_instance), cleaned_input)
 
         # Save the new instance data
-        cls.clean_instance(new_instance)
+        cls.clean_instance(info, new_instance)
         cls.save(info, new_instance, cleaned_input)
         cls._save_m2m(info, new_instance, cleaned_input)
 

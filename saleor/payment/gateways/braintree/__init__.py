@@ -27,7 +27,7 @@ ERROR_CODES_WHITELIST = {
 
 
 def get_billing_data(payment_information: PaymentData) -> Dict:
-    billing = {}
+    billing: Dict[str, str] = {}
     if payment_information.billing:
         billing_info = payment_information.billing
         billing = {
@@ -69,7 +69,7 @@ def get_error_for_client(errors: List) -> str:
 
 def extract_gateway_response(braintree_result) -> Dict:
     """Extract data from Braintree response that will be stored locally."""
-    errors = []
+    errors: List[Optional[Dict[str, str]]] = []
     if not braintree_result.is_success:
         errors = [
             {"code": error.code, "message": error.message}

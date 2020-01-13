@@ -1,6 +1,6 @@
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Type
 
 import graphene
 from django.core.exceptions import ValidationError
@@ -150,18 +150,22 @@ class MenuDelete(ModelDeleteMutation):
 
 
 def _validate_menu_item_instance(
-    cleaned_input: dict, field: str, expected_model: Model
+    cleaned_input: dict, field: str, expected_model: Type[Model]
 ):
     """Check if the value to assign as a menu item matches the expected model."""
     item = cleaned_input.get(field)
-    if item is not None:
+    if item:
         if not isinstance(item, expected_model):
             msg = (
                 f"Enter a valid {expected_model._meta.verbose_name} ID "
                 f"(got {item._meta.verbose_name} ID)."
             )
             raise ValidationError(
-                {field: ValidationError(msg, code=MenuErrorCode.INVALID_MENU_ITEM)}
+                {
+                    field: ValidationError(
+                        msg, code=MenuErrorCode.INVALID_MENU_ITEM.value
+                    )
+                }
             )
 
 
@@ -289,7 +293,7 @@ class MenuItemMove(BaseMutation):
                     {
                         "parent_id": ValidationError(
                             "Cannot assign a node to itself.",
-                            code=MenuErrorCode.CANNOT_ASSIGN_NODE,
+                            code=MenuErrorCode.CANNOT_ASSIGN_NODE.value,
                         )
                     }
                 )
@@ -307,7 +311,7 @@ class MenuItemMove(BaseMutation):
                                 "Cannot assign a node as child of "
                                 "one of its descendants."
                             ),
-                            code=MenuErrorCode.CANNOT_ASSIGN_NODE,
+                            code=MenuErrorCode.CANNOT_ASSIGN_NODE.value,
                         )
                     }
                 )
@@ -371,7 +375,9 @@ class MenuItemMove(BaseMutation):
 
     @classmethod
     @transaction.atomic
-    def perform_mutation(cls, _root, info, menu: str, moves):
+    def perform_mutation(cls, _root, info, **data):
+        menu: str = data["menu"]
+        moves: List[MenuItemMoveInput] = data["moves"]
         qs = models.Menu.objects.prefetch_related("items")
         menu = cls.get_node_or_error(info, menu, only_type=Menu, field="menu", qs=qs)
 

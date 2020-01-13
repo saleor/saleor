@@ -9,7 +9,7 @@ from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from saleor.checkout import calculations
 from saleor.checkout.utils import add_variant_to_checkout
-from saleor.core.taxes import quantize_price
+from saleor.core.taxes import quantize_price, zero_taxed_money
 from saleor.extensions.manager import get_extensions_manager
 from saleor.extensions.plugins.vatlayer import (
     DEFAULT_TAX_RATE_NAME,
@@ -301,6 +301,19 @@ def test_calculate_order_shipping(vatlayer, order_line, shipping_zone, site_sett
     price = manager.calculate_order_shipping(order)
     price = quantize_price(price, price.currency)
     assert price == TaxedMoney(net=Money("8.13", "USD"), gross=Money("10.00", "USD"))
+
+
+def test_calculate_order_shipping_for_order_without_shipping(
+    vatlayer, order_line, shipping_zone, site_settings
+):
+    manager = get_extensions_manager(
+        plugins=["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+    )
+    order = order_line.order
+    order.shipping_method = None
+    order.save()
+    price = manager.calculate_order_shipping(order)
+    assert price == zero_taxed_money(order.currency)
 
 
 def test_calculate_order_line_unit(vatlayer, order_line, shipping_zone, site_settings):
