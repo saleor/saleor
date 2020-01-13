@@ -4,11 +4,11 @@ from saleor.core.permissions import AccountPermissions
 
 from .utils import assert_no_permission, get_graphql_content
 
-PERMISSION_CREATE_MUTATION = """
+PERMISSION_GROUP_CREATE_MUTATION = """
     mutation PermissionGroupCreate(
-        $name: String, $permissions: [PermissionEnum!]) {
+        $name: String!, $permissions: [PermissionEnum!]) {
         permissionGroupCreate(
-            input: {name: $name}, permissions: $permissions)
+            input: {name: $name, permissions: $permissions})
         {
             group{
                 name
@@ -25,7 +25,7 @@ def test_permission_group_create_mutation(
     staff_user, permission_manage_staff, staff_api_client
 ):
     staff_user.user_permissions.add(permission_manage_staff)
-    query = PERMISSION_CREATE_MUTATION
+    query = PERMISSION_GROUP_CREATE_MUTATION
 
     variables = {
         "name": "New permission group",
@@ -49,7 +49,7 @@ def test_permission_group_create_mutation(
 def test_permission_group_create_mutation_no_permission_to_perform_mutation(
     staff_user, staff_api_client
 ):
-    query = PERMISSION_CREATE_MUTATION
+    query = PERMISSION_GROUP_CREATE_MUTATION
 
     variables = {
         "name": "New permission group",
@@ -66,7 +66,7 @@ def test_permission_group_create_mutation_group_exists(
     staff_user, permission_manage_staff, staff_api_client, permission_group_manage_users
 ):
     staff_user.user_permissions.add(permission_manage_staff)
-    query = PERMISSION_CREATE_MUTATION
+    query = PERMISSION_GROUP_CREATE_MUTATION
 
     variables = {
         "name": permission_group_manage_users.name,
@@ -80,9 +80,9 @@ def test_permission_group_create_mutation_group_exists(
     assert content["data"]["permissionGroupCreate"]["group"] is None
 
 
-PERMISSION_CREATE_MUTATION = """
+PERMISSION_GROUP_CREATE_MUTATION = """
     mutation PermissionGroupCreate(
-        $name: String) {
+        $name: String!) {
         permissionGroupCreate(
             input: {name: $name})
         {
@@ -101,7 +101,7 @@ def test_permission_group_create_mutation_no_permissions_data(
     staff_user, permission_manage_staff, staff_api_client
 ):
     staff_user.user_permissions.add(permission_manage_staff)
-    query = PERMISSION_CREATE_MUTATION
+    query = PERMISSION_GROUP_CREATE_MUTATION
 
     variables = {
         "name": "New permission group",
