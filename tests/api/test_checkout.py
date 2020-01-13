@@ -1162,6 +1162,10 @@ def test_checkout_complete(
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
+    checkout.store_meta(namespace="PUBLIC", client="PLUGIN", item={"accepted": "true"})
+    checkout.store_private_meta(
+        namespace="PRIVATE", client="PLUGIN", item={"accepted": "true"},
+    )
     checkout.save()
 
     checkout_line = checkout.lines.first()
@@ -1193,6 +1197,8 @@ def test_checkout_complete(
     order = Order.objects.first()
     assert order.token == order_token
     assert order.total.gross == total.gross - gift_current_balance
+    assert order.meta == checkout.meta
+    assert order.private_meta == checkout.private_meta
 
     order_line = order.lines.first()
     assert checkout_line_quantity == order_line.quantity
