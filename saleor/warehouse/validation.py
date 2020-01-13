@@ -1,3 +1,5 @@
+# type: ignore
+# mypy error: https://github.com/typeddjango/django-stubs/issues/222
 from ..shipping.models import ShippingZone
 from .models import Warehouse
 

@@ -4,7 +4,7 @@ from django.core.exceptions import ValidationError
 from ...core.permissions import WarehousePermissions
 from ...warehouse import models
 from ...warehouse.error_codes import WarehouseErrorCode
-from ...warehouse.validation import validate_warehouse_count
+from ...warehouse.validation import validate_warehouse_count  # type: ignore
 from ..account.i18n import I18nMixin
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types.common import WarehouseError
@@ -24,7 +24,7 @@ ADDRESS_FIELDS = [
 
 class WarehouseMixin:
     @classmethod
-    def clean_input(cls, info, instance, data):
+    def clean_input(cls, info, instance, data, input_cls=None):
         cleaned_input = super().clean_input(info, instance, data)
         shipping_zones = cleaned_input.get("shipping_zones", [])
         if not validate_warehouse_count(shipping_zones, instance):
