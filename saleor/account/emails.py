@@ -29,7 +29,7 @@ def send_account_confirmation_email(user):
 @app.task
 def _send_account_confirmation_email(email, token):
     domain = Site.objects.get_current().domain
-    confirm_url = f"https://{domain}/account/confirm?email={email}&token={token}"
+    confirm_url = f"https://{domain}/account-confirm?email={email}&token={token}"
     send_kwargs, ctx = get_email_context()
     ctx["confirm_url"] = confirm_url
     send_templated_mail(

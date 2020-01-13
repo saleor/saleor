@@ -50,8 +50,10 @@ class AccountRegister(ModelMutation):
         user.set_password(password)
         if settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
             user.is_active = False
+            user.save()
             emails.send_account_confirmation_email(user)
-        user.save()
+        else:
+            user.save()
         account_events.customer_account_created_event(user=user)
         info.context.extensions.customer_created(customer=user)
 
