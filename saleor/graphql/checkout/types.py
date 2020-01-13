@@ -3,7 +3,7 @@ import graphene_django_optimizer as gql_optimizer
 
 from ...checkout import calculations, models
 from ...checkout.utils import get_valid_shipping_methods_for_checkout
-from ...core.permissions import OrderPermissions, CheckoutPermissions
+from ...core.permissions import CheckoutPermissions
 from ...core.taxes import display_gross_prices, zero_taxed_money
 from ...extensions.manager import get_extensions_manager
 from ..core.connection import CountableDjangoObjectType

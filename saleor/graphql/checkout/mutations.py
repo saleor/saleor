@@ -4,7 +4,7 @@ import graphene
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
-from django.db.models import Prefetch, Model
+from django.db.models import Model, Prefetch
 
 from ...account.error_codes import AccountErrorCode
 from ...checkout import models
@@ -25,7 +25,7 @@ from ...checkout.utils import (
 )
 from ...core import analytics
 from ...core.exceptions import InsufficientStock
-from ...core.permissions import OrderPermissions, CheckoutPermissions
+from ...core.permissions import CheckoutPermissions
 from ...core.taxes import TaxError
 from ...core.utils.url import validate_storefront_url
 from ...discount import models as voucher_model
@@ -41,8 +41,8 @@ from ..core.mutations import (
     ModelMutation,
     UpdateMetaBaseMutation,
 )
-from ..core.types.common import CheckoutError
 from ..core.types import MetaInput, MetaPath
+from ..core.types.common import CheckoutError
 from ..core.utils import from_global_id_strict_type
 from ..order.types import Order
 from ..product.types import ProductVariant
@@ -804,8 +804,7 @@ class CheckoutUpdateMeta(UpdateMetaBaseMutation):
 
     class Arguments:
         token = graphene.UUID(
-            description="Token of an object to update.",
-            required=True,
+            description="Token of an object to update.", required=True,
         )
 
         input = MetaInput(
@@ -820,15 +819,14 @@ class CheckoutUpdateMeta(UpdateMetaBaseMutation):
             return models.Checkout.objects.get(token=token)
         except Model.DoesNotExist:
             raise ValidationError(
-                "Couldn't resolve to a node: %s" % token,
-                code="not_found",
+                "Couldn't resolve to a node: %s" % token, code="not_found",
             )
 
 
 class CheckoutUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Updates private metadata for checkout."
-        permissions = (CheckoutPermissions.MANAGE_CHECKOUTS, )
+        permissions = (CheckoutPermissions.MANAGE_CHECKOUTS,)
         model = models.Checkout
         public = False
         error_type_class = CheckoutError
@@ -842,7 +840,6 @@ class CheckoutClearMeta(ClearMetaBaseMutation):
         public = True
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
-
 
     class Arguments:
         token = graphene.UUID(description="Token of an object to clear.", required=True)
@@ -858,15 +855,14 @@ class CheckoutClearMeta(ClearMetaBaseMutation):
             return models.Checkout.objects.get(token=token)
         except Model.DoesNotExist:
             raise ValidationError(
-                "Couldn't resolve to a node: %s" % token,
-                code="not_found",
+                "Couldn't resolve to a node: %s" % token, code="not_found",
             )
 
 
 class CheckoutClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clear private metadata for checkout."
-        permissions = (CheckoutPermissions.MANAGE_CHECKOUTS, )
+        permissions = (CheckoutPermissions.MANAGE_CHECKOUTS,)
         model = models.Checkout
         public = False
         error_type_class = CheckoutError

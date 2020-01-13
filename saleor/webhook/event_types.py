@@ -1,10 +1,12 @@
 from django.utils.translation import pgettext_lazy
+
 from ..core.permissions import (
     AccountPermissions,
     CheckoutPermissions,
     OrderPermissions,
     ProductPermissions,
 )
+
 
 class WebhookEventType:
     ANY = "any_events"

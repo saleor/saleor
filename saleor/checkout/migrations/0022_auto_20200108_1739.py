@@ -6,12 +6,15 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('checkout', '0021_django_price_2'),
+        ("checkout", "0021_django_price_2"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='checkout',
-            options={'ordering': ('-last_change',), 'permissions': (('manage_checkouts', 'Manage checkouts.'),)},
+            name="checkout",
+            options={
+                "ordering": ("-last_change",),
+                "permissions": (("manage_checkouts", "Manage checkouts."),),
+            },
         ),
     ]

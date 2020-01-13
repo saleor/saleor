@@ -7,12 +7,12 @@ import pytest
 from django.core.exceptions import ValidationError
 from prices import Money, TaxedMoney
 
-from saleor.core.permissions import CheckoutPermissions
 from saleor.checkout import calculations
 from saleor.checkout.error_codes import CheckoutErrorCode
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import clean_checkout, is_fully_paid
 from saleor.core.payments import PaymentInterface
+from saleor.core.permissions import CheckoutPermissions
 from saleor.core.taxes import zero_money
 from saleor.extensions.manager import ExtensionsManager
 from saleor.graphql.checkout.mutations import (
@@ -24,9 +24,8 @@ from saleor.payment import TransactionKind
 from saleor.payment.interface import GatewayResponse
 from saleor.shipping import ShippingMethodType
 from saleor.shipping.models import ShippingMethod
-from tests.api.utils import get_graphql_content
+from tests.api.utils import assert_no_permission, get_graphql_content
 
-from .utils import assert_no_permission, get_graphql_content
 
 @pytest.fixture
 def other_shipping_method(shipping_zone):
@@ -1792,6 +1791,7 @@ def update_checkout_meta():
     }
     """
 
+
 @pytest.fixture
 def update_checkout_private_meta():
     return """
@@ -1804,6 +1804,7 @@ def update_checkout_private_meta():
     }
     """
 
+
 @pytest.fixture
 def checkout_meta_update_variables(checkout):
     return {
@@ -1815,6 +1816,7 @@ def checkout_meta_update_variables(checkout):
             "value": "bar",
         },
     }
+
 
 @pytest.fixture
 def checkout_private_meta_update_variables(checkout):
@@ -1829,6 +1831,7 @@ def checkout_private_meta_update_variables(checkout):
         },
     }
 
+
 def test_user_without_permission_cannot_update_private_meta(
     staff_api_client,
     staff_user,
@@ -1840,6 +1843,7 @@ def test_user_without_permission_cannot_update_private_meta(
         update_checkout_private_meta, checkout_private_meta_update_variables
     )
     assert_no_permission(response)
+
 
 def test_user_does_not_need_permission_to_update_meta(
     staff_api_client, update_checkout_meta, checkout_meta_update_variables, checkout
@@ -1871,7 +1875,9 @@ def test_user_with_permission_can_update_private_meta(
     errors = content["data"]["checkoutUpdatePrivateMetadata"]["errors"]
     assert len(errors) == 0
     checkout.refresh_from_db()
-    assert checkout.get_private_meta(namespace="test", client="client1") == {"foo": "bar"}
+    assert checkout.get_private_meta(namespace="test", client="client1") == {
+        "foo": "bar"
+    }
 
 
 @pytest.fixture
@@ -1932,7 +1938,10 @@ def checkout_with_meta(checkout):
 
 
 def test_user_without_permission_cannot_clear_private_meta(
-    staff_user, staff_api_client, clear_checkout_private_meta, clear_meta_private_variables
+    staff_user,
+    staff_api_client,
+    clear_checkout_private_meta,
+    clear_meta_private_variables,
 ):
     assert not staff_user.has_perm(CheckoutPermissions.MANAGE_CHECKOUTS)
     response = staff_api_client.post_graphql(
@@ -1979,5 +1988,7 @@ def test_staff_user_with_permission_can_clear_private_meta(
     errors = content["data"]["checkoutClearPrivateMetadata"]["errors"]
     assert len(errors) == 0
     checkout_with_meta.refresh_from_db()
-    current_meta = checkout_with_meta.get_private_meta(namespace="test", client="client1")
+    current_meta = checkout_with_meta.get_private_meta(
+        namespace="test", client="client1"
+    )
     assert current_meta == {}

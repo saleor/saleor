@@ -7,7 +7,6 @@ from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.core.validators import MinValueValidator
 from django.db import models
-from django.utils.translation import pgettext_lazy
 from django.utils.encoding import smart_str
 from django.utils.translation import pgettext_lazy
 from django_prices.models import MoneyField
@@ -20,8 +19,6 @@ from ..core.taxes import zero_money
 from ..core.weight import zero_weight
 from ..giftcard.models import GiftCard
 from ..shipping.models import ShippingMethod
-from ..core.permissions import CheckoutPermissions
-
 
 if TYPE_CHECKING:
     # flake8: noqa
@@ -49,6 +46,7 @@ class CheckoutQueryset(models.QuerySet):
 
 class Checkout(ModelWithMetadata):
     """A shopping checkout."""
+
     created = models.DateTimeField(auto_now_add=True)
     last_change = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(
