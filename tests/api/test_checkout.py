@@ -1910,8 +1910,9 @@ def clear_meta_variables(checkout):
 
 @pytest.fixture
 def clear_meta_private_variables(checkout):
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     return {
-        "id": checkout.pk,
+        "id": checkout_id,
         "input": {
             "namespace": "testPrivate",
             "clientName": "clientPrivate1",
@@ -1940,7 +1941,7 @@ def test_user_without_permission_cannot_clear_private_meta(
     assert_no_permission(response)
 
 
-def test_user_with_permission_can_clear_meta(
+def test_staff_user_with_permission_can_clear_meta(
     staff_user,
     staff_api_client,
     clear_checkout_meta,
@@ -1960,7 +1961,7 @@ def test_user_with_permission_can_clear_meta(
     assert current_meta == {}
 
 
-def test_user_with_permission_can_clear_private_meta(
+def test_staff_user_with_permission_can_clear_private_meta(
     staff_user,
     staff_api_client,
     clear_checkout_private_meta,
