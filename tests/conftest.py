@@ -85,7 +85,7 @@ from tests.utils import create_image
 
 
 class CaptureQueriesContext(BaseCaptureQueriesContext):
-    IGNORED_QUERIES = "" #settings.PATTERNS_IGNORED_IN_QUERY_CAPTURES
+    IGNORED_QUERIES = settings.PATTERNS_IGNORED_IN_QUERY_CAPTURES
 
     @property
     def captured_queries(self):
