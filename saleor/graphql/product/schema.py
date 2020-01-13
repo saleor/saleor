@@ -194,7 +194,12 @@ class ProductQueries(graphene.ObjectType):
         filter=ProductFilterInput(description="Filtering options for products."),
         sort_by=ProductOrder(description="Sort products."),
         stock_availability=graphene.Argument(
-            StockAvailability, description="Filter products by stock availability."
+            StockAvailability,
+            description=(
+                "Filter products by stock availability."
+                "DEPRECATED: Will be removed in Saleor 2.11, "
+                "use the `filter` field instead."
+            ),
         ),
         description="List of the shop's products.",
     )
