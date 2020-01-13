@@ -107,7 +107,7 @@ class PrefetchingConnectionField(BaseDjangoConnectionField):
         return connection
 
 
-class FilterInputConnectionField(BaseDjangoConnectionField):
+class FilterInputConnectionField(PrefetchingConnectionField):
     def __init__(self, *args, **kwargs):
         self.filter_field_name = kwargs.pop("filter_field_name", "filter")
         self.filter_input = kwargs.get(self.filter_field_name)
