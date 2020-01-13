@@ -68,7 +68,7 @@ def connection_from_queryset_slice(
     has_previous_page = False
     has_next_page = False
     if previous_page_margin:
-        has_previous_page = len(matching_records > 0)
+        has_previous_page = len(matching_records) > 0
         matching_records = matching_records[previous_page_margin:]
     if requested_count is not None:
         has_next_page = len(matching_records) > requested_count
