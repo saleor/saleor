@@ -225,38 +225,6 @@ def test_product_query(staff_api_client, product, permission_manage_products, st
     assert margin[1] == product_data["margin"]["stop"]
 
 
-@pytest.mark.skip(reason="I dont know how to hanlde this right now")
-@pytest.mark.parametrize(
-    "stock, quantity, count",
-    [
-        ("IN_STOCK", 5, 1),
-        ("OUT_OF_STOCK", 0, 1),
-        ("OUT_OF_STOCK", 1, 1),
-        ("OUT_OF_STOCK", 2, 0),
-        ("IN_STOCK", 0, 0),
-    ],
-)
-def test_products_query_with_filter_stock_availability(
-    stock,
-    quantity,
-    count,
-    query_products_with_filter,
-    staff_api_client,
-    product,
-    permission_manage_products,
-):
-
-    product.variants.update(quantity=quantity)
-
-    variables = {"filter": {"stockAvailability": stock}}
-    staff_api_client.user.user_permissions.add(permission_manage_products)
-    response = staff_api_client.post_graphql(query_products_with_filter, variables)
-    content = get_graphql_content(response)
-    products = content["data"]["products"]["edges"]
-
-    assert len(products) == count
-
-
 def test_products_query_with_filter_attributes(
     query_products_with_filter, staff_api_client, product, permission_manage_products
 ):
