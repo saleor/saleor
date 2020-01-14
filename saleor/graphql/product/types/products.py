@@ -193,7 +193,6 @@ class ProductPricingInfo(BasePricingInfo):
 
 @key(fields="id")
 class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
-    # DEPRECATED
     quantity = graphene.Int(
         required=True,
         description="DEPRECATED: Will be removed in favour of stock. "
@@ -201,7 +200,6 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         "including the allocated stock that is waiting for shipment.",
     )
     quantity_allocated = graphene.Int(required=False, description="DEPRECATED")
-    # DEPRECATED
     stock_quantity = graphene.Int(
         required=True,
         description="DEPRECATED: Will be removed in favour to stock. "
@@ -221,7 +219,6 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
             "only meant for displaying."
         ),
     )
-    # DEPRECATED
     is_available = graphene.Boolean(
         description="DEPRECATED: Will be removed in favour of stock. "
         "Whether the variant is in stock and visible or not."

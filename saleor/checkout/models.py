@@ -45,6 +45,10 @@ class CheckoutQueryset(models.QuerySet):
         )  # noqa
 
 
+def get_default_country():
+    return settings.DEFAULT_COUNTRY
+
+
 class Checkout(ModelWithMetadata):
     """A shopping checkout."""
 
@@ -79,7 +83,7 @@ class Checkout(ModelWithMetadata):
         max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
         default=settings.DEFAULT_CURRENCY,
     )
-    country = CountryField(default=settings.DEFAULT_COUNTRY)
+    country = CountryField(default=get_default_country)
 
     discount_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
