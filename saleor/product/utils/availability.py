@@ -148,13 +148,8 @@ def get_product_availability(
     )
 
     is_on_sale = product.is_visible and discount is not None
-    if country is not None:
-        is_available = product.is_visible and is_product_in_stock(product, country)
-    else:
-        is_available = product.is_visible and is_product_in_stock(
-            product, settings.DEFAULT_COUNTRY
-        )
-
+    country = country if country is not None else settings.DEFAULT_COUNTRY
+    is_available = product.is_visible and is_product_in_stock(product, country)
     return ProductAvailability(
         on_sale=is_on_sale,
         price_range=discounted,
