@@ -1,7 +1,6 @@
 import graphene
 import graphene_django_optimizer as gql_optimizer
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import Group
+from django.contrib.auth import get_user_model, models as django_models
 from graphene import relay
 from graphene_federation import key
 from graphql_jwt.decorators import login_required
@@ -428,7 +427,7 @@ class StaffNotificationRecipient(CountableDjangoObjectType):
 
 
 @key(fields="id")
-class PermissionGroup(CountableDjangoObjectType):
+class Group(CountableDjangoObjectType):
     users = graphene.List(User, description="List of group users")
     permissions = graphene.List(
         PermissionDisplay, description="List of group permissions"
@@ -437,13 +436,13 @@ class PermissionGroup(CountableDjangoObjectType):
     class Meta:
         description = ""
         interfaces = [relay.Node]
-        model = Group
+        model = django_models.Group
         only_fields = ["name", "permissions", "users"]
 
     @staticmethod
-    def resolve_users(root: Group, _info):
+    def resolve_users(root: django_models.Group, _info):
         return root.user_set.all()
 
     @staticmethod
-    def resolve_permissions(root: Group, _info):
+    def resolve_permissions(root: django_models.Group, _info):
         return root.permissions.all()
