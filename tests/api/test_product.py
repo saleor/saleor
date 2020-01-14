@@ -897,6 +897,7 @@ QUERY_CREATE_PRODUCT_WITHOUT_VARIANTS = """
                     id
                     sku
                     trackInventory
+                    quantity
                 }
                 category {
                     name
