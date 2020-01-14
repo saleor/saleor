@@ -13,7 +13,7 @@ from ..core.taxes import zero_money
 from ..discount import DiscountInfo
 from ..discount.utils import fetch_discounts
 from ..product.models import Attribute, AttributeValue, Category, ProductVariant
-from ..stock.availability import is_variant_in_stock
+from ..warehouse.availability import is_variant_in_stock
 
 CATEGORY_SEPARATOR = " > "
 

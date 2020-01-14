@@ -27,7 +27,7 @@ from saleor.order.models import Order, OrderEvent
 from saleor.payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from saleor.payment.models import Payment
 from saleor.shipping.models import ShippingMethod
-from saleor.stock.models import Stock
+from saleor.warehouse.models import Stock
 
 from .utils import assert_no_permission, get_graphql_content
 

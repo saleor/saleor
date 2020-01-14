@@ -17,7 +17,7 @@ from saleor.order.actions import (
 from saleor.order.models import Fulfillment
 from saleor.payment import ChargeStatus, PaymentError
 from saleor.product.models import DigitalContent
-from saleor.stock.models import Stock
+from saleor.warehouse.models import Stock
 
 from .utils import create_image
 

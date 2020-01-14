@@ -32,7 +32,7 @@ from saleor.order.utils import (
 from saleor.payment import ChargeStatus
 from saleor.payment.models import Payment
 from saleor.product.models import Collection
-from saleor.stock.models import Stock
+from saleor.warehouse.models import Stock
 
 
 def test_total_setter():

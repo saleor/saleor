@@ -57,7 +57,7 @@ class SitePermissions(BasePermissionEnum):
 
 
 class StockPermissions(BasePermissionEnum):
-    MANAGE_STOCKS = "stock.manage_stocks"
+    MANAGE_STOCKS = "warehouse.manage_stocks"
 
 
 class WarehousePermissions(BasePermissionEnum):

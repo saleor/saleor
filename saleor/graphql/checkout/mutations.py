@@ -33,7 +33,7 @@ from ...payment import PaymentError, gateway, models as payment_models
 from ...payment.interface import AddressData
 from ...payment.utils import store_customer_id
 from ...product import models as product_models
-from ...stock.availability import check_stock_quantity, get_available_quantity
+from ...warehouse.availability import check_stock_quantity, get_available_quantity
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput, User
 from ..core.mutations import (

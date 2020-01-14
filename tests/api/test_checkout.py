@@ -1,4 +1,5 @@
 import uuid
+from decimal import Decimal
 from unittest import mock
 from unittest.mock import ANY, patch
 
@@ -23,7 +24,7 @@ from saleor.payment import TransactionKind
 from saleor.payment.interface import GatewayResponse
 from saleor.shipping import ShippingMethodType
 from saleor.shipping.models import ShippingMethod
-from saleor.stock.models import Stock
+from saleor.warehouse.models import Stock
 from tests.api.utils import get_graphql_content
 
 
@@ -1232,7 +1233,7 @@ ERROR_GATEWAY_RESPONSE = GatewayResponse(
     is_success=False,
     action_required=False,
     kind=TransactionKind.CAPTURE,
-    amount=0.0,
+    amount=Decimal(0),
     currency="usd",
     transaction_id="1234",
     error="ERROR",

@@ -10,7 +10,7 @@ from saleor.product.models import Product, ProductVariant
 from ...core.utils import to_local_currency
 from ...discount import DiscountInfo
 from ...extensions.manager import get_extensions_manager
-from ...stock.availability import (
+from ...warehouse.availability import (
     are_all_product_variants_in_stock,
     is_product_in_stock,
     is_variant_in_stock,

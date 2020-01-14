@@ -78,8 +78,7 @@ from saleor.shipping.models import (
 )
 from saleor.site import AuthenticationBackends
 from saleor.site.models import AuthorizationKey, SiteSettings
-from saleor.stock.models import Stock
-from saleor.warehouse.models import Warehouse
+from saleor.warehouse.models import Stock, Warehouse
 from saleor.webhook.event_types import WebhookEventType
 from saleor.webhook.models import Webhook
 from saleor.wishlist.models import Wishlist

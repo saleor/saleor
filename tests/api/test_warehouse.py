@@ -326,14 +326,14 @@ def test_create_warehouse_creates_address(
             ],
         }
     }
-    assert Address.objects.count() == 1
+    assert not Address.objects.exists()
     response = staff_api_client.post_graphql(
         MUTATION_CREATE_WAREHOUSE, variables=variables
     )
     content = get_graphql_content(response)
     errors = content["data"]["createWarehouse"]["errors"]
     assert len(errors) == 0
-    assert Address.objects.count() == 2
+    assert Address.objects.count() == 1
     address = Address.objects.get(street_address_1="Teczowa 8", city="WROCLAW")
     address_id = graphene.Node.to_global_id("Address", address.id)
     warehouse_data = content["data"]["createWarehouse"]["warehouse"]
@@ -473,14 +473,14 @@ def test_delete_warehouse_mutation(
 ):
     staff_api_client.user.user_permissions.add(permission_manage_warehouses)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
-    assert Warehouse.objects.count() == 2
+    assert Warehouse.objects.count() == 1
     response = staff_api_client.post_graphql(
         MUTATION_DELETE_WAREHOUSE, variables={"id": warehouse_id}
     )
     content = get_graphql_content(response)
     errors = content["data"]["deleteWarehouse"]["errors"]
     assert len(errors) == 0
-    assert Warehouse.objects.count() == 1
+    assert not Warehouse.objects.exists()
 
 
 def test_delete_warehouse_deletes_associated_address(
@@ -488,14 +488,14 @@ def test_delete_warehouse_deletes_associated_address(
 ):
     staff_api_client.user.user_permissions.add(permission_manage_warehouses)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
-    assert Address.objects.count() == 2
+    assert Address.objects.count() == 1
     response = staff_api_client.post_graphql(
         MUTATION_DELETE_WAREHOUSE, variables={"id": warehouse_id}
     )
     content = get_graphql_content(response)
     errors = content["data"]["deleteWarehouse"]["errors"]
     assert len(errors) == 0
-    assert Address.objects.count() == 1
+    assert not Address.objects.exists()
 
 
 def test_shipping_zone_can_be_assigned_only_to_one_warehouse(

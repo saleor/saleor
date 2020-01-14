@@ -11,7 +11,7 @@ from saleor.product.utils.availability import (
     get_product_availability_status,
     get_variant_availability_status,
 )
-from saleor.stock.models import Stock
+from saleor.warehouse.models import Stock
 
 
 def test_product_availability_status(unavailable_product, warehouse):

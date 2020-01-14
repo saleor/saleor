@@ -18,7 +18,7 @@ from ....order.utils import (
     recalculate_order,
     update_order_prices,
 )
-from ....stock.availability import check_stock_quantity, get_available_quantity
+from ....warehouse.availability import check_stock_quantity, get_available_quantity
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation

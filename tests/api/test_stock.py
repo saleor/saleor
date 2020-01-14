@@ -1,7 +1,7 @@
 import graphene
 
 from saleor.core.permissions import StockPermissions
-from saleor.stock.models import Stock
+from saleor.warehouse.models import Stock
 from tests.api.utils import assert_no_permission, get_graphql_content
 
 MUTATION_CREATE_STOCK = """
