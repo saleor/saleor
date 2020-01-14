@@ -20,8 +20,8 @@ from ....product.utils.availability import (
     get_variant_availability,
 )
 from ....product.utils.costs import get_margin_for_variant, get_product_costs_data
-from ....stock import models as stock_models
-from ....stock.availability import (
+from ....warehouse import models as stock_models
+from ....warehouse.availability import (
     get_available_quantity,
     get_available_quantity_for_customer,
     is_product_in_stock,
@@ -41,7 +41,6 @@ from ...core.types import (
     TaxType,
 )
 from ...decorators import permission_required
-from ...stock.types import Stock
 from ...translations.fields import TranslationField
 from ...translations.types import (
     CategoryTranslation,
@@ -50,6 +49,7 @@ from ...translations.types import (
     ProductVariantTranslation,
 )
 from ...utils import get_database_id, reporting_period_to_date
+from ...warehouse.types import Stock
 from ..filters import AttributeFilterInput
 from ..resolvers import resolve_attributes
 from .attributes import Attribute, SelectedAttribute

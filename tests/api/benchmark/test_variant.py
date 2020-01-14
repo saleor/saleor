@@ -4,7 +4,7 @@ import graphene
 import pytest
 
 from saleor.product.models import ProductVariant
-from saleor.stock.models import Stock
+from saleor.warehouse.models import Stock
 from tests.api.utils import get_graphql_content
 
 

@@ -56,9 +56,8 @@ from ...product.thumbnails import (
     create_product_thumbnails,
 )
 from ...shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
-from ...stock.management import increase_stock
-from ...stock.models import Stock
-from ...warehouse.models import Warehouse
+from ...warehouse.management import increase_stock
+from ...warehouse.models import Stock, Warehouse
 
 fake = Factory.create()
 PRODUCTS_LIST_DIR = "products-list/"

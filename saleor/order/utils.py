@@ -15,8 +15,8 @@ from ..order import OrderStatus
 from ..order.models import Order, OrderLine
 from ..product.utils.digital_products import get_default_digital_content_settings
 from ..shipping.models import ShippingMethod
-from ..stock.availability import check_stock_quantity
-from ..stock.management import allocate_stock, deallocate_stock, increase_stock
+from ..warehouse.availability import check_stock_quantity
+from ..warehouse.management import allocate_stock, deallocate_stock, increase_stock
 from . import events
 
 
