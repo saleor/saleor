@@ -29,6 +29,10 @@ from .base import (
 class AccountRegisterInput(graphene.InputObjectType):
     email = graphene.String(description="The email address of the user.", required=True)
     password = graphene.String(description="Password.", required=True)
+    redirect_origin = graphene.String(
+        description="Base of frontend URL that will be needed to create confirmation URL.",
+        required=True,
+    )
 
 
 class AccountRegister(ModelMutation):
@@ -45,13 +49,25 @@ class AccountRegister(ModelMutation):
         error_type_field = "account_errors"
 
     @classmethod
+    def clean_input(cls, info, instance, data, input_cls=None):
+        try:
+            validate_storefront_url(data["redirect_origin"])
+        except ValidationError as error:
+            raise ValidationError(
+                {"redirect_origin": error}, code=AccountErrorCode.INVALID
+            )
+        return super().clean_input(info, instance, data, input_cls=None)
+
+    @classmethod
     def save(cls, info, user, cleaned_input):
         password = cleaned_input["password"]
         user.set_password(password)
         if settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
             user.is_active = False
             user.save()
-            emails.send_account_confirmation_email(user)
+            emails.send_account_confirmation_email(
+                user, cleaned_input["redirect_origin"]
+            )
         else:
             user.save()
         account_events.customer_account_created_event(user=user)

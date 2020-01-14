@@ -565,8 +565,8 @@ def test_user_with_cancelled_fulfillments(
 
 
 ACCOUNT_REGISTER_MUTATION = """
-    mutation RegisterAccount($password: String!, $email: String!) {
-        accountRegister(input: {password: $password, email: $email}) {
+    mutation RegisterAccount($password: String!, $email: String!, $redirectOrigin: String!) {
+        accountRegister(input: {password: $password, email: $email, redirectOrigin: $redirectOrigin}) {
             errors {
                 field
                 message
@@ -579,11 +579,17 @@ ACCOUNT_REGISTER_MUTATION = """
 """
 
 
-@override_settings(ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True)
+@override_settings(
+    ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True, ALLOWED_CLIENT_HOSTS=["localhost"]
+)
 @patch("saleor.account.emails._send_account_confirmation_email")
 def test_customer_register(send_account_confirmation_email_mock, user_api_client):
     email = "customer@example.com"
-    variables = {"email": email, "password": "Password"}
+    variables = {
+        "email": email,
+        "password": "Password",
+        "redirectOrigin": "http://localhost:3000",
+    }
     query = ACCOUNT_REGISTER_MUTATION
     mutation_name = "accountRegister"
     response = user_api_client.post_graphql(query, variables)
