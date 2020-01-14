@@ -445,4 +445,7 @@ class Group(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_permissions(root: django_models.Group, _info):
-        return root.permissions.all()
+        permissions = root.permissions.prefetch_related("content_type").order_by(
+            "codename"
+        )
+        return format_permissions_for_display(permissions)

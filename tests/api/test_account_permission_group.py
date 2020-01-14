@@ -13,9 +13,11 @@ PERMISSION_GROUP_CREATE_MUTATION = """
             input: $input)
         {
             group{
+                id
                 name
                 permissions {
                     name
+                    code
                 }
             }
             errors{
@@ -53,6 +55,14 @@ def test_permission_group_create_mutation(
         permission["name"] for permission in permission_group_data["permissions"]
     }
     assert set(group.permissions.all().values_list("name", flat=True)) == permissions
+    permissions_codes = {
+        permission["code"].lower()
+        for permission in permission_group_data["permissions"]
+    }
+    assert (
+        set(group.permissions.all().values_list("codename", flat=True))
+        == permissions_codes
+    )
     assert data["errors"] == []
 
 
@@ -146,9 +156,11 @@ PERMISSION_GROUP_UPDATE_MUTATION = """
             id: $id, input: $input)
         {
             group{
+                id
                 name
                 permissions {
                     name
+                    code
                 }
             }
             errors{
@@ -185,6 +197,14 @@ def test_permission_group_update_mutation(
         permission["name"] for permission in permission_group_data["permissions"]
     }
     assert set(group.permissions.all().values_list("name", flat=True)) == permissions
+    permissions_codes = {
+        permission["code"].lower()
+        for permission in permission_group_data["permissions"]
+    }
+    assert (
+        set(group.permissions.all().values_list("codename", flat=True))
+        == permissions_codes
+    )
     assert data["errors"] == []
 
 
@@ -220,6 +240,14 @@ def test_permission_group_update_mutation_only_name(
     assert (
         set(group.permissions.all().values_list("name", flat=True))
         == result_permissions
+    )
+    permissions_codes = {
+        permission["code"].lower()
+        for permission in permission_group_data["permissions"]
+    }
+    assert (
+        set(group.permissions.all().values_list("codename", flat=True))
+        == permissions_codes
     )
     assert data["errors"] == []
 
@@ -286,3 +314,58 @@ def test_permission_group_update_mutation_no_input_data(
     assert len(errors) == 1
     assert errors[0]["field"] == "input"
     assert errors[0]["message"] == "You must provide name or permissions to update."
+
+
+PERMISSION_GROUP_DELETE_MUTATION = """
+    mutation PermissionGroupDelete($id: ID!) {
+        permissionGroupDelete(
+            id: $id)
+        {
+            group{
+                id
+                name
+                permissions {
+                    name
+                    code
+                }
+            }
+            errors{
+                field
+                message
+            }
+        }
+    }
+    """
+
+
+def test_group_delete_mutation(
+    permission_group_manage_users, staff_user, permission_manage_staff, staff_api_client
+):
+    staff_user.user_permissions.add(permission_manage_staff)
+    group = permission_group_manage_users
+    group_name = group.name
+    query = PERMISSION_GROUP_DELETE_MUTATION
+
+    variables = {"id": graphene.Node.to_global_id("Group", group.id)}
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupDelete"]
+    errors = data["errors"]
+    permission_group_data = data["group"]
+
+    assert errors == []
+    assert permission_group_data["id"] == variables["id"]
+    assert permission_group_data["name"] == group_name
+    assert permission_group_data["permissions"] == []
+
+
+def test_group_delete_mutation_no_id(
+    permission_group_manage_users, staff_user, permission_manage_staff, staff_api_client
+):
+    staff_user.user_permissions.add(permission_manage_staff)
+    query = PERMISSION_GROUP_DELETE_MUTATION
+
+    variables = {"id": None}
+    response = staff_api_client.post_graphql(query, variables)
+    with pytest.raises(AssertionError):
+        get_graphql_content(response)
