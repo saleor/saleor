@@ -30,7 +30,8 @@ class AccountRegisterInput(graphene.InputObjectType):
     email = graphene.String(description="The email address of the user.", required=True)
     password = graphene.String(description="Password.", required=True)
     redirect_origin = graphene.String(
-        description="Base of frontend URL that will be needed to create confirmation URL.",
+        description="Base of frontend URL that will be "
+        "needed to create confirmation URL.",
         required=True,
     )
 

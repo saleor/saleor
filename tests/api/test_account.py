@@ -565,8 +565,18 @@ def test_user_with_cancelled_fulfillments(
 
 
 ACCOUNT_REGISTER_MUTATION = """
-    mutation RegisterAccount($password: String!, $email: String!, $redirectOrigin: String!) {
-        accountRegister(input: {password: $password, email: $email, redirectOrigin: $redirectOrigin}) {
+    mutation RegisterAccount(
+        $password: String!,
+        $email: String!,
+        $redirectOrigin: String!
+    ) {
+        accountRegister(
+            input: {
+                password: $password,
+                email: $email,
+                redirectOrigin: $redirectOrigin
+            }
+        ) {
             errors {
                 field
                 message
