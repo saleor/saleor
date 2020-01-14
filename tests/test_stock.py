@@ -29,7 +29,11 @@ def test_stock_for_country(product):
 
 
 def test_stock_for_country_does_not_exists(product, warehouse):
-    fake_country_code = "OO"
+    shipping_zone = warehouse.shipping_zones.first()
+    shipping_zone.countries = [COUNTRY_CODE]
+    shipping_zone.save(update_fields=["countries"])
+    warehouse.refresh_from_db()
+    fake_country_code = "PL"
     assert fake_country_code not in warehouse.countries
     stock_qs = Stock.objects.for_country(fake_country_code)
     assert not stock_qs.exists()
