@@ -556,6 +556,7 @@ type CategoryDelete {
 
 input CategoryFilterInput {
   search: String
+  ids: [ID]
 }
 
 input CategoryInput {
@@ -921,6 +922,7 @@ type CollectionDelete {
 input CollectionFilterInput {
   published: CollectionPublished
   search: String
+  ids: [ID]
 }
 
 input CollectionInput {
