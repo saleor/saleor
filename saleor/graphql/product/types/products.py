@@ -22,6 +22,7 @@ from ....product.utils.availability import (
 from ....product.utils.costs import get_margin_for_variant, get_product_costs_data
 from ....stock import models as stock_models
 from ....stock.availability import (
+    get_available_quantity,
     get_available_quantity_for_customer,
     is_product_in_stock,
     is_variant_in_stock,
@@ -301,7 +302,12 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
     @staticmethod
     def resolve_stock_quantity(root: models.ProductVariant, info):
         country = info.context.country
-        stock = stock_models.Stock.objects.get_variant_stock_for_country(country, root)
+        try:
+            stock = stock_models.Stock.objects.get_variant_stock_for_country(
+                country, root
+            )
+        except stock_models.Stock.DoesNotExist:
+            return 0
         return get_available_quantity_for_customer(stock)
 
     @staticmethod
@@ -355,9 +361,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_quantity(root: models.ProductVariant, info):
-        country = info.context.country
-        stock = stock_models.Stock.objects.get_variant_stock_for_country(country, root)
-        return stock.quantity
+        return get_available_quantity(root, info.context.country)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)

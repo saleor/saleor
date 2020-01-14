@@ -13,6 +13,7 @@ query {
     edges {
       node {
         variants {
+          isAvailable
           pricing {
             onSale
 
@@ -116,7 +117,7 @@ def test_variant_pricing(variant: ProductVariant, monkeypatch, settings, stock):
     settings.OPENEXCHANGERATES_API_KEY = "fake-key"
 
     pricing = get_variant_availability(variant, local_currency="PLN", country="US")
-    assert pricing.price_local_currency.currency == "PLN"
+    assert pricing.price_local_currency.currency == "PLN"  # type: ignore
 
     pricing = get_variant_availability(variant)
     assert pricing.price.tax.amount
