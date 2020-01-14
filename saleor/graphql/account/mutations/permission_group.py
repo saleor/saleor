@@ -5,7 +5,7 @@ from django.core.exceptions import ValidationError
 from ....account.error_codes import AccountErrorCode
 from ....core.permissions import AccountPermissions, get_permissions
 from ...core.enums import PermissionEnum
-from ...core.mutations import ModelMutation
+from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types.common import AccountError
 from ..types import Group
 
@@ -84,3 +84,15 @@ class PermissionGroupUpdate(ModelMutation):
         if "permissions" in cleaned_input:
             cleaned_input["permissions"] = get_permissions(cleaned_input["permissions"])
         return cleaned_input
+
+
+class PermissionGroupDelete(ModelDeleteMutation):
+    class Arguments:
+        id = graphene.ID(description="ID of the group to delete.", required=True)
+
+    class Meta:
+        description = "Delete permission group."
+        model = models.Group
+        permissions = (AccountPermissions.MANAGE_STAFF,)
+        error_type_class = AccountError
+        error_type_field = "account_errors"

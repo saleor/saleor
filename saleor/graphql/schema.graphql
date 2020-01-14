@@ -2316,6 +2316,7 @@ type Mutation {
   serviceAccountTokenDelete(id: ID!): ServiceAccountTokenDelete
   permissionGroupCreate(input: PermissionGroupCreateInput!): PermissionGroupCreate
   permissionGroupUpdate(id: ID!, input: PermissionGroupInput!): PermissionGroupUpdate
+  permissionGroupDelete(id: ID!): PermissionGroupDelete
 }
 
 input NameTranslationInput {
@@ -2916,6 +2917,12 @@ type PermissionGroupCreate {
 input PermissionGroupCreateInput {
   name: String!
   permissions: [PermissionEnum!]
+}
+
+type PermissionGroupDelete {
+  errors: [Error!]
+  accountErrors: [AccountError!]
+  group: Group
 }
 
 input PermissionGroupInput {
