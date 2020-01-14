@@ -42,3 +42,11 @@ class Warehouse(CountableDjangoObjectType):
         description = "Represents warehouse."
         model = models.Warehouse
         interfaces = [graphene.relay.Node]
+        only_fields = [
+            "id",
+            "name",
+            "company_name",
+            "shipping_zones",
+            "address",
+            "email",
+        ]

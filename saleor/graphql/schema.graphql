@@ -4613,7 +4613,6 @@ type Warehouse implements Node {
   shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection!
   address: Address!
   email: String!
-  stockSet(before: String, after: String, first: Int, last: Int): StockCountableConnection!
 }
 
 input WarehouseAddressInput {
