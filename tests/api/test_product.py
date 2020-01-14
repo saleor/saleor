@@ -2513,6 +2513,11 @@ def test_variant_digital_content(
         ({"published": "HIDDEN"}, 1),
         ({"search": "-published1"}, 1),
         ({"search": "Collection3"}, 1),
+        ({"ids": [
+            to_global_id("Collection", 2), 
+            to_global_id("Collection",3)
+            ]
+            }, 2),
     ],
 )
 def test_collections_query_with_filter(
@@ -2525,18 +2530,21 @@ def test_collections_query_with_filter(
     Collection.objects.bulk_create(
         [
             Collection(
+                id=1,
                 name="Collection1",
                 slug="collection-published1",
                 is_published=True,
                 description="Test description",
             ),
             Collection(
+                id=2,
                 name="Collection2",
                 slug="collection-published2",
                 is_published=True,
                 description="Test description",
             ),
             Collection(
+                id=3,
                 name="Collection3",
                 slug="collection-unpublished",
                 is_published=False,
@@ -2609,6 +2617,7 @@ def test_collections_query_with_sort(
         ({"search": "Category1"}, 1),
         ({"search": "cat1"}, 2),
         ({"search": "Subcategory_description"}, 1),
+        ({"ids": [to_global_id("Category", 2), to_global_id("Category", 3)]}, 2),
     ],
 )
 def test_categories_query_with_filter(
@@ -2619,12 +2628,13 @@ def test_categories_query_with_filter(
     permission_manage_products,
 ):
     Category.objects.create(
-        name="Category1", slug="slug_category1", description="Description cat1"
+        id=1, name="Category1", slug="slug_category1", description="Description cat1"
     )
     Category.objects.create(
-        name="Category2", slug="slug_category2", description="Description cat2"
+        id=2, name="Category2", slug="slug_category2", description="Description cat2"
     )
     Category.objects.create(
+        id=3,
         name="SubCategory",
         slug="slug_subcategory",
         parent=Category.objects.get(name="Category1"),
