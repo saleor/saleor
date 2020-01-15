@@ -72,6 +72,7 @@ class Stock(CountableDjangoObjectType):
         description = "Represents stock."
         model = models.Stock
         interfaces = [graphene.relay.Node]
+        only_fields = ["warehouse", "product_variant", "quantity", "quantity_allocated"]
 
     @staticmethod
     @permission_required(StockPermissions.MANAGE_STOCKS)
