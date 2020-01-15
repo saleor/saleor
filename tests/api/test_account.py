@@ -2173,7 +2173,7 @@ def test_account_confirmation(user_api_client, customer_user):
 
 def test_account_confirmation_invalid_user(user_api_client, customer_user):
     variables = {
-        "email": "non-existing@nope.com",
+        "email": "non-existing@example.com",
         "token": default_token_generator.make_token(customer_user),
     }
     response = user_api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
