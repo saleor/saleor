@@ -57,10 +57,10 @@ class Warehouse(CountableDjangoObjectType):
 
 class StockInput(graphene.InputObjectType):
     product_variant = graphene.ID(
-        required=True, description="Product variant assiociated with stock."
+        required=True, description="Product variant associated with stock."
     )
     warehouse = graphene.ID(
-        required=True, description="Warehouse in which stock is lockated."
+        required=True, description="Warehouse in which stock is located."
     )
     quantity = graphene.Int(description="Quantity of items available for sell.")
 
