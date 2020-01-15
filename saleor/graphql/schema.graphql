@@ -66,6 +66,7 @@ input AccountInput {
 
 type AccountRegister {
   errors: [Error!]
+  requiresConfirmation: Boolean
   accountErrors: [AccountError!]
   user: User
 }

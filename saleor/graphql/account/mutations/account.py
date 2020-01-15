@@ -43,12 +43,23 @@ class AccountRegister(ModelMutation):
             description="Fields required to create a user.", required=True
         )
 
+    requires_confirmation = graphene.Boolean()
+
     class Meta:
         description = "Register a new user."
         exclude = ["password"]
         model = models.User
         error_type_class = AccountError
         error_type_field = "account_errors"
+
+    @classmethod
+    def mutate(cls, root, info, **data):
+        response = super().mutate(root, info, **data)
+        if not response.errors:
+            response.requires_confirmation = (
+                settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL
+            )
+        return response
 
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
