@@ -186,7 +186,7 @@ class ConfirmAccount(BaseMutation):
             )
 
         user.is_active = True
-        user.save()
+        user.save(update_fields=["is_active"])
 
         return ConfirmAccount()
 
