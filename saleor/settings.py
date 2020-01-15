@@ -6,6 +6,7 @@ import dj_database_url
 import dj_email_url
 import sentry_sdk
 from django.contrib.messages import constants as messages
+from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import gettext_lazy as _, pgettext_lazy
 from django_prices.utils.formatting import get_currency_fraction
 from sentry_sdk.integrations.django import DjangoIntegration
@@ -40,8 +41,9 @@ ADMINS = (
 )
 MANAGERS = ADMINS
 
+_DEFAULT_CLIENT_HOSTS = "localhost,127.0.0.1"
 ALLOWED_CLIENT_HOSTS = get_list(
-    os.environ.get("ALLOWED_CLIENT_HOSTS", "localhost,127.0.0.1")
+    os.environ.get("ALLOWED_CLIENT_HOSTS", _DEFAULT_CLIENT_HOSTS)
 )
 
 INTERNAL_IPS = get_list(os.environ.get("INTERNAL_IPS", "127.0.0.1"))
@@ -128,8 +130,9 @@ EMAIL_BACKEND = email_config["EMAIL_BACKEND"]
 EMAIL_USE_TLS = email_config["EMAIL_USE_TLS"]
 EMAIL_USE_SSL = email_config["EMAIL_USE_SSL"]
 
+# If enabled, make sure you have set proper storefront address in ALLOWED_CLIENT_HOSTS.
 ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL = os.environ.get(
-    "ENABLE_ACCOUNT_CONFIRMATION", True
+    "ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL", True
 )
 
 ENABLE_SSL = get_bool_from_env("ENABLE_SSL", False)
@@ -545,3 +548,14 @@ USE_JSON_CONTENT = get_bool_from_env("USE_JSON_CONTENT", False)
 JWT_TOKEN_SECRET = os.environ.get("JWT_TOKEN_SECRET", "saleor")
 if not DEBUG:
     JWT_VERIFY_EXPIRATION = True
+
+
+if (
+    not DEBUG
+    and ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL
+    and ALLOWED_CLIENT_HOSTS == get_list(_DEFAULT_CLIENT_HOSTS)
+):
+    raise ImproperlyConfigured(
+        "Make sure you've added storefront address to ALLOWED_CLIENT_HOSTS "
+        "if ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL is enabled."
+    )
