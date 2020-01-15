@@ -8,7 +8,7 @@ from graphene import relay
 from graphene_federation import key
 from graphql.error import GraphQLError
 
-from ....core.permissions import ProductPermissions, StockPermissions
+from ....core.permissions import ProductPermissions
 from ....product import models
 from ....product.templatetags.product_images import (
     get_product_image_thumbnail,
@@ -292,7 +292,6 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         model = models.ProductVariant
 
     @staticmethod
-    @permission_required(StockPermissions.MANAGE_STOCKS)
     def resolve_stock(root: models.ProductVariant, info, country=None):
         if country is not None:
             return stock_models.Stock.objects.get_variant_stock_for_country(
