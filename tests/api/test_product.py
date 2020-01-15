@@ -2513,11 +2513,7 @@ def test_variant_digital_content(
         ({"published": "HIDDEN"}, 1),
         ({"search": "-published1"}, 1),
         ({"search": "Collection3"}, 1),
-        ({"ids": [
-            to_global_id("Collection", 2), 
-            to_global_id("Collection",3)
-            ]
-            }, 2),
+        ({"ids": [to_global_id("Collection", 2), to_global_id("Collection", 3)]}, 2),
     ],
 )
 def test_collections_query_with_filter(
