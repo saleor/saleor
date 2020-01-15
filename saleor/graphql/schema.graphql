@@ -4144,11 +4144,11 @@ input StaffUserInput {
 }
 
 type Stock implements Node {
-  id: ID!
   warehouse: Warehouse!
   productVariant: ProductVariant!
   quantity: Int!
   quantityAllocated: Int!
+  id: ID!
   available: Int
 }
 
