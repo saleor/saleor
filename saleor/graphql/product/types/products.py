@@ -196,15 +196,22 @@ class ProductPricingInfo(BasePricingInfo):
 class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
     quantity = graphene.Int(
         required=True,
-        description="DEPRECATED: Will be removed in favour of stock. "
-        "Quantity of a product in the store's possession, "
+        description="Quantity of a product in the store's possession, "
         "including the allocated stock that is waiting for shipment.",
+        deprecation_reason="This field will be removed in Saleor 2.11. "
+        "Use the stock field instead.",
     )
-    quantity_allocated = graphene.Int(required=False, description="DEPRECATED")
+    quantity_allocated = graphene.Int(
+        required=False,
+        description="Quantity allocated for orders",
+        deprecation_reason="This field will be removed in Saleor 2.11. "
+        "Use the stock field instead.",
+    )
     stock_quantity = graphene.Int(
         required=True,
-        description="DEPRECATED: Will be removed in favour to stock. "
-        "Quantity of a product available for sale.",
+        description="Quantity of a product available for sale.",
+        deprecation_reason="This field will be removed in Saleor 2.11. "
+        "Use the stock field instead.",
     )
     price_override = graphene.Field(
         Money,
@@ -221,8 +228,9 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         ),
     )
     is_available = graphene.Boolean(
-        description="DEPRECATED: Will be removed in favour of stock. "
-        "Whether the variant is in stock and visible or not."
+        description="Whether the variant is in stock and visible or not.",
+        deprecation_reason="This field will be removed in Saleor 2.11. "
+        "Use the stock field instead.",
     )
 
     attributes = gql_optimizer.field(
