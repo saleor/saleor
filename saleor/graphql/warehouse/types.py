@@ -1,11 +1,9 @@
 import graphene
 
-from ...core.permissions import StockPermissions
 from ...warehouse import models
 from ...warehouse.availability import get_available_quantity_for_customer
 from ..account.enums import CountryCodeEnum
 from ..core.connection import CountableDjangoObjectType
-from ..decorators import permission_required
 
 
 class WarehouseAddressInput(graphene.InputObjectType):
@@ -66,7 +64,18 @@ class StockInput(graphene.InputObjectType):
 
 
 class Stock(CountableDjangoObjectType):
-    available = graphene.Int(description="Quantity of a product available for sale.")
+    stock_quantity = graphene.Int(
+        description="Quantity of a product available for sale.", required=True
+    )
+
+    quantity = graphene.Int(
+        required=True,
+        description="Quantity of a product in the warehouse's possession, "
+        "including the allocated stock that is waiting for shipment.",
+    )
+    quantity_allocated = graphene.Int(
+        required=True, description="Quantity allocated for orders"
+    )
 
     class Meta:
         description = "Represents stock."
@@ -75,6 +84,13 @@ class Stock(CountableDjangoObjectType):
         only_fields = ["warehouse", "product_variant", "quantity", "quantity_allocated"]
 
     @staticmethod
-    @permission_required(StockPermissions.MANAGE_STOCKS)
-    def resolve_available(root, *_args):
+    def resolve_stock_quantity(root, *_args):
         return get_available_quantity_for_customer(root)
+
+    @staticmethod
+    def resolve_quantity(root, *_args):
+        return root.quantity
+
+    @staticmethod
+    def resolve_quantity_allocated(root, *_args):
+        return root.quantity_allocated

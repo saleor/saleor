@@ -76,7 +76,7 @@ query stock($id: ID!) {
         }
         quantity
         quantityAllocated
-        available
+        stockQuantity
     }
 }
 """
@@ -418,7 +418,7 @@ def test_query_available_stock_quantity(
 
     response = staff_api_client.post_graphql(QUERY_STOCK, variables={"id": stock_id})
     content = get_graphql_content(response)
-    content_quantity_available = content["data"]["stock"]["available"]
+    content_quantity_available = content["data"]["stock"]["stockQuantity"]
     assert content_quantity_available == settings.MAX_CHECKOUT_LINE_QUANTITY
 
     # set MAX_CHECKOUT_LINE_QUANTITY larger than available quantity
@@ -426,5 +426,5 @@ def test_query_available_stock_quantity(
 
     response = staff_api_client.post_graphql(QUERY_STOCK, variables={"id": stock_id})
     content = get_graphql_content(response)
-    content_quantity_available = content["data"]["stock"]["available"]
+    content_quantity_available = content["data"]["stock"]["stockQuantity"]
     assert content_quantity_available == available_quantity

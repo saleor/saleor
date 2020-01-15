@@ -4149,7 +4149,7 @@ type Stock implements Node {
   quantity: Int!
   quantityAllocated: Int!
   id: ID!
-  available: Int
+  stockQuantity: Int!
 }
 
 enum StockAvailability {
