@@ -8,7 +8,7 @@ from graphene import relay
 from graphene_federation import key
 from graphql.error import GraphQLError
 
-from ....core.permissions import OrderPermissions, ProductPermissions, StockPermissions
+from ....core.permissions import ProductPermissions, StockPermissions
 from ....product import models
 from ....product.templatetags.product_images import (
     get_product_image_thumbnail,
@@ -377,9 +377,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         return stock.quantity_allocated
 
     @staticmethod
-    @permission_required(
-        [OrderPermissions.MANAGE_ORDERS, ProductPermissions.MANAGE_PRODUCTS]
-    )
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_revenue(root: models.ProductVariant, *_args, period):
         start_date = reporting_period_to_date(period)
         return calculate_revenue_for_variant(root, start_date)
