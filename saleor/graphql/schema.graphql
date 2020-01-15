@@ -4210,7 +4210,6 @@ input StockInput {
   productVariant: ID!
   warehouse: ID!
   quantity: Int
-  quantityAllocated: Int
 }
 
 type StockUpdate {

@@ -130,7 +130,6 @@ def test_stock_cannot_be_created_without_permission(
             "warehouse": warehouse_id,
             "productVariant": variant_id,
             "quantity": 100,
-            "quantityAllocated": 23,
         }
     }
 
@@ -151,7 +150,6 @@ def test_create_stock_mutation(
             "productVariant": variant_id,
             "warehouse": warehouse_id,
             "quantity": 100,
-            "quantityAllocated": 27,
         }
     }
     response = staff_api_client.post_graphql(MUTATION_CREATE_STOCK, variables)
