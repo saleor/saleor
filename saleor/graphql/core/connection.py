@@ -5,13 +5,27 @@ from django.db.models import Manager, QuerySet
 from graphene import Field, List, NonNull, ObjectType, String
 from graphene.relay.connection import Connection
 from graphene_django_optimizer.types import OptimizedDjangoObjectType
-from graphql_relay.connection.arrayconnection import (
-    get_offset_with_default,
-    offset_to_cursor,
-)
 from graphql_relay.connection.connectiontypes import Edge, PageInfo
 
+from ..core.enums import OrderDirection
+
 ConnectionArguments = Dict[str, Any]
+
+
+def connection_args_validation(args):
+    first = args.get("first")
+    last = args.get("last")
+
+    if isinstance(first, int) and first < 0 or first and not isinstance(first, int):
+        raise ValueError("Argument 'first' must be a non-negative integer.")
+    if isinstance(last, int) and last < 0 or last and not isinstance(last, int):
+        raise ValueError("Argument 'last' must be a non-negative integer.")
+    if first and last:
+        raise ValueError("Argument 'last' cannot be combined with 'first'.")
+    if first and args.get("before"):
+        raise ValueError("Argument 'first' cannot be combined with 'before'.")
+    if last and args.get("after"):
+        raise ValueError("Argument 'last' cannot be combined with 'after'.")
 
 
 def connection_from_queryset_slice(
@@ -27,55 +41,74 @@ def connection_from_queryset_slice(
     after = args.get("after")
     first = args.get("first")
     last = args.get("last")
-    before_offset = get_offset_with_default(before, None)
-    after_offset = get_offset_with_default(after, None)
+    connection_args_validation(args)
 
-    start_offset = max(0, after_offset or 0)
-    end_offset = before_offset or None
-    requested_count = end_offset - start_offset if end_offset else None
+    cursor_after = graphene.Node.from_global_id(after) if after else None
+    cursor_before = graphene.Node.from_global_id(before) if before else None
+    cursor = cursor_after or cursor_before
+    cursor_offset = 1 if cursor else 0
 
-    if isinstance(first, int):
-        if first < 0:
-            raise ValueError("Argument 'first' must be a non-negative integer.")
+    sort_by = args.get("sort_by", {})
+    # TODO: check if qs have default orderby
+    sort_by_field = sort_by.get("field", "pk")
+    sort_by_direction = sort_by.get("direction", "")
 
-        requested_end_offset = start_offset + first
-        end_offset = (
-            min(end_offset, requested_end_offset)
-            if end_offset
-            else requested_end_offset
+    requested_count = first or last
+    end_margin = requested_count + cursor_offset + 1 if requested_count else None
+
+    if last:
+        # reversed direction
+        sort_by_direction = "" if sort_by_direction == OrderDirection.DESC else "-"
+        sort_by_direction_kw = (
+            "gte" if sort_by_direction == OrderDirection.DESC else "lte"
         )
-        requested_count = end_offset - start_offset
+    else:
+        sort_by_direction_kw = (
+            "lte" if sort_by_direction == OrderDirection.DESC else "gte"
+        )
 
-    if isinstance(last, int):
-        if last < 0:
-            raise ValueError("Argument 'last' must be a non-negative integer.")
-        if isinstance(first, int):
-            raise ValueError("Argument 'last' cannot be combined with 'first'.")
-        if not end_offset:
-            raise ValueError("Argument 'last' requires 'before' to be specified.")
+    filter_kwargs = {}
 
-        start_offset = max(start_offset, end_offset - last)
-        requested_count = end_offset - start_offset
+    if cursor:
+        cursor_model = qs.model
+        cursor = cursor_model.objects.get(pk=cursor[1])
+        filter_kwargs[f"{sort_by_field}__{sort_by_direction_kw}"] = getattr(
+            cursor, sort_by_field
+        )
 
-    previous_page_margin = 1 if start_offset > 0 else 0
+    sort_by_kw = [f"{sort_by_direction}{sort_by_field}"] if sort_by_field else None
+    if sort_by_kw and not isinstance(qs, list):
+        qs = qs.filter(**filter_kwargs).order_by(*sort_by_kw)[cursor_offset:end_margin]
+    elif not isinstance(qs, list):
+        qs = qs.filter(**filter_kwargs)[cursor_offset:end_margin]
 
-    matching_records = list(
-        qs[start_offset - previous_page_margin : end_offset + 1]
-        if end_offset
-        else qs[start_offset - previous_page_margin :]
-    )
+    if last:
+        matching_records = list(reversed(qs))
+    else:
+        matching_records = list(qs)
 
     has_previous_page = False
     has_next_page = False
-    if previous_page_margin:
-        has_previous_page = len(matching_records) > 0
-        matching_records = matching_records[previous_page_margin:]
     if requested_count is not None:
-        has_next_page = len(matching_records) > requested_count
-        matching_records = matching_records[:requested_count]
+        if cursor_after:
+            has_next_page = len(matching_records) > requested_count
+            has_previous_page = True
+        elif cursor_before:
+            has_next_page = True
+            has_previous_page = len(matching_records) > requested_count
+        elif first:
+            has_next_page = len(matching_records) > requested_count
+        elif last:
+            has_previous_page = len(matching_records) > requested_count
+        matching_records = matching_records[
+            cursor_offset : requested_count + cursor_offset
+        ]
 
     edges = [
-        edge_type(node=value, cursor=offset_to_cursor(start_offset + index))
+        edge_type(
+            node=value,
+            cursor=graphene.Node.to_global_id(value._meta.object_name, value.pk),
+        )
         for index, value in enumerate(matching_records)
     ]
 
