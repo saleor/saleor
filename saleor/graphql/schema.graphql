@@ -3370,7 +3370,7 @@ type ProductVariant implements Node {
   images: [ProductImage]
   translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
   digitalContent: DigitalContent
-  stock(country: String): Stock
+  stock(country: String): [Stock]
 }
 
 type ProductVariantBulkCreate {

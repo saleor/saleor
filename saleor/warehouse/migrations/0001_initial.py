@@ -140,6 +140,7 @@ class Migration(migrations.Migration):
                     "product_variant",
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
+                        related_name="stock",
                         to="product.ProductVariant",
                     ),
                 ),

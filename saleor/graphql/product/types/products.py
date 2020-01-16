@@ -270,7 +270,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
 
     stock = gql_optimizer.field(
         graphene.Field(
-            Stock,
+            graphene.List(Stock),
             description="Stocks for the product variant.",
             country=graphene.String(required=False),
         )
@@ -293,13 +293,10 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
 
     @staticmethod
     def resolve_stock(root: models.ProductVariant, info, country=None):
-        if country is not None:
-            return stock_models.Stock.objects.get_variant_stock_for_country(
-                country, root
-            )
-        return stock_models.Stock.objects.annotate_available_quantity().filter(
-            product_variant=root
-        )
+        stock = root.stock.annotate_available_quantity()
+        if country is None:
+            return stock.all()
+        return stock.for_country(country)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
