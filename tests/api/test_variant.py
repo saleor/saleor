@@ -16,6 +16,9 @@ def test_fetch_variant(staff_api_client, product, permission_manage_products):
     query ProductVariantDetails($id: ID!) {
         productVariant(id: $id) {
             id
+            stock {
+                id
+            }
             attributes {
                 attribute {
                     id
@@ -60,6 +63,7 @@ def test_fetch_variant(staff_api_client, product, permission_manage_products):
     content = get_graphql_content(response)
     data = content["data"]["productVariant"]
     assert data["name"] == variant.name
+    assert len(data["stock"]) == variant.stock.count()
 
 
 def test_create_variant(
