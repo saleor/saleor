@@ -4,6 +4,7 @@ from enum import Enum
 class AccountErrorCode(Enum):
     ACTIVATE_OWN_ACCOUNT = "activate_own_account"
     ACTIVATE_SUPERUSER_ACCOUNT = "activate_superuser_account"
+    ASSIGN_NON_STAFF_MEMBER = "assign_non_staff_member"
     DEACTIVATE_OWN_ACCOUNT = "deactivate_own_account"
     DEACTIVATE_SUPERUSER_ACCOUNT = "deactivate_superuser_account"
     DELETE_NON_STAFF_USER = "delete_non_staff_user"

@@ -39,6 +39,7 @@ type AccountError {
 enum AccountErrorCode {
   ACTIVATE_OWN_ACCOUNT
   ACTIVATE_SUPERUSER_ACCOUNT
+  ASSIGN_NON_STAFF_MEMBER
   DEACTIVATE_OWN_ACCOUNT
   DEACTIVATE_SUPERUSER_ACCOUNT
   DELETE_NON_STAFF_USER
@@ -185,6 +186,10 @@ type AssignNavigation {
   errors: [Error!]
   menu: Menu
   menuErrors: [MenuError!]
+}
+
+input AssignUsersInput {
+  users: [ID!]!
 }
 
 type Attribute implements Node {
@@ -1761,9 +1766,9 @@ input GiftCardUpdateInput {
 }
 
 type Group implements Node {
+  id: ID!
   name: String!
   permissions: [PermissionDisplay]
-  id: ID!
   users: [User]
 }
 
@@ -2317,6 +2322,7 @@ type Mutation {
   permissionGroupCreate(input: PermissionGroupCreateInput!): PermissionGroupCreate
   permissionGroupUpdate(id: ID!, input: PermissionGroupInput!): PermissionGroupUpdate
   permissionGroupDelete(id: ID!): PermissionGroupDelete
+  permissionGroupAssignUsers(id: ID!, input: AssignUsersInput!): PermissionGroupAssignUsers
 }
 
 input NameTranslationInput {
@@ -2906,6 +2912,12 @@ enum PermissionEnum {
   MANAGE_TRANSLATIONS
   MANAGE_WEBHOOKS
   MANAGE_CHECKOUTS
+}
+
+type PermissionGroupAssignUsers {
+  errors: [Error!]
+  group: Group
+  accountErrors: [AccountError!]
 }
 
 type PermissionGroupCreate {
