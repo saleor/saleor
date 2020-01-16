@@ -47,6 +47,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Move extracting user or service_account from context to utils - #5152 by @kswiatek92
 - Add deprecate description to order status/created arguments - #5076 by @kswiatek92
 - Fix getting title field in page mutations #5160 by @maarcingebala
+- Copy public and private metadata from the checkout to the order upon creation -  #5165 by @dankolbman
 
 ## 2.9.0
 
