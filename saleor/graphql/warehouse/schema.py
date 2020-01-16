@@ -55,10 +55,7 @@ class StockQueries(graphene.ObjectType):
         id=graphene.ID(required=True, description="ID of an warehouse"),
     )
     stocks = FilterInputConnectionField(
-        Stock,
-        description="List of stocks.",
-        filter=StockFilterInput(),
-        query=graphene.String(),
+        Stock, description="List of stocks.", filter=StockFilterInput(),
     )
 
     @permission_required(StockPermissions.MANAGE_STOCKS)
