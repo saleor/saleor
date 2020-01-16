@@ -188,10 +188,6 @@ type AssignNavigation {
   menuErrors: [MenuError!]
 }
 
-input AssignUsersInput {
-  users: [ID!]!
-}
-
 type Attribute implements Node {
   id: ID!
   productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
@@ -2322,7 +2318,8 @@ type Mutation {
   permissionGroupCreate(input: PermissionGroupCreateInput!): PermissionGroupCreate
   permissionGroupUpdate(id: ID!, input: PermissionGroupInput!): PermissionGroupUpdate
   permissionGroupDelete(id: ID!): PermissionGroupDelete
-  permissionGroupAssignUsers(id: ID!, input: AssignUsersInput!): PermissionGroupAssignUsers
+  permissionGroupAssignUsers(id: ID!, input: UsersInput!): PermissionGroupAssignUsers
+  permissionGroupUnassignUsers(id: ID!, input: UsersInput!): PermissionGroupUnassignUsers
 }
 
 input NameTranslationInput {
@@ -2940,6 +2937,12 @@ type PermissionGroupDelete {
 input PermissionGroupInput {
   name: String
   permissions: [PermissionEnum!]
+}
+
+type PermissionGroupUnassignUsers {
+  errors: [Error!]
+  group: Group
+  accountErrors: [AccountError!]
 }
 
 type PermissionGroupUpdate {
@@ -4402,6 +4405,10 @@ type UserUpdatePrivateMeta {
   errors: [Error!]
   accountErrors: [AccountError!]
   user: User
+}
+
+input UsersInput {
+  users: [ID!]!
 }
 
 type VAT {

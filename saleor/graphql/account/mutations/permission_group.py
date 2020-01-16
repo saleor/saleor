@@ -103,7 +103,7 @@ class PermissionGroupDelete(ModelDeleteMutation):
         error_type_field = "account_errors"
 
 
-class AssignUsersInput(graphene.InputObjectType):
+class UsersInput(graphene.InputObjectType):
     users = graphene.List(
         graphene.NonNull(graphene.ID),
         description="List of users to assign to this group.",
@@ -112,14 +112,14 @@ class AssignUsersInput(graphene.InputObjectType):
 
 
 class PermissionGroupAssignUsers(ModelMutation):
-    group = graphene.Field(Group, description="Group to which users were added.")
+    group = graphene.Field(Group, description="Group to which users were assigned.")
 
     class Arguments:
         id = graphene.ID(
             description="ID of the group to which users will be assigned.",
             required=True,
         )
-        input = AssignUsersInput(
+        input = UsersInput(
             description="Input fields required to perform mutation.", required=True
         )
 
@@ -133,18 +133,23 @@ class PermissionGroupAssignUsers(ModelMutation):
     @classmethod
     def perform_mutation(cls, root, info, **data):
         group = cls.get_instance(info, **data)
+        user_pks = cls.prepare_user_pks(root, info, group, **data)
+        cls.check_if_users_are_staff(user_pks)
+        group.user_set.add(*user_pks)
+        return cls(group=group)
+
+    @classmethod
+    def prepare_user_pks(cls, root, info, group, **data):
         input_data = data.get("input")
         cleaned_input = cls.clean_input(info, group, input_data)
         user_ids: List[str] = cleaned_input["users"]
 
-        users_pks = [
+        user_pks = [
             from_global_id_strict_type(user_id, only_type=User, field="id")
             for user_id in user_ids
         ]
 
-        cls.check_if_users_are_staff(users_pks)
-        group.user_set.add(*users_pks)
-        return cls(group=group)
+        return user_pks
 
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
@@ -175,3 +180,30 @@ class PermissionGroupAssignUsers(ModelMutation):
                     )
                 }
             )
+
+
+class PermissionGroupUnassignUsers(PermissionGroupAssignUsers):
+    group = graphene.Field(Group, description="Group from which users were unassigned.")
+
+    class Arguments:
+        id = graphene.ID(
+            description="ID of group from which users will be unassigned.",
+            required=True,
+        )
+        input = UsersInput(
+            description="Input fields required to perform mutation.", required=True
+        )
+
+    class Meta:
+        description = "Unassign users from group."
+        model = django_models.Group
+        permissions = (AccountPermissions.MANAGE_STAFF,)
+        error_type_class = AccountError
+        error_type_field = "account_errors"
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        group = cls.get_instance(info, **data)
+        user_pks = cls.prepare_user_pks(root, info, group, **data)
+        group.user_set.remove(*user_pks)
+        return cls(group=group)

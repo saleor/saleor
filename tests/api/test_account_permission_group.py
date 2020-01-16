@@ -373,7 +373,7 @@ def test_group_delete_mutation_no_id(
 
 
 PERMISSION_GROUP_ASSIGN_USERS_MUTATION = """
-    mutation PermissionGroupAssignUsers($id: ID!, $input: AssignUsersInput!) {
+    mutation PermissionGroupAssignUsers($id: ID!, $input: UsersInput!) {
         permissionGroupAssignUsers(
             id: $id, input: $input)
         {
@@ -418,6 +418,8 @@ def test_permission_group_assign_users_mutation(
         "id": graphene.Node.to_global_id("Group", group.id),
         "input": {"users": users},
     }
+
+    staff_members += list(group.user_set.all())
 
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -496,3 +498,189 @@ def test_permission_group_assign_users_mutation_no_users_data(
     assert errors[0]["field"] == "users"
     assert errors[0]["message"] == "You must provide at least one staff user."
     assert data["group"] is None
+
+
+def test_permission_group_assign_users_mutation_customer_user(
+    permission_group_manage_users,
+    staff_user,
+    permission_manage_staff,
+    staff_api_client,
+    customer_user,
+):
+    staff_user.user_permissions.add(permission_manage_staff)
+    group = permission_group_manage_users
+    query = PERMISSION_GROUP_ASSIGN_USERS_MUTATION
+
+    variables = {
+        "id": graphene.Node.to_global_id("Group", group.id),
+        "input": {"users": [graphene.Node.to_global_id("User", customer_user.id)]},
+    }
+
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupAssignUsers"]
+    errors = data["errors"]
+
+    assert errors
+    assert len(errors) == 1
+    assert errors[0]["field"] == "users"
+    assert errors[0]["message"] == "Some of users aren't staff members."
+    assert data["group"] is None
+
+
+PERMISSION_GROUP_UNASSIGN_USERS_MUTATION = """
+    mutation PermissionGroupUnassignUsers($id: ID!, $input: UsersInput!) {
+        permissionGroupUnassignUsers(
+            id: $id, input: $input)
+        {
+            group{
+                id
+                name
+                permissions {
+                    name
+                    code
+                }
+                users{
+                    email
+                }
+            }
+            errors{
+                field
+                message
+            }
+        }
+    }
+    """
+
+
+def test_permission_group_unassign_users_mutation(
+    permission_group_manage_users, staff_user, permission_manage_staff, staff_api_client
+):
+    staff_user.user_permissions.add(permission_manage_staff)
+    group = permission_group_manage_users
+    group_name = group.name
+    query = PERMISSION_GROUP_UNASSIGN_USERS_MUTATION
+
+    staff_user2 = group.user_set.first()
+    group.user_set.add(staff_user)
+
+    variables = {
+        "id": graphene.Node.to_global_id("Group", group.id),
+        "input": {"users": [graphene.Node.to_global_id("User", staff_user2.id)]},
+    }
+
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupUnassignUsers"]
+    errors = data["errors"]
+    permission_group_data = data["group"]
+
+    assert errors == []
+    assert permission_group_data["name"] == group_name
+    assert permission_group_data["users"]
+    user_emails = {user_data["email"] for user_data in permission_group_data["users"]}
+    assert user_emails == {staff_user.email}
+    assert permission_group_data["permissions"]
+    result_permissions = {
+        permission["name"] for permission in permission_group_data["permissions"]
+    }
+    assert (
+        set(group.permissions.all().values_list("name", flat=True))
+        == result_permissions
+    )
+    permissions_codes = {
+        permission["code"].lower()
+        for permission in permission_group_data["permissions"]
+    }
+    assert (
+        set(group.permissions.all().values_list("codename", flat=True))
+        == permissions_codes
+    )
+
+
+def test_permission_group_unassign_users_mutation_no_permission_to_perform_mutation(
+    permission_group_manage_users, staff_user, permission_manage_staff, staff_api_client
+):
+    group = permission_group_manage_users
+    query = PERMISSION_GROUP_UNASSIGN_USERS_MUTATION
+
+    group_staff_user = group.user_set.first()
+
+    variables = {
+        "id": graphene.Node.to_global_id("Group", group.id),
+        "input": {"users": [graphene.Node.to_global_id("User", group_staff_user.id)]},
+    }
+
+    response = staff_api_client.post_graphql(query, variables)
+    assert_no_permission(response)
+
+
+def test_permission_group_unassign_users_mutation_no_users_data(
+    permission_group_manage_users, staff_user, permission_manage_staff, staff_api_client
+):
+    staff_user.user_permissions.add(permission_manage_staff)
+    group = permission_group_manage_users
+    query = PERMISSION_GROUP_UNASSIGN_USERS_MUTATION
+
+    variables = {
+        "id": graphene.Node.to_global_id("Group", group.id),
+        "input": {"users": []},
+    }
+
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupUnassignUsers"]
+    errors = data["errors"]
+
+    assert errors
+    assert len(errors) == 1
+    assert errors[0]["field"] == "users"
+    assert errors[0]["message"] == "You must provide at least one staff user."
+    assert data["group"] is None
+
+
+def test_permission_group_unassign_users_mutation_user_not_in_group(
+    permission_group_manage_users,
+    staff_user,
+    permission_manage_staff,
+    staff_api_client,
+    customer_user,
+):
+    staff_user.user_permissions.add(permission_manage_staff)
+    group = permission_group_manage_users
+    query = PERMISSION_GROUP_UNASSIGN_USERS_MUTATION
+
+    group_staff_user = group.user_set.first()
+
+    variables = {
+        "id": graphene.Node.to_global_id("Group", group.id),
+        "input": {"users": [graphene.Node.to_global_id("User", customer_user.id)]},
+    }
+
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupUnassignUsers"]
+    errors = data["errors"]
+    permission_group_data = data["group"]
+
+    assert errors == []
+    assert permission_group_data["name"] == group.name
+    assert permission_group_data["users"]
+    user_emails = {user_data["email"] for user_data in permission_group_data["users"]}
+    assert user_emails == {group_staff_user.email}
+    assert permission_group_data["permissions"]
+    result_permissions = {
+        permission["name"] for permission in permission_group_data["permissions"]
+    }
+    assert (
+        set(group.permissions.all().values_list("name", flat=True))
+        == result_permissions
+    )
+    permissions_codes = {
+        permission["code"].lower()
+        for permission in permission_group_data["permissions"]
+    }
+    assert (
+        set(group.permissions.all().values_list("codename", flat=True))
+        == permissions_codes
+    )
