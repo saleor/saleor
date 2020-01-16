@@ -1285,7 +1285,7 @@ def permission_manage_webhooks():
 
 @pytest.fixture
 def permission_group_manage_users(permission_manage_users, staff_user):
-    group = Group.objects.create(name="Manage user group.")
+    group = Group.objects.create(name="Manage user groups.")
     group.permissions.add(permission_manage_users)
 
     staff_user2 = User.objects.get(pk=staff_user.pk)

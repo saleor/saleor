@@ -7,7 +7,12 @@ from ..core.types import FilterInputObjectType
 from ..decorators import one_of_permissions_required, permission_required
 from .bulk_mutations import CustomerBulkDelete, StaffBulkDelete, UserBulkSetActive
 from .enums import CountryCodeEnum
-from .filters import CustomerFilter, ServiceAccountFilter, StaffUserFilter
+from .filters import (
+    CustomerFilter,
+    PermissionGroupFilter,
+    ServiceAccountFilter,
+    StaffUserFilter,
+)
 from .mutations.account import (
     AccountAddressCreate,
     AccountAddressDelete,
@@ -64,17 +69,27 @@ from .resolvers import (
     resolve_address,
     resolve_address_validation_rules,
     resolve_customers,
+    resolve_permission_groups,
     resolve_service_accounts,
     resolve_staff_users,
     resolve_user,
 )
-from .sorters import ServiceAccountSortingInput, UserSortingInput
-from .types import Address, AddressValidationData, ServiceAccount, User
+from .sorters import (
+    PermissionGroupSortingInput,
+    ServiceAccountSortingInput,
+    UserSortingInput,
+)
+from .types import Address, AddressValidationData, Group, ServiceAccount, User
 
 
 class CustomerFilterInput(FilterInputObjectType):
     class Meta:
         filterset_class = CustomerFilter
+
+
+class PermissionGroupFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = PermissionGroupFilter
 
 
 class StaffUserInput(FilterInputObjectType):
@@ -116,6 +131,14 @@ class AccountQueries(graphene.ObjectType):
         filter=CustomerFilterInput(description="Filtering options for customers."),
         sort_by=UserSortingInput(description="Sort customers."),
         description="List of the shop's customers.",
+    )
+    permission_groups = FilterInputConnectionField(
+        Group,
+        filter=PermissionGroupFilterInput(
+            description="Filtering options for permission groups."
+        ),
+        sort_by=PermissionGroupSortingInput(description="Sort permission groups."),
+        description="List of permission groups.",
     )
     me = graphene.Field(User, description="Return the currently authenticated user.")
     staff_users = FilterInputConnectionField(
@@ -168,6 +191,10 @@ class AccountQueries(graphene.ObjectType):
     @permission_required(AccountPermissions.MANAGE_USERS)
     def resolve_customers(self, info, query=None, **kwargs):
         return resolve_customers(info, query=query, **kwargs)
+
+    @permission_required(AccountPermissions.MANAGE_STAFF)
+    def resolve_permission_groups(self, info, query=None, **kwargs):
+        return resolve_permission_groups(info, query=query, **kwargs)
 
     @login_required
     def resolve_me(self, info):
