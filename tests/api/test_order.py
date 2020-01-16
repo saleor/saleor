@@ -1950,12 +1950,7 @@ MUTATION_CANCEL_ORDERS = """
 
 
 def test_order_bulk_cancel_with_restock(
-    staff_api_client,
-    orders,
-    order_with_lines,
-    permission_manage_orders,
-    address,
-    permission_manage_stocks,
+    staff_api_client, orders, order_with_lines, permission_manage_orders, address,
 ):
     assert order_with_lines.can_cancel()
     orders.append(order_with_lines)
@@ -1965,9 +1960,7 @@ def test_order_bulk_cancel_with_restock(
         "restock": True,
     }
     response = staff_api_client.post_graphql(
-        MUTATION_CANCEL_ORDERS,
-        variables,
-        permissions=[permission_manage_orders, permission_manage_stocks],
+        MUTATION_CANCEL_ORDERS, variables, permissions=[permission_manage_orders],
     )
     order_with_lines.refresh_from_db()
     content = get_graphql_content(response)

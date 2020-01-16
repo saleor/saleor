@@ -41,12 +41,6 @@ class Warehouse(models.Model):
 
     class Meta:
         ordering = ("-name",)
-        permissions = (
-            (
-                "manage_warehouses",
-                pgettext_lazy("Permission description", "Manage warehouses."),
-            ),
-        )
 
     def __str__(self):
         return self.name
@@ -94,12 +88,6 @@ class Stock(models.Model):
 
     class Meta:
         unique_together = [["warehouse", "product_variant"]]
-        permissions = (
-            (
-                "manage_stocks",
-                pgettext_lazy("Permission description", "Manage stocks."),
-            ),
-        )
 
     def __str__(self):
         return f"{self.product_variant} - {self.warehouse.name}"

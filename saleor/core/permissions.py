@@ -56,14 +56,6 @@ class SitePermissions(BasePermissionEnum):
     MANAGE_TRANSLATIONS = "site.manage_translations"
 
 
-class StockPermissions(BasePermissionEnum):
-    MANAGE_STOCKS = "warehouse.manage_stocks"
-
-
-class WarehousePermissions(BasePermissionEnum):
-    MANAGE_WAREHOUSES = "warehouse.manage_warehouses"
-
-
 class WebhookPermissions(BasePermissionEnum):
     MANAGE_WEBHOOKS = "webhook.manage_webhooks"
 
