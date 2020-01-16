@@ -437,7 +437,7 @@ class Group(CountableDjangoObjectType):
         description = ""
         interfaces = [relay.Node]
         model = django_models.Group
-        only_fields = ["name", "permissions", "users"]
+        only_fields = ["name", "permissions", "users", "id"]
 
     @staticmethod
     def resolve_users(root: django_models.Group, _info):

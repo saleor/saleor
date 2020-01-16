@@ -29,6 +29,7 @@ from .mutations.base import (
     UserUpdateMeta,
 )
 from .mutations.permission_group import (
+    PermissionGroupAssignUsers,
     PermissionGroupCreate,
     PermissionGroupDelete,
     PermissionGroupUpdate,
@@ -246,3 +247,4 @@ class AccountMutations(graphene.ObjectType):
     permission_group_create = PermissionGroupCreate.Field()
     permission_group_update = PermissionGroupUpdate.Field()
     permission_group_delete = PermissionGroupDelete.Field()
+    permission_group_assign_users = PermissionGroupAssignUsers.Field()
