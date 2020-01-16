@@ -1082,6 +1082,68 @@ def test_product_create_without_category_and_true_is_published_value(
     assert errors[0]["message"] == "You must select a category to be able to publish"
 
 
+def test_product_create_with_collections_webhook(
+    staff_api_client,
+    permission_manage_products,
+    collection,
+    product_type,
+    category,
+    monkeypatch,
+):
+    query = """
+    mutation createProduct($productTypeId: ID!, $collectionId: ID!, $categoryId: ID!) {
+        productCreate(input: {
+                name: "Product",
+                basePrice: "2.5",
+                productType: $productTypeId,
+                isPublished: true,
+                collections: [$collectionId],
+                category: $categoryId
+            }) {
+            product {
+                id,
+                collections {
+                    slug
+                },
+                category {
+                    slug
+                }
+            }
+            errors {
+                message
+                field
+            }
+        }
+    }
+
+    """
+
+    def assert_product_has_collections(product):
+        assert product.collections.count() > 0
+        assert product.collections.first() == collection
+
+    monkeypatch.setattr(
+        "saleor.extensions.manager.ExtensionsManager.product_created",
+        lambda cls, product: assert_product_has_collections(product),
+    )
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    collection_id = graphene.Node.to_global_id("Collection", collection.pk)
+
+    response = staff_api_client.post_graphql(
+        query,
+        {
+            "productTypeId": product_type_id,
+            "categoryId": category_id,
+            "collectionId": collection_id,
+        },
+        permissions=[permission_manage_products],
+    )
+
+    get_graphql_content(response)
+
+
 def test_update_product(
     staff_api_client,
     category,
