@@ -573,11 +573,6 @@ def permission_manage_service_accounts():
 
 
 @pytest.fixture
-def permission_manage_warehouses():
-    return Permission.objects.get(codename="manage_warehouses")
-
-
-@pytest.fixture
 def product_type(color_attribute, size_attribute):
     product_type = ProductType.objects.create(
         name="Default Type", has_variants=True, is_shipping_required=True
@@ -1294,11 +1289,6 @@ def permission_manage_translations():
 @pytest.fixture
 def permission_manage_webhooks():
     return Permission.objects.get(codename="manage_webhooks")
-
-
-@pytest.fixture
-def permission_manage_stocks():
-    return Permission.objects.get(codename="manage_stocks")
 
 
 @pytest.fixture

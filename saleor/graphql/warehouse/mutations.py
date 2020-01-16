@@ -1,7 +1,7 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ...core.permissions import StockPermissions, WarehousePermissions
+from ...core.permissions import ProductPermissions
 from ...warehouse import models
 from ...warehouse.error_codes import WarehouseErrorCode
 from ...warehouse.validation import validate_warehouse_count  # type: ignore
@@ -49,7 +49,7 @@ class WarehouseCreate(WarehouseMixin, ModelMutation, I18nMixin):
     class Meta:
         description = "Creates new warehouse."
         model = models.Warehouse
-        permissions = (WarehousePermissions.MANAGE_WAREHOUSES,)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = WarehouseError
         error_type_field = "warehouse_errors"
 
@@ -62,7 +62,7 @@ class WarehouseCreate(WarehouseMixin, ModelMutation, I18nMixin):
 class WarehouseUpdate(WarehouseMixin, ModelMutation, I18nMixin):
     class Meta:
         model = models.Warehouse
-        permissions = (WarehousePermissions.MANAGE_WAREHOUSES,)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         description = "Updates given warehouse."
         error_type_class = WarehouseError
         error_type_field = "warehouse_errors"
@@ -86,7 +86,7 @@ class WarehouseUpdate(WarehouseMixin, ModelMutation, I18nMixin):
 class WarehouseDelete(ModelDeleteMutation):
     class Meta:
         model = models.Warehouse
-        permissions = (WarehousePermissions.MANAGE_WAREHOUSES,)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         description = "Deletes selected warehouse."
         error_type_class = WarehouseError
         error_type_field = "warehouse_errors"
@@ -104,7 +104,7 @@ class StockCreate(ModelMutation):
     class Meta:
         description = "Creates new stock."
         model = models.Stock
-        permissions = (StockPermissions.MANAGE_STOCKS,)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = StockError
         error_type_field = "stock_errors"
 
@@ -118,7 +118,7 @@ class StockUpdate(ModelMutation):
 
     class Meta:
         model = models.Stock
-        permissions = (StockPermissions.MANAGE_STOCKS,)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         description = "Update given stock."
         error_type_class = StockError
         error_type_field = "stock_error"
@@ -130,7 +130,7 @@ class StockDelete(ModelDeleteMutation):
 
     class Meta:
         model = models.Stock
-        permissions = (StockPermissions.MANAGE_STOCKS,)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         description = "Deletes selected stock."
         erorr_type_class = StockError
         error_type_field = "stock_error"
@@ -142,7 +142,7 @@ class StockBulkDelete(ModelBulkDeleteMutation):
 
     class Meta:
         model = models.Stock
-        permissions = (StockPermissions.MANAGE_STOCKS,)
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         description = "Deletes stocks in bulk"
         error_type_class = StockError
         error_type_field = "stock_error"

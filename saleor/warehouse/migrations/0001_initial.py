@@ -120,10 +120,7 @@ class Migration(migrations.Migration):
                     models.ManyToManyField(blank=True, to="shipping.ShippingZone"),
                 ),
             ],
-            options={
-                "ordering": ("-name",),
-                "permissions": (("manage_warehouses", "Manage warehouses."),),
-            },
+            options={"ordering": ("-name",),},
         ),
         migrations.CreateModel(
             name="Stock",
@@ -154,10 +151,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={
-                "permissions": (("manage_stocks", "Manage stocks."),),
-                "unique_together": {("warehouse", "product_variant")},
-            },
+            options={"unique_together": {("warehouse", "product_variant")},},
         ),
         migrations.RunPython(forward, backward),
     ]

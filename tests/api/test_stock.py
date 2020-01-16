@@ -1,6 +1,6 @@
 import graphene
 
-from saleor.core.permissions import StockPermissions
+from saleor.core.permissions import ProductPermissions
 from saleor.warehouse.models import Stock
 from tests.api.utils import assert_no_permission, get_graphql_content
 
@@ -122,7 +122,7 @@ QUERY_STOCKS_WITH_FILTERS = """
 def test_stock_cannot_be_created_without_permission(
     staff_api_client, variant, warehouse
 ):
-    assert not staff_api_client.user.has_perm(StockPermissions.MANAGE_STOCKS)
+    assert not staff_api_client.user.has_perm(ProductPermissions.MANAGE_PRODUCTS)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
     variables = {
@@ -138,9 +138,9 @@ def test_stock_cannot_be_created_without_permission(
 
 
 def test_create_stock_mutation(
-    staff_api_client, variant, warehouse, permission_manage_stocks
+    staff_api_client, variant, warehouse, permission_manage_products
 ):
-    staff_api_client.user.user_permissions.add(permission_manage_stocks)
+    staff_api_client.user.user_permissions.add(permission_manage_products)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
     old_stock_count = Stock.objects.count()
@@ -160,9 +160,9 @@ def test_create_stock_mutation(
 
 
 def test_create_stock_negative_quantity(
-    staff_api_client, variant, warehouse, permission_manage_stocks
+    staff_api_client, variant, warehouse, permission_manage_products
 ):
-    staff_api_client.user.user_permissions.add(permission_manage_stocks)
+    staff_api_client.user.user_permissions.add(permission_manage_products)
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
     variables = {
@@ -180,7 +180,7 @@ def test_create_stock_negative_quantity(
 
 
 def test_update_stock_required_permission(staff_api_client, stock):
-    assert not staff_api_client.user.has_perm(StockPermissions.MANAGE_STOCKS)
+    assert not staff_api_client.user.has_perm(ProductPermissions.MANAGE_PRODUCTS)
     stock_id = graphene.Node.to_global_id("Stock", stock.pk)
     variant_id = graphene.Node.to_global_id("ProductVariant", stock.product_variant.pk)
     warehouse_id = graphene.Node.to_global_id("Warehouse", stock.warehouse.pk)
@@ -196,8 +196,8 @@ def test_update_stock_required_permission(staff_api_client, stock):
     assert_no_permission(response)
 
 
-def test_update_stock_mutation(staff_api_client, permission_manage_stocks, stock):
-    staff_api_client.user.user_permissions.add(permission_manage_stocks)
+def test_update_stock_mutation(staff_api_client, permission_manage_products, stock):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
     stock_id = graphene.Node.to_global_id("Stock", stock.pk)
     variant_id = graphene.Node.to_global_id("ProductVariant", stock.product_variant.pk)
     warehouse_id = graphene.Node.to_global_id("Warehouse", stock.warehouse.pk)
@@ -222,15 +222,15 @@ def test_update_stock_mutation(staff_api_client, permission_manage_stocks, stock
 
 
 def test_delete_stock_requires_permission(staff_api_client, stock):
-    assert not staff_api_client.user.has_perm(StockPermissions.MANAGE_STOCKS)
+    assert not staff_api_client.user.has_perm(ProductPermissions.MANAGE_PRODUCTS)
     stock_id = graphene.Node.to_global_id("Stock", stock.pk)
     variables = {"id": stock_id}
     response = staff_api_client.post_graphql(MUTATION_DELETE_STOCK, variables=variables)
     assert_no_permission(response)
 
 
-def test_delete_stock_mutation(staff_api_client, permission_manage_stocks, stock):
-    staff_api_client.user.user_permissions.add(permission_manage_stocks)
+def test_delete_stock_mutation(staff_api_client, permission_manage_products, stock):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
     stock_pk = stock.pk
     stock_id = graphene.Node.to_global_id("Stock", stock_pk)
     initial_stock_count = Stock.objects.count()
@@ -243,7 +243,7 @@ def test_delete_stock_mutation(staff_api_client, permission_manage_stocks, stock
 
 
 def test_bulk_delete_stock_requires_permission(staff_api_client):
-    assert not staff_api_client.user.has_perm(StockPermissions.MANAGE_STOCKS)
+    assert not staff_api_client.user.has_perm(ProductPermissions.MANAGE_PRODUCTS)
     variables = {
         "ids": [
             graphene.Node.to_global_id("Stock", stock.pk)
@@ -256,8 +256,8 @@ def test_bulk_delete_stock_requires_permission(staff_api_client):
     assert_no_permission(response)
 
 
-def test_bulk_delete_bulk_stock_mutation(staff_api_client, permission_manage_stocks):
-    staff_api_client.user.user_permissions.add(permission_manage_stocks)
+def test_bulk_delete_bulk_stock_mutation(staff_api_client, permission_manage_products):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
     initial_stock_count = Stock.objects.count()
     variables = {
         "ids": [
@@ -277,14 +277,14 @@ def test_bulk_delete_bulk_stock_mutation(staff_api_client, permission_manage_sto
 
 
 def test_query_stock_requires_permission(staff_api_client, stock):
-    assert not staff_api_client.user.has_perm(StockPermissions.MANAGE_STOCKS)
+    assert not staff_api_client.user.has_perm(ProductPermissions.MANAGE_PRODUCTS)
     stock_id = graphene.Node.to_global_id("Stock", stock.pk)
     response = staff_api_client.post_graphql(QUERY_STOCK, variables={"id": stock_id})
     assert_no_permission(response)
 
 
-def test_query_stock(staff_api_client, stock, permission_manage_stocks):
-    staff_api_client.user.user_permissions.add(permission_manage_stocks)
+def test_query_stock(staff_api_client, stock, permission_manage_products):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
     stock_id = graphene.Node.to_global_id("Stock", stock.pk)
     response = staff_api_client.post_graphql(QUERY_STOCK, variables={"id": stock_id})
     content = get_graphql_content(response)
@@ -299,13 +299,13 @@ def test_query_stock(staff_api_client, stock, permission_manage_stocks):
 
 
 def test_query_stocks_requires_permissions(staff_api_client):
-    assert not staff_api_client.user.has_perm(StockPermissions.MANAGE_STOCKS)
+    assert not staff_api_client.user.has_perm(ProductPermissions.MANAGE_PRODUCTS)
     response = staff_api_client.post_graphql(QUERY_STOCKS)
     assert_no_permission(response)
 
 
-def test_query_stocks(staff_api_client, stock, permission_manage_stocks):
-    staff_api_client.user.user_permissions.add(permission_manage_stocks)
+def test_query_stocks(staff_api_client, stock, permission_manage_products):
+    staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(QUERY_STOCKS)
     content = get_graphql_content(response)
     total_count = content["data"]["stocks"]["totalCount"]
@@ -313,9 +313,9 @@ def test_query_stocks(staff_api_client, stock, permission_manage_stocks):
 
 
 def test_query_stocks_with_filters_quantity(
-    staff_api_client, stock, permission_manage_stocks
+    staff_api_client, stock, permission_manage_products
 ):
-    staff_api_client.user.user_permissions.add(permission_manage_stocks)
+    staff_api_client.user.user_permissions.add(permission_manage_products)
     quantities = Stock.objects.all().values_list("quantity", flat=True)
     sum_quantities = sum(quantities)
     variables = {"filter": {"quantity": sum_quantities}}
@@ -336,9 +336,9 @@ def test_query_stocks_with_filters_quantity(
 
 
 def test_query_stocks_with_filters_quantity_allocated(
-    staff_api_client, stock, permission_manage_stocks
+    staff_api_client, stock, permission_manage_products
 ):
-    staff_api_client.user.user_permissions.add(permission_manage_stocks)
+    staff_api_client.user.user_permissions.add(permission_manage_products)
     quantities = Stock.objects.all().values_list("quantity_allocated", flat=True)
     sum_quantities = sum(quantities)
     variables = {"filter": {"quantityAllocated": sum_quantities}}
@@ -361,9 +361,9 @@ def test_query_stocks_with_filters_quantity_allocated(
 
 
 def test_query_stocks_with_filters_warehouse(
-    staff_api_client, stock, permission_manage_stocks
+    staff_api_client, stock, permission_manage_products
 ):
-    staff_api_client.user.user_permissions.add(permission_manage_stocks)
+    staff_api_client.user.user_permissions.add(permission_manage_products)
     warehouse = stock.warehouse
     response_name = staff_api_client.post_graphql(
         QUERY_STOCKS_WITH_FILTERS, variables={"filter": {"search": warehouse.name}}
@@ -374,9 +374,9 @@ def test_query_stocks_with_filters_warehouse(
 
 
 def test_query_stocks_with_filters_product_variant(
-    staff_api_client, stock, permission_manage_stocks
+    staff_api_client, stock, permission_manage_products
 ):
-    staff_api_client.user.user_permissions.add(permission_manage_stocks)
+    staff_api_client.user.user_permissions.add(permission_manage_products)
     product_variant = stock.product_variant
     response_name = staff_api_client.post_graphql(
         QUERY_STOCKS_WITH_FILTERS,
@@ -391,9 +391,9 @@ def test_query_stocks_with_filters_product_variant(
 
 
 def test_query_stocks_with_filters_product_variant__product(
-    staff_api_client, stock, permission_manage_stocks
+    staff_api_client, stock, permission_manage_products
 ):
-    staff_api_client.user.user_permissions.add(permission_manage_stocks)
+    staff_api_client.user.user_permissions.add(permission_manage_products)
     product = stock.product_variant.product
     response_name = staff_api_client.post_graphql(
         QUERY_STOCKS_WITH_FILTERS, variables={"filter": {"search": product.name}}
@@ -407,9 +407,9 @@ def test_query_stocks_with_filters_product_variant__product(
 
 
 def test_query_available_stock_quantity(
-    staff_api_client, permission_manage_stocks, stock, settings
+    staff_api_client, permission_manage_products, stock, settings
 ):
-    staff_api_client.user.user_permissions.add(permission_manage_stocks)
+    staff_api_client.user.user_permissions.add(permission_manage_products)
     stock_id = graphene.Node.to_global_id("Stock", stock.pk)
 
     available_quantity = stock.quantity - stock.quantity_allocated

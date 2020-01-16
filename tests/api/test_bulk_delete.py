@@ -201,7 +201,6 @@ def test_delete_categories_with_subcategories_and_products(
     staff_api_client,
     category_list,
     permission_manage_products,
-    permission_manage_stocks,
     product,
     category,
 ):
@@ -226,7 +225,7 @@ def test_delete_categories_with_subcategories_and_products(
     response = staff_api_client.post_graphql(
         MUTATION_CATEGORY_BULK_DELETE,
         variables,
-        permissions=[permission_manage_products, permission_manage_stocks],
+        permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
 

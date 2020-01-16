@@ -1,9 +1,11 @@
 import graphene
 
+from ...core.permissions import ProductPermissions
 from ...warehouse import models
 from ...warehouse.availability import get_available_quantity_for_customer
 from ..account.enums import CountryCodeEnum
 from ..core.connection import CountableDjangoObjectType
+from ..decorators import permission_required
 
 
 class WarehouseAddressInput(graphene.InputObjectType):
@@ -88,9 +90,11 @@ class Stock(CountableDjangoObjectType):
         return get_available_quantity_for_customer(root)
 
     @staticmethod
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_quantity(root, *_args):
         return root.quantity
 
     @staticmethod
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_quantity_allocated(root, *_args):
         return root.quantity_allocated
