@@ -684,3 +684,115 @@ def test_permission_group_unassign_users_mutation_user_not_in_group(
         set(group.permissions.all().values_list("codename", flat=True))
         == permissions_codes
     )
+
+
+QUERY_PERMISSION_GROUP_WITH_FILTER = """
+    query ($filter: PermissionGroupFilterInput ){
+        permissionGroups(first: 5, filter: $filter){
+            edges{
+                node{
+                    id
+                    name
+                    permissions{
+                        name
+                        code
+                    }
+                    users {
+                        email
+                    }
+                }
+            }
+        }
+    }
+    """
+
+
+@pytest.mark.parametrize(
+    "permission_group_filter, count",
+    (({"search": "Manage user groups"}, 1), ({"search": "Manage"}, 2), ({}, 3)),
+)
+def test_permission_group(
+    permission_group_manage_users,
+    staff_user,
+    permission_manage_staff,
+    staff_api_client,
+    permission_group_filter,
+    count,
+):
+    staff_user.user_permissions.add(permission_manage_staff)
+    group = permission_group_manage_users
+    query = QUERY_PERMISSION_GROUP_WITH_FILTER
+
+    group2 = Group.objects.get(pk=group.pk)
+    group2.id = None
+    group2.name = "Manage product."
+    group2.save()
+
+    group3 = Group.objects.get(pk=group.pk)
+    group3.id = None
+    group3.name = "Remove product."
+    group3.save()
+
+    variables = {"filter": permission_group_filter}
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroups"]["edges"]
+
+    assert len(data) == count
+
+
+QUERY_PERMISSION_GROUP_WITH_SORT = """
+    query ($sort_by: PermissionGroupSortingInput!) {
+        permissionGroups(first:5, sortBy: $sort_by) {
+                edges{
+                    node{
+                        name
+                    }
+                }
+            }
+        }
+"""
+
+
+@pytest.mark.parametrize(
+    "permission_group_sort, result",
+    (
+        (
+            {"field": "NAME", "direction": "ASC"},
+            ["Add", "Manage user groups.", "Remove"],
+        ),
+        (
+            {"field": "NAME", "direction": "DESC"},
+            ["Remove", "Manage user groups.", "Add"],
+        ),
+    ),
+)
+def test_permission_group_with_sort(
+    permission_group_manage_users,
+    staff_user,
+    permission_manage_staff,
+    staff_api_client,
+    permission_group_sort,
+    result,
+):
+    staff_user.user_permissions.add(permission_manage_staff)
+    group = permission_group_manage_users
+    query = QUERY_PERMISSION_GROUP_WITH_SORT
+
+    group2 = Group.objects.get(pk=group.pk)
+    group2.id = None
+    group2.name = "Add"
+    group2.save()
+
+    group3 = Group.objects.get(pk=group.pk)
+    group3.id = None
+    group3.name = "Remove"
+    group3.save()
+
+    variables = {"sort_by": permission_group_sort}
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroups"]["edges"]
+
+    for order, group_name in enumerate(result):
+        assert data[order]["node"]["name"] == group_name
