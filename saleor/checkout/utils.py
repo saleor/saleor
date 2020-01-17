@@ -755,6 +755,11 @@ def create_order(
     # assign checkout payments to the order
     checkout.payments.update(order=order)
 
+    # copy metadata from the checkout into the new order
+    order.meta = checkout.meta
+    order.private_meta = checkout.private_meta
+    order.save()
+
     order_created(order=order, user=user)
 
     # Send the order confirmation email
