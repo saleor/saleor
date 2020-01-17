@@ -440,10 +440,12 @@ class Group(CountableDjangoObjectType):
         only_fields = ["name", "permissions", "users", "id"]
 
     @staticmethod
+    @gql_optimizer.resolver_hints(prefetch_related="user_set")
     def resolve_users(root: auth_models.Group, _info):
         return root.user_set.all()
 
     @staticmethod
+    @gql_optimizer.resolver_hints(prefetch_related="permissions")
     def resolve_permissions(root: auth_models.Group, _info):
         permissions = root.permissions.prefetch_related("content_type").order_by(
             "codename"
