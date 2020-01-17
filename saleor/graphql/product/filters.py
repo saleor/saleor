@@ -2,12 +2,13 @@ from collections import defaultdict
 from typing import Dict, List, Optional
 
 import django_filters
-from django.db.models import Q, Sum
+from django.db.models import Q, Subquery, Sum
 from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 
 from ...product.filters import filter_products_by_attributes_values
 from ...product.models import Attribute, Category, Collection, Product, ProductType
 from ...search.backends import picker
+from ...warehouse.models import Stock
 from ..core.filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
 from ..core.types import FilterInputObjectType
 from ..core.types.common import PriceRangeInput
@@ -95,13 +96,18 @@ def filter_products_by_collections(qs, collections):
 
 
 def filter_products_by_stock_availability(qs, stock_availability):
-    qs = qs.annotate(
-        total_available=Sum("variants__quantity") - Sum("variants__quantity_allocated")
+    total_stock = (
+        Stock.objects.select_related("product_variant")
+        .annotate_available_quantity()
+        .values("product_variant__product_id")
+        .annotate(total_quantity=Sum("available_quantity"))
+        .filter(total_quantity__lte=0)
+        .values_list("product_variant__product_id", flat=True)
     )
     if stock_availability == StockAvailability.IN_STOCK:
-        qs = qs.filter(total_available__gt=0)
+        qs = qs.exclude(id__in=Subquery(total_stock))
     elif stock_availability == StockAvailability.OUT_OF_STOCK:
-        qs = qs.filter(total_available__lte=0)
+        qs = qs.filter(id__in=Subquery(total_stock))
     return qs
 
 

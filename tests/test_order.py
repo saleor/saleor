@@ -32,6 +32,7 @@ from saleor.order.utils import (
 from saleor.payment import ChargeStatus
 from saleor.payment.models import Payment
 from saleor.product.models import Collection
+from saleor.warehouse.models import Stock
 
 
 def test_total_setter():
@@ -81,16 +82,17 @@ def test_add_variant_to_order_allocates_stock_for_new_variant(
     variant = product.variants.get()
     variant.track_inventory = track_inventory
     variant.save()
+    stock = Stock.objects.get(product_variant=variant)
 
-    stock_before = variant.quantity_allocated
+    stock_before = stock.quantity_allocated
 
     add_variant_to_order(order_with_lines, variant, 1)
 
-    variant.refresh_from_db()
+    stock.refresh_from_db()
     if track_inventory:
-        assert variant.quantity_allocated == stock_before + 1
+        assert stock.quantity_allocated == stock_before + 1
     else:
-        assert variant.quantity_allocated == stock_before
+        assert stock.quantity_allocated == stock_before
 
 
 def test_add_variant_to_order_edits_line_for_existing_variant(order_with_lines):
@@ -110,28 +112,30 @@ def test_add_variant_to_order_edits_line_for_existing_variant(order_with_lines):
 def test_add_variant_to_order_allocates_stock_for_existing_variant(order_with_lines):
     existing_line = order_with_lines.lines.first()
     variant = existing_line.variant
-    stock_before = variant.quantity_allocated
+    stock = Stock.objects.get(product_variant=variant)
+    stock_before = stock.quantity_allocated
 
     add_variant_to_order(order_with_lines, variant, 1)
 
-    variant.refresh_from_db()
-    assert variant.quantity_allocated == stock_before + 1
+    stock.refresh_from_db()
+    assert stock.quantity_allocated == stock_before + 1
 
 
 def test_add_variant_to_order_allow_overselling(order_with_lines):
     existing_line = order_with_lines.lines.first()
     variant = existing_line.variant
-    stock_before = variant.quantity_allocated
+    stock = Stock.objects.get(product_variant=variant)
+    stock_before = stock.quantity_allocated
 
-    quantity = variant.quantity + 1
+    quantity = stock.quantity + 1
     with pytest.raises(InsufficientStock):
         add_variant_to_order(
             order_with_lines, variant, quantity, allow_overselling=False
         )
 
     add_variant_to_order(order_with_lines, variant, quantity, allow_overselling=True)
-    variant.refresh_from_db()
-    assert variant.quantity_allocated == stock_before + quantity
+    stock.refresh_from_db()
+    assert stock.quantity_allocated == stock_before + quantity
 
 
 @pytest.mark.parametrize("track_inventory", (True, False))
@@ -146,31 +150,33 @@ def test_restock_order_lines(order_with_lines, track_inventory):
 
     line_1.variant.save()
     line_2.variant.save()
+    stock_1 = Stock.objects.get(product_variant=line_1.variant)
+    stock_2 = Stock.objects.get(product_variant=line_2.variant)
 
-    stock_1_quantity_allocated_before = line_1.variant.quantity_allocated
-    stock_2_quantity_allocated_before = line_2.variant.quantity_allocated
+    stock_1_quantity_allocated_before = stock_1.quantity_allocated
+    stock_2_quantity_allocated_before = stock_2.quantity_allocated
 
-    stock_1_quantity_before = line_1.variant.quantity
-    stock_2_quantity_before = line_2.variant.quantity
+    stock_1_quantity_before = stock_1.quantity
+    stock_2_quantity_before = stock_2.quantity
 
     restock_order_lines(order)
 
-    line_1.variant.refresh_from_db()
-    line_2.variant.refresh_from_db()
+    stock_1.refresh_from_db()
+    stock_2.refresh_from_db()
 
     if track_inventory:
-        assert line_1.variant.quantity_allocated == (
+        assert stock_1.quantity_allocated == (
             stock_1_quantity_allocated_before - line_1.quantity
         )
-        assert line_2.variant.quantity_allocated == (
+        assert stock_2.quantity_allocated == (
             stock_2_quantity_allocated_before - line_2.quantity
         )
     else:
-        assert line_1.variant.quantity_allocated == (stock_1_quantity_allocated_before)
-        assert line_2.variant.quantity_allocated == (stock_2_quantity_allocated_before)
+        assert stock_1.quantity_allocated == (stock_1_quantity_allocated_before)
+        assert stock_2.quantity_allocated == (stock_2_quantity_allocated_before)
 
-    assert line_1.variant.quantity == stock_1_quantity_before
-    assert line_2.variant.quantity == stock_2_quantity_before
+    assert stock_1.quantity == stock_1_quantity_before
+    assert stock_2.quantity == stock_2_quantity_before
     assert line_1.quantity_fulfilled == 0
     assert line_2.quantity_fulfilled == 0
 
@@ -178,27 +184,29 @@ def test_restock_order_lines(order_with_lines, track_inventory):
 def test_restock_fulfilled_order_lines(fulfilled_order):
     line_1 = fulfilled_order.lines.first()
     line_2 = fulfilled_order.lines.last()
-    stock_1_quantity_allocated_before = line_1.variant.quantity_allocated
-    stock_2_quantity_allocated_before = line_2.variant.quantity_allocated
-    stock_1_quantity_before = line_1.variant.quantity
-    stock_2_quantity_before = line_2.variant.quantity
+    stock_1 = Stock.objects.get(product_variant=line_1.variant)
+    stock_2 = Stock.objects.get(product_variant=line_2.variant)
+    stock_1_quantity_allocated_before = stock_1.quantity_allocated
+    stock_2_quantity_allocated_before = stock_2.quantity_allocated
+    stock_1_quantity_before = stock_1.quantity
+    stock_2_quantity_before = stock_2.quantity
 
     restock_order_lines(fulfilled_order)
 
-    line_1.variant.refresh_from_db()
-    line_2.variant.refresh_from_db()
-    assert line_1.variant.quantity_allocated == stock_1_quantity_allocated_before
-    assert line_2.variant.quantity_allocated == stock_2_quantity_allocated_before
-    assert line_1.variant.quantity == stock_1_quantity_before + line_1.quantity
-    assert line_2.variant.quantity == stock_2_quantity_before + line_2.quantity
+    stock_1.refresh_from_db()
+    stock_2.refresh_from_db()
+    assert stock_1.quantity_allocated == stock_1_quantity_allocated_before
+    assert stock_2.quantity_allocated == stock_2_quantity_allocated_before
+    assert stock_1.quantity == stock_1_quantity_before + line_1.quantity
+    assert stock_2.quantity == stock_2_quantity_before + line_2.quantity
 
 
 def test_restock_fulfillment_lines(fulfilled_order):
     fulfillment = fulfilled_order.fulfillments.first()
     line_1 = fulfillment.lines.first()
     line_2 = fulfillment.lines.last()
-    stock_1 = line_1.order_line.variant
-    stock_2 = line_2.order_line.variant
+    stock_1 = Stock.objects.get(product_variant=line_1.order_line.variant)
+    stock_2 = Stock.objects.get(product_variant=line_2.order_line.variant)
     stock_1_quantity_allocated_before = stock_1.quantity_allocated
     stock_2_quantity_allocated_before = stock_2.quantity_allocated
     stock_1_quantity_before = stock_1.quantity

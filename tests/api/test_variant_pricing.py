@@ -98,7 +98,7 @@ def test_get_variant_pricing_not_on_sale(api_client, product):
     assert pricing["price"]["net"]["amount"] == product.price.amount
 
 
-def test_variant_pricing(variant: ProductVariant, monkeypatch, settings):
+def test_variant_pricing(variant: ProductVariant, monkeypatch, settings, stock):
     taxed_price = TaxedMoney(Money("10.0", "USD"), Money("12.30", "USD"))
     monkeypatch.setattr(
         ExtensionsManager, "apply_taxes_to_product", Mock(return_value=taxed_price)
@@ -116,8 +116,8 @@ def test_variant_pricing(variant: ProductVariant, monkeypatch, settings):
     settings.DEFAULT_COUNTRY = "PL"
     settings.OPENEXCHANGERATES_API_KEY = "fake-key"
 
-    pricing = get_variant_availability(variant, local_currency="PLN")
-    assert pricing.price_local_currency.currency == "PLN"
+    pricing = get_variant_availability(variant, local_currency="PLN", country="US")
+    assert pricing.price_local_currency.currency == "PLN"  # type: ignore
 
     pricing = get_variant_availability(variant)
     assert pricing.price.tax.amount

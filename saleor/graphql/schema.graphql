@@ -2086,6 +2086,13 @@ type Mutation {
   webhookCreate(input: WebhookCreateInput!): WebhookCreate
   webhookDelete(id: ID!): WebhookDelete
   webhookUpdate(id: ID!, input: WebhookUpdateInput!): WebhookUpdate
+  createWarehouse(input: WarehouseCreateInput!): WarehouseCreate
+  updateWarehouse(id: ID!, input: WarehouseUpdateInput!): WarehouseUpdate
+  deleteWarehouse(id: ID!): WarehouseDelete
+  createStock(input: StockInput!): StockCreate
+  updateStock(id: ID!, input: StockInput!): StockUpdate
+  deleteStock(id: ID!): StockDelete
+  bulkDeleteStock(ids: [ID]!): StockBulkDelete
   authorizationKeyAdd(input: AuthorizationKeyInput!, keyType: AuthorizationKeyType!): AuthorizationKeyAdd
   authorizationKeyDelete(keyType: AuthorizationKeyType!): AuthorizationKeyDelete
   staffNotificationRecipientCreate(input: StaffNotificationRecipientInput!): StaffNotificationRecipientCreate
@@ -3355,15 +3362,15 @@ type ProductVariant implements Node {
   sku: String!
   product: Product!
   trackInventory: Boolean!
-  quantityAllocated: Int!
   weight: Weight
   privateMeta: [MetaStore]!
   meta: [MetaStore]!
-  quantity: Int!
-  stockQuantity: Int!
+  quantity: Int! @deprecated(reason: "This field will be removed in Saleor 2.11. Use the stock field instead.")
+  quantityAllocated: Int @deprecated(reason: "This field will be removed in Saleor 2.11. Use the stock field instead.")
+  stockQuantity: Int! @deprecated(reason: "This field will be removed in Saleor 2.11. Use the stock field instead.")
   priceOverride: Money
   pricing: VariantPricingInfo
-  isAvailable: Boolean
+  isAvailable: Boolean @deprecated(reason: "This field will be removed in Saleor 2.11. Use the stock field instead.")
   attributes: [SelectedAttribute!]!
   costPrice: Money
   margin: Int
@@ -3372,6 +3379,7 @@ type ProductVariant implements Node {
   images: [ProductImage]
   translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
   digitalContent: DigitalContent
+  stock(country: String): [Stock]
 }
 
 type ProductVariantBulkCreate {
@@ -3494,8 +3502,12 @@ type Query {
   webhooks(sortBy: WebhookSortingInput, filter: WebhookFilterInput, before: String, after: String, first: Int, last: Int): WebhookCountableConnection
   webhookEvents: [WebhookEvent]
   webhookSamplePayload(eventType: WebhookEventTypeEnum!): JSONString
+  warehouse(id: ID!): Warehouse
+  warehouses(filter: WarehouseFilterInput, before: String, after: String, first: Int, last: Int): WarehouseCountableConnection
   translations(kind: TranslatableKinds!, before: String, after: String, first: Int, last: Int): TranslatableItemConnection
   translation(id: ID!, kind: TranslatableKinds!): TranslatableItem
+  stock(id: ID!): Stock
+  stocks(filter: StockFilterInput, before: String, after: String, first: Int, last: Int): StockCountableConnection
   shop: Shop
   shippingZone(id: ID!): ShippingZone
   shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
@@ -4140,9 +4152,79 @@ input StaffUserInput {
   search: String
 }
 
+type Stock implements Node {
+  warehouse: Warehouse!
+  productVariant: ProductVariant!
+  quantity: Int!
+  quantityAllocated: Int!
+  id: ID!
+  stockQuantity: Int!
+}
+
 enum StockAvailability {
   IN_STOCK
   OUT_OF_STOCK
+}
+
+type StockBulkDelete {
+  errors: [Error!]
+  count: Int!
+  stockError: [StockError!]
+}
+
+type StockCountableConnection {
+  pageInfo: PageInfo!
+  edges: [StockCountableEdge!]!
+  totalCount: Int
+}
+
+type StockCountableEdge {
+  node: Stock!
+  cursor: String!
+}
+
+type StockCreate {
+  errors: [Error!]
+  stockErrors: [StockError!]
+  stock: Stock
+}
+
+type StockDelete {
+  errors: [Error!]
+  stock: Stock
+}
+
+enum StockErorrCode {
+  ALREADY_EXISTS
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+}
+
+type StockError {
+  field: String
+  message: String
+  code: StockErorrCode
+}
+
+input StockFilterInput {
+  quantity: Float
+  quantityAllocated: Float
+  search: String
+}
+
+input StockInput {
+  productVariant: ID!
+  warehouse: ID!
+  quantity: Int
+}
+
+type StockUpdate {
+  errors: [Error!]
+  stockError: [StockError!]
+  stock: Stock
 }
 
 enum TaxRateType {
@@ -4530,6 +4612,90 @@ enum VoucherTypeEnum {
 type VoucherUpdate {
   errors: [Error!]
   voucher: Voucher
+}
+
+type Warehouse implements Node {
+  id: ID!
+  name: String!
+  companyName: String!
+  shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection!
+  address: Address!
+  email: String!
+}
+
+input WarehouseAddressInput {
+  streetAddress1: String!
+  streetAddress2: String
+  city: String!
+  cityArea: String
+  postalCode: String
+  country: CountryCode!
+  countryArea: String
+  phone: String
+}
+
+type WarehouseCountableConnection {
+  pageInfo: PageInfo!
+  edges: [WarehouseCountableEdge!]!
+  totalCount: Int
+}
+
+type WarehouseCountableEdge {
+  node: Warehouse!
+  cursor: String!
+}
+
+type WarehouseCreate {
+  errors: [Error!]
+  warehouseErrors: [WarehouseError!]
+  warehouse: Warehouse
+}
+
+input WarehouseCreateInput {
+  name: String!
+  companyName: String
+  shippingZones: [ID]
+  email: String
+  address: WarehouseAddressInput!
+}
+
+type WarehouseDelete {
+  errors: [Error!]
+  warehouseErrors: [WarehouseError!]
+  warehouse: Warehouse
+}
+
+type WarehouseError {
+  field: String
+  message: String
+  code: WarehouseErrorCode
+}
+
+enum WarehouseErrorCode {
+  ALREADY_EXISTS
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+}
+
+input WarehouseFilterInput {
+  search: String
+}
+
+type WarehouseUpdate {
+  errors: [Error!]
+  warehouseErrors: [WarehouseError!]
+  warehouse: Warehouse
+}
+
+input WarehouseUpdateInput {
+  name: String!
+  companyName: String
+  shippingZones: [ID]
+  email: String
+  address: WarehouseAddressInput
 }
 
 type Webhook implements Node {
