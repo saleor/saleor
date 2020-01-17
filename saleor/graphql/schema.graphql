@@ -74,7 +74,7 @@ type AccountRegister {
 input AccountRegisterInput {
   email: String!
   password: String!
-  redirectOrigin: String!
+  redirectUrl: String!
 }
 
 type AccountRequestDeletion {

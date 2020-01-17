@@ -580,13 +580,13 @@ ACCOUNT_REGISTER_MUTATION = """
     mutation RegisterAccount(
         $password: String!,
         $email: String!,
-        $redirectOrigin: String!
+        $redirectUrl: String!
     ) {
         accountRegister(
             input: {
                 password: $password,
                 email: $email,
-                redirectOrigin: $redirectOrigin
+                redirectUrl: $redirectUrl
             }
         ) {
             errors {
@@ -610,7 +610,7 @@ def test_customer_register(send_account_confirmation_email_mock, user_api_client
     variables = {
         "email": email,
         "password": "Password",
-        "redirectOrigin": "http://localhost:3000",
+        "redirectUrl": "http://localhost:3000",
     }
     query = ACCOUNT_REGISTER_MUTATION
     mutation_name = "accountRegister"
