@@ -45,7 +45,7 @@ class AccountRegister(ModelMutation):
 
     requires_confirmation = graphene.Boolean(
         required=True,
-        description="Informs whether users need to confirm their email address."
+        description="Informs whether users need to confirm their email address.",
     )
 
     class Meta:
@@ -81,9 +81,7 @@ class AccountRegister(ModelMutation):
         if settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
             user.is_active = False
             user.save()
-            emails.send_account_confirmation_email(
-                user, cleaned_input["redirect_url"]
-            )
+            emails.send_account_confirmation_email(user, cleaned_input["redirect_url"])
         else:
             user.save()
         account_events.customer_account_created_event(user=user)

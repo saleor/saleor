@@ -1164,7 +1164,7 @@ def test_checkout_complete(
     checkout.billing_address = address
     checkout.store_meta(namespace="PUBLIC", client="PLUGIN", item={"accepted": "true"})
     checkout.store_private_meta(
-        namespace="PRIVATE", client="PLUGIN", item={"accepted": "true"},
+        namespace="PRIVATE", client="PLUGIN", item={"accepted": "true"}
     )
     checkout.save()
 
