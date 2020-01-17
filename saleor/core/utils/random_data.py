@@ -56,6 +56,8 @@ from ...product.thumbnails import (
     create_product_thumbnails,
 )
 from ...shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
+from ...warehouse.management import increase_stock
+from ...warehouse.models import Stock, Warehouse
 
 fake = Factory.create()
 PRODUCTS_LIST_DIR = "products-list/"
@@ -209,6 +211,16 @@ def create_products(products_data, placeholder_dir, create_images):
                 create_product_image(product, placeholder_dir, image_name)
 
 
+def create_stocks(variant, warehouse_qs=None, **defaults):
+    if warehouse_qs is None:
+        warehouse_qs = Warehouse.objects.all()
+
+    for warehouse in warehouse_qs:
+        Stock.objects.update_or_create(
+            warehouse=warehouse, product_variant=variant, defaults=defaults
+        )
+
+
 def create_product_variants(variants_data):
     for variant in variants_data:
         pk = variant["pk"]
@@ -221,7 +233,10 @@ def create_product_variants(variants_data):
         defaults["product_id"] = product_id
         set_field_as_money(defaults, "price_override")
         set_field_as_money(defaults, "cost_price")
-        ProductVariant.objects.update_or_create(pk=pk, defaults=defaults)
+        quantity = defaults.pop("quantity")
+        quantity_allocated = defaults.pop("quantity_allocated")
+        variant, _ = ProductVariant.objects.update_or_create(pk=pk, defaults=defaults)
+        create_stocks(variant, quantity=quantity, quantity_allocated=quantity_allocated)
 
 
 def assign_attributes_to_product_types(
@@ -426,12 +441,15 @@ def create_order_lines(order, discounts, how_many=10):
     )
     variants_iter = itertools.cycle(variants)
     lines = []
+    stocks = []
+    country = order.shipping_address.country
     for dummy in range(how_many):
         variant = next(variants_iter)
         product = variant.product
         quantity = random.randrange(1, 5)
-        variant.quantity += quantity
-        variant.quantity_allocated += quantity
+        stocks.append(
+            increase_stock(variant, country, quantity, allocate=True, commit=False)
+        )
         unit_price = variant.get_price(discounts)
         unit_price = TaxedMoney(net=unit_price, gross=unit_price)
         lines.append(
@@ -447,7 +465,7 @@ def create_order_lines(order, discounts, how_many=10):
                 tax_rate=0,
             )
         )
-    ProductVariant.objects.bulk_update(variants, ["quantity", "quantity_allocated"])
+    Stock.objects.bulk_update(stocks, ["quantity", "quantity_allocated"])
     lines = OrderLine.objects.bulk_create(lines)
     manager = get_extensions_manager()
     for line in lines:
@@ -861,6 +879,15 @@ def create_shipping_zones():
             "Post Office",
         ],
     )
+
+
+def create_warehouses():
+    for shipping_zone in ShippingZone.objects.all():
+        warehouse, _ = Warehouse.objects.update_or_create(
+            name=shipping_zone.name,
+            defaults={"company_name": fake.company(), "address": create_address()},
+        )
+        warehouse.shipping_zones.add(shipping_zone)
 
 
 def create_vouchers():

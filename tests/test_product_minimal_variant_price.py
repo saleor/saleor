@@ -148,7 +148,7 @@ def test_product_objects_bulk_create_sets_default_minimal_variant_price(
 def test_product_variant_objects_create_updates_minimal_variant_price(product):
     assert product.minimal_variant_price == Money("10.00", "USD")
     ProductVariant.objects.create(
-        product=product, sku="1", price_override=Money("1.00", "USD"), quantity=1
+        product=product, sku="1", price_override=Money("1.00", "USD")
     )
     product.refresh_from_db()
     assert product.minimal_variant_price == Money("1.00", "USD")
@@ -159,16 +159,10 @@ def test_product_variant_objects_bulk_create_updates_minimal_variant_price(produ
     ProductVariant.objects.bulk_create(
         [
             ProductVariant(
-                product=product,
-                sku="1",
-                price_override=Money("1.00", "USD"),
-                quantity=1,
+                product=product, sku="1", price_override=Money("1.00", "USD")
             ),
             ProductVariant(
-                product=product,
-                sku="2",
-                price_override=Money("5.00", "USD"),
-                quantity=1,
+                product=product, sku="2", price_override=Money("5.00", "USD")
             ),
         ]
     )

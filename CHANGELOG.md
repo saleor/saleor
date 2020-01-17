@@ -49,6 +49,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add deprecate description to order status/created arguments - #5076 by @kswiatek92
 - Fix getting title field in page mutations #5160 by @maarcingebala
 - Copy public and private metadata from the checkout to the order upon creation -  #5165 by @dankolbman
+- Add warehouses and stocks- #4986 by @szewczykmira
 
 ## 2.9.0
 

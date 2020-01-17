@@ -191,7 +191,7 @@ def test_calculate_checkout_subtotal(
     taxes_in_prices,
     discount_info,
     checkout_with_item,
-    variant,
+    stock,
     monkeypatch,
     site_settings,
     address_usa,
@@ -199,6 +199,7 @@ def test_calculate_checkout_subtotal(
     address,
     settings,
 ):
+    variant = stock.product_variant
     settings.AVATAX_USERNAME_OR_ACCOUNT = "test"
     settings.AVATAX_PASSWORD_OR_LICENSE = "test"
     settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
