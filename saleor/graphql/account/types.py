@@ -1,6 +1,6 @@
 import graphene
 import graphene_django_optimizer as gql_optimizer
-from django.contrib.auth import get_user_model, models as django_models
+from django.contrib.auth import get_user_model, models as auth_models
 from graphene import relay
 from graphene_federation import key
 from graphql_jwt.decorators import login_required
@@ -436,15 +436,15 @@ class Group(CountableDjangoObjectType):
     class Meta:
         description = ""
         interfaces = [relay.Node]
-        model = django_models.Group
+        model = auth_models.Group
         only_fields = ["name", "permissions", "users", "id"]
 
     @staticmethod
-    def resolve_users(root: django_models.Group, _info):
+    def resolve_users(root: auth_models.Group, _info):
         return root.user_set.all()
 
     @staticmethod
-    def resolve_permissions(root: django_models.Group, _info):
+    def resolve_permissions(root: auth_models.Group, _info):
         permissions = root.permissions.prefetch_related("content_type").order_by(
             "codename"
         )
