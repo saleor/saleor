@@ -2,6 +2,7 @@ import copy
 
 from saleor.extensions import ConfigurationTypeField
 from saleor.extensions.models import PluginConfiguration
+from saleor.extensions.plugins.anonymize.plugin import AnonymizePlugin
 from tests.extensions.sample_plugins import PluginSample
 from tests.extensions.utils import get_config_value
 
@@ -82,3 +83,15 @@ def test_base_plugin__append_config_structure_do_not_save_to_db(plugin_configura
     assert old_config == plugin_configuration.configuration
     for elem in plugin_configuration.configuration:
         assert set(elem.keys()) == {"name", "value"}
+
+
+def test_change_user_address_in_anonymize_plugin_reset_phone(address):
+    anonymize_plugin = AnonymizePlugin()
+
+    # ensure that phone is set
+    assert address.phone
+
+    new_address = anonymize_plugin.change_user_address(
+        address=address, address_type=None, user=None, previous_value=address
+    )
+    assert not new_address.phone

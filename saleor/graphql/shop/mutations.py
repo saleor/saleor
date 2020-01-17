@@ -93,7 +93,7 @@ class ShopSettingsUpdate(BaseMutation):
         data = data.get("input")
         cleaned_input = cls.clean_input(info, instance, data)
         instance = cls.construct_instance(instance, cleaned_input)
-        cls.clean_instance(instance)
+        cls.clean_instance(info, instance)
         instance.save()
         return ShopSettingsUpdate(shop=Shop())
 
@@ -123,7 +123,7 @@ class ShopAddressUpdate(BaseMutation, I18nMixin):
                 company_address = account_models.Address()
             else:
                 company_address = site_settings.company_address
-            company_address = cls.validate_address(data, company_address)
+            company_address = cls.validate_address(data, company_address, info=info)
             company_address.save()
             site_settings.company_address = company_address
             site_settings.save(update_fields=["company_address"])
@@ -155,7 +155,7 @@ class ShopDomainUpdate(BaseMutation):
             site.domain = domain
         if name is not None:
             site.name = name
-        cls.clean_instance(site)
+        cls.clean_instance(info, site)
         site.save()
         return ShopDomainUpdate(shop=Shop())
 
@@ -200,7 +200,7 @@ class HomepageCollectionUpdate(BaseMutation):
         )
         site_settings = info.context.site.settings
         site_settings.homepage_collection = new_collection
-        cls.clean_instance(site_settings)
+        cls.clean_instance(info, site_settings)
         site_settings.save(update_fields=["homepage_collection"])
         return HomepageCollectionUpdate(shop=Shop())
 
@@ -248,7 +248,7 @@ class AuthorizationKeyAdd(BaseMutation):
         instance = site_models.AuthorizationKey(
             name=key_type, site_settings=site_settings, **data.get("input")
         )
-        cls.clean_instance(instance)
+        cls.clean_instance(info, instance)
         instance.save()
         return AuthorizationKeyAdd(authorization_key=instance, shop=Shop())
 

@@ -234,9 +234,13 @@ def test_delete_categories_with_subcategories_and_products(
         id__in=[category.id for category in category_list]
     ).exists()
 
-    mock_update_products_minimal_variant_prices_task.delay.assert_called_once_with(
-        product_ids=[p.pk for p in product_list]
-    )
+    mock_update_products_minimal_variant_prices_task.delay.assert_called_once()
+    (
+        _call_args,
+        call_kwargs,
+    ) = mock_update_products_minimal_variant_prices_task.delay.call_args
+
+    assert set(call_kwargs["product_ids"]) == set([p.pk for p in product_list])
 
     for product in product_list:
         product.refresh_from_db()

@@ -122,6 +122,14 @@ def test_mark_as_paid(admin_user, draft_order):
     assert draft_order.events.last().type == (OrderEvents.ORDER_MARKED_AS_PAID)
 
 
+def test_mark_as_paid_no_billing_address(admin_user, draft_order):
+    draft_order.billing_address = None
+    draft_order.save()
+
+    with pytest.raises(Exception):
+        mark_order_as_paid(draft_order, admin_user)
+
+
 def test_clean_mark_order_as_paid(payment_txn_preauth):
     order = payment_txn_preauth.order
     with pytest.raises(PaymentError):

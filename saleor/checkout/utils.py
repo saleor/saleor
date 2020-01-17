@@ -1,5 +1,6 @@
 """Checkout-related utility functions."""
 from datetime import date
+from decimal import Decimal
 from typing import TYPE_CHECKING, List, Optional, Tuple
 
 from django.core.exceptions import ValidationError
@@ -397,7 +398,7 @@ def add_voucher_code_to_checkout(
             {
                 "promo_code": ValidationError(
                     "Voucher is not applicable to that checkout.",
-                    code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE,
+                    code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE.value,
                 )
             }
         )
@@ -558,7 +559,10 @@ def _process_shipping_data_for_order(
 
     if checkout.user:
         store_user_address(checkout.user, shipping_address, AddressType.SHIPPING)
-        if checkout.user.addresses.filter(pk=shipping_address.pk).exists():
+        if (
+            shipping_address
+            and checkout.user.addresses.filter(pk=shipping_address.pk).exists()
+        ):
             shipping_address = shipping_address.get_copy()
 
     return {
@@ -576,7 +580,10 @@ def _process_user_data_for_order(checkout: Checkout):
 
     if checkout.user:
         store_user_address(checkout.user, billing_address, AddressType.BILLING)
-        if checkout.user.addresses.filter(pk=billing_address.pk).exists():
+        if (
+            billing_address
+            and checkout.user.addresses.filter(pk=billing_address.pk).exists()
+        ):
             billing_address = billing_address.get_copy()
 
     return {
@@ -628,6 +635,11 @@ def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine
     unit_price = quantize_price(
         total_line_price / checkout_line.quantity, total_line_price.currency
     )
+    tax_rate = (
+        unit_price.tax / unit_price.net
+        if not isinstance(unit_price, Decimal)
+        else Decimal("0.0")
+    )
     line = OrderLine(
         product_name=product_name,
         variant_name=variant_name,
@@ -637,8 +649,8 @@ def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine
         is_shipping_required=variant.is_shipping_required(),
         quantity=quantity,
         variant=variant,
-        unit_price=unit_price,
-        tax_rate=unit_price.tax / unit_price.net,
+        unit_price=unit_price,  # type: ignore
+        tax_rate=tax_rate,
     )
 
     return line
@@ -732,7 +744,7 @@ def create_order(
     # allocate stocks from the lines
     for line in order_lines:  # type: OrderLine
         variant = line.variant
-        if variant.track_inventory:
+        if variant and variant.track_inventory:
             allocate_stock(variant, line.quantity)
 
     # Add gift cards to the order
@@ -741,6 +753,11 @@ def create_order(
 
     # assign checkout payments to the order
     checkout.payments.update(order=order)
+
+    # copy metadata from the checkout into the new order
+    order.meta = checkout.meta
+    order.private_meta = checkout.private_meta
+    order.save()
 
     order_created(order=order, user=user)
 
@@ -774,26 +791,27 @@ def clean_checkout(checkout: Checkout, discounts: "DiscountsListType"):
         if not checkout.shipping_method:
             raise ValidationError(
                 "Shipping method is not set",
-                code=CheckoutErrorCode.SHIPPING_METHOD_NOT_SET,
+                code=CheckoutErrorCode.SHIPPING_METHOD_NOT_SET.value,
             )
         if not checkout.shipping_address:
             raise ValidationError(
                 "Shipping address is not set",
-                code=CheckoutErrorCode.SHIPPING_ADDRESS_NOT_SET,
+                code=CheckoutErrorCode.SHIPPING_ADDRESS_NOT_SET.value,
             )
         if not is_valid_shipping_method(checkout, discounts):
             raise ValidationError(
                 "Shipping method is not valid for your shipping address",
-                code=CheckoutErrorCode.INVALID_SHIPPING_METHOD,
+                code=CheckoutErrorCode.INVALID_SHIPPING_METHOD.value,
             )
 
     if not checkout.billing_address:
         raise ValidationError(
-            "Billing address is not set", code=CheckoutErrorCode.BILLING_ADDRESS_NOT_SET
+            "Billing address is not set",
+            code=CheckoutErrorCode.BILLING_ADDRESS_NOT_SET.value,
         )
 
     if not is_fully_paid(checkout, discounts):
         raise ValidationError(
             "Provided payment methods can not cover the checkout's total amount",
-            code=CheckoutErrorCode.CHECKOUT_NOT_FULLY_PAID,
+            code=CheckoutErrorCode.CHECKOUT_NOT_FULLY_PAID.value,
         )

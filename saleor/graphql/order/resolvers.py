@@ -17,6 +17,7 @@ ORDER_SEARCH_FIELDS = ("id", "discount_name", "token", "user_email", "user__emai
 def filter_orders(qs, info, created, status, query):
     qs = filter_by_query_param(qs, query, ORDER_SEARCH_FIELDS)
 
+    # DEPRECATED: Will be removed in Saleor 2.11, use the `filter` field instead.
     # filter orders by status
     if status is not None:
         if status == OrderStatusFilter.READY_TO_FULFILL:
@@ -24,6 +25,7 @@ def filter_orders(qs, info, created, status, query):
         elif status == OrderStatusFilter.READY_TO_CAPTURE:
             qs = qs.ready_to_capture()
 
+    # DEPRECATED: Will be removed in Saleor 2.11, use the `filter` field instead.
     # filter orders by creation date
     if created is not None:
         qs = filter_by_period(qs, created, "created")
