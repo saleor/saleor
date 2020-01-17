@@ -14,13 +14,13 @@
         </mj-text>
         <mj-text>
           {% blocktrans trimmed context "Account confirmation e-mail text" %}
-            In order to log into {{domain}}, you have to confirm your email address first.
+            In order to log into {{ domain }}, you have to confirm your email address first.
             Please click the link below to do so and log into your account.
           {% endblocktrans %}
         </mj-text>
         <mj-text>
-          <a href="{{ confirm_url }}">
-            {{ confirm_url }}
+          <a href="{{ confirm_url | safe }}">
+            {{ confirm_url | safe }}
           </a>
         </mj-text>
       </mj-column>
