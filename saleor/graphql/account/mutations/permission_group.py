@@ -1,7 +1,7 @@
 from typing import List
 
 import graphene
-from django.contrib.auth import models as django_models
+from django.contrib.auth import models as auth_models
 from django.core.exceptions import ValidationError
 
 from ....account import models as account_models
@@ -34,7 +34,7 @@ class PermissionGroupCreate(ModelMutation):
 
     class Meta:
         description = "Create new permission group."
-        model = django_models.Group
+        model = auth_models.Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = AccountError
         error_type_field = "account_errors"
@@ -68,7 +68,7 @@ class PermissionGroupUpdate(ModelMutation):
 
     class Meta:
         description = "Update permission group."
-        model = django_models.Group
+        model = auth_models.Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = AccountError
         error_type_field = "account_errors"
@@ -97,7 +97,7 @@ class PermissionGroupDelete(ModelDeleteMutation):
 
     class Meta:
         description = "Delete permission group."
-        model = django_models.Group
+        model = auth_models.Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = AccountError
         error_type_field = "account_errors"
@@ -125,7 +125,7 @@ class PermissionGroupAssignUsers(ModelMutation):
 
     class Meta:
         description = "Assign users to group."
-        model = django_models.Group
+        model = auth_models.Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = AccountError
         error_type_field = "account_errors"
@@ -196,7 +196,7 @@ class PermissionGroupUnassignUsers(PermissionGroupAssignUsers):
 
     class Meta:
         description = "Unassign users from group."
-        model = django_models.Group
+        model = auth_models.Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = AccountError
         error_type_field = "account_errors"

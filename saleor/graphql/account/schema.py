@@ -140,6 +140,13 @@ class AccountQueries(graphene.ObjectType):
         sort_by=PermissionGroupSortingInput(description="Sort permission groups."),
         description="List of permission groups.",
     )
+    permission_group = graphene.Field(
+        Group,
+        id=graphene.Argument(
+            graphene.ID, description="ID of the group.", required=True
+        ),
+        description="Look up permission group by ID.",
+    )
     me = graphene.Field(User, description="Return the currently authenticated user.")
     staff_users = FilterInputConnectionField(
         User,
@@ -195,6 +202,10 @@ class AccountQueries(graphene.ObjectType):
     @permission_required(AccountPermissions.MANAGE_STAFF)
     def resolve_permission_groups(self, info, query=None, **kwargs):
         return resolve_permission_groups(info, query=query, **kwargs)
+
+    @permission_required(AccountPermissions.MANAGE_STAFF)
+    def resolve_permission_group(self, info, id):
+        return graphene.Node.get_node_from_global_id(info, id, Group)
 
     @login_required
     def resolve_me(self, info):
