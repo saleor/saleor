@@ -12,6 +12,7 @@ from ...utils.random_data import (
     create_menus,
     create_orders,
     create_page,
+    create_permission_groups,
     create_product_sales,
     create_products_by_schema,
     create_shipping_zones,
@@ -113,3 +114,6 @@ class Command(BaseCommand):
             add_address_to_admin(credentials["email"])
         if not options["skipsequencereset"]:
             self.sequence_reset()
+
+        for msg in create_permission_groups():
+            self.stdout.write(msg)

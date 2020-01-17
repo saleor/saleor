@@ -9,6 +9,7 @@ from typing import Type, Union
 from unittest.mock import patch
 
 from django.conf import settings
+from django.contrib.auth.models import Group, Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.db.models import Q
@@ -21,6 +22,11 @@ from prices import Money, TaxedMoney
 from ...account.models import Address, User
 from ...account.utils import store_user_address
 from ...checkout import AddressType
+from ...core.permissions import (
+    CheckoutPermissions,
+    GiftcardPermissions,
+    OrderPermissions,
+)
 from ...core.weight import zero_weight
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
@@ -530,6 +536,52 @@ def create_users(how_many=10):
     for dummy in range(how_many):
         user = create_fake_user()
         yield "User: %s" % (user.email,)
+
+
+def create_permission_groups():
+    super_user = [User.objects.filter(is_superuser=True).first()]
+    if not super_user:
+        super_user = create_staff_users(1, True)
+    group = create_group("Full Access", Permission.objects.all(), super_user)
+    yield f"Group: {group}"
+
+    staff_users = create_staff_users()
+    customer_support_codenames = [
+        perm.codename
+        for enum in [CheckoutPermissions, OrderPermissions, GiftcardPermissions]
+        for perm in enum
+    ]
+    customer_support_permissions = Permission.objects.filter(
+        codename__in=customer_support_codenames
+    )
+    group = create_group("Customer Support", customer_support_permissions, staff_users)
+    yield f"Group: {group}"
+
+
+def create_group(name, permissions, users):
+    group = Group.objects.create(name=name)
+    group.permissions.add(*permissions)
+    group.user_set.add(*users)
+    return group
+
+
+def create_staff_users(how_many=2, superuser=False):
+    users = []
+    for _ in range(how_many):
+        first_name = fake.first_name()
+        last_name = fake.last_name()
+        email = get_email(first_name, last_name)
+        staff_user = User.objects.create(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            password="password",
+            is_staff=True,
+            is_active=True,
+            is_superuser=superuser,
+        )
+        users.append(staff_user)
+    return users
 
 
 def create_orders(how_many=10):
