@@ -280,14 +280,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         description = (
             "Represents a version of a product such as different size or color."
         )
-        only_fields = [
-            "id",
-            "name",
-            "product",
-            "sku",
-            "track_inventory",
-            "weight",
-        ]
+        only_fields = ["id", "name", "product", "sku", "track_inventory", "weight"]
         interfaces = [relay.Node]
         model = models.ProductVariant
 

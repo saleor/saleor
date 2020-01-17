@@ -2951,3 +2951,49 @@ def test_filter_product_types_by_custom_search_value(
     matched_names = sorted([result["node"]["name"] for result in results])
 
     assert matched_names == sorted(expected_names)
+
+
+def test_product_filter_by_attribute_values(
+    staff_api_client,
+    permission_manage_products,
+    color_attribute,
+    pink_attribute_value,
+    product_with_variant_with_two_attributes,
+):
+    query = """
+    query Products($filters: ProductFilterInput) {
+      products(first: 5, filter: $filters) {
+        edges {
+        node {
+          id
+          name
+          attributes {
+            attribute {
+              name
+              slug
+            }
+            values {
+              name
+              slug
+            }
+          }
+        }
+        }
+      }
+    }
+    """
+    variables = {
+        "attributes": [
+            {"slug": color_attribute.slug, "values": [pink_attribute_value.slug]}
+        ]
+    }
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert not content["data"]["products"]["edges"] == [
+        {
+            "node": {
+                "attributes": [],
+                "name": product_with_variant_with_two_attributes.name,
+            }
+        }
+    ]

@@ -47,15 +47,18 @@ def _clean_product_attributes_filter_input(
         for attr in attributes
     }
     queries: Dict[int, List[Optional[int]]] = defaultdict(list)
-
     # Convert attribute:value pairs into a dictionary where
     # attributes are keys and values are grouped in lists
-    for attr_name, val_slug in filter_value:
+    for attr_name, val_slugs in filter_value:
         if attr_name not in attributes_map:
             raise ValueError("Unknown attribute name: %r" % (attr_name,))
         attr_pk = attributes_map[attr_name]
-        attr_val_pk = values_map[attr_name].get(val_slug)
-        queries[attr_pk].append(attr_val_pk)
+        attr_val_pk = [
+            values_map[attr_name][val_slug]
+            for val_slug in val_slugs
+            if val_slug in values_map[attr_name]
+        ]
+        queries[attr_pk] += attr_val_pk
 
     return queries
 
@@ -113,8 +116,12 @@ def filter_products_by_stock_availability(qs, stock_availability):
 
 def filter_attributes(qs, _, value):
     if value:
-        value = [(v["slug"], v["value"]) for v in value]
-        qs = filter_products_by_attributes(qs, value)
+        value_list = []
+        for v in value:
+            slug = v["slug"]
+            values = [v["value"]] if "value" in v else v.get("values", [])
+            value_list.append((slug, values))
+        qs = filter_products_by_attributes(qs, value_list)
     return qs
 
 
@@ -237,7 +244,8 @@ class ProductFilter(django_filters.FilterSet):
     stock_availability = EnumFilter(
         input_class=StockAvailability, method=filter_stock_availability
     )
-    product_type = GlobalIDFilter()
+    product_type = GlobalIDFilter()  # Deprecated
+    product_types = GlobalIDMultipleChoiceFilter(field_name="product_type")
     search = django_filters.CharFilter(method=filter_search)
 
     class Meta:
@@ -288,6 +296,7 @@ class ProductTypeFilter(django_filters.FilterSet):
     )
 
     product_type = EnumFilter(input_class=ProductTypeEnum, method=filter_product_type)
+    ids = GlobalIDMultipleChoiceFilter(field_name="id")
 
     class Meta:
         model = ProductType
