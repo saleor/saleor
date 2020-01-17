@@ -89,7 +89,7 @@ class CustomerFilter(django_filters.FilterSet):
     placed_orders = ObjectTypeFilter(
         input_class=DateRangeInput, method=filter_placed_orders
     )
-    search = django_filters.CharFilter(method=filter_search)
+    search = django_filters.CharFilter(method=filter_staff_search)
 
     class Meta:
         model = User

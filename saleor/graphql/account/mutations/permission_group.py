@@ -81,7 +81,7 @@ class PermissionGroupUpdate(ModelMutation):
                 {
                     "input": ValidationError(
                         "You must provide name or permissions to update.",
-                        code=AccountErrorCode.REQUIRED,
+                        code=AccountErrorCode.REQUIRED.value,
                     )
                 }
             )
@@ -133,13 +133,13 @@ class PermissionGroupAssignUsers(ModelMutation):
     @classmethod
     def perform_mutation(cls, root, info, **data):
         group = cls.get_instance(info, **data)
-        user_pks = cls.prepare_user_pks(root, info, group, **data)
+        user_pks = cls.prepare_user_pks(info, group, **data)
         cls.check_if_users_are_staff(user_pks)
         group.user_set.add(*user_pks)
         return cls(group=group)
 
     @classmethod
-    def prepare_user_pks(cls, root, info, group, **data):
+    def prepare_user_pks(cls, info, group, **data):
         input_data = data.get("input")
         cleaned_input = cls.clean_input(info, group, input_data)
         user_ids: List[str] = cleaned_input["users"]
@@ -160,14 +160,14 @@ class PermissionGroupAssignUsers(ModelMutation):
                 {
                     "users": ValidationError(
                         "You must provide at least one staff user.",
-                        code=AccountErrorCode.REQUIRED,
+                        code=AccountErrorCode.REQUIRED.value,
                     )
                 }
             )
         return cleaned_input
 
     @staticmethod
-    def check_if_users_are_staff(user_pks):
+    def check_if_users_are_staff(user_pks: List[int]):
         non_staff_users = account_models.User.objects.filter(pk__in=user_pks).filter(
             is_staff=False
         )
@@ -176,7 +176,7 @@ class PermissionGroupAssignUsers(ModelMutation):
                 {
                     "users": ValidationError(
                         "Some of users aren't staff members.",
-                        code=AccountErrorCode.ASSIGN_NON_STAFF_MEMBER,
+                        code=AccountErrorCode.ASSIGN_NON_STAFF_MEMBER.value,
                     )
                 }
             )
@@ -204,6 +204,6 @@ class PermissionGroupUnassignUsers(PermissionGroupAssignUsers):
     @classmethod
     def perform_mutation(cls, root, info, **data):
         group = cls.get_instance(info, **data)
-        user_pks = cls.prepare_user_pks(root, info, group, **data)
+        user_pks = cls.prepare_user_pks(info, group, **data)
         group.user_set.remove(*user_pks)
         return cls(group=group)
