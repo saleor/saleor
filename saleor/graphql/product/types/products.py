@@ -293,10 +293,13 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
 
     @staticmethod
     def resolve_stock(root: models.ProductVariant, info, country=None):
-        stock = root.stock.annotate_available_quantity()
         if country is None:
-            return stock.all()
-        return stock.for_country(country)
+            return gql_optimizer.query(
+                root.stock.annotate_available_quantity().all(), info
+            )
+        return gql_optimizer.query(
+            root.stock.annotate_available_quantity().for_country("country").all(), info
+        )
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)

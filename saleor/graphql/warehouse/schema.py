@@ -38,7 +38,7 @@ class WarehouseQueries(graphene.ObjectType):
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_warehouses(self, info, **kwargs):
-        qs = models.Warehouse.objects.select_related("address").all()
+        qs = models.Warehouse.objects.all()
         return gql_optimizer.query(qs, info)
 
 
