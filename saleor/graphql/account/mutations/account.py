@@ -1,4 +1,5 @@
 import graphene
+from django.conf import settings
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 
@@ -28,6 +29,12 @@ from .base import (
 class AccountRegisterInput(graphene.InputObjectType):
     email = graphene.String(description="The email address of the user.", required=True)
     password = graphene.String(description="Password.", required=True)
+    redirect_url = graphene.String(
+        description=(
+            "Base of frontend URL that will be needed to create confirmation URL."
+        ),
+        required=True,
+    )
 
 
 class AccountRegister(ModelMutation):
@@ -35,6 +42,11 @@ class AccountRegister(ModelMutation):
         input = AccountRegisterInput(
             description="Fields required to create a user.", required=True
         )
+
+    requires_confirmation = graphene.Boolean(
+        required=True,
+        description="Informs whether users need to confirm their email address.",
+    )
 
     class Meta:
         description = "Register a new user."
@@ -44,10 +56,34 @@ class AccountRegister(ModelMutation):
         error_type_field = "account_errors"
 
     @classmethod
+    def mutate(cls, root, info, **data):
+        response = super().mutate(root, info, **data)
+        if not response.errors:
+            response.requires_confirmation = (
+                settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL
+            )
+        return response
+
+    @classmethod
+    def clean_input(cls, info, instance, data, input_cls=None):
+        try:
+            validate_storefront_url(data["redirect_url"])
+        except ValidationError as error:
+            raise ValidationError(
+                {"redirect_url": error}, code=AccountErrorCode.INVALID
+            )
+        return super().clean_input(info, instance, data, input_cls=None)
+
+    @classmethod
     def save(cls, info, user, cleaned_input):
         password = cleaned_input["password"]
         user.set_password(password)
-        user.save()
+        if settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
+            user.is_active = False
+            user.save()
+            emails.send_account_confirmation_email(user, cleaned_input["redirect_url"])
+        else:
+            user.save()
         account_events.customer_account_created_event(user=user)
         info.context.extensions.customer_created(customer=user)
 
