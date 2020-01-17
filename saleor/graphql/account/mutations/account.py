@@ -44,8 +44,7 @@ class AccountRegister(ModelMutation):
         )
 
     requires_confirmation = graphene.Boolean(
-        required=True,
-        description="Informs whether users need to confirm their email address.",
+        description="Informs whether users need to confirm their email address."
     )
 
     class Meta:
