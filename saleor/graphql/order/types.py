@@ -244,7 +244,7 @@ class OrderLine(CountableDjangoObjectType):
         prefetch_related=["variant__images", "variant__product__images"]
     )
     def resolve_thumbnail(root: models.OrderLine, info, *, size=255):
-        if not root.variant_id:
+        if not root.variant:
             return None
         image = root.variant.get_first_image()
         if image:
@@ -476,8 +476,10 @@ class Order(MetadataObjectType, CountableDjangoObjectType):
         manager = get_extensions_manager()
         display_gross = display_gross_prices()
         for shipping_method in available:
+            # Ignore typing check because it is checked in
+            # get_valid_shipping_methods_for_order
             taxed_price = manager.apply_taxes_to_shipping(
-                shipping_method.price, root.shipping_address
+                shipping_method.price, root.shipping_address  # type: ignore
             )
             if display_gross:
                 shipping_method.price = taxed_price.gross

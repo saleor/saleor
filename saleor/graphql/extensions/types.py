@@ -1,8 +1,14 @@
+from typing import TYPE_CHECKING, Optional
+
 import graphene
 
 from ...extensions import ConfigurationTypeField, manager, models
 from ..core.connection import CountableDjangoObjectType
 from .enums import ConfigurationTypeFieldEnum
+
+if TYPE_CHECKING:
+    # flake8: noqa
+    from django.contrib.postgres.fields import JSONField
 
 
 def hide_private_configuration_fields(configuration, config_structure):
@@ -45,8 +51,12 @@ class Plugin(CountableDjangoObjectType):
         only_fields = ["name", "description", "active", "configuration"]
 
     @staticmethod
-    def resolve_configuration(root: models.PluginConfiguration, _info):
+    def resolve_configuration(
+        root: models.PluginConfiguration, _info
+    ) -> Optional["JSONField"]:
         plugin = manager.get_extensions_manager().get_plugin(root.name)
+        if not plugin:
+            return None
         configuration = plugin.get_plugin_configuration().configuration
         if plugin.CONFIG_STRUCTURE and configuration:
             hide_private_configuration_fields(configuration, plugin.CONFIG_STRUCTURE)

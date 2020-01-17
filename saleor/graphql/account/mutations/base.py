@@ -375,12 +375,15 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
             shipping_address = cls.validate_address(
                 shipping_address_data,
                 instance=getattr(instance, SHIPPING_ADDRESS_FIELD),
+                info=info,
             )
             cleaned_input[SHIPPING_ADDRESS_FIELD] = shipping_address
 
         if billing_address_data:
             billing_address = cls.validate_address(
-                billing_address_data, instance=getattr(instance, BILLING_ADDRESS_FIELD)
+                billing_address_data,
+                instance=getattr(instance, BILLING_ADDRESS_FIELD),
+                info=info,
             )
             cleaned_input[BILLING_ADDRESS_FIELD] = billing_address
 

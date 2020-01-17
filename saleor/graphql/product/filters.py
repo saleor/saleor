@@ -1,13 +1,11 @@
 from collections import defaultdict
+from typing import Dict, List, Optional
 
 import django_filters
 from django.db.models import Q, Sum
 from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 
-from ...product.filters import (
-    T_PRODUCT_FILTER_QUERIES,
-    filter_products_by_attributes_values,
-)
+from ...product.filters import filter_products_by_attributes_values
 from ...product.models import Attribute, Category, Collection, Product, ProductType
 from ...search.backends import picker
 from ..core.filters import EnumFilter, ListObjectTypeFilter, ObjectTypeFilter
@@ -36,14 +34,18 @@ def filter_fields_containing_value(*search_fields: str):
     return _filter_qs
 
 
-def _clean_product_attributes_filter_input(filter_value) -> T_PRODUCT_FILTER_QUERIES:
+def _clean_product_attributes_filter_input(
+    filter_value,
+) -> Dict[int, List[Optional[int]]]:
     attributes = Attribute.objects.prefetch_related("values")
-    attributes_map = {attribute.slug: attribute.pk for attribute in attributes}
-    values_map = {
+    attributes_map: Dict[str, int] = {
+        attribute.slug: attribute.pk for attribute in attributes
+    }
+    values_map: Dict[str, Dict[str, int]] = {
         attr.slug: {value.slug: value.pk for value in attr.values.all()}
         for attr in attributes
     }
-    queries = defaultdict(list)
+    queries: Dict[int, List[Optional[int]]] = defaultdict(list)
 
     # Convert attribute:value pairs into a dictionary where
     # attributes are keys and values are grouped in lists
@@ -254,6 +256,7 @@ class CollectionFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(
         method=filter_fields_containing_value("slug", "name")
     )
+    ids = GlobalIDMultipleChoiceFilter(field_name="id")
 
     class Meta:
         model = Collection
@@ -264,6 +267,7 @@ class CategoryFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(
         method=filter_fields_containing_value("slug", "name", "description")
     )
+    ids = GlobalIDMultipleChoiceFilter(field_name="id")
 
     class Meta:
         model = Category
