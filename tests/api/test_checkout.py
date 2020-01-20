@@ -1274,8 +1274,7 @@ def mock_get_manager(mocker, fake_manager):
         autospec=True,
         return_value=fake_manager,
     )
-    yield fake_manager
-    mgr.assert_called_once()
+    return fake_manager
 
 
 def test_checkout_complete_does_not_delete_checkout_after_unsuccessful_payment(
@@ -1367,7 +1366,17 @@ ACTION_REQUIRED_GATEWAY_RESPONSE = GatewayResponse(
     amount=Decimal(3.0),
     currency="usd",
     transaction_id="1234",
-    error="ERROR",
+    error=None,
+)
+
+TRANSACTION_CONFIRM_GATEWAY_RESPONSE = GatewayResponse(
+    is_success=False,
+    action_required=False,
+    kind=TransactionKind.CONFIRM,
+    amount=Decimal(3.0),
+    currency="usd",
+    transaction_id="1234",
+    error=None,
 )
 
 
@@ -1409,6 +1418,18 @@ def test_checkout_complete_confirmation_needed(
     checkout.refresh_from_db()
     payment_dummy.refresh_from_db()
     assert payment_dummy.is_active
+    assert payment_dummy.to_confirm
+
+    mock_get_manager.confirm_payment.return_value = ACTION_REQUIRED_GATEWAY_RESPONSE
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+
+    mock_get_manager.confirm_payment.assert_called_once()
+
+    new_orders_count = Order.objects.count()
+    assert new_orders_count == orders_count + 1
 
 
 def test_checkout_complete_insufficient_stock(

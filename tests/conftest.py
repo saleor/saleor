@@ -92,7 +92,7 @@ class CaptureQueriesContext(BaseCaptureQueriesContext):
     def captured_queries(self):
         # flake8: noqa
         base_queries = self.connection.queries[
-            self.initial_queries : self.final_queries
+            self.initial_queries: self.final_queries
         ]
         new_queries = []
 

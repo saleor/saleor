@@ -192,6 +192,11 @@ def gateway_postprocess(transaction, payment):
     if not transaction.is_success:
         return
 
+    if transaction.action_required:
+        payment.to_confirm = True
+        payment.save(update_fields=["to_confirm"])
+        return
+
     transaction_kind = transaction.kind
 
     if transaction_kind in {TransactionKind.CAPTURE, TransactionKind.CONFIRM}:

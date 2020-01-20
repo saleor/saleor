@@ -178,7 +178,7 @@ def void(payment: Payment) -> Transaction:
 @require_active_payment
 def confirm(payment: Payment) -> Transaction:
     plugin_manager = get_extensions_manager()
-    token = _get_past_transaction_token(payment, TransactionKind.AUTH)
+    token = _get_past_transaction_token(payment, TransactionKind.CAPTURE)
     payment_data = create_payment_information(payment=payment, payment_token=token)
     response, error = _fetch_gateway_response(
         plugin_manager.confirm_payment, payment.gateway, payment_data
