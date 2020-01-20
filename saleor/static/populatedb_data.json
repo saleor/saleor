@@ -4206,7 +4206,7 @@
             "product": 115,
             "assignment": 5,
             "values": [
-                82
+                72
             ]
         }
     },
@@ -4217,7 +4217,7 @@
             "product": 116,
             "assignment": 5,
             "values": [
-                82
+                72
             ]
         }
     },
@@ -4250,7 +4250,7 @@
             "product": 89,
             "assignment": 5,
             "values": [
-                82
+                72
             ]
         }
     },
@@ -4283,7 +4283,7 @@
             "product": 117,
             "assignment": 5,
             "values": [
-                82
+                72
             ]
         }
     },
@@ -4316,7 +4316,7 @@
             "product": 107,
             "assignment": 5,
             "values": [
-                82
+                72
             ]
         }
     },
@@ -4327,7 +4327,7 @@
             "product": 110,
             "assignment": 5,
             "values": [
-                82
+                72
             ]
         }
     },
@@ -4338,7 +4338,7 @@
             "product": 109,
             "assignment": 5,
             "values": [
-                82
+                72
             ]
         }
     },
@@ -4349,7 +4349,7 @@
             "product": 108,
             "assignment": 5,
             "values": [
-                82
+                72
             ]
         }
     },
@@ -4404,7 +4404,7 @@
             "product": 114,
             "assignment": 5,
             "values": [
-                82
+                72
             ]
         }
     },
@@ -4415,7 +4415,7 @@
             "product": 111,
             "assignment": 5,
             "values": [
-                82
+                72
             ]
         }
     },
@@ -4426,7 +4426,7 @@
             "product": 112,
             "assignment": 5,
             "values": [
-                82
+                72
             ]
         }
     },
@@ -4437,7 +4437,7 @@
             "product": 113,
             "assignment": 5,
             "values": [
-                82
+                72
             ]
         }
     },
@@ -4448,7 +4448,7 @@
             "product": 118,
             "assignment": 5,
             "values": [
-                82
+                72
             ]
         }
     },
@@ -5835,7 +5835,7 @@
         "pk": 5,
         "fields": {
             "sort_order": null,
-            "attribute": 25,
+            "attribute": 23,
             "product_type": 14
         }
     },
@@ -5906,7 +5906,7 @@
             "is_variant_only": false,
             "visible_in_storefront": true,
             "filterable_in_storefront": true,
-            "filterable_in_dashboard": true,
+            "filterable_in_dashboard": false,
             "storefront_search_position": 0,
             "available_in_grid": true
         }
@@ -5924,7 +5924,7 @@
             "is_variant_only": false,
             "visible_in_storefront": true,
             "filterable_in_storefront": true,
-            "filterable_in_dashboard": true,
+            "filterable_in_dashboard": false,
             "storefront_search_position": 0,
             "available_in_grid": true
         }
@@ -5936,7 +5936,7 @@
             "private_meta": {},
             "meta": {},
             "slug": "bottle-size",
-            "name": "Size",
+            "name": "Bottle Size",
             "input_type": "dropdown",
             "value_required": false,
             "is_variant_only": false,
@@ -5960,7 +5960,7 @@
             "is_variant_only": false,
             "visible_in_storefront": true,
             "filterable_in_storefront": true,
-            "filterable_in_dashboard": true,
+            "filterable_in_dashboard": false,
             "storefront_search_position": 0,
             "available_in_grid": true
         }
@@ -5972,13 +5972,13 @@
             "private_meta": {},
             "meta": {},
             "slug": "bucket-size",
-            "name": "Size",
+            "name": "Bucket Size",
             "input_type": "dropdown",
             "value_required": false,
             "is_variant_only": false,
             "visible_in_storefront": true,
             "filterable_in_storefront": true,
-            "filterable_in_dashboard": true,
+            "filterable_in_dashboard": false,
             "storefront_search_position": 0,
             "available_in_grid": true
         }
@@ -5996,7 +5996,7 @@
             "is_variant_only": false,
             "visible_in_storefront": true,
             "filterable_in_storefront": true,
-            "filterable_in_dashboard": true,
+            "filterable_in_dashboard": false,
             "storefront_search_position": 0,
             "available_in_grid": true
         }
@@ -6014,7 +6014,7 @@
             "is_variant_only": false,
             "visible_in_storefront": true,
             "filterable_in_storefront": true,
-            "filterable_in_dashboard": true,
+            "filterable_in_dashboard": false,
             "storefront_search_position": 0,
             "available_in_grid": true
         }
@@ -6032,7 +6032,7 @@
             "is_variant_only": false,
             "visible_in_storefront": true,
             "filterable_in_storefront": true,
-            "filterable_in_dashboard": true,
+            "filterable_in_dashboard": false,
             "storefront_search_position": 0,
             "available_in_grid": true
         }
@@ -6044,13 +6044,13 @@
             "private_meta": {},
             "meta": {},
             "slug": "cushion-size",
-            "name": "Size",
+            "name": "Cushion Size",
             "input_type": "dropdown",
             "value_required": false,
             "is_variant_only": false,
             "visible_in_storefront": true,
             "filterable_in_storefront": true,
-            "filterable_in_dashboard": true,
+            "filterable_in_dashboard": false,
             "storefront_search_position": 0,
             "available_in_grid": true
         }
@@ -6086,25 +6086,7 @@
             "is_variant_only": false,
             "visible_in_storefront": true,
             "filterable_in_storefront": true,
-            "filterable_in_dashboard": true,
-            "storefront_search_position": 0,
-            "available_in_grid": true
-        }
-    },
-    {
-        "model": "product.attribute",
-        "pk": 25,
-        "fields": {
-            "private_meta": {},
-            "meta": {},
-            "slug": "shirt-material",
-            "name": "Material",
-            "input_type": "dropdown",
-            "value_required": false,
-            "is_variant_only": false,
-            "visible_in_storefront": true,
-            "filterable_in_storefront": true,
-            "filterable_in_dashboard": true,
+            "filterable_in_dashboard": false,
             "storefront_search_position": 0,
             "available_in_grid": true
         }
@@ -6591,17 +6573,6 @@
             "value": "",
             "slug": "45",
             "attribute": 24
-        }
-    },
-    {
-        "model": "product.attributevalue",
-        "pk": 82,
-        "fields": {
-            "sort_order": 0,
-            "name": "Cotton",
-            "value": "",
-            "slug": "cotton",
-            "attribute": 25
         }
     },
     {
