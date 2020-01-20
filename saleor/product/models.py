@@ -1,11 +1,9 @@
-from decimal import Decimal
 from typing import TYPE_CHECKING, Iterable, Optional, Union
 from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
 from django.contrib.postgres.fields import JSONField
-from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import Case, Count, F, FilteredRelation, Q, When
 from django.urls import reverse
@@ -24,7 +22,6 @@ from text_unidecode import unidecode
 from versatileimagefield.fields import PPOIField, VersatileImageField
 
 from ..core.db.fields import SanitizedJSONField
-from ..core.exceptions import InsufficientStock
 from ..core.models import (
     ModelWithMetadata,
     PublishableModel,
@@ -331,10 +328,6 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
             return json_content_to_raw_text(self.description_json)
         return strip_tags(self.description)
 
-    @property
-    def is_available(self) -> bool:
-        return self.is_visible and self.is_in_stock()
-
     # Deprecated. To remove in #5022
     @staticmethod
     def get_absolute_url() -> str:
@@ -342,9 +335,6 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
 
     def get_slug(self) -> str:
         return slugify(smart_text(unidecode(self.name)))
-
-    def is_in_stock(self) -> bool:
-        return any(variant.is_in_stock() for variant in self)
 
     def get_first_image(self):
         images = list(self.images.all())
@@ -442,12 +432,7 @@ class ProductVariant(ModelWithMetadata):
     )
     images = models.ManyToManyField("ProductImage", through="VariantImage")
     track_inventory = models.BooleanField(default=True)
-    quantity = models.IntegerField(
-        validators=[MinValueValidator(0)], default=Decimal(1)
-    )
-    quantity_allocated = models.IntegerField(
-        validators=[MinValueValidator(0)], default=Decimal(0)
-    )
+
     cost_price_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
         decimal_places=settings.DEFAULT_DECIMAL_PLACES,
@@ -469,24 +454,8 @@ class ProductVariant(ModelWithMetadata):
         return self.name or self.sku
 
     @property
-    def quantity_available(self) -> int:
-        return max(self.quantity - self.quantity_allocated, 0)
-
-    @property
     def is_visible(self) -> bool:
         return self.product.is_visible
-
-    @property
-    def is_available(self) -> bool:
-        return self.is_visible and self.is_in_stock()
-
-    def check_quantity(self, quantity):
-        """Check if there is at least the given quantity in stock.
-
-        If stock handling is disabled, it simply run no check.
-        """
-        if self.track_inventory and quantity > self.quantity_available:
-            raise InsufficientStock(self)
 
     @property
     def base_price(self) -> "Money":
@@ -513,9 +482,6 @@ class ProductVariant(ModelWithMetadata):
     def is_digital(self) -> bool:
         is_digital = self.product.product_type.is_digital
         return not self.is_shipping_required() and is_digital
-
-    def is_in_stock(self) -> bool:
-        return self.quantity_available > 0
 
     def display_product(self, translated: bool = False) -> str:
         if translated:

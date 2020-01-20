@@ -1,0 +1,21 @@
+{% load i18n %}
+
+{% block subject %}
+  {% trans "Account confirmation e-mail" context "Account confirmation e-mail subject" %}
+{% endblock %}
+
+{% block plain %}
+{% include 'templated_email/shared/_header.email' %}
+{% blocktrans context "Account confirmation e-mail text" %}
+In order to log into {{ domain }}, you have to confirm your email address first.
+Please click the link below to do so and log into your account.
+{% endblocktrans %}
+
+{{ confirm_url | safe }}
+
+{% include 'templated_email/shared/_footer.email' %}
+{% endblock %}
+
+{% block html %}
+{% include 'templated_email/compiled/confirm.html' %}
+{% endblock %}

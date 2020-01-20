@@ -82,10 +82,20 @@ class OrderQueries(graphene.ObjectType):
         sort_by=OrderSortingInput(description="Sort orders."),
         filter=OrderFilterInput(description="Filtering options for orders."),
         created=graphene.Argument(
-            ReportingPeriod, description="Filter orders from a selected timespan."
+            ReportingPeriod,
+            description=(
+                "Filter orders from a selected timespan. "
+                "DEPRECATED: Will be removed in Saleor 2.11, "
+                "use the `filter` field instead."
+            ),
         ),
         status=graphene.Argument(
-            OrderStatusFilter, description="Filter order by status."
+            OrderStatusFilter,
+            description=(
+                "Filter order by status. "
+                "DEPRECATED: Will be removed in Saleor 2.11, "
+                "use the `filter` field instead."
+            ),
         ),
         description="List of orders.",
     )
@@ -94,7 +104,12 @@ class OrderQueries(graphene.ObjectType):
         sort_by=OrderSortingInput(description="Sort draft orders."),
         filter=OrderDraftFilterInput(description="Filtering options for draft orders."),
         created=graphene.Argument(
-            ReportingPeriod, description="Filter draft orders from a selected timespan."
+            ReportingPeriod,
+            description=(
+                "Filter draft orders from a selected timespan. "
+                "DEPRECATED: Will be removed in Saleor 2.11, "
+                "use the `filter` field instead."
+            ),
         ),
         description="List of draft orders.",
     )
