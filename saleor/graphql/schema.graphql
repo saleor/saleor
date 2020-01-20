@@ -289,7 +289,8 @@ input AttributeFilterInput {
 
 input AttributeInput {
   slug: String!
-  value: String!
+  value: String
+  values: [String]
 }
 
 enum AttributeInputTypeEnum {
@@ -3096,6 +3097,7 @@ input ProductFilterInput {
   productType: ID
   search: String
   minimalPrice: PriceRangeInput
+  productTypes: [ID]
 }
 
 type ProductImage implements Node {
@@ -3290,6 +3292,7 @@ input ProductTypeFilterInput {
   search: String
   configurable: ProductTypeConfigurable
   productType: ProductTypeEnum
+  ids: [ID]
 }
 
 input ProductTypeInput {
