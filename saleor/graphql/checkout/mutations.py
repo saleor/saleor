@@ -628,6 +628,8 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
 class CheckoutComplete(BaseMutation):
     order = graphene.Field(Order, description="Placed order.")
+    confirmation_needed = graphene.Boolean(required=False, description=("Set to true if payment needs to be confirmed"
+                                                                        " before checkout is complete."))
 
     class Arguments:
         checkout_id = graphene.ID(description="Checkout ID.", required=True)
@@ -709,10 +711,14 @@ class CheckoutComplete(BaseMutation):
         if shipping_address is not None:
             shipping_address = AddressData(**shipping_address.as_data())
 
+        payment_confirmation = payment.to_confirm
         try:
-            txn = gateway.process_payment(
-                payment=payment, token=payment.token, store_source=store_source
-            )
+            if payment_confirmation:
+                txn = gateway.confirm(payment)
+            else:
+                txn = gateway.process_payment(
+                    payment=payment, token=payment.token, store_source=store_source
+                )
 
             if not txn.is_success:
                 raise PaymentError(txn.error)
@@ -746,8 +752,10 @@ class CheckoutComplete(BaseMutation):
             # remove checkout after order is successfully paid
             checkout.delete()
 
-        # return the success response with the newly created order data
-        return CheckoutComplete(order=order)
+            # return the success response with the newly created order data
+            return CheckoutComplete(order=order)
+
+        return CheckoutComplete(order=None, confirmation_needed=True)
 
 
 class CheckoutAddPromoCode(BaseMutation):
