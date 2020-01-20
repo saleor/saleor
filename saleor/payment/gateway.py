@@ -72,6 +72,7 @@ def process_payment(
     return create_transaction(
         payment=payment,
         kind=TransactionKind.CAPTURE,
+        action_required=response.action_required,
         payment_information=payment_data,
         error_msg=error,
         gateway_response=response,

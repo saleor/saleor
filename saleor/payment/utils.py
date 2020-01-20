@@ -116,6 +116,7 @@ def create_transaction(
     payment: Payment,
     kind: str,
     payment_information: PaymentData,
+    action_required: bool = False,
     gateway_response: GatewayResponse = None,
     error_msg=None,
 ) -> Transaction:
@@ -136,6 +137,7 @@ def create_transaction(
 
     txn = Transaction.objects.create(
         payment=payment,
+        action_required=action_required,
         kind=gateway_response.kind,
         token=gateway_response.transaction_id,
         is_success=gateway_response.is_success,

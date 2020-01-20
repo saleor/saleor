@@ -733,16 +733,18 @@ class CheckoutComplete(BaseMutation):
                     {"redirect_url": error}, code=AccountErrorCode.INVALID
                 )
 
-        # create the order into the database
-        order = create_order(
-            checkout=checkout,
-            order_data=order_data,
-            user=user,
-            redirect_url=redirect_url,
-        )
+        order = None
+        if not txn.action_required:
+            # create the order into the database
+            order = create_order(
+                checkout=checkout,
+                order_data=order_data,
+                user=user,
+                redirect_url=redirect_url,
+            )
 
-        # remove checkout after order is successfully paid
-        checkout.delete()
+            # remove checkout after order is successfully paid
+            checkout.delete()
 
         # return the success response with the newly created order data
         return CheckoutComplete(order=order)
