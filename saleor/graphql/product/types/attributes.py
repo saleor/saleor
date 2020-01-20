@@ -8,7 +8,7 @@ from ....core.permissions import ProductPermissions
 from ....product import models
 from ...core.connection import CountableDjangoObjectType
 from ...core.resolvers import resolve_meta, resolve_private_meta
-from ...core.types import MetadataObjectType
+from ...core.types import ObjectWithMetadata
 from ...decorators import permission_required
 from ...translations.fields import TranslationField
 from ...translations.types import AttributeTranslation, AttributeValueTranslation
@@ -58,7 +58,7 @@ class AttributeValue(CountableDjangoObjectType):
         return root.input_type
 
 
-class Attribute(CountableDjangoObjectType, MetadataObjectType):
+class Attribute(CountableDjangoObjectType):
     input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
 
     name = graphene.String(description=AttributeDescriptions.NAME)
@@ -97,7 +97,7 @@ class Attribute(CountableDjangoObjectType, MetadataObjectType):
             "variants at the product type level."
         )
         only_fields = ["id", "product_types", "product_variant_types"]
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Attribute
 
     @staticmethod
