@@ -4,6 +4,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Account confirmation email - #5126 by @tomaszszymanski129
 - Relocate Checkout and CheckoutLine methods into separate module and update checkout related plugins to use them - #4980 by @krzysztofwolski
 - Fix problem with free shipping voucher - #4942 by @IKarbowiak
 - Add sub-categories to random data - #4949 by @IKarbowiak
@@ -44,6 +45,11 @@ All notable, unreleased changes to this project will be documented in this file.
 - Remove unnecessary manage_orders permission - #5142 by @kswiatek92
 - Mutation to change user email - #5076 by @kswiatek92
 - Add mypy checks - #5150 by @IKarbowiak
+- Move extracting user or service_account from context to utils - #5152 by @kswiatek92
+- Add deprecate description to order status/created arguments - #5076 by @kswiatek92
+- Fix getting title field in page mutations #5160 by @maarcingebala
+- Copy public and private metadata from the checkout to the order upon creation -  #5165 by @dankolbman
+- Add warehouses and stocks- #4986 by @szewczykmira
 
 ## 2.9.0
 

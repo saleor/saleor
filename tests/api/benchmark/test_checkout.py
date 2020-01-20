@@ -9,7 +9,8 @@ from tests.api.utils import get_graphql_content
 
 
 @pytest.fixture()
-def checkout_with_variant(checkout, variant):
+def checkout_with_variant(checkout, stock):
+    variant = stock.product_variant
     add_variant_to_checkout(checkout, variant, 1)
     checkout.save()
     return checkout
