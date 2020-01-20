@@ -62,6 +62,24 @@ def test_clear_shipping_method(checkout, shipping_method):
     assert not checkout.shipping_method
 
 
+def test_last_change_update(checkout):
+    last_change = checkout.last_change
+
+    checkout.note = "Sample note"
+    checkout.save()
+
+    assert checkout.last_change != last_change
+
+
+def test_last_change_update_foregin_key(checkout, shipping_method):
+    last_change = checkout.last_change
+
+    checkout.shipping_method = shipping_method
+    checkout.save(update_fields=["shipping_method", "last_change"])
+
+    assert checkout.last_change != last_change
+
+
 @pytest.mark.parametrize("is_anonymous_user", (True, False))
 def test_create_order_creates_expected_events(
     request_checkout_with_item, customer_user, shipping_method, is_anonymous_user
