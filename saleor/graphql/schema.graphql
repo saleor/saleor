@@ -190,7 +190,7 @@ type AssignNavigation {
   menuErrors: [MenuError!]
 }
 
-type Attribute implements Node {
+type Attribute implements Node, ObjectWithMetadata {
   id: ID!
   productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
   productVariantTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
@@ -497,7 +497,7 @@ input CatalogueInput {
   collections: [ID]
 }
 
-type Category implements Node {
+type Category implements Node, ObjectWithMetadata {
   seoTitle: String
   seoDescription: String
   id: ID!
@@ -628,7 +628,7 @@ type CategoryUpdatePrivateMeta {
   category: Category
 }
 
-type Checkout implements Node {
+type Checkout implements Node, ObjectWithMetadata {
   created: DateTime!
   lastChange: DateTime!
   user: User
@@ -841,7 +841,7 @@ type ChoiceValue {
   verbose: String
 }
 
-type Collection implements Node {
+type Collection implements Node, ObjectWithMetadata {
   seoTitle: String
   seoDescription: String
   id: ID!
@@ -1402,7 +1402,7 @@ input DateTimeRangeInput {
 
 scalar Decimal
 
-type DigitalContent implements Node {
+type DigitalContent implements Node, ObjectWithMetadata {
   useDefaultSettings: Boolean!
   automaticFulfillment: Boolean!
   productVariant: ProductVariant!
@@ -1597,7 +1597,7 @@ enum ExtensionsErrorCode {
   UNIQUE
 }
 
-type Fulfillment implements Node {
+type Fulfillment implements Node, ObjectWithMetadata {
   id: ID!
   fulfillmentOrder: Int!
   status: FulfillmentStatus!
@@ -2371,7 +2371,12 @@ interface Node {
   id: ID!
 }
 
-type Order implements Node {
+interface ObjectWithMetadata {
+  privateMeta: [MetaStore]!
+  meta: [MetaStore]!
+}
+
+type Order implements Node, ObjectWithMetadata {
   id: ID!
   created: DateTime!
   status: OrderStatus!
@@ -3063,7 +3068,7 @@ input PriceRangeInput {
   lte: Float
 }
 
-type Product implements Node {
+type Product implements Node, ObjectWithMetadata {
   id: ID!
   seoTitle: String
   seoDescription: String
@@ -3320,7 +3325,7 @@ type ProductTranslation implements Node {
   language: LanguageDisplay!
 }
 
-type ProductType implements Node {
+type ProductType implements Node, ObjectWithMetadata {
   id: ID!
   name: String!
   slug: String!
@@ -3461,7 +3466,7 @@ type ProductUpdatePrivateMeta {
   product: Product
 }
 
-type ProductVariant implements Node {
+type ProductVariant implements Node, ObjectWithMetadata {
   id: ID!
   name: String!
   sku: String!
@@ -3821,7 +3826,7 @@ input SeoInput {
   description: String
 }
 
-type ServiceAccount implements Node {
+type ServiceAccount implements Node, ObjectWithMetadata {
   id: ID!
   created: DateTime
   isActive: Boolean
@@ -4452,7 +4457,7 @@ scalar UUID
 
 scalar Upload
 
-type User implements Node {
+type User implements Node, ObjectWithMetadata {
   id: ID!
   lastLogin: DateTime
   email: String!

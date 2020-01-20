@@ -34,9 +34,9 @@ from ...core.fields import FilterInputConnectionField, PrefetchingConnectionFiel
 from ...core.resolvers import resolve_meta, resolve_private_meta
 from ...core.types import (
     Image,
-    MetadataObjectType,
     Money,
     MoneyRange,
+    ObjectWithMetadata,
     TaxedMoney,
     TaxedMoneyRange,
     TaxType,
@@ -194,7 +194,7 @@ class ProductPricingInfo(BasePricingInfo):
 
 
 @key(fields="id")
-class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
+class ProductVariant(CountableDjangoObjectType):
     quantity = graphene.Int(
         required=True,
         description="Quantity of a product in the store's possession, "
@@ -282,7 +282,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
             "Represents a version of a product such as different size or color."
         )
         only_fields = ["id", "name", "product", "sku", "track_inventory", "weight"]
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         model = models.ProductVariant
 
     @staticmethod
@@ -408,7 +408,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
 
 
 @key(fields="id")
-class Product(CountableDjangoObjectType, MetadataObjectType):
+class Product(CountableDjangoObjectType):
     url = graphene.String(
         description="The storefront URL for the product.", required=True
     )
@@ -466,7 +466,7 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
 
     class Meta:
         description = "Represents an individual item for sale in the storefront."
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Product
         only_fields = [
             "category",
@@ -614,7 +614,7 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
 
 
 @key(fields="id")
-class ProductType(CountableDjangoObjectType, MetadataObjectType):
+class ProductType(CountableDjangoObjectType):
     products = gql_optimizer.field(
         PrefetchingConnectionField(
             Product, description="List of products of this type."
@@ -640,7 +640,7 @@ class ProductType(CountableDjangoObjectType, MetadataObjectType):
             "Represents a type of product. It defines what attributes are available to "
             "products of this type."
         )
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         model = models.ProductType
         only_fields = [
             "has_variants",
@@ -708,7 +708,7 @@ class ProductType(CountableDjangoObjectType, MetadataObjectType):
 
 
 @key(fields="id")
-class Collection(CountableDjangoObjectType, MetadataObjectType):
+class Collection(CountableDjangoObjectType):
     products = gql_optimizer.field(
         PrefetchingConnectionField(
             Product, description="List of products in this collection."
@@ -733,7 +733,7 @@ class Collection(CountableDjangoObjectType, MetadataObjectType):
             "seo_title",
             "slug",
         ]
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Collection
 
     @staticmethod
@@ -777,7 +777,7 @@ class Collection(CountableDjangoObjectType, MetadataObjectType):
 
 
 @key(fields="id")
-class Category(CountableDjangoObjectType, MetadataObjectType):
+class Category(CountableDjangoObjectType):
     ancestors = PrefetchingConnectionField(
         lambda: Category, description="List of ancestors of the category."
     )
@@ -814,7 +814,7 @@ class Category(CountableDjangoObjectType, MetadataObjectType):
             "seo_title",
             "slug",
         ]
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Category
 
     @staticmethod

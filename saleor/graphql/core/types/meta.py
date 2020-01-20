@@ -55,7 +55,7 @@ class MetaInput(MetaPath):
     value = graphene.String(required=True, description="Stored metadata value.")
 
 
-class MetadataObjectType(graphene.ObjectType):
+class ObjectWithMetadata(graphene.Interface):
     private_meta = graphene.List(
         MetaStore,
         required=True,
