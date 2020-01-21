@@ -628,8 +628,13 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
 class CheckoutComplete(BaseMutation):
     order = graphene.Field(Order, description="Placed order.")
-    confirmation_needed = graphene.Boolean(required=False, description=("Set to true if payment needs to be confirmed"
-                                                                        " before checkout is complete."))
+    confirmation_needed = graphene.Boolean(
+        required=False,
+        description=(
+            "Set to true if payment needs to be confirmed"
+            " before checkout is complete."
+        ),
+    )
 
     class Arguments:
         checkout_id = graphene.ID(description="Checkout ID.", required=True)
