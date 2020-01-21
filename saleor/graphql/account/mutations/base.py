@@ -17,14 +17,13 @@ from ...account.i18n import I18nMixin
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import (
     BaseMutation,
-    ClearMetaBaseMutation,
     CreateToken,
     ModelDeleteMutation,
     ModelMutation,
-    UpdateMetaBaseMutation,
     validation_error_to_error_type,
 )
 from ...core.types.common import AccountError
+from ...meta.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 
 BILLING_ADDRESS_FIELD = "default_billing_address"
 SHIPPING_ADDRESS_FIELD = "default_shipping_address"

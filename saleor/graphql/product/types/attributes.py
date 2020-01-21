@@ -8,8 +8,8 @@ from ....core.permissions import ProductPermissions
 from ....product import models
 from ...core.connection import CountableDjangoObjectType
 from ...core.resolvers import resolve_meta, resolve_private_meta
-from ...core.types import ObjectWithMetadata
 from ...decorators import permission_required
+from ...meta.types import ObjectWithMetadata
 from ...translations.fields import TranslationField
 from ...translations.types import AttributeTranslation, AttributeValueTranslation
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions

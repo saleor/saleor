@@ -43,18 +43,6 @@ class MetaStore(graphene.ObjectType):
         )
 
 
-class MetaPath(graphene.InputObjectType):
-    namespace = graphene.String(
-        required=True, description="Name of metadata client group."
-    )
-    client_name = graphene.String(required=True, description="Metadata client's name.")
-    key = graphene.String(required=True, description="Key for stored data.")
-
-
-class MetaInput(MetaPath):
-    value = graphene.String(required=True, description="Stored metadata value.")
-
-
 class ObjectWithMetadata(graphene.Interface):
     private_meta = graphene.List(
         MetaStore,
@@ -66,3 +54,15 @@ class ObjectWithMetadata(graphene.Interface):
         required=True,
         description="List of publicly stored metadata namespaces.",
     )
+
+
+class MetaPath(graphene.InputObjectType):
+    namespace = graphene.String(
+        required=True, description="Name of metadata client group."
+    )
+    client_name = graphene.String(required=True, description="Metadata client's name.")
+    key = graphene.String(required=True, description="Key for stored data.")
+
+
+class MetaInput(MetaPath):
+    value = graphene.String(required=True, description="Stored metadata value.")

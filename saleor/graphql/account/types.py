@@ -13,9 +13,11 @@ from ..checkout.types import Checkout
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import PrefetchingConnectionField
 from ..core.resolvers import resolve_meta, resolve_private_meta
-from ..core.types import CountryDisplay, Image, ObjectWithMetadata, PermissionDisplay
+from ..core.types import CountryDisplay, Image, PermissionDisplay
 from ..core.utils import get_node_optimized
 from ..decorators import one_of_permissions_required, permission_required
+from ..meta.types import ObjectWithMetadata
+
 from ..utils import format_permissions_for_display
 from ..wishlist.resolvers import resolve_wishlist_items_from_user
 from ..wishlist.types import WishlistItem
