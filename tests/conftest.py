@@ -92,7 +92,7 @@ class CaptureQueriesContext(BaseCaptureQueriesContext):
     def captured_queries(self):
         # flake8: noqa
         base_queries = self.connection.queries[
-            self.initial_queries: self.final_queries
+            self.initial_queries : self.final_queries
         ]
         new_queries = []
 
@@ -1183,6 +1183,24 @@ def payment_txn_captured(order_with_lines, payment_dummy):
         kind=TransactionKind.CAPTURE,
         gateway_response={},
         is_success=True,
+    )
+    return payment
+
+
+@pytest.fixture
+def payment_txn_to_confirm(order_with_lines, payment_dummy):
+    order = order_with_lines
+    payment = payment_dummy
+    payment.order = order
+    payment.to_confirm = True
+    payment.save()
+
+    payment.transactions.create(
+        amount=payment.total,
+        kind=TransactionKind.CAPTURE,
+        gateway_response={},
+        is_success=True,
+        action_required=True,
     )
     return payment
 
