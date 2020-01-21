@@ -119,6 +119,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix serializing empty URLs as a string when creating menu items - #4616 by @maarcingebala
 - The invalid IP address in HTTP requests now fallback to the requester's IP address. - #4597 by @NyanKiyoshi
 - Fix product variant update with current attribute values - #4936 by @fowczarek
+- Update checkout last field and add auto now fields to save with update_fields parameter - #5177 by @IKarbowiak
 
 ### Dashboard 2.0
 
