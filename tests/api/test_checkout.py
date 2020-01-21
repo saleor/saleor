@@ -1270,7 +1270,7 @@ def fake_manager(mocker):
 
 @pytest.fixture
 def mock_get_manager(mocker, fake_manager):
-    mgr = mocker.patch(
+    mocker.patch(
         "saleor.payment.gateway.get_extensions_manager",
         autospec=True,
         return_value=fake_manager,
@@ -1426,7 +1426,7 @@ def test_checkout_complete_confirmation_needed(
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
-    assert not dataconfirmationNeeded["errors"]
+    assert not data["errors"]
     assert not data["confirmationNeeded"]
 
     mock_get_manager.confirm_payment.assert_called_once()
