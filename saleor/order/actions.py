@@ -196,7 +196,7 @@ def mark_order_as_paid(order: "Order", request_user: "User"):
     )
     payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment.captured_amount = order.total.gross.amount
-    payment.save(update_fields=["captured_amount", "charge_status"])
+    payment.save(update_fields=["captured_amount", "charge_status", "modified"])
 
     events.order_manually_marked_as_paid_event(order=order, user=request_user)
     manager = get_extensions_manager()

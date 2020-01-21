@@ -192,7 +192,7 @@ def change_billing_address_in_checkout(checkout, address):
         if remove:
             checkout.billing_address.delete()
         checkout.billing_address = address
-        checkout.save(update_fields=["billing_address"])
+        checkout.save(update_fields=["billing_address", "last_change"])
 
 
 def change_shipping_address_in_checkout(checkout, address):
@@ -207,7 +207,7 @@ def change_shipping_address_in_checkout(checkout, address):
         if remove:
             checkout.shipping_address.delete()
         checkout.shipping_address = address
-        checkout.save(update_fields=["shipping_address"])
+        checkout.save(update_fields=["shipping_address", "last_change"])
 
 
 def _get_shipping_voucher_discount_for_checkout(
@@ -516,7 +516,7 @@ def get_shipping_price_estimate(
 
 def clear_shipping_method(checkout: Checkout):
     checkout.shipping_method = None
-    checkout.save(update_fields=["shipping_method"])
+    checkout.save(update_fields=["shipping_method", "last_change"])
 
 
 def _get_voucher_data_for_order(checkout: Checkout) -> dict:
