@@ -23,6 +23,7 @@ from ...account.models import Address, User
 from ...account.utils import store_user_address
 from ...checkout import AddressType
 from ...core.permissions import (
+    AccountPermissions,
     CheckoutPermissions,
     GiftcardPermissions,
     OrderPermissions,
@@ -569,6 +570,7 @@ def create_permission_groups():
         for enum in [CheckoutPermissions, OrderPermissions, GiftcardPermissions]
         for perm in enum
     ]
+    customer_support_codenames.append(AccountPermissions.MANAGE_USERS.codename)
     customer_support_permissions = Permission.objects.filter(
         codename__in=customer_support_codenames
     )
