@@ -1,6 +1,5 @@
 from django.contrib.postgres.fields import JSONField
 from django.db import models
-from django.utils.translation import pgettext_lazy
 from mptt.managers import TreeManager
 from mptt.models import MPTTModel
 
@@ -17,12 +16,7 @@ class Menu(models.Model):
 
     class Meta:
         ordering = ("pk",)
-        permissions = (
-            (
-                MenuPermissions.MANAGE_MENUS.codename,
-                pgettext_lazy("Permission description", "Manage navigation."),
-            ),
-        )
+        permissions = ((MenuPermissions.MANAGE_MENUS.codename, "Manage navigation."),)
 
     def __str__(self):
         return self.name
