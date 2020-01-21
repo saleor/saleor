@@ -311,10 +311,12 @@ def test_permission_group_update_mutation_no_input_data(
     errors = data["errors"]
     permission_group_data = data["group"]
 
-    assert permission_group_data is None
-    assert len(errors) == 1
-    assert errors[0]["field"] == "input"
-    assert errors[0]["message"] == "You must provide name or permissions to update."
+    assert errors == []
+    assert permission_group_data["name"] == group.name
+    permissions = {
+        permission["name"] for permission in permission_group_data["permissions"]
+    }
+    assert set(group.permissions.all().values_list("name", flat=True)) == permissions
 
 
 PERMISSION_GROUP_DELETE_MUTATION = """
