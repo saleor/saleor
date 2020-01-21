@@ -2,9 +2,11 @@ import datetime
 from unittest.mock import Mock, patch
 
 import pytest
+import pytz
 from django.contrib.auth.models import AnonymousUser
 from django.utils import timezone
 from django_countries.fields import Country
+from freezegun import freeze_time
 from prices import Money, TaxedMoney
 
 from saleor.account import CustomerEvents
@@ -63,21 +65,23 @@ def test_clear_shipping_method(checkout, shipping_method):
 
 
 def test_last_change_update(checkout):
-    last_change = checkout.last_change
+    with freeze_time(datetime.datetime.now()) as frozen_datetime:
+        assert checkout.last_change != frozen_datetime()
 
-    checkout.note = "Sample note"
-    checkout.save()
+        checkout.note = "Sample note"
+        checkout.save()
 
-    assert checkout.last_change != last_change
+        assert checkout.last_change == pytz.utc.localize(frozen_datetime())
 
 
 def test_last_change_update_foregin_key(checkout, shipping_method):
-    last_change = checkout.last_change
+    with freeze_time(datetime.datetime.now()) as frozen_datetime:
+        assert checkout.last_change != frozen_datetime()
 
-    checkout.shipping_method = shipping_method
-    checkout.save(update_fields=["shipping_method", "last_change"])
+        checkout.shipping_method = shipping_method
+        checkout.save(update_fields=["shipping_method", "last_change"])
 
-    assert checkout.last_change != last_change
+        assert checkout.last_change == pytz.utc.localize(frozen_datetime())
 
 
 @pytest.mark.parametrize("is_anonymous_user", (True, False))
