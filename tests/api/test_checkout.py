@@ -1158,6 +1158,7 @@ MUTATION_CHECKOUT_COMPLETE = """
                 field,
                 message
             }
+            confirmationNeeded
         }
     }
     """
@@ -1412,6 +1413,7 @@ def test_checkout_complete_confirmation_needed(
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
     assert not data["errors"]
+    assert data["confirmationNeeded"] is True
 
     new_orders_count = Order.objects.count()
     assert new_orders_count == orders_count
@@ -1424,7 +1426,8 @@ def test_checkout_complete_confirmation_needed(
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
-    assert not data["errors"]
+    assert not dataconfirmationNeeded["errors"]
+    assert not data["confirmationNeeded"]
 
     mock_get_manager.confirm_payment.assert_called_once()
 
