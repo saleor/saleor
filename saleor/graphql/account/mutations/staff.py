@@ -16,16 +16,11 @@ from ....core.utils.url import validate_storefront_url
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...core.enums import PermissionEnum
-from ...core.mutations import (
-    BaseMutation,
-    ClearMetaBaseMutation,
-    ModelDeleteMutation,
-    ModelMutation,
-    UpdateMetaBaseMutation,
-)
+from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types import Upload
 from ...core.types.common import AccountError
 from ...core.utils import validate_image_file
+from ...meta.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ..utils import CustomerDeleteMixin, StaffDeleteMixin, UserDeleteMixin
 from .base import (
     BaseAddressDelete,

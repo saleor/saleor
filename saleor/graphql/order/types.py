@@ -15,10 +15,10 @@ from ..account.types import User
 from ..core.connection import CountableDjangoObjectType
 from ..core.resolvers import resolve_meta, resolve_private_meta
 from ..core.types.common import Image
-from ..core.types.meta import ObjectWithMetadata
 from ..core.types.money import Money, TaxedMoney
 from ..decorators import permission_required
 from ..giftcard.types import GiftCard
+from ..meta.types import ObjectWithMetadata
 from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod

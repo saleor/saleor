@@ -6,8 +6,8 @@ from ....core.permissions import ProductPermissions
 from ....product import models
 from ...core.connection import CountableDjangoObjectType
 from ...core.resolvers import resolve_meta, resolve_private_meta
-from ...core.types import ObjectWithMetadata
 from ...decorators import permission_required
+from ...meta.types import ObjectWithMetadata
 
 
 class DigitalContentUrl(CountableDjangoObjectType):

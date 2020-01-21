@@ -32,16 +32,9 @@ from ...core.connection import CountableDjangoObjectType
 from ...core.enums import ReportingPeriod, TaxRateType
 from ...core.fields import FilterInputConnectionField, PrefetchingConnectionField
 from ...core.resolvers import resolve_meta, resolve_private_meta
-from ...core.types import (
-    Image,
-    Money,
-    MoneyRange,
-    ObjectWithMetadata,
-    TaxedMoney,
-    TaxedMoneyRange,
-    TaxType,
-)
+from ...core.types import Image, Money, MoneyRange, TaxedMoney, TaxedMoneyRange, TaxType
 from ...decorators import permission_required
+from ...meta.types import ObjectWithMetadata
 from ...translations.fields import TranslationField
 from ...translations.types import (
     CategoryTranslation,
