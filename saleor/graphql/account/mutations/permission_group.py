@@ -57,7 +57,7 @@ class PermissionGroupInput(graphene.InputObjectType):
     )
 
 
-class PermissionGroupUpdate(ModelMutation):
+class PermissionGroupUpdate(PermissionGroupCreate):
     group = graphene.Field(Group, description="Group which was edited.")
 
     class Arguments:
@@ -72,23 +72,6 @@ class PermissionGroupUpdate(ModelMutation):
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = AccountError
         error_type_field = "account_errors"
-
-    @classmethod
-    def clean_input(cls, info, instance, data):
-        cleaned_input = super().clean_input(info, instance, data)
-        if "name" not in cleaned_input and "permissions" not in cleaned_input:
-            raise ValidationError(
-                {
-                    "input": ValidationError(
-                        "You must provide name or permissions to update.",
-                        code=AccountErrorCode.REQUIRED.value,
-                    )
-                }
-            )
-        # clean and prepare permissions
-        if "permissions" in cleaned_input:
-            cleaned_input["permissions"] = get_permissions(cleaned_input["permissions"])
-        return cleaned_input
 
 
 class PermissionGroupDelete(ModelDeleteMutation):
