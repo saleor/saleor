@@ -6,7 +6,6 @@ from typing import Dict, Iterable
 
 from django.db.models import Q, QuerySet
 from django.forms import CheckboxSelectMultiple
-from django.utils.translation import pgettext_lazy
 from django_filters import MultipleChoiceFilter, OrderingFilter, RangeFilter
 
 from ..core.filters import SortedFilterSet
@@ -14,12 +13,9 @@ from .models import Attribute, Product
 
 SORT_BY_FIELDS = OrderedDict(
     [
-        ("name", pgettext_lazy("Product list sorting option", "name")),
-        (
-            "minimal_variant_price_amount",
-            pgettext_lazy("Product list sorting option", "price"),
-        ),
-        ("updated_at", pgettext_lazy("Product list sorting option", "last updated")),
+        ("name", "name"),
+        ("minimal_variant_price_amount", "price"),
+        ("updated_at", "last updated"),
     ]
 )
 
@@ -51,13 +47,10 @@ class AttributeValuesFilter(MultipleChoiceFilter):
 
 class ProductFilter(SortedFilterSet):
     sort_by = OrderingFilter(
-        label=pgettext_lazy("Product list sorting form", "Sort by"),
-        fields=SORT_BY_FIELDS.keys(),
-        field_labels=SORT_BY_FIELDS,
+        label="Sort by", fields=SORT_BY_FIELDS.keys(), field_labels=SORT_BY_FIELDS,
     )
     minimal_variant_price = RangeFilter(
-        label=pgettext_lazy("Currency amount", "Price"),
-        field_name="minimal_variant_price_amount",
+        label="Price", field_name="minimal_variant_price_amount",
     )
 
     class Meta:
