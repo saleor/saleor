@@ -39,6 +39,7 @@ type AccountError {
 enum AccountErrorCode {
   ACTIVATE_OWN_ACCOUNT
   ACTIVATE_SUPERUSER_ACCOUNT
+  ASSIGN_NON_STAFF_MEMBER
   DEACTIVATE_OWN_ACCOUNT
   DEACTIVATE_SUPERUSER_ACCOUNT
   DELETE_NON_STAFF_USER
@@ -1769,6 +1770,24 @@ input GiftCardUpdateInput {
   userEmail: String
 }
 
+type Group implements Node {
+  id: ID!
+  name: String!
+  permissions: [PermissionDisplay]
+  users: [User]
+}
+
+type GroupCountableConnection {
+  pageInfo: PageInfo!
+  edges: [GroupCountableEdge!]!
+  totalCount: Int
+}
+
+type GroupCountableEdge {
+  node: Group!
+  cursor: String!
+}
+
 type HomepageCollectionUpdate {
   errors: [Error!]
   shop: Shop
@@ -2324,6 +2343,11 @@ type Mutation {
   serviceAccountClearPrivateMetadata(id: ID!, input: MetaPath!): ServiceAccountClearPrivateMeta
   serviceAccountTokenCreate(input: ServiceAccountTokenInput!): ServiceAccountTokenCreate
   serviceAccountTokenDelete(id: ID!): ServiceAccountTokenDelete
+  permissionGroupCreate(input: PermissionGroupCreateInput!): PermissionGroupCreate
+  permissionGroupUpdate(id: ID!, input: PermissionGroupInput!): PermissionGroupUpdate
+  permissionGroupDelete(id: ID!): PermissionGroupDelete
+  permissionGroupAssignUsers(id: ID!, input: UsersInput!): PermissionGroupAssignUsers
+  permissionGroupUnassignUsers(id: ID!, input: UsersInput!): PermissionGroupUnassignUsers
 }
 
 input NameTranslationInput {
@@ -2913,6 +2937,59 @@ enum PermissionEnum {
   MANAGE_TRANSLATIONS
   MANAGE_WEBHOOKS
   MANAGE_CHECKOUTS
+}
+
+type PermissionGroupAssignUsers {
+  errors: [Error!]
+  group: Group
+  accountErrors: [AccountError!]
+}
+
+type PermissionGroupCreate {
+  errors: [Error!]
+  group: Group
+  accountErrors: [AccountError!]
+}
+
+input PermissionGroupCreateInput {
+  name: String!
+  permissions: [PermissionEnum!]
+}
+
+type PermissionGroupDelete {
+  errors: [Error!]
+  accountErrors: [AccountError!]
+  group: Group
+}
+
+input PermissionGroupFilterInput {
+  search: String
+}
+
+input PermissionGroupInput {
+  name: String
+  permissions: [PermissionEnum!]
+}
+
+enum PermissionGroupSortField {
+  NAME
+}
+
+input PermissionGroupSortingInput {
+  direction: OrderDirection!
+  field: PermissionGroupSortField!
+}
+
+type PermissionGroupUnassignUsers {
+  errors: [Error!]
+  group: Group
+  accountErrors: [AccountError!]
+}
+
+type PermissionGroupUpdate {
+  errors: [Error!]
+  group: Group
+  accountErrors: [AccountError!]
 }
 
 type Plugin implements Node {
@@ -3559,6 +3636,8 @@ type Query {
   addressValidationRules(countryCode: CountryCode!, countryArea: String, city: String, cityArea: String): AddressValidationData
   address(id: ID!): Address
   customers(filter: CustomerFilterInput, sortBy: UserSortingInput, before: String, after: String, first: Int, last: Int): UserCountableConnection
+  permissionGroups(filter: PermissionGroupFilterInput, sortBy: PermissionGroupSortingInput, before: String, after: String, first: Int, last: Int): GroupCountableConnection
+  permissionGroup(id: ID!): Group
   me: User
   staffUsers(filter: StaffUserInput, sortBy: UserSortingInput, before: String, after: String, first: Int, last: Int): UserCountableConnection
   serviceAccounts(filter: ServiceAccountFilterInput, sortBy: ServiceAccountSortingInput, before: String, after: String, first: Int, last: Int): ServiceAccountCountableConnection
@@ -4448,6 +4527,10 @@ type UserUpdatePrivateMeta {
   user: User
 }
 
+input UsersInput {
+  users: [ID!]!
+}
+
 type VAT {
   countryCode: String!
   standardRate: Float
@@ -4883,7 +4966,7 @@ type WishlistRemoveProductVariantMutation {
 
 scalar _Any
 
-union _Entity = Address | ServiceAccount | User | ProductVariant | Product | ProductType | Collection | Category | ProductImage
+union _Entity = Address | ServiceAccount | User | Group | ProductVariant | Product | ProductType | Collection | Category | ProductImage
 
 type _Service {
   sdl: String
