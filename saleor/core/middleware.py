@@ -9,7 +9,7 @@ from django.http import JsonResponse
 from django.template.response import TemplateResponse
 from django.utils import timezone
 from django.utils.functional import SimpleLazyObject
-from django.utils.translation import get_language, ugettext_lazy as _
+from django.utils.translation import get_language
 from django_countries.fields import Country
 
 from ..discount.utils import fetch_discounts
@@ -154,9 +154,7 @@ class ReadOnlyMiddleware:
             if not self._is_graphql_request_blocked(request):
                 return None
             error = GraphQLView.format_error(
-                ReadOnlyException(
-                    _("Be aware admin pirate! API runs in read-only mode!")
-                )
+                ReadOnlyException("Be aware admin pirate! API runs in read-only mode!")
             )
             data = {"errors": [error], "data": None}
             response = JsonResponse(data=data, safe=False)
