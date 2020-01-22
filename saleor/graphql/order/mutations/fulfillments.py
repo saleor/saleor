@@ -1,6 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
-from django.utils.translation import npgettext_lazy, pgettext_lazy
+from django.template.defaultfilters import pluralize
 
 from ....core.permissions import OrderPermissions
 from ....order import models
@@ -104,14 +104,14 @@ class FulfillmentCreate(BaseMutation):
     @classmethod
     def clean_lines(cls, order_lines, quantities):
         for order_line, quantity in zip(order_lines, quantities):
-            if quantity > order_line.quantity_unfulfilled:
-                msg = npgettext_lazy(
-                    "Fulfill order line mutation error",
-                    "Only %(quantity)d item remaining to fulfill: %(order_line)s.",
-                    "Only %(quantity)d items remaining to fulfill: %(order_line)s.",
-                    number="quantity",
+            line_quantity_unfulfilled = order_line.quantity_unfulfilled
+            if quantity > line_quantity_unfulfilled:
+                msg = (
+                    "Only %(quantity)d item%(item_pluralize)s remaining"
+                    "to fulfill: %(order_line)s."
                 ) % {
-                    "quantity": order_line.quantity_unfulfilled,
+                    "quantity": line_quantity_unfulfilled,
+                    "item_pluralize": pluralize(line_quantity_unfulfilled),
                     "order_line": order_line,
                 }
                 raise ValidationError(
@@ -241,10 +241,7 @@ class FulfillmentCancel(BaseMutation):
         fulfillment = cls.get_node_or_error(info, data.get("id"), only_type=Fulfillment)
 
         if not fulfillment.can_edit():
-            err_msg = pgettext_lazy(
-                "Cancel fulfillment mutation error",
-                "This fulfillment can't be canceled",
-            )
+            err_msg = "This fulfillment can't be canceled"
             raise ValidationError(
                 {
                     "fulfillment": ValidationError(
