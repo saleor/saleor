@@ -1124,7 +1124,7 @@ def test_product_create_with_collections_webhook(
 
     monkeypatch.setattr(
         "saleor.extensions.manager.ExtensionsManager.product_created",
-        lambda cls, product: assert_product_has_collections(product),
+        lambda _, product: assert_product_has_collections(product),
     )
 
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
