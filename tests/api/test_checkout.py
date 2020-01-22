@@ -1,4 +1,5 @@
 from decimal import Decimal
+from tests.conftest import payment_txn_to_confirm, shipping_method
 import uuid
 from decimal import Decimal
 from unittest import mock
@@ -1270,12 +1271,13 @@ def fake_manager(mocker):
 
 @pytest.fixture
 def mock_get_manager(mocker, fake_manager):
-    mocker.patch(
+    manager = mocker.patch(
         "saleor.payment.gateway.get_extensions_manager",
         autospec=True,
         return_value=fake_manager,
     )
-    return fake_manager
+    yield fake_manager
+    manager.assert_called_once()
 
 
 def test_checkout_complete_does_not_delete_checkout_after_unsuccessful_payment(
@@ -1422,10 +1424,40 @@ def test_checkout_complete_confirmation_needed(
     assert payment_dummy.is_active
     assert payment_dummy.to_confirm
 
+
+def test_checkout_confirm(
+    user_api_client,
+    mock_get_manager,
+    checkout_with_item,
+    payment_txn_to_confirm,
+    address,
+    shipping_method,
+):
     mock_get_manager.confirm_payment.return_value = ACTION_REQUIRED_GATEWAY_RESPONSE
+
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    total = calculations.checkout_total(checkout)
+    payment = payment_txn_to_confirm
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    orders_count = Order.objects.count()
+
+    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutComplete"]
+
     assert not data["errors"]
     assert not data["confirmationNeeded"]
 
