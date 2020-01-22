@@ -50,6 +50,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix getting title field in page mutations #5160 by @maarcingebala
 - Copy public and private metadata from the checkout to the order upon creation -  #5165 by @dankolbman
 - Add warehouses and stocks- #4986 by @szewczykmira
+- Drop gettext occurrences - #5189 by @IKarbowiak
 
 ## 2.9.0
 
