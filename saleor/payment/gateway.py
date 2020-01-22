@@ -69,10 +69,11 @@ def process_payment(
     response, error = _fetch_gateway_response(
         plugin_manager.process_payment, payment.gateway, payment_data
     )
+    action_required = response is not None and response.action_required
     return create_transaction(
         payment=payment,
         kind=TransactionKind.CAPTURE,
-        action_required=response.action_required,
+        action_required=action_required,
         payment_information=payment_data,
         error_msg=error,
         gateway_response=response,
