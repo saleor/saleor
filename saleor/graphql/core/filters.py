@@ -1,11 +1,10 @@
 import django_filters
 from django.core.exceptions import ValidationError
-from django.utils.translation import ugettext_lazy as _
 from django_filters.fields import MultipleChoiceField
 
 
 class DefaultMultipleChoiceField(MultipleChoiceField):
-    default_error_messages = {"invalid_list": _("Enter a list of values.")}
+    default_error_messages = {"invalid_list": "Enter a list of values."}
 
     def to_python(self, value):
         if not value:
