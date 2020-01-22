@@ -201,17 +201,17 @@ def gateway_postprocess(transaction, payment):
         if payment.get_charge_amount() <= 0:
             payment.charge_status = ChargeStatus.FULLY_CHARGED
 
-        payment.save(update_fields=["charge_status", "captured_amount"])
+        payment.save(update_fields=["charge_status", "captured_amount", "modified"])
         order = payment.order
         if order and order.is_fully_paid():
             handle_fully_paid_order(order)
 
     elif transaction_kind == TransactionKind.VOID:
         payment.is_active = False
-        payment.save(update_fields=["is_active"])
+        payment.save(update_fields=["is_active", "modified"])
 
     elif transaction_kind == TransactionKind.REFUND:
-        changed_fields = ["captured_amount"]
+        changed_fields = ["captured_amount", "modified"]
         payment.captured_amount -= transaction.amount
         payment.charge_status = ChargeStatus.PARTIALLY_REFUNDED
         if payment.captured_amount <= 0:
@@ -252,7 +252,13 @@ def update_card_details(payment, gateway_response):
     payment.cc_exp_year = gateway_response.card_info.exp_year
     payment.cc_exp_month = gateway_response.card_info.exp_month
     payment.save(
-        update_fields=["cc_brand", "cc_last_digits", "cc_exp_year", "cc_exp_month"]
+        update_fields=[
+            "cc_brand",
+            "cc_last_digits",
+            "cc_exp_year",
+            "cc_exp_month",
+            "modified",
+        ]
     )
 
 
