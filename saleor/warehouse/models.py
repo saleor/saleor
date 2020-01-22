@@ -16,6 +16,9 @@ class WarehouseQueryset(models.QuerySet):
     def prefetch_data(self):
         return self.select_related("address").prefetch_related("shipping_zones")
 
+    def for_country(self, country: str):
+        return self.prefetch_data().get(shipping_zones__countries__contains=country)
+
 
 class Warehouse(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
@@ -74,6 +77,15 @@ class StockQuerySet(models.QuerySet):
         self, country_code: str, product_variant: ProductVariant
     ):
         return self.for_country(country_code).get(product_variant=product_variant)
+
+    def get_or_create_for_country(
+        self, country_code: str, product_variant: ProductVariant
+    ):
+        try:
+            return self.get_variant_stock_for_country(country_code, product_variant)
+        except Stock.DoesNotExist:
+            warehouse = Warehouse.objects.for_country(country_code)
+            return self.create(product_variant=product_variant, warehouse=warehouse)
 
 
 class Stock(models.Model):
