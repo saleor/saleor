@@ -8,7 +8,6 @@ from django.contrib.postgres.fields import JSONField
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.encoding import smart_str
-from django.utils.translation import pgettext_lazy
 from django_countries.fields import Country, CountryField
 from django_prices.models import MoneyField
 from prices import Money
@@ -102,10 +101,7 @@ class Checkout(ModelWithMetadata):
     class Meta:
         ordering = ("-last_change",)
         permissions = (
-            (
-                CheckoutPermissions.MANAGE_CHECKOUTS.codename,
-                pgettext_lazy("Permission description", "Manage checkouts"),
-            ),
+            (CheckoutPermissions.MANAGE_CHECKOUTS.codename, "Manage checkouts"),
         )
 
     def __repr__(self):
