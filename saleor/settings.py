@@ -5,11 +5,28 @@ import warnings
 import dj_database_url
 import dj_email_url
 import sentry_sdk
+from ddtrace.opentracer import Tracer, set_global_tracer
 from django.contrib.messages import constants as messages
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import gettext_lazy as _, pgettext_lazy
 from django_prices.utils.formatting import get_currency_fraction
 from sentry_sdk.integrations.django import DjangoIntegration
+
+
+def init_tracer(service_name):
+    config = {
+        "agent_hostname": "localhost",
+        "agent_port": 8126,
+    }
+    tracer = Tracer(service_name, config=config)
+    set_global_tracer(tracer)
+    return tracer
+
+
+init_tracer("saleor")
+
+
+ENABLE_OPENTRACING = True
 
 
 def get_list(text):
@@ -185,6 +202,7 @@ TEMPLATES = [
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
 MIDDLEWARE = [
+    # 'django_opentracing.OpenTracingMiddleware',
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
     "saleor.core.middleware.discounts",
@@ -526,6 +544,7 @@ if SENTRY_DSN:
     sentry_sdk.init(dsn=SENTRY_DSN, integrations=[DjangoIntegration()])
 
 GRAPHENE = {
+    "MIDDLEWARE": ("saleor.graphql.middleware.OpentracingGrapheneMiddleware",),
     "RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST": True,
     "RELAY_CONNECTION_MAX_LIMIT": 100,
 }

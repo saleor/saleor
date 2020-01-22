@@ -16,6 +16,7 @@ certifi==2019.11.28
 cffi==1.13.2
 chardet==3.0.4
 cssselect2==0.2.2
+ddtrace==0.32.2
 defusedxml==0.6.0
 dj-database-url==0.5.0
 dj-email-url==0.2.0
@@ -71,6 +72,7 @@ maxminddb-geolite2==2018.703
 measurement==3.2.0
 mpmath==1.1.0
 oauthlib==3.1.0
+opentracing==2.3.0
 phonenumberslite==8.11.1
 pillow==6.2.1
 prices==1.0.0

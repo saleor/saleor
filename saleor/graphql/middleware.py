@@ -1,5 +1,6 @@
 from typing import Optional
 
+import opentracing
 from django.conf import settings
 from django.contrib.auth.models import AnonymousUser
 from django.utils.functional import SimpleLazyObject
@@ -33,6 +34,24 @@ def jwt_middleware(get_response):
         return get_response(request)
 
     return _jwt_middleware
+
+
+def should_trace(info):
+    if info.field_name not in info.parent_type.fields:
+        return False
+
+    return not info.field_name.startswith("__")
+
+
+class OpentracingGrapheneMiddleware:
+    @staticmethod
+    def resolve(next, root, info, **kwargs):
+        if settings.ENABLE_OPENTRACING and should_trace(info):
+            with opentracing.tracer.start_span(operation_name=info.field_name) as span:
+                span.set_tag("parent-type", info.parent_type.name)
+                return next(root, info, **kwargs)
+
+        return next(root, info, **kwargs)
 
 
 def get_service_account(auth_token) -> Optional[ServiceAccount]:
