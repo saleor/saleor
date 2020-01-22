@@ -1,17 +1,15 @@
 import itertools
 import uuid
-from typing import Optional, Set
+from typing import Set
 
-from django.contrib.sites.models import Site
-from django.db import models, transaction
-from django.db.models import F, QuerySet
+from django.db import models
+from django.db.models import F
 from django.utils.translation import pgettext_lazy
 
 from ..account.models import Address
 from ..core.exceptions import InsufficientStock
 from ..product.models import ProductVariant
 from ..shipping.models import ShippingZone
-from ..site.models import SiteSettings
 
 
 class WarehouseQueryset(models.QuerySet):
@@ -19,23 +17,7 @@ class WarehouseQueryset(models.QuerySet):
         return self.select_related("address").prefetch_related("shipping_zones")
 
     def for_country(self, country: str):
-        return self.filter(shipping_zone__countries__contains=country)
-
-    @transaction.atomic
-    def create_for_shipping_zones(
-        self,
-        address: Optional[Address] = None,
-        shipping_zones: Optional[QuerySet] = None,
-    ):
-        if shipping_zones is None:
-            shipping_zones = ShippingZone.objects.all()
-        current_settings = SiteSettings.objects.get(site=Site.objects.get_current())
-        address = address or current_settings.company_address
-        if address is None:
-            address = Address.objects.create()
-        warehouse = self.create(address=address)
-        warehouse.shipping_zones.add(*shipping_zones.values_list("pk", flat=True))
-        return warehouse
+        return self.prefetch_data().get(shipping_zones__countries__contains=country)
 
 
 class Warehouse(models.Model):
@@ -95,6 +77,15 @@ class StockQuerySet(models.QuerySet):
         self, country_code: str, product_variant: ProductVariant
     ):
         return self.for_country(country_code).get(product_variant=product_variant)
+
+    def get_or_create_for_country(
+        self, country_code: str, product_variant: ProductVariant
+    ):
+        try:
+            return self.get_variant_stock_for_country(country_code, product_variant)
+        except Stock.DoesNotExist:
+            warehouse = Warehouse.objects.for_country(country_code)
+            return self.create(product_variant=product_variant, warehouse=warehouse)
 
 
 class Stock(models.Model):
