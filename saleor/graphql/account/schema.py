@@ -7,7 +7,12 @@ from ..core.types import FilterInputObjectType
 from ..decorators import one_of_permissions_required, permission_required
 from .bulk_mutations import CustomerBulkDelete, StaffBulkDelete, UserBulkSetActive
 from .enums import CountryCodeEnum
-from .filters import CustomerFilter, ServiceAccountFilter, StaffUserFilter
+from .filters import (
+    CustomerFilter,
+    PermissionGroupFilter,
+    ServiceAccountFilter,
+    StaffUserFilter,
+)
 from .mutations.account import (
     AccountAddressCreate,
     AccountAddressDelete,
@@ -28,6 +33,13 @@ from .mutations.base import (
     SetPassword,
     UserClearMeta,
     UserUpdateMeta,
+)
+from .mutations.permission_group import (
+    PermissionGroupAssignUsers,
+    PermissionGroupCreate,
+    PermissionGroupDelete,
+    PermissionGroupUnassignUsers,
+    PermissionGroupUpdate,
 )
 from .mutations.service_account import (
     ServiceAccountClearPrivateMeta,
@@ -58,17 +70,27 @@ from .resolvers import (
     resolve_address,
     resolve_address_validation_rules,
     resolve_customers,
+    resolve_permission_groups,
     resolve_service_accounts,
     resolve_staff_users,
     resolve_user,
 )
-from .sorters import ServiceAccountSortingInput, UserSortingInput
-from .types import Address, AddressValidationData, ServiceAccount, User
+from .sorters import (
+    PermissionGroupSortingInput,
+    ServiceAccountSortingInput,
+    UserSortingInput,
+)
+from .types import Address, AddressValidationData, Group, ServiceAccount, User
 
 
 class CustomerFilterInput(FilterInputObjectType):
     class Meta:
         filterset_class = CustomerFilter
+
+
+class PermissionGroupFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = PermissionGroupFilter
 
 
 class StaffUserInput(FilterInputObjectType):
@@ -110,6 +132,21 @@ class AccountQueries(graphene.ObjectType):
         filter=CustomerFilterInput(description="Filtering options for customers."),
         sort_by=UserSortingInput(description="Sort customers."),
         description="List of the shop's customers.",
+    )
+    permission_groups = FilterInputConnectionField(
+        Group,
+        filter=PermissionGroupFilterInput(
+            description="Filtering options for permission groups."
+        ),
+        sort_by=PermissionGroupSortingInput(description="Sort permission groups."),
+        description="List of permission groups.",
+    )
+    permission_group = graphene.Field(
+        Group,
+        id=graphene.Argument(
+            graphene.ID, description="ID of the group.", required=True
+        ),
+        description="Look up permission group by ID.",
     )
     me = graphene.Field(User, description="Return the currently authenticated user.")
     staff_users = FilterInputConnectionField(
@@ -163,6 +200,14 @@ class AccountQueries(graphene.ObjectType):
     def resolve_customers(self, info, query=None, **kwargs):
         return resolve_customers(info, query=query, **kwargs)
 
+    @permission_required(AccountPermissions.MANAGE_STAFF)
+    def resolve_permission_groups(self, info, query=None, **kwargs):
+        return resolve_permission_groups(info, query=query, **kwargs)
+
+    @permission_required(AccountPermissions.MANAGE_STAFF)
+    def resolve_permission_group(self, info, id):
+        return graphene.Node.get_node_from_global_id(info, id, Group)
+
     @login_required
     def resolve_me(self, info):
         return info.context.user
@@ -203,7 +248,7 @@ class AccountMutations(graphene.ObjectType):
 
     account_update_meta = AccountUpdateMeta.Field()
 
-    # Staff mutation
+    # Staff mutations
     address_create = AddressCreate.Field()
     address_update = AddressUpdate.Field()
     address_delete = AddressDelete.Field()
@@ -238,3 +283,10 @@ class AccountMutations(graphene.ObjectType):
 
     service_account_token_create = ServiceAccountTokenCreate.Field()
     service_account_token_delete = ServiceAccountTokenDelete.Field()
+
+    # Permission group mutations
+    permission_group_create = PermissionGroupCreate.Field()
+    permission_group_update = PermissionGroupUpdate.Field()
+    permission_group_delete = PermissionGroupDelete.Field()
+    permission_group_assign_users = PermissionGroupAssignUsers.Field()
+    permission_group_unassign_users = PermissionGroupUnassignUsers.Field()
