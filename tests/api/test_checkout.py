@@ -1,5 +1,4 @@
 from decimal import Decimal
-from tests.conftest import payment_txn_to_confirm, shipping_method
 import uuid
 from decimal import Decimal
 from unittest import mock
