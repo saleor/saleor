@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, Mock
 
 import pytest
 from django.conf import settings
-from django.contrib.auth.models import Permission
+from django.contrib.auth.models import Group, Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -86,7 +86,7 @@ from tests.utils import create_image
 
 
 class CaptureQueriesContext(BaseCaptureQueriesContext):
-    IGNORED_QUERIES = settings.PATTERNS_IGNORED_IN_QUERY_CAPTURES
+    IGNORED_QUERIES = settings.PATTERNS_IGNORED_IN_QUERY_CAPTURES  # type: ignore
 
     @property
     def captured_queries(self):
@@ -1289,6 +1289,21 @@ def permission_manage_translations():
 @pytest.fixture
 def permission_manage_webhooks():
     return Permission.objects.get(codename="manage_webhooks")
+
+
+@pytest.fixture
+def permission_group_manage_users(permission_manage_users, staff_user):
+    group = Group.objects.create(name="Manage user groups.")
+    group.permissions.add(permission_manage_users)
+
+    staff_user2 = User.objects.get(pk=staff_user.pk)
+    staff_user2.id = None
+    staff_user2.email = "test_staff@example.com"
+    staff_user2.save()
+    staff_user2.refresh_from_db()
+
+    group.user_set.add(staff_user2)
+    return group
 
 
 @pytest.fixture

@@ -154,7 +154,9 @@ def test_total_count_query(api_client, product):
     assert content["data"]["products"]["totalCount"] == Product.objects.count()
 
 
-def test_mutation_decimal_input(staff_api_client, variant, permission_manage_products):
+def test_mutation_decimal_input(
+    staff_api_client, variant, stock, permission_manage_products
+):
     query = """
     mutation decimalInput($id: ID!, $cost: Decimal) {
         productVariantUpdate(id: $id,
@@ -174,6 +176,7 @@ def test_mutation_decimal_input(staff_api_client, variant, permission_manage_pro
     variables = {
         "id": graphene.Node.to_global_id("ProductVariant", variant.id),
         "cost": 12.12,
+        "quantity": 17,
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_products]
