@@ -107,7 +107,7 @@ class FulfillmentCreate(BaseMutation):
             line_quantity_unfulfilled = order_line.quantity_unfulfilled
             if quantity > line_quantity_unfulfilled:
                 msg = (
-                    "Only %(quantity)d item%(item_pluralize)s remaining"
+                    "Only %(quantity)d item%(item_pluralize)s remaining "
                     "to fulfill: %(order_line)s."
                 ) % {
                     "quantity": line_quantity_unfulfilled,
