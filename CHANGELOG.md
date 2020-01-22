@@ -51,6 +51,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Copy public and private metadata from the checkout to the order upon creation -  #5165 by @dankolbman
 - Add warehouses and stocks- #4986 by @szewczykmira
 - Add permission groups - #5176 by @IKarbowiak
+- Add additional confirmation step to checkoutComplete mutation - #5179 by @salwator
 
 ## 2.9.0
 
