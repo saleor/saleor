@@ -4,7 +4,6 @@ from typing import Set
 
 from django.db import models
 from django.db.models import F
-from django.utils.translation import pgettext_lazy
 
 from ..account.models import Address
 from ..core.exceptions import InsufficientStock
@@ -19,23 +18,13 @@ class WarehouseQueryset(models.QuerySet):
 
 class Warehouse(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
-    name = models.CharField(
-        pgettext_lazy("Warehouse field description", "Warehouse name"), max_length=255
-    )
-    company_name = models.CharField(
-        pgettext_lazy("Warehouse field description", "Legal company name"),
-        blank=True,
-        max_length=255,
-    )
+    name = models.CharField("Warehouse name", max_length=255)
+    company_name = models.CharField("Legal company name", blank=True, max_length=255)
 
     shipping_zones = models.ManyToManyField(ShippingZone, blank=True)
     address = models.ForeignKey(Address, on_delete=models.PROTECT)
 
-    email = models.EmailField(
-        pgettext_lazy("Warehouse field description", "Email address"),
-        blank=True,
-        default="",
-    )
+    email = models.EmailField("Email address", blank=True, default="")
 
     objects = WarehouseQueryset.as_manager()
 
