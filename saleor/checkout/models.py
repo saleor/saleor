@@ -52,7 +52,7 @@ class Checkout(ModelWithMetadata):
     """A shopping checkout."""
 
     created = models.DateTimeField(auto_now_add=True)
-    last_change = models.DateTimeField(auto_now_add=True)
+    last_change = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         blank=True,
