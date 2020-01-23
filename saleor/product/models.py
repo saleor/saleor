@@ -10,7 +10,6 @@ from django.urls import reverse
 from django.utils.encoding import smart_text
 from django.utils.html import strip_tags
 from django.utils.text import slugify
-from django.utils.translation import pgettext_lazy
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField
 from draftjs_sanitizer import clean_draft_js
@@ -290,10 +289,7 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
         app_label = "product"
         ordering = ("name",)
         permissions = (
-            (
-                ProductPermissions.MANAGE_PRODUCTS.codename,
-                pgettext_lazy("Permission description", "Manage products."),
-            ),
+            (ProductPermissions.MANAGE_PRODUCTS.codename, "Manage products."),
         )
 
     def __iter__(self):
@@ -527,9 +523,7 @@ class ProductVariantTranslation(models.Model):
 
 class DigitalContent(ModelWithMetadata):
     FILE = "file"
-    TYPE_CHOICES = (
-        (FILE, pgettext_lazy("File as a digital product", "digital_product")),
-    )
+    TYPE_CHOICES = ((FILE, "digital_product"),)
     use_default_settings = models.BooleanField(default=True)
     automatic_fulfillment = models.BooleanField(default=False)
     content_type = models.CharField(max_length=128, default=FILE, choices=TYPE_CHOICES)

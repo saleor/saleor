@@ -4,7 +4,6 @@ from django.conf import settings
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.db.models import Q
-from django.utils.translation import pgettext_lazy
 from django_countries.fields import CountryField
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField
@@ -55,14 +54,15 @@ def _get_weight_type_display(min_weight, max_weight):
         max_weight = convert_weight(max_weight, default_unit)
 
     if max_weight is None:
-        return pgettext_lazy(
-            "Applies to orders heavier than the threshold", "%(min_weight)s and up"
-        ) % {"min_weight": min_weight}
-    return pgettext_lazy(
-        "Applies to orders of total weight within this range",
-        "%(min_weight)s to %(max_weight)s"
-        % {"min_weight": min_weight, "max_weight": max_weight},
-    )
+        return (
+            "Applies to orders heavier than the threshold",
+            "%(min_weight)s and up" % {"min_weight": min_weight},
+        )
+    return ("Applies to orders of total weight within this range",)
+    "%(min_weight)s to %(max_weight)s" % {
+        "min_weight": min_weight,
+        "max_weight": max_weight,
+    },
 
 
 class ShippingZone(models.Model):
@@ -85,10 +85,7 @@ class ShippingZone(models.Model):
 
     class Meta:
         permissions = (
-            (
-                ShippingPermissions.MANAGE_SHIPPING.codename,
-                pgettext_lazy("Permission description", "Manage shipping."),
-            ),
+            (ShippingPermissions.MANAGE_SHIPPING.codename, "Manage shipping."),
         )
 
 

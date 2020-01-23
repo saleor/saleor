@@ -3,7 +3,6 @@ from functools import wraps
 from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
-from django.utils.translation import pgettext
 from prices import Money, TaxedMoney
 
 from ..core.taxes import zero_money
@@ -313,9 +312,7 @@ def get_products_voucher_discount_for_order(voucher: Voucher) -> Money:
     """Calculate products discount value for a voucher, depending on its type."""
     prices = None
     if not prices:
-        msg = pgettext(
-            "Voucher not applicable", "This offer is only valid for selected items."
-        )
+        msg = "This offer is only valid for selected items."
         raise NotApplicable(msg)
     return get_products_voucher_discount(voucher, prices)
 

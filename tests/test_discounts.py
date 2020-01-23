@@ -34,6 +34,19 @@ def test_valid_voucher_min_spent_amount(min_spent_amount, value):
     voucher.validate_min_spent(value)
 
 
+def test_valid_voucher_min_checkout_items_quantity(voucher):
+    voucher.min_checkout_items_quantity = 3
+    voucher.save()
+
+    with pytest.raises(NotApplicable) as e:
+        voucher.validate_min_checkout_items_quantity(2)
+
+    assert (
+        str(e.value)
+        == "This offer is only valid for orders with a minimum of 3 quantity."
+    )
+
+
 @pytest.mark.integration
 @pytest.mark.django_db(transaction=True)
 def test_variant_discounts(product):
