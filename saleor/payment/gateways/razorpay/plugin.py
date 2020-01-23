@@ -1,7 +1,5 @@
 from typing import TYPE_CHECKING
 
-from django.utils.translation import pgettext_lazy
-
 from saleor.extensions import ConfigurationTypeField
 from saleor.extensions.base_plugin import BasePlugin
 
@@ -29,32 +27,24 @@ class RazorpayGatewayPlugin(BasePlugin):
     CONFIG_STRUCTURE = {
         "Public API key": {
             "type": ConfigurationTypeField.SECRET,
-            "help_text": pgettext_lazy("Plugin help text", "Provide  public API key"),
-            "label": pgettext_lazy("Plugin label", "Public API key"),
+            "help_text": "Provide  public API key",
+            "label": "Public API key",
         },
         "Secret API key": {
             "type": ConfigurationTypeField.SECRET,
-            "help_text": pgettext_lazy(
-                "Plugin help text", "Provide Stripe secret API key"
-            ),
-            "label": pgettext_lazy("Plugin label", "Secret API key"),
+            "help_text": "Provide Stripe secret API key",
+            "label": "Secret API key",
         },
         "Store customers card": {
             "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": pgettext_lazy(
-                "Plugin help text",
-                "Determines if Saleor should store cards on payments"
-                "in Stripe customer.",
-            ),
-            "label": pgettext_lazy("Plugin label", "Store customers card"),
+            "help_text": "Determines if Saleor should store cards on payments"
+            "in Stripe customer.",
+            "label": "Store customers card",
         },
         "Automatic payment capture": {
             "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": pgettext_lazy(
-                "Plugin help text",
-                "Determines if Saleor should automaticaly capture payments.",
-            ),
-            "label": pgettext_lazy("Plugin label", "Automatic payment capture"),
+            "help_text": "Determines if Saleor should automaticaly capture payments.",
+            "label": "Automatic payment capture",
         },
     }
 

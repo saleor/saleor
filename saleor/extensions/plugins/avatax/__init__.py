@@ -10,7 +10,6 @@ import requests
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.cache import cache
-from django.utils.translation import pgettext_lazy
 from requests.auth import HTTPBasicAuth
 
 from ....checkout import base_calculations
@@ -53,10 +52,7 @@ class TransactionType:
 
 
 class CustomerErrors:
-    DEFAULT_MSG = pgettext_lazy(
-        "Default tax error msg",
-        "We are not able to calculate taxes for your order. Please try later",
-    )
+    DEFAULT_MSG = "We are not able to calculate taxes for your order. Please try later"
     ERRORS = ("InvalidPostalCode", "InvalidAddress", "MissingAddress")
 
     @classmethod

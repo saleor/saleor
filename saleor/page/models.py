@@ -1,5 +1,4 @@
 from django.db import models
-from django.utils.translation import pgettext_lazy
 from draftjs_sanitizer import clean_draft_js
 
 from ..core.db.fields import SanitizedJSONField
@@ -29,12 +28,7 @@ class Page(SeoModel, PublishableModel):
 
     class Meta:
         ordering = ("slug",)
-        permissions = (
-            (
-                PagePermissions.MANAGE_PAGES.codename,
-                pgettext_lazy("Permission description", "Manage pages."),
-            ),
-        )
+        permissions = ((PagePermissions.MANAGE_PAGES.codename, "Manage pages."),)
 
     def __str__(self):
         return self.title
