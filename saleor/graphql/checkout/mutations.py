@@ -424,9 +424,7 @@ class CheckoutCustomerAttach(BaseMutation):
         return context.user.is_authenticated
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        checkout_id = data.get("checkout_id")
-        customer_id = data.get("customer_id")
+    def perform_mutation(cls, _root, info, checkout_id, customer_id=None):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
@@ -460,8 +458,7 @@ class CheckoutCustomerDetach(BaseMutation):
         return context.user.is_authenticated
 
     @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        checkout_id = data.get("checkout_id")
+    def perform_mutation(cls, _root, info, checkout_id):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
