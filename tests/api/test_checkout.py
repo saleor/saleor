@@ -8,6 +8,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from prices import Money, TaxedMoney
 
+from saleor.account.models import User
 from saleor.checkout import calculations
 from saleor.checkout.error_codes import CheckoutErrorCode
 from saleor.checkout.models import Checkout
@@ -25,7 +26,7 @@ from saleor.payment.interface import GatewayResponse
 from saleor.shipping import ShippingMethodType
 from saleor.shipping.models import ShippingMethod
 from saleor.warehouse.models import Stock
-from tests.api.utils import get_graphql_content
+from tests.api.utils import assert_no_permission, get_graphql_content
 
 
 @pytest.fixture
@@ -851,7 +852,9 @@ def test_checkout_line_delete_by_zero_quantity(
     mocked_update_shipping_method.assert_called_once_with(checkout, mock.ANY)
 
 
-def test_checkout_customer_attach(user_api_client, checkout_with_item, customer_user):
+def test_checkout_customer_attach(
+    api_client, user_api_client, checkout_with_item, customer_user
+):
     checkout = checkout_with_item
     assert checkout.user is None
 
@@ -871,15 +874,25 @@ def test_checkout_customer_attach(user_api_client, checkout_with_item, customer_
     """
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     customer_id = graphene.Node.to_global_id("User", customer_user.pk)
-
     variables = {"checkoutId": checkout_id, "customerId": customer_id}
+
+    # Mutation should fail for unauthenticated customers
+    response = api_client.post_graphql(query, variables)
+    assert_no_permission(response)
+
+    # Mutation should succeed for authenticated customer
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-
     data = content["data"]["checkoutCustomerAttach"]
     assert not data["errors"]
     checkout.refresh_from_db()
     assert checkout.user == customer_user
+
+    # Mutation with ID of a different user should fail as well
+    other_customer = User.objects.create_user("othercustomer@example.com", "password")
+    variables["customerId"] = graphene.Node.to_global_id("User", other_customer.pk)
+    response = user_api_client.post_graphql(query, variables)
+    assert_no_permission(response)
 
 
 MUTATION_CHECKOUT_CUSTOMER_DETACH = """
@@ -904,15 +917,25 @@ def test_checkout_customer_detach(user_api_client, checkout_with_item, customer_
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     variables = {"checkoutId": checkout_id}
+
+    # Mutation should succeed if the user owns this checkout.
     response = user_api_client.post_graphql(
         MUTATION_CHECKOUT_CUSTOMER_DETACH, variables
     )
     content = get_graphql_content(response)
-
     data = content["data"]["checkoutCustomerDetach"]
     assert not data["errors"]
     checkout.refresh_from_db()
     assert checkout.user is None
+
+    # Mutation should fail when user calling it doesn't own the checkout.
+    other_user = User.objects.create_user("othercustomer@example.com", "password")
+    checkout.user = other_user
+    checkout.save()
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_CUSTOMER_DETACH, variables
+    )
+    assert_no_permission(response)
 
 
 MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE = """
