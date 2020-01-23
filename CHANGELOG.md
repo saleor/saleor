@@ -51,7 +51,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Copy public and private metadata from the checkout to the order upon creation -  #5165 by @dankolbman
 - Add warehouses and stocks- #4986 by @szewczykmira
 - Add permission groups - #5176 by @IKarbowiak
-- Fix `product_created` webhook - #5169 by @dzkb
+- Drop gettext occurrences - #5189 by @IKarbowiak
+- Fix `product_created` webhook - #5187 by @dzkb
 
 ## 2.9.0
 

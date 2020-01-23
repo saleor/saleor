@@ -28,6 +28,7 @@ from ....product.utils.attributes import (
     associate_attribute_values_to_instance,
     generate_name_for_variant,
 )
+from ....warehouse.management import set_stock_quantity
 from ...core.mutations import (
     BaseMutation,
     ClearMetaBaseMutation,
@@ -887,9 +888,12 @@ class ProductCreate(ModelMutation):
                 "track_inventory", site_settings.track_inventory_by_default
             )
             sku = cleaned_input.get("sku")
-            models.ProductVariant.objects.create(
+            variant = models.ProductVariant.objects.create(
                 product=instance, track_inventory=track_inventory, sku=sku
             )
+            quantity = cleaned_input.get("quantity")
+            if quantity is not None:
+                set_stock_quantity(variant, info.context.country, quantity)
 
         attributes = cleaned_input.get("attributes")
         if attributes:
@@ -950,8 +954,8 @@ class ProductUpdate(ProductCreate):
                 variant.track_inventory = cleaned_input["track_inventory"]
                 update_fields.append("track_inventory")
             if "quantity" in cleaned_input:
-                variant.quantity = cleaned_input["quantity"]
-                update_fields.append("quantity")
+                quantity = cleaned_input.get("quantity")
+                set_stock_quantity(variant, info.context.country, quantity)
             if "sku" in cleaned_input:
                 variant.sku = cleaned_input["sku"]
                 update_fields.append("sku")
@@ -1161,6 +1165,9 @@ class ProductVariantCreate(ModelMutation):
         instance.save()
         # Recalculate the "minimal variant price" for the parent product
         update_product_minimal_variant_price_task.delay(instance.product_id)
+        quantity = cleaned_input.get("quantity")
+        if quantity is not None:
+            set_stock_quantity(instance, info.context.country, quantity)
 
         attributes = cleaned_input.get("attributes")
         if attributes:

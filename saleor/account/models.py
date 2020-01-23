@@ -12,7 +12,6 @@ from django.db import models
 from django.db.models import Q, Value
 from django.forms.models import model_to_dict
 from django.utils import timezone
-from django.utils.translation import gettext_lazy as _, pgettext_lazy
 from django_countries.fields import Country, CountryField
 from oauthlib.common import generate_token
 from phonenumber_field.modelfields import PhoneNumber, PhoneNumberField
@@ -158,14 +157,8 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
 
     class Meta:
         permissions = (
-            (
-                AccountPermissions.MANAGE_USERS.codename,
-                pgettext_lazy("Permission description", "Manage customers."),
-            ),
-            (
-                AccountPermissions.MANAGE_STAFF.codename,
-                pgettext_lazy("Permission description", "Manage staff."),
-            ),
+            (AccountPermissions.MANAGE_USERS.codename, "Manage customers."),
+            (AccountPermissions.MANAGE_STAFF.codename, "Manage staff."),
         )
 
     def get_full_name(self):
@@ -192,9 +185,8 @@ class ServiceAccount(ModelWithMetadata):
     is_active = models.BooleanField(default=True)
     permissions = models.ManyToManyField(
         Permission,
-        verbose_name=_("service account permissions"),
         blank=True,
-        help_text=_("Specific permissions for this service."),
+        help_text="Specific permissions for this service.",
         related_name="service_set",
         related_query_name="service",
     )
@@ -203,7 +195,7 @@ class ServiceAccount(ModelWithMetadata):
         permissions = (
             (
                 AccountPermissions.MANAGE_SERVICE_ACCOUNTS.codename,
-                pgettext_lazy("Permission description", "Manage service account"),
+                "Manage service account",
             ),
         )
 
