@@ -917,15 +917,25 @@ def test_checkout_customer_detach(user_api_client, checkout_with_item, customer_
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     variables = {"checkoutId": checkout_id}
+
+    # Mutation should succeed if the user owns this checkout.
     response = user_api_client.post_graphql(
         MUTATION_CHECKOUT_CUSTOMER_DETACH, variables
     )
     content = get_graphql_content(response)
-
     data = content["data"]["checkoutCustomerDetach"]
     assert not data["errors"]
     checkout.refresh_from_db()
     assert checkout.user is None
+
+    # Mutation should fail when user calling it doesn't own the checkout.
+    other_user = User.objects.create_user("othercustomer@example.com", "password")
+    checkout.user = other_user
+    checkout.save()
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_CUSTOMER_DETACH, variables
+    )
+    assert_no_permission(response)
 
 
 MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE = """
