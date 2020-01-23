@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.db.models import Prefetch
+from graphql_jwt.exceptions import PermissionDenied
 
 from ...account.error_codes import AccountErrorCode
 from ...checkout import models
@@ -404,7 +405,13 @@ class CheckoutCustomerAttach(BaseMutation):
 
     class Arguments:
         checkout_id = graphene.ID(required=True, description="ID of the checkout.")
-        customer_id = graphene.ID(required=True, description="The ID of the customer.")
+        customer_id = graphene.ID(
+            required=False,
+            description=(
+                "The ID of the customer. DEPRECATED: This field is deprecated. "
+                "To identify a customer you should authenticate with JWT token."
+            ),
+        )
 
     class Meta:
         description = "Sets the customer as the owner of the checkout."
@@ -412,14 +419,28 @@ class CheckoutCustomerAttach(BaseMutation):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id, customer_id):
+    def check_permissions(cls, context):
+        return context.user.is_authenticated
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        checkout_id = data.get("checkout_id")
+        customer_id = data.get("customer_id")
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
-        customer = cls.get_node_or_error(
-            info, customer_id, only_type=User, field="customer_id"
-        )
-        checkout.user = customer
+
+        # Check if provided customer_id matches with the authenticated user and raise
+        # error if it doesn't. This part can be removed when `customer_id` field is
+        # removed.
+        if customer_id:
+            customer = cls.get_node_or_error(
+                info, customer_id, only_type=User, field="customer_id"
+            )
+            if customer and customer != info.context.user:
+                raise PermissionDenied()
+
+        checkout.user = info.context.user
         checkout.save(update_fields=["user", "last_change"])
         return CheckoutCustomerAttach(checkout=checkout)
 
@@ -434,6 +455,10 @@ class CheckoutCustomerDetach(BaseMutation):
         description = "Removes the user assigned as the owner of the checkout."
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
+
+    @classmethod
+    def check_permissions(cls, context):
+        return context.user.is_authenticated
 
     @classmethod
     def perform_mutation(cls, _root, info, checkout_id):
