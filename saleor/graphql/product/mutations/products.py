@@ -882,7 +882,6 @@ class ProductCreate(ModelMutation):
     @transaction.atomic
     def save(cls, info, instance, cleaned_input):
         instance.save()
-        info.context.extensions.product_created(instance)
         if not instance.product_type.has_variants:
             site_settings = info.context.site.settings
             track_inventory = cleaned_input.get(
@@ -905,6 +904,12 @@ class ProductCreate(ModelMutation):
         collections = cleaned_data.get("collections", None)
         if collections is not None:
             instance.collections.set(collections)
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        response = super().perform_mutation(_root, info, **data)
+        info.context.extensions.product_created(response.product)
+        return response
 
 
 class ProductUpdate(ProductCreate):
