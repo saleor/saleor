@@ -35,7 +35,7 @@ from ...payment.interface import AddressData
 from ...payment.utils import store_customer_id
 from ...product import models as product_models
 from ..account.i18n import I18nMixin
-from ..account.types import AddressInput, User
+from ..account.types import AddressInput
 from ..core.mutations import (
     BaseMutation,
     ClearMetaBaseMutation,
@@ -402,8 +402,9 @@ class CheckoutCustomerAttach(BaseMutation):
         customer_id = graphene.ID(
             required=False,
             description=(
-                "The ID of the customer. DEPRECATED: This field is deprecated. "
-                "To identify a customer you should authenticate with JWT token."
+                "The ID of the customer. DEPRECATED: This field is deprecated and will "
+                "be removed in Saleor 2.11. To identify a customer you should "
+                "authenticate with JWT token."
             ),
         )
 
@@ -428,10 +429,8 @@ class CheckoutCustomerAttach(BaseMutation):
         # error if it doesn't. This part can be removed when `customer_id` field is
         # removed.
         if customer_id:
-            customer = cls.get_node_or_error(
-                info, customer_id, only_type=User, field="customer_id"
-            )
-            if customer and customer != info.context.user:
+            current_user_id = graphene.Node.to_global_id("User", info.context.user.id)
+            if current_user_id != customer_id:
                 raise PermissionDenied()
 
         checkout.user = info.context.user
@@ -455,10 +454,16 @@ class CheckoutCustomerDetach(BaseMutation):
         return context.user.is_authenticated
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id):
+    def perform_mutation(cls, _root, info, **data):
+        checkout_id = data.get("checkout_id")
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
+
+        # Raise error if the current user doesn't own the checkout of the given ID.
+        if checkout.user and checkout.user != info.context.user:
+            raise PermissionDenied()
+
         checkout.user = None
         checkout.save(update_fields=["user"])
         return CheckoutCustomerDetach(checkout=checkout)
