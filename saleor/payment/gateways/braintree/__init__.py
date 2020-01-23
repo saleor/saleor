@@ -2,7 +2,6 @@ from typing import Dict, List, Optional
 
 import braintree as braintree_sdk
 from django.core.exceptions import ImproperlyConfigured
-from django.utils.translation import pgettext_lazy
 
 from ... import TransactionKind
 from ...interface import (
@@ -58,9 +57,7 @@ def get_error_for_client(errors: List) -> str:
     """Filter all error messages and decides which one is visible for the client."""
     if not errors:
         return ""
-    default_msg = pgettext_lazy(
-        "payment error", "Unable to process transaction. Please try again in a moment"
-    )
+    default_msg = "Unable to process transaction. Please try again in a moment"
     for error in errors:
         if error["code"] in ERROR_CODES_WHITELIST:
             return ERROR_CODES_WHITELIST[error["code"]] or error["message"]
