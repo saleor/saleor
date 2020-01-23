@@ -185,7 +185,6 @@ class ServiceAccount(ModelWithMetadata):
     is_active = models.BooleanField(default=True)
     permissions = models.ManyToManyField(
         Permission,
-        verbose_name="service account permissions",
         blank=True,
         help_text="Specific permissions for this service.",
         related_name="service_set",
