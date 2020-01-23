@@ -2288,7 +2288,7 @@ type Mutation {
   checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID!): CheckoutBillingAddressUpdate
   checkoutComplete(checkoutId: ID!, redirectUrl: String, storeSource: Boolean = false): CheckoutComplete
   checkoutCreate(input: CheckoutCreateInput!): CheckoutCreate
-  checkoutCustomerAttach(checkoutId: ID!, customerId: ID!): CheckoutCustomerAttach
+  checkoutCustomerAttach(checkoutId: ID!, customerId: ID): CheckoutCustomerAttach
   checkoutCustomerDetach(checkoutId: ID!): CheckoutCustomerDetach
   checkoutEmailUpdate(checkoutId: ID, email: String!): CheckoutEmailUpdate
   checkoutLineDelete(checkoutId: ID!, lineId: ID): CheckoutLineDelete
