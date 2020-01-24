@@ -1543,7 +1543,7 @@ def test_query_checkout_line(checkout_with_item, user_api_client):
 
 
 def test_query_checkouts(
-    checkout_with_item, staff_api_client, permission_manage_checkouts
+    checkout_with_item, staff_api_client, permission_manage_orders
 ):
     query = """
     {
@@ -1558,7 +1558,7 @@ def test_query_checkouts(
     """
     checkout = checkout_with_item
     response = staff_api_client.post_graphql(
-        query, {}, permissions=[permission_manage_checkouts]
+        query, {}, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     received_checkout = content["data"]["checkouts"]["edges"][0]["node"]
@@ -1566,7 +1566,7 @@ def test_query_checkouts(
 
 
 def test_query_checkout_lines(
-    checkout_with_item, staff_api_client, permission_manage_checkouts
+    checkout_with_item, staff_api_client, permission_manage_orders
 ):
     query = """
     {
@@ -1581,7 +1581,7 @@ def test_query_checkout_lines(
     """
     checkout = checkout_with_item
     response = staff_api_client.post_graphql(
-        query, permissions=[permission_manage_checkouts]
+        query, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     lines = content["data"]["checkoutLines"]["edges"]

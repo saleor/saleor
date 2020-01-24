@@ -135,9 +135,6 @@ def test_create_checkout(api_client, graphql_address_data, variant, count_querie
         fragment Checkout on Checkout {
           token
           id
-          user {
-            email
-          }
           totalPrice {
             ...Price
           }
