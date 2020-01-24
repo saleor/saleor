@@ -1,50 +1,56 @@
 import copy
+import logging
 from typing import TYPE_CHECKING
 
 from faker import Faker
 
 from ...account.models import Address, User
+from .random_data import create_address, create_fake_user
 
 if TYPE_CHECKING:
     from ...order.models import Order
     from ...checkout.models import Checkout
 
+logger = logging.getLogger(__name__)
+
 fake = Faker()
 
 
+def _fake_save(*args, **kwargs):
+    logger.error("Unable to save fake instance")
+
+
 def generate_fake_address() -> "Address":
-    return Address(
-        first_name=fake.first_name(),
-        last_name=fake.last_name(),
-        company_name=fake.company(),
-        street_address_1=fake.street_address(),
-        street_address_2=fake.secondary_address(),
-        city=fake.city(),
-        postal_code=fake.postalcode(),
-        country=fake.country(),
-        phone=fake.phone_number(),
-    )
+    """Generate a fake instance of the "Address" class.
+
+    The instance cannot be saved
+    """
+    fake_address = create_address(save=False)
+    # Prevent accidental saving of the instance
+    fake_address.save = _fake_save  # type: ignore
+    return fake_address
 
 
 def generate_fake_user() -> "User":
-    return User(
-        email=fake.email(),
-        first_name=fake.first_name(),
-        last_name=fake.last_name(),
-        is_active=True,
-        note=fake.paragraph(),
-        date_joined=fake.date_time(),
-        default_shipping_address=generate_fake_address(),
-        default_billing_address=generate_fake_address(),
-        meta=fake.pystruct(count=1),
-        private_meta=fake.pystruct(count=1),
-    )
+    """Generate a fake instance of the "User" class.
+
+    The instance cannot be saved
+    """
+    fake_user = create_fake_user(save=False)
+    # Prevent accidental saving of the instance
+    fake_user.save = _fake_save  # type: ignore
+    return fake_user
 
 
-def anonymize_order(order: "Order"):
+def anonymize_order(order: "Order") -> "Order":
+    """Generate an anonymized version of the provided order.
+
+    The instance cannot be saved
+    """
     anonymized_order = copy.deepcopy(order)
-    # Prevent accidental savings of the instance
+    # Prevent accidental saving of the instance
     anonymized_order.pk = -1
+    anonymized_order.save = _fake_save  # type: ignore
     fake_user = generate_fake_user()
     anonymized_order.user = fake_user
     anonymized_order.user_email = fake_user.email
@@ -56,10 +62,15 @@ def anonymize_order(order: "Order"):
     return anonymized_order
 
 
-def anonymize_checkout(checkout: "Checkout"):
+def anonymize_checkout(checkout: "Checkout") -> "Checkout":
+    """Generate an anonymized version of the provided checkout.
+
+    The instance cannot be saved
+    """
     anonymized_checkout = copy.deepcopy(checkout)
-    # Prevent accidental savings of the instance
+    # Prevent accidental saving of the instance
     anonymized_checkout.token = ""  # Token is the "pk" for checkout
+    anonymized_checkout.save = _fake_save  # type: ignore
     fake_user = generate_fake_user()
     anonymized_checkout.user = fake_user
     anonymized_checkout.email = fake_user.email
