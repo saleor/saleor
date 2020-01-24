@@ -252,7 +252,7 @@ class BaseMutation(graphene.Mutation):
         return instance
 
     @classmethod
-    def check_permissions(cls, context):
+    def check_permissions(cls, context, permissions=None):
         """Determine whether user or service account has rights to perform this mutation.
 
         Default implementation assumes that account is allowed to perform any
@@ -261,12 +261,14 @@ class BaseMutation(graphene.Mutation):
 
         The `context` parameter is the Context instance associated with the request.
         """
-        if not cls._meta.permissions:
-            return True
-        if context.user.has_perms(cls._meta.permissions):
+        if not permissions:
+            if not cls._meta.permissions:
+                return True
+            permissions = cls._meta.permissions
+        if context.user.has_perms(permissions):
             return True
         service_account = getattr(context, "service_account", None)
-        if service_account and service_account.has_perms(cls._meta.permissions):
+        if service_account and service_account.has_perms(permissions):
             return True
         return False
 
