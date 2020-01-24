@@ -40,7 +40,7 @@ from ..account.types import AddressInput
 from ..core.mutations import BaseMutation, ModelMutation
 from ..core.types.common import CheckoutError
 from ..core.utils import from_global_id_strict_type
-from ..meta.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
+from ..meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ..order.types import Order
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod

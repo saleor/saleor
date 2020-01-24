@@ -14,7 +14,7 @@ from ....order.emails import send_fulfillment_update
 from ....order.error_codes import OrderErrorCode
 from ...core.mutations import BaseMutation
 from ...core.types.common import OrderError
-from ...meta.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
+from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ...order.types import Fulfillment, Order
 from ..types import OrderLine
 

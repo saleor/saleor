@@ -21,7 +21,7 @@ from ...account.types import AddressInput
 from ...core.mutations import BaseMutation
 from ...core.scalars import Decimal
 from ...core.types.common import OrderError
-from ...meta.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
+from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ...meta.types import MetaInput, MetaPath
 from ...order.mutations.draft_orders import DraftOrderUpdate
 from ...order.types import Order, OrderEvent

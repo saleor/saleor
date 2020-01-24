@@ -5,7 +5,7 @@ from ....core.permissions import AccountPermissions, get_permissions
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types.common import AccountError
-from ...meta.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
+from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 
 
 class ServiceAccountInput(graphene.InputObjectType):

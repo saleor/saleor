@@ -20,7 +20,7 @@ from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types import Upload
 from ...core.types.common import AccountError
 from ...core.utils import validate_image_file
-from ...meta.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
+from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ..utils import CustomerDeleteMixin, StaffDeleteMixin, UserDeleteMixin
 from .base import (
     BaseAddressDelete,

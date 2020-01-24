@@ -16,7 +16,7 @@ from ...core.utils import (
     validate_slug_and_generate_if_needed,
 )
 from ...core.utils.reordering import perform_reordering
-from ...meta.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
+from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ...product.types import ProductType
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..enums import AttributeInputTypeEnum, AttributeTypeEnum
