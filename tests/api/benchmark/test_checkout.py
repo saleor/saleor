@@ -481,9 +481,6 @@ def test_add_billing_address_to_checkout(
         fragment Checkout on Checkout {
           token
           id
-          user {
-            email
-          }
           totalPrice {
             ...Price
           }

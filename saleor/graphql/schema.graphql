@@ -1338,7 +1338,7 @@ type CustomerEvent implements Node {
   id: ID!
   date: DateTime
   type: CustomerEventsEnum
-  user(id: ID): User
+  user: User
   message: String
   count: Int
   order: Order
@@ -2512,7 +2512,7 @@ type OrderEvent implements Node {
   id: ID!
   date: DateTime
   type: OrderEventsEnum
-  user(id: ID): User
+  user: User
   message: String
   email: String
   emailType: OrderEventsEmailsEnum
