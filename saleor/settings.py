@@ -5,28 +5,13 @@ import warnings
 import dj_database_url
 import dj_email_url
 import sentry_sdk
-from ddtrace.opentracer import Tracer, set_global_tracer
 from django.contrib.messages import constants as messages
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import gettext_lazy as _, pgettext_lazy
 from django_prices.utils.formatting import get_currency_fraction
 from sentry_sdk.integrations.django import DjangoIntegration
 
-
-def init_tracer(service_name):
-    config = {
-        "agent_hostname": "localhost",
-        "agent_port": 8126,
-    }
-    tracer = Tracer(service_name, config=config)
-    set_global_tracer(tracer)
-    return tracer
-
-
-init_tracer("saleor")
-
-
-ENABLE_OPENTRACING = True
+from .tracing import OpenTracingConfig
 
 
 def get_list(text):
@@ -579,3 +564,20 @@ if (
         "Make sure you've added storefront address to ALLOWED_CLIENT_HOSTS "
         "if ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL is enabled."
     )
+
+
+ENABLE_OPENTRACING = get_bool_from_env("ENABLE_OPENTRACING", False)
+# TRACER_TYPE can be either DATADOG or JAEGER
+# Default host / port for DataDog: localhost / 8126, Jaeger: localhost / 5775
+TRACER_TYPE = os.environ.get("TRACER_TYPE")
+TRACER_REPORTING_HOST = os.environ.get("TRACER_REPORTING_HOST")
+TRACER_REPORTING_PORT = os.environ.get("TRACER_REPORTING_PORT")
+
+
+if ENABLE_OPENTRACING:
+    config = OpenTracingConfig(
+        tracer_type=TRACER_TYPE,
+        reporting_host=TRACER_REPORTING_HOST,
+        reporting_port=TRACER_REPORTING_PORT,
+    )
+    config.create_global_tracer(service_name="saleor")
