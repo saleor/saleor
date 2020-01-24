@@ -2,6 +2,7 @@ import graphene
 import graphene_django_optimizer as gql_optimizer
 from django.core.exceptions import ValidationError
 from graphene import relay
+from graphql_jwt.exceptions import PermissionDenied
 
 from ...order import models
 from ...order.models import FulfillmentStatus
@@ -35,11 +36,7 @@ class OrderEvent(CountableDjangoObjectType):
         description="Date when event happened at in ISO 8601 format."
     )
     type = OrderEventsEnum(description="Order event type.")
-    user = graphene.Field(
-        User,
-        id=graphene.Argument(graphene.ID),
-        description="User who performed the action.",
-    )
+    user = graphene.Field(User, description="User who performed the action.")
     message = graphene.String(description="Content of the event.")
     email = graphene.String(description="Email of the customer.")
     email_type = OrderEventsEmailsEnum(
@@ -64,6 +61,15 @@ class OrderEvent(CountableDjangoObjectType):
         model = models.OrderEvent
         interfaces = [relay.Node]
         only_fields = ["id"]
+
+    @staticmethod
+    def resolve_user(root: models.OrderEvent, info):
+        user = info.context.user
+        if user == root.user or user.has_perms(
+            ["account.manage_users", "account.manage_staff"]
+        ):
+            return root.user
+        raise PermissionDenied()
 
     @staticmethod
     def resolve_email(root: models.OrderEvent, _info):
@@ -428,6 +434,7 @@ class Order(MetadataObjectType, CountableDjangoObjectType):
         return root.lines.all().order_by("pk")
 
     @staticmethod
+    @permission_required("order.manage_orders")
     def resolve_events(root: models.Order, _info):
         return root.events.all().order_by("pk")
 
@@ -470,6 +477,13 @@ class Order(MetadataObjectType, CountableDjangoObjectType):
     @gql_optimizer.resolver_hints(select_related="user")
     def resolve_user_email(root: models.Order, _info):
         return root.get_customer_email()
+
+    @staticmethod
+    def resolve_user(root: models.Order, info):
+        user = info.context.user
+        if user == root.user or user.has_perm("account.manage_users"):
+            return root.user
+        raise PermissionDenied()
 
     @staticmethod
     def resolve_available_shipping_methods(root: models.Order, _info):

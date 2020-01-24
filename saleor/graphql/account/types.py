@@ -3,7 +3,7 @@ import graphene_django_optimizer as gql_optimizer
 from django.contrib.auth import get_user_model
 from graphene import relay
 from graphene_federation import key
-from graphql_jwt.decorators import login_required
+from graphql_jwt.exceptions import PermissionDenied
 
 from ...account import models
 from ...checkout.utils import get_user_checkout
@@ -117,11 +117,7 @@ class CustomerEvent(CountableDjangoObjectType):
         description="Date when event happened at in ISO 8601 format."
     )
     type = CustomerEventsEnum(description="Customer event type.")
-    user = graphene.Field(
-        lambda: User,
-        id=graphene.Argument(graphene.ID),
-        description="User who performed the action.",
-    )
+    user = graphene.Field(lambda: User, description="User who performed the action.")
     message = graphene.String(description="Content of the event.")
     count = graphene.Int(description="Number of objects concerned by the event.")
     order = gql_optimizer.field(
@@ -139,6 +135,15 @@ class CustomerEvent(CountableDjangoObjectType):
         model = models.CustomerEvent
         interfaces = [relay.Node]
         only_fields = ["id"]
+
+    @staticmethod
+    def resolve_user(root: models.CustomerEvent, info):
+        user = info.context.user
+        if user == root.user or user.has_perms(
+            ["account.manage_users", "account.manage_staff"]
+        ):
+            return root.user
+        raise PermissionDenied()
 
     @staticmethod
     def resolve_message(root: models.CustomerEvent, _info):
@@ -336,11 +341,12 @@ class User(MetadataObjectType, CountableDjangoObjectType):
             )
 
     @staticmethod
-    @login_required
-    def resolve_stored_payment_sources(root: models.User, _info):
+    def resolve_stored_payment_sources(root: models.User, info):
         from .resolvers import resolve_payment_sources
 
-        return resolve_payment_sources(root)
+        if root == info.context.user:
+            return resolve_payment_sources(root)
+        raise PermissionDenied()
 
     @staticmethod
     @one_of_permissions_required(["account.manage_users", "account.manage_staff"])

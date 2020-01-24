@@ -1,5 +1,6 @@
 import graphene
 import graphene_django_optimizer as gql_optimizer
+from graphql_jwt.exceptions import PermissionDenied
 
 from ...checkout import models
 from ...checkout.utils import get_valid_shipping_methods_for_checkout
@@ -138,6 +139,13 @@ class Checkout(MetadataObjectType, CountableDjangoObjectType):
         model = models.Checkout
         interfaces = [graphene.relay.Node]
         filter_fields = ["token"]
+
+    @staticmethod
+    def resolve_user(root: models.Checkout, info):
+        user = info.context.user
+        if user == root.user or user.has_perm("account.manage_users"):
+            return root.user
+        raise PermissionDenied()
 
     @staticmethod
     def resolve_email(root: models.Checkout, info):
