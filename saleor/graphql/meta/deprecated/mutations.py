@@ -3,7 +3,6 @@ from django.core.exceptions import ImproperlyConfigured
 from graphene_django.registry import get_global_registry
 
 from ...core.mutations import BaseMutation, get_model_name, get_output_fields
-
 from ..types import MetaInput, MetaPath
 
 registry = get_global_registry()

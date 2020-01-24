@@ -2060,6 +2060,18 @@ type MetaClientStore {
   metadata: [MetaItem]!
 }
 
+type MetaError {
+  field: String
+  message: String
+  code: MetaErrorCode
+}
+
+enum MetaErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+}
+
 input MetaInput {
   namespace: String!
   clientName: String!
@@ -2254,6 +2266,7 @@ type Mutation {
   orderUpdateShipping(order: ID!, input: OrderUpdateShippingInput): OrderUpdateShipping
   orderVoid(id: ID!): OrderVoid
   orderBulkCancel(ids: [ID]!, restock: Boolean!): OrderBulkCancel
+  updateMeta(id: ID!, input: MetaInput!): UpdateMeta
   assignNavigation(menu: ID, navigationType: NavigationType!): AssignNavigation
   menuCreate(input: MenuCreateInput!): MenuCreate
   menuDelete(id: ID!): MenuDelete
@@ -4454,6 +4467,12 @@ input TranslationInput {
 }
 
 scalar UUID
+
+type UpdateMeta {
+  errors: [Error!]
+  metaErrors: [MetaError!]
+  item: ObjectWithMetadata
+}
 
 scalar Upload
 
