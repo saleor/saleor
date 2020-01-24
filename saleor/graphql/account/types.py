@@ -3,7 +3,6 @@ import graphene_django_optimizer as gql_optimizer
 from django.contrib.auth import get_user_model, models as auth_models
 from graphene import relay
 from graphene_federation import key
-from graphql_jwt.decorators import permission_required
 from graphql_jwt.exceptions import PermissionDenied
 
 from ...account import models
@@ -16,7 +15,7 @@ from ..core.fields import PrefetchingConnectionField
 from ..core.resolvers import resolve_meta, resolve_private_meta
 from ..core.types import CountryDisplay, Image, MetadataObjectType, PermissionDisplay
 from ..core.utils import get_node_optimized
-from ..decorators import one_of_permissions_required
+from ..decorators import one_of_permissions_required, permission_required
 from ..utils import format_permissions_for_display
 from ..wishlist.resolvers import resolve_wishlist_items_from_user
 from ..wishlist.types import WishlistItem
