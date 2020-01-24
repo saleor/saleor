@@ -139,8 +139,10 @@ class CustomerEvent(CountableDjangoObjectType):
     @staticmethod
     def resolve_user(root: models.CustomerEvent, info):
         user = info.context.user
-        if user == root.user or user.has_perms(
-            ["account.manage_users", "account.manage_staff"]
+        if (
+            user == root.user
+            or user.has_perm("account.manage_users")
+            or user.has_perm("account.manage_staff")
         ):
             return root.user
         raise PermissionDenied()
