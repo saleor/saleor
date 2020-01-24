@@ -104,6 +104,11 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add Fulfillment metadata - #4866 by @szewczykmira
 - Add the possibility to remove the company address -#4888 by @fowczarek
 
+## 2.9.1
+
+- Fix permission for checkoutCustomerAttach mutation - #5192 by @maarcingebala
+- Restrict access to user field - #5194 by @maarcingebala
+
 ## 2.8.0
 
 ### Core
