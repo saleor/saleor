@@ -68,8 +68,10 @@ class OrderEvent(CountableDjangoObjectType):
     @staticmethod
     def resolve_user(root: models.OrderEvent, info):
         user = info.context.user
-        if user == root.user or user.has_perms(
-            [AccountPermissions.MANAGE_USERS, AccountPermissions.MANAGE_STAFF]
+        if (
+            user == root.user
+            or user.has_perm(AccountPermissions.MANAGE_USERS)
+            or user.has_perm(AccountPermissions.MANAGE_STAFF)
         ):
             return root.user
         raise PermissionDenied()
