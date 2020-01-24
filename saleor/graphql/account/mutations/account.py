@@ -12,7 +12,7 @@ from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types.common import AccountError
-from ...meta.mutations import UpdateMetaBaseMutation
+from ...meta.deprecated.mutations import UpdateMetaBaseMutation
 from ...meta.types import MetaInput
 from .base import (
     INVALID_TOKEN,
