@@ -591,7 +591,7 @@ def create_staff_users(how_many=2, superuser=False):
         first_name = fake.first_name()
         last_name = fake.last_name()
         email = get_email(first_name, last_name)
-        staff_user = User.objects.create(
+        staff_user = User.objects.create_user(
             first_name=first_name,
             last_name=last_name,
             email=email,
