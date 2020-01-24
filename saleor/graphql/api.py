@@ -3,6 +3,7 @@ from graphene_federation import build_schema
 from .account.schema import AccountMutations, AccountQueries
 from .checkout.schema import CheckoutMutations, CheckoutQueries
 from .core.schema import CoreMutations, CoreQueries
+from .csv.schema import CsvMutations
 from .discount.schema import DiscountMutations, DiscountQueries
 from .extensions.schema import ExtensionsMutations, ExtensionsQueries
 from .giftcard.schema import GiftCardMutations, GiftCardQueries
@@ -50,6 +51,7 @@ class Mutation(
     AccountMutations,
     CheckoutMutations,
     CoreMutations,
+    CsvMutations,
     DiscountMutations,
     ExtensionsMutations,
     GiftCardMutations,

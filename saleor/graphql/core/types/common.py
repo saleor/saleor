@@ -5,6 +5,7 @@ from ...translations.enums import LanguageCodeEnum
 from ..enums import (
     AccountErrorCode,
     CheckoutErrorCode,
+    CsvErrorCode,
     ExtensionsErrorCode,
     GiftCardErrorCode,
     MenuErrorCode,
@@ -48,6 +49,10 @@ class AccountError(Error):
 
 class CheckoutError(Error):
     code = CheckoutErrorCode(description="The error code.")
+
+
+class CsvError(Error):
+    code = CsvErrorCode(description="The error code.")
 
 
 class MenuError(Error):

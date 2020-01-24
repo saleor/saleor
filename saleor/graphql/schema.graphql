@@ -1316,6 +1316,18 @@ type CreditCard {
   expYear: Int!
 }
 
+type CsvError {
+  field: String
+  message: String
+  code: CsvErrorCode
+}
+
+enum CsvErrorCode {
+  INVALID
+  NOT_FOUND
+  REQUIRED
+}
+
 type CustomerBulkDelete {
   errors: [Error!]
   count: Int!
@@ -1581,6 +1593,24 @@ type Error {
   message: String
 }
 
+type ExportProducts {
+  errors: [Error!]
+  job: Job
+  csvErrors: [CsvError!]
+}
+
+input ExportProductsInput {
+  scope: ExportScope!
+  filter: ProductFilterInput
+  ids: [ID!]
+}
+
+enum ExportScope {
+  ALL
+  IDS
+  FILTER
+}
+
 type ExtensionsError {
   field: String
   message: String
@@ -1805,6 +1835,19 @@ input IntRangeInput {
 }
 
 scalar JSONString
+
+type Job implements Node {
+  id: ID!
+  status: JobStatus!
+  createdAt: DateTime!
+  url: String
+}
+
+enum JobStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
 
 enum LanguageCodeEnum {
   AR
@@ -2281,6 +2324,7 @@ type Mutation {
   voucherCataloguesAdd(id: ID!, input: CatalogueInput!): VoucherAddCatalogues
   voucherCataloguesRemove(id: ID!, input: CatalogueInput!): VoucherRemoveCatalogues
   voucherTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): VoucherTranslate
+  exportProducts(input: ExportProductsInput!): ExportProducts
   tokenCreate(email: String!, password: String!): CreateToken
   tokenRefresh(token: String!): Refresh
   tokenVerify(token: String!): VerifyToken
@@ -4966,7 +5010,7 @@ type WishlistRemoveProductVariantMutation {
 
 scalar _Any
 
-union _Entity = Address | ServiceAccount | User | Group | ProductVariant | Product | ProductType | Collection | Category | ProductImage
+union _Entity = Address | ServiceAccount | User | Group | ProductVariant | Product | ProductType | Collection | Category | ProductImage | Job
 
 type _Service {
   sdl: String
