@@ -1502,6 +1502,50 @@ def test_fetch_checkout_by_token(user_api_client, checkout_with_item):
     assert len(data["lines"]) == checkout_with_item.lines.count()
 
 
+def test_anonymous_client_cant_fetch_checkout_user(api_client, checkout):
+    query = """
+    query getCheckout($token: UUID!) {
+        checkout(token: $token) {
+           user {
+               id
+           }
+        }
+    }
+    """
+    variables = {"token": str(checkout.token)}
+    response = api_client.post_graphql(query, variables)
+    assert_no_permission(response)
+
+
+def test_authorized_access_to_checkout_user(
+    staff_api_client, user_api_client, checkout, customer_user, permission_manage_users
+):
+    query = """
+    query getCheckout($token: UUID!) {
+        checkout(token: $token) {
+           user {
+               id
+           }
+        }
+    }
+    """
+    checkout.user = customer_user
+    checkout.save()
+
+    variables = {"token": str(checkout.token)}
+    customer_user_id = graphene.Node.to_global_id("User", customer_user.id)
+
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["user"]["id"] == customer_user_id
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["user"]["id"] == customer_user_id
+
+
 def test_fetch_checkout_invalid_token(user_api_client):
     query = """
         query getCheckout($token: UUID!) {
