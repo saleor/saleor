@@ -55,6 +55,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix `product_created` webhook - #5187 by @dzkb
 - Drop unused resolver `resolve_availability` - #5190 by @maarcingebala
 - Fix permission for `checkoutCustomerAttach` mutation - #5192 by @maarcingebala
+- Restrict access to user field - #5194 by @maarcingebala
 
 ## 2.9.0
 
