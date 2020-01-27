@@ -110,13 +110,13 @@ def test_fetch_all_products(user_api_client, product):
 
 
 def test_fetch_all_products_service_account(
-    service_account_api_client,
-    service_account,
-    unavailable_product,
-    permission_manage_products,
+    service_account_api_client, unavailable_product, permission_manage_products,
 ):
-    service_account.permissions.add(permission_manage_products)
-    response = service_account_api_client.post_graphql(QUERY_FETCH_ALL_PRODUCTS)
+    response = service_account_api_client.post_graphql(
+        QUERY_FETCH_ALL_PRODUCTS,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
     content = get_graphql_content(response)
     product_data = content["data"]["products"]["edges"][0]["node"]
     assert product_data["name"] == unavailable_product.name
