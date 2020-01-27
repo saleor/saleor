@@ -656,7 +656,8 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 class CheckoutComplete(BaseMutation):
     order = graphene.Field(Order, description="Placed order.")
     confirmation_needed = graphene.Boolean(
-        required=False,
+        required=True,
+        default_value=False,
         description=(
             "Set to true if payment needs to be confirmed"
             " before checkout is complete."
@@ -788,7 +789,7 @@ class CheckoutComplete(BaseMutation):
             checkout.delete()
 
             # return the success response with the newly created order data
-            return CheckoutComplete(order=order)
+            return CheckoutComplete(order=order, confirmation_needed=False)
 
         return CheckoutComplete(order=None, confirmation_needed=True)
 

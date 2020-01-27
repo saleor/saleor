@@ -683,7 +683,7 @@ type CheckoutClearPrivateMeta {
 type CheckoutComplete {
   errors: [Error!]
   order: Order
-  confirmationNeeded: Boolean
+  confirmationNeeded: Boolean!
   checkoutErrors: [CheckoutError!]
 }
 
