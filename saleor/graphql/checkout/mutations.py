@@ -683,7 +683,10 @@ class CheckoutComplete(BaseMutation):
         description = (
             "Completes the checkout. As a result a new order is created and "
             "a payment charge is made. This action requires a successful "
-            "payment before it can be performed."
+            "payment before it can be performed. "
+            "In case additional confirmation step as 3D secure is required "
+            "confirmationNeeded flag will be set to True and no order created "
+            "until payment is confirmed with second call of this mutation."
         )
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
