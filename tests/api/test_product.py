@@ -231,7 +231,10 @@ def test_products_query_with_filter_attributes(
 ):
 
     product_type = ProductType.objects.create(
-        name="Custom Type", has_variants=True, is_shipping_required=True
+        name="Custom Type",
+        slug="custom-type",
+        has_variants=True,
+        is_shipping_required=True,
     )
     attribute = Attribute.objects.create(slug="new_attr", name="Attr")
     attribute.product_types.add(product_type)
@@ -263,7 +266,10 @@ def test_products_query_with_filter_product_type(
     query_products_with_filter, staff_api_client, product, permission_manage_products
 ):
     product_type = ProductType.objects.create(
-        name="Custom Type", has_variants=True, is_shipping_required=True
+        name="Custom Type",
+        slug="custom-type",
+        has_variants=True,
+        is_shipping_required=True,
     )
     second_product = product
     second_product.id = None
@@ -1685,6 +1691,7 @@ def test_product_type_create_mutation(
     query = """
     mutation createProductType(
         $name: String!,
+        $slug: String!,
         $taxCode: String!,
         $hasVariants: Boolean!,
         $isShippingRequired: Boolean!,
@@ -1693,6 +1700,7 @@ def test_product_type_create_mutation(
         productTypeCreate(
             input: {
                 name: $name,
+                slug: $slug,
                 taxCode: $taxCode,
                 hasVariants: $hasVariants,
                 isShippingRequired: $isShippingRequired,
@@ -1700,6 +1708,7 @@ def test_product_type_create_mutation(
                 variantAttributes: $variantAttributes}) {
             productType {
             name
+            slug
             taxRate
             isShippingRequired
             hasVariants
@@ -1720,6 +1729,7 @@ def test_product_type_create_mutation(
     }
     """
     product_type_name = "test type"
+    slug = "test-type"
     has_variants = True
     require_shipping = True
     product_attributes = product_type.product_attributes.all()
@@ -1733,6 +1743,7 @@ def test_product_type_create_mutation(
 
     variables = {
         "name": product_type_name,
+        "slug": slug,
         "hasVariants": has_variants,
         "taxCode": "wine",
         "isShippingRequired": require_shipping,
@@ -1747,6 +1758,7 @@ def test_product_type_create_mutation(
     assert ProductType.objects.count() == initial_count + 1
     data = content["data"]["productTypeCreate"]["productType"]
     assert data["name"] == product_type_name
+    assert data["slug"] == slug
     assert data["hasVariants"] == has_variants
     assert data["isShippingRequired"] == require_shipping
 
@@ -1790,6 +1802,7 @@ def test_product_type_update_mutation(
             }) {
                 productType {
                     name
+                    slug
                     isShippingRequired
                     hasVariants
                     variantAttributes {
@@ -1828,6 +1841,7 @@ def test_product_type_update_mutation(
     content = get_graphql_content(response)
     data = content["data"]["productTypeUpdate"]["productType"]
     assert data["name"] == product_type_name
+    assert data["slug"] == "test-type-updated"
     assert data["hasVariants"] == has_variants
     assert data["isShippingRequired"] == require_shipping
     assert not data["productAttributes"]
@@ -2628,13 +2642,13 @@ def test_categories_query_with_sort(
     )
     Category.objects.create(
         name="SubCat",
-        slug="slug_subcategory",
+        slug="slug_subcategory1",
         parent=Category.objects.get(name="Cat1"),
         description="Subcategory_description of cat1",
     )
     subsubcat = Category.objects.create(
         name="SubSubCat",
-        slug="slug_subcategory",
+        slug="slug_subcategory2",
         parent=Category.objects.get(name="SubCat"),
         description="Subcategory_description of cat1",
     )
@@ -2683,18 +2697,21 @@ def test_product_type_query_with_filter(
         [
             ProductType(
                 name="Digital Type",
+                slug="digital-type",
                 has_variants=True,
                 is_shipping_required=False,
                 is_digital=True,
             ),
             ProductType(
                 name="Tools",
+                slug="tools",
                 has_variants=True,
                 is_shipping_required=True,
                 is_digital=False,
             ),
             ProductType(
                 name="Books",
+                slug="books",
                 has_variants=False,
                 is_shipping_required=True,
                 is_digital=False,
@@ -2756,18 +2773,21 @@ def test_product_type_query_with_sort(
         [
             ProductType(
                 name="Digital",
+                slug="digital",
                 has_variants=True,
                 is_shipping_required=False,
                 is_digital=True,
             ),
             ProductType(
                 name="Tools",
+                slug="tools",
                 has_variants=True,
                 is_shipping_required=True,
                 is_digital=False,
             ),
             ProductType(
                 name="Subscription",
+                slug="subscription",
                 has_variants=False,
                 is_shipping_required=False,
                 is_digital=False,
@@ -2893,7 +2913,10 @@ def test_product_type_get_unassigned_attributes(
 ):
     query = QUERY_AVAILABLE_ATTRIBUTES
     target_product_type, ignored_product_type = ProductType.objects.bulk_create(
-        [ProductType(name="Type 1"), ProductType(name="Type 2")]
+        [
+            ProductType(name="Type 1", slug="type-1"),
+            ProductType(name="Type 2", slug="type-2"),
+        ]
     )
 
     unassigned_attributes = list(
@@ -2998,9 +3021,9 @@ def test_filter_product_types_by_custom_search_value(
 
     ProductType.objects.bulk_create(
         [
-            ProductType(name="The best juices"),
-            ProductType(name="The best beers"),
-            ProductType(name="The worst beers"),
+            ProductType(name="The best juices", slug="best-juices"),
+            ProductType(name="The best beers", slug="best-beers"),
+            ProductType(name="The worst beers", slug="worst-beers"),
         ]
     )
 

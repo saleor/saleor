@@ -1,5 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.utils.text import slugify
 
 from ...core.permissions import ProductPermissions
 from ...warehouse import models
@@ -26,6 +27,8 @@ class WarehouseMixin:
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
         cleaned_input = super().clean_input(info, instance, data)
+        if "slug" not in cleaned_input and "name" in cleaned_input:
+            cleaned_input["slug"] = slugify(cleaned_input["name"])
         shipping_zones = cleaned_input.get("shipping_zones", [])
         if not validate_warehouse_count(shipping_zones, instance):
             msg = "Shipping zone can be assigned only to one warehouse."

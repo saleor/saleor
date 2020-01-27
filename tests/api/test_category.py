@@ -134,7 +134,7 @@ def test_category_create_mutation(
         "name": category_name,
         "description": category_description,
         "parentId": parent_id,
-        "slug": category_slug,
+        "slug": f"{category_slug}-2",
     }
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)

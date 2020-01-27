@@ -55,9 +55,15 @@ def products_structures(category):
     pt_apples, pt_oranges, pt_other = list(
         product_models.ProductType.objects.bulk_create(
             [
-                product_models.ProductType(name="Apples", has_variants=False),
-                product_models.ProductType(name="Oranges", has_variants=False),
-                product_models.ProductType(name="Other attributes", has_variants=False),
+                product_models.ProductType(
+                    name="Apples", slug="apples", has_variants=False
+                ),
+                product_models.ProductType(
+                    name="Oranges", slug="oranges", has_variants=False
+                ),
+                product_models.ProductType(
+                    name="Other attributes", slug="other", has_variants=False
+                ),
             ]
         )
     )
@@ -469,8 +475,12 @@ def test_sort_product_not_having_attribute_data(api_client, category, count_quer
     }
 
     # Create two product types, with one forced to be at the bottom (no such attribute)
-    product_type = product_models.ProductType.objects.create(name="Apples")
-    other_product_type = product_models.ProductType.objects.create(name="Chocolates")
+    product_type = product_models.ProductType.objects.create(
+        name="Apples", slug="apples"
+    )
+    other_product_type = product_models.ProductType.objects.create(
+        name="Chocolates", slug="chocolates"
+    )
 
     # Assign an attribute to the product type
     attribute = product_models.Attribute.objects.create(name="Kind", slug="kind")
