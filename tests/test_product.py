@@ -18,11 +18,11 @@ from saleor.product.utils.digital_products import increment_download_count
 
 def test_filtering_by_attribute(db, color_attribute, category, settings):
     product_type_a = models.ProductType.objects.create(
-        name="New class", has_variants=True
+        name="New class", slug="new-class1", has_variants=True
     )
     product_type_a.product_attributes.add(color_attribute)
     product_type_b = models.ProductType.objects.create(
-        name="New class", has_variants=True
+        name="New class", slug="new-class2", has_variants=True
     )
     product_type_b.variant_attributes.add(color_attribute)
     product_a = models.Product.objects.create(

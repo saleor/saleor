@@ -3300,6 +3300,7 @@ type ProductTranslation implements Node {
 type ProductType implements Node {
   id: ID!
   name: String!
+  slug: String!
   hasVariants: Boolean!
   isShippingRequired: Boolean!
   isDigital: Boolean!
@@ -3374,6 +3375,7 @@ input ProductTypeFilterInput {
 
 input ProductTypeInput {
   name: String
+  slug: String
   hasVariants: Boolean
   productAttributes: [ID]
   variantAttributes: [ID]
@@ -4703,6 +4705,7 @@ type VoucherUpdate {
 type Warehouse implements Node {
   id: ID!
   name: String!
+  slug: String!
   companyName: String!
   shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection!
   address: Address!
@@ -4739,6 +4742,7 @@ type WarehouseCreate {
 
 input WarehouseCreateInput {
   name: String!
+  slug: String
   companyName: String
   shippingZones: [ID]
   email: String
@@ -4778,6 +4782,7 @@ type WarehouseUpdate {
 
 input WarehouseUpdateInput {
   name: String!
+  slug: String
   companyName: String
   shippingZones: [ID]
   email: String

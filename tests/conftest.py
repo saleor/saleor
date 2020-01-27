@@ -575,7 +575,10 @@ def permission_manage_service_accounts():
 @pytest.fixture
 def product_type(color_attribute, size_attribute):
     product_type = ProductType.objects.create(
-        name="Default Type", has_variants=True, is_shipping_required=True
+        name="Default Type",
+        slug="default-type",
+        has_variants=True,
+        is_shipping_required=True,
     )
     product_type.product_attributes.add(color_attribute)
     product_type.variant_attributes.add(size_attribute)
@@ -585,7 +588,7 @@ def product_type(color_attribute, size_attribute):
 @pytest.fixture
 def product_type_without_variant():
     product_type = ProductType.objects.create(
-        name="Type", has_variants=False, is_shipping_required=True
+        name="Type", slug="type", has_variants=False, is_shipping_required=True
     )
     return product_type
 
@@ -675,7 +678,10 @@ def product_with_variant_with_two_attributes(
     color_attribute, size_attribute, category, warehouse
 ):
     product_type = ProductType.objects.create(
-        name="Type with two variants", has_variants=True, is_shipping_required=True
+        name="Type with two variants",
+        slug="two-variants",
+        has_variants=True,
+        is_shipping_required=True,
     )
     product_type.variant_attributes.add(color_attribute)
     product_type.variant_attributes.add(size_attribute)
@@ -766,7 +772,10 @@ def product_variant_list(product):
 @pytest.fixture
 def product_without_shipping(category, warehouse):
     product_type = ProductType.objects.create(
-        name="Type with no shipping", has_variants=False, is_shipping_required=False
+        name="Type with no shipping",
+        slug="no-shipping",
+        has_variants=False,
+        is_shipping_required=False,
     )
     product = Product.objects.create(
         name="Test product",
@@ -1586,6 +1595,7 @@ def payment_dummy(db, order_with_lines):
 def digital_content(category, media_root, warehouse) -> DigitalContent:
     product_type = ProductType.objects.create(
         name="Digital Type",
+        slug="digital-type",
         has_variants=True,
         is_shipping_required=False,
         is_digital=True,
@@ -1827,7 +1837,10 @@ def customer_wishlist_item_with_two_variants(
 @pytest.fixture
 def warehouse(address, shipping_zone):
     warehouse = Warehouse.objects.create(
-        address=address, name="Example Warehouse", email="test@example.com"
+        address=address,
+        name="Example Warehouse",
+        slug="example=warehouse",
+        email="test@example.com",
     )
     warehouse.shipping_zones.add(shipping_zone)
     warehouse.save()

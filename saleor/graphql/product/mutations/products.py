@@ -1271,6 +1271,7 @@ class ProductVariantClearPrivateMeta(ClearMetaBaseMutation):
 
 class ProductTypeInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the product type.")
+    slug = graphene.String(description="Product type slug.")
     has_variants = graphene.Boolean(
         description=(
             "Determines if product of this type has multiple variants. This option "
@@ -1317,6 +1318,9 @@ class ProductTypeCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
+
+        if "slug" not in cleaned_input and "name" in cleaned_input:
+            cleaned_input["slug"] = slugify(cleaned_input["name"])
 
         # FIXME  tax_rate logic should be dropped after we remove tax_rate from input
         tax_rate = cleaned_input.pop("tax_rate", "")

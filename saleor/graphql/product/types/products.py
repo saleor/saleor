@@ -653,6 +653,7 @@ class ProductType(CountableDjangoObjectType, MetadataObjectType):
             "is_digital",
             "is_shipping_required",
             "name",
+            "slug",
             "weight",
             "tax_type",
         ]
