@@ -1339,7 +1339,7 @@ type CustomerEvent implements Node {
   id: ID!
   date: DateTime
   type: CustomerEventsEnum
-  user(id: ID): User
+  user: User
   message: String
   count: Int
   order: Order
@@ -2289,7 +2289,7 @@ type Mutation {
   checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID!): CheckoutBillingAddressUpdate
   checkoutComplete(checkoutId: ID!, redirectUrl: String, storeSource: Boolean = false): CheckoutComplete
   checkoutCreate(input: CheckoutCreateInput!): CheckoutCreate
-  checkoutCustomerAttach(checkoutId: ID!, customerId: ID!): CheckoutCustomerAttach
+  checkoutCustomerAttach(checkoutId: ID!, customerId: ID): CheckoutCustomerAttach
   checkoutCustomerDetach(checkoutId: ID!): CheckoutCustomerDetach
   checkoutEmailUpdate(checkoutId: ID, email: String!): CheckoutEmailUpdate
   checkoutLineDelete(checkoutId: ID!, lineId: ID): CheckoutLineDelete
@@ -2513,7 +2513,7 @@ type OrderEvent implements Node {
   id: ID!
   date: DateTime
   type: OrderEventsEnum
-  user(id: ID): User
+  user: User
   message: String
   email: String
   emailType: OrderEventsEmailsEnum
