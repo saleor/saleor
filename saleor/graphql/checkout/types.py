@@ -1,9 +1,10 @@
 import graphene
 import graphene_django_optimizer as gql_optimizer
+from graphql_jwt.exceptions import PermissionDenied
 
 from ...checkout import calculations, models
 from ...checkout.utils import get_valid_shipping_methods_for_checkout
-from ...core.permissions import OrderPermissions
+from ...core.permissions import AccountPermissions, CheckoutPermissions
 from ...core.taxes import display_gross_prices, zero_taxed_money
 from ...extensions.manager import get_extensions_manager
 from ..core.connection import CountableDjangoObjectType
@@ -134,6 +135,13 @@ class Checkout(MetadataObjectType, CountableDjangoObjectType):
         filter_fields = ["token"]
 
     @staticmethod
+    def resolve_user(root: models.Checkout, info):
+        user = info.context.user
+        if user == root.user or user.has_perm(AccountPermissions.MANAGE_USERS):
+            return root.user
+        raise PermissionDenied()
+
+    @staticmethod
     def resolve_email(root: models.Checkout, info):
         return root.get_customer_email()
 
@@ -196,7 +204,7 @@ class Checkout(MetadataObjectType, CountableDjangoObjectType):
         return root.is_shipping_required()
 
     @staticmethod
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
+    @permission_required(CheckoutPermissions.MANAGE_CHECKOUTS)
     def resolve_private_meta(root: models.Checkout, _info):
         return resolve_private_meta(root, _info)
 
