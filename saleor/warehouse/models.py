@@ -22,6 +22,7 @@ class WarehouseQueryset(models.QuerySet):
 class Warehouse(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
     name = models.CharField(max_length=255)
+    slug = models.SlugField(max_length=50, unique=True)
     company_name = models.CharField(blank=True, max_length=255)
 
     shipping_zones = models.ManyToManyField(ShippingZone, blank=True)
