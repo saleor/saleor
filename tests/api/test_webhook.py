@@ -27,9 +27,8 @@ WEBHOOK_CREATE_BY_SERVICE_ACCOUNT = """
 
 
 def test_webhook_create_by_service_account(
-    service_account_api_client, service_account, permission_manage_orders
+    service_account_api_client, permission_manage_orders
 ):
-    service_account.permissions.add(permission_manage_orders)
     query = WEBHOOK_CREATE_BY_SERVICE_ACCOUNT
     variables = {
         "name": "New integration",
@@ -39,7 +38,12 @@ def test_webhook_create_by_service_account(
             WebhookEventTypeEnum.ORDER_CREATED.name,
         ],
     }
-    response = service_account_api_client.post_graphql(query, variables=variables)
+    response = service_account_api_client.post_graphql(
+        query,
+        variables=variables,
+        permissions=[permission_manage_orders],
+        check_no_permissions=False,
+    )
     get_graphql_content(response)
     new_webhook = Webhook.objects.get()
     assert new_webhook.name == "New integration"
@@ -52,7 +56,6 @@ def test_webhook_create_by_service_account(
 def test_webhook_create_inactive_service_account(
     service_account_api_client, service_account, permission_manage_orders
 ):
-    service_account.permissions.add(permission_manage_orders)
     service_account.is_active = False
     service_account.save()
     query = WEBHOOK_CREATE_BY_SERVICE_ACCOUNT
@@ -62,7 +65,9 @@ def test_webhook_create_inactive_service_account(
         "name": "",
     }
 
-    response = service_account_api_client.post_graphql(query, variables=variables)
+    response = service_account_api_client.post_graphql(
+        query, variables=variables, permissions=[permission_manage_orders]
+    )
     assert_no_permission(response)
 
 
@@ -631,14 +636,14 @@ def test_sample_payload_query_by_service_account(
     has_access,
     service_account_api_client,
     permission_manage_orders,
-    service_account,
 ):
 
     mock_generate_sample_payload.return_value = {"mocked_response": ""}
     query = SAMPLE_PAYLOAD_QUERY
-    service_account.permissions.add(permission_manage_orders)
     variables = {"event_type": event_type.name}
-    response = service_account_api_client.post_graphql(query, variables=variables)
+    response = service_account_api_client.post_graphql(
+        query, variables=variables, permissions=[permission_manage_orders]
+    )
     if not has_access:
         assert_no_permission(response)
         mock_generate_sample_payload.assert_not_called()
