@@ -1348,9 +1348,9 @@ def collection_with_image(db, image, media_root):
 def collection_list(db):
     collections = Collection.objects.bulk_create(
         [
-            Collection(name="Collection 1", is_published="True"),
-            Collection(name="Collection 2", is_published="True"),
-            Collection(name="Collection 3", is_published="True"),
+            Collection(name="Collection 1", slug="collection-1", is_published="True"),
+            Collection(name="Collection 2", slug="collection-2", is_published="True"),
+            Collection(name="Collection 3", slug="collection-3", is_published="True"),
         ]
     )
     return collections
