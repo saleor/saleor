@@ -1,7 +1,5 @@
 from typing import TYPE_CHECKING, List
 
-from django.utils.translation import pgettext_lazy
-
 from saleor.extensions import ConfigurationTypeField
 from saleor.extensions.base_plugin import BasePlugin
 
@@ -40,57 +38,39 @@ class BraintreeGatewayPlugin(BasePlugin):
     CONFIG_STRUCTURE = {
         "Public API key": {
             "type": ConfigurationTypeField.SECRET,
-            "help_text": pgettext_lazy(
-                "Plugin help text", "Provide Braintree public API key"
-            ),
-            "label": pgettext_lazy("Plugin label", "Public API key"),
+            "help_text": "Provide Braintree public API key",
+            "label": "Public API key",
         },
         "Secret API key": {
             "type": ConfigurationTypeField.SECRET,
-            "help_text": pgettext_lazy(
-                "Plugin help text", "Provide Braintree secret API key"
-            ),
-            "label": pgettext_lazy("Plugin label", "Secret API key"),
+            "help_text": "Provide Braintree secret API key",
+            "label": "Secret API key",
         },
         "Merchant ID": {
             "type": ConfigurationTypeField.SECRET,
-            "help_text": pgettext_lazy(
-                "Plugin help text", "Provide Braintree merchant ID"
-            ),
-            "label": pgettext_lazy("Plugin label", "Merchant ID"),
+            "help_text": "Provide Braintree merchant ID",
+            "label": "Merchant ID",
         },
         "Use sandbox": {
             "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": pgettext_lazy(
-                "Plugin help text",
-                "Determines if Saleor should use Braintree sandbox API.",
-            ),
-            "label": pgettext_lazy("Plugin label", "Use sandbox"),
+            "help_text": "Determines if Saleor should use Braintree sandbox API.",
+            "label": "Use sandbox",
         },
         "Store customers card": {
             "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": pgettext_lazy(
-                "Plugin help text",
-                "Determines if Saleor should store cards on payments"
-                " in Braintree customer.",
-            ),
-            "label": pgettext_lazy("Plugin label", "Store customers card"),
+            "help_text": "Determines if Saleor should store cards on payments"
+            " in Braintree customer.",
+            "label": "Store customers card",
         },
         "Automatic payment capture": {
             "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": pgettext_lazy(
-                "Plugin help text",
-                "Determines if Saleor should automaticaly capture payments.",
-            ),
-            "label": pgettext_lazy("Plugin label", "Automatic payment capture"),
+            "help_text": "Determines if Saleor should automaticaly capture payments.",
+            "label": "Automatic payment capture",
         },
         "Require 3D secure": {
             "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": pgettext_lazy(
-                "Plugin help text",
-                "Determines if Saleor should enforce 3D secure during payment.",
-            ),
-            "label": pgettext_lazy("Plugin label", "Require 3D secure"),
+            "help_text": "Determines if Saleor should enforce 3D secure during payment.",
+            "label": "Require 3D secure",
         },
     }
 

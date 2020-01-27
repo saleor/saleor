@@ -1,9 +1,9 @@
 import graphene
 import graphene_django_optimizer as gql_optimizer
-from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model, models as auth_models
 from graphene import relay
 from graphene_federation import key
-from graphql_jwt.decorators import login_required
+from graphql_jwt.exceptions import PermissionDenied
 
 from ...account import models
 from ...checkout.utils import get_user_checkout
@@ -15,7 +15,7 @@ from ..core.fields import PrefetchingConnectionField
 from ..core.resolvers import resolve_meta, resolve_private_meta
 from ..core.types import CountryDisplay, Image, MetadataObjectType, PermissionDisplay
 from ..core.utils import get_node_optimized
-from ..decorators import one_of_permissions_required
+from ..decorators import one_of_permissions_required, permission_required
 from ..utils import format_permissions_for_display
 from ..wishlist.resolvers import resolve_wishlist_items_from_user
 from ..wishlist.types import WishlistItem
@@ -119,11 +119,7 @@ class CustomerEvent(CountableDjangoObjectType):
         description="Date when event happened at in ISO 8601 format."
     )
     type = CustomerEventsEnum(description="Customer event type.")
-    user = graphene.Field(
-        lambda: User,
-        id=graphene.Argument(graphene.ID),
-        description="User who performed the action.",
-    )
+    user = graphene.Field(lambda: User, description="User who performed the action.")
     message = graphene.String(description="Content of the event.")
     count = graphene.Int(description="Number of objects concerned by the event.")
     order = gql_optimizer.field(
@@ -141,6 +137,17 @@ class CustomerEvent(CountableDjangoObjectType):
         model = models.CustomerEvent
         interfaces = [relay.Node]
         only_fields = ["id"]
+
+    @staticmethod
+    def resolve_user(root: models.CustomerEvent, info):
+        user = info.context.user
+        if (
+            user == root.user
+            or user.has_perm(AccountPermissions.MANAGE_USERS)
+            or user.has_perm(AccountPermissions.MANAGE_STAFF)
+        ):
+            return root.user
+        raise PermissionDenied()
 
     @staticmethod
     def resolve_message(root: models.CustomerEvent, _info):
@@ -344,11 +351,12 @@ class User(MetadataObjectType, CountableDjangoObjectType):
             )
 
     @staticmethod
-    @login_required
-    def resolve_stored_payment_sources(root: models.User, _info):
+    def resolve_stored_payment_sources(root: models.User, info):
         from .resolvers import resolve_payment_sources
 
-        return resolve_payment_sources(root)
+        if root == info.context.user:
+            return resolve_payment_sources(root)
+        raise PermissionDenied()
 
     @staticmethod
     @one_of_permissions_required(
@@ -422,5 +430,40 @@ class StaffNotificationRecipient(CountableDjangoObjectType):
         only_fields = ["user", "active"]
 
     @staticmethod
+    def resolve_user(root: models.StaffNotificationRecipient, info):
+        user = info.context.user
+        if user == root.user or user.has_perm(AccountPermissions.MANAGE_STAFF):
+            return root.user
+        raise PermissionDenied()
+
+    @staticmethod
     def resolve_email(root: models.StaffNotificationRecipient, _info):
         return root.get_email()
+
+
+@key(fields="id")
+class Group(CountableDjangoObjectType):
+    users = graphene.List(User, description="List of group users")
+    permissions = graphene.List(
+        PermissionDisplay, description="List of group permissions"
+    )
+
+    class Meta:
+        description = ""
+        interfaces = [relay.Node]
+        model = auth_models.Group
+        only_fields = ["name", "permissions", "users", "id"]
+
+    @staticmethod
+    @permission_required(AccountPermissions.MANAGE_STAFF)
+    @gql_optimizer.resolver_hints(prefetch_related="user_set")
+    def resolve_users(root: auth_models.Group, _info):
+        return root.user_set.all()
+
+    @staticmethod
+    @gql_optimizer.resolver_hints(prefetch_related="permissions")
+    def resolve_permissions(root: auth_models.Group, _info):
+        permissions = root.permissions.prefetch_related("content_type").order_by(
+            "codename"
+        )
+        return format_permissions_for_display(permissions)

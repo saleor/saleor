@@ -4,7 +4,6 @@ import i18naddress
 from django import forms
 from django.core.exceptions import ValidationError
 from django.forms.forms import BoundField  # type: ignore
-from django.utils.translation import pgettext_lazy
 from django_countries import countries
 
 from .models import Address
@@ -14,27 +13,27 @@ from .widgets import DatalistTextWidget, PhonePrefixWidget
 COUNTRY_FORMS = {}
 UNKNOWN_COUNTRIES = set()
 
-AREA_TYPE_TRANSLATIONS = {
-    "area": pgettext_lazy("Address field", "Area"),
-    "county": pgettext_lazy("Address field", "County"),
-    "department": pgettext_lazy("Address field", "Department"),
-    "district": pgettext_lazy("Address field", "District"),
-    "do_si": pgettext_lazy("Address field", "Do/si"),
-    "eircode": pgettext_lazy("Address field", "Eircode"),
-    "emirate": pgettext_lazy("Address field", "Emirate"),
-    "island": pgettext_lazy("Address field", "Island"),
-    "neighborhood": pgettext_lazy("Address field", "Neighborhood"),
-    "oblast": pgettext_lazy("Address field", "Oblast"),
-    "parish": pgettext_lazy("Address field", "Parish"),
-    "pin": pgettext_lazy("Address field", "PIN"),
-    "postal": pgettext_lazy("Address field", "Postal code"),
-    "prefecture": pgettext_lazy("Address field", "Prefecture"),
-    "province": pgettext_lazy("Address field", "Province"),
-    "state": pgettext_lazy("Address field", "State"),
-    "suburb": pgettext_lazy("Address field", "Suburb"),
-    "townland": pgettext_lazy("Address field", "Townland"),
-    "village_township": pgettext_lazy("Address field", "Village/township"),
-    "zip": pgettext_lazy("Address field", "ZIP code"),
+AREA_TYPE = {
+    "area": "Area",
+    "county": "County",
+    "department": "Department",
+    "district": "District",
+    "do_si": "Do/si",
+    "eircode": "Eircode",
+    "emirate": "Emirate",
+    "island": "Island",
+    "neighborhood": "Neighborhood",
+    "oblast": "Oblast",
+    "parish": "Parish",
+    "pin": "PIN",
+    "postal": "Postal code",
+    "prefecture": "Prefecture",
+    "province": "Province",
+    "state": "State",
+    "suburb": "Suburb",
+    "townland": "Townland",
+    "village_township": "Village/township",
+    "zip": "ZIP code",
 }
 
 
@@ -60,7 +59,7 @@ class AddressMetaForm(forms.ModelForm):
     class Meta:
         model = Address
         fields = ["country", "preview"]
-        labels = {"country": pgettext_lazy("Country", "Country")}
+        labels = {"country": "Country"}
 
     def clean(self):
         data = super().clean()
@@ -91,27 +90,21 @@ class AddressForm(forms.ModelForm):
         model = Address
         exclude = []
         labels = {
-            "first_name": pgettext_lazy("Personal name", "Given name"),
-            "last_name": pgettext_lazy("Personal name", "Family name"),
-            "company_name": pgettext_lazy(
-                "Company or organization", "Company or organization"
-            ),
-            "street_address_1": pgettext_lazy("Address", "Address"),
+            "first_name": "Given name",
+            "last_name": "Family name",
+            "company_name": "Company or organization",
+            "street_address_1": "Address",
             "street_address_2": "",
-            "city": pgettext_lazy("City", "City"),
-            "city_area": pgettext_lazy("City area", "District"),
-            "postal_code": pgettext_lazy("Postal code", "Postal code"),
-            "country": pgettext_lazy("Country", "Country"),
-            "country_area": pgettext_lazy("Country area", "State or province"),
-            "phone": pgettext_lazy("Phone number", "Phone number"),
+            "city": "City",
+            "city_area": "District",
+            "postal_code": "Postal code",
+            "country": "Country",
+            "country_area": "State or province",
+            "phone": "Phone number",
         }
         placeholders = {
-            "street_address_1": pgettext_lazy(
-                "Address", "Street address, P.O. box, company name"
-            ),
-            "street_address_2": pgettext_lazy(
-                "Address", "Apartment, suite, unit, building, floor, etc"
-            ),
+            "street_address_1": "Street address, P.O. box, company name",
+            "street_address_2": "Apartment, suite, unit, building, floor, etc",
         }
 
     phone = PossiblePhoneNumberFormField(widget=PhonePrefixWidget, required=False)
@@ -176,9 +169,7 @@ class CountryAwareAddressForm(AddressForm):
                 try:
                     error_msg = self.fields[field].error_messages[error_code]
                 except KeyError:
-                    error_msg = pgettext_lazy(
-                        "Address form", "This value is not valid for the address."
-                    )
+                    error_msg = "This value is not valid for the address."
                 self.add_error(field, ValidationError(error_msg, code=error_code))
 
     def validate_address(self, data):
@@ -249,7 +240,7 @@ def update_base_fields(form_class, i18n_rules):
 
     for field_name, area_type in labels_map.items():
         field = form_class.base_fields[field_name]
-        field.label = AREA_TYPE_TRANSLATIONS[area_type]
+        field.label = AREA_TYPE[area_type]
 
     hidden_fields = i18naddress.KNOWN_FIELDS - i18n_rules.allowed_fields
     for field_name in hidden_fields:

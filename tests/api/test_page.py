@@ -146,6 +146,21 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages):
     assert data["page"]["isPublished"] == page_is_published
 
 
+def test_page_create_required_fields(staff_api_client, permission_manage_pages):
+    response = staff_api_client.post_graphql(
+        CREATE_PAGE_MUTATION, {}, permissions=[permission_manage_pages]
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["pageCreate"]["errors"]
+
+    err_msg = "This field cannot be blank."
+    title_error = {"field": "slug", "message": err_msg}
+    slug_error = {"field": "title", "message": err_msg}
+
+    assert title_error in errors
+    assert slug_error in errors
+
+
 def test_create_default_slug(staff_api_client, permission_manage_pages):
     # test creating root page
     title = "Spanish inquisition"

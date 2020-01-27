@@ -9,7 +9,7 @@ from saleor.graphql.payment.enums import OrderAction, PaymentChargeStatusEnum
 from saleor.payment.interface import CreditCardInfo, CustomerSource, TokenConfig
 from saleor.payment.models import ChargeStatus, Payment, TransactionKind
 from saleor.payment.utils import fetch_customer_id, store_customer_id
-from tests.api.utils import get_graphql_content
+from tests.api.utils import assert_no_permission, get_graphql_content
 
 VOID_QUERY = """
     mutation PaymentVoid($paymentId: ID!) {
@@ -634,3 +634,36 @@ def test_list_payment_sources(
     content = get_graphql_content(response)["data"]["me"]["storedPaymentSources"]
     assert content is not None and len(content) == 1
     assert content[0] == {"gateway": "dummy", "creditCardInfo": {"lastDigits": "5678"}}
+
+
+def test_stored_payment_sources_restriction(
+    mocker, staff_api_client, customer_user, permission_manage_users
+):
+    # Only owner of storedPaymentSources can fetch it.
+    card = CreditCardInfo(
+        last_4="5678", exp_year=2020, exp_month=12, name_on_card="JohnDoe"
+    )
+    source = CustomerSource(id="test1", gateway="dummy", credit_card_info=card)
+    mocker.patch(
+        "saleor.graphql.account.resolvers.gateway.list_payment_sources",
+        return_value=[source],
+        autospec=True,
+    )
+
+    customer_user_id = graphene.Node.to_global_id("User", customer_user.pk)
+    query = """
+        query PaymentSources($id: ID!) {
+            user(id: $id) {
+                storedPaymentSources {
+                    creditCardInfo {
+                        firstDigits
+                    }
+                }
+            }
+        }
+    """
+    variables = {"id": customer_user_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    assert_no_permission(response)

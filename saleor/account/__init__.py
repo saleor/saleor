@@ -1,6 +1,3 @@
-from django.utils.translation import pgettext_lazy
-
-
 class CustomerEvents:
     """The different customer event types."""
 
@@ -24,94 +21,20 @@ class CustomerEvents:
     NOTE_ADDED = "note_added"  # the staff user added a note to the customer
 
     CHOICES = [
-        (
-            ACCOUNT_CREATED,
-            pgettext_lazy(
-                "Event from a customer that got their account created",
-                "The account was created",
-            ),
-        ),
-        (
-            PASSWORD_RESET_LINK_SENT,
-            pgettext_lazy(
-                "Event from a customer that got the password reset link sent by email",
-                "Password reset link was sent to the customer",
-            ),
-        ),
-        (
-            PASSWORD_RESET,
-            pgettext_lazy(
-                "Event from a customer that reset their password",
-                "The account password was reset",
-            ),
-        ),
+        (ACCOUNT_CREATED, "The account was created"),
+        (PASSWORD_RESET_LINK_SENT, "Password reset link was sent to the customer"),
+        (PASSWORD_RESET, "The account password was reset"),
         (
             EMAIL_CHANGE_REQUEST,
-            pgettext_lazy(
-                "Event from a customer that requested email address change",
-                "The user requested to change the account's email address.",
-            ),
+            "The user requested to change the account's email address.",
         ),
-        (
-            PASSWORD_CHANGED,
-            pgettext_lazy(
-                "Event from a customer that changed their password",
-                "The account password was changed",
-            ),
-        ),
-        (
-            EMAIL_CHANGED,
-            pgettext_lazy(
-                "Event from a customer that changed their email address",
-                "The account email address was changed",
-            ),
-        ),
-        (
-            PLACED_ORDER,
-            pgettext_lazy(
-                "Event from a customer that placed an order", "An order was placed"
-            ),
-        ),
-        (
-            NOTE_ADDED_TO_ORDER,
-            pgettext_lazy(
-                "Event from a customer that added a note to one of their orders",
-                "A note was added",
-            ),
-        ),
-        (
-            DIGITAL_LINK_DOWNLOADED,
-            pgettext_lazy(
-                "Event from a customer that downloaded an ordered digital good",
-                "A digital good was downloaded",
-            ),
-        ),
-        (
-            CUSTOMER_DELETED,
-            pgettext_lazy(
-                "Event from a staff user that deleted a customer",
-                "A customer was deleted",
-            ),
-        ),
-        (
-            NAME_ASSIGNED,
-            pgettext_lazy(
-                "Event from a staff user assigned a new name to a customer",
-                "A customer's name was edited",
-            ),
-        ),
-        (
-            EMAIL_ASSIGNED,
-            pgettext_lazy(
-                "Event from a staff user assigned a new email address to a customer",
-                "A customer's email address was edited",
-            ),
-        ),
-        (
-            NOTE_ADDED,
-            pgettext_lazy(
-                "Event from a staff user assigned a new email address to a customer",
-                "A note was added to the customer",
-            ),
-        ),
+        (PASSWORD_CHANGED, "The account password was changed"),
+        (EMAIL_CHANGED, "The account email address was changed"),
+        (PLACED_ORDER, "An order was placed"),
+        (NOTE_ADDED_TO_ORDER, "A note was added"),
+        (DIGITAL_LINK_DOWNLOADED, "A digital good was downloaded"),
+        (CUSTOMER_DELETED, "A customer was deleted"),
+        (NAME_ASSIGNED, "A customer's name was edited"),
+        (EMAIL_ASSIGNED, "A customer's email address was edited"),
+        (NOTE_ADDED, "A note was added to the customer"),
     ]

@@ -35,7 +35,7 @@ if settings.DEBUG:
 
     urlpatterns += static("/media/", document_root=settings.MEDIA_ROOT) + [
         url(r"^static/(?P<path>.*)$", serve),
-        url(r"^", RedirectView.as_view(url="graphql/")),
+        url(r"^", RedirectView.as_view(url="/graphql/")),
     ]
 
 if settings.ENABLE_SILK:

@@ -24,7 +24,7 @@ def update_product_minimal_variant_price(product, discounts=None, save=True):
     if product.minimal_variant_price != minimal_variant_price:
         product.minimal_variant_price_amount = minimal_variant_price.amount
         if save:
-            product.save(update_fields=["minimal_variant_price_amount"])
+            product.save(update_fields=["minimal_variant_price_amount", "updated_at"])
     return product
 
 

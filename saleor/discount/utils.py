@@ -4,7 +4,6 @@ from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Set, Union
 
 from django.db.models import F
 from django.utils import timezone
-from django.utils.translation import pgettext
 from prices import Money
 
 from ..checkout import calculations
@@ -38,12 +37,7 @@ def add_voucher_usage_by_customer(voucher: "Voucher", customer_email: str) -> No
         voucher=voucher, customer_email=customer_email
     )
     if voucher_customer:
-        raise NotApplicable(
-            pgettext(
-                "Voucher not applicable",
-                ("This offer is only valid once per customer."),
-            )
-        )
+        raise NotApplicable("This offer is only valid once per customer.")
     VoucherCustomer.objects.create(voucher=voucher, customer_email=customer_email)
 
 
@@ -66,9 +60,7 @@ def get_product_discount_on_sale(
     )
     if is_product_on_sale:
         return discount.sale.get_discount()
-    raise NotApplicable(
-        pgettext("Voucher not applicable", "Discount not applicable for this product")
-    )
+    raise NotApplicable("Discount not applicable for this product")
 
 
 def get_product_discounts(product: "Product", discounts: "DiscountsListType") -> Money:
