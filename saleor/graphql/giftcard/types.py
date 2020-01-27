@@ -1,9 +1,9 @@
 import graphene
+from graphql_jwt.exceptions import PermissionDenied
 
-from ...core.permissions import GiftcardPermissions
+from ...core.permissions import AccountPermissions, GiftcardPermissions
 from ...giftcard import models
 from ..core.connection import CountableDjangoObjectType
-from ..decorators import permission_required
 
 
 class GiftCard(CountableDjangoObjectType):
@@ -40,17 +40,19 @@ class GiftCard(CountableDjangoObjectType):
         return root.display_code
 
     @staticmethod
-    @permission_required(GiftcardPermissions.MANAGE_GIFT_CARD)
-    def resolve_user(root: models.GiftCard, *_args, **_kwargs):
-        return root.user
+    def resolve_user(root: models.GiftCard, info):
+        user = info.context.user
+        if user == root.user or user.has_perm(AccountPermissions.MANAGE_USERS):
+            return root.user
+        raise PermissionDenied()
 
     @staticmethod
     def resolve_code(root: models.GiftCard, info, **_kwargs):
-        viewer = info.context.user
+        user = info.context.user
         # Staff user has access to show gift card code only for gift card without user.
-        if viewer.has_perm(GiftcardPermissions.MANAGE_GIFT_CARD) and not root.user:
+        if user.has_perm(GiftcardPermissions.MANAGE_GIFT_CARD) and not root.user:
             return root.code
         # Only user associated with a gift card can see gift card code.
-        if viewer == root.user:
+        if user == root.user:
             return root.code
         return None

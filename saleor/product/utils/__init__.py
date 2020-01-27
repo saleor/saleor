@@ -3,7 +3,6 @@ from urllib.parse import urlencode
 
 from django.conf import settings
 from django.db import transaction
-from django.db.models import F
 
 from ...core.taxes import TaxedMoney, zero_taxed_money
 from ..tasks import update_products_minimal_variant_prices_task
@@ -15,32 +14,6 @@ if TYPE_CHECKING:
     from django.db.models.query import QuerySet
 
     from ..models import Product, ProductVariant, Category
-
-
-def allocate_stock(variant: "ProductVariant", quantity: int):
-    variant.quantity_allocated = F("quantity_allocated") + quantity
-    variant.save(update_fields=["quantity_allocated"])
-
-
-def deallocate_stock(variant: "ProductVariant", quantity: int):
-    variant.quantity_allocated = F("quantity_allocated") - quantity
-    variant.save(update_fields=["quantity_allocated"])
-
-
-def decrease_stock(variant: "ProductVariant", quantity: int):
-    variant.quantity = F("quantity") - quantity
-    variant.quantity_allocated = F("quantity_allocated") - quantity
-    variant.save(update_fields=["quantity", "quantity_allocated"])
-
-
-def increase_stock(variant: "ProductVariant", quantity, allocate: bool = False):
-    """Return given quantity of product to a stock."""
-    variant.quantity = F("quantity") + quantity
-    update_fields = ["quantity"]
-    if allocate:
-        variant.quantity_allocated = F("quantity_allocated") + quantity
-        update_fields.append("quantity_allocated")
-    variant.save(update_fields=update_fields)
 
 
 def calculate_revenue_for_variant(

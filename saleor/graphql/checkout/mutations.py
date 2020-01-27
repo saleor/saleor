@@ -5,6 +5,7 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.db.models import Prefetch
+from graphql_jwt.exceptions import PermissionDenied
 
 from ...account.error_codes import AccountErrorCode
 from ...checkout import models
@@ -33,8 +34,9 @@ from ...payment import PaymentError, gateway, models as payment_models
 from ...payment.interface import AddressData
 from ...payment.utils import store_customer_id
 from ...product import models as product_models
+from ...warehouse.availability import check_stock_quantity, get_available_quantity
 from ..account.i18n import I18nMixin
-from ..account.types import AddressInput, User
+from ..account.types import AddressInput
 from ..core.mutations import (
     BaseMutation,
     ClearMetaBaseMutation,
@@ -80,7 +82,7 @@ def update_checkout_shipping_method_if_invalid(checkout: models.Checkout, discou
     # remove shipping method when empty checkout
     if checkout.quantity == 0 or not checkout.is_shipping_required():
         checkout.shipping_method = None
-        checkout.save(update_fields=["shipping_method"])
+        checkout.save(update_fields=["shipping_method", "last_change"])
 
     is_valid = clean_shipping_method(
         checkout=checkout, method=checkout.shipping_method, discounts=discounts
@@ -91,10 +93,10 @@ def update_checkout_shipping_method_if_invalid(checkout: models.Checkout, discou
             checkout, discounts
         ).first()
         checkout.shipping_method = cheapest_alternative
-        checkout.save(update_fields=["shipping_method"])
+        checkout.save(update_fields=["shipping_method", "last_change"])
 
 
-def check_lines_quantity(variants, quantities):
+def check_lines_quantity(variants, quantities, country):
     """Check if stock is sufficient for each line in the list of dicts."""
     for variant, quantity in zip(variants, quantities):
         if quantity < 0:
@@ -117,13 +119,14 @@ def check_lines_quantity(variants, quantities):
                 }
             )
         try:
-            variant.check_quantity(quantity)
+            check_stock_quantity(variant, country, quantity)
         except InsufficientStock as e:
+            available_quantity = get_available_quantity(e.item, country)
             message = (
                 "Could not add item "
                 + "%(item_name)s. Only %(remaining)d remaining in stock."
                 % {
-                    "remaining": e.item.quantity_available,
+                    "remaining": available_quantity,
                     "item_name": e.item.display_product(),
                 }
             )
@@ -179,7 +182,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def process_checkout_lines(
-        cls, lines
+        cls, lines, country
     ) -> Tuple[List[product_models.ProductVariant], List[int]]:
         variant_ids = [line.get("variant_id") for line in lines]
         variants = cls.get_nodes_or_error(
@@ -192,7 +195,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         )
         quantities = [line.get("quantity") for line in lines]
 
-        check_lines_quantity(variants, quantities)
+        check_lines_quantity(variants, quantities, country)
 
         return variants, quantities
 
@@ -216,6 +219,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     def clean_input(cls, info, instance: models.Checkout, data, input_cls=None):
         cleaned_input = super().clean_input(info, instance, data)
         user = info.context.user
+        country = info.context.country.code
 
         # Resolve and process the lines, retrieving the variants and quantities
         lines = data.pop("lines", None)
@@ -223,7 +227,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
             (
                 cleaned_input["variants"],
                 cleaned_input["quantities"],
-            ) = cls.process_checkout_lines(lines)
+            ) = cls.process_checkout_lines(lines, country)
 
         cleaned_input["shipping_address"] = cls.retrieve_shipping_address(user, data)
         cleaned_input["billing_address"] = cls.retrieve_billing_address(user, data)
@@ -240,7 +244,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         shipping_address = cleaned_input.get("shipping_address")
         billing_address = cleaned_input.get("billing_address")
 
-        updated_fields = []
+        updated_fields = ["last_change"]
 
         if shipping_address and instance.is_shipping_required():
             shipping_address.save()
@@ -259,6 +263,8 @@ class CheckoutCreate(ModelMutation, I18nMixin):
     def save(cls, info, instance: models.Checkout, cleaned_input):
         # Create the checkout object
         instance.save()
+        country = info.context.country
+        instance.set_country(country.code, commit=True)
 
         # Retrieve the lines to create
         variants = cleaned_input.get("variants")
@@ -332,7 +338,7 @@ class CheckoutLinesAdd(BaseMutation):
         variants = cls.get_nodes_or_error(variant_ids, "variant_id", ProductVariant)
         quantities = [line.get("quantity") for line in lines]
 
-        check_lines_quantity(variants, quantities)
+        check_lines_quantity(variants, quantities, checkout.get_country())
 
         if variants and quantities:
             for variant, quantity in zip(variants, quantities):
@@ -399,7 +405,14 @@ class CheckoutCustomerAttach(BaseMutation):
 
     class Arguments:
         checkout_id = graphene.ID(required=True, description="ID of the checkout.")
-        customer_id = graphene.ID(required=True, description="The ID of the customer.")
+        customer_id = graphene.ID(
+            required=False,
+            description=(
+                "The ID of the customer. DEPRECATED: This field is deprecated and will "
+                "be removed in Saleor 2.11. To identify a customer you should "
+                "authenticate with JWT token."
+            ),
+        )
 
     class Meta:
         description = "Sets the customer as the owner of the checkout."
@@ -407,15 +420,25 @@ class CheckoutCustomerAttach(BaseMutation):
         error_type_field = "checkout_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id, customer_id):
+    def check_permissions(cls, context):
+        return context.user.is_authenticated
+
+    @classmethod
+    def perform_mutation(cls, _root, info, checkout_id, customer_id=None):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
-        customer = cls.get_node_or_error(
-            info, customer_id, only_type=User, field="customer_id"
-        )
-        checkout.user = customer
-        checkout.save(update_fields=["user"])
+
+        # Check if provided customer_id matches with the authenticated user and raise
+        # error if it doesn't. This part can be removed when `customer_id` field is
+        # removed.
+        if customer_id:
+            current_user_id = graphene.Node.to_global_id("User", info.context.user.id)
+            if current_user_id != customer_id:
+                raise PermissionDenied()
+
+        checkout.user = info.context.user
+        checkout.save(update_fields=["user", "last_change"])
         return CheckoutCustomerAttach(checkout=checkout)
 
 
@@ -431,12 +454,21 @@ class CheckoutCustomerDetach(BaseMutation):
         error_type_field = "checkout_errors"
 
     @classmethod
+    def check_permissions(cls, context):
+        return context.user.is_authenticated
+
+    @classmethod
     def perform_mutation(cls, _root, info, checkout_id):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
+
+        # Raise error if the current user doesn't own the checkout of the given ID.
+        if checkout.user and checkout.user != info.context.user:
+            raise PermissionDenied()
+
         checkout.user = None
-        checkout.save(update_fields=["user"])
+        checkout.save(update_fields=["user", "last_change"])
         return CheckoutCustomerDetach(checkout=checkout)
 
 
@@ -546,7 +578,7 @@ class CheckoutEmailUpdate(BaseMutation):
 
         checkout.email = email
         cls.clean_instance(info, checkout)
-        checkout.save(update_fields=["email"])
+        checkout.save(update_fields=["email", "last_change"])
         return CheckoutEmailUpdate(checkout=checkout)
 
 
@@ -615,7 +647,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             )
 
         checkout.shipping_method = shipping_method
-        checkout.save(update_fields=["shipping_method"])
+        checkout.save(update_fields=["shipping_method", "last_change"])
         recalculate_checkout_discount(checkout, info.context.discounts)
 
         return CheckoutShippingMethodUpdate(checkout=checkout)

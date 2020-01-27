@@ -9,6 +9,7 @@ from typing import Type, Union
 from unittest.mock import patch
 
 from django.conf import settings
+from django.contrib.auth.models import Group, Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.db.models import Q
@@ -21,6 +22,12 @@ from prices import Money, TaxedMoney
 from ...account.models import Address, User
 from ...account.utils import store_user_address
 from ...checkout import AddressType
+from ...core.permissions import (
+    AccountPermissions,
+    CheckoutPermissions,
+    GiftcardPermissions,
+    OrderPermissions,
+)
 from ...core.weight import zero_weight
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
@@ -56,6 +63,8 @@ from ...product.thumbnails import (
     create_product_thumbnails,
 )
 from ...shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
+from ...warehouse.management import increase_stock
+from ...warehouse.models import Stock, Warehouse
 
 fake = Factory.create()
 PRODUCTS_LIST_DIR = "products-list/"
@@ -209,6 +218,16 @@ def create_products(products_data, placeholder_dir, create_images):
                 create_product_image(product, placeholder_dir, image_name)
 
 
+def create_stocks(variant, warehouse_qs=None, **defaults):
+    if warehouse_qs is None:
+        warehouse_qs = Warehouse.objects.all()
+
+    for warehouse in warehouse_qs:
+        Stock.objects.update_or_create(
+            warehouse=warehouse, product_variant=variant, defaults=defaults
+        )
+
+
 def create_product_variants(variants_data):
     for variant in variants_data:
         pk = variant["pk"]
@@ -221,7 +240,10 @@ def create_product_variants(variants_data):
         defaults["product_id"] = product_id
         set_field_as_money(defaults, "price_override")
         set_field_as_money(defaults, "cost_price")
-        ProductVariant.objects.update_or_create(pk=pk, defaults=defaults)
+        quantity = defaults.pop("quantity")
+        quantity_allocated = defaults.pop("quantity_allocated")
+        variant, _ = ProductVariant.objects.update_or_create(pk=pk, defaults=defaults)
+        create_stocks(variant, quantity=quantity, quantity_allocated=quantity_allocated)
 
 
 def assign_attributes_to_product_types(
@@ -432,12 +454,15 @@ def create_order_lines(order, discounts, how_many=10):
     )
     variants_iter = itertools.cycle(variants)
     lines = []
+    stocks = []
+    country = order.shipping_address.country
     for dummy in range(how_many):
         variant = next(variants_iter)
         product = variant.product
         quantity = random.randrange(1, 5)
-        variant.quantity += quantity
-        variant.quantity_allocated += quantity
+        stocks.append(
+            increase_stock(variant, country, quantity, allocate=True, commit=False)
+        )
         unit_price = variant.get_price(discounts)
         unit_price = TaxedMoney(net=unit_price, gross=unit_price)
         lines.append(
@@ -453,7 +478,7 @@ def create_order_lines(order, discounts, how_many=10):
                 tax_rate=0,
             )
         )
-    ProductVariant.objects.bulk_update(variants, ["quantity", "quantity_allocated"])
+    Stock.objects.bulk_update(stocks, ["quantity", "quantity_allocated"])
     lines = OrderLine.objects.bulk_create(lines)
     manager = get_extensions_manager()
     for line in lines:
@@ -536,6 +561,53 @@ def create_users(how_many=10):
     for dummy in range(how_many):
         user = create_fake_user()
         yield "User: %s" % (user.email,)
+
+
+def create_permission_groups():
+    super_user = [User.objects.filter(is_superuser=True).first()]
+    if not super_user:
+        super_user = create_staff_users(1, True)
+    group = create_group("Full Access", Permission.objects.all(), super_user)
+    yield f"Group: {group}"
+
+    staff_users = create_staff_users()
+    customer_support_codenames = [
+        perm.codename
+        for enum in [CheckoutPermissions, OrderPermissions, GiftcardPermissions]
+        for perm in enum
+    ]
+    customer_support_codenames.append(AccountPermissions.MANAGE_USERS.codename)
+    customer_support_permissions = Permission.objects.filter(
+        codename__in=customer_support_codenames
+    )
+    group = create_group("Customer Support", customer_support_permissions, staff_users)
+    yield f"Group: {group}"
+
+
+def create_group(name, permissions, users):
+    group = Group.objects.create(name=name)
+    group.permissions.add(*permissions)
+    group.user_set.add(*users)
+    return group
+
+
+def create_staff_users(how_many=2, superuser=False):
+    users = []
+    for _ in range(how_many):
+        first_name = fake.first_name()
+        last_name = fake.last_name()
+        email = get_email(first_name, last_name)
+        staff_user = User.objects.create_user(
+            first_name=first_name,
+            last_name=last_name,
+            email=email,
+            password="password",
+            is_staff=True,
+            is_active=True,
+            is_superuser=superuser,
+        )
+        users.append(staff_user)
+    return users
 
 
 def create_orders(how_many=10):
@@ -867,6 +939,15 @@ def create_shipping_zones():
             "Post Office",
         ],
     )
+
+
+def create_warehouses():
+    for shipping_zone in ShippingZone.objects.all():
+        warehouse, _ = Warehouse.objects.update_or_create(
+            name=shipping_zone.name,
+            defaults={"company_name": fake.company(), "address": create_address()},
+        )
+        warehouse.shipping_zones.add(shipping_zone)
 
 
 def create_vouchers():

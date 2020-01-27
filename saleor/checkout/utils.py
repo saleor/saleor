@@ -8,7 +8,7 @@ from django.db import transaction
 from django.db.models import Max, Min, Sum
 from django.utils import timezone
 from django.utils.encoding import smart_text
-from django.utils.translation import get_language, pgettext
+from django.utils.translation import get_language
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from ..account.models import User
@@ -40,6 +40,8 @@ from ..order.actions import order_created
 from ..order.emails import send_order_confirmation, send_staff_order_confirmation
 from ..order.models import Order, OrderLine
 from ..shipping.models import ShippingMethod
+from ..warehouse.availability import check_stock_quantity
+from ..warehouse.management import allocate_stock
 from . import AddressType
 from .models import Checkout, CheckoutLine
 
@@ -58,11 +60,10 @@ def get_checkout_from_request(request, checkout_queryset=Checkout.objects.all())
         token = request.get_signed_cookie(COOKIE_NAME, default=None)
         checkout = get_anonymous_checkout_from_token(token, checkout_queryset)
         user = None
-    if checkout is not None:
-        return checkout
-    if user:
-        return Checkout(user=user)
-    return Checkout()
+    if checkout is None:
+        checkout = Checkout(user=user)
+    checkout.set_country(request.country)
+    return checkout
 
 
 def get_user_checkout(
@@ -118,7 +119,7 @@ def check_variant_in_stock(
         )
 
     if new_quantity > 0 and check_quantity:
-        variant.check_quantity(new_quantity)
+        check_stock_quantity(variant, checkout.get_country(), new_quantity)
 
     return new_quantity, line
 
@@ -191,7 +192,7 @@ def change_billing_address_in_checkout(checkout, address):
         if remove:
             checkout.billing_address.delete()
         checkout.billing_address = address
-        checkout.save(update_fields=["billing_address"])
+        checkout.save(update_fields=["billing_address", "last_change"])
 
 
 def change_shipping_address_in_checkout(checkout, address):
@@ -206,7 +207,7 @@ def change_shipping_address_in_checkout(checkout, address):
         if remove:
             checkout.shipping_address.delete()
         checkout.shipping_address = address
-        checkout.save(update_fields=["shipping_address"])
+        checkout.save(update_fields=["shipping_address", "last_change"])
 
 
 def _get_shipping_voucher_discount_for_checkout(
@@ -214,23 +215,17 @@ def _get_shipping_voucher_discount_for_checkout(
 ):
     """Calculate discount value for a voucher of shipping type."""
     if not checkout.is_shipping_required():
-        msg = pgettext(
-            "Voucher not applicable", "Your order does not require shipping."
-        )
+        msg = "Your order does not require shipping."
         raise NotApplicable(msg)
     shipping_method = checkout.shipping_method
     if not shipping_method:
-        msg = pgettext(
-            "Voucher not applicable", "Please select a shipping method first."
-        )
+        msg = "Please select a shipping method first."
         raise NotApplicable(msg)
 
     # check if voucher is limited to specified countries
     shipping_country = checkout.shipping_address.country
     if voucher.countries and shipping_country.code not in voucher.countries:
-        msg = pgettext(
-            "Voucher not applicable", "This offer is not valid in your country."
-        )
+        msg = "This offer is not valid in your country."
         raise NotApplicable(msg)
 
     shipping_price = calculations.checkout_shipping_price(checkout, discounts).gross
@@ -245,9 +240,7 @@ def _get_products_voucher_discount(
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
         prices = get_prices_of_discounted_specific_product(checkout, voucher, discounts)
     if not prices:
-        msg = pgettext(
-            "Voucher not applicable", "This offer is only valid for selected items."
-        )
+        msg = "This offer is only valid for selected items."
         raise NotApplicable(msg)
     return get_products_voucher_discount(voucher, prices)
 
@@ -515,7 +508,7 @@ def get_shipping_price_estimate(
 
 def clear_shipping_method(checkout: Checkout):
     checkout.shipping_method = None
-    checkout.save(update_fields=["shipping_method"])
+    checkout.save(update_fields=["shipping_method", "last_change"])
 
 
 def _get_voucher_data_for_order(checkout: Checkout) -> dict:
@@ -528,10 +521,7 @@ def _get_voucher_data_for_order(checkout: Checkout) -> dict:
     voucher = get_voucher_for_checkout(checkout, with_lock=True)
 
     if checkout.voucher_code and not voucher:
-        msg = pgettext(
-            "Voucher not applicable",
-            "Voucher expired in meantime. Order placement aborted.",
-        )
+        msg = "Voucher expired in meantime. Order placement aborted."
         raise NotApplicable(msg)
 
     if not voucher:
@@ -600,10 +590,7 @@ def validate_gift_cards(checkout: Checkout):
         not checkout.gift_cards.count()
         == checkout.gift_cards.active(date=date.today()).count()
     ):
-        msg = pgettext(
-            "Gift card not applicable",
-            "Gift card has expired. Order placement cancelled.",
-        )
+        msg = "Gift card has expired. Order placement cancelled."
         raise NotApplicable(msg)
 
 
@@ -616,7 +603,8 @@ def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine
     quantity = checkout_line.quantity
     variant = checkout_line.variant
     product = variant.product
-    variant.check_quantity(quantity)
+    country = checkout_line.checkout.get_country()
+    check_stock_quantity(variant, country, quantity)
 
     product_name = str(product)
     variant_name = str(variant)
@@ -728,7 +716,6 @@ def create_order(
     Current user's language is saved in the order so we can later determine
     which language to use when sending email.
     """
-    from ..product.utils import allocate_stock
     from ..order.utils import add_gift_card_to_order
 
     order = Order.objects.filter(checkout_token=checkout.token).first()
@@ -745,7 +732,7 @@ def create_order(
     for line in order_lines:  # type: OrderLine
         variant = line.variant
         if variant and variant.track_inventory:
-            allocate_stock(variant, line.quantity)
+            allocate_stock(variant, checkout.get_country(), line.quantity)
 
     # Add gift cards to the order
     for gift_card in checkout.gift_cards.select_for_update():
@@ -753,6 +740,11 @@ def create_order(
 
     # assign checkout payments to the order
     checkout.payments.update(order=order)
+
+    # copy metadata from the checkout into the new order
+    order.meta = checkout.meta
+    order.private_meta = checkout.private_meta
+    order.save()
 
     order_created(order=order, user=user)
 

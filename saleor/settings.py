@@ -6,7 +6,7 @@ import dj_database_url
 import dj_email_url
 import sentry_sdk
 from django.contrib.messages import constants as messages
-from django.utils.translation import gettext_lazy as _, pgettext_lazy
+from django.core.exceptions import ImproperlyConfigured
 from django_prices.utils.formatting import get_currency_fraction
 from sentry_sdk.integrations.django import DjangoIntegration
 
@@ -40,8 +40,9 @@ ADMINS = (
 )
 MANAGERS = ADMINS
 
+_DEFAULT_CLIENT_HOSTS = "localhost,127.0.0.1"
 ALLOWED_CLIENT_HOSTS = get_list(
-    os.environ.get("ALLOWED_CLIENT_HOSTS", "localhost,127.0.0.1")
+    os.environ.get("ALLOWED_CLIENT_HOSTS", _DEFAULT_CLIENT_HOSTS)
 )
 
 INTERNAL_IPS = get_list(os.environ.get("INTERNAL_IPS", "127.0.0.1"))
@@ -56,49 +57,49 @@ DATABASES = {
 TIME_ZONE = "America/Chicago"
 LANGUAGE_CODE = "en"
 LANGUAGES = [
-    ("ar", _("Arabic")),
-    ("az", _("Azerbaijani")),
-    ("bg", _("Bulgarian")),
-    ("bn", _("Bengali")),
-    ("ca", _("Catalan")),
-    ("cs", _("Czech")),
-    ("da", _("Danish")),
-    ("de", _("German")),
-    ("el", _("Greek")),
-    ("en", _("English")),
-    ("es", _("Spanish")),
-    ("es-co", _("Colombian Spanish")),
-    ("et", _("Estonian")),
-    ("fa", _("Persian")),
-    ("fr", _("French")),
-    ("hi", _("Hindi")),
-    ("hu", _("Hungarian")),
-    ("hy", _("Armenian")),
-    ("id", _("Indonesian")),
-    ("is", _("Icelandic")),
-    ("it", _("Italian")),
-    ("ja", _("Japanese")),
-    ("ko", _("Korean")),
-    ("lt", _("Lithuanian")),
-    ("mn", _("Mongolian")),
-    ("nb", _("Norwegian")),
-    ("nl", _("Dutch")),
-    ("pl", _("Polish")),
-    ("pt", _("Portuguese")),
-    ("pt-br", _("Brazilian Portuguese")),
-    ("ro", _("Romanian")),
-    ("ru", _("Russian")),
-    ("sk", _("Slovak")),
-    ("sq", _("Albanian")),
-    ("sr", _("Serbian")),
-    ("sw", _("Swahili")),
-    ("sv", _("Swedish")),
-    ("th", _("Thai")),
-    ("tr", _("Turkish")),
-    ("uk", _("Ukrainian")),
-    ("vi", _("Vietnamese")),
-    ("zh-hans", _("Simplified Chinese")),
-    ("zh-hant", _("Traditional Chinese")),
+    ("ar", "Arabic"),
+    ("az", "Azerbaijani"),
+    ("bg", "Bulgarian"),
+    ("bn", "Bengali"),
+    ("ca", "Catalan"),
+    ("cs", "Czech"),
+    ("da", "Danish"),
+    ("de", "German"),
+    ("el", "Greek"),
+    ("en", "English"),
+    ("es", "Spanish"),
+    ("es-co", "Colombian Spanish"),
+    ("et", "Estonian"),
+    ("fa", "Persian"),
+    ("fr", "French"),
+    ("hi", "Hindi"),
+    ("hu", "Hungarian"),
+    ("hy", "Armenian"),
+    ("id", "Indonesian"),
+    ("is", "Icelandic"),
+    ("it", "Italian"),
+    ("ja", "Japanese"),
+    ("ko", "Korean"),
+    ("lt", "Lithuanian"),
+    ("mn", "Mongolian"),
+    ("nb", "Norwegian"),
+    ("nl", "Dutch"),
+    ("pl", "Polish"),
+    ("pt", "Portuguese"),
+    ("pt-br", "Brazilian Portuguese"),
+    ("ro", "Romanian"),
+    ("ru", "Russian"),
+    ("sk", "Slovak"),
+    ("sq", "Albanian"),
+    ("sr", "Serbian"),
+    ("sw", "Swahili"),
+    ("sv", "Swedish"),
+    ("th", "Thai"),
+    ("tr", "Turkish"),
+    ("uk", "Ukrainian"),
+    ("vi", "Vietnamese"),
+    ("zh-hans", "Simplified Chinese"),
+    ("zh-hant", "Traditional Chinese"),
 ]
 LOCALE_PATHS = [os.path.join(PROJECT_ROOT, "locale")]
 USE_I18N = True
@@ -127,6 +128,11 @@ EMAIL_PORT = email_config["EMAIL_PORT"]
 EMAIL_BACKEND = email_config["EMAIL_BACKEND"]
 EMAIL_USE_TLS = email_config["EMAIL_USE_TLS"]
 EMAIL_USE_SSL = email_config["EMAIL_USE_SSL"]
+
+# If enabled, make sure you have set proper storefront address in ALLOWED_CLIENT_HOSTS.
+ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL = os.environ.get(
+    "ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL", True
+)
 
 ENABLE_SSL = get_bool_from_env("ENABLE_SSL", False)
 
@@ -217,6 +223,7 @@ INSTALLED_APPS = [
     "saleor.data_feeds",
     "saleor.page",
     "saleor.payment",
+    "saleor.warehouse",
     "saleor.webhook",
     "saleor.wishlist",
     # External apps
@@ -245,7 +252,7 @@ if ENABLE_DEBUG_TOOLBAR:
         )
         warnings.warn(msg)
     else:
-        INSTALLED_APPS += ["debug_toolbar", "graphiql_debug_toolbar"]
+        INSTALLED_APPS += ["django.forms", "debug_toolbar", "graphiql_debug_toolbar"]
         MIDDLEWARE.append("saleor.graphql.middleware.DebugToolbarMiddleware")
 
         DEBUG_TOOLBAR_PANELS = [
@@ -340,9 +347,7 @@ DEFAULT_MAX_EMAIL_DISPLAY_NAME_LENGTH = 78
 AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
 
 COUNTRIES_OVERRIDE = {
-    "EU": pgettext_lazy(
-        "Name of political and economical union of european countries", "European Union"
-    )
+    "EU": "European Union",
 }
 
 OPENEXCHANGERATES_API_KEY = os.environ.get("OPENEXCHANGERATES_API_KEY")
@@ -541,3 +546,14 @@ USE_JSON_CONTENT = get_bool_from_env("USE_JSON_CONTENT", False)
 JWT_TOKEN_SECRET = os.environ.get("JWT_TOKEN_SECRET", "saleor")
 if not DEBUG:
     JWT_VERIFY_EXPIRATION = True
+
+
+if (
+    not DEBUG
+    and ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL
+    and ALLOWED_CLIENT_HOSTS == get_list(_DEFAULT_CLIENT_HOSTS)
+):
+    raise ImproperlyConfigured(
+        "Make sure you've added storefront address to ALLOWED_CLIENT_HOSTS "
+        "if ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL is enabled."
+    )

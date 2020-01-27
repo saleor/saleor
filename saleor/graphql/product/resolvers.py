@@ -13,6 +13,7 @@ from ..utils import (
     filter_by_period,
     filter_by_query_param,
     get_database_id,
+    get_user_or_service_account_from_context,
     get_nodes,
     sort_queryset,
 )
@@ -144,9 +145,7 @@ def resolve_products(
     **_kwargs,
 ):
 
-    user = info.context.user
-    if user.is_anonymous and info.context.service_account:
-        user = info.context.service_account
+    user = get_user_or_service_account_from_context(info.context)
     qs = models.Product.objects.visible_to_user(user)
     qs = sort_products(qs, sort_by)
 

@@ -4,6 +4,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Account confirmation email - #5126 by @tomaszszymanski129
 - Relocate Checkout and CheckoutLine methods into separate module and update checkout related plugins to use them - #4980 by @krzysztofwolski
 - Fix problem with free shipping voucher - #4942 by @IKarbowiak
 - Add sub-categories to random data - #4949 by @IKarbowiak
@@ -44,6 +45,17 @@ All notable, unreleased changes to this project will be documented in this file.
 - Remove unnecessary manage_orders permission - #5142 by @kswiatek92
 - Mutation to change user email - #5076 by @kswiatek92
 - Add mypy checks - #5150 by @IKarbowiak
+- Move extracting user or service_account from context to utils - #5152 by @kswiatek92
+- Add deprecate description to order status/created arguments - #5076 by @kswiatek92
+- Fix getting title field in page mutations #5160 by @maarcingebala
+- Copy public and private metadata from the checkout to the order upon creation - #5165 by @dankolbman
+- Add warehouses and stocks- #4986 by @szewczykmira
+- Add permission groups - #5176 by @IKarbowiak
+- Drop gettext occurrences - #5189 by @IKarbowiak
+- Fix `product_created` webhook - #5187 by @dzkb
+- Drop unused resolver `resolve_availability` - #5190 by @maarcingebala
+- Fix permission for `checkoutCustomerAttach` mutation - #5192 by @maarcingebala
+- Restrict access to user field - #5194 by @maarcingebala
 - Add anonymization to GraphQL's `webhookSamplePayload` endpoint - #5161 @derenio
 
 ## 2.9.0
@@ -113,6 +125,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix serializing empty URLs as a string when creating menu items - #4616 by @maarcingebala
 - The invalid IP address in HTTP requests now fallback to the requester's IP address. - #4597 by @NyanKiyoshi
 - Fix product variant update with current attribute values - #4936 by @fowczarek
+- Update checkout last field and add auto now fields to save with update_fields parameter - #5177 by @IKarbowiak
 
 ### Dashboard 2.0
 

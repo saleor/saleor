@@ -11,35 +11,9 @@ from saleor.product import models
 from saleor.product.filters import filter_products_by_attributes_values
 from saleor.product.models import DigitalContentUrl
 from saleor.product.thumbnails import create_product_thumbnails
-from saleor.product.utils import (
-    allocate_stock,
-    deallocate_stock,
-    decrease_stock,
-    increase_stock,
-)
 from saleor.product.utils.attributes import associate_attribute_values_to_instance
 from saleor.product.utils.costs import get_margin_for_variant
 from saleor.product.utils.digital_products import increment_download_count
-
-
-@pytest.mark.parametrize(
-    "func, expected_quantity, expected_quantity_allocated",
-    (
-        (increase_stock, 150, 80),
-        (decrease_stock, 50, 30),
-        (deallocate_stock, 100, 30),
-        (allocate_stock, 100, 130),
-    ),
-)
-def test_stock_utils(product, func, expected_quantity, expected_quantity_allocated):
-    variant = product.variants.first()
-    variant.quantity = 100
-    variant.quantity_allocated = 80
-    variant.save()
-    func(variant, 50)
-    variant.refresh_from_db()
-    assert variant.quantity == expected_quantity
-    assert variant.quantity_allocated == expected_quantity_allocated
 
 
 def test_filtering_by_attribute(db, color_attribute, category, settings):

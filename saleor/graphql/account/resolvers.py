@@ -3,6 +3,7 @@ from typing import Optional
 
 import graphene
 import graphene_django_optimizer as gql_optimizer
+from django.contrib.auth import models as auth_models
 from django.db.models import QuerySet
 from graphql_jwt.exceptions import PermissionDenied
 from i18naddress import get_validation_rules
@@ -11,8 +12,17 @@ from ...account import models
 from ...core.permissions import AccountPermissions
 from ...payment import gateway
 from ...payment.utils import fetch_customer_id
-from ..utils import filter_by_query_param, sort_queryset
-from .sorters import ServiceAccountSortField, UserSortField, UserSortingInput
+from ..utils import (
+    filter_by_query_param,
+    get_user_or_service_account_from_context,
+    sort_queryset,
+)
+from .sorters import (
+    PermissionGroupSortingInput,
+    ServiceAccountSortField,
+    UserSortField,
+    UserSortingInput,
+)
 from .types import AddressValidationData, ChoiceValue
 from .utils import get_allowed_fields_camel_case, get_required_fields_camel_case
 
@@ -43,6 +53,12 @@ def resolve_customers(info, query, sort_by=None, **_kwargs):
     return gql_optimizer.query(qs, info)
 
 
+def resolve_permission_groups(info, query, sort_by=None, **_kwargs):
+    qs = auth_models.Group.objects.all()
+    qs = sort_queryset(qs, sort_by, PermissionGroupSortingInput)
+    return gql_optimizer.query(qs, info)
+
+
 def resolve_staff_users(info, query, sort_by=None, **_kwargs):
     qs = models.User.objects.staff()
     qs = filter_by_query_param(
@@ -54,7 +70,7 @@ def resolve_staff_users(info, query, sort_by=None, **_kwargs):
 
 
 def resolve_user(info, id):
-    requester = info.context.user or info.context.service_account
+    requester = get_user_or_service_account_from_context(info.context)
     if requester:
         _model, user_pk = graphene.Node.from_global_id(id)
         if requester.has_perms(

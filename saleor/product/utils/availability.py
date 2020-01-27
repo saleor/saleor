@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Iterable, Optional, Tuple, Union
 
+from django.conf import settings
 from prices import TaxedMoney, TaxedMoneyRange
 
 from saleor.graphql.core.types import MoneyRange
@@ -9,6 +10,11 @@ from saleor.product.models import Product, ProductVariant
 from ...core.utils import to_local_currency
 from ...discount import DiscountInfo
 from ...extensions.manager import get_extensions_manager
+from ...warehouse.availability import (
+    are_all_product_variants_in_stock,
+    is_product_in_stock,
+    is_variant_in_stock,
+)
 from .. import ProductAvailabilityStatus, VariantAvailabilityStatus
 
 if TYPE_CHECKING:
@@ -36,12 +42,12 @@ class VariantAvailability:
     discount_local_currency: Optional[TaxedMoney]
 
 
-def get_product_availability_status(product: "Product") -> ProductAvailabilityStatus:
+def get_product_availability_status(
+    product: "Product", country: str
+) -> ProductAvailabilityStatus:
     is_visible = product.is_visible
-    are_all_variants_in_stock = all(
-        variant.is_in_stock() for variant in product.variants.all()
-    )
-    is_in_stock = any(variant.is_in_stock() for variant in product.variants.all())
+    are_all_variants_in_stock = are_all_product_variants_in_stock(product, country)
+    is_in_stock = is_product_in_stock(product, country)
     requires_variants = product.product_type.has_variants
 
     if not product.is_published:
@@ -60,10 +66,8 @@ def get_product_availability_status(product: "Product") -> ProductAvailabilitySt
     return ProductAvailabilityStatus.READY_FOR_PURCHASE
 
 
-def get_variant_availability_status(
-    variant: ProductVariant,
-) -> VariantAvailabilityStatus:
-    if not variant.is_in_stock():
+def get_variant_availability_status(variant, country):
+    if not is_variant_in_stock(variant, country):
         return VariantAvailabilityStatus.OUT_OF_STOCK
     return VariantAvailabilityStatus.AVAILABLE
 
@@ -144,7 +148,8 @@ def get_product_availability(
     )
 
     is_on_sale = product.is_visible and discount is not None
-
+    country = country if country is not None else settings.DEFAULT_COUNTRY
+    is_available = product.is_visible and is_product_in_stock(product, country)
     return ProductAvailability(
         on_sale=is_on_sale,
         price_range=discounted,
@@ -173,6 +178,9 @@ def get_variant_availability(
     )
 
     discount = _get_total_discount(undiscounted, discounted)
+
+    if country is None:
+        country = settings.DEFAULT_COUNTRY
 
     if local_currency:
         price_local_currency = to_local_currency(discounted, local_currency)
