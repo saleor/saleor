@@ -143,6 +143,14 @@ def _assert_num_queries(context, *, config, num, exact=True, info=None):
         msg += " (add -v option to show queries)"
     pytest.fail(msg)
 
+    
+@pytest.fixture(scope='session')
+def django_db_setup(django_db_setup, django_db_blocker):
+    with django_db_blocker.unblock():
+        with django_db_blocker.unblock():
+            with connection.cursor() as cursor:
+                cursor.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm")
+
 
 @pytest.fixture
 def capture_queries(pytestconfig):
