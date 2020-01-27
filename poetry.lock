@@ -1330,6 +1330,14 @@ version = "0.6.0"
 
 [[package]]
 category = "main"
+description = "A Python package for extracting, transforming and loading tables of data."
+name = "petl"
+optional = false
+python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+version = "1.3.0"
+
+[[package]]
+category = "main"
 description = "Python version of Google's common library for parsing, formatting, storing and validating international phone numbers."
 name = "phonenumberslite"
 optional = false
@@ -2145,7 +2153,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "e90f826b544b26ad717155366b3929d578f4f823a0907a84db55ebbb025aee88"
+content-hash = "543bc9783f4734eb1d21e07f9737b24c45bed99508076b4641a2a6a61ab66e60"
 python-versions = "~3.8"
 
 [metadata.files]
@@ -2707,6 +2715,9 @@ packaging = [
 ]
 pathspec = [
     {file = "pathspec-0.6.0.tar.gz", hash = "sha256:e285ccc8b0785beadd4c18e5708b12bb8fcf529a1e61215b3feff1d1e559ea5c"},
+]
+petl = [
+    {file = "petl-1.3.0.tar.gz", hash = "sha256:943a6e3211616d25ebc4dcd900ca4f96f53ccd9dbb612271a23a7efdaf3f8c00"},
 ]
 phonenumberslite = [
     {file = "phonenumberslite-8.11.1-py2.py3-none-any.whl", hash = "sha256:9590121b80353d72fb7420d2530fd3fc79f6c61d56a13e0b4d41459ec2a9e62e"},
