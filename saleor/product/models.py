@@ -47,7 +47,7 @@ if TYPE_CHECKING:
 
 class Category(MPTTModel, ModelWithMetadata, SeoModel):
     name = models.CharField(max_length=128)
-    slug = models.SlugField(max_length=128)
+    slug = models.SlugField(max_length=128, unique=True)
     description = models.TextField(blank=True)
     description_json = JSONField(blank=True, default=dict)
     parent = models.ForeignKey(
@@ -98,6 +98,7 @@ class CategoryTranslation(SeoModelTranslation):
 
 class ProductType(ModelWithMetadata):
     name = models.CharField(max_length=128)
+    slug = models.SlugField(max_length=50, unique=True)
     has_variants = models.BooleanField(default=True)
     is_shipping_required = models.BooleanField(default=True)
     is_digital = models.BooleanField(default=False)
@@ -882,7 +883,7 @@ class CollectionProduct(SortableModel):
 
 class Collection(SeoModel, ModelWithMetadata, PublishableModel):
     name = models.CharField(max_length=128, unique=True)
-    slug = models.SlugField(max_length=128)
+    slug = models.SlugField(max_length=128, unique=True)
     products = models.ManyToManyField(
         Product,
         blank=True,
