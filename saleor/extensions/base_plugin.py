@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from ..discount import DiscountInfo
     from ..product.models import Product, ProductType
     from ..account.models import Address, User
-    from ..order.models import OrderLine, Order
+    from ..order.models import Fulfillment, OrderLine, Order
     from ..payment.interface import GatewayResponse, PaymentData, CustomerSource
 
 
@@ -266,6 +266,16 @@ class BasePlugin:
 
         Overwrite this method if you need to trigger specific logic when an order is
         fulfilled.
+        """
+        return NotImplemented
+
+    def fulfillment_created(
+        self, fulfillment: "Fulfillment", previous_value: Any
+    ) -> Any:
+        """Trigger when fulfillemnt is created.
+
+        Overwrite this method if you need to trigger specific logic when a fulfillment is
+         created.
         """
         return NotImplemented
 
