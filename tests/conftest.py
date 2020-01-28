@@ -144,7 +144,7 @@ def _assert_num_queries(context, *, config, num, exact=True, info=None):
     pytest.fail(msg)
 
     
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def django_db_setup(django_db_setup, django_db_blocker):
     with django_db_blocker.unblock():
         with django_db_blocker.unblock():
