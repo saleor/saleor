@@ -735,7 +735,18 @@ class CheckoutComplete(BaseMutation):
 
         if shipping_address is not None:
             shipping_address = AddressData(**shipping_address.as_data())
+            
+        # create the order into the database
+        order = create_order(
+            checkout=checkout,
+            order_data=order_data,
+            user=user,
+            redirect_url=redirect_url,
+        )
 
+        payment.order = order
+        payment.save(update_fields=["order"])
+        
         try:
             txn = gateway.process_payment(
                 payment=payment, token=payment.token, store_source=store_source
@@ -759,14 +770,6 @@ class CheckoutComplete(BaseMutation):
                 raise ValidationError(
                     {"redirect_url": error}, code=AccountErrorCode.INVALID
                 )
-
-        # create the order into the database
-        order = create_order(
-            checkout=checkout,
-            order_data=order_data,
-            user=user,
-            redirect_url=redirect_url,
-        )
 
         # remove checkout after order is successfully paid
         checkout.delete()
