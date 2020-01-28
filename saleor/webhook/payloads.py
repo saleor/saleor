@@ -11,7 +11,7 @@ from ..core.utils.anonymization import (
     generate_fake_user,
 )
 from ..order import FulfillmentStatus, OrderStatus
-from ..order.models import Order
+from ..order.models import Fulfillment, Order
 from ..payment import ChargeStatus
 from ..product.models import Product
 from .event_types import WebhookEventType
@@ -263,3 +263,23 @@ def generate_sample_payload(event_name: str) -> Optional[dict]:
     else:
         payload = _generate_sample_order_payload(event_name)
     return json.loads(payload) if payload else None
+
+
+def generate_fulfillment_payload(fulfillment: Fulfillment):
+    serializer = PayloadSerializer()
+    fulfillment_fields = ("status", "tracking_code", "order__user_email")
+    order_fields = ("user_email", "meta", "private_meta")
+
+    lines = serializer.serialize(
+        fulfillment.lines.select_related("order_line__variant").all(),
+        fields=("id", "quantity"),
+        additional_fields={"variants": (lambda i: i.order_line.variant, ("weight"))},
+    )
+
+    fulfillment_data = serializer.serialize(
+        [fulfillment],
+        fields=fulfillment_fields,
+        additional_fields={"order_data": (lambda f: [f.order], order_fields), },
+        extra_dict_data={"lines": lines},
+    )
+    return fulfillment_data
