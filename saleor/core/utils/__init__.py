@@ -121,17 +121,28 @@ def create_thumbnails(pk, model, size_set, image_attr=None):
 
 
 def generate_unique_slug(
-    instance: Type[Model], slugable_field_name: str, slug_field_name: str = "slug"
+    instance: Type[Model],
+    slugable_field_name: str = None,
+    slugable_value: str = None,
+    slug_field_name: str = "slug",
 ) -> str:
     """Create unique slug for model instance.
 
+    It's required to provide slugable_field_name or slugable_value.
+
     Args:
         instance: model instance for which slug is created
-        slugable_field_name: name of field used to create a slug
+        slugable_field_name: name of field used to create a slug (Optional)
+        slugable_value: value used to create slug (Optional)
         slug_field_name: name of slug field in instance model
 
     """
-    slug = slugify(getattr(instance, slugable_field_name))
+    if slugable_value:
+        slug = slugify(slugable_value)
+    elif slugable_field_name:
+        slug = slugify(getattr(instance, slugable_field_name))
+    else:
+        raise Exception("You must provide slugable_field_name or slugable_value.")
     unique_slug: Union["SafeText", str] = slug
 
     ModelClass = instance.__class__
