@@ -26,7 +26,7 @@ from saleor.core.weight import WeightUnits, convert_weight
 from saleor.discount.models import Sale, Voucher
 from saleor.giftcard.models import GiftCard
 from saleor.order.models import Order
-from saleor.product.models import ProductImage, ProductType
+from saleor.product.models import Category, ProductImage, ProductType
 from saleor.shipping.models import ShippingZone
 
 type_schema = {
@@ -261,7 +261,9 @@ def test_placeholder(settings):
         ("Shirt", "shirt"),
     ],
 )
-def test_generate_unique_slug(product_type, product_name, slug_result):
+def test_generate_unique_slug_with_slugable_field(
+    product_type, product_name, slug_result
+):
     product_names_and_slugs = [
         ("Paint", "paint"),
         ("Paint blue", "paint-blue"),
@@ -278,5 +280,38 @@ def test_generate_unique_slug(product_type, product_name, slug_result):
         test_product.save()
 
     instance = ProductType.objects.filter(name=product_name).first()
-    result = generate_unique_slug(instance, "name")
+    result = generate_unique_slug(instance, slugable_field_name="name")
     assert result == slug_result
+
+
+@pytest.mark.parametrize(
+    "category_name, slugable_value, slug_result",
+    [
+        ("Paint", "paint", "paint"),
+        ("paint", "paint", "paint-3"),
+        ("paint", "paint-1", "paint-1"),
+        ("Shirt", "example", "example"),
+        ("Shirt", "shirt", "shirt"),
+    ],
+)
+def test_generate_unique_slug_with_slugable_value(
+    category_name, slugable_value, slug_result
+):
+    category_names_and_slugs = [
+        ("Paint", "paint"),
+        ("Paint blue", "paint-blue"),
+        ("Paint test", "paint-2"),
+        ("paint", "p"),
+        ("Shirt", "shirt"),
+    ]
+    for name, slug in category_names_and_slugs:
+        Category.objects.create(name=name, slug=slug)
+
+    instance = Category.objects.filter(name=category_name).first()
+    result = generate_unique_slug(instance, slugable_value=slugable_value)
+    assert result == slug_result
+
+
+def test_generate_unique_slug_non_slugable_value_and_slugable_field(category):
+    with pytest.raises(Exception):
+        generate_unique_slug(category)
