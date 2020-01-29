@@ -114,10 +114,7 @@ def _send_account_delete_confirmation_email_with_url(
     recipient_email, redirect_url, token
 ):
     params = urlencode({"token": token})
-    delete_url = "%(redirect_url)s?%(params)s" % {
-        "redirect_url": redirect_url,
-        "params": params,
-    }
+    delete_url = prepare_url(params, redirect_url)
     _send_delete_confirmation_email(recipient_email, delete_url)
 
 
