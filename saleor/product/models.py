@@ -758,9 +758,6 @@ class Attribute(ModelWithMetadata):
     def __str__(self) -> str:
         return self.name
 
-    def get_formfield_name(self) -> str:
-        return slugify("attribute-%s-%s" % (self.slug, self.pk), allow_unicode=True)
-
     def has_values(self) -> bool:
         return self.values.exists()
 
