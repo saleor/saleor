@@ -1,7 +1,7 @@
 import graphene
-from django.utils.text import slugify
 
 from ...core.permissions import PagePermissions
+from ...core.utils import generate_unique_slug
 from ...page import models
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types.common import SeoInput
@@ -41,7 +41,7 @@ class PageCreate(ModelMutation):
         slug = cleaned_input.get("slug", "")
         title = cleaned_input.get("title", "")
         if title and not slug:
-            cleaned_input["slug"] = slugify(title)
+            cleaned_input["slug"] = generate_unique_slug(instance, slugable_value=title)
         clean_seo_fields(cleaned_input)
         return cleaned_input
 
