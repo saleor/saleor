@@ -3583,7 +3583,7 @@ type Query {
   webhookEvents: [WebhookEvent]
   webhookSamplePayload(eventType: WebhookEventTypeEnum!): JSONString
   warehouse(id: ID!): Warehouse
-  warehouses(filter: WarehouseFilterInput, before: String, after: String, first: Int, last: Int): WarehouseCountableConnection
+  warehouses(filter: WarehouseFilterInput, sortBy: WarehouseSortingInput, before: String, after: String, first: Int, last: Int): WarehouseCountableConnection
   translations(kind: TranslatableKinds!, before: String, after: String, first: Int, last: Int): TranslatableItemConnection
   translation(id: ID!, kind: TranslatableKinds!): TranslatableItem
   stock(id: ID!): Stock
@@ -4768,6 +4768,15 @@ enum WarehouseErrorCode {
 
 input WarehouseFilterInput {
   search: String
+}
+
+enum WarehouseSortField {
+  NAME
+}
+
+input WarehouseSortingInput {
+  direction: OrderDirection!
+  field: WarehouseSortField!
 }
 
 type WarehouseUpdate {
