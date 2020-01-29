@@ -46,8 +46,8 @@ if TYPE_CHECKING:
 
 
 class Category(MPTTModel, ModelWithMetadata, SeoModel):
-    name = models.CharField(max_length=128)
-    slug = models.SlugField(max_length=128, unique=True)
+    name = models.CharField(max_length=250)
+    slug = models.SlugField(max_length=255, unique=True)
     description = models.TextField(blank=True)
     description_json = JSONField(blank=True, default=dict)
     parent = models.ForeignKey(
@@ -97,8 +97,8 @@ class CategoryTranslation(SeoModelTranslation):
 
 
 class ProductType(ModelWithMetadata):
-    name = models.CharField(max_length=128)
-    slug = models.SlugField(max_length=128, unique=True)
+    name = models.CharField(max_length=250)
+    slug = models.SlugField(max_length=255, unique=True)
     has_variants = models.BooleanField(default=True)
     is_shipping_required = models.BooleanField(default=True)
     is_digital = models.BooleanField(default=False)
@@ -715,8 +715,8 @@ class AttributeQuerySet(BaseAttributeQuerySet):
 
 
 class Attribute(ModelWithMetadata):
-    slug = models.SlugField(max_length=50, unique=True)
-    name = models.CharField(max_length=50)
+    slug = models.SlugField(max_length=250, unique=True)
+    name = models.CharField(max_length=255)
 
     input_type = models.CharField(
         max_length=50,
@@ -786,9 +786,9 @@ class AttributeTranslation(models.Model):
 
 
 class AttributeValue(SortableModel):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=250)
     value = models.CharField(max_length=100, blank=True, default="")
-    slug = models.SlugField(max_length=100)
+    slug = models.SlugField(max_length=255)
     attribute = models.ForeignKey(
         Attribute, related_name="values", on_delete=models.CASCADE
     )
@@ -879,8 +879,8 @@ class CollectionProduct(SortableModel):
 
 
 class Collection(SeoModel, ModelWithMetadata, PublishableModel):
-    name = models.CharField(max_length=128, unique=True)
-    slug = models.SlugField(max_length=128, unique=True)
+    name = models.CharField(max_length=250, unique=True)
+    slug = models.SlugField(max_length=255, unique=True)
     products = models.ManyToManyField(
         Product,
         blank=True,
