@@ -558,10 +558,10 @@ def create_users(how_many=10):
 
 
 def create_permission_groups():
-    super_user = [User.objects.filter(is_superuser=True).first()]
-    if not super_user:
-        super_user = create_staff_users(1, True)
-    group = create_group("Full Access", Permission.objects.all(), super_user)
+    super_users = User.objects.filter(is_superuser=True)
+    if not super_users:
+        super_users = create_staff_users(1, True)
+    group = create_group("Full Access", Permission.objects.all(), super_users)
     yield f"Group: {group}"
 
     staff_users = create_staff_users()
@@ -591,7 +591,7 @@ def create_staff_users(how_many=2, superuser=False):
         first_name = fake.first_name()
         last_name = fake.last_name()
         email = get_email(first_name, last_name)
-        staff_user = User.objects.create(
+        staff_user = User.objects.create_user(
             first_name=first_name,
             last_name=last_name,
             email=email,

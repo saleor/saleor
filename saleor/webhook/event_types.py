@@ -1,5 +1,3 @@
-from django.utils.translation import pgettext_lazy
-
 from ..core.permissions import (
     AccountPermissions,
     CheckoutPermissions,
@@ -35,46 +33,15 @@ class WebhookEventType:
     }
 
     CHOICES = [
-        (ANY, pgettext_lazy("Any events", DISPLAY_LABELS[ANY])),
-        (
-            ORDER_CREATED,
-            pgettext_lazy("Order has been placed", DISPLAY_LABELS[ORDER_CREATED]),
-        ),
-        (
-            ORDER_FULLY_PAID,
-            pgettext_lazy(
-                "Order has been fully paid", DISPLAY_LABELS[ORDER_FULLY_PAID]
-            ),
-        ),
-        (
-            ORDER_UPDATED,
-            pgettext_lazy("Order has been updated", DISPLAY_LABELS[ORDER_UPDATED]),
-        ),
-        (
-            ORDER_CANCELLED,
-            pgettext_lazy("Order has been cancelled", DISPLAY_LABELS[ORDER_CANCELLED]),
-        ),
-        (
-            ORDER_FULFILLED,
-            pgettext_lazy("Order has been fulfilled", DISPLAY_LABELS[ORDER_FULFILLED]),
-        ),
-        (
-            CUSTOMER_CREATED,
-            pgettext_lazy(
-                "Customer has been created", DISPLAY_LABELS[CUSTOMER_CREATED]
-            ),
-        ),
-        (
-            PRODUCT_CREATED,
-            pgettext_lazy("Product has been created", DISPLAY_LABELS[PRODUCT_CREATED]),
-        ),
-        (
-            CHECKOUT_QUANTITY_CHANGED,
-            pgettext_lazy(
-                "Checkout's quantity has changed",
-                DISPLAY_LABELS[CHECKOUT_QUANTITY_CHANGED],
-            ),
-        ),
+        (ANY, DISPLAY_LABELS[ANY]),
+        (ORDER_CREATED, DISPLAY_LABELS[ORDER_CREATED]),
+        (ORDER_FULLY_PAID, DISPLAY_LABELS[ORDER_FULLY_PAID]),
+        (ORDER_UPDATED, DISPLAY_LABELS[ORDER_UPDATED]),
+        (ORDER_CANCELLED, DISPLAY_LABELS[ORDER_CANCELLED]),
+        (ORDER_FULFILLED, DISPLAY_LABELS[ORDER_FULFILLED]),
+        (CUSTOMER_CREATED, DISPLAY_LABELS[CUSTOMER_CREATED]),
+        (PRODUCT_CREATED, DISPLAY_LABELS[PRODUCT_CREATED]),
+        (CHECKOUT_QUANTITY_CHANGED, DISPLAY_LABELS[CHECKOUT_QUANTITY_CHANGED]),
     ]
 
     PERMISSIONS = {

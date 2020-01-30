@@ -8,6 +8,7 @@ import pytest
 from django.core.exceptions import ValidationError
 from prices import Money, TaxedMoney
 
+from saleor.account.models import User
 from saleor.checkout import calculations
 from saleor.checkout.error_codes import CheckoutErrorCode
 from saleor.checkout.models import Checkout
@@ -25,7 +26,7 @@ from saleor.payment.interface import GatewayResponse
 from saleor.shipping import ShippingMethodType
 from saleor.shipping.models import ShippingMethod
 from saleor.warehouse.models import Stock
-from tests.api.utils import get_graphql_content
+from tests.api.utils import assert_no_permission, get_graphql_content
 
 
 @pytest.fixture
@@ -851,7 +852,9 @@ def test_checkout_line_delete_by_zero_quantity(
     mocked_update_shipping_method.assert_called_once_with(checkout, mock.ANY)
 
 
-def test_checkout_customer_attach(user_api_client, checkout_with_item, customer_user):
+def test_checkout_customer_attach(
+    api_client, user_api_client, checkout_with_item, customer_user
+):
     checkout = checkout_with_item
     assert checkout.user is None
 
@@ -871,15 +874,25 @@ def test_checkout_customer_attach(user_api_client, checkout_with_item, customer_
     """
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     customer_id = graphene.Node.to_global_id("User", customer_user.pk)
-
     variables = {"checkoutId": checkout_id, "customerId": customer_id}
+
+    # Mutation should fail for unauthenticated customers
+    response = api_client.post_graphql(query, variables)
+    assert_no_permission(response)
+
+    # Mutation should succeed for authenticated customer
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
-
     data = content["data"]["checkoutCustomerAttach"]
     assert not data["errors"]
     checkout.refresh_from_db()
     assert checkout.user == customer_user
+
+    # Mutation with ID of a different user should fail as well
+    other_customer = User.objects.create_user("othercustomer@example.com", "password")
+    variables["customerId"] = graphene.Node.to_global_id("User", other_customer.pk)
+    response = user_api_client.post_graphql(query, variables)
+    assert_no_permission(response)
 
 
 MUTATION_CHECKOUT_CUSTOMER_DETACH = """
@@ -904,15 +917,25 @@ def test_checkout_customer_detach(user_api_client, checkout_with_item, customer_
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     variables = {"checkoutId": checkout_id}
+
+    # Mutation should succeed if the user owns this checkout.
     response = user_api_client.post_graphql(
         MUTATION_CHECKOUT_CUSTOMER_DETACH, variables
     )
     content = get_graphql_content(response)
-
     data = content["data"]["checkoutCustomerDetach"]
     assert not data["errors"]
     checkout.refresh_from_db()
     assert checkout.user is None
+
+    # Mutation should fail when user calling it doesn't own the checkout.
+    other_user = User.objects.create_user("othercustomer@example.com", "password")
+    checkout.user = other_user
+    checkout.save()
+    response = user_api_client.post_graphql(
+        MUTATION_CHECKOUT_CUSTOMER_DETACH, variables
+    )
+    assert_no_permission(response)
 
 
 MUTATION_CHECKOUT_SHIPPING_ADDRESS_UPDATE = """
@@ -1479,6 +1502,50 @@ def test_fetch_checkout_by_token(user_api_client, checkout_with_item):
     assert len(data["lines"]) == checkout_with_item.lines.count()
 
 
+def test_anonymous_client_cant_fetch_checkout_user(api_client, checkout):
+    query = """
+    query getCheckout($token: UUID!) {
+        checkout(token: $token) {
+           user {
+               id
+           }
+        }
+    }
+    """
+    variables = {"token": str(checkout.token)}
+    response = api_client.post_graphql(query, variables)
+    assert_no_permission(response)
+
+
+def test_authorized_access_to_checkout_user(
+    staff_api_client, user_api_client, checkout, customer_user, permission_manage_users
+):
+    query = """
+    query getCheckout($token: UUID!) {
+        checkout(token: $token) {
+           user {
+               id
+           }
+        }
+    }
+    """
+    checkout.user = customer_user
+    checkout.save()
+
+    variables = {"token": str(checkout.token)}
+    customer_user_id = graphene.Node.to_global_id("User", customer_user.id)
+
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["user"]["id"] == customer_user_id
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["user"]["id"] == customer_user_id
+
+
 def test_fetch_checkout_invalid_token(user_api_client):
     query = """
         query getCheckout($token: UUID!) {
@@ -1611,7 +1678,7 @@ def test_query_checkout_line(checkout_with_item, user_api_client):
 
 
 def test_query_checkouts(
-    checkout_with_item, staff_api_client, permission_manage_orders
+    checkout_with_item, staff_api_client, permission_manage_checkouts
 ):
     query = """
     {
@@ -1626,7 +1693,7 @@ def test_query_checkouts(
     """
     checkout = checkout_with_item
     response = staff_api_client.post_graphql(
-        query, {}, permissions=[permission_manage_orders]
+        query, {}, permissions=[permission_manage_checkouts]
     )
     content = get_graphql_content(response)
     received_checkout = content["data"]["checkouts"]["edges"][0]["node"]
@@ -1634,7 +1701,7 @@ def test_query_checkouts(
 
 
 def test_query_checkout_lines(
-    checkout_with_item, staff_api_client, permission_manage_orders
+    checkout_with_item, staff_api_client, permission_manage_checkouts
 ):
     query = """
     {
@@ -1649,7 +1716,7 @@ def test_query_checkout_lines(
     """
     checkout = checkout_with_item
     response = staff_api_client.post_graphql(
-        query, permissions=[permission_manage_orders]
+        query, permissions=[permission_manage_checkouts]
     )
     content = get_graphql_content(response)
     lines = content["data"]["checkoutLines"]["edges"]

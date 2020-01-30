@@ -1,8 +1,6 @@
 import importlib
 from typing import List
 
-from django.utils.translation import pgettext_lazy
-
 from .checks import check_extensions  # NOQA: F401
 
 
@@ -27,14 +25,8 @@ class ConfigurationTypeField:
     SECRET = "Secret"
     PASSWORD = "Password"
     CHOICES = [
-        (STRING, pgettext_lazy("Type of the configuration field", "Field is a String")),
-        (
-            BOOLEAN,
-            pgettext_lazy("Type of the configuration field", "Field is a Boolean"),
-        ),
-        (SECRET, pgettext_lazy("Type of the configuration field", "Field is a Secret")),
-        (
-            PASSWORD,
-            pgettext_lazy("Type of the configuration field", "Field is a Password"),
-        ),
+        (STRING, "Field is a String"),
+        (BOOLEAN, "Field is a Boolean"),
+        (SECRET, "Field is a Secret"),
+        (PASSWORD, "Field is a Password"),
     ]

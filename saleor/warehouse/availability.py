@@ -34,6 +34,14 @@ def get_available_quantity(variant: "ProductVariant", country_code: str) -> int:
     return stock.quantity_available
 
 
+def get_quantity_allocated(variant: "ProductVariant", country_code: str) -> int:
+    try:
+        stock = Stock.objects.get_variant_stock_for_country(country_code, variant)
+    except Stock.DoesNotExist:
+        return 0
+    return stock.quantity_allocated
+
+
 def is_variant_in_stock(variant: "ProductVariant", country_code: str) -> bool:
     """Check if variant is available in given country."""
     stock = Stock.objects.get_variant_stock_for_country(country_code, variant)

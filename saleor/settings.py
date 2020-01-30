@@ -7,7 +7,6 @@ import dj_email_url
 import sentry_sdk
 from django.contrib.messages import constants as messages
 from django.core.exceptions import ImproperlyConfigured
-from django.utils.translation import gettext_lazy as _, pgettext_lazy
 from django_prices.utils.formatting import get_currency_fraction
 from sentry_sdk.integrations.django import DjangoIntegration
 
@@ -60,49 +59,49 @@ DATABASES = {
 TIME_ZONE = "America/Chicago"
 LANGUAGE_CODE = "en"
 LANGUAGES = [
-    ("ar", _("Arabic")),
-    ("az", _("Azerbaijani")),
-    ("bg", _("Bulgarian")),
-    ("bn", _("Bengali")),
-    ("ca", _("Catalan")),
-    ("cs", _("Czech")),
-    ("da", _("Danish")),
-    ("de", _("German")),
-    ("el", _("Greek")),
-    ("en", _("English")),
-    ("es", _("Spanish")),
-    ("es-co", _("Colombian Spanish")),
-    ("et", _("Estonian")),
-    ("fa", _("Persian")),
-    ("fr", _("French")),
-    ("hi", _("Hindi")),
-    ("hu", _("Hungarian")),
-    ("hy", _("Armenian")),
-    ("id", _("Indonesian")),
-    ("is", _("Icelandic")),
-    ("it", _("Italian")),
-    ("ja", _("Japanese")),
-    ("ko", _("Korean")),
-    ("lt", _("Lithuanian")),
-    ("mn", _("Mongolian")),
-    ("nb", _("Norwegian")),
-    ("nl", _("Dutch")),
-    ("pl", _("Polish")),
-    ("pt", _("Portuguese")),
-    ("pt-br", _("Brazilian Portuguese")),
-    ("ro", _("Romanian")),
-    ("ru", _("Russian")),
-    ("sk", _("Slovak")),
-    ("sq", _("Albanian")),
-    ("sr", _("Serbian")),
-    ("sw", _("Swahili")),
-    ("sv", _("Swedish")),
-    ("th", _("Thai")),
-    ("tr", _("Turkish")),
-    ("uk", _("Ukrainian")),
-    ("vi", _("Vietnamese")),
-    ("zh-hans", _("Simplified Chinese")),
-    ("zh-hant", _("Traditional Chinese")),
+    ("ar", "Arabic"),
+    ("az", "Azerbaijani"),
+    ("bg", "Bulgarian"),
+    ("bn", "Bengali"),
+    ("ca", "Catalan"),
+    ("cs", "Czech"),
+    ("da", "Danish"),
+    ("de", "German"),
+    ("el", "Greek"),
+    ("en", "English"),
+    ("es", "Spanish"),
+    ("es-co", "Colombian Spanish"),
+    ("et", "Estonian"),
+    ("fa", "Persian"),
+    ("fr", "French"),
+    ("hi", "Hindi"),
+    ("hu", "Hungarian"),
+    ("hy", "Armenian"),
+    ("id", "Indonesian"),
+    ("is", "Icelandic"),
+    ("it", "Italian"),
+    ("ja", "Japanese"),
+    ("ko", "Korean"),
+    ("lt", "Lithuanian"),
+    ("mn", "Mongolian"),
+    ("nb", "Norwegian"),
+    ("nl", "Dutch"),
+    ("pl", "Polish"),
+    ("pt", "Portuguese"),
+    ("pt-br", "Brazilian Portuguese"),
+    ("ro", "Romanian"),
+    ("ru", "Russian"),
+    ("sk", "Slovak"),
+    ("sq", "Albanian"),
+    ("sr", "Serbian"),
+    ("sw", "Swahili"),
+    ("sv", "Swedish"),
+    ("th", "Thai"),
+    ("tr", "Turkish"),
+    ("uk", "Ukrainian"),
+    ("vi", "Vietnamese"),
+    ("zh-hans", "Simplified Chinese"),
+    ("zh-hant", "Traditional Chinese"),
 ]
 LOCALE_PATHS = [os.path.join(PROJECT_ROOT, "locale")]
 USE_I18N = True
@@ -351,9 +350,7 @@ DEFAULT_MAX_EMAIL_DISPLAY_NAME_LENGTH = 78
 AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
 
 COUNTRIES_OVERRIDE = {
-    "EU": pgettext_lazy(
-        "Name of political and economical union of european countries", "European Union"
-    )
+    "EU": "European Union",
 }
 
 OPENEXCHANGERATES_API_KEY = os.environ.get("OPENEXCHANGERATES_API_KEY")
