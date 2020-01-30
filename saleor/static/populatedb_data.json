@@ -456,6 +456,7 @@
             "seo_description": "Tonight, my love, let us take fat brushes and paint the skies with the shades of nebula tides. Get the dark, moody shades of the ether.",
             "product_type": 7,
             "name": "Nebula Night Sky Paint",
+            "slug": "nebula-night-sky-paint",
             "description": "Tonight, my love, let us take fat brushes and paint the skies with the shades of nebula tides. Get the dark, moody shades of the ether.",
             "description_json": {
                 "blocks": [
@@ -474,8 +475,8 @@
             "category": 20,
             "currency": "USD",
             "price_amount": "15.00",
-            "minimal_variant_price_amount": "15.00",
-            "updated_at": "2019-11-06T14:02:17.855Z",
+            "minimal_variant_price_amount": "7.50",
+            "updated_at": "2020-01-29T14:07:37.851Z",
             "charge_taxes": true,
             "weight": "0.0 kg"
         }
@@ -499,6 +500,7 @@
             "seo_description": "The rich, deep hue of space dust. Vacuum packed and airlocked for long-lasting freshness of color.",
             "product_type": 7,
             "name": "Space Dust Navy Paint",
+            "slug": "space-dust-navy-paint",
             "description": "The rich, deep hue of space dust. Vacuum packed and airlocked for long-lasting freshness of color.",
             "description_json": {
                 "blocks": [
@@ -517,8 +519,8 @@
             "category": 20,
             "currency": "USD",
             "price_amount": "15.00",
-            "minimal_variant_price_amount": "13.50",
-            "updated_at": "2019-11-06T14:02:17.860Z",
+            "minimal_variant_price_amount": "15.00",
+            "updated_at": "2020-01-29T14:07:37.934Z",
             "charge_taxes": true,
             "weight": "1.0 kg"
         }
@@ -542,6 +544,7 @@
             "seo_description": "",
             "product_type": 7,
             "name": "Red Dwarf Red Paint",
+            "slug": "red-dwarf-red-paint",
             "description": "We are all connected to the universe, because every cell in our bodies was cooked in the hearts of dying stars. Red Dwarf Paint: the color of Carl Sagan\u2019s dreams.",
             "description_json": {
                 "blocks": [
@@ -560,8 +563,8 @@
             "category": 20,
             "currency": "USD",
             "price_amount": "15.00",
-            "minimal_variant_price_amount": "13.50",
-            "updated_at": "2019-11-06T14:02:17.857Z",
+            "minimal_variant_price_amount": "7.50",
+            "updated_at": "2020-01-29T14:07:37.915Z",
             "charge_taxes": true,
             "weight": "0.0 kg"
         }
@@ -585,6 +588,7 @@
             "seo_description": "There is life in outer space. This vibrant light speed yellow paint brings life to any surface. Goes on easy and dries at light speed.",
             "product_type": 7,
             "name": "Light Speed Yellow Paint",
+            "slug": "light-speed-yellow-paint",
             "description": "There is life in outer space. This vibrant light speed yellow paint brings life to any surface. Goes on easy and dries at light speed.",
             "description_json": {
                 "blocks": [
@@ -603,8 +607,8 @@
             "category": 20,
             "currency": "USD",
             "price_amount": "15.00",
-            "minimal_variant_price_amount": "7.50",
-            "updated_at": "2019-11-06T14:02:17.852Z",
+            "minimal_variant_price_amount": "10.50",
+            "updated_at": "2020-01-29T14:07:37.836Z",
             "charge_taxes": true,
             "weight": "0.0 kg"
         }
@@ -628,6 +632,7 @@
             "seo_description": "Turquoise is the new black. No more gloomy night skies, brighten up your evenings with hyperspace paint.",
             "product_type": 7,
             "name": "Hyperspace Turquoise Paint",
+            "slug": "hyperspace-turquoise-paint",
             "description": "Turquoise is the new black. No more gloomy night skies, brighten up your evenings with hyperspace paint.",
             "description_json": {
                 "blocks": [
@@ -646,8 +651,8 @@
             "category": 20,
             "currency": "USD",
             "price_amount": "15.00",
-            "minimal_variant_price_amount": "15.00",
-            "updated_at": "2019-11-06T14:02:17.844Z",
+            "minimal_variant_price_amount": "12.00",
+            "updated_at": "2020-01-29T14:07:37.831Z",
             "charge_taxes": true,
             "weight": "1.0 kg"
         }
@@ -671,6 +676,7 @@
             "seo_description": "Fell from a tree straight into the bottle. No additives, no preservatives, just the refreshing taste of pure sun-kissed Californian oranges.",
             "product_type": 9,
             "name": "Orange Juice",
+            "slug": "orange-juice",
             "description": "Fell from a tree straight into the bottle. No additives, no preservatives, just the refreshing taste of pure sun-kissed Californian oranges.",
             "description_json": {
                 "blocks": [
@@ -689,8 +695,8 @@
             "category": 14,
             "currency": "USD",
             "price_amount": "3.00",
-            "minimal_variant_price_amount": "1.50",
-            "updated_at": "2019-11-06T13:59:42.936Z",
+            "minimal_variant_price_amount": "3.00",
+            "updated_at": "2020-01-29T14:07:37.862Z",
             "charge_taxes": true,
             "weight": "1.0 kg"
         }
@@ -714,6 +720,7 @@
             "seo_description": "Fell straight from the tree, on to Newton\u2019s head, then into the bottle. The autumn taste of English apples. Brought to you by gravity.",
             "product_type": 9,
             "name": "Apple Juice",
+            "slug": "apple-juice",
             "description": "Fell straight from the tree, on to Newton\u2019s head, then into the bottle. The autumn taste of English apples. Brought to you by gravity.",
             "description_json": {
                 "blocks": [
@@ -732,8 +739,8 @@
             "category": 14,
             "currency": "USD",
             "price_amount": "3.00",
-            "minimal_variant_price_amount": "2.40",
-            "updated_at": "2019-11-06T13:59:42.910Z",
+            "minimal_variant_price_amount": "1.50",
+            "updated_at": "2020-01-29T14:07:37.765Z",
             "charge_taxes": true,
             "weight": "1.0 kg"
         }
@@ -757,6 +764,7 @@
             "seo_description": "Improve your eyesight the natural way with 100% pure, squeezed carrot juice. The sweet, orange nectar of Mother Earth.",
             "product_type": 9,
             "name": "Carrot Juice",
+            "slug": "carrot-juice",
             "description": "Improve your eyesight the natural way with 100% pure, squeezed carrot juice. The sweet, orange nectar of Mother Earth.",
             "description_json": {
                 "blocks": [
@@ -776,7 +784,7 @@
             "currency": "USD",
             "price_amount": "3.00",
             "minimal_variant_price_amount": "3.00",
-            "updated_at": "2019-11-06T13:59:42.925Z",
+            "updated_at": "2020-01-29T14:07:37.807Z",
             "charge_taxes": true,
             "weight": "1.0 kg"
         }
@@ -800,6 +808,7 @@
             "seo_description": "Build your protein the natural way, with exotic banana juice made from ripe fruit and packed with all the goodness of the tropical sun.",
             "product_type": 9,
             "name": "Banana Juice",
+            "slug": "banana-juice",
             "description": "Build your protein the natural way, with exotic banana juice made from ripe fruit and packed with all the goodness of the tropical sun.",
             "description_json": {
                 "blocks": [
@@ -818,8 +827,8 @@
             "category": 14,
             "currency": "USD",
             "price_amount": "3.00",
-            "minimal_variant_price_amount": "2.40",
-            "updated_at": "2019-11-06T13:59:42.919Z",
+            "minimal_variant_price_amount": "2.10",
+            "updated_at": "2020-01-29T14:07:37.773Z",
             "charge_taxes": true,
             "weight": "1.0 kg"
         }
@@ -843,6 +852,7 @@
             "seo_description": "I can\u2019t stand pineapples, so this one is not for me. They have a weird, fluffy, tangy taste. But if it is your kind of thing, then knock yourself out.",
             "product_type": 9,
             "name": "Pineapple Juice",
+            "slug": "pineapple-juice",
             "description": "I can\u2019t stand pineapples, so this one is not for me. They have a weird, fluffy, tangy taste. But if it is your kind of thing, then knock yourself out.",
             "description_json": {
                 "blocks": [
@@ -861,8 +871,8 @@
             "category": 14,
             "currency": "USD",
             "price_amount": "3.00",
-            "minimal_variant_price_amount": "1.50",
-            "updated_at": "2019-11-06T13:59:42.939Z",
+            "minimal_variant_price_amount": "3.00",
+            "updated_at": "2020-01-29T14:07:37.870Z",
             "charge_taxes": true,
             "weight": "1.0 kg"
         }
@@ -886,6 +896,7 @@
             "seo_description": "Did you know falling coconuts kill 150 people a year? But did you know that coconut juice is the new superfood? You win some, you lose some.",
             "product_type": 9,
             "name": "Coconut Juice",
+            "slug": "coconut-juice",
             "description": "Did you know falling coconuts kill 150 people a year? But did you know that coconut juice is the new superfood? You win some, you lose some.",
             "description_json": {
                 "blocks": [
@@ -904,8 +915,8 @@
             "category": 14,
             "currency": "USD",
             "price_amount": "3.00",
-            "minimal_variant_price_amount": "3.00",
-            "updated_at": "2019-11-06T13:59:42.929Z",
+            "minimal_variant_price_amount": "1.50",
+            "updated_at": "2020-01-29T14:07:37.812Z",
             "charge_taxes": true,
             "weight": "1.0 kg"
         }
@@ -929,6 +940,7 @@
             "seo_description": "Is it a bird? Is it a plane? No! It\u2019s some jacked dude who just sucked down a bottle of our brand new power juice! Look at him go!",
             "product_type": 9,
             "name": "Power Juice",
+            "slug": "power-juice",
             "description": "Is it a bird? Is a plane? No! It\u2019s some jacked dude who just sucked down a bottle of our brand new power juice! Look at him go!",
             "description_json": {
                 "blocks": [
@@ -948,7 +960,7 @@
             "currency": "USD",
             "price_amount": "3.00",
             "minimal_variant_price_amount": "3.00",
-            "updated_at": "2019-11-06T13:59:42.941Z",
+            "updated_at": "2020-01-29T14:07:37.909Z",
             "charge_taxes": true,
             "weight": "1.0 kg"
         }
@@ -972,6 +984,7 @@
             "seo_description": "Brussel sprouts, spinach, peas, kale, lettuce, cabbage, zucchini, more brussel sprouts. All the greens you\u2019ll ever need in one delicious juice.",
             "product_type": 9,
             "name": "Green Juice",
+            "slug": "green-juice",
             "description": "Brussel sprouts, spinach, peas, kale, lettuce, cabbage, zucchini, more brussel sprouts. All the greens you\u2019ll ever need in one delicious juice.",
             "description_json": {
                 "blocks": [
@@ -990,8 +1003,8 @@
             "category": 14,
             "currency": "USD",
             "price_amount": "3.00",
-            "minimal_variant_price_amount": "1.50",
-            "updated_at": "2019-11-06T13:59:42.933Z",
+            "minimal_variant_price_amount": "3.00",
+            "updated_at": "2020-01-29T14:07:37.826Z",
             "charge_taxes": true,
             "weight": "1.0 kg"
         }
@@ -1015,6 +1028,7 @@
             "seo_description": "Bean there, drunk that! The energy drink for the health-conscious. Brand new bean juice; from allotment to bottle in under 8 hours.",
             "product_type": 9,
             "name": "Bean Juice",
+            "slug": "bean-juice",
             "description": "Bean there, drunk that! The energy drink for the health-conscious. Brand new bean juice; from allotment to bottle in under 8 hours.",
             "description_json": {
                 "blocks": [
@@ -1033,8 +1047,8 @@
             "category": 14,
             "currency": "USD",
             "price_amount": "3.00",
-            "minimal_variant_price_amount": "1.50",
-            "updated_at": "2019-11-06T13:59:42.922Z",
+            "minimal_variant_price_amount": "3.00",
+            "updated_at": "2020-01-29T14:07:37.780Z",
             "charge_taxes": true,
             "weight": "1.0 kg"
         }
@@ -1058,6 +1072,7 @@
             "seo_description": "A fine, mature red with a hint of blackberry, an undertone of the alkaline Burgundy soil, a delicate aftertaste of burnt garlic, and a whole lot of grapes.",
             "product_type": 10,
             "name": "Red Wine",
+            "slug": "red-wine",
             "description": "A fine, mature red with a hint of blackberry, an undertone of the alkaline Burgundy soil, a delicate aftertaste of burnt garlic, and a whole lot of grapes.",
             "description_json": {
                 "blocks": [
@@ -1076,8 +1091,8 @@
             "category": 15,
             "currency": "USD",
             "price_amount": "15.00",
-            "minimal_variant_price_amount": "12.00",
-            "updated_at": "2019-11-06T14:00:54.211Z",
+            "minimal_variant_price_amount": "15.00",
+            "updated_at": "2020-01-29T14:07:37.920Z",
             "charge_taxes": true,
             "weight": "0.0 kg"
         }
@@ -1101,6 +1116,7 @@
             "seo_description": "Watch the slow setting sun of a wild summer evening sink into the horizon as you sip white wine that tastes like bittersweet memories of halcyon days.",
             "product_type": 10,
             "name": "White Wine",
+            "slug": "white-wine",
             "description": "Watch the slow setting sun of a wild summer evening sink into the horizon as you sip white wine that tastes like bittersweet memories of halcyon days.",
             "description_json": {
                 "blocks": [
@@ -1119,8 +1135,8 @@
             "category": 15,
             "currency": "USD",
             "price_amount": "15.00",
-            "minimal_variant_price_amount": "7.50",
-            "updated_at": "2019-11-06T14:00:54.219Z",
+            "minimal_variant_price_amount": "15.00",
+            "updated_at": "2020-01-29T14:07:37.980Z",
             "charge_taxes": true,
             "weight": "0.0 kg"
         }
@@ -1144,6 +1160,7 @@
             "seo_description": "Find your sea legs and then lose the power to use them with extra strong seaman\u2019s lager. Don\u2019t drink and sail, me hearties!",
             "product_type": 11,
             "name": "Seaman Lager",
+            "slug": "seaman-lager",
             "description": "Find your sea legs and then lose the power to use them with extra strong seaman\u2019s lager. Don\u2019t drink and sail, me hearties!",
             "description_json": {
                 "blocks": [
@@ -1162,8 +1179,8 @@
             "category": 15,
             "currency": "USD",
             "price_amount": "3.00",
-            "minimal_variant_price_amount": "3.00",
-            "updated_at": "2019-11-06T14:01:20.620Z",
+            "minimal_variant_price_amount": "1.50",
+            "updated_at": "2020-01-29T14:07:37.929Z",
             "charge_taxes": true,
             "weight": "1.0 kg"
         }
@@ -1187,6 +1204,7 @@
             "seo_description": "Best beer on the seven seas. A dark ale for when the dark clouds gather overhead. The nutty nautical taste that sailors love.",
             "product_type": 11,
             "name": "Seaman Beer",
+            "slug": "seaman-beer",
             "description": "Best beer on the seven seas. A dark ale for when the dark clouds gather overhead. The nutty nautical taste that sailors love.",
             "description_json": {
                 "blocks": [
@@ -1205,8 +1223,8 @@
             "category": 15,
             "currency": "USD",
             "price_amount": "3.20",
-            "minimal_variant_price_amount": "1.60",
-            "updated_at": "2019-11-06T14:01:11.394Z",
+            "minimal_variant_price_amount": "3.20",
+            "updated_at": "2020-01-29T14:07:37.925Z",
             "charge_taxes": true,
             "weight": "1.0 kg"
         }
@@ -1230,6 +1248,7 @@
             "seo_description": "Add a little color to your life with a Saleor parrot cushion. Turns any old sofa into a rainbow of classy interior design.",
             "product_type": 12,
             "name": "Colored Parrot Cushion",
+            "slug": "colored-parrot-cushion",
             "description": "Add a little color to your life with a Saleor parrot cushion. Turns any old sofa into a rainbow of classy interior design.",
             "description_json": {
                 "blocks": [
@@ -1248,8 +1267,8 @@
             "category": 22,
             "currency": "USD",
             "price_amount": "20.00",
-            "minimal_variant_price_amount": "16.00",
-            "updated_at": "2019-11-06T14:03:01.640Z",
+            "minimal_variant_price_amount": "20.00",
+            "updated_at": "2020-01-29T14:07:37.822Z",
             "charge_taxes": true,
             "weight": "0.0 kg"
         }
@@ -1273,6 +1292,7 @@
             "seo_description": "Minimalist interiors need simple, sleek soft furnishings. Don\u2019t parrot what others do, set your own monochrome trends with Saleor designs.",
             "product_type": 12,
             "name": "White Parrot Cushion",
+            "slug": "white-parrot-cushion",
             "description": "Minimalist interiors need simple, sleek soft furnishings. Don\u2019t parrot what others do, set your own monochrome trends with Saleor designs.",
             "description_json": {
                 "blocks": [
@@ -1291,8 +1311,8 @@
             "category": 22,
             "currency": "USD",
             "price_amount": "20.00",
-            "minimal_variant_price_amount": "18.00",
-            "updated_at": "2019-11-06T14:03:01.646Z",
+            "minimal_variant_price_amount": "14.00",
+            "updated_at": "2020-01-29T14:07:37.968Z",
             "charge_taxes": true,
             "weight": "0.0 kg"
         }
@@ -1316,6 +1336,7 @@
             "seo_description": "Mellow yellow. Step into summer with Saleor. Every time your head goes down, you see these beauties, and your mood bounces right back up.",
             "product_type": 13,
             "name": "Yellow Plimsolls",
+            "slug": "yellow-plimsolls",
             "description": "Mellow yellow. Step into summer with Saleor. Every time your head goes down, you see these beauties, and your mood bounces right back up.",
             "description_json": {
                 "blocks": [
@@ -1334,8 +1355,8 @@
             "category": 13,
             "currency": "USD",
             "price_amount": "59.00",
-            "minimal_variant_price_amount": "47.20",
-            "updated_at": "2019-11-06T14:05:18.545Z",
+            "minimal_variant_price_amount": "59.00",
+            "updated_at": "2020-01-29T14:07:37.990Z",
             "charge_taxes": true,
             "weight": "0.0 kg"
         }
@@ -1359,6 +1380,7 @@
             "seo_description": "PE at school wouldn\u2019t have been such a drag with these on your feet. Slip on the style and stride tall with Saleor branded plimsolls. PE now stands for pretty elegant.",
             "product_type": 13,
             "name": "White Plimsolls",
+            "slug": "white-plimsolls",
             "description": "PE at school wouldn\u2019t have been such a drag with these on your feet. Slip on the style and stride tall with Saleor branded plimsolls. PE now stands for pretty elegant.",
             "description_json": {
                 "blocks": [
@@ -1377,8 +1399,8 @@
             "category": 13,
             "currency": "USD",
             "price_amount": "49.00",
-            "minimal_variant_price_amount": "44.10",
-            "updated_at": "2019-11-06T14:05:18.539Z",
+            "minimal_variant_price_amount": "24.50",
+            "updated_at": "2020-01-29T14:07:37.974Z",
             "charge_taxes": true,
             "weight": "1.0 kg"
         }
@@ -1402,6 +1424,7 @@
             "seo_description": "Pay homage to the music and art of Joy Division and Peter Saville, but with a Mirumee twist. Perfect live transmission apparel for dead souls.",
             "product_type": 14,
             "name": "Code Division T-shirt",
+            "slug": "code-division-t-shirt",
             "description": "Pay homage to the music and art of a Joy Division and Peter Saville, but with a Mirumee twist. Perfect live transmission apparel for dead souls.",
             "description_json": {
                 "blocks": [
@@ -1421,7 +1444,7 @@
             "currency": "USD",
             "price_amount": "30.00",
             "minimal_variant_price_amount": "30.00",
-            "updated_at": "2019-11-06T14:04:17.652Z",
+            "updated_at": "2020-01-29T14:07:37.818Z",
             "charge_taxes": true,
             "weight": "0.0 kg"
         }
@@ -1445,6 +1468,7 @@
             "seo_description": "Ever have those days where you feel a bit geometric? Can't quite shape yourself up right? Show your different sides with a Saleor styles.",
             "product_type": 14,
             "name": "Polo Shirt",
+            "slug": "polo-shirt",
             "description": "Ever have those days where you feel a bit geometric? Can't quite shape yourself up right? Show your different sides with a Saleor styles.",
             "description_json": {
                 "blocks": [
@@ -1464,7 +1488,7 @@
             "currency": "USD",
             "price_amount": "30.00",
             "minimal_variant_price_amount": "30.00",
-            "updated_at": "2019-11-06T14:04:32.813Z",
+            "updated_at": "2020-01-29T14:07:37.876Z",
             "charge_taxes": true,
             "weight": "0.0 kg"
         }
@@ -1488,6 +1512,7 @@
             "seo_description": "Polo? Yolo\u2026 so don\u2019t waste time on the wrong apparel. Choose a polo shirt that looks as good as you feel.",
             "product_type": 14,
             "name": "Polo Shirt",
+            "slug": "polo-shirt-2",
             "description": "Polo? Yolo\u2026 so don\u2019t waste time on the wrong apparel. Choose a polo shirt that looks as good as you feel.",
             "description_json": {
                 "blocks": [
@@ -1507,7 +1532,7 @@
             "currency": "USD",
             "price_amount": "30.00",
             "minimal_variant_price_amount": "30.00",
-            "updated_at": "2019-11-06T14:04:32.816Z",
+            "updated_at": "2020-01-29T14:07:37.883Z",
             "charge_taxes": true,
             "weight": "0.0 kg"
         }
@@ -1531,6 +1556,7 @@
             "seo_description": "Wondering if this will look as good on you as it does on the screen? The answer is yes. A quality polo with smart styling.",
             "product_type": 14,
             "name": "Polo Shirt",
+            "slug": "polo-shirt-3",
             "description": "Wondering if this will look as good on you as it does on the screen? The answer is yes. A quality polo with smart styling.",
             "description_json": {
                 "blocks": [
@@ -1550,7 +1576,7 @@
             "currency": "USD",
             "price_amount": "30.00",
             "minimal_variant_price_amount": "30.00",
-            "updated_at": "2019-11-06T14:04:32.819Z",
+            "updated_at": "2020-01-29T14:07:37.892Z",
             "charge_taxes": true,
             "weight": "0.0 kg"
         }
@@ -1574,6 +1600,7 @@
             "seo_description": "They say polo is the sport of kings. Or was that stamp collecting? Either way, this shirt is fit for a king of Saturday night.",
             "product_type": 14,
             "name": "Polo Shirt",
+            "slug": "polo-shirt-4",
             "description": "They say polo is the sport of kings. Or was that stamp collecting? Either way, this shirt is fit for a king of Saturday night.",
             "description_json": {
                 "blocks": [
@@ -1592,8 +1619,8 @@
             "category": 11,
             "currency": "USD",
             "price_amount": "30.00",
-            "minimal_variant_price_amount": "15.00",
-            "updated_at": "2019-11-06T14:04:32.805Z",
+            "minimal_variant_price_amount": "30.00",
+            "updated_at": "2020-01-29T14:07:37.903Z",
             "charge_taxes": true,
             "weight": "0.0 kg"
         }
@@ -1617,6 +1644,7 @@
             "seo_description": "One style fits all. Get a look that works even when you are taking it easy. Relaxed wear for the masses.",
             "product_type": 14,
             "name": "T-shirt",
+            "slug": "t-shirt-2",
             "description": "One style fits all. Get a look that works even when you are taking it easy. Relaxed wear for the masses.",
             "description_json": {
                 "blocks": [
@@ -1636,7 +1664,7 @@
             "currency": "USD",
             "price_amount": "30.00",
             "minimal_variant_price_amount": "15.00",
-            "updated_at": "2019-11-06T14:04:17.664Z",
+            "updated_at": "2020-01-29T14:07:37.945Z",
             "charge_taxes": true,
             "weight": "0.0 kg"
         }
@@ -1660,6 +1688,7 @@
             "seo_description": "A classic tee for a timeless look, at a great price. Feel like a million bucks without breaking the bank.",
             "product_type": 14,
             "name": "T-shirt",
+            "slug": "t-shirt",
             "description": "A classic tee for a timeless look, at a great price. Feel like a million bucks without breaking the bank.",
             "description_json": {
                 "blocks": [
@@ -1678,8 +1707,8 @@
             "category": 10,
             "currency": "USD",
             "price_amount": "30.00",
-            "minimal_variant_price_amount": "30.00",
-            "updated_at": "2019-11-06T14:04:17.661Z",
+            "minimal_variant_price_amount": "24.00",
+            "updated_at": "2020-01-29T14:07:37.939Z",
             "charge_taxes": true,
             "weight": "0.0 kg"
         }
@@ -1703,6 +1732,7 @@
             "seo_description": "Want to look like you just fell out of bed? Sometimes style can be effortless. Throw it on get on with having a good day.",
             "product_type": 14,
             "name": "T-shirt",
+            "slug": "t-shirt-4",
             "description": "Want to look like you just fell out of bed? Sometimes style can be effortless. Throw it on get on with having a good day.",
             "description_json": {
                 "blocks": [
@@ -1721,8 +1751,8 @@
             "category": 10,
             "currency": "USD",
             "price_amount": "30.00",
-            "minimal_variant_price_amount": "27.00",
-            "updated_at": "2019-11-06T14:04:17.668Z",
+            "minimal_variant_price_amount": "24.00",
+            "updated_at": "2020-01-29T14:07:37.956Z",
             "charge_taxes": true,
             "weight": "0.0 kg"
         }
@@ -1746,6 +1776,7 @@
             "seo_description": "Your t-shirt is your second skin. It\u2019s the version of you that you show to the world. Wear one that flows with your movements and is built to last.",
             "product_type": 14,
             "name": "T-shirt",
+            "slug": "t-shirt-3",
             "description": "Your t-shirt is your second skin. It\u2019s the version of you that you show to the world. Wear one that flows with your movements and is built to last.",
             "description_json": {
                 "blocks": [
@@ -1764,8 +1795,8 @@
             "category": 10,
             "currency": "USD",
             "price_amount": "30.00",
-            "minimal_variant_price_amount": "21.00",
-            "updated_at": "2019-11-06T14:04:17.671Z",
+            "minimal_variant_price_amount": "30.00",
+            "updated_at": "2020-01-29T14:07:37.951Z",
             "charge_taxes": true,
             "weight": "0.0 kg"
         }
@@ -1789,6 +1820,7 @@
             "seo_description": "Special offer. Buy a hood and get a free jet black sweater attached. Perfect for when you are up to no good.",
             "product_type": 14,
             "name": "Black Hoodie",
+            "slug": "black-hoodie",
             "description": "Special offer. Buy a hood and get a free jet black sweater attached. Perfect for when you are up to no good.",
             "description_json": {
                 "blocks": [
@@ -1807,8 +1839,8 @@
             "category": 12,
             "currency": "USD",
             "price_amount": "30.00",
-            "minimal_variant_price_amount": "30.00",
-            "updated_at": "2019-11-06T14:03:58.298Z",
+            "minimal_variant_price_amount": "21.00",
+            "updated_at": "2020-01-29T14:07:37.789Z",
             "charge_taxes": true,
             "weight": "0.0 kg"
         }
@@ -1832,6 +1864,7 @@
             "seo_description": "Special offer. Buy a superhero blue sweater and get a free hood attached. Ideal for when you are out saving the world.",
             "product_type": 14,
             "name": "Blue Hoodie",
+            "slug": "blue-hoodie",
             "description": "Special offer. Buy a superhero blue sweater and get a free hood attached. Ideal for when you are out saving the world.",
             "description_json": {
                 "blocks": [
@@ -1850,8 +1883,8 @@
             "category": 12,
             "currency": "USD",
             "price_amount": "30.00",
-            "minimal_variant_price_amount": "15.00",
-            "updated_at": "2019-11-06T14:03:58.307Z",
+            "minimal_variant_price_amount": "30.00",
+            "updated_at": "2020-01-29T14:07:37.798Z",
             "charge_taxes": true,
             "weight": "0.0 kg"
         }
@@ -1875,6 +1908,7 @@
             "seo_description": "Who dunnit? It was Colonel Mustard, in the dining room, with the lead piping, wearing this hot as mustard hoodie.",
             "product_type": 14,
             "name": "Mustard Hoodie",
+            "slug": "mustard-hoodie",
             "description": "Who dunnit? It was Colonel Mustard, in the dining room, with the lead piping, wearing this hot as mustard hoodie.",
             "description_json": {
                 "blocks": [
@@ -1893,8 +1927,8 @@
             "category": 12,
             "currency": "USD",
             "price_amount": "30.00",
-            "minimal_variant_price_amount": "15.00",
-            "updated_at": "2019-11-06T14:03:58.311Z",
+            "minimal_variant_price_amount": "30.00",
+            "updated_at": "2020-01-29T14:07:37.842Z",
             "charge_taxes": true,
             "weight": "0.0 kg"
         }
@@ -1918,6 +1952,7 @@
             "seo_description": "Get your slouch on and be seen with a whiter than white hoodie straight from the streets. Relaxed stylin\u2019 and profilin\u2019 with flair.",
             "product_type": 14,
             "name": "White Hoodie",
+            "slug": "white-hoodie",
             "description": "Get your slouch on and be seen with a whiter than white hoodie straight from the streets. Relaxed stylin\u2019 and profilin\u2019 with flair.",
             "description_json": {
                 "blocks": [
@@ -1937,7 +1972,7 @@
             "currency": "USD",
             "price_amount": "30.00",
             "minimal_variant_price_amount": "15.00",
-            "updated_at": "2019-11-06T14:03:58.313Z",
+            "updated_at": "2020-01-29T14:07:37.961Z",
             "charge_taxes": true,
             "weight": "0.0 kg"
         }

@@ -247,7 +247,8 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
     product_type = models.ForeignKey(
         ProductType, related_name="products", on_delete=models.CASCADE
     )
-    name = models.CharField(max_length=128)
+    name = models.CharField(max_length=250)
+    slug = models.SlugField(max_length=255, unique=True)
     description = models.TextField(blank=True)
     description_json = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_draft_js
@@ -329,9 +330,6 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
     @staticmethod
     def get_absolute_url() -> str:
         return ""
-
-    def get_slug(self) -> str:
-        return slugify(smart_text(unidecode(self.name)))
 
     def get_first_image(self):
         images = list(self.images.all())
