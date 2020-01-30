@@ -97,6 +97,7 @@ def products_structures(category):
             [
                 product_models.Product(
                     name=f"{attrs[0]} Apple - {attrs[1]} ({i})",
+                    slug=f"{attrs[0]}-apple-{attrs[1]}-({i})",
                     product_type=pt_apples,
                     category=category,
                     price=zero_money(),
@@ -112,6 +113,7 @@ def products_structures(category):
             [
                 product_models.Product(
                     name=f"{attrs[0]} Orange - {attrs[1]} ({i})",
+                    slug=f"{attrs[0]}-orange-{attrs[1]}-({i})",
                     product_type=pt_oranges,
                     category=category,
                     price=zero_money(),
@@ -124,6 +126,7 @@ def products_structures(category):
 
     dummy = product_models.Product.objects.create(
         name=f"Oopsie Dummy",
+        slug="oopsie-dummy",
         product_type=pt_other,
         category=category,
         price=zero_money(),
@@ -131,6 +134,7 @@ def products_structures(category):
     )
     product_models.Product.objects.create(
         name=f"Another Dummy but first in ASC and has no attribute value",
+        slug="another-dummy",
         product_type=pt_other,
         category=category,
         price=zero_money(),
@@ -491,19 +495,19 @@ def test_sort_product_not_having_attribute_data(api_client, category, count_quer
 
     # Create a product with a value
     product_having_attr_value = product_models.Product.objects.create(
-        name="Z", product_type=product_type, **product_create_kwargs
+        name="Z", slug="z", product_type=product_type, **product_create_kwargs
     )
     associate_attribute_values_to_instance(product_having_attr_value, attribute, value)
 
     # Create a product having the same product type but no attribute data
     product_models.Product.objects.create(
-        name="Y", product_type=product_type, **product_create_kwargs
+        name="Y", slug="y", product_type=product_type, **product_create_kwargs
     )
 
     # Create a new product having a name that would be ordered first in ascending
     # as the default ordering is by name for non matching products
     product_models.Product.objects.create(
-        name="A", product_type=other_product_type, **product_create_kwargs
+        name="A", slug="a", product_type=other_product_type, **product_create_kwargs
     )
 
     # Sort the products

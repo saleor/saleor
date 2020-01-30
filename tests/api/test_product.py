@@ -213,7 +213,7 @@ def test_product_query(staff_api_client, product, permission_manage_products, st
     product_data = product_edges_data[0]["node"]
     assert product_data["name"] == product.name
     assert product_data["url"] == product.get_absolute_url()
-    assert product_data["slug"] == product.get_slug()
+    assert product_data["slug"] == product.slug
     gross = product_data["pricing"]["priceRange"]["start"]["gross"]
     assert float(gross["amount"]) == float(product.price.amount)
     from saleor.product.utils.costs import get_product_costs_data
@@ -244,6 +244,7 @@ def test_products_query_with_filter_attributes(
     second_product = product
     second_product.id = None
     second_product.product_type = product_type
+    second_product.slug = "second-product"
     second_product.save()
     associate_attribute_values_to_instance(second_product, attribute, attr_value)
 
@@ -274,6 +275,7 @@ def test_products_query_with_filter_product_type(
     second_product = product
     second_product.id = None
     second_product.product_type = product_type
+    second_product.slug = "second-product"
     second_product.save()
 
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.id)
@@ -296,6 +298,7 @@ def test_products_query_with_filter_category(
     category = Category.objects.create(name="Custom", slug="custom")
     second_product = product
     second_product.id = None
+    second_product.slug = "second-product"
     second_product.category = category
     second_product.save()
 
@@ -318,6 +321,7 @@ def test_products_query_with_filter_has_category_false(
     second_product = product
     second_product.category = None
     second_product.id = None
+    second_product.slug = "second-product"
     second_product.save()
 
     variables = {"filter": {"hasCategory": False}}
@@ -342,6 +346,7 @@ def test_products_query_with_filter_has_category_true(
     second_product = product_without_category
     second_product.category = category
     second_product.id = None
+    second_product.slug = "second-product"
     second_product.save()
 
     variables = {"filter": {"hasCategory": True}}
@@ -365,6 +370,7 @@ def test_products_query_with_filter_collection(
 ):
     second_product = product
     second_product.id = None
+    second_product.slug = "second-product"
     second_product.save()
     second_product.collections.add(collection)
 
@@ -405,6 +411,7 @@ def test_products_query_with_filter(
     second_product = product
     second_product.id = None
     second_product.name = "Apple Juice1"
+    second_product.slug = "apple-juice1"
     second_product.price = Money("6.00", "USD")
     second_product.minimal_variant_price = Money("1.99", "USD")
     second_product.is_published = products_filter.get("isPublished", True)
@@ -612,6 +619,7 @@ def test_sort_products(user_api_client, product):
 
     # Create the second product with higher price and date
     product.pk = None
+    product.slug = "second-product"
     product.price = Money("20.00", "USD")
     product.minimal_variant_price = Money("20.00", "USD")
     product.updated_at = datetime.utcnow()
@@ -688,6 +696,7 @@ def test_sort_products(user_api_client, product):
 
 def test_sort_products_published(staff_api_client, product, permission_manage_products):
     # Create the second not published product
+    product.slug = "second-product"
     product.pk = None
     product.is_published = False
     product.save()
@@ -742,40 +751,12 @@ def test_sort_products_product_type_name(
     assert product_type_name_0 < product_type_name_1
 
 
-def test_create_product(
-    staff_api_client,
-    product_type,
-    category,
-    size_attribute,
-    description_json,
-    description_raw,
-    permission_manage_products,
-    settings,
-    monkeypatch,
-):
-    query = """
-        mutation createProduct(
-            $productTypeId: ID!,
-            $categoryId: ID!,
-            $name: String!,
-            $descriptionJson: JSONString!,
-            $isPublished: Boolean!,
-            $chargeTaxes: Boolean!,
-            $taxCode: String!,
-            $basePrice: Decimal!,
-            $attributes: [AttributeValueInput!]) {
+CREATE_PRODUCT_MUTATION = """
+       mutation createProduct(
+           $input: ProductCreateInput!
+       ) {
                 productCreate(
-                    input: {
-                        category: $categoryId,
-                        productType: $productTypeId,
-                        name: $name,
-                        descriptionJson: $descriptionJson,
-                        isPublished: $isPublished,
-                        chargeTaxes: $chargeTaxes,
-                        taxCode: $taxCode,
-                        basePrice: $basePrice,
-                        attributes: $attributes
-                    }) {
+                    input: $input) {
                         product {
                             category {
                                 name
@@ -788,6 +769,7 @@ def test_create_product(
                                 description
                             }
                             name
+                            slug
                             basePrice {
                                 amount
                             }
@@ -809,8 +791,21 @@ def test_create_product(
                           }
                         }
                       }
-    """
+"""
 
+
+def test_create_product(
+    staff_api_client,
+    product_type,
+    category,
+    size_attribute,
+    description_json,
+    description_raw,
+    permission_manage_products,
+    settings,
+    monkeypatch,
+):
+    query = CREATE_PRODUCT_MUTATION
     settings.USE_JSON_CONTENT = True
 
     description_json = json.dumps(description_json)
@@ -818,6 +813,7 @@ def test_create_product(
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
     category_id = graphene.Node.to_global_id("Category", category.pk)
     product_name = "test name"
+    product_slug = "product-test-slug"
     product_is_published = True
     product_charge_taxes = True
     product_tax_rate = "STANDARD"
@@ -842,18 +838,21 @@ def test_create_product(
 
     # test creating root product
     variables = {
-        "productTypeId": product_type_id,
-        "categoryId": category_id,
-        "name": product_name,
-        "descriptionJson": description_json,
-        "isPublished": product_is_published,
-        "chargeTaxes": product_charge_taxes,
-        "taxCode": product_tax_rate,
-        "basePrice": product_price,
-        "attributes": [
-            {"id": color_attr_id, "values": [color_value_slug]},
-            {"id": size_attr_id, "values": [non_existent_attr_value]},
-        ],
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "slug": product_slug,
+            "descriptionJson": description_json,
+            "isPublished": product_is_published,
+            "chargeTaxes": product_charge_taxes,
+            "taxCode": product_tax_rate,
+            "basePrice": product_price,
+            "attributes": [
+                {"id": color_attr_id, "values": [color_value_slug]},
+                {"id": size_attr_id, "values": [non_existent_attr_value]},
+            ],
+        }
     }
 
     response = staff_api_client.post_graphql(
@@ -863,6 +862,7 @@ def test_create_product(
     data = content["data"]["productCreate"]
     assert data["errors"] == []
     assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
     assert data["product"]["descriptionJson"] == description_json
     assert data["product"]["isPublished"] == product_is_published
     assert data["product"]["chargeTaxes"] == product_charge_taxes
@@ -876,6 +876,63 @@ def test_create_product(
     )
     assert slugify(non_existent_attr_value) in values
     assert color_value_slug in values
+
+
+def test_create_product_no_slug_in_input(
+    staff_api_client,
+    product_type,
+    category,
+    size_attribute,
+    description_json,
+    description_raw,
+    permission_manage_products,
+    settings,
+    monkeypatch,
+):
+    query = CREATE_PRODUCT_MUTATION
+    settings.USE_JSON_CONTENT = True
+
+    description_json = json.dumps(description_json)
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+    product_is_published = True
+    product_tax_rate = "STANDARD"
+    product_price = "22.33"
+
+    # Mock tax interface with fake response from tax gateway
+    monkeypatch.setattr(
+        ExtensionsManager,
+        "get_tax_code_from_object_meta",
+        lambda self, x: TaxType(description="", code=product_tax_rate),
+    )
+
+    # test creating root product
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "isPublished": product_is_published,
+            "taxCode": product_tax_rate,
+            "basePrice": product_price,
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    assert data["errors"] == []
+    assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == "test-name"
+    assert data["product"]["isPublished"] == product_is_published
+    assert data["product"]["taxType"]["taxCode"] == product_tax_rate
+    assert data["product"]["productType"]["name"] == product_type.name
+    assert data["product"]["category"]["name"] == category.name
+    assert str(data["product"]["basePrice"]["amount"]) == product_price
 
 
 QUERY_CREATE_PRODUCT_WITHOUT_VARIANTS = """
@@ -900,6 +957,7 @@ QUERY_CREATE_PRODUCT_WITHOUT_VARIANTS = """
             product {
                 id
                 name
+                slug
                 variants{
                     id
                     sku
@@ -931,6 +989,7 @@ def test_create_product_without_variants(
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
     category_id = graphene.Node.to_global_id("Category", category.pk)
     product_name = "test name"
+    product_slug = "test-name"
     product_price = 10
     sku = "sku"
     track_inventory = True
@@ -951,6 +1010,7 @@ def test_create_product_without_variants(
     data = content["data"]["productCreate"]
     assert data["errors"] == []
     assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
     assert data["product"]["variants"][0]["sku"] == sku
@@ -1168,6 +1228,7 @@ def test_update_product(
             $productId: ID!,
             $categoryId: ID!,
             $name: String!,
+            $slug: String!,
             $descriptionJson: JSONString!,
             $isPublished: Boolean!,
             $chargeTaxes: Boolean!,
@@ -1179,6 +1240,7 @@ def test_update_product(
                     input: {
                         category: $categoryId,
                         name: $name,
+                        slug: $slug,
                         descriptionJson: $descriptionJson,
                         isPublished: $isPublished,
                         chargeTaxes: $chargeTaxes,
@@ -1198,6 +1260,7 @@ def test_update_product(
                                 description
                             }
                             name
+                            slug
                             basePrice {
                                 amount
                             }
@@ -1230,6 +1293,7 @@ def test_update_product(
     product_id = graphene.Node.to_global_id("Product", product.pk)
     category_id = graphene.Node.to_global_id("Category", non_default_category.pk)
     product_name = "updated name"
+    product_slug = "updated-product"
     product_is_published = True
     product_charge_taxes = True
     product_tax_rate = "STANDARD"
@@ -1249,6 +1313,7 @@ def test_update_product(
         "productId": product_id,
         "categoryId": category_id,
         "name": product_name,
+        "slug": product_slug,
         "descriptionJson": other_description_json,
         "isPublished": product_is_published,
         "chargeTaxes": product_charge_taxes,
@@ -1264,6 +1329,7 @@ def test_update_product(
     data = content["data"]["productUpdate"]
     assert data["errors"] == []
     assert data["product"]["name"] == product_name
+    assert data["product"]["slug"] == product_slug
     assert data["product"]["descriptionJson"] == other_description_json
     assert data["product"]["isPublished"] == product_is_published
     assert data["product"]["chargeTaxes"] == product_charge_taxes
@@ -1531,7 +1597,7 @@ def test_update_product_without_variants_sku_duplication(
     assert data["errors"][0]["message"] == "Product with this SKU already exists."
 
 
-def test_update_product_withput_category_and_true_is_published_value(
+def test_update_product_without_category_and_true_is_published_value(
     staff_api_client, permission_manage_products, product
 ):
     query = """
@@ -1572,6 +1638,72 @@ def test_update_product_withput_category_and_true_is_published_value(
         data["errors"][0]["message"]
         == "You must select a category to be able to publish"
     )
+
+
+UPDATE_PRODUCT = """
+    mutation updateProduct(
+        $productId: ID!,
+        $input: ProductInput!)
+    {
+        productUpdate(
+            id: $productId,
+            input: $input)
+        {
+            product {
+                id
+                name
+                slug
+            }
+            errors {
+                message
+                field
+            }
+        }
+    }"""
+
+
+def test_update_product_name(staff_api_client, permission_manage_products, product):
+    query = UPDATE_PRODUCT
+
+    product_slug = product.slug
+    new_name = "example-product"
+    assert new_name != product.name
+
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    variables = {"productId": product_id, "input": {"name": new_name}}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    data = get_graphql_content(response)["data"]["productUpdate"]
+    assert data["product"]["name"] == new_name
+    assert data["product"]["slug"] == product_slug
+
+
+def test_update_product_slug_with_existing_value(
+    staff_api_client, permission_manage_products, product
+):
+    query = UPDATE_PRODUCT
+    second_product = Product.objects.get(pk=product.pk)
+    second_product.id = None
+    second_product.slug = "second-product"
+    second_product.save()
+
+    assert product.slug != second_product.slug
+
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    variables = {"productId": product_id, "input": {"slug": second_product.slug}}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+
+    data = get_graphql_content(response)["data"]["productUpdate"]
+    errors = data["errors"]
+    assert errors
+    assert errors[0]["field"] == "slug"
+    assert errors[0]["message"] == "Product with this Slug already exists."
 
 
 def test_delete_product(staff_api_client, product, permission_manage_products):
@@ -2087,6 +2219,7 @@ def test_assign_variant_image_from_different_product(
     query = ASSIGN_VARIANT_QUERY
     variant = product_with_image.variants.first()
     product_with_image.pk = None
+    product_with_image.slug = "product-with-image"
     product_with_image.save()
 
     image_2 = ProductImage.objects.create(product=product_with_image)
@@ -2632,6 +2765,7 @@ def test_categories_query_with_sort(
     )
     Product.objects.create(
         name="Test",
+        slug="test",
         price=Money(10, "USD"),
         product_type=product_type,
         category=cat1,
@@ -2654,6 +2788,7 @@ def test_categories_query_with_sort(
     )
     Product.objects.create(
         name="Test2",
+        slug="test2",
         price=Money(10, "USD"),
         product_type=product_type,
         category=subsubcat,

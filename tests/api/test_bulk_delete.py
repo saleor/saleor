@@ -210,6 +210,7 @@ def test_delete_categories_with_subcategories_and_products(
     category.save()
 
     parent_product = Product.objects.get(pk=product.pk)
+    parent_product.slug = "parent-product"
     parent_product.id = None
     parent_product.category = category_list[0]
     parent_product.save()

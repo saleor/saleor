@@ -507,6 +507,7 @@ class ProductInput(graphene.InputObjectType):
         description="Determines if product is visible to customers."
     )
     name = graphene.String(description="Product name.")
+    slug = graphene.String(description="Product slug.")
     base_price = Decimal(description="Product price.")
     tax_code = graphene.String(description="Tax rate for enabled tax gateway.")
     seo = SeoInput(description="Search engine optimization fields.")
@@ -793,6 +794,15 @@ class ProductCreate(ModelMutation):
         product_type = (
             instance.product_type if instance.pk else cleaned_input.get("product_type")
         )  # type: models.ProductType
+
+        if (
+            not instance.slug
+            and "slug" not in cleaned_input
+            and "name" in cleaned_input
+        ):
+            cleaned_input["slug"] = generate_unique_slug(
+                instance, slugable_value=cleaned_input["name"]
+            )
 
         # Try to get price from "basePrice" or "price" field. Once "price" is removed
         # from the schema, only "basePrice" should be used here.
