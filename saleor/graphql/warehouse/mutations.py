@@ -27,7 +27,11 @@ class WarehouseMixin:
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
         cleaned_input = super().clean_input(info, instance, data)
-        if "slug" not in cleaned_input and "name" in cleaned_input:
+        if (
+            not instance.slug
+            and "slug" not in cleaned_input
+            and "name" in cleaned_input
+        ):
             cleaned_input["slug"] = generate_unique_slug(
                 instance, slugable_value=cleaned_input["name"]
             )

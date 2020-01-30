@@ -1948,6 +1948,7 @@ def test_product_type_update_mutation(
             }
     """
     product_type_name = "test type updated"
+    slug = product_type.slug
     has_variants = True
     require_shipping = False
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.id)
@@ -1973,7 +1974,7 @@ def test_product_type_update_mutation(
     content = get_graphql_content(response)
     data = content["data"]["productTypeUpdate"]["productType"]
     assert data["name"] == product_type_name
-    assert data["slug"] == "test-type-updated"
+    assert data["slug"] == slug
     assert data["hasVariants"] == has_variants
     assert data["isShippingRequired"] == require_shipping
     assert not data["productAttributes"]
