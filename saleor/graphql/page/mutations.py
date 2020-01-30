@@ -41,7 +41,7 @@ class PageCreate(ModelMutation):
         slug = cleaned_input.get("slug", "")
         title = cleaned_input.get("title", "")
         if not instance.slug and not slug and title:
-            cleaned_input["slug"] = generate_unique_slug(instance, slugable_value=title)
+            cleaned_input["slug"] = generate_unique_slug(instance, title)
         clean_seo_fields(cleaned_input)
         return cleaned_input
 

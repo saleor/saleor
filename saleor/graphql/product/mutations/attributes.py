@@ -168,7 +168,7 @@ class AttributeMixin:
         input_slug = cleaned_input.get("slug", None)
         if not instance.slug and input_slug is None:
             cleaned_input["slug"] = generate_unique_slug(
-                instance, slugable_value=cleaned_input["name"]
+                instance, cleaned_input["name"]
             )
         elif input_slug == "":
             raise ValidationError(

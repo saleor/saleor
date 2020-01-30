@@ -33,7 +33,7 @@ class WarehouseMixin:
             and "name" in cleaned_input
         ):
             cleaned_input["slug"] = generate_unique_slug(
-                instance, slugable_value=cleaned_input["name"]
+                instance, cleaned_input["name"]
             )
         shipping_zones = cleaned_input.get("shipping_zones", [])
         if not validate_warehouse_count(shipping_zones, instance):
