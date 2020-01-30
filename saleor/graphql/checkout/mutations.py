@@ -156,6 +156,9 @@ class CheckoutCreateInput(graphene.InputObjectType):
         )
     )
     billing_address = AddressInput(description="Billing address of the customer.")
+    is_temporary = graphene.Boolean(
+        description="This checkout is temporary.",
+    )
 
 
 class CheckoutCreate(ModelMutation, I18nMixin):
@@ -290,14 +293,15 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         # `perform_mutation` is overridden to properly get or create a checkout
         # instance here and abort mutation if needed.
         if user.is_authenticated:
-            checkout, _ = get_user_checkout(user)
+            is_temporary = data.get("input").pop("isTemporary", False)
+            if is_temporary is False:
+                checkout, _ = get_user_checkout(user)
 
-            if checkout is not None:
-                # If user has an active checkout, return it without any
-                # modifications.
-                return CheckoutCreate(checkout=checkout, created=False)
-
-            checkout = models.Checkout(user=user)
+                if checkout is not None:
+                    # If user has an active checkout, return it without any
+                    # modifications.
+                    return CheckoutCreate(checkout=checkout, created=False)
+            checkout = models.Checkout(user=user, is_temporary=is_temporary)
         else:
             checkout = models.Checkout()
 

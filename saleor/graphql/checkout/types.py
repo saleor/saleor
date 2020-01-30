@@ -110,6 +110,9 @@ class Checkout(MetadataObjectType, CountableDjangoObjectType):
             "shipping costs, and discounts included."
         ),
     )
+    is_temporary = graphene.Boolean(
+        description="Returns True, if checkout is temporary.",
+    )
 
     class Meta:
         only_fields = [

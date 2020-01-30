@@ -654,6 +654,7 @@ type Checkout implements Node {
   shippingPrice: TaxedMoney
   subtotalPrice: TaxedMoney
   totalPrice: TaxedMoney
+  isTemporary: Boolean
 }
 
 type CheckoutAddPromoCode {
@@ -709,6 +710,7 @@ input CheckoutCreateInput {
   email: String
   shippingAddress: AddressInput
   billingAddress: AddressInput
+  isTemporary: Boolean
 }
 
 type CheckoutCustomerAttach {

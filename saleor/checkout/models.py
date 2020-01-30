@@ -96,6 +96,8 @@ class Checkout(ModelWithMetadata):
     voucher_code = models.CharField(max_length=12, blank=True, null=True)
     gift_cards = models.ManyToManyField(GiftCard, blank=True, related_name="checkouts")
 
+    is_temporary = models.BooleanField(default=False)
+
     objects = CheckoutQueryset.as_manager()
 
     class Meta:

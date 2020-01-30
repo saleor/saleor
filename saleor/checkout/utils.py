@@ -77,12 +77,13 @@ def get_user_checkout(
     if auto_create:
         return checkout_queryset.get_or_create(
             user=user,
+            is_temporary=False,
             defaults={
                 "shipping_address": user.default_shipping_address,
                 "billing_address": user.default_billing_address,
             },
         )
-    return checkout_queryset.filter(user=user).first(), False
+    return checkout_queryset.filter(user=user, is_temporary=False).first(), False
 
 
 def get_anonymous_checkout_from_token(token, checkout_queryset=Checkout.objects.all()):
