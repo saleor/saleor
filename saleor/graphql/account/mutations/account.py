@@ -33,7 +33,7 @@ class AccountRegisterInput(graphene.InputObjectType):
         description=(
             "Base of frontend URL that will be needed to create confirmation URL."
         ),
-        required=settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL,
+        required=False,
     )
 
 
@@ -73,6 +73,11 @@ class AccountRegister(ModelMutation):
         except ValidationError as error:
             raise ValidationError(
                 {"redirect_url": error}, code=AccountErrorCode.INVALID
+            )
+        except KeyError:
+            raise ValidationError(
+                {"redirect_url": "This field is required."},
+                code=AccountErrorCode.INVALID,
             )
         return super().clean_input(info, instance, data, input_cls=None)
 
