@@ -67,6 +67,11 @@ class AccountRegister(ModelMutation):
     def clean_input(cls, info, instance, data, input_cls=None):
         if not settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
             return super().clean_input(info, instance, data, input_cls=None)
+        elif not data.get("redirect_url"):
+            raise ValidationError(
+                {"redirect_url": "This field is required."},
+                code=AccountErrorCode.INVALID,
+            )
 
         try:
             validate_storefront_url(data["redirect_url"])
@@ -74,11 +79,7 @@ class AccountRegister(ModelMutation):
             raise ValidationError(
                 {"redirect_url": error}, code=AccountErrorCode.INVALID
             )
-        except KeyError:
-            raise ValidationError(
-                {"redirect_url": "This field is required."},
-                code=AccountErrorCode.INVALID,
-            )
+
         return super().clean_input(info, instance, data, input_cls=None)
 
     @classmethod
