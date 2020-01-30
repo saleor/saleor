@@ -8,6 +8,7 @@ from graphene.utils.str_converters import to_camel_case
 from saleor.product.error_codes import ProductErrorCode
 from saleor.product.models import ProductVariant
 from saleor.product.utils.attributes import associate_attribute_values_to_instance
+from saleor.warehouse.models import Stock, Warehouse
 from tests.api.utils import get_graphql_content
 
 
@@ -1153,3 +1154,84 @@ def test_product_variant_bulk_create_two_variants_duplicated_one_attribute_value
     assert not data["bulkProductErrors"]
     assert data["count"] == 1
     assert product_variant_count + 1 == ProductVariant.objects.count()
+
+
+MUTATION_UPDATE_VARIANT_QUANTITY = """
+    mutation updateVariant(
+        $id: ID!,
+        $quantity: Int
+    ) {
+        productVariantUpdate(id: $id, input: {quantity: $quantity}) {
+            productVariant {
+                id
+                quantity
+            }
+        }
+    }
+"""
+
+
+def test_update_variant_and_set_quantity_creates_stock(
+    staff_api_client, variant, permission_manage_products, warehouse
+):
+    assert variant.stock.count() == 0
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {"id": variant_id, "quantity": 70}
+    staff_api_client.post_graphql(
+        MUTATION_UPDATE_VARIANT_QUANTITY,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    assert variant.stock.count() == 1
+
+
+def test_update_variant_fails_when_there_is_no_warehouse_available(
+    staff_api_client, variant, permission_manage_products
+):
+    Stock.objects.all().delete()
+    Warehouse.objects.all().delete()
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {"id": variant_id, "quantity": 70}
+    response = staff_api_client.post_graphql(
+        MUTATION_UPDATE_VARIANT_QUANTITY,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response, ignore_errors=True)
+    errors = content["errors"]
+    assert len(errors) == 1
+    assert variant.stock.count() == 0
+
+
+def test_update_variant_sets_quantity_in_stock(
+    staff_api_client, variant, stock, permission_manage_products
+):
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    variables = {
+        "id": variant_id,
+        "quantity": 8,
+    }
+    staff_api_client.post_graphql(
+        MUTATION_UPDATE_VARIANT_QUANTITY,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    stock.refresh_from_db()
+    assert stock.quantity == 8
+
+
+def test_update_variant_changes_stock_only_when_quantity_is_passed(
+    staff_api_client, variant, stock, permission_manage_products, monkeypatch
+):
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    stock_quantity = stock.quantity
+    variables = {
+        "id": variant_id,
+    }
+    staff_api_client.post_graphql(
+        MUTATION_UPDATE_VARIANT_QUANTITY,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    stock.refresh_from_db()
+    assert stock.quantity == stock_quantity

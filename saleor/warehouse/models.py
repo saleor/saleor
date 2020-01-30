@@ -4,7 +4,6 @@ from typing import Set
 
 from django.db import models
 from django.db.models import F
-from django.utils.translation import pgettext_lazy
 
 from ..account.models import Address
 from ..core.exceptions import InsufficientStock
@@ -16,26 +15,19 @@ class WarehouseQueryset(models.QuerySet):
     def prefetch_data(self):
         return self.select_related("address").prefetch_related("shipping_zones")
 
+    def for_country(self, country: str):
+        return self.prefetch_data().get(shipping_zones__countries__contains=country)
+
 
 class Warehouse(models.Model):
     id = models.UUIDField(default=uuid.uuid4, primary_key=True)
-    name = models.CharField(
-        pgettext_lazy("Warehouse field description", "Warehouse name"), max_length=255
-    )
-    company_name = models.CharField(
-        pgettext_lazy("Warehouse field description", "Legal company name"),
-        blank=True,
-        max_length=255,
-    )
+    name = models.CharField(max_length=255)
+    company_name = models.CharField(blank=True, max_length=255)
 
     shipping_zones = models.ManyToManyField(ShippingZone, blank=True)
     address = models.ForeignKey(Address, on_delete=models.PROTECT)
 
-    email = models.EmailField(
-        pgettext_lazy("Warehouse field description", "Email address"),
-        blank=True,
-        default="",
-    )
+    email = models.EmailField(blank=True, default="")
 
     objects = WarehouseQueryset.as_manager()
 
@@ -74,6 +66,15 @@ class StockQuerySet(models.QuerySet):
         self, country_code: str, product_variant: ProductVariant
     ):
         return self.for_country(country_code).get(product_variant=product_variant)
+
+    def get_or_create_for_country(
+        self, country_code: str, product_variant: ProductVariant
+    ):
+        try:
+            return self.get_variant_stock_for_country(country_code, product_variant)
+        except Stock.DoesNotExist:
+            warehouse = Warehouse.objects.for_country(country_code)
+            return self.create(product_variant=product_variant, warehouse=warehouse)
 
 
 class Stock(models.Model):

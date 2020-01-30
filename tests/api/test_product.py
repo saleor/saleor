@@ -27,6 +27,7 @@ from saleor.product.models import (
 )
 from saleor.product.tasks import update_variants_names
 from saleor.product.utils.attributes import associate_attribute_values_to_instance
+from saleor.warehouse.models import Stock
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image, create_pdf_file_with_image_ext
 
@@ -109,13 +110,13 @@ def test_fetch_all_products(user_api_client, product):
 
 
 def test_fetch_all_products_service_account(
-    service_account_api_client,
-    service_account,
-    unavailable_product,
-    permission_manage_products,
+    service_account_api_client, unavailable_product, permission_manage_products,
 ):
-    service_account.permissions.add(permission_manage_products)
-    response = service_account_api_client.post_graphql(QUERY_FETCH_ALL_PRODUCTS)
+    response = service_account_api_client.post_graphql(
+        QUERY_FETCH_ALL_PRODUCTS,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
     content = get_graphql_content(response)
     product_data = content["data"]["products"]["edges"][0]["node"]
     assert product_data["name"] == unavailable_product.name
@@ -1080,6 +1081,68 @@ def test_product_create_without_category_and_true_is_published_value(
 
     assert errors[0]["field"] == "isPublished"
     assert errors[0]["message"] == "You must select a category to be able to publish"
+
+
+def test_product_create_with_collections_webhook(
+    staff_api_client,
+    permission_manage_products,
+    collection,
+    product_type,
+    category,
+    monkeypatch,
+):
+    query = """
+    mutation createProduct($productTypeId: ID!, $collectionId: ID!, $categoryId: ID!) {
+        productCreate(input: {
+                name: "Product",
+                basePrice: "2.5",
+                productType: $productTypeId,
+                isPublished: true,
+                collections: [$collectionId],
+                category: $categoryId
+            }) {
+            product {
+                id,
+                collections {
+                    slug
+                },
+                category {
+                    slug
+                }
+            }
+            errors {
+                message
+                field
+            }
+        }
+    }
+
+    """
+
+    def assert_product_has_collections(product):
+        assert product.collections.count() > 0
+        assert product.collections.first() == collection
+
+    monkeypatch.setattr(
+        "saleor.extensions.manager.ExtensionsManager.product_created",
+        lambda _, product: assert_product_has_collections(product),
+    )
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    collection_id = graphene.Node.to_global_id("Collection", collection.pk)
+
+    response = staff_api_client.post_graphql(
+        query,
+        {
+            "productTypeId": product_type_id,
+            "categoryId": category_id,
+            "collectionId": collection_id,
+        },
+        permissions=[permission_manage_products],
+    )
+
+    get_graphql_content(response)
 
 
 def test_update_product(
@@ -2997,3 +3060,160 @@ def test_product_filter_by_attribute_values(
             }
         }
     ]
+
+
+MUTATION_CREATE_PRODUCT_QUANTITY = """
+mutation createProduct(
+        $productType: ID!,
+        $category: ID!
+        $name: String!,
+        $sku: String,
+        $quantity: Int,
+        $basePrice: Decimal!
+        $trackInventory: Boolean)
+    {
+        productCreate(
+            input: {
+                category: $category,
+                productType: $productType,
+                name: $name,
+                sku: $sku,
+                trackInventory: $trackInventory,
+                quantity: $quantity,
+                basePrice: $basePrice,
+            })
+        {
+            product {
+                id
+                name
+                variants{
+                    id
+                    sku
+                    trackInventory
+                    quantity
+                }
+            }
+            errors {
+                message
+                field
+            }
+        }
+    }
+    """
+
+
+def test_create_product_without_variant_creates_stock(
+    staff_api_client,
+    category,
+    permission_manage_products,
+    product_type_without_variant,
+    warehouse,
+):
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_type_id = graphene.Node.to_global_id(
+        "ProductType", product_type_without_variant.pk
+    )
+    variables = {
+        "category": category_id,
+        "productType": product_type_id,
+        "name": "Test",
+        "quantity": 8,
+        "sku": "23434",
+        "trackInventory": True,
+        "basePrice": Decimal("19"),
+    }
+    response = staff_api_client.post_graphql(
+        MUTATION_CREATE_PRODUCT_QUANTITY,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    quantity = content["data"]["productCreate"]["product"]["variants"][0]["quantity"]
+    assert quantity == 8
+
+
+def test_create_product_with_variants_does_not_create_stock(
+    staff_api_client, category, product_type, permission_manage_products
+):
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    variables = {
+        "category": category_id,
+        "productType": product_type_id,
+        "name": "Test",
+        "quantity": 8,
+        "sku": "23434",
+        "trackInventory": True,
+        "basePrice": Decimal("19"),
+    }
+    response = staff_api_client.post_graphql(
+        MUTATION_CREATE_PRODUCT_QUANTITY,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    variants = content["data"]["productCreate"]["product"]["variants"]
+    assert len(variants) == 0
+    assert not Stock.objects.exists()
+
+
+def test_create_without_variants_failes_without_warehouses(
+    staff_api_client, category, product_type_without_variant, permission_manage_products
+):
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_type_id = graphene.Node.to_global_id(
+        "ProductType", product_type_without_variant.pk
+    )
+    variables = {
+        "category": category_id,
+        "productType": product_type_id,
+        "name": "Test",
+        "quantity": 8,
+        "sku": "23434",
+        "trackInventory": True,
+        "basePrice": Decimal("19"),
+    }
+    response = staff_api_client.post_graphql(
+        MUTATION_CREATE_PRODUCT_QUANTITY,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response, ignore_errors=True)
+    errors = content["errors"]
+    assert len(errors) == 1
+    assert errors[0]["message"] == "Warehouse matching query does not exist."
+
+
+MUTATION_UPDATE_PRODUCT_QUANTITY = """
+mutation updateProduct(
+    $productId: ID!,
+
+    $quantity: Int,
+    ) {
+        productUpdate(
+            id: $productId,
+            input: {
+                quantity: $quantity
+            }) {
+                product {
+                    variants {
+                        quantity
+                    }
+                }
+}}
+"""
+
+
+def test_update_product_without_variants_updates_stock(
+    staff_api_client, product_with_default_variant, permission_manage_products
+):
+    product_id = graphene.Node.to_global_id("Product", product_with_default_variant.pk)
+    stock = product_with_default_variant.variants.first().stock.first()
+    variables = {"productId": product_id, "quantity": 17}
+    staff_api_client.post_graphql(
+        MUTATION_UPDATE_PRODUCT_QUANTITY,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    stock.refresh_from_db()
+    assert stock.quantity == 17

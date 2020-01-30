@@ -48,9 +48,16 @@ All notable, unreleased changes to this project will be documented in this file.
 - Move extracting user or service_account from context to utils - #5152 by @kswiatek92
 - Add deprecate description to order status/created arguments - #5076 by @kswiatek92
 - Fix getting title field in page mutations #5160 by @maarcingebala
-- Copy public and private metadata from the checkout to the order upon creation -  #5165 by @dankolbman
+- Copy public and private metadata from the checkout to the order upon creation - #5165 by @dankolbman
 - Add warehouses and stocks- #4986 by @szewczykmira
 - Add permission groups - #5176 by @IKarbowiak
+- Drop gettext occurrences - #5189 by @IKarbowiak
+- Fix `product_created` webhook - #5187 by @dzkb
+- Drop unused resolver `resolve_availability` - #5190 by @maarcingebala
+- Fix permission for `checkoutCustomerAttach` mutation - #5192 by @maarcingebala
+- Restrict access to user field - #5194 by @maarcingebala
+- Unify permission for service account api client in test - #5197 by @fowczarek
+- Allow sorting warehouses by name - #5211 by @dominik-zeglen
 
 ## 2.9.0
 

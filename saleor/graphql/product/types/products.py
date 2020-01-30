@@ -24,6 +24,7 @@ from ....warehouse import models as stock_models
 from ....warehouse.availability import (
     get_available_quantity,
     get_available_quantity_for_customer,
+    get_quantity_allocated,
     is_product_in_stock,
     is_variant_in_stock,
 )
@@ -291,7 +292,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
                 root.stock.annotate_available_quantity().all(), info
             )
         return gql_optimizer.query(
-            root.stock.annotate_available_quantity().for_country("country").all(), info
+            root.stock.annotate_available_quantity().for_country(country).all(), info
         )
 
     @staticmethod
@@ -346,8 +347,6 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         )
         return VariantPricingInfo(**asdict(availability))
 
-    resolve_availability = resolve_pricing
-
     @staticmethod
     def resolve_is_available(root: models.ProductVariant, info):
         country = info.context.country
@@ -373,8 +372,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_quantity_allocated(root: models.ProductVariant, info):
         country = info.context.country
-        stock = stock_models.Stock.objects.get_variant_stock_for_country(country, root)
-        return stock.quantity_allocated
+        return get_quantity_allocated(root, country)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -522,8 +520,6 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
             context.extensions,
         )
         return ProductPricingInfo(**asdict(availability))
-
-    resolve_availability = resolve_pricing
 
     @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related=("variants"))

@@ -8,7 +8,7 @@ from django.db import transaction
 from django.db.models import Max, Min, Sum
 from django.utils import timezone
 from django.utils.encoding import smart_text
-from django.utils.translation import get_language, pgettext
+from django.utils.translation import get_language
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from ..account.models import User
@@ -215,23 +215,17 @@ def _get_shipping_voucher_discount_for_checkout(
 ):
     """Calculate discount value for a voucher of shipping type."""
     if not checkout.is_shipping_required():
-        msg = pgettext(
-            "Voucher not applicable", "Your order does not require shipping."
-        )
+        msg = "Your order does not require shipping."
         raise NotApplicable(msg)
     shipping_method = checkout.shipping_method
     if not shipping_method:
-        msg = pgettext(
-            "Voucher not applicable", "Please select a shipping method first."
-        )
+        msg = "Please select a shipping method first."
         raise NotApplicable(msg)
 
     # check if voucher is limited to specified countries
     shipping_country = checkout.shipping_address.country
     if voucher.countries and shipping_country.code not in voucher.countries:
-        msg = pgettext(
-            "Voucher not applicable", "This offer is not valid in your country."
-        )
+        msg = "This offer is not valid in your country."
         raise NotApplicable(msg)
 
     shipping_price = calculations.checkout_shipping_price(checkout, discounts).gross
@@ -246,9 +240,7 @@ def _get_products_voucher_discount(
     if voucher.type == VoucherType.SPECIFIC_PRODUCT:
         prices = get_prices_of_discounted_specific_product(checkout, voucher, discounts)
     if not prices:
-        msg = pgettext(
-            "Voucher not applicable", "This offer is only valid for selected items."
-        )
+        msg = "This offer is only valid for selected items."
         raise NotApplicable(msg)
     return get_products_voucher_discount(voucher, prices)
 
@@ -529,10 +521,7 @@ def _get_voucher_data_for_order(checkout: Checkout) -> dict:
     voucher = get_voucher_for_checkout(checkout, with_lock=True)
 
     if checkout.voucher_code and not voucher:
-        msg = pgettext(
-            "Voucher not applicable",
-            "Voucher expired in meantime. Order placement aborted.",
-        )
+        msg = "Voucher expired in meantime. Order placement aborted."
         raise NotApplicable(msg)
 
     if not voucher:
@@ -601,10 +590,7 @@ def validate_gift_cards(checkout: Checkout):
         not checkout.gift_cards.count()
         == checkout.gift_cards.active(date=date.today()).count()
     ):
-        msg = pgettext(
-            "Gift card not applicable",
-            "Gift card has expired. Order placement cancelled.",
-        )
+        msg = "Gift card has expired. Order placement cancelled."
         raise NotApplicable(msg)
 
 

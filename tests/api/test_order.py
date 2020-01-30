@@ -1936,6 +1936,60 @@ def test_order_by_token_query(api_client, order):
     assert content["data"]["orderByToken"]["id"] == order_id
 
 
+def test_order_by_token_user_restriction(api_client, order):
+    query = """
+    query OrderByToken($token: UUID!) {
+        orderByToken(token: $token) {
+            user {
+                id
+            }
+        }
+    }
+    """
+    response = api_client.post_graphql(query, {"token": order.token})
+    assert_no_permission(response)
+
+
+def test_order_by_token_events_restriction(api_client, order):
+    query = """
+    query OrderByToken($token: UUID!) {
+        orderByToken(token: $token) {
+            events {
+                id
+            }
+        }
+    }
+    """
+    response = api_client.post_graphql(query, {"token": order.token})
+    assert_no_permission(response)
+
+
+def test_authorized_access_to_order_by_token(
+    user_api_client, staff_api_client, customer_user, order, permission_manage_users
+):
+    query = """
+    query OrderByToken($token: UUID!) {
+        orderByToken(token: $token) {
+            user {
+                id
+            }
+        }
+    }
+    """
+    variables = {"token": order.token}
+    customer_user_id = graphene.Node.to_global_id("User", customer_user.id)
+
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["orderByToken"]["user"]["id"] == customer_user_id
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["orderByToken"]["user"]["id"] == customer_user_id
+
+
 MUTATION_CANCEL_ORDERS = """
     mutation CancelManyOrders($ids: [ID]!, $restock: Boolean!) {
         orderBulkCancel(ids: $ids, restock: $restock) {
@@ -1950,7 +2004,7 @@ MUTATION_CANCEL_ORDERS = """
 
 
 def test_order_bulk_cancel_with_restock(
-    staff_api_client, orders, order_with_lines, permission_manage_orders, address,
+    staff_api_client, orders, order_with_lines, permission_manage_orders, address
 ):
     assert order_with_lines.can_cancel()
     orders.append(order_with_lines)
@@ -1960,7 +2014,7 @@ def test_order_bulk_cancel_with_restock(
         "restock": True,
     }
     response = staff_api_client.post_graphql(
-        MUTATION_CANCEL_ORDERS, variables, permissions=[permission_manage_orders],
+        MUTATION_CANCEL_ORDERS, variables, permissions=[permission_manage_orders]
     )
     order_with_lines.refresh_from_db()
     content = get_graphql_content(response)
