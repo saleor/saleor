@@ -2,6 +2,7 @@ import logging
 import random
 import re
 
+import opentracing
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.exceptions import MiddlewareNotUsed
@@ -210,3 +211,18 @@ class ReadOnlyMiddleware:
                     if blocked:
                         return True
         return False
+
+
+def request_tracing(get_response):
+    """Trace each django request with OpenTracing."""
+
+    def _tracing_middleware(request):
+        if not settings.ENABLE_OPENTRACING:
+            return get_response(request)
+
+        with opentracing.tracer.start_span(operation_name="request") as span:
+            span.set_tag("method", request.method)
+            span.set_tag("path", request.path)
+            return get_response(request)
+
+    return _tracing_middleware
