@@ -101,7 +101,7 @@ class CategoryCreate(ModelMutation):
             and "name" in cleaned_input
         ):
             cleaned_input["slug"] = generate_unique_slug(
-                instance, slugable_value=cleaned_input["name"]
+                instance, cleaned_input["name"]
             )
         parent_id = data["parent_id"]
         if parent_id:
@@ -217,7 +217,7 @@ class CollectionCreate(ModelMutation):
             and "name" in cleaned_input
         ):
             cleaned_input["slug"] = generate_unique_slug(
-                instance, slugable_value=cleaned_input["name"]
+                instance, cleaned_input["name"]
             )
         if data.get("background_image"):
             image_data = info.context.FILES.get(data["background_image"])
@@ -809,7 +809,7 @@ class ProductCreate(ModelMutation):
             and "name" in cleaned_input
         ):
             cleaned_input["slug"] = generate_unique_slug(
-                instance, slugable_value=cleaned_input["name"]
+                instance, cleaned_input["name"]
             )
 
         # Try to get price from "basePrice" or "price" field. Once "price" is removed
@@ -1348,7 +1348,7 @@ class ProductTypeCreate(ModelMutation):
             and "name" in cleaned_input
         ):
             cleaned_input["slug"] = generate_unique_slug(
-                instance, slugable_value=cleaned_input["name"]
+                instance, cleaned_input["name"]
             )
 
         # FIXME  tax_rate logic should be dropped after we remove tax_rate from input
