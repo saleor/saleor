@@ -27,6 +27,7 @@ def test_filtering_by_attribute(db, color_attribute, category, settings):
     product_type_b.variant_attributes.add(color_attribute)
     product_a = models.Product.objects.create(
         name="Test product a",
+        slug="test-product-a",
         price=Money(10, settings.DEFAULT_CURRENCY),
         product_type=product_type_a,
         category=category,
@@ -34,6 +35,7 @@ def test_filtering_by_attribute(db, color_attribute, category, settings):
     models.ProductVariant.objects.create(product=product_a, sku="1234")
     product_b = models.Product.objects.create(
         name="Test product b",
+        slug="test-product-b",
         price=Money(10, settings.DEFAULT_CURRENCY),
         product_type=product_type_b,
         category=category,

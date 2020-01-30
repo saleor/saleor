@@ -3052,6 +3052,7 @@ type Product implements Node {
   publicationDate: Date
   isPublished: Boolean!
   productType: ProductType!
+  slug: String!
   category: Category
   updatedAt: DateTime
   chargeTaxes: Boolean!
@@ -3073,7 +3074,6 @@ type Product implements Node {
   images: [ProductImage]
   collections: [Collection]
   translation(languageCode: LanguageCodeEnum!): ProductTranslation
-  slug: String!
 }
 
 type ProductBulkDelete {
@@ -3127,6 +3127,7 @@ input ProductCreateInput {
   descriptionJson: JSONString
   isPublished: Boolean
   name: String
+  slug: String
   basePrice: Decimal
   taxCode: String
   seo: SeoInput
@@ -3238,6 +3239,7 @@ input ProductInput {
   descriptionJson: JSONString
   isPublished: Boolean
   name: String
+  slug: String
   basePrice: Decimal
   taxCode: String
   seo: SeoInput
