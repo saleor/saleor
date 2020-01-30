@@ -48,12 +48,8 @@ class OpentracingGrapheneMiddleware:
     def resolve(next, root, info, **kwargs):
         if settings.ENABLE_OPENTRACING and should_trace(info):
             with opentracing.tracer.start_span(
-                operation_name=(
-                    f"{info.operation.operation}."
-                    f"{info.parent_type.name}.{info.field_name}"
-                )
+                operation_name=info.operation.operation
             ) as span:
-                span.set_tag("operation", info.operation.operation)
                 span.set_tag("parent_type", info.parent_type.name)
                 span.set_tag("field_name", info.field_name)
                 return next(root, info, **kwargs)
