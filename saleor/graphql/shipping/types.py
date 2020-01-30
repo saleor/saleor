@@ -9,8 +9,8 @@ from ..core.types import CountryDisplay, MoneyRange
 from ..decorators import permission_required
 from ..translations.fields import TranslationField
 from ..translations.types import ShippingMethodTranslation
-from .enums import ShippingMethodTypeEnum
 from ..warehouse.types import Warehouse
+from .enums import ShippingMethodTypeEnum
 
 
 class ShippingMethod(CountableDjangoObjectType):

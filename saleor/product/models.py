@@ -157,12 +157,14 @@ class ProductsQueryset(PublishedQuerySet):
         )
         return qs
 
-    def sort_by_attribute(self, attribute_pk: Union[int, str], ascending: bool = True):
+    def sort_by_attribute(
+        self, attribute_pk: Union[int, str], descending: bool = False
+    ):
         """Sort a query set by the values of the given product attribute.
 
         :param attribute_pk: The database ID (must be a number) of the attribute
                              to sort by.
-        :param ascending: The sorting direction.
+        :param descending: The sorting direction.
         """
         qs: models.QuerySet = self
 
@@ -175,7 +177,7 @@ class ProductsQueryset(PublishedQuerySet):
         )
 
         if not associated_values:
-            if not ascending:
+            if descending:
                 return qs.reverse()
             return qs
 
@@ -230,12 +232,12 @@ class ProductsQueryset(PublishedQuerySet):
         # Sort each group of products (0, 1, 2, ...) per attribute values
         # Sort each group of products by name,
         # if they have the same values or not values
-        qs = qs.order_by("concatenated_values_order", "concatenated_values", "name")
-
-        # Descending sorting
-        if not ascending:
-            return qs.reverse()
-        return qs
+        ordering = "-" if descending else ""
+        return qs.order_by(
+            f"{ordering}concatenated_values_order",
+            f"{ordering}concatenated_values",
+            f"{ordering}name",
+        )
 
 
 class Product(SeoModel, ModelWithMetadata, PublishableModel):

@@ -6,8 +6,8 @@ babel==2.7.0
 beautifulsoup4==4.7.1
 billiard==3.6.2.0
 bleach==2.1.4
-boto3==1.12.3
-botocore==1.15.3
+boto3==1.12.5
+botocore==1.15.5
 braintree==3.49.0
 cachetools==4.0.0
 cairocffi==1.1.0
@@ -63,7 +63,7 @@ idna==2.9
 jaeger-client==4.3.0
 jinja2==2.11.1
 jmespath==0.9.4
-jsonfield==3.0.0
+jsonfield==3.1.0
 kombu==4.6.7
 lxml==4.5.0
 markdown==3.2.1
@@ -101,7 +101,7 @@ s3transfer==0.3.3
 sentry-sdk==0.14.1
 singledispatch==3.4.0.3
 six==1.14.0
-soupsieve==1.9.5
+soupsieve==2.0
 sqlparse==0.3.0
 stripe==2.42.0
 sympy==1.5.1

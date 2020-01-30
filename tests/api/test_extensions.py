@@ -362,7 +362,7 @@ QUERY_PLUGIN_WITH_SORT = """
         ),
         (
             {"field": "IS_ACTIVE", "direction": "DESC"},
-            ["Active", "PluginSample", "PluginInactive"],
+            ["PluginSample", "Active", "PluginInactive"],
         ),
     ],
 )

@@ -457,7 +457,7 @@ class Group(CountableDjangoObjectType):
         description = ""
         interfaces = [relay.Node]
         model = auth_models.Group
-        only_fields = ["name", "permissions", "users", "id"]
+        only_fields = ["name", "permissions", "id"]
 
     @staticmethod
     @permission_required(AccountPermissions.MANAGE_STAFF)

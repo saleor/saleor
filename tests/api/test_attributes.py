@@ -1972,7 +1972,7 @@ def test_sort_attributes_by_position_in_product_type(
 
 
 def test_sort_attributes_by_default_sorting(api_client):
-    """Don't provide any sorting, this should sort by name by default."""
+    """Don't provide any sorting, this should sort by slug by default."""
     Attribute.objects.bulk_create(
         [Attribute(name="A", slug="b"), Attribute(name="B", slug="a")]
     )
@@ -1982,8 +1982,8 @@ def test_sort_attributes_by_default_sorting(api_client):
     )["data"]["attributes"]["edges"]
 
     assert len(attributes) == 2
-    assert attributes[0]["node"]["slug"] == "b"
-    assert attributes[1]["node"]["slug"] == "a"
+    assert attributes[0]["node"]["slug"] == "a"
+    assert attributes[1]["node"]["slug"] == "b"
 
 
 @pytest.mark.parametrize("is_variant", (True, False))
