@@ -166,7 +166,7 @@ class AttributeMixin:
     @classmethod
     def clean_attribute(cls, instance, cleaned_input):
         input_slug = cleaned_input.get("slug", None)
-        if input_slug is None:
+        if not instance.slug and input_slug is None:
             cleaned_input["slug"] = generate_unique_slug(
                 instance, slugable_value=cleaned_input["name"]
             )
@@ -180,7 +180,8 @@ class AttributeMixin:
                 }
             )
 
-        query = models.Attribute.objects.filter(slug=cleaned_input["slug"])
+        slug = input_slug if "slug" in cleaned_input else instance.slug
+        query = models.Attribute.objects.filter(slug=slug)
 
         if instance.pk:
             query = query.exclude(pk=instance.pk)

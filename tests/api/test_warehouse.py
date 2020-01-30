@@ -366,6 +366,7 @@ def test_mutation_update_warehouse(
     staff_api_client.user.user_permissions.add(permission_manage_products)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
     warehouse_old_name = warehouse.name
+    warehouse_slug = warehouse.slug
     warehouse_old_company_name = warehouse.company_name
     variables = {
         "id": warehouse_id,
@@ -380,7 +381,7 @@ def test_mutation_update_warehouse(
     assert not (warehouse.name == warehouse_old_name)
     assert not (warehouse.company_name == warehouse_old_company_name)
     assert warehouse.name == "New name"
-    assert warehouse.slug == "new-name"
+    assert warehouse.slug == warehouse_slug
     assert warehouse.company_name == "New name for company"
     assert warehouse.shipping_zones.count() == 0
 

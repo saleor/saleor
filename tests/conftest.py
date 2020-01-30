@@ -1855,7 +1855,7 @@ def warehouse(address, shipping_zone):
     warehouse = Warehouse.objects.create(
         address=address,
         name="Example Warehouse",
-        slug="example=warehouse",
+        slug="example-warehouse",
         email="test@example.com",
     )
     warehouse.shipping_zones.add(shipping_zone)
