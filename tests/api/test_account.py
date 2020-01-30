@@ -577,32 +577,29 @@ def test_user_with_cancelled_fulfillments(
     assert fulfillments[1]["status"] == FulfillmentStatus.CANCELED.upper()
 
 
-def _build_account_register_query(requires_redirect=True):
-    field_declaration = "$redirectUrl: String!" if requires_redirect else ""
-    var_declaration = "redirectUrl: $redirectUrl" if requires_redirect else ""
-    return f"""
-        mutation RegisterAccount(
-            $password: String!,
-            $email: String!,
-            {field_declaration}
-        ) {{
-            accountRegister(
-                input: {{
-                    password: $password,
-                    email: $email,
-                    {var_declaration}
-                }}
-            ) {{
-                errors {{
-                    field
-                    message
-                }}
-                user {{
-                    id
-                }}
-            }}
-        }}
-    """
+ACCOUNT_REGISTER_MUTATION = """
+    mutation RegisterAccount(
+        $password: String!,
+        $email: String!,
+        $redirectUrl: String
+    ) {
+        accountRegister(
+            input: {
+                password: $password,
+                email: $email,
+                redirectUrl: $redirectUrl
+            }
+        ) {
+            errors {
+                field
+                message
+            }
+            user {
+                id
+            }
+        }
+    }
+"""
 
 
 @override_settings(
@@ -616,7 +613,7 @@ def test_customer_register(send_account_confirmation_email_mock, user_api_client
         "password": "Password",
         "redirectUrl": "http://localhost:3000",
     }
-    query = _build_account_register_query(requires_redirect=True)
+    query = ACCOUNT_REGISTER_MUTATION
     mutation_name = "accountRegister"
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -643,9 +640,7 @@ def test_customer_register_disabled_email_confirmation(
     send_account_confirmation_email_mock, user_api_client
 ):
     variables = {"email": "customer@example.com", "password": "Password"}
-    user_api_client.post_graphql(
-        _build_account_register_query(requires_redirect=False), variables
-    )
+    user_api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
     assert send_account_confirmation_email_mock.delay.call_count == 0
 
 
