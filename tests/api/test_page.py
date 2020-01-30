@@ -423,7 +423,7 @@ QUERY_PAGE_WITH_SORT = """
         ({"field": "TITLE", "direction": "DESC"}, ["Page2", "Page1", "About"]),
         ({"field": "SLUG", "direction": "ASC"}, ["About", "Page2", "Page1"]),
         ({"field": "SLUG", "direction": "DESC"}, ["Page1", "Page2", "About"]),
-        ({"field": "VISIBILITY", "direction": "ASC"}, ["Page2", "Page1", "About"]),
+        ({"field": "VISIBILITY", "direction": "ASC"}, ["Page2", "About", "Page1"]),
         ({"field": "VISIBILITY", "direction": "DESC"}, ["Page1", "About", "Page2"]),
         ({"field": "CREATION_DATE", "direction": "ASC"}, ["Page1", "About", "Page2"]),
         ({"field": "CREATION_DATE", "direction": "DESC"}, ["Page2", "About", "Page1"]),

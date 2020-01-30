@@ -6,8 +6,10 @@ from django_prices.models import MoneyField, TaxedMoneyField
 from graphene.relay import PageInfo
 from graphene_django.converter import convert_django_field
 from graphene_django.fields import DjangoConnectionField
+from graphql_relay.connection.arrayconnection import connection_from_list_slice
 from promise import Promise
 
+from ..utils import sort_queryset
 from .connection import connection_from_queryset_slice
 from .types.common import Weight
 from .types.money import Money, TaxedMoney
@@ -96,14 +98,28 @@ class PrefetchingConnectionField(BaseDjangoConnectionField):
 
     @classmethod
     def resolve_connection(cls, connection, args, iterable):
-        connection = connection_from_queryset_slice(
-            iterable,
-            args,
-            connection_type=connection,
-            edge_type=connection.Edge,
-            page_info_type=PageInfo,
-        )
-        connection.iterable = iterable
+        if isinstance(iterable, list):
+            _len = len(iterable)
+            connection = connection_from_list_slice(
+                iterable,
+                args,
+                slice_start=0,
+                list_length=_len,
+                list_slice_length=_len,
+                connection_type=connection,
+                edge_type=connection.Edge,
+                pageinfo_type=PageInfo,
+            )
+            connection.iterable = iterable
+        else:
+            connection = connection_from_queryset_slice(
+                iterable,
+                args,
+                connection_type=connection,
+                edge_type=connection.Edge,
+                page_info_type=PageInfo,
+            )
+            connection.iterable = iterable
         return connection
 
 
@@ -131,7 +147,6 @@ class FilterInputConnectionField(PrefetchingConnectionField):
         info,
         **args,
     ):
-
         # Disable `enforce_first_or_last` if not querying for `edges`.
         values = [
             field.name.value for field in info.field_asts[0].selection_set.selections
@@ -172,6 +187,10 @@ class FilterInputConnectionField(PrefetchingConnectionField):
         iterable = queryset_resolver(connection, iterable, info, args)
 
         on_resolve = partial(cls.resolve_connection, connection, args)
+
+        sort_by = args.get("sort_by")
+        if sort_by:
+            iterable = sort_queryset(queryset=iterable, sort_by=sort_by)
 
         filter_input = args.get(filters_name)
 

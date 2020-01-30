@@ -8,7 +8,7 @@ from graphql.error import GraphQLError
 from graphql_jwt.utils import jwt_payload
 from graphql_relay import from_global_id
 
-from .core.enums import PermissionEnum, ReportingPeriod
+from .core.enums import OrderDirection, PermissionEnum, ReportingPeriod
 from .core.types import PermissionDisplay, SortInputObjectType
 
 ERROR_COULD_NO_RESOLVE_GLOBAL_ID = (
@@ -123,26 +123,60 @@ def filter_by_query_param(queryset, query, search_fields):
     return queryset
 
 
-def sort_queryset(
-    queryset: QuerySet, sort_by: SortInputObjectType, sort_enum: graphene.Enum
-) -> QuerySet:
-    """Sort queryset according to given parameters.
+def sort_queryset(queryset: QuerySet, sort_by: SortInputObjectType) -> QuerySet:
+    """
+    Sort queryset according to given parameters.
+    rules:
+        - sorting_field and sorting_attribute cannot be together)
+        - when sorting_attribute is passed, it is expected that
+            queryset will have method to sort by attributes
+        - when sorter has custom sorting method it's name must be like
+            `prepare_qs_for_sort_{enum_name}` and it must return sorted queryset
 
     Keyword Arguments:
-        queryset - queryset to be filtered
+        queryset - queryset to be sorted
         sort_by - dictionary with sorting field and direction
 
     """
-    if sort_by is None or not sort_by.field:
+    sorting_direction = sort_by.direction
+    sorting_field = sort_by.field
+    sorting_attribute = getattr(sort_by, "attribute_id", None)
+
+    if sorting_field is not None and sorting_attribute is not None:
+        raise GraphQLError(
+            "You must provide either `field` or `attributeId` to sort the products."
+        )
+    elif sorting_attribute == "":
+        return queryset
+    elif sorting_attribute:  # empty string as sorting_attribute is valid
+        graphene_type, attribute_pk = from_global_id(sorting_attribute)
+        descending = sorting_direction == OrderDirection.DESC
+
+        # If the passed attribute ID is valid, execute the sorting
+        if attribute_pk.isnumeric() and graphene_type == "Attribute":
+            queryset = queryset.sort_by_attribute(attribute_pk, descending=descending)
         return queryset
 
-    direction = sort_by.direction
-    sorting_field = sort_by.field
+    sort_enum = sort_by._meta.sort_enum
+    if not sort_enum:
+        return queryset
+    sorting_fields = sort_enum.get(sorting_field)
+    sorting_field_name = sorting_fields.name.lower()
+    sorting_field_value = sorting_fields.value
+    sorting_field_value = (
+        sorting_field_value
+        if isinstance(sorting_field_value, list)
+        else [sorting_field_value]
+    )
 
-    custom_sort_by = getattr(sort_enum, f"sort_by_{sorting_field}", None)
+    custom_sort_by = getattr(
+        sort_enum, f"prepare_qs_for_sort_{sorting_field_name}", None
+    )
     if custom_sort_by:
-        return custom_sort_by(queryset, sort_by)
-    return queryset.order_by(f"{direction}{sorting_field}")
+        queryset = custom_sort_by(queryset)
+    sorting_list = [f"{sorting_direction}{field}" for field in sorting_field_value]
+
+    return queryset.order_by(*sorting_list)
 
 
 def reporting_period_to_date(period):
