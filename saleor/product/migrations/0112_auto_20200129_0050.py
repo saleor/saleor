@@ -10,7 +10,7 @@ def create_unique_slugs_for_producttypes(apps, schema_editor):
     for product_type in ProductType.objects.all():
         if not product_type.slug:
             product_type.slug = generate_unique_slug(product_type)
-            product_type.save()
+            product_type.save(update_fields=["slug"])
 
 
 def update_non_unique_slugs_for_models(apps, schema_editor):
@@ -21,7 +21,7 @@ def update_non_unique_slugs_for_models(apps, schema_editor):
 
         for instance in Model.objects.all():
             instance.slug = generate_unique_slug(instance, instance.slug)
-            instance.save()
+            instance.save(update_fields=["slug"])
 
 
 def generate_unique_slug(instance, slug_value=None):
@@ -34,10 +34,9 @@ def generate_unique_slug(instance, slug_value=None):
     ModelClass = instance.__class__
     extension = 1
 
-    search_field = f"name__iregex"
     pattern = rf"{slug}-\d+$|{slug}$"
     slug_values = (
-        ModelClass._default_manager.filter(**{search_field: pattern})
+        ModelClass._default_manager.filter(slug__iregex=pattern)
         .exclude(pk=instance.pk)
         .values_list("slug", flat=True)
     )
@@ -56,10 +55,13 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
+        migrations.RunPython(
+            update_non_unique_slugs_for_models, migrations.RunPython.noop
+        ),
         migrations.AddField(
             model_name="producttype",
             name="slug",
-            field=models.SlugField(default="", max_length=128, unique=True),
+            field=models.SlugField(null=True, max_length=128, unique=True),
             preserve_default=False,
         ),
         migrations.AlterField(
@@ -75,7 +77,9 @@ class Migration(migrations.Migration):
         migrations.RunPython(
             create_unique_slugs_for_producttypes, migrations.RunPython.noop
         ),
-        migrations.RunPython(
-            update_non_unique_slugs_for_models, migrations.RunPython.noop
+        migrations.AlterField(
+            model_name="producttype",
+            name="slug",
+            field=models.SlugField(max_length=128, unique=True),
         ),
     ]
