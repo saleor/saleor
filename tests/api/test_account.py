@@ -606,7 +606,7 @@ ACCOUNT_REGISTER_MUTATION = """
     ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True, ALLOWED_CLIENT_HOSTS=["localhost"]
 )
 @patch("saleor.account.emails._send_account_confirmation_email")
-def test_customer_register(send_account_confirmation_email_mock, user_api_client):
+def test_customer_register(send_account_confirmation_email_mock, api_client):
     email = "customer@example.com"
     variables = {
         "email": email,
@@ -615,14 +615,14 @@ def test_customer_register(send_account_confirmation_email_mock, user_api_client
     }
     query = ACCOUNT_REGISTER_MUTATION
     mutation_name = "accountRegister"
-    response = user_api_client.post_graphql(query, variables)
+    response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"][mutation_name]
     assert not data["errors"]
     assert send_account_confirmation_email_mock.delay.call_count == 1
     new_user = User.objects.get(email=email)
 
-    response = user_api_client.post_graphql(query, variables)
+    response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"][mutation_name]
     assert data["errors"]
@@ -637,10 +637,10 @@ def test_customer_register(send_account_confirmation_email_mock, user_api_client
 @override_settings(ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=False)
 @patch("saleor.account.emails._send_account_confirmation_email")
 def test_customer_register_disabled_email_confirmation(
-    send_account_confirmation_email_mock, user_api_client
+    send_account_confirmation_email_mock, api_client
 ):
     variables = {"email": "customer@example.com", "password": "Password"}
-    response = user_api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
+    response = api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
     errors = response.json()["data"]["accountRegister"]["errors"]
     assert errors == []
     assert send_account_confirmation_email_mock.delay.call_count == 0
@@ -649,10 +649,10 @@ def test_customer_register_disabled_email_confirmation(
 @override_settings(ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True)
 @patch("saleor.account.emails._send_account_confirmation_email")
 def test_customer_register_no_redirect_url(
-    send_account_confirmation_email_mock, user_api_client
+    send_account_confirmation_email_mock, api_client
 ):
     variables = {"email": "customer@example.com", "password": "Password"}
-    response = user_api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
+    response = api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
     errors = response.json()["data"]["accountRegister"]["errors"]
     assert "redirectUrl" in map(lambda error: error["field"], errors)
     assert send_account_confirmation_email_mock.delay.call_count == 0
