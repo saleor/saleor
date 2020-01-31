@@ -121,7 +121,7 @@ def create_thumbnails(pk, model, size_set, image_attr=None):
 
 
 def generate_unique_slug(
-    instance: Type[Model], slugable_value, slug_field_name: str = "slug",
+    instance: Type[Model], slugable_value: str, slug_field_name: str = "slug",
 ) -> str:
     """Create unique slug for model instance.
 
