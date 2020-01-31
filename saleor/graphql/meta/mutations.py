@@ -180,7 +180,7 @@ class ClearMeta(BaseMetadataMutation):
         instance = cls.get_instance(info, **data)
         if instance:
             metadata = data.pop("input")
-            # TODO: We should refactore clearing meta issue: XXXX
+            # TODO: We should refactore clearing meta
             # Don't forget about test test_clear_public_metadata_remove_empty_namespace
             stored_data = instance.get_meta(metadata.namespace, metadata.client_name)
             cleared_value = stored_data.pop(metadata.key, None)
