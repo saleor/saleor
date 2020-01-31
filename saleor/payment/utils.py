@@ -26,8 +26,6 @@ def create_payment_information(
     payment: Payment,
     payment_token: str = None,
     amount: Decimal = None,
-    billing_address: AddressData = None,
-    shipping_address: AddressData = None,
     customer_id: str = None,
     store_source: bool = False,
 ) -> PaymentData:
@@ -36,13 +34,17 @@ def create_payment_information(
     Returns information required to process payment and additional
     billing/shipping addresses for optional fraud-prevention mechanisms.
     """
-    billing, shipping = None, None
+    if payment.checkout:
+        billing = payment.checkout.billing_address
+        shipping = payment.checkout.shipping_address
+    elif payment.order:
+        billing = payment.order.billing_address
+        shipping = payment.order.shipping_address
+    else:
+        billing, shipping = None, None
 
-    if billing_address is None and payment.order and payment.order.billing_address:
-        billing = AddressData(**payment.order.billing_address.as_data())
-
-    if shipping_address is None and payment.order and payment.order.shipping_address:
-        shipping = AddressData(**payment.order.shipping_address.as_data())
+    billing_address = AddressData(**billing.as_data()) if billing else None
+    shipping_address = AddressData(**shipping.as_data()) if shipping else None
 
     order_id = payment.order.pk if payment.order else None
 
@@ -50,8 +52,8 @@ def create_payment_information(
         token=payment_token,
         amount=amount or payment.total,
         currency=payment.currency,
-        billing=billing or billing_address,
-        shipping=shipping or shipping_address,
+        billing=billing_address,
+        shipping=shipping_address,
         order_id=order_id,
         customer_ip_address=payment.customer_ip_address,
         customer_id=customer_id,
