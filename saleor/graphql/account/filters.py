@@ -54,7 +54,7 @@ def filter_status(qs, _, value):
     return qs
 
 
-def filter_search(qs, _, value):
+def filter_staff_search(qs, _, value):
     search_fields = (
         "email",
         "first_name",
@@ -69,7 +69,7 @@ def filter_search(qs, _, value):
     return qs
 
 
-def filter_service_account_search(qs, _, value):
+def filter_search(qs, _, value):
     search_fields = ("name",)
     if value:
         qs = filter_by_query_param(qs, value, search_fields)
@@ -89,7 +89,7 @@ class CustomerFilter(django_filters.FilterSet):
     placed_orders = ObjectTypeFilter(
         input_class=DateRangeInput, method=filter_placed_orders
     )
-    search = django_filters.CharFilter(method=filter_search)
+    search = django_filters.CharFilter(method=filter_staff_search)
 
     class Meta:
         model = User
@@ -102,8 +102,12 @@ class CustomerFilter(django_filters.FilterSet):
         ]
 
 
+class PermissionGroupFilter(django_filters.FilterSet):
+    search = django_filters.CharFilter(method=filter_search)
+
+
 class ServiceAccountFilter(django_filters.FilterSet):
-    search = django_filters.CharFilter(method=filter_service_account_search)
+    search = django_filters.CharFilter(method=filter_search)
     is_active = django_filters.BooleanFilter()
 
     class Meta:
@@ -113,7 +117,7 @@ class ServiceAccountFilter(django_filters.FilterSet):
 
 class StaffUserFilter(django_filters.FilterSet):
     status = EnumFilter(input_class=StaffMemberStatus, method=filter_status)
-    search = django_filters.CharFilter(method=filter_search)
+    search = django_filters.CharFilter(method=filter_staff_search)
 
     # TODO - Figure out after permision types
     # department = ObjectTypeFilter

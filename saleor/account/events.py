@@ -1,37 +1,45 @@
 from typing import Optional
 
-from django.contrib.auth.base_user import AbstractBaseUser
-
 from ..order.models import Order, OrderLine
 from . import CustomerEvents
-from .models import CustomerEvent
-
-UserType = AbstractBaseUser
+from .models import CustomerEvent, User
 
 
-def customer_account_created_event(*, user: UserType) -> Optional[CustomerEvent]:
+def customer_account_created_event(*, user: User) -> Optional[CustomerEvent]:
     return CustomerEvent.objects.create(user=user, type=CustomerEvents.ACCOUNT_CREATED)
 
 
-def customer_password_reset_link_sent_event(
-    *, user_id: UserType
-) -> Optional[CustomerEvent]:
+def customer_password_reset_link_sent_event(*, user_id: int) -> Optional[CustomerEvent]:
     return CustomerEvent.objects.create(
         user_id=user_id, type=CustomerEvents.PASSWORD_RESET_LINK_SENT
     )
 
 
-def customer_password_reset_event(*, user: UserType) -> Optional[CustomerEvent]:
+def customer_password_reset_event(*, user: User) -> Optional[CustomerEvent]:
     return CustomerEvent.objects.create(user=user, type=CustomerEvents.PASSWORD_RESET)
 
 
-def customer_password_changed_event(*, user: UserType) -> Optional[CustomerEvent]:
+def customer_password_changed_event(*, user: User) -> Optional[CustomerEvent]:
     return CustomerEvent.objects.create(user=user, type=CustomerEvents.PASSWORD_CHANGED)
 
 
-def customer_placed_order_event(
-    *, user: UserType, order: Order
+def customer_email_change_request_event(
+    *, user_id: int, parameters: dict
 ) -> Optional[CustomerEvent]:
+    return CustomerEvent.objects.create(
+        user_id=user_id, type=CustomerEvents.EMAIL_CHANGE_REQUEST, parameters=parameters
+    )
+
+
+def customer_email_changed_event(
+    *, user: User, parameters: dict
+) -> Optional[CustomerEvent]:
+    return CustomerEvent.objects.create(
+        user=user, type=CustomerEvents.EMAIL_CHANGED, parameters=parameters
+    )
+
+
+def customer_placed_order_event(*, user: User, order: Order) -> Optional[CustomerEvent]:
     if user.is_anonymous:
         return None
 
@@ -41,7 +49,7 @@ def customer_placed_order_event(
 
 
 def customer_added_to_note_order_event(
-    *, user: UserType, order: Order, message: str
+    *, user: User, order: Order, message: str
 ) -> CustomerEvent:
     return CustomerEvent.objects.create(
         user=user,
@@ -52,7 +60,7 @@ def customer_added_to_note_order_event(
 
 
 def customer_downloaded_a_digital_link_event(
-    *, user: UserType, order_line: OrderLine
+    *, user: User, order_line: OrderLine
 ) -> CustomerEvent:
     return CustomerEvent.objects.create(
         user=user,
@@ -63,7 +71,7 @@ def customer_downloaded_a_digital_link_event(
 
 
 def staff_user_deleted_a_customer_event(
-    *, staff_user: UserType, deleted_count: int = 1
+    *, staff_user: User, deleted_count: int = 1
 ) -> CustomerEvent:
     return CustomerEvent.objects.create(
         user=staff_user,
@@ -74,7 +82,7 @@ def staff_user_deleted_a_customer_event(
 
 
 def staff_user_assigned_email_to_a_customer_event(
-    *, staff_user: UserType, new_email: str
+    *, staff_user: User, new_email: str
 ) -> CustomerEvent:
     return CustomerEvent.objects.create(
         user=staff_user,
@@ -85,7 +93,7 @@ def staff_user_assigned_email_to_a_customer_event(
 
 
 def staff_user_added_note_to_a_customer_event(
-    *, staff_user: UserType, note: str
+    *, staff_user: User, note: str
 ) -> CustomerEvent:
     return CustomerEvent.objects.create(
         user=staff_user,
@@ -96,7 +104,7 @@ def staff_user_added_note_to_a_customer_event(
 
 
 def staff_user_assigned_name_to_a_customer_event(
-    *, staff_user: UserType, new_name: str
+    *, staff_user: User, new_name: str
 ) -> CustomerEvent:
     return CustomerEvent.objects.create(
         user=staff_user,

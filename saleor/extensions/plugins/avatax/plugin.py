@@ -5,7 +5,6 @@ from urllib.parse import urljoin
 
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.utils.translation import pgettext_lazy
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ....core.taxes import TaxError, TaxType, zero_taxed_money
@@ -30,8 +29,10 @@ from . import (
 from .tasks import api_post_request_task
 
 if TYPE_CHECKING:
+    # flake8: noqa
     from ....checkout.models import Checkout, CheckoutLine
     from ....order.models import Order, OrderLine
+    from ....product.models import Product, ProductType
     from ...models import PluginConfiguration
     from ....discount.types import DiscountsListType
 
@@ -44,45 +45,32 @@ class AvataxPlugin(BasePlugin):
     CONFIG_STRUCTURE = {
         "Username or account": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": pgettext_lazy(
-                "Plugin help text", "Provide user or account details"
-            ),
-            "label": pgettext_lazy("Plugin label", "Username or account"),
+            "help_text": "Provide user or account details",
+            "label": "Username or account",
         },
         "Password or license": {
             "type": ConfigurationTypeField.PASSWORD,
-            "help_text": pgettext_lazy(
-                "Plugin help text", "Provide password or license details"
-            ),
-            "label": pgettext_lazy("Plugin label", "Password or license"),
+            "help_text": "Provide password or license details",
+            "label": "Password or license",
         },
         "Use sandbox": {
             "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": pgettext_lazy(
-                "Plugin help text",
-                "Determines if Saleor should use Avatax sandbox API.",
-            ),
-            "label": pgettext_lazy("Plugin label", "Use sandbox"),
+            "help_text": "Determines if Saleor should use Avatax sandbox API.",
+            "label": "Use sandbox",
         },
         "Company name": {
             "type": ConfigurationTypeField.STRING,
-            "help_text": pgettext_lazy(
-                "Plugin help text",
-                "Avalara needs to receive company code. Some more "
-                "complicated systems can use more than one company "
-                "code, in that case, this variable should be changed "
-                "based on data from Avalara's admin panel",
-            ),
-            "label": pgettext_lazy("Plugin label", "Company name"),
+            "help_text": "Avalara needs to receive company code. Some more "
+            "complicated systems can use more than one company "
+            "code, in that case, this variable should be changed "
+            "based on data from Avalara's admin panel",
+            "label": "Company name",
         },
         "Autocommit": {
             "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": pgettext_lazy(
-                "Plugin help text",
-                "Determines, if all transactions sent to Avalara "
-                "should be committed by default.",
-            ),
-            "label": pgettext_lazy("Plugin label", "Autocommit"),
+            "help_text": "Determines, if all transactions sent to Avalara "
+            "should be committed by default.",
+            "label": "Autocommit",
         },
     }
 
@@ -201,7 +189,7 @@ class AvataxPlugin(BasePlugin):
         if not response or "error" in response:
             return base_subtotal
 
-        currency = response.get("currencyCode")
+        currency = str(response.get("currencyCode"))
         return self._calculate_checkout_subtotal(currency, response.get("lines", []))
 
     def _calculate_checkout_shipping(
@@ -238,7 +226,7 @@ class AvataxPlugin(BasePlugin):
         if not response or "error" in response:
             return base_shipping_price
 
-        currency = response.get("currencyCode")
+        currency = str(response.get("currencyCode"))
         return self._calculate_checkout_shipping(
             currency, response.get("lines", []), base_shipping_price
         )
@@ -367,7 +355,9 @@ class AvataxPlugin(BasePlugin):
                 net = Money(amount=net, currency=currency)
                 return TaxedMoney(net=net, gross=gross)
         return TaxedMoney(
-            net=order.shipping_method.price, gross=order.shipping_method.price
+            # Ignore typing checks because it is checked in _validate_order
+            net=order.shipping_method.price,  # type: ignore
+            gross=order.shipping_method.price,  # type: ignore
         )
 
     def get_tax_rate_type_choices(self, previous_value: Any) -> List[TaxType]:
@@ -436,7 +426,7 @@ class AvataxPlugin(BasePlugin):
             )
             raise ValidationError(
                 error_msg + ", ".join(missing_fields),
-                code=ExtensionsErrorCode.PLUGIN_MISCONFIGURED,
+                code=ExtensionsErrorCode.PLUGIN_MISCONFIGURED.value,
             )
 
     @classmethod

@@ -28,6 +28,7 @@ from ....product.utils.attributes import (
     associate_attribute_values_to_instance,
     generate_name_for_variant,
 )
+from ....warehouse.management import set_stock_quantity
 from ...core.mutations import (
     BaseMutation,
     ClearMetaBaseMutation,
@@ -573,7 +574,7 @@ class AttributeAssignmentMixin:
                     f"Could not resolve to a node: ids={global_ids}"
                     f" and slugs={list(slugs)}"
                 ),
-                code=ProductErrorCode.NOT_FOUND,
+                code=ProductErrorCode.NOT_FOUND.value,
             )
 
         nodes_pk_list = set()
@@ -586,14 +587,14 @@ class AttributeAssignmentMixin:
             if pk not in nodes_pk_list:
                 raise ValidationError(
                     f"Could not resolve {global_id!r} to Attribute",
-                    code=ProductErrorCode.NOT_FOUND,
+                    code=ProductErrorCode.NOT_FOUND.value,
                 )
 
         for slug in slugs:
             if slug not in nodes_slug_list:
                 raise ValidationError(
                     f"Could not resolve slug {slug!r} to Attribute",
-                    code=ProductErrorCode.NOT_FOUND,
+                    code=ProductErrorCode.NOT_FOUND.value,
                 )
 
         return nodes
@@ -605,12 +606,12 @@ class AttributeAssignmentMixin:
         if graphene_type != "Attribute":
             raise ValidationError(
                 f"Must receive an Attribute id, got {graphene_type}.",
-                code=ProductErrorCode.INVALID,
+                code=ProductErrorCode.INVALID.value,
             )
         if not internal_id.isnumeric():
             raise ValidationError(
                 f"An invalid ID value was passed: {global_id}",
-                code=ProductErrorCode.INVALID,
+                code=ProductErrorCode.INVALID.value,
             )
         return int(internal_id)
 
@@ -647,7 +648,7 @@ class AttributeAssignmentMixin:
         if qs.filter(missing_required_filter).exists():
             raise ValidationError(
                 "All attributes flagged as having a value required must be supplied.",
-                code=ProductErrorCode.REQUIRED,
+                code=ProductErrorCode.REQUIRED.value,
             )
 
     @classmethod
@@ -661,7 +662,7 @@ class AttributeAssignmentMixin:
         """
         if len(cleaned_input) != qs.count():
             raise ValidationError(
-                "All attributes must take a value", code=ProductErrorCode.REQUIRED
+                "All attributes must take a value", code=ProductErrorCode.REQUIRED.value
             )
 
         for attribute, values in cleaned_input:
@@ -717,7 +718,7 @@ class AttributeAssignmentMixin:
             else:
                 raise ValidationError(
                     "You must whether supply an ID or a slug",
-                    code=ProductErrorCode.REQUIRED,
+                    code=ProductErrorCode.REQUIRED.value,
                 )
 
         attributes = cls._resolve_attribute_nodes(
@@ -746,8 +747,10 @@ class AttributeAssignmentMixin:
         :param cleaned_input: the cleaned user input (refer to clean_attributes)
         """
         for attribute, values in cleaned_input:
-            values = cls._pre_save_values(attribute, values)
-            associate_attribute_values_to_instance(instance, attribute, *values)
+            attribute_values = cls._pre_save_values(attribute, values)
+            associate_attribute_values_to_instance(
+                instance, attribute, *attribute_values
+            )
 
 
 class ProductCreate(ModelMutation):
@@ -879,20 +882,18 @@ class ProductCreate(ModelMutation):
     @transaction.atomic
     def save(cls, info, instance, cleaned_input):
         instance.save()
-        info.context.extensions.product_created(instance)
         if not instance.product_type.has_variants:
             site_settings = info.context.site.settings
             track_inventory = cleaned_input.get(
                 "track_inventory", site_settings.track_inventory_by_default
             )
-            quantity = cleaned_input.get("quantity", 0)
             sku = cleaned_input.get("sku")
-            models.ProductVariant.objects.create(
-                product=instance,
-                track_inventory=track_inventory,
-                sku=sku,
-                quantity=quantity,
+            variant = models.ProductVariant.objects.create(
+                product=instance, track_inventory=track_inventory, sku=sku
             )
+            quantity = cleaned_input.get("quantity")
+            if quantity is not None:
+                set_stock_quantity(variant, info.context.country, quantity)
 
         attributes = cleaned_input.get("attributes")
         if attributes:
@@ -903,6 +904,12 @@ class ProductCreate(ModelMutation):
         collections = cleaned_data.get("collections", None)
         if collections is not None:
             instance.collections.set(collections)
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        response = super().perform_mutation(_root, info, **data)
+        info.context.extensions.product_created(response.product)
+        return response
 
 
 class ProductUpdate(ProductCreate):
@@ -947,8 +954,8 @@ class ProductUpdate(ProductCreate):
                 variant.track_inventory = cleaned_input["track_inventory"]
                 update_fields.append("track_inventory")
             if "quantity" in cleaned_input:
-                variant.quantity = cleaned_input["quantity"]
-                update_fields.append("quantity")
+                quantity = cleaned_input.get("quantity")
+                set_stock_quantity(variant, info.context.country, quantity)
             if "sku" in cleaned_input:
                 variant.sku = cleaned_input["sku"]
                 update_fields.append("sku")
@@ -1087,7 +1094,9 @@ class ProductVariantCreate(ModelMutation):
             used_attribute_values.append(attribute_values)
 
     @classmethod
-    def clean_input(cls, info, instance: models.ProductVariant, data: dict):
+    def clean_input(
+        cls, info, instance: models.ProductVariant, data: dict, input_cls=None
+    ):
         cleaned_input = super().clean_input(info, instance, data)
 
         if "cost_price" in cleaned_input:
@@ -1156,6 +1165,9 @@ class ProductVariantCreate(ModelMutation):
         instance.save()
         # Recalculate the "minimal variant price" for the parent product
         update_product_minimal_variant_price_task.delay(instance.product_id)
+        quantity = cleaned_input.get("quantity")
+        if quantity is not None:
+            set_stock_quantity(instance, info.context.country, quantity)
 
         attributes = cleaned_input.get("attributes")
         if attributes:

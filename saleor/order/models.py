@@ -1,5 +1,6 @@
 from decimal import Decimal
 from operator import attrgetter
+from typing import Optional
 from uuid import uuid4
 
 from django.conf import settings
@@ -8,7 +9,6 @@ from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import F, Max, Sum
 from django.utils.timezone import now
-from django.utils.translation import pgettext_lazy
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
 from measurement.measures import Weight
@@ -172,12 +172,7 @@ class Order(ModelWithMetadata):
 
     class Meta:
         ordering = ("-pk",)
-        permissions = (
-            (
-                OrderPermissions.MANAGE_ORDERS.codename,
-                pgettext_lazy("Permission description", "Manage orders."),
-            ),
-        )
+        permissions = ((OrderPermissions.MANAGE_ORDERS.codename, "Manage orders."),)
 
     def save(self, *args, **kwargs):
         if not self.token:
@@ -416,8 +411,10 @@ class OrderLine(models.Model):
         return self.quantity - self.quantity_fulfilled
 
     @property
-    def is_digital(self) -> bool:
+    def is_digital(self) -> Optional[bool]:
         """Check if a variant is digital and contains digital content."""
+        if not self.variant:
+            return None
         is_digital = self.variant.is_digital()
         has_digital = hasattr(self.variant, "digital_content")
         return is_digital and has_digital
@@ -437,7 +434,7 @@ class Fulfillment(ModelWithMetadata):
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return pgettext_lazy("Fulfillment str", "Fulfillment #%s") % (self.composed_id,)
+        return f"Fulfillment #{self.composed_id}"
 
     def __iter__(self):
         return iter(self.lines.all())
