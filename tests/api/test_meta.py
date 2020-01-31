@@ -1,3 +1,5 @@
+import base64
+
 import graphene
 
 from saleor.core.error_codes import MetaErrorCode
@@ -76,7 +78,7 @@ def execute_update_public_metadata_for_item(
 
 
 def item_contains_proper_public_metadata(
-    response,
+    item_from_response,
     item,
     item_id,
     namespace=PUBLIC_META_NAMESPACE,
@@ -84,11 +86,11 @@ def item_contains_proper_public_metadata(
     key=PUBLIC_KEY,
     value=PUBLIC_VALUE,
 ):
-    if response["data"]["updateMeta"]["item"]["id"] != item_id:
+    if item_from_response["id"] != item_id:
         return False
     item.refresh_from_db()
     meta = item.get_meta(namespace=namespace, client=client_name)
-    if meta != {key: value}:
+    if meta.get(key, None) != value:
         return False
     return True
 
@@ -105,7 +107,9 @@ def test_add_public_metadata_for_customer_as_staff(
     )
 
     # then
-    assert item_contains_proper_public_metadata(response, customer_user, customer_id)
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMeta"]["item"], customer_user, customer_id
+    )
 
 
 def test_add_public_metadata_for_customer_as_service_account(
@@ -120,7 +124,9 @@ def test_add_public_metadata_for_customer_as_service_account(
     )
 
     # then
-    assert item_contains_proper_public_metadata(response, customer_user, customer_id)
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMeta"]["item"], customer_user, customer_id
+    )
 
 
 def test_add_public_metadata_for_other_staff_as_staff(
@@ -136,7 +142,9 @@ def test_add_public_metadata_for_other_staff_as_staff(
     )
 
     # then
-    assert item_contains_proper_public_metadata(response, admin_user, admin_id)
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMeta"]["item"], admin_user, admin_id
+    )
 
 
 def test_add_public_metadata_for_staff_as_service_account(
@@ -151,7 +159,9 @@ def test_add_public_metadata_for_staff_as_service_account(
     )
 
     # then
-    assert item_contains_proper_public_metadata(response, admin_user, admin_id)
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMeta"]["item"], admin_user, admin_id
+    )
 
 
 def test_add_public_metadata_for_myself_as_customer(user_api_client):
@@ -165,7 +175,9 @@ def test_add_public_metadata_for_myself_as_customer(user_api_client):
     )
 
     # then
-    assert item_contains_proper_public_metadata(response, customer, customer_id)
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMeta"]["item"], customer, customer_id
+    )
 
 
 def test_add_public_metadata_for_myself_as_staff(staff_api_client):
@@ -179,7 +191,9 @@ def test_add_public_metadata_for_myself_as_staff(staff_api_client):
     )
 
     # then
-    assert item_contains_proper_public_metadata(response, staff, staff_id)
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMeta"]["item"], staff, staff_id
+    )
 
 
 def test_add_public_metadata_for_checkout(api_client, checkout):
@@ -192,7 +206,9 @@ def test_add_public_metadata_for_checkout(api_client, checkout):
     )
 
     # then
-    assert item_contains_proper_public_metadata(response, checkout, checkout_id)
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMeta"]["item"], checkout, checkout_id
+    )
 
 
 def test_add_public_metadata_for_order(api_client, order):
@@ -205,7 +221,9 @@ def test_add_public_metadata_for_order(api_client, order):
     )
 
     # then
-    assert item_contains_proper_public_metadata(response, order, order_id)
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMeta"]["item"], order, order_id
+    )
 
 
 def test_add_public_metadata_for_attribute(
@@ -220,7 +238,9 @@ def test_add_public_metadata_for_attribute(
     )
 
     # then
-    assert item_contains_proper_public_metadata(response, color_attribute, attribute_id)
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMeta"]["item"], color_attribute, attribute_id
+    )
 
 
 def test_add_public_metadata_for_category(
@@ -235,7 +255,9 @@ def test_add_public_metadata_for_category(
     )
 
     # then
-    assert item_contains_proper_public_metadata(response, category, category_id)
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMeta"]["item"], category, category_id
+    )
 
 
 def test_add_public_metadata_for_collection(
@@ -250,7 +272,9 @@ def test_add_public_metadata_for_collection(
     )
 
     # then
-    assert item_contains_proper_public_metadata(response, collection, collection_id)
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMeta"]["item"], collection, collection_id
+    )
 
 
 def test_add_public_metadata_for_digital_content(
@@ -271,7 +295,7 @@ def test_add_public_metadata_for_digital_content(
 
     # then
     assert item_contains_proper_public_metadata(
-        response, digital_content, digital_content_id
+        response["data"]["updateMeta"]["item"], digital_content, digital_content_id
     )
 
 
@@ -287,7 +311,9 @@ def test_add_public_metadata_for_fulfillment(
     )
 
     # then
-    assert item_contains_proper_public_metadata(response, fulfillment, fulfillment_id)
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMeta"]["item"], fulfillment, fulfillment_id
+    )
 
 
 def test_add_public_metadata_for_product(
@@ -302,7 +328,9 @@ def test_add_public_metadata_for_product(
     )
 
     # then
-    assert item_contains_proper_public_metadata(response, product, product_id)
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMeta"]["item"], product, product_id
+    )
 
 
 def test_add_public_metadata_for_product_type(
@@ -317,22 +345,26 @@ def test_add_public_metadata_for_product_type(
     )
 
     # then
-    assert item_contains_proper_public_metadata(response, product_type, product_type_id)
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMeta"]["item"], product_type, product_type_id
+    )
 
 
 def test_add_public_metadata_for_product_variant(
-    staff_api_client, permission_manage_products, product_type
+    staff_api_client, permission_manage_products, variant
 ):
     # given
-    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     # when
     response = execute_update_public_metadata_for_item(
-        staff_api_client, permission_manage_products, product_type_id, "ProductType"
+        staff_api_client, permission_manage_products, variant_id, "ProductVariant",
     )
 
     # then
-    assert item_contains_proper_public_metadata(response, product_type, product_type_id)
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMeta"]["item"], variant, variant_id
+    )
 
 
 def test_add_public_metadata_for_service_account(
@@ -353,13 +385,14 @@ def test_add_public_metadata_for_service_account(
 
     # then
     assert item_contains_proper_public_metadata(
-        response, service_account, service_account_id
+        response["data"]["updateMeta"]["item"], service_account, service_account_id
     )
 
 
 def test_update_public_metadata_for_item(api_client, checkout):
     # given
     checkout.store_meta(PUBLIC_META_NAMESPACE, META_CLIENT, {PUBLIC_KEY: PUBLIC_VALUE})
+    checkout.save(update_fields=["meta"])
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     # when
@@ -369,13 +402,16 @@ def test_update_public_metadata_for_item(api_client, checkout):
 
     # then
     assert item_contains_proper_public_metadata(
-        response, checkout, checkout_id, value="NewMetaValue"
+        response["data"]["updateMeta"]["item"],
+        checkout,
+        checkout_id,
+        value="NewMetaValue",
     )
 
 
 def test_update_public_metadata_for_non_exist_item(api_client):
     # given
-    checkout_id = "Q2hlY2tvdXQ6SU5WQUxJRA=="
+    checkout_id = base64.b64encode(b"Checkout:INVALID").decode("utf-8")
 
     # when
     response = execute_update_public_metadata_for_item(
@@ -404,3 +440,542 @@ def test_update_public_metadata_for_item_without_meta(api_client, address):
     errors = response["data"]["updateMeta"]["metaErrors"]
     assert errors[0]["field"] == "id"
     assert errors[0]["code"] == MetaErrorCode.INVALID.name
+
+
+CLEAR_PUBLIC_METADATA_MUTATION = """
+mutation ClearPublicMetadata($id: ID!, $input: MetaPath!) {
+    clearMeta(
+        id: $id
+        input: $input
+    ) {
+        metaErrors{
+            field
+            code
+        }
+        item {
+            meta {
+                namespace
+                clients {
+                    name
+                    metadata {
+                        key
+                        value
+                    }
+                }
+            }
+            ...on %s{
+                id
+            }
+        }
+    }
+}
+"""
+
+
+def execute_clear_public_metadata_for_item(
+    client,
+    permissions,
+    item_id,
+    item_type,
+    namespace=PUBLIC_META_NAMESPACE,
+    client_name=META_CLIENT,
+    key=PUBLIC_KEY,
+):
+    variables = {
+        "id": item_id,
+        "input": {"namespace": namespace, "clientName": client_name, "key": key},
+    }
+
+    response = client.post_graphql(
+        CLEAR_PUBLIC_METADATA_MUTATION % item_type,
+        variables,
+        permissions=[permissions] if permissions else None,
+    )
+    response = get_graphql_content(response)
+    return response
+
+
+def item_without_public_metadata(
+    item_from_response,
+    item,
+    item_id,
+    namespace=PUBLIC_META_NAMESPACE,
+    client_name=META_CLIENT,
+    key=PUBLIC_KEY,
+    value=PUBLIC_VALUE,
+):
+    if item_from_response["id"] != item_id:
+        return False
+    item.refresh_from_db()
+    meta = item.get_meta(namespace=namespace, client=client_name)
+    if meta.get(key, None) == value:
+        return False
+    return True
+
+
+def test_clear_public_metadata_for_customer_as_staff(
+    staff_api_client, permission_manage_users, customer_user
+):
+    # given
+    customer_user.store_meta(
+        PUBLIC_META_NAMESPACE, META_CLIENT, {PUBLIC_KEY: PUBLIC_VALUE}
+    )
+    customer_user.save(update_fields=["meta"])
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client, permission_manage_users, customer_id, "User"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["clearMeta"]["item"], customer_user, customer_id
+    )
+
+
+def test_clear_public_metadata_for_customer_as_service_account(
+    service_account_api_client, permission_manage_users, customer_user
+):
+    # given
+    customer_user.store_meta(
+        PUBLIC_META_NAMESPACE, META_CLIENT, {PUBLIC_KEY: PUBLIC_VALUE}
+    )
+    customer_user.save(update_fields=["meta"])
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        service_account_api_client, permission_manage_users, customer_id, "User"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["clearMeta"]["item"], customer_user, customer_id
+    )
+
+
+def test_clear_public_metadata_for_other_staff_as_staff(
+    staff_api_client, permission_manage_staff, admin_user
+):
+    # given
+    assert admin_user.pk != staff_api_client.user.pk
+    admin_user.store_meta(
+        PUBLIC_META_NAMESPACE, META_CLIENT, {PUBLIC_KEY: PUBLIC_VALUE}
+    )
+    admin_user.save(update_fields=["meta"])
+    admin_id = graphene.Node.to_global_id("User", admin_user.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client, permission_manage_staff, admin_id, "User"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["clearMeta"]["item"], admin_user, admin_id
+    )
+
+
+def test_clear_public_metadata_for_staff_as_service_account(
+    service_account_api_client, permission_manage_staff, admin_user
+):
+    # given
+    admin_user.store_meta(
+        PUBLIC_META_NAMESPACE, META_CLIENT, {PUBLIC_KEY: PUBLIC_VALUE}
+    )
+    admin_user.save(update_fields=["meta"])
+    admin_id = graphene.Node.to_global_id("User", admin_user.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        service_account_api_client, permission_manage_staff, admin_id, "User"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["clearMeta"]["item"], admin_user, admin_id
+    )
+
+
+def test_clear_public_metadata_for_myself_as_customer(user_api_client):
+    # given
+    customer = user_api_client.user
+    customer.store_meta(PUBLIC_META_NAMESPACE, META_CLIENT, {PUBLIC_KEY: PUBLIC_VALUE})
+    customer.save(update_fields=["meta"])
+    customer_id = graphene.Node.to_global_id("User", customer.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        user_api_client, None, customer_id, "User"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["clearMeta"]["item"], customer, customer_id
+    )
+
+
+def test_clear_public_metadata_for_myself_as_staff(staff_api_client):
+    # given
+    staff = staff_api_client.user
+    staff.store_meta(PUBLIC_META_NAMESPACE, META_CLIENT, {PUBLIC_KEY: PUBLIC_VALUE})
+    staff.save(update_fields=["meta"])
+    staff_id = graphene.Node.to_global_id("User", staff.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client, None, staff_id, "User"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["clearMeta"]["item"], staff, staff_id
+    )
+
+
+def test_clear_public_metadata_for_checkout(api_client, checkout):
+    # given
+    checkout.store_meta(PUBLIC_META_NAMESPACE, META_CLIENT, {PUBLIC_KEY: PUBLIC_VALUE})
+    checkout.save(update_fields=["meta"])
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        api_client, None, checkout_id, "Checkout"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["clearMeta"]["item"], checkout, checkout_id
+    )
+
+
+def test_clear_public_metadata_for_order(api_client, order):
+    # given
+    order.store_meta(PUBLIC_META_NAMESPACE, META_CLIENT, {PUBLIC_KEY: PUBLIC_VALUE})
+    order.save(update_fields=["meta"])
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        api_client, None, order_id, "Order"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["clearMeta"]["item"], order, order_id
+    )
+
+
+def test_clear_public_metadata_for_attribute(
+    staff_api_client, permission_manage_products, color_attribute
+):
+    # given
+    color_attribute.store_meta(
+        PUBLIC_META_NAMESPACE, META_CLIENT, {PUBLIC_KEY: PUBLIC_VALUE}
+    )
+    color_attribute.save(update_fields=["meta"])
+    attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client, permission_manage_products, attribute_id, "Attribute"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["clearMeta"]["item"], color_attribute, attribute_id
+    )
+
+
+def test_clear_public_metadata_for_category(
+    staff_api_client, permission_manage_products, category
+):
+    # given
+    category.store_meta(PUBLIC_META_NAMESPACE, META_CLIENT, {PUBLIC_KEY: PUBLIC_VALUE})
+    category.save(update_fields=["meta"])
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client, permission_manage_products, category_id, "Category"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["clearMeta"]["item"], category, category_id
+    )
+
+
+def test_clear_public_metadata_for_collection(
+    staff_api_client, permission_manage_products, collection
+):
+    # given
+    collection.store_meta(
+        PUBLIC_META_NAMESPACE, META_CLIENT, {PUBLIC_KEY: PUBLIC_VALUE}
+    )
+    collection.save(update_fields=["meta"])
+    collection_id = graphene.Node.to_global_id("Collection", collection.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client, permission_manage_products, collection_id, "Collection"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["clearMeta"]["item"], collection, collection_id
+    )
+
+
+def test_clear_public_metadata_for_digital_content(
+    staff_api_client, permission_manage_products, digital_content
+):
+    # given
+    digital_content.store_meta(
+        PUBLIC_META_NAMESPACE, META_CLIENT, {PUBLIC_KEY: PUBLIC_VALUE}
+    )
+    digital_content.save(update_fields=["meta"])
+    digital_content_id = graphene.Node.to_global_id(
+        "DigitalContent", digital_content.pk
+    )
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client,
+        permission_manage_products,
+        digital_content_id,
+        "DigitalContent",
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["clearMeta"]["item"], digital_content, digital_content_id
+    )
+
+
+def test_clear_public_metadata_for_fulfillment(
+    staff_api_client, permission_manage_orders, fulfillment
+):
+    # given
+    fulfillment.store_meta(
+        PUBLIC_META_NAMESPACE, META_CLIENT, {PUBLIC_KEY: PUBLIC_VALUE}
+    )
+    fulfillment.save(update_fields=["meta"])
+    fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client, permission_manage_orders, fulfillment_id, "Fulfillment"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["clearMeta"]["item"], fulfillment, fulfillment_id
+    )
+
+
+def test_clear_public_metadata_for_product(
+    staff_api_client, permission_manage_products, product
+):
+    # given
+    product.store_meta(PUBLIC_META_NAMESPACE, META_CLIENT, {PUBLIC_KEY: PUBLIC_VALUE})
+    product.save(update_fields=["meta"])
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client, permission_manage_products, product_id, "Product"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["clearMeta"]["item"], product, product_id
+    )
+
+
+def test_clear_public_metadata_for_product_type(
+    staff_api_client, permission_manage_products, product_type
+):
+    # given
+    product_type.store_meta(
+        PUBLIC_META_NAMESPACE, META_CLIENT, {PUBLIC_KEY: PUBLIC_VALUE}
+    )
+    product_type.save(update_fields=["meta"])
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client, permission_manage_products, product_type_id, "ProductType"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["clearMeta"]["item"], product_type, product_type_id
+    )
+
+
+def test_clear_public_metadata_for_product_variant(
+    staff_api_client, permission_manage_products, variant
+):
+    # given
+    variant.store_meta(PUBLIC_META_NAMESPACE, META_CLIENT, {PUBLIC_KEY: PUBLIC_VALUE})
+    variant.save(update_fields=["meta"])
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client, permission_manage_products, variant_id, "ProductVariant"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["clearMeta"]["item"], variant, variant_id
+    )
+
+
+def test_clear_public_metadata_for_service_account(
+    staff_api_client, permission_manage_service_accounts, service_account
+):
+    # given
+    service_account_id = graphene.Node.to_global_id(
+        "ServiceAccount", service_account.pk
+    )
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        staff_api_client,
+        permission_manage_service_accounts,
+        service_account_id,
+        "ServiceAccount",
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["clearMeta"]["item"], service_account, service_account_id
+    )
+
+
+def test_clear_public_metadata_for_non_exist_item(api_client):
+    # given
+    checkout_id = base64.b64encode(b"Checkout:INVALID").decode("utf-8")
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        api_client, None, checkout_id, "Checkout"
+    )
+
+    # then
+    errors = response["data"]["clearMeta"]["metaErrors"]
+    assert errors[0]["field"] == "id"
+    assert errors[0]["code"] == MetaErrorCode.NOT_FOUND.name
+
+
+def test_clear_public_metadata_for_item_without_meta(api_client, address):
+    # given
+    assert not issubclass(type(address), ModelWithMetadata)
+    address_id = graphene.Node.to_global_id("Address", address.pk)
+
+    # when
+    # We use "User" type inside mutation for valid graphql query with fragment
+    # without this we are not able to reuse UPDATE_PUBLIC_METADATA_MUTATION
+    response = execute_clear_public_metadata_for_item(
+        api_client, None, address_id, "User"
+    )
+
+    # then
+    errors = response["data"]["clearMeta"]["metaErrors"]
+    assert errors[0]["field"] == "id"
+    assert errors[0]["code"] == MetaErrorCode.INVALID.name
+
+
+def test_clear_public_metadata_for_not_exist_key(api_client, checkout):
+    # given
+    checkout.store_meta(PUBLIC_META_NAMESPACE, META_CLIENT, {PUBLIC_KEY: PUBLIC_VALUE})
+    checkout.save(update_fields=["meta"])
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        api_client, None, checkout_id, "Checkout", key="Not-exits"
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["clearMeta"]["item"], checkout, checkout_id
+    )
+
+
+def test_clear_public_metadata_for_not_exist_client(api_client, checkout):
+    # given
+    checkout.store_meta(PUBLIC_META_NAMESPACE, META_CLIENT, {PUBLIC_KEY: PUBLIC_VALUE})
+    checkout.save(update_fields=["meta"])
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        api_client, None, checkout_id, "Checkout", client_name="Not-exits"
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["clearMeta"]["item"], checkout, checkout_id
+    )
+
+
+def test_clear_public_metadata_for_not_exist_namespace(api_client, checkout):
+    # given
+    checkout.store_meta(PUBLIC_META_NAMESPACE, META_CLIENT, {PUBLIC_KEY: PUBLIC_VALUE})
+    checkout.save(update_fields=["meta"])
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        api_client, None, checkout_id, "Checkout", namespace="Not-exits"
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["clearMeta"]["item"], checkout, checkout_id
+    )
+
+
+def test_clear_public_metadata_for_one_key(api_client, checkout):
+    # given
+    checkout.store_meta(
+        PUBLIC_META_NAMESPACE,
+        META_CLIENT,
+        {PUBLIC_KEY: PUBLIC_VALUE, "to_clear": PUBLIC_VALUE},
+    )
+    checkout.save(update_fields=["meta"])
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        api_client, None, checkout_id, "Checkout", key="to_clear"
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["clearMeta"]["item"], checkout, checkout_id
+    )
+    assert item_without_public_metadata(
+        response["data"]["clearMeta"]["item"], checkout, checkout_id, key="to_clear"
+    )
+
+
+def test_clear_public_metadata_remove_empty_client(api_client, checkout):
+    # given
+    checkout.store_meta(PUBLIC_META_NAMESPACE, META_CLIENT, {PUBLIC_KEY: PUBLIC_VALUE})
+    checkout.store_meta(PUBLIC_META_NAMESPACE, "Client2", {PUBLIC_KEY: PUBLIC_VALUE})
+    checkout.save(update_fields=["meta"])
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    # when
+    execute_clear_public_metadata_for_item(api_client, None, checkout_id, "Checkout")
+
+    # then
+    checkout.refresh_from_db()
+    assert not checkout.get_meta(PUBLIC_META_NAMESPACE, META_CLIENT)
+    assert checkout.get_meta(PUBLIC_META_NAMESPACE, "Client2")

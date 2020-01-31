@@ -8,7 +8,7 @@ from ...core.error_codes import MetaErrorCode
 from ...core.permissions import AccountPermissions, OrderPermissions, ProductPermissions
 from ..core.mutations import BaseMutation
 from ..core.types.common import MetaError
-from .types import MetaInput, ObjectWithMetadata
+from .types import MetaInput, MetaPath, ObjectWithMetadata
 
 
 def no_permissions(_info, _object_pk):
@@ -62,13 +62,6 @@ class MetaPermissionOptions(graphene.types.mutation.MutationOptions):
 class BaseMetadataMutation(BaseMutation):
     class Meta:
         abstract = True
-
-    class Arguments:
-        id = graphene.ID(description="ID of an object to update.", required=True)
-        input = MetaInput(
-            description="Fields required to update new or stored metadata item.",
-            required=True,
-        )
 
     @classmethod
     def __init_subclass_with_meta__(
@@ -145,6 +138,13 @@ class UpdateMeta(BaseMetadataMutation):
         error_type_class = MetaError
         error_type_field = "meta_errors"
 
+    class Arguments:
+        id = graphene.ID(description="ID of an object to update.", required=True)
+        input = MetaInput(
+            description="Fields required to update new or stored metadata item.",
+            required=True,
+        )
+
     @classmethod
     def perform_mutation(cls, root, info, **data):
         instance = cls.get_instance(info, **data)
@@ -158,4 +158,42 @@ class UpdateMeta(BaseMetadataMutation):
                 item=stored_data,
             )
             instance.save()
+        return cls.success_response(instance)
+
+
+class ClearMeta(BaseMetadataMutation):
+    class Meta:
+        description = "Clear metadata for item."
+        permission_map = PUBLIC_META_PERMISSION_MAP
+        error_type_class = MetaError
+        error_type_field = "meta_errors"
+
+    class Arguments:
+        id = graphene.ID(description="ID of an object to update.", required=True)
+        input = MetaPath(
+            description="Fields required to identify stored metadata item.",
+            required=True,
+        )
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        instance = cls.get_instance(info, **data)
+        if instance:
+            metadata = data.pop("input")
+            # TODO: We should refactore clearing meta issue: XXXX
+            # Don't forget about test test_clear_public_metadata_remove_empty_namespace
+            stored_data = instance.get_meta(metadata.namespace, metadata.client_name)
+            cleared_value = stored_data.pop(metadata.key, None)
+            if not stored_data:
+                instance.clear_stored_meta_for_client(
+                    metadata.namespace, metadata.client_name
+                )
+                instance.save()
+            elif cleared_value is not None:
+                instance.store_meta(
+                    namespace=metadata.namespace,
+                    client=metadata.client_name,
+                    item=stored_data,
+                )
+                instance.save()
         return cls.success_response(instance)
