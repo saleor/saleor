@@ -2,8 +2,6 @@ import logging
 from decimal import Decimal
 from typing import TYPE_CHECKING, Callable, List
 
-from django import forms
-
 from ..extensions.manager import get_extensions_manager
 from ..payment.interface import TokenConfig
 from . import GatewayError, PaymentError, TransactionKind
