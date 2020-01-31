@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 import django_filters
 import graphene
 import pytest
-from django.core.exceptions import ImproperlyConfigured
+from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.utils import timezone
 from graphene import InputField
 from graphql_jwt.shortcuts import get_token
@@ -12,10 +12,14 @@ from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.core.filters import EnumFilter
 from saleor.graphql.core.mutations import BaseMutation
 from saleor.graphql.core.types import FilterInputObjectType
-from saleor.graphql.core.utils import clean_seo_fields, snake_to_camel_case
+from saleor.graphql.core.utils import (
+    clean_seo_fields,
+    snake_to_camel_case,
+    validate_slug_and_generate_if_needed,
+)
 from saleor.graphql.product import types as product_types
 from saleor.graphql.utils import get_database_id, reporting_period_to_date
-from saleor.product.models import Product
+from saleor.product.models import Category, Product
 from tests.api.utils import _get_graphql_content_from_response, get_graphql_content
 
 
@@ -304,3 +308,42 @@ def test_verify_token_incorrect_token(api_client):
     response = api_client.post_graphql(MUTATION_TOKEN_VERIFY, variables)
     content = get_graphql_content(response)
     assert not content["data"]["tokenVerify"]
+
+
+@pytest.mark.parametrize(
+    "cleaned_input",
+    [
+        {"slug": None, "name": "test"},
+        {"slug": "", "name": "test"},
+        {"slug": ""},
+        {"slug": None},
+    ],
+)
+def test_validate_slug_and_generate_if_needed_raises_errors(category, cleaned_input):
+    with pytest.raises(ValidationError):
+        validate_slug_and_generate_if_needed(category, "name", cleaned_input)
+
+
+@pytest.mark.parametrize(
+    "cleaned_input", [{"slug": "test-slug"}, {"slug": "test-slug", "name": "test"}]
+)
+def test_validate_slug_and_generate_if_needed_not_raises_errors(
+    category, cleaned_input
+):
+    validate_slug_and_generate_if_needed(category, "name", cleaned_input)
+
+
+@pytest.mark.parametrize(
+    "cleaned_input",
+    [
+        {"slug": None, "name": "test"},
+        {"slug": "", "name": "test"},
+        {"slug": ""},
+        {"slug": None},
+        {"slug": "test-slug"},
+        {"slug": "test-slug", "name": "test"},
+    ],
+)
+def test_validate_slug_and_generate_if_needed_generate_slug(cleaned_input):
+    category = Category(name="test")
+    validate_slug_and_generate_if_needed(category, "name", cleaned_input)
