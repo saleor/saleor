@@ -133,7 +133,6 @@ class GraphQLView(View):
                 span.set_tag("path", request.path)
                 result, status_code = self._get_response(request, data)
                 span.set_tag("status_code", status_code)
-                print("tag set!")
                 return result, status_code
         return self._get_response(request, data)
 
