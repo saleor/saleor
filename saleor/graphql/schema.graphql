@@ -841,6 +841,12 @@ type ChoiceValue {
   verbose: String
 }
 
+type ClearMeta {
+  errors: [Error!]
+  metaErrors: [MetaError!]
+  item: ObjectWithMetadata
+}
+
 type Collection implements Node, ObjectWithMetadata {
   seoTitle: String
   seoDescription: String
@@ -2266,6 +2272,7 @@ type Mutation {
   orderUpdateShipping(order: ID!, input: OrderUpdateShippingInput): OrderUpdateShipping
   orderVoid(id: ID!): OrderVoid
   orderBulkCancel(ids: [ID]!, restock: Boolean!): OrderBulkCancel
+  clearMeta(id: ID!, input: MetaPath!): ClearMeta
   updateMeta(id: ID!, input: MetaInput!): UpdateMeta
   assignNavigation(menu: ID, navigationType: NavigationType!): AssignNavigation
   menuCreate(input: MenuCreateInput!): MenuCreate
