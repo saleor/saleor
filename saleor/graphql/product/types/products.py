@@ -523,8 +523,8 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
 
     @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related=("variants"))
-    def resolve_is_available(root: models.Product, _info):
-        country = _info.context.country
+    def resolve_is_available(root: models.Product, info):
+        country = info.context.country
         in_stock = is_product_in_stock(root, country)
         return root.is_visible and in_stock
 
@@ -663,7 +663,7 @@ class ProductType(CountableDjangoObjectType, MetadataObjectType):
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
 
     @staticmethod
-    def resolve_tax_rate(root: models.ProductType, info, **_kwargs):
+    def resolve_tax_rate(root: models.ProductType, _info, **_kwargs):
         # FIXME this resolver should be dropped after we drop tax_rate from API
         if not hasattr(root, "meta"):
             return None
