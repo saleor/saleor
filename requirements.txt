@@ -16,7 +16,6 @@ certifi==2019.11.28
 cffi==1.13.2
 chardet==3.0.4
 cssselect2==0.2.2
-ddtrace==0.32.2
 defusedxml==0.6.0
 dj-database-url==0.5.0
 dj-email-url==0.2.0
@@ -60,7 +59,6 @@ graphql-relay==2.0.1
 html-to-draftjs==1.0.1
 html5lib==1.0.1
 idna==2.8
-jaeger-client==4.3.0
 jinja2==2.10.3
 jmespath==0.9.4
 jsonfield==2.0.2
