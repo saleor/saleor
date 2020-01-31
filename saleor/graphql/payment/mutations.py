@@ -40,10 +40,12 @@ class PaymentInput(graphene.InputObjectType):
         ),
     )
     billing_address = AddressInput(
+        required=False,
         description=(
             "Billing address. If empty, the billing address associated with the "
-            "checkout instance will be used."
-        )
+            "checkout instance will be used. "
+            "DEPRECATED: billing address associated with the checkout is used instead."
+        ),
     )
 
 
@@ -63,18 +65,17 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
         error_type_field = "payment_errors"
 
     @classmethod
-    def perform_mutation(cls, _root, info, checkout_id, **data):
-        checkout_id = from_global_id_strict_type(
-            checkout_id, only_type=Checkout, field="checkout_id"
+    def calculate_total(cls, info, checkout):
+        checkout_total = (
+            info.context.extensions.calculate_checkout_total(
+                checkout, discounts=info.context.discounts
+            )
+            - checkout.get_total_gift_cards_balance()
         )
-        checkout = models.Checkout.objects.prefetch_related(
-            "lines__variant__product__collections"
-        ).get(pk=checkout_id)
+        return max(checkout_total, zero_taxed_money(checkout_total.currency))
 
-        data = data.get("input")
-        billing_address = checkout.billing_address
-        if "billing_address" in data:
-            billing_address = cls.validate_address(data["billing_address"], info=info)
+    @classmethod
+    def clean_billing_address(cls, billing_address):
         if billing_address is None:
             raise ValidationError(
                 {
@@ -85,14 +86,8 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
                 }
             )
 
-        checkout_total = (
-            info.context.extensions.calculate_checkout_total(
-                checkout, discounts=info.context.discounts
-            )
-            - checkout.get_total_gift_cards_balance()
-        )
-        checkout_total = max(checkout_total, zero_taxed_money(checkout_total.currency))
-        amount = data.get("amount", checkout_total.gross.amount)
+    @classmethod
+    def clean_payment_amount(cls, info, checkout_total, amount):
         if amount != checkout_total.gross.amount:
             raise ValidationError(
                 {
@@ -103,6 +98,24 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
                     )
                 }
             )
+
+    @classmethod
+    def perform_mutation(cls, _root, info, checkout_id, **data):
+        checkout_id = from_global_id_strict_type(
+            checkout_id, only_type=Checkout, field="checkout_id"
+        )
+        checkout = models.Checkout.objects.prefetch_related(
+            "lines__variant__product__collections"
+        ).get(pk=checkout_id)
+
+        data = data["input"]
+
+        checkout_total = cls.calculate_total(info, checkout)
+        amount = data.get("amount", checkout_total.gross.amount)
+        billing_address = checkout.billing_address
+
+        cls.clean_billing_address(billing_address)
+        cls.clean_payment_amount(info, checkout_total, amount)
 
         extra_data = {"customer_user_agent": info.context.META.get("HTTP_USER_AGENT")}
 
