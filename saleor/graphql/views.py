@@ -127,6 +127,19 @@ class GraphQLView(View):
     def get_response(
         self, request: HttpRequest, data: dict
     ) -> Tuple[Optional[Dict[str, List[Any]]], int]:
+        if settings.ENABLE_OPENTRACING:
+            with opentracing.tracer.start_span(operation_name="request") as span:
+                span.set_tag("method", request.method)
+                span.set_tag("path", request.path)
+                result, status_code = self._get_response(request, data)
+                span.set_tag("status_code", status_code)
+                print("tag set!")
+                return result, status_code
+        return self._get_response(request, data)
+
+    def _get_response(
+        self, request: HttpRequest, data: dict
+    ) -> Tuple[Optional[Dict[str, List[Any]]], int]:
         execution_result = self.execute_graphql_request(request, data)
         status_code = 200
         if execution_result:
