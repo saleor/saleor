@@ -27,7 +27,8 @@ def send_account_confirmation_email(user, redirect_url):
 
 @app.task
 def _send_account_confirmation_email(email, token, redirect_url):
-    confirm_url = f"{redirect_url}/account-confirm?email={email}&token={token}"
+    params = urlencode({"email": email, "token": token})
+    confirm_url = prepare_url(params, redirect_url)
     send_kwargs, ctx = get_email_context()
     ctx["confirm_url"] = confirm_url
     send_templated_mail(
@@ -113,10 +114,7 @@ def _send_account_delete_confirmation_email_with_url(
     recipient_email, redirect_url, token
 ):
     params = urlencode({"token": token})
-    delete_url = "%(redirect_url)s?%(params)s" % {
-        "redirect_url": redirect_url,
-        "params": params,
-    }
+    delete_url = prepare_url(params, redirect_url)
     _send_delete_confirmation_email(recipient_email, delete_url)
 
 
