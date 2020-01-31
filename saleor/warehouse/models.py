@@ -24,7 +24,9 @@ class Warehouse(models.Model):
     name = models.CharField(max_length=255)
     company_name = models.CharField(blank=True, max_length=255)
 
-    shipping_zones = models.ManyToManyField(ShippingZone, blank=True)
+    shipping_zones = models.ManyToManyField(
+        ShippingZone, blank=True, related_name="warehouses"
+    )
     address = models.ForeignKey(Address, on_delete=models.PROTECT)
 
     email = models.EmailField(blank=True, default="")
