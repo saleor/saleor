@@ -1833,22 +1833,20 @@ def checkout_private_meta_update_variables(checkout):
 
 
 def test_user_without_permission_cannot_update_private_meta(
-    staff_api_client,
-    staff_user,
+    user_api_client,
     update_checkout_private_meta,
     checkout_private_meta_update_variables,
 ):
-    assert not staff_user.has_perm(CheckoutPermissions.MANAGE_CHECKOUTS)
-    response = staff_api_client.post_graphql(
+    response = user_api_client.post_graphql(
         update_checkout_private_meta, checkout_private_meta_update_variables
     )
     assert_no_permission(response)
 
 
 def test_user_does_not_need_permission_to_update_meta(
-    staff_api_client, update_checkout_meta, checkout_meta_update_variables, checkout
+    user_api_client, update_checkout_meta, checkout_meta_update_variables, checkout
 ):
-    response = staff_api_client.post_graphql(
+    response = user_api_client.post_graphql(
         update_checkout_meta, checkout_meta_update_variables, permissions=[]
     )
     content = get_graphql_content(response)
