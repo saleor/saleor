@@ -47,11 +47,12 @@ class OpentracingGrapheneMiddleware:
     @staticmethod
     def resolve(next, root, info, **kwargs):
         if settings.ENABLE_OPENTRACING and should_trace(info):
-            with opentracing.tracer.start_span(
+            with opentracing.global_tracer().start_span(
                 operation_name=info.operation.operation
             ) as span:
-                span.set_tag("parent_type", info.parent_type.name)
-                span.set_tag("field_name", info.field_name)
+                span.set_tag("component", "graphql")
+                span.set_tag("graphql.parent_type", info.parent_type.name)
+                span.set_tag("graphql.field_name", info.field_name)
                 return next(root, info, **kwargs)
 
         return next(root, info, **kwargs)
