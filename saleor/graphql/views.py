@@ -1,6 +1,5 @@
 import json
 import logging
-import time
 import traceback
 from typing import Any, Dict, List, Optional, Tuple, Union
 
@@ -33,21 +32,19 @@ def tracing_wrapper(execute, sql, params, many, context):
     if not settings.ENABLE_OPENTRACING:
         return execute(sql, params, many, context)
 
-    start = time.time()
-    with opentracing.tracer.start_span(operation_name="query") as span:
-        span.set_tag("sql", sql)
-        span.set_tag("many", many)
+    with opentracing.global_tracer().start_span(operation_name="query") as span:
+        span.set_tag("component", "db")
+        span.set_tag("db.statement", sql)
+        span.set_tag("db.many", many)
         try:
             result = execute(sql, params, many, context)
         except Exception as e:
-            span.set_tag("status", "error")
-            span.set_tag("exception", e)
+            span.set_tag("error", True)
+            span.set_tag("error.object", e)
             raise
         else:
-            span.set_tag("status", "ok")
+            span.set_tag("error", False)
             return result
-        finally:
-            span.set_tag("duration", time.time() - start)
 
 
 class GraphQLView(View):
@@ -128,11 +125,14 @@ class GraphQLView(View):
         self, request: HttpRequest, data: dict
     ) -> Tuple[Optional[Dict[str, List[Any]]], int]:
         if settings.ENABLE_OPENTRACING:
-            with opentracing.tracer.start_span(operation_name="request") as span:
-                span.set_tag("method", request.method)
-                span.set_tag("path", request.path)
+            with opentracing.global_tracer().start_span(
+                operation_name="request"
+            ) as span:
+                span.set_tag("component", "http")
+                span.set_tag("http.method", request.method)
+                span.set_tag("http.path", request.path)
                 result, status_code = self._get_response(request, data)
-                span.set_tag("status_code", status_code)
+                span.set_tag("http.status_code", status_code)
                 return result, status_code
         return self._get_response(request, data)
 
