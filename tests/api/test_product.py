@@ -1913,6 +1913,49 @@ def test_product_type_create_mutation(
     assert tax_code == "wine"
 
 
+@pytest.mark.parametrize(
+    "input_slug, expected_slug",
+    (
+        ("test-slug", "test-slug"),
+        (None, "test-product-type"),
+        ("", "test-product-type"),
+    ),
+)
+def test_create_product_type_with_given_slug(
+    staff_api_client, permission_manage_products, input_slug, expected_slug
+):
+    query = """
+        mutation(
+                $name: String, $slug: String) {
+            productTypeCreate(
+                input: {
+                    name: $name
+                    slug: $slug
+                }
+            ) {
+                productType {
+                    id
+                    name
+                    slug
+                }
+                errors {
+                    field
+                    message
+                }
+            }
+        }
+    """
+    name = "Test product type"
+    variables = {"name": name, "slug": input_slug}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productTypeCreate"]
+    assert not data["errors"]
+    assert data["productType"]["slug"] == expected_slug
+
+
 def test_product_type_update_mutation(
     staff_api_client, product_type, permission_manage_products
 ):
@@ -1979,6 +2022,157 @@ def test_product_type_update_mutation(
     assert data["isShippingRequired"] == require_shipping
     assert not data["productAttributes"]
     assert len(data["variantAttributes"]) == (variant_attributes.count())
+
+
+UPDATE_PRODUCT_TYPE_SLUG_MUTATION = """
+    mutation($id: ID!, $slug: String) {
+        productTypeUpdate(
+            id: $id
+            input: {
+                slug: $slug
+            }
+        ) {
+            productType{
+                name
+                slug
+            }
+            errors {
+                field
+                message
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "input_slug, expected_slug, error_message",
+    [
+        ("test-slug", "test-slug", None),
+        ("", "", "Slug value cannot be blank."),
+        (None, "", "Slug value cannot be blank."),
+    ],
+)
+def test_update_product_type_slug(
+    staff_api_client,
+    product_type,
+    permission_manage_products,
+    input_slug,
+    expected_slug,
+    error_message,
+):
+    query = UPDATE_PRODUCT_TYPE_SLUG_MUTATION
+    old_slug = product_type.slug
+
+    assert old_slug != input_slug
+
+    node_id = graphene.Node.to_global_id("ProductType", product_type.id)
+    variables = {"slug": input_slug, "id": node_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productTypeUpdate"]
+    errors = data["errors"]
+    if not error_message:
+        assert not errors
+        assert data["productType"]["slug"] == expected_slug
+    else:
+        assert errors
+        assert errors[0]["field"] == "slug"
+        assert errors[0]["message"] == error_message
+
+
+def test_update_product_type_slug_exists(
+    staff_api_client, product_type, permission_manage_products
+):
+    query = UPDATE_PRODUCT_TYPE_SLUG_MUTATION
+    input_slug = "test-slug"
+
+    second_product_type = ProductType.objects.get(pk=product_type.pk)
+    second_product_type.pk = None
+    second_product_type.slug = input_slug
+    second_product_type.save()
+
+    assert input_slug != product_type.slug
+
+    node_id = graphene.Node.to_global_id("ProductType", product_type.id)
+    variables = {"slug": input_slug, "id": node_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productTypeUpdate"]
+    errors = data["errors"]
+    assert errors
+    assert errors[0]["field"] == "slug"
+    assert errors[0]["message"] == "Product type with this Slug already exists."
+
+
+@pytest.mark.parametrize(
+    "input_slug, expected_slug, input_name, error_message, error_field",
+    [
+        ("test-slug", "test-slug", "New name", None, None),
+        ("", "", "New name", "Slug value cannot be blank.", "slug"),
+        (None, "", "New name", "Slug value cannot be blank.", "slug"),
+        ("test-slug", "", None, "This field cannot be blank.", "name"),
+        ("test-slug", "", "", "This field cannot be blank.", "name"),
+        (None, None, None, "Slug value cannot be blank.", "slug"),
+    ],
+)
+def test_update_product_type_slug_and_name(
+    staff_api_client,
+    product_type,
+    permission_manage_products,
+    input_slug,
+    expected_slug,
+    input_name,
+    error_message,
+    error_field,
+):
+    query = """
+            mutation($id: ID!, $name: String, $slug: String) {
+            productTypeUpdate(
+                id: $id
+                input: {
+                    name: $name
+                    slug: $slug
+                }
+            ) {
+                productType{
+                    name
+                    slug
+                }
+                errors {
+                    field
+                    message
+                }
+            }
+        }
+    """
+
+    old_name = product_type.name
+    old_slug = product_type.slug
+
+    assert input_slug != old_slug
+    assert input_name != old_name
+
+    node_id = graphene.Node.to_global_id("ProductType", product_type.id)
+    variables = {"slug": input_slug, "name": input_name, "id": node_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    product_type.refresh_from_db()
+    data = content["data"]["productTypeUpdate"]
+    errors = data["errors"]
+    if not error_message:
+        assert data["productType"]["name"] == input_name == product_type.name
+        assert data["productType"]["slug"] == input_slug == product_type.slug
+    else:
+        assert errors
+        assert errors[0]["field"] == error_field
+        assert errors[0]["message"] == error_message
 
 
 def test_product_type_delete_mutation(
