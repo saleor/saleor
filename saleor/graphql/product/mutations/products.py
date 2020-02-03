@@ -11,7 +11,6 @@ from graphql_jwt.exceptions import PermissionDenied
 from graphql_relay import from_global_id
 
 from ....core.permissions import ProductPermissions
-from ....core.utils import generate_unique_slug
 from ....product import models
 from ....product.error_codes import ProductErrorCode
 from ....product.tasks import (
@@ -814,13 +813,18 @@ class ProductCreate(ModelMutation):
             instance.product_type if instance.pk else cleaned_input.get("product_type")
         )  # type: models.ProductType
 
-        if (
-            not instance.slug
-            and "slug" not in cleaned_input
-            and "name" in cleaned_input
-        ):
-            cleaned_input["slug"] = generate_unique_slug(
-                instance, cleaned_input["name"]
+        try:
+            cleaned_input = validate_slug_and_generate_if_needed(
+                instance, "name", cleaned_input
+            )
+        except ValidationError:
+            raise ValidationError(
+                {
+                    "slug": ValidationError(
+                        "Slug value cannot be blank.",
+                        code=ProductErrorCode.REQUIRED.value,
+                    )
+                }
             )
 
         # Try to get price from "basePrice" or "price" field. Once "price" is removed
