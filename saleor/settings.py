@@ -558,6 +558,3 @@ if (
         "Make sure you've added storefront address to ALLOWED_CLIENT_HOSTS "
         "if ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL is enabled."
     )
-
-
-ENABLE_OPENTRACING = get_bool_from_env("ENABLE_OPENTRACING", False)
