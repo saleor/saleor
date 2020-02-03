@@ -44,7 +44,9 @@ class PaymentInput(graphene.InputObjectType):
         description=(
             "Billing address. If empty, the billing address associated with the "
             "checkout instance will be used. "
-            "DEPRECATED: billing address associated with the checkout is used instead."
+            "DEPRECATED: `Checkout.billingAddress` will be used instead. Use "
+            "`checkoutCreate` or `checkoutBillingAddressUpdate` mutations to set it. "
+            "This field will be removed in Saleor 2.11"
         ),
     )
 
