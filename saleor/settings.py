@@ -523,6 +523,7 @@ if SENTRY_DSN:
     sentry_sdk.init(dsn=SENTRY_DSN, integrations=[DjangoIntegration()])
 
 GRAPHENE = {
+    "MIDDLEWARE": ("saleor.graphql.middleware.OpentracingGrapheneMiddleware",),
     "RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST": True,
     "RELAY_CONNECTION_MAX_LIMIT": 100,
 }
