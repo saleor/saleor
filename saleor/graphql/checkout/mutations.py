@@ -293,7 +293,7 @@ class CheckoutCreate(ModelMutation, I18nMixin):
         # `perform_mutation` is overridden to properly get or create a checkout
         # instance here and abort mutation if needed.
         if user.is_authenticated:
-            is_temporary = data.get("input").pop("isTemporary", False)
+            is_temporary = data.get("input").pop("is_temporary", False)
             if is_temporary is False:
                 checkout, _ = get_user_checkout(user)
 
