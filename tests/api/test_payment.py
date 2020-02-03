@@ -89,10 +89,11 @@ CREATE_QUERY = """
     """
 
 
-def test_checkout_add_payment(
-    user_api_client, checkout_with_item, graphql_address_data
-):
+def test_checkout_add_payment(user_api_client, checkout_with_item, address):
     checkout = checkout_with_item
+    checkout.billing_address = address
+    checkout.save()
+
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     total = calculations.checkout_total(checkout)
     variables = {
@@ -101,12 +102,12 @@ def test_checkout_add_payment(
             "gateway": "Dummy",
             "token": "sample-token",
             "amount": total.gross.amount,
-            "billingAddress": graphql_address_data,
         },
     }
     response = user_api_client.post_graphql(CREATE_QUERY, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
+
     assert not data["errors"]
     transactions = data["payment"]["transactions"]
     assert not transactions
@@ -117,22 +118,25 @@ def test_checkout_add_payment(
     assert payment.total == total.gross.amount
     assert payment.currency == total.gross.currency
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment.billing_address_1 == checkout.billing_address.street_address_1
+    assert payment.billing_first_name == checkout.billing_address.first_name
+    assert payment.billing_last_name == checkout.billing_address.last_name
 
 
 def test_checkout_add_payment_default_amount(
-    user_api_client, checkout_with_item, graphql_address_data
+    user_api_client, checkout_with_item, address
 ):
     checkout = checkout_with_item
+    checkout = checkout_with_item
+    checkout.billing_address = address
+    checkout.save()
+
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     total = calculations.checkout_total(checkout)
 
     variables = {
         "checkoutId": checkout_id,
-        "input": {
-            "gateway": "DUMMY",
-            "token": "sample-token",
-            "billingAddress": graphql_address_data,
-        },
+        "input": {"gateway": "DUMMY", "token": "sample-token"},
     }
     response = user_api_client.post_graphql(CREATE_QUERY, variables)
     content = get_graphql_content(response)
@@ -149,9 +153,7 @@ def test_checkout_add_payment_default_amount(
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
 
 
-def test_checkout_add_payment_bad_amount(
-    user_api_client, checkout_with_item, graphql_address_data
-):
+def test_checkout_add_payment_bad_amount(user_api_client, checkout_with_item):
     checkout = checkout_with_item
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
@@ -163,7 +165,6 @@ def test_checkout_add_payment_bad_amount(
             "amount": str(
                 calculations.checkout_total(checkout).gross.amount + Decimal(1)
             ),
-            "billingAddress": graphql_address_data,
         },
     }
     response = user_api_client.post_graphql(CREATE_QUERY, variables)
