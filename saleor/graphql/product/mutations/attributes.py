@@ -7,7 +7,6 @@ from django.db.models import Q
 from django.template.defaultfilters import slugify
 
 from ....core.permissions import ProductPermissions
-from ....core.utils import generate_unique_slug
 from ....product import AttributeInputType, models
 from ....product.error_codes import ProductErrorCode
 from ...core.mutations import (
@@ -18,7 +17,10 @@ from ...core.mutations import (
     UpdateMetaBaseMutation,
 )
 from ...core.types.common import ProductError
-from ...core.utils import from_global_id_strict_type
+from ...core.utils import (
+    from_global_id_strict_type,
+    validate_slug_and_generate_if_needed,
+)
 from ...core.utils.reordering import perform_reordering
 from ...product.types import ProductType
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
@@ -165,33 +167,16 @@ class AttributeMixin:
 
     @classmethod
     def clean_attribute(cls, instance, cleaned_input):
-        input_slug = cleaned_input.get("slug", None)
-        if not instance.slug and input_slug is None:
-            cleaned_input["slug"] = generate_unique_slug(
-                instance, cleaned_input["name"]
+        try:
+            cleaned_input = validate_slug_and_generate_if_needed(
+                instance, "name", cleaned_input
             )
-        elif input_slug == "":
+        except ValidationError:
             raise ValidationError(
                 {
                     "slug": ValidationError(
-                        "The attribute's slug cannot be blank.",
-                        code=ProductErrorCode.REQUIRED,
-                    )
-                }
-            )
-
-        slug = input_slug if "slug" in cleaned_input else instance.slug
-        query = models.Attribute.objects.filter(slug=slug)
-
-        if instance.pk:
-            query = query.exclude(pk=instance.pk)
-
-        if query.exists():
-            raise ValidationError(
-                {
-                    "slug": ValidationError(
-                        "This attribute's slug already exists.",
-                        code=ProductErrorCode.ALREADY_EXISTS,
+                        "Slug value cannot be blank.",
+                        code=ProductErrorCode.REQUIRED.value,
                     )
                 }
             )
