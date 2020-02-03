@@ -260,6 +260,8 @@ def test_placeholder(settings):
         ("Default Type", "default-type"),
         ("default type", "default-type-2"),
         ("Shirt", "shirt"),
+        ("40.5", "405-2"),
+        ("FM1+", "fm1-2"),
     ],
 )
 def test_generate_unique_slug_with_slugable_field(
@@ -269,18 +271,13 @@ def test_generate_unique_slug_with_slugable_field(
         ("Paint", "paint"),
         ("Paint blue", "paint-blue"),
         ("Paint test", "paint-2"),
-        ("paint", "p"),
-        ("Shirt", "s"),
-        ("default type", "d"),
+        ("405", "405"),
+        ("FM1", "fm1"),
     ]
     for name, slug in product_names_and_slugs:
-        test_product = ProductType.objects.get(pk=product_type.pk)
-        test_product.pk = None
-        test_product.name = name
-        test_product.slug = slug
-        test_product.save()
+        ProductType.objects.create(name=name, slug=slug)
 
-    instance = ProductType.objects.filter(name=product_name).first()
+    instance, _ = ProductType.objects.get_or_create(name=product_name)
     result = generate_unique_slug(instance, instance.name)
     assert result == slug_result
 
