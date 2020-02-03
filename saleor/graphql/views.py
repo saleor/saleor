@@ -29,9 +29,6 @@ handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
 
 
 def tracing_wrapper(execute, sql, params, many, context):
-    if not settings.ENABLE_OPENTRACING:
-        return execute(sql, params, many, context)
-
     with opentracing.global_tracer().start_span(operation_name="query") as span:
         span.set_tag("component", "db")
         span.set_tag("db.statement", sql)
@@ -124,17 +121,13 @@ class GraphQLView(View):
     def get_response(
         self, request: HttpRequest, data: dict
     ) -> Tuple[Optional[Dict[str, List[Any]]], int]:
-        if settings.ENABLE_OPENTRACING:
-            with opentracing.global_tracer().start_span(
-                operation_name="request"
-            ) as span:
-                span.set_tag("component", "http")
-                span.set_tag("http.method", request.method)
-                span.set_tag("http.path", request.path)
-                result, status_code = self._get_response(request, data)
-                span.set_tag("http.status_code", status_code)
-                return result, status_code
-        return self._get_response(request, data)
+        with opentracing.global_tracer().start_span(operation_name="request") as span:
+            span.set_tag("component", "http")
+            span.set_tag("http.method", request.method)
+            span.set_tag("http.path", request.path)
+            result, status_code = self._get_response(request, data)
+            span.set_tag("http.status_code", status_code)
+            return result, status_code
 
     def _get_response(
         self, request: HttpRequest, data: dict
