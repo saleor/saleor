@@ -32,7 +32,6 @@ def tracing_wrapper(execute, sql, params, many, context):
     with opentracing.global_tracer().start_span(operation_name="query") as span:
         span.set_tag("component", "db")
         span.set_tag("db.statement", sql)
-        span.set_tag("db.many", many)
         try:
             result = execute(sql, params, many, context)
         except Exception as e:
