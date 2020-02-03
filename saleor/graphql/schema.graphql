@@ -4743,11 +4743,11 @@ type WarehouseCreate {
 }
 
 input WarehouseCreateInput {
-  name: String!
   slug: String
   companyName: String
   shippingZones: [ID]
   email: String
+  name: String!
   address: WarehouseAddressInput!
 }
 
@@ -4783,11 +4783,11 @@ type WarehouseUpdate {
 }
 
 input WarehouseUpdateInput {
-  name: String!
   slug: String
   companyName: String
   shippingZones: [ID]
   email: String
+  name: String
   address: WarehouseAddressInput
 }
 

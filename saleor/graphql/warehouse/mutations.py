@@ -2,13 +2,13 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ...core.permissions import ProductPermissions
-from ...core.utils import generate_unique_slug
 from ...warehouse import models
 from ...warehouse.error_codes import WarehouseErrorCode
 from ...warehouse.validation import validate_warehouse_count  # type: ignore
 from ..account.i18n import I18nMixin
 from ..core.mutations import ModelBulkDeleteMutation, ModelDeleteMutation, ModelMutation
 from ..core.types.common import StockError, WarehouseError
+from ..core.utils import validate_slug_and_generate_if_needed
 from .types import StockInput, WarehouseCreateInput, WarehouseUpdateInput
 
 ADDRESS_FIELDS = [
@@ -27,13 +27,18 @@ class WarehouseMixin:
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
         cleaned_input = super().clean_input(info, instance, data)
-        if (
-            not instance.slug
-            and "slug" not in cleaned_input
-            and "name" in cleaned_input
-        ):
-            cleaned_input["slug"] = generate_unique_slug(
-                instance, cleaned_input["name"]
+        try:
+            cleaned_input = validate_slug_and_generate_if_needed(
+                instance, "name", cleaned_input
+            )
+        except ValidationError:
+            raise ValidationError(
+                {
+                    "slug": ValidationError(
+                        "Slug value cannot be blank.",
+                        code=WarehouseErrorCode.REQUIRED.value,
+                    )
+                }
             )
         shipping_zones = cleaned_input.get("shipping_zones", [])
         if not validate_warehouse_count(shipping_zones, instance):
