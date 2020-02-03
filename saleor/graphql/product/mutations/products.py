@@ -44,6 +44,7 @@ from ...core.utils import (
     clean_seo_fields,
     from_global_id_strict_type,
     validate_image_file,
+    validate_slug_and_generate_if_needed,
 )
 from ...core.utils.reordering import perform_reordering
 from ..types import (
@@ -95,13 +96,18 @@ class CategoryCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
-        if (
-            not instance.slug
-            and "slug" not in cleaned_input
-            and "name" in cleaned_input
-        ):
-            cleaned_input["slug"] = generate_unique_slug(
-                instance, cleaned_input["name"]
+        try:
+            cleaned_input = validate_slug_and_generate_if_needed(
+                instance, "name", cleaned_input
+            )
+        except ValidationError:
+            raise ValidationError(
+                {
+                    "slug": ValidationError(
+                        "Slug value cannot be blank.",
+                        code=ProductErrorCode.REQUIRED.value,
+                    )
+                }
             )
         parent_id = data["parent_id"]
         if parent_id:
