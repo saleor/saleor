@@ -217,13 +217,18 @@ class CollectionCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
-        if (
-            not instance.slug
-            and "slug" not in cleaned_input
-            and "name" in cleaned_input
-        ):
-            cleaned_input["slug"] = generate_unique_slug(
-                instance, cleaned_input["name"]
+        try:
+            cleaned_input = validate_slug_and_generate_if_needed(
+                instance, "name", cleaned_input
+            )
+        except ValidationError:
+            raise ValidationError(
+                {
+                    "slug": ValidationError(
+                        "Slug value cannot be blank.",
+                        code=ProductErrorCode.REQUIRED.value,
+                    )
+                }
             )
         if data.get("background_image"):
             image_data = info.context.FILES.get(data["background_image"])
