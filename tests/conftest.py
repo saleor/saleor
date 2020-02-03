@@ -143,7 +143,7 @@ def _assert_num_queries(context, *, config, num, exact=True, info=None):
         msg += " (add -v option to show queries)"
     pytest.fail(msg)
 
-    
+
 @pytest.fixture(scope="session")
 def django_db_setup(django_db_setup, django_db_blocker):
     with django_db_blocker.unblock():
@@ -637,7 +637,7 @@ def product_with_single_variant(product_type, category, warehouse):
         is_published=True,
     )
     variant = ProductVariant.objects.create(
-        product=product, sku="SKU_SINGLE_VARIANT", cost_price=Money("1.00", "USD"),
+        product=product, sku="SKU_SINGLE_VARIANT", cost_price=Money("1.00", "USD")
     )
     Stock.objects.create(
         product_variant=variant, warehouse=warehouse, quantity=101, quantity_allocated=1
