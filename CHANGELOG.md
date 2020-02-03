@@ -56,6 +56,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop unused resolver `resolve_availability` - #5190 by @maarcingebala
 - Fix permission for `checkoutCustomerAttach` mutation - #5192 by @maarcingebala
 - Restrict access to user field - #5194 by @maarcingebala
+- Add slug to Warehouse, Product, ProductType and update slug in models which already using it - #5196 by @IKarbowiak
 
 ## 2.9.0
 
