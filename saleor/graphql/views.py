@@ -125,29 +125,23 @@ class GraphQLView(View):
             span.set_tag("component", "http")
             span.set_tag("http.method", request.method)
             span.set_tag("http.path", request.path)
-            result, status_code = self._get_response(request, data)
+            execution_result = self.execute_graphql_request(request, data)
+            status_code = 200
+            if execution_result:
+                response = {}
+                if execution_result.errors:
+                    response["errors"] = [
+                        self.format_error(e) for e in execution_result.errors
+                    ]
+                if execution_result.invalid:
+                    status_code = 400
+                else:
+                    response["data"] = execution_result.data
+                result: Optional[Dict[str, List[Any]]] = response
+            else:
+                result = None
             span.set_tag("http.status_code", status_code)
             return result, status_code
-
-    def _get_response(
-        self, request: HttpRequest, data: dict
-    ) -> Tuple[Optional[Dict[str, List[Any]]], int]:
-        execution_result = self.execute_graphql_request(request, data)
-        status_code = 200
-        if execution_result:
-            response = {}
-            if execution_result.errors:
-                response["errors"] = [
-                    self.format_error(e) for e in execution_result.errors
-                ]
-            if execution_result.invalid:
-                status_code = 400
-            else:
-                response["data"] = execution_result.data
-            result: Optional[Dict[str, List[Any]]] = response
-        else:
-            result = None
-        return result, status_code
 
     def get_root_value(self):
         return self.root_value
