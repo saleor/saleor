@@ -25,6 +25,7 @@ class ApiClient(Client):
         self.token = None
         self.user = user
         self.service_token = None
+        self.service_account = service_account
         if not user.is_anonymous:
             self.token = get_token(user)
         elif service_account:
@@ -86,7 +87,10 @@ class ApiClient(Client):
             if check_no_permissions:
                 response = super().post(API_PATH, data, **kwargs)
                 assert_no_permission(response)
-            self.user.user_permissions.add(*permissions)
+            if self.service_account:
+                self.service_account.permissions.add(*permissions)
+            else:
+                self.user.user_permissions.add(*permissions)
         return super().post(API_PATH, data, **kwargs)
 
     def post_multipart(self, *args, permissions=None, **kwargs):
