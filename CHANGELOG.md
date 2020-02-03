@@ -4,6 +4,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- OpenTracing support - #5188 by @tomaszszymanski129
 - Account confirmation email - #5126 by @tomaszszymanski129
 - Relocate Checkout and CheckoutLine methods into separate module and update checkout related plugins to use them - #4980 by @krzysztofwolski
 - Fix problem with free shipping voucher - #4942 by @IKarbowiak
