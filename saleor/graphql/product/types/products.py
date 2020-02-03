@@ -292,7 +292,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
                 root.stock.annotate_available_quantity().all(), info
             )
         return gql_optimizer.query(
-            root.stock.annotate_available_quantity().for_country("country").all(), info
+            root.stock.annotate_available_quantity().for_country(country).all(), info
         )
 
     @staticmethod

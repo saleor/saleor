@@ -4,6 +4,7 @@ All notable, unreleased changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- OpenTracing support - #5188 by @tomaszszymanski129
 - Account confirmation email - #5126 by @tomaszszymanski129
 - Relocate Checkout and CheckoutLine methods into separate module and update checkout related plugins to use them - #4980 by @krzysztofwolski
 - Fix problem with free shipping voucher - #4942 by @IKarbowiak
@@ -56,6 +57,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop unused resolver `resolve_availability` - #5190 by @maarcingebala
 - Fix permission for `checkoutCustomerAttach` mutation - #5192 by @maarcingebala
 - Restrict access to user field - #5194 by @maarcingebala
+- Unify permission for service account api client in test - #5197 by @fowczarek
+- Allow sorting warehouses by name - #5211 by @dominik-zeglen
+- Add anonymization to GraphQL's `webhookSamplePayload` endpoint - #5161 @derenio
 - Add slug to Warehouse, Product, ProductType and update slug in models which already using it - #5196 by @IKarbowiak
 
 ## 2.9.0
