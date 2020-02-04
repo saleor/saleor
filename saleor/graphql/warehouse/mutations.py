@@ -31,15 +31,9 @@ class WarehouseMixin:
             cleaned_input = validate_slug_and_generate_if_needed(
                 instance, "name", cleaned_input
             )
-        except ValidationError:
-            raise ValidationError(
-                {
-                    "slug": ValidationError(
-                        "Slug value cannot be blank.",
-                        code=WarehouseErrorCode.REQUIRED.value,
-                    )
-                }
-            )
+        except ValidationError as error:
+            error.code = WarehouseErrorCode.REQUIRED.value
+            raise ValidationError({"slug": error})
         shipping_zones = cleaned_input.get("shipping_zones", [])
         if not validate_warehouse_count(shipping_zones, instance):
             msg = "Shipping zone can be assigned only to one warehouse."
