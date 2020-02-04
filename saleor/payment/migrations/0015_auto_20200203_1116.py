@@ -6,18 +6,18 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('payment', '0014_django_price_2'),
+        ("payment", "0014_django_price_2"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='payment',
-            name='to_confirm',
+            model_name="payment",
+            name="to_confirm",
             field=models.BooleanField(default=False),
         ),
         migrations.AddField(
-            model_name='transaction',
-            name='action_required',
+            model_name="transaction",
+            name="action_required",
             field=models.BooleanField(default=False),
         ),
     ]
