@@ -99,15 +99,9 @@ class CategoryCreate(ModelMutation):
             cleaned_input = validate_slug_and_generate_if_needed(
                 instance, "name", cleaned_input
             )
-        except ValidationError:
-            raise ValidationError(
-                {
-                    "slug": ValidationError(
-                        "Slug value cannot be blank.",
-                        code=ProductErrorCode.REQUIRED.value,
-                    )
-                }
-            )
+        except ValidationError as error:
+            error.code = ProductErrorCode.REQUIRED.value
+            raise ValidationError({"slug": error})
         parent_id = data["parent_id"]
         if parent_id:
             parent = cls.get_node_or_error(
@@ -220,15 +214,9 @@ class CollectionCreate(ModelMutation):
             cleaned_input = validate_slug_and_generate_if_needed(
                 instance, "name", cleaned_input
             )
-        except ValidationError:
-            raise ValidationError(
-                {
-                    "slug": ValidationError(
-                        "Slug value cannot be blank.",
-                        code=ProductErrorCode.REQUIRED.value,
-                    )
-                }
-            )
+        except ValidationError as error:
+            error.code = ProductErrorCode.REQUIRED.value
+            raise ValidationError({"slug": error})
         if data.get("background_image"):
             image_data = info.context.FILES.get(data["background_image"])
             validate_image_file(image_data, "background_image")
@@ -817,16 +805,9 @@ class ProductCreate(ModelMutation):
             cleaned_input = validate_slug_and_generate_if_needed(
                 instance, "name", cleaned_input
             )
-        except ValidationError:
-            raise ValidationError(
-                {
-                    "slug": ValidationError(
-                        "Slug value cannot be blank.",
-                        code=ProductErrorCode.REQUIRED.value,
-                    )
-                }
-            )
-
+        except ValidationError as error:
+            error.code = ProductErrorCode.REQUIRED.value
+            raise ValidationError({"slug": error})
         # Try to get price from "basePrice" or "price" field. Once "price" is removed
         # from the schema, only "basePrice" should be used here.
         price = data.get("base_price", data.get("price"))
@@ -1360,15 +1341,9 @@ class ProductTypeCreate(ModelMutation):
             cleaned_input = validate_slug_and_generate_if_needed(
                 instance, "name", cleaned_input
             )
-        except ValidationError:
-            raise ValidationError(
-                {
-                    "slug": ValidationError(
-                        "Slug value cannot be blank.",
-                        code=ProductErrorCode.REQUIRED.value,
-                    )
-                }
-            )
+        except ValidationError as error:
+            error.code = ProductErrorCode.REQUIRED.value
+            raise ValidationError({"slug": error})
 
         # FIXME  tax_rate logic should be dropped after we remove tax_rate from input
         tax_rate = cleaned_input.pop("tax_rate", "")
