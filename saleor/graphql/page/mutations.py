@@ -45,10 +45,9 @@ class PageCreate(ModelMutation):
             cleaned_input = validate_slug_and_generate_if_needed(
                 instance, "title", cleaned_input
             )
-        except ValidationError as e:
-            raise ValidationError(
-                {"slug": ValidationError(e.message, code=PageErrorCode.REQUIRED)}
-            )
+        except ValidationError as error:
+            error.code = PageErrorCode.REQUIRED
+            raise ValidationError({"slug": error})
         clean_seo_fields(cleaned_input)
         return cleaned_input
 

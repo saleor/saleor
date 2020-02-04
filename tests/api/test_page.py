@@ -6,6 +6,7 @@ from django.utils import timezone
 from django.utils.text import slugify
 from freezegun import freeze_time
 
+from saleor.page.error_codes import PageErrorCode
 from saleor.page.models import Page
 from tests.api.utils import get_graphql_content
 
@@ -109,8 +110,9 @@ CREATE_PAGE_MUTATION = """
                 slug
                 isPublished
             }
-            errors {
+            pageErrors {
                 field
+                code
                 message
             }
         }
@@ -138,7 +140,7 @@ def test_page_create_mutation(staff_api_client, permission_manage_pages):
     )
     content = get_graphql_content(response)
     data = content["data"]["pageCreate"]
-    assert data["errors"] == []
+    assert data["pageErrors"] == []
     assert data["page"]["title"] == page_title
     assert data["page"]["content"] == page_content
     assert data["page"]["contentJson"] == page_content_json
@@ -151,7 +153,7 @@ def test_page_create_required_fields(staff_api_client, permission_manage_pages):
         CREATE_PAGE_MUTATION, {}, permissions=[permission_manage_pages]
     )
     content = get_graphql_content(response)
-    errors = content["data"]["pageCreate"]["errors"]
+    errors = content["data"]["pageCreate"]["pageErrors"]
 
     err_msg = "This field cannot be blank."
     title_error = {"field": "title", "message": err_msg}
@@ -168,7 +170,7 @@ def test_create_default_slug(staff_api_client, permission_manage_pages):
     )
     content = get_graphql_content(response)
     data = content["data"]["pageCreate"]
-    assert not data["errors"]
+    assert not data["pageErrors"]
     assert data["page"]["title"] == title
     assert data["page"]["slug"] == slugify(title)
 
@@ -181,8 +183,9 @@ def test_page_delete_mutation(staff_api_client, page, permission_manage_pages):
                     title
                     id
                 }
-                errors {
+                pageErrors {
                     field
+                    code
                     message
                 }
               }
@@ -207,8 +210,9 @@ UPDATE_PAGE_MUTATION = """
                 title
                 slug
             }
-            errors {
+            pageErrors {
                 field
+                code
                 message
             }
         }
@@ -230,7 +234,7 @@ def test_update_page(staff_api_client, permission_manage_pages, page):
     content = get_graphql_content(response)
     data = content["data"]["pageUpdate"]
 
-    assert not data["errors"]
+    assert not data["pageErrors"]
     assert data["page"]["title"] == page_title
     assert data["page"]["slug"] == new_slug
 
@@ -248,11 +252,11 @@ def test_update_page_blank_slug_value(
         query, variables, permissions=[permission_manage_pages]
     )
     content = get_graphql_content(response)
-    errors = content["data"]["pageUpdate"]["errors"]
+    errors = content["data"]["pageUpdate"]["pageErrors"]
 
     assert len(errors) == 1
     assert errors[0]["field"] == "slug"
-    assert errors[0]["message"] == "Slug value cannot be blank."
+    assert errors[0]["code"] == PageErrorCode.REQUIRED.name
 
 
 @pytest.mark.parametrize("slug_value", [None, ""])
@@ -267,8 +271,9 @@ def test_update_page_with_title_value_and_without_slug_value(
                 title
                 slug
             }
-            errors {
+            pageErrors {
                 field
+                code
                 message
             }
         }
@@ -280,11 +285,11 @@ def test_update_page_with_title_value_and_without_slug_value(
         query, variables, permissions=[permission_manage_pages]
     )
     content = get_graphql_content(response)
-    errors = content["data"]["pageUpdate"]["errors"]
+    errors = content["data"]["pageUpdate"]["pageErrors"]
 
     assert len(errors) == 1
     assert errors[0]["field"] == "slug"
-    assert errors[0]["message"] == "Slug value cannot be blank."
+    assert errors[0]["code"] == PageErrorCode.REQUIRED.name
 
 
 def test_paginate_pages(user_api_client, page):
