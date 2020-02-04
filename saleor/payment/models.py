@@ -31,6 +31,7 @@ class Payment(models.Model):
 
     gateway = models.CharField(max_length=255)
     is_active = models.BooleanField(default=True)
+    to_confirm = models.BooleanField(default=False)
     created = models.DateTimeField(auto_now_add=True)
     modified = models.DateTimeField(auto_now=True)
     charge_status = models.CharField(
@@ -193,6 +194,7 @@ class Transaction(models.Model):
     token = models.CharField(max_length=128, blank=True, default="")
     kind = models.CharField(max_length=10, choices=TransactionKind.CHOICES)
     is_success = models.BooleanField(default=False)
+    action_required = models.BooleanField(default=False)
     currency = models.CharField(max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH)
     amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,

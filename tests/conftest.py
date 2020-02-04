@@ -1203,6 +1203,24 @@ def payment_txn_captured(order_with_lines, payment_dummy):
 
 
 @pytest.fixture
+def payment_txn_to_confirm(order_with_lines, payment_dummy):
+    order = order_with_lines
+    payment = payment_dummy
+    payment.order = order
+    payment.to_confirm = True
+    payment.save()
+
+    payment.transactions.create(
+        amount=payment.total,
+        kind=TransactionKind.CAPTURE,
+        gateway_response={},
+        is_success=True,
+        action_required=True,
+    )
+    return payment
+
+
+@pytest.fixture
 def payment_txn_refunded(order_with_lines, payment_dummy):
     order = order_with_lines
     payment = payment_dummy
