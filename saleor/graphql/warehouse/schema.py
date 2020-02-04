@@ -15,12 +15,11 @@ from .mutations import (
     WarehouseCreate,
     WarehouseDelete,
     WarehouseUpdate,
+    WarehouseShippingZoneAssign,
+    WarehouseShippingZoneUnassign,
 )
 from ..utils import sort_queryset
-from .sorters import (
-    WarehouseSortField,
-    WarehouseSortingInput,
-)
+from .sorters import WarehouseSortField, WarehouseSortingInput
 from .types import Stock, Warehouse
 
 
@@ -62,6 +61,8 @@ class WarehouseMutations(graphene.ObjectType):
     create_warehouse = WarehouseCreate.Field()
     update_warehouse = WarehouseUpdate.Field()
     delete_warehouse = WarehouseDelete.Field()
+    assign_warehouse_shipping_zone = WarehouseShippingZoneAssign.Field()
+    unassign_warehouse_shipping_zone = WarehouseShippingZoneUnassign.Field()
 
 
 class StockQueries(graphene.ObjectType):
@@ -71,7 +72,7 @@ class StockQueries(graphene.ObjectType):
         id=graphene.ID(required=True, description="ID of an warehouse"),
     )
     stocks = FilterInputConnectionField(
-        Stock, description="List of stocks.", filter=StockFilterInput(),
+        Stock, description="List of stocks.", filter=StockFilterInput()
     )
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
