@@ -483,9 +483,10 @@ def test_create_attribute_with_given_slug(
         mutation createAttribute(
             $name: String!, $slug: String) {
         attributeCreate(input: {name: $name, slug: $slug}) {
-            errors {
+            productErrors {
                 field
                 message
+                code
             }
             attribute {
                 slug
@@ -498,7 +499,7 @@ def test_create_attribute_with_given_slug(
     variables = {"name": attribute_name, "slug": input_slug}
     content = get_graphql_content(staff_api_client.post_graphql(query, variables))
 
-    assert not content["data"]["attributeCreate"]["errors"]
+    assert not content["data"]["attributeCreate"]["productErrors"]
     assert content["data"]["attributeCreate"]["attribute"]["slug"] == expected_slug
 
 
@@ -709,7 +710,7 @@ def test_update_attribute_slug(
     content = get_graphql_content(response)
     attribute.refresh_from_db()
     data = content["data"]["attributeUpdate"]
-    errors = data["errors"]
+    errors = data["productErrors"]
     if not error_message:
         assert data["attribute"]["name"] == name == attribute.name
         assert data["attribute"]["slug"] == input_slug == attribute.slug
@@ -717,7 +718,7 @@ def test_update_attribute_slug(
         assert errors
         assert data["attribute"] is None
         assert errors[0]["field"] == "slug"
-        assert errors[0]["message"] == error_message
+        assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
 
 
 def test_update_attribute_slug_exists(
@@ -744,12 +745,12 @@ def test_update_attribute_slug_exists(
     content = get_graphql_content(response)
     attribute.refresh_from_db()
     data = content["data"]["attributeUpdate"]
-    errors = data["errors"]
+    errors = data["productErrors"]
 
     assert errors
     assert data["attribute"] is None
     assert errors[0]["field"] == "slug"
-    assert errors[0]["message"] == "Attribute with this Slug already exists."
+    assert errors[0]["code"] == ProductErrorCode.UNIQUE.name
 
 
 @pytest.mark.parametrize(
@@ -812,14 +813,14 @@ def test_update_attribute_slug_and_name(
     content = get_graphql_content(response)
     attribute.refresh_from_db()
     data = content["data"]["attributeUpdate"]
-    errors = data["errors"]
+    errors = data["productErrors"]
     if not error_message:
         assert data["attribute"]["name"] == input_name == attribute.name
         assert data["attribute"]["slug"] == input_slug == attribute.slug
     else:
         assert errors
         assert errors[0]["field"] == error_field
-        assert errors[0]["message"] == error_message
+        assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
 
 
 @pytest.mark.parametrize(
