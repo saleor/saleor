@@ -655,6 +655,14 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
 class CheckoutComplete(BaseMutation):
     order = graphene.Field(Order, description="Placed order.")
+    confirmation_needed = graphene.Boolean(
+        required=True,
+        default_value=False,
+        description=(
+            "Set to true if payment needs to be confirmed"
+            " before checkout is complete."
+        ),
+    )
 
     class Arguments:
         checkout_id = graphene.ID(description="Checkout ID.", required=True)
@@ -676,7 +684,10 @@ class CheckoutComplete(BaseMutation):
         description = (
             "Completes the checkout. As a result a new order is created and "
             "a payment charge is made. This action requires a successful "
-            "payment before it can be performed."
+            "payment before it can be performed. "
+            "In case additional confirmation step as 3D secure is required "
+            "confirmationNeeded flag will be set to True and no order created "
+            "until payment is confirmed with second call of this mutation."
         )
         error_type_class = CheckoutError
         error_type_field = "checkout_errors"
@@ -736,10 +747,14 @@ class CheckoutComplete(BaseMutation):
         if shipping_address is not None:
             shipping_address = AddressData(**shipping_address.as_data())
 
+        payment_confirmation = payment.to_confirm
         try:
-            txn = gateway.process_payment(
-                payment=payment, token=payment.token, store_source=store_source
-            )
+            if payment_confirmation:
+                txn = gateway.confirm(payment)
+            else:
+                txn = gateway.process_payment(
+                    payment=payment, token=payment.token, store_source=store_source
+                )
 
             if not txn.is_success:
                 raise PaymentError(txn.error)
@@ -760,19 +775,23 @@ class CheckoutComplete(BaseMutation):
                     {"redirect_url": error}, code=AccountErrorCode.INVALID
                 )
 
-        # create the order into the database
-        order = create_order(
-            checkout=checkout,
-            order_data=order_data,
-            user=user,
-            redirect_url=redirect_url,
-        )
+        order = None
+        if not txn.action_required:
+            # create the order into the database
+            order = create_order(
+                checkout=checkout,
+                order_data=order_data,
+                user=user,
+                redirect_url=redirect_url,
+            )
 
-        # remove checkout after order is successfully paid
-        checkout.delete()
+            # remove checkout after order is successfully paid
+            checkout.delete()
 
-        # return the success response with the newly created order data
-        return CheckoutComplete(order=order)
+            # return the success response with the newly created order data
+            return CheckoutComplete(order=order, confirmation_needed=False)
+
+        return CheckoutComplete(order=None, confirmation_needed=True)
 
 
 class CheckoutAddPromoCode(BaseMutation):

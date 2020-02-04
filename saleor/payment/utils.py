@@ -116,6 +116,7 @@ def create_transaction(
     payment: Payment,
     kind: str,
     payment_information: PaymentData,
+    action_required: bool = False,
     gateway_response: GatewayResponse = None,
     error_msg=None,
 ) -> Transaction:
@@ -136,6 +137,7 @@ def create_transaction(
 
     txn = Transaction.objects.create(
         payment=payment,
+        action_required=action_required,
         kind=gateway_response.kind,
         token=gateway_response.transaction_id,
         is_success=gateway_response.is_success,
@@ -188,6 +190,11 @@ def validate_gateway_response(response: GatewayResponse):
 @transaction.atomic
 def gateway_postprocess(transaction, payment):
     if not transaction.is_success:
+        return
+
+    if transaction.action_required:
+        payment.to_confirm = True
+        payment.save(update_fields=["to_confirm"])
         return
 
     transaction_kind = transaction.kind

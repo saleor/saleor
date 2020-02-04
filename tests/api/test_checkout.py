@@ -1,5 +1,5 @@
-import uuid
 from decimal import Decimal
+import uuid
 from unittest import mock
 from unittest.mock import ANY, patch
 
@@ -1180,6 +1180,7 @@ MUTATION_CHECKOUT_COMPLETE = """
                 field,
                 message
             }
+            confirmationNeeded
         }
     }
     """
@@ -1291,13 +1292,13 @@ def fake_manager(mocker):
 
 @pytest.fixture
 def mock_get_manager(mocker, fake_manager):
-    mgr = mocker.patch(
+    manager = mocker.patch(
         "saleor.payment.gateway.get_extensions_manager",
         autospec=True,
         return_value=fake_manager,
     )
     yield fake_manager
-    mgr.assert_called_once()
+    manager.assert_called_once()
 
 
 def test_checkout_complete_does_not_delete_checkout_after_unsuccessful_payment(
@@ -1380,6 +1381,111 @@ def test_checkout_complete_no_payment(
         "Provided payment methods can not cover the checkout's total amount"
     )
     assert orders_count == Order.objects.count()
+
+
+ACTION_REQUIRED_GATEWAY_RESPONSE = GatewayResponse(
+    is_success=True,
+    action_required=True,
+    kind=TransactionKind.CAPTURE,
+    amount=Decimal(3.0),
+    currency="usd",
+    transaction_id="1234",
+    error=None,
+)
+
+TRANSACTION_CONFIRM_GATEWAY_RESPONSE = GatewayResponse(
+    is_success=False,
+    action_required=False,
+    kind=TransactionKind.CONFIRM,
+    amount=Decimal(3.0),
+    currency="usd",
+    transaction_id="1234",
+    error=None,
+)
+
+
+def test_checkout_complete_confirmation_needed(
+    mock_get_manager,
+    user_api_client,
+    checkout_with_item,
+    address,
+    payment_dummy,
+    shipping_method,
+):
+    mock_get_manager.process_payment.return_value = ACTION_REQUIRED_GATEWAY_RESPONSE
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    total = calculations.checkout_total(checkout)
+    payment = payment_dummy
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    orders_count = Order.objects.count()
+
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+    assert not data["errors"]
+    assert data["confirmationNeeded"] is True
+
+    new_orders_count = Order.objects.count()
+    assert new_orders_count == orders_count
+    checkout.refresh_from_db()
+    payment_dummy.refresh_from_db()
+    assert payment_dummy.is_active
+    assert payment_dummy.to_confirm
+
+
+def test_checkout_confirm(
+    user_api_client,
+    mock_get_manager,
+    checkout_with_item,
+    payment_txn_to_confirm,
+    address,
+    shipping_method,
+):
+    mock_get_manager.confirm_payment.return_value = ACTION_REQUIRED_GATEWAY_RESPONSE
+
+    checkout = checkout_with_item
+    checkout.shipping_address = address
+    checkout.shipping_method = shipping_method
+    checkout.billing_address = address
+    checkout.save()
+
+    total = calculations.checkout_total(checkout)
+    payment = payment_txn_to_confirm
+    payment.is_active = True
+    payment.order = None
+    payment.total = total.gross.amount
+    payment.currency = total.gross.currency
+    payment.checkout = checkout
+    payment.save()
+
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+    orders_count = Order.objects.count()
+
+    variables = {"checkoutId": checkout_id, "redirectUrl": "https://www.example.com"}
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_COMPLETE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutComplete"]
+
+    assert not data["errors"]
+    assert not data["confirmationNeeded"]
+
+    mock_get_manager.confirm_payment.assert_called_once()
+
+    new_orders_count = Order.objects.count()
+    assert new_orders_count == orders_count + 1
 
 
 def test_checkout_complete_insufficient_stock(
