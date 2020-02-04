@@ -20,7 +20,7 @@ class WarehouseAddressInput(graphene.InputObjectType):
 
 
 class WarehouseInput(graphene.InputObjectType):
-    slug = graphene.String(description="Waregouse slug.")
+    slug = graphene.String(description="Warehouse slug.")
     company_name = graphene.String(description="Company name.")
     shipping_zones = graphene.List(
         graphene.ID, description="Shipping zones supported by the warehouse."
