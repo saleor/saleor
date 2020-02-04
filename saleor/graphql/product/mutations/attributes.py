@@ -171,15 +171,9 @@ class AttributeMixin:
             cleaned_input = validate_slug_and_generate_if_needed(
                 instance, "name", cleaned_input
             )
-        except ValidationError:
-            raise ValidationError(
-                {
-                    "slug": ValidationError(
-                        "Slug value cannot be blank.",
-                        code=ProductErrorCode.REQUIRED.value,
-                    )
-                }
-            )
+        except ValidationError as error:
+            error.code = ProductErrorCode.REQUIRED.value
+            raise ValidationError({"slug": error})
 
         return cleaned_input
 
