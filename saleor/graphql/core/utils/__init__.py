@@ -76,7 +76,7 @@ def validate_slug_and_generate_if_needed(
     cleaned_input: dict,
     slug_field_name: str = "slug",
 ) -> dict:
-    """Validate slug from input amd generate in create mutation if is not given."""
+    """Validate slug from input and generate in create mutation if is not given."""
     # update mutation - just check if value is not empty
     if getattr(instance, slug_field_name):
         validate_slug_value(cleaned_input)
