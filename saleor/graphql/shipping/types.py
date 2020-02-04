@@ -2,12 +2,15 @@ import graphene
 import graphene_django_optimizer as gql_optimizer
 from graphene import relay
 
+from ...core.permissions import ProductPermissions
 from ...shipping import models
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import CountryDisplay, MoneyRange
+from ..decorators import permission_required
 from ..translations.fields import TranslationField
 from ..translations.types import ShippingMethodTranslation
 from .enums import ShippingMethodTypeEnum
+from ..warehouse.types import Warehouse
 
 
 class ShippingMethod(CountableDjangoObjectType):
@@ -51,6 +54,9 @@ class ShippingZone(CountableDjangoObjectType):
         ),
         model_field="shipping_methods",
     )
+    warehouses = graphene.List(
+        Warehouse, description="List of warehouses for shipping zone."
+    )
 
     class Meta:
         description = (
@@ -76,3 +82,8 @@ class ShippingZone(CountableDjangoObjectType):
     @staticmethod
     def resolve_shipping_methods(root: models.ShippingZone, *_args):
         return root.shipping_methods.all()
+
+    @staticmethod
+    @permission_required(ProductPermissions.MANAGE_PRODUCTS)
+    def resolve_warehouses(root: models.ShippingZone, *_args):
+        return root.warehouses.all()

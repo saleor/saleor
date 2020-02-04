@@ -14,8 +14,8 @@ def validate_warehouse_count(shipping_zones, instance: Warehouse) -> bool:
         ShippingZone.objects.filter(
             id__in=[shipping_zone.id for shipping_zone in shipping_zones]
         )
-        .filter(warehouse__isnull=False)
-        .values_list("warehouse", flat=True)
+        .filter(warehouses__isnull=False)
+        .values_list("warehouses", flat=True)
     )
     if not bool(warehouses):
         return True

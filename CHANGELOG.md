@@ -61,6 +61,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Allow sorting warehouses by name - #5211 by @dominik-zeglen
 - Add anonymization to GraphQL's `webhookSamplePayload` endpoint - #5161 @derenio
 - Add slug to Warehouse, Product, ProductType and update slug in models which already using it - #5196 by @IKarbowiak
+- Add mutation for assigning, unassigning shipping zones to warehouse - #5217 by @kswiatek92
 
 ## 2.9.0
 
