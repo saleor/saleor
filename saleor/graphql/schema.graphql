@@ -2109,6 +2109,8 @@ type Mutation {
   createWarehouse(input: WarehouseCreateInput!): WarehouseCreate
   updateWarehouse(id: ID!, input: WarehouseUpdateInput!): WarehouseUpdate
   deleteWarehouse(id: ID!): WarehouseDelete
+  assignWarehouseShippingZone(id: ID!, shippingZoneIds: [ID!]!): WarehouseShippingZoneAssign
+  unassignWarehouseShippingZone(id: ID!, shippingZoneIds: [ID!]!): WarehouseShippingZoneUnassign
   createStock(input: StockInput!): StockCreate
   updateStock(id: ID!, input: StockInput!): StockUpdate
   deleteStock(id: ID!): StockDelete
@@ -3997,6 +3999,7 @@ type ShippingZone implements Node {
   priceRange: MoneyRange
   countries: [CountryDisplay]
   shippingMethods: [ShippingMethod]
+  warehouses: [Warehouse]
 }
 
 type ShippingZoneBulkDelete {
@@ -4740,9 +4743,9 @@ type WarehouseCreate {
 input WarehouseCreateInput {
   name: String!
   companyName: String
-  shippingZones: [ID]
   email: String
   address: WarehouseAddressInput!
+  shippingZones: [ID]
 }
 
 type WarehouseDelete {
@@ -4770,6 +4773,18 @@ input WarehouseFilterInput {
   search: String
 }
 
+type WarehouseShippingZoneAssign {
+  errors: [Error!]
+  warehouse: Warehouse
+  warehouseErrors: [WarehouseError!]
+}
+
+type WarehouseShippingZoneUnassign {
+  errors: [Error!]
+  warehouse: Warehouse
+  warehouseErrors: [WarehouseError!]
+}
+
 enum WarehouseSortField {
   NAME
 }
@@ -4788,7 +4803,6 @@ type WarehouseUpdate {
 input WarehouseUpdateInput {
   name: String!
   companyName: String
-  shippingZones: [ID]
   email: String
   address: WarehouseAddressInput
 }

@@ -644,7 +644,7 @@ def product_with_single_variant(product_type, category, warehouse):
         is_published=True,
     )
     variant = ProductVariant.objects.create(
-        product=product, sku="SKU_SINGLE_VARIANT", cost_price=Money("1.00", "USD"),
+        product=product, sku="SKU_SINGLE_VARIANT", cost_price=Money("1.00", "USD")
     )
     Stock.objects.create(
         product_variant=variant, warehouse=warehouse, quantity=101, quantity_allocated=1
@@ -983,7 +983,7 @@ def voucher_specific_product_type(voucher_percentage):
 @pytest.fixture
 def voucher_with_high_min_spent_amount():
     return Voucher.objects.create(
-        code="mirumee", discount_value=10, min_spent=Money(1000000, "USD")
+        code="mirumee", discount_value=10, min_spent=Money(1_000_000, "USD")
     )
 
 
@@ -1846,6 +1846,14 @@ def warehouse(address, shipping_zone):
     )
     warehouse.shipping_zones.add(shipping_zone)
     warehouse.save()
+    return warehouse
+
+
+@pytest.fixture
+def warehouse_wo_shipping_zone(address, shipping_zone):
+    warehouse = Warehouse.objects.create(
+        address=address, name="Example Warehouse", email="test@example.com"
+    )
     return warehouse
 
 

@@ -60,6 +60,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Unify permission for service account api client in test - #5197 by @fowczarek
 - Allow sorting warehouses by name - #5211 by @dominik-zeglen
 - Add anonymization to GraphQL's `webhookSamplePayload` endpoint - #5161 @derenio
+- Add mutation for assigning, unassigning shipping zones to warehouse - #5217 by @kswiatek92
 
 ## 2.9.0
 
