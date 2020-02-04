@@ -155,11 +155,9 @@ def test_page_create_required_fields(staff_api_client, permission_manage_pages):
     content = get_graphql_content(response)
     errors = content["data"]["pageCreate"]["pageErrors"]
 
-    err_msg = "This field cannot be blank."
-    title_error = {"field": "title", "message": err_msg}
-
     assert len(errors) == 1
-    assert title_error in errors
+    assert errors[0]["field"] == "title"
+    assert errors[0]["code"] == PageErrorCode.REQUIRED.name
 
 
 def test_create_default_slug(staff_api_client, permission_manage_pages):
