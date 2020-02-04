@@ -6,6 +6,7 @@ import pytest
 from django.template.defaultfilters import slugify
 from graphql_relay import to_global_id
 
+from saleor.product.error_codes import ProductErrorCode
 from saleor.product.models import Category
 from tests.api.utils import get_graphql_content, get_multipart_request_body
 from tests.utils import create_image, create_pdf_file_with_image_ext
@@ -164,9 +165,10 @@ def test_create_category_with_given_slug(
                     name
                     slug
                 }
-                errors {
+                productErrors {
                     field
                     message
+                    code
                 }
             }
         }
@@ -178,7 +180,7 @@ def test_create_category_with_given_slug(
     )
     content = get_graphql_content(response)
     data = content["data"]["categoryCreate"]
-    assert not data["errors"]
+    assert not data["productErrors"]
     assert data["category"]["slug"] == expected_slug
 
 
@@ -195,9 +197,10 @@ def test_category_create_mutation_without_background_image(
                 },
                 parent: $parentId
             ) {
-                errors {
+                productErrors {
                     field
                     message
+                    code
                 }
             }
         }
@@ -224,7 +227,7 @@ def test_category_create_mutation_without_background_image(
     )
     content = get_graphql_content(response)
     data = content["data"]["categoryCreate"]
-    assert data["errors"] == []
+    assert data["productErrors"] == []
     assert mock_create_thumbnails.call_count == 0
 
 
@@ -401,9 +404,10 @@ UPDATE_CATEGORY_SLUG_MUTATION = """
                 name
                 slug
             }
-            errors {
+            productErrors {
                 field
                 message
+                code
             }
         }
     }
@@ -438,14 +442,14 @@ def test_update_category_slug(
     )
     content = get_graphql_content(response)
     data = content["data"]["categoryUpdate"]
-    errors = data["errors"]
+    errors = data["productErrors"]
     if not error_message:
         assert not errors
         assert data["category"]["slug"] == expected_slug
     else:
         assert errors
         assert errors[0]["field"] == "slug"
-        assert errors[0]["message"] == error_message
+        assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
 
 
 def test_update_category_slug_exists(
@@ -468,10 +472,10 @@ def test_update_category_slug_exists(
     )
     content = get_graphql_content(response)
     data = content["data"]["categoryUpdate"]
-    errors = data["errors"]
+    errors = data["productErrors"]
     assert errors
     assert errors[0]["field"] == "slug"
-    assert errors[0]["message"] == "Category with this Slug already exists."
+    assert errors[0]["code"] == ProductErrorCode.UNIQUE.name
 
 
 @pytest.mark.parametrize(
@@ -508,9 +512,10 @@ def test_update_category_slug_and_name(
                     name
                     slug
                 }
-                errors {
+                productErrors {
                     field
                     message
+                    code
                 }
             }
         }
@@ -530,14 +535,14 @@ def test_update_category_slug_and_name(
     content = get_graphql_content(response)
     category.refresh_from_db()
     data = content["data"]["categoryUpdate"]
-    errors = data["errors"]
+    errors = data["productErrors"]
     if not error_message:
         assert data["category"]["name"] == input_name == category.name
         assert data["category"]["slug"] == input_slug == category.slug
     else:
         assert errors
         assert errors[0]["field"] == error_field
-        assert errors[0]["message"] == error_message
+        assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
 
 
 MUTATION_CATEGORY_DELETE = """

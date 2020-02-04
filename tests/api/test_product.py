@@ -1362,9 +1362,10 @@ UPDATE_PRODUCT_SLUG_MUTATION = """
                 name
                 slug
             }
-            errors {
+            productErrors {
                 field
                 message
+                code
             }
         }
     }
@@ -1399,14 +1400,14 @@ def test_update_product_slug(
     )
     content = get_graphql_content(response)
     data = content["data"]["productUpdate"]
-    errors = data["errors"]
+    errors = data["productErrors"]
     if not error_message:
         assert not errors
         assert data["product"]["slug"] == expected_slug
     else:
         assert errors
         assert errors[0]["field"] == "slug"
-        assert errors[0]["message"] == error_message
+        assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
 
 
 def test_update_product_slug_exists(
@@ -1429,10 +1430,10 @@ def test_update_product_slug_exists(
     )
     content = get_graphql_content(response)
     data = content["data"]["productUpdate"]
-    errors = data["errors"]
+    errors = data["productErrors"]
     assert errors
     assert errors[0]["field"] == "slug"
-    assert errors[0]["message"] == "Product with this Slug already exists."
+    assert errors[0]["code"] == ProductErrorCode.UNIQUE.name
 
 
 @pytest.mark.parametrize(
@@ -1469,9 +1470,10 @@ def test_update_product_slug_and_name(
                     name
                     slug
                 }
-                errors {
+                productErrors {
                     field
                     message
+                    code
                 }
             }
         }
@@ -1491,14 +1493,14 @@ def test_update_product_slug_and_name(
     content = get_graphql_content(response)
     product.refresh_from_db()
     data = content["data"]["productUpdate"]
-    errors = data["errors"]
+    errors = data["productErrors"]
     if not error_message:
         assert data["product"]["name"] == input_name == product.name
         assert data["product"]["slug"] == input_slug == product.slug
     else:
         assert errors
         assert errors[0]["field"] == error_field
-        assert errors[0]["message"] == error_message
+        assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
 
 
 SET_ATTRIBUTES_TO_PRODUCT_QUERY = """
@@ -2092,9 +2094,10 @@ def test_create_product_type_with_given_slug(
                     name
                     slug
                 }
-                errors {
+                productErrors {
                     field
                     message
+                    code
                 }
             }
         }
@@ -2106,7 +2109,7 @@ def test_create_product_type_with_given_slug(
     )
     content = get_graphql_content(response)
     data = content["data"]["productTypeCreate"]
-    assert not data["errors"]
+    assert not data["productErrors"]
     assert data["productType"]["slug"] == expected_slug
 
 
@@ -2190,9 +2193,10 @@ UPDATE_PRODUCT_TYPE_SLUG_MUTATION = """
                 name
                 slug
             }
-            errors {
+            productErrors {
                 field
                 message
+                code
             }
         }
     }
@@ -2227,14 +2231,14 @@ def test_update_product_type_slug(
     )
     content = get_graphql_content(response)
     data = content["data"]["productTypeUpdate"]
-    errors = data["errors"]
+    errors = data["productErrors"]
     if not error_message:
         assert not errors
         assert data["productType"]["slug"] == expected_slug
     else:
         assert errors
         assert errors[0]["field"] == "slug"
-        assert errors[0]["message"] == error_message
+        assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
 
 
 def test_update_product_type_slug_exists(
@@ -2257,10 +2261,10 @@ def test_update_product_type_slug_exists(
     )
     content = get_graphql_content(response)
     data = content["data"]["productTypeUpdate"]
-    errors = data["errors"]
+    errors = data["productErrors"]
     assert errors
     assert errors[0]["field"] == "slug"
-    assert errors[0]["message"] == "Product type with this Slug already exists."
+    assert errors[0]["code"] == ProductErrorCode.UNIQUE.name
 
 
 @pytest.mark.parametrize(
@@ -2297,9 +2301,10 @@ def test_update_product_type_slug_and_name(
                     name
                     slug
                 }
-                errors {
+                productErrors {
                     field
                     message
+                    code
                 }
             }
         }
@@ -2319,14 +2324,14 @@ def test_update_product_type_slug_and_name(
     content = get_graphql_content(response)
     product_type.refresh_from_db()
     data = content["data"]["productTypeUpdate"]
-    errors = data["errors"]
+    errors = data["productErrors"]
     if not error_message:
         assert data["productType"]["name"] == input_name == product_type.name
         assert data["productType"]["slug"] == input_slug == product_type.slug
     else:
         assert errors
         assert errors[0]["field"] == error_field
-        assert errors[0]["message"] == error_message
+        assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
 
 
 def test_product_type_delete_mutation(
