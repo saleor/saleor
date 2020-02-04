@@ -2729,12 +2729,28 @@ type PageCountableEdge {
 
 type PageCreate {
   errors: [Error!]
+  pageErrors: [PageError!]
   page: Page
 }
 
 type PageDelete {
   errors: [Error!]
+  pageErrors: [PageError!]
   page: Page
+}
+
+type PageError {
+  field: String
+  message: String
+  code: PageErrorCode
+}
+
+enum PageErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
 }
 
 input PageFilterInput {
@@ -2807,6 +2823,7 @@ input PageTranslationInput {
 
 type PageUpdate {
   errors: [Error!]
+  pageErrors: [PageError!]
   page: Page
 }
 

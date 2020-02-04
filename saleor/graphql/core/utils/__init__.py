@@ -95,5 +95,5 @@ def validate_slug_value(cleaned_input, slug_field_name: str = "slug"):
         slug = cleaned_input[slug_field_name]
         if not slug:
             raise ValidationError(
-                f"{slug_field_name} cannot by blank.", code="required"
+                f"{slug_field_name.capitalize()} value cannot be blank."
             )

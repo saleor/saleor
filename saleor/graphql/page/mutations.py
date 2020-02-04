@@ -3,8 +3,9 @@ from django.core.exceptions import ValidationError
 
 from ...core.permissions import PagePermissions
 from ...page import models
+from ...page.error_codes import PageErrorCode
 from ..core.mutations import ModelDeleteMutation, ModelMutation
-from ..core.types.common import SeoInput
+from ..core.types.common import PageError, SeoInput
 from ..core.utils import clean_seo_fields, validate_slug_and_generate_if_needed
 
 
@@ -34,6 +35,8 @@ class PageCreate(ModelMutation):
         description = "Creates a new page."
         model = models.Page
         permissions = (PagePermissions.MANAGE_PAGES,)
+        error_type_class = PageError
+        error_type_field = "page_errors"
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -42,13 +45,9 @@ class PageCreate(ModelMutation):
             cleaned_input = validate_slug_and_generate_if_needed(
                 instance, "title", cleaned_input
             )
-        except ValidationError:
+        except ValidationError as e:
             raise ValidationError(
-                {
-                    "slug": ValidationError(
-                        "Slug value cannot be blank.", code="required"
-                    )
-                }
+                {"slug": ValidationError(e.message, code=PageErrorCode.REQUIRED)}
             )
         clean_seo_fields(cleaned_input)
         return cleaned_input
@@ -65,6 +64,8 @@ class PageUpdate(PageCreate):
         description = "Updates an existing page."
         model = models.Page
         permissions = (PagePermissions.MANAGE_PAGES,)
+        error_type_class = PageError
+        error_type_field = "page_errors"
 
 
 class PageDelete(ModelDeleteMutation):
@@ -75,3 +76,5 @@ class PageDelete(ModelDeleteMutation):
         description = "Deletes a page."
         model = models.Page
         permissions = (PagePermissions.MANAGE_PAGES,)
+        error_type_class = PageError
+        error_type_field = "page_errors"
