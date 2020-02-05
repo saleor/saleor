@@ -125,6 +125,10 @@ def generate_unique_slug(
 ) -> str:
     """Create unique slug for model instance.
 
+    The function uses `django.utils.text.slugify` to generate a slug from
+    the `slugable_value` of model field. If the slug already exists it adds
+    a numeric suffix and increments it until a unique value is found.
+
     Args:
         instance: model instance for which slug is created
         slugable_value: value used to create slug
