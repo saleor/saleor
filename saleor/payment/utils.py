@@ -7,11 +7,11 @@ from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
 
-from ..account.models import Address
 from ..checkout.models import Checkout
 from ..order.actions import handle_fully_paid_order
 from ..order.models import Order
 from . import ChargeStatus, GatewayError, PaymentError, TransactionKind
+from .error_codes import PaymentErrorCode
 from .interface import AddressData, GatewayResponse, PaymentData
 from .models import Payment, Transaction
 
@@ -67,7 +67,6 @@ def create_payment(
     total: Decimal,
     currency: str,
     email: str,
-    billing_address: Address,
     customer_ip_address: str = "",
     payment_token: str = "",
     extra_data: Dict = None,
@@ -79,6 +78,32 @@ def create_payment(
     This method is responsible for creating payment instances that works for
     both Django views and GraphQL mutations.
     """
+
+    if extra_data is None:
+        extra_data = {}
+
+    data = {
+        "is_active": True,
+        "customer_ip_address": customer_ip_address,
+        "extra_data": extra_data,
+        "token": payment_token,
+    }
+
+    if checkout:
+        data["checkout"] = checkout
+        billing_address = checkout.billing_address
+    elif order:
+        data["order"] = order
+        billing_address = order.billing_address
+    else:
+        raise TypeError("Must provide checkout or order to create a payment.")
+
+    if not billing_address:
+        raise PaymentError(
+            "Order does not have a billing address.",
+            code=PaymentErrorCode.BILLING_ADDRESS_NOT_SET.value,
+        )
+
     defaults = {
         "billing_email": email,
         "billing_first_name": billing_address.first_name,
@@ -94,21 +119,6 @@ def create_payment(
         "gateway": gateway,
         "total": total,
     }
-
-    if extra_data is None:
-        extra_data = {}
-
-    data = {
-        "is_active": True,
-        "customer_ip_address": customer_ip_address,
-        "extra_data": extra_data,
-        "token": payment_token,
-    }
-
-    if order is not None:
-        data["order"] = order
-    if checkout is not None:
-        data["checkout"] = checkout
 
     payment, _ = Payment.objects.get_or_create(defaults=defaults, **data)
     return payment

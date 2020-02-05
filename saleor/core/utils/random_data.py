@@ -427,7 +427,6 @@ def create_fake_payment(mock_email_confirmation, order):
         payment_token=str(uuid.uuid4()),
         total=order.total.gross.amount,
         currency=order.total.gross.currency,
-        billing_address=order.billing_address,
     )
 
     # Create authorization transaction
