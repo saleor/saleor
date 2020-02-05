@@ -9,6 +9,7 @@ from ..enums import (
     GiftCardErrorCode,
     MenuErrorCode,
     OrderErrorCode,
+    PageErrorCode,
     PaymentErrorCode,
     PermissionEnum,
     ProductErrorCode,
@@ -74,6 +75,10 @@ class ShopError(Error):
 
 class ShippingError(Error):
     code = ShippingErrorCode(description="The error code.")
+
+
+class PageError(Error):
+    code = PageErrorCode(description="The error code.")
 
 
 class PaymentError(Error):

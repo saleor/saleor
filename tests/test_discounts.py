@@ -136,6 +136,7 @@ def test_specific_products_voucher_checkout_discount(
 def test_sale_applies_to_correct_products(product_type, category):
     product = Product.objects.create(
         name="Test Product",
+        slug="test-product",
         price=Money(10, "USD"),
         description="",
         pk=111,
@@ -145,6 +146,7 @@ def test_sale_applies_to_correct_products(product_type, category):
     variant = ProductVariant.objects.create(product=product, sku="firstvar")
     product2 = Product.objects.create(
         name="Second product",
+        slug="second-product",
         price=Money(15, "USD"),
         description="",
         product_type=product_type,

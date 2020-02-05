@@ -17,7 +17,10 @@ from ...core.mutations import (
     UpdateMetaBaseMutation,
 )
 from ...core.types.common import ProductError
-from ...core.utils import from_global_id_strict_type
+from ...core.utils import (
+    from_global_id_strict_type,
+    validate_slug_and_generate_if_needed,
+)
 from ...core.utils.reordering import perform_reordering
 from ...product.types import ProductType
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
@@ -164,33 +167,13 @@ class AttributeMixin:
 
     @classmethod
     def clean_attribute(cls, instance, cleaned_input):
-        input_slug = cleaned_input.get("slug", None)
-        if input_slug is None:
-            cleaned_input["slug"] = slugify(cleaned_input["name"])
-        elif input_slug == "":
-            raise ValidationError(
-                {
-                    "slug": ValidationError(
-                        "The attribute's slug cannot be blank.",
-                        code=ProductErrorCode.REQUIRED,
-                    )
-                }
+        try:
+            cleaned_input = validate_slug_and_generate_if_needed(
+                instance, "name", cleaned_input
             )
-
-        query = models.Attribute.objects.filter(slug=cleaned_input["slug"])
-
-        if instance.pk:
-            query = query.exclude(pk=instance.pk)
-
-        if query.exists():
-            raise ValidationError(
-                {
-                    "slug": ValidationError(
-                        "This attribute's slug already exists.",
-                        code=ProductErrorCode.ALREADY_EXISTS,
-                    )
-                }
-            )
+        except ValidationError as error:
+            error.code = ProductErrorCode.REQUIRED.value
+            raise ValidationError({"slug": error})
 
         return cleaned_input
 
