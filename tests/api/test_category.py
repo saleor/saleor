@@ -6,6 +6,7 @@ import pytest
 from django.template.defaultfilters import slugify
 from graphql_relay import to_global_id
 
+from saleor.product.error_codes import ProductErrorCode
 from saleor.product.models import Category
 from tests.api.utils import get_graphql_content, get_multipart_request_body
 from tests.utils import create_image, create_pdf_file_with_image_ext
@@ -134,13 +135,53 @@ def test_category_create_mutation(
         "name": category_name,
         "description": category_description,
         "parentId": parent_id,
-        "slug": category_slug,
+        "slug": f"{category_slug}-2",
     }
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["categoryCreate"]
     assert data["errors"] == []
     assert data["category"]["parent"]["id"] == parent_id
+
+
+@pytest.mark.parametrize(
+    "input_slug, expected_slug",
+    (("test-slug", "test-slug"), (None, "test-category"), ("", "test-category"),),
+)
+def test_create_category_with_given_slug(
+    staff_api_client, permission_manage_products, input_slug, expected_slug
+):
+    query = """
+        mutation(
+                $name: String, $slug: String) {
+            categoryCreate(
+                input: {
+                    name: $name
+                    slug: $slug
+                }
+            ) {
+                category {
+                    id
+                    name
+                    slug
+                }
+                productErrors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    """
+    name = "Test category"
+    variables = {"name": name, "slug": input_slug}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["categoryCreate"]
+    assert not data["productErrors"]
+    assert data["category"]["slug"] == expected_slug
 
 
 def test_category_create_mutation_without_background_image(
@@ -156,9 +197,10 @@ def test_category_create_mutation_without_background_image(
                 },
                 parent: $parentId
             ) {
-                errors {
+                productErrors {
                     field
                     message
+                    code
                 }
             }
         }
@@ -185,7 +227,7 @@ def test_category_create_mutation_without_background_image(
     )
     content = get_graphql_content(response)
     data = content["data"]["categoryCreate"]
-    assert data["errors"] == []
+    assert data["productErrors"] == []
     assert mock_create_thumbnails.call_count == 0
 
 
@@ -348,6 +390,159 @@ def test_category_update_mutation_without_background_image(
     data = content["data"]["categoryUpdate"]
     assert data["errors"] == []
     assert mock_create_thumbnails.call_count == 0
+
+
+UPDATE_CATEGORY_SLUG_MUTATION = """
+    mutation($id: ID!, $slug: String) {
+        categoryUpdate(
+            id: $id
+            input: {
+                slug: $slug
+            }
+        ) {
+            category{
+                name
+                slug
+            }
+            productErrors {
+                field
+                message
+                code
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "input_slug, expected_slug, error_message",
+    [
+        ("test-slug", "test-slug", None),
+        ("", "", "Slug value cannot be blank."),
+        (None, "", "Slug value cannot be blank."),
+    ],
+)
+def test_update_category_slug(
+    staff_api_client,
+    category,
+    permission_manage_products,
+    input_slug,
+    expected_slug,
+    error_message,
+):
+    query = UPDATE_CATEGORY_SLUG_MUTATION
+    old_slug = category.slug
+
+    assert old_slug != input_slug
+
+    node_id = graphene.Node.to_global_id("Category", category.id)
+    variables = {"slug": input_slug, "id": node_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["categoryUpdate"]
+    errors = data["productErrors"]
+    if not error_message:
+        assert not errors
+        assert data["category"]["slug"] == expected_slug
+    else:
+        assert errors
+        assert errors[0]["field"] == "slug"
+        assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
+
+
+def test_update_category_slug_exists(
+    staff_api_client, category, permission_manage_products
+):
+    query = UPDATE_CATEGORY_SLUG_MUTATION
+    input_slug = "test-slug"
+
+    second_category = Category.objects.get(pk=category.pk)
+    second_category.pk = None
+    second_category.slug = input_slug
+    second_category.save()
+
+    assert input_slug != category.slug
+
+    node_id = graphene.Node.to_global_id("Category", category.id)
+    variables = {"slug": input_slug, "id": node_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["categoryUpdate"]
+    errors = data["productErrors"]
+    assert errors
+    assert errors[0]["field"] == "slug"
+    assert errors[0]["code"] == ProductErrorCode.UNIQUE.name
+
+
+@pytest.mark.parametrize(
+    "input_slug, expected_slug, input_name, error_message, error_field",
+    [
+        ("test-slug", "test-slug", "New name", None, None),
+        ("", "", "New name", "Slug value cannot be blank.", "slug"),
+        (None, "", "New name", "Slug value cannot be blank.", "slug"),
+        ("test-slug", "", None, "This field cannot be blank.", "name"),
+        ("test-slug", "", "", "This field cannot be blank.", "name"),
+        (None, None, None, "Slug value cannot be blank.", "slug"),
+    ],
+)
+def test_update_category_slug_and_name(
+    staff_api_client,
+    category,
+    permission_manage_products,
+    input_slug,
+    expected_slug,
+    input_name,
+    error_message,
+    error_field,
+):
+    query = """
+            mutation($id: ID!, $name: String, $slug: String) {
+            categoryUpdate(
+                id: $id
+                input: {
+                    name: $name
+                    slug: $slug
+                }
+            ) {
+                category{
+                    name
+                    slug
+                }
+                productErrors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    """
+
+    old_name = category.name
+    old_slug = category.slug
+
+    assert input_slug != old_slug
+    assert input_name != old_name
+
+    node_id = graphene.Node.to_global_id("Category", category.id)
+    variables = {"slug": input_slug, "name": input_name, "id": node_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    category.refresh_from_db()
+    data = content["data"]["categoryUpdate"]
+    errors = data["productErrors"]
+    if not error_message:
+        assert data["category"]["name"] == input_name == category.name
+        assert data["category"]["slug"] == input_slug == category.slug
+    else:
+        assert errors
+        assert errors[0]["field"] == error_field
+        assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
 
 
 MUTATION_CATEGORY_DELETE = """

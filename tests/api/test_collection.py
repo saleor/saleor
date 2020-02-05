@@ -4,9 +4,9 @@ from unittest.mock import Mock
 
 import graphene
 import pytest
-from django.utils.text import slugify
 from graphql_relay import to_global_id
 
+from saleor.product.error_codes import ProductErrorCode
 from saleor.product.models import Collection
 from tests.utils import create_image, create_pdf_file_with_image_ext
 
@@ -176,6 +176,46 @@ def test_create_collection_without_background_image(
     assert mock_create_thumbnails.call_count == 0
 
 
+@pytest.mark.parametrize(
+    "input_slug, expected_slug",
+    (("test-slug", "test-slug"), (None, "test-collection"), ("", "test-collection"),),
+)
+def test_create_collection_with_given_slug(
+    staff_api_client, permission_manage_products, input_slug, expected_slug
+):
+    query = """
+        mutation(
+                $name: String, $slug: String) {
+            collectionCreate(
+                input: {
+                    name: $name
+                    slug: $slug
+                }
+            ) {
+                collection {
+                    id
+                    name
+                    slug
+                }
+                productErrors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    """
+    name = "Test collection"
+    variables = {"name": name, "slug": input_slug}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["collectionCreate"]
+    assert not data["productErrors"]
+    assert data["collection"]["slug"] == expected_slug
+
+
 def test_update_collection(
     monkeypatch, staff_api_client, collection, permission_manage_products
 ):
@@ -327,6 +367,160 @@ def test_update_collection_invalid_background_image(
     assert data["errors"][0]["message"] == "Invalid file type"
 
 
+UPDATE_COLLECTION_SLUG_MUTATION = """
+    mutation($id: ID!, $slug: String) {
+        collectionUpdate(
+            id: $id
+            input: {
+                slug: $slug
+            }
+        ) {
+            collection{
+                name
+                slug
+            }
+            productErrors {
+                field
+                message
+                code
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "input_slug, expected_slug, error_message",
+    [
+        ("test-slug", "test-slug", None),
+        ("", "", "Slug value cannot be blank."),
+        (None, "", "Slug value cannot be blank."),
+    ],
+)
+def test_update_collection_slug(
+    staff_api_client,
+    collection,
+    permission_manage_products,
+    input_slug,
+    expected_slug,
+    error_message,
+):
+    query = UPDATE_COLLECTION_SLUG_MUTATION
+    old_slug = collection.slug
+
+    assert old_slug != input_slug
+
+    node_id = graphene.Node.to_global_id("Collection", collection.id)
+    variables = {"slug": input_slug, "id": node_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["collectionUpdate"]
+    errors = data["productErrors"]
+    if not error_message:
+        assert not errors
+        assert data["collection"]["slug"] == expected_slug
+    else:
+        assert errors
+        assert errors[0]["field"] == "slug"
+        assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
+
+
+def test_update_collection_slug_exists(
+    staff_api_client, collection, permission_manage_products
+):
+    query = UPDATE_COLLECTION_SLUG_MUTATION
+    input_slug = "test-slug"
+
+    second_collection = Collection.objects.get(pk=collection.pk)
+    second_collection.pk = None
+    second_collection.slug = input_slug
+    second_collection.name = "Second collection"
+    second_collection.save()
+
+    assert input_slug != collection.slug
+
+    node_id = graphene.Node.to_global_id("Collection", collection.id)
+    variables = {"slug": input_slug, "id": node_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["collectionUpdate"]
+    errors = data["productErrors"]
+    assert errors
+    assert errors[0]["field"] == "slug"
+    assert errors[0]["code"] == ProductErrorCode.UNIQUE.name
+
+
+@pytest.mark.parametrize(
+    "input_slug, expected_slug, input_name, error_message, error_field",
+    [
+        ("test-slug", "test-slug", "New name", None, None),
+        ("", "", "New name", "Slug value cannot be blank.", "slug"),
+        (None, "", "New name", "Slug value cannot be blank.", "slug"),
+        ("test-slug", "", None, "This field cannot be blank.", "name"),
+        ("test-slug", "", "", "This field cannot be blank.", "name"),
+        (None, None, None, "Slug value cannot be blank.", "slug"),
+    ],
+)
+def test_update_collection_slug_and_name(
+    staff_api_client,
+    collection,
+    permission_manage_products,
+    input_slug,
+    expected_slug,
+    input_name,
+    error_message,
+    error_field,
+):
+    query = """
+            mutation($id: ID!, $name: String, $slug: String) {
+            collectionUpdate(
+                id: $id
+                input: {
+                    name: $name
+                    slug: $slug
+                }
+            ) {
+                collection{
+                    name
+                    slug
+                }
+                productErrors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    """
+
+    old_name = collection.name
+    old_slug = collection.slug
+
+    assert input_slug != old_slug
+    assert input_name != old_name
+
+    node_id = graphene.Node.to_global_id("Collection", collection.id)
+    variables = {"slug": input_slug, "name": input_name, "id": node_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    collection.refresh_from_db()
+    data = content["data"]["collectionUpdate"]
+    errors = data["productErrors"]
+    if not error_message:
+        assert data["collection"]["name"] == input_name == collection.name
+        assert data["collection"]["slug"] == input_slug == collection.slug
+    else:
+        assert errors
+        assert errors[0]["field"] == error_field
+        assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
+
+
 def test_delete_collection(staff_api_client, collection, permission_manage_products):
     query = """
         mutation deleteCollection($id: ID!) {
@@ -347,32 +541,6 @@ def test_delete_collection(staff_api_client, collection, permission_manage_produ
     assert data["name"] == collection.name
     with pytest.raises(collection._meta.model.DoesNotExist):
         collection.refresh_from_db()
-
-
-def test_auto_create_slug_on_collection(
-    staff_api_client, product_list, permission_manage_products
-):
-    query = """
-        mutation createCollection(
-            $name: String!, $isPublished: Boolean!) {
-            collectionCreate(
-                input: {name: $name, isPublished: $isPublished}) {
-                collection {
-                    name
-                    slug
-                }
-            }
-        }
-    """
-    name = "test name123"
-    variables = {"name": name, "isPublished": True}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_products]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["collectionCreate"]["collection"]
-    assert data["name"] == name
-    assert data["slug"] == slugify(name)
 
 
 def test_add_products_to_collection(

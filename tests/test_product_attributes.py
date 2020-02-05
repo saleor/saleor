@@ -1,17 +1,10 @@
 from unittest.mock import MagicMock, Mock
 
 import pytest
-from django.utils.text import slugify
 from prices import Money
 
 from saleor.product import AttributeInputType
-from saleor.product.models import (
-    Attribute,
-    AttributeValue,
-    Product,
-    ProductType,
-    ProductVariant,
-)
+from saleor.product.models import AttributeValue, Product, ProductType, ProductVariant
 from saleor.product.tasks import _update_variants_names
 from saleor.product.utils.attributes import (
     associate_attribute_values_to_instance,
@@ -33,11 +26,6 @@ def variant_with_no_attributes(category):
     )
     variant = ProductVariant.objects.create(product=product, sku="123")
     return variant
-
-
-def test_generate_slug_in_attribute_value_save(color_attribute):
-    value = AttributeValue.objects.create(attribute=color_attribute, name="Yellow")
-    assert value.slug == slugify("Yellow")
 
 
 def test_generate_name_for_variant(
@@ -149,10 +137,3 @@ def test_associate_attribute_to_product_instance_without_values(product):
     # Ensure the values were cleared and no new assignment entry was created
     assert new_assignment.pk == old_assignment.pk
     assert new_assignment.values.count() == 0
-
-
-def test_get_formfield_name_with_unicode_characters(db):
-    text_attribute = Attribute.objects.create(slug="ąęαβδηθλμπ", name="ąęαβδηθλμπ")
-    assert text_attribute.get_formfield_name() == "attribute-ąęαβδηθλμπ-{}".format(
-        text_attribute.pk
-    )

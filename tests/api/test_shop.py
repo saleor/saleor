@@ -971,14 +971,14 @@ def test_staff_notification_create_mutation_with_customer_user(
 
 
 def test_staff_notification_create_mutation_with_email(
-    staff_api_client, permission_manage_settings
+    staff_api_client, permission_manage_settings, permission_manage_staff
 ):
     staff_email = "test_email@example.com"
     variables = {"input": {"email": staff_email}}
     response = staff_api_client.post_graphql(
         MUTATION_STAFF_NOTIFICATION_RECIPIENT_CREATE,
         variables,
-        permissions=[permission_manage_settings],
+        permissions=[permission_manage_settings, permission_manage_staff],
     )
     content = get_graphql_content(response)
 
