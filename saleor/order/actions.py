@@ -181,15 +181,11 @@ def mark_order_as_paid(order: "Order", request_user: "User"):
     # pylint: disable=cyclic-import
     from ..payment.utils import create_payment
 
-    if not order.billing_address:
-        raise Exception("Order does not have billing address")
-
     payment = create_payment(
         gateway=CustomPaymentChoices.MANUAL,
         payment_token="",
         currency=order.total.gross.currency,
         email=order.user_email,
-        billing_address=order.billing_address,
         total=order.total.gross.amount,
         order=order,
     )
