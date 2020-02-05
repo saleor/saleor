@@ -76,9 +76,9 @@ def menu_list():
 
 @pytest.fixture
 def product_type_list():
-    product_type_1 = ProductType.objects.create(name="Type 1")
-    product_type_2 = ProductType.objects.create(name="Type 2")
-    product_type_3 = ProductType.objects.create(name="Type 3")
+    product_type_1 = ProductType.objects.create(name="Type 1", slug="type-1")
+    product_type_2 = ProductType.objects.create(name="Type 2", slug="type-2")
+    product_type_3 = ProductType.objects.create(name="Type 3", slug="type-3")
     return product_type_1, product_type_2, product_type_3
 
 
@@ -210,6 +210,7 @@ def test_delete_categories_with_subcategories_and_products(
     category.save()
 
     parent_product = Product.objects.get(pk=product.pk)
+    parent_product.slug = "parent-product"
     parent_product.id = None
     parent_product.category = category_list[0]
     parent_product.save()

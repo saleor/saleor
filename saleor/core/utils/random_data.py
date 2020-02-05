@@ -14,6 +14,7 @@ from django.contrib.sites.models import Site
 from django.core.files import File
 from django.db.models import Q
 from django.utils import timezone
+from django.utils.text import slugify
 from faker import Factory
 from faker.providers import BaseProvider
 from measurement.measures import Weight
@@ -405,7 +406,7 @@ def create_fake_user(save=True):
         default_shipping_address=address,
         is_active=True,
         note=fake.paragraph(),
-        date_joined=fake.date_time(),
+        date_joined=fake.date_time(tzinfo=timezone.get_current_timezone()),
     )
 
     if save:
@@ -943,8 +944,10 @@ def create_shipping_zones():
 
 def create_warehouses():
     for shipping_zone in ShippingZone.objects.all():
+        shipping_zone_name = shipping_zone.name
         warehouse, _ = Warehouse.objects.update_or_create(
-            name=shipping_zone.name,
+            name=shipping_zone_name,
+            slug=slugify(shipping_zone_name),
             defaults={"company_name": fake.company(), "address": create_address()},
         )
         warehouse.shipping_zones.add(shipping_zone)
