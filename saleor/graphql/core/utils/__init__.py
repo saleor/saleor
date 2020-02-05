@@ -77,9 +77,9 @@ def validate_slug_and_generate_if_needed(
     slug_field_name: str = "slug",
 ) -> dict:
     """Validate slug from input and generate in create mutation if is not given."""
+
     # update mutation - just check if slug value is not empty
-    # we use _state.adding to checking if instance is saved because if pk has default
-    # value it is set before save
+    # _state.adding is True only when it's new not saved instance.
     if not instance._state.adding:  # type: ignore
         validate_slug_value(cleaned_input)
         return cleaned_input
