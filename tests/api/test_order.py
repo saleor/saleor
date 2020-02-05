@@ -1551,6 +1551,32 @@ def test_order_mark_as_paid(
     assert event_order_paid.user == staff_user
 
 
+def test_order_mark_as_paid_no_billing_address(
+    staff_api_client, permission_manage_orders, order_with_lines, staff_user
+):
+    order = order_with_lines
+    order_with_lines.billing_address = None
+    order_with_lines.save()
+
+    query = """
+            mutation markPaid($id: ID!) {
+                orderMarkAsPaid(id: $id) {
+                    orderErrors {
+                        code
+                    }
+                }
+            }
+        """
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderMarkAsPaid"]["orderErrors"]
+    assert data[0]["code"] == OrderErrorCode.BILLING_ADDRESS_NOT_SET.name
+
+
 ORDER_VOID = """
     mutation voidOrder($id: ID!) {
         orderVoid(id: $id) {
