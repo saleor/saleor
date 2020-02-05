@@ -406,7 +406,7 @@ def create_fake_user(save=True):
         default_shipping_address=address,
         is_active=True,
         note=fake.paragraph(),
-        date_joined=fake.date_time(),
+        date_joined=fake.date_time(tzinfo=timezone.get_current_timezone()),
     )
 
     if save:
