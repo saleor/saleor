@@ -7,6 +7,9 @@ class PaymentError(Exception):
         self.message = message
         self.code = code
 
+    def __str__(self):
+        return self.message
+
 
 class GatewayError(IOError):
     pass
