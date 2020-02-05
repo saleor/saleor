@@ -326,9 +326,18 @@ class OrderMarkAsPaid(BaseMutation):
         error_type_field = "order_errors"
 
     @classmethod
+    def clean_billing_address(cls, instance):
+        if not instance.billing_address:
+            raise ValidationError(
+                "Order billing address is required to mark order as paid.",
+                code=OrderErrorCode.BILLING_ADDRESS_NOT_SET,
+            )
+
+    @classmethod
     def perform_mutation(cls, _root, info, **data):
         order = cls.get_node_or_error(info, data.get("id"), only_type=Order)
 
+        cls.clean_billing_address(order)
         try_payment_action(
             order, info.context.user, None, clean_mark_order_as_paid, order
         )

@@ -114,9 +114,8 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
 
         checkout_total = cls.calculate_total(info, checkout)
         amount = data.get("amount", checkout_total.gross.amount)
-        billing_address = checkout.billing_address
 
-        cls.clean_billing_address(billing_address)
+        cls.clean_billing_address(checkout.billing_address)
         cls.clean_payment_amount(info, checkout_total, amount)
 
         extra_data = {"customer_user_agent": info.context.META.get("HTTP_USER_AGENT")}
@@ -127,7 +126,6 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
             total=amount,
             currency=settings.DEFAULT_CURRENCY,
             email=checkout.email,
-            billing_address=billing_address,
             extra_data=extra_data,
             customer_ip_address=get_client_ip(info.context),
             checkout=checkout,
