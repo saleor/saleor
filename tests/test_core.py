@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 from urllib.parse import urljoin
 
 import pytest
+from django.db.utils import DataError
 from django.templatetags.static import static
 from django.test import RequestFactory, override_settings
 from measurement.measures import Weight
@@ -16,6 +17,7 @@ from saleor.core.utils import (
     Country,
     build_absolute_uri,
     create_thumbnails,
+    generate_unique_slug,
     get_client_ip,
     get_country_by_ip,
     get_currency_for_country,
@@ -25,7 +27,7 @@ from saleor.core.weight import WeightUnits, convert_weight
 from saleor.discount.models import Sale, Voucher
 from saleor.giftcard.models import GiftCard
 from saleor.order.models import Order
-from saleor.product.models import ProductImage
+from saleor.product.models import ProductImage, ProductType
 from saleor.shipping.models import ShippingZone
 
 type_schema = {
@@ -248,3 +250,46 @@ def test_placeholder(settings):
     size = 60
     result = placeholder(size)
     assert result == "/static/" + settings.PLACEHOLDER_IMAGES[size]
+
+
+@pytest.mark.parametrize(
+    "product_name, slug_result",
+    [
+        ("Paint", "paint"),
+        ("paint", "paint-3"),
+        ("Default Type", "default-type"),
+        ("default type", "default-type-2"),
+        ("Shirt", "shirt"),
+        ("40.5", "405-2"),
+        ("FM1+", "fm1-2"),
+    ],
+)
+def test_generate_unique_slug_with_slugable_field(
+    product_type, product_name, slug_result
+):
+    product_names_and_slugs = [
+        ("Paint", "paint"),
+        ("Paint blue", "paint-blue"),
+        ("Paint test", "paint-2"),
+        ("405", "405"),
+        ("FM1", "fm1"),
+    ]
+    for name, slug in product_names_and_slugs:
+        ProductType.objects.create(name=name, slug=slug)
+
+    instance, _ = ProductType.objects.get_or_create(name=product_name)
+    result = generate_unique_slug(instance, instance.name)
+    assert result == slug_result
+
+
+def test_generate_unique_slug_for_slug_with_max_characters_number(category):
+    slug = "a" * 256
+    result = generate_unique_slug(category, slug)
+    category.slug = result
+    with pytest.raises(DataError):
+        category.save()
+
+
+def test_generate_unique_slug_non_slugable_value_and_slugable_field(category):
+    with pytest.raises(Exception):
+        generate_unique_slug(category)

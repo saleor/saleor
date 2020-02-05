@@ -11,6 +11,7 @@ from ...extensions.plugins.vatlayer import TaxRateType as CoreTaxRateType
 from ...giftcard import error_codes as giftcard_error_codes
 from ...menu import error_codes as menu_error_codes
 from ...order import error_codes as order_error_codes
+from ...page import error_codes as page_error_codes
 from ...payment import error_codes as payment_error_codes
 from ...product import error_codes as product_error_codes
 from ...shipping import error_codes as shipping_error_codes
@@ -92,6 +93,7 @@ ExtensionsErrorCode = graphene.Enum.from_enum(
 GiftCardErrorCode = graphene.Enum.from_enum(giftcard_error_codes.GiftCardErrorCode)
 MenuErrorCode = graphene.Enum.from_enum(menu_error_codes.MenuErrorCode)
 OrderErrorCode = graphene.Enum.from_enum(order_error_codes.OrderErrorCode)
+PageErrorCode = graphene.Enum.from_enum(page_error_codes.PageErrorCode)
 PaymentErrorCode = graphene.Enum.from_enum(payment_error_codes.PaymentErrorCode)
 ProductErrorCode = graphene.Enum.from_enum(product_error_codes.ProductErrorCode)
 ShopErrorCode = graphene.Enum.from_enum(shop_error_codes.ShopErrorCode)

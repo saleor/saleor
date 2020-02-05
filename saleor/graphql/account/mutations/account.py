@@ -33,7 +33,7 @@ class AccountRegisterInput(graphene.InputObjectType):
         description=(
             "Base of frontend URL that will be needed to create confirmation URL."
         ),
-        required=True,
+        required=False,
     )
 
 
@@ -65,12 +65,21 @@ class AccountRegister(ModelMutation):
 
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
+        if not settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL:
+            return super().clean_input(info, instance, data, input_cls=None)
+        elif not data.get("redirect_url"):
+            raise ValidationError(
+                {"redirect_url": "This field is required."},
+                code=AccountErrorCode.INVALID,
+            )
+
         try:
             validate_storefront_url(data["redirect_url"])
         except ValidationError as error:
             raise ValidationError(
                 {"redirect_url": error}, code=AccountErrorCode.INVALID
             )
+
         return super().clean_input(info, instance, data, input_cls=None)
 
     @classmethod

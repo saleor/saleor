@@ -1,6 +1,6 @@
 import graphene
 
-from ...core.permissions import OrderPermissions
+from ...core.permissions import CheckoutPermissions
 from ..core.fields import BaseDjangoConnectionField, PrefetchingConnectionField
 from ..decorators import permission_required
 from ..payment.mutations import CheckoutPaymentCreate
@@ -47,14 +47,14 @@ class CheckoutQueries(graphene.ObjectType):
     def resolve_checkout(self, *_args, token):
         return resolve_checkout(token)
 
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
+    @permission_required(CheckoutPermissions.MANAGE_CHECKOUTS)
     def resolve_checkouts(self, *_args, **_kwargs):
         resolve_checkouts()
 
     def resolve_checkout_line(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, CheckoutLine)
 
-    @permission_required(OrderPermissions.MANAGE_ORDERS)
+    @permission_required(CheckoutPermissions.MANAGE_CHECKOUTS)
     def resolve_checkout_lines(self, *_args, **_kwargs):
         return resolve_checkout_lines()
 

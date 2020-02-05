@@ -292,7 +292,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
                 root.stock.annotate_available_quantity().all(), info
             )
         return gql_optimizer.query(
-            root.stock.annotate_available_quantity().for_country("country").all(), info
+            root.stock.annotate_available_quantity().for_country(country).all(), info
         )
 
     @staticmethod
@@ -346,8 +346,6 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
             extensions=context.extensions,
         )
         return VariantPricingInfo(**asdict(availability))
-
-    resolve_availability = resolve_pricing
 
     @staticmethod
     def resolve_is_available(root: models.ProductVariant, info):
@@ -466,8 +464,6 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
     )
     translation = TranslationField(ProductTranslation, type_name="product")
 
-    slug = graphene.String(required=True, description="The slug of a product.")
-
     class Meta:
         description = "Represents an individual item for sale in the storefront."
         interfaces = [relay.Node]
@@ -480,6 +476,7 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
             "id",
             "is_published",
             "name",
+            "slug",
             "product_type",
             "publication_date",
             "seo_description",
@@ -523,12 +520,10 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
         )
         return ProductPricingInfo(**asdict(availability))
 
-    resolve_availability = resolve_pricing
-
     @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related=("variants"))
-    def resolve_is_available(root: models.Product, _info):
-        country = _info.context.country
+    def resolve_is_available(root: models.Product, info):
+        country = info.context.country
         in_stock = is_product_in_stock(root, country)
         return root.is_visible and in_stock
 
@@ -614,10 +609,6 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
         return resolve_meta(root, _info)
 
     @staticmethod
-    def resolve_slug(root: models.Product, *_args):
-        return root.get_slug()
-
-    @staticmethod
     def __resolve_reference(root, _info, **_kwargs):
         return graphene.Node.get_node_from_global_id(_info, root.id)
 
@@ -657,6 +648,7 @@ class ProductType(CountableDjangoObjectType, MetadataObjectType):
             "is_digital",
             "is_shipping_required",
             "name",
+            "slug",
             "weight",
             "tax_type",
         ]
@@ -667,7 +659,7 @@ class ProductType(CountableDjangoObjectType, MetadataObjectType):
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
 
     @staticmethod
-    def resolve_tax_rate(root: models.ProductType, info, **_kwargs):
+    def resolve_tax_rate(root: models.ProductType, _info, **_kwargs):
         # FIXME this resolver should be dropped after we drop tax_rate from API
         if not hasattr(root, "meta"):
             return None

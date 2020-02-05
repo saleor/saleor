@@ -43,6 +43,7 @@ from ...core.utils import (
     clean_seo_fields,
     from_global_id_strict_type,
     validate_image_file,
+    validate_slug_and_generate_if_needed,
 )
 from ...core.utils.reordering import perform_reordering
 from ..types import (
@@ -94,8 +95,13 @@ class CategoryCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
-        if "slug" not in cleaned_input and "name" in cleaned_input:
-            cleaned_input["slug"] = slugify(cleaned_input["name"])
+        try:
+            cleaned_input = validate_slug_and_generate_if_needed(
+                instance, "name", cleaned_input
+            )
+        except ValidationError as error:
+            error.code = ProductErrorCode.REQUIRED.value
+            raise ValidationError({"slug": error})
         parent_id = data["parent_id"]
         if parent_id:
             parent = cls.get_node_or_error(
@@ -204,8 +210,13 @@ class CollectionCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
-        if "slug" not in cleaned_input and "name" in cleaned_input:
-            cleaned_input["slug"] = slugify(cleaned_input["name"])
+        try:
+            cleaned_input = validate_slug_and_generate_if_needed(
+                instance, "name", cleaned_input
+            )
+        except ValidationError as error:
+            error.code = ProductErrorCode.REQUIRED.value
+            raise ValidationError({"slug": error})
         if data.get("background_image"):
             image_data = info.context.FILES.get(data["background_image"])
             validate_image_file(image_data, "background_image")
@@ -502,6 +513,7 @@ class ProductInput(graphene.InputObjectType):
         description="Determines if product is visible to customers."
     )
     name = graphene.String(description="Product name.")
+    slug = graphene.String(description="Product slug.")
     base_price = Decimal(description="Product price.")
     tax_code = graphene.String(description="Tax rate for enabled tax gateway.")
     seo = SeoInput(description="Search engine optimization fields.")
@@ -789,6 +801,13 @@ class ProductCreate(ModelMutation):
             instance.product_type if instance.pk else cleaned_input.get("product_type")
         )  # type: models.ProductType
 
+        try:
+            cleaned_input = validate_slug_and_generate_if_needed(
+                instance, "name", cleaned_input
+            )
+        except ValidationError as error:
+            error.code = ProductErrorCode.REQUIRED.value
+            raise ValidationError({"slug": error})
         # Try to get price from "basePrice" or "price" field. Once "price" is removed
         # from the schema, only "basePrice" should be used here.
         price = data.get("base_price", data.get("price"))
@@ -882,7 +901,6 @@ class ProductCreate(ModelMutation):
     @transaction.atomic
     def save(cls, info, instance, cleaned_input):
         instance.save()
-        info.context.extensions.product_created(instance)
         if not instance.product_type.has_variants:
             site_settings = info.context.site.settings
             track_inventory = cleaned_input.get(
@@ -905,6 +923,12 @@ class ProductCreate(ModelMutation):
         collections = cleaned_data.get("collections", None)
         if collections is not None:
             instance.collections.set(collections)
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        response = super().perform_mutation(_root, info, **data)
+        info.context.extensions.product_created(response.product)
+        return response
 
 
 class ProductUpdate(ProductCreate):
@@ -1266,6 +1290,7 @@ class ProductVariantClearPrivateMeta(ClearMetaBaseMutation):
 
 class ProductTypeInput(graphene.InputObjectType):
     name = graphene.String(description="Name of the product type.")
+    slug = graphene.String(description="Product type slug.")
     has_variants = graphene.Boolean(
         description=(
             "Determines if product of this type has multiple variants. This option "
@@ -1312,6 +1337,13 @@ class ProductTypeCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
+        try:
+            cleaned_input = validate_slug_and_generate_if_needed(
+                instance, "name", cleaned_input
+            )
+        except ValidationError as error:
+            error.code = ProductErrorCode.REQUIRED.value
+            raise ValidationError({"slug": error})
 
         # FIXME  tax_rate logic should be dropped after we remove tax_rate from input
         tax_rate = cleaned_input.pop("tax_rate", "")
