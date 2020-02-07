@@ -21,7 +21,7 @@ class Job(CountableDjangoObjectType):
     def resolve_url(root: models.Job, _info):
         content_file = root.content_file
         if not content_file:
-            return ""
+            return None
         return _info.context.build_absolute_uri(content_file.url)
 
     @staticmethod
