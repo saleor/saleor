@@ -842,7 +842,11 @@ class CheckoutRemovePromoCode(BaseMutation):
 
 class CheckoutUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
-        description = "Updates metadata for checkout."
+        description = (
+            "DEPRECATED: Will be removed in Saleor 2.11."
+            "Use the `UpdateMeta` mutation instead."
+            "Updates metadata for checkout."
+        )
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         model = models.Checkout
         public = True
@@ -852,7 +856,11 @@ class CheckoutUpdateMeta(UpdateMetaBaseMutation):
 
 class CheckoutUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
-        description = "Updates private metadata for checkout."
+        description = (
+            "DEPRECATED: Will be removed in Saleor 2.11."
+            "Use the `UpdatePrivateMeta` mutation instead."
+            "Updates private metadata for checkout."
+        )
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         model = models.Checkout
         public = False
@@ -862,7 +870,11 @@ class CheckoutUpdatePrivateMeta(UpdateMetaBaseMutation):
 
 class CheckoutClearMeta(ClearMetaBaseMutation):
     class Meta:
-        description = "Clear metadata for checkout."
+        description = (
+            "DEPRECATED: Will be removed in Saleor 2.11."
+            "Use the `DeleteMeta` mutation instead."
+            "Clear metadata for checkout."
+        )
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         model = models.Checkout
         public = True
@@ -872,7 +884,11 @@ class CheckoutClearMeta(ClearMetaBaseMutation):
 
 class CheckoutClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
-        description = "Clear private metadata for checkout."
+        description = (
+            "DEPRECATED: Will be removed in Saleor 2.11."
+            "Use the `DeletePrivateMeta` mutation instead."
+            "Clear private metadata for checkout."
+        )
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         model = models.Checkout
         public = False

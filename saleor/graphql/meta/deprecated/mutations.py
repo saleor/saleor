@@ -1,9 +1,10 @@
+# Deprecated we should remove it in #5221
 import graphene
 from django.core.exceptions import ImproperlyConfigured
 from graphene_django.registry import get_global_registry
 
 from ...core.mutations import BaseMutation, get_model_name, get_output_fields
-from ..types import MetaInput, MetaPath
+from .types import MetaInput, MetaPath
 
 registry = get_global_registry()
 
@@ -70,6 +71,14 @@ class BaseMetadataMutation(BaseMutation):
         )
 
     @classmethod
+    def get_delete_method(cls, instance):
+        return (
+            getattr(instance, "delete_meta")
+            if cls._meta.public
+            else getattr(instance, "delete_private_meta")
+        )
+
+    @classmethod
     def get_instance(cls, info, **data):
         object_id = data.get("id")
         if object_id:
@@ -99,15 +108,10 @@ class UpdateMetaBaseMutation(BaseMetadataMutation):
     @classmethod
     def perform_mutation(cls, root, info, **data):
         instance = cls.get_instance(info, **data)
-        get_meta = cls.get_meta_method(instance)
         store_meta = cls.get_store_method(instance)
 
         metadata = data.pop("input")
-        stored_data = get_meta(metadata.namespace, metadata.client_name)
-        stored_data[metadata.key] = metadata.value
-        store_meta(
-            namespace=metadata.namespace, client=metadata.client_name, item=stored_data
-        )
+        store_meta(items={metadata.key: metadata.value})
         instance.save()
         return cls.success_response(instance)
 
@@ -126,22 +130,11 @@ class ClearMetaBaseMutation(BaseMetadataMutation):
     @classmethod
     def perform_mutation(cls, root, info, **data):
         instance = cls.get_instance(info, **data)
-        get_meta = cls.get_meta_method(instance)
-        store_meta = cls.get_store_method(instance)
-        clear_meta = cls.get_clear_method(instance)
+        delete_meta = cls.get_delete_method(instance)
 
         metadata = data.pop("input")
-        stored_data = get_meta(metadata.namespace, metadata.client_name)
 
-        cleared_value = stored_data.pop(metadata.key, None)
-        if not stored_data:
-            clear_meta(metadata.namespace, metadata.client_name)
-            instance.save()
-        elif cleared_value is not None:
-            store_meta(
-                namespace=metadata.namespace,
-                client=metadata.client_name,
-                item=stored_data,
-            )
-            instance.save()
+        delete_meta(metadata.key)
+        instance.save()
+
         return cls.success_response(instance)

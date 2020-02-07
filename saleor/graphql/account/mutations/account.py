@@ -13,7 +13,7 @@ from ...account.types import Address, AddressInput, User
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types.common import AccountError
 from ...meta.deprecated.mutations import UpdateMetaBaseMutation
-from ...meta.types import MetaInput
+from ...meta.deprecated.types import MetaInput
 from .base import (
     INVALID_TOKEN,
     BaseAddressDelete,
@@ -318,7 +318,11 @@ class AccountSetDefaultAddress(BaseMutation):
 
 class AccountUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
-        description = "Updates metadata of the logged-in user."
+        description = (
+            "DEPRECATED: Will be removed in Saleor 2.11."
+            "Use the `UpdateMeta` mutation instead."
+            "Updates metadata of the logged-in user."
+        )
         model = models.User
         public = True
         error_type_class = AccountError

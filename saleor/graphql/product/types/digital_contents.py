@@ -5,8 +5,8 @@ from graphene import relay
 from ....core.permissions import ProductPermissions
 from ....product import models
 from ...core.connection import CountableDjangoObjectType
-from ...core.resolvers import resolve_meta, resolve_private_meta
 from ...decorators import permission_required
+from ...meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ...meta.types import ObjectWithMetadata
 
 
@@ -52,9 +52,9 @@ class DigitalContent(CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_private_meta(root, _info):
+    def resolve_private_meta(root: models.DigitalContent, _info):
         return resolve_private_meta(root, _info)
 
     @staticmethod
-    def resolve_meta(root, _info):
+    def resolve_meta(root: models.DigitalContent, _info):
         return resolve_meta(root, _info)

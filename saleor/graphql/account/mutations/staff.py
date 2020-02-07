@@ -416,7 +416,11 @@ class UserAvatarDelete(BaseMutation):
 
 class UserUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
-        description = "Updates private metadata for user."
+        description = (
+            "DEPRECATED: Will be removed in Saleor 2.11."
+            "Use the `UpdatePrivateMeta` mutation instead."
+            "Updates private metadata for user."
+        )
         permissions = (AccountPermissions.MANAGE_USERS,)
         model = models.User
         public = False
@@ -426,7 +430,11 @@ class UserUpdatePrivateMeta(UpdateMetaBaseMutation):
 
 class UserClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
-        description = "Clear private metadata for user."
+        description = (
+            "DEPRECATED: Will be removed in Saleor 2.11."
+            "Use the `DeletePrivateMeta` mutation instead."
+            "Clear private metadata for user."
+        )
         model = models.User
         permissions = (AccountPermissions.MANAGE_USERS,)
         public = False

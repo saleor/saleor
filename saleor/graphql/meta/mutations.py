@@ -2,57 +2,12 @@ import graphene
 from django.core.exceptions import ValidationError
 from graphql_jwt.exceptions import PermissionDenied
 
-from ...account import models as account_models
 from ...core import models
 from ...core.error_codes import MetaErrorCode
-from ...core.permissions import AccountPermissions, OrderPermissions, ProductPermissions
 from ..core.mutations import BaseMutation
 from ..core.types.common import MetaError
-from .types import MetaInput, MetaPath, ObjectWithMetadata
-
-
-def no_permissions(_info, _object_pk):
-    return []
-
-
-def public_user_permissions(info, user_pk):
-    user = account_models.User.objects.filter(pk=user_pk).first()
-    if not user:
-        raise PermissionDenied()
-    if info.context.user.pk == user.pk:
-        return []
-    if user.is_staff:
-        return [AccountPermissions.MANAGE_STAFF]
-    else:
-        return [AccountPermissions.MANAGE_USERS]
-
-
-def product_permissions(_info, _object_pk):
-    return [ProductPermissions.MANAGE_PRODUCTS]
-
-
-def order_permissions(_info, _object_pk):
-    return [OrderPermissions.MANAGE_ORDERS]
-
-
-def service_account_permissions(_info, _object_pk):
-    return [AccountPermissions.MANAGE_SERVICE_ACCOUNTS]
-
-
-PUBLIC_META_PERMISSION_MAP = {
-    "Attribute": product_permissions,
-    "Category": product_permissions,
-    "Checkout": no_permissions,
-    "Collection": product_permissions,
-    "DigitalContent": product_permissions,
-    "Fulfillment": order_permissions,
-    "Order": no_permissions,
-    "Product": product_permissions,
-    "ProductType": product_permissions,
-    "ProductVariant": product_permissions,
-    "ServiceAccount": service_account_permissions,
-    "User": public_user_permissions,
-}
+from .permissions import PUBLIC_META_PERMISSION_MAP
+from .types import ObjectWithMetadata
 
 
 class MetaPermissionOptions(graphene.types.mutation.MutationOptions):
@@ -131,6 +86,11 @@ class BaseMetadataMutation(BaseMutation):
         return cls(**{"item": instance, "errors": []})
 
 
+class MetaItemInput(graphene.InputObjectType):
+    key = graphene.String(required=True, description="Key for stored data.")
+    value = graphene.String(required=True, description="Stored metadata value.")
+
+
 class UpdateMeta(BaseMetadataMutation):
     class Meta:
         description = "Updates metadata for item."
@@ -140,7 +100,7 @@ class UpdateMeta(BaseMetadataMutation):
 
     class Arguments:
         id = graphene.ID(description="ID of an object to update.", required=True)
-        input = MetaInput(
+        input = MetaItemInput(
             description="Fields required to update new or stored metadata item.",
             required=True,
         )
@@ -150,50 +110,28 @@ class UpdateMeta(BaseMetadataMutation):
         instance = cls.get_instance(info, **data)
         if instance:
             metadata = data.pop("input")
-            stored_data = instance.get_meta(metadata.namespace, metadata.client_name)
-            stored_data[metadata.key] = metadata.value
-            instance.store_meta(
-                namespace=metadata.namespace,
-                client=metadata.client_name,
-                item=stored_data,
-            )
+            item = {metadata.key: metadata.value}
+            instance.store_meta(items=item)
             instance.save()
         return cls.success_response(instance)
 
 
-class ClearMeta(BaseMetadataMutation):
+class DeleteMeta(BaseMetadataMutation):
     class Meta:
-        description = "Clear metadata for item."
+        description = "Delete metadata for key."
         permission_map = PUBLIC_META_PERMISSION_MAP
         error_type_class = MetaError
         error_type_field = "meta_errors"
 
     class Arguments:
         id = graphene.ID(description="ID of an object to update.", required=True)
-        input = MetaPath(
-            description="Fields required to identify stored metadata item.",
-            required=True,
-        )
+        key = graphene.String(description="Key for value to delete.", required=True)
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
         instance = cls.get_instance(info, **data)
         if instance:
-            metadata = data.pop("input")
-            # TODO: We should refactore clearing meta
-            # Don't forget about test test_clear_public_metadata_remove_empty_namespace
-            stored_data = instance.get_meta(metadata.namespace, metadata.client_name)
-            cleared_value = stored_data.pop(metadata.key, None)
-            if not stored_data:
-                instance.clear_stored_meta_for_client(
-                    metadata.namespace, metadata.client_name
-                )
-                instance.save()
-            elif cleared_value is not None:
-                instance.store_meta(
-                    namespace=metadata.namespace,
-                    client=metadata.client_name,
-                    item=stored_data,
-                )
-                instance.save()
+            metadata_key = data.pop("key")
+            instance.delete_meta(metadata_key)
+            instance.save()
         return cls.success_response(instance)

@@ -50,7 +50,11 @@ class FulfillmentCancelInput(graphene.InputObjectType):
 
 class FulfillmentClearMeta(ClearMetaBaseMutation):
     class Meta:
-        description = "Clears metadata for fulfillment."
+        description = (
+            "DEPRECATED: Will be removed in Saleor 2.11."
+            "Use the `DeleteMeta` mutation instead."
+            "Clears metadata for fulfillment."
+        )
         model = models.Fulfillment
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         public = True
@@ -58,7 +62,11 @@ class FulfillmentClearMeta(ClearMetaBaseMutation):
 
 class FulfillmentUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
-        description = "Updates metadata for fulfillment."
+        description = (
+            "DEPRECATED: Will be removed in Saleor 2.11."
+            "Use the `UpdateMeta` mutation instead."
+            "Updates metadata for fulfillment."
+        )
         model = models.Fulfillment
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         public = True
@@ -66,7 +74,11 @@ class FulfillmentUpdateMeta(UpdateMetaBaseMutation):
 
 class FulfillmentClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
-        description = "Clears private metadata for fulfillment."
+        description = (
+            "DEPRECATED: Will be removed in Saleor 2.11."
+            "Use the `DeletePrivateMeta` mutation instead."
+            "Clears private metadata for fulfillment."
+        )
         model = models.Fulfillment
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         public = False
@@ -74,7 +86,11 @@ class FulfillmentClearPrivateMeta(ClearMetaBaseMutation):
 
 class FulfillmentUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
-        description = "Updates metadata for fulfillment."
+        description = (
+            "DEPRECATED: Will be removed in Saleor 2.11."
+            "Use the `UpdatePrivateMeta` mutation instead."
+            "Updates metadata for fulfillment."
+        )
         model = models.Fulfillment
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         public = False
