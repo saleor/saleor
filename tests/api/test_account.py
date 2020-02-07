@@ -466,7 +466,8 @@ def test_me_query(user_api_client):
 
 def test_me_query_anonymous_client(api_client):
     response = api_client.post_graphql(ME_QUERY)
-    assert_no_permission(response)
+    content = get_graphql_content(response)
+    assert content["data"]["me"] is None
 
 
 def test_me_query_customer_can_not_see_note(
