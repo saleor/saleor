@@ -8,10 +8,10 @@ from ...core.permissions import AccountPermissions, CheckoutPermissions
 from ...core.taxes import display_gross_prices, zero_taxed_money
 from ...extensions.manager import get_extensions_manager
 from ..core.connection import CountableDjangoObjectType
-from ..core.resolvers import resolve_meta, resolve_private_meta
 from ..core.types.money import TaxedMoney
 from ..decorators import permission_required
 from ..giftcard.types import GiftCard
+from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
 from ..shipping.types import ShippingMethod
 

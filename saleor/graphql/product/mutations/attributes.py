@@ -497,7 +497,11 @@ class AttributeDelete(ModelDeleteMutation):
 class AttributeUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.Attribute
-        description = "Update public metadata for attribute."
+        description = (
+            "DEPRECATED: Will be removed in Saleor 2.11."
+            "Use the `UpdateMeta` mutation instead."
+            "Update public metadata for attribute."
+        )
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
         error_type_class = ProductError
@@ -506,7 +510,11 @@ class AttributeUpdateMeta(UpdateMetaBaseMutation):
 
 class AttributeClearMeta(ClearMetaBaseMutation):
     class Meta:
-        description = "Clears public metadata item for attribute."
+        description = (
+            "DEPRECATED: Will be removed in Saleor 2.11."
+            "Use the `DeleteMeta` mutation instead."
+            "Clears public metadata item for attribute."
+        )
         model = models.Attribute
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
@@ -516,7 +524,11 @@ class AttributeClearMeta(ClearMetaBaseMutation):
 
 class AttributeUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
-        description = "Update public metadata for attribute."
+        description = (
+            "DEPRECATED: Will be removed in Saleor 2.11."
+            "Use the `UpdatePrivateMeta` mutation instead."
+            "Update public metadata for attribute."
+        )
         model = models.Attribute
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False
@@ -526,7 +538,11 @@ class AttributeUpdatePrivateMeta(UpdateMetaBaseMutation):
 
 class AttributeClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
-        description = "Clears public metadata item for attribute."
+        description = (
+            "DEPRECATED: Will be removed in Saleor 2.11."
+            "Use the `DeletePrivateMeta` mutation instead."
+            "Clears public metadata item for attribute."
+        )
         model = models.Attribute
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False

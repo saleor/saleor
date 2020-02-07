@@ -12,12 +12,11 @@ from ...order import models as order_models
 from ..checkout.types import Checkout
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import PrefetchingConnectionField
-from ..core.resolvers import resolve_meta, resolve_private_meta
 from ..core.types import CountryDisplay, Image, PermissionDisplay
 from ..core.utils import get_node_optimized
 from ..decorators import one_of_permissions_required, permission_required
+from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
-
 from ..utils import format_permissions_for_display
 from ..wishlist.resolvers import resolve_wishlist_items_from_user
 from ..wishlist.types import WishlistItem
@@ -231,8 +230,13 @@ class ServiceAccount(CountableDjangoObjectType):
         return root.tokens.all()
 
     @staticmethod
-    def resolve_meta(root, info):
+    def resolve_meta(root: models.ServiceAccount, info):
         return resolve_meta(root, info)
+
+    @staticmethod
+    @permission_required(AccountPermissions.MANAGE_SERVICE_ACCOUNTS)
+    def resolve_private_meta(root: models.ServiceAccount, _info):
+        return resolve_private_meta(root, _info)
 
     @staticmethod
     def __resolve_reference(root, _info, **_kwargs):
@@ -364,11 +368,11 @@ class User(CountableDjangoObjectType):
     @one_of_permissions_required(
         [AccountPermissions.MANAGE_USERS, AccountPermissions.MANAGE_STAFF]
     )
-    def resolve_private_meta(root, _info):
+    def resolve_private_meta(root: models.User, _info):
         return resolve_private_meta(root, _info)
 
     @staticmethod
-    def resolve_meta(root, _info):
+    def resolve_meta(root: models.User, _info):
         return resolve_meta(root, _info)
 
     @staticmethod

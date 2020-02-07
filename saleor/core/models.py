@@ -82,24 +82,32 @@ class ModelWithMetadata(models.Model):
     class Meta:
         abstract = True
 
-    def get_private_meta(self, namespace: str, client: str) -> dict:
-        return self.private_meta.get(namespace, {}).get(client, {})
+    def get_private_meta(self, key: str):
+        return self.private_meta.get(key, None)
 
-    def store_private_meta(self, namespace: str, client: str, item: dict):
-        if namespace not in self.private_meta:
-            self.private_meta[namespace] = {}
-        self.private_meta[namespace][str(client)] = item
+    def store_private_meta(self, items: dict):
+        if not self.private_meta:
+            self.private_meta = {}
+        self.private_meta.update(items)
 
-    def clear_stored_private_meta_for_client(self, namespace: str, client: str):
-        self.private_meta.get(namespace, {}).pop(client, None)
+    def clear_private_meta(self):
+        self.private_meta = {}
 
-    def get_meta(self, namespace: str, client: str) -> dict:
-        return self.meta.get(namespace, {}).get(client, {})
+    def delete_private_meta(self, key: str):
+        if key in self.private_meta:
+            del self.private_meta[key]
 
-    def store_meta(self, namespace: str, client: str, item: dict):
-        if namespace not in self.meta:
-            self.meta[namespace] = {}
-        self.meta[namespace][str(client)] = item
+    def get_meta(self, key: str):
+        return self.meta.get(key, None)
 
-    def clear_stored_meta_for_client(self, namespace: str, client: str):
-        self.meta.get(namespace, {}).pop(client, None)
+    def store_meta(self, items: dict):
+        if not self.meta:
+            self.meta = {}
+        self.meta.update(items)
+
+    def clear_meta(self):
+        self.meta = {}
+
+    def delete_meta(self, key: str):
+        if key in self.meta:
+            del self.meta[key]

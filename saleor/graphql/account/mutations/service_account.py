@@ -148,7 +148,11 @@ class ServiceAccountDelete(ModelDeleteMutation):
 
 class ServiceAccountUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
-        description = "Updates private metadata for a service account."
+        description = (
+            "DEPRECATED: Will be removed in Saleor 2.11."
+            "Use the `UpdatePrivateMeta` mutation instead."
+            "Updates private metadata for a service account."
+        )
         permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
         model = models.ServiceAccount
         public = False
@@ -158,7 +162,11 @@ class ServiceAccountUpdatePrivateMeta(UpdateMetaBaseMutation):
 
 class ServiceAccountClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
-        description = "Clear private metadata for a service account."
+        description = (
+            "DEPRECATED: Will be removed in Saleor 2.11."
+            "Use the `DeletePrivateMeta` mutation instead."
+            "Clear private metadata for a service account."
+        )
         model = models.ServiceAccount
         permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
         public = False

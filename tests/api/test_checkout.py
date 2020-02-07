@@ -1202,10 +1202,8 @@ def test_checkout_complete(
     checkout.shipping_address = address
     checkout.shipping_method = shipping_method
     checkout.billing_address = address
-    checkout.store_meta(namespace="PUBLIC", client="PLUGIN", item={"accepted": "true"})
-    checkout.store_private_meta(
-        namespace="PRIVATE", client="PLUGIN", item={"accepted": "true"}
-    )
+    checkout.store_meta(items={"accepted": "true"})
+    checkout.store_private_meta(items={"accepted": "false"})
     checkout.save()
 
     checkout_line = checkout.lines.first()

@@ -22,7 +22,7 @@ from ...core.mutations import BaseMutation
 from ...core.scalars import Decimal
 from ...core.types.common import OrderError
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
-from ...meta.types import MetaInput, MetaPath
+from ...meta.deprecated.types import MetaInput, MetaPath
 from ...order.mutations.draft_orders import DraftOrderUpdate
 from ...order.types import Order, OrderEvent
 from ...shipping.types import ShippingMethod
@@ -442,7 +442,11 @@ class OrderRefund(BaseMutation):
 
 class OrderUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
-        description = "Updates meta for order."
+        description = (
+            "DEPRECATED: Will be removed in Saleor 2.11."
+            "Use the `UpdateMeta` mutation instead."
+            "Updates meta for order."
+        )
         model = models.Order
         public = True
 
@@ -463,7 +467,11 @@ class OrderUpdateMeta(UpdateMetaBaseMutation):
 
 class OrderUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
-        description = "Updates private meta for order."
+        description = (
+            "DEPRECATED: Will be removed in Saleor 2.11."
+            "Use the `UpdatePrivateMeta` mutation instead."
+            "Updates private meta for order."
+        )
         model = models.Order
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         public = False
@@ -471,7 +479,11 @@ class OrderUpdatePrivateMeta(UpdateMetaBaseMutation):
 
 class OrderClearMeta(ClearMetaBaseMutation):
     class Meta:
-        description = "Clears stored metadata value."
+        description = (
+            "DEPRECATED: Will be removed in Saleor 2.11."
+            "Use the `DeleteMeta` mutation instead."
+            "Clears stored metadata value."
+        )
         model = models.Order
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         public = True
@@ -491,7 +503,11 @@ class OrderClearMeta(ClearMetaBaseMutation):
 
 class OrderClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
-        description = "Clears stored private metadata value."
+        description = (
+            "DEPRECATED: Will be removed in Saleor 2.11."
+            "Use the `DeletePrivateMeta` mutation instead."
+            "Clears stored private metadata value."
+        )
         model = models.Order
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         public = False
