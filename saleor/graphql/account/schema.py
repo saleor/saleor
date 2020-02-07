@@ -1,5 +1,4 @@
 import graphene
-from graphql_jwt.decorators import login_required
 
 from ...core.permissions import AccountPermissions
 from ..core.fields import FilterInputConnectionField
@@ -208,9 +207,9 @@ class AccountQueries(graphene.ObjectType):
     def resolve_permission_group(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, Group)
 
-    @login_required
     def resolve_me(self, info):
-        return info.context.user
+        user = info.context.user
+        return user if user.is_authenticated else None
 
     @permission_required(AccountPermissions.MANAGE_STAFF)
     def resolve_staff_users(self, info, query=None, **kwargs):
