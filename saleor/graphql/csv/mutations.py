@@ -4,11 +4,11 @@ from django.core.exceptions import ValidationError
 from ...core.permissions import ProductPermissions
 from ...csv import models as csv_models
 from ...csv.utils.export import export_products
-from ...product import models as product_models
 from ..core.enums import CsvErrorCode
 from ..core.mutations import BaseMutation
 from ..core.types.common import CsvError
 from ..product.filters import ProductFilterInput
+from ..product.types import Product
 from ..utils import _resolve_nodes
 from .enums import ExportScope
 from .types import Job
@@ -66,7 +66,7 @@ class ExportProducts(BaseMutation):
                         )
                     }
                 )
-            _, pks = _resolve_nodes(ids, graphene_type=product_models.Product)
+            _, pks = _resolve_nodes(ids, graphene_type=Product)
             return {"ids": pks}
         elif scope == ExportScope.FILTER.value:
             filter = input.get("filter")
@@ -75,7 +75,7 @@ class ExportProducts(BaseMutation):
                     {
                         "filter": ValidationError(
                             "You must provide filter input.",
-                            code=CsvErrorCode.REQUIRED.code,
+                            code=CsvErrorCode.REQUIRED.value,
                         )
                     }
                 )
