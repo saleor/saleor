@@ -1839,15 +1839,10 @@ scalar JSONString
 
 type Job implements Node {
   id: ID!
-  status: JobStatus!
+  status: String
   createdAt: DateTime!
+  endedAt: DateTime
   url: String
-}
-
-enum JobStatus {
-  PENDING
-  SUCCESS
-  FAILED
 }
 
 enum LanguageCodeEnum {
