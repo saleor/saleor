@@ -1,16 +1,28 @@
 from collections import ChainMap
-from typing import TYPE_CHECKING, Dict, List, Set, Tuple, Union
+from datetime import datetime
+from tempfile import NamedTemporaryFile
+from typing import TYPE_CHECKING, Callable, Dict, List, Set, Tuple, Union
 
 import petl as etl
 from django.db.models import F
 
+from ...celeryconf import app
+from ...graphql.product.filters import ProductFilterInput
+from ...product.models import Product
+from .. import JobStatus
+from ..models import Job
+
 if TYPE_CHECKING:
     # flake8: noqa
-    from ..product.models import Product, ProductVariant
+    from ..product.models import ProductVariant
+    from django.db.models import QuerySet
 
 
-def export_products(queryset, delimiter=";"):
-    file_name = "product_data.csv"
+@app.task
+def export_products(scope: Dict[str, str], job_id: int, delimiter: str = ";"):
+    queryset = get_product_queryset(scope)
+    file_name = "product_data_{}.csv".format(datetime.now().strftime("%d_%m_%Y"))
+
     headers_mapping = {
         "product": {
             "id": "id",
@@ -31,6 +43,52 @@ def export_products(queryset, delimiter=";"):
         "common": {"images": "images"},
     }
 
+    export_data, attributes_and_warehouse_headers = prepare_products_data(
+        queryset, headers_mapping
+    )
+
+    headers_mapping["product"]["collections"] = "collections"
+
+    csv_headers_mapping = dict(
+        ChainMap(*reversed(headers_mapping.values()))  # type: ignore
+    )
+    headers = list(csv_headers_mapping.keys()) + attributes_and_warehouse_headers
+
+    table = etl.fromdicts(export_data, header=headers, missing=" ")
+    table = etl.rename(table, csv_headers_mapping)
+
+    temporary_file = NamedTemporaryFile()
+    etl.tocsv(table, temporary_file.name, delimiter=delimiter)
+
+    job = Job.objects.get(pk=job_id)
+    job.content_file.save(file_name, temporary_file)
+    job.status = JobStatus.SUCCESS  # type:ignore
+    job.ended_at = datetime.now()
+    job.save()
+
+    # remove temporary file
+    temporary_file.close()
+
+
+def get_product_queryset(scope: Dict[str, str]) -> "QuerySet":
+    queryset = Product.objects.all()
+    if "ids" in scope:
+        queryset = Product.objects.filter(pk__in=scope["ids"])
+    elif "filter" in scope:
+        queryset = ProductFilterInput.filterset_class(
+            data=scope["filter"], queryset=queryset
+        ).qs
+
+    queryset = queryset.select_related("product_type", "category").prefetch_related(
+        "attributes", "variants", "collections", "images"
+    )
+
+    return queryset
+
+
+def prepare_products_data(
+    queryset: "QuerySet", headers_mapping: Dict[str, Dict[str, str]]
+):
     products_attributes_fields = set()
     variants_attributes_fields = set()
     warehouse_fields = set()
@@ -45,51 +103,44 @@ def export_products(queryset, delimiter=";"):
         products_attributes_fields.update(attributes_fields)
         products_with_variants_data.append(product_data)
 
-        variants = product.variants.all()
+        variants = product.variants.all().prefetch_related("images")
         variants_data = variants.annotate(variant_currency=F("currency")).values(
             *headers_mapping["variant"].keys()
         )
         for variant, variant_data in zip(variants, variants_data):
-            variant_data, attribute_data, warehouse_data = create_variant_data(
+            variant_data, attribute_data, warehouse_data = update_variant_data(
                 variant, variant_data
             )
             variants_attributes_fields.update(attribute_data)
             warehouse_fields.update(warehouse_data)
             products_with_variants_data.append(variant_data)
 
-    headers_mapping["product"]["collections"] = "collections"
-
-    csv_headers_mapping = dict(ChainMap(*reversed(headers_mapping.values())))
-    headers = (
-        list(csv_headers_mapping.keys())
-        + sorted(products_attributes_fields)
+    attributes_and_warehouse_headers = (
+        sorted(products_attributes_fields)
         + sorted(variants_attributes_fields)
         + sorted(warehouse_fields)
     )
 
-    table = etl.fromdicts(products_with_variants_data, header=headers, missing=" ")
-    table = etl.rename(table, csv_headers_mapping)
-
-    etl.tocsv(table, file_name, delimiter=delimiter)
+    return products_with_variants_data, attributes_and_warehouse_headers
 
 
 def update_product_data(
-    product: "Product", product_data: Dict["str", Union["str", bool]],
+    product: Product, product_data: Dict["str", Union["str", bool]]
 ) -> Tuple[dict, list]:
     product_data["collections"] = ", ".join(
         product.collections.values_list("slug", flat=True)
     )
-    product_data["images"] = get_image_file_names(product)
+    product_data["images"] = get_images_uris(product)
     product_attributes_data = prepare_attributes_data(product)
     product_data.update(product_attributes_data)
 
     return product_data, product_attributes_data.keys()
 
 
-def create_variant_data(
+def update_variant_data(
     variant: "ProductVariant", variant_data: Dict["str", Union["str", bool]]
 ) -> Tuple[dict, list, list]:
-    variant_data["images"] = get_image_file_names(variant)
+    variant_data["images"] = get_images_uris(variant)
     variant_attribute_data = prepare_attributes_data(variant)
     variant_data.update(variant_attribute_data)
 
@@ -99,16 +150,11 @@ def create_variant_data(
     return variant_data, variant_attribute_data.keys(), warehouse_data.keys()
 
 
-def get_image_file_names(instance: Union["Product", "ProductVariant"]):
-    return ", ".join(
-        [
-            image.split("/")[1]
-            for image in instance.images.values_list("image", flat=True)
-        ]
-    )
+def get_images_uris(instance: Union[Product, "ProductVariant"]):
+    return ", ".join([image.image.url for image in instance.images.all()])
 
 
-def prepare_attributes_data(instance: Union["Product", "ProductVariant"]):
+def prepare_attributes_data(instance: Union[Product, "ProductVariant"]):
     attribute_values = {}
     for assigned_attribute in instance.attributes.all():
         attribute_slug = assigned_attribute.attribute.slug
