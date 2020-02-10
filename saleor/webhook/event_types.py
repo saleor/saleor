@@ -32,7 +32,7 @@ class WebhookEventType:
         CUSTOMER_CREATED: "Customer created",
         PRODUCT_CREATED: "Product created",
         CHECKOUT_QUANTITY_CHANGED: "Checkout quantity changed",
-        FULFILLMENT_CREATED: "Fulfillment created",
+        FULFILLMENT_CREATED: "Fulfillment_created",
     }
 
     CHOICES = [
