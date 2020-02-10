@@ -7,7 +7,6 @@ from .products import (
     MoveProductInput,
     Product,
     ProductImage,
-    ProductOrder,
     ProductType,
     ProductVariant,
 )

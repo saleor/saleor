@@ -2,7 +2,9 @@ import graphene
 import graphene_django_optimizer as gql_optimizer
 from django.core.exceptions import ValidationError
 from graphene import relay
+from graphql_jwt.exceptions import PermissionDenied
 
+from ...core.permissions import AccountPermissions, OrderPermissions
 from ...core.taxes import display_gross_prices
 from ...extensions.manager import get_extensions_manager
 from ...order import models
@@ -37,11 +39,7 @@ class OrderEvent(CountableDjangoObjectType):
         description="Date when event happened at in ISO 8601 format."
     )
     type = OrderEventsEnum(description="Order event type.")
-    user = graphene.Field(
-        User,
-        id=graphene.Argument(graphene.ID),
-        description="User who performed the action.",
-    )
+    user = graphene.Field(User, description="User who performed the action.")
     message = graphene.String(description="Content of the event.")
     email = graphene.String(description="Email of the customer.")
     email_type = OrderEventsEmailsEnum(
@@ -66,6 +64,17 @@ class OrderEvent(CountableDjangoObjectType):
         model = models.OrderEvent
         interfaces = [relay.Node]
         only_fields = ["id"]
+
+    @staticmethod
+    def resolve_user(root: models.OrderEvent, info):
+        user = info.context.user
+        if (
+            user == root.user
+            or user.has_perm(AccountPermissions.MANAGE_USERS)
+            or user.has_perm(AccountPermissions.MANAGE_STAFF)
+        ):
+            return root.user
+        raise PermissionDenied()
 
     @staticmethod
     def resolve_email(root: models.OrderEvent, _info):
@@ -189,7 +198,7 @@ class Fulfillment(MetadataObjectType, CountableDjangoObjectType):
         return root.get_status_display()
 
     @staticmethod
-    @permission_required("orders.manage_orders")
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_private_meta(root: models.Fulfillment, _info):
         return resolve_private_meta(root, _info)
 
@@ -243,7 +252,7 @@ class OrderLine(CountableDjangoObjectType):
         prefetch_related=["variant__images", "variant__product__images"]
     )
     def resolve_thumbnail(root: models.OrderLine, info, *, size=255):
-        if not root.variant_id:
+        if not root.variant:
             return None
         image = root.variant.get_first_image()
         if image:
@@ -338,13 +347,6 @@ class Order(MetadataObjectType, CountableDjangoObjectType):
     is_shipping_required = graphene.Boolean(
         description="Returns True, if order requires shipping.", required=True
     )
-    discount_amount = graphene.Field(
-        Money,
-        deprecation_reason=(
-            "DEPRECATED: Will be removed in Saleor 2.10, use discount instead."
-        ),
-        required=True,
-    )
 
     class Meta:
         description = "Represents an order in the shop."
@@ -430,6 +432,7 @@ class Order(MetadataObjectType, CountableDjangoObjectType):
         return root.lines.all().order_by("pk")
 
     @staticmethod
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_events(root: models.Order, _info):
         return root.events.all().order_by("pk")
 
@@ -474,6 +477,13 @@ class Order(MetadataObjectType, CountableDjangoObjectType):
         return root.get_customer_email()
 
     @staticmethod
+    def resolve_user(root: models.Order, info):
+        user = info.context.user
+        if user == root.user or user.has_perm(AccountPermissions.MANAGE_USERS):
+            return root.user
+        raise PermissionDenied()
+
+    @staticmethod
     def resolve_available_shipping_methods(root: models.Order, _info):
         available = get_valid_shipping_methods_for_order(root)
         if available is None:
@@ -482,8 +492,10 @@ class Order(MetadataObjectType, CountableDjangoObjectType):
         manager = get_extensions_manager()
         display_gross = display_gross_prices()
         for shipping_method in available:
+            # Ignore typing check because it is checked in
+            # get_valid_shipping_methods_for_order
             taxed_price = manager.apply_taxes_to_shipping(
-                shipping_method.price, root.shipping_address
+                shipping_method.price, root.shipping_address  # type: ignore
             )
             if display_gross:
                 shipping_method.price = taxed_price.gross
@@ -500,11 +512,7 @@ class Order(MetadataObjectType, CountableDjangoObjectType):
         return root.gift_cards.all()
 
     @staticmethod
-    def resolve_discount_amount(root: models.Order, _info):
-        return root.discount
-
-    @staticmethod
-    @permission_required("order.manage_orders")
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_private_meta(root: models.Order, _info):
         return resolve_private_meta(root, _info)
 

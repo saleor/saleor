@@ -152,9 +152,6 @@ QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES = """
               values {
                 slug
               }
-              value {
-                slug
-              }
             }
             variants {
               attributes {
@@ -162,9 +159,6 @@ QUERY_PRODUCT_AND_VARIANTS_ATTRIBUTES = """
                   slug
                 }
                 values {
-                  slug
-                }
-                value {
                   slug
                 }
               }
@@ -251,11 +245,9 @@ def test_resolve_attribute_values(user_api_client, product, staff_user):
 
     assert product_attributes[0]["attribute"]["slug"] == "color"
     assert product_attributes[0]["values"][0]["slug"] == product_attribute_values[0]
-    assert product_attributes[0]["value"]["slug"] == product_attribute_values[0]
 
     assert variant_attributes[0]["attribute"]["slug"] == "size"
     assert variant_attributes[0]["values"][0]["slug"] == variant_attribute_values[0]
-    assert variant_attributes[0]["value"]["slug"] == variant_attribute_values[0]
 
 
 def test_resolve_attribute_values_non_assigned_to_node(
@@ -308,11 +300,9 @@ def test_resolve_attribute_values_non_assigned_to_node(
 
     assert product_attributes[0]["attribute"]["slug"] == "product"
     assert product_attributes[0]["values"] == []
-    assert variant_attributes[0]["value"] is None
 
     assert variant_attributes[0]["attribute"]["slug"] == "variant"
     assert variant_attributes[0]["values"] == []
-    assert variant_attributes[0]["value"] is None
 
 
 def test_attributes_filter_by_product_type_with_empty_value():
@@ -348,7 +338,6 @@ def test_attributes_filter_by_non_existing_category_id():
     assert qs == mocked_qs.none.return_value
 
 
-@pytest.mark.parametrize("test_deprecated_filter", [True, False])
 @pytest.mark.parametrize("tested_field", ["inCategory", "inCollection"])
 def test_attributes_in_collection_query(
     user_api_client,
@@ -356,7 +345,6 @@ def test_attributes_in_collection_query(
     category,
     collection,
     collection_with_products,
-    test_deprecated_filter,
     tested_field,
 ):
     if "Collection" in tested_field:
@@ -409,10 +397,7 @@ def test_attributes_in_collection_query(
     }
     """
 
-    if test_deprecated_filter:
-        query = query % {"filter_input": f"{tested_field}: $nodeID"}
-    else:
-        query = query % {"filter_input": "filter: { %s: $nodeID }" % tested_field}
+    query = query % {"filter_input": "filter: { %s: $nodeID }" % tested_field}
 
     variables = {"nodeID": filtered_by_node_id}
     content = get_graphql_content(user_api_client.post_graphql(query, variables))
@@ -487,32 +472,21 @@ def test_create_attribute_and_attribute_values(
 
 
 @pytest.mark.parametrize(
-    "input_slug, expected_slug, expected_error",
-    (
-        ("my-slug", "my-slug", []),
-        (None, "my-name", []),
-        (
-            "",
-            None,
-            [{"field": "slug", "message": "The attribute's slug cannot be blank."}],
-        ),
-    ),
+    "input_slug, expected_slug",
+    (("my-slug", "my-slug"), (None, "my-name"), ("", "my-name"),),
 )
 def test_create_attribute_with_given_slug(
-    staff_api_client,
-    permission_manage_products,
-    input_slug,
-    expected_slug,
-    expected_error,
+    staff_api_client, permission_manage_products, input_slug, expected_slug,
 ):
     staff_api_client.user.user_permissions.add(permission_manage_products)
     query = """
         mutation createAttribute(
             $name: String!, $slug: String) {
         attributeCreate(input: {name: $name, slug: $slug}) {
-            errors {
+            productErrors {
                 field
                 message
+                code
             }
             attribute {
                 slug
@@ -525,12 +499,8 @@ def test_create_attribute_with_given_slug(
     variables = {"name": attribute_name, "slug": input_slug}
     content = get_graphql_content(staff_api_client.post_graphql(query, variables))
 
-    # Check if the error is as expected: null or something else
-    assert content["data"]["attributeCreate"]["errors"] == expected_error
-
-    # Check if the slug was correctly set if no error was expected
-    if expected_error is None:
-        assert content["data"]["attributeCreate"]["attribute"]["slug"] == expected_slug
+    assert not content["data"]["attributeCreate"]["productErrors"]
+    assert content["data"]["attributeCreate"]["attribute"]["slug"] == expected_slug
 
 
 @pytest.mark.parametrize(
@@ -574,7 +544,7 @@ def test_create_attribute_and_attribute_values_errors(
     assert product_errors[0]["code"] == error_code.name
 
 
-UPDATE_ATTRIBUTE_QUERY = """
+UPDATE_ATTRIBUTE_MUTATION = """
     mutation updateAttribute(
         $id: ID!, $name: String!, $addValues: [AttributeValueCreateInput]!,
         $removeValues: [ID]!) {
@@ -615,9 +585,10 @@ UPDATE_ATTRIBUTE_QUERY = """
 def test_update_attribute_name(
     staff_api_client, color_attribute, permission_manage_products
 ):
-    query = UPDATE_ATTRIBUTE_QUERY
+    query = UPDATE_ATTRIBUTE_MUTATION
     attribute = color_attribute
     name = "Wings name"
+    slug = attribute.slug
     node_id = graphene.Node.to_global_id("Attribute", attribute.id)
     variables = {"name": name, "id": node_id, "addValues": [], "removeValues": []}
     response = staff_api_client.post_graphql(
@@ -627,13 +598,14 @@ def test_update_attribute_name(
     attribute.refresh_from_db()
     data = content["data"]["attributeUpdate"]
     assert data["attribute"]["name"] == name == attribute.name
+    assert data["attribute"]["slug"] == slug == attribute.slug
     assert data["attribute"]["productTypes"]["edges"] == []
 
 
 def test_update_attribute_remove_and_add_values(
     staff_api_client, color_attribute, permission_manage_products
 ):
-    query = UPDATE_ATTRIBUTE_QUERY
+    query = UPDATE_ATTRIBUTE_MUTATION
     attribute = color_attribute
     name = "Wings name"
     attribute_value_name = "Red Color"
@@ -661,7 +633,7 @@ def test_update_attribute_remove_and_add_values(
 def test_update_empty_attribute_and_add_values(
     staff_api_client, color_attribute_without_values, permission_manage_products
 ):
-    query = UPDATE_ATTRIBUTE_QUERY
+    query = UPDATE_ATTRIBUTE_MUTATION
     attribute = color_attribute_without_values
     name = "Wings name"
     attribute_value_name = "Yellow Color"
@@ -679,6 +651,176 @@ def test_update_empty_attribute_and_add_values(
     attribute.refresh_from_db()
     assert attribute.values.count() == 1
     assert attribute.values.filter(name=attribute_value_name).exists()
+
+
+UPDATE_ATTRIBUTE_SLUG_MUTATION = """
+    mutation updateAttribute(
+    $id: ID!, $slug: String) {
+    attributeUpdate(
+            id: $id,
+            input: {
+                slug: $slug}) {
+        errors {
+            field
+            message
+        }
+        productErrors {
+            field
+            message
+            code
+        }
+        attribute {
+            name
+            slug
+        }
+    }
+}
+"""
+
+
+@pytest.mark.parametrize(
+    "input_slug, expected_slug, error_message",
+    [
+        ("test-slug", "test-slug", None),
+        ("", "", "Slug value cannot be blank."),
+        (None, "", "Slug value cannot be blank."),
+    ],
+)
+def test_update_attribute_slug(
+    staff_api_client,
+    color_attribute,
+    permission_manage_products,
+    input_slug,
+    expected_slug,
+    error_message,
+):
+    query = UPDATE_ATTRIBUTE_SLUG_MUTATION
+
+    attribute = color_attribute
+    name = attribute.name
+    old_slug = attribute.slug
+
+    assert input_slug != old_slug
+
+    node_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    variables = {"slug": input_slug, "id": node_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    attribute.refresh_from_db()
+    data = content["data"]["attributeUpdate"]
+    errors = data["productErrors"]
+    if not error_message:
+        assert data["attribute"]["name"] == name == attribute.name
+        assert data["attribute"]["slug"] == input_slug == attribute.slug
+    else:
+        assert errors
+        assert data["attribute"] is None
+        assert errors[0]["field"] == "slug"
+        assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
+
+
+def test_update_attribute_slug_exists(
+    staff_api_client, color_attribute, permission_manage_products,
+):
+    query = UPDATE_ATTRIBUTE_SLUG_MUTATION
+
+    second_attribute = Attribute.objects.get(pk=color_attribute.pk)
+    second_attribute.pk = None
+    second_attribute.slug = "second-attribute"
+    second_attribute.save()
+
+    attribute = color_attribute
+    old_slug = attribute.slug
+    new_slug = second_attribute.slug
+
+    assert new_slug != old_slug
+
+    node_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    variables = {"slug": new_slug, "id": node_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    attribute.refresh_from_db()
+    data = content["data"]["attributeUpdate"]
+    errors = data["productErrors"]
+
+    assert errors
+    assert data["attribute"] is None
+    assert errors[0]["field"] == "slug"
+    assert errors[0]["code"] == ProductErrorCode.UNIQUE.name
+
+
+@pytest.mark.parametrize(
+    "input_slug, expected_slug, input_name, error_message, error_field",
+    [
+        ("test-slug", "test-slug", "New name", None, None),
+        ("", "", "New name", "Slug value cannot be blank.", "slug"),
+        (None, "", "New name", "Slug value cannot be blank.", "slug"),
+        ("test-slug", "", None, "This field cannot be blank.", "name"),
+        ("test-slug", "", "", "This field cannot be blank.", "name"),
+        (None, None, None, "Slug value cannot be blank.", "slug"),
+    ],
+)
+def test_update_attribute_slug_and_name(
+    staff_api_client,
+    color_attribute,
+    permission_manage_products,
+    input_slug,
+    expected_slug,
+    input_name,
+    error_message,
+    error_field,
+):
+    query = """
+        mutation updateAttribute(
+        $id: ID!, $slug: String, $name: String) {
+        attributeUpdate(
+                id: $id,
+                input: {
+                    slug: $slug, name: $name}) {
+            errors {
+                field
+                message
+            }
+            productErrors {
+                field
+                message
+                code
+            }
+            attribute {
+                name
+                slug
+            }
+        }
+    }
+    """
+
+    attribute = color_attribute
+    old_name = attribute.name
+    old_slug = attribute.slug
+
+    assert input_slug != old_slug
+    assert input_name != old_name
+
+    node_id = graphene.Node.to_global_id("Attribute", attribute.id)
+    variables = {"slug": input_slug, "name": input_name, "id": node_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    attribute.refresh_from_db()
+    data = content["data"]["attributeUpdate"]
+    errors = data["productErrors"]
+    if not error_message:
+        assert data["attribute"]["name"] == input_name == attribute.name
+        assert data["attribute"]["slug"] == input_slug == attribute.slug
+    else:
+        assert errors
+        assert errors[0]["field"] == error_field
+        assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
 
 
 @pytest.mark.parametrize(
@@ -707,7 +849,7 @@ def test_update_attribute_and_add_attribute_values_errors(
     color_attribute,
     permission_manage_products,
 ):
-    query = UPDATE_ATTRIBUTE_QUERY
+    query = UPDATE_ATTRIBUTE_MUTATION
     attribute = color_attribute
     node_id = graphene.Node.to_global_id("Attribute", attribute.id)
     variables = {
@@ -732,7 +874,7 @@ def test_update_attribute_and_add_attribute_values_errors(
 def test_update_attribute_and_remove_others_attribute_value(
     staff_api_client, color_attribute, size_attribute, permission_manage_products
 ):
-    query = UPDATE_ATTRIBUTE_QUERY
+    query = UPDATE_ATTRIBUTE_MUTATION
     attribute = color_attribute
     node_id = graphene.Node.to_global_id("Attribute", attribute.id)
     size_attribute = size_attribute.values.first()
@@ -740,7 +882,6 @@ def test_update_attribute_and_remove_others_attribute_value(
     variables = {
         "name": "Example name",
         "id": node_id,
-        "slug": "example-slug",
         "addValues": [],
         "removeValues": [attr_id],
     }

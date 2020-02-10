@@ -1,5 +1,5 @@
 ### Build and install packages
-FROM python:3.7 as build-python
+FROM python:3.8 as build-python
 
 RUN apt-get -y update \
   && apt-get install -y gettext \
@@ -19,18 +19,17 @@ ARG STATIC_URL
 ENV STATIC_URL ${STATIC_URL:-/static/}
 
 # Install node_modules
-COPY webpack.config.js app.json package.json package-lock.json /app/
+COPY app.json package.json package-lock.json /app/
 WORKDIR /app
 RUN npm install
 
 # Build static
 COPY ./saleor/static /app/saleor/static/
 COPY ./templates /app/templates/
-RUN STATIC_URL=${STATIC_URL} npm run build-assets --production \
-  && npm run build-emails --production
+RUN STATIC_URL=${STATIC_URL} npm run build-emails --production
 
 ### Final image
-FROM python:3.7-slim
+FROM python:3.8-slim
 
 ARG STATIC_URL
 ENV STATIC_URL ${STATIC_URL:-/static/}
@@ -51,10 +50,9 @@ RUN apt-get update \
   && rm -rf /var/lib/apt/lists/*
 
 COPY . /app
-COPY --from=build-python /usr/local/lib/python3.7/site-packages/ /usr/local/lib/python3.7/site-packages/
+COPY --from=build-python /usr/local/lib/python3.8/site-packages/ /usr/local/lib/python3.8/site-packages/
 COPY --from=build-python /usr/local/bin/ /usr/local/bin/
 COPY --from=build-nodejs /app/saleor/static /app/saleor/static
-COPY --from=build-nodejs /app/webpack-bundle.json /app/
 COPY --from=build-nodejs /app/templates /app/templates
 WORKDIR /app
 

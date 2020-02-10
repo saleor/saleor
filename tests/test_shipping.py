@@ -2,8 +2,8 @@ import pytest
 from measurement.measures import Weight
 from prices import Money
 
-from saleor.core.utils import format_money
 from saleor.shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
+from saleor.shipping.utils import default_shipping_zone_exists
 
 from .utils import money
 
@@ -13,16 +13,6 @@ def test_shipping_get_total(monkeypatch, shipping_zone):
     price = Money("10.0", "USD")
 
     assert method.get_total() == price
-
-
-def test_shipping_get_ajax_label(shipping_zone):
-    shipping_method = shipping_zone.shipping_methods.get()
-    label = shipping_method.get_ajax_label()
-    proper_label = "%(shipping_method)s %(price)s" % {
-        "shipping_method": shipping_method,
-        "price": format_money(shipping_method.price),
-    }
-    assert label == proper_label
 
 
 @pytest.mark.parametrize(
@@ -149,16 +139,8 @@ def test_use_default_shipping_zone(shipping_zone):
     assert result[0] == weight_method
 
 
-@pytest.mark.parametrize(
-    "countries, result",
-    (
-        (["PL"], "Poland"),
-        (["PL", "DE", "IT"], "Poland, Germany, Italy"),
-        (["PL", "DE", "IT", "LE"], "4 countries"),
-        ([], "0 countries"),
-    ),
-)
-def test_countries_display(shipping_zone, countries, result):
-    shipping_zone.countries = countries
+def test_default_shipping_zone_exists(shipping_zone):
+    shipping_zone.default = True
     shipping_zone.save()
-    assert shipping_zone.countries_display() == result
+    assert default_shipping_zone_exists()
+    assert not default_shipping_zone_exists(shipping_zone.pk)

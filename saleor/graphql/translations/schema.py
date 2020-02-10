@@ -1,5 +1,6 @@
 import graphene
 
+from ...core.permissions import SitePermissions
 from ...discount.models import Sale, Voucher
 from ...menu.models import MenuItem
 from ...page.models import Page
@@ -15,13 +16,9 @@ from ...shipping.models import ShippingMethod
 from ..core.connection import CountableConnection
 from ..core.fields import BaseConnectionField
 from ..decorators import permission_required
-from ..discount import types as discount_types
 from ..discount.resolvers import resolve_sales, resolve_vouchers
-from ..menu import types as menu_types
 from ..menu.resolvers import resolve_menu_items
-from ..page import types as page_types
 from ..page.resolvers import resolve_pages
-from ..product import types as product_types
 from ..product.resolvers import (
     resolve_attributes,
     resolve_categories,
@@ -29,31 +26,11 @@ from ..product.resolvers import (
     resolve_product_variants,
     resolve_products,
 )
-from ..shipping import types as shipping_types
 from ..translations import types as translation_types
 from .resolvers import resolve_attribute_values, resolve_shipping_methods
 
 
 class TranslatableItem(graphene.Union):
-    class Meta:
-        types = (
-            product_types.Product,
-            product_types.Category,
-            product_types.Collection,
-            product_types.Attribute,
-            product_types.AttributeValue,
-            product_types.ProductVariant,
-            page_types.Page,
-            shipping_types.ShippingMethod,
-            discount_types.Sale,
-            discount_types.Voucher,
-            menu_types.MenuItem,
-        )
-
-
-# TODO Consider name of this class, we should replace to TranslatableItem after
-# `translations` query refactor. Issue #4957
-class DefaultTranslationItem(graphene.Union):
     class Meta:
         types = (
             translation_types.ProductTranslatableContent,
@@ -90,7 +67,6 @@ class TranslatableKinds(graphene.Enum):
 
 
 class TranslationQueries(graphene.ObjectType):
-    # TODO We nead to change output of this query to new types. Issue #4957
     translations = BaseConnectionField(
         TranslatableItemConnection,
         description="Returns a list of all translatable items of a given kind.",
@@ -99,7 +75,7 @@ class TranslationQueries(graphene.ObjectType):
         ),
     )
     translation = graphene.Field(
-        DefaultTranslationItem,
+        TranslatableItem,
         id=graphene.Argument(
             graphene.ID, description="ID of the object to retrieve.", required=True
         ),
@@ -134,10 +110,8 @@ class TranslationQueries(graphene.ObjectType):
         elif kind == TranslatableKinds.SALE:
             return resolve_sales(info, query=None)
 
-    @permission_required("site.manage_translations")
+    @permission_required(SitePermissions.MANAGE_TRANSLATIONS)
     def resolve_translation(self, info, id, kind, **_kwargs):
-        # Disable all the no-member violations in this function
-        # pylint: disable=no-member
         _type, kind_id = graphene.Node.from_global_id(id)
         if not _type == kind:
             return None

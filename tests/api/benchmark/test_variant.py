@@ -4,12 +4,15 @@ import graphene
 import pytest
 
 from saleor.product.models import ProductVariant
+from saleor.warehouse.models import Stock
 from tests.api.utils import get_graphql_content
 
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
-def test_retrieve_variant_list(product_variant_list, api_client, count_queries):
+def test_retrieve_variant_list(
+    product_variant_list, api_client, count_queries, warehouse
+):
     query = """
         fragment BasicProductFields on Product {
           id
@@ -29,10 +32,35 @@ def test_retrieve_variant_list(product_variant_list, api_client, count_queries):
           name
           stockQuantity
           isAvailable
-          price {
-            currency
-            amount
-            localized
+          pricing {
+            discountLocalCurrency {
+              currency
+              gross {
+                amount
+                localized
+              }
+            }
+            price {
+              currency
+              gross {
+                amount
+                localized
+              }
+            }
+            priceUndiscounted {
+              currency
+              gross {
+                amount
+                localized
+              }
+            }
+            priceLocalCurrency {
+              currency
+              gross {
+                amount
+                localized
+              }
+            }
           }
           attributes {
             attribute {
@@ -61,7 +89,12 @@ def test_retrieve_variant_list(product_variant_list, api_client, count_queries):
           }
         }
     """
-
+    Stock.objects.bulk_create(
+        [
+            Stock(product_variant=variant, warehouse=warehouse)
+            for variant in product_variant_list
+        ]
+    )
     variables = {
         "ids": [
             graphene.Node.to_global_id("ProductVariant", variant.pk)
@@ -75,7 +108,7 @@ def test_retrieve_variant_list(product_variant_list, api_client, count_queries):
 @pytest.mark.count_queries(autouse=False)
 def test_product_variant_bulk_create(
     staff_api_client,
-    product_with_two_variants,
+    product_with_variant_with_two_attributes,
     permission_manage_products,
     color_attribute,
     size_attribute,
@@ -100,7 +133,7 @@ def test_product_variant_bulk_create(
         }
     }
     """
-    product = product_with_two_variants
+    product = product_with_variant_with_two_attributes
     product_variant_count = ProductVariant.objects.count()
     product_id = graphene.Node.to_global_id("Product", product.pk)
     color_attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.id)

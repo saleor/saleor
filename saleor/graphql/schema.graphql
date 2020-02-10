@@ -39,6 +39,7 @@ type AccountError {
 enum AccountErrorCode {
   ACTIVATE_OWN_ACCOUNT
   ACTIVATE_SUPERUSER_ACCOUNT
+  ASSIGN_NON_STAFF_MEMBER
   DEACTIVATE_OWN_ACCOUNT
   DEACTIVATE_SUPERUSER_ACCOUNT
   DELETE_NON_STAFF_USER
@@ -66,6 +67,7 @@ input AccountInput {
 
 type AccountRegister {
   errors: [Error!]
+  requiresConfirmation: Boolean
   accountErrors: [AccountError!]
   user: User
 }
@@ -73,6 +75,7 @@ type AccountRegister {
 input AccountRegisterInput {
   email: String!
   password: String!
+  redirectUrl: String
 }
 
 type AccountRequestDeletion {
@@ -287,7 +290,8 @@ input AttributeFilterInput {
 
 input AttributeInput {
   slug: String!
-  value: String!
+  value: String
+  values: [String]
 }
 
 enum AttributeInputTypeEnum {
@@ -300,8 +304,6 @@ type AttributeReorderValues {
   attribute: Attribute
   productErrors: [ProductError!]
 }
-
-scalar AttributeScalar
 
 enum AttributeSortField {
   NAME
@@ -318,8 +320,8 @@ enum AttributeSortField {
 }
 
 input AttributeSortingInput {
-  field: AttributeSortField!
   direction: OrderDirection!
+  field: AttributeSortField!
 }
 
 type AttributeTranslatableContent implements Node {
@@ -558,6 +560,7 @@ type CategoryDelete {
 
 input CategoryFilterInput {
   search: String
+  ids: [ID]
 }
 
 input CategoryInput {
@@ -568,6 +571,17 @@ input CategoryInput {
   seo: SeoInput
   backgroundImage: Upload
   backgroundImageAlt: String
+}
+
+enum CategorySortField {
+  NAME
+  PRODUCT_COUNT
+  SUBCATEGORY_COUNT
+}
+
+input CategorySortingInput {
+  direction: OrderDirection!
+  field: CategorySortField!
 }
 
 type CategoryTranslatableContent implements Node {
@@ -624,7 +638,6 @@ type Checkout implements Node {
   shippingAddress: Address
   shippingMethod: ShippingMethod
   note: String!
-  discountAmount: Money @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, use discount instead.")
   discount: Money
   discountName: String
   translatedDiscountName: String
@@ -670,6 +683,7 @@ type CheckoutClearPrivateMeta {
 type CheckoutComplete {
   errors: [Error!]
   order: Order
+  confirmationNeeded: Boolean!
   checkoutErrors: [CheckoutError!]
 }
 
@@ -822,12 +836,6 @@ type CheckoutUpdatePrivateMeta {
   checkout: Checkout
 }
 
-type CheckoutUpdateVoucher {
-  errors: [Error!]
-  checkout: Checkout
-  checkoutErrors: [CheckoutError!]
-}
-
 type ChoiceValue {
   raw: String
   verbose: String
@@ -919,6 +927,7 @@ type CollectionDelete {
 input CollectionFilterInput {
   published: CollectionPublished
   search: String
+  ids: [ID]
 }
 
 input CollectionInput {
@@ -948,6 +957,17 @@ type CollectionReorderProducts {
   errors: [Error!]
   collection: Collection
   productErrors: [ProductError!]
+}
+
+enum CollectionSortField {
+  NAME
+  AVAILABILITY
+  PRODUCT_COUNT
+}
+
+input CollectionSortingInput {
+  direction: OrderDirection!
+  field: CollectionSortField!
 }
 
 type CollectionTranslatableContent implements Node {
@@ -1012,6 +1032,16 @@ enum ConfigurationTypeFieldEnum {
   BOOLEAN
   SECRET
   PASSWORD
+}
+
+type ConfirmAccount {
+  errors: [Error!]
+}
+
+type ConfirmEmailChange {
+  errors: [Error!]
+  user: User
+  accountErrors: [AccountError!]
 }
 
 enum CountryCode {
@@ -1287,12 +1317,6 @@ type CreditCard {
   expYear: Int!
 }
 
-type CustomerAddressCreate {
-  errors: [Error!]
-  user: User
-  address: Address
-}
-
 type CustomerBulkDelete {
   errors: [Error!]
   count: Int!
@@ -1315,7 +1339,7 @@ type CustomerEvent implements Node {
   id: ID!
   date: DateTime
   type: CustomerEventsEnum
-  user(id: ID): User
+  user: User
   message: String
   count: Int
   order: Order
@@ -1326,6 +1350,9 @@ enum CustomerEventsEnum {
   ACCOUNT_CREATED
   PASSWORD_RESET_LINK_SENT
   PASSWORD_RESET
+  EMAIL_CHANGED_REQUEST
+  PASSWORD_CHANGED
+  EMAIL_CHANGED
   PLACED_ORDER
   NOTE_ADDED_TO_ORDER
   DIGITAL_LINK_DOWNLOADED
@@ -1353,29 +1380,6 @@ input CustomerInput {
   note: String
 }
 
-type CustomerPasswordReset {
-  errors: [Error!]
-}
-
-input CustomerPasswordResetInput {
-  email: String!
-}
-
-type CustomerRegister {
-  errors: [Error!]
-  user: User
-}
-
-input CustomerRegisterInput {
-  email: String!
-  password: String!
-}
-
-type CustomerSetDefaultAddress {
-  errors: [Error!]
-  user: User
-}
-
 type CustomerUpdate {
   errors: [Error!]
   accountErrors: [AccountError!]
@@ -1397,8 +1401,6 @@ input DateTimeRangeInput {
 }
 
 scalar Decimal
-
-union DefaultTranslationItem = ProductTranslatableContent | CollectionTranslatableContent | CategoryTranslatableContent | AttributeTranslatableContent | AttributeValueTranslatableContent | ProductVariantTranslatableContent | PageTranslatableContent | ShippingMethodTranslatableContent | SaleTranslatableContent | VoucherTranslatableContent | MenuItemTranslatableContent
 
 type DigitalContent implements Node {
   useDefaultSettings: Boolean!
@@ -1676,7 +1678,7 @@ type FulfillmentUpdateTracking {
 
 input FulfillmentUpdateTrackingInput {
   trackingNumber: String
-  notifyCustomer: Boolean
+  notifyCustomer: Boolean = false
 }
 
 type GatewayConfigLine {
@@ -1769,6 +1771,24 @@ input GiftCardUpdateInput {
   userEmail: String
 }
 
+type Group implements Node {
+  id: ID!
+  name: String!
+  permissions: [PermissionDisplay]
+  users: [User]
+}
+
+type GroupCountableConnection {
+  pageInfo: PageInfo!
+  edges: [GroupCountableEdge!]!
+  totalCount: Int
+}
+
+type GroupCountableEdge {
+  node: Group!
+  cursor: String!
+}
+
 type HomepageCollectionUpdate {
   errors: [Error!]
   shop: Shop
@@ -1836,11 +1856,6 @@ enum LanguageCodeEnum {
 type LanguageDisplay {
   code: LanguageCodeEnum!
   language: String!
-}
-
-type LoggedUserUpdate {
-  errors: [Error!]
-  user: User
 }
 
 type Margin {
@@ -1917,7 +1932,6 @@ input MenuInput {
 type MenuItem implements Node {
   id: ID!
   name: String!
-  sortOrder: Int @deprecated(reason: "Will be dropped in 2.10 and is deprecated since 2.9: use the position in list instead and relative calculus to determine shift position.")
   menu: Menu!
   parent: MenuItem
   category: Category
@@ -1992,6 +2006,11 @@ input MenuItemMoveInput {
   sortOrder: Int
 }
 
+input MenuItemSortingInput {
+  direction: OrderDirection!
+  field: MenuItemsSortField!
+}
+
 type MenuItemTranslatableContent implements Node {
   id: ID!
   name: String!
@@ -2014,6 +2033,20 @@ type MenuItemUpdate {
   errors: [Error!]
   menuErrors: [MenuError!]
   menuItem: MenuItem
+}
+
+enum MenuItemsSortField {
+  NAME
+}
+
+enum MenuSortField {
+  NAME
+  ITEMS_COUNT
+}
+
+input MenuSortingInput {
+  direction: OrderDirection!
+  field: MenuSortField!
 }
 
 type MenuUpdate {
@@ -2067,11 +2100,27 @@ input MoveProductInput {
 }
 
 type Mutation {
+  wishlistAddProduct(productId: ID!): WishlistAddProductMutation
+  wishlistRemoveProduct(productId: ID!): WishlistRemoveProductMutation
+  wishlistAddVariant(variantId: ID!): WishlistAddProductVariantMutation
+  wishlistRemoveVariant(variantId: ID!): WishlistRemoveProductVariantMutation
   webhookCreate(input: WebhookCreateInput!): WebhookCreate
   webhookDelete(id: ID!): WebhookDelete
   webhookUpdate(id: ID!, input: WebhookUpdateInput!): WebhookUpdate
+  createWarehouse(input: WarehouseCreateInput!): WarehouseCreate
+  updateWarehouse(id: ID!, input: WarehouseUpdateInput!): WarehouseUpdate
+  deleteWarehouse(id: ID!): WarehouseDelete
+  assignWarehouseShippingZone(id: ID!, shippingZoneIds: [ID!]!): WarehouseShippingZoneAssign
+  unassignWarehouseShippingZone(id: ID!, shippingZoneIds: [ID!]!): WarehouseShippingZoneUnassign
+  createStock(input: StockInput!): StockCreate
+  updateStock(id: ID!, input: StockInput!): StockUpdate
+  deleteStock(id: ID!): StockDelete
+  bulkDeleteStock(ids: [ID]!): StockBulkDelete
   authorizationKeyAdd(input: AuthorizationKeyInput!, keyType: AuthorizationKeyType!): AuthorizationKeyAdd
   authorizationKeyDelete(keyType: AuthorizationKeyType!): AuthorizationKeyDelete
+  staffNotificationRecipientCreate(input: StaffNotificationRecipientInput!): StaffNotificationRecipientCreate
+  staffNotificationRecipientUpdate(id: ID!, input: StaffNotificationRecipientInput!): StaffNotificationRecipientUpdate
+  staffNotificationRecipientDelete(id: ID!): StaffNotificationRecipientDelete
   homepageCollectionUpdate(collection: ID): HomepageCollectionUpdate
   shopDomainUpdate(input: SiteDomainInput): ShopDomainUpdate
   shopSettingsUpdate(input: ShopSettingsInput!): ShopSettingsUpdate
@@ -2240,9 +2289,9 @@ type Mutation {
   tokenVerify(token: String!): VerifyToken
   checkoutAddPromoCode(checkoutId: ID!, promoCode: String!): CheckoutAddPromoCode
   checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID!): CheckoutBillingAddressUpdate
-  checkoutComplete(checkoutId: ID!, storeSource: Boolean = false): CheckoutComplete
+  checkoutComplete(checkoutId: ID!, redirectUrl: String, storeSource: Boolean = false): CheckoutComplete
   checkoutCreate(input: CheckoutCreateInput!): CheckoutCreate
-  checkoutCustomerAttach(checkoutId: ID!, customerId: ID!): CheckoutCustomerAttach
+  checkoutCustomerAttach(checkoutId: ID!, customerId: ID): CheckoutCustomerAttach
   checkoutCustomerDetach(checkoutId: ID!): CheckoutCustomerDetach
   checkoutEmailUpdate(checkoutId: ID, email: String!): CheckoutEmailUpdate
   checkoutLineDelete(checkoutId: ID!, lineId: ID): CheckoutLineDelete
@@ -2252,14 +2301,16 @@ type Mutation {
   checkoutPaymentCreate(checkoutId: ID!, input: PaymentInput!): CheckoutPaymentCreate
   checkoutShippingAddressUpdate(checkoutId: ID!, shippingAddress: AddressInput!): CheckoutShippingAddressUpdate
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!): CheckoutShippingMethodUpdate
-  checkoutUpdateVoucher(checkoutId: ID!, voucherCode: String): CheckoutUpdateVoucher
   checkoutUpdateMetadata(id: ID!, input: MetaInput!): CheckoutUpdateMeta
   checkoutClearMetadata(id: ID!, input: MetaPath!): CheckoutClearMeta
   checkoutUpdatePrivateMetadata(id: ID!, input: MetaInput!): CheckoutUpdatePrivateMeta
   checkoutClearPrivateMetadata(id: ID!, input: MetaPath!): CheckoutClearPrivateMeta
   requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
+  confirmAccount(email: String!, token: String!): ConfirmAccount
   setPassword(token: String!, email: String!, password: String!): SetPassword
   passwordChange(newPassword: String!, oldPassword: String!): PasswordChange
+  requestEmailChange(newEmail: String!, password: String!, redirectUrl: String!): RequestEmailChange
+  confirmEmailChange(token: String!): ConfirmEmailChange
   accountAddressCreate(input: AddressInput!, type: AddressTypeEnum): AccountAddressCreate
   accountAddressUpdate(id: ID!, input: AddressInput!): AccountAddressUpdate
   accountAddressDelete(id: ID!): AccountAddressDelete
@@ -2269,11 +2320,6 @@ type Mutation {
   accountRequestDeletion(redirectUrl: String!): AccountRequestDeletion
   accountDelete(token: String!): AccountDelete
   accountUpdateMeta(input: MetaInput!): AccountUpdateMeta
-  customerPasswordReset(input: CustomerPasswordResetInput!): CustomerPasswordReset
-  customerAddressCreate(input: AddressInput!, type: AddressTypeEnum): CustomerAddressCreate
-  customerSetDefaultAddress(id: ID!, type: AddressTypeEnum!): CustomerSetDefaultAddress
-  customerRegister(input: CustomerRegisterInput!): CustomerRegister
-  loggedUserUpdate(input: UserAddressInput!): LoggedUserUpdate
   addressCreate(input: AddressInput!, userId: ID!): AddressCreate
   addressUpdate(id: ID!, input: AddressInput!): AddressUpdate
   addressDelete(id: ID!): AddressDelete
@@ -2300,7 +2346,11 @@ type Mutation {
   serviceAccountClearPrivateMetadata(id: ID!, input: MetaPath!): ServiceAccountClearPrivateMeta
   serviceAccountTokenCreate(input: ServiceAccountTokenInput!): ServiceAccountTokenCreate
   serviceAccountTokenDelete(id: ID!): ServiceAccountTokenDelete
-  passwordReset(email: String!): PasswordReset
+  permissionGroupCreate(input: PermissionGroupCreateInput!): PermissionGroupCreate
+  permissionGroupUpdate(id: ID!, input: PermissionGroupInput!): PermissionGroupUpdate
+  permissionGroupDelete(id: ID!): PermissionGroupDelete
+  permissionGroupAssignUsers(id: ID!, input: UsersInput!): PermissionGroupAssignUsers
+  permissionGroupUnassignUsers(id: ID!, input: UsersInput!): PermissionGroupUnassignUsers
 }
 
 input NameTranslationInput {
@@ -2363,7 +2413,6 @@ type Order implements Node {
   totalBalance: Money!
   userEmail: String
   isShippingRequired: Boolean!
-  discountAmount: Money! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, use discount instead.")
 }
 
 enum OrderAction {
@@ -2441,6 +2490,7 @@ type OrderError {
 }
 
 enum OrderErrorCode {
+  BILLING_ADDRESS_NOT_SET
   CANNOT_CANCEL_FULFILLMENT
   CANNOT_CANCEL_ORDER
   CANNOT_DELETE
@@ -2466,7 +2516,7 @@ type OrderEvent implements Node {
   id: ID!
   date: DateTime
   type: OrderEventsEnum
-  user(id: ID): User
+  user: User
   message: String
   email: String
   emailType: OrderEventsEmailsEnum
@@ -2577,6 +2627,20 @@ type OrderRefund {
   orderErrors: [OrderError!]
 }
 
+enum OrderSortField {
+  NUMBER
+  CREATION_DATE
+  CUSTOMER
+  PAYMENT
+  FULFILLMENT_STATUS
+  TOTAL
+}
+
+input OrderSortingInput {
+  direction: OrderDirection!
+  field: OrderSortField!
+}
+
 enum OrderStatus {
   DRAFT
   UNFULFILLED
@@ -2669,12 +2733,28 @@ type PageCountableEdge {
 
 type PageCreate {
   errors: [Error!]
+  pageErrors: [PageError!]
   page: Page
 }
 
 type PageDelete {
   errors: [Error!]
+  pageErrors: [PageError!]
   page: Page
+}
+
+type PageError {
+  field: String
+  message: String
+  code: PageErrorCode
+}
+
+enum PageErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
 }
 
 input PageFilterInput {
@@ -2696,6 +2776,19 @@ input PageInput {
   isPublished: Boolean
   publicationDate: String
   seo: SeoInput
+}
+
+enum PageSortField {
+  TITLE
+  SLUG
+  VISIBILITY
+  CREATION_DATE
+  PUBLICATION_DATE
+}
+
+input PageSortingInput {
+  direction: OrderDirection!
+  field: PageSortField!
 }
 
 type PageTranslatableContent implements Node {
@@ -2734,6 +2827,7 @@ input PageTranslationInput {
 
 type PageUpdate {
   errors: [Error!]
+  pageErrors: [PageError!]
   page: Page
 }
 
@@ -2741,10 +2835,6 @@ type PasswordChange {
   errors: [Error!]
   user: User
   accountErrors: [AccountError!]
-}
-
-type PasswordReset {
-  errors: [Error!]
 }
 
 type Payment implements Node {
@@ -2856,10 +2946,9 @@ enum PermissionEnum {
   MANAGE_USERS
   MANAGE_STAFF
   MANAGE_SERVICE_ACCOUNTS
-  IMPERSONATE_USERS
   MANAGE_DISCOUNTS
-  MANAGE_GIFT_CARD
   MANAGE_PLUGINS
+  MANAGE_GIFT_CARD
   MANAGE_MENUS
   MANAGE_ORDERS
   MANAGE_PAGES
@@ -2868,6 +2957,60 @@ enum PermissionEnum {
   MANAGE_SETTINGS
   MANAGE_TRANSLATIONS
   MANAGE_WEBHOOKS
+  MANAGE_CHECKOUTS
+}
+
+type PermissionGroupAssignUsers {
+  errors: [Error!]
+  group: Group
+  accountErrors: [AccountError!]
+}
+
+type PermissionGroupCreate {
+  errors: [Error!]
+  group: Group
+  accountErrors: [AccountError!]
+}
+
+input PermissionGroupCreateInput {
+  name: String!
+  permissions: [PermissionEnum!]
+}
+
+type PermissionGroupDelete {
+  errors: [Error!]
+  accountErrors: [AccountError!]
+  group: Group
+}
+
+input PermissionGroupFilterInput {
+  search: String
+}
+
+input PermissionGroupInput {
+  name: String
+  permissions: [PermissionEnum!]
+}
+
+enum PermissionGroupSortField {
+  NAME
+}
+
+input PermissionGroupSortingInput {
+  direction: OrderDirection!
+  field: PermissionGroupSortField!
+}
+
+type PermissionGroupUnassignUsers {
+  errors: [Error!]
+  group: Group
+  accountErrors: [AccountError!]
+}
+
+type PermissionGroupUpdate {
+  errors: [Error!]
+  group: Group
+  accountErrors: [AccountError!]
 }
 
 type Plugin implements Node {
@@ -2892,6 +3035,16 @@ type PluginCountableEdge {
 input PluginFilterInput {
   active: Boolean
   search: String
+}
+
+enum PluginSortField {
+  NAME
+  IS_ACTIVE
+}
+
+input PluginSortingInput {
+  direction: OrderDirection!
+  field: PluginSortField!
 }
 
 type PluginUpdate {
@@ -2920,6 +3073,7 @@ type Product implements Node {
   publicationDate: Date
   isPublished: Boolean!
   productType: ProductType!
+  slug: String!
   category: Category
   updatedAt: DateTime
   chargeTaxes: Boolean!
@@ -2928,11 +3082,9 @@ type Product implements Node {
   meta: [MetaStore]!
   url: String!
   thumbnail(size: Int): Image
-  availability: ProductPricingInfo @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, Has been renamed to `pricing`.")
   pricing: ProductPricingInfo
   isAvailable: Boolean
   basePrice: Money
-  price: Money @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, has been replaced by `basePrice`")
   minimalVariantPrice: Money
   taxType: TaxType
   attributes: [SelectedAttribute!]!
@@ -2943,7 +3095,6 @@ type Product implements Node {
   images: [ProductImage]
   collections: [Collection]
   translation(languageCode: LanguageCodeEnum!): ProductTranslation
-  slug: String!
 }
 
 type ProductBulkDelete {
@@ -2997,6 +3148,7 @@ input ProductCreateInput {
   descriptionJson: JSONString
   isPublished: Boolean
   name: String
+  slug: String
   basePrice: Decimal
   taxCode: String
   seo: SeoInput
@@ -3044,11 +3196,12 @@ input ProductFilterInput {
   productType: ID
   search: String
   minimalPrice: PriceRangeInput
+  productTypes: [ID]
 }
 
 type ProductImage implements Node {
-  sortOrder: Int
   id: ID!
+  sortOrder: Int
   alt: String!
   url(size: Int): String!
 }
@@ -3107,6 +3260,7 @@ input ProductInput {
   descriptionJson: JSONString
   isPublished: Boolean
   name: String
+  slug: String
   basePrice: Decimal
   taxCode: String
   seo: SeoInput
@@ -3117,9 +3271,9 @@ input ProductInput {
 }
 
 input ProductOrder {
-  field: ProductOrderField
-  attributeId: ID
   direction: OrderDirection!
+  attributeId: ID
+  field: ProductOrderField
 }
 
 enum ProductOrderField {
@@ -3132,7 +3286,6 @@ enum ProductOrderField {
 }
 
 type ProductPricingInfo {
-  available: Boolean @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, this has been moved to the parent type as 'isAvailable'.")
   onSale: Boolean
   discount: TaxedMoney
   discountLocalCurrency: TaxedMoney
@@ -3170,6 +3323,7 @@ type ProductTranslation implements Node {
 type ProductType implements Node {
   id: ID!
   name: String!
+  slug: String!
   hasVariants: Boolean!
   isShippingRequired: Boolean!
   isDigital: Boolean!
@@ -3239,10 +3393,12 @@ input ProductTypeFilterInput {
   search: String
   configurable: ProductTypeConfigurable
   productType: ProductTypeEnum
+  ids: [ID]
 }
 
 input ProductTypeInput {
   name: String
+  slug: String
   hasVariants: Boolean
   productAttributes: [ID]
   variantAttributes: [ID]
@@ -3256,6 +3412,17 @@ type ProductTypeReorderAttributes {
   errors: [Error!]
   productType: ProductType
   productErrors: [ProductError!]
+}
+
+enum ProductTypeSortField {
+  NAME
+  DIGITAL
+  SHIPPING_REQUIRED
+}
+
+input ProductTypeSortingInput {
+  direction: OrderDirection!
+  field: ProductTypeSortField!
 }
 
 type ProductTypeUpdate {
@@ -3300,17 +3467,15 @@ type ProductVariant implements Node {
   sku: String!
   product: Product!
   trackInventory: Boolean!
-  quantityAllocated: Int!
   weight: Weight
   privateMeta: [MetaStore]!
   meta: [MetaStore]!
-  quantity: Int!
-  stockQuantity: Int!
+  quantity: Int! @deprecated(reason: "This field will be removed in Saleor 2.11. Use the stock field instead.")
+  quantityAllocated: Int @deprecated(reason: "This field will be removed in Saleor 2.11. Use the stock field instead.")
+  stockQuantity: Int! @deprecated(reason: "This field will be removed in Saleor 2.11. Use the stock field instead.")
   priceOverride: Money
-  price: Money @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, has been replaced by 'pricing.priceUndiscounted'")
-  availability: VariantPricingInfo @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, has been renamed to `pricing`.")
   pricing: VariantPricingInfo
-  isAvailable: Boolean
+  isAvailable: Boolean @deprecated(reason: "This field will be removed in Saleor 2.11. Use the stock field instead.")
   attributes: [SelectedAttribute!]!
   costPrice: Money
   margin: Int
@@ -3319,6 +3484,7 @@ type ProductVariant implements Node {
   images: [ProductImage]
   translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
   digitalContent: DigitalContent
+  stock(country: String): [Stock]
 }
 
 type ProductVariantBulkCreate {
@@ -3438,65 +3604,70 @@ type ProductVariantUpdatePrivateMeta {
 
 type Query {
   webhook(id: ID!): Webhook
-  webhooks(filter: WebhookFilterInput, before: String, after: String, first: Int, last: Int): WebhookCountableConnection
+  webhooks(sortBy: WebhookSortingInput, filter: WebhookFilterInput, before: String, after: String, first: Int, last: Int): WebhookCountableConnection
   webhookEvents: [WebhookEvent]
   webhookSamplePayload(eventType: WebhookEventTypeEnum!): JSONString
+  warehouse(id: ID!): Warehouse
+  warehouses(filter: WarehouseFilterInput, sortBy: WarehouseSortingInput, before: String, after: String, first: Int, last: Int): WarehouseCountableConnection
   translations(kind: TranslatableKinds!, before: String, after: String, first: Int, last: Int): TranslatableItemConnection
-  translation(id: ID!, kind: TranslatableKinds!): DefaultTranslationItem
+  translation(id: ID!, kind: TranslatableKinds!): TranslatableItem
+  stock(id: ID!): Stock
+  stocks(filter: StockFilterInput, before: String, after: String, first: Int, last: Int): StockCountableConnection
   shop: Shop
   shippingZone(id: ID!): ShippingZone
   shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
   digitalContent(id: ID!): DigitalContent
   digitalContents(before: String, after: String, first: Int, last: Int): DigitalContentCountableConnection
-  attributes(query: String, inCategory: ID, inCollection: ID, filter: AttributeFilterInput, sortBy: AttributeSortingInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
+  attributes(filter: AttributeFilterInput, sortBy: AttributeSortingInput, before: String, after: String, first: Int, last: Int): AttributeCountableConnection
   attribute(id: ID!): Attribute
-  categories(query: String, filter: CategoryFilterInput, level: Int, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
+  categories(filter: CategoryFilterInput, sortBy: CategorySortingInput, level: Int, before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   category(id: ID!): Category
   collection(id: ID!): Collection
-  collections(filter: CollectionFilterInput, query: String, before: String, after: String, first: Int, last: Int): CollectionCountableConnection
+  collections(filter: CollectionFilterInput, sortBy: CollectionSortingInput, before: String, after: String, first: Int, last: Int): CollectionCountableConnection
   product(id: ID!): Product
-  products(filter: ProductFilterInput, attributes: [AttributeScalar], categories: [ID], collections: [ID], sortBy: ProductOrder, stockAvailability: StockAvailability, query: String, before: String, after: String, first: Int, last: Int): ProductCountableConnection
+  products(filter: ProductFilterInput, sortBy: ProductOrder, stockAvailability: StockAvailability, before: String, after: String, first: Int, last: Int): ProductCountableConnection
   productType(id: ID!): ProductType
-  productTypes(filter: ProductTypeFilterInput, query: String, before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
+  productTypes(filter: ProductTypeFilterInput, sortBy: ProductTypeSortingInput, before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection
   productVariant(id: ID!): ProductVariant
   productVariants(ids: [ID], before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   reportProductSales(period: ReportingPeriod!, before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection
   payment(id: ID!): Payment
   payments(before: String, after: String, first: Int, last: Int): PaymentCountableConnection
-  paymentClientToken(gateway: String!): String @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, use payment gateway config instead in availablePaymentGateways.")
   page(id: ID, slug: String): Page
-  pages(query: String, filter: PageFilterInput, before: String, after: String, first: Int, last: Int): PageCountableConnection
+  pages(sortBy: PageSortingInput, filter: PageFilterInput, before: String, after: String, first: Int, last: Int): PageCountableConnection
   homepageEvents(before: String, after: String, first: Int, last: Int): OrderEventCountableConnection
   order(id: ID!): Order
-  orders(filter: OrderFilterInput, query: String, created: ReportingPeriod, status: OrderStatusFilter, before: String, after: String, first: Int, last: Int): OrderCountableConnection
-  draftOrders(filter: OrderDraftFilterInput, query: String, created: ReportingPeriod, before: String, after: String, first: Int, last: Int): OrderCountableConnection
+  orders(sortBy: OrderSortingInput, filter: OrderFilterInput, created: ReportingPeriod, status: OrderStatusFilter, before: String, after: String, first: Int, last: Int): OrderCountableConnection
+  draftOrders(sortBy: OrderSortingInput, filter: OrderDraftFilterInput, created: ReportingPeriod, before: String, after: String, first: Int, last: Int): OrderCountableConnection
   ordersTotal(period: ReportingPeriod): TaxedMoney
   orderByToken(token: UUID!): Order
   menu(id: ID, name: String): Menu
-  menus(query: String, filter: MenuFilterInput, before: String, after: String, first: Int, last: Int): MenuCountableConnection
+  menus(sortBy: MenuSortingInput, filter: MenuFilterInput, before: String, after: String, first: Int, last: Int): MenuCountableConnection
   menuItem(id: ID!): MenuItem
-  menuItems(query: String, filter: MenuItemFilterInput, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
+  menuItems(sortBy: MenuItemSortingInput, filter: MenuItemFilterInput, before: String, after: String, first: Int, last: Int): MenuItemCountableConnection
   giftCard(id: ID!): GiftCard
   giftCards(before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
   plugin(id: ID!): Plugin
-  plugins(filter: PluginFilterInput, before: String, after: String, first: Int, last: Int): PluginCountableConnection
+  plugins(filter: PluginFilterInput, sortBy: PluginSortingInput, before: String, after: String, first: Int, last: Int): PluginCountableConnection
   sale(id: ID!): Sale
-  sales(filter: SaleFilterInput, query: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection
+  sales(filter: SaleFilterInput, sortBy: SaleSortingInput, query: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection
   voucher(id: ID!): Voucher
-  vouchers(filter: VoucherFilterInput, query: String, before: String, after: String, first: Int, last: Int): VoucherCountableConnection
+  vouchers(filter: VoucherFilterInput, sortBy: VoucherSortingInput, query: String, before: String, after: String, first: Int, last: Int): VoucherCountableConnection
   taxTypes: [TaxType]
   checkout(token: UUID): Checkout
   checkouts(before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
   checkoutLine(id: ID): CheckoutLine
   checkoutLines(before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection
   addressValidationRules(countryCode: CountryCode!, countryArea: String, city: String, cityArea: String): AddressValidationData
-  customers(filter: CustomerFilterInput, query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
+  address(id: ID!): Address
+  customers(filter: CustomerFilterInput, sortBy: UserSortingInput, before: String, after: String, first: Int, last: Int): UserCountableConnection
+  permissionGroups(filter: PermissionGroupFilterInput, sortBy: PermissionGroupSortingInput, before: String, after: String, first: Int, last: Int): GroupCountableConnection
+  permissionGroup(id: ID!): Group
   me: User
-  staffUsers(filter: StaffUserInput, query: String, before: String, after: String, first: Int, last: Int): UserCountableConnection
-  serviceAccounts(filter: ServiceAccountFilterInput, before: String, after: String, first: Int, last: Int): ServiceAccountCountableConnection
+  staffUsers(filter: StaffUserInput, sortBy: UserSortingInput, before: String, after: String, first: Int, last: Int): UserCountableConnection
+  serviceAccounts(filter: ServiceAccountFilterInput, sortBy: ServiceAccountSortingInput, before: String, after: String, first: Int, last: Int): ServiceAccountCountableConnection
   serviceAccount(id: ID!): ServiceAccount
   user(id: ID!): User
-  node(id: ID!): Node
   _entities(representations: [_Any]): [_Entity]
   _service: _Service
 }
@@ -3519,6 +3690,12 @@ input ReorderInput {
 enum ReportingPeriod {
   TODAY
   THIS_MONTH
+}
+
+type RequestEmailChange {
+  errors: [Error!]
+  user: User
+  accountErrors: [AccountError!]
 }
 
 type RequestPasswordReset {
@@ -3593,6 +3770,19 @@ type SaleRemoveCatalogues {
   sale: Sale
 }
 
+enum SaleSortField {
+  NAME
+  START_DATE
+  END_DATE
+  VALUE
+  TYPE
+}
+
+input SaleSortingInput {
+  direction: OrderDirection!
+  field: SaleSortField!
+}
+
 type SaleTranslatableContent implements Node {
   id: ID!
   name: String!
@@ -3623,7 +3813,6 @@ type SaleUpdate {
 
 type SelectedAttribute {
   attribute: Attribute!
-  value: AttributeValue @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, use values instead.")
   values: [AttributeValue]!
 }
 
@@ -3682,6 +3871,16 @@ input ServiceAccountInput {
   name: String
   isActive: Boolean
   permissions: [PermissionEnum]
+}
+
+enum ServiceAccountSortField {
+  NAME
+  CREATION_DATE
+}
+
+input ServiceAccountSortingInput {
+  direction: OrderDirection!
+  field: ServiceAccountSortField!
 }
 
 type ServiceAccountToken implements Node {
@@ -3823,6 +4022,7 @@ type ShippingZone implements Node {
   priceRange: MoneyRange
   countries: [CountryDisplay]
   shippingMethods: [ShippingMethod]
+  warehouses: [Warehouse]
 }
 
 type ShippingZoneBulkDelete {
@@ -3895,6 +4095,7 @@ type Shop {
   defaultDigitalUrlValidDays: Int
   companyAddress: Address
   customerSetPasswordUrl: String
+  staffNotificationRecipients: [StaffNotificationRecipient]
 }
 
 type ShopAddressUpdate {
@@ -3994,7 +4195,6 @@ input StaffCreateInput {
   isActive: Boolean
   note: String
   permissions: [PermissionEnum]
-  sendPasswordEmail: Boolean
   redirectUrl: String
 }
 
@@ -4018,6 +4218,37 @@ enum StaffMemberStatus {
   DEACTIVATED
 }
 
+type StaffNotificationRecipient implements Node {
+  user: User
+  active: Boolean
+  id: ID!
+  email: String
+}
+
+type StaffNotificationRecipientCreate {
+  errors: [Error!]
+  shopErrors: [ShopError!]
+  staffNotificationRecipient: StaffNotificationRecipient
+}
+
+type StaffNotificationRecipientDelete {
+  errors: [Error!]
+  shopErrors: [ShopError!]
+  staffNotificationRecipient: StaffNotificationRecipient
+}
+
+input StaffNotificationRecipientInput {
+  user: ID
+  email: String
+  active: Boolean
+}
+
+type StaffNotificationRecipientUpdate {
+  errors: [Error!]
+  shopErrors: [ShopError!]
+  staffNotificationRecipient: StaffNotificationRecipient
+}
+
 type StaffUpdate {
   errors: [Error!]
   accountErrors: [AccountError!]
@@ -4029,9 +4260,79 @@ input StaffUserInput {
   search: String
 }
 
+type Stock implements Node {
+  warehouse: Warehouse!
+  productVariant: ProductVariant!
+  quantity: Int!
+  quantityAllocated: Int!
+  id: ID!
+  stockQuantity: Int!
+}
+
 enum StockAvailability {
   IN_STOCK
   OUT_OF_STOCK
+}
+
+type StockBulkDelete {
+  errors: [Error!]
+  count: Int!
+  stockError: [StockError!]
+}
+
+type StockCountableConnection {
+  pageInfo: PageInfo!
+  edges: [StockCountableEdge!]!
+  totalCount: Int
+}
+
+type StockCountableEdge {
+  node: Stock!
+  cursor: String!
+}
+
+type StockCreate {
+  errors: [Error!]
+  stockErrors: [StockError!]
+  stock: Stock
+}
+
+type StockDelete {
+  errors: [Error!]
+  stock: Stock
+}
+
+enum StockErorrCode {
+  ALREADY_EXISTS
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+}
+
+type StockError {
+  field: String
+  message: String
+  code: StockErorrCode
+}
+
+input StockFilterInput {
+  quantity: Float
+  quantityAllocated: Float
+  search: String
+}
+
+input StockInput {
+  productVariant: ID!
+  warehouse: ID!
+  quantity: Int
+}
+
+type StockUpdate {
+  errors: [Error!]
+  stockError: [StockError!]
+  stock: Stock
 }
 
 enum TaxRateType {
@@ -4112,7 +4413,7 @@ enum TransactionKind {
   CONFIRM
 }
 
-union TranslatableItem = Product | Category | Collection | Attribute | AttributeValue | ProductVariant | Page | ShippingMethod | Sale | Voucher | MenuItem
+union TranslatableItem = ProductTranslatableContent | CollectionTranslatableContent | CategoryTranslatableContent | AttributeTranslatableContent | AttributeValueTranslatableContent | ProductVariantTranslatableContent | PageTranslatableContent | ShippingMethodTranslatableContent | SaleTranslatableContent | VoucherTranslatableContent | MenuItemTranslatableContent
 
 type TranslatableItemConnection {
   pageInfo: PageInfo!
@@ -4173,11 +4474,7 @@ type User implements Node {
   avatar(size: Int): Image
   events: [CustomerEvent]
   storedPaymentSources: [PaymentSource]
-}
-
-input UserAddressInput {
-  defaultBillingAddress: AddressInput
-  defaultShippingAddress: AddressInput
+  wishlist(before: String, after: String, first: Int, last: Int): WishlistItemCountableConnection
 }
 
 type UserAvatarDelete {
@@ -4229,8 +4526,19 @@ input UserCreateInput {
   email: String
   isActive: Boolean
   note: String
-  sendPasswordEmail: Boolean
   redirectUrl: String
+}
+
+enum UserSortField {
+  FIRST_NAME
+  LAST_NAME
+  EMAIL
+  ORDER_COUNT
+}
+
+input UserSortingInput {
+  direction: OrderDirection!
+  field: UserSortField!
 }
 
 type UserUpdateMeta {
@@ -4243,6 +4551,10 @@ type UserUpdatePrivateMeta {
   errors: [Error!]
   accountErrors: [AccountError!]
   user: User
+}
+
+input UsersInput {
+  users: [ID!]!
 }
 
 type VAT {
@@ -4266,7 +4578,6 @@ type VariantImageUnassign {
 }
 
 type VariantPricingInfo {
-  available: Boolean @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, this has been moved to the parent type as 'isAvailable'.")
   onSale: Boolean
   discount: TaxedMoney
   discountLocalCurrency: TaxedMoney
@@ -4300,7 +4611,6 @@ type Voucher implements Node {
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
   countries: [CountryDisplay]
   translation(languageCode: LanguageCodeEnum!): VoucherTranslation
-  minAmountSpent: Money @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.10, use the minSpent field instead.")
 }
 
 type VoucherAddCatalogues {
@@ -4372,6 +4682,21 @@ type VoucherRemoveCatalogues {
   voucher: Voucher
 }
 
+enum VoucherSortField {
+  CODE
+  START_DATE
+  END_DATE
+  VALUE
+  TYPE
+  USAGE_LIMIT
+  MINIMUM_SPENT_AMOUNT
+}
+
+input VoucherSortingInput {
+  direction: OrderDirection!
+  field: VoucherSortField!
+}
+
 type VoucherTranslatableContent implements Node {
   id: ID!
   name: String
@@ -4399,6 +4724,113 @@ enum VoucherTypeEnum {
 type VoucherUpdate {
   errors: [Error!]
   voucher: Voucher
+}
+
+type Warehouse implements Node {
+  id: ID!
+  name: String!
+  slug: String!
+  companyName: String!
+  shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection!
+  address: Address!
+  email: String!
+}
+
+input WarehouseAddressInput {
+  streetAddress1: String!
+  streetAddress2: String
+  city: String!
+  cityArea: String
+  postalCode: String
+  country: CountryCode!
+  countryArea: String
+  phone: String
+}
+
+type WarehouseCountableConnection {
+  pageInfo: PageInfo!
+  edges: [WarehouseCountableEdge!]!
+  totalCount: Int
+}
+
+type WarehouseCountableEdge {
+  node: Warehouse!
+  cursor: String!
+}
+
+type WarehouseCreate {
+  errors: [Error!]
+  warehouseErrors: [WarehouseError!]
+  warehouse: Warehouse
+}
+
+input WarehouseCreateInput {
+  slug: String
+  companyName: String
+  email: String
+  name: String!
+  address: WarehouseAddressInput!
+  shippingZones: [ID]
+}
+
+type WarehouseDelete {
+  errors: [Error!]
+  warehouseErrors: [WarehouseError!]
+  warehouse: Warehouse
+}
+
+type WarehouseError {
+  field: String
+  message: String
+  code: WarehouseErrorCode
+}
+
+enum WarehouseErrorCode {
+  ALREADY_EXISTS
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+}
+
+input WarehouseFilterInput {
+  search: String
+}
+
+type WarehouseShippingZoneAssign {
+  errors: [Error!]
+  warehouse: Warehouse
+  warehouseErrors: [WarehouseError!]
+}
+
+type WarehouseShippingZoneUnassign {
+  errors: [Error!]
+  warehouse: Warehouse
+  warehouseErrors: [WarehouseError!]
+}
+
+enum WarehouseSortField {
+  NAME
+}
+
+input WarehouseSortingInput {
+  direction: OrderDirection!
+  field: WarehouseSortField!
+}
+
+type WarehouseUpdate {
+  errors: [Error!]
+  warehouseErrors: [WarehouseError!]
+  warehouse: Warehouse
+}
+
+input WarehouseUpdateInput {
+  slug: String
+  companyName: String
+  email: String
+  name: String
+  address: WarehouseAddressInput
 }
 
 type Webhook implements Node {
@@ -4471,11 +4903,23 @@ enum WebhookEventTypeEnum {
   ORDER_FULFILLED
   CUSTOMER_CREATED
   PRODUCT_CREATED
+  CHECKOUT_QUANTITY_CHANGED
 }
 
 input WebhookFilterInput {
   search: String
   isActive: Boolean
+}
+
+enum WebhookSortField {
+  NAME
+  SERVICE_ACCOUNT
+  TARGET_URL
+}
+
+input WebhookSortingInput {
+  direction: OrderDirection!
+  field: WebhookSortField!
 }
 
 type WebhookUpdate {
@@ -4507,9 +4951,71 @@ enum WeightUnitsEnum {
   G
 }
 
+type Wishlist implements Node {
+  id: ID!
+  createdAt: DateTime!
+  items(before: String, after: String, first: Int, last: Int, id: ID): WishlistItemCountableConnection!
+}
+
+type WishlistAddProductMutation {
+  errors: [Error!]
+  wishlist: [WishlistItem]
+  wishlistErrors: [WishlistError!]
+}
+
+type WishlistAddProductVariantMutation {
+  errors: [Error!]
+  wishlist: [WishlistItem]
+  wishlistErrors: [WishlistError!]
+}
+
+type WishlistError {
+  field: String
+  message: String
+  code: WishlistErrorCode
+}
+
+enum WishlistErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+}
+
+type WishlistItem implements Node {
+  id: ID!
+  wishlist: Wishlist!
+  product: Product!
+  variants(before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection!
+}
+
+type WishlistItemCountableConnection {
+  pageInfo: PageInfo!
+  edges: [WishlistItemCountableEdge!]!
+  totalCount: Int
+}
+
+type WishlistItemCountableEdge {
+  node: WishlistItem!
+  cursor: String!
+}
+
+type WishlistRemoveProductMutation {
+  errors: [Error!]
+  wishlist: [WishlistItem]
+  wishlistErrors: [WishlistError!]
+}
+
+type WishlistRemoveProductVariantMutation {
+  errors: [Error!]
+  wishlist: [WishlistItem]
+  wishlistErrors: [WishlistError!]
+}
+
 scalar _Any
 
-union _Entity = Address | ServiceAccount | User | ProductVariant | Product | ProductType | Collection | Category | ProductImage
+union _Entity = Address | ServiceAccount | User | Group | ProductVariant | Product | ProductType | Collection | Category | ProductImage
 
 type _Service {
   sdl: String

@@ -1,6 +1,6 @@
 """Checkout-related ORM models."""
-from decimal import Decimal
 from operator import attrgetter
+from typing import TYPE_CHECKING, Optional
 from uuid import uuid4
 
 from django.conf import settings
@@ -8,17 +8,23 @@ from django.contrib.postgres.fields import JSONField
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.encoding import smart_str
+from django_countries.fields import Country, CountryField
 from django_prices.models import MoneyField
 from prices import Money
 
 from ..account.models import Address
 from ..core.models import ModelWithMetadata
+from ..core.permissions import CheckoutPermissions
 from ..core.taxes import zero_money
 from ..core.weight import zero_weight
 from ..giftcard.models import GiftCard
 from ..shipping.models import ShippingMethod
 
-CENTS = Decimal("0.01")
+if TYPE_CHECKING:
+    # flake8: noqa
+    from ..product.models import ProductVariant
+    from django_measurement import Weight
+    from ..payment.models import Payment
 
 
 class CheckoutQueryset(models.QuerySet):
@@ -38,11 +44,15 @@ class CheckoutQueryset(models.QuerySet):
         )  # noqa
 
 
+def get_default_country():
+    return settings.DEFAULT_COUNTRY
+
+
 class Checkout(ModelWithMetadata):
     """A shopping checkout."""
 
     created = models.DateTimeField(auto_now_add=True)
-    last_change = models.DateTimeField(auto_now_add=True)
+    last_change = models.DateTimeField(auto_now=True)
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         blank=True,
@@ -72,6 +82,7 @@ class Checkout(ModelWithMetadata):
         max_length=settings.DEFAULT_CURRENCY_CODE_LENGTH,
         default=settings.DEFAULT_CURRENCY,
     )
+    country = CountryField(default=get_default_country)
 
     discount_amount = models.DecimalField(
         max_digits=settings.DEFAULT_MAX_DIGITS,
@@ -89,6 +100,9 @@ class Checkout(ModelWithMetadata):
 
     class Meta:
         ordering = ("-last_change",)
+        permissions = (
+            (CheckoutPermissions.MANAGE_CHECKOUTS.codename, "Manage checkouts"),
+        )
 
     def __repr__(self):
         return "Checkout(quantity=%s)" % (self.quantity,)
@@ -99,31 +113,14 @@ class Checkout(ModelWithMetadata):
     def __len__(self):
         return self.lines.count()
 
-    def get_customer_email(self):
+    def get_customer_email(self) -> str:
         return self.user.email if self.user else self.email
 
-    def is_shipping_required(self):
+    def is_shipping_required(self) -> bool:
         """Return `True` if any of the lines requires shipping."""
         return any(line.is_shipping_required() for line in self)
 
-    def get_shipping_price(self):
-        return (
-            self.shipping_method.get_total()
-            if self.shipping_method and self.is_shipping_required()
-            else zero_money(self.currency)
-        )
-
-    def get_subtotal(self, discounts=None):
-        """Return the total cost of the checkout prior to shipping."""
-        subtotals = (line.get_total(discounts) for line in self)
-        return sum(subtotals, zero_money(currency=self.currency))
-
-    def get_total(self, discounts=None):
-        """Return the total cost of the checkout."""
-        total = self.get_subtotal(discounts) + self.get_shipping_price() - self.discount
-        return max(total, zero_money(total.currency))
-
-    def get_total_gift_cards_balance(self):
+    def get_total_gift_cards_balance(self) -> Money:
         """Return the total balance of the gift cards assigned to the checkout."""
         balance = self.gift_cards.aggregate(models.Sum("current_balance_amount"))[
             "current_balance_amount__sum"
@@ -132,21 +129,42 @@ class Checkout(ModelWithMetadata):
             return zero_money(currency=self.currency)
         return Money(balance, self.currency)
 
-    def get_total_weight(self):
+    def get_total_weight(self) -> "Weight":
         # Cannot use `sum` as it parses an empty Weight to an int
         weights = zero_weight()
         for line in self:
             weights += line.variant.get_weight() * line.quantity
         return weights
 
-    def get_line(self, variant):
+    def get_line(self, variant: "ProductVariant") -> Optional["CheckoutLine"]:
         """Return a line matching the given variant and data if any."""
         matching_lines = (line for line in self if line.variant.pk == variant.pk)
         return next(matching_lines, None)
 
-    def get_last_active_payment(self):
+    def get_last_active_payment(self) -> Optional["Payment"]:
         payments = [payment for payment in self.payments.all() if payment.is_active]
         return max(payments, default=None, key=attrgetter("pk"))
+
+    def set_country(
+        self, country_code: str, commit: bool = False, replace: bool = True
+    ):
+        """Set country for checkout."""
+        if not replace and self.country is not None:
+            return
+        self.country = Country(country_code)
+        if commit:
+            self.save(update_fields=["country"])
+
+    def get_country(self):
+        address = self.shipping_address or self.billing_address
+        saved_country = self.country
+        if address is None or not address.country:
+            return saved_country.code
+
+        country_code = address.country.code
+        if not country_code == saved_country.code:
+            self.set_country(country_code, commit=True)
+        return country_code
 
 
 class CheckoutLine(models.Model):
@@ -192,11 +210,6 @@ class CheckoutLine(models.Model):
     def __setstate__(self, data):
         self.variant, self.quantity = data
 
-    def get_total(self, discounts=None):
-        """Return the total price of this line."""
-        amount = self.quantity * self.variant.get_price(discounts)
-        return amount.quantize(CENTS)
-
-    def is_shipping_required(self):
+    def is_shipping_required(self) -> bool:
         """Return `True` if the related product variant requires shipping."""
         return self.variant.is_shipping_required()

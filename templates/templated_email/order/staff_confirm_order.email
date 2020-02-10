@@ -1,0 +1,41 @@
+{% load i18n %}
+{% load price from taxed_prices %}
+{% load voucher %}
+
+{% block subject %}
+  {% trans "Order details" context "Order confirmation e-mail subject" %}
+{% endblock %}
+
+{% block plain %}
+{% include 'templated_email/shared/_header.email' %}
+{% blocktrans context "Order confirmation staff e-mail text" %}
+Below is the list of ordered products.
+{% endblocktrans %}
+{% if order_details_url %}
+{% blocktrans context "Order confirmation e-mail payment details" %}
+To see your payment details please visit:
+{{ order_details_url }}
+{% endblocktrans %}
+{% endif %}
+{% for line in order %}
+{{ line.quantity }} x {{ line }}, {% price line.get_total display_gross=order.display_gross_prices html=False %}
+{% endfor %}
+{% trans "Order summary" context "Order confirmation e-mail table header" %}:
+{% trans "Subtotal" context "Order confirmation e-mail table header" %}:           {% price order.get_subtotal display_gross=order.display_gross_prices html=False %}
+{% trans "Shipping" context "Order confirmation e-mail table header" %}:           {% price order.shipping_price display_gross=order.display_gross_prices html=False %}
+{% if order.display_gross_prices %}{% trans "Taxes (included)" context "Order confirmation e-mail table header" %}{% else %}{% trans "Taxes" context "Order confirmation e-mail table header" %}{% endif %}:              {% price order.total.tax html=False %}
+{% if order.discount_amount %}{% trans "Discount:" context "Order confirmation e-mail table header" %}           {% discount_as_negative order.discount %}{% endif %}
+{% trans "Total" context "Order confirmation e-mail table header" %}:              {% price order.total.gross html=False %}
+
+{% trans "Billing address" context "Order confirmation e-mail billing address" %}
+{% if order.billing_address %}{{ order.billing_address }}{% else %}{% trans "No billing address" context "Order confirmation e-mail text" %}{% endif %}
+
+{% trans "Shipping address" context "Order confirmation e-mail shipping address" %}
+{% if order.shipping_address %}{{ order.shipping_address }}{% else %}{% trans "No shipping required" context "Order confirmation e-mail text" %}{% endif %}
+
+{% include 'templated_email/shared/_footer.email' %}
+{% endblock %}
+
+{% block html %}
+{% include 'templated_email/compiled/staff_confirm_order.html' %}
+{% endblock %}

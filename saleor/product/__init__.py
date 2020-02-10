@@ -1,7 +1,7 @@
-from django.utils.translation import pgettext_lazy
+from enum import Enum
 
 
-class ProductAvailabilityStatus:
+class ProductAvailabilityStatus(str, Enum):
     NOT_PUBLISHED = "not-published"
     VARIANTS_MISSSING = "variants-missing"
     OUT_OF_STOCK = "out-of-stock"
@@ -11,34 +11,36 @@ class ProductAvailabilityStatus:
 
     @staticmethod
     def get_display(status):
-        if status == ProductAvailabilityStatus.NOT_PUBLISHED:
-            return pgettext_lazy("Product status", "not published")
-        elif status == ProductAvailabilityStatus.VARIANTS_MISSSING:
-            return pgettext_lazy("Product status", "variants missing")
-        elif status == ProductAvailabilityStatus.OUT_OF_STOCK:
-            return pgettext_lazy("Product status", "out of stock")
-        elif status == ProductAvailabilityStatus.LOW_STOCK:
-            return pgettext_lazy("Product status", "stock running low")
-        elif status == ProductAvailabilityStatus.NOT_YET_AVAILABLE:
-            return pgettext_lazy("Product status", "not yet available")
-        elif status == ProductAvailabilityStatus.READY_FOR_PURCHASE:
-            return pgettext_lazy("Product status", "ready for purchase")
+        status_mapping = {
+            ProductAvailabilityStatus.NOT_PUBLISHED: "not published",
+            ProductAvailabilityStatus.VARIANTS_MISSSING: "variants missing",
+            ProductAvailabilityStatus.OUT_OF_STOCK: "out of stock",
+            ProductAvailabilityStatus.LOW_STOCK: "stock running low",
+            ProductAvailabilityStatus.NOT_YET_AVAILABLE: "not yet available",
+            ProductAvailabilityStatus.READY_FOR_PURCHASE: "ready for purchase",
+        }
+
+        if status in status_mapping:
+            return status_mapping[status]
         else:
-            raise NotImplementedError("Unknown status: %s" % status)
+            raise NotImplementedError(f"Unknown status: {status}")
 
 
-class VariantAvailabilityStatus:
+class VariantAvailabilityStatus(str, Enum):
     AVAILABLE = "available"
     OUT_OF_STOCK = "out-of-stock"
 
     @staticmethod
     def get_display(status):
-        if status == VariantAvailabilityStatus.AVAILABLE:
-            return pgettext_lazy("Variant status", "available")
-        elif status == VariantAvailabilityStatus.OUT_OF_STOCK:
-            return pgettext_lazy("Variant status", "out of stock")
+        status_mapping = {
+            VariantAvailabilityStatus.AVAILABLE: "available",
+            VariantAvailabilityStatus.OUT_OF_STOCK: "out of stock",
+        }
+
+        if status in status_mapping:
+            return status_mapping[status]
         else:
-            raise NotImplementedError("Unknown status: %s" % status)
+            raise NotImplementedError(f"Unknown status: {status}")
 
 
 class AttributeInputType:
@@ -48,8 +50,8 @@ class AttributeInputType:
     MULTISELECT = "multiselect"
 
     CHOICES = [
-        (DROPDOWN, pgettext_lazy("Attribute input type", "Dropdown")),
-        (MULTISELECT, pgettext_lazy("Attribute input type", "Multi Select")),
+        (DROPDOWN, "Dropdown"),
+        (MULTISELECT, "Multi Select"),
     ]
 
     # list the input types that cannot be assigned to a variant

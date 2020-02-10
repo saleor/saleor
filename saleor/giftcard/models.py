@@ -3,8 +3,9 @@ from datetime import date
 from django.conf import settings
 from django.db import models
 from django.db.models import Q
-from django.utils.translation import pgettext_lazy
 from django_prices.models import MoneyField
+
+from ..core.permissions import GiftcardPermissions
 
 
 class GiftCardQueryset(models.QuerySet):
@@ -56,10 +57,7 @@ class GiftCard(models.Model):
 
     class Meta:
         permissions = (
-            (
-                "manage_gift_card",
-                pgettext_lazy("Permission description", "Manage gift cards."),
-            ),
+            (GiftcardPermissions.MANAGE_GIFT_CARD.codename, "Manage gift cards."),
         )
 
     @property

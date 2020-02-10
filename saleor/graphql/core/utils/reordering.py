@@ -1,6 +1,6 @@
 from collections import OrderedDict
 from dataclasses import dataclass
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple
 
 from django.db import transaction
 from django.db.models import F, QuerySet
@@ -29,11 +29,11 @@ class Reordering:
         # Will contain the original data, before sorting
         # This will be useful to look for the sort orders that
         # actually were changed
-        self.old_sort_map = {}
+        self.old_sort_map: Dict[int, str] = {}
 
         # Will contain the list of keys kept
         # in correct order in accordance to their sort order
-        self.ordered_pks = []
+        self.ordered_pks: List[int] = []
 
     @cached_property
     def ordered_node_map(self):

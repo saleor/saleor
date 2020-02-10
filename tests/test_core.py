@@ -4,33 +4,30 @@ from unittest.mock import Mock, patch
 from urllib.parse import urljoin
 
 import pytest
-from django.shortcuts import reverse
+from django.db.utils import DataError
 from django.templatetags.static import static
-from django.test import Client, RequestFactory, override_settings
-from django.urls import translate_url
+from django.test import RequestFactory, override_settings
 from measurement.measures import Weight
-from prices import Money
 
 from saleor.account.models import Address, User
 from saleor.account.utils import create_superuser
 from saleor.core.storages import S3MediaStorage
+from saleor.core.templatetags.placeholder import placeholder
 from saleor.core.utils import (
     Country,
     build_absolute_uri,
     create_thumbnails,
-    format_money,
+    generate_unique_slug,
     get_client_ip,
     get_country_by_ip,
-    get_country_name_by_code,
     get_currency_for_country,
     random_data,
 )
-from saleor.core.utils.text import get_cleaner, strip_html
 from saleor.core.weight import WeightUnits, convert_weight
 from saleor.discount.models import Sale, Voucher
 from saleor.giftcard.models import GiftCard
 from saleor.order.models import Order
-from saleor.product.models import ProductImage
+from saleor.product.models import ProductImage, ProductType
 from saleor.shipping.models import ShippingZone
 
 type_schema = {
@@ -45,11 +42,6 @@ type_schema = {
         "is_shipping_required": True,
     }
 }
-
-
-def test_format_money():
-    money = Money("123.99", "USD")
-    assert format_money(money) == "$123.99"
 
 
 @pytest.mark.parametrize(
@@ -110,13 +102,6 @@ def test_create_superuser(db, client, media_root):
     # Test duplicating
     create_superuser(credentials)
     assert User.objects.all().count() == 1
-    # Test logging in
-    response = client.post(
-        reverse("account:login"),
-        {"username": credentials["email"], "password": credentials["password"]},
-        follow=True,
-    )
-    assert response.context["request"].user == admin
 
 
 def test_create_shipping_zones(db):
@@ -142,12 +127,12 @@ def test_create_fake_users(db):
 
 
 def test_create_address(db):
-    assert Address.objects.all().count() == 0
+    assert not Address.objects.exists()
     random_data.create_address()
     assert Address.objects.all().count() == 1
 
 
-def test_create_fake_order(db, monkeypatch, image, media_root):
+def test_create_fake_order(db, monkeypatch, image, media_root, warehouse):
     # Tests shouldn't depend on images present in placeholder folder
     monkeypatch.setattr(
         "saleor.core.utils.random_data.get_image", Mock(return_value=image)
@@ -182,26 +167,6 @@ def test_create_gift_card(db):
     for _ in random_data.create_gift_card():
         pass
     assert GiftCard.objects.count() == 1
-
-
-def test_manifest(client, site_settings):
-    response = client.get(reverse("manifest"))
-    assert response.status_code == 200
-    content = response.json()
-    assert content["name"] == site_settings.site.name
-    assert content["short_name"] == site_settings.site.name
-    assert content["description"] == site_settings.description
-
-
-def test_utils_get_cleaner_invalid_parameters():
-    with pytest.raises(ValueError):
-        get_cleaner(bad=True)
-
-
-def test_utils_strip_html():
-    base_text = "<p>Hello</p>" "\n\n" "\t<b>World</b>"
-    text = strip_html(base_text, strip_whitespace=True)
-    assert text == "Hello World"
 
 
 @override_settings(VERSATILEIMAGEFIELD_SETTINGS={"create_images_on_demand": False})
@@ -252,45 +217,6 @@ def test_storages_not_setting_s3_bucket_domain(storage, settings):
     assert storage.custom_domain is None
 
 
-def test_set_language_redirects_to_current_endpoint(client):
-    user_language_point = "en"
-    new_user_language = "fr"
-    new_user_language_point = "/fr/"
-    test_endpoint = "checkout:index"
-
-    # get a English translated url (.../en/...)
-    # and the expected url after we change it
-    current_url = reverse(test_endpoint)
-    expected_url = translate_url(current_url, new_user_language)
-
-    # check the received urls:
-    #   - current url is english (/en/) (default from tests.settings);
-    #   - expected url is french (/fr/)
-    assert user_language_point in current_url
-    assert user_language_point not in expected_url
-    assert new_user_language_point in expected_url
-
-    # ensure we are getting directed to english page, not anything else
-    response = client.get(reverse(test_endpoint), follow=True)
-    new_url = response.request["PATH_INFO"]
-    assert new_url == current_url
-
-    # change the user language to French,
-    # and tell the view we want to be redirected to our current page
-    set_language_url = reverse("set_language")
-    data = {"language": new_user_language, "next": current_url}
-
-    redirect_response = client.post(set_language_url, data, follow=True)
-    new_url = redirect_response.request["PATH_INFO"]
-
-    # check if we got redirected somewhere else
-    assert new_url != current_url
-
-    # now check if we got redirect the endpoint we wanted to go back
-    # in the new language (checkout:index)
-    assert expected_url == new_url
-
-
 def test_convert_weight():
     weight = Weight(kg=1)
     expected_result = Weight(g=1000)
@@ -320,13 +246,50 @@ def test_delete_sort_order_with_null_value(menu_item):
     menu_item.delete()
 
 
-def test_csrf_middleware_is_enabled():
-    csrf_client = Client(enforce_csrf_checks=True)
-    checkout_url = reverse("checkout:index")
-    response = csrf_client.post(checkout_url)
-    assert response.status_code == 403
+def test_placeholder(settings):
+    size = 60
+    result = placeholder(size)
+    assert result == "/static/" + settings.PLACEHOLDER_IMAGES[size]
 
 
-def test_get_country_name_by_code():
-    country_name = get_country_name_by_code("PL")
-    assert country_name == "Poland"
+@pytest.mark.parametrize(
+    "product_name, slug_result",
+    [
+        ("Paint", "paint"),
+        ("paint", "paint-3"),
+        ("Default Type", "default-type"),
+        ("default type", "default-type-2"),
+        ("Shirt", "shirt"),
+        ("40.5", "405-2"),
+        ("FM1+", "fm1-2"),
+    ],
+)
+def test_generate_unique_slug_with_slugable_field(
+    product_type, product_name, slug_result
+):
+    product_names_and_slugs = [
+        ("Paint", "paint"),
+        ("Paint blue", "paint-blue"),
+        ("Paint test", "paint-2"),
+        ("405", "405"),
+        ("FM1", "fm1"),
+    ]
+    for name, slug in product_names_and_slugs:
+        ProductType.objects.create(name=name, slug=slug)
+
+    instance, _ = ProductType.objects.get_or_create(name=product_name)
+    result = generate_unique_slug(instance, instance.name)
+    assert result == slug_result
+
+
+def test_generate_unique_slug_for_slug_with_max_characters_number(category):
+    slug = "a" * 256
+    result = generate_unique_slug(category, slug)
+    category.slug = result
+    with pytest.raises(DataError):
+        category.save()
+
+
+def test_generate_unique_slug_non_slugable_value_and_slugable_field(category):
+    with pytest.raises(Exception):
+        generate_unique_slug(category)

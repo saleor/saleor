@@ -1,11 +1,16 @@
 import json
 import logging
 import traceback
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import graphene
+import opentracing
 from django.conf import settings
+from django.db import connection
 from django.http import HttpRequest, HttpResponseNotAllowed, JsonResponse
-from django.shortcuts import render_to_response, reverse
+from django.shortcuts import render_to_response
+from django.urls import reverse
+from django.utils.functional import SimpleLazyObject
 from django.views.generic import View
 from graphene_django.settings import graphene_settings
 from graphene_django.views import instantiate_middleware
@@ -19,6 +24,8 @@ from graphql.execution import ExecutionResult
 from graphql_jwt.exceptions import PermissionDenied
 
 from ..product.models import Product
+
+API_PATH = SimpleLazyObject(lambda: reverse("api"))
 
 unhandled_errors_logger = logging.getLogger("saleor.graphql.errors.unhandled")
 handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
@@ -48,6 +55,21 @@ DEFAULT_QUERY = """# Welcome to Saleor GraphQL API!
   }
 }
 """
+
+
+def tracing_wrapper(execute, sql, params, many, context):
+    with opentracing.global_tracer().start_span(operation_name="query") as span:
+        span.set_tag("component", "db")
+        span.set_tag("db.statement", sql)
+        try:
+            result = execute(sql, params, many, context)
+        except Exception as e:
+            span.set_tag("error", True)
+            span.set_tag("error.object", e)
+            raise
+        else:
+            span.set_tag("error", False)
+            return result
 
 
 class GraphQLView(View):
@@ -121,34 +143,45 @@ class GraphQLView(View):
 
         if isinstance(data, list):
             responses = [self.get_response(request, entry) for entry in data]
-            result = [response for response, code in responses]
+            result: Union[list, Optional[dict]] = [
+                response for response, code in responses
+            ]
             status_code = max((code for response, code in responses), default=200)
         else:
             result, status_code = self.get_response(request, data)
         return JsonResponse(data=result, status=status_code, safe=False)
 
-    def get_response(self, request: HttpRequest, data: dict):
-        execution_result = self.execute_graphql_request(request, data)
-        status_code = 200
-        if execution_result:
-            response = {}
-            if execution_result.errors:
-                response["errors"] = [
-                    self.format_error(e) for e in execution_result.errors
-                ]
-            if execution_result.invalid:
-                status_code = 400
+    def get_response(
+        self, request: HttpRequest, data: dict
+    ) -> Tuple[Optional[Dict[str, List[Any]]], int]:
+        with opentracing.global_tracer().start_span(operation_name="request") as span:
+            span.set_tag("component", "http")
+            span.set_tag("http.method", request.method)
+            span.set_tag("http.path", request.path)
+            execution_result = self.execute_graphql_request(request, data)
+            status_code = 200
+            if execution_result:
+                response = {}
+                if execution_result.errors:
+                    response["errors"] = [
+                        self.format_error(e) for e in execution_result.errors
+                    ]
+                if execution_result.invalid:
+                    status_code = 400
+                else:
+                    response["data"] = execution_result.data
+                result: Optional[Dict[str, List[Any]]] = response
             else:
-                response["data"] = execution_result.data
-            result = response
-        else:
-            result = None
-        return result, status_code
+                result = None
+            span.set_tag("http.status_code", status_code)
+            return result, status_code
 
     def get_root_value(self):
         return self.root_value
 
-    def parse_query(self, query: str) -> (GraphQLDocument, ExecutionResult):
+    def parse_query(
+        self, query: str
+    ) -> Tuple[Optional[GraphQLDocument], Optional[ExecutionResult]]:
         """Attempt to parse a query (mandatory) to a gql document object.
 
         If no query was given or query is not a string, it returns an error.
@@ -165,7 +198,12 @@ class GraphQLView(View):
 
         # Attempt to parse the query, if it fails, return the error
         try:
-            return self.backend.document_from_string(self.schema, query), None
+            return (
+                self.backend.document_from_string(  # type: ignore
+                    self.schema, query
+                ),
+                None,
+            )
         except (ValueError, GraphQLSyntaxError) as e:
             return None, ExecutionResult(errors=[e], invalid=True)
 
@@ -176,20 +214,21 @@ class GraphQLView(View):
         if error:
             return error
 
-        extra_options = {}
+        extra_options: Dict[str, Optional[Any]] = {}
         if self.executor:
             # We only include it optionally since
             # executor is not a valid argument in all backends
             extra_options["executor"] = self.executor
         try:
-            return document.execute(
-                root=self.get_root_value(),
-                variables=variables,
-                operation_name=operation_name,
-                context=request,
-                middleware=self.middleware,
-                **extra_options,
-            )
+            with connection.execute_wrapper(tracing_wrapper):
+                return document.execute(  # type: ignore
+                    root=self.get_root_value(),
+                    variables=variables,
+                    operation_name=operation_name,
+                    context=request,
+                    middleware=self.middleware,
+                    **extra_options,
+                )
         except Exception as e:
             return ExecutionResult(errors=[e], invalid=True)
 

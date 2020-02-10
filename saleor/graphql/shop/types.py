@@ -5,12 +5,13 @@ from django_countries import countries
 from django_prices_vatlayer.models import VAT
 from phonenumbers import COUNTRY_CODE_TO_REGION_CODE
 
-from ...core.permissions import get_permissions
+from ...account import models as account_models
+from ...core.permissions import SitePermissions, get_permissions
 from ...core.utils import get_client_ip, get_country_by_ip
 from ...menu import models as menu_models
 from ...product import models as product_models
 from ...site import models as site_models
-from ..account.types import Address
+from ..account.types import Address, StaffNotificationRecipient
 from ..core.enums import WeightUnitsEnum
 from ..core.types.common import CountryDisplay, LanguageDisplay, PermissionDisplay
 from ..core.utils import get_node_optimized, str_to_enum
@@ -18,6 +19,7 @@ from ..decorators import permission_required
 from ..menu.types import Menu
 from ..product.types import Collection
 from ..translations.enums import LanguageCodeEnum
+from ..translations.fields import TranslationField
 from ..translations.resolvers import resolve_translation
 from ..translations.types import ShopTranslation
 from ..utils import format_permissions_for_display
@@ -127,15 +129,7 @@ class Shop(graphene.ObjectType):
         description="Enable inventory tracking."
     )
     default_weight_unit = WeightUnitsEnum(description="Default weight unit.")
-    translation = graphene.Field(
-        ShopTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description="A language code to return the translation for.",
-            required=True,
-        ),
-        description="Returns translated Shop fields for the given language code.",
-    )
+    translation = TranslationField(ShopTranslation, type_name="shop", resolver=None)
     automatic_fulfillment_digital_products = graphene.Boolean(
         description="Enable automatic fulfillment for all digital products."
     )
@@ -153,6 +147,11 @@ class Shop(graphene.ObjectType):
         description="URL of a view where customers can set their password.",
         required=False,
     )
+    staff_notification_recipients = graphene.List(
+        StaffNotificationRecipient,
+        description="List of staff notification recipients.",
+        required=False,
+    )
 
     class Meta:
         description = (
@@ -160,7 +159,7 @@ class Shop(graphene.ObjectType):
         )
 
     @staticmethod
-    @permission_required("site.manage_settings")
+    @permission_required(SitePermissions.MANAGE_SETTINGS)
     def resolve_authorization_keys(_, _info):
         return site_models.AuthorizationKey.objects.all()
 
@@ -280,12 +279,12 @@ class Shop(graphene.ObjectType):
         return default_country
 
     @staticmethod
-    @permission_required("site.manage_settings")
+    @permission_required(SitePermissions.MANAGE_SETTINGS)
     def resolve_default_mail_sender_name(_, info):
         return info.context.site.settings.default_mail_sender_name
 
     @staticmethod
-    @permission_required("site.manage_settings")
+    @permission_required(SitePermissions.MANAGE_SETTINGS)
     def resolve_default_mail_sender_address(_, info):
         return info.context.site.settings.default_mail_sender_address
 
@@ -302,17 +301,22 @@ class Shop(graphene.ObjectType):
         return resolve_translation(info.context.site.settings, info, language_code)
 
     @staticmethod
-    @permission_required("site.manage_settings")
+    @permission_required(SitePermissions.MANAGE_SETTINGS)
     def resolve_automatic_fulfillment_digital_products(_, info):
         site_settings = info.context.site.settings
         return site_settings.automatic_fulfillment_digital_products
 
     @staticmethod
-    @permission_required("site.manage_settings")
+    @permission_required(SitePermissions.MANAGE_SETTINGS)
     def resolve_default_digital_max_downloads(_, info):
         return info.context.site.settings.default_digital_max_downloads
 
     @staticmethod
-    @permission_required("site.manage_settings")
+    @permission_required(SitePermissions.MANAGE_SETTINGS)
     def resolve_default_digital_url_valid_days(_, info):
         return info.context.site.settings.default_digital_url_valid_days
+
+    @staticmethod
+    @permission_required(SitePermissions.MANAGE_SETTINGS)
+    def resolve_staff_notification_recipients(_, info):
+        return account_models.StaffNotificationRecipient.objects.all()

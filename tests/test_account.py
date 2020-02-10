@@ -1,29 +1,19 @@
 import re
-from unittest.mock import patch
 from urllib.parse import urlencode
 
 import i18naddress
 import pytest
-from captcha import constants as recaptcha_constants
-from captcha.client import RecaptchaResponse
-from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 from django.core.files import File
-from django.forms import Form
 from django.http import QueryDict
 from django.template import Context, Template
-from django.urls import reverse
 from django_countries.fields import Country
 
 from saleor.account import forms, i18n
-from saleor.account.forms import FormWithReCaptcha, NameForm
+from saleor.account.i18n import AddressForm
 from saleor.account.models import User
 from saleor.account.templatetags.i18n_address_tags import format_address
-from saleor.account.utils import (
-    get_random_avatar,
-    get_user_first_name,
-    get_user_last_name,
-)
+from saleor.account.utils import get_random_avatar, remove_staff_member
 from saleor.account.validators import validate_possible_number
 
 
@@ -133,6 +123,11 @@ def test_get_address_form(form_data, form_valid, expected_preview, expected_coun
     assert form.i18n_country_code == expected_country
 
 
+def test_get_address_form_no_country_code():
+    form, _ = forms.get_address_form(data={}, country_code=None)
+    assert isinstance(form, AddressForm)
+
+
 def test_country_aware_form_has_only_supported_countries():
     default_form = i18n.COUNTRY_FORMS["US"]
     instance = default_form()
@@ -171,19 +166,6 @@ def test_validate_possible_number(input_data, is_valid):
             validate_possible_number(**input_data)
     else:
         validate_possible_number(**input_data)
-
-
-def test_order_with_lines_pagination(authorized_client, order_list, settings):
-    settings.PAGINATE_BY = 1
-    data = {"page": "1"}
-    url = reverse("account:details")
-    response = authorized_client.get(url, data)
-    assert response.status_code == 200
-
-    data = {"page": "2"}
-    url = reverse("account:details")
-    response = authorized_client.get(url, data)
-    assert response.status_code == 200
 
 
 def test_format_address(address):
@@ -256,16 +238,6 @@ def test_compare_addresses_different_country(address):
     assert address != copied_address
 
 
-def test_user_ajax_label(customer_user):
-    address = customer_user.default_billing_address
-    label = "%s %s (%s)" % (address.first_name, address.last_name, customer_user.email)
-    assert customer_user.get_ajax_label() == label
-
-
-def test_user_ajax_label_without_address(admin_user):
-    assert admin_user.get_ajax_label() == admin_user.email
-
-
 @pytest.mark.parametrize(
     "email, first_name, last_name, full_name",
     [
@@ -321,137 +293,23 @@ def test_get_full_name(email, first_name, last_name, full_name, address):
     assert user.get_full_name() == full_name
 
 
-@pytest.mark.parametrize(
-    "first_name, default_billing_address_first_name, result",
-    [
-        ("John", "Arnold", "John"),
-        ("John", "", "John"),
-        ("", "Arnold", "Arnold"),
-        ("", "", ""),
-    ],
-)
-def test_get_user_first_name(
-    first_name, default_billing_address_first_name, result, address
-):
-    address.first_name = default_billing_address_first_name
-    user = User(first_name=first_name, default_billing_address=address)
-    assert get_user_first_name(user) == result
-
-
-@pytest.mark.parametrize(
-    "last_name, default_billing_address_last_name, result",
-    [("Doe", "Green", "Doe"), ("Doe", "", "Doe"), ("", "Green", "Green"), ("", "", "")],
-)
-def test_get_user_last_name(
-    last_name, default_billing_address_last_name, result, address
-):
-    address.last_name = default_billing_address_last_name
-    user = User(last_name=last_name, default_billing_address=address)
-    assert get_user_last_name(user) == result
-
-
 def test_get_random_avatar():
     avatar = get_random_avatar()
     assert isinstance(avatar, File)
     assert re.match(r"avatar\d+.png", avatar.name)
 
 
-def test_disabled_recaptcha():
-    """
-    This test creates a new form that should not contain any recaptcha field.
-    """
+def test_remove_staff_member_with_orders(staff_user, permission_manage_products, order):
+    order.user = staff_user
+    order.save()
+    staff_user.user_permissions.add(permission_manage_products)
 
-    class TestForm(Form, FormWithReCaptcha):
-        pass
-
-    form = TestForm({})
-    assert form.is_valid()
-
-
-@patch("captcha.fields.client.submit")
-def test_requires_recaptcha(captcha_submit_mock, settings):
-    """
-    This test creates a new form
-    that should contain a (required) recaptcha field.
-    """
-    captcha_submit_mock.return_value = RecaptchaResponse(is_valid=True)
-
-    settings.RECAPTCHA_PUBLIC_KEY = recaptcha_constants.TEST_PUBLIC_KEY
-    settings.RECAPTCHA_PRIVATE_KEY = recaptcha_constants.TEST_PRIVATE_KEY
-
-    class TestForm(Form, FormWithReCaptcha):
-        pass
-
-    form = TestForm({})
-    assert not form.is_valid()
-
-    form = TestForm({"g-recaptcha-response": "PASSED"})
-    assert form.is_valid()
+    remove_staff_member(staff_user)
+    staff_user = User.objects.get(pk=staff_user.pk)
+    assert not staff_user.is_staff
+    assert not staff_user.user_permissions.exists()
 
 
-def test_view_account_delete_login_required(customer_user, client):
-    url = reverse("account:delete")
-    response = client.post(url)
-    assert response.status_code == 302
-
-
-def test_view_account_post_required(customer_user, authorized_client):
-    url = reverse("account:delete")
-    response = authorized_client.get(url)
-    assert response.status_code == 405
-
-
-@patch("saleor.account.views.send_account_delete_confirmation_email")
-def test_view_account_delete(
-    send_confirmation_mock, customer_user, authorized_client, staff_user
-):
-    url = reverse("account:delete")
-    response = authorized_client.post(url)
-    assert response.status_code == 302
-    send_confirmation_mock.assert_called_once_with(customer_user)
-
-
-def test_view_account_delete_confirm(customer_user, staff_user, authorized_client):
-    # Non existing token
-    invalid_token = default_token_generator.make_token(staff_user)
-    url = reverse("account:delete-confirm", args=[invalid_token])
-    response = authorized_client.get(url)
-    assert response.status_code == 404
-
-    authorized_client.force_login(customer_user)
-    token = default_token_generator.make_token(customer_user)
-    deletion_url = reverse("account:delete-confirm", args=[token])
-
-    # getting the page should not delete the user
-    response = authorized_client.get(deletion_url)
-    assert response.status_code == 200
-    customer_user = User.objects.filter(pk=customer_user.pk).first()
-    assert customer_user is not None
-
-    # posting onto the page should delete the user
-    response = authorized_client.post(deletion_url)
-    assert response.status_code == 302
-    customer_user = User.objects.filter(pk=customer_user.pk).first()
-    assert customer_user is None
-
-
-def test_form_add_names_to_user(customer_user):
-    name_form = NameForm(
-        {"first_name": "Jan", "last_name": "Nowak"}, instance=customer_user
-    )
-    name_form.is_valid()
-    name_form.save()
-    updated_user = User.objects.get(pk=customer_user.pk)
-    assert updated_user.first_name == "Jan"
-    assert updated_user.last_name == "Nowak"
-
-
-def test_view_add_names_to_user(customer_user, authorized_client):
-    url = reverse("account:details")
-    response = authorized_client.post(
-        url, data={"first_name": "Jan", "last_name": "Nowak"}
-    )
-    assert response.status_code == 200
-    updated_user = User.objects.get(pk=customer_user.pk)
-    assert updated_user.first_name == "Jan"
-    assert updated_user.last_name == "Nowak"
+def test_remove_staff_member(staff_user):
+    remove_staff_member(staff_user)
+    assert not User.objects.filter(pk=staff_user.pk).exists()

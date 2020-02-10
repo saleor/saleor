@@ -24,10 +24,10 @@ class GatewayResponse:
 
     is_success: bool
     action_required: bool
-    kind: str
+    kind: str  # use "TransactionKind" class
     amount: Decimal
     currency: str
-    transaction_id: str
+    transaction_id: Optional[str]
     error: Optional[str]
     customer_id: Optional[str] = None
     card_info: Optional[CreditCardInfo] = None
@@ -61,8 +61,8 @@ class PaymentData:
     currency: str
     billing: Optional[AddressData]
     shipping: Optional[AddressData]
-    order_id: int
-    customer_ip_address: str
+    order_id: Optional[int]
+    customer_ip_address: Optional[str]
     customer_email: str
     token: Optional[str] = None
     customer_id: Optional[str] = None
@@ -86,7 +86,6 @@ class GatewayConfig:
 
     gateway_name: str
     auto_capture: bool
-    template_path: str
     # Each gateway has different connection data so we are not able to create
     # a unified structure
     connection_params: Dict[str, Any]
@@ -100,4 +99,4 @@ class CustomerSource:
 
     id: str
     gateway: str
-    credit_card_info: CreditCardInfo = None
+    credit_card_info: Optional[CreditCardInfo] = None

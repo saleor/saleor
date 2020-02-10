@@ -5,8 +5,7 @@ from graphene import relay
 
 from ...menu import models
 from ..core.connection import CountableDjangoObjectType
-from ..translations.enums import LanguageCodeEnum
-from ..translations.resolvers import resolve_translation
+from ..translations.fields import TranslationField
 from ..translations.types import MenuItemTranslation
 
 
@@ -34,7 +33,7 @@ class Menu(CountableDjangoObjectType):
     @staticmethod
     def resolve_items(root: models.Menu, _info, **_kwargs):
         if hasattr(root, "prefetched_items"):
-            return root.prefetched_items
+            return root.prefetched_items  # type: ignore
         return root.items.filter(level=0)
 
 
@@ -43,27 +42,7 @@ class MenuItem(CountableDjangoObjectType):
         graphene.List(lambda: MenuItem), model_field="children"
     )
     url = graphene.String(description="URL to the menu item.")
-    translation = graphene.Field(
-        MenuItemTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description="A language code to return the translation for.",
-            required=True,
-        ),
-        description=(
-            "Returns translated Menu item fields " "for the given language code."
-        ),
-        resolver=resolve_translation,
-    )
-
-    sort_order = graphene.Field(
-        graphene.Int,
-        deprecation_reason=(
-            "Will be dropped in 2.10 and is deprecated since 2.9: "
-            "use the position in list instead and relative "
-            "calculus to determine shift position."
-        ),
-    )
+    translation = TranslationField(MenuItemTranslation, type_name="menu item")
 
     class Meta:
         description = (
@@ -80,7 +59,6 @@ class MenuItem(CountableDjangoObjectType):
             "name",
             "page",
             "parent",
-            "sort_order",
         ]
         model = models.MenuItem
 

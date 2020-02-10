@@ -4,6 +4,7 @@ from graphene.types import InputObjectType
 
 from ....account.models import User
 from ....core.exceptions import InsufficientStock
+from ....core.permissions import OrderPermissions
 from ....core.taxes import zero_taxed_money
 from ....order import OrderStatus, events, models
 from ....order.actions import order_created
@@ -13,9 +14,11 @@ from ....order.utils import (
     allocate_stock,
     change_order_line_quantity,
     delete_order_line,
+    get_order_country,
     recalculate_order,
     update_order_prices,
 )
+from ....warehouse.availability import check_stock_quantity, get_available_quantity
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -75,7 +78,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
     class Meta:
         description = "Creates a new draft order."
         model = models.Order
-        permissions = ("order.manage_orders",)
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
 
@@ -106,7 +109,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
 
         if shipping_address:
             shipping_address = cls.validate_address(
-                shipping_address, instance=instance.shipping_address
+                shipping_address, instance=instance.shipping_address, info=info
             )
             shipping_address = info.context.extensions.change_user_address(
                 shipping_address, "shipping", user=instance
@@ -114,7 +117,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             cleaned_input["shipping_address"] = shipping_address
         if billing_address:
             billing_address = cls.validate_address(
-                billing_address, instance=instance.billing_address
+                billing_address, instance=instance.billing_address, info=info
             )
             billing_address = info.context.extensions.change_user_address(
                 billing_address, "billing", user=instance
@@ -210,7 +213,7 @@ class DraftOrderUpdate(DraftOrderCreate):
     class Meta:
         description = "Updates a draft order."
         model = models.Order
-        permissions = ("order.manage_orders",)
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
 
@@ -222,7 +225,7 @@ class DraftOrderDelete(ModelDeleteMutation):
     class Meta:
         description = "Deletes a draft order."
         model = models.Order
-        permissions = ("order.manage_orders",)
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
 
@@ -237,7 +240,7 @@ class DraftOrderComplete(BaseMutation):
 
     class Meta:
         description = "Completes creating an order."
-        permissions = ("order.manage_orders",)
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
 
@@ -265,14 +268,16 @@ class DraftOrderComplete(BaseMutation):
                 order.shipping_address.delete()
 
         order.save()
+        country = get_order_country(order)
 
         oversold_items = []
         for line in order:
             try:
-                line.variant.check_quantity(line.quantity)
-                allocate_stock(line.variant, line.quantity)
+                check_stock_quantity(line.variant, country, line.quantity)
+                allocate_stock(line.variant, country, line.quantity)
             except InsufficientStock:
-                allocate_stock(line.variant, line.variant.quantity_available)
+                available_stock = get_available_quantity(line.variant, country)
+                allocate_stock(line.variant, country, available_stock)
                 oversold_items.append(str(line))
         order_created(order, user=info.context.user, from_draft=True)
 
@@ -302,7 +307,7 @@ class DraftOrderLinesCreate(BaseMutation):
 
     class Meta:
         description = "Create order lines for a draft order."
-        permissions = ("order.manage_orders",)
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
 
@@ -365,7 +370,7 @@ class DraftOrderLineDelete(BaseMutation):
 
     class Meta:
         description = "Deletes an order line from a draft order."
-        permissions = ("order.manage_orders",)
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
 
@@ -408,7 +413,7 @@ class DraftOrderLineUpdate(ModelMutation):
     class Meta:
         description = "Updates an order line of a draft order."
         model = models.OrderLine
-        permissions = ("order.manage_orders",)
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
 

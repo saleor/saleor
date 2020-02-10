@@ -1,7 +1,7 @@
 from django.db import models
-from django.utils.translation import pgettext_lazy
 
 from ..account.models import ServiceAccount
+from ..core.permissions import WebhookPermissions
 
 
 class Webhook(models.Model):
@@ -15,10 +15,7 @@ class Webhook(models.Model):
 
     class Meta:
         permissions = (
-            (
-                "manage_webhooks",
-                pgettext_lazy("Webhook description", "Manage webhooks"),
-            ),
+            (WebhookPermissions.MANAGE_WEBHOOKS.codename, "Manage webhooks"),
         )
 
 

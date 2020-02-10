@@ -1,7 +1,5 @@
 from typing import TYPE_CHECKING, List
 
-from django.utils.translation import pgettext_lazy
-
 from saleor.extensions import ConfigurationTypeField
 from saleor.extensions.base_plugin import BasePlugin
 
@@ -18,7 +16,9 @@ from . import (
 GATEWAY_NAME = "Stripe"
 
 if TYPE_CHECKING:
+    # flake8: noqa
     from . import GatewayResponse, PaymentData
+    from ...interface import CustomerSource
 
 
 def require_active_plugin(fn):
@@ -37,34 +37,24 @@ class StripeGatewayPlugin(BasePlugin):
     CONFIG_STRUCTURE = {
         "Public API key": {
             "type": ConfigurationTypeField.SECRET,
-            "help_text": pgettext_lazy(
-                "Plugin help text", "Provide Stripe public API key"
-            ),
-            "label": pgettext_lazy("Plugin label", "Public API key"),
+            "help_text": "Provide Stripe public API key",
+            "label": "Public API key",
         },
         "Secret API key": {
             "type": ConfigurationTypeField.SECRET,
-            "help_text": pgettext_lazy(
-                "Plugin help text", "Provide Stripe secret API key"
-            ),
-            "label": pgettext_lazy("Plugin label", "Secret API key"),
+            "help_text": "Provide Stripe secret API key",
+            "label": "Secret API key",
         },
         "Store customers card": {
             "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": pgettext_lazy(
-                "Plugin help text",
-                "Determines if Saleor should store cards on payments"
-                "in Stripe customer.",
-            ),
-            "label": pgettext_lazy("Plugin label", "Store customers card"),
+            "help_text": "Determines if Saleor should store cards on payments"
+            "in Stripe customer.",
+            "label": "Store customers card",
         },
         "Automatic payment capture": {
             "type": ConfigurationTypeField.BOOLEAN,
-            "help_text": pgettext_lazy(
-                "Plugin help text",
-                "Determines if Saleor should automaticaly capture payments.",
-            ),
-            "label": pgettext_lazy("Plugin label", "Automatic payment capture"),
+            "help_text": "Determines if Saleor should automaticaly capture payments.",
+            "label": "Automatic payment capture",
         },
     }
 
@@ -86,7 +76,6 @@ class StripeGatewayPlugin(BasePlugin):
                     "public_key": configuration["Public API key"],
                     "private_key": configuration["Secret API key"],
                 },
-                template_path="",
                 store_customer=configuration["Store customers card"],
             )
 

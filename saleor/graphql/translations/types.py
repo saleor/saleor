@@ -1,6 +1,7 @@
 import graphene
 from django.conf import settings
 
+from ...core.permissions import DiscountPermissions, ShippingPermissions
 from ...discount import models as discount_models
 from ...menu import models as menu_models
 from ...page import models as page_models
@@ -12,7 +13,7 @@ from ..core.types import LanguageDisplay
 from ..core.utils import str_to_enum
 from ..decorators import permission_required
 from .enums import LanguageCodeEnum
-from .resolvers import resolve_translation
+from .fields import TranslationField
 
 BASIC_TRANSLATABLE_FIELDS = ["id", "name"]
 EXTENDED_TRANSLATABLE_FIELDS = [
@@ -56,17 +57,8 @@ class AttributeValueTranslation(BaseTranslationType):
 
 
 class AttributeValueTranslatableContent(CountableDjangoObjectType):
-    translation = graphene.Field(
-        AttributeValueTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description="A language code to return the translation for.",
-            required=True,
-        ),
-        description=(
-            "Returns translated Attribute Value fields for the given language code."
-        ),
-        resolver=resolve_translation,
+    translation = TranslationField(
+        AttributeValueTranslation, type_name="attribute value"
     )
     attribute_value = graphene.Field(
         "saleor.graphql.product.types.attributes.AttributeValue",
@@ -91,18 +83,7 @@ class AttributeTranslation(BaseTranslationType):
 
 
 class AttributeTranslatableContent(CountableDjangoObjectType):
-    translation = graphene.Field(
-        AttributeTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description="A language code to return the translation for.",
-            required=True,
-        ),
-        description=(
-            "Returns translated Attribute fields for the given language code."
-        ),
-        resolver=resolve_translation,
-    )
+    translation = TranslationField(AttributeTranslation, type_name="attribute")
     attribute = graphene.Field(
         "saleor.graphql.product.types.attributes.Attribute",
         description="Custom attribute of a product.",
@@ -126,17 +107,8 @@ class ProductVariantTranslation(BaseTranslationType):
 
 
 class ProductVariantTranslatableContent(CountableDjangoObjectType):
-    translation = graphene.Field(
-        ProductVariantTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description="A language code to return the translation for.",
-            required=True,
-        ),
-        description=(
-            "Returns translated Product Variant fields for the given language code."
-        ),
-        resolver=resolve_translation,
+    translation = TranslationField(
+        ProductVariantTranslation, type_name="product variant"
     )
     product_variant = graphene.Field(
         "saleor.graphql.product.types.products.ProductVariant",
@@ -168,16 +140,7 @@ class ProductTranslation(BaseTranslationType):
 
 
 class ProductTranslatableContent(CountableDjangoObjectType):
-    translation = graphene.Field(
-        ProductTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description="A language code to return the translation for.",
-            required=True,
-        ),
-        description=("Returns translated Product fields for the given language code."),
-        resolver=resolve_translation,
-    )
+    translation = TranslationField(ProductTranslation, type_name="product")
     product = graphene.Field(
         "saleor.graphql.product.types.products.Product",
         description="Represents an individual item for sale in the storefront.",
@@ -205,18 +168,7 @@ class CollectionTranslation(BaseTranslationType):
 
 
 class CollectionTranslatableContent(CountableDjangoObjectType):
-    translation = graphene.Field(
-        CollectionTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description="A language code to return the translation for.",
-            required=True,
-        ),
-        description=(
-            "Returns translated Collection fields for the given language code."
-        ),
-        resolver=resolve_translation,
-    )
+    translation = TranslationField(CollectionTranslation, type_name="collection")
     collection = graphene.Field(
         "saleor.graphql.product.types.products.Collection",
         description="Represents a collection of products.",
@@ -244,16 +196,7 @@ class CategoryTranslation(BaseTranslationType):
 
 
 class CategoryTranslatableContent(CountableDjangoObjectType):
-    translation = graphene.Field(
-        CategoryTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description="A language code to return the translation for.",
-            required=True,
-        ),
-        description=("Returns translated Category fields for the given language code."),
-        resolver=resolve_translation,
-    )
+    translation = TranslationField(CategoryTranslation, type_name="category")
     category = graphene.Field(
         "saleor.graphql.product.types.products.Category",
         description="Represents a single category of products.",
@@ -284,16 +227,7 @@ class PageTranslation(BaseTranslationType):
 
 
 class PageTranslatableContent(CountableDjangoObjectType):
-    translation = graphene.Field(
-        PageTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description="A language code to return the translation for.",
-            required=True,
-        ),
-        description="Returns translated Page fields for the given language code.",
-        resolver=resolve_translation,
-    )
+    translation = TranslationField(PageTranslation, type_name="page")
     page = graphene.Field(
         "saleor.graphql.page.types.Page",
         description=(
@@ -331,19 +265,9 @@ class VoucherTranslation(BaseTranslationType):
 
 
 class VoucherTranslatableContent(CountableDjangoObjectType):
-    translation = graphene.Field(
-        VoucherTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description="A language code to return the translation for.",
-            required=True,
-        ),
-        description="Returns translated Voucher fields for the given language code.",
-        resolver=resolve_translation,
-    )
+    translation = TranslationField(VoucherTranslation, type_name="voucher")
     voucher = graphene.Field(
         "saleor.graphql.discount.types.Voucher",
-        # TODO consider move description to variable. Issue #4957
         description=(
             "Vouchers allow giving discounts to particular customers on categories, "
             "collections or specific products. They can be used during checkout by "
@@ -357,7 +281,7 @@ class VoucherTranslatableContent(CountableDjangoObjectType):
         only_fields = BASIC_TRANSLATABLE_FIELDS
 
     @staticmethod
-    @permission_required("discount.manage_discounts")
+    @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_voucher(root: discount_models.Voucher, _info):
         return root
 
@@ -370,16 +294,7 @@ class SaleTranslation(BaseTranslationType):
 
 
 class SaleTranslatableContent(CountableDjangoObjectType):
-    translation = graphene.Field(
-        SaleTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description="A language code to return the translation for.",
-            required=True,
-        ),
-        description="Returns translated sale fields for the given language code.",
-        resolver=resolve_translation,
-    )
+    translation = TranslationField(SaleTranslation, type_name="sale")
     sale = graphene.Field(
         "saleor.graphql.discount.types.Sale",
         description=(
@@ -394,7 +309,7 @@ class SaleTranslatableContent(CountableDjangoObjectType):
         only_fields = BASIC_TRANSLATABLE_FIELDS
 
     @staticmethod
-    @permission_required("discount.manage_discounts")
+    @permission_required(DiscountPermissions.MANAGE_DISCOUNTS)
     def resolve_sale(root: discount_models.Sale, _info):
         return root
 
@@ -414,18 +329,7 @@ class MenuItemTranslation(BaseTranslationType):
 
 
 class MenuItemTranslatableContent(CountableDjangoObjectType):
-    translation = graphene.Field(
-        MenuItemTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description="A language code to return the translation for.",
-            required=True,
-        ),
-        description=(
-            "Returns translated Menu item fields for the given language code."
-        ),
-        resolver=resolve_translation,
-    )
+    translation = TranslationField(MenuItemTranslation, type_name="menu item")
     menu_item = graphene.Field(
         "saleor.graphql.menu.types.MenuItem",
         description=(
@@ -452,17 +356,8 @@ class ShippingMethodTranslation(BaseTranslationType):
 
 
 class ShippingMethodTranslatableContent(CountableDjangoObjectType):
-    translation = graphene.Field(
-        ShippingMethodTranslation,
-        language_code=graphene.Argument(
-            LanguageCodeEnum,
-            description="A language code to return the translation for.",
-            required=True,
-        ),
-        description=(
-            "Returns translated shipping method fields for the given language code."
-        ),
-        resolver=resolve_translation,
+    translation = TranslationField(
+        ShippingMethodTranslation, type_name="shipping method"
     )
     shipping_method = graphene.Field(
         "saleor.graphql.shipping.types.ShippingMethod",
@@ -478,6 +373,6 @@ class ShippingMethodTranslatableContent(CountableDjangoObjectType):
         only_fields = BASIC_TRANSLATABLE_FIELDS
 
     @staticmethod
-    @permission_required("shipping.manage_shipping")
+    @permission_required(ShippingPermissions.MANAGE_SHIPPING)
     def resolve_shipping_method(root: shipping_models.ShippingMethod, _info):
         return root

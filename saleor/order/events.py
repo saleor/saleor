@@ -2,7 +2,7 @@ from decimal import Decimal
 from typing import Dict, List, Optional, Tuple, Union
 
 from ..account import events as account_events
-from ..account.models import Address, User
+from ..account.models import User
 from ..order.models import Fulfillment, FulfillmentLine, Order, OrderLine
 from ..payment.models import Payment
 from . import OrderEvents, OrderEventsEmails
@@ -32,12 +32,12 @@ def email_sent_event(
     *,
     order: Order,
     user: Optional[UserType],
-    email_type: OrderEventsEmails,
+    email_type: str,  # use "OrderEventsEmails" class
     user_pk: int = None,
 ) -> OrderEvent:
 
-    if user is not None and not user.is_anonymous:
-        kwargs = {"user": user}
+    if user and not user.is_anonymous:
+        kwargs: Dict[str, Union[User, int]] = {"user": user}
     elif user_pk:
         kwargs = {"user_id": user_pk}
     else:
@@ -96,10 +96,11 @@ def order_created_event(
         event_type = OrderEvents.PLACED
         account_events.customer_placed_order_event(user=user, order=order)
 
-    if user.is_anonymous:
-        user = None
+    order_event_user = None if user.is_anonymous else user
 
-    return OrderEvent.objects.create(order=order, type=event_type, user=user)
+    return OrderEvent.objects.create(
+        order=order, type=event_type, user=order_event_user
+    )
 
 
 def draft_order_oversold_items_event(
@@ -235,15 +236,4 @@ def order_note_added_event(*, order: Order, user: UserType, message: str) -> Ord
         type=OrderEvents.NOTE_ADDED,
         parameters={"message": message},
         **kwargs,
-    )
-
-
-def order_updated_address_event(
-    *, order: Order, user: UserType, address: Address
-) -> OrderEvent:
-    return OrderEvent.objects.create(
-        order=order,
-        type=OrderEvents.UPDATED_ADDRESS,
-        user=user,
-        parameters={"new_address": str(address)},
     )

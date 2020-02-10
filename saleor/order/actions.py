@@ -3,16 +3,16 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, List
 
 from django.db import transaction
-from django.utils.translation import pgettext_lazy
 
 from ..core import analytics
 from ..extensions.manager import get_extensions_manager
 from ..payment import ChargeStatus, CustomPaymentChoices, PaymentError
-from ..product.utils import decrease_stock
+from ..warehouse.management import decrease_stock
 from . import FulfillmentStatus, OrderStatus, emails, events, utils
 from .emails import send_fulfillment_confirmation_to_customer, send_payment_confirmation
 from .models import Fulfillment, FulfillmentLine
 from .utils import (
+    get_order_country,
     order_line_needs_automatic_fulfillment,
     recalculate_order,
     restock_fulfillment_lines,
@@ -21,7 +21,7 @@ from .utils import (
 
 if TYPE_CHECKING:
     from .models import Order
-    from ..account.models import User, Address
+    from ..account.models import User
     from ..payment.models import Payment
 
 
@@ -129,11 +129,6 @@ def order_shipping_updated(order: "Order"):
     get_extensions_manager().order_updated(order)
 
 
-def order_address_updated(order: "Order", user: "User", address: "Address"):
-    events.order_updated_address_event(order=order, user=user, address=address)
-    get_extensions_manager().order_updated(order)
-
-
 def order_captured(order: "Order", user: "User", amount: "Decimal", payment: "Payment"):
     events.payment_captured_event(
         order=order, user=user, amount=amount, payment=payment
@@ -191,13 +186,12 @@ def mark_order_as_paid(order: "Order", request_user: "User"):
         payment_token="",
         currency=order.total.gross.currency,
         email=order.user_email,
-        billing_address=order.billing_address,
         total=order.total.gross.amount,
         order=order,
     )
     payment.charge_status = ChargeStatus.FULLY_CHARGED
     payment.captured_amount = order.total.gross.amount
-    payment.save(update_fields=["captured_amount", "charge_status"])
+    payment.save(update_fields=["captured_amount", "charge_status", "modified"])
 
     events.order_manually_marked_as_paid_event(order=order, user=request_user)
     manager = get_extensions_manager()
@@ -208,18 +202,14 @@ def mark_order_as_paid(order: "Order", request_user: "User"):
 def clean_mark_order_as_paid(order: "Order"):
     """Check if an order can be marked as paid."""
     if order.payments.exists():
-        raise PaymentError(
-            pgettext_lazy(
-                "Mark order as paid validation error",
-                "Orders with payments can not be manually marked as paid.",
-            )
-        )
+        raise PaymentError("Orders with payments can not be manually marked as paid.",)
 
 
 def fulfill_order_line(order_line, quantity):
     """Fulfill order line with given quantity."""
+    country = get_order_country(order_line.order)
     if order_line.variant and order_line.variant.track_inventory:
-        decrease_stock(order_line.variant, quantity)
+        decrease_stock(order_line.variant, country, quantity)
     order_line.quantity_fulfilled += quantity
     order_line.save(update_fields=["quantity_fulfilled"])
 
@@ -240,8 +230,9 @@ def automatically_fulfill_digital_lines(order: "Order"):
     for line in digital_lines:
         if not order_line_needs_automatic_fulfillment(line):
             continue
-        digital_content = line.variant.digital_content
-        digital_content.urls.create(line=line)
+        if line.variant:
+            digital_content = line.variant.digital_content
+            digital_content.urls.create(line=line)
         quantity = line.quantity
         FulfillmentLine.objects.create(
             fulfillment=fulfillment, order_line=line, quantity=quantity

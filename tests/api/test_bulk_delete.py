@@ -76,9 +76,9 @@ def menu_list():
 
 @pytest.fixture
 def product_type_list():
-    product_type_1 = ProductType.objects.create(name="Type 1")
-    product_type_2 = ProductType.objects.create(name="Type 2")
-    product_type_3 = ProductType.objects.create(name="Type 3")
+    product_type_1 = ProductType.objects.create(name="Type 1", slug="type-1")
+    product_type_2 = ProductType.objects.create(name="Type 2", slug="type-2")
+    product_type_3 = ProductType.objects.create(name="Type 3", slug="type-3")
     return product_type_1, product_type_2, product_type_3
 
 
@@ -210,6 +210,7 @@ def test_delete_categories_with_subcategories_and_products(
     category.save()
 
     parent_product = Product.objects.get(pk=product.pk)
+    parent_product.slug = "parent-product"
     parent_product.id = None
     parent_product.category = category_list[0]
     parent_product.save()
@@ -234,9 +235,13 @@ def test_delete_categories_with_subcategories_and_products(
         id__in=[category.id for category in category_list]
     ).exists()
 
-    mock_update_products_minimal_variant_prices_task.delay.assert_called_once_with(
-        product_ids=[p.pk for p in product_list]
-    )
+    mock_update_products_minimal_variant_prices_task.delay.assert_called_once()
+    (
+        _call_args,
+        call_kwargs,
+    ) = mock_update_products_minimal_variant_prices_task.delay.call_args
+
+    assert set(call_kwargs["product_ids"]) == set([p.pk for p in product_list])
 
     for product in product_list:
         product.refresh_from_db()

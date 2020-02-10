@@ -92,6 +92,7 @@ def test_update_variants_changed_does_nothing_with_no_attributes():
     product_type = MagicMock(spec=ProductType)
     product_type.variant_attributes.all = Mock(return_value=[])
     saved_attributes = []
+    # FIXME: This method no longer returns any value
     assert _update_variants_names(product_type, saved_attributes) is None
 
 

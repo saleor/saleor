@@ -191,7 +191,7 @@ def test_calculate_checkout_subtotal(
     taxes_in_prices,
     discount_info,
     checkout_with_item,
-    variant,
+    stock,
     monkeypatch,
     site_settings,
     address_usa,
@@ -199,6 +199,7 @@ def test_calculate_checkout_subtotal(
     address,
     settings,
 ):
+    variant = stock.product_variant
     settings.AVATAX_USERNAME_OR_ACCOUNT = "test"
     settings.AVATAX_PASSWORD_OR_LICENSE = "test"
     settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
@@ -408,14 +409,6 @@ def test_save_plugin_configuration_cannot_be_enabled_without_config(settings):
     manager.get_plugin_configuration("Avalara")
     with pytest.raises(ValidationError):
         manager.save_plugin_configuration("Avalara", {"active": True})
-
-
-def test_taxes_are_enabled(settings):
-    settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
-    settings.AVATAX_USERNAME_OR_ACCOUNT = "test"
-    settings.AVATAX_PASSWORD_OR_LICENSE = "test"
-    manager = get_extensions_manager()
-    assert manager.taxes_are_enabled() is True
 
 
 def test_show_taxes_on_storefront(settings):

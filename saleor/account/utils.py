@@ -1,9 +1,13 @@
 import os
 import random
 
+import jwt
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.core.files import File
+from django.utils import timezone
 
+from ..account.error_codes import AccountErrorCode
 from ..checkout import AddressType
 from ..core.utils import create_thumbnails
 from ..extensions.manager import get_extensions_manager
@@ -53,30 +57,6 @@ def change_user_default_address(user, address, address_type):
         set_user_default_shipping_address(user, address)
 
 
-def get_user_first_name(user):
-    """Return a user's first name from their default belling address.
-
-    Return nothing if none where found.
-    """
-    if user.first_name:
-        return user.first_name
-    if user.default_billing_address:
-        return user.default_billing_address.first_name
-    return None
-
-
-def get_user_last_name(user):
-    """Return a user's last name from their default belling address.
-
-    Return nothing if none where found.
-    """
-    if user.last_name:
-        return user.last_name
-    if user.default_billing_address:
-        return user.default_billing_address.last_name
-    return None
-
-
 def create_superuser(credentials):
 
     user, created = User.objects.get_or_create(
@@ -101,3 +81,42 @@ def get_random_avatar():
     avatar_name = random.choice(os.listdir(AVATARS_PATH))
     avatar_path = os.path.join(AVATARS_PATH, avatar_name)
     return File(open(avatar_path, "rb"), name=avatar_name)
+
+
+def remove_staff_member(staff):
+    """Remove staff member account only if it has no orders placed.
+
+    Otherwise, switches is_staff status to False.
+    """
+    if staff.orders.exists():
+        staff.is_staff = False
+        staff.user_permissions.clear()
+        staff.save()
+    else:
+        staff.delete()
+
+
+def create_jwt_token(token_data):
+    expiration_date = timezone.now() + timezone.timedelta(hours=1)
+    token_kwargs = {"exp": expiration_date}
+    token_kwargs.update(token_data)
+    token = jwt.encode(
+        token_kwargs, settings.JWT_TOKEN_SECRET, algorithm="HS256"
+    ).decode()
+    return token
+
+
+def decode_jwt_token(token):
+    try:
+        decoded_token = jwt.decode(
+            token.encode(), settings.JWT_TOKEN_SECRET, algorithms=["HS256"]
+        )
+    except jwt.PyJWTError:
+        raise ValidationError(
+            {
+                "token": ValidationError(
+                    "Invalid or expired token.", code=AccountErrorCode.INVALID
+                )
+            }
+        )
+    return decoded_token

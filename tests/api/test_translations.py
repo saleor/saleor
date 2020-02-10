@@ -1295,17 +1295,17 @@ def test_shop_update_translation(
 @pytest.mark.parametrize(
     "kind, expected_typename",
     [
-        (TranslatableKinds.PRODUCT, "Product"),
-        (TranslatableKinds.COLLECTION, "Collection"),
-        (TranslatableKinds.CATEGORY, "Category"),
-        (TranslatableKinds.PAGE, "Page"),
-        (TranslatableKinds.SHIPPING_METHOD, "ShippingMethod"),
-        (TranslatableKinds.VOUCHER, "Voucher"),
-        (TranslatableKinds.SALE, "Sale"),
-        (TranslatableKinds.ATTRIBUTE, "Attribute"),
-        (TranslatableKinds.ATTRIBUTE_VALUE, "AttributeValue"),
-        (TranslatableKinds.VARIANT, "ProductVariant"),
-        (TranslatableKinds.MENU_ITEM, "MenuItem"),
+        (TranslatableKinds.PRODUCT, "ProductTranslatableContent"),
+        (TranslatableKinds.COLLECTION, "CollectionTranslatableContent"),
+        (TranslatableKinds.CATEGORY, "CategoryTranslatableContent"),
+        (TranslatableKinds.PAGE, "PageTranslatableContent"),
+        (TranslatableKinds.SHIPPING_METHOD, "ShippingMethodTranslatableContent"),
+        (TranslatableKinds.VOUCHER, "VoucherTranslatableContent"),
+        (TranslatableKinds.SALE, "SaleTranslatableContent"),
+        (TranslatableKinds.ATTRIBUTE, "AttributeTranslatableContent"),
+        (TranslatableKinds.ATTRIBUTE_VALUE, "AttributeValueTranslatableContent"),
+        (TranslatableKinds.VARIANT, "ProductVariantTranslatableContent"),
+        (TranslatableKinds.MENU_ITEM, "MenuItemTranslatableContent"),
     ],
 )
 def test_translations_query(
@@ -1346,7 +1346,7 @@ def test_translations_query_inline_fragment(user_api_client, product):
         translations(kind: PRODUCT, first: 1) {
             edges {
                 node {
-                    ... on Product {
+                    ... on ProductTranslatableContent {
                         name
                         translation(languageCode: PL) {
                             name

@@ -1,7 +1,8 @@
 import graphene
 from django.core.exceptions import ValidationError
-from django.utils.translation import npgettext_lazy, pgettext_lazy
+from django.template.defaultfilters import pluralize
 
+from ....core.permissions import OrderPermissions
 from ....order import models
 from ....order.actions import (
     cancel_fulfillment,
@@ -9,6 +10,7 @@ from ....order.actions import (
     fulfillment_tracking_updated,
     order_fulfilled,
 )
+from ....order.emails import send_fulfillment_update
 from ....order.error_codes import OrderErrorCode
 from ...core.mutations import (
     BaseMutation,
@@ -40,7 +42,8 @@ class FulfillmentCreateInput(graphene.InputObjectType):
 class FulfillmentUpdateTrackingInput(graphene.InputObjectType):
     tracking_number = graphene.String(description="Fulfillment tracking number.")
     notify_customer = graphene.Boolean(
-        description="If true, send an email notification to the customer."
+        default_value=False,
+        description="If true, send an email notification to the customer.",
     )
 
 
@@ -52,7 +55,7 @@ class FulfillmentClearMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clears metadata for fulfillment."
         model = models.Fulfillment
-        permissions = ("order.manage_orders",)
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
         public = True
 
 
@@ -60,7 +63,7 @@ class FulfillmentUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Updates metadata for fulfillment."
         model = models.Fulfillment
-        permissions = ("order.manage_orders",)
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
         public = True
 
 
@@ -68,7 +71,7 @@ class FulfillmentClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         description = "Clears private metadata for fulfillment."
         model = models.Fulfillment
-        permissions = ("order.manage_orders",)
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
         public = False
 
 
@@ -76,7 +79,7 @@ class FulfillmentUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         description = "Updates metadata for fulfillment."
         model = models.Fulfillment
-        permissions = ("order.manage_orders",)
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
         public = False
 
 
@@ -94,21 +97,21 @@ class FulfillmentCreate(BaseMutation):
 
     class Meta:
         description = "Creates a new fulfillment for an order."
-        permissions = ("order.manage_orders",)
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
 
     @classmethod
     def clean_lines(cls, order_lines, quantities):
         for order_line, quantity in zip(order_lines, quantities):
-            if quantity > order_line.quantity_unfulfilled:
-                msg = npgettext_lazy(
-                    "Fulfill order line mutation error",
-                    "Only %(quantity)d item remaining to fulfill: %(order_line)s.",
-                    "Only %(quantity)d items remaining to fulfill: %(order_line)s.",
-                    number="quantity",
+            line_quantity_unfulfilled = order_line.quantity_unfulfilled
+            if quantity > line_quantity_unfulfilled:
+                msg = (
+                    "Only %(quantity)d item%(item_pluralize)s remaining "
+                    "to fulfill: %(order_line)s."
                 ) % {
-                    "quantity": order_line.quantity_unfulfilled,
+                    "quantity": line_quantity_unfulfilled,
+                    "item_pluralize": pluralize(line_quantity_unfulfilled),
                     "order_line": order_line,
                 }
                 raise ValidationError(
@@ -197,7 +200,7 @@ class FulfillmentUpdateTracking(BaseMutation):
 
     class Meta:
         description = "Updates a fulfillment for an order."
-        permissions = ("order.manage_orders",)
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
 
@@ -209,6 +212,10 @@ class FulfillmentUpdateTracking(BaseMutation):
         fulfillment.save()
         order = fulfillment.order
         fulfillment_tracking_updated(fulfillment, info.context.user, tracking_number)
+        input_data = data.get("input", {})
+        notify_customer = input_data.get("notify_customer")
+        if notify_customer:
+            send_fulfillment_update.delay(order.pk, fulfillment.pk)
         return FulfillmentUpdateTracking(fulfillment=fulfillment, order=order)
 
 
@@ -224,7 +231,7 @@ class FulfillmentCancel(BaseMutation):
 
     class Meta:
         description = "Cancels existing fulfillment and optionally restocks items."
-        permissions = ("order.manage_orders",)
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
 
@@ -234,10 +241,7 @@ class FulfillmentCancel(BaseMutation):
         fulfillment = cls.get_node_or_error(info, data.get("id"), only_type=Fulfillment)
 
         if not fulfillment.can_edit():
-            err_msg = pgettext_lazy(
-                "Cancel fulfillment mutation error",
-                "This fulfillment can't be canceled",
-            )
+            err_msg = "This fulfillment can't be canceled"
             raise ValidationError(
                 {
                     "fulfillment": ValidationError(

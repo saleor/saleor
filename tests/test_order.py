@@ -1,23 +1,28 @@
 from decimal import Decimal
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, Mock, patch
 
 import pytest
-from django.urls import reverse
 from prices import Money, TaxedMoney
 
-from saleor.account import events as account_events
-from saleor.account.models import User
-from saleor.checkout.utils import create_order, prepare_order_data
 from saleor.core.exceptions import InsufficientStock
 from saleor.core.weight import zero_weight
+from saleor.discount.models import (
+    DiscountValueType,
+    NotApplicable,
+    Voucher,
+    VoucherType,
+)
 from saleor.discount.utils import validate_voucher_in_order
-from saleor.order import OrderStatus, events as order_events, models
+from saleor.order import OrderEvents, OrderStatus, models
+from saleor.order.emails import send_fulfillment_confirmation_to_customer
+from saleor.order.events import OrderEvent, OrderEventsEmails, email_sent_event
 from saleor.order.models import Order
 from saleor.order.templatetags.order_lines import display_translated_order_line_name
 from saleor.order.utils import (
     add_variant_to_order,
     change_order_line_quantity,
     delete_order_line,
+    get_voucher_discount_for_order,
     recalculate_order,
     restock_fulfillment_lines,
     restock_order_lines,
@@ -26,8 +31,8 @@ from saleor.order.utils import (
 )
 from saleor.payment import ChargeStatus
 from saleor.payment.models import Payment
-
-from .utils import get_redirect_location
+from saleor.product.models import Collection
+from saleor.warehouse.models import Stock
 
 
 def test_total_setter():
@@ -77,16 +82,17 @@ def test_add_variant_to_order_allocates_stock_for_new_variant(
     variant = product.variants.get()
     variant.track_inventory = track_inventory
     variant.save()
+    stock = Stock.objects.get(product_variant=variant)
 
-    stock_before = variant.quantity_allocated
+    stock_before = stock.quantity_allocated
 
     add_variant_to_order(order_with_lines, variant, 1)
 
-    variant.refresh_from_db()
+    stock.refresh_from_db()
     if track_inventory:
-        assert variant.quantity_allocated == stock_before + 1
+        assert stock.quantity_allocated == stock_before + 1
     else:
-        assert variant.quantity_allocated == stock_before
+        assert stock.quantity_allocated == stock_before
 
 
 def test_add_variant_to_order_edits_line_for_existing_variant(order_with_lines):
@@ -106,87 +112,30 @@ def test_add_variant_to_order_edits_line_for_existing_variant(order_with_lines):
 def test_add_variant_to_order_allocates_stock_for_existing_variant(order_with_lines):
     existing_line = order_with_lines.lines.first()
     variant = existing_line.variant
-    stock_before = variant.quantity_allocated
+    stock = Stock.objects.get(product_variant=variant)
+    stock_before = stock.quantity_allocated
 
     add_variant_to_order(order_with_lines, variant, 1)
 
-    variant.refresh_from_db()
-    assert variant.quantity_allocated == stock_before + 1
+    stock.refresh_from_db()
+    assert stock.quantity_allocated == stock_before + 1
 
 
 def test_add_variant_to_order_allow_overselling(order_with_lines):
     existing_line = order_with_lines.lines.first()
     variant = existing_line.variant
-    stock_before = variant.quantity_allocated
+    stock = Stock.objects.get(product_variant=variant)
+    stock_before = stock.quantity_allocated
 
-    quantity = variant.quantity + 1
+    quantity = stock.quantity + 1
     with pytest.raises(InsufficientStock):
         add_variant_to_order(
             order_with_lines, variant, quantity, allow_overselling=False
         )
 
     add_variant_to_order(order_with_lines, variant, quantity, allow_overselling=True)
-    variant.refresh_from_db()
-    assert variant.quantity_allocated == stock_before + quantity
-
-
-def test_view_connect_order_with_user_authorized_user(
-    order, authorized_client, customer_user
-):
-    order.user_email = customer_user.email
-    order.save()
-
-    url = reverse("order:connect-order-with-user", kwargs={"token": order.token})
-    response = authorized_client.post(url)
-
-    redirect_location = get_redirect_location(response)
-    assert redirect_location == reverse("order:details", args=[order.token])
-    order.refresh_from_db()
-    assert order.user == customer_user
-
-
-def test_view_connect_order_with_user_different_email(
-    order, authorized_client, customer_user
-):
-    """Order was placed from different email, than user's
-    we are trying to assign it to."""
-    order.user = None
-    order.user_email = "example_email@email.email"
-    order.save()
-
-    assert order.user_email != customer_user.email
-
-    url = reverse("order:connect-order-with-user", kwargs={"token": order.token})
-    response = authorized_client.post(url)
-
-    redirect_location = get_redirect_location(response)
-    assert redirect_location == reverse("account:details")
-    order.refresh_from_db()
-    assert order.user is None
-
-
-def test_view_order_with_deleted_variant(authorized_client, order_with_lines):
-    order = order_with_lines
-    order_details_url = reverse("order:details", kwargs={"token": order.token})
-
-    # delete a variant associated to the order
-    order.lines.first().variant.delete()
-
-    # check if the order details view handles the deleted variant
-    response = authorized_client.get(order_details_url)
-    assert response.status_code == 200
-
-
-def test_view_fulfilled_order_with_deleted_variant(authorized_client, fulfilled_order):
-    order = fulfilled_order
-    order_details_url = reverse("order:details", kwargs={"token": order.token})
-
-    # delete a variant associated to the order
-    order.lines.first().variant.delete()
-
-    # check if the order details view handles the deleted variant
-    response = authorized_client.get(order_details_url)
-    assert response.status_code == 200
+    stock.refresh_from_db()
+    assert stock.quantity_allocated == stock_before + quantity
 
 
 @pytest.mark.parametrize("track_inventory", (True, False))
@@ -201,31 +150,33 @@ def test_restock_order_lines(order_with_lines, track_inventory):
 
     line_1.variant.save()
     line_2.variant.save()
+    stock_1 = Stock.objects.get(product_variant=line_1.variant)
+    stock_2 = Stock.objects.get(product_variant=line_2.variant)
 
-    stock_1_quantity_allocated_before = line_1.variant.quantity_allocated
-    stock_2_quantity_allocated_before = line_2.variant.quantity_allocated
+    stock_1_quantity_allocated_before = stock_1.quantity_allocated
+    stock_2_quantity_allocated_before = stock_2.quantity_allocated
 
-    stock_1_quantity_before = line_1.variant.quantity
-    stock_2_quantity_before = line_2.variant.quantity
+    stock_1_quantity_before = stock_1.quantity
+    stock_2_quantity_before = stock_2.quantity
 
     restock_order_lines(order)
 
-    line_1.variant.refresh_from_db()
-    line_2.variant.refresh_from_db()
+    stock_1.refresh_from_db()
+    stock_2.refresh_from_db()
 
     if track_inventory:
-        assert line_1.variant.quantity_allocated == (
+        assert stock_1.quantity_allocated == (
             stock_1_quantity_allocated_before - line_1.quantity
         )
-        assert line_2.variant.quantity_allocated == (
+        assert stock_2.quantity_allocated == (
             stock_2_quantity_allocated_before - line_2.quantity
         )
     else:
-        assert line_1.variant.quantity_allocated == (stock_1_quantity_allocated_before)
-        assert line_2.variant.quantity_allocated == (stock_2_quantity_allocated_before)
+        assert stock_1.quantity_allocated == (stock_1_quantity_allocated_before)
+        assert stock_2.quantity_allocated == (stock_2_quantity_allocated_before)
 
-    assert line_1.variant.quantity == stock_1_quantity_before
-    assert line_2.variant.quantity == stock_2_quantity_before
+    assert stock_1.quantity == stock_1_quantity_before
+    assert stock_2.quantity == stock_2_quantity_before
     assert line_1.quantity_fulfilled == 0
     assert line_2.quantity_fulfilled == 0
 
@@ -233,27 +184,29 @@ def test_restock_order_lines(order_with_lines, track_inventory):
 def test_restock_fulfilled_order_lines(fulfilled_order):
     line_1 = fulfilled_order.lines.first()
     line_2 = fulfilled_order.lines.last()
-    stock_1_quantity_allocated_before = line_1.variant.quantity_allocated
-    stock_2_quantity_allocated_before = line_2.variant.quantity_allocated
-    stock_1_quantity_before = line_1.variant.quantity
-    stock_2_quantity_before = line_2.variant.quantity
+    stock_1 = Stock.objects.get(product_variant=line_1.variant)
+    stock_2 = Stock.objects.get(product_variant=line_2.variant)
+    stock_1_quantity_allocated_before = stock_1.quantity_allocated
+    stock_2_quantity_allocated_before = stock_2.quantity_allocated
+    stock_1_quantity_before = stock_1.quantity
+    stock_2_quantity_before = stock_2.quantity
 
     restock_order_lines(fulfilled_order)
 
-    line_1.variant.refresh_from_db()
-    line_2.variant.refresh_from_db()
-    assert line_1.variant.quantity_allocated == stock_1_quantity_allocated_before
-    assert line_2.variant.quantity_allocated == stock_2_quantity_allocated_before
-    assert line_1.variant.quantity == stock_1_quantity_before + line_1.quantity
-    assert line_2.variant.quantity == stock_2_quantity_before + line_2.quantity
+    stock_1.refresh_from_db()
+    stock_2.refresh_from_db()
+    assert stock_1.quantity_allocated == stock_1_quantity_allocated_before
+    assert stock_2.quantity_allocated == stock_2_quantity_allocated_before
+    assert stock_1.quantity == stock_1_quantity_before + line_1.quantity
+    assert stock_2.quantity == stock_2_quantity_before + line_2.quantity
 
 
 def test_restock_fulfillment_lines(fulfilled_order):
     fulfillment = fulfilled_order.fulfillments.first()
     line_1 = fulfillment.lines.first()
     line_2 = fulfillment.lines.last()
-    stock_1 = line_1.order_line.variant
-    stock_2 = line_2.order_line.variant
+    stock_1 = Stock.objects.get(product_variant=line_1.order_line.variant)
+    stock_2 = Stock.objects.get(product_variant=line_2.order_line.variant)
     stock_1_quantity_allocated_before = stock_1.quantity_allocated
     stock_2_quantity_allocated_before = stock_2.quantity_allocated
     stock_1_quantity_before = stock_1.quantity
@@ -397,154 +350,6 @@ def test_update_order_prices(order_with_lines):
     assert order_with_lines.total == total
 
 
-def test_order_payment_flow(
-    request_checkout_with_item, client, address, customer_user, shipping_zone
-):
-    request_checkout_with_item.shipping_address = address
-    request_checkout_with_item.billing_address = address.get_copy()
-    request_checkout_with_item.email = "test@example.com"
-    request_checkout_with_item.shipping_method = shipping_zone.shipping_methods.first()
-    request_checkout_with_item.save()
-
-    order = create_order(
-        checkout=request_checkout_with_item,
-        order_data=prepare_order_data(
-            checkout=request_checkout_with_item,
-            tracking_code="tracking_code",
-            discounts=None,
-        ),
-        user=customer_user,
-    )
-
-    gateway = "Dummy"
-    # Select payment
-    url = reverse("order:payment", kwargs={"token": order.token})
-    data = {"gateway": gateway}
-    response = client.post(url, data, follow=True)
-
-    assert len(response.redirect_chain) == 1
-    assert response.status_code == 200
-    redirect_url = reverse(
-        "order:payment", kwargs={"token": order.token, "gateway": gateway}
-    )
-    assert response.request["PATH_INFO"] == redirect_url
-
-    # Go to payment details page, enter payment data
-    data = {
-        "gateway": gateway,
-        "is_active": True,
-        "total": order.total.gross.amount,
-        "currency": order.total.gross.currency,
-        "charge_status": ChargeStatus.FULLY_CHARGED,
-    }
-    response = client.post(redirect_url, data)
-
-    assert response.status_code == 302
-    redirect_url = reverse("order:payment-success", kwargs={"token": order.token})
-    assert get_redirect_location(response) == redirect_url
-
-    # Assert that payment object was created and contains correct data
-    payment = order.payments.all()[0]
-    assert payment.total == order.total.gross.amount
-    assert payment.currency == order.total.gross.currency
-    assert payment.transactions.count() == 1
-    assert payment.transactions.last().kind == "capture"
-
-
-def test_create_user_after_order(order, client):
-    order.user_email = "hello@mirumee.com"
-    order.save()
-    url = reverse("order:checkout-success", kwargs={"token": order.token})
-    data = {"password": "password"}
-
-    response = client.post(url, data)
-
-    redirect_url = reverse("order:details", kwargs={"token": order.token})
-    assert get_redirect_location(response) == redirect_url
-    user = User.objects.filter(email="hello@mirumee.com").first()
-    assert user is not None
-    assert user.orders.filter(token=order.token).exists()
-
-
-def test_view_order_details(order, client):
-    url = reverse("order:details", kwargs={"token": order.token})
-    response = client.get(url)
-    assert response.status_code == 200
-
-
-def test_add_order_note_view(order, authorized_client, customer_user):
-    order.user_email = customer_user.email
-    order.save()
-    url = reverse("order:details", kwargs={"token": order.token})
-    customer_note = "bla-bla note"
-    data = {"customer_note": customer_note}
-
-    response = authorized_client.post(url, data)
-
-    redirect_url = reverse("order:details", kwargs={"token": order.token})
-    assert get_redirect_location(response) == redirect_url
-    order.refresh_from_db()
-    assert order.customer_note == customer_note
-
-    # Ensure an order event was triggered
-    note_event = order_events.OrderEvent.objects.get()  # type: order_events.OrderEvent
-    assert note_event.type == order_events.OrderEvents.NOTE_ADDED
-    assert note_event.user == customer_user
-    assert note_event.order == order
-    assert note_event.parameters == {"message": customer_note}
-
-    # Ensure a customer event was triggered
-    note_event = account_events.CustomerEvent.objects.get()
-    assert note_event.type == account_events.CustomerEvents.NOTE_ADDED_TO_ORDER
-    assert note_event.user == customer_user
-    assert note_event.order == order
-    assert note_event.parameters == {"message": customer_note}
-
-
-def test_add_order_note_view_anonymous_order(order, authorized_client, customer_user):
-    order.user_email = customer_user.email
-    order.user = None
-    order.save(update_fields=["user_email", "user"])
-    url = reverse("order:details", kwargs={"token": order.token})
-    customer_note = "bla-bla note"
-    data = {"customer_note": customer_note}
-
-    response = authorized_client.post(url, data)
-    assert response.status_code == 302
-
-    # Ensure an order event was triggered
-    note_event = order_events.OrderEvent.objects.last()  # type: order_events.OrderEvent
-    assert note_event.type == order_events.OrderEvents.NOTE_ADDED
-    assert note_event.user == customer_user
-    assert note_event.order == order
-    assert note_event.parameters == {"message": customer_note}
-
-    # Ensure a customer event was not triggered because the order has no user
-    assert not account_events.CustomerEvent.objects.exists()
-
-
-def test_anonymously_add_order_note_view_anonymous_order(order, client, customer_user):
-    order.user_email = customer_user.email
-    order.user = None
-    order.save(update_fields=["user_email", "user"])
-    url = reverse("order:details", kwargs={"token": order.token})
-    customer_note = "bla-bla note"
-    data = {"customer_note": customer_note}
-
-    response = client.post(url, data)
-    assert response.status_code == 302
-
-    # Ensure an order event was triggered
-    note_event = order_events.OrderEvent.objects.last()  # type: order_events.OrderEvent
-    assert note_event.type == order_events.OrderEvents.NOTE_ADDED
-    assert note_event.user is None
-    assert note_event.order == order
-    assert note_event.parameters == {"message": customer_note}
-
-    # Ensure a customer event was not triggered because the order has no user
-    assert not account_events.CustomerEvent.objects.exists()
-
-
 def _calculate_order_weight_from_lines(order):
     weight = zero_weight()
     for line in order:
@@ -626,6 +431,19 @@ def test_get_voucher_discount_for_order_voucher_validation(
     )
 
 
+@patch("saleor.discount.utils.validate_voucher")
+def test_validate_voucher_in_order_without_voucher(
+    mock_validate_voucher, order_with_lines
+):
+    order_with_lines.voucher = None
+    order_with_lines.save()
+
+    assert not order_with_lines.voucher
+
+    validate_voucher_in_order(order_with_lines)
+    mock_validate_voucher.assert_not_called()
+
+
 @pytest.mark.parametrize(
     "product_name, variant_name, translated_product_name, translated_variant_name,"
     "expected_display_name",
@@ -653,3 +471,250 @@ def test_display_translated_order_line_name(
     )
     display_name = display_translated_order_line_name(order_line)
     assert display_name == expected_display_name
+
+
+@pytest.mark.parametrize(
+    "subtotal, discount_value, discount_type, min_spent_amount, expected_value",
+    [
+        ("100", 10, DiscountValueType.FIXED, None, 10),
+        ("100.05", 10, DiscountValueType.PERCENTAGE, 100, 10),
+    ],
+)
+def test_value_voucher_order_discount(
+    subtotal, discount_value, discount_type, min_spent_amount, expected_value
+):
+    voucher = Voucher(
+        code="unique",
+        type=VoucherType.ENTIRE_ORDER,
+        discount_value_type=discount_type,
+        discount_value=discount_value,
+        min_spent=Money(min_spent_amount, "USD")
+        if min_spent_amount is not None
+        else None,
+    )
+    subtotal = Money(subtotal, "USD")
+    subtotal = TaxedMoney(net=subtotal, gross=subtotal)
+    order = Mock(get_subtotal=Mock(return_value=subtotal), voucher=voucher)
+    discount = get_voucher_discount_for_order(order)
+    assert discount == Money(expected_value, "USD")
+
+
+@pytest.mark.parametrize(
+    "shipping_cost, discount_value, discount_type, expected_value",
+    [(10, 50, DiscountValueType.PERCENTAGE, 5), (10, 20, DiscountValueType.FIXED, 10)],
+)
+def test_shipping_voucher_order_discount(
+    shipping_cost, discount_value, discount_type, expected_value
+):
+    voucher = Voucher(
+        code="unique",
+        type=VoucherType.SHIPPING,
+        discount_value_type=discount_type,
+        discount_value=discount_value,
+        min_spent_amount=None,
+    )
+    subtotal = Money(100, "USD")
+    subtotal = TaxedMoney(net=subtotal, gross=subtotal)
+    shipping_total = Money(shipping_cost, "USD")
+    order = Mock(
+        get_subtotal=Mock(return_value=subtotal),
+        shipping_price=shipping_total,
+        voucher=voucher,
+    )
+    discount = get_voucher_discount_for_order(order)
+    assert discount == Money(expected_value, "USD")
+
+
+@pytest.mark.parametrize(
+    "total, total_quantity, min_spent_amount, min_checkout_items_quantity,"
+    "voucher_type",
+    [
+        (99, 10, 100, 10, VoucherType.SHIPPING),
+        (100, 9, 100, 10, VoucherType.SHIPPING),
+        (99, 9, 100, 10, VoucherType.SHIPPING),
+        (99, 10, 100, 10, VoucherType.ENTIRE_ORDER),
+        (100, 9, 100, 10, VoucherType.ENTIRE_ORDER),
+        (99, 9, 100, 10, VoucherType.ENTIRE_ORDER),
+        (99, 10, 100, 10, VoucherType.SPECIFIC_PRODUCT),
+        (100, 9, 100, 10, VoucherType.SPECIFIC_PRODUCT),
+        (99, 9, 100, 10, VoucherType.SPECIFIC_PRODUCT),
+    ],
+)
+def test_shipping_voucher_checkout_discount_not_applicable_returns_zero(
+    total, total_quantity, min_spent_amount, min_checkout_items_quantity, voucher_type
+):
+    voucher = Voucher(
+        code="unique",
+        type=voucher_type,
+        discount_value_type=DiscountValueType.FIXED,
+        discount_value=10,
+        min_spent=(
+            Money(min_spent_amount, "USD") if min_spent_amount is not None else None
+        ),
+        min_checkout_items_quantity=min_checkout_items_quantity,
+    )
+    price = Money(total, "USD")
+    price = TaxedMoney(net=price, gross=price)
+    order = Mock(
+        get_subtotal=Mock(return_value=price),
+        get_total_quantity=Mock(return_value=total_quantity),
+        shipping_price=price,
+        voucher=voucher,
+    )
+    with pytest.raises(NotApplicable):
+        get_voucher_discount_for_order(order)
+
+
+def test_product_voucher_checkout_discount_raises_not_applicable(
+    order_with_lines, product_with_images
+):
+    discounted_product = product_with_images
+    voucher = Voucher(
+        code="unique",
+        type=VoucherType.SPECIFIC_PRODUCT,
+        discount_value_type=DiscountValueType.FIXED,
+        discount_value=10,
+    )
+    voucher.save()
+    voucher.products.add(discounted_product)
+    order_with_lines.voucher = voucher
+    order_with_lines.save()
+    # Offer is valid only for products listed in voucher
+    with pytest.raises(NotApplicable):
+        get_voucher_discount_for_order(order_with_lines)
+
+
+def test_category_voucher_checkout_discount_raises_not_applicable(order_with_lines):
+    discounted_collection = Collection.objects.create(
+        name="Discounted", slug="discount"
+    )
+    voucher = Voucher(
+        code="unique",
+        type=VoucherType.SPECIFIC_PRODUCT,
+        discount_value_type=DiscountValueType.FIXED,
+        discount_value=10,
+    )
+    voucher.save()
+    voucher.collections.add(discounted_collection)
+    order_with_lines.voucher = voucher
+    order_with_lines.save()
+    # Discount should be valid only for items in the discounted collections
+    with pytest.raises(NotApplicable):
+        get_voucher_discount_for_order(order_with_lines)
+
+
+def test_ordered_item_change_quantity(transactional_db, order_with_lines):
+    assert not order_with_lines.events.count()
+    lines = order_with_lines.lines.all()
+    change_order_line_quantity(None, lines[1], lines[1].quantity, 0)
+    change_order_line_quantity(None, lines[0], lines[0].quantity, 0)
+    assert order_with_lines.get_total_quantity() == 0
+
+
+@patch("saleor.order.actions.emails.send_fulfillment_confirmation")
+@pytest.mark.parametrize(
+    "has_standard,has_digital", ((True, True), (True, False), (False, True))
+)
+def test_send_fulfillment_order_lines_mails(
+    mocked_send_fulfillment_confirmation,
+    staff_user,
+    fulfilled_order,
+    fulfillment,
+    digital_content,
+    has_standard,
+    has_digital,
+):
+
+    order = fulfilled_order
+    assert order.lines.count() == 2
+
+    if not has_standard:
+        line = order.lines.all()[0]
+        line.variant = digital_content.product_variant
+        assert line.is_digital
+        line.save()
+
+    if has_digital:
+        line = order.lines.all()[1]
+        line.variant = digital_content.product_variant
+        assert line.is_digital
+        line.save()
+
+    send_fulfillment_confirmation_to_customer(
+        order=order, fulfillment=fulfillment, user=staff_user
+    )
+    events = OrderEvent.objects.all()
+
+    mocked_send_fulfillment_confirmation.delay.assert_called_once_with(
+        order.pk, fulfillment.pk
+    )
+
+    # Ensure the standard fulfillment event was triggered
+    assert events[0].user == staff_user
+    assert events[0].parameters == {
+        "email": order.user_email,
+        "email_type": OrderEventsEmails.FULFILLMENT,
+    }
+
+    if has_digital:
+        assert len(events) == 2
+        assert events[1].user == staff_user
+        assert events[1].parameters == {
+            "email": order.user_email,
+            "email_type": OrderEventsEmails.DIGITAL_LINKS,
+        }
+    else:
+        assert len(events) == 1
+
+
+def test_email_sent_event_with_user_pk(order):
+    user = order.user
+    email_type = OrderEventsEmails.PAYMENT
+    email_sent_event(order=order, user=None, email_type=email_type, user_pk=user.pk)
+    events = order.events.all()
+    assert len(events) == 1
+    event = events[0]
+    assert event
+    assert event.type == OrderEvents.EMAIL_SENT
+    assert event.user == user
+    assert event.order is order
+    assert event.date
+    assert event.parameters == {
+        "email": order.get_customer_email(),
+        "email_type": email_type,
+    }
+
+
+def test_email_sent_event_with_user(order):
+    user = order.user
+    email_type = OrderEventsEmails.PAYMENT
+    email_sent_event(order=order, user=user, email_type=email_type)
+    events = order.events.all()
+    assert len(events) == 1
+    event = events[0]
+    assert event
+    assert event.type == OrderEvents.EMAIL_SENT
+    assert event.user == user
+    assert event.order is order
+    assert event.date
+    assert event.parameters == {
+        "email": order.get_customer_email(),
+        "email_type": email_type,
+    }
+
+
+def test_email_sent_event_without_user_and_user_pk(order):
+    email_type = OrderEventsEmails.PAYMENT
+    email_sent_event(order=order, user=None, email_type=email_type)
+    events = order.events.all()
+    assert len(events) == 1
+    event = events[0]
+    assert event
+    assert event.type == OrderEvents.EMAIL_SENT
+    assert not event.user
+    assert event.order is order
+    assert event.date
+    assert event.parameters == {
+        "email": order.get_customer_email(),
+        "email_type": email_type,
+    }

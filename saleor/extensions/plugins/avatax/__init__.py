@@ -2,6 +2,7 @@ import json
 import logging
 from dataclasses import dataclass
 from datetime import date
+from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Dict, List, Optional, Union
 from urllib.parse import urljoin
 
@@ -9,12 +10,15 @@ import requests
 from django.conf import settings
 from django.contrib.sites.models import Site
 from django.core.cache import cache
-from django.utils.translation import pgettext_lazy
 from requests.auth import HTTPBasicAuth
 
+from ....checkout import base_calculations
+
 if TYPE_CHECKING:
+    # flake8: noqa
     from ....checkout.models import Checkout
     from ....order.models import Order
+    from ....product.models import Product, ProductVariant, ProductType
 
 logger = logging.getLogger(__name__)
 
@@ -48,10 +52,7 @@ class TransactionType:
 
 
 class CustomerErrors:
-    DEFAULT_MSG = pgettext_lazy(
-        "Default tax error msg",
-        "We are not able to calculate taxes for your order. Please try later",
-    )
+    DEFAULT_MSG = "We are not able to calculate taxes for your order. Please try later"
     ERRORS = ("InvalidPostalCode", "InvalidAddress", "MissingAddress")
 
     @classmethod
@@ -107,7 +108,7 @@ def _validate_adddress_details(
 
 def _validate_order(order: "Order") -> bool:
     """Validate the order object if it is ready to generate a request to avatax."""
-    if not order.lines.count():
+    if not order.lines.exists():
         return False
     shipping_address = order.shipping_address
     is_shipping_required = order.is_shipping_required()
@@ -119,7 +120,7 @@ def _validate_order(order: "Order") -> bool:
 
 def _validate_checkout(checkout: "Checkout") -> bool:
     """Validate the checkout object if it is ready to generate a request to avatax."""
-    if not checkout.lines.count():
+    if not checkout.lines.exists():
         return False
 
     shipping_address = checkout.shipping_address
@@ -172,9 +173,9 @@ def taxes_need_new_fetch(data: Dict[str, Any], taxes_token: str) -> bool:
 
 
 def append_line_to_data(
-    data: List[Dict[str, str]],
+    data: List[Dict[str, Union[str, int, bool, None]]],
     quantity: int,
-    amount: str,
+    amount: Decimal,
     tax_code: str,
     item_code: str,
     description: str = None,
@@ -202,7 +203,7 @@ def append_shipping_to_data(data: List[Dict], shipping_method):
         append_line_to_data(
             data,
             quantity=1,
-            amount=str(shipping_method.price.amount),
+            amount=shipping_method.price.amount,
             tax_code=COMMON_CARRIER_CODE,
             item_code="Shipping",
         )
@@ -210,8 +211,8 @@ def append_shipping_to_data(data: List[Dict], shipping_method):
 
 def get_checkout_lines_data(
     checkout: "Checkout", discounts=None
-) -> List[Dict[str, str]]:
-    data = []
+) -> List[Dict[str, Union[str, int, bool, None]]]:
+    data: List[Dict[str, Union[str, int, bool, None]]] = []
     lines = checkout.lines.prefetch_related(
         "variant__product__category",
         "variant__product__collections",
@@ -228,7 +229,9 @@ def get_checkout_lines_data(
         append_line_to_data(
             data=data,
             quantity=line.quantity,
-            amount=str(line.get_total(discounts).amount),
+            amount=base_calculations.base_checkout_line_total(
+                line, discounts
+            ).gross.amount,
             tax_code=tax_code,
             item_code=line.variant.sku,
             description=description,
@@ -238,15 +241,17 @@ def get_checkout_lines_data(
     return data
 
 
-def get_order_lines_data(order: "Order") -> List[Dict[str, str]]:
-    data = []
+def get_order_lines_data(
+    order: "Order",
+) -> List[Dict[str, Union[str, int, bool, None]]]:
+    data: List[Dict[str, Union[str, int, bool, None]]] = []
     lines = order.lines.prefetch_related(
         "variant__product__category",
         "variant__product__collections",
         "variant__product__product_type",
     )
     for line in lines:
-        if not line.variant.product.charge_taxes:
+        if not line.variant or not line.variant.product.charge_taxes:
             continue
         product = line.variant.product
         product_type = line.variant.product.product_type
@@ -337,13 +342,12 @@ def generate_request_data_from_checkout(
     address = checkout.shipping_address or checkout.billing_address
     lines = get_checkout_lines_data(checkout, discounts)
 
-    # FIXME after we introduce multicurrency this should be taken from Checkout obj
-    currency = checkout.get_subtotal().currency
+    currency = checkout.currency
     data = generate_request_data(
         transaction_type=transaction_type,
         lines=lines,
         transaction_token=transaction_token or str(checkout.token),
-        address=address.as_data(),
+        address=address.as_data() if address else {},
         customer_code=checkout.user.id if checkout.user else 0,
         customer_email=checkout.email,
         config=config,
@@ -405,7 +409,7 @@ def get_order_tax_data(
         transaction_type=transaction,
         lines=lines,
         transaction_token=order.token,
-        address=address.as_data(),
+        address=address.as_data() if address else {},
         customer_code=order.user.id if order.user else None,
         customer_email=order.user_email,
         config=config,
@@ -417,9 +421,7 @@ def get_order_tax_data(
     return response
 
 
-def generate_tax_codes_dict(
-    response: Dict[str, Union[str, int, bool]]
-) -> Dict[str, str]:
+def generate_tax_codes_dict(response: Dict[str, Any]) -> Dict[str, str]:
     tax_codes = {}
     for line in response.get("value", []):
         if line.get("isActive"):
@@ -444,7 +446,7 @@ def get_cached_tax_codes_or_fetch(
     return tax_codes
 
 
-def retrieve_tax_code_from_meta(obj: Union["Product", "ProductVariant"]):
+def retrieve_tax_code_from_meta(obj: Union["Product", "ProductVariant", "ProductType"]):
     tax = obj.meta.get("taxes", {}).get(META_FIELD, {})
     # O9999999 - "Temporary Unmapped Other SKU - taxable default"
     return tax.get("code", "O9999999")

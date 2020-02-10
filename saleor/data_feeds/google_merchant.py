@@ -13,6 +13,7 @@ from ..core.taxes import zero_money
 from ..discount import DiscountInfo
 from ..discount.utils import fetch_discounts
 from ..product.models import Attribute, AttributeValue, Category, ProductVariant
+from ..warehouse.availability import is_variant_in_stock
 
 CATEGORY_SEPARATOR = " > "
 
@@ -114,7 +115,7 @@ def item_brand(item: ProductVariant, attributes_dict, attribute_values_dict):
             brand = item.product.attributes.get(str(publisher_attribute_pk))
 
     if brand:
-        brand_name = attribute_values_dict.get(brand[0])
+        brand_name = attribute_values_dict.get(brand)
         if brand_name is not None:
             return brand_name
     return brand
@@ -144,7 +145,7 @@ def item_image_link(item: ProductVariant, current_site):
 
 
 def item_availability(item: ProductVariant):
-    if item.quantity_available:
+    if is_variant_in_stock(item, settings.DEFAULT_COUNTRY):
         return "in stock"
     return "out of stock"
 
@@ -158,6 +159,8 @@ def item_google_product_category(item: ProductVariant, category_paths):
     https://support.google.com/merchants/answer/6324436
     """
     category = item.product.category
+    if not category:
+        raise Exception(f"Item {item} does not have category")
     if category.pk in category_paths:
         return category_paths[category.pk]
     ancestors = [ancestor.name for ancestor in list(category.get_ancestors())]

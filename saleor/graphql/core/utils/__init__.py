@@ -1,10 +1,16 @@
 import binascii
-from typing import Union
+from typing import TYPE_CHECKING, Type, Union
 
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from django.core.exceptions import ValidationError
 from graphene import ObjectType
+
+from ....core.utils import generate_unique_slug
+
+if TYPE_CHECKING:
+    # flake8: noqa
+    from django.db.models import Model
 
 
 def clean_seo_fields(data):
@@ -62,3 +68,34 @@ def get_node_optimized(qs, lookup, info):
     qs = qs.filter(**lookup)
     qs = gql_optimizer.query(qs, info)
     return qs[0] if qs else None
+
+
+def validate_slug_and_generate_if_needed(
+    instance: Type["Model"],
+    slugable_field: str,
+    cleaned_input: dict,
+    slug_field_name: str = "slug",
+) -> dict:
+    """Validate slug from input and generate in create mutation if is not given."""
+
+    # update mutation - just check if slug value is not empty
+    # _state.adding is True only when it's new not saved instance.
+    if not instance._state.adding:  # type: ignore
+        validate_slug_value(cleaned_input)
+        return cleaned_input
+
+    # create mutation - generate slug if slug value is empty
+    slug = cleaned_input.get(slug_field_name)
+    if not slug and slugable_field in cleaned_input:
+        slug = generate_unique_slug(instance, cleaned_input[slugable_field])
+        cleaned_input[slug_field_name] = slug
+    return cleaned_input
+
+
+def validate_slug_value(cleaned_input, slug_field_name: str = "slug"):
+    if slug_field_name in cleaned_input:
+        slug = cleaned_input[slug_field_name]
+        if not slug:
+            raise ValidationError(
+                f"{slug_field_name.capitalize()} value cannot be blank."
+            )

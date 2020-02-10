@@ -3,8 +3,7 @@ language: python
 sudo: false
 
 python:
-  - "3.6"
-  - "3.7"
+  - "3.8"
 
 branches:
   only:
@@ -25,7 +24,6 @@ install:
     if [ -n "$DJANGO" ]; then
       nvm install 10 \
         && npm i \
-        && npm run build-assets --production \
         && npm run build-emails
     fi
 
@@ -46,19 +44,19 @@ matrix:
   fast_finish: true
   include:
     - env: TOXENV=black
-      python: "3.6"
+      python: "3.8"
     - env: TOXENV=flake8
-      python: "3.6"
+      python: "3.8"
+    - env: TOXENV=mypy
+      python: "3.8"
     - env: TOXENV=check_gql_schema
-      python: "3.6"
+      python: "3.8"
     - env: TOXENV=check_migrations
-      python: "3.6"
+      python: "3.8"
     - env: TOXENV=pydocstyle
-      python: "3.6"
+      python: "3.8"
   allow_failures:
-    - python: "3.6"
-      env: DJANGO="master"
-    - python: "3.7"
+    - python: "3.8"
       env: DJANGO="master"
 
 services:

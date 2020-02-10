@@ -51,42 +51,6 @@ def test_menu_query(user_api_client, menu):
     assert not content["data"]["menu"]
 
 
-def test_menus_query(user_api_client, menu, menu_item):
-    query = """
-    query menus($menu_name: String){
-        menus(query: $menu_name, first: 1) {
-            edges {
-                node {
-                    name
-                    items {
-                        name
-                        menu {
-                            name
-                        }
-                        url
-                    }
-                }
-            }
-        }
-    }
-    """
-
-    menu.items.add(menu_item)
-    menu.save()
-    menu_name = menu.name
-    variables = {"menu_name": menu_name}
-    response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    menu_data = content["data"]["menus"]["edges"][0]["node"]
-    assert menu_data["name"] == menu.name
-    items = menu_data["items"]
-    assert len(items) == 1
-    item = items[0]
-    assert item["name"] == menu_item.name
-    assert item["url"] == menu_item.url
-    assert item["menu"]["name"] == menu.name
-
-
 @pytest.mark.parametrize(
     "menu_filter, count", [({"search": "Menu1"}, 1), ({"search": "Menu"}, 2)]
 )
@@ -112,6 +76,47 @@ def test_menus_query_with_filter(
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert content["data"]["menus"]["totalCount"] == count
+
+
+QUERY_MENU_WITH_SORT = """
+    query ($sort_by: MenuSortingInput!) {
+        menus(first:5, sortBy: $sort_by) {
+            edges{
+                node{
+                    name
+                }
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "menu_sort, result_order",
+    [
+        # We have "footer" and "navbar" from default saleor configuration
+        ({"field": "NAME", "direction": "ASC"}, ["footer", "menu1", "navbar"]),
+        ({"field": "NAME", "direction": "DESC"}, ["navbar", "menu1", "footer"]),
+        ({"field": "ITEMS_COUNT", "direction": "ASC"}, ["footer", "navbar", "menu1"]),
+        ({"field": "ITEMS_COUNT", "direction": "DESC"}, ["menu1", "navbar", "footer"]),
+    ],
+)
+def test_query_menus_with_sort(
+    menu_sort, result_order, staff_api_client, permission_manage_menus
+):
+    menu = Menu.objects.create(name="menu1")
+    MenuItem.objects.create(name="MenuItem1", menu=menu)
+    MenuItem.objects.create(name="MenuItem2", menu=menu)
+    navbar = Menu.objects.get(name="navbar")
+    MenuItem.objects.create(name="NavbarMenuItem", menu=navbar)
+    variables = {"sort_by": menu_sort}
+    staff_api_client.user.user_permissions.add(permission_manage_menus)
+    response = staff_api_client.post_graphql(QUERY_MENU_WITH_SORT, variables)
+    content = get_graphql_content(response)
+    menus = content["data"]["menus"]["edges"]
+
+    for order, menu_name in enumerate(result_order):
+        assert menus[order]["node"]["name"] == menu_name
 
 
 def test_menu_items_query(user_api_client, menu_item, collection):
@@ -182,6 +187,42 @@ def test_menu_items_query_with_filter(
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert content["data"]["menuItems"]["totalCount"] == count
+
+
+QUERY_MENU_ITEMS_WITH_SORT = """
+    query ($sort_by: MenuItemSortingInput!) {
+        menuItems(first:5, sortBy: $sort_by) {
+            edges{
+                node{
+                    name
+                }
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "menu_item_sort, result_order",
+    [
+        ({"field": "NAME", "direction": "ASC"}, ["MenuItem1", "MenuItem2"]),
+        ({"field": "NAME", "direction": "DESC"}, ["MenuItem2", "MenuItem1"]),
+    ],
+)
+def test_query_menu_items_with_sort(
+    menu_item_sort, result_order, staff_api_client, permission_manage_menus
+):
+    menu = Menu.objects.create(name="Menu1")
+    MenuItem.objects.create(name="MenuItem1", menu=menu)
+    MenuItem.objects.create(name="MenuItem2", menu=menu)
+    variables = {"sort_by": menu_item_sort}
+    staff_api_client.user.user_permissions.add(permission_manage_menus)
+    response = staff_api_client.post_graphql(QUERY_MENU_ITEMS_WITH_SORT, variables)
+    content = get_graphql_content(response)
+    menu_items = content["data"]["menuItems"]["edges"]
+
+    for order, menu_item_name in enumerate(result_order):
+        assert menu_items[order]["node"]["name"] == menu_item_name
 
 
 def test_menu_item_query_static_url(user_api_client, menu_item):
@@ -487,13 +528,11 @@ mutation menuItemMove($menu: ID!, $moves: [MenuItemMoveInput]!) {
       id
       items {
         id
-        sortOrder
         parent {
           id
         }
         children {
           id
-          sortOrder
           parent {
             id
           }
@@ -528,9 +567,9 @@ def test_menu_reorder(staff_api_client, permission_manage_menus, menu_item_list)
     expected_data = {
         "id": menu_global_id,
         "items": [
-            {"id": items_global_ids[1], "sortOrder": 0, "parent": None, "children": []},
-            {"id": items_global_ids[0], "sortOrder": 1, "parent": None, "children": []},
-            {"id": items_global_ids[2], "sortOrder": 2, "parent": None, "children": []},
+            {"id": items_global_ids[1], "parent": None, "children": []},
+            {"id": items_global_ids[0], "parent": None, "children": []},
+            {"id": items_global_ids[2], "parent": None, "children": []},
         ],
     }
 
@@ -589,24 +628,20 @@ def test_menu_reorder_assign_parent(
         "items": [
             {
                 "id": items_global_ids[1],
-                "sortOrder": 0,
                 "parent": None,
                 "children": [
                     {
                         "id": items_global_ids[0],
-                        "sortOrder": 0,
                         "parent": {"id": parent_global_id},
                         "children": [],
                     },
                     {
                         "id": items_global_ids[2],
-                        "sortOrder": 1,
                         "parent": {"id": parent_global_id},
                         "children": [],
                     },
                     {
                         "id": items_global_ids[3],
-                        "sortOrder": 2,
                         "parent": {"id": parent_global_id},
                         "children": [],
                     },
@@ -662,24 +697,9 @@ def test_menu_reorder_assign_parent_to_top_level(
     expected_data = {
         "id": menu_global_id,
         "items": [
-            {
-                "id": previous_parent_global_id,
-                "sortOrder": 1,
-                "parent": None,
-                "children": [],
-            },
-            {
-                "id": unchanged_item_global_id,
-                "sortOrder": 2,
-                "parent": None,
-                "children": [],
-            },
-            {
-                "id": root_candidate_global_id,
-                "sortOrder": 3,
-                "parent": None,
-                "children": [],
-            },
+            {"id": previous_parent_global_id, "parent": None, "children": []},
+            {"id": unchanged_item_global_id, "parent": None, "children": []},
+            {"id": root_candidate_global_id, "parent": None, "children": []},
         ],
     }
 

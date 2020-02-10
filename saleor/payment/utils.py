@@ -7,11 +7,11 @@ from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
 
-from ..account.models import Address
 from ..checkout.models import Checkout
 from ..order.actions import handle_fully_paid_order
 from ..order.models import Order
 from . import ChargeStatus, GatewayError, PaymentError, TransactionKind
+from .error_codes import PaymentErrorCode
 from .interface import AddressData, GatewayResponse, PaymentData
 from .models import Payment, Transaction
 
@@ -26,8 +26,6 @@ def create_payment_information(
     payment: Payment,
     payment_token: str = None,
     amount: Decimal = None,
-    billing_address: AddressData = None,
-    shipping_address: AddressData = None,
     customer_id: str = None,
     store_source: bool = False,
 ) -> PaymentData:
@@ -36,13 +34,17 @@ def create_payment_information(
     Returns information required to process payment and additional
     billing/shipping addresses for optional fraud-prevention mechanisms.
     """
-    billing, shipping = None, None
+    if payment.checkout:
+        billing = payment.checkout.billing_address
+        shipping = payment.checkout.shipping_address
+    elif payment.order:
+        billing = payment.order.billing_address
+        shipping = payment.order.shipping_address
+    else:
+        billing, shipping = None, None
 
-    if billing_address is None and payment.order and payment.order.billing_address:
-        billing = AddressData(**payment.order.billing_address.as_data())
-
-    if shipping_address is None and payment.order and payment.order.shipping_address:
-        shipping = AddressData(**payment.order.shipping_address.as_data())
+    billing_address = AddressData(**billing.as_data()) if billing else None
+    shipping_address = AddressData(**shipping.as_data()) if shipping else None
 
     order_id = payment.order.pk if payment.order else None
 
@@ -50,8 +52,8 @@ def create_payment_information(
         token=payment_token,
         amount=amount or payment.total,
         currency=payment.currency,
-        billing=billing or billing_address,
-        shipping=shipping or shipping_address,
+        billing=billing_address,
+        shipping=shipping_address,
         order_id=order_id,
         customer_ip_address=payment.customer_ip_address,
         customer_id=customer_id,
@@ -65,7 +67,6 @@ def create_payment(
     total: Decimal,
     currency: str,
     email: str,
-    billing_address: Address,
     customer_ip_address: str = "",
     payment_token: str = "",
     extra_data: Dict = None,
@@ -77,6 +78,32 @@ def create_payment(
     This method is responsible for creating payment instances that works for
     both Django views and GraphQL mutations.
     """
+
+    if extra_data is None:
+        extra_data = {}
+
+    data = {
+        "is_active": True,
+        "customer_ip_address": customer_ip_address,
+        "extra_data": extra_data,
+        "token": payment_token,
+    }
+
+    if checkout:
+        data["checkout"] = checkout
+        billing_address = checkout.billing_address
+    elif order:
+        data["order"] = order
+        billing_address = order.billing_address
+    else:
+        raise TypeError("Must provide checkout or order to create a payment.")
+
+    if not billing_address:
+        raise PaymentError(
+            "Order does not have a billing address.",
+            code=PaymentErrorCode.BILLING_ADDRESS_NOT_SET.value,
+        )
+
     defaults = {
         "billing_email": email,
         "billing_first_name": billing_address.first_name,
@@ -93,21 +120,6 @@ def create_payment(
         "total": total,
     }
 
-    if extra_data is None:
-        extra_data = {}
-
-    data = {
-        "is_active": True,
-        "customer_ip_address": customer_ip_address,
-        "extra_data": extra_data,
-        "token": payment_token,
-    }
-
-    if order is not None:
-        data["order"] = order
-    if checkout is not None:
-        data["checkout"] = checkout
-
     payment, _ = Payment.objects.get_or_create(defaults=defaults, **data)
     return payment
 
@@ -116,6 +128,7 @@ def create_transaction(
     payment: Payment,
     kind: str,
     payment_information: PaymentData,
+    action_required: bool = False,
     gateway_response: GatewayResponse = None,
     error_msg=None,
 ) -> Transaction:
@@ -136,6 +149,7 @@ def create_transaction(
 
     txn = Transaction.objects.create(
         payment=payment,
+        action_required=action_required,
         kind=gateway_response.kind,
         token=gateway_response.transaction_id,
         is_success=gateway_response.is_success,
@@ -190,6 +204,11 @@ def gateway_postprocess(transaction, payment):
     if not transaction.is_success:
         return
 
+    if transaction.action_required:
+        payment.to_confirm = True
+        payment.save(update_fields=["to_confirm"])
+        return
+
     transaction_kind = transaction.kind
 
     if transaction_kind in {TransactionKind.CAPTURE, TransactionKind.CONFIRM}:
@@ -201,17 +220,17 @@ def gateway_postprocess(transaction, payment):
         if payment.get_charge_amount() <= 0:
             payment.charge_status = ChargeStatus.FULLY_CHARGED
 
-        payment.save(update_fields=["charge_status", "captured_amount"])
+        payment.save(update_fields=["charge_status", "captured_amount", "modified"])
         order = payment.order
         if order and order.is_fully_paid():
             handle_fully_paid_order(order)
 
     elif transaction_kind == TransactionKind.VOID:
         payment.is_active = False
-        payment.save(update_fields=["is_active"])
+        payment.save(update_fields=["is_active", "modified"])
 
     elif transaction_kind == TransactionKind.REFUND:
-        changed_fields = ["captured_amount"]
+        changed_fields = ["captured_amount", "modified"]
         payment.captured_amount -= transaction.amount
         payment.charge_status = ChargeStatus.PARTIALLY_REFUNDED
         if payment.captured_amount <= 0:
@@ -252,7 +271,13 @@ def update_card_details(payment, gateway_response):
     payment.cc_exp_year = gateway_response.card_info.exp_year
     payment.cc_exp_month = gateway_response.card_info.exp_month
     payment.save(
-        update_fields=["cc_brand", "cc_last_digits", "cc_exp_year", "cc_exp_month"]
+        update_fields=[
+            "cc_brand",
+            "cc_last_digits",
+            "cc_exp_year",
+            "cc_exp_month",
+            "modified",
+        ]
     )
 
 

@@ -7,8 +7,8 @@ from django.contrib.sites.models import Site
 from django.core.exceptions import ImproperlyConfigured
 from django.core.validators import MaxLengthValidator, RegexValidator
 from django.db import models
-from django.utils.translation import pgettext_lazy
 
+from ..core.permissions import SitePermissions
 from ..core.utils.translations import TranslationProxy
 from ..core.weight import WeightUnits
 from . import AuthenticationBackends
@@ -18,17 +18,16 @@ from .patch_sites import patch_contrib_sites
 patch_contrib_sites()
 
 
-EMAIL_SENDER_NAME_VALIDATORS = [
-    RegexValidator(
-        r"[\n\r]",
-        inverse_match=True,
-        message=pgettext_lazy(
-            "Email sender name validation error", "New lines are not allowed."
+def email_sender_name_validators():
+    return [
+        RegexValidator(
+            r"[\n\r]",
+            inverse_match=True,
+            message="New lines are not allowed.",
+            code=SiteErrorCode.FORBIDDEN_CHARACTER.value,
         ),
-        code=SiteErrorCode.FORBIDDEN_CHARACTER.value,
-    ),
-    MaxLengthValidator(settings.DEFAULT_MAX_EMAIL_DISPLAY_NAME_LENGTH),
-]
+        MaxLengthValidator(settings.DEFAULT_MAX_EMAIL_DISPLAY_NAME_LENGTH),
+    ]
 
 
 class SiteSettings(models.Model):
@@ -65,7 +64,7 @@ class SiteSettings(models.Model):
         max_length=settings.DEFAULT_MAX_EMAIL_DISPLAY_NAME_LENGTH,
         blank=True,
         default="",
-        validators=EMAIL_SENDER_NAME_VALIDATORS,
+        validators=email_sender_name_validators(),
     )
     default_mail_sender_address = models.EmailField(blank=True, null=True)
     customer_set_password_url = models.CharField(max_length=255, blank=True, null=True)
@@ -73,14 +72,8 @@ class SiteSettings(models.Model):
 
     class Meta:
         permissions = (
-            (
-                "manage_settings",
-                pgettext_lazy("Permission description", "Manage settings."),
-            ),
-            (
-                "manage_translations",
-                pgettext_lazy("Permission description", "Manage translations."),
-            ),
+            (SitePermissions.MANAGE_SETTINGS.codename, "Manage settings."),
+            (SitePermissions.MANAGE_TRANSLATIONS.codename, "Manage translations."),
         )
 
     def __str__(self):

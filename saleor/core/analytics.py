@@ -1,4 +1,5 @@
 import uuid
+from typing import Generator, List
 
 import google_measurement_protocol as ga
 from django.conf import settings
@@ -23,17 +24,25 @@ def get_client_id(request):
 
 
 @app.task
-def ga_report(tracking_id, client_id, payloads, extra_headers=None, **extra_data):
+def ga_report(
+    tracking_id, client_id, payloads: List[dict], extra_headers=None, **extra_data
+):
     ga.report(
         tracking_id, client_id, payloads, extra_headers=extra_headers, **extra_data
     )
 
 
-def _report(client_id, payloads, extra_headers=None, **extra_data):
+def _report(
+    client_id, payloads: Generator[dict, None, None], extra_headers=None, **extra_data
+):
     tracking_id = getattr(settings, "GOOGLE_ANALYTICS_TRACKING_ID", None)
     if tracking_id and client_id:
         ga_report.delay(
-            tracking_id, client_id, payloads, extra_headers=extra_headers, **extra_data
+            tracking_id,
+            client_id,
+            list(payloads),
+            extra_headers=extra_headers,
+            **extra_data,
         )
 
 
