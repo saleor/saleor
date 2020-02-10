@@ -2291,6 +2291,7 @@ type Mutation {
   orderBulkCancel(ids: [ID]!, restock: Boolean!): OrderBulkCancel
   deleteMeta(id: ID!, key: String!): DeleteMeta
   updateMeta(id: ID!, input: MetaItemInput!): UpdateMeta
+  updatePrivateMeta(id: ID!, input: MetaItemInput!): UpdatePrivateMeta
   assignNavigation(menu: ID, navigationType: NavigationType!): AssignNavigation
   menuCreate(input: MenuCreateInput!): MenuCreate
   menuDelete(id: ID!): MenuDelete
@@ -4505,6 +4506,12 @@ input TranslationInput {
 scalar UUID
 
 type UpdateMeta {
+  errors: [Error!]
+  metaErrors: [MetaError!]
+  item: ObjectWithMetadata
+}
+
+type UpdatePrivateMeta {
   errors: [Error!]
   metaErrors: [MetaError!]
   item: ObjectWithMetadata

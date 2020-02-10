@@ -4,7 +4,7 @@ import graphene
 
 from saleor.core.error_codes import MetaErrorCode
 from saleor.core.models import ModelWithMetadata
-from tests.api.utils import get_graphql_content
+from tests.api.utils import assert_no_permission, get_graphql_content
 
 PRIVATE_KEY = "private_key"
 PRIVATE_VALUE = "private_vale"
@@ -854,3 +854,418 @@ def test_clear_public_metadata_for_one_key(api_client, checkout):
     assert item_without_public_metadata(
         response["data"]["deleteMeta"]["item"], checkout, checkout_id, key="to_clear"
     )
+
+
+UPDATE_PRIVATE_METADATA_MUTATION = """
+mutation UpdatePrivateMetadata($id: ID!, $input: MetaItemInput!) {
+    updatePrivateMeta(
+        id: $id
+        input: $input
+    ) {
+        metaErrors{
+            field
+            code
+        }
+        item {
+            privateMetadata{
+                key
+                value
+            }
+            ...on %s{
+                id
+            }
+        }
+    }
+}
+"""
+
+
+def execute_update_private_metadata_for_item(
+    client, permissions, item_id, item_type, key=PRIVATE_KEY, value=PRIVATE_VALUE,
+):
+    variables = {
+        "id": item_id,
+        "input": {"key": key, "value": value},
+    }
+
+    response = client.post_graphql(
+        UPDATE_PRIVATE_METADATA_MUTATION % item_type,
+        variables,
+        permissions=[permissions] if permissions else None,
+    )
+    response = get_graphql_content(response)
+    return response
+
+
+def item_contains_proper_private_metadata(
+    item_from_response, item, item_id, key=PRIVATE_KEY, value=PRIVATE_VALUE,
+):
+    if item_from_response["id"] != item_id:
+        return False
+    item.refresh_from_db()
+    return item.get_private_meta(key) == value
+
+
+def test_add_private_metadata_for_customer_as_staff(
+    staff_api_client, permission_manage_users, customer_user
+):
+    # given
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_users, customer_id, "User"
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMeta"]["item"], customer_user, customer_id
+    )
+
+
+def test_add_private_metadata_for_customer_as_service_account(
+    service_account_api_client, permission_manage_users, customer_user
+):
+    # given
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        service_account_api_client, permission_manage_users, customer_id, "User"
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMeta"]["item"], customer_user, customer_id
+    )
+
+
+def test_add_private_metadata_for_other_staff_as_staff(
+    staff_api_client, permission_manage_staff, admin_user
+):
+    # given
+    assert admin_user.pk != staff_api_client.user.pk
+    admin_id = graphene.Node.to_global_id("User", admin_user.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_staff, admin_id, "User"
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMeta"]["item"], admin_user, admin_id
+    )
+
+
+def test_add_private_metadata_for_staff_as_service_account(
+    service_account_api_client, permission_manage_staff, admin_user
+):
+    # given
+    admin_id = graphene.Node.to_global_id("User", admin_user.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        service_account_api_client, permission_manage_staff, admin_id, "User"
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMeta"]["item"], admin_user, admin_id
+    )
+
+
+def test_add_private_metadata_for_myself_as_customer_no_permission(user_api_client):
+    # given
+    customer = user_api_client.user
+    variables = {
+        "id": graphene.Node.to_global_id("User", customer.pk),
+        "input": {"key": PRIVATE_KEY, "value": PRIVATE_VALUE},
+    }
+
+    # when
+    response = user_api_client.post_graphql(
+        UPDATE_PRIVATE_METADATA_MUTATION % "User", variables, permissions=[],
+    )
+
+    # then
+    assert_no_permission(response)
+
+
+def test_add_private_metadata_for_myself_as_staff(staff_api_client):
+    # given
+    staff = staff_api_client.user
+    variables = {
+        "id": graphene.Node.to_global_id("User", staff.pk),
+        "input": {"key": PRIVATE_KEY, "value": PRIVATE_VALUE},
+    }
+
+    # when
+    response = staff_api_client.post_graphql(
+        UPDATE_PRIVATE_METADATA_MUTATION % "User", variables, permissions=[],
+    )
+
+    # then
+    assert_no_permission(response)
+
+
+def test_add_private_metadata_for_checkout(
+    staff_api_client, checkout, permission_manage_checkouts
+):
+    # given
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_checkouts, checkout_id, "Checkout"
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMeta"]["item"], checkout, checkout_id
+    )
+
+
+def test_add_private_metadata_for_order(
+    staff_api_client, order, permission_manage_orders
+):
+    # given
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_orders, order_id, "Order"
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMeta"]["item"], order, order_id
+    )
+
+
+def test_add_private_metadata_for_attribute(
+    staff_api_client, permission_manage_products, color_attribute
+):
+    # given
+    attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_products, attribute_id, "Attribute"
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMeta"]["item"], color_attribute, attribute_id
+    )
+
+
+def test_add_private_metadata_for_category(
+    staff_api_client, permission_manage_products, category
+):
+    # given
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_products, category_id, "Category"
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMeta"]["item"], category, category_id
+    )
+
+
+def test_add_private_metadata_for_collection(
+    staff_api_client, permission_manage_products, collection
+):
+    # given
+    collection_id = graphene.Node.to_global_id("Collection", collection.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_products, collection_id, "Collection"
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMeta"]["item"], collection, collection_id
+    )
+
+
+def test_add_private_metadata_for_digital_content(
+    staff_api_client, permission_manage_products, digital_content
+):
+    # given
+    digital_content_id = graphene.Node.to_global_id(
+        "DigitalContent", digital_content.pk
+    )
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client,
+        permission_manage_products,
+        digital_content_id,
+        "DigitalContent",
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMeta"]["item"],
+        digital_content,
+        digital_content_id,
+    )
+
+
+def test_add_private_metadata_for_fulfillment(
+    staff_api_client, permission_manage_orders, fulfillment
+):
+    # given
+    fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_orders, fulfillment_id, "Fulfillment"
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMeta"]["item"], fulfillment, fulfillment_id
+    )
+
+
+def test_add_private_metadata_for_product(
+    staff_api_client, permission_manage_products, product
+):
+    # given
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_products, product_id, "Product"
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMeta"]["item"], product, product_id
+    )
+
+
+def test_add_private_metadata_for_product_type(
+    staff_api_client, permission_manage_products, product_type
+):
+    # given
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_products, product_type_id, "ProductType"
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMeta"]["item"], product_type, product_type_id
+    )
+
+
+def test_add_private_metadata_for_product_variant(
+    staff_api_client, permission_manage_products, variant
+):
+    # given
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_products, variant_id, "ProductVariant",
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMeta"]["item"], variant, variant_id
+    )
+
+
+def test_add_private_metadata_for_service_account(
+    staff_api_client, permission_manage_service_accounts, service_account
+):
+    # given
+    service_account_id = graphene.Node.to_global_id(
+        "ServiceAccount", service_account.pk
+    )
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client,
+        permission_manage_service_accounts,
+        service_account_id,
+        "ServiceAccount",
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMeta"]["item"],
+        service_account,
+        service_account_id,
+    )
+
+
+def test_update_private_metadata_for_item(
+    staff_api_client, checkout, permission_manage_checkouts
+):
+    # given
+    checkout.store_private_meta({PRIVATE_KEY: PRIVATE_KEY})
+    checkout.save(update_fields=["private_meta"])
+    checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client,
+        permission_manage_checkouts,
+        checkout_id,
+        "Checkout",
+        value="NewMetaValue",
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMeta"]["item"],
+        checkout,
+        checkout_id,
+        value="NewMetaValue",
+    )
+
+
+def test_update_private_metadata_for_non_exist_item(
+    staff_api_client, permission_manage_checkouts
+):
+    # given
+    checkout_id = base64.b64encode(b"Checkout:INVALID").decode("utf-8")
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_checkouts, checkout_id, "Checkout"
+    )
+
+    # then
+    errors = response["data"]["updatePrivateMeta"]["metaErrors"]
+    assert errors[0]["field"] == "id"
+    assert errors[0]["code"] == MetaErrorCode.NOT_FOUND.name
+
+
+def test_update_private_metadata_for_item_without_meta(api_client, address):
+    # given
+    assert not issubclass(type(address), ModelWithMetadata)
+    address_id = graphene.Node.to_global_id("Address", address.pk)
+
+    # when
+    # We use "User" type inside mutation for valid graphql query with fragment
+    # without this we are not able to reuse UPDATE_PRIVATE_METADATA_MUTATION
+    response = execute_update_private_metadata_for_item(
+        api_client, None, address_id, "User"
+    )
+
+    # then
+    errors = response["data"]["updatePrivateMeta"]["metaErrors"]
+    assert errors[0]["field"] == "id"
+    assert errors[0]["code"] == MetaErrorCode.INVALID.name
