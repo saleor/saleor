@@ -116,6 +116,7 @@ def order_fulfilled(
     )
     manager = get_extensions_manager()
     manager.order_updated(order)
+    manager.fulfillment_created(fulfillment)
 
     if order.status == OrderStatus.FULFILLED:
         manager.order_fulfilled(order)
@@ -145,7 +146,9 @@ def fulfillment_tracking_updated(
         tracking_number=tracking_number,
         fulfillment=fulfillment,
     )
-    get_extensions_manager().order_updated(fulfillment.order)
+    manager = get_extensions_manager()
+    manager.order_updated(fulfillment.order)
+    manager.fulfillment_created(fulfillment)
 
 
 def cancel_fulfillment(fulfillment: "Fulfillment", user: "User", restock: bool):

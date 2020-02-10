@@ -65,6 +65,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add mutation for assigning, unassigning shipping zones to warehouse - #5217 by @kswiatek92
 - Fix passing addresses to `PaymentData` objects - #5223 by @maarcingebala
 - Return `null` when querying `me` as an anonymous user - #5231 as @maarcingebala
+- Add `fulfillment created` webhook - @szewczykmira
 
 ## 2.9.0
 
