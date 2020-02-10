@@ -93,17 +93,17 @@ Saleor documentation is available here: [docs.saleor.io](https://docs.saleor.io)
 
 To contribute, please see the [`mirumee/saleor-docs` repository](https://github.com/mirumee/saleor-docs/).
 
-## PWA Storefront
+## Storefront
 
-For PWA, single-page Storefront 2.0 go to the [saleor-storefront](https://github.com/mirumee/saleor-storefront) repository.
+For PWA, single-page torefront go to the [saleor-storefront](https://github.com/mirumee/saleor-storefront) repository.
 
-[View Storefront 2.0 demo](https://pwa.saleor.io/)
+[View storefront demo](https://pwa.saleor.io/)
 
-## Dashboard 2.0
+## Dashboard
 
-For Dashboard 2.0 go to the [saleor-dashboard](https://github.com/mirumee/saleor-dashboard) repository.
+For dashboard go to the [saleor-dashboard](https://github.com/mirumee/saleor-dashboard) repository.
 
-[View Dashboard 2.0 demo](https://pwa.saleor.io/dashboard/)
+[View dashboard demo](https://pwa.saleor.io/dashboard/)
 
 ## Demo
 
@@ -125,13 +125,10 @@ If nothing grabs your attention, check [our roadmap](https://github.com/mirumee/
 
 Get more details in our [Contributing Guide](https://docs.getsaleor.com/docs/contributing/intro/).
 
-## Translations
+## Legacy views
 
-Did you know that Saleor is available in more than 30 languages, translated entirely by our community?
+If you're interested in using the old version of Saleor, go the [legacy-views](https://github.com/mirumee/legacy-views) repository. It contains the 2.9.0 release, which includes Django-based views and HTML templates of Storefront 1.0 and Dashboard 1.0. Note: this version of Saleor is no longer officially maintained.
 
-If you'd like to help us, you can join one of our translation teams on [the localization platform Transifex](https://www.transifex.com/mirumee/saleor-1/languages/).
-
-The repository gets synchronized weekly with the latest contributions.
 
 ## Your feedback
 
