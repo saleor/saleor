@@ -6,7 +6,7 @@ from ...core import models
 from ...core.error_codes import MetaErrorCode
 from ..core.mutations import BaseMutation
 from ..core.types.common import MetaError
-from .permissions import PUBLIC_META_PERMISSION_MAP
+from .permissions import PUBLIC_META_PERMISSION_MAP, PRIVATE_META_PERMISSION_MAP
 from .types import ObjectWithMetadata
 
 
@@ -133,5 +133,32 @@ class DeleteMeta(BaseMetadataMutation):
         if instance:
             metadata_key = data.pop("key")
             instance.delete_meta(metadata_key)
+            instance.save()
+        return cls.success_response(instance)
+
+
+class UpdatePrivateMeta(BaseMetadataMutation):
+    class Meta:
+        description = "Updates private metadata for item."
+        permission_map = PRIVATE_META_PERMISSION_MAP
+        error_type_class = MetaError
+        error_type_field = "meta_errors"
+
+    class Arguments:
+        id = graphene.ID(description="ID of an object to update.", required=True)
+        input = MetaItemInput(
+            description=(
+                "Fields required to update new or stored private metadata item."
+            ),
+            required=True,
+        )
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        instance = cls.get_instance(info, **data)
+        if instance:
+            metadata = data.pop("input")
+            item = {metadata.key: metadata.value}
+            instance.store_private_meta(items=item)
             instance.save()
         return cls.success_response(instance)
