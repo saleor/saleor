@@ -80,7 +80,7 @@ class GraphQLView(View):
     def dispatch(self, request, *args, **kwargs):
         # Handle options method the GraphQlView restricts it.
         if request.method == "GET":
-            if settings.DEBUG:
+            if settings.PLAYGROUND_ENABLED:
                 return render_to_response("graphql/playground.html")
             return HttpResponseNotAllowed(["OPTIONS", "POST"])
 
