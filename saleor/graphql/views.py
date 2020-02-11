@@ -31,6 +31,27 @@ API_PATH = SimpleLazyObject(lambda: reverse("api"))
 unhandled_errors_logger = logging.getLogger("saleor.graphql.errors.unhandled")
 handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
 
+EXAMPLE_QUERY = """# Welcome to Saleor GraphQL API!
+#
+# Type queries into this side of the screen, and you will see
+# intelligent typeaheads aware of the current GraphQL type schema
+# and live syntax and validation errors highlighted within the text.
+#
+# Here is an example query to fetch a list of products:
+#
+{
+  products(first: 5) {
+    edges {
+      node {
+        id
+        name
+        description
+      }
+    }
+  }
+}
+"""
+
 
 def tracing_wrapper(execute, sql, params, many, context):
     conn: DatabaseWrapper = context["connection"]
@@ -81,9 +102,12 @@ class GraphQLView(View):
         # Handle options method the GraphQlView restricts it.
         if request.method == "GET":
             if settings.PLAYGROUND_ENABLED:
-                return render_to_response("graphql/playground.html")
+                ctx = {
+                    "query": EXAMPLE_QUERY,
+                    "api_url": request.build_absolute_uri(str(API_PATH)),
+                }
+                return render_to_response("graphql/playground.html", ctx)
             return HttpResponseNotAllowed(["OPTIONS", "POST"])
-
         if request.method == "OPTIONS":
             response = self.options(request, *args, **kwargs)
         elif request.method == "POST":
