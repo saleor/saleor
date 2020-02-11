@@ -12,8 +12,10 @@ from ..core.utils.anonymization import (
 )
 from ..order import FulfillmentStatus, OrderStatus
 from ..order.models import Fulfillment, Order
+from ..order.utils import get_order_country
 from ..payment import ChargeStatus
 from ..product.models import Product
+from ..warehouse.models import Warehouse
 from .event_types import WebhookEventType
 from .payload_serializers import PayloadSerializer
 from .serializers import serialize_checkout_lines
@@ -260,26 +262,53 @@ def generate_sample_payload(event_name: str) -> Optional[dict]:
         if checkout:
             anonymized_checkout = anonymize_checkout(checkout)
             payload = generate_checkout_payload(anonymized_checkout)
+    elif event_name == WebhookEventType.FULFILLMENT_CREATED:
+        fulfillment = _get_sample_object(
+            Fulfillment.objects.prefetch_related("lines__order_line__variant")
+        )
+        payload = generate_fulfillment_payload(fulfillment)
     else:
         payload = _generate_sample_order_payload(event_name)
     return json.loads(payload) if payload else None
 
 
+def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
+    serializer = PayloadSerializer()
+    line_fields = ("quantity",)
+
+    return serializer.serialize(
+        fulfillment,
+        fields=line_fields,
+        extra_dict_data={
+            "weight": (lambda fl: fl.order_line.variant.get_weight().oz),
+            "product_type": (
+                lambda fl: fl.order_line.variant.product.product_type.name
+            ),
+            "unit_price_gross": lambda fl: fl.order_line.unit_price_gross_amount,
+            "currency": (lambda fl: fl.order_line.currency),
+        },
+    )
+
+
 def generate_fulfillment_payload(fulfillment: Fulfillment):
     serializer = PayloadSerializer()
+
+    # fulfilment fields to serialize
     fulfillment_fields = ("status", "tracking_code", "order__user_email")
     order_fields = ("user_email", "meta", "private_meta")
-
-    lines = serializer.serialize(
-        fulfillment.lines.select_related("order_line__variant").all(),
-        fields=("id", "quantity"),
-        additional_fields={"variants": (lambda i: i.order_line.variant, ("weight"))},
-    )
+    order_country = get_order_country(fulfillment.order)
+    warehouse = Warehouse.objects.for_country(order_country)
 
     fulfillment_data = serializer.serialize(
         [fulfillment],
         fields=fulfillment_fields,
-        additional_fields={"order_data": (lambda f: [f.order], order_fields), },
-        extra_dict_data={"lines": lines},
+        additional_fields={
+            "order_data": (lambda f: [f.order], order_fields),
+            "shipping_address": (lambda f: f.order.shipping_address, ADDRESS_FIELDS),
+            "warehouse_address": (lambda f: warehouse.address, ADDRESS_FIELDS),
+        },
+        extra_dict_data={
+            "lines": json.loads(generate_fulfillment_lines_payload(fulfillment))
+        },
     )
     return fulfillment_data
