@@ -6,7 +6,7 @@ from ...core import models
 from ...core.error_codes import MetaErrorCode
 from ..core.mutations import BaseMutation
 from ..core.types.common import MetaError
-from .permissions import PUBLIC_META_PERMISSION_MAP, PRIVATE_META_PERMISSION_MAP
+from .permissions import PRIVATE_META_PERMISSION_MAP, PUBLIC_META_PERMISSION_MAP
 from .types import ObjectWithMetadata
 
 
@@ -112,7 +112,7 @@ class UpdateMeta(BaseMetadataMutation):
             metadata = data.pop("input")
             item = {metadata.key: metadata.value}
             instance.store_meta(items=item)
-            instance.save()
+            instance.save(update_fields=["meta"])
         return cls.success_response(instance)
 
 
@@ -133,7 +133,7 @@ class DeleteMeta(BaseMetadataMutation):
         if instance:
             metadata_key = data.pop("key")
             instance.delete_meta(metadata_key)
-            instance.save()
+            instance.save(update_fields=["meta"])
         return cls.success_response(instance)
 
 
@@ -160,5 +160,26 @@ class UpdatePrivateMeta(BaseMetadataMutation):
             metadata = data.pop("input")
             item = {metadata.key: metadata.value}
             instance.store_private_meta(items=item)
-            instance.save()
+            instance.save(update_fields=["private_meta"])
+        return cls.success_response(instance)
+
+
+class DeletePrivateMeta(BaseMetadataMutation):
+    class Meta:
+        description = "Delete private metadata for key."
+        permission_map = PRIVATE_META_PERMISSION_MAP
+        error_type_class = MetaError
+        error_type_field = "meta_errors"
+
+    class Arguments:
+        id = graphene.ID(description="ID of an object to update.", required=True)
+        key = graphene.String(description="Key for value to delete.", required=True)
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        instance = cls.get_instance(info, **data)
+        if instance:
+            metadata_key = data.pop("key")
+            instance.delete_private_meta(metadata_key)
+            instance.save(update_fields=["private_meta"])
         return cls.success_response(instance)
