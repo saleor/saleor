@@ -194,6 +194,21 @@ def test_add_public_metadata_for_order(api_client, order):
     )
 
 
+def test_add_public_metadata_for_draft_order(api_client, draft_order):
+    # given
+    draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
+
+    # when
+    response = execute_update_public_metadata_for_item(
+        api_client, None, draft_order_id, "Order"
+    )
+
+    # then
+    assert item_contains_proper_public_metadata(
+        response["data"]["updateMeta"]["item"], draft_order, draft_order_id
+    )
+
+
 def test_add_public_metadata_for_attribute(
     staff_api_client, permission_manage_products, color_attribute
 ):
@@ -604,6 +619,23 @@ def test_delete_public_metadata_for_order(api_client, order):
     # then
     assert item_without_public_metadata(
         response["data"]["deleteMeta"]["item"], order, order_id
+    )
+
+
+def test_delete_public_metadata_for_draft_order(api_client, draft_order):
+    # given
+    draft_order.store_meta({PUBLIC_KEY: PUBLIC_VALUE})
+    draft_order.save(update_fields=["meta"])
+    draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_item(
+        api_client, None, draft_order_id, "Order"
+    )
+
+    # then
+    assert item_without_public_metadata(
+        response["data"]["deleteMeta"]["item"], draft_order, draft_order_id
     )
 
 
@@ -1043,6 +1075,23 @@ def test_add_private_metadata_for_order(
     )
 
 
+def test_add_private_metadata_for_draft_order(
+    staff_api_client, draft_order, permission_manage_orders
+):
+    # given
+    draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
+
+    # when
+    response = execute_update_private_metadata_for_item(
+        staff_api_client, permission_manage_orders, draft_order_id, "Order"
+    )
+
+    # then
+    assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMeta"]["item"], draft_order, draft_order_id
+    )
+
+
 def test_add_private_metadata_for_attribute(
     staff_api_client, permission_manage_products, color_attribute
 ):
@@ -1475,6 +1524,25 @@ def test_delete_private_metadata_for_order(
     # then
     assert item_without_private_metadata(
         response["data"]["deletePrivateMeta"]["item"], order, order_id
+    )
+
+
+def test_delete_private_metadata_for_draft_order(
+    staff_api_client, draft_order, permission_manage_orders
+):
+    # given
+    draft_order.store_private_meta({PRIVATE_KEY: PRIVATE_VALUE})
+    draft_order.save(update_fields=["private_meta"])
+    draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
+
+    # when
+    response = execute_clear_private_metadata_for_item(
+        staff_api_client, permission_manage_orders, draft_order_id, "Order"
+    )
+
+    # then
+    assert item_without_private_metadata(
+        response["data"]["deletePrivateMeta"]["item"], draft_order, draft_order_id
     )
 
 
