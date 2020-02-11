@@ -1,13 +1,13 @@
 from collections import ChainMap
 from datetime import datetime
 from tempfile import NamedTemporaryFile
-from typing import TYPE_CHECKING, Callable, Dict, List, Set, Tuple, Union
+from typing import IO, TYPE_CHECKING, Callable, Dict, List, Set, Tuple, Union
 
 import petl as etl
 from django.db.models import F
+from django.utils import timezone
 
 from ...celeryconf import app
-from ...graphql.product.filters import ProductFilterInput
 from ...product.models import Product
 from .. import JobStatus
 from ..models import Job
@@ -19,7 +19,9 @@ if TYPE_CHECKING:
 
 
 @app.task
-def export_products(scope: Dict[str, str], job_id: int, delimiter: str = ";"):
+def export_products(
+    scope: Dict[str, Union[str, dict]], job_id: int, delimiter: str = ";"
+):
     queryset = get_product_queryset(scope)
     file_name = "product_data_{}.csv".format(datetime.now().strftime("%d_%m_%Y"))
 
@@ -54,36 +56,55 @@ def export_products(scope: Dict[str, str], job_id: int, delimiter: str = ";"):
     )
     headers = list(csv_headers_mapping.keys()) + attributes_and_warehouse_headers
 
+    create_csv_file_and_update_job(
+        export_data, headers, csv_headers_mapping, delimiter, job_id, file_name
+    )
+
+
+def get_product_queryset(scope: Dict[str, Union[str, dict]]) -> "QuerySet":
+    from ...graphql.product.filters import ProductFilter
+
+    queryset = Product.objects.all()
+    if "ids" in scope:
+        queryset = Product.objects.filter(pk__in=scope["ids"])
+    elif "filter" in scope:
+        queryset = ProductFilter(data=scope["filter"], queryset=queryset).qs
+
+    queryset = (
+        queryset.order_by("pk")
+        .select_related("product_type", "category")
+        .prefetch_related("attributes", "variants", "collections", "images")
+    )
+
+    return queryset
+
+
+def create_csv_file_and_update_job(
+    export_data: Dict[str, str],
+    headers: List[str],
+    csv_headers_mapping: Dict[str, str],
+    delimiter: str,
+    job_id: int,
+    file_name: str,
+):
     table = etl.fromdicts(export_data, header=headers, missing=" ")
     table = etl.rename(table, csv_headers_mapping)
 
     temporary_file = NamedTemporaryFile()
     etl.tocsv(table, temporary_file.name, delimiter=delimiter)
 
-    job = Job.objects.get(pk=job_id)
-    job.content_file.save(file_name, temporary_file)
-    job.status = JobStatus.SUCCESS  # type:ignore
-    job.ended_at = datetime.now()
-    job.save()
+    update_job(job_id, temporary_file, file_name)
 
     # remove temporary file
     temporary_file.close()
 
 
-def get_product_queryset(scope: Dict[str, str]) -> "QuerySet":
-    queryset = Product.objects.all()
-    if "ids" in scope:
-        queryset = Product.objects.filter(pk__in=scope["ids"])
-    elif "filter" in scope:
-        queryset = ProductFilterInput.filterset_class(
-            data=scope["filter"], queryset=queryset
-        ).qs
-
-    queryset = queryset.select_related("product_type", "category").prefetch_related(
-        "attributes", "variants", "collections", "images"
-    )
-
-    return queryset
+def update_job(job_id: int, temporary_file: IO[bytes], file_name: str):
+    job = Job.objects.get(pk=job_id)
+    job.content_file.save(file_name, temporary_file)
+    job.status = JobStatus.SUCCESS  # type:ignore
+    job.ended_at = datetime.now(timezone.get_current_timezone())
+    job.save()
 
 
 def prepare_products_data(
@@ -130,7 +151,7 @@ def update_product_data(
     product_data["collections"] = ", ".join(
         product.collections.values_list("slug", flat=True)
     )
-    product_data["images"] = get_images_uris(product)
+    product_data["images"] = get_images_urls(product)
     product_attributes_data = prepare_attributes_data(product)
     product_data.update(product_attributes_data)
 
@@ -140,7 +161,7 @@ def update_product_data(
 def update_variant_data(
     variant: "ProductVariant", variant_data: Dict["str", Union["str", bool]]
 ) -> Tuple[dict, list, list]:
-    variant_data["images"] = get_images_uris(variant)
+    variant_data["images"] = get_images_urls(variant)
     variant_attribute_data = prepare_attributes_data(variant)
     variant_data.update(variant_attribute_data)
 
@@ -150,7 +171,7 @@ def update_variant_data(
     return variant_data, variant_attribute_data.keys(), warehouse_data.keys()
 
 
-def get_images_uris(instance: Union[Product, "ProductVariant"]):
+def get_images_urls(instance: Union[Product, "ProductVariant"]):
     return ", ".join([image.image.url for image in instance.images.all()])
 
 

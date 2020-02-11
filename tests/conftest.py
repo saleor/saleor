@@ -31,6 +31,7 @@ from saleor.checkout import utils
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
 from saleor.core.payments import PaymentInterface
+from saleor.csv.models import Job
 from saleor.discount import DiscountInfo, DiscountValueType, VoucherType
 from saleor.discount.models import (
     Sale,
@@ -1911,3 +1912,9 @@ def stock(variant, warehouse):
         warehouse=warehouse,
         defaults={"quantity": 5, "quantity_allocated": 3},
     )[0]
+
+
+@pytest.fixture
+def job():
+    job = Job.objects.create()
+    return job
