@@ -1,7 +1,9 @@
 import graphene
 from graphene import relay
 from graphene_federation import key
+from graphql_jwt.exceptions import PermissionDenied
 
+from ...core.permissions import AccountPermissions
 from ...csv import models
 from ..core.connection import CountableDjangoObjectType
 
@@ -15,7 +17,7 @@ class Job(CountableDjangoObjectType):
         description = "Represents job data"
         interfaces = [relay.Node]
         model = models.Job
-        only_fields = ["id", "created_at", "ended_at", "status", "url"]
+        only_fields = ["id", "created_at", "ended_at", "status", "url", "user"]
 
     @staticmethod
     def resolve_url(root: models.Job, _info):
@@ -27,3 +29,10 @@ class Job(CountableDjangoObjectType):
     @staticmethod
     def resolve_status(root: models.Job, _info):
         return root.status.split(".")[1]
+
+    @staticmethod
+    def resolve_user(root: models.Job, info):
+        user = info.context.user
+        if user == root.user or user.has_perm(AccountPermissions.MANAGE_USERS):
+            return root.user
+        raise PermissionDenied()
