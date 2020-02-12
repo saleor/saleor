@@ -46,8 +46,9 @@ class ExportProducts(BaseMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
+        user = info.context.user
         scope = cls.get_products_scope(info, data["input"])
-        job = csv_models.Job.objects.create()
+        job = csv_models.Job.objects.create(user=user)
         export_products.delay(scope, job.pk)
         job.refresh_from_db()
         return cls(job=job)

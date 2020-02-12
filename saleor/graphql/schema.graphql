@@ -1840,6 +1840,7 @@ scalar JSONString
 type Job implements Node {
   id: ID!
   status: String
+  user: User!
   createdAt: DateTime!
   endedAt: DateTime
   url: String

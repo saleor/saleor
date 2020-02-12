@@ -15,6 +15,9 @@ EXPORT_PRODUCTS_MUTATION = """
                 createdAt
                 endedAt
                 url
+                user {
+                    email
+                }
             }
             csvErrors {
                 field

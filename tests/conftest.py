@@ -1915,6 +1915,6 @@ def stock(variant, warehouse):
 
 
 @pytest.fixture
-def job():
-    job = Job.objects.create()
+def job(staff_user):
+    job = Job.objects.create(user=staff_user)
     return job
