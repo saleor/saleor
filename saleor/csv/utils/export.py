@@ -8,8 +8,10 @@ from django.db.models import F
 from django.utils import timezone
 
 from ...celeryconf import app
+from ...core.utils import build_absolute_uri
 from ...product.models import Product
 from .. import JobStatus
+from ..emails import send_link_to_download_csv_for_products
 from ..models import Job
 
 if TYPE_CHECKING:
@@ -22,6 +24,7 @@ if TYPE_CHECKING:
 def export_products(
     scope: Dict[str, Union[str, dict]], job_id: int, delimiter: str = ";"
 ):
+    job = Job.objects.get(pk=job_id)
     queryset = get_product_queryset(scope)
     file_name = "product_data_{}.csv".format(datetime.now().strftime("%d_%m_%Y"))
 
@@ -57,8 +60,10 @@ def export_products(
     headers = list(csv_headers_mapping.keys()) + attributes_and_warehouse_headers
 
     create_csv_file_and_update_job(
-        export_data, headers, csv_headers_mapping, delimiter, job_id, file_name
+        export_data, headers, csv_headers_mapping, delimiter, job, file_name
     )
+
+    send_link_to_download_csv_for_products(job)
 
 
 def get_product_queryset(scope: Dict[str, Union[str, dict]]) -> "QuerySet":
@@ -84,7 +89,7 @@ def create_csv_file_and_update_job(
     headers: List[str],
     csv_headers_mapping: Dict[str, str],
     delimiter: str,
-    job_id: int,
+    job: Job,
     file_name: str,
 ):
     table = etl.fromdicts(export_data, header=headers, missing=" ")
@@ -93,14 +98,13 @@ def create_csv_file_and_update_job(
     temporary_file = NamedTemporaryFile()
     etl.tocsv(table, temporary_file.name, delimiter=delimiter)
 
-    update_job(job_id, temporary_file, file_name)
+    update_job(job, temporary_file, file_name)
 
     # remove temporary file
     temporary_file.close()
 
 
-def update_job(job_id: int, temporary_file: IO[bytes], file_name: str):
-    job = Job.objects.get(pk=job_id)
+def update_job(job: Job, temporary_file: IO[bytes], file_name: str):
     job.content_file.save(file_name, temporary_file)
     job.status = JobStatus.SUCCESS  # type:ignore
     job.ended_at = datetime.now(timezone.get_current_timezone())
@@ -151,7 +155,7 @@ def update_product_data(
     product_data["collections"] = ", ".join(
         product.collections.values_list("slug", flat=True)
     )
-    product_data["images"] = get_images_urls(product)
+    product_data["images"] = get_images_uris(product)
     product_attributes_data = prepare_attributes_data(product)
     product_data.update(product_attributes_data)
 
@@ -161,7 +165,7 @@ def update_product_data(
 def update_variant_data(
     variant: "ProductVariant", variant_data: Dict["str", Union["str", bool]]
 ) -> Tuple[dict, list, list]:
-    variant_data["images"] = get_images_urls(variant)
+    variant_data["images"] = get_images_uris(variant)
     variant_attribute_data = prepare_attributes_data(variant)
     variant_data.update(variant_attribute_data)
 
@@ -171,8 +175,11 @@ def update_variant_data(
     return variant_data, variant_attribute_data.keys(), warehouse_data.keys()
 
 
-def get_images_urls(instance: Union[Product, "ProductVariant"]):
-    return ", ".join([image.image.url for image in instance.images.all()])
+def get_images_uris(instance: Union[Product, "ProductVariant"]):
+    image_uris = filter(
+        None, [build_absolute_uri(image.image.url) for image in instance.images.all()]
+    )
+    return ", ".join(image_uris)
 
 
 def prepare_attributes_data(instance: Union[Product, "ProductVariant"]):

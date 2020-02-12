@@ -56,11 +56,14 @@ def test_export_products_mutation(
     )
     content = get_graphql_content(response)
     data = content["data"]["exportProducts"]
+    job_data = data["job"]
 
     export_products_mock.assert_called_once_with(called_data, ANY)
 
     assert not data["csvErrors"]
     assert data["job"]["id"]
+    assert job_data["createdAt"]
+    assert job_data["user"]["email"] == staff_api_client.user.email
 
 
 @patch("saleor.graphql.csv.mutations.export_products.delay")
@@ -84,6 +87,7 @@ def test_export_products_mutation_ids_scope(
     )
     content = get_graphql_content(response)
     data = content["data"]["exportProducts"]
+    job_data = data["job"]
 
     export_products_mock.assert_called_once()
     (call_args, call_kwargs,) = export_products_mock.call_args
@@ -92,6 +96,8 @@ def test_export_products_mutation_ids_scope(
 
     assert not data["csvErrors"]
     assert data["job"]["id"]
+    assert job_data["createdAt"]
+    assert job_data["user"]["email"] == staff_api_client.user.email
 
 
 @pytest.mark.parametrize(
