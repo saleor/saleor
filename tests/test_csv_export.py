@@ -19,17 +19,19 @@ from saleor.product.models import Product
 
 
 @pytest.mark.parametrize("scope", [{"filter": {"is_published": True}}, {"all": ""}])
+@patch("saleor.csv.utils.export.send_link_to_download_csv_for_products")
 @patch("saleor.csv.utils.export.update_job")
-def test_export_products(update_job_mock, product_list, job, scope):
+def test_export_products(update_job_mock, send_email_mock, product_list, job, scope):
     export_products(scope, job.id)
 
     job.refresh_from_db()
-    update_job_mock.called_once_with(job.id, ANY)
+    update_job_mock.called_once_with(job, ANY)
+    send_email_mock.called_once_with(job)
 
 
-@override_settings(MEDIA_ROOT=tempfile.gettempdir())
+@patch("saleor.csv.utils.export.send_link_to_download_csv_for_products")
 @patch("saleor.csv.utils.export.update_job")
-def test_export_products_ids(update_job_mock, product_list, job):
+def test_export_products_ids(update_job_mock, send_email_mock, product_list, job):
     pks = [product.pk for product in product_list[:2]]
 
     assert job.status == JobStatus.PENDING
@@ -39,7 +41,8 @@ def test_export_products_ids(update_job_mock, product_list, job):
     export_products({"ids": pks}, job.id)
 
     job.refresh_from_db()
-    update_job_mock.called_once_with(job.id, ANY)
+    update_job_mock.called_once_with(job, ANY)
+    send_email_mock.called_once_with(job)
 
 
 @override_settings(MEDIA_ROOT=tempfile.gettempdir())
@@ -52,7 +55,7 @@ def test_update_job(job):
     assert not job.ended_at
     assert not job.content_file
 
-    update_job(job.pk, file_mock, file_name)
+    update_job(job, file_mock, file_name)
 
     job.refresh_from_db()
     assert job.status.split(".")[1] == JobStatus.SUCCESS.name
@@ -107,7 +110,9 @@ def test_prepare_products_data(product, product_with_image, collection):
         product_data["name"] = product.name
         product_data["id"] = product.pk
         product_data["images"] = (
-            "" if not product.images.all() else product.images.first().image.url
+            ""
+            if not product.images.all()
+            else "http://mirumee.com{}".format(product.images.first().image.url)
         )
 
         assigned_attribute = product.attributes.first()
@@ -121,7 +126,9 @@ def test_prepare_products_data(product, product_with_image, collection):
         for variant in product.variants.all():
             variant_data = {}
             variant_data["images"] = (
-                "" if not variant.images.all() else variant.images.first().image.url
+                ""
+                if not variant.images.all()
+                else "http://mirumee.com{}".format(variant.images.first().image.url)
             )
             variant_data["sku"] = variant.sku
 
