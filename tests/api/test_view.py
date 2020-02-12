@@ -52,9 +52,11 @@ def test_batch_queries(category, product, api_client):
     assert data["category"]["name"] == category.name
 
 
+@override_settings(DEBUG=False)
 def test_graphql_view_get_in_non_debug_mode(client):
     response = client.get(API_PATH)
-    assert response.status_code == 405
+    # DEMO: On demo playground is rendered.
+    assert response.status_code == 200
 
 
 @override_settings(DEBUG=True)
