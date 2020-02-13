@@ -17,7 +17,7 @@ class MenuSortField(graphene.Enum):
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod
-    def prepare_qs_for_sort_items_count(queryset: QuerySet) -> QuerySet:
+    def qs_with_items_count(queryset: QuerySet) -> QuerySet:
         return queryset.annotate(items_count=Count("items__id"))
 
 

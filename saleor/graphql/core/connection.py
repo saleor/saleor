@@ -48,7 +48,8 @@ def get_field(instance, field):
 
 
 def prepare_filter(cursor, sorting_fields, sorting_direction):
-    """
+    """Create filter arguments based on sorting fields.
+
     :param cursor: list of values that are passed from page_info, used for filtering.
     :param sorting_fields: list of fields that were used for sorting.
     :param sorting_direction: keyword direction ('lt', gt').
@@ -56,19 +57,17 @@ def prepare_filter(cursor, sorting_fields, sorting_direction):
         (OR: ('first_field__gt', 'first_value_form_cursor'),
             (AND: ('second_field__gt', 'second_value_form_cursor'),
                 ('first_field', 'first_value_form_cursor')),
-            (AND: ('thrid_field__gt', 'third_value_form_cursor'),
-                ('second_field__gt', 'second_value_form_cursor'),
+            (AND: ('third_field__gt', 'third_value_form_cursor'),
+                ('second_field', 'second_value_form_cursor'),
                 ('first_field', 'first_value_form_cursor'))
         )
     """
     filter_kwargs = Q()
-    for field_id in range(len(sorting_fields)):
+    for index, field_name in enumerate(sorting_fields):
         field_expression = {}
-        for val_id in range(len(cursor[:field_id])):
-            field_expression[sorting_fields[val_id]] = cursor[val_id]
-        field_expression[f"{sorting_fields[field_id]}__{sorting_direction}"] = cursor[
-            field_id
-        ]
+        for cursor_id, cursor_value in enumerate(cursor[:index]):
+            field_expression[sorting_fields[cursor_id]] = cursor_value
+        field_expression[f"{field_name}__{sorting_direction}"] = cursor[index]
         filter_kwargs |= Q(**field_expression)
     return filter_kwargs
 
@@ -77,20 +76,20 @@ def get_field_value(instance, field_name):
     return get_repr(get_field(instance, field_name))
 
 
-def connection_args_validation(args):
+def validate_connection_args(args):
     first = args.get("first")
     last = args.get("last")
 
-    if isinstance(first, int) and first < 0 or first and not isinstance(first, int):
-        raise ValueError("Argument 'first' must be a non-negative integer.")
-    if isinstance(last, int) and last < 0 or last and not isinstance(last, int):
-        raise ValueError("Argument 'last' must be a non-negative integer.")
+    if first and not (isinstance(first, int) and first > 0):
+        raise ValueError('Argument "first" must be a non-negative integer.')
+    if last and not (isinstance(last, int) and last > 0):
+        raise ValueError('Argument "last" must be a non-negative integer.')
     if first and last:
-        raise ValueError("Argument 'last' cannot be combined with 'first'.")
+        raise ValueError('Argument "last" cannot be combined with "first".')
     if first and args.get("before"):
-        raise ValueError("Argument 'first' cannot be combined with 'before'.")
+        raise ValueError('Argument "first" cannot be combined with "before".')
     if last and args.get("after"):
-        raise ValueError("Argument 'last' cannot be combined with 'after'.")
+        raise ValueError('Argument "last" cannot be combined with "after".')
 
 
 def connection_from_queryset_slice(
@@ -106,7 +105,7 @@ def connection_from_queryset_slice(
     after = args.get("after")
     first = args.get("first")
     last = args.get("last")
-    connection_args_validation(args)
+    validate_connection_args(args)
 
     cursor_after = from_global_cursor(after) if after else None
     cursor_before = from_global_cursor(before) if before else None
@@ -160,7 +159,7 @@ def connection_from_queryset_slice(
                 [get_field_value(record, field) for field in sorting_fields]
             ),
         )
-        for index, record in enumerate(matching_records)
+        for record in matching_records
     ]
 
     first_edge_cursor = edges[0].cursor if edges else None
@@ -215,6 +214,8 @@ class CountableConnection(NonNullConnection):
 
     @staticmethod
     def resolve_total_count(root, *_args, **_kwargs):
+        if isinstance(root.iterable, list):
+            return len(root.iterable)
         return root.iterable.count()
 
 

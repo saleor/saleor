@@ -124,8 +124,8 @@ def filter_by_query_param(queryset, query, search_fields):
 
 
 def sort_queryset(queryset: QuerySet, sort_by: SortInputObjectType) -> QuerySet:
-    """
-    Sort queryset according to given parameters.
+    """Sort queryset according to given parameters.
+
     rules:
         - sorting_field and sorting_attribute cannot be together)
         - when sorting_attribute is passed, it is expected that
@@ -169,14 +169,22 @@ def sort_queryset(queryset: QuerySet, sort_by: SortInputObjectType) -> QuerySet:
         else [sorting_field_value]
     )
 
-    custom_sort_by = getattr(
-        sort_enum, f"prepare_qs_for_sort_{sorting_field_name}", None
-    )
+    custom_sort_by = getattr(sort_enum, f"qs_with_{sorting_field_name}", None)
     if custom_sort_by:
         queryset = custom_sort_by(queryset)
     sorting_list = [f"{sorting_direction}{field}" for field in sorting_field_value]
 
     return queryset.order_by(*sorting_list)
+
+
+def sort_queryset_by_default(queryset: QuerySet) -> QuerySet:
+    """Sort queryset by it's default ordering."""
+    queryset_model = queryset.model
+    deafault_ordering = queryset_model._meta.ordering if queryset_model else []
+    if deafault_ordering:
+        return queryset.order_by(*deafault_ordering)
+    else:
+        return queryset
 
 
 def reporting_period_to_date(period):

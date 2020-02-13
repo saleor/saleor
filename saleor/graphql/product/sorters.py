@@ -90,7 +90,7 @@ class CategorySortField(graphene.Enum):
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod
-    def prepare_qs_for_sort_product_count(queryset: QuerySet) -> QuerySet:
+    def qs_with_product_count(queryset: QuerySet) -> QuerySet:
         return queryset.annotate(
             product_count=Coalesce(
                 Subquery(
@@ -106,7 +106,7 @@ class CategorySortField(graphene.Enum):
         )
 
     @staticmethod
-    def prepare_qs_for_sort_subcategory_count(queryset: QuerySet) -> QuerySet:
+    def qs_with_subcategory_count(queryset: QuerySet) -> QuerySet:
         return queryset.annotate(subcategory_count=Count("children__id"))
 
 
@@ -134,7 +134,7 @@ class CollectionSortField(graphene.Enum):
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod
-    def prepare_qs_for_sort_product_count(queryset: QuerySet) -> QuerySet:
+    def qs_with_product_count(queryset: QuerySet) -> QuerySet:
         return queryset.annotate(product_count=Count("collectionproduct__id"))
 
 
