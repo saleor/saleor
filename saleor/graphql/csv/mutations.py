@@ -49,7 +49,7 @@ class ExportProducts(BaseMutation):
         user = info.context.user
         scope = cls.get_products_scope(info, data["input"])
         job = csv_models.Job.objects.create(user=user)
-        export_products.delay(scope, job.pk)
+        export_products.delay(job.pk, scope)
         job.refresh_from_db()
         return cls(job=job)
 

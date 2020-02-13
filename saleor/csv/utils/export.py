@@ -1,5 +1,4 @@
 from collections import ChainMap
-from datetime import datetime
 from tempfile import NamedTemporaryFile
 from typing import IO, TYPE_CHECKING, Callable, Dict, List, Set, Tuple, Union
 
@@ -11,7 +10,7 @@ from ...celeryconf import app
 from ...core.utils import build_absolute_uri
 from ...product.models import Product
 from .. import JobStatus
-from ..emails import send_link_to_download_csv_for_products
+from ..emails import send_email_with_link_to_download_csv
 from ..models import Job
 
 if TYPE_CHECKING:
@@ -20,50 +19,69 @@ if TYPE_CHECKING:
     from django.db.models import QuerySet
 
 
-@app.task
-def export_products(
-    scope: Dict[str, Union[str, dict]], job_id: int, delimiter: str = ";"
-):
-    job = Job.objects.get(pk=job_id)
-    queryset = get_product_queryset(scope)
-    file_name = "product_data_{}.csv".format(datetime.now().strftime("%d_%m_%Y"))
+PRODUCT_HEADERS_MAPPING = {
+    "product": {
+        "id": "id",
+        "name": "name",
+        "description": "description",
+        "product_type__name": "product type",
+        "category__slug": "category",
+        "is_published": "visible",
+        "price_amount": "price",
+        "product_currency": "product currency",
+    },
+    "product_many_to_many": {"collections": "collections"},
+    "variant": {
+        "sku": "sku",
+        "price_override_amount": "price override",
+        "cost_price_amount": "cost price",
+        "variant_currency": "variant_currency",
+    },
+    "common": {"images": "images"},
+}
 
-    headers_mapping = {
-        "product": {
-            "id": "id",
-            "name": "name",
-            "description": "description",
-            "product_type__name": "product type",
-            "category__slug": "category",
-            "is_published": "visible",
-            "price_amount": "price",
-            "product_currency": "product currency",
-        },
-        "variant": {
-            "sku": "sku",
-            "price_override_amount": "price override",
-            "cost_price_amount": "cost price",
-            "variant_currency": "variant_currency",
-        },
-        "common": {"images": "images"},
-    }
+
+def on_task_failure(self, exc, task_id, args, kwargs, einfo):
+    job_id = args[0]
+    update_job_when_task_finished(job_id, JobStatus.FAILED)
+
+
+def on_task_success(self, retval, task_id, args, kwargs):
+    job_id = args[0]
+    update_job_when_task_finished(job_id, JobStatus.SUCCESS)
+
+
+def update_job_when_task_finished(job_id: int, status: JobStatus):
+    job = Job.objects.get(pk=job_id)
+    job.status = status  # type: ignore
+    job.ended_at = timezone.now()
+    job.save(update_fields=["status", "ended_at"])
+
+
+@app.task(on_success=on_task_success, on_failure=on_task_failure)
+def export_products(
+    job_id: int, scope: Dict[str, Union[str, dict]], delimiter: str = ";"
+):
+    file_name = get_filename("product")
+    queryset = get_product_queryset(scope)
 
     export_data, attributes_and_warehouse_headers = prepare_products_data(
-        queryset, headers_mapping
+        queryset, PRODUCT_HEADERS_MAPPING
     )
-
-    headers_mapping["product"]["collections"] = "collections"
-
     csv_headers_mapping = dict(
-        ChainMap(*reversed(headers_mapping.values()))  # type: ignore
+        ChainMap(*reversed(PRODUCT_HEADERS_MAPPING.values()))  # type: ignore
     )
     headers = list(csv_headers_mapping.keys()) + attributes_and_warehouse_headers
 
-    create_csv_file_and_update_job(
+    job = Job.objects.get(pk=job_id)
+    create_csv_file_and_save_to_job(
         export_data, headers, csv_headers_mapping, delimiter, job, file_name
     )
+    send_email_with_link_to_download_csv(job, "export_products")
 
-    send_link_to_download_csv_for_products(job)
+
+def get_filename(model_name: str):
+    return "{}_data_{}.csv".format(model_name, timezone.now().strftime("%d_%m_%Y"))
 
 
 def get_product_queryset(scope: Dict[str, Union[str, dict]]) -> "QuerySet":
@@ -84,36 +102,9 @@ def get_product_queryset(scope: Dict[str, Union[str, dict]]) -> "QuerySet":
     return queryset
 
 
-def create_csv_file_and_update_job(
-    export_data: Dict[str, str],
-    headers: List[str],
-    csv_headers_mapping: Dict[str, str],
-    delimiter: str,
-    job: Job,
-    file_name: str,
-):
-    table = etl.fromdicts(export_data, header=headers, missing=" ")
-    table = etl.rename(table, csv_headers_mapping)
-
-    temporary_file = NamedTemporaryFile()
-    etl.tocsv(table, temporary_file.name, delimiter=delimiter)
-
-    update_job(job, temporary_file, file_name)
-
-    # remove temporary file
-    temporary_file.close()
-
-
-def update_job(job: Job, temporary_file: IO[bytes], file_name: str):
-    job.content_file.save(file_name, temporary_file)
-    job.status = JobStatus.SUCCESS  # type:ignore
-    job.ended_at = datetime.now(timezone.get_current_timezone())
-    job.save()
-
-
 def prepare_products_data(
     queryset: "QuerySet", headers_mapping: Dict[str, Dict[str, str]]
-):
+) -> Tuple[List[Dict[str, Union[str, bool]]], List[str]]:
     products_attributes_fields = set()
     variants_attributes_fields = set()
     warehouse_fields = set()
@@ -205,3 +196,27 @@ def prepare_warehouse_data(variant: "ProductVariant"):
             "quantity_allocated"
         ]
     return warehouse_data
+
+
+def create_csv_file_and_save_to_job(
+    export_data: List[Dict[str, Union[str, bool]]],
+    headers: List[str],
+    csv_headers_mapping: Dict[str, str],
+    delimiter: str,
+    job: Job,
+    file_name: str,
+):
+    table = etl.fromdicts(export_data, header=headers, missing=" ")
+    table = etl.rename(table, csv_headers_mapping)
+
+    temporary_file = NamedTemporaryFile()
+    etl.tocsv(table, temporary_file.name, delimiter=delimiter)
+
+    save_csv_file_in_job(job, temporary_file, file_name)
+
+    # remove temporary file
+    temporary_file.close()
+
+
+def save_csv_file_in_job(job: Job, temporary_file: IO[bytes], file_name: str):
+    job.content_file.save(file_name, temporary_file)
