@@ -9,15 +9,15 @@ if TYPE_CHECKING:
     from .models import Job
 
 
-EXPORT_PRODUCTS_CSV_TEMPLATE = "csv/export_products_csv"
+EXPORT_TEMPLATES = {"export_products": "csv/export_products_csv"}
 
 
-def send_link_to_download_csv_for_products(job: "Job"):
+def send_email_with_link_to_download_csv(job: "Job", template_name: str):
     recipient_email = job.user.email
     send_kwargs, ctx = get_email_context()
     ctx["csv_link"] = build_absolute_uri(job.content_file.url)
     send_templated_mail(
-        template_name=EXPORT_PRODUCTS_CSV_TEMPLATE,
+        template_name=EXPORT_TEMPLATES[template_name],
         recipient_list=[recipient_email],
         context=ctx,
         **send_kwargs,

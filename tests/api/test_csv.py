@@ -58,7 +58,7 @@ def test_export_products_mutation(
     data = content["data"]["exportProducts"]
     job_data = data["job"]
 
-    export_products_mock.assert_called_once_with(called_data, ANY)
+    export_products_mock.assert_called_once_with(ANY, called_data)
 
     assert not data["csvErrors"]
     assert data["job"]["id"]
@@ -92,7 +92,7 @@ def test_export_products_mutation_ids_scope(
     export_products_mock.assert_called_once()
     (call_args, call_kwargs,) = export_products_mock.call_args
 
-    assert set(call_args[0]["ids"]) == pks
+    assert set(call_args[1]["ids"]) == pks
 
     assert not data["csvErrors"]
     assert data["job"]["id"]
