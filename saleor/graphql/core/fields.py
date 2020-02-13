@@ -9,7 +9,7 @@ from graphene_django.fields import DjangoConnectionField
 from graphql_relay.connection.arrayconnection import connection_from_list_slice
 from promise import Promise
 
-from ..utils import sort_queryset
+from ..utils import sort_queryset, sort_queryset_by_default
 from .connection import connection_from_queryset_slice
 from .types.common import Weight
 from .types.money import Money, TaxedMoney
@@ -191,6 +191,8 @@ class FilterInputConnectionField(PrefetchingConnectionField):
         sort_by = args.get("sort_by")
         if sort_by:
             iterable = sort_queryset(queryset=iterable, sort_by=sort_by)
+        else:
+            iterable = sort_queryset_by_default(queryset=iterable)
 
         filter_input = args.get(filters_name)
 

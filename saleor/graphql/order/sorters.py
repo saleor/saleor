@@ -28,9 +28,7 @@ class OrderSortField(graphene.Enum):
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod
-    def prepare_qs_for_sort_payment(
-        queryset: QuerySet, sort_by: SortInputObjectType
-    ) -> QuerySet:
+    def qs_with_payment(queryset: QuerySet, sort_by: SortInputObjectType) -> QuerySet:
         last_payments = (
             queryset.exclude(payments__isnull=True)
             .annotate(payment_id=Max("payments__pk"))
