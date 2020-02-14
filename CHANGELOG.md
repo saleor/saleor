@@ -64,7 +64,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add slug to Warehouse, Product, ProductType and update slug in models which already using it - #5196 by @IKarbowiak
 - Add mutation for assigning, unassigning shipping zones to warehouse - #5217 by @kswiatek92
 - Fix passing addresses to `PaymentData` objects - #5223 by @maarcingebala
-- Return `null` when querying `me` as an anonymous user - #5231 as @maarcingebala
+- Return `null` when querying `me` as an anonymous user - #5231 by @maarcingebala
+- Added `PLAYGROUND_ENABLED` environment variable/setting to allow to enable the GraphQL playground when `DEBUG` is disabled - #5254 by @NyanKiyoshi
 
 ## 2.9.0
 
