@@ -1,6 +1,6 @@
-from collections import ChainMap
+from collections import ChainMap, defaultdict
 from tempfile import NamedTemporaryFile
-from typing import IO, TYPE_CHECKING, Dict, List, Set, Tuple, Union
+from typing import IO, TYPE_CHECKING, Dict, List, Tuple, Union
 
 import petl as etl
 from django.db.models import F
@@ -93,10 +93,8 @@ def get_product_queryset(scope: Dict[str, Union[str, dict]]) -> "QuerySet":
     elif "filter" in scope:
         queryset = ProductFilter(data=scope["filter"], queryset=queryset).qs
 
-    queryset = (
-        queryset.order_by("pk")
-        .select_related("product_type", "category")
-        .prefetch_related("attributes", "variants", "collections", "images")
+    queryset = queryset.order_by("pk").prefetch_related(
+        "attributes", "variants", "collections", "images", "product_type", "category"
     )
 
     return queryset
@@ -119,7 +117,7 @@ def prepare_products_data(
         products_attributes_fields.update(attributes_fields)
         products_with_variants_data.append(product_data)
 
-        variants = product.variants.all().prefetch_related("images")
+        variants = product.variants.all().prefetch_related("images", "attributes")
         variants_data = variants.annotate(variant_currency=F("currency")).values(
             *headers_mapping["variant"].keys()
         )
@@ -174,14 +172,21 @@ def get_images_uris(instance: Union[Product, "ProductVariant"]):
 
 
 def prepare_attributes_data(instance: Union[Product, "ProductVariant"]):
-    attribute_values = {}
-    for assigned_attribute in instance.attributes.all():
-        attribute_slug = assigned_attribute.attribute.slug
-        attribute_header = f"{attribute_slug} (attribute)"
-        attribute_values[attribute_header] = ", ".join(
-            assigned_attribute.values.values_list("slug", flat=True)
+    attribute_data = (
+        instance.attributes.all()
+        .annotate(
+            slugs_of_values=F("values__slug"),
+            attribute_slug=F("assignment__attribute__slug"),
         )
-    return attribute_values
+        .values("slugs_of_values", "attribute_slug")
+    )
+
+    attribute_values: Dict[str, List[str]] = defaultdict(list)
+    for data in attribute_data:
+        header = f"{data['attribute_slug']} (attribute)"
+        attribute_values[header].append(data["slugs_of_values"])
+
+    return {header: ", ".join(slugs) for header, slugs in attribute_values.items()}
 
 
 def prepare_warehouse_data(variant: "ProductVariant"):
