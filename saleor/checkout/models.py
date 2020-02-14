@@ -110,9 +110,6 @@ class Checkout(ModelWithMetadata):
     def __iter__(self):
         return iter(self.lines.all())
 
-    # def __len__(self):
-    #     return self.lines.count()
-
     def get_customer_email(self) -> str:
         return self.user.email if self.user else self.email
 

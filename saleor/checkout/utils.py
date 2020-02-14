@@ -628,7 +628,7 @@ def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine
         if not isinstance(unit_price, Decimal)
         else Decimal("0.0")
     )
-    line = OrderLine(  # type: ignore
+    line = OrderLine(
         product_name=product_name,
         variant_name=variant_name,
         translated_product_name=translated_product_name,
