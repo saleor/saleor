@@ -508,14 +508,14 @@ def create_fulfillments(order):
 
 
 def create_fake_order(discounts, max_order_lines=5):
-    user = random.choice(
-        [None, User.objects.filter(is_superuser=False).order_by("?").first()]
-    )
-    if user:
-        address = user.default_shipping_address
+    customers = User.objects.filter(is_superuser=False, is_staff=False).order_by("?")
+    customer = random.choice([None, customers.first()])
+
+    if customer:
+        address = customer.default_shipping_address
         order_data = {
-            "user": user,
-            "billing_address": user.default_billing_address,
+            "user": customer,
+            "billing_address": customer.default_billing_address,
             "shipping_address": address,
         }
     else:
