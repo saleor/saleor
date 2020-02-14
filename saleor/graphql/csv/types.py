@@ -6,12 +6,13 @@ from graphql_jwt.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
 from ...csv import models
 from ..core.connection import CountableDjangoObjectType
+from .enums import JobStatusEnum
 
 
 @key(fields="id")
 class Job(CountableDjangoObjectType):
     url = graphene.String(description="The URL of field to download.")
-    status = graphene.String(description="Job status.")
+    status = JobStatusEnum(description="Job status.")
 
     class Meta:
         description = "Represents job data"
@@ -28,7 +29,7 @@ class Job(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_status(root: models.Job, _info):
-        return root.status.split(".")[1]
+        return root.status
 
     @staticmethod
     def resolve_user(root: models.Job, info):

@@ -1839,11 +1839,47 @@ scalar JSONString
 
 type Job implements Node {
   id: ID!
-  status: String
+  status: JobStatusEnum
   user: User!
   createdAt: DateTime!
   endedAt: DateTime
   url: String
+}
+
+type JobCountableConnection {
+  pageInfo: PageInfo!
+  edges: [JobCountableEdge!]!
+  totalCount: Int
+}
+
+type JobCountableEdge {
+  node: Job!
+  cursor: String!
+}
+
+input JobFilterInput {
+  createdAt: DateRangeInput
+  endedAt: DateRangeInput
+  status: JobStatusEnum
+  user: String
+}
+
+enum JobSortField {
+  STATUS
+  USER
+  CREATED_AT
+  ENDED_AT
+}
+
+input JobSortingInput {
+  direction: OrderDirection!
+  field: JobSortField!
+}
+
+enum JobStatusEnum {
+  PENDING
+  SUCCESS
+  FAILED
 }
 
 enum LanguageCodeEnum {
@@ -3692,6 +3728,8 @@ type Query {
   sales(filter: SaleFilterInput, sortBy: SaleSortingInput, query: String, before: String, after: String, first: Int, last: Int): SaleCountableConnection
   voucher(id: ID!): Voucher
   vouchers(filter: VoucherFilterInput, sortBy: VoucherSortingInput, query: String, before: String, after: String, first: Int, last: Int): VoucherCountableConnection
+  job(id: ID!): Job
+  jobs(filter: JobFilterInput, sortBy: JobSortingInput, before: String, after: String, first: Int, last: Int): JobCountableConnection
   taxTypes: [TaxType]
   checkout(token: UUID): Checkout
   checkouts(before: String, after: String, first: Int, last: Int): CheckoutCountableConnection

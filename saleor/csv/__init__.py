@@ -1,11 +1,10 @@
-from enum import Enum
-
-
-class JobStatus(Enum):
+class JobStatus:
     PENDING = "pending"
     SUCCESS = "success"
     FAILED = "failed"
 
-    @classmethod
-    def choices(cls):
-        return [(enum.name, enum.value) for enum in cls]
+    CHOICES = [
+        (PENDING, "Pending"),
+        (SUCCESS, "Success"),
+        (FAILED, "Failed"),
+    ]
