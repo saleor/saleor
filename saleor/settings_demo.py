@@ -1,0 +1,76 @@
+"""Settings file to run Saleor in "demo" mode.
+
+Behavior specific to the demo mode:
+- block API mutations that require admin permission (read-only mode for the dashboard
+app)
+- turn on anonymization plugin to anonymize data provided by customers in the public
+checkout mutations
+- configure Braintree payment gateway in sandbox mode if necessary environment
+variables are set (see the `saleor.core.utils.random_data.configure_braintree` function
+for more details)
+"""
+
+# flake8: noqa: F405
+import logging
+import re
+
+from .settings import *  # noqa: F403
+
+logger = logging.getLogger(__name__)
+
+# DEMO-specific settings
+
+DEMO = True
+
+PLUGINS += ["saleor.extensions.plugins.anonymize.plugin.AnonymizePlugin"]
+
+BRAINTREE_API_KEY = os.environ.get("BRAINTREE_API_KEY")
+BRAINTREE_MERCHANT_ID = os.environ.get("BRAINTREE_MERCHANT_ID")
+BRAINTREE_SECRET_API_KEY = os.environ.get("BRAINTREE_SECRET_API_KEY")
+
+if not (BRAINTREE_API_KEY and BRAINTREE_MERCHANT_ID and BRAINTREE_SECRET_API_KEY):
+    logger.warning(
+        "Some Braintree environment variables are missing. Set them to create the "
+        "sandbox configuration in the demo mode with `populatedb` command."
+    )
+
+USE_JSON_CONTENT = True
+
+PWA_ORIGINS = get_list(os.environ.get("PWA_ORIGINS", "pwa.saleor.io"))
+PWA_DASHBOARD_URL_RE = re.compile("^https?://[^/]+/dashboard/.*")
+
+ROOT_EMAIL = os.environ.get("ROOT_EMAIL")
+
+
+def _get_project_name_from_url(url: str) -> str:
+    if PWA_DASHBOARD_URL_RE.match(url):
+        return "dashboard"
+    return "storefront"
+
+
+def before_send(event: dict, _hint: dict):
+    request: dict = event["request"]
+    request_headers: dict = request["headers"]
+
+    origin_url: str = request_headers.get("Origin", "")
+    referer_url: str = request_headers.get("Referer", "")
+
+    event["tags"] = {"project": _get_project_name_from_url(referer_url)}
+    ev_logger_name: str = event.get("logger", "")
+
+    if ev_logger_name != "saleor.graphql.errors.handled":
+        return event
+
+    # RFC6454, origin is the triple: uri-scheme, uri-host[, uri-port]
+    if any(origin_url.endswith(pwa_origin) for pwa_origin in PWA_ORIGINS):
+        return event
+
+    logger.info(f"Skipped error from ignored origin: {origin_url!r}")
+    return None
+
+
+DEMO_SENTRY_DSN = os.environ.get("DEMO_SENTRY_DSN")
+if DEMO_SENTRY_DSN:
+    sentry_sdk.init(
+        DEMO_SENTRY_DSN, integrations=[DjangoIntegration()], before_send=before_send,
+    )
