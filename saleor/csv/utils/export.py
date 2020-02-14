@@ -1,6 +1,6 @@
 from collections import ChainMap
 from tempfile import NamedTemporaryFile
-from typing import IO, TYPE_CHECKING, Callable, Dict, List, Set, Tuple, Union
+from typing import IO, TYPE_CHECKING, Dict, List, Set, Tuple, Union
 
 import petl as etl
 from django.db.models import F
