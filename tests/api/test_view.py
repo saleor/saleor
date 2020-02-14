@@ -52,16 +52,14 @@ def test_batch_queries(category, product, api_client):
     assert data["category"]["name"] == category.name
 
 
-def test_graphql_view_get_in_non_debug_mode(client):
+def test_graphql_view_get_enabled_or_disabled(client, settings):
+    settings.PLAYGROUND_ENABLED = False
     response = client.get(API_PATH)
     assert response.status_code == 405
 
-
-@override_settings(DEBUG=True)
-def test_graphql_view_get_in_debug_mode(client):
+    settings.PLAYGROUND_ENABLED = True
     response = client.get(API_PATH)
     assert response.status_code == 200
-    assert response.templates[0].name == "graphql/playground.html"
 
 
 def test_graphql_view_options(client):
