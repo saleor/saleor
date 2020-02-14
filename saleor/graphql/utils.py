@@ -123,6 +123,17 @@ def filter_by_query_param(queryset, query, search_fields):
     return queryset
 
 
+def filter_range_field(qs, field, value):
+    gte, lte = value.get("gte"), value.get("lte")
+    if gte:
+        lookup = {f"{field}__gte": gte}
+        qs = qs.filter(**lookup)
+    if lte:
+        lookup = {f"{field}__lte": lte}
+        qs = qs.filter(**lookup)
+    return qs
+
+
 def sort_queryset(
     queryset: QuerySet, sort_by: SortInputObjectType, sort_enum: graphene.Enum
 ) -> QuerySet:

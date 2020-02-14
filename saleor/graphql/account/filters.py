@@ -4,46 +4,26 @@ from django.db.models import Count, Sum
 from ...account.models import ServiceAccount, User
 from ..core.filters import EnumFilter, ObjectTypeFilter
 from ..core.types.common import DateRangeInput, IntRangeInput, PriceRangeInput
-from ..utils import filter_by_query_param
+from ..utils import filter_by_query_param, filter_range_field
 from .enums import StaffMemberStatus
 
 
 def filter_date_joined(qs, _, value):
-    gte, lte = value.get("gte"), value.get("lte")
-    if gte:
-        qs = qs.filter(date_joined__date__gte=gte)
-    if lte:
-        qs = qs.filter(date_joined__date__lte=lte)
-    return qs
+    return filter_range_field(qs, "date_joined__date", value)
 
 
 def filter_money_spent(qs, _, value):
     qs = qs.annotate(money_spent=Sum("orders__total_gross_amount"))
-    money_spent_lte, money_spent_gte = value.get("lte"), value.get("gte")
-    if money_spent_lte:
-        qs = qs.filter(money_spent__lte=money_spent_lte)
-    if money_spent_gte:
-        qs = qs.filter(money_spent__gte=money_spent_gte)
-    return qs
+    return filter_range_field(qs, "money_spent", value)
 
 
 def filter_number_of_orders(qs, _, value):
     qs = qs.annotate(total_orders=Count("orders"))
-    gte, lte = value.get("gte"), value.get("lte")
-    if gte:
-        qs = qs.filter(total_orders__gte=gte)
-    if lte:
-        qs = qs.filter(total_orders__lte=lte)
-    return qs
+    return filter_range_field(qs, "total_orders", value)
 
 
 def filter_placed_orders(qs, _, value):
-    gte, lte = value.get("gte"), value.get("lte")
-    if gte:
-        qs = qs.filter(orders__created__date__gte=gte)
-    if lte:
-        qs = qs.filter(orders__created__date__lte=lte)
-    return qs
+    return filter_range_field(qs, "orders__created__date", value)
 
 
 def filter_status(qs, _, value):
