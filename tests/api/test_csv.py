@@ -232,8 +232,8 @@ def test_filter_jobs_by_status(
 @pytest.mark.parametrize(
     "created_at_filter, count",
     [
-        ({"createdAt": {"gte": "2019-04-10"}}, 3),
-        ({"createdAt": {"lte": "2019-04-10"}}, 2),
+        ({"createdAt": {"gte": "2019-04-10T00:00:00+00:00"}}, 3),
+        ({"createdAt": {"lte": "2019-04-10T00:00:00+00:00"}}, 2),
     ],
 )
 def test_filter_jobs_by_created_at_date(
@@ -253,7 +253,10 @@ def test_filter_jobs_by_created_at_date(
 
 @pytest.mark.parametrize(
     "ended_at_filter, count",
-    [({"endedAt": {"gte": "2019-04-18"}}, 3), ({"endedAt": {"lte": "2019-04-18"}}, 2)],
+    [
+        ({"endedAt": {"gte": "2019-04-18T00:00:00+00:00"}}, 3),
+        ({"endedAt": {"lte": "2019-04-18T00:00:00+00:00"}}, 2),
+    ],
 )
 def test_filter_jobs_by_ended_at_date(
     staff_api_client, job_list, permission_manage_products, ended_at_filter, count
