@@ -4,8 +4,7 @@ import traceback
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import opentracing as ot
-import opentracing.logs
-import opentracing.tags
+import opentracing.tags as ot_tags
 from django.conf import settings
 from django.db import connection
 from django.http import HttpRequest, HttpResponseNotAllowed, JsonResponse
@@ -33,8 +32,8 @@ handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
 def tracing_wrapper(execute, sql, params, many, context):
     with ot.global_tracer().start_active_span(operation_name="query") as scope:
         span = scope.span
-        span.set_tag(ot.tags.COMPONENT, "db")
-        span.set_tag(ot.tags.DATABASE_STATEMENT, sql)
+        span.set_tag(ot_tags.COMPONENT, "db")
+        span.set_tag(ot_tags.DATABASE_STATEMENT, sql)
         return execute(sql, params, many, context)
 
 
@@ -117,9 +116,9 @@ class GraphQLView(View):
     ) -> Tuple[Optional[Dict[str, List[Any]]], int]:
         with ot.global_tracer().start_active_span(operation_name="request") as scope:
             span = scope.span
-            span.set_tag(ot.tags.COMPONENT, "http")
-            span.set_tag(ot.tags.HTTP_METHOD, request.method)
-            span.set_tag(ot.tags.HTTP_URL, request.get_full_path())
+            span.set_tag(ot_tags.COMPONENT, "http")
+            span.set_tag(ot_tags.HTTP_METHOD, request.method)
+            span.set_tag(ot_tags.HTTP_URL, request.get_full_path())
 
             execution_result = self.execute_graphql_request(request, data)
             status_code = 200
@@ -137,7 +136,7 @@ class GraphQLView(View):
             else:
                 result = None
 
-            span.set_tag(ot.tags.HTTP_STATUS_CODE, status_code)
+            span.set_tag(ot_tags.HTTP_STATUS_CODE, status_code)
             return result, status_code
 
     def get_root_value(self):
