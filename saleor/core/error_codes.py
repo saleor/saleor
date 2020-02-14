@@ -11,7 +11,7 @@ class ShopErrorCode(Enum):
     UNIQUE = "unique"
 
 
-class MetaErrorCode(Enum):
+class MetadataErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
     NOT_FOUND = "not_found"

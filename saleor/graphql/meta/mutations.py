@@ -3,14 +3,14 @@ from django.core.exceptions import ValidationError
 from graphql_jwt.exceptions import PermissionDenied
 
 from ...core import models
-from ...core.error_codes import MetaErrorCode
+from ...core.error_codes import MetadataErrorCode
 from ..core.mutations import BaseMutation
-from ..core.types.common import MetaError
+from ..core.types.common import MetadataError
 from .permissions import PRIVATE_META_PERMISSION_MAP, PUBLIC_META_PERMISSION_MAP
 from .types import ObjectWithMetadata
 
 
-class MetaPermissionOptions(graphene.types.mutation.MutationOptions):
+class MetadataPermissionOptions(graphene.types.mutation.MutationOptions):
     permission_map = {}
 
 
@@ -23,7 +23,7 @@ class BaseMetadataMutation(BaseMutation):
         cls, arguments=None, permission_map=[], _meta=None, **kwargs,
     ):
         if not _meta:
-            _meta = MetaPermissionOptions(cls)
+            _meta = MetadataPermissionOptions(cls)
         if not arguments:
             arguments = {}
         fields = {"item": graphene.Field(ObjectWithMetadata)}
@@ -47,7 +47,7 @@ class BaseMetadataMutation(BaseMutation):
             {
                 "id": ValidationError(
                     f"Couldn't resolve to a item with meta: {object_id}",
-                    code=MetaErrorCode.NOT_FOUND.value,
+                    code=MetadataErrorCode.NOT_FOUND.value,
                 )
             }
         )
@@ -65,7 +65,7 @@ class BaseMetadataMutation(BaseMutation):
             {
                 "id": ValidationError(
                     f"Couldn't resolve permission to item: {object_id}",
-                    code=MetaErrorCode.INVALID.value,
+                    code=MetadataErrorCode.INVALID.value,
                 )
             }
         )
@@ -86,21 +86,21 @@ class BaseMetadataMutation(BaseMutation):
         return cls(**{"item": instance, "errors": []})
 
 
-class MetaItemInput(graphene.InputObjectType):
+class MetadataItemInput(graphene.InputObjectType):
     key = graphene.String(required=True, description="Key for stored data.")
     value = graphene.String(required=True, description="Stored metadata value.")
 
 
-class UpdateMeta(BaseMetadataMutation):
+class UpdateMetadata(BaseMetadataMutation):
     class Meta:
         description = "Updates metadata for item."
         permission_map = PUBLIC_META_PERMISSION_MAP
-        error_type_class = MetaError
-        error_type_field = "meta_errors"
+        error_type_class = MetadataError
+        error_type_field = "metadata_errors"
 
     class Arguments:
         id = graphene.ID(description="ID of an object to update.", required=True)
-        input = MetaItemInput(
+        input = MetadataItemInput(
             description="Fields required to update new or stored metadata item.",
             required=True,
         )
@@ -116,12 +116,12 @@ class UpdateMeta(BaseMetadataMutation):
         return cls.success_response(instance)
 
 
-class DeleteMeta(BaseMetadataMutation):
+class DeleteMetadata(BaseMetadataMutation):
     class Meta:
         description = "Delete metadata for key."
         permission_map = PUBLIC_META_PERMISSION_MAP
-        error_type_class = MetaError
-        error_type_field = "meta_errors"
+        error_type_class = MetadataError
+        error_type_field = "metadata_errors"
 
     class Arguments:
         id = graphene.ID(description="ID of an object to update.", required=True)
@@ -137,16 +137,16 @@ class DeleteMeta(BaseMetadataMutation):
         return cls.success_response(instance)
 
 
-class UpdatePrivateMeta(BaseMetadataMutation):
+class UpdatePrivateMetadata(BaseMetadataMutation):
     class Meta:
         description = "Updates private metadata for item."
         permission_map = PRIVATE_META_PERMISSION_MAP
-        error_type_class = MetaError
-        error_type_field = "meta_errors"
+        error_type_class = MetadataError
+        error_type_field = "metadata_errors"
 
     class Arguments:
         id = graphene.ID(description="ID of an object to update.", required=True)
-        input = MetaItemInput(
+        input = MetadataItemInput(
             description=(
                 "Fields required to update new or stored private metadata item."
             ),
@@ -164,12 +164,12 @@ class UpdatePrivateMeta(BaseMetadataMutation):
         return cls.success_response(instance)
 
 
-class DeletePrivateMeta(BaseMetadataMutation):
+class DeletePrivateMetadata(BaseMetadataMutation):
     class Meta:
         description = "Delete private metadata for key."
         permission_map = PRIVATE_META_PERMISSION_MAP
-        error_type_class = MetaError
-        error_type_field = "meta_errors"
+        error_type_class = MetadataError
+        error_type_field = "metadata_errors"
 
     class Arguments:
         id = graphene.ID(description="ID of an object to update.", required=True)

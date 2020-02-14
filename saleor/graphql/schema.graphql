@@ -1410,15 +1410,15 @@ input DateTimeRangeInput {
 
 scalar Decimal
 
-type DeleteMeta {
+type DeleteMetadata {
   errors: [Error!]
-  metaErrors: [MetaError!]
+  metadataErrors: [MetadataError!]
   item: ObjectWithMetadata
 }
 
-type DeletePrivateMeta {
+type DeletePrivateMetadata {
   errors: [Error!]
-  metaErrors: [MetaError!]
+  metadataErrors: [MetadataError!]
   item: ObjectWithMetadata
 }
 
@@ -2084,18 +2084,6 @@ type MetaClientStore {
   metadata: [MetaItem]!
 }
 
-type MetaError {
-  field: String
-  message: String
-  code: MetaErrorCode
-}
-
-enum MetaErrorCode {
-  GRAPHQL_ERROR
-  INVALID
-  NOT_FOUND
-}
-
 input MetaInput {
   namespace: String!
   clientName: String!
@@ -2104,11 +2092,6 @@ input MetaInput {
 }
 
 type MetaItem {
-  key: String!
-  value: String!
-}
-
-input MetaItemInput {
   key: String!
   value: String!
 }
@@ -2122,6 +2105,23 @@ input MetaPath {
 type MetaStore {
   namespace: String!
   clients: [MetaClientStore]!
+}
+
+type MetadataError {
+  field: String
+  message: String
+  code: MetadataErrorCode
+}
+
+enum MetadataErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+}
+
+input MetadataItemInput {
+  key: String!
+  value: String!
 }
 
 type Money {
@@ -2184,10 +2184,10 @@ type Mutation {
   attributeUnassign(attributeIds: [ID]!, productTypeId: ID!): AttributeUnassign
   attributeUpdate(id: ID!, input: AttributeUpdateInput!): AttributeUpdate
   attributeTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): AttributeTranslate
-  attributeUpdateMetadata(id: ID!, input: MetaInput!): AttributeUpdateMeta
-  attributeClearMetadata(id: ID!, input: MetaPath!): AttributeClearMeta
-  attributeUpdatePrivateMetadata(id: ID!, input: MetaInput!): AttributeUpdatePrivateMeta
-  attributeClearPrivateMetadata(id: ID!, input: MetaPath!): AttributeClearPrivateMeta
+  attributeUpdateMetadata(id: ID!, input: MetaInput!): AttributeUpdateMeta @deprecated(reason: "Will be removed in Saleor 2.11. Use the `UpdateMetadata` mutation instead.")
+  attributeClearMetadata(id: ID!, input: MetaPath!): AttributeClearMeta @deprecated(reason: "Will be removed in Saleor 2.11. Use the `DeleteMetadata` mutation instead.")
+  attributeUpdatePrivateMetadata(id: ID!, input: MetaInput!): AttributeUpdatePrivateMeta @deprecated(reason: "Will be removed in Saleor 2.11.Use the `UpdatePrivateMetadata` mutation instead.")
+  attributeClearPrivateMetadata(id: ID!, input: MetaPath!): AttributeClearPrivateMeta @deprecated(reason: "Will be removed in Saleor 2.11.Use the `DeletePrivateMetadata` mutation instead.")
   attributeValueCreate(attribute: ID!, input: AttributeValueCreateInput!): AttributeValueCreate
   attributeValueDelete(id: ID!): AttributeValueDelete
   attributeValueBulkDelete(ids: [ID]!): AttributeValueBulkDelete
@@ -2199,10 +2199,10 @@ type Mutation {
   categoryBulkDelete(ids: [ID]!): CategoryBulkDelete
   categoryUpdate(id: ID!, input: CategoryInput!): CategoryUpdate
   categoryTranslate(id: ID!, input: TranslationInput!, languageCode: LanguageCodeEnum!): CategoryTranslate
-  categoryUpdateMetadata(id: ID!, input: MetaInput!): CategoryUpdateMeta
-  categoryClearMetadata(id: ID!, input: MetaPath!): CategoryClearMeta
-  categoryUpdatePrivateMetadata(id: ID!, input: MetaInput!): CategoryUpdatePrivateMeta
-  categoryClearPrivateMetadata(id: ID!, input: MetaPath!): CategoryClearPrivateMeta
+  categoryUpdateMetadata(id: ID!, input: MetaInput!): CategoryUpdateMeta @deprecated(reason: "Will be removed in Saleor 2.11. Use the `UpdateMetadata` mutation instead.")
+  categoryClearMetadata(id: ID!, input: MetaPath!): CategoryClearMeta @deprecated(reason: "Will be removed in Saleor 2.11. Use the `DeleteMetadata` mutation instead.")
+  categoryUpdatePrivateMetadata(id: ID!, input: MetaInput!): CategoryUpdatePrivateMeta @deprecated(reason: "Will be removed in Saleor 2.11.Use the `UpdatePrivateMetadata` mutation instead.")
+  categoryClearPrivateMetadata(id: ID!, input: MetaPath!): CategoryClearPrivateMeta @deprecated(reason: "Will be removed in Saleor 2.11.Use the `DeletePrivateMetadata` mutation instead.")
   collectionAddProducts(collectionId: ID!, products: [ID]!): CollectionAddProducts
   collectionCreate(input: CollectionCreateInput!): CollectionCreate
   collectionDelete(id: ID!): CollectionDelete
@@ -2212,20 +2212,20 @@ type Mutation {
   collectionRemoveProducts(collectionId: ID!, products: [ID]!): CollectionRemoveProducts
   collectionUpdate(id: ID!, input: CollectionInput!): CollectionUpdate
   collectionTranslate(id: ID!, input: TranslationInput!, languageCode: LanguageCodeEnum!): CollectionTranslate
-  collectionUpdateMetadata(id: ID!, input: MetaInput!): CollectionUpdateMeta
-  collectionClearMetadata(id: ID!, input: MetaPath!): CollectionClearMeta
-  collectionUpdatePrivateMetadata(id: ID!, input: MetaInput!): CollectionUpdatePrivateMeta
-  collectionClearPrivateMetadata(id: ID!, input: MetaPath!): CollectionClearPrivateMeta
+  collectionUpdateMetadata(id: ID!, input: MetaInput!): CollectionUpdateMeta @deprecated(reason: "Will be removed in Saleor 2.11. Use the `UpdateMetadata` mutation instead.")
+  collectionClearMetadata(id: ID!, input: MetaPath!): CollectionClearMeta @deprecated(reason: "Will be removed in Saleor 2.11. Use the `DeleteMetadata` mutation instead.")
+  collectionUpdatePrivateMetadata(id: ID!, input: MetaInput!): CollectionUpdatePrivateMeta @deprecated(reason: "Will be removed in Saleor 2.11.Use the `UpdatePrivateMetadata` mutation instead.")
+  collectionClearPrivateMetadata(id: ID!, input: MetaPath!): CollectionClearPrivateMeta @deprecated(reason: "Will be removed in Saleor 2.11.Use the `DeletePrivateMetadata` mutation instead.")
   productCreate(input: ProductCreateInput!): ProductCreate
   productDelete(id: ID!): ProductDelete
   productBulkDelete(ids: [ID]!): ProductBulkDelete
   productBulkPublish(ids: [ID]!, isPublished: Boolean!): ProductBulkPublish
   productUpdate(id: ID!, input: ProductInput!): ProductUpdate
   productTranslate(id: ID!, input: TranslationInput!, languageCode: LanguageCodeEnum!): ProductTranslate
-  productUpdateMetadata(id: ID!, input: MetaInput!): ProductUpdateMeta
-  productClearMetadata(id: ID!, input: MetaPath!): ProductClearMeta
-  productUpdatePrivateMetadata(id: ID!, input: MetaInput!): ProductUpdatePrivateMeta
-  productClearPrivateMetadata(id: ID!, input: MetaPath!): ProductClearPrivateMeta
+  productUpdateMetadata(id: ID!, input: MetaInput!): ProductUpdateMeta @deprecated(reason: "Will be removed in Saleor 2.11. Use the `UpdateMetadata` mutation instead.")
+  productClearMetadata(id: ID!, input: MetaPath!): ProductClearMeta @deprecated(reason: "Will be removed in Saleor 2.11. Use the `DeleteMetadata` mutation instead.")
+  productUpdatePrivateMetadata(id: ID!, input: MetaInput!): ProductUpdatePrivateMeta @deprecated(reason: "Will be removed in Saleor 2.11.Use the `UpdatePrivateMetadata` mutation instead.")
+  productClearPrivateMetadata(id: ID!, input: MetaPath!): ProductClearPrivateMeta @deprecated(reason: "Will be removed in Saleor 2.11.Use the `DeletePrivateMetadata` mutation instead.")
   productImageCreate(input: ProductImageCreateInput!): ProductImageCreate
   productImageDelete(id: ID!): ProductImageDelete
   productImageBulkDelete(ids: [ID]!): ProductImageBulkDelete
@@ -2236,10 +2236,10 @@ type Mutation {
   productTypeBulkDelete(ids: [ID]!): ProductTypeBulkDelete
   productTypeUpdate(id: ID!, input: ProductTypeInput!): ProductTypeUpdate
   productTypeReorderAttributes(moves: [ReorderInput]!, productTypeId: ID!, type: AttributeTypeEnum!): ProductTypeReorderAttributes
-  productTypeUpdateMetadata(id: ID!, input: MetaInput!): ProductTypeUpdateMeta
-  productTypeClearMetadata(id: ID!, input: MetaPath!): ProductTypeClearMeta
-  productTypeUpdatePrivateMetadata(id: ID!, input: MetaInput!): ProductTypeUpdatePrivateMeta
-  productTypeClearPrivateMetadata(id: ID!, input: MetaPath!): ProductTypeClearPrivateMeta
+  productTypeUpdateMetadata(id: ID!, input: MetaInput!): ProductTypeUpdateMeta @deprecated(reason: "Will be removed in Saleor 2.11. Use the `UpdateMetadata` mutation instead.")
+  productTypeClearMetadata(id: ID!, input: MetaPath!): ProductTypeClearMeta @deprecated(reason: "Will be removed in Saleor 2.11. Use the `DeleteMetadata` mutation instead.")
+  productTypeUpdatePrivateMetadata(id: ID!, input: MetaInput!): ProductTypeUpdatePrivateMeta @deprecated(reason: "Will be removed in Saleor 2.11.Use the `UpdatePrivateMetadata` mutation instead.")
+  productTypeClearPrivateMetadata(id: ID!, input: MetaPath!): ProductTypeClearPrivateMeta @deprecated(reason: "Will be removed in Saleor 2.11.Use the `DeletePrivateMetadata` mutation instead.")
   digitalContentCreate(input: DigitalContentUploadInput!, variantId: ID!): DigitalContentCreate
   digitalContentDelete(variantId: ID!): DigitalContentDelete
   digitalContentUpdate(input: DigitalContentInput!, variantId: ID!): DigitalContentUpdate
@@ -2250,10 +2250,10 @@ type Mutation {
   productVariantBulkDelete(ids: [ID]!): ProductVariantBulkDelete
   productVariantUpdate(id: ID!, input: ProductVariantInput!): ProductVariantUpdate
   productVariantTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): ProductVariantTranslate
-  productVariantUpdateMetadata(id: ID!, input: MetaInput!): ProductVariantUpdateMeta
-  productVariantClearMetadata(id: ID!, input: MetaPath!): ProductVariantClearMeta
-  productVariantUpdatePrivateMetadata(id: ID!, input: MetaInput!): ProductVariantUpdatePrivateMeta
-  productVariantClearPrivateMetadata(id: ID!, input: MetaPath!): ProductVariantClearPrivateMeta
+  productVariantUpdateMetadata(id: ID!, input: MetaInput!): ProductVariantUpdateMeta @deprecated(reason: "Will be removed in Saleor 2.11. Use the `UpdateMetadata` mutation instead.")
+  productVariantClearMetadata(id: ID!, input: MetaPath!): ProductVariantClearMeta @deprecated(reason: "Will be removed in Saleor 2.11. Use the `DeleteMetadata` mutation instead.")
+  productVariantUpdatePrivateMetadata(id: ID!, input: MetaInput!): ProductVariantUpdatePrivateMeta @deprecated(reason: "Will be removed in Saleor 2.11.Use the `UpdatePrivateMetadata` mutation instead.")
+  productVariantClearPrivateMetadata(id: ID!, input: MetaPath!): ProductVariantClearPrivateMeta @deprecated(reason: "Will be removed in Saleor 2.11.Use the `DeletePrivateMetadata` mutation instead.")
   variantImageAssign(imageId: ID!, variantId: ID!): VariantImageAssign
   variantImageUnassign(imageId: ID!, variantId: ID!): VariantImageUnassign
   paymentCapture(amount: Decimal, paymentId: ID!): PaymentCapture
@@ -2278,27 +2278,27 @@ type Mutation {
   orderAddNote(order: ID!, input: OrderAddNoteInput!): OrderAddNote
   orderCancel(id: ID!, restock: Boolean!): OrderCancel
   orderCapture(amount: Decimal!, id: ID!): OrderCapture
-  orderClearPrivateMeta(id: ID!, input: MetaPath!): OrderClearPrivateMeta
-  orderClearMeta(input: MetaPath!, token: UUID!): OrderClearMeta
+  orderClearPrivateMeta(id: ID!, input: MetaPath!): OrderClearPrivateMeta @deprecated(reason: "Will be removed in Saleor 2.11.Use the `DeletePrivateMetadata` mutation instead.")
+  orderClearMeta(input: MetaPath!, token: UUID!): OrderClearMeta @deprecated(reason: "Will be removed in Saleor 2.11. Use the `DeleteMetadata` mutation instead.")
   orderFulfillmentCancel(id: ID!, input: FulfillmentCancelInput!): FulfillmentCancel
   orderFulfillmentCreate(input: FulfillmentCreateInput!, order: ID): FulfillmentCreate
   orderFulfillmentUpdateTracking(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdateTracking
-  orderFulfillmentClearMeta(id: ID!, input: MetaPath!): FulfillmentClearMeta
-  orderFulfillmentClearPrivateMeta(id: ID!, input: MetaPath!): FulfillmentClearPrivateMeta
-  orderFulfillmentUpdateMeta(id: ID!, input: MetaInput!): FulfillmentUpdateMeta
-  orderFulfillmentUpdatePrivateMeta(id: ID!, input: MetaInput!): FulfillmentUpdatePrivateMeta
+  orderFulfillmentClearMeta(id: ID!, input: MetaPath!): FulfillmentClearMeta @deprecated(reason: "Will be removed in Saleor 2.11. Use the `DeleteMetadata` mutation instead.")
+  orderFulfillmentClearPrivateMeta(id: ID!, input: MetaPath!): FulfillmentClearPrivateMeta @deprecated(reason: "Will be removed in Saleor 2.11.Use the `DeletePrivateMetadata` mutation instead.")
+  orderFulfillmentUpdateMeta(id: ID!, input: MetaInput!): FulfillmentUpdateMeta @deprecated(reason: "Will be removed in Saleor 2.11. Use the `UpdateMetadata` mutation instead.")
+  orderFulfillmentUpdatePrivateMeta(id: ID!, input: MetaInput!): FulfillmentUpdatePrivateMeta @deprecated(reason: "Will be removed in Saleor 2.11.Use the `UpdatePrivateMetadata` mutation instead.")
   orderMarkAsPaid(id: ID!): OrderMarkAsPaid
   orderRefund(amount: Decimal!, id: ID!): OrderRefund
   orderUpdate(id: ID!, input: OrderUpdateInput!): OrderUpdate
-  orderUpdateMeta(input: MetaInput!, token: UUID!): OrderUpdateMeta
-  orderUpdatePrivateMeta(id: ID!, input: MetaInput!): OrderUpdatePrivateMeta
+  orderUpdateMeta(input: MetaInput!, token: UUID!): OrderUpdateMeta @deprecated(reason: "Will be removed in Saleor 2.11. Use the `UpdateMetadata` mutation instead.")
+  orderUpdatePrivateMeta(id: ID!, input: MetaInput!): OrderUpdatePrivateMeta @deprecated(reason: "Will be removed in Saleor 2.11.Use the `UpdatePrivateMetadata` mutation instead.")
   orderUpdateShipping(order: ID!, input: OrderUpdateShippingInput): OrderUpdateShipping
   orderVoid(id: ID!): OrderVoid
   orderBulkCancel(ids: [ID]!, restock: Boolean!): OrderBulkCancel
-  deleteMeta(id: ID!, key: String!): DeleteMeta
-  deletePrivateMeta(id: ID!, key: String!): DeletePrivateMeta
-  updateMeta(id: ID!, input: MetaItemInput!): UpdateMeta
-  updatePrivateMeta(id: ID!, input: MetaItemInput!): UpdatePrivateMeta
+  deleteMetadata(id: ID!, key: String!): DeleteMetadata
+  deletePrivateMetadata(id: ID!, key: String!): DeletePrivateMetadata
+  updateMetadata(id: ID!, input: MetadataItemInput!): UpdateMetadata
+  updatePrivateMetadata(id: ID!, input: MetadataItemInput!): UpdatePrivateMetadata
   assignNavigation(menu: ID, navigationType: NavigationType!): AssignNavigation
   menuCreate(input: MenuCreateInput!): MenuCreate
   menuDelete(id: ID!): MenuDelete
@@ -2346,10 +2346,10 @@ type Mutation {
   checkoutPaymentCreate(checkoutId: ID!, input: PaymentInput!): CheckoutPaymentCreate
   checkoutShippingAddressUpdate(checkoutId: ID!, shippingAddress: AddressInput!): CheckoutShippingAddressUpdate
   checkoutShippingMethodUpdate(checkoutId: ID, shippingMethodId: ID!): CheckoutShippingMethodUpdate
-  checkoutUpdateMetadata(id: ID!, input: MetaInput!): CheckoutUpdateMeta
-  checkoutClearMetadata(id: ID!, input: MetaPath!): CheckoutClearMeta
-  checkoutUpdatePrivateMetadata(id: ID!, input: MetaInput!): CheckoutUpdatePrivateMeta
-  checkoutClearPrivateMetadata(id: ID!, input: MetaPath!): CheckoutClearPrivateMeta
+  checkoutUpdateMetadata(id: ID!, input: MetaInput!): CheckoutUpdateMeta @deprecated(reason: "Will be removed in Saleor 2.11. Use the `UpdateMetadata` mutation instead.")
+  checkoutClearMetadata(id: ID!, input: MetaPath!): CheckoutClearMeta @deprecated(reason: "Will be removed in Saleor 2.11. Use the `DeleteMetadata` mutation instead.")
+  checkoutUpdatePrivateMetadata(id: ID!, input: MetaInput!): CheckoutUpdatePrivateMeta @deprecated(reason: "Will be removed in Saleor 2.11.Use the `UpdatePrivateMetadata` mutation instead.")
+  checkoutClearPrivateMetadata(id: ID!, input: MetaPath!): CheckoutClearPrivateMeta @deprecated(reason: "Will be removed in Saleor 2.11.Use the `DeletePrivateMetadata` mutation instead.")
   requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
   confirmAccount(email: String!, token: String!): ConfirmAccount
   setPassword(token: String!, email: String!, password: String!): SetPassword
@@ -2364,7 +2364,7 @@ type Mutation {
   accountUpdate(input: AccountInput!): AccountUpdate
   accountRequestDeletion(redirectUrl: String!): AccountRequestDeletion
   accountDelete(token: String!): AccountDelete
-  accountUpdateMeta(input: MetaInput!): AccountUpdateMeta
+  accountUpdateMeta(input: MetaInput!): AccountUpdateMeta @deprecated(reason: "Will be removed in Saleor 2.11. Use the `UpdateMetadata` mutation instead.")
   addressCreate(input: AddressInput!, userId: ID!): AddressCreate
   addressUpdate(id: ID!, input: AddressInput!): AddressUpdate
   addressDelete(id: ID!): AddressDelete
@@ -2380,15 +2380,15 @@ type Mutation {
   userAvatarUpdate(image: Upload!): UserAvatarUpdate
   userAvatarDelete: UserAvatarDelete
   userBulkSetActive(ids: [ID]!, isActive: Boolean!): UserBulkSetActive
-  userUpdateMetadata(id: ID!, input: MetaInput!): UserUpdateMeta
-  userClearMetadata(id: ID!, input: MetaPath!): UserClearMeta
-  userUpdatePrivateMetadata(id: ID!, input: MetaInput!): UserUpdatePrivateMeta
-  userClearPrivateMetadata(id: ID!, input: MetaPath!): UserClearPrivateMeta
+  userUpdateMetadata(id: ID!, input: MetaInput!): UserUpdateMeta @deprecated(reason: "Will be removed in Saleor 2.11. Use the `UpdateMetadata` mutation instead.")
+  userClearMetadata(id: ID!, input: MetaPath!): UserClearMeta @deprecated(reason: "Will be removed in Saleor 2.11. Use the `DeleteMetadata` mutation instead.")
+  userUpdatePrivateMetadata(id: ID!, input: MetaInput!): UserUpdatePrivateMeta @deprecated(reason: "Will be removed in Saleor 2.11.Use the `UpdatePrivateMetadata` mutation instead.")
+  userClearPrivateMetadata(id: ID!, input: MetaPath!): UserClearPrivateMeta @deprecated(reason: "Will be removed in Saleor 2.11.Use the `DeletePrivateMetadata` mutation instead.")
   serviceAccountCreate(input: ServiceAccountInput!): ServiceAccountCreate
   serviceAccountUpdate(id: ID!, input: ServiceAccountInput!): ServiceAccountUpdate
   serviceAccountDelete(id: ID!): ServiceAccountDelete
-  serviceAccountUpdatePrivateMetadata(id: ID!, input: MetaInput!): ServiceAccountUpdatePrivateMeta
-  serviceAccountClearPrivateMetadata(id: ID!, input: MetaPath!): ServiceAccountClearPrivateMeta
+  serviceAccountUpdatePrivateMetadata(id: ID!, input: MetaInput!): ServiceAccountUpdatePrivateMeta @deprecated(reason: "Will be removed in Saleor 2.11.Use the `UpdatePrivateMetadata` mutation instead.")
+  serviceAccountClearPrivateMetadata(id: ID!, input: MetaPath!): ServiceAccountClearPrivateMeta @deprecated(reason: "Will be removed in Saleor 2.11.Use the `DeletePrivateMetadata` mutation instead.")
   serviceAccountTokenCreate(input: ServiceAccountTokenInput!): ServiceAccountTokenCreate
   serviceAccountTokenDelete(id: ID!): ServiceAccountTokenDelete
   permissionGroupCreate(input: PermissionGroupCreateInput!): PermissionGroupCreate
@@ -4512,15 +4512,15 @@ input TranslationInput {
 
 scalar UUID
 
-type UpdateMeta {
+type UpdateMetadata {
   errors: [Error!]
-  metaErrors: [MetaError!]
+  metadataErrors: [MetadataError!]
   item: ObjectWithMetadata
 }
 
-type UpdatePrivateMeta {
+type UpdatePrivateMetadata {
   errors: [Error!]
-  metaErrors: [MetaError!]
+  metadataErrors: [MetadataError!]
   item: ObjectWithMetadata
 }
 
