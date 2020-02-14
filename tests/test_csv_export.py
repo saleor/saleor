@@ -40,7 +40,7 @@ def test_on_task_failure(job):
     on_task_failure(None, exc, task_id, args, kwargs, einfo)
 
     job.refresh_from_db()
-    assert job.status.split(".")[1] == JobStatus.FAILED.name
+    assert job.status == JobStatus.FAILED
     assert job.created_at
     assert job.ended_at
 
@@ -57,7 +57,7 @@ def test_on_task_success(job):
     on_task_success(None, None, task_id, args, kwargs)
 
     job.refresh_from_db()
-    assert job.status.split(".")[1] == JobStatus.SUCCESS.name
+    assert job.status == JobStatus.SUCCESS
     assert job.created_at
     assert job.ended_at
 

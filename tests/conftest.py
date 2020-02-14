@@ -17,6 +17,7 @@ from django.db import connection
 from django.forms import ModelForm
 from django.test.client import Client
 from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
+from django.utils import timezone
 from django_countries import countries
 from PIL import Image
 from prices import Money, TaxedMoney
@@ -31,6 +32,7 @@ from saleor.checkout import utils
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
 from saleor.core.payments import PaymentInterface
+from saleor.csv import JobStatus
 from saleor.csv.models import Job
 from saleor.discount import DiscountInfo, DiscountValueType, VoucherType
 from saleor.discount.models import (
@@ -1918,3 +1920,43 @@ def stock(variant, warehouse):
 def job(staff_user):
     job = Job.objects.create(user=staff_user)
     return job
+
+
+@pytest.fixture
+def job_list(staff_user):
+    date = datetime.datetime(2019, 4, 18, tzinfo=timezone.get_current_timezone())
+    job_list = list(
+        Job.objects.bulk_create(
+            [
+                Job(user=staff_user, ended_at=date),
+                Job(user=staff_user, ended_at=date + datetime.timedelta(hours=2)),
+                Job(
+                    user=staff_user,
+                    status=JobStatus.SUCCESS,
+                    ended_at=date - datetime.timedelta(days=2),
+                ),
+                Job(user=staff_user, ended_at=date, status=JobStatus.SUCCESS),
+                Job(
+                    user=staff_user,
+                    status=JobStatus.FAILED,
+                    ended_at=date - datetime.timedelta(days=5),
+                ),
+            ]
+        )
+    )
+
+    created_date = datetime.datetime(
+        2019, 4, 10, tzinfo=timezone.get_current_timezone()
+    )
+    new_created_dates = [
+        created_date,
+        created_date,
+        created_date + datetime.timedelta(hours=2),
+        created_date - datetime.timedelta(days=2),
+        created_date - datetime.timedelta(days=5),
+    ]
+    for counter, job in enumerate(job_list):
+        job.created_at = new_created_dates[counter]
+        job.save()
+
+    return job_list
