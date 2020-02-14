@@ -24,7 +24,7 @@ from graphql.error import (
 from graphql.execution import ExecutionResult
 from graphql_jwt.exceptions import PermissionDenied
 
-from ..core.utils import is_valid_ipv4, is_valid_ipv6
+from ..core.utils import is_demo_mode, is_valid_ipv4, is_valid_ipv6
 
 API_PATH = SimpleLazyObject(lambda: reverse("api"))
 
@@ -102,11 +102,7 @@ class GraphQLView(View):
         # Handle options method the GraphQlView restricts it.
         if request.method == "GET":
             if settings.PLAYGROUND_ENABLED:
-                ctx = {
-                    "query": EXAMPLE_QUERY,
-                    "api_url": request.build_absolute_uri(str(API_PATH)),
-                }
-                return render_to_response("graphql/playground.html", ctx)
+                return self.render_playground(request)
             return HttpResponseNotAllowed(["OPTIONS", "POST"])
         if request.method == "OPTIONS":
             response = self.options(request, *args, **kwargs)
@@ -121,6 +117,17 @@ class GraphQLView(View):
             "Access-Control-Allow-Headers"
         ] = "Origin, Content-Type, Accept, Authorization"
         return response
+
+    def render_playground(self, request):
+        ctx = {}
+        if is_demo_mode():
+            ctx.update(
+                {
+                    "query": EXAMPLE_QUERY,
+                    "api_url": request.build_absolute_uri(str(API_PATH)),
+                }
+            )
+        return render_to_response("graphql/playground.html", ctx)
 
     def _handle_query(self, request: HttpRequest) -> JsonResponse:
         try:

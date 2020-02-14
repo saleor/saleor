@@ -43,14 +43,20 @@
     </div>
   </div>
   <script>window.addEventListener('load', function (event) {
-      GraphQLPlayground.init(document.getElementById('root'), {
-        settings: {
-          'schema.polling.enable': false
-        },
-        tabs: [{
-          endpoint: '{{ api_url }}',
+      const settings = {
+        "schema.polling.enable": false,
+      };
+
+      let tabs;
+      {% if api_url and query %}
+        tabs = [{
+          endpoint: "{{ api_url }}",
           query: `{{ query|safe }}`
         }]
+      {% endif %}
+
+      GraphQLPlayground.init(document.getElementById('root'), {
+        settings, tabs
       })
     })</script>
 </body>
