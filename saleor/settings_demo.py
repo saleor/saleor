@@ -14,7 +14,7 @@ for more details)
 import logging
 import re
 
-from .settings import *  # noqa: F403
+from .settings import *  # noqa: F403, lgtm [py/polluting-import]
 
 logger = logging.getLogger(__name__)
 
