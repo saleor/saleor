@@ -1,6 +1,7 @@
 from io import StringIO
 
 from django.apps import apps
+from django.conf import settings
 from django.core.management import call_command
 from django.core.management.base import BaseCommand
 from django.db import connection
@@ -8,6 +9,7 @@ from django.db import connection
 from ....account.utils import create_superuser
 from ...utils.random_data import (
     add_address_to_admin,
+    configure_braintree,
     create_gift_card,
     create_menus,
     create_orders,
@@ -120,3 +122,10 @@ class Command(BaseCommand):
 
         for msg in create_permission_groups():
             self.stdout.write(msg)
+
+        if getattr(settings, "DEMO", False):
+            is_configured = configure_braintree()
+            if is_configured:
+                self.stdout.write("Configured Braintree")
+            else:
+                self.stdout.write("Failed to configure Braintree")

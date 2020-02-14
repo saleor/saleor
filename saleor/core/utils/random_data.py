@@ -13,6 +13,7 @@ from django.contrib.auth.models import Group, Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.db.models import Q
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
 from faker import Factory
@@ -29,6 +30,7 @@ from ...core.permissions import (
     GiftcardPermissions,
     OrderPermissions,
 )
+from ...core.utils import build_absolute_uri
 from ...core.weight import zero_weight
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
@@ -41,6 +43,7 @@ from ...order.models import Fulfillment, Order, OrderLine
 from ...order.utils import update_order_status
 from ...page.models import Page
 from ...payment import gateway
+from ...payment.gateways.braintree.plugin import BraintreeGatewayPlugin
 from ...payment.utils import create_payment
 from ...product.models import (
     AssignedProductAttribute,
@@ -1164,8 +1167,16 @@ def create_menus():
             name=collection.name, collection=collection, parent=item
         )
 
+    item_saleor = bottom_menu.items.get_or_create(name="Saleor", url="/")[0]
+
     page = Page.objects.order_by("?")[0]
-    bottom_menu.items.get_or_create(name=page.title, page=page)
+    item_saleor.children.get_or_create(name=page.title, page=page, menu=bottom_menu)
+
+    api_url = build_absolute_uri(reverse("api"))
+    item_saleor.children.get_or_create(
+        name="GraphQL API", url=api_url, menu=bottom_menu
+    )
+
     yield "Created footer menu"
     update_menu(top_menu)
     update_menu(bottom_menu)
@@ -1184,3 +1195,28 @@ def get_product_list_images_dir(placeholder_dir):
 def get_image(image_dir, image_name):
     img_path = os.path.join(image_dir, image_name)
     return File(open(img_path, "rb"), name=image_name)
+
+
+def configure_braintree():
+    braintree_api_key = getattr(settings, "BRAINTREE_API_KEY", "")
+    braintree_merchant_id = getattr(settings, "BRAINTREE_MERCHANT_ID", "")
+    braintree_secret = getattr(settings, "BRAINTREE_SECRET_API_KEY", "")
+
+    if not (braintree_api_key and braintree_merchant_id and braintree_secret):
+        return False
+
+    manager = get_extensions_manager()
+    manager.get_plugin_configuration(BraintreeGatewayPlugin.PLUGIN_NAME)
+    manager.save_plugin_configuration(
+        BraintreeGatewayPlugin.PLUGIN_NAME,
+        {
+            "active": True,
+            "configuration": [
+                {"name": "Public API key", "value": braintree_api_key},
+                {"name": "Merchant ID", "value": braintree_merchant_id},
+                {"name": "Secret API key", "value": braintree_secret},
+                {"name": "Use sandbox", "value": True},
+            ],
+        },
+    )
+    return True
