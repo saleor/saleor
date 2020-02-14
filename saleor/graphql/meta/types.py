@@ -26,7 +26,6 @@ class ObjectWithMetadata(graphene.Interface):
     )
 
     # Deprecated we should remove it in #5221
-
     private_meta = graphene.List(
         "saleor.graphql.meta.deprecated.types.MetaStore",
         required=True,
@@ -39,7 +38,7 @@ class ObjectWithMetadata(graphene.Interface):
         required=True,
         description="List of publicly stored metadata namespaces.",
         deprecation_reason="DEPRECATED: Will be removed in Saleor 2.11. "
-        "use the `privetaMetadata` field instead. ",
+        "use the `metadata` field instead. ",
     )
 
     @staticmethod
