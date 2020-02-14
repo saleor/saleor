@@ -47,9 +47,10 @@ def should_trace(info):
 class OpentracingGrapheneMiddleware:
     @staticmethod
     def resolve(next, root, info, **kwargs):
-        with ot.global_tracer().start_active_span(
-            operation_name=info.operation.operation
-        ) as scope:
+        operation = (
+            f"{info.operation.operation}.{info.parent_type.name}.{info.field_name}"
+        )
+        with ot.global_tracer().start_active_span(operation_name=operation) as scope:
             span = scope.span
             span.set_tag(ot_tags.COMPONENT, "graphql")
             span.set_tag("graphql.parent_type", info.parent_type.name)

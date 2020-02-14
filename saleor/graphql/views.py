@@ -7,6 +7,7 @@ import opentracing as ot
 import opentracing.tags as ot_tags
 from django.conf import settings
 from django.db import connection
+from django.db.backends.postgresql.base import DatabaseWrapper
 from django.http import HttpRequest, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import render_to_response
 from django.urls import reverse
@@ -30,10 +31,13 @@ handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
 
 
 def tracing_wrapper(execute, sql, params, many, context):
-    with ot.global_tracer().start_active_span(operation_name="query") as scope:
+    conn: DatabaseWrapper = context["connection"]
+    operation = f"{conn.alias} {conn.display_name}"
+    with ot.global_tracer().start_active_span(operation_name=operation) as scope:
         span = scope.span
         span.set_tag(ot_tags.COMPONENT, "db")
         span.set_tag(ot_tags.DATABASE_STATEMENT, sql)
+        span.set_tag(ot_tags.DATABASE_TYPE, conn.display_name)
         return execute(sql, params, many, context)
 
 
