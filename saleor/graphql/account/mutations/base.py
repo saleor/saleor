@@ -431,11 +431,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
 
 class UserUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
-        description = (
-            "DEPRECATED: Will be removed in Saleor 2.11."
-            "Use the `UpdateMeta` mutation instead."
-            "Updates metadata for user."
-        )
+        description = "Updates metadata for user."
         model = models.User
         public = True
         error_type_class = AccountError
@@ -445,11 +441,7 @@ class UserUpdateMeta(UpdateMetaBaseMutation):
 
 class UserClearMeta(ClearMetaBaseMutation):
     class Meta:
-        description = (
-            "DEPRECATED: Will be removed in Saleor 2.11."
-            "Use the `DeleteMeta` mutation instead."
-            "Clear metadata for user."
-        )
+        description = "Clear metadata for user."
         model = models.User
         public = True
         error_type_class = AccountError

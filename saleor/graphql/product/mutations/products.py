@@ -399,11 +399,7 @@ class CollectionRemoveProducts(BaseMutation):
 class CollectionUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.Collection
-        description = (
-            "DEPRECATED: Will be removed in Saleor 2.11."
-            "Use the `UpdateMeta` mutation instead."
-            "Update public metadata for collection."
-        )
+        description = "Update public metadata for collection."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
         error_type_class = ProductError
@@ -413,11 +409,7 @@ class CollectionUpdateMeta(UpdateMetaBaseMutation):
 class CollectionClearMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.Collection
-        description = (
-            "DEPRECATED: Will be removed in Saleor 2.11."
-            "Use the `DeleteMeta` mutation instead."
-            "Clears public metadata for collection."
-        )
+        description = "Clears public metadata for collection."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
         error_type_class = ProductError
@@ -427,11 +419,7 @@ class CollectionClearMeta(ClearMetaBaseMutation):
 class CollectionUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.Collection
-        description = (
-            "DEPRECATED: Will be removed in Saleor 2.11."
-            "Use the `UpdatePrivateMeta` mutation instead."
-            "Update private metadata for collection."
-        )
+        description = "Update private metadata for collection."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False
         error_type_class = ProductError
@@ -441,11 +429,7 @@ class CollectionUpdatePrivateMeta(UpdateMetaBaseMutation):
 class CollectionClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.Collection
-        description = (
-            "DEPRECATED: Will be removed in Saleor 2.11."
-            "Use the `DeletePrivateMeta` mutation instead."
-            "Clears private metadata item for collection."
-        )
+        description = "Clears private metadata item for collection."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False
         error_type_class = ProductError
@@ -455,11 +439,7 @@ class CollectionClearPrivateMeta(ClearMetaBaseMutation):
 class CategoryUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.Category
-        description = (
-            "DEPRECATED: Will be removed in Saleor 2.11."
-            "Use the `UpdateMeta` mutation instead."
-            "Update public metadata for category."
-        )
+        description = "Update public metadata for category."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
         error_type_class = ProductError
@@ -469,11 +449,7 @@ class CategoryUpdateMeta(UpdateMetaBaseMutation):
 class CategoryClearMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.Category
-        description = (
-            "DEPRECATED: Will be removed in Saleor 2.11."
-            "Use the `DeleteMeta` mutation instead."
-            "Clears public metadata for category."
-        )
+        description = "Clears public metadata for category."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
         error_type_class = ProductError
@@ -483,11 +459,7 @@ class CategoryClearMeta(ClearMetaBaseMutation):
 class CategoryUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.Category
-        description = (
-            "DEPRECATED: Will be removed in Saleor 2.11."
-            "Use the `UpdatePrivateMeta` mutation instead."
-            "Update private metadata for category."
-        )
+        description = "Update private metadata for category."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False
         error_type_class = ProductError
@@ -497,11 +469,7 @@ class CategoryUpdatePrivateMeta(UpdateMetaBaseMutation):
 class CategoryClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.Category
-        description = (
-            "DEPRECATED: Will be removed in Saleor 2.11."
-            "Use the `DeletePrivateMeta` mutation instead."
-            "Clears private metadata for category."
-        )
+        description = "Clears private metadata for category."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False
         error_type_class = ProductError
@@ -1030,11 +998,7 @@ class ProductDelete(ModelDeleteMutation):
 class ProductUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.Product
-        description = (
-            "DEPRECATED: Will be removed in Saleor 2.11."
-            "Use the `UpdateMeta` mutation instead."
-            "Update public metadata for product."
-        )
+        description = "Update public metadata for product."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
         error_type_class = ProductError
@@ -1043,11 +1007,7 @@ class ProductUpdateMeta(UpdateMetaBaseMutation):
 
 class ProductClearMeta(ClearMetaBaseMutation):
     class Meta:
-        description = (
-            "DEPRECATED: Will be removed in Saleor 2.11."
-            "Use the `DeleteMeta` mutation instead."
-            "Clears public metadata item for product."
-        )
+        description = "Clears public metadata item for product."
         model = models.Product
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
@@ -1057,11 +1017,7 @@ class ProductClearMeta(ClearMetaBaseMutation):
 
 class ProductUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
-        description = (
-            "DEPRECATED: Will be removed in Saleor 2.11."
-            "Use the `UpdatePrivateMeta` mutation instead."
-            "Update private metadata for product."
-        )
+        description = "Update private metadata for product."
         model = models.Product
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False
@@ -1071,11 +1027,7 @@ class ProductUpdatePrivateMeta(UpdateMetaBaseMutation):
 
 class ProductClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
-        description = (
-            "DEPRECATED: Will be removed in Saleor 2.11."
-            "Use the `DeletePrivateMeta` mutation instead."
-            "Clears private metadata item for product."
-        )
+        description = "Clears private metadata item for product."
         model = models.Product
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False
@@ -1294,11 +1246,7 @@ class ProductVariantDelete(ModelDeleteMutation):
 class ProductVariantUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.ProductVariant
-        description = (
-            "DEPRECATED: Will be removed in Saleor 2.11."
-            "Use the `UpdateMeta` mutation instead."
-            "Update public metadata for product variant."
-        )
+        description = "Update public metadata for product variant."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
         error_type_class = ProductError
@@ -1308,11 +1256,7 @@ class ProductVariantUpdateMeta(UpdateMetaBaseMutation):
 class ProductVariantClearMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.ProductVariant
-        description = (
-            "DEPRECATED: Will be removed in Saleor 2.11."
-            "Use the `DeleteMeta` mutation instead."
-            "Clears public metadata for product variant."
-        )
+        description = "Clears public metadata for product variant."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
         error_type_class = ProductError
@@ -1322,11 +1266,7 @@ class ProductVariantClearMeta(ClearMetaBaseMutation):
 class ProductVariantUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.ProductVariant
-        description = (
-            "DEPRECATED: Will be removed in Saleor 2.11."
-            "Use the `UpdatePrivateMeta` mutation instead."
-            "Update private metadata for product variant."
-        )
+        description = "Update private metadata for product variant."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False
         error_type_class = ProductError
@@ -1336,11 +1276,7 @@ class ProductVariantUpdatePrivateMeta(UpdateMetaBaseMutation):
 class ProductVariantClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
         model = models.ProductVariant
-        description = (
-            "DEPRECATED: Will be removed in Saleor 2.11."
-            "Use the `DeletePrivateMeta` mutation instead."
-            "Clears private metadata for product variant."
-        )
+        description = "Clears private metadata for product variant."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False
         error_type_class = ProductError
@@ -1469,11 +1405,7 @@ class ProductTypeDelete(ModelDeleteMutation):
 class ProductTypeUpdateMeta(UpdateMetaBaseMutation):
     class Meta:
         model = models.ProductType
-        description = (
-            "DEPRECATED: Will be removed in Saleor 2.11."
-            "Use the `UpdateMeta` mutation instead."
-            "Update public metadata for product type."
-        )
+        description = "Update public metadata for product type."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
         error_type_class = ProductError
@@ -1482,11 +1414,7 @@ class ProductTypeUpdateMeta(UpdateMetaBaseMutation):
 
 class ProductTypeClearMeta(ClearMetaBaseMutation):
     class Meta:
-        description = (
-            "DEPRECATED: Will be removed in Saleor 2.11."
-            "Use the `DeleteMeta` mutation instead."
-            "Clears public metadata for product type."
-        )
+        description = "Clears public metadata for product type."
         model = models.ProductType
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = True
@@ -1496,11 +1424,7 @@ class ProductTypeClearMeta(ClearMetaBaseMutation):
 
 class ProductTypeUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
-        description = (
-            "DEPRECATED: Will be removed in Saleor 2.11."
-            "Use the `UpdatePrivateMeta` mutation instead."
-            "Update private metadata for product type."
-        )
+        description = "Update private metadata for product type."
         model = models.ProductType
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False
@@ -1510,11 +1434,7 @@ class ProductTypeUpdatePrivateMeta(UpdateMetaBaseMutation):
 
 class ProductTypeClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
-        description = (
-            "DEPRECATED: Will be removed in Saleor 2.11."
-            "Use the `DeletePrivateMeta` mutation instead."
-            "Clears private metadata for product type."
-        )
+        description = "Clears private metadata for product type."
         model = models.ProductType
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         public = False

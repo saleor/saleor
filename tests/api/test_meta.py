@@ -2,7 +2,7 @@ import base64
 
 import graphene
 
-from saleor.core.error_codes import MetaErrorCode
+from saleor.core.error_codes import MetadataErrorCode
 from saleor.core.models import ModelWithMetadata
 from tests.api.utils import assert_no_permission, get_graphql_content
 
@@ -2614,12 +2614,12 @@ def test_query_private_meta_for_service_account_as_service_account(
 
 
 UPDATE_PUBLIC_METADATA_MUTATION = """
-mutation UpdatePublicMetadata($id: ID!, $input: MetaItemInput!) {
-    updateMeta(
+mutation UpdatePublicMetadata($id: ID!, $input: MetadataItemInput!) {
+    updateMetadata(
         id: $id
         input: $input
     ) {
-        metaErrors{
+        metadataErrors{
             field
             code
         }
@@ -2676,7 +2676,7 @@ def test_add_public_metadata_for_customer_as_staff(
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["updateMeta"]["item"], customer_user, customer_id
+        response["data"]["updateMetadata"]["item"], customer_user, customer_id
     )
 
 
@@ -2693,7 +2693,7 @@ def test_add_public_metadata_for_customer_as_service_account(
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["updateMeta"]["item"], customer_user, customer_id
+        response["data"]["updateMetadata"]["item"], customer_user, customer_id
     )
 
 
@@ -2711,7 +2711,7 @@ def test_add_public_metadata_for_other_staff_as_staff(
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["updateMeta"]["item"], admin_user, admin_id
+        response["data"]["updateMetadata"]["item"], admin_user, admin_id
     )
 
 
@@ -2728,7 +2728,7 @@ def test_add_public_metadata_for_staff_as_service_account(
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["updateMeta"]["item"], admin_user, admin_id
+        response["data"]["updateMetadata"]["item"], admin_user, admin_id
     )
 
 
@@ -2744,7 +2744,7 @@ def test_add_public_metadata_for_myself_as_customer(user_api_client):
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["updateMeta"]["item"], customer, customer_id
+        response["data"]["updateMetadata"]["item"], customer, customer_id
     )
 
 
@@ -2760,7 +2760,7 @@ def test_add_public_metadata_for_myself_as_staff(staff_api_client):
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["updateMeta"]["item"], staff, staff_id
+        response["data"]["updateMetadata"]["item"], staff, staff_id
     )
 
 
@@ -2775,7 +2775,7 @@ def test_add_public_metadata_for_checkout(api_client, checkout):
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["updateMeta"]["item"], checkout, checkout_id
+        response["data"]["updateMetadata"]["item"], checkout, checkout_id
     )
 
 
@@ -2790,7 +2790,7 @@ def test_add_public_metadata_for_order(api_client, order):
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["updateMeta"]["item"], order, order_id
+        response["data"]["updateMetadata"]["item"], order, order_id
     )
 
 
@@ -2805,7 +2805,7 @@ def test_add_public_metadata_for_draft_order(api_client, draft_order):
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["updateMeta"]["item"], draft_order, draft_order_id
+        response["data"]["updateMetadata"]["item"], draft_order, draft_order_id
     )
 
 
@@ -2822,7 +2822,7 @@ def test_add_public_metadata_for_attribute(
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["updateMeta"]["item"], color_attribute, attribute_id
+        response["data"]["updateMetadata"]["item"], color_attribute, attribute_id
     )
 
 
@@ -2839,7 +2839,7 @@ def test_add_public_metadata_for_category(
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["updateMeta"]["item"], category, category_id
+        response["data"]["updateMetadata"]["item"], category, category_id
     )
 
 
@@ -2856,7 +2856,7 @@ def test_add_public_metadata_for_collection(
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["updateMeta"]["item"], collection, collection_id
+        response["data"]["updateMetadata"]["item"], collection, collection_id
     )
 
 
@@ -2878,7 +2878,7 @@ def test_add_public_metadata_for_digital_content(
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["updateMeta"]["item"], digital_content, digital_content_id
+        response["data"]["updateMetadata"]["item"], digital_content, digital_content_id
     )
 
 
@@ -2895,7 +2895,7 @@ def test_add_public_metadata_for_fulfillment(
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["updateMeta"]["item"], fulfillment, fulfillment_id
+        response["data"]["updateMetadata"]["item"], fulfillment, fulfillment_id
     )
 
 
@@ -2912,7 +2912,7 @@ def test_add_public_metadata_for_product(
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["updateMeta"]["item"], product, product_id
+        response["data"]["updateMetadata"]["item"], product, product_id
     )
 
 
@@ -2929,7 +2929,7 @@ def test_add_public_metadata_for_product_type(
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["updateMeta"]["item"], product_type, product_type_id
+        response["data"]["updateMetadata"]["item"], product_type, product_type_id
     )
 
 
@@ -2946,7 +2946,7 @@ def test_add_public_metadata_for_product_variant(
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["updateMeta"]["item"], variant, variant_id
+        response["data"]["updateMetadata"]["item"], variant, variant_id
     )
 
 
@@ -2968,7 +2968,7 @@ def test_add_public_metadata_for_service_account(
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["updateMeta"]["item"], service_account, service_account_id
+        response["data"]["updateMetadata"]["item"], service_account, service_account_id
     )
 
 
@@ -2985,7 +2985,7 @@ def test_update_public_metadata_for_item(api_client, checkout):
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["updateMeta"]["item"],
+        response["data"]["updateMetadata"]["item"],
         checkout,
         checkout_id,
         value="NewMetaValue",
@@ -3002,9 +3002,9 @@ def test_update_public_metadata_for_non_exist_item(api_client):
     )
 
     # then
-    errors = response["data"]["updateMeta"]["metaErrors"]
+    errors = response["data"]["updateMetadata"]["metadataErrors"]
     assert errors[0]["field"] == "id"
-    assert errors[0]["code"] == MetaErrorCode.NOT_FOUND.name
+    assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
 
 
 def test_update_public_metadata_for_item_without_meta(api_client, address):
@@ -3020,18 +3020,18 @@ def test_update_public_metadata_for_item_without_meta(api_client, address):
     )
 
     # then
-    errors = response["data"]["updateMeta"]["metaErrors"]
+    errors = response["data"]["updateMetadata"]["metadataErrors"]
     assert errors[0]["field"] == "id"
-    assert errors[0]["code"] == MetaErrorCode.INVALID.name
+    assert errors[0]["code"] == MetadataErrorCode.INVALID.name
 
 
 DELETE_PUBLIC_METADATA_MUTATION = """
 mutation DeletePublicMetadata($id: ID!, $key: String!) {
-    deleteMeta(
+    deleteMetadata(
         id: $id
         key: $key
     ) {
-        metaErrors{
+        metadataErrors{
             field
             code
         }
@@ -3090,7 +3090,7 @@ def test_delete_public_metadata_for_customer_as_staff(
 
     # then
     assert item_without_public_metadata(
-        response["data"]["deleteMeta"]["item"], customer_user, customer_id
+        response["data"]["deleteMetadata"]["item"], customer_user, customer_id
     )
 
 
@@ -3109,7 +3109,7 @@ def test_delete_public_metadata_for_customer_as_service_account(
 
     # then
     assert item_without_public_metadata(
-        response["data"]["deleteMeta"]["item"], customer_user, customer_id
+        response["data"]["deleteMetadata"]["item"], customer_user, customer_id
     )
 
 
@@ -3129,7 +3129,7 @@ def test_delete_public_metadata_for_other_staff_as_staff(
 
     # then
     assert item_without_public_metadata(
-        response["data"]["deleteMeta"]["item"], admin_user, admin_id
+        response["data"]["deleteMetadata"]["item"], admin_user, admin_id
     )
 
 
@@ -3148,7 +3148,7 @@ def test_delete_public_metadata_for_staff_as_service_account(
 
     # then
     assert item_without_public_metadata(
-        response["data"]["deleteMeta"]["item"], admin_user, admin_id
+        response["data"]["deleteMetadata"]["item"], admin_user, admin_id
     )
 
 
@@ -3166,7 +3166,7 @@ def test_delete_public_metadata_for_myself_as_customer(user_api_client):
 
     # then
     assert item_without_public_metadata(
-        response["data"]["deleteMeta"]["item"], customer, customer_id
+        response["data"]["deleteMetadata"]["item"], customer, customer_id
     )
 
 
@@ -3184,7 +3184,7 @@ def test_delete_public_metadata_for_myself_as_staff(staff_api_client):
 
     # then
     assert item_without_public_metadata(
-        response["data"]["deleteMeta"]["item"], staff, staff_id
+        response["data"]["deleteMetadata"]["item"], staff, staff_id
     )
 
 
@@ -3201,7 +3201,7 @@ def test_delete_public_metadata_for_checkout(api_client, checkout):
 
     # then
     assert item_without_public_metadata(
-        response["data"]["deleteMeta"]["item"], checkout, checkout_id
+        response["data"]["deleteMetadata"]["item"], checkout, checkout_id
     )
 
 
@@ -3218,7 +3218,7 @@ def test_delete_public_metadata_for_order(api_client, order):
 
     # then
     assert item_without_public_metadata(
-        response["data"]["deleteMeta"]["item"], order, order_id
+        response["data"]["deleteMetadata"]["item"], order, order_id
     )
 
 
@@ -3235,7 +3235,7 @@ def test_delete_public_metadata_for_draft_order(api_client, draft_order):
 
     # then
     assert item_without_public_metadata(
-        response["data"]["deleteMeta"]["item"], draft_order, draft_order_id
+        response["data"]["deleteMetadata"]["item"], draft_order, draft_order_id
     )
 
 
@@ -3254,7 +3254,7 @@ def test_delete_public_metadata_for_attribute(
 
     # then
     assert item_without_public_metadata(
-        response["data"]["deleteMeta"]["item"], color_attribute, attribute_id
+        response["data"]["deleteMetadata"]["item"], color_attribute, attribute_id
     )
 
 
@@ -3273,7 +3273,7 @@ def test_delete_public_metadata_for_category(
 
     # then
     assert item_without_public_metadata(
-        response["data"]["deleteMeta"]["item"], category, category_id
+        response["data"]["deleteMetadata"]["item"], category, category_id
     )
 
 
@@ -3292,7 +3292,7 @@ def test_delete_public_metadata_for_collection(
 
     # then
     assert item_without_public_metadata(
-        response["data"]["deleteMeta"]["item"], collection, collection_id
+        response["data"]["deleteMetadata"]["item"], collection, collection_id
     )
 
 
@@ -3316,7 +3316,7 @@ def test_delete_public_metadata_for_digital_content(
 
     # then
     assert item_without_public_metadata(
-        response["data"]["deleteMeta"]["item"], digital_content, digital_content_id
+        response["data"]["deleteMetadata"]["item"], digital_content, digital_content_id
     )
 
 
@@ -3335,7 +3335,7 @@ def test_delete_public_metadata_for_fulfillment(
 
     # then
     assert item_without_public_metadata(
-        response["data"]["deleteMeta"]["item"], fulfillment, fulfillment_id
+        response["data"]["deleteMetadata"]["item"], fulfillment, fulfillment_id
     )
 
 
@@ -3354,7 +3354,7 @@ def test_delete_public_metadata_for_product(
 
     # then
     assert item_without_public_metadata(
-        response["data"]["deleteMeta"]["item"], product, product_id
+        response["data"]["deleteMetadata"]["item"], product, product_id
     )
 
 
@@ -3373,7 +3373,7 @@ def test_delete_public_metadata_for_product_type(
 
     # then
     assert item_without_public_metadata(
-        response["data"]["deleteMeta"]["item"], product_type, product_type_id
+        response["data"]["deleteMetadata"]["item"], product_type, product_type_id
     )
 
 
@@ -3392,7 +3392,7 @@ def test_delete_public_metadata_for_product_variant(
 
     # then
     assert item_without_public_metadata(
-        response["data"]["deleteMeta"]["item"], variant, variant_id
+        response["data"]["deleteMetadata"]["item"], variant, variant_id
     )
 
 
@@ -3414,7 +3414,7 @@ def test_delete_public_metadata_for_service_account(
 
     # then
     assert item_without_public_metadata(
-        response["data"]["deleteMeta"]["item"], service_account, service_account_id
+        response["data"]["deleteMetadata"]["item"], service_account, service_account_id
     )
 
 
@@ -3428,9 +3428,9 @@ def test_delete_public_metadata_for_non_exist_item(api_client):
     )
 
     # then
-    errors = response["data"]["deleteMeta"]["metaErrors"]
+    errors = response["data"]["deleteMetadata"]["metadataErrors"]
     assert errors[0]["field"] == "id"
-    assert errors[0]["code"] == MetaErrorCode.NOT_FOUND.name
+    assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
 
 
 def test_delete_public_metadata_for_item_without_meta(api_client, address):
@@ -3446,9 +3446,9 @@ def test_delete_public_metadata_for_item_without_meta(api_client, address):
     )
 
     # then
-    errors = response["data"]["deleteMeta"]["metaErrors"]
+    errors = response["data"]["deleteMetadata"]["metadataErrors"]
     assert errors[0]["field"] == "id"
-    assert errors[0]["code"] == MetaErrorCode.INVALID.name
+    assert errors[0]["code"] == MetadataErrorCode.INVALID.name
 
 
 def test_delete_public_metadata_for_not_exist_key(api_client, checkout):
@@ -3464,7 +3464,7 @@ def test_delete_public_metadata_for_not_exist_key(api_client, checkout):
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["deleteMeta"]["item"], checkout, checkout_id
+        response["data"]["deleteMetadata"]["item"], checkout, checkout_id
     )
 
 
@@ -3481,20 +3481,23 @@ def test_delete_public_metadata_for_one_key(api_client, checkout):
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["deleteMeta"]["item"], checkout, checkout_id
+        response["data"]["deleteMetadata"]["item"], checkout, checkout_id
     )
     assert item_without_public_metadata(
-        response["data"]["deleteMeta"]["item"], checkout, checkout_id, key="to_clear"
+        response["data"]["deleteMetadata"]["item"],
+        checkout,
+        checkout_id,
+        key="to_clear",
     )
 
 
 UPDATE_PRIVATE_METADATA_MUTATION = """
-mutation UpdatePrivateMetadata($id: ID!, $input: MetaItemInput!) {
-    updatePrivateMeta(
+mutation UpdatePrivateMetadata($id: ID!, $input: MetadataItemInput!) {
+    updatePrivateMetadata(
         id: $id
         input: $input
     ) {
-        metaErrors{
+        metadataErrors{
             field
             code
         }
@@ -3551,7 +3554,7 @@ def test_add_private_metadata_for_customer_as_staff(
 
     # then
     assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMeta"]["item"], customer_user, customer_id
+        response["data"]["updatePrivateMetadata"]["item"], customer_user, customer_id
     )
 
 
@@ -3568,7 +3571,7 @@ def test_add_private_metadata_for_customer_as_service_account(
 
     # then
     assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMeta"]["item"], customer_user, customer_id
+        response["data"]["updatePrivateMetadata"]["item"], customer_user, customer_id
     )
 
 
@@ -3586,7 +3589,7 @@ def test_add_private_metadata_for_other_staff_as_staff(
 
     # then
     assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMeta"]["item"], admin_user, admin_id
+        response["data"]["updatePrivateMetadata"]["item"], admin_user, admin_id
     )
 
 
@@ -3603,7 +3606,7 @@ def test_add_private_metadata_for_staff_as_service_account(
 
     # then
     assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMeta"]["item"], admin_user, admin_id
+        response["data"]["updatePrivateMetadata"]["item"], admin_user, admin_id
     )
 
 
@@ -3654,7 +3657,7 @@ def test_add_private_metadata_for_checkout(
 
     # then
     assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMeta"]["item"], checkout, checkout_id
+        response["data"]["updatePrivateMetadata"]["item"], checkout, checkout_id
     )
 
 
@@ -3671,7 +3674,7 @@ def test_add_private_metadata_for_order(
 
     # then
     assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMeta"]["item"], order, order_id
+        response["data"]["updatePrivateMetadata"]["item"], order, order_id
     )
 
 
@@ -3688,7 +3691,7 @@ def test_add_private_metadata_for_draft_order(
 
     # then
     assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMeta"]["item"], draft_order, draft_order_id
+        response["data"]["updatePrivateMetadata"]["item"], draft_order, draft_order_id
     )
 
 
@@ -3705,7 +3708,7 @@ def test_add_private_metadata_for_attribute(
 
     # then
     assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMeta"]["item"], color_attribute, attribute_id
+        response["data"]["updatePrivateMetadata"]["item"], color_attribute, attribute_id
     )
 
 
@@ -3722,7 +3725,7 @@ def test_add_private_metadata_for_category(
 
     # then
     assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMeta"]["item"], category, category_id
+        response["data"]["updatePrivateMetadata"]["item"], category, category_id
     )
 
 
@@ -3739,7 +3742,7 @@ def test_add_private_metadata_for_collection(
 
     # then
     assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMeta"]["item"], collection, collection_id
+        response["data"]["updatePrivateMetadata"]["item"], collection, collection_id
     )
 
 
@@ -3761,7 +3764,7 @@ def test_add_private_metadata_for_digital_content(
 
     # then
     assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMeta"]["item"],
+        response["data"]["updatePrivateMetadata"]["item"],
         digital_content,
         digital_content_id,
     )
@@ -3780,7 +3783,7 @@ def test_add_private_metadata_for_fulfillment(
 
     # then
     assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMeta"]["item"], fulfillment, fulfillment_id
+        response["data"]["updatePrivateMetadata"]["item"], fulfillment, fulfillment_id
     )
 
 
@@ -3797,7 +3800,7 @@ def test_add_private_metadata_for_product(
 
     # then
     assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMeta"]["item"], product, product_id
+        response["data"]["updatePrivateMetadata"]["item"], product, product_id
     )
 
 
@@ -3814,7 +3817,7 @@ def test_add_private_metadata_for_product_type(
 
     # then
     assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMeta"]["item"], product_type, product_type_id
+        response["data"]["updatePrivateMetadata"]["item"], product_type, product_type_id
     )
 
 
@@ -3831,7 +3834,7 @@ def test_add_private_metadata_for_product_variant(
 
     # then
     assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMeta"]["item"], variant, variant_id
+        response["data"]["updatePrivateMetadata"]["item"], variant, variant_id
     )
 
 
@@ -3853,7 +3856,7 @@ def test_add_private_metadata_for_service_account(
 
     # then
     assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMeta"]["item"],
+        response["data"]["updatePrivateMetadata"]["item"],
         service_account,
         service_account_id,
     )
@@ -3878,7 +3881,7 @@ def test_update_private_metadata_for_item(
 
     # then
     assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMeta"]["item"],
+        response["data"]["updatePrivateMetadata"]["item"],
         checkout,
         checkout_id,
         value="NewMetaValue",
@@ -3897,9 +3900,9 @@ def test_update_private_metadata_for_non_exist_item(
     )
 
     # then
-    errors = response["data"]["updatePrivateMeta"]["metaErrors"]
+    errors = response["data"]["updatePrivateMetadata"]["metadataErrors"]
     assert errors[0]["field"] == "id"
-    assert errors[0]["code"] == MetaErrorCode.NOT_FOUND.name
+    assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
 
 
 def test_update_private_metadata_for_item_without_meta(api_client, address):
@@ -3915,18 +3918,18 @@ def test_update_private_metadata_for_item_without_meta(api_client, address):
     )
 
     # then
-    errors = response["data"]["updatePrivateMeta"]["metaErrors"]
+    errors = response["data"]["updatePrivateMetadata"]["metadataErrors"]
     assert errors[0]["field"] == "id"
-    assert errors[0]["code"] == MetaErrorCode.INVALID.name
+    assert errors[0]["code"] == MetadataErrorCode.INVALID.name
 
 
 DELETE_PRIVATE_METADATA_MUTATION = """
 mutation DeletePrivateMetadata($id: ID!, $key: String!) {
-    deletePrivateMeta(
+    deletePrivateMetadata(
         id: $id
         key: $key
     ) {
-        metaErrors{
+        metadataErrors{
             field
             code
         }
@@ -3985,7 +3988,7 @@ def test_delete_private_metadata_for_customer_as_staff(
 
     # then
     assert item_without_private_metadata(
-        response["data"]["deletePrivateMeta"]["item"], customer_user, customer_id
+        response["data"]["deletePrivateMetadata"]["item"], customer_user, customer_id
     )
 
 
@@ -4004,7 +4007,7 @@ def test_delete_private_metadata_for_customer_as_service_account(
 
     # then
     assert item_without_private_metadata(
-        response["data"]["deletePrivateMeta"]["item"], customer_user, customer_id
+        response["data"]["deletePrivateMetadata"]["item"], customer_user, customer_id
     )
 
 
@@ -4024,7 +4027,7 @@ def test_delete_private_metadata_for_other_staff_as_staff(
 
     # then
     assert item_without_private_metadata(
-        response["data"]["deletePrivateMeta"]["item"], admin_user, admin_id
+        response["data"]["deletePrivateMetadata"]["item"], admin_user, admin_id
     )
 
 
@@ -4043,7 +4046,7 @@ def test_delete_private_metadata_for_staff_as_service_account(
 
     # then
     assert item_without_private_metadata(
-        response["data"]["deletePrivateMeta"]["item"], admin_user, admin_id
+        response["data"]["deletePrivateMetadata"]["item"], admin_user, admin_id
     )
 
 
@@ -4104,7 +4107,7 @@ def test_delete_private_metadata_for_checkout(
 
     # then
     assert item_without_private_metadata(
-        response["data"]["deletePrivateMeta"]["item"], checkout, checkout_id
+        response["data"]["deletePrivateMetadata"]["item"], checkout, checkout_id
     )
 
 
@@ -4123,7 +4126,7 @@ def test_delete_private_metadata_for_order(
 
     # then
     assert item_without_private_metadata(
-        response["data"]["deletePrivateMeta"]["item"], order, order_id
+        response["data"]["deletePrivateMetadata"]["item"], order, order_id
     )
 
 
@@ -4142,7 +4145,7 @@ def test_delete_private_metadata_for_draft_order(
 
     # then
     assert item_without_private_metadata(
-        response["data"]["deletePrivateMeta"]["item"], draft_order, draft_order_id
+        response["data"]["deletePrivateMetadata"]["item"], draft_order, draft_order_id
     )
 
 
@@ -4161,7 +4164,7 @@ def test_delete_private_metadata_for_attribute(
 
     # then
     assert item_without_private_metadata(
-        response["data"]["deletePrivateMeta"]["item"], color_attribute, attribute_id
+        response["data"]["deletePrivateMetadata"]["item"], color_attribute, attribute_id
     )
 
 
@@ -4180,7 +4183,7 @@ def test_delete_private_metadata_for_category(
 
     # then
     assert item_without_private_metadata(
-        response["data"]["deletePrivateMeta"]["item"], category, category_id
+        response["data"]["deletePrivateMetadata"]["item"], category, category_id
     )
 
 
@@ -4199,7 +4202,7 @@ def test_delete_private_metadata_for_collection(
 
     # then
     assert item_without_private_metadata(
-        response["data"]["deletePrivateMeta"]["item"], collection, collection_id
+        response["data"]["deletePrivateMetadata"]["item"], collection, collection_id
     )
 
 
@@ -4223,7 +4226,7 @@ def test_delete_private_metadata_for_digital_content(
 
     # then
     assert item_without_private_metadata(
-        response["data"]["deletePrivateMeta"]["item"],
+        response["data"]["deletePrivateMetadata"]["item"],
         digital_content,
         digital_content_id,
     )
@@ -4244,7 +4247,7 @@ def test_delete_private_metadata_for_fulfillment(
 
     # then
     assert item_without_private_metadata(
-        response["data"]["deletePrivateMeta"]["item"], fulfillment, fulfillment_id
+        response["data"]["deletePrivateMetadata"]["item"], fulfillment, fulfillment_id
     )
 
 
@@ -4263,7 +4266,7 @@ def test_delete_private_metadata_for_product(
 
     # then
     assert item_without_private_metadata(
-        response["data"]["deletePrivateMeta"]["item"], product, product_id
+        response["data"]["deletePrivateMetadata"]["item"], product, product_id
     )
 
 
@@ -4282,7 +4285,7 @@ def test_delete_private_metadata_for_product_type(
 
     # then
     assert item_without_private_metadata(
-        response["data"]["deletePrivateMeta"]["item"], product_type, product_type_id
+        response["data"]["deletePrivateMetadata"]["item"], product_type, product_type_id
     )
 
 
@@ -4301,7 +4304,7 @@ def test_delete_private_metadata_for_product_variant(
 
     # then
     assert item_without_private_metadata(
-        response["data"]["deletePrivateMeta"]["item"], variant, variant_id
+        response["data"]["deletePrivateMetadata"]["item"], variant, variant_id
     )
 
 
@@ -4323,7 +4326,7 @@ def test_delete_private_metadata_for_service_account(
 
     # then
     assert item_without_private_metadata(
-        response["data"]["deletePrivateMeta"]["item"],
+        response["data"]["deletePrivateMetadata"]["item"],
         service_account,
         service_account_id,
     )
@@ -4341,9 +4344,9 @@ def test_delete_private_metadata_for_non_exist_item(
     )
 
     # then
-    errors = response["data"]["deletePrivateMeta"]["metaErrors"]
+    errors = response["data"]["deletePrivateMetadata"]["metadataErrors"]
     assert errors[0]["field"] == "id"
-    assert errors[0]["code"] == MetaErrorCode.NOT_FOUND.name
+    assert errors[0]["code"] == MetadataErrorCode.NOT_FOUND.name
 
 
 def test_delete_private_metadata_for_item_without_meta(api_client, address):
@@ -4359,9 +4362,9 @@ def test_delete_private_metadata_for_item_without_meta(api_client, address):
     )
 
     # then
-    errors = response["data"]["deletePrivateMeta"]["metaErrors"]
+    errors = response["data"]["deletePrivateMetadata"]["metadataErrors"]
     assert errors[0]["field"] == "id"
-    assert errors[0]["code"] == MetaErrorCode.INVALID.name
+    assert errors[0]["code"] == MetadataErrorCode.INVALID.name
 
 
 def test_delete_private_metadata_for_not_exist_key(
@@ -4383,7 +4386,7 @@ def test_delete_private_metadata_for_not_exist_key(
 
     # then
     assert item_contains_proper_private_metadata(
-        response["data"]["deletePrivateMeta"]["item"], checkout, checkout_id
+        response["data"]["deletePrivateMetadata"]["item"], checkout, checkout_id
     )
 
 
@@ -4408,10 +4411,10 @@ def test_delete_private_metadata_for_one_key(
 
     # then
     assert item_contains_proper_private_metadata(
-        response["data"]["deletePrivateMeta"]["item"], checkout, checkout_id
+        response["data"]["deletePrivateMetadata"]["item"], checkout, checkout_id
     )
     assert item_without_private_metadata(
-        response["data"]["deletePrivateMeta"]["item"],
+        response["data"]["deletePrivateMetadata"]["item"],
         checkout,
         checkout_id,
         key="to_clear",

@@ -1,10 +1,15 @@
 import graphene
 
-from .mutations import DeleteMeta, DeletePrivateMeta, UpdateMeta, UpdatePrivateMeta
+from .mutations import (
+    DeleteMetadata,
+    DeletePrivateMetadata,
+    UpdateMetadata,
+    UpdatePrivateMetadata,
+)
 
 
 class MetaMutations(graphene.ObjectType):
-    delete_meta = DeleteMeta.Field()
-    delete_private_meta = DeletePrivateMeta.Field()
-    update_meta = UpdateMeta.Field()
-    update_private_meta = UpdatePrivateMeta.Field()
+    delete_metadata = DeleteMetadata.Field()
+    delete_private_metadata = DeletePrivateMetadata.Field()
+    update_metadata = UpdateMetadata.Field()
+    update_private_metadata = UpdatePrivateMetadata.Field()
