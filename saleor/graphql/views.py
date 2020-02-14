@@ -3,7 +3,9 @@ import logging
 import traceback
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-import opentracing
+import opentracing as ot
+import opentracing.logs
+import opentracing.tags
 from django.conf import settings
 from django.db import connection
 from django.http import HttpRequest, HttpResponseNotAllowed, JsonResponse
@@ -29,18 +31,11 @@ handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
 
 
 def tracing_wrapper(execute, sql, params, many, context):
-    with opentracing.global_tracer().start_span(operation_name="query") as span:
-        span.set_tag("component", "db")
-        span.set_tag("db.statement", sql)
-        try:
-            result = execute(sql, params, many, context)
-        except Exception as e:
-            span.set_tag("error", True)
-            span.set_tag("error.object", e)
-            raise
-        else:
-            span.set_tag("error", False)
-            return result
+    with ot.global_tracer().start_active_span(operation_name="query") as scope:
+        span = scope.span
+        span.set_tag(ot.tags.COMPONENT, "db")
+        span.set_tag(ot.tags.DATABASE_STATEMENT, sql)
+        return execute(sql, params, many, context)
 
 
 class GraphQLView(View):
@@ -120,10 +115,12 @@ class GraphQLView(View):
     def get_response(
         self, request: HttpRequest, data: dict
     ) -> Tuple[Optional[Dict[str, List[Any]]], int]:
-        with opentracing.global_tracer().start_span(operation_name="request") as span:
-            span.set_tag("component", "http")
-            span.set_tag("http.method", request.method)
-            span.set_tag("http.path", request.path)
+        with ot.global_tracer().start_active_span(operation_name="request") as scope:
+            span = scope.span
+            span.set_tag(ot.tags.COMPONENT, "http")
+            span.set_tag(ot.tags.HTTP_METHOD, request.method)
+            span.set_tag(ot.tags.HTTP_URL, request.get_full_path())
+
             execution_result = self.execute_graphql_request(request, data)
             status_code = 200
             if execution_result:
@@ -139,7 +136,8 @@ class GraphQLView(View):
                 result: Optional[Dict[str, List[Any]]] = response
             else:
                 result = None
-            span.set_tag("http.status_code", status_code)
+
+            span.set_tag(ot.tags.HTTP_STATUS_CODE, status_code)
             return result, status_code
 
     def get_root_value(self):

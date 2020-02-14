@@ -346,9 +346,7 @@ DEFAULT_MAX_EMAIL_DISPLAY_NAME_LENGTH = 78
 # note: having multiple currencies is not supported yet
 AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
 
-COUNTRIES_OVERRIDE = {
-    "EU": "European Union",
-}
+COUNTRIES_OVERRIDE = {"EU": "European Union"}
 
 OPENEXCHANGERATES_API_KEY = os.environ.get("OPENEXCHANGERATES_API_KEY")
 
