@@ -1858,8 +1858,8 @@ type JobCountableEdge {
 }
 
 input JobFilterInput {
-  createdAt: DateRangeInput
-  endedAt: DateRangeInput
+  createdAt: DateTimeRangeInput
+  endedAt: DateTimeRangeInput
   status: JobStatusEnum
   user: String
 }

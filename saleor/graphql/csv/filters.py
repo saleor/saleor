@@ -2,7 +2,7 @@ import django_filters
 
 from ..core.filters import EnumFilter, ObjectTypeFilter
 from ..core.types import FilterInputObjectType
-from ..core.types.common import DateRangeInput
+from ..core.types.common import DateTimeRangeInput
 from ..utils import filter_by_query_param, filter_range_field
 from .enums import JobStatusEnum
 
@@ -33,8 +33,10 @@ def filter_user(qs, _, value):
 
 
 class JobFilter(django_filters.FilterSet):
-    created_at = ObjectTypeFilter(input_class=DateRangeInput, method=filter_created_at)
-    ended_at = ObjectTypeFilter(input_class=DateRangeInput, method=filter_ended_at)
+    created_at = ObjectTypeFilter(
+        input_class=DateTimeRangeInput, method=filter_created_at
+    )
+    ended_at = ObjectTypeFilter(input_class=DateTimeRangeInput, method=filter_ended_at)
     status = EnumFilter(input_class=JobStatusEnum, method=filter_status)
     user = django_filters.CharFilter(method=filter_user)
 
