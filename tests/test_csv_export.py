@@ -11,18 +11,21 @@ from freezegun import freeze_time
 from saleor.csv import JobStatus
 from saleor.csv.models import Job
 from saleor.csv.utils.export import (
-    create_csv_file_and_save_to_job,
+    add_attribute_info_to_data,
+    add_collection_info_to_data,
+    add_image_uris_to_data,
+    add_warehouse_info_to_data,
+    create_csv_file_and_save_in_job,
     export_products,
     get_filename,
     get_product_queryset,
     on_task_failure,
     on_task_success,
     prepare_products_data,
-    prepare_warehouse_data,
     save_csv_file_in_job,
     update_job_when_task_finished,
 )
-from saleor.product.models import Product
+from saleor.product.models import Product, VariantImage
 from tests.utils import clear_temporary_dir
 
 
@@ -130,12 +133,15 @@ def get_product_queryset_filter(product_list):
     assert queryset.count() == len(product_list) - 1
 
 
-def test_prepare_products_data(product, product_with_image, collection):
+def test_prepare_products_data(product, product_with_image, collection, image):
     headers_mapping = {
         "product": {"id": "id", "name": "name"},
         "variant": {"sku": "sku"},
     }
     collection.products.add(product)
+
+    variant = product.variants.first()
+    VariantImage.objects.create(variant=variant, image=product.images.first())
 
     products = Product.objects.all()
     data, headers = prepare_products_data(products, headers_mapping)
@@ -171,6 +177,9 @@ def test_prepare_products_data(product, product_with_image, collection):
                 else "http://mirumee.com{}".format(variant.images.first().image.url)
             )
             variant_data["sku"] = variant.sku
+            variant_data["variant_currency"] = variant.currency
+            variant_data["price_override_amount"] = variant.price_override_amount
+            variant_data["cost_price_amount"] = variant.cost_price_amount
 
             for stock in variant.stock.all():
                 slug = stock.warehouse.slug
@@ -194,23 +203,165 @@ def test_prepare_products_data(product, product_with_image, collection):
     assert set(headers) == expected_headers
 
 
-def test_prepare_warehouse_data(product):
-    variant = product.variants.first()
-    result = prepare_warehouse_data(variant)
+def test_add_collection_info_to_data(product):
+    pk = product.pk
+    collection = "test_collection"
+    input_data = {pk: {}}
+    result = add_collection_info_to_data(product.pk, collection, input_data)
 
-    expected_result = {}
-    for stock in variant.stock.all():
-        slug = stock.warehouse.slug
-        expected_result[
-            f"{slug} (warehouse quantity allocated)"
-        ] = stock.quantity_allocated
-        expected_result[f"{slug} (warehouse quantity)"] = stock.quantity
+    assert result[pk]["collections"] == {collection}
 
-    assert result == expected_result
+
+def test_add_collection_info_to_data_update_collections(product):
+    pk = product.pk
+    existing_collection = "test2"
+    collection = "test_collection"
+    input_data = {pk: {"collections": {existing_collection}}}
+    result = add_collection_info_to_data(product.pk, collection, input_data)
+
+    assert result[pk]["collections"] == {collection, existing_collection}
+
+
+def test_add_collection_info_to_data_no_collection(product):
+    pk = product.pk
+    collection = None
+    input_data = {pk: {}}
+    result = add_collection_info_to_data(product.pk, collection, input_data)
+
+    assert result == input_data
+
+
+def test_add_image_uris_to_data(product):
+    pk = product.pk
+    image_path = "test/path/image.jpg"
+    input_data = {pk: {}}
+    result = add_image_uris_to_data(product.pk, image_path, input_data)
+
+    assert result[pk]["images"] == {"http://mirumee.com/media/" + image_path}
+
+
+def test_add_image_uris_to_data_update_images(product):
+    pk = product.pk
+    old_path = "http://mirumee.com/media/test/image0.jpg"
+    image_path = "test/path/image.jpg"
+    input_data = {pk: {"images": {old_path}}}
+    result = add_image_uris_to_data(product.pk, image_path, input_data)
+
+    assert result[pk]["images"] == {"http://mirumee.com/media/" + image_path, old_path}
+
+
+def test_add_image_uris_to_data_no_image_path(product):
+    pk = product.pk
+    image_path = None
+    input_data = {pk: {"name": "test"}}
+    result = add_image_uris_to_data(product.pk, image_path, input_data)
+
+    assert result == input_data
+
+
+def test_add_attribute_info_to_data(product):
+    pk = product.pk
+    slug = "test_attribute_slug"
+    value = "test value"
+    attribute_data = {
+        "slug": slug,
+        "value": value,
+    }
+    input_data = {pk: {}}
+    result, header = add_attribute_info_to_data(product.pk, attribute_data, input_data)
+
+    expected_header = f"{slug} (attribute)"
+
+    assert header == expected_header
+    assert result[pk][header] == {value}
+
+
+def test_add_attribute_info_to_data_update_attribute_data(product):
+    pk = product.pk
+    slug = "test_attribute_slug"
+    value = "test value"
+    expected_header = f"{slug} (attribute)"
+
+    attribute_data = {
+        "slug": slug,
+        "value": value,
+    }
+    input_data = {pk: {expected_header: {"value1"}}}
+    result, header = add_attribute_info_to_data(product.pk, attribute_data, input_data)
+
+    assert header == expected_header
+    assert result[pk][header] == {value, "value1"}
+
+
+def test_add_attribute_info_to_data_no_slug(product):
+    pk = product.pk
+    attribute_data = {
+        "slug": None,
+        "value": None,
+    }
+    input_data = {pk: {}}
+    result, header = add_attribute_info_to_data(product.pk, attribute_data, input_data)
+
+    assert not header
+    assert result == input_data
+
+
+def test_add_warehouse_info_to_data(product):
+    pk = product.pk
+    slug = "test_warehouse"
+    warehouse_data = {
+        "slug": slug,
+        "qty": 12,
+        "qty_alc": 10,
+    }
+    input_data = {pk: {}}
+    result, headers = add_warehouse_info_to_data(product.pk, warehouse_data, input_data)
+
+    expected_headers = [
+        f"{slug} (warehouse quantity)",
+        f"{slug} (warehouse quantity allocated)",
+    ]
+    assert result[pk][expected_headers[0]] == 12
+    assert result[pk][expected_headers[1]] == 10
+    assert headers == set(expected_headers)
+
+
+def test_add_warehouse_info_to_data_data_not_changed(product):
+    pk = product.pk
+    slug = "test_warehouse"
+    warehouse_data = {
+        "slug": slug,
+        "qty": 12,
+        "qty_alc": 10,
+    }
+    input_data = {
+        pk: {
+            f"{slug} (warehouse quantity)": 5,
+            f"{slug} (warehouse quantity allocated)": 8,
+        }
+    }
+    result, headers = add_warehouse_info_to_data(product.pk, warehouse_data, input_data)
+
+    assert result == input_data
+    assert headers == set()
+
+
+def test_add_warehouse_info_to_data_data_no_slug(product):
+    pk = product.pk
+    warehouse_data = {
+        "slug": None,
+        "qty": None,
+        "qty_alc": None,
+    }
+    input_data = {pk: {}}
+    result, headers = add_warehouse_info_to_data(product.pk, warehouse_data, input_data)
+
+    assert result == input_data
+    assert headers == set()
 
 
 @override_settings(MEDIA_ROOT=tempfile.gettempdir())
-def test_create_csv_file_and_save_to_job(job):
+def test_create_csv_file_and_save_in_job(job):
     export_data = [
         {"id": "123", "name": "test1", "collections": "coll1"},
         {"id": "345", "name": "test2"},
@@ -225,7 +376,7 @@ def test_create_csv_file_and_save_to_job(job):
 
     assert not job.content_file
 
-    create_csv_file_and_save_to_job(
+    create_csv_file_and_save_in_job(
         export_data, headers, csv_headers_mapping, delimiter, job, file_name
     )
 
