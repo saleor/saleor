@@ -186,13 +186,13 @@ class FilterInputConnectionField(PrefetchingConnectionField):
         # but iterable might be promise
         iterable = queryset_resolver(connection, iterable, info, args)
 
-        on_resolve = partial(cls.resolve_connection, connection, args)
-
         sort_by = args.get("sort_by")
         if sort_by:
             iterable = sort_queryset(queryset=iterable, sort_by=sort_by)
         else:
-            iterable = sort_queryset_by_default(queryset=iterable)
+            iterable, sort_by = sort_queryset_by_default(queryset=iterable)
+            args["sort_by"] = sort_by
+        on_resolve = partial(cls.resolve_connection, connection, args)
 
         filter_input = args.get(filters_name)
 

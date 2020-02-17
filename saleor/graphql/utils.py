@@ -1,4 +1,4 @@
-from typing import Union
+from typing import List, Tuple, Union
 
 import graphene
 from django.db.models import Q, QuerySet
@@ -177,14 +177,18 @@ def sort_queryset(queryset: QuerySet, sort_by: SortInputObjectType) -> QuerySet:
     return queryset.order_by(*sorting_list)
 
 
-def sort_queryset_by_default(queryset: QuerySet) -> QuerySet:
+def sort_queryset_by_default(queryset: QuerySet) -> Tuple[QuerySet, dict]:
     """Sort queryset by it's default ordering."""
     queryset_model = queryset.model
     deafault_ordering = queryset_model._meta.ordering if queryset_model else []
     if deafault_ordering:
-        return queryset.order_by(*deafault_ordering)
+        ordering_fields = [field.replace("-", "") for field in deafault_ordering]
+        direction = "-" if "-" in deafault_ordering[0] else ""
+        order_by = {"field": ordering_fields, "direction": direction}
+        return queryset.order_by(*deafault_ordering), order_by
     else:
-        return queryset
+        order_by = {"field": ["pk"], "direction": ""}
+        return queryset.order_by("pk"), order_by
 
 
 def reporting_period_to_date(period):

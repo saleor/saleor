@@ -102,6 +102,7 @@ class ProductType(ModelWithMetadata):
     )
 
     class Meta:
+        ordering = ("slug",)
         app_label = "product"
 
     def __str__(self) -> str:
@@ -435,6 +436,7 @@ class ProductVariant(ModelWithMetadata):
     translated = TranslationProxy()
 
     class Meta:
+        ordering = ("sku",)
         app_label = "product"
 
     def __str__(self) -> str:
