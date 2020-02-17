@@ -489,7 +489,7 @@ def test_payment_information_order_events_query(
     assert data["paymentGateway"] == payment_dummy.gateway
 
 
-def test_non_staff_user_can_only_see_his_order(user_api_client, order):
+def test_non_staff_user_cannot_only_see_his_order(user_api_client, order):
     query = """
     query OrderQuery($id: ID!) {
         order(id: $id) {
@@ -500,16 +500,27 @@ def test_non_staff_user_can_only_see_his_order(user_api_client, order):
     ID = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": ID}
     response = user_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    order_data = content["data"]["order"]
-    assert order_data["number"] == str(order.pk)
+    assert_no_permission(response)
 
-    order.user = None
-    order.save()
-    response = user_api_client.post_graphql(query, variables)
+
+def test_query_order_as_service_account(
+    service_account_api_client, permission_manage_orders, order
+):
+    query = """
+    query OrderQuery($id: ID!) {
+        order(id: $id) {
+            token
+        }
+    }
+    """
+    ID = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": ID}
+    response = service_account_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
     content = get_graphql_content(response)
     order_data = content["data"]["order"]
-    assert not order_data
+    assert order_data["token"] == order.token
 
 
 def test_draft_order_create(
