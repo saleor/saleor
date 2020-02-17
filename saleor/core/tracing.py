@@ -17,9 +17,10 @@ def should_trace(info: ResolveInfo) -> bool:
 
 
 def is_introspection_field(info: ResolveInfo):
-    for path in info.path:
-        if isinstance(path, str) and path.startswith("__"):
-            return True
+    if info.path is not None:
+        for path in info.path:
+            if isinstance(path, str) and path.startswith("__"):
+                return True
     return False
 
 
