@@ -37,6 +37,8 @@ def get_repr(value):
 
 
 def get_field(instance, field):
+    """Get field for foreign key field"""
+
     field_path = field.split("__")
     attr = instance
     for elem in field_path:
@@ -45,6 +47,12 @@ def get_field(instance, field):
         except AttributeError:
             return None
     return attr
+
+
+def get_field_value(instance, field_name):
+    """Get field value for given field in filter format 'field__foreign_key_field'
+    """
+    return get_repr(get_field(instance, field_name))
 
 
 def prepare_filter(cursor, sorting_fields, sorting_direction):
@@ -70,10 +78,6 @@ def prepare_filter(cursor, sorting_fields, sorting_direction):
         field_expression[f"{field_name}__{sorting_direction}"] = cursor[index]
         filter_kwargs |= Q(**field_expression)
     return filter_kwargs
-
-
-def get_field_value(instance, field_name):
-    return get_repr(get_field(instance, field_name))
 
 
 def validate_connection_args(args):
@@ -110,7 +114,6 @@ def connection_from_queryset_slice(
     cursor_after = from_global_cursor(after) if after else None
     cursor_before = from_global_cursor(before) if before else None
     cursor = cursor_after or cursor_before
-    cursor_offset = 1 if cursor else 0
 
     sort_by = args.get("sort_by", {})
     sorting_direction = sort_by.get("direction", "")
@@ -118,10 +121,10 @@ def connection_from_queryset_slice(
     if sorting_fields and not isinstance(sorting_fields, list):
         sorting_fields = [sorting_fields]
     elif not sorting_fields:
-        sorting_fields = []
+        raise ValueError('Error while preparing cursor values.')
 
     requested_count = first or last
-    end_margin = requested_count + cursor_offset if requested_count else None
+    end_margin = requested_count + 1 if requested_count else None
 
     if last:
         # reversed direction
