@@ -122,7 +122,9 @@ class GraphQLView(View):
             span = scope.span
             span.set_tag(ot_tags.COMPONENT, "http")
             span.set_tag(ot_tags.HTTP_METHOD, request.method)
-            span.set_tag(ot_tags.HTTP_URL, request.get_full_path())
+            span.set_tag(
+                ot_tags.HTTP_URL, request.build_absolute_uri(request.get_full_path())
+            )
 
             execution_result = self.execute_graphql_request(request, data)
             status_code = 200
