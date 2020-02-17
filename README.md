@@ -95,7 +95,7 @@ To contribute, please see the [`mirumee/saleor-docs` repository](https://github.
 
 ## Storefront
 
-For PWA, single-page torefront go to the [saleor-storefront](https://github.com/mirumee/saleor-storefront) repository.
+For PWA, single-page storefront go to the [saleor-storefront](https://github.com/mirumee/saleor-storefront) repository.
 
 [View storefront demo](https://pwa.saleor.io/)
 
