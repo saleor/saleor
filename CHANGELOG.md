@@ -66,6 +66,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix passing addresses to `PaymentData` objects - #5223 by @maarcingebala
 - Return `null` when querying `me` as an anonymous user - #5231 by @maarcingebala
 - Added `PLAYGROUND_ENABLED` environment variable/setting to allow to enable the GraphQL playground when `DEBUG` is disabled - #5254 by @NyanKiyoshi
+- Fix access to order query when request from service account - #5258 by @fowczarek
 
 ## 2.9.0
 
