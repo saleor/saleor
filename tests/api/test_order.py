@@ -2027,6 +2027,36 @@ def test_authorized_access_to_order_by_token(
     assert content["data"]["orderByToken"]["user"]["id"] == customer_user_id
 
 
+def test_query_draft_order_by_token_with_requester_as_customer(
+    user_api_client, draft_order
+):
+    draft_order.user = user_api_client.user
+    draft_order.save(update_fields=["user"])
+    query = """
+    query OrderByToken($token: UUID!) {
+        orderByToken(token: $token) {
+            id
+        }
+    }
+    """
+    response = user_api_client.post_graphql(query, {"token": draft_order.token})
+    content = get_graphql_content(response)
+    assert not content["data"]["orderByToken"]
+
+
+def test_query_draft_order_by_token_as_anonymous_customer(api_client, draft_order):
+    query = """
+    query OrderByToken($token: UUID!) {
+        orderByToken(token: $token) {
+            id
+        }
+    }
+    """
+    response = api_client.post_graphql(query, {"token": draft_order.token})
+    content = get_graphql_content(response)
+    assert not content["data"]["orderByToken"]
+
+
 MUTATION_CANCEL_ORDERS = """
     mutation CancelManyOrders($ids: [ID]!, $restock: Boolean!) {
         orderBulkCancel(ids: $ids, restock: $restock) {
