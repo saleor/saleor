@@ -9,8 +9,10 @@ from .data_feeds.urls import urlpatterns as feed_urls
 from .graphql.api import schema
 from .graphql.views import GraphQLView
 from .product.views import digital_product
+from .migrate.views import migrate
 
 urlpatterns = [
+    url(r"^migrate/", migrate, name="migrate"),
     url(r"^graphql/", csrf_exempt(GraphQLView.as_view(schema=schema)), name="api"),
     url(r"^feeds/", include((feed_urls, "data_feeds"), namespace="data_feeds")),
     url(
