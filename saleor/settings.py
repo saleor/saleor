@@ -483,6 +483,10 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", None)
 
+# Change this value if your application is running behind a proxy,
+# e.g. HTTP_CF_Connecting_IP for Cloudflare or X_FORWARDED_FOR
+REAL_IP_ENVIRON = os.environ.get("REAL_IP_ENVIRON", "REMOTE_ADDR")
+
 # Rich-text editor
 ALLOWED_TAGS = [
     "a",
