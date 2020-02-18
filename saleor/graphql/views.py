@@ -134,6 +134,10 @@ class GraphQLView(View):
                     span.set_tag(ot_tags.PEER_HOST_IPV6, ip)
                 else:
                     continue
+                span.set_tag("http.client_ip", ip)
+                span.log_kv(
+                    {"http.client_ip_originated_from": settings.REAL_IP_ENVIRON}
+                )
                 break
 
             response = self._handle_query(request)
