@@ -24,33 +24,12 @@ from graphql.error import (
 from graphql.execution import ExecutionResult
 from graphql_jwt.exceptions import PermissionDenied
 
-from ..core.utils import is_demo_mode, is_valid_ipv4, is_valid_ipv6
+from ..core.utils import is_valid_ipv4, is_valid_ipv6
 
 API_PATH = SimpleLazyObject(lambda: reverse("api"))
 
 unhandled_errors_logger = logging.getLogger("saleor.graphql.errors.unhandled")
 handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
-
-EXAMPLE_QUERY = """# Welcome to Saleor GraphQL API!
-#
-# Type queries into this side of the screen, and you will see
-# intelligent typeaheads aware of the current GraphQL type schema
-# and live syntax and validation errors highlighted within the text.
-#
-# Here is an example query to fetch a list of products:
-#
-{
-  products(first: 5) {
-    edges {
-      node {
-        id
-        name
-        description
-      }
-    }
-  }
-}
-"""
 
 
 def tracing_wrapper(execute, sql, params, many, context):
@@ -119,15 +98,7 @@ class GraphQLView(View):
         return response
 
     def render_playground(self, request):
-        ctx = {}
-        if is_demo_mode():
-            ctx.update(
-                {
-                    "query": EXAMPLE_QUERY,
-                    "api_url": request.build_absolute_uri(str(API_PATH)),
-                }
-            )
-        return render_to_response("graphql/playground.html", ctx)
+        return render_to_response("graphql/playground.html", {})
 
     def _handle_query(self, request: HttpRequest) -> JsonResponse:
         try:

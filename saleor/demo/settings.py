@@ -14,15 +14,16 @@ for more details)
 import logging
 import re
 
-from .settings import *  # noqa: F403, lgtm [py/polluting-import]
+from ..settings import *  # noqa: F403, lgtm [py/polluting-import]
 
 logger = logging.getLogger(__name__)
 
-# DEMO-specific settings
-
-DEMO = True
+# Override urls to use different GraphQL view on demo
+ROOT_URLCONF = "saleor.demo.urls"
 
 PLUGINS += ["saleor.extensions.plugins.anonymize.plugin.AnonymizePlugin"]
+
+MIDDLEWARE += ["saleor.core.middleware.ReadOnlyMiddleware"]
 
 BRAINTREE_API_KEY = os.environ.get("BRAINTREE_API_KEY")
 BRAINTREE_MERCHANT_ID = os.environ.get("BRAINTREE_MERCHANT_ID")
@@ -40,6 +41,12 @@ PWA_ORIGINS = get_list(os.environ.get("PWA_ORIGINS", "pwa.saleor.io"))
 PWA_DASHBOARD_URL_RE = re.compile("^https?://[^/]+/dashboard/.*")
 
 ROOT_EMAIL = os.environ.get("ROOT_EMAIL")
+
+# Remove "saleor.core" and add it after adding "saleor.demo", to have "populatedb"
+# command overriden when using demo settings
+# (see saleor.demo.management.commands.populatedb).
+INSTALLED_APPS.remove("saleor.core")
+INSTALLED_APPS += ["saleor.demo", "saleor.core"]
 
 
 def _get_project_name_from_url(url: str) -> str:
