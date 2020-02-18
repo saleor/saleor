@@ -216,7 +216,13 @@ class GraphQLView(View):
                 return error
 
             if document is not None:
-                span.log_kv({"query": document.document_string[:2000]})
+                span.log_kv(
+                    {
+                        "query": document.document_string[
+                            : settings.OPENTRACING_MAX_QUERY_LENGTH_LOG
+                        ]
+                    }
+                )
 
             extra_options: Dict[str, Optional[Any]] = {}
 
