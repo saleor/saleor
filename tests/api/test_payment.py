@@ -6,6 +6,7 @@ from django_countries.fields import Country
 
 from saleor.checkout import calculations
 from saleor.graphql.payment.enums import OrderAction, PaymentChargeStatusEnum
+from saleor.payment.error_codes import PaymentErrorCode
 from saleor.payment.interface import CreditCardInfo, CustomerSource, TokenConfig
 from saleor.payment.models import ChargeStatus, Payment, TransactionKind
 from saleor.payment.utils import fetch_customer_id, store_customer_id
@@ -80,19 +81,20 @@ CREATE_QUERY = """
                 }
                 chargeStatus
             }
-            errors {
+            paymentErrors {
+                code
                 field
-                message
             }
         }
     }
     """
 
 
-def test_checkout_add_payment(
-    user_api_client, checkout_with_item, graphql_address_data
-):
+def test_checkout_add_payment(user_api_client, checkout_with_item, address):
     checkout = checkout_with_item
+    checkout.billing_address = address
+    checkout.save()
+
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     total = calculations.checkout_total(checkout)
     variables = {
@@ -101,13 +103,13 @@ def test_checkout_add_payment(
             "gateway": "Dummy",
             "token": "sample-token",
             "amount": total.gross.amount,
-            "billingAddress": graphql_address_data,
         },
     }
     response = user_api_client.post_graphql(CREATE_QUERY, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
-    assert not data["errors"]
+
+    assert not data["paymentErrors"]
     transactions = data["payment"]["transactions"]
     assert not transactions
     payment = Payment.objects.get()
@@ -117,27 +119,30 @@ def test_checkout_add_payment(
     assert payment.total == total.gross.amount
     assert payment.currency == total.gross.currency
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
+    assert payment.billing_address_1 == checkout.billing_address.street_address_1
+    assert payment.billing_first_name == checkout.billing_address.first_name
+    assert payment.billing_last_name == checkout.billing_address.last_name
 
 
 def test_checkout_add_payment_default_amount(
-    user_api_client, checkout_with_item, graphql_address_data
+    user_api_client, checkout_with_item, address
 ):
     checkout = checkout_with_item
+    checkout = checkout_with_item
+    checkout.billing_address = address
+    checkout.save()
+
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
     total = calculations.checkout_total(checkout)
 
     variables = {
         "checkoutId": checkout_id,
-        "input": {
-            "gateway": "DUMMY",
-            "token": "sample-token",
-            "billingAddress": graphql_address_data,
-        },
+        "input": {"gateway": "DUMMY", "token": "sample-token"},
     }
     response = user_api_client.post_graphql(CREATE_QUERY, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
-    assert not data["errors"]
+    assert not data["paymentErrors"]
     transactions = data["payment"]["transactions"]
     assert not transactions
     payment = Payment.objects.get()
@@ -149,10 +154,10 @@ def test_checkout_add_payment_default_amount(
     assert payment.charge_status == ChargeStatus.NOT_CHARGED
 
 
-def test_checkout_add_payment_bad_amount(
-    user_api_client, checkout_with_item, graphql_address_data
-):
+def test_checkout_add_payment_bad_amount(user_api_client, checkout_with_item, address):
     checkout = checkout_with_item
+    checkout.billing_address = address
+    checkout.save()
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     variables = {
@@ -163,13 +168,15 @@ def test_checkout_add_payment_bad_amount(
             "amount": str(
                 calculations.checkout_total(checkout).gross.amount + Decimal(1)
             ),
-            "billingAddress": graphql_address_data,
         },
     }
     response = user_api_client.post_graphql(CREATE_QUERY, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutPaymentCreate"]
-    assert data["errors"]
+    assert (
+        data["paymentErrors"][0]["code"]
+        == PaymentErrorCode.PARTIAL_PAYMENT_NOT_ALLOWED.name
+    )
 
 
 def test_use_checkout_billing_address_as_payment_billing(
@@ -191,10 +198,10 @@ def test_use_checkout_billing_address_as_payment_billing(
     data = content["data"]["checkoutPaymentCreate"]
 
     # check if proper error is returned if address is missing
-    assert data["errors"][0]["field"] == "billingAddress"
+    assert data["paymentErrors"][0]["field"] == "billingAddress"
     assert (
-        data["errors"][0]["message"]
-        == "No billing address associated with this checkout."
+        data["paymentErrors"][0]["code"]
+        == PaymentErrorCode.BILLING_ADDRESS_NOT_SET.name
     )
 
     # assign the address and try again

@@ -2,6 +2,7 @@ from enum import Enum
 
 
 class OrderErrorCode(Enum):
+    BILLING_ADDRESS_NOT_SET = "billing_address_not_set"
     CANNOT_CANCEL_FULFILLMENT = "cannot_cancel_fulfillment"
     CANNOT_CANCEL_ORDER = "cannot_cancel_order"
     CANNOT_DELETE = "cannot_delete"

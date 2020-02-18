@@ -50,7 +50,6 @@ def test_jwt_middleware(client, admin_user):
     repl_data = response.json()
     assert response.status_code == 200
     assert isinstance(response.wsgi_request.user, AnonymousUser)
-    assert "errors" in repl_data
     assert repl_data["data"]["me"] is None
 
     # test creating a token for admin user

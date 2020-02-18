@@ -552,7 +552,6 @@ def test_checkout_payment_charge(
     variables = {
         "checkoutId": Node.to_global_id("Checkout", checkout_with_billing_address.pk),
         "input": {
-            "billingAddress": graphql_address_data,
             "amount": 1000,  # 10.00 USD * 100
             "gateway": "Dummy",
             "token": "charged",
