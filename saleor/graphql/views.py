@@ -215,7 +215,9 @@ class GraphQLView(View):
             if error:
                 return error
 
-            span.log_kv({"query": document.document_string[:2000]})
+            if document is not None:
+                span.log_kv({"query": document.document_string[:2000]})
+
             extra_options: Dict[str, Optional[Any]] = {}
 
             if self.executor:
