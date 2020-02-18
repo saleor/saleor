@@ -5,11 +5,14 @@ import warnings
 import dj_database_url
 import dj_email_url
 import sentry_sdk
+from django.db import connections
 from django.contrib.messages import constants as messages
 from django.core.exceptions import ImproperlyConfigured
 from django_prices.utils.formatting import get_currency_fraction
 from sentry_sdk.integrations.django import DjangoIntegration
+from threadlocals.threadlocals import get_current_request
 
+from .utils import fetch_credentials
 
 def get_list(text):
     return [item.strip() for item in text.split(",")]
@@ -131,7 +134,7 @@ EMAIL_USE_SSL = email_config["EMAIL_USE_SSL"]
 
 # If enabled, make sure you have set proper storefront address in ALLOWED_CLIENT_HOSTS.
 ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL = get_bool_from_env(
-    "ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL", True
+    "ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL", False
 )
 
 ENABLE_SSL = get_bool_from_env("ENABLE_SSL", False)
@@ -558,3 +561,39 @@ if (
         "Make sure you've added storefront address to ALLOWED_CLIENT_HOSTS "
         "if ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL is enabled."
     )
+
+
+class DatabaseRouter:
+    def _default_db(self):
+        db_conn = None
+
+        print('\n\n', sys.argv, '\n\n')
+
+        if "--database" in sys.argv:
+            i = sys.argv.index("--database")
+            db_conn = sys.argv[i + 1]
+            connections.databases["dynamic-database"] = dj_database_url.parse(db_conn)
+        else:
+            request = get_current_request()
+
+            if request is not None and "X-Domain-ID" in request.headers:
+                domain = request.headers["X-Domain-ID"]
+                db_conn = fetch_credentials(domain)
+        if db_conn is not None:
+            connections.databases["dynamic-database"] = dj_database_url.parse(db_conn)
+
+        return "dynamic-database"
+
+    def db_for_read(self, model, **hints):
+        return self._default_db()
+
+    def db_for_write(self, model, **hints):
+        return self._default_db()
+
+    def allow_relation(self, obj1, obj2, **hints):
+        return None
+
+    def allow_migrate(self, db, app_label, model_name=None, **hints):
+        return True
+
+DATABASE_ROUTERS = ["saleor.settings.DatabaseRouter"]
