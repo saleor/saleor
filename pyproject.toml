@@ -63,6 +63,7 @@ tqdm = "^4.36"
 uwsgi = {version = "^2.0.8", platform = "!=win32"}
 weasyprint = ">=48"
 oauthlib = "^3.0"
+django-threadlocals = "^0.10"
 
 [tool.poetry.dev-dependencies]
 black = "19.10b0"
@@ -70,6 +71,7 @@ codecov = "^2.0.15"
 coverage = "^4.5.4"
 django-debug-toolbar = "^2.0"
 django-debug-toolbar-request-history = "^0"
+django-threadlocals = "^0.10"
 django-graphiql-debug-toolbar = "^0.1.4"
 django-extensions = "^2.2.1"
 flake8 = "^3.7.8"
