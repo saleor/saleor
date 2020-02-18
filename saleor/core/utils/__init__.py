@@ -156,8 +156,3 @@ def generate_unique_slug(
         unique_slug = f"{slug}-{extension}"
 
     return unique_slug
-
-
-def is_demo_mode():
-    """Return True if Saleor is running in the "demo" mode."""
-    return getattr(settings, "DEMO", False)
