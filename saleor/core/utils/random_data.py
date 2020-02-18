@@ -507,7 +507,7 @@ def create_fulfillments(order):
 
 
 def create_fake_order(discounts, max_order_lines=5):
-    customers = User.objects.filter(is_superuser=False, is_staff=False).order_by("?")
+    customers = User.objects.filter(is_superuser=False).order_by("?")
     customer = random.choice([None, customers.first()])
 
     if customer:
@@ -596,14 +596,18 @@ def create_group(name, permissions, users):
 def create_staff_users(how_many=2, superuser=False):
     users = []
     for _ in range(how_many):
-        first_name = fake.first_name()
-        last_name = fake.last_name()
+        address = create_address()
+        first_name = address.first_name
+        last_name = address.last_name
         email = get_email(first_name, last_name)
+
         staff_user = User.objects.create_user(
             first_name=first_name,
             last_name=last_name,
             email=email,
             password="password",
+            default_billing_address=address,
+            default_shipping_address=address,
             is_staff=True,
             is_active=True,
             is_superuser=superuser,
