@@ -36,6 +36,13 @@ class Command(BaseCommand):
             help="Create admin account",
         )
         parser.add_argument(
+            "--onlysuperuser",
+            action="store_true",
+            dest="onlysuperuser",
+            default=False,
+            help="Only create admin account",
+        )
+        parser.add_argument(
             "--withoutimages",
             action="store_true",
             dest="withoutimages",
@@ -55,6 +62,11 @@ class Command(BaseCommand):
             dest="skipsequencereset",
             default=False,
             help="Don't reset SQL sequences that are out of sync.",
+        )
+        parser.add_argument(
+            "--database",
+            default=False,
+            help="Name of the database to populate data to",
         )
 
     def make_database_faster(self):
@@ -86,6 +98,14 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.make_database_faster()
+
+        if options["onlysuperuser"]:
+            credentials = {"email": "admin@example.com", "password": "admin"}
+            msg = create_superuser(credentials)
+            self.stdout.write(msg)
+            add_address_to_admin(credentials["email"])
+            return
+
         create_images = not options["withoutimages"]
         for msg in create_shipping_zones():
             self.stdout.write(msg)
