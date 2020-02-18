@@ -36,6 +36,7 @@ django-render-block==0.6
 django-silk==2.0.0
 django-storages==1.9.1
 django-templated-email==2.3.0
+django-threadlocals==0.10
 django-versatileimagefield==1.11
 docutils==0.15.2
 draftjs-sanitizer==1.0.0
