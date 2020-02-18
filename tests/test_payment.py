@@ -3,6 +3,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from saleor.checkout.calculations import checkout_total
 from saleor.payment import (
     ChargeStatus,
     GatewayError,
@@ -10,6 +11,7 @@ from saleor.payment import (
     TransactionKind,
     gateway,
 )
+from saleor.payment.error_codes import PaymentErrorCode
 from saleor.payment.interface import CreditCardInfo, GatewayConfig, GatewayResponse
 from saleor.payment.models import Payment
 from saleor.payment.utils import (
@@ -78,7 +80,7 @@ def transaction_token():
 
 
 @pytest.fixture
-def dummy_response(payment_dummy, transaction_data, transaction_token, card_details):
+def dummy_response(payment_dummy, transaction_token, card_details):
     return GatewayResponse(
         is_success=True,
         action_required=False,
@@ -92,21 +94,124 @@ def dummy_response(payment_dummy, transaction_data, transaction_token, card_deta
     )
 
 
-def test_create_payment(address, settings):
+def test_create_payment(checkout_with_item, address):
+    checkout_with_item.billing_address = address
+    checkout_with_item.save()
+
     data = {
         "gateway": "Dummy",
         "payment_token": "token",
-        "total": 10,
-        "currency": settings.DEFAULT_CURRENCY,
+        "total": checkout_total(checkout_with_item).gross.amount,
+        "currency": checkout_with_item.currency,
         "email": "test@example.com",
-        "billing_address": address,
         "customer_ip_address": "127.0.0.1",
+        "checkout": checkout_with_item,
     }
     payment = create_payment(**data)
     assert payment.gateway == "Dummy"
 
     same_payment = create_payment(**data)
     assert payment == same_payment
+
+
+def test_create_payment_requires_order_or_checkout(settings):
+    data = {
+        "gateway": "Dummy",
+        "payment_token": "token",
+        "total": 10,
+        "currency": settings.DEFAULT_CURRENCY,
+        "email": "test@example.com",
+    }
+    with pytest.raises(TypeError) as e:
+        create_payment(**data)
+    assert e.value.args[0] == "Must provide checkout or order to create a payment."
+
+
+def test_create_payment_from_checkout_requires_billing_address(
+    checkout_with_item, settings
+):
+    checkout_with_item.billing_address = None
+    checkout_with_item.save()
+
+    data = {
+        "gateway": "Dummy",
+        "payment_token": "token",
+        "total": checkout_total(checkout_with_item),
+        "currency": checkout_with_item.currency,
+        "email": "test@example.com",
+        "checkout": checkout_with_item,
+    }
+    with pytest.raises(PaymentError) as e:
+        create_payment(**data)
+    assert e.value.code == PaymentErrorCode.BILLING_ADDRESS_NOT_SET.value
+
+
+def test_create_payment_from_order_requires_billing_address(draft_order, settings):
+    draft_order.billing_address = None
+    draft_order.save()
+
+    data = {
+        "gateway": "Dummy",
+        "payment_token": "token",
+        "total": draft_order.total.gross.amount,
+        "currency": draft_order.currency,
+        "email": "test@example.com",
+        "order": draft_order,
+    }
+    with pytest.raises(PaymentError) as e:
+        create_payment(**data)
+    assert e.value.code == PaymentErrorCode.BILLING_ADDRESS_NOT_SET.value
+
+
+def test_create_payment_information_for_checkout_payment(address, checkout_with_item):
+    checkout_with_item.billing_address = address
+    checkout_with_item.shipping_address = address
+    checkout_with_item.save()
+    data = {
+        "gateway": "Dummy",
+        "payment_token": "token",
+        "total": checkout_total(checkout_with_item).gross.amount,
+        "currency": checkout_with_item.currency,
+        "email": "test@example.com",
+        "customer_ip_address": "127.0.0.1",
+        "checkout": checkout_with_item,
+    }
+
+    payment = create_payment(**data)
+    payment_data = create_payment_information(payment, "token", payment.total)
+
+    billing = payment_data.billing
+    shipping = payment_data.shipping
+    assert billing
+    assert billing.first_name == address.first_name
+    assert billing.last_name == address.last_name
+    assert billing.street_address_1 == address.street_address_1
+    assert billing.city == address.city
+    assert shipping == billing
+
+
+def test_create_payment_information_for_draft_order(draft_order):
+    data = {
+        "gateway": "Dummy",
+        "payment_token": "token",
+        "total": draft_order.total.gross.amount,
+        "currency": draft_order.currency,
+        "email": "test@example.com",
+        "customer_ip_address": "127.0.0.1",
+        "order": draft_order,
+    }
+
+    payment = create_payment(**data)
+    payment_data = create_payment_information(payment, "token", payment.total)
+
+    billing = payment_data.billing
+    shipping = payment_data.shipping
+    assert billing
+    assert billing.first_name == draft_order.billing_address.first_name
+    assert billing.last_name == draft_order.billing_address.last_name
+    assert billing.street_address_1 == draft_order.billing_address.street_address_1
+    assert billing.city == draft_order.billing_address.city
+    assert shipping == billing
 
 
 def test_create_transaction(transaction_data):
