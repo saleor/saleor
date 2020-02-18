@@ -10,7 +10,7 @@ from django.utils import timezone
 
 from ...celeryconf import app
 from ...core.utils import build_absolute_uri
-from ...product.models import Product, ProductImage, ProductVariant
+from ...product.models import Product, ProductVariant
 from .. import JobStatus
 from ..emails import send_email_with_link_to_download_csv
 from ..models import Job
