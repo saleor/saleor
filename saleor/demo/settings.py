@@ -8,6 +8,8 @@ checkout mutations
 - configure Braintree payment gateway in sandbox mode if necessary environment
 variables are set (see the `saleor.core.utils.random_data.configure_braintree` function
 for more details)
+- use DemoGraphQLView to render modified version of Playground that includes an example
+GraphQL query
 """
 
 # flake8: noqa: F405
