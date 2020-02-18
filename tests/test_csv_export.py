@@ -21,7 +21,9 @@ from saleor.csv.utils.export import (
     get_product_queryset,
     on_task_failure,
     on_task_success,
+    prepare_product_relations_data,
     prepare_products_data,
+    prepare_variants_data,
     save_csv_file_in_job,
     update_job_when_task_finished,
 )
@@ -201,6 +203,70 @@ def test_prepare_products_data(product, product_with_image, collection, image):
 
     assert data == expected_data
     assert set(headers) == expected_headers
+
+
+def test_prepare_product_relations_data(product_with_image, collection_list):
+    pk = product_with_image.pk
+    collection_list[0].products.add(product_with_image)
+    collection_list[1].products.add(product_with_image)
+    qs = Product.objects.all()
+    result, result_headers = prepare_product_relations_data(qs)
+
+    collections = ", ".join(
+        sorted([collection.slug for collection in collection_list[:2]])
+    )
+    images = ", ".join(
+        [
+            "http://mirumee.com/media/" + image.image.name
+            for image in product_with_image.images.all()
+        ]
+    )
+    expected_result = {pk: {"collections": collections, "images": images}}
+
+    assigned_attribute = product_with_image.attributes.first()
+    if assigned_attribute:
+        header = f"{assigned_attribute.attribute.slug} (attribute)"
+        expected_result[pk][header] = assigned_attribute.values.first().slug
+
+    assert result == expected_result
+
+
+def test_prepare_variants_data(product):
+    variant = product.variants.first()
+
+    warehouse_headers = set()
+    attribute_headers = set()
+
+    expected_result = {
+        "sku": variant.sku,
+        "cost_price_amount": variant.cost_price_amount,
+        "price_override_amount": variant.price_override_amount,
+        "variant_currency": variant.currency,
+    }
+    assigned_attribute = variant.attributes.first()
+    if assigned_attribute:
+        header = f"{assigned_attribute.attribute.slug} (attribute)"
+        expected_result[header] = assigned_attribute.values.first().slug
+        attribute_headers.add(header)
+
+    stock = variant.stock
+    for stock in variant.stock.all():
+        slug = stock.warehouse.slug
+        headers = [
+            f"{slug} (warehouse quantity allocated)",
+            f"{slug} (warehouse quantity)",
+        ]
+        expected_result[headers[0]] = stock.quantity_allocated
+        expected_result[headers[1]] = stock.quantity
+        warehouse_headers.update(headers)
+
+    result_data, res_attribute_headers, res_warehouse_headers = prepare_variants_data(
+        product.pk
+    )
+
+    assert result_data == [expected_result]
+    assert res_attribute_headers == attribute_headers
+    assert res_warehouse_headers == warehouse_headers
 
 
 def test_add_collection_info_to_data(product):
