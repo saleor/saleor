@@ -8,21 +8,26 @@ from .resolvers import (
 )
 
 
-class MetaItem(graphene.ObjectType):
+class MetadataItem(graphene.ObjectType):
     key = graphene.String(required=True, description="Key of a metadata item.")
     value = graphene.String(required=True, description="Value of a metadata item.")
 
 
 class ObjectWithMetadata(graphene.Interface):
     private_metadata = graphene.List(
-        MetaItem,
+        MetadataItem,
         required=True,
-        description="List of private metadata items. Requires proper staff permissions to access.",
+        description=(
+            "List of private metadata items."
+            "Requires proper staff permissions to access."
+        ),
     )
     metadata = graphene.List(
-        MetaItem,
+        MetadataItem,
         required=True,
-        description="List of publicly stored metadata namespaces.",
+        description=(
+            "List of public metadata items. Can be accessed without permissions."
+        ),
     )
 
     # Deprecated we should remove it in #5221

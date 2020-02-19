@@ -194,8 +194,8 @@ type Attribute implements Node, ObjectWithMetadata {
   id: ID!
   productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
   productVariantTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
-  privateMetadata: [MetaItem]!
-  metadata: [MetaItem]!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `privetaMetadata` field instead. ")
   meta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `metadata` field instead. ")
   inputType: AttributeInputTypeEnum
@@ -509,8 +509,8 @@ type Category implements Node, ObjectWithMetadata {
   slug: String!
   parent: Category
   level: Int!
-  privateMetadata: [MetaItem]!
-  metadata: [MetaItem]!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `privetaMetadata` field instead. ")
   meta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `metadata` field instead. ")
   ancestors(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
@@ -648,8 +648,8 @@ type Checkout implements Node, ObjectWithMetadata {
   voucherCode: String
   giftCards: [GiftCard]
   id: ID!
-  privateMetadata: [MetaItem]!
-  metadata: [MetaItem]!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `privetaMetadata` field instead. ")
   meta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `metadata` field instead. ")
   availableShippingMethods: [ShippingMethod]!
@@ -857,8 +857,8 @@ type Collection implements Node, ObjectWithMetadata {
   publicationDate: Date
   isPublished: Boolean!
   slug: String!
-  privateMetadata: [MetaItem]!
-  metadata: [MetaItem]!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `privetaMetadata` field instead. ")
   meta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `metadata` field instead. ")
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
@@ -1431,8 +1431,8 @@ type DigitalContent implements Node, ObjectWithMetadata {
   urlValidDays: Int
   urls: [DigitalContentUrl]
   id: ID!
-  privateMetadata: [MetaItem]!
-  metadata: [MetaItem]!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `privetaMetadata` field instead. ")
   meta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `metadata` field instead. ")
 }
@@ -1625,8 +1625,8 @@ type Fulfillment implements Node, ObjectWithMetadata {
   status: FulfillmentStatus!
   trackingNumber: String!
   created: DateTime!
-  privateMetadata: [MetaItem]!
-  metadata: [MetaItem]!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `privetaMetadata` field instead. ")
   meta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `metadata` field instead. ")
   lines: [FulfillmentLine]
@@ -2119,6 +2119,11 @@ enum MetadataErrorCode {
   NOT_FOUND
 }
 
+type MetadataItem {
+  key: String!
+  value: String!
+}
+
 input MetadataItemInput {
   key: String!
   value: String!
@@ -2417,8 +2422,8 @@ interface Node {
 }
 
 interface ObjectWithMetadata {
-  privateMetadata: [MetaItem]!
-  metadata: [MetaItem]!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `privetaMetadata` field instead. ")
   meta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `metadata` field instead. ")
 }
@@ -2444,8 +2449,8 @@ type Order implements Node, ObjectWithMetadata {
   displayGrossPrices: Boolean!
   customerNote: String!
   weight: Weight
-  privateMetadata: [MetaItem]!
-  metadata: [MetaItem]!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `privetaMetadata` field instead. ")
   meta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `metadata` field instead. ")
   fulfillments: [Fulfillment]!
@@ -3132,8 +3137,8 @@ type Product implements Node, ObjectWithMetadata {
   updatedAt: DateTime
   chargeTaxes: Boolean!
   weight: Weight
-  privateMetadata: [MetaItem]!
-  metadata: [MetaItem]!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `privetaMetadata` field instead. ")
   meta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `metadata` field instead. ")
   url: String!
@@ -3384,8 +3389,8 @@ type ProductType implements Node, ObjectWithMetadata {
   isShippingRequired: Boolean!
   isDigital: Boolean!
   weight: Weight
-  privateMetadata: [MetaItem]!
-  metadata: [MetaItem]!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `privetaMetadata` field instead. ")
   meta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `metadata` field instead. ")
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
@@ -3526,8 +3531,8 @@ type ProductVariant implements Node, ObjectWithMetadata {
   product: Product!
   trackInventory: Boolean!
   weight: Weight
-  privateMetadata: [MetaItem]!
-  metadata: [MetaItem]!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `privetaMetadata` field instead. ")
   meta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `metadata` field instead. ")
   quantity: Int! @deprecated(reason: "This field will be removed in Saleor 2.11. Use the stock field instead.")
@@ -3886,8 +3891,8 @@ type ServiceAccount implements Node, ObjectWithMetadata {
   created: DateTime
   isActive: Boolean
   tokens: [ServiceAccountToken]
-  privateMetadata: [MetaItem]!
-  metadata: [MetaItem]!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `privetaMetadata` field instead. ")
   meta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `metadata` field instead. ")
   permissions: [PermissionDisplay]
@@ -4538,8 +4543,8 @@ type User implements Node, ObjectWithMetadata {
   dateJoined: DateTime!
   defaultShippingAddress: Address
   defaultBillingAddress: Address
-  privateMetadata: [MetaItem]!
-  metadata: [MetaItem]!
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `privetaMetadata` field instead. ")
   meta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `metadata` field instead. ")
   addresses: [Address]

@@ -2,7 +2,11 @@
 import graphene
 
 from ..resolvers import resolve_metadata
-from ..types import MetaItem
+
+
+class MetaItem(graphene.ObjectType):
+    key = graphene.String(required=True, description="Key of a metadata item.")
+    value = graphene.String(required=True, description="Value of a metadata item.")
 
 
 class MetaPath(graphene.InputObjectType):
