@@ -19,12 +19,12 @@ def to_global_cursor(values):
         values = [str(values)]
     else:
         values = [str(value) for value in values]
-    return base64(":".join(values))
+    return base64("::".join(values))
 
 
 def from_global_cursor(cursor) -> typing.List[str]:
     values = unbase64(cursor)
-    values = values.split(":")
+    values = values.split("::")
     if isinstance(values, list):
         return values
     return [values]
@@ -111,8 +111,11 @@ def connection_from_queryset_slice(
     sort_by = args.get("sort_by", {})
     sorting_direction = sort_by.get("direction", "")
     sorting_fields = sort_by.get("field")
+    sorting_attribute = sort_by.get("attribute_id")
     if sorting_fields and not isinstance(sorting_fields, list):
         sorting_fields = [sorting_fields]
+    elif not sorting_fields and sorting_attribute is not None:
+        sorting_fields = qs.model.sort_by_attribute_fields()
     elif not sorting_fields:
         raise ValueError("Error while preparing cursor values.")
 
@@ -129,10 +132,7 @@ def connection_from_queryset_slice(
         prepare_filter(cursor, sorting_fields, sorting_direction) if cursor else Q()
     )
     qs = qs.filter(filter_kwargs)[:end_margin]
-    if last:
-        matching_records = list(reversed(qs))
-    else:
-        matching_records = list(qs)
+    matching_records = list(qs)
     has_previous_page = False
     has_next_page = False
     if requested_count is not None:

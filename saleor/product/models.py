@@ -335,6 +335,13 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
         price = calculate_discounted_price(self, self.price, discounts)
         return MoneyRange(start=price, stop=price)
 
+    @staticmethod
+    def sort_by_attribute_fields() -> list:
+        return [
+            "concatenated_values_order",
+            "concatenated_values",
+            "name"]
+
 
 class ProductTranslation(SeoModelTranslation):
     language_code = models.CharField(max_length=10)

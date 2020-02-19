@@ -42,6 +42,39 @@ class BaseConnectionField(graphene.ConnectionField):
 
 
 class BaseDjangoConnectionField(DjangoConnectionField):
+
+    @classmethod
+    def resolve_connection(cls, connection, args, iterable):
+        if isinstance(iterable, list):
+            _len = len(iterable)
+            connection = connection_from_list_slice(
+                iterable,
+                args,
+                slice_start=0,
+                list_length=_len,
+                list_slice_length=_len,
+                connection_type=connection,
+                edge_type=connection.Edge,
+                pageinfo_type=PageInfo,
+            )
+            connection.iterable = iterable
+        else:
+            sort_by = args.get("sort_by")
+            if sort_by:
+                iterable = sort_queryset(queryset=iterable, sort_by=sort_by)
+            else:
+                iterable, sort_by = sort_queryset_by_default(queryset=iterable)
+                args["sort_by"] = sort_by
+            connection = connection_from_queryset_slice(
+                iterable,
+                args,
+                connection_type=connection,
+                edge_type=connection.Edge,
+                page_info_type=PageInfo,
+            )
+            connection.iterable = iterable
+        return connection
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         patch_pagination_args(self)
@@ -95,32 +128,6 @@ class PrefetchingConnectionField(BaseDjangoConnectionField):
             info,
             **args,
         )
-
-    @classmethod
-    def resolve_connection(cls, connection, args, iterable):
-        if isinstance(iterable, list):
-            _len = len(iterable)
-            connection = connection_from_list_slice(
-                iterable,
-                args,
-                slice_start=0,
-                list_length=_len,
-                list_slice_length=_len,
-                connection_type=connection,
-                edge_type=connection.Edge,
-                pageinfo_type=PageInfo,
-            )
-            connection.iterable = iterable
-        else:
-            connection = connection_from_queryset_slice(
-                iterable,
-                args,
-                connection_type=connection,
-                edge_type=connection.Edge,
-                page_info_type=PageInfo,
-            )
-            connection.iterable = iterable
-        return connection
 
 
 class FilterInputConnectionField(PrefetchingConnectionField):
@@ -186,12 +193,6 @@ class FilterInputConnectionField(PrefetchingConnectionField):
         # but iterable might be promise
         iterable = queryset_resolver(connection, iterable, info, args)
 
-        sort_by = args.get("sort_by")
-        if sort_by:
-            iterable = sort_queryset(queryset=iterable, sort_by=sort_by)
-        else:
-            iterable, sort_by = sort_queryset_by_default(queryset=iterable)
-            args["sort_by"] = sort_by
         on_resolve = partial(cls.resolve_connection, connection, args)
 
         filter_input = args.get(filters_name)
