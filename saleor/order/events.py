@@ -8,7 +8,7 @@ from ..payment.models import Payment
 from . import OrderEvents, OrderEventsEmails
 from .models import OrderEvent
 
-UserType = User
+UserType = Optional[User]
 
 
 def _lines_per_quantity_to_line_object_list(quantities_per_order_line):
@@ -29,7 +29,7 @@ def _get_payment_data(amount: Optional[Decimal], payment: Payment) -> Dict:
 
 
 def _user_is_valid(user: UserType) -> bool:
-    return user and not user.is_anonymous
+    return bool(user and not user.is_anonymous)
 
 
 def email_sent_event(
@@ -102,7 +102,10 @@ def order_created_event(
         event_type = OrderEvents.PLACED_FROM_DRAFT
     else:
         event_type = OrderEvents.PLACED
-        account_events.customer_placed_order_event(user=user, order=order)
+        account_events.customer_placed_order_event(
+            user=user,  # type: ignore
+            order=order,
+        )
 
     if not _user_is_valid(user):
         user = None
