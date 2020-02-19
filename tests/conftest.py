@@ -1918,7 +1918,7 @@ def stock(variant, warehouse):
 
 @pytest.fixture
 def job(staff_user):
-    job = Job.objects.create(user=staff_user)
+    job = Job.objects.create(created_by=staff_user)
     return job
 
 
@@ -1928,18 +1928,21 @@ def job_list(staff_user):
     job_list = list(
         Job.objects.bulk_create(
             [
-                Job(user=staff_user, ended_at=date),
-                Job(user=staff_user, ended_at=date + datetime.timedelta(hours=2)),
+                Job(created_by=staff_user, completed_at=date),
                 Job(
-                    user=staff_user,
-                    status=JobStatus.SUCCESS,
-                    ended_at=date - datetime.timedelta(days=2),
+                    created_by=staff_user,
+                    completed_at=date + datetime.timedelta(hours=2),
                 ),
-                Job(user=staff_user, ended_at=date, status=JobStatus.SUCCESS),
                 Job(
-                    user=staff_user,
+                    created_by=staff_user,
+                    status=JobStatus.SUCCESS,
+                    completed_at=date - datetime.timedelta(days=2),
+                ),
+                Job(created_by=staff_user, completed_at=date, status=JobStatus.SUCCESS),
+                Job(
+                    created_by=staff_user,
                     status=JobStatus.FAILED,
-                    ended_at=date - datetime.timedelta(days=5),
+                    completed_at=date - datetime.timedelta(days=5),
                 ),
             ]
         )

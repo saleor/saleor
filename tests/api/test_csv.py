@@ -18,9 +18,9 @@ EXPORT_PRODUCTS_MUTATION = """
                 id
                 status
                 createdAt
-                endedAt
+                completedAt
                 url
-                user {
+                createdBy {
                     email
                 }
             }
@@ -68,7 +68,7 @@ def test_export_products_mutation(
     assert not data["csvErrors"]
     assert data["job"]["id"]
     assert job_data["createdAt"]
-    assert job_data["user"]["email"] == staff_api_client.user.email
+    assert job_data["createdBy"]["email"] == staff_api_client.user.email
 
 
 @patch("saleor.graphql.csv.mutations.export_products.delay")
@@ -102,7 +102,7 @@ def test_export_products_mutation_ids_scope(
     assert not data["csvErrors"]
     assert data["job"]["id"]
     assert job_data["createdAt"]
-    assert job_data["user"]["email"] == staff_api_client.user.email
+    assert job_data["createdBy"]["email"] == staff_api_client.user.email
 
 
 @pytest.mark.parametrize(
@@ -142,10 +142,10 @@ JOB_QUERY = """
         job(id: $jobId){
             id
             status
-            endedAt
+            completedAt
             createdAt
             url
-            user{
+            createdBy{
                 email
             }
         }
@@ -160,8 +160,10 @@ FILTER_JOBS_QUERY = """
                 node {
                     id
                     status
+                    completedAt
+                    createdAt
                     url
-                    user{
+                    createdBy{
                         email
                     }
                 }
@@ -178,8 +180,10 @@ SORT_JOBS_QUERY = """
                 node {
                     id
                     status
+                    completedAt
+                    createdAt
                     url
-                    user{
+                    createdBy{
                         email
                     }
                 }
@@ -201,9 +205,9 @@ def test_query_job(staff_api_client, job, permission_manage_products):
 
     assert data["status"] == JobStatus.PENDING.upper()
     assert data["createdAt"]
-    assert not data["endedAt"]
+    assert not data["completedAt"]
     assert not data["url"]
-    assert data["user"]["email"] == staff_api_client.user.email
+    assert data["createdBy"]["email"] == staff_api_client.user.email
 
 
 @pytest.mark.parametrize(
@@ -254,8 +258,8 @@ def test_filter_jobs_by_created_at_date(
 @pytest.mark.parametrize(
     "ended_at_filter, count",
     [
-        ({"endedAt": {"gte": "2019-04-18T00:00:00+00:00"}}, 3),
-        ({"endedAt": {"lte": "2019-04-18T00:00:00+00:00"}}, 2),
+        ({"completedAt": {"gte": "2019-04-18T00:00:00+00:00"}}, 3),
+        ({"completedAt": {"lte": "2019-04-18T00:00:00+00:00"}}, 2),
     ],
 )
 def test_filter_jobs_by_ended_at_date(
@@ -283,11 +287,11 @@ def test_filter_jobs_by_user(
         is_active=True,
     )
 
-    job_list[1].user = second_staff_user
+    job_list[1].created_by = second_staff_user
     job_list[1].save()
 
     query = FILTER_JOBS_QUERY
-    variables = {"filter": {"user": staff_user.email}}
+    variables = {"filter": {"createdBy": staff_user.email}}
 
     response = staff_api_client.post_graphql(
         query, variables=variables, permissions=[permission_manage_products]
@@ -308,9 +312,9 @@ def test_sort_jobs_query_by_user(
         is_active=True,
     )
 
-    Job.objects.create(user=second_staff_user)
+    Job.objects.create(created_by=second_staff_user)
     query = SORT_JOBS_QUERY
-    variables = {"sortBy": {"field": "USER", "direction": "DESC"}}
+    variables = {"sortBy": {"field": "CREATED_BY", "direction": "DESC"}}
 
     response = staff_api_client.post_graphql(
         query,
@@ -321,13 +325,13 @@ def test_sort_jobs_query_by_user(
     nodes = content["data"]["jobs"]["edges"]
 
     assert len(nodes) == 2
-    assert nodes[0]["node"]["user"]["email"] == second_staff_user.email
+    assert nodes[0]["node"]["createdBy"]["email"] == second_staff_user.email
 
 
 def test_sort_jobs_query_by_created_at_date(
     staff_api_client, job, permission_manage_products, staff_user
 ):
-    second_job = Job.objects.create(user=staff_user)
+    second_job = Job.objects.create(created_by=staff_user)
     second_job.created_at = job.created_at - datetime.timedelta(minutes=10)
     second_job.save()
 
@@ -347,17 +351,17 @@ def test_sort_jobs_query_by_created_at_date(
 def test_sort_jobs_query_by_ended_at_date(
     staff_api_client, job, permission_manage_products, staff_user
 ):
-    job.ended_at = datetime.datetime(
+    job.completed_at = datetime.datetime(
         2010, 2, 19, tzinfo=timezone.get_current_timezone()
     )
     job.save()
 
-    second_job = Job.objects.create(user=staff_user)
-    second_job.ended_at = job.ended_at + datetime.timedelta(minutes=10)
+    second_job = Job.objects.create(created_by=staff_user)
+    second_job.completed_at = job.completed_at + datetime.timedelta(minutes=10)
     second_job.save()
 
     query = SORT_JOBS_QUERY
-    variables = {"sortBy": {"field": "ENDED_AT", "direction": "ASC"}}
+    variables = {"sortBy": {"field": "COMPLETED_AT", "direction": "ASC"}}
 
     response = staff_api_client.post_graphql(
         query, variables=variables, permissions=[permission_manage_products]

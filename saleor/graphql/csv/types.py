@@ -18,22 +18,29 @@ class Job(CountableDjangoObjectType):
         description = "Represents job data"
         interfaces = [relay.Node]
         model = models.Job
-        only_fields = ["id", "created_at", "ended_at", "status", "url", "user"]
+        only_fields = [
+            "id",
+            "created_at",
+            "completed_at",
+            "status",
+            "url",
+            "created_by",
+        ]
 
     @staticmethod
-    def resolve_url(root: models.Job, _info):
+    def resolve_url(root: models.Job, info):
         content_file = root.content_file
         if not content_file:
             return None
-        return _info.context.build_absolute_uri(content_file.url)
+        return info.context.build_absolute_uri(content_file.url)
 
     @staticmethod
     def resolve_status(root: models.Job, _info):
         return root.status
 
     @staticmethod
-    def resolve_user(root: models.Job, info):
+    def resolve_created_by(root: models.Job, info):
         user = info.context.user
-        if user == root.user or user.has_perm(AccountPermissions.MANAGE_USERS):
-            return root.user
+        if user == root.created_by or user.has_perm(AccountPermissions.MANAGE_USERS):
+            return root.created_by
         raise PermissionDenied()

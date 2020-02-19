@@ -57,9 +57,6 @@ class ProductExportFields:
     }
 
 
-MEDIA_URL = settings.MEDIA_URL
-
-
 def on_task_failure(self, exc, task_id, args, kwargs, einfo):
     job_id = args[0]
     update_job_when_task_finished(job_id, JobStatus.FAILED)
@@ -73,8 +70,8 @@ def on_task_success(self, retval, task_id, args, kwargs):
 def update_job_when_task_finished(job_id: int, status: JobStatus):
     job = Job.objects.get(pk=job_id)
     job.status = status  # type: ignore
-    job.ended_at = timezone.now()
-    job.save(update_fields=["status", "ended_at"])
+    job.completed_at = timezone.now()
+    job.save(update_fields=["status", "completed_at"])
 
 
 @app.task(on_success=on_task_success, on_failure=on_task_failure)
@@ -283,7 +280,7 @@ def add_image_uris_to_data(
 ) -> Dict[int, dict]:
     if image:
         header = "images"
-        uri = build_absolute_uri(os.path.join(MEDIA_URL, image))
+        uri = build_absolute_uri(os.path.join(settings.MEDIA_URL, image))
         if header in result_data[pk]:
             result_data[pk][header].add(uri)
         else:

@@ -30,7 +30,7 @@ class ExportProductsInput(graphene.InputObjectType):
 
 class ExportProducts(BaseMutation):
     job = graphene.Field(
-        Job, description="Tne newly created job which is responsible for export data."
+        Job, description="The newly created job which is responsible for export data."
     )
 
     class Arguments:
@@ -48,7 +48,7 @@ class ExportProducts(BaseMutation):
     def perform_mutation(cls, root, info, **data):
         user = info.context.user
         scope = cls.get_products_scope(info, data["input"])
-        job = csv_models.Job.objects.create(user=user)
+        job = csv_models.Job.objects.create(created_by=user)
         export_products.delay(job.pk, scope)
         job.refresh_from_db()
         return cls(job=job)
@@ -57,28 +57,36 @@ class ExportProducts(BaseMutation):
     def get_products_scope(cls, info, input):
         scope = input["scope"]
         if scope == ExportScope.IDS.value:
-            ids = input.get("ids", [])
-            if not ids:
-                raise ValidationError(
-                    {
-                        "ids": ValidationError(
-                            "You must provide at least one product id.",
-                            code=CsvErrorCode.REQUIRED.value,
-                        )
-                    }
-                )
-            _, pks = _resolve_nodes(ids, graphene_type=Product)
-            return {"ids": pks}
+            return cls.clean_ids(input)
         elif scope == ExportScope.FILTER.value:
-            filter = input.get("filter")
-            if not filter:
-                raise ValidationError(
-                    {
-                        "filter": ValidationError(
-                            "You must provide filter input.",
-                            code=CsvErrorCode.REQUIRED.value,
-                        )
-                    }
-                )
-            return {"filter": filter}
+            return cls.clean_filter(input)
         return {"all": ""}
+
+    @staticmethod
+    def clean_ids(input):
+        ids = input.get("ids", [])
+        if not ids:
+            raise ValidationError(
+                {
+                    "ids": ValidationError(
+                        "You must provide at least one product id.",
+                        code=CsvErrorCode.REQUIRED.value,
+                    )
+                }
+            )
+        _, pks = _resolve_nodes(ids, graphene_type=Product)
+        return {"ids": pks}
+
+    @staticmethod
+    def clean_filter(input):
+        filter = input.get("filter")
+        if not filter:
+            raise ValidationError(
+                {
+                    "filter": ValidationError(
+                        "You must provide filter input.",
+                        code=CsvErrorCode.REQUIRED.value,
+                    )
+                }
+            )
+        return {"filter": filter}
