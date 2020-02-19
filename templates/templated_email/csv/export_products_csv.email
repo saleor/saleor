@@ -8,7 +8,7 @@
 {% include 'templated_email/shared/_header.email' %}
 
 {% blocktrans context "Export products e-mail text" %}
-Your csv file with products data is ready to download: {{ csv_link }}
+Your CSV file with products data is ready to download: {{ csv_link }}
 {% endblocktrans %}
 
 {% include 'templated_email/shared/_footer.email' %}
