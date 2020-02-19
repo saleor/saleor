@@ -195,7 +195,8 @@ def test_wishlist_get_items_from_anonymous_user(api_client):
     }
     """
     response = api_client.post_graphql(query)
-    assert_no_permission(response)
+    content = get_graphql_content(response)
+    assert content["data"]["me"] is None
 
 
 def test_wishlist_get_items_from_logged_user(user_api_client, customer_wishlist_item):
