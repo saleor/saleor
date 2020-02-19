@@ -40,14 +40,14 @@ def test_on_task_failure(job):
 
     assert job.status == JobStatus.PENDING
     assert job.created_at
-    assert not job.ended_at
+    assert not job.completed_at
 
     on_task_failure(None, exc, task_id, args, kwargs, einfo)
 
     job.refresh_from_db()
     assert job.status == JobStatus.FAILED
     assert job.created_at
-    assert job.ended_at
+    assert job.completed_at
 
 
 def test_on_task_success(job):
@@ -57,23 +57,23 @@ def test_on_task_success(job):
 
     assert job.status == JobStatus.PENDING
     assert job.created_at
-    assert not job.ended_at
+    assert not job.completed_at
 
     on_task_success(None, None, task_id, args, kwargs)
 
     job.refresh_from_db()
     assert job.status == JobStatus.SUCCESS
     assert job.created_at
-    assert job.ended_at
+    assert job.completed_at
 
 
 def test_update_job_when_task_finished(job):
     with freeze_time(datetime.datetime.now()) as frozen_datetime:
-        assert not job.ended_at
+        assert not job.completed_at
         update_job_when_task_finished(job.pk, JobStatus.FAILED)
 
         job.refresh_from_db()
-        assert job.ended_at == pytz.utc.localize(frozen_datetime())
+        assert job.completed_at == pytz.utc.localize(frozen_datetime())
 
 
 @pytest.mark.parametrize("scope", [{"filter": {"is_published": True}}, {"all": ""}])
@@ -96,7 +96,7 @@ def test_export_products_ids(
     pks = [product.pk for product in product_list[:2]]
 
     assert job.status == JobStatus.PENDING
-    assert not job.ended_at
+    assert not job.completed_at
     assert not job.content_file
 
     export_products(job.id, {"ids": pks})

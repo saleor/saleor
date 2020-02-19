@@ -1840,9 +1840,9 @@ scalar JSONString
 type Job implements Node {
   id: ID!
   status: JobStatusEnum
-  user: User!
+  createdBy: User!
   createdAt: DateTime!
-  endedAt: DateTime
+  completedAt: DateTime
   url: String
 }
 
@@ -1859,16 +1859,16 @@ type JobCountableEdge {
 
 input JobFilterInput {
   createdAt: DateTimeRangeInput
-  endedAt: DateTimeRangeInput
+  completedAt: DateTimeRangeInput
   status: JobStatusEnum
-  user: String
+  createdBy: String
 }
 
 enum JobSortField {
   STATUS
-  USER
+  CREATED_BY
   CREATED_AT
-  ENDED_AT
+  COMPLETED_AT
 }
 
 input JobSortingInput {

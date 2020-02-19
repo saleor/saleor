@@ -11,8 +11,8 @@ def filter_created_at(qs, _, value):
     return filter_range_field(qs, "created_at", value)
 
 
-def filter_ended_at(qs, _, value):
-    return filter_range_field(qs, "ended_at", value)
+def filter_completed_at(qs, _, value):
+    return filter_range_field(qs, "completed_at", value)
 
 
 def filter_status(qs, _, value):
@@ -21,12 +21,12 @@ def filter_status(qs, _, value):
     return qs.filter(status=value)
 
 
-def filter_user(qs, _, value):
+def filter_created_by(qs, _, value):
     user_fields = [
-        "user__pk",
-        "user__first_name",
-        "user__last_name",
-        "user__email",
+        "created_by__pk",
+        "created_by__first_name",
+        "created_by__last_name",
+        "created_by__email",
     ]
     qs = filter_by_query_param(qs, value, user_fields)
     return qs
@@ -36,9 +36,11 @@ class JobFilter(django_filters.FilterSet):
     created_at = ObjectTypeFilter(
         input_class=DateTimeRangeInput, method=filter_created_at
     )
-    ended_at = ObjectTypeFilter(input_class=DateTimeRangeInput, method=filter_ended_at)
+    completed_at = ObjectTypeFilter(
+        input_class=DateTimeRangeInput, method=filter_completed_at
+    )
     status = EnumFilter(input_class=JobStatusEnum, method=filter_status)
-    user = django_filters.CharFilter(method=filter_user)
+    created_by = django_filters.CharFilter(method=filter_created_by)
 
 
 class JobFilterInput(FilterInputObjectType):
