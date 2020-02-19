@@ -1,4 +1,4 @@
-from typing import List, Tuple, Union
+from typing import Tuple, Union
 
 import graphene
 from django.db.models import Q, QuerySet
