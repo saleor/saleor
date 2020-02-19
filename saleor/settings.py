@@ -347,9 +347,7 @@ DEFAULT_MAX_EMAIL_DISPLAY_NAME_LENGTH = 78
 # note: having multiple currencies is not supported yet
 AVAILABLE_CURRENCIES = [DEFAULT_CURRENCY]
 
-COUNTRIES_OVERRIDE = {
-    "EU": "European Union",
-}
+COUNTRIES_OVERRIDE = {"EU": "European Union"}
 
 OPENEXCHANGERATES_API_KEY = os.environ.get("OPENEXCHANGERATES_API_KEY")
 
@@ -391,6 +389,8 @@ LOW_STOCK_THRESHOLD = 10
 MAX_CHECKOUT_LINE_QUANTITY = int(os.environ.get("MAX_CHECKOUT_LINE_QUANTITY", 50))
 
 TEST_RUNNER = "tests.runner.PytestTestRunner"
+
+PLAYGROUND_ENABLED = get_bool_from_env("PLAYGROUND_ENABLED", True)
 
 ALLOWED_HOSTS = get_list(os.environ.get("ALLOWED_HOSTS", "localhost,127.0.0.1"))
 ALLOWED_GRAPHQL_ORIGINS = os.environ.get("ALLOWED_GRAPHQL_ORIGINS", "*")

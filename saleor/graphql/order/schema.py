@@ -1,5 +1,4 @@
 import graphene
-from graphql_jwt.decorators import login_required
 
 from ...core.permissions import OrderPermissions
 from ..core.enums import ReportingPeriod
@@ -130,7 +129,7 @@ class OrderQueries(graphene.ObjectType):
     def resolve_homepage_events(self, *_args, **_kwargs):
         return resolve_homepage_events()
 
-    @login_required
+    @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_order(self, info, **data):
         return resolve_order(info, data.get("id"))
 
