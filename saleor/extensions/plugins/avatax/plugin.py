@@ -383,7 +383,7 @@ class AvataxPlugin(BasePlugin):
             return
 
         tax_description = codes[tax_code]
-        tax_item = {META_CODE_KEY: tax_code, META_CODE_KEY: tax_description}
+        tax_item = {META_CODE_KEY: tax_code, META_DESCRIPTION_KEY: tax_description}
         obj.store_meta(items=tax_item)
         obj.save()
 
