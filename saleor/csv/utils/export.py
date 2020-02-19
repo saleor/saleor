@@ -96,11 +96,13 @@ def export_products(
     send_email_with_link_to_download_csv(job, "export_products")
 
 
-def get_filename(model_name: str):
+def get_filename(model_name: str) -> str:
     return "{}_data_{}.csv".format(model_name, timezone.now().strftime("%d_%m_%Y"))
 
 
 def get_product_queryset(scope: Dict[str, Union[str, dict]]) -> "QuerySet":
+    """Get product queryset based on a scope."""
+
     from ...graphql.product.filters import ProductFilter
 
     queryset = Product.objects.all()
@@ -119,6 +121,12 @@ def get_product_queryset(scope: Dict[str, Union[str, dict]]) -> "QuerySet":
 def prepare_products_data(
     queryset: "QuerySet", headers_mapping: Dict[str, Dict[str, str]]
 ) -> Tuple[List[Dict[str, Union[str, bool]]], List[str]]:
+    """Create data list of products and their variants with fields values.
+
+    It return list with product and variant data which can be used as import to
+    csv writer and list of attribute and warehouse headers.
+    """
+
     variants_attributes_fields: Set[str] = set()
     warehouse_fields: Set[str] = set()
 
@@ -143,18 +151,24 @@ def prepare_products_data(
         variants_attributes_fields.update(headers[0])
         warehouse_fields.update(headers[1])
 
-    attributes_and_warehouse_headers: list = (
+    attribute_and_warehouse_headers: list = (
         sorted(products_attributes_fields)
         + sorted(variants_attributes_fields)
         + sorted(warehouse_fields)
     )
 
-    return products_with_variants_data, attributes_and_warehouse_headers
+    return products_with_variants_data, attribute_and_warehouse_headers
 
 
 def prepare_product_relations_data(
     queryset: "QuerySet",
 ) -> Tuple[Dict[int, Dict[str, str]], set]:
+    """Prepare data about products relation fields for given queryset.
+
+    It return dict where key is a product pk, value is a dict with relation fields data.
+    It also returns set with attribute headers.
+    """
+
     product_fields = ProductExportFields.PRODUCT_RELATION_FIELDS + ["pk"]
     relations_data = queryset.annotate(
         attribute_value=F("attributes__values__slug"),
@@ -192,6 +206,14 @@ def prepare_product_relations_data(
 def add_collection_info_to_data(
     pk: int, collection: str, result_data: Dict[int, dict]
 ) -> Dict[int, dict]:
+    """Add collection info to product data.
+
+    This functions adds info about collection to dict with product data.
+    If some collection info already exists in data, collection slug is added
+    to set with other values.
+    It returns updated product data.
+    """
+
     if collection:
         header = "collections"
         if header in result_data[pk]:
@@ -201,7 +223,13 @@ def add_collection_info_to_data(
     return result_data
 
 
-def prepare_variants_data(pk: int):
+def prepare_variants_data(pk: int) -> Tuple[List[dict], set, set]:
+    """Prepare variants data for product with given pk.
+
+    This function gets product pk and prepared data about product's variants.
+    Returned data contains info about variant fields and relations.
+    It also return sets with variant attributes and warehouse headers.
+    """
     variants = ProductVariant.objects.filter(product__pk=pk).prefetch_related(
         "images", "attributes"
     )
@@ -239,6 +267,12 @@ def prepare_variants_data(pk: int):
 def update_variant_data(
     variants_data: List[Dict[str, Union[str, int]]]
 ) -> Tuple[Dict[int, dict], set, set]:
+    """Update variant data with info about relations fields.
+
+    This function gets dict with variants data and updated it with info
+    about relations fields.
+    It return dict with updated info and sets of attributes and warehouse headers.
+    """
     variant_attributes_headers = set()
     warehouse_headers = set()
     result_data: Dict[int, dict] = defaultdict(dict)
@@ -278,6 +312,12 @@ def update_variant_data(
 def add_image_uris_to_data(
     pk: int, image: str, result_data: Dict[int, dict]
 ) -> Dict[int, dict]:
+    """Add absolute uri of given image path to product or variant data.
+
+    This function based on given image path creates absolute uri and adds it to dict
+    with variant or product data. If some info about images already exists in data,
+    absolute uri of given image is added to set with other uris.
+    """
     if image:
         header = "images"
         uri = build_absolute_uri(os.path.join(settings.MEDIA_URL, image))
@@ -291,6 +331,13 @@ def add_image_uris_to_data(
 def add_attribute_info_to_data(
     pk: int, attribute_data: Dict[str, Union[str, int]], result_data: Dict[int, dict],
 ) -> Tuple[Dict[int, dict], Optional[str]]:
+    """Add info about attribute to variant or product data.
+
+    This functions adds info about attribute to dict with variant or product data.
+    If attribute with given slug already exists in data, attribute value is added
+    to set with values.
+    It returns updated data and attribute header created based on attribute slug.
+    """
     slug = attribute_data["slug"]
     header = None
     if slug:
@@ -305,6 +352,13 @@ def add_attribute_info_to_data(
 def add_warehouse_info_to_data(
     pk: int, warehouse_data: Dict[str, Union[str, int]], result_data: Dict[int, dict],
 ) -> Tuple[Dict[int, dict], set]:
+    """Add info about stock quantity to variant data.
+
+    This functions adds info about stock quantity and quantity allocated to dict
+    with variant data. It returns updated data and warehouse header created based on
+    warehouse slug.
+    """
+
     slug = warehouse_data["slug"]
     warehouse_headers: Set[str] = set()
     if slug:
