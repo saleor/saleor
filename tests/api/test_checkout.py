@@ -1,5 +1,5 @@
-from decimal import Decimal
 import uuid
+from decimal import Decimal
 from unittest import mock
 from unittest.mock import ANY, patch
 
@@ -1623,8 +1623,8 @@ def test_anonymous_client_cant_fetch_checkout_user(api_client, checkout):
     assert_no_permission(response)
 
 
-def test_authorized_access_to_checkout_user(
-    staff_api_client, user_api_client, checkout, customer_user, permission_manage_users
+def test_authorized_access_to_checkout_user_as_customer(
+    user_api_client, checkout, customer_user,
 ):
     query = """
     query getCheckout($token: UUID!) {
@@ -1645,23 +1645,182 @@ def test_authorized_access_to_checkout_user(
     content = get_graphql_content(response)
     assert content["data"]["checkout"]["user"]["id"] == customer_user_id
 
+
+def test_authorized_access_to_checkout_user_as_staff(
+    staff_api_client,
+    checkout,
+    customer_user,
+    permission_manage_users,
+    permission_manage_checkouts,
+):
+    query = """
+    query getCheckout($token: UUID!) {
+        checkout(token: $token) {
+           user {
+               id
+           }
+        }
+    }
+    """
+    checkout.user = customer_user
+    checkout.save()
+
+    variables = {"token": str(checkout.token)}
+    customer_user_id = graphene.Node.to_global_id("User", customer_user.id)
+
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_users]
+        query,
+        variables,
+        permissions=[permission_manage_users, permission_manage_checkouts],
+        check_no_permissions=False,
     )
     content = get_graphql_content(response)
     assert content["data"]["checkout"]["user"]["id"] == customer_user_id
 
 
-def test_fetch_checkout_invalid_token(user_api_client):
+def test_authorized_access_to_checkout_user_as_staff_no_permission(
+    staff_api_client, checkout, customer_user, permission_manage_checkouts,
+):
     query = """
-        query getCheckout($token: UUID!) {
-            checkout(token: $token) {
-                token
-            }
+    query getCheckout($token: UUID!) {
+        checkout(token: $token) {
+           user {
+               id
+           }
         }
+    }
     """
+    checkout.user = customer_user
+    checkout.save()
+
+    variables = {"token": str(checkout.token)}
+
+    response = staff_api_client.post_graphql(
+        query,
+        variables,
+        permissions=[permission_manage_checkouts],
+        check_no_permissions=False,
+    )
+    assert_no_permission(response)
+
+
+QUERY_CHECKOUT = """
+query getCheckout($token: UUID!) {
+    checkout(token: $token) {
+        token
+    }
+}
+"""
+
+
+def test_query_anonymous_customer_checkout_as_anonymous_customer(api_client, checkout):
+    variables = {"token": str(checkout.token)}
+    response = api_client.post_graphql(QUERY_CHECKOUT, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["token"] == str(checkout.token)
+
+
+def test_query_anonymous_customer_checkout_as_customer(user_api_client, checkout):
+    variables = {"token": str(checkout.token)}
+    response = user_api_client.post_graphql(QUERY_CHECKOUT, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["token"] == str(checkout.token)
+
+
+def test_query_anonymous_customer_checkout_as_staff_user(
+    staff_api_client, checkout, permission_manage_checkouts
+):
+    variables = {"token": str(checkout.token)}
+    response = staff_api_client.post_graphql(
+        QUERY_CHECKOUT,
+        variables,
+        permissions=[permission_manage_checkouts],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["token"] == str(checkout.token)
+
+
+def test_query_anonymous_customer_checkout_as_service_account(
+    service_account_api_client, checkout, permission_manage_checkouts
+):
+    variables = {"token": str(checkout.token)}
+    response = service_account_api_client.post_graphql(
+        QUERY_CHECKOUT,
+        variables,
+        permissions=[permission_manage_checkouts],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["token"] == str(checkout.token)
+
+
+def test_query_customer_checkout_as_anonymous_customer(
+    api_client, checkout, customer_user
+):
+    checkout.user = customer_user
+    checkout.save(update_fields=["user"])
+    variables = {"token": str(checkout.token)}
+    response = api_client.post_graphql(QUERY_CHECKOUT, variables)
+    content = get_graphql_content(response)
+    assert not content["data"]["checkout"]
+
+
+def test_query_customer_checkout_as_customer(user_api_client, checkout, customer_user):
+    checkout.user = customer_user
+    checkout.save(update_fields=["user"])
+    variables = {"token": str(checkout.token)}
+    response = user_api_client.post_graphql(QUERY_CHECKOUT, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["token"] == str(checkout.token)
+
+
+def test_query_other_customer_checkout_as_customer(
+    user_api_client, checkout, staff_user
+):
+    checkout.user = staff_user
+    checkout.save(update_fields=["user"])
+    variables = {"token": str(checkout.token)}
+    response = user_api_client.post_graphql(QUERY_CHECKOUT, variables)
+    content = get_graphql_content(response)
+    assert not content["data"]["checkout"]
+
+
+def test_query_customer_checkout_as_staff_user(
+    service_account_api_client, checkout, customer_user, permission_manage_checkouts
+):
+    checkout.user = customer_user
+    checkout.save(update_fields=["user"])
+    variables = {"token": str(checkout.token)}
+    response = service_account_api_client.post_graphql(
+        QUERY_CHECKOUT,
+        variables,
+        permissions=[permission_manage_checkouts],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["token"] == str(checkout.token)
+
+
+def test_query_customer_checkout_as_service_account(
+    staff_api_client, checkout, customer_user, permission_manage_checkouts
+):
+    checkout.user = customer_user
+    checkout.save(update_fields=["user"])
+    variables = {"token": str(checkout.token)}
+    response = staff_api_client.post_graphql(
+        QUERY_CHECKOUT,
+        variables,
+        permissions=[permission_manage_checkouts],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["checkout"]["token"] == str(checkout.token)
+
+
+def test_fetch_checkout_invalid_token(user_api_client):
     variables = {"token": str(uuid.uuid4())}
-    response = user_api_client.post_graphql(query, variables)
+    response = user_api_client.post_graphql(QUERY_CHECKOUT, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkout"]
     assert data is None

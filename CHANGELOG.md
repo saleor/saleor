@@ -68,6 +68,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added `PLAYGROUND_ENABLED` environment variable/setting to allow to enable the GraphQL playground when `DEBUG` is disabled - #5254 by @NyanKiyoshi
 - Fix access to order query when request from service account - #5258 by @fowczarek
 - Customer shouldn't be able to see draft orders by token  - #5259 by @fowczarek
+- Customer shouldn't be able to query checkout with another customer - #5268 by @fowczarek
 - Add products csv export - #5255 by @IKarbowiak
 
 ## 2.9.0
