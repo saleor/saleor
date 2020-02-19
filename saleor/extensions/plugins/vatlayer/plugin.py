@@ -253,7 +253,7 @@ class VatlayerPlugin(BasePlugin):
         if tax_code not in dict(TaxRateType.CHOICES):
             return previous_value
 
-        tax_item = {META_CODE_KEY: tax_code, META_DESCRIPTION_KEY: tax_description}
+        tax_item = {self.META_CODE_KEY: tax_code, self.META_DESCRIPTION_KEY: tax_code}
         obj.store_meta(items=tax_item)
         obj.save()
         return previous_value
