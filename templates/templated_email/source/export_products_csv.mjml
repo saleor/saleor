@@ -14,7 +14,7 @@
         </mj-text>
         <mj-text>
         {% blocktrans context "Export products e-mail text" %}
-            Your csv file with products data is ready to download: <a href="{{ csv_link }}">{{ csv_link }}</a>
+            Your CSV file with products data is ready to download: <a href="{{ csv_link }}">{{ csv_link }}</a>
         {% endblocktrans %}
         </mj-text>
       </mj-column>
