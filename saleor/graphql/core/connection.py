@@ -2,7 +2,7 @@ import typing
 
 import graphene
 import opentracing as ot
-from django.db.models import Q, QuerySet, Manager
+from django.db.models import Model as DjangoModel, Q, QuerySet, Manager
 from graphene import Field, List, NonNull, ObjectType, String
 from graphene.relay.connection import Connection
 from graphene_django_optimizer.types import OptimizedDjangoObjectType
@@ -30,32 +30,25 @@ def from_global_cursor(cursor) -> typing.List[str]:
     return [values]
 
 
-def get_repr(value):
-    if callable(value):
-        return "%s" % value()
-    return value
-
-
-def get_field(instance, field):
-    """Get field for foreign key field"""
-
-    field_path = field.split("__")
+def get_field_value(instance: DjangoModel, field_name: str):
+    """Get field value for given field in filter format 'field__foreign_key_field'
+    """
+    field_path = field_name.split("__")
     attr = instance
     for elem in field_path:
         try:
             attr = getattr(attr, elem)
         except AttributeError:
             return None
+
+    if callable(attr):
+        return "%s" % attr()
     return attr
 
 
-def get_field_value(instance, field_name):
-    """Get field value for given field in filter format 'field__foreign_key_field'
-    """
-    return get_repr(get_field(instance, field_name))
-
-
-def prepare_filter(cursor, sorting_fields, sorting_direction):
+def prepare_filter(
+    cursor: typing.List, sorting_fields: typing.List, sorting_direction: str
+) -> Q:
     """Create filter arguments based on sorting fields.
 
     :param cursor: list of values that are passed from page_info, used for filtering.
@@ -121,7 +114,7 @@ def connection_from_queryset_slice(
     if sorting_fields and not isinstance(sorting_fields, list):
         sorting_fields = [sorting_fields]
     elif not sorting_fields:
-        raise ValueError('Error while preparing cursor values.')
+        raise ValueError("Error while preparing cursor values.")
 
     requested_count = first or last
     end_margin = requested_count + 1 if requested_count else None
