@@ -770,7 +770,7 @@ def product_with_default_variant(product_type_without_variant, category, warehou
 
 
 @pytest.fixture
-def variant(product):
+def variant(product) -> ProductVariant:
     product_variant = ProductVariant.objects.create(
         product=product, sku="SKU_A", cost_price=Money(1, "USD")
     )
