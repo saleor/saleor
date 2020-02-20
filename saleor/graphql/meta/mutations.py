@@ -86,7 +86,7 @@ class BaseMetadataMutation(BaseMutation):
         return cls(**{"item": instance, "errors": []})
 
 
-class MetadataItemInput(graphene.InputObjectType):
+class MetadataInput(graphene.InputObjectType):
     key = graphene.String(required=True, description="Key of a metadata item.")
     value = graphene.String(required=True, description="Value of a metadata item.")
 
@@ -100,7 +100,7 @@ class UpdateMetadata(BaseMetadataMutation):
 
     class Arguments:
         id = graphene.ID(description="ID of an object to update.", required=True)
-        input = MetadataItemInput(
+        input = MetadataInput(
             description="Fields required to update the object's metadata.",
             required=True,
         )
@@ -146,10 +146,8 @@ class UpdatePrivateMetadata(BaseMetadataMutation):
 
     class Arguments:
         id = graphene.ID(description="ID of an object to update.", required=True)
-        input = MetadataItemInput(
-            description=(
-                "Fields required to update the object's metadata."
-            ),
+        input = MetadataInput(
+            description=("Fields required to update the object's metadata."),
             required=True,
         )
 

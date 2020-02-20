@@ -2119,12 +2119,12 @@ enum MetadataErrorCode {
   NOT_FOUND
 }
 
-type MetadataItem {
+input MetadataInput {
   key: String!
   value: String!
 }
 
-input MetadataItemInput {
+type MetadataItem {
   key: String!
   value: String!
 }
@@ -2302,8 +2302,8 @@ type Mutation {
   orderBulkCancel(ids: [ID]!, restock: Boolean!): OrderBulkCancel
   deleteMetadata(id: ID!, key: String!): DeleteMetadata
   deletePrivateMetadata(id: ID!, key: String!): DeletePrivateMetadata
-  updateMetadata(id: ID!, input: MetadataItemInput!): UpdateMetadata
-  updatePrivateMetadata(id: ID!, input: MetadataItemInput!): UpdatePrivateMetadata
+  updateMetadata(id: ID!, input: MetadataInput!): UpdateMetadata
+  updatePrivateMetadata(id: ID!, input: MetadataInput!): UpdatePrivateMetadata
   assignNavigation(menu: ID, navigationType: NavigationType!): AssignNavigation
   menuCreate(input: MenuCreateInput!): MenuCreate
   menuDelete(id: ID!): MenuDelete
