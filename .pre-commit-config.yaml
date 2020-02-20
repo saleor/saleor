@@ -9,8 +9,11 @@ repos:
     rev: v2.2.3
     hooks:
       - id: trailing-whitespace
+        exclude: ^templates/templated_email/compiled/
       - id: end-of-file-fixer
+        exclude: ^templates/templated_email/compiled/
       - id: flake8
+        exclude: ^templates/templated_email/compiled/
 
   - repo: https://github.com/asottile/seed-isort-config
     rev: v1.9.2
