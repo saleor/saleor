@@ -14,7 +14,7 @@ PUBLIC_VALUE = "value"
 
 
 UPDATE_PUBLIC_METADATA_MUTATION = """
-mutation UpdatePublicMetadata($id: ID!, $input: MetadataItemInput!) {
+mutation UpdatePublicMetadata($id: ID!, $input: MetadataInput!) {
     updateMetadata(
         id: $id
         input: $input
@@ -892,7 +892,7 @@ def test_delete_public_metadata_for_one_key(api_client, checkout):
 
 
 UPDATE_PRIVATE_METADATA_MUTATION = """
-mutation UpdatePrivateMetadata($id: ID!, $input: MetadataItemInput!) {
+mutation UpdatePrivateMetadata($id: ID!, $input: MetadataInput!) {
     updatePrivateMetadata(
         id: $id
         input: $input
