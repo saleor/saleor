@@ -579,7 +579,7 @@ if (
 if "JAEGER_AGENT_HOST" in os.environ:
     jaeger_client.Config(
         config={
-            "sampler": {"type": "const", "param": 1,},
+            "sampler": {"type": "const", "param": 1},
             "local_agent": {
                 "reporting_port": os.environ.get(
                     "JAEGER_AGENT_PORT", jaeger_client.config.DEFAULT_REPORTING_PORT

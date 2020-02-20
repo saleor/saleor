@@ -69,6 +69,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix access to order query when request from service account - #5258 by @fowczarek
 - Customer shouldn't be able to see draft orders by token - #5259 by @fowczarek
 - Customer shouldn't be able to query checkout with another customer - #5268 by @fowczarek
+- Added integration support of Jaeger Tracing - #5282 by @NyanKiyoshi
 
 ## 2.9.0
 
