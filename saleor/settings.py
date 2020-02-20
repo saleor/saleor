@@ -10,6 +10,9 @@ from django.core.exceptions import ImproperlyConfigured
 from django_prices.utils.formatting import get_currency_fraction
 from sentry_sdk.integrations.django import DjangoIntegration
 
+import jaeger_client
+import jaeger_client.config
+
 
 def get_list(text):
     return [item.strip() for item in text.split(",")]
@@ -565,3 +568,26 @@ if (
         "Make sure you've added storefront address to ALLOWED_CLIENT_HOSTS "
         "if ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL is enabled."
     )
+
+# Initialize a simple and basic Jaeger Tracing integration
+# for open-tracing if enabled.
+#
+# Refer to https://www.jaegertracing.io/docs/1.16/getting-started/ on how to install.
+#
+# If running locally, set:
+#   JAEGER_AGENT_HOST=localhost
+if "JAEGER_AGENT_HOST" in os.environ:
+    jaeger_client.Config(
+        config={
+            "sampler": {"type": "const", "param": 1},
+            "local_agent": {
+                "reporting_port": os.environ.get(
+                    "JAEGER_AGENT_PORT", jaeger_client.config.DEFAULT_REPORTING_PORT
+                ),
+                "reporting_host": os.environ.get("JAEGER_AGENT_HOST"),
+            },
+            "logging": get_bool_from_env("JAEGER_LOGGING", False),
+        },
+        service_name="saleor",
+        validate=True,
+    ).initialize_tracer()
