@@ -483,6 +483,13 @@ CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_RESULT_BACKEND = os.environ.get("CELERY_RESULT_BACKEND", None)
 
+# Change this value if your application is running behind a proxy,
+# e.g. HTTP_CF_Connecting_IP for Cloudflare or X_FORWARDED_FOR
+REAL_IP_ENVIRON = os.environ.get("REAL_IP_ENVIRON", "REMOTE_ADDR")
+
+# The maximum length of a graphql query to log in tracings
+OPENTRACING_MAX_QUERY_LENGTH_LOG = 2000
+
 # Rich-text editor
 ALLOWED_TAGS = [
     "a",
