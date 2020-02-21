@@ -1343,12 +1343,9 @@ class ProductTypeCreate(ModelMutation):
         # FIXME  tax_rate logic should be dropped after we remove tax_rate from input
         tax_rate = cleaned_input.pop("tax_rate", "")
         if tax_rate:
-            if "taxes" not in instance.meta:
-                instance.meta["taxes"] = {}
-            instance.meta["taxes"]["vatlayer"] = {
-                "code": tax_rate,
-                "description": tax_rate,
-            }
+            instance.store_value_in_metadata(
+                {"vatlayer.code": tax_rate, "description": tax_rate}
+            )
             info.context.extensions.assign_tax_code_to_object_meta(instance, tax_rate)
 
         tax_code = cleaned_input.pop("tax_code", "")

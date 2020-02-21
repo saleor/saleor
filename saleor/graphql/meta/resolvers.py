@@ -61,4 +61,4 @@ def resolve_private_metadata(root: ModelWithMetadata, info):
     if not requester.has_perms(required_permission):
         raise PermissionDenied()
 
-    return resolve_metadata(root.private_meta)
+    return resolve_metadata(root.private_metadata)

@@ -48,7 +48,7 @@ class ObjectWithMetadata(graphene.Interface):
 
     @staticmethod
     def resolve_metadata(root: ModelWithMetadata, _info):
-        return resolve_metadata(root.meta)
+        return resolve_metadata(root.metadata)
 
     @staticmethod
     def resolve_private_metadata(root: ModelWithMetadata, info):

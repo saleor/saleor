@@ -458,7 +458,7 @@ def test_fulfillment_update_metadata_user_has_permission(
     errors = content["data"]["orderFulfillmentUpdateMeta"]["errors"]
     assert len(errors) == 0
     fulfillment.refresh_from_db()
-    assert fulfillment.meta == {str(staff_user): "bar"}
+    assert fulfillment.metadata == {str(staff_user): "bar"}
 
 
 def test_fulfillment_update_private_metadata_user_has_no_permission(
@@ -499,7 +499,7 @@ def test_fulfillment_update_private_metadata_user_has_permission(
     errors = content["data"]["orderFulfillmentUpdatePrivateMeta"]["errors"]
     assert len(errors) == 0
     fulfillment.refresh_from_db()
-    assert fulfillment.private_meta == {str(staff_user): "bar"}
+    assert fulfillment.private_metadata == {str(staff_user): "bar"}
 
 
 def test_fulfillment_clear_meta_user_has_no_permission(

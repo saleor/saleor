@@ -114,7 +114,7 @@ class UpdateMetadata(BaseMetadataMutation):
             metadata = data.pop("input")
             item = {metadata.key: metadata.value}
             instance.store_value_in_metadata(items=item)
-            instance.save(update_fields=["meta"])
+            instance.save(update_fields=["metadata"])
         return cls.success_response(instance)
 
 
@@ -135,7 +135,7 @@ class DeleteMetadata(BaseMetadataMutation):
         if instance:
             metadata_key = data.pop("key")
             instance.delete_value_from_metadata(metadata_key)
-            instance.save(update_fields=["meta"])
+            instance.save(update_fields=["metadata"])
         return cls.success_response(instance)
 
 
@@ -160,7 +160,7 @@ class UpdatePrivateMetadata(BaseMetadataMutation):
             metadata = data.pop("input")
             item = {metadata.key: metadata.value}
             instance.store_value_in_private_metadata(items=item)
-            instance.save(update_fields=["private_meta"])
+            instance.save(update_fields=["private_metadata"])
         return cls.success_response(instance)
 
 
@@ -181,5 +181,5 @@ class DeletePrivateMetadata(BaseMetadataMutation):
         if instance:
             metadata_key = data.pop("key")
             instance.delete_value_from_private_metadata(metadata_key)
-            instance.save(update_fields=["private_meta"])
+            instance.save(update_fields=["private_metadata"])
         return cls.success_response(instance)

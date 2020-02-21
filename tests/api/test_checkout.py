@@ -1235,8 +1235,8 @@ def test_checkout_complete(
     order = Order.objects.first()
     assert order.token == order_token
     assert order.total.gross == total.gross - gift_current_balance
-    assert order.meta == checkout.meta
-    assert order.private_meta == checkout.private_meta
+    assert order.metadata == checkout.metadata
+    assert order.private_metadata == checkout.private_metadata
 
     order_line = order.lines.first()
     assert checkout_line_quantity == order_line.quantity

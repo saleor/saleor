@@ -234,7 +234,6 @@ class ServiceAccount(CountableDjangoObjectType):
         return resolve_meta(root, info)
 
     @staticmethod
-    @permission_required(AccountPermissions.MANAGE_SERVICE_ACCOUNTS)
     def resolve_private_meta(root: models.ServiceAccount, _info):
         return resolve_private_meta(root, _info)
 
