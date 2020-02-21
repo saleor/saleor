@@ -2659,7 +2659,7 @@ def test_user_does_not_need_permission_to_update_meta(
     errors = content["data"]["orderUpdateMeta"]["errors"]
     assert len(errors) == 0
     order.refresh_from_db()
-    assert order.get_meta("foo") == "bar"
+    assert order.get_value_from_metadata("foo") == "bar"
 
 
 def test_user_with_permission_can_update_private_meta(
@@ -2679,7 +2679,7 @@ def test_user_with_permission_can_update_private_meta(
     errors = content["data"]["orderUpdatePrivateMeta"]["errors"]
     assert len(errors) == 0
     order.refresh_from_db()
-    assert order.get_private_meta("foo") == "bar"
+    assert order.get_value_from_private_metadata("foo") == "bar"
 
 
 @pytest.fixture
@@ -2731,8 +2731,8 @@ def clear_meta_private_variables(order):
 
 @pytest.fixture
 def order_with_meta(order):
-    order.store_meta(items={"foo": "bar"})
-    order.store_private_meta(items={"foofoo": "barbar"})
+    order.store_value_in_metadata(items={"foo": "bar"})
+    order.store_value_in_private_metadata(items={"foofoo": "barbar"})
     order.save()
     return order
 
@@ -2771,7 +2771,7 @@ def test_user_with_permission_can_clear_meta(
     errors = content["data"]["orderClearMeta"]["errors"]
     assert len(errors) == 0
     order_with_meta.refresh_from_db()
-    assert not order_with_meta.get_meta("foo")
+    assert not order_with_meta.get_value_from_metadata("foo")
 
 
 def test_user_with_permission_can_clear_private_meta(
@@ -2792,4 +2792,4 @@ def test_user_with_permission_can_clear_private_meta(
     errors = content["data"]["orderClearPrivateMeta"]["errors"]
     assert len(errors) == 0
     order_with_meta.refresh_from_db()
-    assert not order_with_meta.get_private_meta(key="foofoo")
+    assert not order_with_meta.get_value_from_private_metadata(key="foofoo")

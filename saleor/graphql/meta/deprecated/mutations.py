@@ -49,33 +49,25 @@ class BaseMetadataMutation(BaseMutation):
     @classmethod
     def get_store_method(cls, instance):
         return (
-            getattr(instance, "store_meta")
+            getattr(instance, "store_value_in_metadata")
             if cls._meta.public
-            else getattr(instance, "store_private_meta")
+            else getattr(instance, "store_value_in_private_metadata")
         )
 
     @classmethod
     def get_meta_method(cls, instance):
         return (
-            getattr(instance, "get_meta")
+            getattr(instance, "get_value_from_metadata")
             if cls._meta.public
-            else getattr(instance, "get_private_meta")
-        )
-
-    @classmethod
-    def get_clear_method(cls, instance):
-        return (
-            getattr(instance, "clear_stored_meta_for_client")
-            if cls._meta.public
-            else getattr(instance, "clear_stored_private_meta_for_client")
+            else getattr(instance, "get_value_from_private_metadata")
         )
 
     @classmethod
     def get_delete_method(cls, instance):
         return (
-            getattr(instance, "delete_meta")
+            getattr(instance, "delete_value_from_metadata")
             if cls._meta.public
-            else getattr(instance, "delete_private_meta")
+            else getattr(instance, "delete_value_from_private_metadata")
         )
 
     @classmethod

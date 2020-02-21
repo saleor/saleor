@@ -18,31 +18,21 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
     from ..order import types as order_types
     from ..product import types as product_types
 
-    if isinstance(instance, product_models.Attribute):
-        return product_types.Attribute
-    if isinstance(instance, product_models.Category):
-        return product_types.Category
-    if isinstance(instance, checkout_models.Checkout):
-        return checkout_types.Checkout
-    if isinstance(instance, product_models.Collection):
-        return product_types.Collection
-    if isinstance(instance, product_models.DigitalContent):
-        return product_types.DigitalContent
-    if isinstance(instance, order_models.Fulfillment):
-        return order_types.Fulfillment
-    if isinstance(instance, order_models.Order):
-        return order_types.Order
-    if isinstance(instance, product_models.Product):
-        return product_types.Product
-    if isinstance(instance, product_models.ProductType):
-        return product_types.ProductType
-    if isinstance(instance, product_models.ProductVariant):
-        return product_types.ProductVariant
-    if isinstance(instance, account_models.ServiceAccount):
-        return account_types.ServiceAccount
-    if isinstance(instance, account_models.User):
-        return account_types.User
-    return None
+    MODEL_TO_TYPE_MAP = {
+        product_models.Attribute: product_types.Attribute,
+        product_models.Category: product_types.Category,
+        checkout_models.Checkout: checkout_types.Checkout,
+        product_models.Collection: product_types.Collection,
+        product_models.DigitalContent: product_types.DigitalContent,
+        order_models.Fulfillment: order_types.Fulfillment,
+        order_models.Order: order_types.Order,
+        product_models.Product: product_types.Product,
+        product_models.ProductType: product_types.ProductType,
+        product_models.ProductVariant: product_types.ProductVariant,
+        account_models.ServiceAccount: account_types.ServiceAccount,
+        account_models.User: account_types.User,
+    }
+    return MODEL_TO_TYPE_MAP.get(type(instance), None)
 
 
 def resolve_metadata(metadata: dict):
@@ -54,7 +44,10 @@ def resolve_metadata(metadata: dict):
 def resolve_private_metadata(root: ModelWithMetadata, info):
     item_type = resolve_object_with_metadata_type(root)
     if not item_type:
-        raise PermissionDenied()
+        raise NotImplementedError(
+            f"Model {type(root)} can't be mapped to type with metadata. "
+            "Make sure that model exists inside MODEL_TO_TYPE_MAP."
+        )
 
     get_required_permission = PRIVATE_META_PERMISSION_MAP[item_type.__name__]
     if not get_required_permission:

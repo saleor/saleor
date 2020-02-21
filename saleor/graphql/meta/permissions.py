@@ -12,11 +12,17 @@ from ...core.permissions import (
 )
 
 
-def no_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
+def no_permissions(_info, _object_pk: Any) -> List[None]:
     return []
 
 
 def public_user_permissions(info, user_pk: int) -> List[BasePermissionEnum]:
+    """Resolve permission for access to public metadata for user.
+
+    Customer have access to own public metadata.
+    Staff user with `MANAGE_USERS` have access to customers public metadata.
+    Staff user with `MANAGE_STAFF` have access to staff users public metadata.
+    """
     user = account_models.User.objects.filter(pk=user_pk).first()
     if not user:
         raise PermissionDenied()

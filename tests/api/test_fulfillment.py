@@ -510,7 +510,7 @@ def test_fulfillment_clear_meta_user_has_no_permission(
     clear_metadata_mutation,
 ):
     assert not staff_user.has_perm(OrderPermissions.MANAGE_ORDERS)
-    fulfillment.store_meta(items={"foo": "bar"})
+    fulfillment.store_value_in_metadata(items={"foo": "bar"})
     fulfillment.save()
     response = staff_api_client.post_graphql(
         clear_metadata_mutation, clear_meta_variables
@@ -528,7 +528,7 @@ def test_fulfillment_clear_meta_user_has_permission(
 ):
     staff_user.user_permissions.add(permission_manage_orders)
     assert staff_user.has_perm(OrderPermissions.MANAGE_ORDERS)
-    fulfillment.store_meta(items={"foo": "bar"})
+    fulfillment.store_value_in_metadata(items={"foo": "bar"})
     fulfillment.save()
     fulfillment.refresh_from_db()
     response = staff_api_client.post_graphql(
@@ -538,7 +538,7 @@ def test_fulfillment_clear_meta_user_has_permission(
     content = get_graphql_content(response)
     assert content.get("errors") is None
     fulfillment.refresh_from_db()
-    assert not fulfillment.get_meta(key="foo")
+    assert not fulfillment.get_value_from_metadata(key="foo")
 
 
 def test_fulfillment_clear_private_meta_user_has_no_permission(
@@ -549,7 +549,7 @@ def test_fulfillment_clear_private_meta_user_has_no_permission(
     clear_private_metadata_mutation,
 ):
     assert not staff_user.has_perm(OrderPermissions.MANAGE_ORDERS)
-    fulfillment.store_private_meta(items={"foo": "bar"})
+    fulfillment.store_value_in_private_metadata(items={"foo": "bar"})
     fulfillment.save()
     response = staff_api_client.post_graphql(
         clear_private_metadata_mutation, clear_meta_variables
@@ -567,7 +567,7 @@ def test_fulfillment_clear_private_meta_user_has_permission(
 ):
     staff_user.user_permissions.add(permission_manage_orders)
     assert staff_user.has_perm(OrderPermissions.MANAGE_ORDERS)
-    fulfillment.store_private_meta(items={"foo": "bar"})
+    fulfillment.store_value_in_private_metadata(items={"foo": "bar"})
     fulfillment.save()
     fulfillment.refresh_from_db()
     response = staff_api_client.post_graphql(
@@ -577,4 +577,4 @@ def test_fulfillment_clear_private_meta_user_has_permission(
     content = get_graphql_content(response)
     assert content.get("errors") is None
     fulfillment.refresh_from_db()
-    assert not fulfillment.get_private_meta(key="foo")
+    assert not fulfillment.get_value_from_private_metadata(key="foo")

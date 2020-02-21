@@ -261,10 +261,9 @@ class BaseMutation(graphene.Mutation):
 
         The `context` parameter is the Context instance associated with the request.
         """
+        permissions = permissions or cls._meta.permissions
         if not permissions:
-            if not cls._meta.permissions:
-                return True
-            permissions = cls._meta.permissions
+            return True
         if context.user.has_perms(permissions):
             return True
         service_account = getattr(context, "service_account", None)

@@ -21,8 +21,8 @@ PUBLIC_VALUE = "42"
 
 @pytest.fixture
 def customer_with_meta(customer_user):
-    customer_user.store_private_meta(items={PRIVATE_KEY: PRIVATE_VALUE})
-    customer_user.store_meta(items={PUBLIC_KEY: PUBLIC_VALUE})
+    customer_user.store_value_in_private_metadata(items={PRIVATE_KEY: PRIVATE_VALUE})
+    customer_user.store_value_in_metadata(items={PUBLIC_KEY: PUBLIC_VALUE})
     customer_user.save()
     return customer_user
 

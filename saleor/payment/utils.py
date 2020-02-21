@@ -243,13 +243,13 @@ def gateway_postprocess(transaction, payment):
 def fetch_customer_id(user: User, gateway: str):
     """Retrieve users customer_id stored for desired gateway."""
     meta_key = prepare_key_for_gateway_customer_id(gateway)
-    return user.get_private_meta(key=meta_key)
+    return user.get_value_from_private_metadata(key=meta_key)
 
 
 def store_customer_id(user: User, gateway: str, customer_id: str):
     """Store customer_id in users private meta for desired gateway."""
     meta_key = prepare_key_for_gateway_customer_id(gateway)
-    user.store_private_meta(items={meta_key: customer_id})
+    user.store_value_in_private_metadata(items={meta_key: customer_id})
     user.save(update_fields=["private_meta"])
 
 

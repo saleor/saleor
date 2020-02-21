@@ -36,21 +36,24 @@ class BaseMetadataMutation(BaseMutation):
     @classmethod
     def get_instance(cls, info, **data):
         object_id = data.get("id")
-        if object_id:
-            try:
-                instance = cls.get_node_or_error(info, object_id)
-            except ValidationError:
-                instance = None
-            if instance and issubclass(type(instance), models.ModelWithMetadata):
-                return instance
-        raise ValidationError(
-            {
-                "id": ValidationError(
-                    f"Couldn't resolve to a item with meta: {object_id}",
-                    code=MetadataErrorCode.NOT_FOUND.value,
-                )
-            }
-        )
+        return cls.get_node_or_error(info, object_id)
+
+    @classmethod
+    def validate_model_is_model_with_metadata(cls, model, object_id):
+        if not issubclass(model, models.ModelWithMetadata):
+            raise ValidationError(
+                {
+                    "id": ValidationError(
+                        f"Couldn't resolve to a item with meta: {object_id}",
+                        code=MetadataErrorCode.NOT_FOUND.value,
+                    )
+                }
+            )
+
+    @classmethod
+    def get_model_for_type_name(cls, info, type_name):
+        graphene_type = info.schema.get_type(type_name).graphene_type
+        return graphene_type._meta.model
 
     @classmethod
     def get_permissions(cls, info, **data):
@@ -58,16 +61,15 @@ class BaseMetadataMutation(BaseMutation):
         if not object_id:
             return []
         type_name, object_pk = graphene.Node.from_global_id(object_id)
+        model = cls.get_model_for_type_name(info, type_name)
+        cls.validate_model_is_model_with_metadata(model, object_id)
         permission = cls._meta.permission_map.get(type_name)
         if permission:
             return permission(info, object_pk)
-        raise ValidationError(
-            {
-                "id": ValidationError(
-                    f"Couldn't resolve permission to item: {object_id}",
-                    code=MetadataErrorCode.INVALID.value,
-                )
-            }
+        raise NotImplementedError(
+            f"Couldn't resolve permission to item: {object_id}. "
+            "Make sure that type exists inside PRIVATE_META_PERMISSION_MAP "
+            "and PUBLIC_META_PERMISSION_MAP"
         )
 
     @classmethod
@@ -111,7 +113,7 @@ class UpdateMetadata(BaseMetadataMutation):
         if instance:
             metadata = data.pop("input")
             item = {metadata.key: metadata.value}
-            instance.store_meta(items=item)
+            instance.store_value_in_metadata(items=item)
             instance.save(update_fields=["meta"])
         return cls.success_response(instance)
 
@@ -132,7 +134,7 @@ class DeleteMetadata(BaseMetadataMutation):
         instance = cls.get_instance(info, **data)
         if instance:
             metadata_key = data.pop("key")
-            instance.delete_meta(metadata_key)
+            instance.delete_value_from_metadata(metadata_key)
             instance.save(update_fields=["meta"])
         return cls.success_response(instance)
 
@@ -157,7 +159,7 @@ class UpdatePrivateMetadata(BaseMetadataMutation):
         if instance:
             metadata = data.pop("input")
             item = {metadata.key: metadata.value}
-            instance.store_private_meta(items=item)
+            instance.store_value_in_private_metadata(items=item)
             instance.save(update_fields=["private_meta"])
         return cls.success_response(instance)
 
@@ -178,6 +180,6 @@ class DeletePrivateMetadata(BaseMetadataMutation):
         instance = cls.get_instance(info, **data)
         if instance:
             metadata_key = data.pop("key")
-            instance.delete_private_meta(metadata_key)
+            instance.delete_value_from_private_metadata(metadata_key)
             instance.save(update_fields=["private_meta"])
         return cls.success_response(instance)
