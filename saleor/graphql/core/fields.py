@@ -42,7 +42,6 @@ class BaseConnectionField(graphene.ConnectionField):
 
 
 class BaseDjangoConnectionField(DjangoConnectionField):
-
     @classmethod
     def resolve_connection(cls, connection, args, iterable):
         if isinstance(iterable, list):

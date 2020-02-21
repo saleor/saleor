@@ -1,6 +1,7 @@
 import graphene
-from django.db.models import FilteredRelation, Max, Q, QuerySet
+from django.db.models import CharField, ExpressionWrapper, OuterRef, QuerySet, Subquery
 
+from ...payment.models import Payment
 from ..core.types import SortInputObjectType
 
 
@@ -8,7 +9,7 @@ class OrderSortField(graphene.Enum):
     NUMBER = ["pk"]
     CREATION_DATE = ["created", "status", "pk"]
     CUSTOMER = ["billing_address__last_name", "billing_address__first_name", "pk"]
-    PAYMENT = ["last_payment__charge_status", "status", "pk"]
+    PAYMENT = ["last_charge_status", "status", "pk"]
     FULFILLMENT_STATUS = ["status", "user_email", "pk"]
     TOTAL = ["total_gross_amount", "status", "pk"]
 
@@ -29,15 +30,13 @@ class OrderSortField(graphene.Enum):
 
     @staticmethod
     def qs_with_payment(queryset: QuerySet) -> QuerySet:
-        last_payments = (
-            queryset.exclude(payments__isnull=True)
-            .annotate(payment_id=Max("payments__pk"))
-            .values_list("payment_id", flat=True)
+        subquery = Subquery(
+            Payment.objects.filter(order_id=OuterRef("pk"))
+            .order_by("-pk")
+            .values_list("charge_status")[:1]
         )
         return queryset.annotate(
-            last_payment=FilteredRelation(
-                "payments", condition=Q(payments__pk__in=last_payments)
-            )
+            last_charge_status=ExpressionWrapper(subquery, output_field=CharField())
         )
 
 

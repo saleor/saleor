@@ -26,7 +26,10 @@ def from_global_cursor(cursor) -> typing.List[str]:
     values = unbase64(cursor)
     values = values.split("::")
     if isinstance(values, list):
+        values = [None if value == "None" else value for value in values]
         return values
+    if values == "None":
+        values = None
     return [values]
 
 
@@ -36,10 +39,7 @@ def get_field_value(instance: DjangoModel, field_name: str):
     field_path = field_name.split("__")
     attr = instance
     for elem in field_path:
-        try:
-            attr = getattr(attr, elem)
-        except AttributeError:
-            return None
+        attr = getattr(attr, elem)
 
     if callable(attr):
         return "%s" % attr()
@@ -65,11 +65,27 @@ def prepare_filter(
     """
     filter_kwargs = Q()
     for index, field_name in enumerate(sorting_fields):
+        if cursor[index] is None and sorting_direction == "gt":
+            continue
+
         field_expression = {}
         for cursor_id, cursor_value in enumerate(cursor[:index]):
             field_expression[sorting_fields[cursor_id]] = cursor_value
-        field_expression[f"{field_name}__{sorting_direction}"] = cursor[index]
-        filter_kwargs |= Q(**field_expression)
+
+        if cursor[index] is not None and sorting_direction == "lt":
+            field_expression[f"{field_name}__{sorting_direction}"] = cursor[index]
+            filter_kwargs |= Q(**field_expression)
+        elif cursor[index] is None and sorting_direction == "lt":
+            field_expression[f"{field_name}__isnull"] = False
+            filter_kwargs |= Q(**field_expression)
+        else:
+            extra_expression = Q()
+            extra_expression |= Q(
+                **{f"{field_name}__{sorting_direction}": cursor[index]}
+            )
+            extra_expression |= Q(**{f"{field_name}__isnull": True})
+            filter_kwargs |= Q(extra_expression, **field_expression)
+
     return filter_kwargs
 
 
@@ -118,7 +134,6 @@ def connection_from_queryset_slice(
         sorting_fields = qs.model.sort_by_attribute_fields()
     elif not sorting_fields:
         raise ValueError("Error while preparing cursor values.")
-
     requested_count = first or last
     end_margin = requested_count + 1 if requested_count else None
 

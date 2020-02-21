@@ -5,7 +5,7 @@ from django.conf import settings
 from django.contrib.postgres.aggregates import StringAgg
 from django.contrib.postgres.fields import JSONField
 from django.db import models
-from django.db.models import Case, Count, F, FilteredRelation, Q, When
+from django.db.models import Case, Count, F, FilteredRelation, Q, Value, When
 from django.urls import reverse
 from django.utils.encoding import smart_text
 from django.utils.html import strip_tags
@@ -168,6 +168,14 @@ class ProductsQueryset(PublishedQuerySet):
         :param descending: The sorting direction.
         """
         qs: models.QuerySet = self
+        # If the passed attribute ID is valid, execute the sorting
+        if not (isinstance(attribute_pk, int) or attribute_pk.isnumeric()):
+            return qs.annotate(
+                concatenated_values_order=Value(
+                    None, output_field=models.IntegerField()
+                ),
+                concatenated_values=Value(None, output_field=models.CharField()),
+            )
 
         # Retrieve all the products' attribute data IDs (assignments) and
         # product types that have the given attribute associated to them
@@ -178,56 +186,60 @@ class ProductsQueryset(PublishedQuerySet):
         )
 
         if not associated_values:
-            if descending:
-                return qs.reverse()
-            return qs
-
-        attribute_associations, product_types_associated_to_attribute = zip(
-            *associated_values
-        )
-
-        qs = qs.annotate(
-            # Contains to retrieve the attribute data (singular) of each product
-            # Refer to `AttributeProduct`.
-            filtered_attribute=FilteredRelation(
-                relation_name="attributes",
-                condition=Q(attributes__assignment_id__in=attribute_associations),
-            ),
-            # Implicit `GROUP BY` required for the `StringAgg` aggregation
-            grouped_ids=Count("id"),
-            # String aggregation of the attribute's values to efficiently sort them
-            concatenated_values=Case(
-                # If the product has no association data but has the given attribute
-                # associated to its product type, then consider the concatenated values
-                # as empty (non-null).
-                When(
-                    Q(product_type_id__in=product_types_associated_to_attribute)
-                    & Q(filtered_attribute=None),
-                    then=models.Value(""),
+            qs = qs.annotate(
+                concatenated_values_order=Value(
+                    None, output_field=models.IntegerField()
                 ),
-                default=StringAgg(
-                    F("filtered_attribute__values__name"),
-                    delimiter=",",
-                    ordering=(
-                        [
-                            f"filtered_attribute__values__{field_name}"
-                            for field_name in AttributeValue._meta.ordering or []
-                        ]
+                concatenated_values=Value(None, output_field=models.CharField()),
+            )
+
+        else:
+            attribute_associations, product_types_associated_to_attribute = zip(
+                *associated_values
+            )
+
+            qs = qs.annotate(
+                # Contains to retrieve the attribute data (singular) of each product
+                # Refer to `AttributeProduct`.
+                filtered_attribute=FilteredRelation(
+                    relation_name="attributes",
+                    condition=Q(attributes__assignment_id__in=attribute_associations),
+                ),
+                # Implicit `GROUP BY` required for the `StringAgg` aggregation
+                grouped_ids=Count("id"),
+                # String aggregation of the attribute's values to efficiently sort them
+                concatenated_values=Case(
+                    # If the product has no association data but has
+                    # the given attribute associated to its product type,
+                    # then consider the concatenated values as empty (non-null).
+                    When(
+                        Q(product_type_id__in=product_types_associated_to_attribute)
+                        & Q(filtered_attribute=None),
+                        then=models.Value(""),
                     ),
+                    default=StringAgg(
+                        F("filtered_attribute__values__name"),
+                        delimiter=",",
+                        ordering=(
+                            [
+                                f"filtered_attribute__values__{field_name}"
+                                for field_name in AttributeValue._meta.ordering or []
+                            ]
+                        ),
+                    ),
+                    output_field=models.CharField(),
                 ),
-                output_field=models.CharField(),
-            ),
-            concatenated_values_order=Case(
-                # Make the products having no such attribute be last in the sorting
-                When(concatenated_values=None, then=2),
-                # Put the products having an empty attribute value at the bottom of
-                # the other products.
-                When(concatenated_values="", then=1),
-                # Put the products having an attribute value to be always at the top
-                default=0,
-                output_field=models.IntegerField(),
-            ),
-        )
+                concatenated_values_order=Case(
+                    # Make the products having no such attribute be last in the sorting
+                    When(concatenated_values=None, then=2),
+                    # Put the products having an empty attribute value at the bottom of
+                    # the other products.
+                    When(concatenated_values="", then=1),
+                    # Put the products having an attribute value to be always at the top
+                    default=0,
+                    output_field=models.IntegerField(),
+                ),
+            )
 
         # Sort by concatenated_values_order then
         # Sort each group of products (0, 1, 2, ...) per attribute values
@@ -337,10 +349,7 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
 
     @staticmethod
     def sort_by_attribute_fields() -> list:
-        return [
-            "concatenated_values_order",
-            "concatenated_values",
-            "name"]
+        return ["concatenated_values_order", "concatenated_values", "name"]
 
 
 class ProductTranslation(SeoModelTranslation):
