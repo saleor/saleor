@@ -49,7 +49,6 @@ def anonymize_order(order: "Order") -> "Order":
     """
     anonymized_order = copy.deepcopy(order)
     # Prevent accidental saving of the instance
-    anonymized_order.pk = -1
     anonymized_order.save = _fake_save  # type: ignore
     fake_user = generate_fake_user()
     anonymized_order.user = fake_user
