@@ -81,9 +81,8 @@ class GraphQLView(View):
         # Handle options method the GraphQlView restricts it.
         if request.method == "GET":
             if settings.PLAYGROUND_ENABLED:
-                return render_to_response("graphql/playground.html")
+                return self.render_playground(request)
             return HttpResponseNotAllowed(["OPTIONS", "POST"])
-
         if request.method == "OPTIONS":
             response = self.options(request, *args, **kwargs)
         elif request.method == "POST":
@@ -97,6 +96,9 @@ class GraphQLView(View):
             "Access-Control-Allow-Headers"
         ] = "Origin, Content-Type, Accept, Authorization"
         return response
+
+    def render_playground(self, request):
+        return render_to_response("graphql/playground.html", {})
 
     def _handle_query(self, request: HttpRequest) -> JsonResponse:
         try:
