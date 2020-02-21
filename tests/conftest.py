@@ -15,7 +15,6 @@ from django.core.files import File
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.db import connection
 from django.forms import ModelForm
-from django.test.client import Client
 from django.test.utils import CaptureQueriesContext as BaseCaptureQueriesContext
 from django_countries import countries
 from PIL import Image
