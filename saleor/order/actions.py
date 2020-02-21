@@ -111,7 +111,6 @@ def order_fulfilled(
 ):
     order = fulfillment.order
     update_order_status(order)
-    print(user)
     events.fulfillment_fulfilled_items_event(
         order=order, user=user, fulfillment_lines=fulfillment_lines
     )
