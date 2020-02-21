@@ -29,13 +29,7 @@ from ....product.utils.attributes import (
     generate_name_for_variant,
 )
 from ....warehouse.management import set_stock_quantity
-from ...core.mutations import (
-    BaseMutation,
-    ClearMetaBaseMutation,
-    ModelDeleteMutation,
-    ModelMutation,
-    UpdateMetaBaseMutation,
-)
+from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import Decimal, WeightScalar
 from ...core.types import SeoInput, Upload
 from ...core.types.common import ProductError
@@ -46,6 +40,7 @@ from ...core.utils import (
     validate_slug_and_generate_if_needed,
 )
 from ...core.utils.reordering import perform_reordering
+from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ..types import (
     Category,
     Collection,
@@ -1348,12 +1343,9 @@ class ProductTypeCreate(ModelMutation):
         # FIXME  tax_rate logic should be dropped after we remove tax_rate from input
         tax_rate = cleaned_input.pop("tax_rate", "")
         if tax_rate:
-            if "taxes" not in instance.meta:
-                instance.meta["taxes"] = {}
-            instance.meta["taxes"]["vatlayer"] = {
-                "code": tax_rate,
-                "description": tax_rate,
-            }
+            instance.store_value_in_metadata(
+                {"vatlayer.code": tax_rate, "description": tax_rate}
+            )
             info.context.extensions.assign_tax_code_to_object_meta(instance, tax_rate)
 
         tax_code = cleaned_input.pop("tax_code", "")
