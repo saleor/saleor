@@ -111,6 +111,7 @@ def order_fulfilled(
 ):
     order = fulfillment.order
     update_order_status(order)
+    print(user)
     events.fulfillment_fulfilled_items_event(
         order=order, user=user, fulfillment_lines=fulfillment_lines
     )
@@ -146,9 +147,7 @@ def fulfillment_tracking_updated(
         tracking_number=tracking_number,
         fulfillment=fulfillment,
     )
-    manager = get_extensions_manager()
-    manager.order_updated(fulfillment.order)
-    manager.fulfillment_created(fulfillment)
+    get_extensions_manager().order_updated(fulfillment.order)
 
 
 def cancel_fulfillment(fulfillment: "Fulfillment", user: "User", restock: bool):
