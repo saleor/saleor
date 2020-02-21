@@ -146,15 +146,14 @@ def sort_queryset(queryset: QuerySet, sort_by: SortInputObjectType) -> QuerySet:
         raise GraphQLError(
             "You must provide either `field` or `attributeId` to sort the products."
         )
-    elif sorting_attribute == "":
-        return queryset
-    elif sorting_attribute:  # empty string as sorting_attribute is valid
-        graphene_type, attribute_pk = from_global_id(sorting_attribute)
+    elif sorting_attribute is not None:  # empty string as sorting_attribute is valid
+        if sorting_attribute != "":
+            graphene_type, sorting_attribute = from_global_id(sorting_attribute)
         descending = sorting_direction == OrderDirection.DESC
 
         # If the passed attribute ID is valid, execute the sorting
-        if attribute_pk.isnumeric() and graphene_type == "Attribute":
-            queryset = queryset.sort_by_attribute(attribute_pk, descending=descending)
+        # if attribute_pk.isnumeric() and graphene_type == "Attribute":
+        queryset = queryset.sort_by_attribute(sorting_attribute, descending=descending)
         return queryset
 
     sort_enum = sort_by._meta.sort_enum

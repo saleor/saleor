@@ -1,19 +1,22 @@
-import pytest
 from decimal import Decimal
 
+import pytest
 from django.contrib.auth import models as auth_models
-from django.db.models import Count, FilteredRelation, Max, Q
+from django.db.models import Count
 from django.utils import timezone
 
-from saleor.graphql.core.connection import to_global_cursor, get_field_value
-from saleor.account.models import Address, User, ServiceAccount
+from saleor.account.models import Address, ServiceAccount, User
 from saleor.checkout.models import Checkout
 from saleor.discount import DiscountValueType
 from saleor.discount.models import Sale, Voucher
+from saleor.graphql.core.connection import get_field_value, to_global_cursor
+from saleor.graphql.order.sorters import OrderSortField
 from saleor.menu.models import Menu, MenuItem
 from saleor.order import OrderStatus
 from saleor.order.models import Order
 from saleor.page.models import Page
+from saleor.payment import ChargeStatus
+from saleor.payment.models import Payment
 from tests.api.utils import get_graphql_content
 
 
@@ -189,18 +192,9 @@ def voucher_for_pagination():
 def menus_for_pagination():
     Menu.objects.bulk_create(
         [
-            Menu(
-                name="The menu",
-                json_content={},
-            ),
-            Menu(
-                name="The example menu",
-                json_content={},
-            ),
-            Menu(
-                name="Just menu",
-                json_content={},
-            ),
+            Menu(name="The menu", json_content={},),
+            Menu(name="The example menu", json_content={},),
+            Menu(name="Just menu", json_content={},),
         ]
     )
     menu1 = Menu.objects.filter(name="The menu").first()
@@ -270,42 +264,167 @@ def orders_for_pagination(customer_user):
         phone="+48713988102",
     )
 
-    Order.objects.bulk_create(
+    order1 = Order.objects.create(
+        user=customer_user,
+        status=OrderStatus.FULFILLED,
+        token="order_token_1",
+        total_gross_amount=Decimal("10"),
+        billing_address=address1,
+    )
+    order2 = Order.objects.create(
+        user=customer_user,
+        status=OrderStatus.FULFILLED,
+        token="order_token_2",
+        total_gross_amount=Decimal("20"),
+        billing_address=address2,
+    )
+    order3 = Order.objects.create(
+        user=customer_user,
+        status=OrderStatus.FULFILLED,
+        token="order_token_3",
+        total_gross_amount=Decimal("10"),
+        billing_address=address3,
+    )
+    order4 = Order.objects.create(
+        user=customer_user,
+        status=OrderStatus.FULFILLED,
+        token="order_token_4",
+        total_gross_amount=Decimal("20"),
+        billing_address=address4,
+    )
+    order5 = Order.objects.create(
+        user=customer_user,
+        status=OrderStatus.FULFILLED,
+        token="order_token_5",
+        total_gross_amount=Decimal("50"),
+        billing_address=address5,
+    )
+
+    Payment.objects.bulk_create(
         [
-            Order(
-                user=customer_user,
-                status=OrderStatus.FULFILLED,
-                token="order_token_1",
-                total_gross_amount=Decimal("10"),
-                billing_address=address1
+            Payment(
+                gateway="Dummy",
+                token="payment1",
+                order=order1,
+                is_active=True,
+                cc_first_digits="4111",
+                cc_last_digits="1111",
+                cc_brand="VISA",
+                cc_exp_month=12,
+                cc_exp_year=2027,
+                total=order1.total.gross.amount,
+                currency=order1.total.gross.currency,
+                charge_status=ChargeStatus.NOT_CHARGED,
+                to_confirm=True,
+                billing_first_name=order1.billing_address.first_name,
+                billing_last_name=order1.billing_address.last_name,
+                billing_company_name=order1.billing_address.company_name,
+                billing_address_1=order1.billing_address.street_address_1,
+                billing_address_2=order1.billing_address.street_address_2,
+                billing_city=order1.billing_address.city,
+                billing_postal_code=order1.billing_address.postal_code,
+                billing_country_code=order1.billing_address.country.code,
+                billing_country_area=order1.billing_address.country_area,
+                billing_email=order1.user_email,
             ),
-            Order(
-                user=customer_user,
-                status=OrderStatus.FULFILLED,
-                token="order_token_2",
-                total_gross_amount=Decimal("20"),
-                billing_address=address2
+            Payment(
+                gateway="Dummy",
+                token="payment2",
+                order=order1,
+                is_active=True,
+                cc_first_digits="4111",
+                cc_last_digits="1111",
+                cc_brand="VISA",
+                cc_exp_month=12,
+                cc_exp_year=2027,
+                total=order1.total.gross.amount,
+                currency=order1.total.gross.currency,
+                charge_status=ChargeStatus.NOT_CHARGED,
+                to_confirm=True,
+                billing_first_name=order1.billing_address.first_name,
+                billing_last_name=order1.billing_address.last_name,
+                billing_company_name=order1.billing_address.company_name,
+                billing_address_1=order1.billing_address.street_address_1,
+                billing_address_2=order1.billing_address.street_address_2,
+                billing_city=order1.billing_address.city,
+                billing_postal_code=order1.billing_address.postal_code,
+                billing_country_code=order1.billing_address.country.code,
+                billing_country_area=order1.billing_address.country_area,
+                billing_email=order1.user_email,
             ),
-            Order(
-                user=customer_user,
-                status=OrderStatus.FULFILLED,
-                token="order_token_3",
-                total_gross_amount=Decimal("10"),
-                billing_address=address3
+            Payment(
+                gateway="Dummy",
+                token="payment3",
+                order=order3,
+                is_active=True,
+                cc_first_digits="4111",
+                cc_last_digits="1111",
+                cc_brand="VISA",
+                cc_exp_month=12,
+                cc_exp_year=2027,
+                total=order3.total.gross.amount,
+                currency=order3.total.gross.currency,
+                charge_status=ChargeStatus.FULLY_CHARGED,
+                captured_amount=order5.total.gross.amount,
+                billing_first_name=order3.billing_address.first_name,
+                billing_last_name=order3.billing_address.last_name,
+                billing_company_name=order3.billing_address.company_name,
+                billing_address_1=order3.billing_address.street_address_1,
+                billing_address_2=order3.billing_address.street_address_2,
+                billing_city=order3.billing_address.city,
+                billing_postal_code=order3.billing_address.postal_code,
+                billing_country_code=order3.billing_address.country.code,
+                billing_country_area=order3.billing_address.country_area,
+                billing_email=order3.user_email,
             ),
-            Order(
-                user=customer_user,
-                status=OrderStatus.FULFILLED,
-                token="order_token_4",
-                total_gross_amount=Decimal("20"),
-                billing_address=address4
+            Payment(
+                gateway="Dummy",
+                token="payment4",
+                order=order4,
+                is_active=True,
+                cc_first_digits="4111",
+                cc_last_digits="1111",
+                cc_brand="VISA",
+                cc_exp_month=12,
+                cc_exp_year=2027,
+                total=order4.total.gross.amount,
+                currency=order4.total.gross.currency,
+                charge_status=ChargeStatus.NOT_CHARGED,
+                billing_first_name=order4.billing_address.first_name,
+                billing_last_name=order4.billing_address.last_name,
+                billing_company_name=order4.billing_address.company_name,
+                billing_address_1=order4.billing_address.street_address_1,
+                billing_address_2=order4.billing_address.street_address_2,
+                billing_city=order4.billing_address.city,
+                billing_postal_code=order4.billing_address.postal_code,
+                billing_country_code=order4.billing_address.country.code,
+                billing_country_area=order4.billing_address.country_area,
+                billing_email=order4.user_email,
             ),
-            Order(
-                user=customer_user,
-                status=OrderStatus.FULFILLED,
-                token="order_token_5",
-                total_gross_amount=Decimal("50"),
-                billing_address=address5
+            Payment(
+                gateway="Dummy",
+                token="payment5",
+                order=order4,
+                is_active=True,
+                cc_first_digits="4111",
+                cc_last_digits="1111",
+                cc_brand="VISA",
+                cc_exp_month=12,
+                cc_exp_year=2027,
+                total=order4.total.gross.amount,
+                currency=order4.total.gross.currency,
+                charge_status=ChargeStatus.FULLY_CHARGED,
+                captured_amount=order4.total.gross.amount,
+                billing_first_name=order4.billing_address.first_name,
+                billing_last_name=order4.billing_address.last_name,
+                billing_company_name=order4.billing_address.company_name,
+                billing_address_1=order4.billing_address.street_address_1,
+                billing_address_2=order4.billing_address.street_address_2,
+                billing_city=order4.billing_address.city,
+                billing_postal_code=order4.billing_address.postal_code,
+                billing_country_code=order4.billing_address.country.code,
+                billing_country_area=order4.billing_address.country_area,
+                billing_email=order4.user_email,
             ),
         ]
     )
@@ -315,31 +434,11 @@ def orders_for_pagination(customer_user):
 def pages_for_pagination():
     Page.objects.bulk_create(
         [
-            Page(
-                name="About",
-                slug="about",
-                is_published=False
-            ),
-            Page(
-                name="Abou2",
-                slug="about",
-                is_published=False
-            ),
-            Page(
-                name="About3",
-                slug="about",
-                is_published=False
-            ),
-            Page(
-                name="Page1",
-                slug="slug_page_1",
-                is_published=True
-            ),
-            Page(
-                name="Page2",
-                slug="slug_page_2",
-                is_published=True
-            ),
+            Page(title="About", slug="about", is_published=False),
+            Page(title="About", slug="about2", is_published=False),
+            Page(title="About3", slug="about3", is_published=False),
+            Page(title="Page1", slug="slug_page_1", is_published=True),
+            Page(title="Page2", slug="slug_page_2", is_published=True),
         ]
     )
 
@@ -383,28 +482,26 @@ def create_cursor_from_voucher_code(code, fields_list):
 
 
 def create_cursor_from_menu_name(name, fields_list):
-    menu = Menu.objects.filter(name=name).annotate(items_count=Count("items__id")).first()
+    menu = (
+        Menu.objects.filter(name=name).annotate(items_count=Count("items__id")).first()
+    )
     return create_global_cursor(menu, fields_list)
 
 
 def create_cursor_from_order_token(token, fields_list):
     order_qs = Order.objects.filter(token=token)
-    last_payments = (
-        order_qs.exclude(payments__isnull=True)
-            .annotate(payment_id=Max("payments__pk"))
-            .values_list("payment_id", flat=True)
-    )
-    order = order_qs.annotate(
-        last_payment=FilteredRelation(
-            "payments", condition=Q(payments__pk__in=last_payments)
-        )
-    ).first()
+    order = OrderSortField.qs_with_payment(order_qs).first()
     return create_global_cursor(order, fields_list)
 
 
 def create_cursor_from_page_slug(slug, fields_list):
     page = Page.objects.get(slug=slug)
     return create_global_cursor(page, fields_list)
+
+
+def create_cursor_from_payment_token(token, fields_list):
+    payment = Payment.objects.get(token=token)
+    return create_global_cursor(payment, fields_list)
 
 
 def _test_pagination(
@@ -863,90 +960,42 @@ def test_sales_pagination(
         (
             None,
             ["code"],
-            [
-                "An-example-v",
-                "Example-code",
-                "The-code",
-                "Voucher-ex",
-                "code",
-            ],
+            ["An-example-v", "Example-code", "The-code", "Voucher-ex", "code",],
         ),
         (
             {"field": "CODE", "direction": "ASC"},
             ["code"],
-            [
-                "An-example-v",
-                "Example-code",
-                "The-code",
-                "Voucher-ex",
-                "code",
-            ],
+            ["An-example-v", "Example-code", "The-code", "Voucher-ex", "code",],
         ),
         (
             {"field": "START_DATE", "direction": "ASC"},
             ["start_date", "name", "code"],
-            [
-                "code",
-                "The-code",
-                "Example-code",
-                "Voucher-ex",
-                "An-example-v",
-            ],
+            ["code", "The-code", "Example-code", "Voucher-ex", "An-example-v",],
         ),
         (
             {"field": "END_DATE", "direction": "ASC"},
             ["end_date", "name", "code"],
-            [
-                "The-code",
-                "Voucher-ex",
-                "Example-code",
-                "code",
-                "An-example-v",
-            ],
+            ["The-code", "Voucher-ex", "Example-code", "code", "An-example-v",],
         ),
         (
             {"field": "VALUE", "direction": "ASC"},
             ["discount_value", "name", "code"],
-            [
-                "code",
-                "An-example-v",
-                "Example-code",
-                "Voucher-ex",
-                "The-code",
-            ],
+            ["code", "An-example-v", "Example-code", "Voucher-ex", "The-code",],
         ),
         (
             {"field": "TYPE", "direction": "ASC"},
             ["type", "name", "code"],
-            [
-                "An-example-v",
-                "The-code",
-                "Voucher-ex",
-                "Example-code",
-                "code",
-            ],
+            ["An-example-v", "The-code", "Voucher-ex", "Example-code", "code",],
         ),
         (
             {"field": "USAGE_LIMIT", "direction": "ASC"},
             ["usage_limit", "name", "code"],
-            [
-                "An-example-v",
-                "code",
-                "Example-code",
-                "Voucher-ex",
-                "The-code",
-            ],
+            ["An-example-v", "code", "Example-code", "Voucher-ex", "The-code",],
         ),
         (
             {"field": "MINIMUM_SPENT_AMOUNT", "direction": "ASC"},
             ["min_spent_amount", "name", "code"],
-            [
-                "The-code",
-                "code",
-                "Voucher-ex",
-                "An-example-v",
-                "Example-code",
-            ],
+            ["The-code", "code", "Voucher-ex", "An-example-v", "Example-code",],
         ),
     ],
 )
@@ -975,9 +1024,13 @@ def test_voucher_pagination(
           }
         }
     """
-    start_cursor_page1 = create_cursor_from_voucher_code(voucher_order[0], cursor_fields)
+    start_cursor_page1 = create_cursor_from_voucher_code(
+        voucher_order[0], cursor_fields
+    )
     end_cursor_page1 = create_cursor_from_voucher_code(voucher_order[2], cursor_fields)
-    start_cursor_page2 = create_cursor_from_voucher_code(voucher_order[3], cursor_fields)
+    start_cursor_page2 = create_cursor_from_voucher_code(
+        voucher_order[3], cursor_fields
+    )
     end_cursor_page2 = create_cursor_from_voucher_code(voucher_order[4], cursor_fields)
 
     _test_pagination(
@@ -1000,35 +1053,17 @@ def test_voucher_pagination(
         (
             None,
             ["pk"],
-            [
-                "navbar",
-                "footer",
-                "The menu",
-                "The example menu",
-                "Just menu",
-            ],
+            ["navbar", "footer", "The menu", "The example menu", "Just menu",],
         ),
         (
             {"field": "NAME", "direction": "ASC"},
             ["name", "pk"],
-            [
-                "Just menu",
-                "The example menu",
-                "The menu",
-                "footer",
-                "navbar",
-            ],
+            ["Just menu", "The example menu", "The menu", "footer", "navbar",],
         ),
         (
             {"field": "ITEMS_COUNT", "direction": "ASC"},
             ["items_count", "name", "pk"],
-            [
-                "footer",
-                "navbar",
-                "The menu",
-                "The example menu",
-                "Just menu",
-            ],
+            ["footer", "navbar", "The menu", "The example menu", "Just menu",],
         ),
     ],
 )
@@ -1038,7 +1073,7 @@ def test_menus_pagination(
     menus_order,
     staff_api_client,
     permission_manage_plugins,
-    menus_for_pagination
+    menus_for_pagination,
 ):
     query = """
         query ($first: Int, $last: Int, $after: String, $before: String, $sortBy: MenuSortingInput){
@@ -1124,12 +1159,12 @@ def test_menus_pagination(
         ),
         (
             {"field": "PAYMENT", "direction": "ASC"},
-            ["last_payment__charge_status", "status", "pk"],
+            OrderSortField.PAYMENT.value,
             [
-                "order_token_1",
-                "order_token_2",
                 "order_token_3",
                 "order_token_4",
+                "order_token_1",
+                "order_token_2",
                 "order_token_5",
             ],
         ),
@@ -1163,7 +1198,7 @@ def test_orders_pagination(
     orders_order,
     staff_api_client,
     permission_manage_orders,
-    orders_for_pagination
+    orders_for_pagination,
 ):
     query = """
         query ($first: Int, $last: Int, $after: String, $before: String, $sortBy: OrderSortingInput){
@@ -1206,29 +1241,18 @@ def test_orders_pagination(
         (
             {"field": "VISIBILITY", "direction": "ASC"},
             ["is_published", "title", "slug"],
-            [
-                "about",
-                "about2",
-                "about3",
-                "slug_page_1",
-                "slug_page_2",
-            ]
+            ["about", "about2", "about3", "slug_page_1", "slug_page_2",],
         ),
-        (
-            None,
-            ["slug"],
-            [
-                "about",
-                "about2",
-                "about3",
-                "slug_page_1",
-                "slug_page_2",
-            ]
-         ),
+        (None, ["slug"], ["about", "about2", "about3", "slug_page_1", "slug_page_2",]),
     ],
 )
 def test_page_pagination(
-    order_by, cursor_fields, page_order, staff_api_client, permission_manage_pages, pages_for_pagination
+    order_by,
+    cursor_fields,
+    page_order,
+    staff_api_client,
+    permission_manage_pages,
+    pages_for_pagination,
 ):
     query = """
         query ($after: String, $sortBy: PageSortingInput){
@@ -1236,6 +1260,7 @@ def test_page_pagination(
             edges {
               node {
                   title
+                  slug
               }
             }
             pageInfo{
@@ -1248,10 +1273,10 @@ def test_page_pagination(
         }
     """
 
-    start_cursor_page1 = create_cursor_from_order_token(page_order[0], cursor_fields)
-    end_cursor_page1 = create_cursor_from_order_token(page_order[2], cursor_fields)
-    start_cursor_page2 = create_cursor_from_order_token(page_order[3], cursor_fields)
-    end_cursor_page2 = create_cursor_from_order_token(page_order[4], cursor_fields)
+    start_cursor_page1 = create_cursor_from_page_slug(page_order[0], cursor_fields)
+    end_cursor_page1 = create_cursor_from_page_slug(page_order[2], cursor_fields)
+    start_cursor_page2 = create_cursor_from_page_slug(page_order[3], cursor_fields)
+    end_cursor_page2 = create_cursor_from_page_slug(page_order[4], cursor_fields)
     _test_pagination(
         staff_api_client,
         query,
@@ -1262,4 +1287,54 @@ def test_page_pagination(
         start_cursor_page2,
         end_cursor_page2,
         resolver_name="pages",
+    )
+
+
+@pytest.mark.parametrize(
+    "cursor_fields, payment_order",
+    [(["pk"], ["payment1", "payment2", "payment3", "payment4", "payment5",]),],
+)
+def test_payment_pagination(
+    cursor_fields,
+    payment_order,
+    staff_api_client,
+    permission_manage_orders,
+    orders_for_pagination,
+):
+    query = """
+        query ($after: String){
+          payments(first: 3, after: $after) {
+            edges {
+              node {
+                  token
+              }
+            }
+            pageInfo{
+              startCursor
+              endCursor
+              hasNextPage
+              hasPreviousPage
+            }
+          }
+        }
+    """
+
+    start_cursor_page1 = create_cursor_from_payment_token(
+        payment_order[0], cursor_fields
+    )
+    end_cursor_page1 = create_cursor_from_payment_token(payment_order[2], cursor_fields)
+    start_cursor_page2 = create_cursor_from_payment_token(
+        payment_order[3], cursor_fields
+    )
+    end_cursor_page2 = create_cursor_from_payment_token(payment_order[4], cursor_fields)
+    _test_pagination(
+        staff_api_client,
+        query,
+        None,
+        permission_manage_orders,
+        start_cursor_page1,
+        end_cursor_page1,
+        start_cursor_page2,
+        end_cursor_page2,
+        resolver_name="payments",
     )
