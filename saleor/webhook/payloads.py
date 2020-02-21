@@ -210,6 +210,45 @@ def generate_product_payload(product: "Product"):
     return product_payload
 
 
+def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
+    serializer = PayloadSerializer()
+    line_fields = ("quantity",)
+
+    return serializer.serialize(
+        fulfillment,
+        fields=line_fields,
+        extra_dict_data={
+            "weight": (lambda fl: fl.order_line.variant.get_weight().oz),
+            "product_type": (
+                lambda fl: fl.order_line.variant.product.product_type.name
+            ),
+            "unit_price_gross": lambda fl: fl.order_line.unit_price_gross_amount,
+            "currency": (lambda fl: fl.order_line.currency),
+        },
+    )
+
+
+def generate_fulfillment_payload(fulfillment: Fulfillment):
+    serializer = PayloadSerializer()
+
+    # fulfilment fields to serialize
+    fulfillment_fields = ("status", "tracking_code", "order__user_email")
+    order_country = get_order_country(fulfillment.order)
+    warehouse = Warehouse.objects.for_country(order_country)
+    fulfillment_data = serializer.serialize(
+        [fulfillment],
+        fields=fulfillment_fields,
+        additional_fields={
+            "warehouse_address": (lambda f: warehouse.address, ADDRESS_FIELDS),
+        },
+        extra_dict_data={
+            "order": json.loads(generate_order_payload(fulfillment.order))[0],
+            "lines": json.loads(generate_fulfillment_lines_payload(fulfillment)),
+        },
+    )
+    return fulfillment_data
+
+
 def _get_sample_object(qs: QuerySet):
     """Return random object from query."""
     random_object = qs.order_by("?").first()
@@ -266,49 +305,8 @@ def generate_sample_payload(event_name: str) -> Optional[dict]:
         fulfillment = _get_sample_object(
             Fulfillment.objects.prefetch_related("lines__order_line__variant")
         )
+        fulfillment.order = anonymize_order(fulfillment.order)
         payload = generate_fulfillment_payload(fulfillment)
     else:
         payload = _generate_sample_order_payload(event_name)
     return json.loads(payload) if payload else None
-
-
-def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
-    serializer = PayloadSerializer()
-    line_fields = ("quantity",)
-
-    return serializer.serialize(
-        fulfillment,
-        fields=line_fields,
-        extra_dict_data={
-            "weight": (lambda fl: fl.order_line.variant.get_weight().oz),
-            "product_type": (
-                lambda fl: fl.order_line.variant.product.product_type.name
-            ),
-            "unit_price_gross": lambda fl: fl.order_line.unit_price_gross_amount,
-            "currency": (lambda fl: fl.order_line.currency),
-        },
-    )
-
-
-def generate_fulfillment_payload(fulfillment: Fulfillment):
-    serializer = PayloadSerializer()
-
-    # fulfilment fields to serialize
-    fulfillment_fields = ("status", "tracking_code", "order__user_email")
-    order_fields = ("user_email", "meta", "private_meta")
-    order_country = get_order_country(fulfillment.order)
-    warehouse = Warehouse.objects.for_country(order_country)
-
-    fulfillment_data = serializer.serialize(
-        [fulfillment],
-        fields=fulfillment_fields,
-        additional_fields={
-            "order_data": (lambda f: [f.order], order_fields),
-            "shipping_address": (lambda f: f.order.shipping_address, ADDRESS_FIELDS),
-            "warehouse_address": (lambda f: warehouse.address, ADDRESS_FIELDS),
-        },
-        extra_dict_data={
-            "lines": json.loads(generate_fulfillment_lines_payload(fulfillment))
-        },
-    )
-    return fulfillment_data
