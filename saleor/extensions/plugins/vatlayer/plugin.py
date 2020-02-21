@@ -254,7 +254,7 @@ class VatlayerPlugin(BasePlugin):
             return previous_value
 
         tax_item = {self.META_CODE_KEY: tax_code, self.META_DESCRIPTION_KEY: tax_code}
-        obj.store_meta(items=tax_item)
+        obj.store_value_in_metadata(items=tax_item)
         obj.save()
         return previous_value
 
@@ -270,12 +270,9 @@ class VatlayerPlugin(BasePlugin):
     def __get_tax_code_from_object_meta(
         self, obj: Union["Product", "ProductType"]
     ) -> "TaxType":
-        tax_code = obj.get_meta(self.META_CODE_KEY)
-        tax_description = obj.get_meta(self.META_DESCRIPTION_KEY)
-        return TaxType(
-            code=tax_code if tax_code else "",
-            description=tax_description if tax_description else "",
-        )
+        tax_code = obj.get_value_from_metadata(self.META_CODE_KEY, "")
+        tax_description = obj.get_value_from_metadata(self.META_DESCRIPTION_KEY, "")
+        return TaxType(code=tax_code, description=tax_description,)
 
     def get_tax_rate_percentage_value(
         self, obj: Union["Product", "ProductType"], country: Country, previous_value

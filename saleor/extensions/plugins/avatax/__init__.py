@@ -447,6 +447,6 @@ def get_cached_tax_codes_or_fetch(
 
 
 def retrieve_tax_code_from_meta(obj: Union["Product", "ProductVariant", "ProductType"]):
-    tax_code = obj.get_meta(META_CODE_KEY)
     # O9999999 - "Temporary Unmapped Other SKU - taxable default"
-    return tax_code if tax_code else "O9999999"
+    tax_code = obj.get_value_from_metadata(META_CODE_KEY, "O9999999")
+    return tax_code

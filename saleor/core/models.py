@@ -1,4 +1,5 @@
 import datetime
+from typing import Any
 
 from django.contrib.postgres.fields import JSONField
 from django.db import models
@@ -82,32 +83,32 @@ class ModelWithMetadata(models.Model):
     class Meta:
         abstract = True
 
-    def get_private_meta(self, key: str):
-        return self.private_meta.get(key, None)
+    def get_value_from_private_metadata(self, key: str, default: Any = None) -> Any:
+        return self.private_meta.get(key, default)
 
-    def store_private_meta(self, items: dict):
+    def store_value_in_private_metadata(self, items: dict):
         if not self.private_meta:
             self.private_meta = {}
         self.private_meta.update(items)
 
-    def clear_private_meta(self):
+    def clear_private_metadata(self):
         self.private_meta = {}
 
-    def delete_private_meta(self, key: str):
+    def delete_value_from_private_metadata(self, key: str):
         if key in self.private_meta:
             del self.private_meta[key]
 
-    def get_meta(self, key: str):
-        return self.meta.get(key, None)
+    def get_value_from_metadata(self, key: str, default: Any = None) -> Any:
+        return self.meta.get(key, default)
 
-    def store_meta(self, items: dict):
+    def store_value_in_metadata(self, items: dict):
         if not self.meta:
             self.meta = {}
         self.meta.update(items)
 
-    def clear_meta(self):
+    def clear_metadata(self):
         self.meta = {}
 
-    def delete_meta(self, key: str):
+    def delete_value_from_metadata(self, key: str):
         if key in self.meta:
             del self.meta[key]

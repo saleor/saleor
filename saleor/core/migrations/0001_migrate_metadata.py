@@ -31,73 +31,73 @@ def flatten_metadata(metadata):
 
 def flatten_attributes_metadata(apps, _schema_editor):
     Attribute = apps.get_model("product", "Attribute")
-    for attribute in Attribute.objects.all():
+    for attribute in Attribute.objects.iterator():
         flatten_model_metadata(attribute)
 
 
 def flatten_categories_metadata(apps, _schema_editor):
     Category = apps.get_model("product", "Category")
-    for category in Category.objects.all():
+    for category in Category.objects.iterator():
         flatten_model_metadata(category)
 
 
 def flatten_checkouts_metadata(apps, _schema_editor):
     Checkout = apps.get_model("checkout", "Checkout")
-    for checkout in Checkout.objects.all():
+    for checkout in Checkout.objects.iterator():
         flatten_model_metadata(checkout)
 
 
 def flatten_collections_metadata(apps, _schema_editor):
     Collection = apps.get_model("product", "Collection")
-    for collection in Collection.objects.all():
+    for collection in Collection.objects.iterator():
         flatten_model_metadata(collection)
 
 
 def flatten_digital_contents_metadata(apps, _schema_editor):
     DigitalContent = apps.get_model("product", "DigitalContent")
-    for digital_content in DigitalContent.objects.all():
+    for digital_content in DigitalContent.objects.iterator():
         flatten_model_metadata(digital_content)
 
 
 def flatten_fulfillments_metadata(apps, _schema_editor):
     Fulfillment = apps.get_model("order", "Fulfillment")
-    for fulfillment in Fulfillment.objects.all():
+    for fulfillment in Fulfillment.objects.iterator():
         flatten_model_metadata(fulfillment)
 
 
 def flatten_orders_metadata(apps, _schema_editor):
     Order = apps.get_model("order", "Order")
-    for order in Order.objects.all():
+    for order in Order.objects.iterator():
         flatten_model_metadata(order)
 
 
 def flatten_products_metadata(apps, _schema_editor):
     Product = apps.get_model("product", "Product")
-    for product in Product.objects.all():
+    for product in Product.objects.iterator():
         flatten_model_metadata(product)
 
 
 def flatten_product_types_metadata(apps, _schema_editor):
     ProductType = apps.get_model("product", "ProductType")
-    for product_type in ProductType.objects.all():
+    for product_type in ProductType.objects.iterator():
         flatten_model_metadata(product_type)
 
 
 def flatten_product_variants_metadata(apps, _schema_editor):
     ProductVariant = apps.get_model("product", "ProductVariant")
-    for product_variant in ProductVariant.objects.all():
+    for product_variant in ProductVariant.objects.iterator():
         flatten_model_metadata(product_variant)
 
 
 def flatten_service_accounts_metadata(apps, _schema_editor):
     ServiceAccount = apps.get_model("account", "ServiceAccount")
-    for service_account in ServiceAccount.objects.all():
+    for service_account in ServiceAccount.objects.iterator():
         flatten_model_metadata(service_account)
 
 
 def flatten_users_metadata(apps, _schema_editor):
     User = apps.get_model("account", "User")
-    for user in User.objects.all():
+    for user in User.objects.iterator():
         flatten_model_metadata(user)
 
 

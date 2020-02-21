@@ -384,7 +384,7 @@ class AvataxPlugin(BasePlugin):
 
         tax_description = codes[tax_code]
         tax_item = {META_CODE_KEY: tax_code, META_DESCRIPTION_KEY: tax_description}
-        obj.store_meta(items=tax_item)
+        obj.store_value_in_metadata(items=tax_item)
         obj.save()
 
     def get_tax_code_from_object_meta(
@@ -394,12 +394,9 @@ class AvataxPlugin(BasePlugin):
 
         if not self.active:
             return previous_value
-        tax_code = obj.get_meta(META_CODE_KEY)
-        tax_description = obj.get_meta(META_DESCRIPTION_KEY)
-        return TaxType(
-            code=tax_code if tax_code else "",
-            description=tax_description if tax_description else "",
-        )
+        tax_code = obj.get_value_from_metadata(META_CODE_KEY, "")
+        tax_description = obj.get_value_from_metadata(META_DESCRIPTION_KEY, "")
+        return TaxType(code=tax_code, description=tax_description,)
 
     def show_taxes_on_storefront(self, previous_value: bool) -> bool:
         self._initialize_plugin_configuration()
