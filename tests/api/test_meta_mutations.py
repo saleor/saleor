@@ -376,7 +376,7 @@ def test_add_public_metadata_for_service_account(
 def test_update_public_metadata_for_item(api_client, checkout):
     # given
     checkout.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    checkout.save(update_fields=["meta"])
+    checkout.save(update_fields=["metadata"])
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     # when
@@ -482,7 +482,7 @@ def test_delete_public_metadata_for_customer_as_staff(
 ):
     # given
     customer_user.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    customer_user.save(update_fields=["meta"])
+    customer_user.save(update_fields=["metadata"])
     customer_id = graphene.Node.to_global_id("User", customer_user.pk)
 
     # when
@@ -501,7 +501,7 @@ def test_delete_public_metadata_for_customer_as_service_account(
 ):
     # given
     customer_user.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    customer_user.save(update_fields=["meta"])
+    customer_user.save(update_fields=["metadata"])
     customer_id = graphene.Node.to_global_id("User", customer_user.pk)
 
     # when
@@ -521,7 +521,7 @@ def test_delete_public_metadata_for_other_staff_as_staff(
     # given
     assert admin_user.pk != staff_api_client.user.pk
     admin_user.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    admin_user.save(update_fields=["meta"])
+    admin_user.save(update_fields=["metadata"])
     admin_id = graphene.Node.to_global_id("User", admin_user.pk)
 
     # when
@@ -540,7 +540,7 @@ def test_delete_public_metadata_for_staff_as_service_account(
 ):
     # given
     admin_user.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    admin_user.save(update_fields=["meta"])
+    admin_user.save(update_fields=["metadata"])
     admin_id = graphene.Node.to_global_id("User", admin_user.pk)
 
     # when
@@ -558,7 +558,7 @@ def test_delete_public_metadata_for_myself_as_customer(user_api_client):
     # given
     customer = user_api_client.user
     customer.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    customer.save(update_fields=["meta"])
+    customer.save(update_fields=["metadata"])
     customer_id = graphene.Node.to_global_id("User", customer.pk)
 
     # when
@@ -576,7 +576,7 @@ def test_delete_public_metadata_for_myself_as_staff(staff_api_client):
     # given
     staff = staff_api_client.user
     staff.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    staff.save(update_fields=["meta"])
+    staff.save(update_fields=["metadata"])
     staff_id = graphene.Node.to_global_id("User", staff.pk)
 
     # when
@@ -593,7 +593,7 @@ def test_delete_public_metadata_for_myself_as_staff(staff_api_client):
 def test_delete_public_metadata_for_checkout(api_client, checkout):
     # given
     checkout.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    checkout.save(update_fields=["meta"])
+    checkout.save(update_fields=["metadata"])
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     # when
@@ -610,7 +610,7 @@ def test_delete_public_metadata_for_checkout(api_client, checkout):
 def test_delete_public_metadata_for_order(api_client, order):
     # given
     order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    order.save(update_fields=["meta"])
+    order.save(update_fields=["metadata"])
     order_id = graphene.Node.to_global_id("Order", order.pk)
 
     # when
@@ -627,7 +627,7 @@ def test_delete_public_metadata_for_order(api_client, order):
 def test_delete_public_metadata_for_draft_order(api_client, draft_order):
     # given
     draft_order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    draft_order.save(update_fields=["meta"])
+    draft_order.save(update_fields=["metadata"])
     draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
 
     # when
@@ -646,7 +646,7 @@ def test_delete_public_metadata_for_attribute(
 ):
     # given
     color_attribute.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    color_attribute.save(update_fields=["meta"])
+    color_attribute.save(update_fields=["metadata"])
     attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
 
     # when
@@ -665,7 +665,7 @@ def test_delete_public_metadata_for_category(
 ):
     # given
     category.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    category.save(update_fields=["meta"])
+    category.save(update_fields=["metadata"])
     category_id = graphene.Node.to_global_id("Category", category.pk)
 
     # when
@@ -684,7 +684,7 @@ def test_delete_public_metadata_for_collection(
 ):
     # given
     collection.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    collection.save(update_fields=["meta"])
+    collection.save(update_fields=["metadata"])
     collection_id = graphene.Node.to_global_id("Collection", collection.pk)
 
     # when
@@ -703,7 +703,7 @@ def test_delete_public_metadata_for_digital_content(
 ):
     # given
     digital_content.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    digital_content.save(update_fields=["meta"])
+    digital_content.save(update_fields=["metadata"])
     digital_content_id = graphene.Node.to_global_id(
         "DigitalContent", digital_content.pk
     )
@@ -727,7 +727,7 @@ def test_delete_public_metadata_for_fulfillment(
 ):
     # given
     fulfillment.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    fulfillment.save(update_fields=["meta"])
+    fulfillment.save(update_fields=["metadata"])
     fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.pk)
 
     # when
@@ -746,7 +746,7 @@ def test_delete_public_metadata_for_product(
 ):
     # given
     product.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    product.save(update_fields=["meta"])
+    product.save(update_fields=["metadata"])
     product_id = graphene.Node.to_global_id("Product", product.pk)
 
     # when
@@ -765,7 +765,7 @@ def test_delete_public_metadata_for_product_type(
 ):
     # given
     product_type.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    product_type.save(update_fields=["meta"])
+    product_type.save(update_fields=["metadata"])
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
 
     # when
@@ -784,7 +784,7 @@ def test_delete_public_metadata_for_product_variant(
 ):
     # given
     variant.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    variant.save(update_fields=["meta"])
+    variant.save(update_fields=["metadata"])
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     # when
@@ -857,7 +857,7 @@ def test_delete_public_metadata_for_item_without_meta(api_client, address):
 def test_delete_public_metadata_for_not_exist_key(api_client, checkout):
     # given
     checkout.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    checkout.save(update_fields=["meta"])
+    checkout.save(update_fields=["metadata"])
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     # when
@@ -876,7 +876,7 @@ def test_delete_public_metadata_for_one_key(api_client, checkout):
     checkout.store_value_in_metadata(
         {PUBLIC_KEY: PUBLIC_VALUE, "to_clear": PUBLIC_VALUE},
     )
-    checkout.save(update_fields=["meta"])
+    checkout.save(update_fields=["metadata"])
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     # when
@@ -1272,7 +1272,7 @@ def test_update_private_metadata_for_item(
 ):
     # given
     checkout.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_KEY})
-    checkout.save(update_fields=["private_meta"])
+    checkout.save(update_fields=["private_metadata"])
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     # when
@@ -1384,7 +1384,7 @@ def test_delete_private_metadata_for_customer_as_staff(
 ):
     # given
     customer_user.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    customer_user.save(update_fields=["private_meta"])
+    customer_user.save(update_fields=["private_metadata"])
     customer_id = graphene.Node.to_global_id("User", customer_user.pk)
 
     # when
@@ -1403,7 +1403,7 @@ def test_delete_private_metadata_for_customer_as_service_account(
 ):
     # given
     customer_user.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    customer_user.save(update_fields=["private_meta"])
+    customer_user.save(update_fields=["private_metadata"])
     customer_id = graphene.Node.to_global_id("User", customer_user.pk)
 
     # when
@@ -1423,7 +1423,7 @@ def test_delete_private_metadata_for_other_staff_as_staff(
     # given
     assert admin_user.pk != staff_api_client.user.pk
     admin_user.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    admin_user.save(update_fields=["private_meta"])
+    admin_user.save(update_fields=["private_metadata"])
     admin_id = graphene.Node.to_global_id("User", admin_user.pk)
 
     # when
@@ -1442,7 +1442,7 @@ def test_delete_private_metadata_for_staff_as_service_account(
 ):
     # given
     admin_user.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    admin_user.save(update_fields=["private_meta"])
+    admin_user.save(update_fields=["private_metadata"])
     admin_id = graphene.Node.to_global_id("User", admin_user.pk)
 
     # when
@@ -1460,7 +1460,7 @@ def test_delete_private_metadata_for_myself_as_customer_no_permission(user_api_c
     # given
     customer = user_api_client.user
     customer.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    customer.save(update_fields=["private_meta"])
+    customer.save(update_fields=["private_metadata"])
     variables = {
         "id": graphene.Node.to_global_id("User", customer.pk),
         "key": PRIVATE_KEY,
@@ -1481,7 +1481,7 @@ def test_delete_private_metadata_for_myself_as_staff_no_permission(
     # given
     staff = staff_api_client.user
     staff.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    staff.save(update_fields=["private_meta"])
+    staff.save(update_fields=["private_metadata"])
     variables = {
         "id": graphene.Node.to_global_id("User", staff.pk),
         "key": PRIVATE_KEY,
@@ -1503,7 +1503,7 @@ def test_delete_private_metadata_for_checkout(
 ):
     # given
     checkout.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    checkout.save(update_fields=["private_meta"])
+    checkout.save(update_fields=["private_metadata"])
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     # when
@@ -1522,7 +1522,7 @@ def test_delete_private_metadata_for_order(
 ):
     # given
     order.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    order.save(update_fields=["private_meta"])
+    order.save(update_fields=["private_metadata"])
     order_id = graphene.Node.to_global_id("Order", order.pk)
 
     # when
@@ -1541,7 +1541,7 @@ def test_delete_private_metadata_for_draft_order(
 ):
     # given
     draft_order.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    draft_order.save(update_fields=["private_meta"])
+    draft_order.save(update_fields=["private_metadata"])
     draft_order_id = graphene.Node.to_global_id("Order", draft_order.pk)
 
     # when
@@ -1560,7 +1560,7 @@ def test_delete_private_metadata_for_attribute(
 ):
     # given
     color_attribute.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    color_attribute.save(update_fields=["private_meta"])
+    color_attribute.save(update_fields=["private_metadata"])
     attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.pk)
 
     # when
@@ -1579,7 +1579,7 @@ def test_delete_private_metadata_for_category(
 ):
     # given
     category.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    category.save(update_fields=["private_meta"])
+    category.save(update_fields=["private_metadata"])
     category_id = graphene.Node.to_global_id("Category", category.pk)
 
     # when
@@ -1598,7 +1598,7 @@ def test_delete_private_metadata_for_collection(
 ):
     # given
     collection.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    collection.save(update_fields=["private_meta"])
+    collection.save(update_fields=["private_metadata"])
     collection_id = graphene.Node.to_global_id("Collection", collection.pk)
 
     # when
@@ -1617,7 +1617,7 @@ def test_delete_private_metadata_for_digital_content(
 ):
     # given
     digital_content.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    digital_content.save(update_fields=["private_meta"])
+    digital_content.save(update_fields=["private_metadata"])
     digital_content_id = graphene.Node.to_global_id(
         "DigitalContent", digital_content.pk
     )
@@ -1643,7 +1643,7 @@ def test_delete_private_metadata_for_fulfillment(
 ):
     # given
     fulfillment.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    fulfillment.save(update_fields=["private_meta"])
+    fulfillment.save(update_fields=["private_metadata"])
     fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.pk)
 
     # when
@@ -1662,7 +1662,7 @@ def test_delete_private_metadata_for_product(
 ):
     # given
     product.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    product.save(update_fields=["private_meta"])
+    product.save(update_fields=["private_metadata"])
     product_id = graphene.Node.to_global_id("Product", product.pk)
 
     # when
@@ -1681,7 +1681,7 @@ def test_delete_private_metadata_for_product_type(
 ):
     # given
     product_type.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    product_type.save(update_fields=["private_meta"])
+    product_type.save(update_fields=["private_metadata"])
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
 
     # when
@@ -1700,7 +1700,7 @@ def test_delete_private_metadata_for_product_variant(
 ):
     # given
     variant.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    variant.save(update_fields=["private_meta"])
+    variant.save(update_fields=["private_metadata"])
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
 
     # when
@@ -1779,7 +1779,7 @@ def test_delete_private_metadata_for_not_exist_key(
 ):
     # given
     checkout.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    checkout.save(update_fields=["private_meta"])
+    checkout.save(update_fields=["private_metadata"])
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     # when
@@ -1804,7 +1804,7 @@ def test_delete_private_metadata_for_one_key(
     checkout.store_value_in_private_metadata(
         {PRIVATE_KEY: PRIVATE_VALUE, "to_clear": PRIVATE_VALUE},
     )
-    checkout.save(update_fields=["private_meta"])
+    checkout.save(update_fields=["private_metadata"])
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
 
     # when

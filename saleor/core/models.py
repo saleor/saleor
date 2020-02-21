@@ -75,40 +75,40 @@ class PublishableModel(models.Model):
 
 
 class ModelWithMetadata(models.Model):
-    private_meta = JSONField(
+    private_metadata = JSONField(
         blank=True, null=True, default=dict, encoder=CustomJsonEncoder
     )
-    meta = JSONField(blank=True, null=True, default=dict, encoder=CustomJsonEncoder)
+    metadata = JSONField(blank=True, null=True, default=dict, encoder=CustomJsonEncoder)
 
     class Meta:
         abstract = True
 
     def get_value_from_private_metadata(self, key: str, default: Any = None) -> Any:
-        return self.private_meta.get(key, default)
+        return self.private_metadata.get(key, default)
 
     def store_value_in_private_metadata(self, items: dict):
-        if not self.private_meta:
-            self.private_meta = {}
-        self.private_meta.update(items)
+        if not self.private_metadata:
+            self.private_metadata = {}
+        self.private_metadata.update(items)
 
     def clear_private_metadata(self):
-        self.private_meta = {}
+        self.private_metadata = {}
 
     def delete_value_from_private_metadata(self, key: str):
-        if key in self.private_meta:
-            del self.private_meta[key]
+        if key in self.private_metadata:
+            del self.private_metadata[key]
 
     def get_value_from_metadata(self, key: str, default: Any = None) -> Any:
-        return self.meta.get(key, default)
+        return self.metadata.get(key, default)
 
     def store_value_in_metadata(self, items: dict):
-        if not self.meta:
-            self.meta = {}
-        self.meta.update(items)
+        if not self.metadata:
+            self.metadata = {}
+        self.metadata.update(items)
 
     def clear_metadata(self):
-        self.meta = {}
+        self.metadata = {}
 
     def delete_value_from_metadata(self, key: str):
-        if key in self.meta:
-            del self.meta[key]
+        if key in self.metadata:
+            del self.metadata[key]

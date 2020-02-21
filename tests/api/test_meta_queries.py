@@ -25,7 +25,7 @@ def test_query_public_meta_for_me_as_customer(user_api_client):
     # given
     me = user_api_client.user
     me.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    me.save(update_fields=["meta"])
+    me.save(update_fields=["metadata"])
 
     # when
     response = user_api_client.post_graphql(QUERY_SELF_PUBLIC_META)
@@ -41,7 +41,7 @@ def test_query_public_meta_for_me_as_staff(staff_api_client):
     # given
     me = staff_api_client.user
     me.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    me.save(update_fields=["meta"])
+    me.save(update_fields=["metadata"])
 
     # when
     response = staff_api_client.post_graphql(QUERY_SELF_PUBLIC_META)
@@ -70,7 +70,7 @@ def test_query_public_meta_for_customer_as_staff(
 ):
     # given
     customer_user.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    customer_user.save(update_fields=["meta"])
+    customer_user.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("User", customer_user.pk)}
 
     # when
@@ -90,7 +90,7 @@ def test_query_public_meta_for_customer_as_service_account(
 ):
     # given
     customer_user.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    customer_user.save(update_fields=["meta"])
+    customer_user.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("User", customer_user.pk)}
 
     # when
@@ -110,7 +110,7 @@ def test_query_public_meta_for_staff_as_other_staff(
 ):
     # given
     admin_user.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    admin_user.save(update_fields=["meta"])
+    admin_user.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("User", admin_user.pk)}
 
     # when
@@ -130,7 +130,7 @@ def test_query_public_meta_for_staff_as_service_account(
 ):
     # given
     admin_user.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    admin_user.save(update_fields=["meta"])
+    admin_user.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("User", admin_user.pk)}
 
     # when
@@ -160,7 +160,7 @@ QUERY_CHECKOUT_PUBLIC_META = """
 def test_query_public_meta_for_checkout_as_anonymous_user(api_client, checkout):
     # given
     checkout.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    checkout.save(update_fields=["meta"])
+    checkout.save(update_fields=["metadata"])
     variables = {"token": checkout.pk}
 
     # when
@@ -179,7 +179,7 @@ def test_query_public_meta_for_other_customer_checkout_as_anonymous_user(
     # given
     checkout.user = customer_user
     checkout.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    checkout.save(update_fields=["user", "meta"])
+    checkout.save(update_fields=["user", "metadata"])
     variables = {"token": checkout.pk}
 
     # when
@@ -194,7 +194,7 @@ def test_query_public_meta_for_checkout_as_customer(user_api_client, checkout):
     # given
     checkout.user = user_api_client.user
     checkout.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    checkout.save(update_fields=["user", "meta"])
+    checkout.save(update_fields=["user", "metadata"])
     variables = {"token": checkout.pk}
 
     # when
@@ -213,7 +213,7 @@ def test_query_public_meta_for_checkout_as_staff(
     # given
     checkout.user = customer_user
     checkout.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    checkout.save(update_fields=["user", "meta"])
+    checkout.save(update_fields=["user", "metadata"])
     variables = {"token": checkout.pk}
 
     # when
@@ -237,7 +237,7 @@ def test_query_public_meta_for_checkout_as_service_account(
     # given
     checkout.user = customer_user
     checkout.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    checkout.save(update_fields=["user", "meta"])
+    checkout.save(update_fields=["user", "metadata"])
     variables = {"token": checkout.pk}
 
     # when
@@ -270,7 +270,7 @@ QUERY_ORDER_BY_TOKEN_PUBLIC_META = """
 def test_query_public_meta_for_order_by_token_as_anonymous_user(api_client, order):
     # given
     order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    order.save(update_fields=["meta"])
+    order.save(update_fields=["metadata"])
     variables = {"token": order.token}
 
     # when
@@ -287,7 +287,7 @@ def test_query_public_meta_for_order_by_token_as_customer(user_api_client, order
     # given
     order.user = user_api_client.user
     order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    order.save(update_fields=["user", "meta"])
+    order.save(update_fields=["user", "metadata"])
     variables = {"token": order.token}
 
     # when
@@ -306,7 +306,7 @@ def test_query_public_meta_for_order_by_token_as_staff(
     # given
     order.user = customer_user
     order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    order.save(update_fields=["user", "meta"])
+    order.save(update_fields=["user", "metadata"])
     variables = {"token": order.token}
 
     # when
@@ -330,7 +330,7 @@ def test_query_public_meta_for_order_by_token_as_service_account(
     # given
     order.user = customer_user
     order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    order.save(update_fields=["user", "meta"])
+    order.save(update_fields=["user", "metadata"])
     variables = {"token": order.token}
 
     # when
@@ -375,7 +375,7 @@ def test_query_public_meta_for_order_as_customer(user_api_client, order):
     # given
     order.user = user_api_client.user
     order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    order.save(update_fields=["user", "meta"])
+    order.save(update_fields=["user", "metadata"])
     variables = {"id": graphene.Node.to_global_id("Order", order.pk)}
 
     # when
@@ -391,7 +391,7 @@ def test_query_public_meta_for_order_as_staff(
     # given
     order.user = customer_user
     order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    order.save(update_fields=["user", "meta"])
+    order.save(update_fields=["user", "metadata"])
     variables = {"id": graphene.Node.to_global_id("Order", order.pk)}
 
     # when
@@ -415,7 +415,7 @@ def test_query_public_meta_for_order_as_service_account(
     # given
     order.user = customer_user
     order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    order.save(update_fields=["user", "meta"])
+    order.save(update_fields=["user", "metadata"])
     variables = {"id": graphene.Node.to_global_id("Order", order.pk)}
 
     # when
@@ -460,7 +460,7 @@ def test_query_public_meta_for_draft_order_as_customer(user_api_client, draft_or
     # given
     draft_order.user = user_api_client.user
     draft_order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    draft_order.save(update_fields=["user", "meta"])
+    draft_order.save(update_fields=["user", "metadata"])
     variables = {"id": graphene.Node.to_global_id("Order", draft_order.pk)}
 
     # when
@@ -476,7 +476,7 @@ def test_query_public_meta_for_draft_order_as_staff(
     # given
     draft_order.user = customer_user
     draft_order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    draft_order.save(update_fields=["user", "meta"])
+    draft_order.save(update_fields=["user", "metadata"])
     variables = {"id": graphene.Node.to_global_id("Order", draft_order.pk)}
 
     # when
@@ -500,7 +500,7 @@ def test_query_public_meta_for_draft_order_as_service_account(
     # given
     draft_order.user = customer_user
     draft_order.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    draft_order.save(update_fields=["user", "meta"])
+    draft_order.save(update_fields=["user", "metadata"])
     variables = {"id": graphene.Node.to_global_id("Order", draft_order.pk)}
 
     # when
@@ -538,7 +538,7 @@ def test_query_public_meta_for_fulfillment_as_anonymous_user(
     # given
     fulfillment = fulfilled_order.fulfillments.first()
     fulfillment.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    fulfillment.save(update_fields=["meta"])
+    fulfillment.save(update_fields=["metadata"])
     variables = {"token": fulfilled_order.token}
 
     # when
@@ -557,7 +557,7 @@ def test_query_public_meta_for_fulfillment_as_customer(
     # given
     fulfillment = fulfilled_order.fulfillments.first()
     fulfillment.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    fulfillment.save(update_fields=["meta"])
+    fulfillment.save(update_fields=["metadata"])
     fulfilled_order.user = user_api_client.user
     fulfilled_order.save(update_fields=["user"])
     variables = {"token": fulfilled_order.token}
@@ -578,7 +578,7 @@ def test_query_public_meta_for_fulfillment_as_staff(
     # given
     fulfillment = fulfilled_order.fulfillments.first()
     fulfillment.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    fulfillment.save(update_fields=["meta"])
+    fulfillment.save(update_fields=["metadata"])
     fulfilled_order.user = customer_user
     fulfilled_order.save(update_fields=["user"])
     variables = {"token": fulfilled_order.token}
@@ -604,7 +604,7 @@ def test_query_public_meta_for_fulfillment_as_service_account(
     # given
     fulfillment = fulfilled_order.fulfillments.first()
     fulfillment.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    fulfillment.save(update_fields=["meta"])
+    fulfillment.save(update_fields=["metadata"])
     fulfilled_order.user = customer_user
     fulfilled_order.save(update_fields=["user"])
     variables = {"token": fulfilled_order.token}
@@ -639,7 +639,7 @@ QUERY_ATTRIBUTE_PUBLIC_META = """
 def test_query_public_meta_for_attribute_as_anonymous_user(api_client, color_attribute):
     # given
     color_attribute.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    color_attribute.save(update_fields=["meta"])
+    color_attribute.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("Attribute", color_attribute.pk)}
 
     # when
@@ -655,7 +655,7 @@ def test_query_public_meta_for_attribute_as_anonymous_user(api_client, color_att
 def test_query_public_meta_for_attribute_as_customer(user_api_client, color_attribute):
     # given
     color_attribute.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    color_attribute.save(update_fields=["meta"])
+    color_attribute.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("Attribute", color_attribute.pk)}
 
     # when
@@ -673,7 +673,7 @@ def test_query_public_meta_for_attribute_as_staff(
 ):
     # given
     color_attribute.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    color_attribute.save(update_fields=["meta"])
+    color_attribute.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("Attribute", color_attribute.pk)}
 
     # when
@@ -696,7 +696,7 @@ def test_query_public_meta_for_attribute_as_service_account(
 ):
     # given
     color_attribute.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    color_attribute.save(update_fields=["meta"])
+    color_attribute.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("Attribute", color_attribute.pk)}
 
     # when
@@ -729,7 +729,7 @@ QUERY_CATEGORY_PUBLIC_META = """
 def test_query_public_meta_for_category_as_anonymous_user(api_client, category):
     # given
     category.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    category.save(update_fields=["meta"])
+    category.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("Category", category.pk)}
 
     # when
@@ -745,7 +745,7 @@ def test_query_public_meta_for_category_as_anonymous_user(api_client, category):
 def test_query_public_meta_for_category_as_customer(user_api_client, category):
     # given
     category.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    category.save(update_fields=["meta"])
+    category.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("Category", category.pk)}
 
     # when
@@ -763,7 +763,7 @@ def test_query_public_meta_for_category_as_staff(
 ):
     # given
     category.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    category.save(update_fields=["meta"])
+    category.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("Category", category.pk)}
 
     # when
@@ -786,7 +786,7 @@ def test_query_public_meta_for_category_as_service_account(
 ):
     # given
     category.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    category.save(update_fields=["meta"])
+    category.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("Category", category.pk)}
 
     # when
@@ -819,7 +819,7 @@ QUERY_COLLECTION_PUBLIC_META = """
 def test_query_public_meta_for_collection_as_anonymous_user(api_client, collection):
     # given
     collection.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    collection.save(update_fields=["meta"])
+    collection.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("Collection", collection.pk)}
 
     # when
@@ -835,7 +835,7 @@ def test_query_public_meta_for_collection_as_anonymous_user(api_client, collecti
 def test_query_public_meta_for_collection_as_customer(user_api_client, collection):
     # given
     collection.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    collection.save(update_fields=["meta"])
+    collection.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("Collection", collection.pk)}
 
     # when
@@ -853,7 +853,7 @@ def test_query_public_meta_for_collection_as_staff(
 ):
     # given
     collection.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    collection.save(update_fields=["meta"])
+    collection.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("Collection", collection.pk)}
 
     # when
@@ -876,7 +876,7 @@ def test_query_public_meta_for_collection_as_service_account(
 ):
     # given
     collection.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    collection.save(update_fields=["meta"])
+    collection.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("Collection", collection.pk)}
 
     # when
@@ -924,7 +924,7 @@ def test_query_public_meta_for_digital_content_as_customer(
 ):
     # given
     digital_content.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    digital_content.save(update_fields=["meta"])
+    digital_content.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("DigitalContent", digital_content.pk)}
 
     # when
@@ -941,7 +941,7 @@ def test_query_public_meta_for_digital_content_as_staff(
 ):
     # given
     digital_content.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    digital_content.save(update_fields=["meta"])
+    digital_content.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("DigitalContent", digital_content.pk)}
 
     # when
@@ -964,7 +964,7 @@ def test_query_public_meta_for_digital_content_as_service_account(
 ):
     # given
     digital_content.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    digital_content.save(update_fields=["meta"])
+    digital_content.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("DigitalContent", digital_content.pk)}
 
     # when
@@ -997,7 +997,7 @@ QUERY_PRODUCT_PUBLIC_META = """
 def test_query_public_meta_for_product_as_anonymous_user(api_client, product):
     # given
     product.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    product.save(update_fields=["meta"])
+    product.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
 
     # when
@@ -1013,7 +1013,7 @@ def test_query_public_meta_for_product_as_anonymous_user(api_client, product):
 def test_query_public_meta_for_product_as_customer(user_api_client, product):
     # given
     product.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    product.save(update_fields=["meta"])
+    product.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
 
     # when
@@ -1031,7 +1031,7 @@ def test_query_public_meta_for_product_as_staff(
 ):
     # given
     product.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    product.save(update_fields=["meta"])
+    product.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
 
     # when
@@ -1054,7 +1054,7 @@ def test_query_public_meta_for_product_as_service_account(
 ):
     # given
     product.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    product.save(update_fields=["meta"])
+    product.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
 
     # when
@@ -1087,7 +1087,7 @@ QUERY_PRODUCT_TYPE_PUBLIC_META = """
 def test_query_public_meta_for_product_type_as_anonymous_user(api_client, product_type):
     # given
     product_type.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    product_type.save(update_fields=["meta"])
+    product_type.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("ProductType", product_type.pk)}
 
     # when
@@ -1103,7 +1103,7 @@ def test_query_public_meta_for_product_type_as_anonymous_user(api_client, produc
 def test_query_public_meta_for_product_type_as_customer(user_api_client, product_type):
     # given
     product_type.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    product_type.save(update_fields=["meta"])
+    product_type.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("ProductType", product_type.pk)}
 
     # when
@@ -1121,7 +1121,7 @@ def test_query_public_meta_for_product_type_as_staff(
 ):
     # given
     product_type.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    product_type.save(update_fields=["meta"])
+    product_type.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("ProductType", product_type.pk)}
 
     # when
@@ -1144,7 +1144,7 @@ def test_query_public_meta_for_product_type_as_service_account(
 ):
     # given
     product_type.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    product_type.save(update_fields=["meta"])
+    product_type.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("ProductType", product_type.pk)}
 
     # when
@@ -1177,7 +1177,7 @@ QUERY_PRODUCT_VARIANT_PUBLIC_META = """
 def test_query_public_meta_for_product_variant_as_anonymous_user(api_client, variant):
     # given
     variant.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    variant.save(update_fields=["meta"])
+    variant.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
 
     # when
@@ -1193,7 +1193,7 @@ def test_query_public_meta_for_product_variant_as_anonymous_user(api_client, var
 def test_query_public_meta_for_product_variant_as_customer(user_api_client, variant):
     # given
     variant.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    variant.save(update_fields=["meta"])
+    variant.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
 
     # when
@@ -1213,7 +1213,7 @@ def test_query_public_meta_for_product_variant_as_staff(
 ):
     # given
     variant.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    variant.save(update_fields=["meta"])
+    variant.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
 
     # when
@@ -1236,7 +1236,7 @@ def test_query_public_meta_for_product_variant_as_service_account(
 ):
     # given
     variant.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    variant.save(update_fields=["meta"])
+    variant.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
 
     # when
@@ -1299,7 +1299,7 @@ def test_query_public_meta_for_service_account_as_staff(
 ):
     # given
     service_account.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    service_account.save(update_fields=["meta"])
+    service_account.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("ServiceAccount", service_account.pk)}
 
     # when
@@ -1322,7 +1322,7 @@ def test_query_public_meta_for_service_account_as_service_account(
 ):
     # given
     service_account.store_value_in_metadata({PUBLIC_KEY: PUBLIC_VALUE})
-    service_account.save(update_fields=["meta"])
+    service_account.save(update_fields=["metadata"])
     variables = {"id": graphene.Node.to_global_id("ServiceAccount", service_account.pk)}
 
     # when
@@ -1382,7 +1382,7 @@ def test_query_private_meta_for_me_as_staff_with_manage_staff(
     # given
     me = staff_api_client.user
     me.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    me.save(update_fields=["private_meta"])
+    me.save(update_fields=["private_metadata"])
 
     # when
     response = staff_api_client.post_graphql(
@@ -1413,7 +1413,7 @@ def test_query_private_meta_for_customer_as_staff(
 ):
     # given
     customer_user.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    customer_user.save(update_fields=["private_meta"])
+    customer_user.save(update_fields=["private_metadata"])
     variables = {"id": graphene.Node.to_global_id("User", customer_user.pk)}
 
     # when
@@ -1433,7 +1433,7 @@ def test_query_private_meta_for_customer_as_service_account(
 ):
     # given
     customer_user.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    customer_user.save(update_fields=["private_meta"])
+    customer_user.save(update_fields=["private_metadata"])
     variables = {"id": graphene.Node.to_global_id("User", customer_user.pk)}
 
     # when
@@ -1453,7 +1453,7 @@ def test_query_private_meta_for_staff_as_other_staff(
 ):
     # given
     admin_user.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    admin_user.save(update_fields=["private_meta"])
+    admin_user.save(update_fields=["private_metadata"])
     variables = {"id": graphene.Node.to_global_id("User", admin_user.pk)}
 
     # when
@@ -1473,7 +1473,7 @@ def test_query_private_meta_for_staff_as_service_account(
 ):
     # given
     admin_user.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    admin_user.save(update_fields=["private_meta"])
+    admin_user.save(update_fields=["private_metadata"])
     variables = {"id": graphene.Node.to_global_id("User", admin_user.pk)}
 
     # when
@@ -1546,7 +1546,7 @@ def test_query_private_meta_for_checkout_as_staff(
     # given
     checkout.user = customer_user
     checkout.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    checkout.save(update_fields=["user", "private_meta"])
+    checkout.save(update_fields=["user", "private_metadata"])
     variables = {"token": checkout.pk}
 
     # when
@@ -1570,7 +1570,7 @@ def test_query_private_meta_for_checkout_as_service_account(
     # given
     checkout.user = customer_user
     checkout.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    checkout.save(update_fields=["user", "private_meta"])
+    checkout.save(update_fields=["user", "private_metadata"])
     variables = {"token": checkout.pk}
 
     # when
@@ -1632,7 +1632,7 @@ def test_query_private_meta_for_order_by_token_as_staff(
     # given
     order.user = customer_user
     order.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    order.save(update_fields=["user", "private_meta"])
+    order.save(update_fields=["user", "private_metadata"])
     variables = {"token": order.token}
 
     # when
@@ -1656,7 +1656,7 @@ def test_query_private_meta_for_order_by_token_as_service_account(
     # given
     order.user = customer_user
     order.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    order.save(update_fields=["user", "private_meta"])
+    order.save(update_fields=["user", "private_metadata"])
     variables = {"token": order.token}
 
     # when
@@ -1716,7 +1716,7 @@ def test_query_private_meta_for_order_as_staff(
     # given
     order.user = customer_user
     order.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    order.save(update_fields=["user", "private_meta"])
+    order.save(update_fields=["user", "private_metadata"])
     variables = {"id": graphene.Node.to_global_id("Order", order.pk)}
 
     # when
@@ -1740,7 +1740,7 @@ def test_query_private_meta_for_order_as_service_account(
     # given
     order.user = customer_user
     order.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    order.save(update_fields=["user", "private_meta"])
+    order.save(update_fields=["user", "private_metadata"])
     variables = {"id": graphene.Node.to_global_id("Order", order.pk)}
 
     # when
@@ -1785,7 +1785,7 @@ def test_query_private_meta_for_draft_order_as_customer(user_api_client, draft_o
     # given
     draft_order.user = user_api_client.user
     draft_order.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    draft_order.save(update_fields=["user", "private_meta"])
+    draft_order.save(update_fields=["user", "private_metadata"])
     variables = {"id": graphene.Node.to_global_id("Order", draft_order.pk)}
 
     # when
@@ -1801,7 +1801,7 @@ def test_query_private_meta_for_draft_order_as_staff(
     # given
     draft_order.user = customer_user
     draft_order.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    draft_order.save(update_fields=["user", "private_meta"])
+    draft_order.save(update_fields=["user", "private_metadata"])
     variables = {"id": graphene.Node.to_global_id("Order", draft_order.pk)}
 
     # when
@@ -1825,7 +1825,7 @@ def test_query_private_meta_for_draft_order_as_service_account(
     # given
     draft_order.user = customer_user
     draft_order.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    draft_order.save(update_fields=["user", "private_meta"])
+    draft_order.save(update_fields=["user", "private_metadata"])
     variables = {"id": graphene.Node.to_global_id("Order", draft_order.pk)}
 
     # when
@@ -1891,7 +1891,7 @@ def test_query_private_meta_for_fulfillment_as_staff(
     # given
     fulfillment = fulfilled_order.fulfillments.first()
     fulfillment.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    fulfillment.save(update_fields=["private_meta"])
+    fulfillment.save(update_fields=["private_metadata"])
     fulfilled_order.user = customer_user
     fulfilled_order.save(update_fields=["user"])
     variables = {"token": fulfilled_order.token}
@@ -1917,7 +1917,7 @@ def test_query_private_meta_for_fulfillment_as_service_account(
     # given
     fulfillment = fulfilled_order.fulfillments.first()
     fulfillment.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    fulfillment.save(update_fields=["private_meta"])
+    fulfillment.save(update_fields=["private_metadata"])
     fulfilled_order.user = customer_user
     fulfilled_order.save(update_fields=["user"])
     variables = {"token": fulfilled_order.token}
@@ -1978,7 +1978,7 @@ def test_query_private_meta_for_attribute_as_staff(
 ):
     # given
     color_attribute.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    color_attribute.save(update_fields=["private_meta"])
+    color_attribute.save(update_fields=["private_metadata"])
     variables = {"id": graphene.Node.to_global_id("Attribute", color_attribute.pk)}
 
     # when
@@ -2001,7 +2001,7 @@ def test_query_private_meta_for_attribute_as_service_account(
 ):
     # given
     color_attribute.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    color_attribute.save(update_fields=["private_meta"])
+    color_attribute.save(update_fields=["private_metadata"])
     variables = {"id": graphene.Node.to_global_id("Attribute", color_attribute.pk)}
 
     # when
@@ -2058,7 +2058,7 @@ def test_query_private_meta_for_category_as_staff(
 ):
     # given
     category.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    category.save(update_fields=["private_meta"])
+    category.save(update_fields=["private_metadata"])
     variables = {"id": graphene.Node.to_global_id("Category", category.pk)}
 
     # when
@@ -2081,7 +2081,7 @@ def test_query_private_meta_for_category_as_service_account(
 ):
     # given
     category.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    category.save(update_fields=["private_meta"])
+    category.save(update_fields=["private_metadata"])
     variables = {"id": graphene.Node.to_global_id("Category", category.pk)}
 
     # when
@@ -2138,7 +2138,7 @@ def test_query_private_meta_for_collection_as_staff(
 ):
     # given
     collection.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    collection.save(update_fields=["private_meta"])
+    collection.save(update_fields=["private_metadata"])
     variables = {"id": graphene.Node.to_global_id("Collection", collection.pk)}
 
     # when
@@ -2161,7 +2161,7 @@ def test_query_private_meta_for_collection_as_service_account(
 ):
     # given
     collection.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    collection.save(update_fields=["private_meta"])
+    collection.save(update_fields=["private_metadata"])
     variables = {"id": graphene.Node.to_global_id("Collection", collection.pk)}
 
     # when
@@ -2209,7 +2209,7 @@ def test_query_private_meta_for_digital_content_as_customer(
 ):
     # given
     digital_content.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    digital_content.save(update_fields=["private_meta"])
+    digital_content.save(update_fields=["private_metadata"])
     variables = {"id": graphene.Node.to_global_id("DigitalContent", digital_content.pk)}
 
     # when
@@ -2226,7 +2226,7 @@ def test_query_private_meta_for_digital_content_as_staff(
 ):
     # given
     digital_content.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    digital_content.save(update_fields=["private_meta"])
+    digital_content.save(update_fields=["private_metadata"])
     variables = {"id": graphene.Node.to_global_id("DigitalContent", digital_content.pk)}
 
     # when
@@ -2249,7 +2249,7 @@ def test_query_private_meta_for_digital_content_as_service_account(
 ):
     # given
     digital_content.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    digital_content.save(update_fields=["private_meta"])
+    digital_content.save(update_fields=["private_metadata"])
     variables = {"id": graphene.Node.to_global_id("DigitalContent", digital_content.pk)}
 
     # when
@@ -2306,7 +2306,7 @@ def test_query_private_meta_for_product_as_staff(
 ):
     # given
     product.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    product.save(update_fields=["private_meta"])
+    product.save(update_fields=["private_metadata"])
     variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
 
     # when
@@ -2329,7 +2329,7 @@ def test_query_private_meta_for_product_as_service_account(
 ):
     # given
     product.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    product.save(update_fields=["private_meta"])
+    product.save(update_fields=["private_metadata"])
     variables = {"id": graphene.Node.to_global_id("Product", product.pk)}
 
     # when
@@ -2388,7 +2388,7 @@ def test_query_private_meta_for_product_type_as_staff(
 ):
     # given
     product_type.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    product_type.save(update_fields=["private_meta"])
+    product_type.save(update_fields=["private_metadata"])
     variables = {"id": graphene.Node.to_global_id("ProductType", product_type.pk)}
 
     # when
@@ -2411,7 +2411,7 @@ def test_query_private_meta_for_product_type_as_service_account(
 ):
     # given
     product_type.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    product_type.save(update_fields=["private_meta"])
+    product_type.save(update_fields=["private_metadata"])
     variables = {"id": graphene.Node.to_global_id("ProductType", product_type.pk)}
 
     # when
@@ -2444,7 +2444,7 @@ QUERY_PRODUCT_VARIANT_PRIVATE_META = """
 def test_query_private_meta_for_product_variant_as_anonymous_user(api_client, variant):
     # given
     variant.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    variant.save(update_fields=["private_meta"])
+    variant.save(update_fields=["private_metadata"])
     variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
 
     # when
@@ -2457,7 +2457,7 @@ def test_query_private_meta_for_product_variant_as_anonymous_user(api_client, va
 def test_query_private_meta_for_product_variant_as_customer(user_api_client, variant):
     # given
     variant.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    variant.save(update_fields=["private_meta"])
+    variant.save(update_fields=["private_metadata"])
     variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
 
     # when
@@ -2474,7 +2474,7 @@ def test_query_private_meta_for_product_variant_as_staff(
 ):
     # given
     variant.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    variant.save(update_fields=["private_meta"])
+    variant.save(update_fields=["private_metadata"])
     variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
 
     # when
@@ -2497,7 +2497,7 @@ def test_query_private_meta_for_product_variant_as_service_account(
 ):
     # given
     variant.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    variant.save(update_fields=["private_meta"])
+    variant.save(update_fields=["private_metadata"])
     variables = {"id": graphene.Node.to_global_id("ProductVariant", variant.pk)}
 
     # when
@@ -2560,7 +2560,7 @@ def test_query_private_meta_for_service_account_as_staff(
 ):
     # given
     service_account.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    service_account.save(update_fields=["private_meta"])
+    service_account.save(update_fields=["private_metadata"])
     variables = {"id": graphene.Node.to_global_id("ServiceAccount", service_account.pk)}
 
     # when
@@ -2583,7 +2583,7 @@ def test_query_private_meta_for_service_account_as_service_account(
 ):
     # given
     service_account.store_value_in_private_metadata({PRIVATE_KEY: PRIVATE_VALUE})
-    service_account.save(update_fields=["private_meta"])
+    service_account.save(update_fields=["private_metadata"])
     variables = {"id": graphene.Node.to_global_id("ServiceAccount", service_account.pk)}
 
     # when

@@ -585,7 +585,7 @@ def test_store_payment_gateway_meta(customer_user, braintree_customer_id):
     meta_key = "BRAINTREE.customer_id"
     META = {meta_key: braintree_customer_id}
     store_customer_id(customer_user, gateway_name, braintree_customer_id)
-    assert customer_user.private_meta == META
+    assert customer_user.private_metadata == META
     customer_user.refresh_from_db()
     assert fetch_customer_id(customer_user, gateway_name) == braintree_customer_id
 

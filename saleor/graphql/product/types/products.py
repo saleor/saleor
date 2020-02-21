@@ -501,7 +501,13 @@ class Product(CountableDjangoObjectType):
     @staticmethod
     @gql_optimizer.resolver_hints(
         prefetch_related=("variants", "collections"),
-        only=["publication_date", "charge_taxes", "price_amount", "currency", "meta"],
+        only=[
+            "publication_date",
+            "charge_taxes",
+            "price_amount",
+            "currency",
+            "metadata",
+        ],
     )
     def resolve_pricing(root: models.Product, info):
         context = info.context
@@ -529,7 +535,13 @@ class Product(CountableDjangoObjectType):
     @staticmethod
     @gql_optimizer.resolver_hints(
         prefetch_related=("variants", "collections"),
-        only=["publication_date", "charge_taxes", "price_amount", "currency", "meta"],
+        only=[
+            "publication_date",
+            "charge_taxes",
+            "price_amount",
+            "currency",
+            "metadata",
+        ],
     )
     def resolve_price(root: models.Product, info):
         price_range = root.get_price_range(info.context.discounts)
@@ -657,8 +669,7 @@ class ProductType(CountableDjangoObjectType):
         # FIXME this resolver should be dropped after we drop tax_rate from API
         if not hasattr(root, "meta"):
             return None
-        tax = root.meta.get("taxes", {}).get("vatlayer", {})
-        return tax.get("code")
+        return root.get_value_from_metadata("vatlayer.code")
 
     @staticmethod
     @gql_optimizer.resolver_hints(

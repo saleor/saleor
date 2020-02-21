@@ -5,14 +5,14 @@ from django.db import migrations
 
 def flatten_model_metadata(model_with_metadata):
     updated_fields = []
-    public_meta = model_with_metadata.meta
-    private_meta = model_with_metadata.private_meta
+    public_meta = model_with_metadata.metadata
+    private_meta = model_with_metadata.private_metadata
     if public_meta:
-        model_with_metadata.meta = flatten_metadata(public_meta)
-        updated_fields.append("meta")
+        model_with_metadata.metadata = flatten_metadata(public_meta)
+        updated_fields.append("metadata")
     if private_meta:
-        model_with_metadata.private_meta = flatten_metadata(private_meta)
-        updated_fields.append("private_meta")
+        model_with_metadata.private_metadata = flatten_metadata(private_meta)
+        updated_fields.append("private_metadata")
     if updated_fields:
         model_with_metadata.save(update_fields=updated_fields)
 
@@ -104,10 +104,10 @@ def flatten_users_metadata(apps, _schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("account", "0038_auto_20200123_0034"),
-        ("checkout", "0024_auto_20200120_0154"),
-        ("order", "0077_auto_20191118_0606"),
-        ("product", "0111_auto_20191209_0437"),
+        ("account", "0039_auto_20200221_0257"),
+        ("checkout", "0025_auto_20200221_0257"),
+        ("order", "0078_auto_20200221_0257"),
+        ("product", "0115_auto_20200221_0257"),
     ]
 
     operations = [
