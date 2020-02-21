@@ -7,6 +7,7 @@ from django.conf import settings
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import transaction
 
+from ..account.models import User
 from ..checkout.models import Checkout
 from ..order.actions import handle_fully_paid_order
 from ..order.models import Order
@@ -19,7 +20,6 @@ logger = logging.getLogger(__name__)
 
 GENERIC_TRANSACTION_ERROR = "Transaction was unsuccessful"
 ALLOWED_GATEWAY_KINDS = {choices[0] for choices in TransactionKind.CHOICES}
-GATEWAYS_META_NAMESPACE = "payment-gateways"
 
 
 def create_payment_information(
@@ -240,29 +240,21 @@ def gateway_postprocess(transaction, payment):
         payment.save(update_fields=changed_fields)
 
 
-def fetch_customer_id(user, gateway):
+def fetch_customer_id(user: User, gateway: str):
     """Retrieve users customer_id stored for desired gateway."""
-    key = prepare_namespace_name(gateway)
-    gateway_config = {}
-    if hasattr(user, "get_private_meta"):
-        gateway_config = user.get_private_meta(
-            namespace=GATEWAYS_META_NAMESPACE, client=key
-        )
-    return gateway_config.get("customer_id", None)
+    meta_key = prepare_key_for_gateway_customer_id(gateway)
+    return user.get_value_from_private_metadata(key=meta_key)
 
 
-def store_customer_id(user, gateway, customer_id):
+def store_customer_id(user: User, gateway: str, customer_id: str):
     """Store customer_id in users private meta for desired gateway."""
-    user.store_private_meta(
-        namespace=GATEWAYS_META_NAMESPACE,
-        client=prepare_namespace_name(gateway),
-        item={"customer_id": customer_id},
-    )
-    user.save(update_fields=["private_meta"])
+    meta_key = prepare_key_for_gateway_customer_id(gateway)
+    user.store_value_in_private_metadata(items={meta_key: customer_id})
+    user.save(update_fields=["private_metadata"])
 
 
-def prepare_namespace_name(s):
-    return s.strip().upper()
+def prepare_key_for_gateway_customer_id(gateway_name: str) -> str:
+    return (gateway_name.strip().upper()) + ".customer_id"
 
 
 def update_card_details(payment, gateway_response):

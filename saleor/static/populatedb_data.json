@@ -3,8 +3,8 @@
         "model": "product.category",
         "pk": 7,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "seo_title": "",
             "seo_description": "",
             "name": "Accessories",
@@ -37,8 +37,8 @@
         "model": "product.category",
         "pk": 8,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "seo_title": "",
             "seo_description": "",
             "name": "Groceries",
@@ -71,8 +71,8 @@
         "model": "product.category",
         "pk": 9,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "seo_title": "",
             "seo_description": "",
             "name": "Apparel",
@@ -105,8 +105,8 @@
         "model": "product.category",
         "pk": 10,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "seo_title": "",
             "seo_description": "",
             "name": "T-shirts",
@@ -126,8 +126,8 @@
         "model": "product.category",
         "pk": 11,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "seo_title": "",
             "seo_description": "",
             "name": "Polo Shirts",
@@ -147,8 +147,8 @@
         "model": "product.category",
         "pk": 12,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "seo_title": "",
             "seo_description": "",
             "name": "Hoodies",
@@ -168,8 +168,8 @@
         "model": "product.category",
         "pk": 13,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "seo_title": "",
             "seo_description": "",
             "name": "Footwear",
@@ -189,8 +189,8 @@
         "model": "product.category",
         "pk": 14,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "seo_title": "",
             "seo_description": "",
             "name": "Juices",
@@ -210,8 +210,8 @@
         "model": "product.category",
         "pk": 15,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "seo_title": "",
             "seo_description": "",
             "name": "Alcohol",
@@ -231,8 +231,8 @@
         "model": "product.category",
         "pk": 20,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "seo_title": "",
             "seo_description": "",
             "name": "Paints",
@@ -252,8 +252,8 @@
         "model": "product.category",
         "pk": 22,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "seo_title": "",
             "seo_description": "",
             "name": "Homewares",
@@ -273,14 +273,10 @@
         "model": "product.producttype",
         "pk": 7,
         "fields": {
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "name": "Paint",
             "slug": "paint",
@@ -294,14 +290,10 @@
         "model": "product.producttype",
         "pk": 8,
         "fields": {
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "name": "Music",
             "slug": "music",
@@ -315,14 +307,10 @@
         "model": "product.producttype",
         "pk": 9,
         "fields": {
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "name": "Juice",
             "slug": "juice",
@@ -336,14 +324,10 @@
         "model": "product.producttype",
         "pk": 10,
         "fields": {
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "name": "Wine",
             "slug": "wine",
@@ -357,14 +341,10 @@
         "model": "product.producttype",
         "pk": 11,
         "fields": {
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "name": "Beer",
             "slug": "beer",
@@ -378,14 +358,10 @@
         "model": "product.producttype",
         "pk": 12,
         "fields": {
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "name": "Cushion",
             "slug": "cushion",
@@ -399,14 +375,10 @@
         "model": "product.producttype",
         "pk": 13,
         "fields": {
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "name": "Shoe",
             "slug": "shoe",
@@ -420,14 +392,10 @@
         "model": "product.producttype",
         "pk": 14,
         "fields": {
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "name": "Top (clothing)",
             "slug": "top-clothing",
@@ -443,8 +411,8 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
+            "private_metadata": {},
+            "metadata": {
                 "taxes": {
                     "vatlayer": {
                         "code": "standard",
@@ -487,14 +455,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "The rich, deep hue of space dust. Vacuum packed and airlocked for long-lasting freshness of color.",
@@ -531,14 +495,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "",
@@ -575,14 +535,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "There is life in outer space. This vibrant light speed yellow paint brings life to any surface. Goes on easy and dries at light speed.",
@@ -619,14 +575,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "Turquoise is the new black. No more gloomy night skies, brighten up your evenings with hyperspace paint.",
@@ -663,14 +615,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "Fell from a tree straight into the bottle. No additives, no preservatives, just the refreshing taste of pure sun-kissed Californian oranges.",
@@ -707,14 +655,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "Fell straight from the tree, on to Newton\u2019s head, then into the bottle. The autumn taste of English apples. Brought to you by gravity.",
@@ -751,14 +695,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "Improve your eyesight the natural way with 100% pure, squeezed carrot juice. The sweet, orange nectar of Mother Earth.",
@@ -795,14 +735,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "Build your protein the natural way, with exotic banana juice made from ripe fruit and packed with all the goodness of the tropical sun.",
@@ -839,14 +775,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "I can\u2019t stand pineapples, so this one is not for me. They have a weird, fluffy, tangy taste. But if it is your kind of thing, then knock yourself out.",
@@ -883,14 +815,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "Did you know falling coconuts kill 150 people a year? But did you know that coconut juice is the new superfood? You win some, you lose some.",
@@ -927,14 +855,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "Is it a bird? Is it a plane? No! It\u2019s some jacked dude who just sucked down a bottle of our brand new power juice! Look at him go!",
@@ -971,14 +895,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "Brussel sprouts, spinach, peas, kale, lettuce, cabbage, zucchini, more brussel sprouts. All the greens you\u2019ll ever need in one delicious juice.",
@@ -1015,14 +935,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "Bean there, drunk that! The energy drink for the health-conscious. Brand new bean juice; from allotment to bottle in under 8 hours.",
@@ -1059,14 +975,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "A fine, mature red with a hint of blackberry, an undertone of the alkaline Burgundy soil, a delicate aftertaste of burnt garlic, and a whole lot of grapes.",
@@ -1103,14 +1015,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "Watch the slow setting sun of a wild summer evening sink into the horizon as you sip white wine that tastes like bittersweet memories of halcyon days.",
@@ -1147,14 +1055,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "Find your sea legs and then lose the power to use them with extra strong seaman\u2019s lager. Don\u2019t drink and sail, me hearties!",
@@ -1191,14 +1095,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "Best beer on the seven seas. A dark ale for when the dark clouds gather overhead. The nutty nautical taste that sailors love.",
@@ -1235,14 +1135,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "Add a little color to your life with a Saleor parrot cushion. Turns any old sofa into a rainbow of classy interior design.",
@@ -1279,14 +1175,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "Minimalist interiors need simple, sleek soft furnishings. Don\u2019t parrot what others do, set your own monochrome trends with Saleor designs.",
@@ -1323,14 +1215,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "Mellow yellow. Step into summer with Saleor. Every time your head goes down, you see these beauties, and your mood bounces right back up.",
@@ -1367,14 +1255,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "PE at school wouldn\u2019t have been such a drag with these on your feet. Slip on the style and stride tall with Saleor branded plimsolls. PE now stands for pretty elegant.",
@@ -1411,14 +1295,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "Pay homage to the music and art of Joy Division and Peter Saville, but with a Mirumee twist. Perfect live transmission apparel for dead souls.",
@@ -1455,14 +1335,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "Ever have those days where you feel a bit geometric? Can't quite shape yourself up right? Show your different sides with a Saleor styles.",
@@ -1499,14 +1375,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "Polo? Yolo\u2026 so don\u2019t waste time on the wrong apparel. Choose a polo shirt that looks as good as you feel.",
@@ -1543,14 +1415,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "Wondering if this will look as good on you as it does on the screen? The answer is yes. A quality polo with smart styling.",
@@ -1587,14 +1455,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "They say polo is the sport of kings. Or was that stamp collecting? Either way, this shirt is fit for a king of Saturday night.",
@@ -1631,14 +1495,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "One style fits all. Get a look that works even when you are taking it easy. Relaxed wear for the masses.",
@@ -1675,14 +1535,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "A classic tee for a timeless look, at a great price. Feel like a million bucks without breaking the bank.",
@@ -1719,14 +1575,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "Want to look like you just fell out of bed? Sometimes style can be effortless. Throw it on get on with having a good day.",
@@ -1763,14 +1615,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "Your t-shirt is your second skin. It\u2019s the version of you that you show to the world. Wear one that flows with your movements and is built to last.",
@@ -1807,14 +1655,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "Special offer. Buy a hood and get a free jet black sweater attached. Perfect for when you are up to no good.",
@@ -1851,14 +1695,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "Special offer. Buy a superhero blue sweater and get a free hood attached. Ideal for when you are out saving the world.",
@@ -1895,14 +1735,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "Who dunnit? It was Colonel Mustard, in the dining room, with the lead piping, wearing this hot as mustard hoodie.",
@@ -1939,14 +1775,10 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {
-                "taxes": {
-                    "vatlayer": {
-                        "code": "standard",
-                        "description": ""
-                    }
-                }
+            "private_metadata": {},
+            "metadata": {
+                "vatlayer.code": "standard",
+                "vatlayer.description": ""
             },
             "seo_title": "",
             "seo_description": "Get your slouch on and be seen with a whiter than white hoodie straight from the streets. Relaxed stylin\u2019 and profilin\u2019 with flair.",
@@ -1981,8 +1813,8 @@
         "model": "product.productvariant",
         "pk": 171,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "546451996",
             "name": "1l",
             "currency": "USD",
@@ -1999,8 +1831,8 @@
         "model": "product.productvariant",
         "pk": 172,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "546451997",
             "name": "2.5l",
             "currency": "USD",
@@ -2017,8 +1849,8 @@
         "model": "product.productvariant",
         "pk": 173,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "546451999",
             "name": "5l",
             "currency": "USD",
@@ -2035,8 +1867,8 @@
         "model": "product.productvariant",
         "pk": 174,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "998223591",
             "name": "1l",
             "currency": "USD",
@@ -2053,8 +1885,8 @@
         "model": "product.productvariant",
         "pk": 175,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "998223599",
             "name": "2.5l",
             "currency": "USD",
@@ -2071,8 +1903,8 @@
         "model": "product.productvariant",
         "pk": 176,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "998223594",
             "name": "5l",
             "currency": "USD",
@@ -2089,8 +1921,8 @@
         "model": "product.productvariant",
         "pk": 177,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "998223582",
             "name": "1l",
             "currency": "USD",
@@ -2107,8 +1939,8 @@
         "model": "product.productvariant",
         "pk": 178,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "998223583",
             "name": "2.5l",
             "currency": "USD",
@@ -2125,8 +1957,8 @@
         "model": "product.productvariant",
         "pk": 179,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "998223584",
             "name": "5l",
             "currency": "USD",
@@ -2143,8 +1975,8 @@
         "model": "product.productvariant",
         "pk": 180,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "998323582",
             "name": "1l",
             "currency": "USD",
@@ -2161,8 +1993,8 @@
         "model": "product.productvariant",
         "pk": 181,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "998323583",
             "name": "2.5l",
             "currency": "USD",
@@ -2179,8 +2011,8 @@
         "model": "product.productvariant",
         "pk": 182,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "998323584",
             "name": "5l",
             "currency": "USD",
@@ -2197,8 +2029,8 @@
         "model": "product.productvariant",
         "pk": 183,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "998423582",
             "name": "1l",
             "currency": "USD",
@@ -2215,8 +2047,8 @@
         "model": "product.productvariant",
         "pk": 184,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "998423583",
             "name": "2.5l",
             "currency": "USD",
@@ -2233,8 +2065,8 @@
         "model": "product.productvariant",
         "pk": 185,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "998423585",
             "name": "5l",
             "currency": "USD",
@@ -2251,8 +2083,8 @@
         "model": "product.productvariant",
         "pk": 190,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "988323582",
             "name": "500ml",
             "currency": "USD",
@@ -2269,8 +2101,8 @@
         "model": "product.productvariant",
         "pk": 191,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "938323582",
             "name": "1l",
             "currency": "USD",
@@ -2287,8 +2119,8 @@
         "model": "product.productvariant",
         "pk": 192,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "988323522",
             "name": "2l",
             "currency": "USD",
@@ -2305,8 +2137,8 @@
         "model": "product.productvariant",
         "pk": 193,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "12312312321",
             "name": "",
             "currency": "USD",
@@ -2323,8 +2155,8 @@
         "model": "product.productvariant",
         "pk": 194,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "1231998121",
             "name": "",
             "currency": "USD",
@@ -2341,8 +2173,8 @@
         "model": "product.productvariant",
         "pk": 195,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "98616712",
             "name": "",
             "currency": "USD",
@@ -2359,8 +2191,8 @@
         "model": "product.productvariant",
         "pk": 196,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "98616713",
             "name": "",
             "currency": "USD",
@@ -2377,8 +2209,8 @@
         "model": "product.productvariant",
         "pk": 197,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "698223582",
             "name": "45cm x 45cm",
             "currency": "USD",
@@ -2395,8 +2227,8 @@
         "model": "product.productvariant",
         "pk": 198,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "698223581",
             "name": "55cm x 55cm",
             "currency": "USD",
@@ -2413,8 +2245,8 @@
         "model": "product.productvariant",
         "pk": 199,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "987126191",
             "name": "45cm x 45cm",
             "currency": "USD",
@@ -2431,8 +2263,8 @@
         "model": "product.productvariant",
         "pk": 200,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "998223590",
             "name": "55cm x 55cm",
             "currency": "USD",
@@ -2449,8 +2281,8 @@
         "model": "product.productvariant",
         "pk": 202,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "93855755",
             "name": "500ml",
             "currency": "USD",
@@ -2467,8 +2299,8 @@
         "model": "product.productvariant",
         "pk": 203,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "43226647",
             "name": "1l",
             "currency": "USD",
@@ -2485,8 +2317,8 @@
         "model": "product.productvariant",
         "pk": 204,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "80884671",
             "name": "2l",
             "currency": "USD",
@@ -2503,8 +2335,8 @@
         "model": "product.productvariant",
         "pk": 205,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "67882967",
             "name": "500ml",
             "currency": "USD",
@@ -2521,8 +2353,8 @@
         "model": "product.productvariant",
         "pk": 206,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "14925419",
             "name": "1l",
             "currency": "USD",
@@ -2539,8 +2371,8 @@
         "model": "product.productvariant",
         "pk": 207,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "62426105",
             "name": "2l",
             "currency": "USD",
@@ -2557,8 +2389,8 @@
         "model": "product.productvariant",
         "pk": 208,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "45328412",
             "name": "500ml",
             "currency": "USD",
@@ -2575,8 +2407,8 @@
         "model": "product.productvariant",
         "pk": 209,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "27512590",
             "name": "1l",
             "currency": "USD",
@@ -2593,8 +2425,8 @@
         "model": "product.productvariant",
         "pk": 210,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "40636347",
             "name": "2l",
             "currency": "USD",
@@ -2611,8 +2443,8 @@
         "model": "product.productvariant",
         "pk": 211,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "43200242",
             "name": "500ml",
             "currency": "USD",
@@ -2629,8 +2461,8 @@
         "model": "product.productvariant",
         "pk": 212,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "79129513",
             "name": "1l",
             "currency": "USD",
@@ -2647,8 +2479,8 @@
         "model": "product.productvariant",
         "pk": 213,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "75799450",
             "name": "2l",
             "currency": "USD",
@@ -2665,8 +2497,8 @@
         "model": "product.productvariant",
         "pk": 214,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "3944859",
             "name": "500ml",
             "currency": "USD",
@@ -2683,8 +2515,8 @@
         "model": "product.productvariant",
         "pk": 215,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "5829405",
             "name": "1l",
             "currency": "USD",
@@ -2701,8 +2533,8 @@
         "model": "product.productvariant",
         "pk": 216,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "84725784",
             "name": "2l",
             "currency": "USD",
@@ -2719,8 +2551,8 @@
         "model": "product.productvariant",
         "pk": 217,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "70058446",
             "name": "500ml",
             "currency": "USD",
@@ -2737,8 +2569,8 @@
         "model": "product.productvariant",
         "pk": 218,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "94044081",
             "name": "1l",
             "currency": "USD",
@@ -2755,8 +2587,8 @@
         "model": "product.productvariant",
         "pk": 219,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "80696397",
             "name": "2l",
             "currency": "USD",
@@ -2773,8 +2605,8 @@
         "model": "product.productvariant",
         "pk": 220,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "60752428",
             "name": "500ml",
             "currency": "USD",
@@ -2791,8 +2623,8 @@
         "model": "product.productvariant",
         "pk": 221,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "81470859",
             "name": "1l",
             "currency": "USD",
@@ -2809,8 +2641,8 @@
         "model": "product.productvariant",
         "pk": 222,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "30635751",
             "name": "2l",
             "currency": "USD",
@@ -2827,8 +2659,8 @@
         "model": "product.productvariant",
         "pk": 223,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "57211177",
             "name": "500ml",
             "currency": "USD",
@@ -2845,8 +2677,8 @@
         "model": "product.productvariant",
         "pk": 224,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "57423879",
             "name": "1l",
             "currency": "USD",
@@ -2863,8 +2695,8 @@
         "model": "product.productvariant",
         "pk": 225,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "21438542",
             "name": "2l",
             "currency": "USD",
@@ -2881,8 +2713,8 @@
         "model": "product.productvariant",
         "pk": 242,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "398323583",
             "name": "39",
             "currency": "USD",
@@ -2899,8 +2731,8 @@
         "model": "product.productvariant",
         "pk": 243,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "398323584",
             "name": "40",
             "currency": "USD",
@@ -2917,8 +2749,8 @@
         "model": "product.productvariant",
         "pk": 244,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "398323585",
             "name": "41",
             "currency": "USD",
@@ -2935,8 +2767,8 @@
         "model": "product.productvariant",
         "pk": 245,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "398323586",
             "name": "42",
             "currency": "USD",
@@ -2953,8 +2785,8 @@
         "model": "product.productvariant",
         "pk": 246,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "398323588",
             "name": "43",
             "currency": "USD",
@@ -2971,8 +2803,8 @@
         "model": "product.productvariant",
         "pk": 247,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "993223583",
             "name": "40",
             "currency": "USD",
@@ -2989,8 +2821,8 @@
         "model": "product.productvariant",
         "pk": 248,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "978223582",
             "name": "41",
             "currency": "USD",
@@ -3007,8 +2839,8 @@
         "model": "product.productvariant",
         "pk": 249,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "918323583",
             "name": "40",
             "currency": "USD",
@@ -3025,8 +2857,8 @@
         "model": "product.productvariant",
         "pk": 250,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "918223582",
             "name": "45",
             "currency": "USD",
@@ -3043,8 +2875,8 @@
         "model": "product.productvariant",
         "pk": 251,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "988323583",
             "name": "S",
             "currency": "USD",
@@ -3061,8 +2893,8 @@
         "model": "product.productvariant",
         "pk": 252,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "338223582",
             "name": "M",
             "currency": "USD",
@@ -3079,8 +2911,8 @@
         "model": "product.productvariant",
         "pk": 253,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "118223591",
             "name": "L",
             "currency": "USD",
@@ -3097,8 +2929,8 @@
         "model": "product.productvariant",
         "pk": 254,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "448323583",
             "name": "XL",
             "currency": "USD",
@@ -3115,8 +2947,8 @@
         "model": "product.productvariant",
         "pk": 255,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "3128223583",
             "name": "XXL",
             "currency": "USD",
@@ -3133,8 +2965,8 @@
         "model": "product.productvariant",
         "pk": 256,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "29716755",
             "name": "S",
             "currency": "USD",
@@ -3151,8 +2983,8 @@
         "model": "product.productvariant",
         "pk": 257,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "66594736",
             "name": "M",
             "currency": "USD",
@@ -3169,8 +3001,8 @@
         "model": "product.productvariant",
         "pk": 258,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "50269944",
             "name": "L",
             "currency": "USD",
@@ -3187,8 +3019,8 @@
         "model": "product.productvariant",
         "pk": 259,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "31352185",
             "name": "XL",
             "currency": "USD",
@@ -3205,8 +3037,8 @@
         "model": "product.productvariant",
         "pk": 260,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "85364796",
             "name": "XXL",
             "currency": "USD",
@@ -3223,8 +3055,8 @@
         "model": "product.productvariant",
         "pk": 261,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "44026421",
             "name": "S",
             "currency": "USD",
@@ -3241,8 +3073,8 @@
         "model": "product.productvariant",
         "pk": 262,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "90892602",
             "name": "M",
             "currency": "USD",
@@ -3259,8 +3091,8 @@
         "model": "product.productvariant",
         "pk": 263,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "59014392",
             "name": "L",
             "currency": "USD",
@@ -3277,8 +3109,8 @@
         "model": "product.productvariant",
         "pk": 264,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "43659438",
             "name": "XL",
             "currency": "USD",
@@ -3295,8 +3127,8 @@
         "model": "product.productvariant",
         "pk": 265,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "60597697",
             "name": "XXL",
             "currency": "USD",
@@ -3313,8 +3145,8 @@
         "model": "product.productvariant",
         "pk": 266,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "26592266",
             "name": "S",
             "currency": "USD",
@@ -3331,8 +3163,8 @@
         "model": "product.productvariant",
         "pk": 267,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "36260498",
             "name": "M",
             "currency": "USD",
@@ -3349,8 +3181,8 @@
         "model": "product.productvariant",
         "pk": 268,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "37558859",
             "name": "L",
             "currency": "USD",
@@ -3367,8 +3199,8 @@
         "model": "product.productvariant",
         "pk": 269,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "19402012",
             "name": "XL",
             "currency": "USD",
@@ -3385,8 +3217,8 @@
         "model": "product.productvariant",
         "pk": 270,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "17570141",
             "name": "XXL",
             "currency": "USD",
@@ -3403,8 +3235,8 @@
         "model": "product.productvariant",
         "pk": 271,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "98530976",
             "name": "S",
             "currency": "USD",
@@ -3421,8 +3253,8 @@
         "model": "product.productvariant",
         "pk": 272,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "46806935",
             "name": "M",
             "currency": "USD",
@@ -3439,8 +3271,8 @@
         "model": "product.productvariant",
         "pk": 273,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "71103052",
             "name": "L",
             "currency": "USD",
@@ -3457,8 +3289,8 @@
         "model": "product.productvariant",
         "pk": 274,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "84812015",
             "name": "XL",
             "currency": "USD",
@@ -3475,8 +3307,8 @@
         "model": "product.productvariant",
         "pk": 275,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "89820261",
             "name": "XXL",
             "currency": "USD",
@@ -3493,8 +3325,8 @@
         "model": "product.productvariant",
         "pk": 276,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "81115323",
             "name": "S",
             "currency": "USD",
@@ -3511,8 +3343,8 @@
         "model": "product.productvariant",
         "pk": 277,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "38254631",
             "name": "M",
             "currency": "USD",
@@ -3529,8 +3361,8 @@
         "model": "product.productvariant",
         "pk": 278,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "11511539",
             "name": "L",
             "currency": "USD",
@@ -3547,8 +3379,8 @@
         "model": "product.productvariant",
         "pk": 279,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "84192227",
             "name": "XL",
             "currency": "USD",
@@ -3565,8 +3397,8 @@
         "model": "product.productvariant",
         "pk": 280,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "91642659",
             "name": "XXL",
             "currency": "USD",
@@ -3583,8 +3415,8 @@
         "model": "product.productvariant",
         "pk": 281,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "76491340",
             "name": "S",
             "currency": "USD",
@@ -3601,8 +3433,8 @@
         "model": "product.productvariant",
         "pk": 282,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "55101176",
             "name": "M",
             "currency": "USD",
@@ -3619,8 +3451,8 @@
         "model": "product.productvariant",
         "pk": 283,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "28094954",
             "name": "L",
             "currency": "USD",
@@ -3637,8 +3469,8 @@
         "model": "product.productvariant",
         "pk": 284,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "40232182",
             "name": "XL",
             "currency": "USD",
@@ -3655,8 +3487,8 @@
         "model": "product.productvariant",
         "pk": 285,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "21522631",
             "name": "XXL",
             "currency": "USD",
@@ -3673,8 +3505,8 @@
         "model": "product.productvariant",
         "pk": 286,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "29810068",
             "name": "S",
             "currency": "USD",
@@ -3691,8 +3523,8 @@
         "model": "product.productvariant",
         "pk": 287,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "57917658",
             "name": "M",
             "currency": "USD",
@@ -3709,8 +3541,8 @@
         "model": "product.productvariant",
         "pk": 288,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "42680611",
             "name": "L",
             "currency": "USD",
@@ -3727,8 +3559,8 @@
         "model": "product.productvariant",
         "pk": 289,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "72289815",
             "name": "XL",
             "currency": "USD",
@@ -3745,8 +3577,8 @@
         "model": "product.productvariant",
         "pk": 290,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "98653891",
             "name": "XXL",
             "currency": "USD",
@@ -3763,8 +3595,8 @@
         "model": "product.productvariant",
         "pk": 291,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "77306807",
             "name": "S",
             "currency": "USD",
@@ -3781,8 +3613,8 @@
         "model": "product.productvariant",
         "pk": 292,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "68848129",
             "name": "M",
             "currency": "USD",
@@ -3799,8 +3631,8 @@
         "model": "product.productvariant",
         "pk": 293,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "35342696",
             "name": "L",
             "currency": "USD",
@@ -3817,8 +3649,8 @@
         "model": "product.productvariant",
         "pk": 294,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "98935349",
             "name": "XL",
             "currency": "USD",
@@ -3835,8 +3667,8 @@
         "model": "product.productvariant",
         "pk": 295,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "45179543",
             "name": "XXL",
             "currency": "USD",
@@ -3853,8 +3685,8 @@
         "model": "product.productvariant",
         "pk": 296,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "62783187",
             "name": "S",
             "currency": "USD",
@@ -3871,8 +3703,8 @@
         "model": "product.productvariant",
         "pk": 297,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "91406604",
             "name": "M",
             "currency": "USD",
@@ -3889,8 +3721,8 @@
         "model": "product.productvariant",
         "pk": 298,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "22119503",
             "name": "L",
             "currency": "USD",
@@ -3907,8 +3739,8 @@
         "model": "product.productvariant",
         "pk": 299,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "19230637",
             "name": "XL",
             "currency": "USD",
@@ -3925,8 +3757,8 @@
         "model": "product.productvariant",
         "pk": 300,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "61630747",
             "name": "XXL",
             "currency": "USD",
@@ -3943,8 +3775,8 @@
         "model": "product.productvariant",
         "pk": 301,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "15744278",
             "name": "S",
             "currency": "USD",
@@ -3961,8 +3793,8 @@
         "model": "product.productvariant",
         "pk": 302,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "21599567",
             "name": "M",
             "currency": "USD",
@@ -3979,8 +3811,8 @@
         "model": "product.productvariant",
         "pk": 303,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "65363253",
             "name": "L",
             "currency": "USD",
@@ -3997,8 +3829,8 @@
         "model": "product.productvariant",
         "pk": 304,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "51987722",
             "name": "XL",
             "currency": "USD",
@@ -4015,8 +3847,8 @@
         "model": "product.productvariant",
         "pk": 305,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "43313080",
             "name": "XXL",
             "currency": "USD",
@@ -4033,8 +3865,8 @@
         "model": "product.productvariant",
         "pk": 306,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "33963052",
             "name": "S",
             "currency": "USD",
@@ -4051,8 +3883,8 @@
         "model": "product.productvariant",
         "pk": 307,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "66846240",
             "name": "M",
             "currency": "USD",
@@ -4069,8 +3901,8 @@
         "model": "product.productvariant",
         "pk": 308,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "55365141",
             "name": "L",
             "currency": "USD",
@@ -4087,8 +3919,8 @@
         "model": "product.productvariant",
         "pk": 309,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "73186143",
             "name": "XL",
             "currency": "USD",
@@ -4105,8 +3937,8 @@
         "model": "product.productvariant",
         "pk": 310,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "42651772",
             "name": "XXL",
             "currency": "USD",
@@ -4123,8 +3955,8 @@
         "model": "product.productvariant",
         "pk": 311,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "70760297",
             "name": "S",
             "currency": "USD",
@@ -4141,8 +3973,8 @@
         "model": "product.productvariant",
         "pk": 312,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "36334412",
             "name": "M",
             "currency": "USD",
@@ -4159,8 +3991,8 @@
         "model": "product.productvariant",
         "pk": 313,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "35994675",
             "name": "L",
             "currency": "USD",
@@ -4177,8 +4009,8 @@
         "model": "product.productvariant",
         "pk": 314,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "10404946",
             "name": "XL",
             "currency": "USD",
@@ -4195,8 +4027,8 @@
         "model": "product.productvariant",
         "pk": 315,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "sku": "45507483",
             "name": "XXL",
             "currency": "USD",
@@ -5940,8 +5772,8 @@
         "model": "product.attribute",
         "pk": 13,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "slug": "size",
             "name": "Size",
             "input_type": "dropdown",
@@ -5958,8 +5790,8 @@
         "model": "product.attribute",
         "pk": 14,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "slug": "color",
             "name": "Color",
             "input_type": "dropdown",
@@ -5976,8 +5808,8 @@
         "model": "product.attribute",
         "pk": 15,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "slug": "bottle-size",
             "name": "Bottle Size",
             "input_type": "dropdown",
@@ -5994,8 +5826,8 @@
         "model": "product.attribute",
         "pk": 16,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "slug": "flavor",
             "name": "Flavor",
             "input_type": "dropdown",
@@ -6012,8 +5844,8 @@
         "model": "product.attribute",
         "pk": 18,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "slug": "bucket-size",
             "name": "Bucket Size",
             "input_type": "dropdown",
@@ -6030,8 +5862,8 @@
         "model": "product.attribute",
         "pk": 19,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "slug": "medium",
             "name": "Medium",
             "input_type": "dropdown",
@@ -6048,8 +5880,8 @@
         "model": "product.attribute",
         "pk": 20,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "slug": "volume",
             "name": "Volume",
             "input_type": "dropdown",
@@ -6066,8 +5898,8 @@
         "model": "product.attribute",
         "pk": 21,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "slug": "abv",
             "name": "ABV",
             "input_type": "dropdown",
@@ -6084,8 +5916,8 @@
         "model": "product.attribute",
         "pk": 22,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "slug": "cushion-size",
             "name": "Cushion Size",
             "input_type": "dropdown",
@@ -6102,8 +5934,8 @@
         "model": "product.attribute",
         "pk": 23,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "slug": "material",
             "name": "Material",
             "input_type": "dropdown",
@@ -6120,8 +5952,8 @@
         "model": "product.attribute",
         "pk": 24,
         "fields": {
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "slug": "shoe-size",
             "name": "Shoe size",
             "input_type": "dropdown",
@@ -7246,8 +7078,8 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "seo_title": null,
             "seo_description": null,
             "name": "Summer collection",
@@ -7277,8 +7109,8 @@
         "fields": {
             "publication_date": null,
             "is_published": true,
-            "private_meta": {},
-            "meta": {},
+            "private_metadata": {},
+            "metadata": {},
             "seo_title": null,
             "seo_description": null,
             "name": "Winter sale",

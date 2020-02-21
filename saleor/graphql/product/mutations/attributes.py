@@ -9,19 +9,14 @@ from django.template.defaultfilters import slugify
 from ....core.permissions import ProductPermissions
 from ....product import AttributeInputType, models
 from ....product.error_codes import ProductErrorCode
-from ...core.mutations import (
-    BaseMutation,
-    ClearMetaBaseMutation,
-    ModelDeleteMutation,
-    ModelMutation,
-    UpdateMetaBaseMutation,
-)
+from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types.common import ProductError
 from ...core.utils import (
     from_global_id_strict_type,
     validate_slug_and_generate_if_needed,
 )
 from ...core.utils.reordering import perform_reordering
+from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ...product.types import ProductType
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..enums import AttributeInputTypeEnum, AttributeTypeEnum
