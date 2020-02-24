@@ -5093,7 +5093,7 @@ type WishlistRemoveProductVariantMutation {
 
 scalar _Any
 
-union _Entity = Address | ServiceAccount | User | Group | ProductVariant | Product | ProductType | Collection | Category | ProductImage | Job
+union _Entity = Address | ServiceAccount | User | Group | ProductVariant | Product | ProductType | Collection | Category | ProductImage
 
 type _Service {
   sdl: String
