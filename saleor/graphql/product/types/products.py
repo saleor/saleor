@@ -50,33 +50,6 @@ from .attributes import Attribute, SelectedAttribute
 from .digital_contents import DigitalContent
 
 
-def prefetch_products(info, *_args, **_kwargs):
-    """Prefetch products visible to the current user.
-
-    Can be used with models that have the `products` relationship. The queryset
-    of products being prefetched is filtered based on permissions of the
-    requesting user, to restrict access to unpublished products from non-staff
-    users.
-    """
-    user = info.context.user
-    qs = models.Product.objects.visible_to_user(user)
-    return Prefetch(
-        "products",
-        queryset=gql_optimizer.query(qs, info),
-        to_attr="prefetched_products",
-    )
-
-
-def prefetch_products_collection_sorted(info, *_args, **_kwargs):
-    user = info.context.user
-    qs = models.Product.objects.collection_sorted(user)
-    return Prefetch(
-        "products",
-        queryset=gql_optimizer.query(qs, info),
-        to_attr="prefetched_products",
-    )
-
-
 def resolve_attribute_list(
     instance: Union[models.Product, models.ProductVariant], *, user
 ) -> List[SelectedAttribute]:
@@ -621,11 +594,8 @@ class Product(CountableDjangoObjectType):
 
 @key(fields="id")
 class ProductType(CountableDjangoObjectType):
-    products = gql_optimizer.field(
-        PrefetchingConnectionField(
-            Product, description="List of products of this type."
-        ),
-        prefetch_related=prefetch_products,
+    products = PrefetchingConnectionField(
+        Product, description="List of products of this type."
     )
     tax_rate = TaxRateType(description="A type of tax rate.")
     tax_type = graphene.Field(
@@ -714,11 +684,8 @@ class ProductType(CountableDjangoObjectType):
 
 @key(fields="id")
 class Collection(CountableDjangoObjectType):
-    products = gql_optimizer.field(
-        PrefetchingConnectionField(
-            Product, description="List of products in this collection."
-        ),
-        prefetch_related=prefetch_products_collection_sorted,
+    products = PrefetchingConnectionField(
+        Product, description="List of products in this collection."
     )
     background_image = graphene.Field(
         Image, size=graphene.Int(description="Size of the image.")
@@ -754,8 +721,6 @@ class Collection(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_products(root: models.Collection, info, **_kwargs):
-        if hasattr(root, "prefetched_products"):
-            return root.prefetched_products  # type: ignore
         qs = root.products.collection_sorted(info.context.user)
         return gql_optimizer.query(qs, info)
 
@@ -786,11 +751,8 @@ class Category(CountableDjangoObjectType):
     ancestors = PrefetchingConnectionField(
         lambda: Category, description="List of ancestors of the category."
     )
-    products = gql_optimizer.field(
-        PrefetchingConnectionField(
-            Product, description="List of products in the category."
-        ),
-        prefetch_related=prefetch_products,
+    products = PrefetchingConnectionField(
+        Product, description="List of products in the category."
     )
     # Deprecated. To remove in #5022
     url = graphene.String(description="The storefront's URL for the category.")
@@ -850,13 +812,6 @@ class Category(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_products(root: models.Category, info, **_kwargs):
-        # If the category has no children, we use the prefetched data.
-        children = root.children.all()
-        if not children and hasattr(root, "prefetched_products"):
-            return root.prefetched_products
-
-        # Otherwise we want to include products from child categories which
-        # requires performing additional logic.
         tree = root.get_descendants(include_self=True)
         qs = models.Product.objects.published()
         qs = qs.filter(category__in=tree)
