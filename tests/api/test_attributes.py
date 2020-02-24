@@ -1936,41 +1936,6 @@ def test_sort_attributes_by_slug(api_client):
     assert attributes[1]["node"]["slug"] == "b"
 
 
-@pytest.mark.parametrize(
-    "sort_field, m2m_model",
-    (
-        ("DASHBOARD_VARIANT_POSITION", AttributeVariant),
-        ("DASHBOARD_PRODUCT_POSITION", AttributeProduct),
-    ),
-)
-def test_sort_attributes_by_position_in_product_type(
-    api_client,
-    color_attribute,
-    size_attribute,
-    sort_field: str,
-    m2m_model: Union[AttributeVariant, AttributeProduct],
-):
-    """Sorts attributes for dashboard custom ordering inside a given product type."""
-
-    product_type = ProductType.objects.create(name="My Product Type")
-    m2m_model.objects.create(
-        product_type=product_type, attribute=color_attribute, sort_order=0
-    )
-    m2m_model.objects.create(
-        product_type=product_type, attribute=size_attribute, sort_order=1
-    )
-
-    variables = {"sortBy": {"field": sort_field, "direction": "DESC"}}
-
-    attributes = get_graphql_content(
-        api_client.post_graphql(ATTRIBUTES_SORT_QUERY, variables)
-    )["data"]["attributes"]["edges"]
-
-    assert len(attributes) == 2
-    assert attributes[0]["node"]["slug"] == "size"
-    assert attributes[1]["node"]["slug"] == "color"
-
-
 def test_sort_attributes_by_default_sorting(api_client):
     """Don't provide any sorting, this should sort by slug by default."""
     Attribute.objects.bulk_create(
