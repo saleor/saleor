@@ -1,3 +1,5 @@
+from typing import Dict, List, Mapping, Union
+
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -9,7 +11,7 @@ from ..core.mutations import BaseMutation
 from ..core.types.common import CsvError
 from ..product.filters import ProductFilterInput
 from ..product.types import Product
-from ..utils import _resolve_nodes
+from ..utils import resolve_global_ids_to_primary_keys
 from .enums import ExportScope
 from .types import Job
 
@@ -54,16 +56,16 @@ class ExportProducts(BaseMutation):
         return cls(job=job)
 
     @classmethod
-    def get_products_scope(cls, info, input):
+    def get_products_scope(cls, info, input) -> Mapping[str, Union[list, dict, str]]:
         scope = input["scope"]
-        if scope == ExportScope.IDS.value:
+        if scope == ExportScope.IDS.value:  # type: ignore
             return cls.clean_ids(input)
-        elif scope == ExportScope.FILTER.value:
+        elif scope == ExportScope.FILTER.value:  # type: ignore
             return cls.clean_filter(input)
         return {"all": ""}
 
     @staticmethod
-    def clean_ids(input):
+    def clean_ids(input) -> Dict[str, List[str]]:
         ids = input.get("ids", [])
         if not ids:
             raise ValidationError(
@@ -74,11 +76,11 @@ class ExportProducts(BaseMutation):
                     )
                 }
             )
-        _, pks = _resolve_nodes(ids, graphene_type=Product)
+        _, pks = resolve_global_ids_to_primary_keys(ids, graphene_type=Product)
         return {"ids": pks}
 
     @staticmethod
-    def clean_filter(input):
+    def clean_filter(input) -> Dict[str, dict]:
         filter = input.get("filter")
         if not filter:
             raise ValidationError(
