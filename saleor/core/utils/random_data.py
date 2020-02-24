@@ -13,6 +13,7 @@ from django.contrib.auth.models import Group, Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
 from django.db.models import Q
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
 from faker import Factory
@@ -29,6 +30,7 @@ from ...core.permissions import (
     GiftcardPermissions,
     OrderPermissions,
 )
+from ...core.utils import build_absolute_uri
 from ...core.weight import zero_weight
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
@@ -505,14 +507,14 @@ def create_fulfillments(order):
 
 
 def create_fake_order(discounts, max_order_lines=5):
-    user = random.choice(
-        [None, User.objects.filter(is_superuser=False).order_by("?").first()]
-    )
-    if user:
-        address = user.default_shipping_address
+    customers = User.objects.filter(is_superuser=False).order_by("?")
+    customer = random.choice([None, customers.first()])
+
+    if customer:
+        address = customer.default_shipping_address
         order_data = {
-            "user": user,
-            "billing_address": user.default_billing_address,
+            "user": customer,
+            "billing_address": customer.default_billing_address,
             "shipping_address": address,
         }
     else:
@@ -594,14 +596,18 @@ def create_group(name, permissions, users):
 def create_staff_users(how_many=2, superuser=False):
     users = []
     for _ in range(how_many):
-        first_name = fake.first_name()
-        last_name = fake.last_name()
+        address = create_address()
+        first_name = address.first_name
+        last_name = address.last_name
         email = get_email(first_name, last_name)
+
         staff_user = User.objects.create_user(
             first_name=first_name,
             last_name=last_name,
             email=email,
             password="password",
+            default_billing_address=address,
+            default_shipping_address=address,
             is_staff=True,
             is_active=True,
             is_superuser=superuser,
@@ -1164,8 +1170,16 @@ def create_menus():
             name=collection.name, collection=collection, parent=item
         )
 
+    item_saleor = bottom_menu.items.get_or_create(name="Saleor", url="/")[0]
+
     page = Page.objects.order_by("?")[0]
-    bottom_menu.items.get_or_create(name=page.title, page=page)
+    item_saleor.children.get_or_create(name=page.title, page=page, menu=bottom_menu)
+
+    api_url = build_absolute_uri(reverse("api"))
+    item_saleor.children.get_or_create(
+        name="GraphQL API", url=api_url, menu=bottom_menu
+    )
+
     yield "Created footer menu"
     update_menu(top_menu)
     update_menu(bottom_menu)

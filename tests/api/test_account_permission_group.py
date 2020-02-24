@@ -375,9 +375,9 @@ def test_group_delete_mutation_no_id(
 
 
 PERMISSION_GROUP_ASSIGN_USERS_MUTATION = """
-    mutation PermissionGroupAssignUsers($id: ID!, $input: UsersInput!) {
+    mutation PermissionGroupAssignUsers($id: ID!, $users: [ID!]!) {
         permissionGroupAssignUsers(
-            id: $id, input: $input)
+            id: $id, users: $users)
         {
             group{
                 id
@@ -418,7 +418,7 @@ def test_permission_group_assign_users_mutation(
 
     variables = {
         "id": graphene.Node.to_global_id("Group", group.id),
-        "input": {"users": users},
+        "users": users,
     }
 
     staff_members += list(group.user_set.all())
@@ -471,7 +471,7 @@ def test_permission_group_assign_users_mutation_no_permission_to_perform_mutatio
 
     variables = {
         "id": graphene.Node.to_global_id("Group", group.id),
-        "input": {"users": users},
+        "users": users,
     }
 
     response = staff_api_client.post_graphql(query, variables)
@@ -487,7 +487,7 @@ def test_permission_group_assign_users_mutation_no_users_data(
 
     variables = {
         "id": graphene.Node.to_global_id("Group", group.id),
-        "input": {"users": []},
+        "users": [],
     }
 
     response = staff_api_client.post_graphql(query, variables)
@@ -515,7 +515,7 @@ def test_permission_group_assign_users_mutation_customer_user(
 
     variables = {
         "id": graphene.Node.to_global_id("Group", group.id),
-        "input": {"users": [graphene.Node.to_global_id("User", customer_user.id)]},
+        "users": [graphene.Node.to_global_id("User", customer_user.id)],
     }
 
     response = staff_api_client.post_graphql(query, variables)
@@ -531,9 +531,9 @@ def test_permission_group_assign_users_mutation_customer_user(
 
 
 PERMISSION_GROUP_UNASSIGN_USERS_MUTATION = """
-    mutation PermissionGroupUnassignUsers($id: ID!, $input: UsersInput!) {
+    mutation PermissionGroupUnassignUsers($id: ID!, $users: [ID!]!) {
         permissionGroupUnassignUsers(
-            id: $id, input: $input)
+            id: $id, users: $users)
         {
             group{
                 id
@@ -568,7 +568,7 @@ def test_permission_group_unassign_users_mutation(
 
     variables = {
         "id": graphene.Node.to_global_id("Group", group.id),
-        "input": {"users": [graphene.Node.to_global_id("User", staff_user2.id)]},
+        "users": [graphene.Node.to_global_id("User", staff_user2.id)],
     }
 
     response = staff_api_client.post_graphql(query, variables)
@@ -610,7 +610,7 @@ def test_permission_group_unassign_users_mutation_no_permission_to_perform_mutat
 
     variables = {
         "id": graphene.Node.to_global_id("Group", group.id),
-        "input": {"users": [graphene.Node.to_global_id("User", group_staff_user.id)]},
+        "users": [graphene.Node.to_global_id("User", group_staff_user.id)],
     }
 
     response = staff_api_client.post_graphql(query, variables)
@@ -626,7 +626,7 @@ def test_permission_group_unassign_users_mutation_no_users_data(
 
     variables = {
         "id": graphene.Node.to_global_id("Group", group.id),
-        "input": {"users": []},
+        "users": [],
     }
 
     response = staff_api_client.post_graphql(query, variables)
@@ -656,7 +656,7 @@ def test_permission_group_unassign_users_mutation_user_not_in_group(
 
     variables = {
         "id": graphene.Node.to_global_id("Group", group.id),
-        "input": {"users": [graphene.Node.to_global_id("User", customer_user.id)]},
+        "users": [graphene.Node.to_global_id("User", customer_user.id)],
     }
 
     response = staff_api_client.post_graphql(query, variables)

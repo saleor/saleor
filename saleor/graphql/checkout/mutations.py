@@ -37,14 +37,10 @@ from ...product import models as product_models
 from ...warehouse.availability import check_stock_quantity, get_available_quantity
 from ..account.i18n import I18nMixin
 from ..account.types import AddressInput
-from ..core.mutations import (
-    BaseMutation,
-    ClearMetaBaseMutation,
-    ModelMutation,
-    UpdateMetaBaseMutation,
-)
+from ..core.mutations import BaseMutation, ModelMutation
 from ..core.types.common import CheckoutError
 from ..core.utils import from_global_id_strict_type
+from ..meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ..order.types import Order
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
