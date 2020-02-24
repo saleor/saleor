@@ -3678,7 +3678,7 @@ type Query {
   translation(id: ID!, kind: TranslatableKinds!): TranslatableItem
   stock(id: ID!): Stock
   stocks(filter: StockFilterInput, before: String, after: String, first: Int, last: Int): StockCountableConnection
-  shop: Shop
+  shop: Shop!
   shippingZone(id: ID!): ShippingZone
   shippingZones(before: String, after: String, first: Int, last: Int): ShippingZoneCountableConnection
   digitalContent(id: ID!): DigitalContent
@@ -4911,13 +4911,13 @@ input WarehouseUpdateInput {
 }
 
 type Webhook implements Node {
-  name: String
+  name: String!
   serviceAccount: ServiceAccount!
   targetUrl: String!
   isActive: Boolean!
   secretKey: String
   id: ID!
-  events: [WebhookEvent]
+  events: [WebhookEvent!]!
 }
 
 type WebhookCountableConnection {
@@ -4967,8 +4967,8 @@ enum WebhookErrorCode {
 }
 
 type WebhookEvent {
-  eventType: WebhookEventTypeEnum
-  name: String
+  eventType: WebhookEventTypeEnum!
+  name: String!
 }
 
 enum WebhookEventTypeEnum {
