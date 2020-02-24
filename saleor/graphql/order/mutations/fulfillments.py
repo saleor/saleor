@@ -12,12 +12,9 @@ from ....order.actions import (
 )
 from ....order.emails import send_fulfillment_update
 from ....order.error_codes import OrderErrorCode
-from ...core.mutations import (
-    BaseMutation,
-    ClearMetaBaseMutation,
-    UpdateMetaBaseMutation,
-)
+from ...core.mutations import BaseMutation
 from ...core.types.common import OrderError
+from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ...order.types import Fulfillment, Order
 from ..types import OrderLine
 

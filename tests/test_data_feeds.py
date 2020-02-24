@@ -7,6 +7,7 @@ from django.utils.encoding import smart_text
 from saleor.data_feeds.google_merchant import (
     get_feed_items,
     item_attributes,
+    item_availability,
     item_google_product_category,
     write_feed,
 )
@@ -36,6 +37,11 @@ def test_saleor_feed_items(product, site_settings):
     )
     assert attributes.get("mpn") == valid_variant.sku
     assert attributes.get("availability") == "in stock"
+
+
+def test_saleor_get_feed_items_having_no_stock_info(variant, site_settings):
+    variant.stock.all().delete()
+    assert item_availability(variant) == "out of stock"
 
 
 def test_category_formatter(db):

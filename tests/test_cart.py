@@ -62,14 +62,14 @@ def test_get_user_checkout(
 def test_adding_zero_quantity(checkout, product):
     variant = product.variants.get()
     add_variant_to_checkout(checkout, variant, 0)
-    assert len(checkout) == 0
+    assert checkout.lines.count() == 0
 
 
 def test_adding_same_variant(checkout, product):
     variant = product.variants.get()
     add_variant_to_checkout(checkout, variant, 1)
     add_variant_to_checkout(checkout, variant, 2)
-    assert len(checkout) == 1
+    assert checkout.lines.count() == 1
     assert checkout.quantity == 3
     subtotal = TaxedMoney(Money("30.00", "USD"), Money("30.00", "USD"))
     assert calculations.checkout_subtotal(checkout) == subtotal
@@ -79,7 +79,7 @@ def test_replacing_same_variant(checkout, product):
     variant = product.variants.get()
     add_variant_to_checkout(checkout, variant, 1, replace=True)
     add_variant_to_checkout(checkout, variant, 2, replace=True)
-    assert len(checkout) == 1
+    assert checkout.lines.count() == 1
     assert checkout.quantity == 2
 
 

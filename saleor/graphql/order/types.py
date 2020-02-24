@@ -13,12 +13,12 @@ from ...order.utils import get_valid_shipping_methods_for_order
 from ...product.templatetags.product_images import get_product_image_thumbnail
 from ..account.types import User
 from ..core.connection import CountableDjangoObjectType
-from ..core.resolvers import resolve_meta, resolve_private_meta
 from ..core.types.common import Image
-from ..core.types.meta import MetadataObjectType
 from ..core.types.money import Money, TaxedMoney
 from ..decorators import permission_required
 from ..giftcard.types import GiftCard
+from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
+from ..meta.types import ObjectWithMetadata
 from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
@@ -168,7 +168,7 @@ class FulfillmentLine(CountableDjangoObjectType):
         return root.order_line
 
 
-class Fulfillment(MetadataObjectType, CountableDjangoObjectType):
+class Fulfillment(CountableDjangoObjectType):
     lines = gql_optimizer.field(
         graphene.List(
             FulfillmentLine, description="List of lines for the fulfillment."
@@ -179,7 +179,7 @@ class Fulfillment(MetadataObjectType, CountableDjangoObjectType):
 
     class Meta:
         description = "Represents order fulfillment."
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Fulfillment
         only_fields = [
             "fulfillment_order",
@@ -274,7 +274,7 @@ class OrderLine(CountableDjangoObjectType):
         return root.translated_variant_name
 
 
-class Order(MetadataObjectType, CountableDjangoObjectType):
+class Order(CountableDjangoObjectType):
     fulfillments = gql_optimizer.field(
         graphene.List(
             Fulfillment, required=True, description="List of shipments for the order."
@@ -350,7 +350,7 @@ class Order(MetadataObjectType, CountableDjangoObjectType):
 
     class Meta:
         description = "Represents an order in the shop."
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Order
         only_fields = [
             "billing_address",

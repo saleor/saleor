@@ -9,7 +9,7 @@
   <script src="//cdn.jsdelivr.net/npm/graphql-playground-react/build/static/js/middleware.js"></script>
 </head>
 <body>
-  <div id="root">
+  <div id="root" {% if api_url %}data-endpoint="{{ api_url }}"{% endif %} {% if query %}data-query="{{ query|safe }}"{% endif %}>
     <style>
       body {
         background-color: rgb(23, 42, 58);
@@ -43,11 +43,14 @@
     </div>
   </div>
   <script>window.addEventListener('load', function (event) {
-      GraphQLPlayground.init(document.getElementById('root'), {
-        settings: {
-          'schema.polling.enable': false
-        }
-      })
+      const settings = {
+        "schema.polling.enable": false
+      };
+      const root = document.getElementById("root");
+      const endpoint = root.dataset.endpoint;
+      const query = root.dataset.query;
+      const tabs = query && endpoint ? [{ endpoint, query }] : null;
+      GraphQLPlayground.init(root, { settings, tabs });
     })</script>
 </body>
 </html>
