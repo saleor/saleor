@@ -12,8 +12,8 @@ from ... import ConfigurationTypeField
 from ...base_plugin import BasePlugin
 from ...error_codes import ExtensionsErrorCode
 from . import (
-    META_FIELD,
-    META_NAMESPACE,
+    META_CODE_KEY,
+    META_DESCRIPTION_KEY,
     AvataxConfiguration,
     CustomerErrors,
     TransactionType,
@@ -383,12 +383,8 @@ class AvataxPlugin(BasePlugin):
             return
 
         tax_description = codes[tax_code]
-        tax_item = {"code": tax_code, "description": tax_description}
-        stored_tax_meta = obj.get_meta(namespace=META_NAMESPACE, client=META_FIELD)
-        stored_tax_meta.update(tax_item)
-        obj.store_meta(
-            namespace=META_NAMESPACE, client=META_FIELD, item=stored_tax_meta
-        )
+        tax_item = {META_CODE_KEY: tax_code, META_DESCRIPTION_KEY: tax_description}
+        obj.store_value_in_metadata(items=tax_item)
         obj.save()
 
     def get_tax_code_from_object_meta(
@@ -398,8 +394,9 @@ class AvataxPlugin(BasePlugin):
 
         if not self.active:
             return previous_value
-        tax = obj.get_meta(namespace=META_NAMESPACE, client=META_FIELD)
-        return TaxType(code=tax.get("code", ""), description=tax.get("description", ""))
+        tax_code = obj.get_value_from_metadata(META_CODE_KEY, "")
+        tax_description = obj.get_value_from_metadata(META_DESCRIPTION_KEY, "")
+        return TaxType(code=tax_code, description=tax_description,)
 
     def show_taxes_on_storefront(self, previous_value: bool) -> bool:
         self._initialize_plugin_configuration()
