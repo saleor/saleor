@@ -1,5 +1,3 @@
-import shutil
-import tempfile
 from io import BytesIO
 from typing import Dict, Set, Union
 from urllib.parse import urlparse
@@ -63,8 +61,3 @@ def generate_attribute_map(obj: Union[Product, ProductVariant]) -> Dict[int, Set
         assignment.attribute.pk: {value.pk for value in assignment.values.all()}
         for assignment in qs
     }
-
-
-def clear_temporary_dir(upload_dir):
-    temp_dir = f"{tempfile.gettempdir()}/{upload_dir}"
-    shutil.rmtree(temp_dir)

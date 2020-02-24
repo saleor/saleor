@@ -1,11 +1,10 @@
 import datetime
-import tempfile
+import shutil
 from unittest.mock import ANY, MagicMock, patch
 
 import pytest
 import pytz
 from django.core.files import File
-from django.test import override_settings
 from freezegun import freeze_time
 
 from saleor.csv import JobStatus
@@ -28,7 +27,6 @@ from saleor.csv.utils.export import (
     update_job_when_task_finished,
 )
 from saleor.product.models import Product, VariantImage
-from tests.utils import clear_temporary_dir
 
 
 def test_on_task_failure(job):
@@ -426,8 +424,11 @@ def test_add_warehouse_info_to_data_data_no_slug(product):
     assert headers == set()
 
 
-@override_settings(MEDIA_ROOT=tempfile.gettempdir())
-def test_create_csv_file_and_save_in_job(job):
+def test_create_csv_file_and_save_in_job(job, tmpdir):
+    from django.conf import settings
+
+    settings.MEDIA_ROOT = tmpdir
+
     export_data = [
         {"id": "123", "name": "test1", "collections": "coll1"},
         {"id": "345", "name": "test2"},
@@ -458,11 +459,14 @@ def test_create_csv_file_and_save_in_job(job):
     assert ";".join(export_data[0].values()) in file_content
     assert (";".join(export_data[1].values()) + "; ") in file_content
 
-    clear_temporary_dir(job_csv_upload_dir)
+    shutil.rmtree(tmpdir)
 
 
-@override_settings(MEDIA_ROOT=tempfile.gettempdir())
-def test_save_csv_file_in_job(job):
+def test_save_csv_file_in_job(job, tmpdir):
+    from django.conf import settings
+
+    settings.MEDIA_ROOT = tmpdir
+
     file_mock = MagicMock(spec=File)
     file_mock.name = "temp_file.csv"
     file_name = "test.csv"
@@ -474,5 +478,4 @@ def test_save_csv_file_in_job(job):
     job.refresh_from_db()
     assert job.content_file
 
-    job_csv_upload_dir = Job.content_file.field.upload_to
-    clear_temporary_dir(job_csv_upload_dir)
+    shutil.rmtree(tmpdir)
