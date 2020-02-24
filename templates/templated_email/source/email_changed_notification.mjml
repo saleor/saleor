@@ -15,7 +15,7 @@
         <mj-text>
           {% blocktrans trimmed context "Email change e-mail text" %}
             You're receiving this e-mail because you or someone else has changed email for your user account at {{ domain }}.<br/>
-            If you didn't request this changes, please contact the administrator.
+            If you didn't request this change, please contact the administrator.
           {% endblocktrans %}
         </mj-text>
         <mj-text>
