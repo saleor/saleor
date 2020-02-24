@@ -73,6 +73,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Customer shouldn't be able to see draft orders by token  - #5259 by @fowczarek
 - Return `null` when querying `me` as an anonymous user - #5231 as @maarcingebala
 - Unify saleor metadata - #5178 by @fowczarek
+- Add compiled versions of emails to the repository - #5260 by @tomaszszymanski129
 
 
 ## 2.9.0
