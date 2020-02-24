@@ -22,10 +22,16 @@ install:
   - git clone https://github.com/NyanKiyoshi/pytest-django-queries-ci-tools.git --depth 1 ../queries-ci-tools
   - >
     if [ -n "$DJANGO" ]; then
-      nvm install 10 \
-        && npm i \
-        && npm run build-emails
-    fi
+      cp -r templates/templated_email/compiled ./compiled;
+      nvm install 10;
+      npm i;
+      npm run build-emails;
+      DIFF=$(diff -q ./compiled templates/templated_email/compiled);
+      if [ "$DIFF" ]; then
+        echo "Precompiled emails check failure - make sure you executed: npm run build-emails.";
+        travis_terminate 1;
+      fi;
+    fi;
 
 script:
   - tox
