@@ -1,4 +1,8 @@
+from typing import Union
+
 import graphene
+import opentracing as ot
+from django.db.models import Manager, QuerySet
 from graphene import Field, List, NonNull, ObjectType, String
 from graphene.relay.connection import Connection
 from graphene_django_optimizer.types import OptimizedDjangoObjectType
@@ -56,3 +60,19 @@ class CountableDjangoObjectType(OptimizedDjangoObjectType):
             "{}CountableConnection".format(cls.__name__), node=cls
         )
         super().__init_subclass_with_meta__(*args, connection=countable_conn, **kwargs)
+
+    @classmethod
+    def maybe_optimize(cls, info, qs: Union[QuerySet, Manager], pk):
+        with ot.global_tracer().start_active_span("optimizer") as scope:
+            span = scope.span
+            span.set_tag("optimizer.pk", pk)
+            span.set_tag("optimizer.model", cls._meta.model.__name__)
+            return super().maybe_optimize(info, qs, pk)
+
+    @classmethod
+    def get_node(cls, info, id):
+        with ot.global_tracer().start_active_span("node") as scope:
+            span = scope.span
+            span.set_tag("node.pk", id)
+            span.set_tag("node.type", cls.__name__)
+            return super().get_node(info, id)
