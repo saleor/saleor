@@ -68,6 +68,10 @@ class StockQuerySet(models.QuerySet):
     def get_variant_stock_for_country(
         self, country_code: str, product_variant: ProductVariant
     ):
+        """Return the stock information about the a stock for a given country.
+
+        Note it will raise a 'Stock.DoesNotExist' exception if no such stock is found.
+        """
         return self.for_country(country_code).get(product_variant=product_variant)
 
     def get_or_create_for_country(
@@ -99,10 +103,6 @@ class Stock(models.Model):
     @property
     def quantity_available(self) -> int:
         return max(self.quantity - self.quantity_allocated, 0)
-
-    @property
-    def is_available(self):
-        return self.quantity_available > 0
 
     def check_quantity(self, quantity: int):
         if quantity > self.quantity_available:
