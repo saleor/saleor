@@ -1,6 +1,5 @@
 import graphene
 from graphene import relay
-from graphene_federation import key
 from graphql_jwt.exceptions import PermissionDenied
 
 from ...core.permissions import AccountPermissions
@@ -9,13 +8,12 @@ from ..core.connection import CountableDjangoObjectType
 from .enums import JobStatusEnum
 
 
-@key(fields="id")
 class Job(CountableDjangoObjectType):
     url = graphene.String(description="The URL of field to download.")
     status = JobStatusEnum(description="Job status.")
 
     class Meta:
-        description = "Represents job data"
+        description = "Represents a data export job."
         interfaces = [relay.Node]
         model = models.Job
         only_fields = [
