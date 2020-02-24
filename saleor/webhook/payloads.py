@@ -11,7 +11,7 @@ from ..core.utils.anonymization import (
     generate_fake_user,
 )
 from ..order import FulfillmentStatus, OrderStatus
-from ..order.models import Fulfillment, Order
+from ..order.models import Fulfillment, FulfillmentLine, Order
 from ..order.utils import get_order_country
 from ..payment import ChargeStatus
 from ..product.models import Product
@@ -212,13 +212,16 @@ def generate_product_payload(product: "Product"):
 
 def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
     serializer = PayloadSerializer()
+    lines = FulfillmentLine.objects.prefetch_related(
+        "order_line__variant__product__product_type"
+    ).filter(fulfillment=fulfillment)
     line_fields = ("quantity",)
-
     return serializer.serialize(
-        fulfillment,
+        lines,
         fields=line_fields,
         extra_dict_data={
-            "weight": (lambda fl: fl.order_line.variant.get_weight().oz),
+            "weight": (lambda fl: fl.order_line.variant.get_weight().g),
+            "weight_unit": "grams",
             "product_type": (
                 lambda fl: fl.order_line.variant.product.product_type.name
             ),
