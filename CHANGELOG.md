@@ -111,10 +111,11 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix fetching staff user without `manage_users` permission - #4835 by @fowczarek
 - Ensure that a GraphQL query is a string - #4836 by @nix010
 - Add ability to configure the password reset link - #4863 by @fowczarek
+- Fixed a performance issue where Saleor would sometimes run huge, unneeded prefetches when resolving categories or collections - #5291 by @NyanKiyoshi
 
 ### Core
 
-- Add enterprise-grade attributes management - #4351 by @dominik-zeglen and @NyanKiyoshix
+- Add enterprise-grade attributes management - #4351 by @dominik-zeglen and @NyanKiyoshi
 - Add extensions manager - #4497 by @korycins
 - Add service accounts - backend support - #4689 by @korycins
 - Add support for webhooks - #4731 by @korycins
