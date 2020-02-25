@@ -44,8 +44,8 @@ class CheckoutQueries(graphene.ObjectType):
         CheckoutLine, description="List of checkout lines."
     )
 
-    def resolve_checkout(self, *_args, token):
-        return resolve_checkout(token)
+    def resolve_checkout(self, info, token):
+        return resolve_checkout(info, token)
 
     @permission_required(CheckoutPermissions.MANAGE_CHECKOUTS)
     def resolve_checkouts(self, *_args, **_kwargs):
@@ -74,7 +74,25 @@ class CheckoutMutations(graphene.ObjectType):
     checkout_payment_create = CheckoutPaymentCreate.Field()
     checkout_shipping_address_update = CheckoutShippingAddressUpdate.Field()
     checkout_shipping_method_update = CheckoutShippingMethodUpdate.Field()
-    checkout_update_metadata = CheckoutUpdateMeta.Field()
-    checkout_clear_metadata = CheckoutClearMeta.Field()
-    checkout_update_private_metadata = CheckoutUpdatePrivateMeta.Field()
-    checkout_clear_private_metadata = CheckoutClearPrivateMeta.Field()
+    checkout_update_metadata = CheckoutUpdateMeta.Field(
+        deprecation_reason=(
+            "Will be removed in Saleor 2.11. Use the `UpdateMetadata` mutation instead."
+        )
+    )
+    checkout_clear_metadata = CheckoutClearMeta.Field(
+        deprecation_reason=(
+            "Will be removed in Saleor 2.11. Use the `DeleteMetadata` mutation instead."
+        )
+    )
+    checkout_update_private_metadata = CheckoutUpdatePrivateMeta.Field(
+        deprecation_reason=(
+            "Will be removed in Saleor 2.11."
+            "Use the `UpdatePrivateMetadata` mutation instead."
+        )
+    )
+    checkout_clear_private_metadata = CheckoutClearPrivateMeta.Field(
+        deprecation_reason=(
+            "Will be removed in Saleor 2.11."
+            "Use the `DeletePrivateMetadata` mutation instead."
+        )
+    )

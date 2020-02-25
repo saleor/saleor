@@ -7,7 +7,7 @@ from ..core.exceptions import InsufficientStock
 from .models import Stock
 
 if TYPE_CHECKING:
-    from ...product.models import Product, ProductVariant
+    from ..product.models import Product, ProductVariant
 
 
 def check_stock_quantity(variant: "ProductVariant", country_code: str, quantity: int):
@@ -44,8 +44,8 @@ def get_quantity_allocated(variant: "ProductVariant", country_code: str) -> int:
 
 def is_variant_in_stock(variant: "ProductVariant", country_code: str) -> bool:
     """Check if variant is available in given country."""
-    stock = Stock.objects.get_variant_stock_for_country(country_code, variant)
-    return stock.is_available
+    quantity_available = get_available_quantity(variant, country_code)
+    return quantity_available > 0
 
 
 def stocks_for_product(product: "Product", country_code: str):

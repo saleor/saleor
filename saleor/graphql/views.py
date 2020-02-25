@@ -3,9 +3,11 @@ import logging
 import traceback
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-import opentracing
+import opentracing as ot
+import opentracing.tags as ot_tags
 from django.conf import settings
 from django.db import connection
+from django.db.backends.postgresql.base import DatabaseWrapper
 from django.http import HttpRequest, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import render_to_response
 from django.urls import reverse
@@ -22,6 +24,8 @@ from graphql.error import (
 from graphql.execution import ExecutionResult
 from graphql_jwt.exceptions import PermissionDenied
 
+from ..core.utils import is_valid_ipv4, is_valid_ipv6
+
 API_PATH = SimpleLazyObject(lambda: reverse("api"))
 
 unhandled_errors_logger = logging.getLogger("saleor.graphql.errors.unhandled")
@@ -29,18 +33,14 @@ handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
 
 
 def tracing_wrapper(execute, sql, params, many, context):
-    with opentracing.global_tracer().start_span(operation_name="query") as span:
-        span.set_tag("component", "db")
-        span.set_tag("db.statement", sql)
-        try:
-            result = execute(sql, params, many, context)
-        except Exception as e:
-            span.set_tag("error", True)
-            span.set_tag("error.object", e)
-            raise
-        else:
-            span.set_tag("error", False)
-            return result
+    conn: DatabaseWrapper = context["connection"]
+    operation = f"{conn.alias} {conn.display_name}"
+    with ot.global_tracer().start_active_span(operation_name=operation) as scope:
+        span = scope.span
+        span.set_tag(ot_tags.COMPONENT, "db")
+        span.set_tag(ot_tags.DATABASE_STATEMENT, sql)
+        span.set_tag(ot_tags.DATABASE_TYPE, conn.display_name)
+        return execute(sql, params, many, context)
 
 
 class GraphQLView(View):
@@ -80,10 +80,9 @@ class GraphQLView(View):
     def dispatch(self, request, *args, **kwargs):
         # Handle options method the GraphQlView restricts it.
         if request.method == "GET":
-            if settings.DEBUG:
-                return render_to_response("graphql/playground.html")
+            if settings.PLAYGROUND_ENABLED:
+                return self.render_playground(request)
             return HttpResponseNotAllowed(["OPTIONS", "POST"])
-
         if request.method == "OPTIONS":
             response = self.options(request, *args, **kwargs)
         elif request.method == "POST":
@@ -98,7 +97,10 @@ class GraphQLView(View):
         ] = "Origin, Content-Type, Accept, Authorization"
         return response
 
-    def handle_query(self, request: HttpRequest):
+    def render_playground(self, request):
+        return render_to_response("graphql/playground.html", {})
+
+    def _handle_query(self, request: HttpRequest) -> JsonResponse:
         try:
             data = self.parse_body(request)
         except ValueError:
@@ -117,30 +119,59 @@ class GraphQLView(View):
             result, status_code = self.get_response(request, data)
         return JsonResponse(data=result, status=status_code, safe=False)
 
+    def handle_query(self, request: HttpRequest) -> JsonResponse:
+        with ot.global_tracer().start_active_span(operation_name="http") as scope:
+            span = scope.span
+            span.set_tag(ot_tags.COMPONENT, "http")
+            span.set_tag(ot_tags.HTTP_METHOD, request.method)
+            span.set_tag(
+                ot_tags.HTTP_URL, request.build_absolute_uri(request.get_full_path())
+            )
+
+            request_ips = request.META.get(settings.REAL_IP_ENVIRON, "")
+            for ip in request_ips.split(","):
+                if is_valid_ipv4(ip):
+                    span.set_tag(ot_tags.PEER_HOST_IPV4, ip)
+                elif is_valid_ipv6(ip):
+                    span.set_tag(ot_tags.PEER_HOST_IPV6, ip)
+                else:
+                    continue
+                span.set_tag("http.client_ip", ip)
+                span.log_kv(
+                    {"http.client_ip_originated_from": settings.REAL_IP_ENVIRON}
+                )
+                break
+
+            response = self._handle_query(request)
+            span.set_tag(ot_tags.HTTP_STATUS_CODE, response.status_code)
+
+            # RFC2616: Content-Length is defined in bytes,
+            # we can calculate the RAW UTF-8 size using the length of
+            # response.content of type 'bytes'
+            span.set_tag("http.content_length", len(response.content))
+
+            return response
+
     def get_response(
         self, request: HttpRequest, data: dict
     ) -> Tuple[Optional[Dict[str, List[Any]]], int]:
-        with opentracing.global_tracer().start_span(operation_name="request") as span:
-            span.set_tag("component", "http")
-            span.set_tag("http.method", request.method)
-            span.set_tag("http.path", request.path)
-            execution_result = self.execute_graphql_request(request, data)
-            status_code = 200
-            if execution_result:
-                response = {}
-                if execution_result.errors:
-                    response["errors"] = [
-                        self.format_error(e) for e in execution_result.errors
-                    ]
-                if execution_result.invalid:
-                    status_code = 400
-                else:
-                    response["data"] = execution_result.data
-                result: Optional[Dict[str, List[Any]]] = response
+        execution_result = self.execute_graphql_request(request, data)
+        status_code = 200
+        if execution_result:
+            response = {}
+            if execution_result.errors:
+                response["errors"] = [
+                    self.format_error(e) for e in execution_result.errors
+                ]
+            if execution_result.invalid:
+                status_code = 400
             else:
-                result = None
-            span.set_tag("http.status_code", status_code)
-            return result, status_code
+                response["data"] = execution_result.data
+            result: Optional[Dict[str, List[Any]]] = response
+        else:
+            result = None
+
+        return result, status_code
 
     def get_root_value(self):
         return self.root_value
@@ -174,29 +205,46 @@ class GraphQLView(View):
             return None, ExecutionResult(errors=[e], invalid=True)
 
     def execute_graphql_request(self, request: HttpRequest, data: dict):
-        query, variables, operation_name = self.get_graphql_params(request, data)
+        with ot.global_tracer().start_active_span(
+            operation_name="graphql_query"
+        ) as scope:
+            span = scope.span
+            span.set_tag(ot_tags.COMPONENT, "graphql_query")
 
-        document, error = self.parse_query(query)
-        if error:
-            return error
+            query, variables, operation_name = self.get_graphql_params(request, data)
 
-        extra_options: Dict[str, Optional[Any]] = {}
-        if self.executor:
-            # We only include it optionally since
-            # executor is not a valid argument in all backends
-            extra_options["executor"] = self.executor
-        try:
-            with connection.execute_wrapper(tracing_wrapper):
-                return document.execute(  # type: ignore
-                    root=self.get_root_value(),
-                    variables=variables,
-                    operation_name=operation_name,
-                    context=request,
-                    middleware=self.middleware,
-                    **extra_options,
+            document, error = self.parse_query(query)
+            if error:
+                return error
+
+            if document is not None:
+                span.log_kv(
+                    {
+                        "query": document.document_string[
+                            : settings.OPENTRACING_MAX_QUERY_LENGTH_LOG
+                        ]
+                    }
                 )
-        except Exception as e:
-            return ExecutionResult(errors=[e], invalid=True)
+
+            extra_options: Dict[str, Optional[Any]] = {}
+
+            if self.executor:
+                # We only include it optionally since
+                # executor is not a valid argument in all backends
+                extra_options["executor"] = self.executor
+            try:
+                with connection.execute_wrapper(tracing_wrapper):
+                    return document.execute(  # type: ignore
+                        root=self.get_root_value(),
+                        variables=variables,
+                        operation_name=operation_name,
+                        context=request,
+                        middleware=self.middleware,
+                        **extra_options,
+                    )
+            except Exception as e:
+                span.set_tag(ot_tags.ERROR, True)
+                return ExecutionResult(errors=[e], invalid=True)
 
     @staticmethod
     def parse_body(request: HttpRequest):

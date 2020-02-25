@@ -31,17 +31,10 @@ from ....warehouse.availability import (
 from ...core.connection import CountableDjangoObjectType
 from ...core.enums import ReportingPeriod, TaxRateType
 from ...core.fields import FilterInputConnectionField, PrefetchingConnectionField
-from ...core.resolvers import resolve_meta, resolve_private_meta
-from ...core.types import (
-    Image,
-    MetadataObjectType,
-    Money,
-    MoneyRange,
-    TaxedMoney,
-    TaxedMoneyRange,
-    TaxType,
-)
+from ...core.types import Image, Money, MoneyRange, TaxedMoney, TaxedMoneyRange, TaxType
 from ...decorators import permission_required
+from ...meta.deprecated.resolvers import resolve_meta, resolve_private_meta
+from ...meta.types import ObjectWithMetadata
 from ...translations.fields import TranslationField
 from ...translations.types import (
     CategoryTranslation,
@@ -55,33 +48,6 @@ from ..filters import AttributeFilterInput
 from ..resolvers import resolve_attributes
 from .attributes import Attribute, SelectedAttribute
 from .digital_contents import DigitalContent
-
-
-def prefetch_products(info, *_args, **_kwargs):
-    """Prefetch products visible to the current user.
-
-    Can be used with models that have the `products` relationship. The queryset
-    of products being prefetched is filtered based on permissions of the
-    requesting user, to restrict access to unpublished products from non-staff
-    users.
-    """
-    user = info.context.user
-    qs = models.Product.objects.visible_to_user(user)
-    return Prefetch(
-        "products",
-        queryset=gql_optimizer.query(qs, info),
-        to_attr="prefetched_products",
-    )
-
-
-def prefetch_products_collection_sorted(info, *_args, **_kwargs):
-    user = info.context.user
-    qs = models.Product.objects.collection_sorted(user)
-    return Prefetch(
-        "products",
-        queryset=gql_optimizer.query(qs, info),
-        to_attr="prefetched_products",
-    )
 
 
 def resolve_attribute_list(
@@ -194,7 +160,7 @@ class ProductPricingInfo(BasePricingInfo):
 
 
 @key(fields="id")
-class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
+class ProductVariant(CountableDjangoObjectType):
     quantity = graphene.Int(
         required=True,
         description="Quantity of a product in the store's possession, "
@@ -282,7 +248,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
             "Represents a version of a product such as different size or color."
         )
         only_fields = ["id", "name", "product", "sku", "track_inventory", "weight"]
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         model = models.ProductVariant
 
     @staticmethod
@@ -369,6 +335,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
         # `resolve_report_product_sales` resolver.
         return getattr(root, "quantity_ordered", None)
 
+    @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_quantity_allocated(root: models.ProductVariant, info):
         country = info.context.country
@@ -395,11 +362,11 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_private_meta(root, _info):
+    def resolve_private_meta(root: models.ProductVariant, _info):
         return resolve_private_meta(root, _info)
 
     @staticmethod
-    def resolve_meta(root, _info):
+    def resolve_meta(root: models.ProductVariant, _info):
         return resolve_meta(root, _info)
 
     @staticmethod
@@ -408,7 +375,7 @@ class ProductVariant(CountableDjangoObjectType, MetadataObjectType):
 
 
 @key(fields="id")
-class Product(CountableDjangoObjectType, MetadataObjectType):
+class Product(CountableDjangoObjectType):
     url = graphene.String(
         description="The storefront URL for the product.", required=True
     )
@@ -466,7 +433,7 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
 
     class Meta:
         description = "Represents an individual item for sale in the storefront."
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Product
         only_fields = [
             "category",
@@ -507,7 +474,13 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
     @staticmethod
     @gql_optimizer.resolver_hints(
         prefetch_related=("variants", "collections"),
-        only=["publication_date", "charge_taxes", "price_amount", "currency", "meta"],
+        only=[
+            "publication_date",
+            "charge_taxes",
+            "price_amount",
+            "currency",
+            "metadata",
+        ],
     )
     def resolve_pricing(root: models.Product, info):
         context = info.context
@@ -535,7 +508,13 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
     @staticmethod
     @gql_optimizer.resolver_hints(
         prefetch_related=("variants", "collections"),
-        only=["publication_date", "charge_taxes", "price_amount", "currency", "meta"],
+        only=[
+            "publication_date",
+            "charge_taxes",
+            "price_amount",
+            "currency",
+            "metadata",
+        ],
     )
     def resolve_price(root: models.Product, info):
         price_range = root.get_price_range(info.context.discounts)
@@ -601,11 +580,11 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_private_meta(root, _info):
+    def resolve_private_meta(root: models.Product, _info):
         return resolve_private_meta(root, _info)
 
     @staticmethod
-    def resolve_meta(root, _info):
+    def resolve_meta(root: models.Product, _info):
         return resolve_meta(root, _info)
 
     @staticmethod
@@ -614,12 +593,9 @@ class Product(CountableDjangoObjectType, MetadataObjectType):
 
 
 @key(fields="id")
-class ProductType(CountableDjangoObjectType, MetadataObjectType):
-    products = gql_optimizer.field(
-        PrefetchingConnectionField(
-            Product, description="List of products of this type."
-        ),
-        prefetch_related=prefetch_products,
+class ProductType(CountableDjangoObjectType):
+    products = PrefetchingConnectionField(
+        Product, description="List of products of this type."
     )
     tax_rate = TaxRateType(description="A type of tax rate.")
     tax_type = graphene.Field(
@@ -640,7 +616,7 @@ class ProductType(CountableDjangoObjectType, MetadataObjectType):
             "Represents a type of product. It defines what attributes are available to "
             "products of this type."
         )
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         model = models.ProductType
         only_fields = [
             "has_variants",
@@ -663,8 +639,7 @@ class ProductType(CountableDjangoObjectType, MetadataObjectType):
         # FIXME this resolver should be dropped after we drop tax_rate from API
         if not hasattr(root, "meta"):
             return None
-        tax = root.meta.get("taxes", {}).get("vatlayer", {})
-        return tax.get("code")
+        return root.get_value_from_metadata("vatlayer.code")
 
     @staticmethod
     @gql_optimizer.resolver_hints(
@@ -695,11 +670,11 @@ class ProductType(CountableDjangoObjectType, MetadataObjectType):
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_private_meta(root, _info):
+    def resolve_private_meta(root: models.ProductType, _info):
         return resolve_private_meta(root, _info)
 
     @staticmethod
-    def resolve_meta(root, _info):
+    def resolve_meta(root: models.ProductType, _info):
         return resolve_meta(root, _info)
 
     @staticmethod
@@ -708,12 +683,9 @@ class ProductType(CountableDjangoObjectType, MetadataObjectType):
 
 
 @key(fields="id")
-class Collection(CountableDjangoObjectType, MetadataObjectType):
-    products = gql_optimizer.field(
-        PrefetchingConnectionField(
-            Product, description="List of products in this collection."
-        ),
-        prefetch_related=prefetch_products_collection_sorted,
+class Collection(CountableDjangoObjectType):
+    products = PrefetchingConnectionField(
+        Product, description="List of products in this collection."
     )
     background_image = graphene.Field(
         Image, size=graphene.Int(description="Size of the image.")
@@ -733,7 +705,7 @@ class Collection(CountableDjangoObjectType, MetadataObjectType):
             "seo_title",
             "slug",
         ]
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Collection
 
     @staticmethod
@@ -749,8 +721,6 @@ class Collection(CountableDjangoObjectType, MetadataObjectType):
 
     @staticmethod
     def resolve_products(root: models.Collection, info, **_kwargs):
-        if hasattr(root, "prefetched_products"):
-            return root.prefetched_products  # type: ignore
         qs = root.products.collection_sorted(info.context.user)
         return gql_optimizer.query(qs, info)
 
@@ -764,11 +734,11 @@ class Collection(CountableDjangoObjectType, MetadataObjectType):
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_private_meta(root, _info):
+    def resolve_private_meta(root: models.Collection, _info):
         return resolve_private_meta(root, _info)
 
     @staticmethod
-    def resolve_meta(root, _info):
+    def resolve_meta(root: models.Collection, _info):
         return resolve_meta(root, _info)
 
     @staticmethod
@@ -777,15 +747,12 @@ class Collection(CountableDjangoObjectType, MetadataObjectType):
 
 
 @key(fields="id")
-class Category(CountableDjangoObjectType, MetadataObjectType):
+class Category(CountableDjangoObjectType):
     ancestors = PrefetchingConnectionField(
         lambda: Category, description="List of ancestors of the category."
     )
-    products = gql_optimizer.field(
-        PrefetchingConnectionField(
-            Product, description="List of products in the category."
-        ),
-        prefetch_related=prefetch_products,
+    products = PrefetchingConnectionField(
+        Product, description="List of products in the category."
     )
     # Deprecated. To remove in #5022
     url = graphene.String(description="The storefront's URL for the category.")
@@ -814,7 +781,7 @@ class Category(CountableDjangoObjectType, MetadataObjectType):
             "seo_title",
             "slug",
         ]
-        interfaces = [relay.Node]
+        interfaces = [relay.Node, ObjectWithMetadata]
         model = models.Category
 
     @staticmethod
@@ -845,13 +812,6 @@ class Category(CountableDjangoObjectType, MetadataObjectType):
 
     @staticmethod
     def resolve_products(root: models.Category, info, **_kwargs):
-        # If the category has no children, we use the prefetched data.
-        children = root.children.all()
-        if not children and hasattr(root, "prefetched_products"):
-            return root.prefetched_products
-
-        # Otherwise we want to include products from child categories which
-        # requires performing additional logic.
         tree = root.get_descendants(include_self=True)
         qs = models.Product.objects.published()
         qs = qs.filter(category__in=tree)
@@ -859,11 +819,11 @@ class Category(CountableDjangoObjectType, MetadataObjectType):
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_private_meta(root, _info):
+    def resolve_private_meta(root: models.Category, _info):
         return resolve_private_meta(root, _info)
 
     @staticmethod
-    def resolve_meta(root, _info):
+    def resolve_meta(root: models.Category, _info):
         return resolve_meta(root, _info)
 
     @staticmethod
