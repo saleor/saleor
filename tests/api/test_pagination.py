@@ -4,19 +4,30 @@ import pytest
 from django.contrib.auth import models as auth_models
 from django.db.models import Count
 from django.utils import timezone
+from prices import Money
 
 from saleor.account.models import Address, ServiceAccount, User
 from saleor.checkout.models import Checkout
 from saleor.discount import DiscountValueType
 from saleor.discount.models import Sale, Voucher
+from saleor.graphql.account.sorters import (
+    PermissionGroupSortField,
+    ServiceAccountSortField,
+    UserSortField,
+)
 from saleor.graphql.core.connection import get_field_value, to_global_cursor
+from saleor.graphql.discount.sorters import SaleSortField, VoucherSortField
+from saleor.graphql.menu.sorters import MenuSortField
 from saleor.graphql.order.sorters import OrderSortField
+from saleor.graphql.page.sorters import PageSortField
+from saleor.graphql.product.sorters import AttributeSortField, CategorySortField
 from saleor.menu.models import Menu, MenuItem
 from saleor.order import OrderStatus
 from saleor.order.models import Order
 from saleor.page.models import Page
 from saleor.payment import ChargeStatus
 from saleor.payment.models import Payment
+from saleor.product.models import Attribute, Category, Product, ProductType
 from tests.api.utils import get_graphql_content
 
 
@@ -47,7 +58,7 @@ def users_for_pagination():
             ),
             User(
                 first_name="Danny",
-                last_name="DeVito",
+                last_name="Devito",
                 email="ddevito@example.com",
                 is_staff=False,
                 is_active=True,
@@ -70,7 +81,7 @@ def groups_for_pagination():
             auth_models.Group(name="Group5",),
             auth_models.Group(name="Group3",),
             auth_models.Group(name="A group",),
-            auth_models.Group(name="Agroup",),
+            auth_models.Group(name="Group",),
             auth_models.Group(name="Something",),
         ]
     )
@@ -80,8 +91,8 @@ def groups_for_pagination():
 def service_accounts_for_pagination():
     ServiceAccount.objects.bulk_create(
         [
-            ServiceAccount(name="ServiceAccount",),
             ServiceAccount(name="Service Account",),
+            ServiceAccount(name="Second Service Account",),
             ServiceAccount(name="A Service Account",),
             ServiceAccount(name="The Service Account",),
             ServiceAccount(name="Example Service Account",),
@@ -108,7 +119,7 @@ def sales_for_pagination():
     Sale.objects.bulk_create(
         [
             Sale(
-                name="A Sale",
+                name="Sale",
                 end_date=timezone_now + timezone.timedelta(hours=4),
                 type=DiscountValueType.PERCENTAGE,
                 value=Decimal("1"),
@@ -143,7 +154,7 @@ def voucher_for_pagination():
     Voucher.objects.bulk_create(
         [
             Voucher(
-                code="code",
+                code="Code",
                 name="A voucher",
                 end_date=timezone_now + timezone.timedelta(hours=4),
                 type=DiscountValueType.PERCENTAGE,
@@ -192,14 +203,14 @@ def voucher_for_pagination():
 def menus_for_pagination():
     Menu.objects.bulk_create(
         [
-            Menu(name="The menu", json_content={},),
-            Menu(name="The example menu", json_content={},),
-            Menu(name="Just menu", json_content={},),
+            Menu(name="the menu", json_content={},),
+            Menu(name="the example menu", json_content={},),
+            Menu(name="just menu", json_content={},),
         ]
     )
-    menu1 = Menu.objects.filter(name="The menu").first()
-    menu2 = Menu.objects.filter(name="The example menu").first()
-    menu3 = Menu.objects.filter(name="Just menu").first()
+    menu1 = Menu.objects.filter(name="the menu").first()
+    menu2 = Menu.objects.filter(name="the example menu").first()
+    menu3 = Menu.objects.filter(name="just menu").first()
     MenuItem.objects.create(name="MenuItem1", menu=menu1)
     MenuItem.objects.create(name="MenuItem2", menu=menu1)
     MenuItem.objects.create(name="MenuItem3", menu=menu2)
@@ -245,7 +256,7 @@ def orders_for_pagination(customer_user):
     )
     address4 = Address.objects.create(
         first_name="Danny",
-        last_name="DeVito",
+        last_name="Devito",
         company_name="Mirumee Software",
         street_address_1="Tęczowa 7",
         city="WROCŁAW",
@@ -271,7 +282,7 @@ def orders_for_pagination(customer_user):
         total_gross_amount=Decimal("10"),
         billing_address=address1,
     )
-    order2 = Order.objects.create(
+    Order.objects.create(
         user=customer_user,
         status=OrderStatus.FULFILLED,
         token="order_token_2",
@@ -443,6 +454,146 @@ def pages_for_pagination():
     )
 
 
+@pytest.fixture
+def attributes_for_pagination():
+    Attribute.objects.bulk_create(
+        [
+            Attribute(
+                name="A",
+                slug="a",
+                value_required=True,
+                is_variant_only=False,
+                visible_in_storefront=False,
+                filterable_in_storefront=True,
+                filterable_in_dashboard=True,
+                available_in_grid=True,
+                storefront_search_position=2,
+            ),
+            Attribute(
+                name="A",
+                slug="b",
+                value_required=True,
+                is_variant_only=True,
+                visible_in_storefront=True,
+                filterable_in_storefront=False,
+                filterable_in_dashboard=False,
+                available_in_grid=True,
+                storefront_search_position=5,
+            ),
+            Attribute(
+                name="A",
+                slug="c",
+                value_required=False,
+                is_variant_only=False,
+                visible_in_storefront=False,
+                filterable_in_storefront=False,
+                filterable_in_dashboard=True,
+                available_in_grid=True,
+                storefront_search_position=2,
+            ),
+            Attribute(
+                name="B",
+                slug="d",
+                value_required=False,
+                is_variant_only=True,
+                visible_in_storefront=True,
+                filterable_in_storefront=True,
+                filterable_in_dashboard=True,
+                available_in_grid=False,
+                storefront_search_position=4,
+            ),
+            Attribute(
+                name="C",
+                slug="e",
+                value_required=False,
+                is_variant_only=False,
+                visible_in_storefront=True,
+                filterable_in_storefront=True,
+                filterable_in_dashboard=False,
+                available_in_grid=False,
+                storefront_search_position=5,
+            ),
+        ]
+    )
+
+
+@pytest.fixture
+def categories_for_pagination():
+
+    product_type1 = ProductType.objects.create(
+        name="Default Type",
+        slug="default-type",
+        has_variants=True,
+        is_shipping_required=True,
+    )
+    product_type2 = ProductType.objects.create(
+        name="Default Type",
+        slug="second-type",
+        has_variants=True,
+        is_shipping_required=True,
+    )
+
+    category1 = Category.objects.create(name="The Category", slug="the-category",)
+    category2 = Category.objects.create(
+        name="A Category", slug="second-category", parent=category1
+    )
+    category3 = Category.objects.create(
+        name="The Category", slug="third-category", parent=category2
+    )
+    Category.objects.create(name="The Category", slug="category", parent=category2)
+    Category.objects.create(name="The Category", slug="subcategory", parent=category3)
+
+    Product.objects.bulk_create(
+        [
+            Product(
+                name="Test product",
+                slug="test-product",
+                price=Money("10.00", "USD"),
+                minimal_variant_price_amount=Decimal("4.00"),
+                product_type=product_type1,
+                category=category1,
+                is_published=True,
+            ),
+            Product(
+                name="Test product",
+                slug="a-product",
+                price=Money("10.00", "USD"),
+                minimal_variant_price_amount=Decimal("4.00"),
+                product_type=product_type2,
+                category=category1,
+                is_published=True,
+            ),
+            Product(
+                name="Test product",
+                slug="just-product",
+                price=Money("10.00", "USD"),
+                minimal_variant_price_amount=Decimal("2.00"),
+                product_type=product_type2,
+                category=category2,
+                is_published=True,
+            ),
+            Product(
+                name="Test product",
+                slug="second-product",
+                price=Money("10.00", "USD"),
+                minimal_variant_price_amount=Decimal("1.00"),
+                product_type=product_type1,
+                category=category2,
+                is_published=True,
+            ),
+            Product(
+                name="Test product",
+                slug="product",
+                price=Money("10.00", "USD"),
+                minimal_variant_price_amount=Decimal("10.00"),
+                product_type=product_type1,
+                category=category3,
+                is_published=True,
+            ),
+        ]
+    )
+
+
 def create_global_cursor(instance, fields_list):
     return to_global_cursor([get_field_value(instance, field) for field in fields_list])
 
@@ -504,6 +655,19 @@ def create_cursor_from_payment_token(token, fields_list):
     return create_global_cursor(payment, fields_list)
 
 
+def create_cursor_from_attribute_slug(slug, fields_list):
+    attribute = Attribute.objects.get(slug=slug)
+    return create_global_cursor(attribute, fields_list)
+
+
+def create_cursor_from_category_slug(slug, fields_list):
+    category = Category.objects.filter(slug=slug)
+    category = CategorySortField.qs_with_product_count(category)
+    category = CategorySortField.qs_with_subcategory_count(category).first()
+
+    return create_global_cursor(category, fields_list)
+
+
 def _test_pagination(
     staff_api_client,
     query,
@@ -513,6 +677,7 @@ def _test_pagination(
     end_cursor_page1,
     start_cursor_page2,
     end_cursor_page2,
+    start_cursor_before,
     resolver_name,
 ):
     variables = {"first": 3, "after": None, "sortBy": order_by}
@@ -537,14 +702,14 @@ def _test_pagination(
     assert page_info["startCursor"] == start_cursor_page2
     assert page_info["endCursor"] == end_cursor_page2
 
-    variables = {"last": 3, "before": start_cursor_page2, "sortBy": order_by}
+    variables = {"last": 2, "before": start_cursor_page2, "sortBy": order_by}
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     page_info = content["data"][resolver_name]["pageInfo"]
 
-    assert not page_info["hasPreviousPage"]
+    assert page_info["hasPreviousPage"]
     assert page_info["hasNextPage"]
-    assert page_info["startCursor"] == start_cursor_page1
+    assert page_info["startCursor"] == start_cursor_before
     assert page_info["endCursor"] == end_cursor_page1
 
 
@@ -564,7 +729,7 @@ def _test_pagination(
         ),
         (
             {"field": "FIRST_NAME", "direction": "ASC"},
-            ["first_name", "last_name", "pk"],
+            UserSortField.FIRST_NAME.value,
             [
                 "zordon@example.com",
                 "leslie@example.com",
@@ -575,18 +740,18 @@ def _test_pagination(
         ),
         (
             {"field": "LAST_NAME", "direction": "ASC"},
-            ["last_name", "first_name", "pk"],
+            UserSortField.LAST_NAME.value,
             [
                 "allen@example.com",
-                "ddevito@example.com",
                 "ellen@example.com",
+                "ddevito@example.com",
                 "zordon@example.com",
                 "leslie@example.com",
             ],
         ),
         (
             {"field": "EMAIL", "direction": "ASC"},
-            ["email"],
+            UserSortField.EMAIL.value,
             [
                 "allen@example.com",
                 "ddevito@example.com",
@@ -597,7 +762,7 @@ def _test_pagination(
         ),
         (
             {"field": "EMAIL", "direction": "DESC"},
-            ["email"],
+            UserSortField.EMAIL.value,
             [
                 "zordon@example.com",
                 "leslie@example.com",
@@ -608,7 +773,7 @@ def _test_pagination(
         ),
         (
             {"field": "ORDER_COUNT", "direction": "DESC"},
-            ["order_count", "email"],
+            UserSortField.ORDER_COUNT.value,
             [
                 "leslie@example.com",
                 "allen@example.com",
@@ -628,8 +793,14 @@ def test_user_pagination(
     users_for_pagination,
 ):
     query = """
-        query ($first: Int, $last: Int, $after: String, $before: String, $sortBy: UserSortingInput){
-          customers(first: $first, last: $last, after: $after, before: $before, sortBy: $sortBy) {
+        query (
+            $first: Int, $last: Int, $after: String,
+            $before: String, $sortBy: UserSortingInput
+         ){
+          customers(
+            first: $first, last: $last, after: $after,
+            before: $before, sortBy: $sortBy
+        ) {
             edges {
               node {
                 firstName
@@ -651,6 +822,7 @@ def test_user_pagination(
     Order.objects.create(user=User.objects.get(email="leslie@example.com"))
 
     start_cursor_page1 = create_cursor_from_user_email(user_order[0], cursor_fields)
+    start_cursor_before = create_cursor_from_user_email(user_order[1], cursor_fields)
     end_cursor_page1 = create_cursor_from_user_email(user_order[2], cursor_fields)
     start_cursor_page2 = create_cursor_from_user_email(user_order[3], cursor_fields)
     end_cursor_page2 = create_cursor_from_user_email(user_order[4], cursor_fields)
@@ -664,6 +836,7 @@ def test_user_pagination(
         end_cursor_page1,
         start_cursor_page2,
         end_cursor_page2,
+        start_cursor_before,
         resolver_name="customers",
     )
 
@@ -671,11 +844,11 @@ def test_user_pagination(
 @pytest.mark.parametrize(
     "order_by, cursor_fields, group_order",
     [
-        (None, ["pk"], ["Group5", "Group3", "A group", "Agroup", "Something",],),
+        (None, ["pk"], ["Group5", "Group3", "A group", "Group", "Something"],),
         (
             {"field": "NAME", "direction": "ASC"},
-            ["name"],
-            ["A group", "Agroup", "Group3", "Group5", "Something",],
+            PermissionGroupSortField.NAME.value,
+            ["A group", "Group", "Group3", "Group5", "Something"],
         ),
     ],
 )
@@ -688,8 +861,13 @@ def test_permission_groups_pagination(
     groups_for_pagination,
 ):
     query = """
-        query ($first: Int, $last: Int, $after: String, $before: String, $sortBy: PermissionGroupSortingInput){
-          permissionGroups(first: $first, last: $last, after: $after, before: $before, sortBy: $sortBy) {
+        query (
+            $first: Int, $last: Int, $after: String,
+            $before: String, $sortBy: PermissionGroupSortingInput
+            ){
+          permissionGroups(
+            first: $first, last: $last, after: $after, before: $before, sortBy: $sortBy
+            ) {
             edges {
               node {
                 name
@@ -705,6 +883,7 @@ def test_permission_groups_pagination(
         }
     """
     start_cursor_page1 = create_cursor_from_group_name(group_order[0], cursor_fields)
+    start_cursor_before = create_cursor_from_group_name(group_order[1], cursor_fields)
     end_cursor_page1 = create_cursor_from_group_name(group_order[2], cursor_fields)
     start_cursor_page2 = create_cursor_from_group_name(group_order[3], cursor_fields)
     end_cursor_page2 = create_cursor_from_group_name(group_order[4], cursor_fields)
@@ -718,6 +897,7 @@ def test_permission_groups_pagination(
         end_cursor_page1,
         start_cursor_page2,
         end_cursor_page2,
+        start_cursor_before,
         resolver_name="permissionGroups",
     )
 
@@ -731,28 +911,28 @@ def test_permission_groups_pagination(
             [
                 "A Service Account",
                 "Example Service Account",
+                "Second Service Account",
                 "Service Account",
-                "ServiceAccount",
                 "The Service Account",
             ],
         ),
         (
             {"field": "NAME", "direction": "ASC"},
-            ["name", "pk"],
+            ServiceAccountSortField.NAME.value,
             [
                 "A Service Account",
                 "Example Service Account",
+                "Second Service Account",
                 "Service Account",
-                "ServiceAccount",
                 "The Service Account",
             ],
         ),
         (
             {"field": "CREATION_DATE", "direction": "ASC"},
-            ["created", "name", "pk"],
+            ServiceAccountSortField.CREATION_DATE.value,
             [
-                "ServiceAccount",
                 "Service Account",
+                "Second Service Account",
                 "A Service Account",
                 "The Service Account",
                 "Example Service Account",
@@ -769,8 +949,13 @@ def test_service_accounts_pagination(
     service_accounts_for_pagination,
 ):
     query = """
-        query ($first: Int, $last: Int, $after: String, $before: String, $sortBy: ServiceAccountSortingInput){
-          serviceAccounts(first: $first, last: $last, after: $after, before: $before, sortBy: $sortBy) {
+        query (
+            $first: Int, $last: Int, $after: String,
+            $before: String, $sortBy: ServiceAccountSortingInput
+        ){
+          serviceAccounts(
+            first: $first, last: $last, after: $after, before: $before, sortBy: $sortBy
+            ) {
             edges {
               node {
                 name
@@ -787,6 +972,9 @@ def test_service_accounts_pagination(
     """
     start_cursor_page1 = create_cursor_from_service_account_name(
         service_account_order[0], cursor_fields
+    )
+    start_cursor_before = create_cursor_from_service_account_name(
+        service_account_order[1], cursor_fields
     )
     end_cursor_page1 = create_cursor_from_service_account_name(
         service_account_order[2], cursor_fields
@@ -807,6 +995,7 @@ def test_service_accounts_pagination(
         end_cursor_page1,
         start_cursor_page2,
         end_cursor_page2,
+        start_cursor_before,
         resolver_name="serviceAccounts",
     )
 
@@ -853,6 +1042,9 @@ def test_checkouts_pagination(
     start_cursor_page1 = create_cursor_from_checkout_date(
         checkout_order[0], cursor_fields
     )
+    start_cursor_before = create_cursor_from_checkout_date(
+        checkout_order[1], cursor_fields
+    )
     end_cursor_page1 = create_cursor_from_checkout_date(
         checkout_order[2], cursor_fields
     )
@@ -872,6 +1064,7 @@ def test_checkouts_pagination(
         end_cursor_page1,
         start_cursor_page2,
         end_cursor_page2,
+        start_cursor_before,
         resolver_name="checkouts",
     )
 
@@ -882,32 +1075,32 @@ def test_checkouts_pagination(
         (
             None,
             ["name", "pk"],
-            ["A Sale", "An example sale", "Example Sale", "Sale example", "The Sale",],
+            ["An example sale", "Example Sale", "Sale", "Sale example", "The Sale"],
         ),
         (
             {"field": "NAME", "direction": "ASC"},
-            ["name", "pk"],
-            ["A Sale", "An example sale", "Example Sale", "Sale example", "The Sale",],
+            SaleSortField.NAME.value,
+            ["An example sale", "Example Sale", "Sale", "Sale example", "The Sale"],
         ),
         (
             {"field": "START_DATE", "direction": "ASC"},
-            ["start_date", "name", "pk"],
-            ["A Sale", "The Sale", "Example Sale", "Sale example", "An example sale",],
+            SaleSortField.START_DATE.value,
+            ["Sale", "The Sale", "Example Sale", "Sale example", "An example sale"],
         ),
         (
             {"field": "END_DATE", "direction": "ASC"},
-            ["end_date", "name", "pk"],
-            ["Sale example", "The Sale", "Example Sale", "A Sale", "An example sale",],
+            SaleSortField.END_DATE.value,
+            ["Sale example", "The Sale", "Example Sale", "Sale", "An example sale"],
         ),
         (
             {"field": "VALUE", "direction": "ASC"},
-            ["value", "name", "pk"],
-            ["An example sale", "A Sale", "Example Sale", "Sale example", "The Sale",],
+            SaleSortField.VALUE.value,
+            ["An example sale", "Sale", "Example Sale", "Sale example", "The Sale"],
         ),
         (
             {"field": "TYPE", "direction": "ASC"},
-            ["type", "name", "pk"],
-            ["An example sale", "Sale example", "The Sale", "A Sale", "Example Sale",],
+            SaleSortField.TYPE.value,
+            ["An example sale", "Sale example", "The Sale", "Example Sale", "Sale"],
         ),
     ],
 )
@@ -920,8 +1113,13 @@ def test_sales_pagination(
     sales_for_pagination,
 ):
     query = """
-        query ($first: Int, $last: Int, $after: String, $before: String, $sortBy: SaleSortingInput){
-          sales(first: $first, last: $last, after: $after, before: $before, sortBy: $sortBy) {
+        query (
+            $first: Int, $last: Int, $after: String,
+            $before: String, $sortBy: SaleSortingInput
+        ){
+          sales(
+            first: $first, last: $last, after: $after, before: $before, sortBy: $sortBy
+           ) {
             edges {
               node {
                 name
@@ -937,6 +1135,7 @@ def test_sales_pagination(
         }
     """
     start_cursor_page1 = create_cursor_from_sales_name(sales_order[0], cursor_fields)
+    start_cursor_before = create_cursor_from_sales_name(sales_order[1], cursor_fields)
     end_cursor_page1 = create_cursor_from_sales_name(sales_order[2], cursor_fields)
     start_cursor_page2 = create_cursor_from_sales_name(sales_order[3], cursor_fields)
     end_cursor_page2 = create_cursor_from_sales_name(sales_order[4], cursor_fields)
@@ -950,6 +1149,7 @@ def test_sales_pagination(
         end_cursor_page1,
         start_cursor_page2,
         end_cursor_page2,
+        start_cursor_before,
         resolver_name="sales",
     )
 
@@ -960,42 +1160,42 @@ def test_sales_pagination(
         (
             None,
             ["code"],
-            ["An-example-v", "Example-code", "The-code", "Voucher-ex", "code",],
+            ["An-example-v", "Code", "Example-code", "The-code", "Voucher-ex"],
         ),
         (
             {"field": "CODE", "direction": "ASC"},
-            ["code"],
-            ["An-example-v", "Example-code", "The-code", "Voucher-ex", "code",],
+            VoucherSortField.CODE.value,
+            ["An-example-v", "Code", "Example-code", "The-code", "Voucher-ex"],
         ),
         (
             {"field": "START_DATE", "direction": "ASC"},
-            ["start_date", "name", "code"],
-            ["code", "The-code", "Example-code", "Voucher-ex", "An-example-v",],
+            VoucherSortField.START_DATE.value,
+            ["Code", "The-code", "Example-code", "Voucher-ex", "An-example-v"],
         ),
         (
             {"field": "END_DATE", "direction": "ASC"},
-            ["end_date", "name", "code"],
-            ["The-code", "Voucher-ex", "Example-code", "code", "An-example-v",],
+            VoucherSortField.END_DATE.value,
+            ["The-code", "Voucher-ex", "Example-code", "Code", "An-example-v"],
         ),
         (
             {"field": "VALUE", "direction": "ASC"},
-            ["discount_value", "name", "code"],
-            ["code", "An-example-v", "Example-code", "Voucher-ex", "The-code",],
+            VoucherSortField.VALUE.value,
+            ["Code", "An-example-v", "Example-code", "Voucher-ex", "The-code"],
         ),
         (
             {"field": "TYPE", "direction": "ASC"},
-            ["type", "name", "code"],
-            ["An-example-v", "The-code", "Voucher-ex", "Example-code", "code",],
+            VoucherSortField.TYPE.value,
+            ["An-example-v", "The-code", "Voucher-ex", "Code", "Example-code"],
         ),
         (
             {"field": "USAGE_LIMIT", "direction": "ASC"},
-            ["usage_limit", "name", "code"],
-            ["An-example-v", "code", "Example-code", "Voucher-ex", "The-code",],
+            VoucherSortField.USAGE_LIMIT.value,
+            ["An-example-v", "Code", "Example-code", "Voucher-ex", "The-code"],
         ),
         (
             {"field": "MINIMUM_SPENT_AMOUNT", "direction": "ASC"},
-            ["min_spent_amount", "name", "code"],
-            ["The-code", "code", "Voucher-ex", "An-example-v", "Example-code",],
+            VoucherSortField.MINIMUM_SPENT_AMOUNT.value,
+            ["Code", "The-code", "Voucher-ex", "An-example-v", "Example-code"],
         ),
     ],
 )
@@ -1008,8 +1208,13 @@ def test_voucher_pagination(
     voucher_for_pagination,
 ):
     query = """
-        query ($first: Int, $last: Int, $after: String, $before: String, $sortBy: VoucherSortingInput){
-          vouchers(first: $first, last: $last, after: $after, before: $before, sortBy: $sortBy) {
+        query (
+            $first: Int, $last: Int, $after: String,
+            $before: String, $sortBy: VoucherSortingInput
+        ){
+          vouchers(
+            first: $first, last: $last, after: $after, before: $before, sortBy: $sortBy
+            ) {
             edges {
               node {
                 code
@@ -1027,12 +1232,14 @@ def test_voucher_pagination(
     start_cursor_page1 = create_cursor_from_voucher_code(
         voucher_order[0], cursor_fields
     )
+    start_cursor_before = create_cursor_from_voucher_code(
+        voucher_order[1], cursor_fields
+    )
     end_cursor_page1 = create_cursor_from_voucher_code(voucher_order[2], cursor_fields)
     start_cursor_page2 = create_cursor_from_voucher_code(
         voucher_order[3], cursor_fields
     )
     end_cursor_page2 = create_cursor_from_voucher_code(voucher_order[4], cursor_fields)
-
     _test_pagination(
         staff_api_client,
         query,
@@ -1042,6 +1249,7 @@ def test_voucher_pagination(
         end_cursor_page1,
         start_cursor_page2,
         end_cursor_page2,
+        start_cursor_before,
         resolver_name="vouchers",
     )
 
@@ -1053,17 +1261,17 @@ def test_voucher_pagination(
         (
             None,
             ["pk"],
-            ["navbar", "footer", "The menu", "The example menu", "Just menu",],
+            ["navbar", "footer", "the menu", "the example menu", "just menu"],
         ),
         (
             {"field": "NAME", "direction": "ASC"},
-            ["name", "pk"],
-            ["Just menu", "The example menu", "The menu", "footer", "navbar",],
+            MenuSortField.NAME.value,
+            ["footer", "just menu", "navbar", "the example menu", "the menu"],
         ),
         (
             {"field": "ITEMS_COUNT", "direction": "ASC"},
-            ["items_count", "name", "pk"],
-            ["footer", "navbar", "The menu", "The example menu", "Just menu",],
+            MenuSortField.ITEMS_COUNT.value,
+            ["footer", "navbar", "the menu", "the example menu", "just menu"],
         ),
     ],
 )
@@ -1076,8 +1284,13 @@ def test_menus_pagination(
     menus_for_pagination,
 ):
     query = """
-        query ($first: Int, $last: Int, $after: String, $before: String, $sortBy: MenuSortingInput){
-          menus(first: $first, last: $last, after: $after, before: $before, sortBy: $sortBy) {
+        query (
+            $first: Int, $last: Int, $after: String,
+            $before: String, $sortBy: MenuSortingInput
+        ){
+          menus(
+            first: $first, last: $last, after: $after, before: $before, sortBy: $sortBy
+            ) {
             edges {
               node {
                 name
@@ -1093,6 +1306,7 @@ def test_menus_pagination(
         }
     """
     start_cursor_page1 = create_cursor_from_menu_name(menus_order[0], cursor_fields)
+    start_cursor_before = create_cursor_from_menu_name(menus_order[1], cursor_fields)
     end_cursor_page1 = create_cursor_from_menu_name(menus_order[2], cursor_fields)
     start_cursor_page2 = create_cursor_from_menu_name(menus_order[3], cursor_fields)
     end_cursor_page2 = create_cursor_from_menu_name(menus_order[4], cursor_fields)
@@ -1106,6 +1320,7 @@ def test_menus_pagination(
         end_cursor_page1,
         start_cursor_page2,
         end_cursor_page2,
+        start_cursor_before,
         resolver_name="menus",
     )
 
@@ -1126,7 +1341,7 @@ def test_menus_pagination(
         ),
         (
             {"field": "NUMBER", "direction": "ASC"},
-            ["pk"],
+            OrderSortField.NUMBER.value,
             [
                 "order_token_1",
                 "order_token_2",
@@ -1137,7 +1352,7 @@ def test_menus_pagination(
         ),
         (
             {"field": "CREATION_DATE", "direction": "ASC"},
-            ["created", "status", "pk"],
+            OrderSortField.CREATION_DATE.value,
             [
                 "order_token_1",
                 "order_token_2",
@@ -1148,11 +1363,11 @@ def test_menus_pagination(
         ),
         (
             {"field": "CUSTOMER", "direction": "ASC"},
-            ["billing_address__last_name", "billing_address__first_name", "pk"],
+            OrderSortField.CUSTOMER.value,
             [
                 "order_token_1",
-                "order_token_4",
                 "order_token_5",
+                "order_token_4",
                 "order_token_2",
                 "order_token_3",
             ],
@@ -1170,7 +1385,7 @@ def test_menus_pagination(
         ),
         (
             {"field": "FULFILLMENT_STATUS", "direction": "ASC"},
-            ["status", "user_email", "pk"],
+            OrderSortField.FULFILLMENT_STATUS.value,
             [
                 "order_token_1",
                 "order_token_2",
@@ -1181,7 +1396,7 @@ def test_menus_pagination(
         ),
         (
             {"field": "TOTAL", "direction": "ASC"},
-            ["total_gross_amount", "status", "pk"],
+            OrderSortField.TOTAL.value,
             [
                 "order_token_1",
                 "order_token_3",
@@ -1201,8 +1416,13 @@ def test_orders_pagination(
     orders_for_pagination,
 ):
     query = """
-        query ($first: Int, $last: Int, $after: String, $before: String, $sortBy: OrderSortingInput){
-          orders(first: $first, last: $last, after: $after, before: $before, sortBy: $sortBy) {
+        query (
+            $first: Int, $last: Int, $after: String,
+            $before: String, $sortBy: OrderSortingInput
+        ){
+          orders(
+            first: $first, last: $last, after: $after, before: $before, sortBy: $sortBy
+            ) {
             edges {
               node {
                 token
@@ -1218,6 +1438,7 @@ def test_orders_pagination(
         }
     """
     start_cursor_page1 = create_cursor_from_order_token(orders_order[0], cursor_fields)
+    start_cursor_before = create_cursor_from_order_token(orders_order[1], cursor_fields)
     end_cursor_page1 = create_cursor_from_order_token(orders_order[2], cursor_fields)
     start_cursor_page2 = create_cursor_from_order_token(orders_order[3], cursor_fields)
     end_cursor_page2 = create_cursor_from_order_token(orders_order[4], cursor_fields)
@@ -1231,6 +1452,7 @@ def test_orders_pagination(
         end_cursor_page1,
         start_cursor_page2,
         end_cursor_page2,
+        start_cursor_before,
         resolver_name="orders",
     )
 
@@ -1240,10 +1462,10 @@ def test_orders_pagination(
     [
         (
             {"field": "VISIBILITY", "direction": "ASC"},
-            ["is_published", "title", "slug"],
-            ["about", "about2", "about3", "slug_page_1", "slug_page_2",],
+            PageSortField.VISIBILITY.value,
+            ["about", "about2", "about3", "slug_page_1", "slug_page_2"],
         ),
-        (None, ["slug"], ["about", "about2", "about3", "slug_page_1", "slug_page_2",]),
+        (None, ["slug"], ["about", "about2", "about3", "slug_page_1", "slug_page_2"]),
     ],
 )
 def test_page_pagination(
@@ -1255,8 +1477,13 @@ def test_page_pagination(
     pages_for_pagination,
 ):
     query = """
-        query ($after: String, $sortBy: PageSortingInput){
-          pages(first: 3, after: $after, sortBy: $sortBy) {
+        query (
+            $first: Int, $last: Int, $after: String,
+            $before: String, $sortBy: PageSortingInput
+        ){
+          pages(
+            first: $first, last: $last, after: $after, before: $before, sortBy: $sortBy
+          ) {
             edges {
               node {
                   title
@@ -1274,6 +1501,7 @@ def test_page_pagination(
     """
 
     start_cursor_page1 = create_cursor_from_page_slug(page_order[0], cursor_fields)
+    start_cursor_before = create_cursor_from_page_slug(page_order[1], cursor_fields)
     end_cursor_page1 = create_cursor_from_page_slug(page_order[2], cursor_fields)
     start_cursor_page2 = create_cursor_from_page_slug(page_order[3], cursor_fields)
     end_cursor_page2 = create_cursor_from_page_slug(page_order[4], cursor_fields)
@@ -1286,13 +1514,14 @@ def test_page_pagination(
         end_cursor_page1,
         start_cursor_page2,
         end_cursor_page2,
+        start_cursor_before,
         resolver_name="pages",
     )
 
 
 @pytest.mark.parametrize(
     "cursor_fields, payment_order",
-    [(["pk"], ["payment1", "payment2", "payment3", "payment4", "payment5",]),],
+    [(["pk"], ["payment1", "payment2", "payment3", "payment4", "payment5"])],
 )
 def test_payment_pagination(
     cursor_fields,
@@ -1302,8 +1531,12 @@ def test_payment_pagination(
     orders_for_pagination,
 ):
     query = """
-        query ($after: String){
-          payments(first: 3, after: $after) {
+        query (
+            $first: Int, $last: Int, $after: String, $before: String
+        ){
+          payments(
+            first: $first, last: $last, after: $after, before: $before
+          ) {
             edges {
               node {
                   token
@@ -1322,6 +1555,9 @@ def test_payment_pagination(
     start_cursor_page1 = create_cursor_from_payment_token(
         payment_order[0], cursor_fields
     )
+    start_cursor_before = create_cursor_from_payment_token(
+        payment_order[1], cursor_fields
+    )
     end_cursor_page1 = create_cursor_from_payment_token(payment_order[2], cursor_fields)
     start_cursor_page2 = create_cursor_from_payment_token(
         payment_order[3], cursor_fields
@@ -1336,5 +1572,227 @@ def test_payment_pagination(
         end_cursor_page1,
         start_cursor_page2,
         end_cursor_page2,
+        start_cursor_before,
         resolver_name="payments",
+    )
+
+
+@pytest.mark.parametrize(
+    "order_by, cursor_fields, attribute_order",
+    [
+        (None, ["storefront_search_position", "slug"], ["a", "c", "d", "b", "e"],),
+        (
+            {"field": "NAME", "direction": "ASC"},
+            AttributeSortField.NAME.value,
+            ["a", "b", "c", "d", "e"],
+        ),
+        (
+            {"field": "SLUG", "direction": "ASC"},
+            AttributeSortField.SLUG.value,
+            ["a", "b", "c", "d", "e"],
+        ),
+        (
+            {"field": "VALUE_REQUIRED", "direction": "ASC"},
+            AttributeSortField.VALUE_REQUIRED.value,
+            ["c", "d", "e", "a", "b"],
+        ),
+        (
+            {"field": "IS_VARIANT_ONLY", "direction": "ASC"},
+            AttributeSortField.IS_VARIANT_ONLY.value,
+            ["a", "c", "e", "b", "d"],
+        ),
+        (
+            {"field": "VISIBLE_IN_STOREFRONT", "direction": "ASC"},
+            AttributeSortField.VISIBLE_IN_STOREFRONT.value,
+            ["a", "c", "b", "d", "e"],
+        ),
+        (
+            {"field": "FILTERABLE_IN_STOREFRONT", "direction": "ASC"},
+            AttributeSortField.FILTERABLE_IN_STOREFRONT.value,
+            ["b", "c", "a", "d", "e"],
+        ),
+        (
+            {"field": "FILTERABLE_IN_DASHBOARD", "direction": "ASC"},
+            AttributeSortField.FILTERABLE_IN_DASHBOARD.value,
+            ["b", "e", "a", "c", "d"],
+        ),
+        (
+            {"field": "STOREFRONT_SEARCH_POSITION", "direction": "ASC"},
+            AttributeSortField.STOREFRONT_SEARCH_POSITION.value,
+            ["a", "c", "d", "b", "e"],
+        ),
+        (
+            {"field": "AVAILABLE_IN_GRID", "direction": "ASC"},
+            AttributeSortField.AVAILABLE_IN_GRID.value,
+            ["d", "e", "a", "b", "c"],
+        ),
+    ],
+)
+def test_attribute_pagination(
+    order_by,
+    cursor_fields,
+    attribute_order,
+    staff_api_client,
+    permission_manage_products,
+    attributes_for_pagination,
+):
+    query = """
+        query (
+            $first: Int, $last: Int, $after: String,
+            $before: String, $sortBy: AttributeSortingInput
+        ){
+          attributes(
+            first: $first, last: $last, after: $after, before: $before, sortBy: $sortBy
+          ) {
+            edges {
+              node {
+                  name
+                  slug
+              }
+            }
+            pageInfo{
+              startCursor
+              endCursor
+              hasNextPage
+              hasPreviousPage
+            }
+          }
+        }
+    """
+
+    start_cursor_page1 = create_cursor_from_attribute_slug(
+        attribute_order[0], cursor_fields
+    )
+    start_cursor_before = create_cursor_from_attribute_slug(
+        attribute_order[1], cursor_fields
+    )
+    end_cursor_page1 = create_cursor_from_attribute_slug(
+        attribute_order[2], cursor_fields
+    )
+    start_cursor_page2 = create_cursor_from_attribute_slug(
+        attribute_order[3], cursor_fields
+    )
+    end_cursor_page2 = create_cursor_from_attribute_slug(
+        attribute_order[4], cursor_fields
+    )
+    _test_pagination(
+        staff_api_client,
+        query,
+        order_by,
+        permission_manage_products,
+        start_cursor_page1,
+        end_cursor_page1,
+        start_cursor_page2,
+        end_cursor_page2,
+        start_cursor_before,
+        resolver_name="attributes",
+    )
+
+
+@pytest.mark.parametrize(
+    "order_by, cursor_fields, category_order",
+    [
+        (
+            None,
+            ["pk"],
+            [
+                "the-category",
+                "second-category",
+                "third-category",
+                "category",
+                "subcategory",
+            ],
+        ),
+        (
+            {"field": "NAME", "direction": "ASC"},
+            CategorySortField.NAME.value,
+            [
+                "second-category",
+                "category",
+                "subcategory",
+                "the-category",
+                "third-category",
+            ],
+        ),
+        (
+            {"field": "PRODUCT_COUNT", "direction": "ASC"},
+            CategorySortField.PRODUCT_COUNT.value,
+            [
+                "category",
+                "subcategory",
+                "third-category",
+                "second-category",
+                "the-category",
+            ],
+        ),
+        (
+            {"field": "SUBCATEGORY_COUNT", "direction": "DESC"},
+            CategorySortField.SUBCATEGORY_COUNT.value,
+            [
+                "second-category",
+                "third-category",
+                "the-category",
+                "subcategory",
+                "category",
+            ],
+        ),
+    ],
+)
+def test_category_pagination(
+    order_by,
+    cursor_fields,
+    category_order,
+    staff_api_client,
+    permission_manage_products,
+    categories_for_pagination,
+):
+    query = """
+        query (
+            $first: Int, $last: Int, $after: String,
+            $before: String, $sortBy: CategorySortingInput
+        ){
+          categories(
+            first: $first, last: $last, after: $after, before: $before, sortBy: $sortBy
+          ) {
+            edges {
+              node {
+                  name
+                  slug
+              }
+            }
+            pageInfo{
+              startCursor
+              endCursor
+              hasNextPage
+              hasPreviousPage
+            }
+          }
+        }
+    """
+    start_cursor_page1 = create_cursor_from_category_slug(
+        category_order[0], cursor_fields
+    )
+    start_cursor_before = create_cursor_from_category_slug(
+        category_order[1], cursor_fields
+    )
+    end_cursor_page1 = create_cursor_from_category_slug(
+        category_order[2], cursor_fields
+    )
+    start_cursor_page2 = create_cursor_from_category_slug(
+        category_order[3], cursor_fields
+    )
+    end_cursor_page2 = create_cursor_from_category_slug(
+        category_order[4], cursor_fields
+    )
+    _test_pagination(
+        staff_api_client,
+        query,
+        order_by,
+        permission_manage_products,
+        start_cursor_page1,
+        end_cursor_page1,
+        start_cursor_page2,
+        end_cursor_page2,
+        start_cursor_before,
+        resolver_name="categories",
     )

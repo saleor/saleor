@@ -1,9 +1,8 @@
-import typing
+from typing import Any, Dict, List, Tuple, Union
 
 import graphene
 import opentracing as ot
-from django.db.models import Model as DjangoModel, Q, QuerySet, Manager
-from graphene import Field, List, NonNull, ObjectType, String
+from django.db.models import Manager, Model as DjangoModel, Q, QuerySet
 from graphene.relay.connection import Connection
 from graphene_django_optimizer.types import OptimizedDjangoObjectType
 from graphql_relay.connection.connectiontypes import Edge, PageInfo
@@ -11,7 +10,7 @@ from graphql_relay.utils import base64, unbase64
 
 from ..core.enums import OrderDirection
 
-ConnectionArguments = typing.Dict[str, typing.Any]
+ConnectionArguments = Dict[str, Any]
 
 
 def to_global_cursor(values):
@@ -22,7 +21,7 @@ def to_global_cursor(values):
     return base64("::".join(values))
 
 
-def from_global_cursor(cursor) -> typing.List[str]:
+def from_global_cursor(cursor) -> List[str]:
     values = unbase64(cursor)
     values = values.split("::")
     if isinstance(values, list):
@@ -34,8 +33,7 @@ def from_global_cursor(cursor) -> typing.List[str]:
 
 
 def get_field_value(instance: DjangoModel, field_name: str):
-    """Get field value for given field in filter format 'field__foreign_key_field'
-    """
+    """Get field value for given field in filter format 'field__foreign_key_field'."""
     field_path = field_name.split("__")
     attr = instance
     for elem in field_path:
@@ -46,8 +44,32 @@ def get_field_value(instance: DjangoModel, field_name: str):
     return attr
 
 
-def prepare_filter(
-    cursor: typing.List, sorting_fields: typing.List, sorting_direction: str
+def _prepare_filter_expression(
+    field_name: str,
+    index: int,
+    cursor: List[str],
+    sorting_fields: List[str],
+    sorting_direction: str,
+) -> Tuple[Q, Dict[str, Union[str, bool]]]:
+
+    field_expression: Dict[str, Union[str, bool]] = {}
+    extra_expression = Q()
+    for cursor_id, cursor_value in enumerate(cursor[:index]):
+        field_expression[sorting_fields[cursor_id]] = cursor_value
+
+    if sorting_direction == "gt":
+        extra_expression |= Q(**{f"{field_name}__{sorting_direction}": cursor[index]})
+        extra_expression |= Q(**{f"{field_name}__isnull": True})
+    elif cursor[index] is not None:
+        field_expression[f"{field_name}__{sorting_direction}"] = cursor[index]
+    else:
+        field_expression[f"{field_name}__isnull"] = False
+
+    return extra_expression, field_expression
+
+
+def _prepare_filter(
+    cursor: List[str], sorting_fields: List[str], sorting_direction: str
 ) -> Q:
     """Create filter arguments based on sorting fields.
 
@@ -68,28 +90,15 @@ def prepare_filter(
         if cursor[index] is None and sorting_direction == "gt":
             continue
 
-        field_expression = {}
-        for cursor_id, cursor_value in enumerate(cursor[:index]):
-            field_expression[sorting_fields[cursor_id]] = cursor_value
-
-        if cursor[index] is not None and sorting_direction == "lt":
-            field_expression[f"{field_name}__{sorting_direction}"] = cursor[index]
-            filter_kwargs |= Q(**field_expression)
-        elif cursor[index] is None and sorting_direction == "lt":
-            field_expression[f"{field_name}__isnull"] = False
-            filter_kwargs |= Q(**field_expression)
-        else:
-            extra_expression = Q()
-            extra_expression |= Q(
-                **{f"{field_name}__{sorting_direction}": cursor[index]}
-            )
-            extra_expression |= Q(**{f"{field_name}__isnull": True})
-            filter_kwargs |= Q(extra_expression, **field_expression)
+        extra_expression, field_expression = _prepare_filter_expression(
+            field_name, index, cursor, sorting_fields, sorting_direction
+        )
+        filter_kwargs |= Q(extra_expression, **field_expression)
 
     return filter_kwargs
 
 
-def validate_connection_args(args):
+def _validate_connection_args(args):
     first = args.get("first")
     last = args.get("last")
 
@@ -105,63 +114,67 @@ def validate_connection_args(args):
         raise ValueError('Argument "last" cannot be combined with "after".')
 
 
-def connection_from_queryset_slice(
-    qs: QuerySet,
-    args: ConnectionArguments = None,
-    connection_type: typing.Any = Connection,
-    edge_type: typing.Any = Edge,
-    page_info_type: typing.Any = PageInfo,
-) -> Connection:
-    """Create a connection object from a QuerySet."""
-    args = args or {}
+def _get_sorting_fields(sort_by, qs):
+    sorting_fields = sort_by.get("field")
+    sorting_attribute = sort_by.get("attribute_id")
+    if sorting_fields and not isinstance(sorting_fields, list):
+        return [sorting_fields]
+    elif not sorting_fields and sorting_attribute is not None:
+        return qs.model.sort_by_attribute_fields()
+    elif not sorting_fields:
+        raise ValueError("Error while preparing cursor values.")
+    return sorting_fields
+
+
+def _get_sorting_direction(sort_by, last=None):
+    sorting_direction = sort_by.get("direction", "")
+    sorting_direction = "lt" if sorting_direction == OrderDirection.DESC else "gt"
+    if last:
+        # reversed direction
+        sorting_direction = "gt" if sorting_direction == "lt" else "lt"
+    return sorting_direction
+
+
+def _get_page_info(matching_records, cursor, first, last):
+    requested_count = first or last
+    page_info = {
+        "has_previous_page": False,
+        "has_next_page": False,
+        "start_cursor": None,
+        "end_cursor": None,
+    }
+    records_left = False
+    if requested_count is not None:
+        records_left = len(matching_records) > requested_count
+    has_pages_before = True if cursor else False
+    if first:
+        page_info["has_next_page"] = records_left
+        page_info["has_previous_page"] = has_pages_before
+    elif last:
+        page_info["has_next_page"] = has_pages_before
+        page_info["has_previous_page"] = records_left
+
+    return page_info
+
+
+def _get_edges_for_connection(edge_type, qs, args, sorting_fields):
     before = args.get("before")
     after = args.get("after")
     first = args.get("first")
     last = args.get("last")
-    validate_connection_args(args)
-
-    cursor_after = from_global_cursor(after) if after else None
-    cursor_before = from_global_cursor(before) if before else None
-    cursor = cursor_after or cursor_before
-
-    sort_by = args.get("sort_by", {})
-    sorting_direction = sort_by.get("direction", "")
-    sorting_fields = sort_by.get("field")
-    sorting_attribute = sort_by.get("attribute_id")
-    if sorting_fields and not isinstance(sorting_fields, list):
-        sorting_fields = [sorting_fields]
-    elif not sorting_fields and sorting_attribute is not None:
-        sorting_fields = qs.model.sort_by_attribute_fields()
-    elif not sorting_fields:
-        raise ValueError("Error while preparing cursor values.")
+    cursor = after or before
     requested_count = first or last
-    end_margin = requested_count + 1 if requested_count else None
 
-    if last:
-        # reversed direction
-        sorting_direction = "gt" if sorting_direction == OrderDirection.DESC else "lt"
+    if before:
+        start_slice, end_slice = 1, None
     else:
-        sorting_direction = "lt" if sorting_direction == OrderDirection.DESC else "gt"
+        start_slice, end_slice = 0, requested_count
 
-    filter_kwargs = (
-        prepare_filter(cursor, sorting_fields, sorting_direction) if cursor else Q()
-    )
-    qs = qs.filter(filter_kwargs)[:end_margin]
     matching_records = list(qs)
-    has_previous_page = False
-    has_next_page = False
-    if requested_count is not None:
-        if cursor_after:
-            has_next_page = len(matching_records) > requested_count
-            has_previous_page = True
-        elif cursor_before:
-            has_next_page = True
-            has_previous_page = len(matching_records) > requested_count
-        elif first:
-            has_next_page = len(matching_records) > requested_count
-        elif last:
-            has_previous_page = len(matching_records) > requested_count
-        matching_records = matching_records[:requested_count]
+    if last:
+        matching_records = list(reversed(matching_records))
+    page_info = _get_page_info(matching_records, cursor, first, last)
+    matching_records = matching_records[start_slice:end_slice]
 
     edges = [
         edge_type(
@@ -172,19 +185,43 @@ def connection_from_queryset_slice(
         )
         for record in matching_records
     ]
+    if edges:
+        page_info["start_cursor"] = edges[0].cursor
+        page_info["end_cursor"] = edges[-1].cursor
+    return edges, page_info
 
-    first_edge_cursor = edges[0].cursor if edges else None
-    last_edge_cursor = edges[-1].cursor if edges else None
 
-    return connection_type(
-        edges=edges,
-        page_info=page_info_type(
-            start_cursor=first_edge_cursor,
-            end_cursor=last_edge_cursor,
-            has_previous_page=has_previous_page,
-            has_next_page=has_next_page,
-        ),
+def connection_from_queryset_slice(
+    qs: QuerySet,
+    args: ConnectionArguments = None,
+    connection_type: Any = Connection,
+    edge_type: Any = Edge,
+    page_info_type: Any = PageInfo,
+) -> Connection:
+    """Create a connection object from a QuerySet."""
+    args = args or {}
+    before = args.get("before")
+    after = args.get("after")
+    first = args.get("first")
+    last = args.get("last")
+    _validate_connection_args(args)
+
+    requested_count = first or last
+    end_margin = requested_count + 1 if requested_count else None
+    cursor = after or before
+    cursor = from_global_cursor(cursor) if cursor else None
+
+    sort_by = args.get("sort_by", {})
+    sorting_fields = _get_sorting_fields(sort_by, qs)
+    sorting_direction = _get_sorting_direction(sort_by, last)
+    filter_kwargs = (
+        _prepare_filter(cursor, sorting_fields, sorting_direction) if cursor else Q()
     )
+    qs = qs.filter(filter_kwargs)
+    qs = qs[:end_margin]
+    edges, page_info = _get_edges_for_connection(edge_type, qs, args, sorting_fields)
+
+    return connection_type(edges=edges, page_info=page_info_type(**page_info),)
 
 
 class NonNullConnection(Connection):
@@ -197,24 +234,26 @@ class NonNullConnection(Connection):
 
         # Override the original EdgeBase type to make to `node` field required.
         class EdgeBase:
-            node = Field(
+            node = graphene.Field(
                 cls._meta.node,
                 description="The item at the end of the edge.",
                 required=True,
             )
-            cursor = String(
+            cursor = graphene.String(
                 required=True, description="A cursor for use in pagination."
             )
 
         # Create the edge type using the new EdgeBase.
         edge_name = cls.Edge._meta.name
-        edge_bases = (EdgeBase, ObjectType)
+        edge_bases = (EdgeBase, graphene.ObjectType)
         edge = type(edge_name, edge_bases, {})
         cls.Edge = edge
 
         # Override the `edges` field to make it non-null list
         # of non-null edges.
-        cls._meta.fields["edges"] = Field(NonNull(List(NonNull(cls.Edge))))
+        cls._meta.fields["edges"] = graphene.Field(
+            graphene.NonNull(graphene.List(graphene.NonNull(cls.Edge)))
+        )
 
 
 class CountableConnection(NonNullConnection):
@@ -243,7 +282,7 @@ class CountableDjangoObjectType(OptimizedDjangoObjectType):
         super().__init_subclass_with_meta__(*args, connection=countable_conn, **kwargs)
 
     @classmethod
-    def maybe_optimize(cls, info, qs: typing.Union[QuerySet, Manager], pk):
+    def maybe_optimize(cls, info, qs: Union[QuerySet, Manager], pk):
         with ot.global_tracer().start_active_span("optimizer") as scope:
             span = scope.span
             span.set_tag("optimizer.pk", pk)
