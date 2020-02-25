@@ -72,6 +72,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Added integration support of Jaeger Tracing - #5282 by @NyanKiyoshi
 - Customer shouldn't be able to see draft orders by token  - #5259 by @fowczarek
 - Return `null` when querying `me` as an anonymous user - #5231 as @maarcingebala
+- Add `fulfillment created` webhook - @szewczykmira
 - Unify saleor metadata - #5178 by @fowczarek
 - Add compiled versions of emails to the repository - #5260 by @tomaszszymanski129
 

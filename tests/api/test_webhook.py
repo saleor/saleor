@@ -631,6 +631,7 @@ SAMPLE_PAYLOAD_QUERY = """
         (WebhookSampleEventTypeEnum.CUSTOMER_CREATED, False),
         (WebhookSampleEventTypeEnum.PRODUCT_CREATED, False),
         (WebhookSampleEventTypeEnum.CHECKOUT_QUANTITY_CHANGED, False),
+        (WebhookSampleEventTypeEnum.FULFILLMENT_CREATED, True),
     ],
 )
 def test_sample_payload_query_by_service_account(
@@ -668,6 +669,7 @@ def test_sample_payload_query_by_service_account(
         (WebhookSampleEventTypeEnum.CUSTOMER_CREATED, True),
         (WebhookSampleEventTypeEnum.PRODUCT_CREATED, True),
         (WebhookSampleEventTypeEnum.CHECKOUT_QUANTITY_CHANGED, True),
+        (WebhookSampleEventTypeEnum.FULFILLMENT_CREATED, False),
     ],
 )
 def test_sample_payload_query_by_staff(
