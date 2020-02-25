@@ -221,7 +221,7 @@ def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
         fields=line_fields,
         extra_dict_data={
             "weight": (lambda fl: fl.order_line.variant.get_weight().g),
-            "weight_unit": "grams",
+            "weight_unit": "gram",
             "product_type": (
                 lambda fl: fl.order_line.variant.product.product_type.name
             ),
