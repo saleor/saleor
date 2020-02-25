@@ -8,11 +8,11 @@ from ...core.permissions import AccountPermissions, CheckoutPermissions
 from ...core.taxes import display_gross_prices, zero_taxed_money
 from ...extensions.manager import get_extensions_manager
 from ..core.connection import CountableDjangoObjectType
-from ..core.resolvers import resolve_meta, resolve_private_meta
-from ..core.types.meta import MetadataObjectType
 from ..core.types.money import TaxedMoney
 from ..decorators import permission_required
 from ..giftcard.types import GiftCard
+from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
+from ..meta.types import ObjectWithMetadata
 from ..shipping.types import ShippingMethod
 
 
@@ -66,7 +66,7 @@ class CheckoutLine(CountableDjangoObjectType):
         return root.is_shipping_required()
 
 
-class Checkout(MetadataObjectType, CountableDjangoObjectType):
+class Checkout(CountableDjangoObjectType):
     available_shipping_methods = graphene.List(
         ShippingMethod,
         required=True,
@@ -131,7 +131,7 @@ class Checkout(MetadataObjectType, CountableDjangoObjectType):
         ]
         description = "Checkout object."
         model = models.Checkout
-        interfaces = [graphene.relay.Node]
+        interfaces = [graphene.relay.Node, ObjectWithMetadata]
         filter_fields = ["token"]
 
     @staticmethod

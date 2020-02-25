@@ -22,10 +22,16 @@ install:
   - git clone https://github.com/NyanKiyoshi/pytest-django-queries-ci-tools.git --depth 1 ../queries-ci-tools
   - >
     if [ -n "$DJANGO" ]; then
-      nvm install 10 \
-        && npm i \
-        && npm run build-emails
-    fi
+      cp -r templates/templated_email/compiled ./compiled;
+      nvm install 10;
+      npm i;
+      npm run build-emails;
+      DIFF=$(diff -q ./compiled templates/templated_email/compiled);
+      if [ "$DIFF" ]; then
+        echo "Precompiled emails check failure - make sure you executed: npm run build-emails.";
+        travis_terminate 1;
+      fi;
+    fi;
 
 script:
   - tox
@@ -38,6 +44,7 @@ env:
     - QUERIES_RESULTS_PATH=/tmp/queries-results.json
   matrix:
     - DJANGO="2.2"
+    - DJANGO="3.0"
     - DJANGO="master"
 
 matrix:
@@ -56,8 +63,10 @@ matrix:
     - env: TOXENV=pydocstyle
       python: "3.8"
   allow_failures:
-    - python: "3.8"
-      env: DJANGO="master"
+    - env: DJANGO="3.0"
+      python: "3.8"
+    - env: DJANGO="master"
+      python: "3.8"
 
 services:
   - postgresql

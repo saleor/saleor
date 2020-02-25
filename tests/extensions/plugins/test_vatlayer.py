@@ -432,8 +432,9 @@ def test_apply_taxes_to_product(vatlayer, settings, variant, discount_info):
     settings.PLUGINS = ["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
     country = Country("PL")
     manager = get_extensions_manager()
-    variant.product.meta = {
-        "taxes": {"vatlayer": {"code": "standard", "description": "standard"}}
+    variant.product.metadata = {
+        "vatlayer.code": "standard",
+        "vatlayer.description": "standard",
     }
     price = manager.apply_taxes_to_product(
         variant.product, variant.get_price([discount_info]), country

@@ -21,8 +21,8 @@ def _remove_anonymized_order_data(order_data: dict) -> dict:
     del order_data["user_email"]
     del order_data["billing_address"]
     del order_data["shipping_address"]
-    del order_data["meta"]
-    del order_data["private_meta"]
+    del order_data["metadata"]
+    del order_data["private_metadata"]
     return order_data
 
 
@@ -57,8 +57,8 @@ def test_generate_sample_payload_order(
         order.shipping_address.street_address_1
         != payload[0]["shipping_address"]["street_address_1"]
     )
-    assert order.meta != payload[0]["meta"]
-    assert order.private_meta != payload[0]["private_meta"]
+    assert order.metadata != payload[0]["metadata"]
+    assert order.private_metadata != payload[0]["private_metadata"]
     # Remove anonymized data
     payload = _remove_anonymized_order_data(payload[0])
     order_payload = _remove_anonymized_order_data(order_payload[0])
@@ -84,8 +84,10 @@ def test_generate_sample_playload_fulfillment_created(fulfillment):
         order.shipping_address.street_address_1
         != sample_fulfilment_payload["order"]["shipping_address"]["street_address_1"]
     )
-    assert order.meta != sample_fulfilment_payload["order"]["meta"]
-    assert order.private_meta != sample_fulfilment_payload["order"]["private_meta"]
+    assert order.metadata != sample_fulfilment_payload["order"]["metadata"]
+    assert (
+        order.private_metadata != sample_fulfilment_payload["order"]["private_metadata"]
+    )
 
     # Remove anonymized data
     sample_fulfilment_payload["order"] = _remove_anonymized_order_data(
@@ -135,8 +137,8 @@ def _remove_anonymized_checkout_data(checkout_data: dict) -> dict:
     del checkout_data[0]["email"]
     del checkout_data[0]["billing_address"]
     del checkout_data[0]["shipping_address"]
-    del checkout_data[0]["meta"]
-    del checkout_data[0]["private_meta"]
+    del checkout_data[0]["metadata"]
+    del checkout_data[0]["private_metadata"]
     return checkout_data
 
 
@@ -157,8 +159,8 @@ def test_generate_sample_checkout_payload(user_checkout_with_items):
         != payload[0]["shipping_address"]["street_address_1"]
     )
     assert "note" not in payload[0]
-    assert checkout.meta != payload[0]["meta"]
-    assert checkout.private_meta != payload[0]["private_meta"]
+    assert checkout.metadata != payload[0]["metadata"]
+    assert checkout.private_metadata != payload[0]["private_metadata"]
     # Remove anonymized data
     payload = _remove_anonymized_checkout_data(payload)
     checkout_payload = _remove_anonymized_checkout_data(checkout_payload)

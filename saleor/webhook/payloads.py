@@ -87,8 +87,8 @@ def generate_order_payload(order: "Order"):
         "discount_name",
         "translated_discount_name",
         "weight",
-        "private_meta",
-        "meta",
+        "private_metadata",
+        "metadata",
     )
     order_data = serializer.serialize(
         [order],
@@ -116,8 +116,8 @@ def generate_checkout_payload(checkout: "Checkout"):
         "currency",
         "discount_amount",
         "discount_name",
-        "private_meta",
-        "meta",
+        "private_metadata",
+        "metadata",
     )
     user_fields = ("email", "first_name", "last_name")
     shipping_method_fields = ("name", "type", "currency", "price_amount")
@@ -151,8 +151,8 @@ def generate_customer_payload(customer: "User"):
             "last_name",
             "is_active",
             "date_joined",
-            "private_meta",
-            "meta",
+            "private_metadata",
+            "metadata",
         ],
         additional_fields={
             "default_shipping_address": (
@@ -183,8 +183,8 @@ def generate_product_payload(product: "Product"):
         "weight",
         "publication_date",
         "is_published",
-        "private_meta",
-        "meta",
+        "private_metadata",
+        "metadata",
     )
     product_variant_fields = (
         "sku",
@@ -195,8 +195,8 @@ def generate_product_payload(product: "Product"):
         "quantity",
         "quantity_allocated",
         "cost_price_amount",
-        "private_meta",
-        "meta",
+        "private_metadata",
+        "metadata",
     )
     product_payload = serializer.serialize(
         [product],

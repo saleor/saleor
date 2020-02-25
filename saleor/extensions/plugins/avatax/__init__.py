@@ -22,8 +22,8 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger(__name__)
 
-META_FIELD = "avatax"
-META_NAMESPACE = "taxes"
+META_CODE_KEY = "avatax.code"
+META_DESCRIPTION_KEY = "avatax.description"
 CACHE_TIME = 60 * 60  # 1 hour
 TAX_CODES_CACHE_TIME = 60 * 60 * 24 * 7  # 7 days
 CACHE_KEY = "avatax_request_id_"
@@ -447,6 +447,6 @@ def get_cached_tax_codes_or_fetch(
 
 
 def retrieve_tax_code_from_meta(obj: Union["Product", "ProductVariant", "ProductType"]):
-    tax = obj.meta.get("taxes", {}).get(META_FIELD, {})
     # O9999999 - "Temporary Unmapped Other SKU - taxable default"
-    return tax.get("code", "O9999999")
+    tax_code = obj.get_value_from_metadata(META_CODE_KEY, "O9999999")
+    return tax_code

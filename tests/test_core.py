@@ -4,6 +4,7 @@ from unittest.mock import Mock, patch
 from urllib.parse import urljoin
 
 import pytest
+from django.core.management import CommandError, call_command
 from django.db.utils import DataError
 from django.templatetags.static import static
 from django.test import RequestFactory, override_settings
@@ -293,3 +294,31 @@ def test_generate_unique_slug_for_slug_with_max_characters_number(category):
 def test_generate_unique_slug_non_slugable_value_and_slugable_field(category):
     with pytest.raises(Exception):
         generate_unique_slug(category)
+
+
+@override_settings(DEBUG=False)
+def test_cleardb_exits_with_debug_off():
+    with pytest.raises(CommandError):
+        call_command("cleardb")
+
+
+@override_settings(DEBUG=True)
+def test_cleardb_delete_staff_parameter(staff_user):
+    # cleardb without delete_staff flag keeps staff users
+    call_command("cleardb")
+    staff_user.refresh_from_db()
+
+    # when the flag is present staff user should be deleted
+    call_command("cleardb", delete_staff=True)
+    with pytest.raises(User.DoesNotExist):
+        staff_user.refresh_from_db()
+
+
+@override_settings(DEBUG=True)
+def test_cleardb_preserves_data(admin_user, service_account, site_settings, staff_user):
+    call_command("cleardb")
+    # These shouldn't be deleted when running `cleardb`.
+    admin_user.refresh_from_db()
+    service_account.refresh_from_db()
+    site_settings.refresh_from_db()
+    staff_user.refresh_from_db()
