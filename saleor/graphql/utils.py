@@ -15,6 +15,10 @@ ERROR_COULD_NO_RESOLVE_GLOBAL_ID = (
     "Could not resolve to a node with the global id list of '%s'."
 )
 registry = get_global_registry()
+REVERSED_DIRECTION = {
+    "-": "",
+    "": "-",
+}
 
 
 def get_database_id(info, node_id, only_type):
@@ -123,7 +127,30 @@ def filter_by_query_param(queryset, query, search_fields):
     return queryset
 
 
-def sort_queryset(queryset: QuerySet, sort_by: SortInputObjectType) -> QuerySet:
+def _sort_queryset_by_attribute(queryset, sorting_attribute, sorting_direction):
+    if sorting_attribute != "":
+        graphene_type, sorting_attribute = from_global_id(sorting_attribute)
+    descending = sorting_direction == OrderDirection.DESC
+    queryset = queryset.sort_by_attribute(sorting_attribute, descending=descending)
+    return queryset
+
+
+def sort_queryset_for_connection(iterable, args):
+    sort_by = args.get("sort_by")
+    reversed = True if "before" in args else False
+    if sort_by:
+        iterable = sort_queryset(queryset=iterable, sort_by=sort_by, reversed=reversed)
+    else:
+        iterable, sort_by = sort_queryset_by_default(
+            queryset=iterable, reversed=reversed
+        )
+        args["sort_by"] = sort_by
+    return iterable, sort_by
+
+
+def sort_queryset(
+    queryset: QuerySet, sort_by: SortInputObjectType, reversed: bool
+) -> QuerySet:
     """Sort queryset according to given parameters.
 
     rules:
@@ -139,6 +166,9 @@ def sort_queryset(queryset: QuerySet, sort_by: SortInputObjectType) -> QuerySet:
 
     """
     sorting_direction = sort_by.direction
+    if reversed:
+        sorting_direction = REVERSED_DIRECTION[sorting_direction]
+
     sorting_field = sort_by.field
     sorting_attribute = getattr(sort_by, "attribute_id", None)
 
@@ -147,47 +177,43 @@ def sort_queryset(queryset: QuerySet, sort_by: SortInputObjectType) -> QuerySet:
             "You must provide either `field` or `attributeId` to sort the products."
         )
     elif sorting_attribute is not None:  # empty string as sorting_attribute is valid
-        if sorting_attribute != "":
-            graphene_type, sorting_attribute = from_global_id(sorting_attribute)
-        descending = sorting_direction == OrderDirection.DESC
-
-        # If the passed attribute ID is valid, execute the sorting
-        # if attribute_pk.isnumeric() and graphene_type == "Attribute":
-        queryset = queryset.sort_by_attribute(sorting_attribute, descending=descending)
-        return queryset
+        return _sort_queryset_by_attribute(
+            queryset, sorting_attribute, sorting_direction
+        )
 
     sort_enum = sort_by._meta.sort_enum
-    if not sort_enum:
-        return queryset
     sorting_fields = sort_enum.get(sorting_field)
     sorting_field_name = sorting_fields.name.lower()
-    sorting_field_value = sorting_fields.value
-    sorting_field_value = (
-        sorting_field_value
-        if isinstance(sorting_field_value, list)
-        else [sorting_field_value]
-    )
 
     custom_sort_by = getattr(sort_enum, f"qs_with_{sorting_field_name}", None)
     if custom_sort_by:
         queryset = custom_sort_by(queryset)
+
+    sorting_field_value = sorting_fields.value
     sorting_list = [f"{sorting_direction}{field}" for field in sorting_field_value]
 
     return queryset.order_by(*sorting_list)
 
 
-def sort_queryset_by_default(queryset: QuerySet) -> Tuple[QuerySet, dict]:
+def sort_queryset_by_default(
+    queryset: QuerySet, reversed: bool
+) -> Tuple[QuerySet, dict]:
     """Sort queryset by it's default ordering."""
     queryset_model = queryset.model
-    deafault_ordering = queryset_model._meta.ordering if queryset_model else []
-    if deafault_ordering:
-        ordering_fields = [field.replace("-", "") for field in deafault_ordering]
-        direction = "-" if "-" in deafault_ordering[0] else ""
-        order_by = {"field": ordering_fields, "direction": direction}
-        return queryset.order_by(*deafault_ordering), order_by
-    else:
-        order_by = {"field": ["pk"], "direction": ""}
-        return queryset.order_by("pk"), order_by
+    deafault_ordering = ["pk"]
+    if queryset_model and queryset_model._meta.ordering:
+        deafault_ordering = queryset_model._meta.ordering
+
+    ordering_fields = [field.replace("-", "") for field in deafault_ordering]
+    direction = "-" if "-" in deafault_ordering[0] else ""
+    if reversed:
+        reversed_direction = REVERSED_DIRECTION[direction]
+        deafault_ordering = [
+            f"{reversed_direction}{field}" for field in ordering_fields
+        ]
+
+    order_by = {"field": ordering_fields, "direction": direction}
+    return queryset.order_by(*deafault_ordering), order_by
 
 
 def reporting_period_to_date(period):
