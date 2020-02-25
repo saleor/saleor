@@ -4981,6 +4981,7 @@ enum WebhookEventTypeEnum {
   CUSTOMER_CREATED
   PRODUCT_CREATED
   CHECKOUT_QUANTITY_CHANGED
+  FULFILLMENT_CREATED
 }
 
 input WebhookFilterInput {
@@ -4997,6 +4998,7 @@ enum WebhookSampleEventTypeEnum {
   CUSTOMER_CREATED
   PRODUCT_CREATED
   CHECKOUT_QUANTITY_CHANGED
+  FULFILLMENT_CREATED
 }
 
 enum WebhookSortField {

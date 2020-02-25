@@ -58,7 +58,12 @@ class PayloadSerializer(JSONSerializer):
                     [data_to_serialize], fields=fields
                 )[0]
         # Update the data with the  "extra dict data"
+        called_data = {}
+        for key, value in self.extra_dict_data.items():
+            if callable(value):
+                called_data[key] = value(obj)
         data.update(self.extra_dict_data)
+        data.update(called_data)
         # Finally update the data with the super class' "self._current" content
         data.update(self._current)
         return data
