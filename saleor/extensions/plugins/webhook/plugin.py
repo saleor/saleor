@@ -4,6 +4,7 @@ from ....webhook.event_types import WebhookEventType
 from ....webhook.payloads import (
     generate_checkout_payload,
     generate_customer_payload,
+    generate_fulfillment_payload,
     generate_order_payload,
     generate_product_payload,
 )
@@ -11,7 +12,7 @@ from ...base_plugin import BasePlugin
 from .tasks import trigger_webhooks_for_event
 
 if TYPE_CHECKING:
-    from ....order.models import Order
+    from ....order.models import Fulfillment, Order
     from ....account.models import User
     from ....product.models import Product
     from ....checkout.models import Checkout
@@ -58,6 +59,16 @@ class WebhookPlugin(BasePlugin):
             return previous_value
         order_data = generate_order_payload(order)
         trigger_webhooks_for_event.delay(WebhookEventType.ORDER_FULFILLED, order_data)
+
+    def fulfillment_created(self, fulfillment: "Fulfillment", previous_value):
+        self._initialize_plugin_configuration()
+        if not self.active:
+            return previous_value
+
+        fulfillment_data = generate_fulfillment_payload(fulfillment)
+        trigger_webhooks_for_event.delay(
+            WebhookEventType.FULFILLMENT_CREATED, fulfillment_data
+        )
 
     def customer_created(self, customer: "User", previous_value: Any) -> Any:
         self._initialize_plugin_configuration()
