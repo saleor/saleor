@@ -116,6 +116,7 @@ def order_fulfilled(
     )
     manager = get_extensions_manager()
     manager.order_updated(order)
+    manager.fulfillment_created(fulfillment)
 
     if order.status == OrderStatus.FULFILLED:
         manager.order_fulfilled(order)
