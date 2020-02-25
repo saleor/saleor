@@ -4,7 +4,10 @@ import graphene
 import pytest
 
 from saleor.account.models import ServiceAccount
-from saleor.graphql.webhook.enums import WebhookEventTypeEnum
+from saleor.graphql.webhook.enums import (
+    WebhookEventTypeEnum,
+    WebhookSampleEventTypeEnum,
+)
 from saleor.webhook.event_types import WebhookEventType
 from saleor.webhook.models import Webhook
 
@@ -609,7 +612,7 @@ def test_query_webhook_events_without_permissions(staff_api_client):
 
 
 SAMPLE_PAYLOAD_QUERY = """
-  query webhookSamplePayload($event_type: WebhookEventTypeEnum!){
+  query webhookSamplePayload($event_type: WebhookSampleEventTypeEnum!){
     webhookSamplePayload(eventType: $event_type)
   }
 """
@@ -619,15 +622,15 @@ SAMPLE_PAYLOAD_QUERY = """
 @pytest.mark.parametrize(
     "event_type, has_access",
     [
-        (WebhookEventTypeEnum.ORDER_CREATED, True),
-        (WebhookEventTypeEnum.ORDER_CREATED, True),
-        (WebhookEventTypeEnum.ORDER_FULLY_PAID, True),
-        (WebhookEventTypeEnum.ORDER_UPDATED, True),
-        (WebhookEventTypeEnum.ORDER_CANCELLED, True),
-        (WebhookEventTypeEnum.ORDER_FULFILLED, True),
-        (WebhookEventTypeEnum.CUSTOMER_CREATED, False),
-        (WebhookEventTypeEnum.PRODUCT_CREATED, False),
-        (WebhookEventTypeEnum.CHECKOUT_QUANTITY_CHANGED, False),
+        (WebhookSampleEventTypeEnum.ORDER_CREATED, True),
+        (WebhookSampleEventTypeEnum.ORDER_CREATED, True),
+        (WebhookSampleEventTypeEnum.ORDER_FULLY_PAID, True),
+        (WebhookSampleEventTypeEnum.ORDER_UPDATED, True),
+        (WebhookSampleEventTypeEnum.ORDER_CANCELLED, True),
+        (WebhookSampleEventTypeEnum.ORDER_FULFILLED, True),
+        (WebhookSampleEventTypeEnum.CUSTOMER_CREATED, False),
+        (WebhookSampleEventTypeEnum.PRODUCT_CREATED, False),
+        (WebhookSampleEventTypeEnum.CHECKOUT_QUANTITY_CHANGED, False),
     ],
 )
 def test_sample_payload_query_by_service_account(
@@ -656,15 +659,15 @@ def test_sample_payload_query_by_service_account(
 @pytest.mark.parametrize(
     "event_type, has_access",
     [
-        (WebhookEventTypeEnum.ORDER_CREATED, False),
-        (WebhookEventTypeEnum.ORDER_CREATED, False),
-        (WebhookEventTypeEnum.ORDER_FULLY_PAID, False),
-        (WebhookEventTypeEnum.ORDER_UPDATED, False),
-        (WebhookEventTypeEnum.ORDER_CANCELLED, False),
-        (WebhookEventTypeEnum.ORDER_FULFILLED, False),
-        (WebhookEventTypeEnum.CUSTOMER_CREATED, True),
-        (WebhookEventTypeEnum.PRODUCT_CREATED, True),
-        (WebhookEventTypeEnum.CHECKOUT_QUANTITY_CHANGED, True),
+        (WebhookSampleEventTypeEnum.ORDER_CREATED, False),
+        (WebhookSampleEventTypeEnum.ORDER_CREATED, False),
+        (WebhookSampleEventTypeEnum.ORDER_FULLY_PAID, False),
+        (WebhookSampleEventTypeEnum.ORDER_UPDATED, False),
+        (WebhookSampleEventTypeEnum.ORDER_CANCELLED, False),
+        (WebhookSampleEventTypeEnum.ORDER_FULFILLED, False),
+        (WebhookSampleEventTypeEnum.CUSTOMER_CREATED, True),
+        (WebhookSampleEventTypeEnum.PRODUCT_CREATED, True),
+        (WebhookSampleEventTypeEnum.CHECKOUT_QUANTITY_CHANGED, True),
     ],
 )
 def test_sample_payload_query_by_staff(
