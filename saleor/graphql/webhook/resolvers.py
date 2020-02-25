@@ -42,8 +42,9 @@ def resolve_webhook_events():
 def resolve_sample_payload(info, event_name):
     service_account = info.context.service_account
     required_permission = WebhookEventType.PERMISSIONS.get(event_name)
-    if service_account and service_account.has_perm(required_permission):
-        return payloads.generate_sample_payload(event_name)
-    if info.context.user.has_perm(required_permission):
-        return payloads.generate_sample_payload(event_name)
+    if required_permission:
+        if service_account and service_account.has_perm(required_permission):
+            return payloads.generate_sample_payload(event_name)
+        if info.context.user.has_perm(required_permission):
+            return payloads.generate_sample_payload(event_name)
     raise PermissionDenied()
