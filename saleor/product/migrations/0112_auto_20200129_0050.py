@@ -2,27 +2,43 @@
 
 from collections import defaultdict
 
-from django.db import migrations, models, transaction
-from django.db.utils import IntegrityError
+from django.db import migrations, models
+from django.db.models.functions import Lower
 from django.utils.text import slugify
 
 
 def create_unique_slugs_for_producttypes(apps, schema_editor):
     ProductType = apps.get_model("product", "ProductType")
 
-    for product_type in ProductType.objects.filter(slug__isnull=True):
-        slug = slugify(product_type.name)
-        extension = 1
-        slug_value = slug
-        while True:
-            try:
-                with transaction.atomic():
-                    product_type.slug = slug_value
-                    product_type.save(update_fields=["slug"])
-                break
-            except IntegrityError:
-                extension += 1
-                slug_value = f"{slug}-{extension}"
+    product_types = (
+        ProductType.objects.filter(slug__isnull=True).order_by(Lower("name")).iterator()
+    )
+    previous_char = ""
+    slug_values = []
+    for product_type in product_types:
+        first_char = product_type.name[0].lower()
+        if first_char != previous_char:
+            previous_char = first_char
+            slug_values = ProductType.objects.filter(
+                slug__istartswith=first_char
+            ).values_list("slug", flat=True)
+
+        slug = generate_unique_slug(product_type, slug_values)
+        product_type.slug = slug
+        slug_values.append(slug)
+
+
+def generate_unique_slug(instance, slug_values_list):
+    slug = slugify(instance.name)
+    unique_slug = slug
+
+    extension = 1
+
+    while unique_slug in slug_values_list:
+        extension += 1
+        unique_slug = f"{slug}-{extension}"
+
+    return unique_slug
 
 
 def update_non_unique_slugs_for_models(apps, schema_editor):
@@ -31,7 +47,7 @@ def update_non_unique_slugs_for_models(apps, schema_editor):
     for model in models_to_update:
         Model = apps.get_model("product", model)
 
-        model_slugs_count = (
+        duplicated_slugs = (
             Model.objects.all()
             .values("slug")
             .annotate(duplicated_slug_num=models.Count("slug"))
@@ -39,7 +55,7 @@ def update_non_unique_slugs_for_models(apps, schema_editor):
         )
 
         slugs_counter = defaultdict(int)
-        for data in model_slugs_count:
+        for data in duplicated_slugs:
             slugs_counter[data["slug"]] = data["duplicated_slug_num"]
 
         queryset = Model.objects.filter(slug__in=slugs_counter.keys()).order_by("name")
@@ -48,7 +64,6 @@ def update_non_unique_slugs_for_models(apps, schema_editor):
             slugs_counter[instance.slug] -= 1
             slug = update_slug_to_unique_value(instance.slug, slugs_counter)
             instance.slug = slug
-            instance.save(update_fields=["slug"])
             slugs_counter[slug] += 1
 
 
