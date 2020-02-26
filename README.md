@@ -93,6 +93,11 @@ Saleor documentation is available here: [docs.saleor.io](https://docs.saleor.io)
 
 To contribute, please see the [`mirumee/saleor-docs` repository](https://github.com/mirumee/saleor-docs/).
 
+## Saleor Platform
+The easiest way to run all components of Saleor (API, storefront and dashboard) together on your local machine is to use the [saleor-platform](https://github.com/mirumee/saleor-platform) project. Go to that repository for instructions on how to use it.
+
+[View saleor-platform](https://github.com/mirumee/saleor-platform)
+
 ## Storefront
 
 For PWA, single-page storefront go to the [saleor-storefront](https://github.com/mirumee/saleor-storefront) repository.
