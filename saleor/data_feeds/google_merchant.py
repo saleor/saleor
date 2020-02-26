@@ -71,8 +71,10 @@ def item_guid(item: ProductVariant):
     return item.sku
 
 
+# It should returns url to item, but right now
+# there is no way to get product_variant url
 def item_link(item: ProductVariant, current_site):
-    return add_domain(current_site.domain, item.get_absolute_url(), not settings.DEBUG)
+    return add_domain(current_site.domain, "", not settings.DEBUG)
 
 
 def item_title(item: ProductVariant):
