@@ -4,14 +4,13 @@ import warnings
 
 import dj_database_url
 import dj_email_url
+import jaeger_client
+import jaeger_client.config
 import sentry_sdk
 from django.contrib.messages import constants as messages
 from django.core.exceptions import ImproperlyConfigured
 from django_prices.utils.formatting import get_currency_fraction
 from sentry_sdk.integrations.django import DjangoIntegration
-
-import jaeger_client
-import jaeger_client.config
 
 
 def get_list(text):
@@ -572,7 +571,7 @@ if (
 # Initialize a simple and basic Jaeger Tracing integration
 # for open-tracing if enabled.
 #
-# Refer to https://www.jaegertracing.io/docs/1.16/getting-started/ on how to install.
+# Refer to our guide on https://docs.saleor.io/docs/next/guides/opentracing-jaeger/.
 #
 # If running locally, set:
 #   JAEGER_AGENT_HOST=localhost
