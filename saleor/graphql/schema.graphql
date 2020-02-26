@@ -515,7 +515,7 @@ type Category implements Node, ObjectWithMetadata {
   meta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `metadata` field instead. ")
   ancestors(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
-  url: String
+  url: String @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11.")
   children(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   backgroundImage(size: Int): Image
   translation(languageCode: LanguageCodeEnum!): CategoryTranslation
@@ -3141,7 +3141,7 @@ type Product implements Node, ObjectWithMetadata {
   metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `privetaMetadata` field instead. ")
   meta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `metadata` field instead. ")
-  url: String!
+  url: String! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11.")
   thumbnail(size: Int): Image
   pricing: ProductPricingInfo
   isAvailable: Boolean
