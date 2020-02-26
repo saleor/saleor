@@ -3671,7 +3671,7 @@ type Query {
   webhook(id: ID!): Webhook
   webhooks(sortBy: WebhookSortingInput, filter: WebhookFilterInput, before: String, after: String, first: Int, last: Int): WebhookCountableConnection
   webhookEvents: [WebhookEvent]
-  webhookSamplePayload(eventType: WebhookEventTypeEnum!): JSONString
+  webhookSamplePayload(eventType: WebhookSampleEventTypeEnum!): JSONString
   warehouse(id: ID!): Warehouse
   warehouses(filter: WarehouseFilterInput, sortBy: WarehouseSortingInput, before: String, after: String, first: Int, last: Int): WarehouseCountableConnection
   translations(kind: TranslatableKinds!, before: String, after: String, first: Int, last: Int): TranslatableItemConnection
@@ -4987,6 +4987,18 @@ enum WebhookEventTypeEnum {
 input WebhookFilterInput {
   search: String
   isActive: Boolean
+}
+
+enum WebhookSampleEventTypeEnum {
+  ORDER_CREATED
+  ORDER_FULLY_PAID
+  ORDER_UPDATED
+  ORDER_CANCELLED
+  ORDER_FULFILLED
+  CUSTOMER_CREATED
+  PRODUCT_CREATED
+  CHECKOUT_QUANTITY_CHANGED
+  FULFILLMENT_CREATED
 }
 
 enum WebhookSortField {
