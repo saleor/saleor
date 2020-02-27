@@ -302,6 +302,11 @@ def test_cleardb_exits_with_debug_off():
         call_command("cleardb")
 
 
+@override_settings(DEBUG=False)
+def test_cleardb_passes_with_force_flag_in_debug_off():
+    call_command("cleardb", "--force")
+
+
 @override_settings(DEBUG=True)
 def test_cleardb_delete_staff_parameter(staff_user):
     # cleardb without delete_staff flag keeps staff users
