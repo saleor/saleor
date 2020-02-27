@@ -1,4 +1,3 @@
-import graphene_django_optimizer as gql_optimizer
 from django.db.models import Sum
 
 from ...order import OrderStatus
@@ -19,27 +18,23 @@ def resolve_attributes(info, qs=None, in_category=None, in_collection=None, **_k
     if in_collection:
         qs = filter_attributes_by_product_types(qs, "in_collection", in_collection)
 
-    qs = qs.distinct()
-    return gql_optimizer.query(qs, info)
+    return qs.distinct()
 
 
 def resolve_categories(info, level=None, **_kwargs):
     qs = models.Category.objects.prefetch_related("children")
     if level is not None:
         qs = qs.filter(level=level)
-    qs = qs.distinct()
-    return gql_optimizer.query(qs, info)
+    return qs.distinct()
 
 
 def resolve_collections(info, **_kwargs):
     user = info.context.user
-    qs = models.Collection.objects.visible_to_user(user)
-    return gql_optimizer.query(qs, info)
+    return models.Collection.objects.visible_to_user(user)
 
 
 def resolve_digital_contents(info):
-    qs = models.DigitalContent.objects.all()
-    return gql_optimizer.query(qs, info)
+    return models.DigitalContent.objects.all()
 
 
 def resolve_products(info, stock_availability=None, **_kwargs):
@@ -50,14 +45,11 @@ def resolve_products(info, stock_availability=None, **_kwargs):
     if stock_availability:
         qs = filter_products_by_stock_availability(qs, stock_availability)
 
-    qs = qs.distinct()
-
-    return gql_optimizer.query(qs, info)
+    return qs.distinct()
 
 
 def resolve_product_types(info, **_kwargs):
-    qs = models.ProductType.objects.all()
-    return gql_optimizer.query(qs, info)
+    return models.ProductType.objects.all()
 
 
 def resolve_product_variants(info, ids=None):
@@ -69,7 +61,7 @@ def resolve_product_variants(info, ids=None):
     if ids:
         db_ids = [get_database_id(info, node_id, "ProductVariant") for node_id in ids]
         qs = qs.filter(pk__in=db_ids)
-    return gql_optimizer.query(qs, info)
+    return qs
 
 
 def resolve_report_product_sales(period):

@@ -1,6 +1,7 @@
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, List, Iterable, Optional, Union
 
+import opentracing
 from django.conf import settings
 from django.utils.module_loading import import_string
 from django_countries.fields import Country
@@ -51,12 +52,15 @@ class PluginsManager(PaymentInterface):
         self, method_name: str, default_value: Any, *args, **kwargs
     ):
         """Try to run a method with the given name on each declared plugin."""
-        value = default_value
-        for plugin in self.plugins:
-            value = self.__run_method_on_single_plugin(
-                plugin, method_name, value, *args, **kwargs
-            )
-        return value
+        with opentracing.global_tracer().start_active_span(
+            f"ExtensionsManager.{method_name}"
+        ):
+            value = default_value
+            for plugin in self.plugins:
+                value = self.__run_method_on_single_plugin(
+                    plugin, method_name, value, *args, **kwargs
+                )
+            return value
 
     def __run_method_on_single_plugin(
         self,
