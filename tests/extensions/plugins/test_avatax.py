@@ -19,7 +19,11 @@ from saleor.extensions.plugins.avatax.plugin import AvataxPlugin
 
 @pytest.fixture
 def plugin_configuration(db):
-    default_configuration = AvataxPlugin._get_default_configuration()
+    default_configuration = {
+        "active": AvataxPlugin.DEFAULT_ACTIVE,
+        "configuration": dict(AvataxPlugin.DEFAULT_CONFIGURATION),
+        "name": AvataxPlugin.PLUGIN_NAME,
+    }
     for elem in default_configuration["configuration"]:
         if elem["name"] == "Use sandbox":
             elem["value"] = False

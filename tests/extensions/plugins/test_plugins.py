@@ -26,45 +26,32 @@ def test_update_config_items_convert_to_bool_value():
         {"name": "Username", "value": "new_admin@example.com"},
         {"name": "Use sandbox", "value": "false"},
     ]
-    plugin_sample = PluginSample()
-    plugin_sample._initialize_plugin_configuration()
+    plugin_sample = PluginSample(
+        configuration=PluginSample.DEFAULT_CONFIGURATION,
+        active=PluginSample.DEFAULT_ACTIVE,
+    )
     qs = PluginConfiguration.objects.all()
-    configuration = PluginSample.get_plugin_configuration(qs)
-    plugin_sample._update_config_items(data_to_update, configuration.configuration)
-    configuration.save()
-    configuration.refresh_from_db()
-    assert get_config_value("Use sandbox", configuration.configuration) is False
-
-
-def test_base_plugin__update_configuration_structure_configuration_has_not_change(
-    plugin_configuration,
-):
-    plugin = PluginSample()
-    old_configuration = plugin_configuration.configuration.copy()
-    plugin._update_configuration_structure(plugin_configuration)
-    plugin_configuration.refresh_from_db()
-    assert old_configuration == plugin_configuration.configuration
+    configuration = plugin_sample.configuration
+    assert get_config_value("Use sandbox", configuration) is False
 
 
 def test_base_plugin__update_configuration_structure_configuration_has_change(
     monkeypatch, plugin_configuration
 ):
     old_configuration = plugin_configuration.configuration.copy()
-    plugin = PluginSample()
-    config_structure = plugin.CONFIG_STRUCTURE
+    config_structure = PluginSample.CONFIG_STRUCTURE
     config_structure["Private key"] = {
         "help_text": "Test",
         "label": "Test",
         "type": ConfigurationTypeField.STRING,
     }
-    default_configuration = plugin._get_default_configuration()
     private_key_dict = {"name": "Private key", "value": "123457"}
-    default_configuration["configuration"].append(private_key_dict)
     monkeypatch.setattr(
-        "tests.extensions.plugins.test_plugins.PluginSample._get_default_configuration",
-        lambda: default_configuration,
+        PluginSample,
+        "DEFAULT_CONFIGURATION",
+        PluginSample.DEFAULT_CONFIGURATION + private_key_dict,
     )
-    plugin._update_configuration_structure(plugin_configuration)
+    PluginSample._update_configuration_structure(plugin_configuration)
     plugin_configuration.refresh_from_db()
     assert len(old_configuration) + 1 == len(plugin_configuration.configuration)
     old_configuration.append(private_key_dict)

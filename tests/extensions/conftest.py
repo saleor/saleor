@@ -8,18 +8,26 @@ from tests.extensions.sample_plugins import PluginInactive, PluginSample
 
 @pytest.fixture
 def plugin_configuration(db):
-    plugin = PluginSample()
     configuration, _ = PluginConfiguration.objects.get_or_create(
-        name=PluginSample.PLUGIN_NAME, defaults=plugin._get_default_configuration()
+        name=PluginSample.PLUGIN_NAME,
+        defaults={
+            "active": PluginSample.DEFAULT_ACTIVE,
+            "configuration": PluginSample.DEFAULT_CONFIGURATION,
+            "name": PluginSample.PLUGIN_NAME,
+        },
     )
     return configuration
 
 
 @pytest.fixture
 def inactive_plugin_configuration(db):
-    plugin = PluginInactive()
     return PluginConfiguration.objects.get_or_create(
-        name=PluginInactive.PLUGIN_NAME, defaults=plugin._get_default_configuration()
+        name=PluginInactive.PLUGIN_NAME,
+        defaults={
+            "active": PluginInactive.DEFAULT_ACTIVE,
+            "configuration": PluginInactive.DEFAULT_CONFIGURATION,
+            "name": PluginInactive.PLUGIN_NAME,
+        },
     )[0]
 
 

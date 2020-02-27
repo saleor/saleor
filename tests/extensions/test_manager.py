@@ -219,21 +219,15 @@ def test_plugin_updates_configuration_shape(
     plugin_configuration,
     monkeypatch,
 ):
-    def new_default_configuration():
-        defaults = {
-            "name": "PluginSample",
-            "description": "",
-            "active": True,
-            "configuration": plugin_configuration.configuration + [new_config],
-        }
-        return defaults
 
     config_structure = PluginSample.CONFIG_STRUCTURE.copy()
     config_structure["Foo"] = new_config_structure
     monkeypatch.setattr(PluginSample, "CONFIG_STRUCTURE", config_structure)
 
     monkeypatch.setattr(
-        PluginSample, "_get_default_configuration", new_default_configuration
+        PluginSample,
+        "DEFAULT_CONFIGURATION",
+        plugin_configuration.configuration + [new_config],
     )
 
     configuration = manager_with_plugin_enabled.get_plugin_configuration(
@@ -251,17 +245,9 @@ def test_plugin_add_new_configuration(
     inactive_plugin_configuration,
     monkeypatch,
 ):
-    def new_default_configuration():
-        defaults = {
-            "name": "PluginInactive",
-            "description": "",
-            "active": True,
-            "configuration": [new_config],
-        }
-        return defaults
-
+    monkeypatch.setattr(PluginInactive, "DEFAULT_ACTIVE", True)
     monkeypatch.setattr(
-        PluginInactive, "_get_default_configuration", new_default_configuration
+        PluginInactive, "DEFAULT_CONFIGURATION", [new_config],
     )
     config_structure = {"Foo": new_config_structure}
     monkeypatch.setattr(PluginInactive, "CONFIG_STRUCTURE", config_structure)
