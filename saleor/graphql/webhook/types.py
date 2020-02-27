@@ -8,8 +8,10 @@ from .enums import WebhookEventTypeEnum
 
 
 class WebhookEvent(CountableDjangoObjectType):
-    name = graphene.String(description="Display name of the event.")
-    event_type = WebhookEventTypeEnum(description="Internal name of the event type.")
+    name = graphene.String(description="Display name of the event.", required=True)
+    event_type = WebhookEventTypeEnum(
+        description="Internal name of the event type.", required=True
+    )
 
     class Meta:
         model = models.WebhookEvent
@@ -22,8 +24,13 @@ class WebhookEvent(CountableDjangoObjectType):
 
 
 class Webhook(CountableDjangoObjectType):
+    name = graphene.String(required=True)
     events = gql_optimizer.field(
-        graphene.List(WebhookEvent, description="List of webhook events."),
+        graphene.List(
+            graphene.NonNull(WebhookEvent),
+            description="List of webhook events.",
+            required=True,
+        ),
         model_field="events",
     )
 
