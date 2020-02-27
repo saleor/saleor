@@ -163,7 +163,7 @@ class ProductsQueryset(PublishedQuerySet):
     ):
         """Sort a query set by the values of the given product attribute.
 
-        :param attribute_pk: The database ID (must be a number) of the attribute
+        :param attribute_pk: The database ID (must be a numeric) of the attribute
                              to sort by.
         :param descending: The sorting direction.
         """

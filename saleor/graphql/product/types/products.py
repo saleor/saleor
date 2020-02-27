@@ -634,6 +634,7 @@ class ProductType(CountableDjangoObjectType):
             "name",
             "slug",
             "weight",
+            "tax_type",
         ]
 
     @staticmethod

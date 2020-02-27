@@ -195,6 +195,18 @@ def sort_queryset(
     return queryset.order_by(*sorting_list)
 
 
+def get_model_default_ordering(model_class):
+    deafault_ordering = []
+    model_ordering = model_class._meta.ordering
+    for field in model_ordering:
+        if isinstance(field, str):
+            deafault_ordering.append(field)
+        else:
+            direction = "-" if field.descending else ""
+            deafault_ordering.append(f"{direction}{field.expression.name}")
+    return deafault_ordering
+
+
 def sort_queryset_by_default(
     queryset: QuerySet, reversed: bool
 ) -> Tuple[QuerySet, dict]:
@@ -202,7 +214,7 @@ def sort_queryset_by_default(
     queryset_model = queryset.model
     deafault_ordering = ["pk"]
     if queryset_model and queryset_model._meta.ordering:
-        deafault_ordering = queryset_model._meta.ordering
+        deafault_ordering = get_model_default_ordering(queryset_model)
 
     ordering_fields = [field.replace("-", "") for field in deafault_ordering]
     direction = "-" if "-" in deafault_ordering[0] else ""
