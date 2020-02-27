@@ -1,6 +1,6 @@
 import csv
 from io import StringIO
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 from django.utils.encoding import smart_text
 
@@ -70,7 +70,6 @@ def test_write_feed(product, monkeypatch):
     google_required_fields = [
         "id",
         "title",
-        "link",
         "image_link",
         "availability",
         "price",
@@ -78,11 +77,3 @@ def test_write_feed(product, monkeypatch):
     ]
     for field in google_required_fields:
         assert field in header
-
-
-@patch("saleor.data_feeds.google_merchant.item_link")
-def test_feed_contains_site_settings_domain(mocked_item_link, product, site_settings):
-    write_feed(StringIO())
-    mocked_item_link.assert_called_once_with(
-        product.variants.first(), site_settings.site
-    )
