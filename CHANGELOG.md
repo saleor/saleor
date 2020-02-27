@@ -76,7 +76,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Unify saleor metadata - #5178 by @fowczarek
 - Add compiled versions of emails to the repository - #5260 by @tomaszszymanski129
 - Add required prop to fields where applicable - #5293 by @dominik-zeglen
-
+- Add --force flag to cleardb command - #5302 by @maarcingebala
 
 ## 2.9.0
 
