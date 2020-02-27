@@ -119,7 +119,13 @@ def test_availability(stock, monkeypatch, settings):
     monkeypatch.setattr(
         PluginsManager, "apply_taxes_to_product", Mock(return_value=taxed_price)
     )
-    availability = get_product_availability(product, country="PL")
+    availability = get_product_availability(
+        product=product,
+        variants=product.variants.all(),
+        collections=[],
+        discounts=[],
+        country="PL",
+    )
     taxed_price_range = TaxedMoneyRange(start=taxed_price, stop=taxed_price)
     assert availability.price_range == taxed_price_range
     assert availability.price_range_local_currency is None
@@ -130,10 +136,23 @@ def test_availability(stock, monkeypatch, settings):
     )
     settings.DEFAULT_COUNTRY = "PL"
     settings.OPENEXCHANGERATES_API_KEY = "fake-key"
-    availability = get_product_availability(product, local_currency="PLN", country="PL")
+    availability = get_product_availability(
+        product=product,
+        variants=product.variants.all(),
+        collections=[],
+        discounts=[],
+        local_currency="PLN",
+        country="PL",
+    )
     assert availability.price_range_local_currency.start.currency == "PLN"
 
-    availability = get_product_availability(product, country="PL")
+    availability = get_product_availability(
+        product=product,
+        variants=product.variants.all(),
+        collections=[],
+        discounts=[],
+        country="PL",
+    )
     assert availability.price_range.start.tax.amount
     assert availability.price_range.stop.tax.amount
     assert availability.price_range_undiscounted.start.tax.amount

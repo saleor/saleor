@@ -2,7 +2,7 @@ import json
 from typing import Any, Dict, Iterable, List, Tuple, Union
 
 import graphene
-import opentracing as ot
+import opentracing
 from django.db.models import Manager, Model as DjangoModel, Q, QuerySet
 from graphene.relay.connection import Connection
 from graphene_django_optimizer.types import OptimizedDjangoObjectType
@@ -281,7 +281,7 @@ class CountableDjangoObjectType(OptimizedDjangoObjectType):
 
     @classmethod
     def maybe_optimize(cls, info, qs: Union[QuerySet, Manager], pk):
-        with ot.global_tracer().start_active_span("optimizer") as scope:
+        with opentracing.global_tracer().start_active_span("optimizer") as scope:
             span = scope.span
             span.set_tag("optimizer.pk", pk)
             span.set_tag("optimizer.model", cls._meta.model.__name__)
@@ -289,7 +289,7 @@ class CountableDjangoObjectType(OptimizedDjangoObjectType):
 
     @classmethod
     def get_node(cls, info, id):
-        with ot.global_tracer().start_active_span("node") as scope:
+        with opentracing.global_tracer().start_active_span("node") as scope:
             span = scope.span
             span.set_tag("node.pk", id)
             span.set_tag("node.type", cls.__name__)

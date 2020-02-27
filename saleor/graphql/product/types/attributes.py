@@ -12,6 +12,7 @@ from ...meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ...meta.types import ObjectWithMetadata
 from ...translations.fields import TranslationField
 from ...translations.types import AttributeTranslation, AttributeValueTranslation
+from ..dataloaders import AttributeValuesByAttributeIdLoader
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..enums import AttributeInputTypeEnum, AttributeValueType
 
@@ -64,10 +65,7 @@ class Attribute(CountableDjangoObjectType):
     name = graphene.String(description=AttributeDescriptions.NAME)
     slug = graphene.String(description=AttributeDescriptions.SLUG)
 
-    values = gql_optimizer.field(
-        graphene.List(AttributeValue, description=AttributeDescriptions.VALUES),
-        model_field="values",
-    )
+    values = graphene.List(AttributeValue, description=AttributeDescriptions.VALUES)
 
     value_required = graphene.Boolean(
         description=AttributeDescriptions.VALUE_REQUIRED, required=True
@@ -101,8 +99,8 @@ class Attribute(CountableDjangoObjectType):
         model = models.Attribute
 
     @staticmethod
-    def resolve_values(root: models.Attribute, *_args):
-        return root.values.all()
+    def resolve_values(root: models.Attribute, info):
+        return AttributeValuesByAttributeIdLoader(info.context).load(root.id)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
