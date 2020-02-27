@@ -75,6 +75,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add `fulfillment created` webhook - @szewczykmira
 - Unify saleor metadata - #5178 by @fowczarek
 - Add compiled versions of emails to the repository - #5260 by @tomaszszymanski129
+- Drop get_absolute_url methods - #5299 by @IKarbowiak
 
 
 ## 2.9.0
