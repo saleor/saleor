@@ -51,6 +51,7 @@ def get_error_fields(error_type_class, error_type_field):
                 description="List of errors that occurred executing the mutation.",
             ),
             default_value=[],
+            required=True,
         )
     }
 
@@ -93,6 +94,7 @@ class BaseMutation(graphene.Mutation):
     errors = graphene.List(
         graphene.NonNull(Error),
         description="List of errors that occurred executing the mutation.",
+        required=True,
     )
 
     class Meta:
