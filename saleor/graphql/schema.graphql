@@ -2110,7 +2110,7 @@ type MetaStore {
 type MetadataError {
   field: String
   message: String
-  code: MetadataErrorCode
+  code: MetadataErrorCode!
 }
 
 enum MetadataErrorCode {
