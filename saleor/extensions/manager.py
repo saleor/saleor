@@ -1,5 +1,5 @@
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, List, Optional, Union
+from typing import TYPE_CHECKING, Any, List, Iterable, Optional, Union
 
 from django.conf import settings
 from django.utils.module_loading import import_string
@@ -9,14 +9,14 @@ from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 from ..checkout import base_calculations
 from ..core.payments import PaymentInterface
 from ..core.taxes import TaxType, quantize_price, zero_taxed_money
+from ..discount import DiscountInfo
 from .models import PluginConfiguration
 
 if TYPE_CHECKING:
     # flake8: noqa
     from django.db.models.query import QuerySet
-    from .base_plugin import BasePlugin
+    from .base_plugin import BasePlugin, PluginConfigurationType
     from ..checkout.models import Checkout, CheckoutLine
-    from ..discount.types import DiscountsListType
     from ..product.models import Product, ProductType
     from ..account.models import Address, User
     from ..order.models import Fulfillment, OrderLine, Order
@@ -35,9 +35,17 @@ class ExtensionsManager(PaymentInterface):
 
     def __init__(self, plugins: List[str]):
         self.plugins = []
+        all_configs = self._get_all_plugin_configs()
         for plugin_path in plugins:
-            plugin_class = import_string(plugin_path)
-            self.plugins.append(plugin_class())
+            PluginClass: "BasePlugin" = import_string(plugin_path)
+            if PluginClass.PLUGIN_NAME in all_configs:
+                existing_config = all_configs[PluginClass.PLUGIN_NAME]
+                plugin_config = existing_config.configuration
+                active = existing_config.active
+            else:
+                plugin_config = PluginClass.DEFAULT_CONFIGURATION
+                active = PluginClass.DEFAULT_ACTIVE
+            self.plugins.append(PluginClass(configuration=plugin_config, active=active))
 
     def __run_method_on_plugins(
         self, method_name: str, default_value: Any, *args, **kwargs
@@ -85,7 +93,7 @@ class ExtensionsManager(PaymentInterface):
         self.__run_method_on_plugins("checkout_quantity_changed", None, checkout)
 
     def calculate_checkout_total(
-        self, checkout: "Checkout", discounts: "DiscountsListType"
+        self, checkout: "Checkout", discounts: Iterable[DiscountInfo]
     ) -> TaxedMoney:
 
         default_value = base_calculations.base_checkout_total(
@@ -99,7 +107,7 @@ class ExtensionsManager(PaymentInterface):
         )
 
     def calculate_checkout_subtotal(
-        self, checkout: "Checkout", discounts: "DiscountsListType"
+        self, checkout: "Checkout", discounts: Iterable[DiscountInfo]
     ) -> TaxedMoney:
         line_totals = [
             self.calculate_checkout_line_total(line, discounts) for line in checkout
@@ -112,7 +120,7 @@ class ExtensionsManager(PaymentInterface):
         )
 
     def calculate_checkout_shipping(
-        self, checkout: "Checkout", discounts: "DiscountsListType"
+        self, checkout: "Checkout", discounts: Iterable[DiscountInfo]
     ) -> TaxedMoney:
         default_value = base_calculations.base_checkout_shipping_price(checkout)
         return self.__run_method_on_plugins(
@@ -132,7 +140,7 @@ class ExtensionsManager(PaymentInterface):
         )
 
     def calculate_checkout_line_total(
-        self, checkout_line: "CheckoutLine", discounts: "DiscountsListType"
+        self, checkout_line: "CheckoutLine", discounts: Iterable[DiscountInfo]
     ):
         default_value = base_calculations.base_checkout_line_total(
             checkout_line, discounts
@@ -187,7 +195,7 @@ class ExtensionsManager(PaymentInterface):
         )
 
     def preprocess_order_creation(
-        self, checkout: "Checkout", discounts: "DiscountsListType"
+        self, checkout: "Checkout", discounts: Iterable[DiscountInfo]
     ):
         default_value = None
         return self.__run_method_on_plugins(
@@ -286,11 +294,7 @@ class ExtensionsManager(PaymentInterface):
     def get_active_plugins(self, plugins=None) -> List["BasePlugin"]:
         if plugins is None:
             plugins = self.plugins
-        return [
-            plugin
-            for plugin in plugins
-            if getattr(self.get_plugin_configuration(plugin.PLUGIN_NAME), "active")
-        ]
+        return [plugin for plugin in plugins if plugin.active]
 
     def list_payment_plugin_names(self, active_only: bool = False) -> List[str]:
         payment_method = "process_payment"
@@ -341,6 +345,13 @@ class ExtensionsManager(PaymentInterface):
             " payment method is inaccessible!"
         )
 
+    def _get_all_plugin_configs(self):
+        if not hasattr(self, "_plugin_configs"):
+            self._plugin_configs = {
+                pc.name: pc for pc in PluginConfiguration.objects.all()
+            }
+        return self._plugin_configs
+
     # FIXME these methods should be more generic
 
     def assign_tax_code_to_object_meta(
@@ -380,23 +391,6 @@ class ExtensionsManager(PaymentInterface):
             if plugin.PLUGIN_NAME == plugin_name:
                 return plugin
         return None
-
-    def get_plugin_configuration(self, plugin_name) -> Optional["PluginConfiguration"]:
-        plugin = self.get_plugin(plugin_name)
-        if plugin is not None:
-            plugin_configurations_qs = PluginConfiguration.objects.all()
-            return plugin.get_plugin_configuration(plugin_configurations_qs)
-        return None
-
-    def get_plugin_configurations(self) -> "QuerySet[PluginConfiguration]":
-        plugin_configuration_ids = []
-        plugin_configurations_qs = PluginConfiguration.objects.all()
-        for plugin in self.plugins:
-            plugin_configuration = plugin.get_plugin_configuration(
-                plugin_configurations_qs
-            )
-            plugin_configuration_ids.append(plugin_configuration.pk)
-        return PluginConfiguration.objects.filter(pk__in=plugin_configuration_ids)
 
 
 def get_extensions_manager(

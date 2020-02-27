@@ -1,13 +1,13 @@
 import logging
 from decimal import Decimal
-from typing import TYPE_CHECKING, Any, Dict, List, Union
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Union
 from urllib.parse import urljoin
 
-from django.conf import settings
 from django.core.exceptions import ValidationError
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
 from ....core.taxes import TaxError, TaxType, zero_taxed_money
+from ....discount import DiscountInfo
 from ... import ConfigurationTypeField
 from ...base_plugin import BasePlugin
 from ...error_codes import ExtensionsErrorCode
@@ -34,7 +34,6 @@ if TYPE_CHECKING:
     from ....order.models import Order, OrderLine
     from ....product.models import Product, ProductType
     from ...models import PluginConfiguration
-    from ....discount.types import DiscountsListType
 
 
 logger = logging.getLogger(__name__)
@@ -42,6 +41,13 @@ logger = logging.getLogger(__name__)
 
 class AvataxPlugin(BasePlugin):
     PLUGIN_NAME = "Avalara"
+    DEFAULT_CONFIGURATION = [
+        {"name": "Username or account", "value": None},
+        {"name": "Password or license", "value": None},
+        {"name": "Use sandbox", "value": True},
+        {"name": "Company name", "value": "DEFAULT"},
+        {"name": "Autocommit", "value": False},
+    ]
     CONFIG_STRUCTURE = {
         "Username or account": {
             "type": ConfigurationTypeField.STRING,
@@ -76,37 +82,15 @@ class AvataxPlugin(BasePlugin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.config = None
-
-    def _initialize_plugin_configuration(self):
-        super()._initialize_plugin_configuration()
-
-        if self._cached_config and self._cached_config.configuration:
-            configuration = self._cached_config.configuration
-
-            # Convert to dict to easier take config elements
-            configuration = {item["name"]: item["value"] for item in configuration}
-            self.config = AvataxConfiguration(
-                username_or_account=configuration["Username or account"],
-                password_or_license=configuration["Password or license"],
-                use_sandbox=configuration["Use sandbox"],
-                company_name=configuration["Company name"],
-                autocommit=configuration["Autocommit"],
-            )
-        else:
-            # This should be removed after we drop an Avatax's settings from Django
-            # settings file
-            self.config = AvataxConfiguration(
-                username_or_account=settings.AVATAX_USERNAME_OR_ACCOUNT,
-                password_or_license=settings.AVATAX_PASSWORD_OR_LICENSE,
-                use_sandbox=settings.AVATAX_USE_SANDBOX,
-                autocommit=settings.AVATAX_AUTOCOMMIT,
-                company_name=settings.AVATAX_COMPANY_NAME,
-            )
-            self.active = (
-                settings.AVATAX_USERNAME_OR_ACCOUNT
-                and settings.AVATAX_PASSWORD_OR_LICENSE
-            )
+        # Convert to dict to easier take config elements
+        configuration = {item["name"]: item["value"] for item in self.configuration}
+        self.config = AvataxConfiguration(
+            username_or_account=configuration["Username or account"],
+            password_or_license=configuration["Password or license"],
+            use_sandbox=configuration["Use sandbox"],
+            company_name=configuration["Company name"],
+            autocommit=configuration["Autocommit"],
+        )
 
     def _skip_plugin(self, previous_value: Union[TaxedMoney, TaxedMoneyRange]) -> bool:
         if not (self.config.username_or_account and self.config.password_or_license):
@@ -129,11 +113,9 @@ class AvataxPlugin(BasePlugin):
     def calculate_checkout_total(
         self,
         checkout: "Checkout",
-        discounts: "DiscountsListType",
+        discounts: Iterable[DiscountInfo],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
-        self._initialize_plugin_configuration()
-
         if self._skip_plugin(previous_value):
             return previous_value
 
@@ -173,11 +155,9 @@ class AvataxPlugin(BasePlugin):
     def calculate_checkout_subtotal(
         self,
         checkout: "Checkout",
-        discounts: "DiscountsListType",
+        discounts: Iterable[DiscountInfo],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
-        self._initialize_plugin_configuration()
-
         if self._skip_plugin(previous_value):
             return previous_value
 
@@ -210,11 +190,9 @@ class AvataxPlugin(BasePlugin):
     def calculate_checkout_shipping(
         self,
         checkout: "Checkout",
-        discounts: "DiscountsListType",
+        discounts: Iterable[DiscountInfo],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
-        self._initialize_plugin_configuration()
-
         if self._skip_plugin(previous_value):
             return previous_value
 
@@ -232,14 +210,15 @@ class AvataxPlugin(BasePlugin):
         )
 
     def preprocess_order_creation(
-        self, checkout: "Checkout", discounts: "DiscountsListType", previous_value: Any
+        self,
+        checkout: "Checkout",
+        discounts: Iterable[DiscountInfo],
+        previous_value: Any,
     ):
         """Ensure all the data is correct and we can proceed with creation of order.
 
         Raise an error when can't receive taxes.
         """
-        self._initialize_plugin_configuration()
-
         if self._skip_plugin(previous_value):
             return previous_value
 
@@ -269,8 +248,6 @@ class AvataxPlugin(BasePlugin):
         return previous_value
 
     def order_created(self, order: "Order", previous_value: Any) -> Any:
-        self._initialize_plugin_configuration()
-
         if not self.active:
             return previous_value
         data = get_order_tax_data(order, self.config, force_refresh=True)
@@ -284,11 +261,9 @@ class AvataxPlugin(BasePlugin):
     def calculate_checkout_line_total(
         self,
         checkout_line: "CheckoutLine",
-        discounts: "DiscountsListType",
+        discounts: Iterable[DiscountInfo],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
-        self._initialize_plugin_configuration()
-
         if self._skip_plugin(previous_value):
             return previous_value
 
@@ -326,8 +301,6 @@ class AvataxPlugin(BasePlugin):
     def calculate_order_line_unit(
         self, order_line: "OrderLine", previous_value: TaxedMoney
     ) -> TaxedMoney:
-        self._initialize_plugin_configuration()
-
         if self._skip_plugin(previous_value):
             return previous_value
 
@@ -338,8 +311,6 @@ class AvataxPlugin(BasePlugin):
     def calculate_order_shipping(
         self, order: "Order", previous_value: TaxedMoney
     ) -> TaxedMoney:
-        self._initialize_plugin_configuration()
-
         if self._skip_plugin(previous_value):
             return previous_value
 
@@ -361,8 +332,6 @@ class AvataxPlugin(BasePlugin):
         )
 
     def get_tax_rate_type_choices(self, previous_value: Any) -> List[TaxType]:
-        self._initialize_plugin_configuration()
-
         if not self.active:
             return previous_value
         return [
@@ -373,8 +342,6 @@ class AvataxPlugin(BasePlugin):
     def assign_tax_code_to_object_meta(
         self, obj: Union["Product", "ProductType"], tax_code: str, previous_value: Any
     ):
-        self._initialize_plugin_configuration()
-
         if not self.active:
             return previous_value
 
@@ -390,8 +357,6 @@ class AvataxPlugin(BasePlugin):
     def get_tax_code_from_object_meta(
         self, obj: Union["Product", "ProductType"], previous_value: Any
     ) -> TaxType:
-        self._initialize_plugin_configuration()
-
         if not self.active:
             return previous_value
         tax_code = obj.get_value_from_metadata(META_CODE_KEY, "")
@@ -399,8 +364,6 @@ class AvataxPlugin(BasePlugin):
         return TaxType(code=tax_code, description=tax_description,)
 
     def show_taxes_on_storefront(self, previous_value: bool) -> bool:
-        self._initialize_plugin_configuration()
-
         if not self.active:
             return previous_value
         return False
@@ -425,19 +388,3 @@ class AvataxPlugin(BasePlugin):
                 error_msg + ", ".join(missing_fields),
                 code=ExtensionsErrorCode.PLUGIN_MISCONFIGURED.value,
             )
-
-    @classmethod
-    def _get_default_configuration(cls):
-        defaults = {
-            "name": cls.PLUGIN_NAME,
-            "description": "",
-            "active": False,
-            "configuration": [
-                {"name": "Username or account", "value": None},
-                {"name": "Password or license", "value": None},
-                {"name": "Use sandbox", "value": True},
-                {"name": "Company name", "value": "DEFAULT"},
-                {"name": "Autocommit", "value": False},
-            ],
-        }
-        return defaults

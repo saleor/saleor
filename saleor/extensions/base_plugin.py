@@ -2,7 +2,6 @@ from copy import copy
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, List, Optional, Union
 
-from django.db.models import QuerySet
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
@@ -20,6 +19,9 @@ if TYPE_CHECKING:
     from ..payment.interface import GatewayResponse, PaymentData, CustomerSource
 
 
+PluginConfigurationType = List[dict]
+
+
 class BasePlugin:
     """Abstract class for storing all methods available for any plugin.
 
@@ -29,23 +31,17 @@ class BasePlugin:
     """
 
     PLUGIN_NAME = ""
+    PLUGIN_DESCRIPTION = ""
     CONFIG_STRUCTURE = None
+    DEFAULT_CONFIGURATION = []
+    DEFAULT_ACTIVE = False
 
-    def __init__(self, *args, **kwargs):
-        self._cached_config = None
-        self.active = None
+    def __init__(self, *, configuration: PluginConfigurationType, active: bool):
+        self.configuration = self.get_plugin_configuration(configuration)
+        self.active = active
 
     def __str__(self):
         return self.PLUGIN_NAME
-
-    def _initialize_plugin_configuration(self):
-        """Initialize plugin by fetching configuration from internal cache or DB."""
-        plugin_config_qs = PluginConfiguration.objects.filter(name=self.PLUGIN_NAME)
-        plugin_config = self._cached_config or plugin_config_qs.first()
-
-        if plugin_config:
-            self._cached_config = plugin_config
-            self.active = plugin_config.active
 
     def change_user_address(
         self,
@@ -362,17 +358,6 @@ class BasePlugin:
         return plugin_configuration
 
     @classmethod
-    def _get_default_configuration(cls):
-        """Return default configuration for plugin.
-
-        Each configurable plugin has to provide the default structure of the
-        configuration. If plugin configuration is not found in DB, the manager will use
-        the config structure to create a new one in DB.
-        """
-        defaults = None
-        return defaults
-
-    @classmethod
     def _append_config_structure(cls, configuration):
         """Append configuration structure to config from the database.
 
@@ -392,39 +377,23 @@ class BasePlugin:
         config_structure = getattr(cls, "CONFIG_STRUCTURE") or {}
         desired_config_keys = set(config_structure.keys())
 
-        config = configuration.configuration or []
+        config = configuration or []
         configured_keys = set(d["name"] for d in config)
         missing_keys = desired_config_keys - configured_keys
 
         if not missing_keys:
             return
 
-        default_config = cls._get_default_configuration()
+        default_config = cls.DEFAULT_CONFIGURATION
         if not default_config:
             return
 
-        update_values = [
-            copy(k)
-            for k in default_config["configuration"]
-            if k["name"] in missing_keys
-        ]
+        update_values = [copy(k) for k in default_config if k["name"] in missing_keys]
         config.extend(update_values)
 
-        configuration.configuration = config
-        configuration.save(update_fields=["configuration"])
-
-    @classmethod
-    def get_plugin_configuration(
-        cls, queryset: QuerySet = None
-    ) -> "PluginConfiguration":
-        if not queryset:
-            queryset = PluginConfiguration.objects.all()
-        defaults = cls._get_default_configuration()
-        configuration = queryset.get_or_create(name=cls.PLUGIN_NAME, defaults=defaults)[
-            0
-        ]
-        cls._update_configuration_structure(configuration)
-        if configuration.configuration:
+    def get_plugin_configuration(self, configuration: dict) -> "PluginConfiguration":
+        self._update_configuration_structure(configuration)
+        if configuration:
             # Let's add a translated descriptions and labels
-            cls._append_config_structure(configuration.configuration)
+            self._append_config_structure(configuration)
         return configuration
