@@ -57,7 +57,7 @@ class MenuError(Error):
 
 
 class MetadataError(Error):
-    code = MetadataErrorCode(description="The error code.")
+    code = MetadataErrorCode(description="The error code.", required=True)
 
 
 class OrderError(Error):
