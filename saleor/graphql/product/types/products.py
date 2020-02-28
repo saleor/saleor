@@ -235,7 +235,7 @@ class ProductVariant(CountableDjangoObjectType):
         model_field="digital_content",
     )
 
-    stock = gql_optimizer.field(
+    stocks = gql_optimizer.field(
         graphene.Field(
             graphene.List(Stock),
             description="Stocks for the product variant.",
@@ -252,13 +252,13 @@ class ProductVariant(CountableDjangoObjectType):
         model = models.ProductVariant
 
     @staticmethod
-    def resolve_stock(root: models.ProductVariant, info, country=None):
+    def resolve_stocks(root: models.ProductVariant, info, country=None):
         if country is None:
             return gql_optimizer.query(
-                root.stock.annotate_available_quantity().all(), info
+                root.stocks.annotate_available_quantity().all(), info
             )
         return gql_optimizer.query(
-            root.stock.annotate_available_quantity().for_country(country).all(), info
+            root.stocks.annotate_available_quantity().for_country(country).all(), info
         )
 
     @staticmethod

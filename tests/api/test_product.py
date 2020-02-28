@@ -3720,7 +3720,7 @@ def test_update_product_without_variants_updates_stock(
     staff_api_client, product_with_default_variant, permission_manage_products
 ):
     product_id = graphene.Node.to_global_id("Product", product_with_default_variant.pk)
-    stock = product_with_default_variant.variants.first().stock.first()
+    stock = product_with_default_variant.variants.first().stocks.first()
     variables = {"productId": product_id, "quantity": 17}
     staff_api_client.post_graphql(
         MUTATION_UPDATE_PRODUCT_QUANTITY,
