@@ -17,7 +17,7 @@ def test_fetch_variant(staff_api_client, product, permission_manage_products):
     query ProductVariantDetails($id: ID!) {
         productVariant(id: $id) {
             id
-            stock {
+            stocks {
                 id
             }
             attributes {
@@ -64,7 +64,7 @@ def test_fetch_variant(staff_api_client, product, permission_manage_products):
     content = get_graphql_content(response)
     data = content["data"]["productVariant"]
     assert data["name"] == variant.name
-    assert len(data["stock"]) == variant.stock.count()
+    assert len(data["stocks"]) == variant.stocks.count()
 
 
 def test_create_variant(
@@ -1174,7 +1174,7 @@ MUTATION_UPDATE_VARIANT_QUANTITY = """
 def test_update_variant_and_set_quantity_creates_stock(
     staff_api_client, variant, permission_manage_products, warehouse
 ):
-    assert variant.stock.count() == 0
+    assert variant.stocks.count() == 0
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
     variables = {"id": variant_id, "quantity": 70}
     staff_api_client.post_graphql(
@@ -1182,7 +1182,7 @@ def test_update_variant_and_set_quantity_creates_stock(
         variables,
         permissions=[permission_manage_products],
     )
-    assert variant.stock.count() == 1
+    assert variant.stocks.count() == 1
 
 
 def test_update_variant_fails_when_there_is_no_warehouse_available(
@@ -1200,7 +1200,7 @@ def test_update_variant_fails_when_there_is_no_warehouse_available(
     content = get_graphql_content(response, ignore_errors=True)
     errors = content["errors"]
     assert len(errors) == 1
-    assert variant.stock.count() == 0
+    assert variant.stocks.count() == 0
 
 
 def test_update_variant_sets_quantity_in_stock(

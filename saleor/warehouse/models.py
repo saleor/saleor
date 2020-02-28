@@ -87,7 +87,7 @@ class StockQuerySet(models.QuerySet):
 class Stock(models.Model):
     warehouse = models.ForeignKey(Warehouse, null=False, on_delete=models.PROTECT)
     product_variant = models.ForeignKey(
-        ProductVariant, null=False, on_delete=models.CASCADE, related_name="stock"
+        ProductVariant, null=False, on_delete=models.CASCADE, related_name="stocks"
     )
     quantity = models.PositiveIntegerField(default=0)
     quantity_allocated = models.PositiveIntegerField(default=0)

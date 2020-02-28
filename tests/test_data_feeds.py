@@ -40,7 +40,7 @@ def test_saleor_feed_items(product, site_settings):
 
 
 def test_saleor_get_feed_items_having_no_stock_info(variant, site_settings):
-    variant.stock.all().delete()
+    variant.stocks.all().delete()
     assert item_availability(variant) == "out of stock"
 
 
