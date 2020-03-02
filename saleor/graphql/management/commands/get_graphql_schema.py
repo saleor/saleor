@@ -8,4 +8,10 @@ class Command(BaseCommand):
     help = "Writes SDL for GraphQL API schema to stdout"
 
     def handle(self, *args, **options):
-        self.stdout.write(print_schema(schema))
+        printed_schema = print_schema(schema)
+        schema_lines = printed_schema.splitlines()
+        for index, line in enumerate(schema_lines):
+            if "implements" in line:
+                schema_lines[index] = line.replace(",", " &")
+        printed_schema = "\n".join(schema_lines)
+        self.stdout.write(printed_schema)
