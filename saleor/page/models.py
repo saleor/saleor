@@ -33,11 +33,6 @@ class Page(SeoModel, PublishableModel):
     def __str__(self):
         return self.title
 
-    # Deprecated. To remove in #5022
-    @staticmethod
-    def get_absolute_url():
-        return ""
-
 
 class PageTranslation(SeoModelTranslation):
     language_code = models.CharField(max_length=10)

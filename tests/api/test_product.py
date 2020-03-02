@@ -212,7 +212,7 @@ def test_product_query(staff_api_client, product, permission_manage_products, st
     assert len(product_edges_data) == category.products.count()
     product_data = product_edges_data[0]["node"]
     assert product_data["name"] == product.name
-    assert product_data["url"] == product.get_absolute_url()
+    assert product_data["url"] == ""
     assert product_data["slug"] == product.slug
     gross = product_data["pricing"]["priceRange"]["start"]["gross"]
     assert float(gross["amount"]) == float(product.price.amount)
