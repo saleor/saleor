@@ -1345,3 +1345,78 @@ def test_variant_stocks_create_stock_already_exists(
     assert errors
     assert errors[0]["code"] == StockErorrCode.UNIQUE.name
     assert errors[0]["field"] == "warehouse"
+
+
+VARIANT_STOCKS_UPDATE_MUTATIONS = """
+mutation ProductVariantStocksUpdate($variantId: ID!, $stocks: [StockInput!]!){
+    productVariantStocksUpdate(variantId: $variantId, stocks: $stocks){
+        productVariant{
+            stocks{
+                quantity
+                quantityAllocated
+                id
+                warehouse{
+                    slug
+                }
+            }
+        }
+        stockErrors{
+            code
+            field
+            message
+        }
+    }
+}
+"""
+
+
+def test_product_variant_stocks_update(
+    staff_api_client, variant, warehouse, permission_manage_products
+):
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    second_warehouse = Warehouse.objects.get(pk=warehouse.pk)
+    second_warehouse.slug = "second warehouse"
+    second_warehouse.pk = None
+    second_warehouse.save()
+
+    Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=10)
+
+    stocks = [
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.id),
+            "quantity": 20,
+        },
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", second_warehouse.id),
+            "quantity": 100,
+        },
+    ]
+    variables = {"variantId": variant_id, "stocks": stocks}
+    response = staff_api_client.post_graphql(
+        VARIANT_STOCKS_UPDATE_MUTATIONS,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantStocksUpdate"]
+
+    expected_result = [
+        {
+            "quantity": stocks[0]["quantity"],
+            "quantityAllocated": 0,
+            "warehouse": {"slug": warehouse.slug},
+        },
+        {
+            "quantity": stocks[1]["quantity"],
+            "quantityAllocated": 0,
+            "warehouse": {"slug": second_warehouse.slug},
+        },
+    ]
+    assert not data["stockErrors"]
+    assert len(data["productVariant"]["stocks"]) == len(stocks)
+    result = []
+    for stock in data["productVariant"]["stocks"]:
+        stock.pop("id")
+        result.append(stock)
+    for res in result:
+        assert res in expected_result
