@@ -2250,6 +2250,7 @@ type Mutation {
   productVariantBulkCreate(product: ID!, variants: [ProductVariantBulkCreateInput]!): ProductVariantBulkCreate
   productVariantBulkDelete(ids: [ID]!): ProductVariantBulkDelete
   productVariantStocksCreate(stocks: [StockInput!]!, variantId: ID!): ProductVariantStocksCreate
+  productVariantStocksUpdate(stocks: [StockInput!]!, variantId: ID!): ProductVariantStocksUpdate
   productVariantUpdate(id: ID!, input: ProductVariantInput!): ProductVariantUpdate
   productVariantTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): ProductVariantTranslate
   productVariantUpdateMetadata(id: ID!, input: MetaInput!): ProductVariantUpdateMeta @deprecated(reason: "Will be removed in Saleor 2.11. Use the `UpdateMetadata` mutation instead.")
@@ -3629,6 +3630,12 @@ input ProductVariantInput {
 }
 
 type ProductVariantStocksCreate {
+  errors: [Error!]!
+  productVariant: ProductVariant
+  stockErrors: [StockError!]!
+}
+
+type ProductVariantStocksUpdate {
   errors: [Error!]!
   productVariant: ProductVariant
   stockErrors: [StockError!]!

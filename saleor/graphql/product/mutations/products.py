@@ -1305,14 +1305,17 @@ class ProductVariantStocksCreate(BaseMutation):
         )
 
     class Meta:
-        description = "Creates stocks for variant."
+        description = "Creates stocks for product variant."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = StockError
         error_type_field = "stock_errors"
 
     @classmethod
-    def perform_mutation(cls, root, info, variant_id, stocks):
-        variant = cls.get_node_or_error(info, variant_id, only_type=ProductVariant)
+    def perform_mutation(cls, root, info, **data):
+        stocks = data["stocks"]
+        variant = cls.get_node_or_error(
+            info, data["variant_id"], only_type=ProductVariant
+        )
         warehouse_ids = [stock["warehouse"] for stock in stocks]
         warehouses = cls.get_nodes_or_error(
             warehouse_ids, "warehouse", only_type=Warehouse
@@ -1332,6 +1335,47 @@ class ProductVariantStocksCreate(BaseMutation):
                 raise ValidationError(
                     {"warehouse": ValidationError(msg, code=StockErorrCode.UNIQUE,)}
                 )
+        return cls(product_variant=variant)
+
+
+class ProductVariantStocksUpdate(BaseMutation):
+    product_variant = graphene.Field(
+        ProductVariant, description="Updated product variant."
+    )
+
+    class Arguments:
+        variant_id = graphene.ID(
+            required=True,
+            description="ID of product variant for which stocks will be updated.",
+        )
+        stocks = graphene.List(
+            graphene.NonNull(StockInput),
+            required=True,
+            description="Input list of stocks.",
+        )
+
+    class Meta:
+        description = "Update stocks for product variant."
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        error_type_class = StockError
+        error_type_field = "stock_errors"
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        stocks = data["stocks"]
+        variant = cls.get_node_or_error(
+            info, data["variant_id"], only_type=ProductVariant
+        )
+        warehouse_ids = [stock["warehouse"] for stock in stocks]
+        warehouses = cls.get_nodes_or_error(
+            warehouse_ids, "warehouse", only_type=Warehouse
+        )
+        for stock_data, warehouse in zip(stocks, warehouses):
+            stock, _ = Stock.objects.get_or_create(
+                product_variant=variant, warehouse=warehouse
+            )
+            stock.quantity = stock_data["quantity"]
+            stock.save(update_fields=["quantity"])
         return cls(product_variant=variant)
 
 

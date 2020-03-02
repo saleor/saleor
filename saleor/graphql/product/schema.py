@@ -95,6 +95,7 @@ from .mutations.products import (
     ProductVariantCreate,
     ProductVariantDelete,
     ProductVariantStocksCreate,
+    ProductVariantStocksUpdate,
     ProductVariantUpdate,
     ProductVariantUpdateMeta,
     ProductVariantUpdatePrivateMeta,
@@ -463,6 +464,7 @@ class ProductMutations(graphene.ObjectType):
     product_variant_bulk_create = ProductVariantBulkCreate.Field()
     product_variant_bulk_delete = ProductVariantBulkDelete.Field()
     product_variant_stocks_create = ProductVariantStocksCreate.Field()
+    product_variant_stocks_update = ProductVariantStocksUpdate.Field()
     product_variant_update = ProductVariantUpdate.Field()
     product_variant_translate = ProductVariantTranslate.Field()
     product_variant_update_metadata = ProductVariantUpdateMeta.Field(
