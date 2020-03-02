@@ -1239,7 +1239,7 @@ def test_update_variant_changes_stock_only_when_quantity_is_passed(
 
 
 VARIANT_STOCKS_CREATE_MUTATION = """
-mutation ProductVariantStocksCreate($variantId: ID!, $stocks: [StockInput!]!){
+    mutation ProductVariantStocksCreate($variantId: ID!, $stocks: [StockInput!]!){
         productVariantStocksCreate(variantId: $variantId, stocks: $stocks){
             productVariant{
                 stocks {
@@ -1348,25 +1348,25 @@ def test_variant_stocks_create_stock_already_exists(
 
 
 VARIANT_STOCKS_UPDATE_MUTATIONS = """
-mutation ProductVariantStocksUpdate($variantId: ID!, $stocks: [StockInput!]!){
-    productVariantStocksUpdate(variantId: $variantId, stocks: $stocks){
-        productVariant{
-            stocks{
-                quantity
-                quantityAllocated
-                id
-                warehouse{
-                    slug
+    mutation ProductVariantStocksUpdate($variantId: ID!, $stocks: [StockInput!]!){
+        productVariantStocksUpdate(variantId: $variantId, stocks: $stocks){
+            productVariant{
+                stocks{
+                    quantity
+                    quantityAllocated
+                    id
+                    warehouse{
+                        slug
+                    }
                 }
             }
-        }
-        stockErrors{
-            code
-            field
-            message
+            stockErrors{
+                code
+                field
+                message
+            }
         }
     }
-}
 """
 
 
@@ -1420,3 +1420,98 @@ def test_product_variant_stocks_update(
         result.append(stock)
     for res in result:
         assert res in expected_result
+
+
+VARIANT_STOCKS_DELETE_MUTATION = """
+    mutation ProductVariantStocksDelete($variantId: ID!, $warehouseIds: [ID!]!){
+        productVariantStocksDelete(variantId: $variantId, warehouseIds: $warehouseIds){
+            productVariant{
+                stocks{
+                    id
+                    quantity
+                    warehouse{
+                        slug
+                    }
+                }
+            }
+            stockErrors{
+                field
+                code
+                message
+            }
+        }
+    }
+"""
+
+
+def test_product_variant_stocks_delete_mutation(
+    staff_api_client, variant, warehouse, permission_manage_products
+):
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    second_warehouse = Warehouse.objects.get(pk=warehouse.pk)
+    second_warehouse.slug = "second warehouse"
+    second_warehouse.pk = None
+    second_warehouse.save()
+
+    Stock.objects.bulk_create(
+        [
+            Stock(product_variant=variant, warehouse=warehouse, quantity=10),
+            Stock(product_variant=variant, warehouse=second_warehouse, quantity=140),
+        ]
+    )
+    stocks_count = variant.stocks.count()
+
+    warehouse_ids = [graphene.Node.to_global_id("Warehouse", second_warehouse.id)]
+
+    variables = {"variantId": variant_id, "warehouseIds": warehouse_ids}
+    response = staff_api_client.post_graphql(
+        VARIANT_STOCKS_DELETE_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantStocksDelete"]
+
+    variant.refresh_from_db()
+    assert not data["stockErrors"]
+    assert (
+        len(data["productVariant"]["stocks"])
+        == variant.stocks.count()
+        == stocks_count - 1
+    )
+    assert data["productVariant"]["stocks"][0]["quantity"] == 10
+    assert data["productVariant"]["stocks"][0]["warehouse"]["slug"] == warehouse.slug
+
+
+def test_product_variant_stocks_delete_mutation_invalid_warehouse_id(
+    staff_api_client, variant, warehouse, permission_manage_products
+):
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    second_warehouse = Warehouse.objects.get(pk=warehouse.pk)
+    second_warehouse.slug = "second warehouse"
+    second_warehouse.pk = None
+    second_warehouse.save()
+
+    Stock.objects.bulk_create(
+        [Stock(product_variant=variant, warehouse=warehouse, quantity=10)]
+    )
+    stocks_count = variant.stocks.count()
+
+    warehouse_ids = [graphene.Node.to_global_id("Warehouse", second_warehouse.id)]
+
+    variables = {"variantId": variant_id, "warehouseIds": warehouse_ids}
+    response = staff_api_client.post_graphql(
+        VARIANT_STOCKS_DELETE_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantStocksDelete"]
+
+    variant.refresh_from_db()
+    assert not data["stockErrors"]
+    assert (
+        len(data["productVariant"]["stocks"]) == variant.stocks.count() == stocks_count
+    )
+    assert data["productVariant"]["stocks"][0]["quantity"] == 10
+    assert data["productVariant"]["stocks"][0]["warehouse"]["slug"] == warehouse.slug
