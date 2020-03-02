@@ -6,19 +6,15 @@ from ...core.permissions import ProductPermissions
 from ...warehouse import models
 from ..core.fields import FilterInputConnectionField
 from ..decorators import permission_required
+from ..utils import sort_queryset
 from .filters import StockFilterInput, WarehouseFilterInput
 from .mutations import (
-    StockBulkDelete,
-    StockCreate,
-    StockDelete,
-    StockUpdate,
     WarehouseCreate,
     WarehouseDelete,
-    WarehouseUpdate,
     WarehouseShippingZoneAssign,
     WarehouseShippingZoneUnassign,
+    WarehouseUpdate,
 )
-from ..utils import sort_queryset
 from .sorters import WarehouseSortField, WarehouseSortingInput
 from .types import Stock, Warehouse
 
@@ -85,10 +81,3 @@ class StockQueries(graphene.ObjectType):
     def resolve_stocks(self, info, **data):
         qs = models.Stock.objects.all()
         return gql_optimizer.query(qs, info)
-
-
-class StockMutations(graphene.ObjectType):
-    create_stock = StockCreate.Field()
-    update_stock = StockUpdate.Field()
-    delete_stock = StockDelete.Field()
-    bulk_delete_stock = StockBulkDelete.Field()

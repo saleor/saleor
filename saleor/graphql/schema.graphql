@@ -2158,10 +2158,6 @@ type Mutation {
   deleteWarehouse(id: ID!): WarehouseDelete
   assignWarehouseShippingZone(id: ID!, shippingZoneIds: [ID!]!): WarehouseShippingZoneAssign
   unassignWarehouseShippingZone(id: ID!, shippingZoneIds: [ID!]!): WarehouseShippingZoneUnassign
-  createStock(input: StockInput!): StockCreate
-  updateStock(id: ID!, input: StockInput!): StockUpdate
-  deleteStock(id: ID!): StockDelete
-  bulkDeleteStock(ids: [ID]!): StockBulkDelete
   authorizationKeyAdd(input: AuthorizationKeyInput!, keyType: AuthorizationKeyType!): AuthorizationKeyAdd
   authorizationKeyDelete(keyType: AuthorizationKeyType!): AuthorizationKeyDelete
   staffNotificationRecipientCreate(input: StaffNotificationRecipientInput!): StaffNotificationRecipientCreate
@@ -4341,12 +4337,6 @@ enum StockAvailability {
   OUT_OF_STOCK
 }
 
-type StockBulkDelete {
-  errors: [Error!]!
-  count: Int!
-  stockError: [StockError!]!
-}
-
 type StockCountableConnection {
   pageInfo: PageInfo!
   edges: [StockCountableEdge!]!
@@ -4358,48 +4348,10 @@ type StockCountableEdge {
   cursor: String!
 }
 
-type StockCreate {
-  errors: [Error!]!
-  stockErrors: [StockError!]!
-  stock: Stock
-}
-
-type StockDelete {
-  errors: [Error!]!
-  stock: Stock
-}
-
-enum StockErorrCode {
-  ALREADY_EXISTS
-  GRAPHQL_ERROR
-  INVALID
-  NOT_FOUND
-  REQUIRED
-  UNIQUE
-}
-
-type StockError {
-  field: String
-  message: String
-  code: StockErorrCode!
-}
-
 input StockFilterInput {
   quantity: Float
   quantityAllocated: Float
   search: String
-}
-
-input StockInput {
-  productVariant: ID!
-  warehouse: ID!
-  quantity: Int
-}
-
-type StockUpdate {
-  errors: [Error!]!
-  stockError: [StockError!]!
-  stock: Stock
 }
 
 enum TaxRateType {
