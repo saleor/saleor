@@ -2250,6 +2250,7 @@ type Mutation {
   productVariantBulkCreate(product: ID!, variants: [ProductVariantBulkCreateInput]!): ProductVariantBulkCreate
   productVariantBulkDelete(ids: [ID]!): ProductVariantBulkDelete
   productVariantStocksCreate(stocks: [StockInput!]!, variantId: ID!): ProductVariantStocksCreate
+  productVariantStocksDelete(variantId: ID!, warehouseIds: [ID!]): ProductVariantStocksDelete
   productVariantStocksUpdate(stocks: [StockInput!]!, variantId: ID!): ProductVariantStocksUpdate
   productVariantUpdate(id: ID!, input: ProductVariantInput!): ProductVariantUpdate
   productVariantTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): ProductVariantTranslate
@@ -3630,6 +3631,12 @@ input ProductVariantInput {
 }
 
 type ProductVariantStocksCreate {
+  errors: [Error!]!
+  productVariant: ProductVariant
+  stockErrors: [StockError!]!
+}
+
+type ProductVariantStocksDelete {
   errors: [Error!]!
   productVariant: ProductVariant
   stockErrors: [StockError!]!

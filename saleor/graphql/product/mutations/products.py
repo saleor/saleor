@@ -44,6 +44,7 @@ from ...core.utils import (
 )
 from ...core.utils.reordering import perform_reordering
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
+from ...utils import resolve_global_ids_to_primary_keys
 from ...warehouse.types import Warehouse
 from ..types import (
     Category,
@@ -1376,6 +1377,38 @@ class ProductVariantStocksUpdate(BaseMutation):
             )
             stock.quantity = stock_data["quantity"]
             stock.save(update_fields=["quantity"])
+        return cls(product_variant=variant)
+
+
+class ProductVariantStocksDelete(BaseMutation):
+    product_variant = graphene.Field(
+        ProductVariant, description="Updated product variant."
+    )
+
+    class Arguments:
+        variant_id = graphene.ID(
+            required=True,
+            description="ID of product variant for which stocks will be deleted.",
+        )
+        warehouse_ids = graphene.List(graphene.NonNull(graphene.ID),)
+
+    class Meta:
+        description = "Delete stocks from product variant."
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        error_type_class = StockError
+        error_type_field = "stock_errors"
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        variant = cls.get_node_or_error(
+            info, data["variant_id"], only_type=ProductVariant
+        )
+        _, warehouses_pks = resolve_global_ids_to_primary_keys(
+            data["warehouse_ids"], Warehouse
+        )
+        Stock.objects.filter(
+            product_variant=variant, warehouse__pk__in=warehouses_pks
+        ).delete()
         return cls(product_variant=variant)
 
 
