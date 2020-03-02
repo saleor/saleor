@@ -5,6 +5,7 @@ import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.db.models import Q, QuerySet
+from django.db.utils import IntegrityError
 from django.template.defaultfilters import slugify
 from graphene.types import InputObjectType
 from graphql_jwt.exceptions import PermissionDenied
@@ -28,11 +29,13 @@ from ....product.utils.attributes import (
     associate_attribute_values_to_instance,
     generate_name_for_variant,
 )
+from ....warehouse.error_codes import StockErorrCode
 from ....warehouse.management import set_stock_quantity
+from ....warehouse.models import Stock
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import Decimal, WeightScalar
 from ...core.types import SeoInput, Upload
-from ...core.types.common import ProductError
+from ...core.types.common import ProductError, StockError
 from ...core.utils import (
     clean_seo_fields,
     from_global_id_strict_type,
@@ -41,6 +44,7 @@ from ...core.utils import (
 )
 from ...core.utils.reordering import perform_reordering
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
+from ...warehouse.types import Warehouse
 from ..types import (
     Category,
     Collection,
@@ -48,6 +52,7 @@ from ..types import (
     Product,
     ProductImage,
     ProductVariant,
+    StockInput,
 )
 from ..utils import (
     get_used_attibute_values_for_variant,
@@ -1281,6 +1286,53 @@ class ProductVariantClearPrivateMeta(ClearMetaBaseMutation):
         public = False
         error_type_class = ProductError
         error_type_field = "product_errors"
+
+
+class ProductVariantStocksCreate(BaseMutation):
+    product_variant = graphene.Field(
+        ProductVariant, description="Updated product variant."
+    )
+
+    class Arguments:
+        variant_id = graphene.ID(
+            required=True,
+            description="ID of a product variant for which stocks will be created.",
+        )
+        stocks = graphene.List(
+            graphene.NonNull(StockInput),
+            required=True,
+            description="Input list of stocks to create.",
+        )
+
+    class Meta:
+        description = "Creates stocks for variant."
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        error_type_class = StockError
+        error_type_field = "stock_errors"
+
+    @classmethod
+    def perform_mutation(cls, root, info, variant_id, stocks):
+        variant = cls.get_node_or_error(info, variant_id, only_type=ProductVariant)
+        warehouse_ids = [stock["warehouse"] for stock in stocks]
+        warehouses = cls.get_nodes_or_error(
+            warehouse_ids, "warehouse", only_type=Warehouse
+        )
+        for stock_data, warehouse in zip(stocks, warehouses):
+            try:
+                Stock.objects.create(
+                    product_variant=variant,
+                    warehouse=warehouse,
+                    quantity=stock_data["quantity"],
+                )
+            except IntegrityError:
+                msg = (
+                    "Stock for warehouse with id: {} already exists "
+                    "for this product variant.".format(stock_data["warehouse"])
+                )
+                raise ValidationError(
+                    {"warehouse": ValidationError(msg, code=StockErorrCode.UNIQUE,)}
+                )
+        return cls(product_variant=variant)
 
 
 class ProductTypeInput(graphene.InputObjectType):

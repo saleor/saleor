@@ -2249,6 +2249,7 @@ type Mutation {
   productVariantDelete(id: ID!): ProductVariantDelete
   productVariantBulkCreate(product: ID!, variants: [ProductVariantBulkCreateInput]!): ProductVariantBulkCreate
   productVariantBulkDelete(ids: [ID]!): ProductVariantBulkDelete
+  productVariantStocksCreate(stocks: [StockInput!]!, variantId: ID!): ProductVariantStocksCreate
   productVariantUpdate(id: ID!, input: ProductVariantInput!): ProductVariantUpdate
   productVariantTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): ProductVariantTranslate
   productVariantUpdateMetadata(id: ID!, input: MetaInput!): ProductVariantUpdateMeta @deprecated(reason: "Will be removed in Saleor 2.11. Use the `UpdateMetadata` mutation instead.")
@@ -3627,6 +3628,12 @@ input ProductVariantInput {
   weight: WeightScalar
 }
 
+type ProductVariantStocksCreate {
+  errors: [Error!]!
+  productVariant: ProductVariant
+  stockErrors: [StockError!]!
+}
+
 type ProductVariantTranslatableContent implements Node {
   id: ID!
   name: String!
@@ -4348,10 +4355,30 @@ type StockCountableEdge {
   cursor: String!
 }
 
+enum StockErorrCode {
+  ALREADY_EXISTS
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+}
+
+type StockError {
+  field: String
+  message: String
+  code: StockErorrCode!
+}
+
 input StockFilterInput {
   quantity: Float
   quantityAllocated: Float
   search: String
+}
+
+input StockInput {
+  warehouse: ID!
+  quantity: Int
 }
 
 enum TaxRateType {

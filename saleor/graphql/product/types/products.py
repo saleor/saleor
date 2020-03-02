@@ -374,6 +374,13 @@ class ProductVariant(CountableDjangoObjectType):
         return graphene.Node.get_node_from_global_id(_info, root.id)
 
 
+class StockInput(graphene.InputObjectType):
+    warehouse = graphene.ID(
+        required=True, description="Warehouse in which stock is located."
+    )
+    quantity = graphene.Int(description="Quantity of items available for sell.")
+
+
 @key(fields="id")
 class Product(CountableDjangoObjectType):
     url = graphene.String(
