@@ -503,7 +503,7 @@ class OrderEvent(models.Model):
 
 
 class Invoice(models.Model):
-    order = models.ForeignKey(Order, on_delete=models.CASCADE)
+    order = models.ForeignKey(Order, null=True, on_delete=models.CASCADE)
     number = models.CharField(max_length=64)
     created = models.DateTimeField(auto_now_add=True)
     url = models.URLField(max_length=256)
