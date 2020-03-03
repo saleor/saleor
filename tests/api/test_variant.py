@@ -1255,8 +1255,8 @@ def test_update_variant_changes_stock_only_when_quantity_is_passed(
 
 
 VARIANT_STOCKS_CREATE_MUTATION = """
-    mutation ProductVariantStocksCreate($variantId: ID!, $stocks: [StockInput!]!){
-        productVariantStocksCreate(variantId: $variantId, stocks: $stocks){
+    mutation ProductVariantStocksBulkCreate($variantId: ID!, $stocks: [StockInput!]!){
+        productVariantStocksBulkCreate(variantId: $variantId, stocks: $stocks){
             productVariant{
                 stocks {
                     quantity
@@ -1303,7 +1303,7 @@ def test_variant_stocks_create(
         permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
-    data = content["data"]["productVariantStocksCreate"]
+    data = content["data"]["productVariantStocksBulkCreate"]
 
     expected_result = [
         {
@@ -1355,7 +1355,7 @@ def test_variant_stocks_create_stock_already_exists(
         permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
-    data = content["data"]["productVariantStocksCreate"]
+    data = content["data"]["productVariantStocksBulkCreate"]
     errors = data["stockErrors"]
 
     assert errors
@@ -1364,8 +1364,8 @@ def test_variant_stocks_create_stock_already_exists(
 
 
 VARIANT_STOCKS_UPDATE_MUTATIONS = """
-    mutation ProductVariantStocksUpdate($variantId: ID!, $stocks: [StockInput!]!){
-        productVariantStocksUpdate(variantId: $variantId, stocks: $stocks){
+    mutation ProductVariantStocksBulkUpdate($variantId: ID!, $stocks: [StockInput!]!){
+        productVariantStocksBulkUpdate(variantId: $variantId, stocks: $stocks){
             productVariant{
                 stocks{
                     quantity
@@ -1414,7 +1414,7 @@ def test_product_variant_stocks_update(
         permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
-    data = content["data"]["productVariantStocksUpdate"]
+    data = content["data"]["productVariantStocksBulkUpdate"]
 
     expected_result = [
         {
@@ -1439,8 +1439,10 @@ def test_product_variant_stocks_update(
 
 
 VARIANT_STOCKS_DELETE_MUTATION = """
-    mutation ProductVariantStocksDelete($variantId: ID!, $warehouseIds: [ID!]!){
-        productVariantStocksDelete(variantId: $variantId, warehouseIds: $warehouseIds){
+    mutation ProductVariantStocksBulkDelete($variantId: ID!, $warehouseIds: [ID!]!){
+        productVariantStocksBulkDelete(
+            variantId: $variantId, warehouseIds: $warehouseIds
+        ){
             productVariant{
                 stocks{
                     id
@@ -1486,7 +1488,7 @@ def test_product_variant_stocks_delete_mutation(
         permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
-    data = content["data"]["productVariantStocksDelete"]
+    data = content["data"]["productVariantStocksBulkDelete"]
 
     variant.refresh_from_db()
     assert not data["stockErrors"]
@@ -1522,7 +1524,7 @@ def test_product_variant_stocks_delete_mutation_invalid_warehouse_id(
         permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
-    data = content["data"]["productVariantStocksDelete"]
+    data = content["data"]["productVariantStocksBulkDelete"]
 
     variant.refresh_from_db()
     assert not data["stockErrors"]
