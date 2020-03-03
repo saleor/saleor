@@ -2489,7 +2489,7 @@ type OrderAddNote {
 }
 
 input OrderAddNoteInput {
-  message: String
+  message: String!
 }
 
 type OrderBulkCancel {
