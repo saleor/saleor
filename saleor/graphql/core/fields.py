@@ -44,32 +44,29 @@ class BaseConnectionField(graphene.ConnectionField):
 class BaseDjangoConnectionField(DjangoConnectionField):
     @classmethod
     def resolve_connection(cls, connection, args, iterable):
+        common_args = {
+            "connection_type": connection,
+            "edge_type": connection.Edge,
+            "page_info_type": PageInfo,
+        }
         if isinstance(iterable, list):
+            common_args["args"] = args
             _len = len(iterable)
             connection = connection_from_list_slice(
                 iterable,
-                args,
                 slice_start=0,
                 list_length=_len,
                 list_slice_length=_len,
-                connection_type=connection,
-                edge_type=connection.Edge,
-                pageinfo_type=PageInfo,
+                **common_args,
             )
-            connection.iterable = iterable
         else:
             iterable, sort_by = sort_queryset_for_connection(
                 iterable=iterable, args=args
             )
             args["sort_by"] = sort_by
-            connection = connection_from_queryset_slice(
-                iterable,
-                args,
-                connection_type=connection,
-                edge_type=connection.Edge,
-                page_info_type=PageInfo,
-            )
-            connection.iterable = iterable
+            common_args["args"] = args
+            connection = connection_from_queryset_slice(iterable, **common_args)
+        connection.iterable = iterable
         return connection
 
     def __init__(self, *args, **kwargs):

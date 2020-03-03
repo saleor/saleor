@@ -1,4 +1,5 @@
-from typing import Any, Dict, List, Tuple, Union
+import json
+from typing import Any, Dict, Iterable, List, Tuple, Union
 
 import graphene
 import opentracing as ot
@@ -14,22 +15,15 @@ ConnectionArguments = Dict[str, Any]
 
 
 def to_global_cursor(values):
-    if not isinstance(values, list):
-        values = [str(values)]
-    else:
-        values = [str(value) for value in values]
-    return base64("::".join(values))
+    if not isinstance(values, Iterable):
+        values = [values]
+    values = [value if value is None else str(value) for value in values]
+    return base64(json.dumps(values))
 
 
 def from_global_cursor(cursor) -> List[str]:
     values = unbase64(cursor)
-    values = values.split("::")
-    if isinstance(values, list):
-        values = [None if value == "None" else value for value in values]
-        return values
-    if values == "None":
-        values = None
-    return [values]
+    return json.loads(values)
 
 
 def get_field_value(instance: DjangoModel, field_name: str):
@@ -127,12 +121,11 @@ def _get_sorting_fields(sort_by, qs):
 
 
 def _get_sorting_direction(sort_by, last=None):
-    sorting_direction = sort_by.get("direction", "")
-    sorting_direction = "lt" if sorting_direction == OrderDirection.DESC else "gt"
+    direction = sort_by.get("direction", "")
+    sorting_desc = direction == OrderDirection.DESC
     if last:
-        # reversed direction
-        sorting_direction = "gt" if sorting_direction == "lt" else "lt"
-    return sorting_direction
+        sorting_desc = not sorting_desc
+    return "lt" if sorting_desc else "gt"
 
 
 def _get_page_info(matching_records, cursor, first, last):
@@ -173,6 +166,8 @@ def _get_edges_for_connection(edge_type, qs, args, sorting_fields):
     matching_records = list(qs)
     if last:
         matching_records = list(reversed(matching_records))
+        if len(matching_records) <= requested_count:
+            start_slice = 0
     page_info = _get_page_info(matching_records, cursor, first, last)
     matching_records = matching_records[start_slice:end_slice]
 
@@ -214,6 +209,8 @@ def connection_from_queryset_slice(
     sort_by = args.get("sort_by", {})
     sorting_fields = _get_sorting_fields(sort_by, qs)
     sorting_direction = _get_sorting_direction(sort_by, last)
+    if cursor and len(cursor) != len(sorting_fields):
+        raise ValueError("Received cursor is invalid.")
     filter_kwargs = (
         _prepare_filter(cursor, sorting_fields, sorting_direction) if cursor else Q()
     )
