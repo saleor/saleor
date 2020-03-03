@@ -69,12 +69,13 @@ def test_fetch_variant(staff_api_client, product, permission_manage_products):
 
 
 def test_create_variant(
-    staff_api_client, product, product_type, permission_manage_products
+    staff_api_client, product, product_type, permission_manage_products, warehouse
 ):
     query = """
         mutation createVariant (
             $productId: ID!,
             $sku: String!,
+            $stocks: [StockInput!],
             $priceOverride: Decimal,
             $costPrice: Decimal,
             $attributes: [AttributeValueInput]!,
@@ -84,6 +85,7 @@ def test_create_variant(
                     input: {
                         product: $productId,
                         sku: $sku,
+                        stocks: $stocks,
                         priceOverride: $priceOverride,
                         costPrice: $costPrice,
                         attributes: $attributes,
@@ -119,6 +121,12 @@ def test_create_variant(
                             value
                             unit
                         }
+                        stocks {
+                            quantity
+                            warehouse {
+                                slug
+                            }
+                        }
                     }
                 }
             }
@@ -128,18 +136,23 @@ def test_create_variant(
     sku = "1"
     price_override = 1.32
     cost_price = 3.22
-    quantity = 10
     weight = 10.22
     variant_slug = product_type.variant_attributes.first().slug
     variant_id = graphene.Node.to_global_id(
         "Attribute", product_type.variant_attributes.first().pk
     )
     variant_value = "test-value"
+    stocks = [
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+            "quantity": 20,
+        }
+    ]
 
     variables = {
         "productId": product_id,
         "sku": sku,
-        "quantity": quantity,
+        "stocks": stocks,
         "costPrice": cost_price,
         "priceOverride": price_override,
         "weight": weight,
@@ -160,6 +173,9 @@ def test_create_variant(
     assert data["attributes"][0]["values"][0]["slug"] == variant_value
     assert data["weight"]["unit"] == "kg"
     assert data["weight"]["value"] == weight
+    assert len(data["stocks"]) == 1
+    assert data["stocks"][0]["quantity"] == stocks[0]["quantity"]
+    assert data["stocks"][0]["warehouse"]["slug"] == warehouse.slug
 
 
 def test_create_product_variant_not_all_attributes(

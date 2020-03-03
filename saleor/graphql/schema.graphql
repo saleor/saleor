@@ -3214,10 +3214,10 @@ input ProductCreateInput {
   seo: SeoInput
   weight: WeightScalar
   sku: String
-  stocks: [StockInput!]
   quantity: Int
   trackInventory: Boolean
   productType: ID!
+  stocks: [StockInput!]
 }
 
 type ProductDelete {
@@ -3327,7 +3327,6 @@ input ProductInput {
   seo: SeoInput
   weight: WeightScalar
   sku: String
-  stocks: [StockInput!]
   quantity: Int
   trackInventory: Boolean
 }
@@ -3614,6 +3613,7 @@ input ProductVariantCreateInput {
   trackInventory: Boolean
   weight: WeightScalar
   product: ID!
+  stocks: [StockInput!]
 }
 
 type ProductVariantDelete {

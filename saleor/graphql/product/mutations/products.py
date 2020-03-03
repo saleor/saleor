@@ -525,14 +525,6 @@ class ProductInput(graphene.InputObjectType):
             "a product doesn't use variants."
         )
     )
-    stocks = graphene.List(
-        graphene.NonNull(StockInput),
-        description=(
-            "Stocks of a product available for sale. Note: this field is "
-            "only used if a product doesn't use variants."
-        ),
-        required=False,
-    )
     quantity = graphene.Int(
         description=(
             "The total quantity of a product available for sale. Note: this field is "
@@ -556,6 +548,14 @@ class ProductCreateInput(ProductInput):
         description="ID of the type that product belongs to.",
         name="productType",
         required=True,
+    )
+    stocks = graphene.List(
+        graphene.NonNull(StockInput),
+        description=(
+            "Stocks of a product available for sale. Note: this field is "
+            "only used if a product doesn't use variants."
+        ),
+        required=False,
     )
 
 
@@ -923,8 +923,11 @@ class ProductCreate(ModelMutation):
                 product=instance, track_inventory=track_inventory, sku=sku
             )
             stocks = cleaned_input.get("stocks")
+            quantity = cleaned_input.get("quantity")
             if stocks:
                 cls.create_variant_stocks(variant, stocks)
+            elif quantity:  # DEPRECATED: Will be removed in 2.11
+                set_stock_quantity(variant, info.context.country, quantity)
 
         attributes = cleaned_input.get("attributes")
         if attributes:
@@ -996,6 +999,7 @@ class ProductUpdate(ProductCreate):
             if "track_inventory" in cleaned_input:
                 variant.track_inventory = cleaned_input["track_inventory"]
                 update_fields.append("track_inventory")
+            # DEPRECATED: Wil be removed in 2.11. Use ProductVariantStocksUpdate insted.
             if "quantity" in cleaned_input:
                 quantity = cleaned_input.get("quantity")
                 set_stock_quantity(variant, info.context.country, quantity)
@@ -1074,7 +1078,10 @@ class ProductVariantInput(graphene.InputObjectType):
     price_override = Decimal(description="Special price of the particular variant.")
     sku = graphene.String(description="Stock keeping unit.")
     quantity = graphene.Int(
-        description="The total quantity of this variant available for sale."
+        description="The total quantity of this variant available for sale.",
+        deprecation_reason=(
+            "DEPRECATED: Will be removed in 2.11. Use stocks input field instead."
+        ),
     )
     track_inventory = graphene.Boolean(
         description=(
@@ -1095,6 +1102,11 @@ class ProductVariantCreateInput(ProductVariantInput):
         description="Product ID of which type is the variant.",
         name="product",
         required=True,
+    )
+    stocks = graphene.List(
+        graphene.NonNull(StockInput),
+        description=("Stocks of a product available for sale."),
+        required=False,
     )
 
 
@@ -1208,8 +1220,11 @@ class ProductVariantCreate(ModelMutation):
         instance.save()
         # Recalculate the "minimal variant price" for the parent product
         update_product_minimal_variant_price_task.delay(instance.product_id)
+        stocks = cleaned_input.get("stocks")
         quantity = cleaned_input.get("quantity")
-        if quantity is not None:
+        if stocks:
+            cls.create_variant_stocks(instance, stocks)
+        elif quantity:  # DEPRECATED: Will be removed in 2.11
             set_stock_quantity(instance, info.context.country, quantity)
 
         attributes = cleaned_input.get("attributes")
@@ -1217,6 +1232,18 @@ class ProductVariantCreate(ModelMutation):
             AttributeAssignmentMixin.save(instance, attributes)
             instance.name = generate_name_for_variant(instance)
             instance.save(update_fields=["name"])
+
+    @classmethod
+    def create_variant_stocks(cls, variant, stocks):
+        warehouse_ids = [stock["warehouse"] for stock in stocks]
+        warehouses = cls.get_nodes_or_error(
+            warehouse_ids, "warehouse", only_type=Warehouse
+        )
+        try:
+            create_stocks(variant, stocks, warehouses)
+        except ValidationError as error:
+            error.code = StockErorrCode.UNIQUE
+            raise ValidationError({"warehouse": error})
 
 
 class ProductVariantUpdate(ProductVariantCreate):
