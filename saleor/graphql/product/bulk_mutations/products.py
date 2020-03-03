@@ -331,30 +331,19 @@ class ProductVariantStocksBulkCreate(BaseMutation):
         warehouses = cls.get_nodes_or_error(
             warehouse_ids, "warehouse", only_type=Warehouse
         )
+        cls.create_variant_stock(variant, stocks, warehouses)
+        return cls(product_variant=variant)
+
+    @classmethod
+    def create_variant_stocks(cls, variant, stocks, warehouses):
         try:
             create_stocks(variant, stocks, warehouses)
         except ValidationError as error:
             error.code = StockErorrCode.UNIQUE
             raise ValidationError({"warehouse": error})
-        return cls(product_variant=variant)
 
 
-class ProductVariantStocksBulkUpdate(BaseMutation):
-    product_variant = graphene.Field(
-        ProductVariant, description="Updated product variant."
-    )
-
-    class Arguments:
-        variant_id = graphene.ID(
-            required=True,
-            description="ID of product variant for which stocks will be updated.",
-        )
-        stocks = graphene.List(
-            graphene.NonNull(StockInput),
-            required=True,
-            description="Input list of stocks.",
-        )
-
+class ProductVariantStocksBulkUpdate(ProductVariantStocksBulkCreate):
     class Meta:
         description = "Update stocks for product variant."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
@@ -362,22 +351,13 @@ class ProductVariantStocksBulkUpdate(BaseMutation):
         error_type_field = "stock_errors"
 
     @classmethod
-    def perform_mutation(cls, root, info, **data):
-        stocks = data["stocks"]
-        variant = cls.get_node_or_error(
-            info, data["variant_id"], only_type=ProductVariant
-        )
-        warehouse_ids = [stock["warehouse"] for stock in stocks]
-        warehouses = cls.get_nodes_or_error(
-            warehouse_ids, "warehouse", only_type=Warehouse
-        )
+    def create_variant_stocks(cls, variant, stocks, warehouses):
         for stock_data, warehouse in zip(stocks, warehouses):
             stock, _ = Stock.objects.get_or_create(
                 product_variant=variant, warehouse=warehouse
             )
             stock.quantity = stock_data["quantity"]
             stock.save(update_fields=["quantity"])
-        return cls(product_variant=variant)
 
 
 class ProductVariantStocksBulkDelete(BaseMutation):
