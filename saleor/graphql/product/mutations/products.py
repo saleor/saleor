@@ -5,7 +5,6 @@ import graphene
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.db import transaction
 from django.db.models import Q, QuerySet
-from django.db.utils import IntegrityError
 from django.template.defaultfilters import slugify
 from graphene.types import InputObjectType
 from graphql_jwt.exceptions import PermissionDenied
@@ -56,6 +55,7 @@ from ..types import (
     StockInput,
 )
 from ..utils import (
+    create_stocks,
     get_used_attibute_values_for_variant,
     get_used_variants_attribute_values,
     validate_attribute_input_for_product,
@@ -924,34 +924,23 @@ class ProductCreate(ModelMutation):
             )
             stocks = cleaned_input.get("stocks")
             if stocks:
-                cls.create_stocks(variant, stocks)
+                cls.create_variant_stocks(variant, stocks)
 
         attributes = cleaned_input.get("attributes")
         if attributes:
             AttributeAssignmentMixin.save(instance, attributes)
 
     @classmethod
-    @transaction.atomic
-    def create_stocks(cls, variant, stocks):
+    def create_variant_stocks(cls, variant, stocks):
         warehouse_ids = [stock["warehouse"] for stock in stocks]
         warehouses = cls.get_nodes_or_error(
             warehouse_ids, "warehouse", only_type=Warehouse
         )
-        for stock_data, warehouse in zip(stocks, warehouses):
-            try:
-                Stock.objects.create(
-                    product_variant=variant,
-                    warehouse=warehouse,
-                    quantity=stock_data["quantity"],
-                )
-            except IntegrityError:
-                msg = (
-                    "Stock for warehouse with id: {} already exists "
-                    "for this product variant.".format(stock_data["warehouse"])
-                )
-                raise ValidationError(
-                    {"warehouse": ValidationError(msg, code=StockErorrCode.UNIQUE,)}
-                )
+        try:
+            create_stocks(variant, stocks, warehouses)
+        except ValidationError as error:
+            error.code = StockErorrCode.UNIQUE
+            raise ValidationError({"warehouse": error})
 
     @classmethod
     def _save_m2m(cls, info, instance, cleaned_data):
@@ -1355,21 +1344,11 @@ class ProductVariantStocksCreate(BaseMutation):
         warehouses = cls.get_nodes_or_error(
             warehouse_ids, "warehouse", only_type=Warehouse
         )
-        for stock_data, warehouse in zip(stocks, warehouses):
-            try:
-                Stock.objects.create(
-                    product_variant=variant,
-                    warehouse=warehouse,
-                    quantity=stock_data["quantity"],
-                )
-            except IntegrityError:
-                msg = (
-                    "Stock for warehouse with id: {} already exists "
-                    "for this product variant.".format(stock_data["warehouse"])
-                )
-                raise ValidationError(
-                    {"warehouse": ValidationError(msg, code=StockErorrCode.UNIQUE,)}
-                )
+        try:
+            create_stocks(variant, stocks, warehouses)
+        except ValidationError as error:
+            error.code = StockErorrCode.UNIQUE
+            raise ValidationError({"warehouse": error})
         return cls(product_variant=variant)
 
 
