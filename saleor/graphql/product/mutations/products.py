@@ -525,11 +525,22 @@ class ProductInput(graphene.InputObjectType):
             "a product doesn't use variants."
         )
     )
+    stocks = graphene.List(
+        graphene.NonNull(StockInput),
+        description=(
+            "Stocks of a product available for sale. Note: this field is "
+            "only used if a product doesn't use variants."
+        ),
+        required=False,
+    )
     quantity = graphene.Int(
         description=(
             "The total quantity of a product available for sale. Note: this field is "
             "only used if a product doesn't use variants."
-        )
+        ),
+        deprecation_reason=(
+            "DEPRECATED: Will be removed in 2.11. Use stocks input field instead."
+        ),
     )
     track_inventory = graphene.Boolean(
         description=(
@@ -911,13 +922,36 @@ class ProductCreate(ModelMutation):
             variant = models.ProductVariant.objects.create(
                 product=instance, track_inventory=track_inventory, sku=sku
             )
-            quantity = cleaned_input.get("quantity")
-            if quantity is not None:
-                set_stock_quantity(variant, info.context.country, quantity)
+            stocks = cleaned_input.get("stocks")
+            if stocks:
+                cls.create_stocks(variant, stocks)
 
         attributes = cleaned_input.get("attributes")
         if attributes:
             AttributeAssignmentMixin.save(instance, attributes)
+
+    @classmethod
+    @transaction.atomic
+    def create_stocks(cls, variant, stocks):
+        warehouse_ids = [stock["warehouse"] for stock in stocks]
+        warehouses = cls.get_nodes_or_error(
+            warehouse_ids, "warehouse", only_type=Warehouse
+        )
+        for stock_data, warehouse in zip(stocks, warehouses):
+            try:
+                Stock.objects.create(
+                    product_variant=variant,
+                    warehouse=warehouse,
+                    quantity=stock_data["quantity"],
+                )
+            except IntegrityError:
+                msg = (
+                    "Stock for warehouse with id: {} already exists "
+                    "for this product variant.".format(stock_data["warehouse"])
+                )
+                raise ValidationError(
+                    {"warehouse": ValidationError(msg, code=StockErorrCode.UNIQUE,)}
+                )
 
     @classmethod
     def _save_m2m(cls, info, instance, cleaned_data):

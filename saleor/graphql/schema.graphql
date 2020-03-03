@@ -3214,6 +3214,7 @@ input ProductCreateInput {
   seo: SeoInput
   weight: WeightScalar
   sku: String
+  stocks: [StockInput!]
   quantity: Int
   trackInventory: Boolean
   productType: ID!
@@ -3326,6 +3327,7 @@ input ProductInput {
   seo: SeoInput
   weight: WeightScalar
   sku: String
+  stocks: [StockInput!]
   quantity: Int
   trackInventory: Boolean
 }

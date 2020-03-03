@@ -3574,12 +3574,13 @@ def test_product_filter_by_attribute_values(
     ]
 
 
-MUTATION_CREATE_PRODUCT_QUANTITY = """
+MUTATION_CREATE_PRODUCT_WITH_STOCKS = """
 mutation createProduct(
         $productType: ID!,
         $category: ID!
         $name: String!,
         $sku: String,
+        $stocks: [StockInput!],
         $quantity: Int,
         $basePrice: Decimal!
         $trackInventory: Boolean)
@@ -3590,6 +3591,7 @@ mutation createProduct(
                 productType: $productType,
                 name: $name,
                 sku: $sku,
+                stocks: $stocks,
                 trackInventory: $trackInventory,
                 quantity: $quantity,
                 basePrice: $basePrice,
@@ -3605,16 +3607,17 @@ mutation createProduct(
                     quantity
                 }
             }
-            errors {
+            productErrors {
                 message
                 field
+                code
             }
         }
     }
     """
 
 
-def test_create_product_without_variant_creates_stock(
+def test_create_product_without_variant_creates_stocks(
     staff_api_client,
     category,
     permission_manage_products,
@@ -3625,41 +3628,55 @@ def test_create_product_without_variant_creates_stock(
     product_type_id = graphene.Node.to_global_id(
         "ProductType", product_type_without_variant.pk
     )
+    stocks = [
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+            "quantity": 20,
+        }
+    ]
     variables = {
         "category": category_id,
         "productType": product_type_id,
         "name": "Test",
         "quantity": 8,
+        "stocks": stocks,
         "sku": "23434",
         "trackInventory": True,
         "basePrice": Decimal("19"),
     }
     response = staff_api_client.post_graphql(
-        MUTATION_CREATE_PRODUCT_QUANTITY,
+        MUTATION_CREATE_PRODUCT_WITH_STOCKS,
         variables,
         permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
     quantity = content["data"]["productCreate"]["product"]["variants"][0]["quantity"]
-    assert quantity == 8
+    assert quantity == 20
 
 
 def test_create_product_with_variants_does_not_create_stock(
-    staff_api_client, category, product_type, permission_manage_products
+    staff_api_client, category, product_type, permission_manage_products, warehouse
 ):
     category_id = graphene.Node.to_global_id("Category", category.pk)
     product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    stocks = [
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+            "quantity": 20,
+        }
+    ]
     variables = {
         "category": category_id,
         "productType": product_type_id,
         "name": "Test",
         "quantity": 8,
+        "stocks": stocks,
         "sku": "23434",
         "trackInventory": True,
         "basePrice": Decimal("19"),
     }
     response = staff_api_client.post_graphql(
-        MUTATION_CREATE_PRODUCT_QUANTITY,
+        MUTATION_CREATE_PRODUCT_WITH_STOCKS,
         variables,
         permissions=[permission_manage_products],
     )
@@ -3667,33 +3684,6 @@ def test_create_product_with_variants_does_not_create_stock(
     variants = content["data"]["productCreate"]["product"]["variants"]
     assert len(variants) == 0
     assert not Stock.objects.exists()
-
-
-def test_create_without_variants_failes_without_warehouses(
-    staff_api_client, category, product_type_without_variant, permission_manage_products
-):
-    category_id = graphene.Node.to_global_id("Category", category.pk)
-    product_type_id = graphene.Node.to_global_id(
-        "ProductType", product_type_without_variant.pk
-    )
-    variables = {
-        "category": category_id,
-        "productType": product_type_id,
-        "name": "Test",
-        "quantity": 8,
-        "sku": "23434",
-        "trackInventory": True,
-        "basePrice": Decimal("19"),
-    }
-    response = staff_api_client.post_graphql(
-        MUTATION_CREATE_PRODUCT_QUANTITY,
-        variables,
-        permissions=[permission_manage_products],
-    )
-    content = get_graphql_content(response, ignore_errors=True)
-    errors = content["errors"]
-    assert len(errors) == 1
-    assert errors[0]["message"] == "Warehouse matching query does not exist."
 
 
 MUTATION_UPDATE_PRODUCT_QUANTITY = """
