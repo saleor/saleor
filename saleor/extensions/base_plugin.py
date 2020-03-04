@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from ..discount import DiscountInfo
     from ..product.models import Product, ProductType
     from ..account.models import Address, User
-    from ..order.models import Fulfillment, OrderLine, Order
+    from ..order.models import Fulfillment, Invoice, OrderLine, Order
     from ..payment.interface import GatewayResponse, PaymentData, CustomerSource
 
 
@@ -197,6 +197,21 @@ class BasePlugin:
 
         Overwrite this method if you need to trigger specific logic after an order is
         created.
+        """
+        return NotImplemented
+
+    def invoice_create(self, order: "Order", invoice: "Invoice", previous_value: Any):
+        """Trigger when invoice is being created.
+
+        Overwrite this method to manipulate invoice object.
+        Invoice object should be saved after performing changes.
+        """
+        return NotImplemented
+
+    def invoice_delete(self, invoice: "Invoice", previous_value: Any):
+        """Trigger when invoice is being deleted.
+
+        Overwrite this method if you need to trigger specific action before the invoice is deleted.
         """
         return NotImplemented
 

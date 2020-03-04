@@ -19,7 +19,7 @@ if TYPE_CHECKING:
     from ..discount.types import DiscountsListType
     from ..product.models import Product, ProductType
     from ..account.models import Address, User
-    from ..order.models import Fulfillment, OrderLine, Order
+    from ..order.models import Fulfillment, Invoice, OrderLine, Order
     from ..payment.interface import (
         PaymentData,
         TokenConfig,
@@ -205,6 +205,16 @@ class ExtensionsManager(PaymentInterface):
     def order_created(self, order: "Order"):
         default_value = None
         return self.__run_method_on_plugins("order_created", default_value, order)
+
+    def invoice_create(self, order: "Order", invoice: "Invoice"):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "invoice_create", default_value, order, invoice
+        )
+
+    def invoice_delete(self, invoice: "Invoice"):
+        default_value = None
+        return self.__run_method_on_plugins("invoice_delete", default_value, invoice)
 
     def order_fully_paid(self, order: "Order"):
         default_value = None
