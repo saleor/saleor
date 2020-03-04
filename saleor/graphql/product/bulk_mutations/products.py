@@ -336,7 +336,11 @@ class ProductVariantStocksBulkCreate(BaseMutation):
         warehouses = cls.clean_stocks_input(variant, stocks, errors)
         if errors:
             raise ValidationError(errors)
-        create_stocks(variant, stocks, warehouses)
+        try:
+            create_stocks(variant, stocks, warehouses)
+        except ValidationError as error:
+            error.code = ProductErrorCode.UNIQUE
+            raise ValidationError({"warehouse": error})
         return cls(product_variant=variant)
 
     @classmethod
@@ -353,9 +357,9 @@ class ProductVariantStocksBulkCreate(BaseMutation):
             warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse_pk)
             msg = "Stock for this warehouse already exists " "for this product variant."
             error = ValidationError(
-                {"warehouse": ValidationError(msg, code=StockErorrCode.UNIQUE)}
+                msg, code=StockErorrCode.UNIQUE, params={"id": warehouse_id}
             )
-            cls.add_id_to_errors(warehouse_id, error, errors)
+            errors["warehouse"].append(error)
 
         return warehouses
 
@@ -365,20 +369,9 @@ class ProductVariantStocksBulkCreate(BaseMutation):
         error_msg = "Duplicated warehouse ID."
         for duplicated_id in duplicates:
             error = ValidationError(
-                {"warehouse": ValidationError(error_msg, code=StockErorrCode.UNIQUE)}
+                error_msg, code=StockErorrCode.UNIQUE, params={"id": duplicated_id}
             )
-            cls.add_id_to_errors(duplicated_id, error, errors)
-
-    @classmethod
-    def add_id_to_errors(cls, id, error, error_dict):
-        """Append errors with id in params to mutation error dict."""
-        for key, value in error.error_dict.items():
-            for e in value:
-                if e.params:
-                    e.params["id"] = id
-                else:
-                    e.params = {"id": id}
-            error_dict[key].extend(value)
+            errors["warehouse"].append(error)
 
     @classmethod
     def handle_typed_errors(cls, errors: list, **extra):

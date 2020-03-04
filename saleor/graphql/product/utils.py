@@ -118,4 +118,4 @@ def create_stocks(
                 "Stock for warehouse with id: {} already exists "
                 "for this product variant.".format(stock_data["warehouse"])
             )
-            raise ValidationError(msg)
+            raise ValidationError(msg, params={"id": stock_data["warehouse"]})
