@@ -1267,10 +1267,11 @@ VARIANT_STOCKS_CREATE_MUTATION = """
                     }
                 }
             }
-            stockErrors {
+            bulkStockErrors{
                 code
                 field
                 message
+                id
             }
         }
     }
@@ -1317,7 +1318,7 @@ def test_variant_stocks_create(
             "warehouse": {"slug": second_warehouse.slug},
         },
     ]
-    assert not data["stockErrors"]
+    assert not data["bulkStockErrors"]
     assert len(data["productVariant"]["stocks"]) == len(stocks)
     result = []
     for stock in data["productVariant"]["stocks"]:
@@ -1338,11 +1339,10 @@ def test_variant_stocks_create_stock_already_exists(
 
     Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=10)
 
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
+
     stocks = [
-        {
-            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.id),
-            "quantity": 20,
-        },
+        {"warehouse": warehouse_id, "quantity": 20},
         {
             "warehouse": graphene.Node.to_global_id("Warehouse", second_warehouse.id),
             "quantity": 100,
@@ -1356,11 +1356,92 @@ def test_variant_stocks_create_stock_already_exists(
     )
     content = get_graphql_content(response)
     data = content["data"]["productVariantStocksBulkCreate"]
-    errors = data["stockErrors"]
+    errors = data["bulkStockErrors"]
 
     assert errors
     assert errors[0]["code"] == StockErorrCode.UNIQUE.name
     assert errors[0]["field"] == "warehouse"
+    assert errors[0]["id"] == warehouse_id
+
+
+def test_variant_stocks_create_stock_duplicated_warehouse(
+    staff_api_client, variant, warehouse, permission_manage_products
+):
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    second_warehouse = Warehouse.objects.get(pk=warehouse.pk)
+    second_warehouse.slug = "second warehouse"
+    second_warehouse.pk = None
+    second_warehouse.save()
+
+    second_warehouse_id = graphene.Node.to_global_id("Warehouse", second_warehouse.id)
+
+    stocks = [
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.id),
+            "quantity": 20,
+        },
+        {"warehouse": second_warehouse_id, "quantity": 100},
+        {"warehouse": second_warehouse_id, "quantity": 120},
+    ]
+    variables = {"variantId": variant_id, "stocks": stocks}
+    response = staff_api_client.post_graphql(
+        VARIANT_STOCKS_CREATE_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantStocksBulkCreate"]
+    errors = data["bulkStockErrors"]
+
+    assert errors
+    assert errors[0]["code"] == StockErorrCode.UNIQUE.name
+    assert errors[0]["field"] == "warehouse"
+    assert errors[0]["id"] == second_warehouse_id
+
+
+def test_variant_stocks_create_stock_duplicated_warehouse_and_warehouse_already_exists(
+    staff_api_client, variant, warehouse, permission_manage_products
+):
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    second_warehouse = Warehouse.objects.get(pk=warehouse.pk)
+    second_warehouse.slug = "second warehouse"
+    second_warehouse.pk = None
+    second_warehouse.save()
+
+    second_warehouse_id = graphene.Node.to_global_id("Warehouse", second_warehouse.id)
+    Stock.objects.create(
+        product_variant=variant, warehouse=second_warehouse, quantity=10
+    )
+
+    stocks = [
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.id),
+            "quantity": 20,
+        },
+        {"warehouse": second_warehouse_id, "quantity": 100},
+        {"warehouse": second_warehouse_id, "quantity": 120},
+    ]
+
+    variables = {"variantId": variant_id, "stocks": stocks}
+    response = staff_api_client.post_graphql(
+        VARIANT_STOCKS_CREATE_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantStocksBulkCreate"]
+    errors = data["bulkStockErrors"]
+
+    assert len(errors) == 2
+    assert {error["code"] for error in errors} == {
+        StockErorrCode.UNIQUE.name,
+    }
+    assert {error["field"] for error in errors} == {
+        "warehouse",
+    }
+    assert {error["id"] for error in errors} == {
+        second_warehouse_id,
+    }
 
 
 VARIANT_STOCKS_UPDATE_MUTATIONS = """
@@ -1376,10 +1457,11 @@ VARIANT_STOCKS_UPDATE_MUTATIONS = """
                     }
                 }
             }
-            stockErrors{
+            bulkStockErrors{
                 code
                 field
                 message
+                id
             }
         }
     }
@@ -1428,7 +1510,7 @@ def test_product_variant_stocks_update(
             "warehouse": {"slug": second_warehouse.slug},
         },
     ]
-    assert not data["stockErrors"]
+    assert not data["bulkStockErrors"]
     assert len(data["productVariant"]["stocks"]) == len(stocks)
     result = []
     for stock in data["productVariant"]["stocks"]:
@@ -1436,6 +1518,42 @@ def test_product_variant_stocks_update(
         result.append(stock)
     for res in result:
         assert res in expected_result
+
+
+def test_variant_stocks_update_stock_duplicated_warehouse(
+    staff_api_client, variant, warehouse, permission_manage_products
+):
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
+    second_warehouse = Warehouse.objects.get(pk=warehouse.pk)
+    second_warehouse.slug = "second warehouse"
+    second_warehouse.pk = None
+    second_warehouse.save()
+
+    Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=10)
+
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    stocks = [
+        {"warehouse": warehouse_id, "quantity": 20},
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", second_warehouse.pk),
+            "quantity": 100,
+        },
+        {"warehouse": warehouse_id, "quantity": 150},
+    ]
+    variables = {"variantId": variant_id, "stocks": stocks}
+    response = staff_api_client.post_graphql(
+        VARIANT_STOCKS_UPDATE_MUTATIONS,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantStocksBulkUpdate"]
+    errors = data["bulkStockErrors"]
+
+    assert errors
+    assert errors[0]["code"] == StockErorrCode.UNIQUE.name
+    assert errors[0]["field"] == "warehouse"
+    assert errors[0]["id"] == warehouse_id
 
 
 VARIANT_STOCKS_DELETE_MUTATION = """

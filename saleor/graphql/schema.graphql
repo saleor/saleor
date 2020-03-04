@@ -493,6 +493,13 @@ type BulkProductError {
   index: Int
 }
 
+type BulkStockError {
+  field: String
+  message: String
+  code: ProductErrorCode!
+  id: ID
+}
+
 input CatalogueInput {
   products: [ID]
   categories: [ID]
@@ -3635,7 +3642,7 @@ input ProductVariantInput {
 type ProductVariantStocksBulkCreate {
   errors: [Error!]!
   productVariant: ProductVariant
-  stockErrors: [StockError!]!
+  bulkStockErrors: [BulkStockError!]!
 }
 
 type ProductVariantStocksBulkDelete {
@@ -3647,7 +3654,7 @@ type ProductVariantStocksBulkDelete {
 type ProductVariantStocksBulkUpdate {
   errors: [Error!]!
   productVariant: ProductVariant
-  stockErrors: [StockError!]!
+  bulkStockErrors: [BulkStockError!]!
 }
 
 type ProductVariantTranslatableContent implements Node {

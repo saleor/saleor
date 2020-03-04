@@ -10,15 +10,20 @@ from ....product.error_codes import ProductErrorCode
 from ....product.tasks import update_product_minimal_variant_price_task
 from ....product.utils import delete_categories
 from ....product.utils.attributes import generate_name_for_variant
+from ....warehouse import models as warehouse_models
 from ....warehouse.error_codes import StockErorrCode
-from ....warehouse.models import Stock
 from ...core.mutations import (
     BaseBulkMutation,
     BaseMutation,
     ModelBulkDeleteMutation,
     ModelMutation,
 )
-from ...core.types.common import BulkProductError, ProductError, StockError
+from ...core.types.common import (
+    BulkProductError,
+    BulkStockError,
+    ProductError,
+    StockError,
+)
 from ...utils import resolve_global_ids_to_primary_keys
 from ...warehouse.types import Warehouse
 from ..mutations.products import (
@@ -318,42 +323,106 @@ class ProductVariantStocksBulkCreate(BaseMutation):
     class Meta:
         description = "Creates stocks for product variant."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        error_type_class = StockError
-        error_type_field = "stock_errors"
+        error_type_class = BulkStockError
+        error_type_field = "bulk_stock_errors"
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
+        errors = defaultdict(list)
         stocks = data["stocks"]
         variant = cls.get_node_or_error(
             info, data["variant_id"], only_type=ProductVariant
         )
-        warehouse_ids = [stock["warehouse"] for stock in stocks]
-        warehouses = cls.get_nodes_or_error(
-            warehouse_ids, "warehouse", only_type=Warehouse
-        )
-        cls.create_variant_stock(variant, stocks, warehouses)
+        warehouses = cls.clean_stocks_input(variant, stocks, errors)
+        if errors:
+            raise ValidationError(errors)
+        create_stocks(variant, stocks, warehouses)
         return cls(product_variant=variant)
 
     @classmethod
-    def create_variant_stocks(cls, variant, stocks, warehouses):
-        try:
-            create_stocks(variant, stocks, warehouses)
-        except ValidationError as error:
-            error.code = StockErorrCode.UNIQUE
-            raise ValidationError({"warehouse": error})
+    def clean_stocks_input(cls, variant, stocks_data, errors):
+        warehouse_ids = [stock["warehouse"] for stock in stocks_data]
+        cls.check_for_duplicates(warehouse_ids, errors)
+        warehouses = cls.get_nodes_or_error(
+            warehouse_ids, "warehouse", only_type=Warehouse
+        )
+        existing_stocks = variant.stocks.filter(warehouse__in=warehouses).values_list(
+            "warehouse__pk", flat=True
+        )
+        for warehouse_pk in existing_stocks:
+            warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse_pk)
+            msg = "Stock for this warehouse already exists " "for this product variant."
+            error = ValidationError(
+                {"warehouse": ValidationError(msg, code=StockErorrCode.UNIQUE)}
+            )
+            cls.add_id_to_errors(warehouse_id, error, errors)
+
+        return warehouses
+
+    @classmethod
+    def check_for_duplicates(cls, warehouse_ids, errors):
+        duplicates = {id for id in warehouse_ids if warehouse_ids.count(id) > 1}
+        error_msg = "Duplicated warehouse ID."
+        for duplicated_id in duplicates:
+            error = ValidationError(
+                {"warehouse": ValidationError(error_msg, code=StockErorrCode.UNIQUE)}
+            )
+            cls.add_id_to_errors(duplicated_id, error, errors)
+
+    @classmethod
+    def add_id_to_errors(cls, id, error, error_dict):
+        """Append errors with id in params to mutation error dict."""
+        for key, value in error.error_dict.items():
+            for e in value:
+                if e.params:
+                    e.params["id"] = id
+                else:
+                    e.params = {"id": id}
+            error_dict[key].extend(value)
+
+    @classmethod
+    def handle_typed_errors(cls, errors: list, **extra):
+        typed_errors = [
+            cls._meta.error_type_class(
+                field=e.field,
+                message=e.message,
+                code=code,
+                id=params.get("id") if params else None,
+            )
+            for e, code, params in errors
+        ]
+        extra.update({cls._meta.error_type_field: typed_errors})
+        return cls(errors=[e[0] for e in errors], **extra)
 
 
 class ProductVariantStocksBulkUpdate(ProductVariantStocksBulkCreate):
     class Meta:
         description = "Update stocks for product variant."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        error_type_class = StockError
-        error_type_field = "stock_errors"
+        error_type_class = BulkStockError
+        error_type_field = "bulk_stock_errors"
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        errors = defaultdict(list)
+        stocks = data["stocks"]
+        variant = cls.get_node_or_error(
+            info, data["variant_id"], only_type=ProductVariant
+        )
+        warehouse_ids = [stock["warehouse"] for stock in stocks]
+        cls.check_for_duplicates(warehouse_ids, errors)
+        if errors:
+            raise ValidationError(errors)
+        warehouses = cls.get_nodes_or_error(
+            warehouse_ids, "warehouse", only_type=Warehouse
+        )
+        cls.create_variant_stocks(variant, stocks, warehouses)
+        return cls(product_variant=variant)
 
     @classmethod
     def create_variant_stocks(cls, variant, stocks, warehouses):
         for stock_data, warehouse in zip(stocks, warehouses):
-            stock, _ = Stock.objects.get_or_create(
+            stock, _ = warehouse_models.Stock.objects.get_or_create(
                 product_variant=variant, warehouse=warehouse
             )
             stock.quantity = stock_data["quantity"]
@@ -386,7 +455,7 @@ class ProductVariantStocksBulkDelete(BaseMutation):
         _, warehouses_pks = resolve_global_ids_to_primary_keys(
             data["warehouse_ids"], Warehouse
         )
-        Stock.objects.filter(
+        warehouse_models.Stock.objects.filter(
             product_variant=variant, warehouse__pk__in=warehouses_pks
         ).delete()
         return cls(product_variant=variant)
