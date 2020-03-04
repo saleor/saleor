@@ -988,6 +988,19 @@ def create_vouchers():
     else:
         yield "Value voucher already exists"
 
+    voucher, created = Voucher.objects.get_or_create(
+        code="WithoutName",
+        defaults={
+            "type": VoucherType.ENTIRE_ORDER,
+            "discount_value_type": DiscountValueType.PERCENTAGE,
+            "discount_value": 5,
+        },
+    )
+    if created:
+        yield "Voucher #%d" % voucher.id
+    else:
+        yield "Value voucher already exists"
+
 
 def create_gift_card():
     user = random.choice(
