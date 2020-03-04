@@ -28,7 +28,6 @@ from ....product.utils.attributes import (
     associate_attribute_values_to_instance,
     generate_name_for_variant,
 )
-from ....warehouse.error_codes import StockErorrCode
 from ....warehouse.management import set_stock_quantity
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import Decimal, WeightScalar
@@ -857,6 +856,9 @@ class ProductCreate(ModelMutation):
 
         clean_seo_fields(cleaned_input)
         cls.clean_sku(product_type, cleaned_input)
+        stocks = cleaned_input.get("stocks")
+        if stocks:
+            cls.check_for_duplicates_in_stocks(stocks)
         return cleaned_input
 
     @classmethod
@@ -888,6 +890,16 @@ class ProductCreate(ModelMutation):
                         )
                     }
                 )
+
+    @classmethod
+    def check_for_duplicates_in_stocks(cls, stocks_data):
+        warehouse_ids = [stock["warehouse"] for stock in stocks_data]
+        duplicates = {id for id in warehouse_ids if warehouse_ids.count(id) > 1}
+        if duplicates:
+            error_msg = "Duplicated warehouse ID: {}".format(duplicates.join(", "))
+            raise ValidationError(
+                {"stocks": ValidationError(error_msg, code=ProductErrorCode.UNIQUE)}
+            )
 
     @classmethod
     def get_instance(cls, info, **data):
@@ -940,8 +952,8 @@ class ProductCreate(ModelMutation):
         try:
             create_stocks(variant, stocks, warehouses)
         except ValidationError as error:
-            error.code = StockErorrCode.UNIQUE
-            raise ValidationError({"warehouse": error})
+            error.code = ProductErrorCode.UNIQUE
+            raise ValidationError({"stocks": error})
 
     @classmethod
     def _save_m2m(cls, info, instance, cleaned_data):
@@ -1158,6 +1170,10 @@ class ProductVariantCreate(ModelMutation):
         if "price_override" in cleaned_input:
             cleaned_input["price_override_amount"] = cleaned_input.pop("price_override")
 
+        stocks = cleaned_input.get("stocks")
+        if stocks:
+            cls.check_for_duplicates_in_stocks(stocks)
+
         # Attributes are provided as list of `AttributeValueInput` objects.
         # We need to transform them into the format they're stored in the
         # `Product` model, which is HStore field that maps attribute's PK to
@@ -1189,6 +1205,16 @@ class ProductVariantCreate(ModelMutation):
             except ValidationError as exc:
                 raise ValidationError({"attributes": exc})
         return cleaned_input
+
+    @classmethod
+    def check_for_duplicates_in_stocks(cls, stocks_data):
+        warehouse_ids = [stock["warehouse"] for stock in stocks_data]
+        duplicates = {id for id in warehouse_ids if warehouse_ids.count(id) > 1}
+        if duplicates:
+            error_msg = "Duplicated warehouse ID: {}".format(", ".join(duplicates))
+            raise ValidationError(
+                {"stocks": ValidationError(error_msg, code=ProductErrorCode.UNIQUE)}
+            )
 
     @classmethod
     def get_instance(cls, info, **data):
@@ -1240,8 +1266,8 @@ class ProductVariantCreate(ModelMutation):
         try:
             create_stocks(variant, stocks, warehouses)
         except ValidationError as error:
-            error.code = StockErorrCode.UNIQUE
-            raise ValidationError({"warehouse": error})
+            error.code = ProductErrorCode.UNIQUE
+            raise ValidationError({"stocks": error})
 
 
 class ProductVariantUpdate(ProductVariantCreate):
