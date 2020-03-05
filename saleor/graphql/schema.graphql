@@ -190,7 +190,7 @@ type AssignNavigation {
   menuErrors: [MenuError!]!
 }
 
-type Attribute implements Node, ObjectWithMetadata {
+type Attribute implements Node & ObjectWithMetadata {
   id: ID!
   productTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
   productVariantTypes(before: String, after: String, first: Int, last: Int): ProductTypeCountableConnection!
@@ -506,7 +506,7 @@ input CatalogueInput {
   collections: [ID]
 }
 
-type Category implements Node, ObjectWithMetadata {
+type Category implements Node & ObjectWithMetadata {
   seoTitle: String
   seoDescription: String
   id: ID!
@@ -522,7 +522,7 @@ type Category implements Node, ObjectWithMetadata {
   meta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `metadata` field instead. ")
   ancestors(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   products(before: String, after: String, first: Int, last: Int): ProductCountableConnection
-  url: String
+  url: String @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11.")
   children(before: String, after: String, first: Int, last: Int): CategoryCountableConnection
   backgroundImage(size: Int): Image
   translation(languageCode: LanguageCodeEnum!): CategoryTranslation
@@ -639,7 +639,7 @@ type CategoryUpdatePrivateMeta {
   category: Category
 }
 
-type Checkout implements Node, ObjectWithMetadata {
+type Checkout implements Node & ObjectWithMetadata {
   created: DateTime!
   lastChange: DateTime!
   user: User
@@ -854,7 +854,7 @@ type ChoiceValue {
   verbose: String
 }
 
-type Collection implements Node, ObjectWithMetadata {
+type Collection implements Node & ObjectWithMetadata {
   seoTitle: String
   seoDescription: String
   id: ID!
@@ -1429,7 +1429,7 @@ type DeletePrivateMetadata {
   item: ObjectWithMetadata
 }
 
-type DigitalContent implements Node, ObjectWithMetadata {
+type DigitalContent implements Node & ObjectWithMetadata {
   useDefaultSettings: Boolean!
   automaticFulfillment: Boolean!
   productVariant: ProductVariant!
@@ -1626,7 +1626,7 @@ enum ExtensionsErrorCode {
   UNIQUE
 }
 
-type Fulfillment implements Node, ObjectWithMetadata {
+type Fulfillment implements Node & ObjectWithMetadata {
   id: ID!
   fulfillmentOrder: Int!
   status: FulfillmentStatus!
@@ -2434,7 +2434,7 @@ interface ObjectWithMetadata {
   meta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `metadata` field instead. ")
 }
 
-type Order implements Node, ObjectWithMetadata {
+type Order implements Node & ObjectWithMetadata {
   id: ID!
   created: DateTime!
   status: OrderStatus!
@@ -2450,8 +2450,8 @@ type Order implements Node, ObjectWithMetadata {
   voucher: Voucher
   giftCards: [GiftCard]
   discount: Money
-  discountName: String!
-  translatedDiscountName: String!
+  discountName: String
+  translatedDiscountName: String
   displayGrossPrices: Boolean!
   customerNote: String!
   weight: Weight
@@ -2495,7 +2495,7 @@ type OrderAddNote {
 }
 
 input OrderAddNoteInput {
-  message: String
+  message: String!
 }
 
 type OrderBulkCancel {
@@ -3128,7 +3128,7 @@ input PriceRangeInput {
   lte: Float
 }
 
-type Product implements Node, ObjectWithMetadata {
+type Product implements Node & ObjectWithMetadata {
   id: ID!
   seoTitle: String
   seoDescription: String
@@ -3147,7 +3147,7 @@ type Product implements Node, ObjectWithMetadata {
   metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `privetaMetadata` field instead. ")
   meta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `metadata` field instead. ")
-  url: String!
+  url: String! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11.")
   thumbnail(size: Int): Image
   pricing: ProductPricingInfo
   isAvailable: Boolean
@@ -3394,7 +3394,7 @@ type ProductTranslation implements Node {
   language: LanguageDisplay!
 }
 
-type ProductType implements Node, ObjectWithMetadata {
+type ProductType implements Node & ObjectWithMetadata {
   id: ID!
   name: String!
   slug: String!
@@ -3537,7 +3537,7 @@ type ProductUpdatePrivateMeta {
   product: Product
 }
 
-type ProductVariant implements Node, ObjectWithMetadata {
+type ProductVariant implements Node & ObjectWithMetadata {
   id: ID!
   name: String!
   sku: String!
@@ -3918,7 +3918,7 @@ input SeoInput {
   description: String
 }
 
-type ServiceAccount implements Node, ObjectWithMetadata {
+type ServiceAccount implements Node & ObjectWithMetadata {
   id: ID!
   created: DateTime
   isActive: Boolean
@@ -4539,7 +4539,7 @@ type UpdatePrivateMetadata {
 
 scalar Upload
 
-type User implements Node, ObjectWithMetadata {
+type User implements Node & ObjectWithMetadata {
   id: ID!
   lastLogin: DateTime
   email: String!
