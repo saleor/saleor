@@ -261,6 +261,12 @@ def filter_warehouses(qs, _, value):
 
 
 def filter_quantity(qs, quantity_value, warehouses=None):
+    """Filter products queryset by product variants quantity.
+
+    Return product queryset which contains at least one variant with aggregated quantity
+    between given range. If warehouses is given, it aggregates quantity only
+    from stocks which are in given warehouses.
+    """
     product_variants = ProductVariant.objects.filter(product__in=qs)
     if warehouses:
         _, warehouse_pks = resolve_global_ids_to_primary_keys(
