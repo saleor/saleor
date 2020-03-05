@@ -989,7 +989,7 @@ def create_vouchers():
         yield "Value voucher already exists"
 
     voucher, created = Voucher.objects.get_or_create(
-        code="WithoutName",
+        code="VCO9KV98LC",
         defaults={
             "type": VoucherType.ENTIRE_ORDER,
             "discount_value_type": DiscountValueType.PERCENTAGE,
