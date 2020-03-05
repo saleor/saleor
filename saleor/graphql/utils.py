@@ -189,3 +189,14 @@ def get_user_or_service_account_from_context(context):
     # order is important
     # service_account can be None but user if None then is passed as anonymous
     return context.service_account or context.user
+
+
+def filter_range_field(qs, field, value):
+    gte, lte = value.get("gte"), value.get("lte")
+    if gte:
+        lookup = {f"{field}__gte": gte}
+        qs = qs.filter(**lookup)
+    if lte:
+        lookup = {f"{field}__lte": lte}
+        qs = qs.filter(**lookup)
+    return qs
