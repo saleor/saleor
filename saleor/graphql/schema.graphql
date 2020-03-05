@@ -3262,6 +3262,7 @@ input ProductFilterInput {
   attributes: [AttributeInput]
   stockAvailability: StockAvailability
   productType: ID
+  stocks: ProductStockFilterInput
   search: String
   minimalPrice: PriceRangeInput
   productTypes: [ID]
@@ -3360,6 +3361,11 @@ type ProductPricingInfo {
   priceRange: TaxedMoneyRange
   priceRangeUndiscounted: TaxedMoneyRange
   priceRangeLocalCurrency: TaxedMoneyRange
+}
+
+input ProductStockFilterInput {
+  warehouseIds: [ID!]
+  quantity: IntRangeInput
 }
 
 type ProductTranslatableContent implements Node {

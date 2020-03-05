@@ -27,7 +27,7 @@ from saleor.product.models import (
 )
 from saleor.product.tasks import update_variants_names
 from saleor.product.utils.attributes import associate_attribute_values_to_instance
-from saleor.warehouse.models import Stock
+from saleor.warehouse.models import Stock, Warehouse
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image, create_pdf_file_with_image_ext
 
@@ -450,6 +450,96 @@ def test_products_query_with_filter_search_by_sku(
     assert len(products) == 1
     assert products[0]["node"]["id"] == product_id
     assert products[0]["node"]["name"] == product_with_default_variant.name
+
+
+@pytest.mark.parametrize(
+    "quantity_input, warehouse_indexes, count, indexes_of_products_in_result",
+    [
+        ({"lte": "80", "gte": "20"}, [1, 2], 1, [1]),
+        ({"lte": "120", "gte": "40"}, [1, 2], 1, [0]),
+        ({"gte": "10"}, [1], 1, [1]),
+        ({"gte": "110"}, [2], 0, []),
+        (None, [1], 1, [1]),
+        (None, [2], 2, [0, 1]),
+        ({"lte": "210", "gte": "70"}, [], 1, [0]),
+        ({"lte": "90"}, [], 1, [1]),
+        ({"lte": "90", "gte": "75"}, [], 0, []),
+    ],
+)
+def test_products_query_with_filter_stocks(
+    quantity_input,
+    warehouse_indexes,
+    count,
+    indexes_of_products_in_result,
+    query_products_with_filter,
+    staff_api_client,
+    product_with_single_variant,
+    product_with_two_variants,
+    warehouse,
+):
+    product1 = product_with_single_variant
+    product2 = product_with_two_variants
+    products = [product1, product2]
+
+    second_warehouse = Warehouse.objects.get(pk=warehouse.pk)
+    second_warehouse.slug = "second warehouse"
+    second_warehouse.pk = None
+    second_warehouse.save()
+
+    third_warehouse = Warehouse.objects.get(pk=warehouse.pk)
+    third_warehouse.slug = "third warehouse"
+    third_warehouse.pk = None
+    third_warehouse.save()
+
+    warehouses = [warehouse, second_warehouse, third_warehouse]
+    warehouse_pks = [
+        graphene.Node.to_global_id("Warehouse", warehouses[index].pk)
+        for index in warehouse_indexes
+    ]
+
+    Stock.objects.bulk_create(
+        [
+            Stock(
+                warehouse=third_warehouse,
+                product_variant=product1.variants.first(),
+                quantity=100,
+            ),
+            Stock(
+                warehouse=second_warehouse,
+                product_variant=product2.variants.first(),
+                quantity=10,
+            ),
+            Stock(
+                warehouse=third_warehouse,
+                product_variant=product2.variants.first(),
+                quantity=25,
+            ),
+            Stock(
+                warehouse=third_warehouse,
+                product_variant=product2.variants.last(),
+                quantity=30,
+            ),
+        ]
+    )
+
+    variables = {
+        "filter": {
+            "stocks": {"quantity": quantity_input, "warehouseIds": warehouse_pks}
+        }
+    }
+    response = staff_api_client.post_graphql(
+        query_products_with_filter, variables, check_no_permissions=False
+    )
+    content = get_graphql_content(response)
+    products_data = content["data"]["products"]["edges"]
+
+    product_ids = {
+        graphene.Node.to_global_id("Product", products[index].pk)
+        for index in indexes_of_products_in_result
+    }
+
+    assert len(products_data) == count
+    assert {node["node"]["id"] for node in products_data} == product_ids
 
 
 def test_query_product_image_by_id(user_api_client, product_with_image):

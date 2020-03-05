@@ -665,6 +665,7 @@ def product_with_two_variants(product_type, category, warehouse):
         price=Money("10.00", "USD"),
         product_type=product_type,
         category=category,
+        is_published=True,
     )
 
     variants = [
