@@ -499,6 +499,6 @@ class OrderEvent(models.Model):
 
 class Invoice(models.Model):
     order = models.ForeignKey(Order, null=True, on_delete=models.SET_NULL)
-    number = models.CharField(max_length=64)
+    number = models.CharField(max_length=255)
     created = models.DateTimeField(auto_now_add=True)
-    url = models.URLField(max_length=256)
+    url = models.URLField(max_length=2048)
