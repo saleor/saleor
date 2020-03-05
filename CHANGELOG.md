@@ -76,7 +76,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Unify saleor metadata - #5178 by @fowczarek
 - Add compiled versions of emails to the repository - #5260 by @tomaszszymanski129
 - Add required prop to fields where applicable - #5293 by @dominik-zeglen
-
+- Stock management refactor - #5323 by @IKarbowiak
 
 ## 2.9.0
 
