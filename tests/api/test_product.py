@@ -5,6 +5,7 @@ from unittest.mock import ANY, Mock, patch
 
 import graphene
 import pytest
+from django.core.exceptions import ValidationError
 from django.utils.dateparse import parse_datetime
 from django.utils.text import slugify
 from graphql_relay import to_global_id
@@ -13,6 +14,7 @@ from prices import Money
 from saleor.core.taxes import TaxType
 from saleor.extensions.manager import ExtensionsManager
 from saleor.graphql.core.enums import ReportingPeriod
+from saleor.graphql.product.utils import create_stocks
 from saleor.product import AttributeInputType
 from saleor.product.error_codes import ProductErrorCode
 from saleor.product.models import (
@@ -3809,3 +3811,45 @@ def test_update_product_without_variants_updates_stock(
     )
     stock.refresh_from_db()
     assert stock.quantity == 17
+
+
+def test_create_stocks_failed(product_with_single_variant, warehouse):
+    variant = product_with_single_variant.variants.first()
+
+    second_warehouse = Warehouse.objects.get(pk=warehouse.pk)
+    second_warehouse.slug = "second warehouse"
+    second_warehouse.pk = None
+    second_warehouse.save()
+
+    stocks_data = [
+        {"quantity": 10, "warehouse": "123"},
+        {"quantity": 10, "warehouse": "321"},
+    ]
+    warehouses = [warehouse, second_warehouse]
+    with pytest.raises(ValidationError) as error:
+        create_stocks(variant, stocks_data, warehouses)
+        error.params["id"] == stocks_data[0]["warehouse"]
+
+
+def test_create_stocks(variant, warehouse):
+    second_warehouse = Warehouse.objects.get(pk=warehouse.pk)
+    second_warehouse.slug = "second warehouse"
+    second_warehouse.pk = None
+    second_warehouse.save()
+
+    assert variant.stocks.count() == 0
+
+    stocks_data = [
+        {"quantity": 10, "warehouse": "123"},
+        {"quantity": 10, "warehouse": "321"},
+    ]
+    warehouses = [warehouse, second_warehouse]
+    create_stocks(variant, stocks_data, warehouses)
+
+    assert variant.stocks.count() == len(stocks_data)
+    assert {stock.warehouse.pk for stock in variant.stocks.all()} == {
+        warehouse.pk for warehouse in warehouses
+    }
+    assert {stock.quantity for stock in variant.stocks.all()} == {
+        data["quantity"] for data in stocks_data
+    }
