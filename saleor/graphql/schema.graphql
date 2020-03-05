@@ -1831,9 +1831,73 @@ type Image {
   alt: String
 }
 
+type Invoice implements Node & ObjectWithMetadata {
+  id: ID!
+  created: DateTime!
+  number: String!
+  order: Order!
+  url: String
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
+  privateMeta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `privetaMetadata` field instead. ")
+  meta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `metadata` field instead. ")
+}
+
+type InvoiceCreate {
+  errors: [Error!]!
+  invoice: Invoice
+  invoiceErrors: [InvoiceError!]!
+  order: Order
+}
+
+type InvoiceDelete {
+  errors: [Error!]!
+  invoiceErrors: [InvoiceError!]!
+  order: Order
+}
+
+type InvoiceError {
+  code: InvoiceErrorCode!
+  field: String
+  message: String
+}
+
+enum InvoiceErrorCode {
+  PLUGIN_NOT_ENABLED
+}
+
+type InvoiceUpdate {
+  errors: [Error!]!
+  invoice: Invoice
+  invoiceErrors: [InvoiceError!]!
+  order: Order
+}
+
+input InvoiceInput {
+  created: DateTime
+  number: String
+  url: String
+}
+
+type InvoiceSend {
+  errors: [Error!]!
+  invoiceErrors: [InvoiceError!]!
+}
+
 input IntRangeInput {
   gte: Int
   lte: Int
+}
+
+interface Job {
+  status: JobStatus
+}
+
+enum JobStatus {
+  PENDING_CREATION
+  OK
+  PENDING_DELETION
+  DELETED
 }
 
 scalar JSONString
@@ -2407,6 +2471,12 @@ type Mutation {
   permissionGroupDelete(id: ID!): PermissionGroupDelete
   permissionGroupAssignUsers(id: ID!, users: [ID!]!): PermissionGroupAssignUsers
   permissionGroupUnassignUsers(id: ID!, users: [ID!]!): PermissionGroupUnassignUsers
+  invoiceCreate(orderID: ID!, input: InvoiceInput): InvoiceCreate
+  invoiceDelete(orderID: ID!, invoiceID: ID!): InvoiceDelete
+  invoiceUpdate(invoiceID: ID!, input: InvoiceInput): InvoiceUpdate
+  invoiceSend(id: ID!, email: String): InvoiceSend
+  requestInvoiceCreate(orderID: ID!, input: RequestInvoiceCreateInput): RequestInvoiceCreate
+  requestInvoiceDelete(orderID: ID!): RequestInvoiceDelete
 }
 
 input NameTranslationInput {
@@ -2478,6 +2548,7 @@ type Order implements Node & ObjectWithMetadata {
   totalBalance: Money!
   userEmail: String
   isShippingRequired: Boolean!
+  invoices: [Invoice!]
 }
 
 enum OrderAction {
@@ -2594,6 +2665,7 @@ type OrderEvent implements Node {
   oversoldItems: [String]
   lines: [OrderEventOrderLineObject]
   fulfilledItems: [FulfillmentLine]
+  invoice: Invoice
 }
 
 type OrderEventCountableConnection {
@@ -2644,6 +2716,9 @@ enum OrderEventsEnum {
   TRACKING_UPDATED
   NOTE_ADDED
   OTHER
+  INVOICE_CREATED
+  INVOICE_DELETED
+  INVOICE_SENT
 }
 
 input OrderFilterInput {
@@ -3793,6 +3868,23 @@ type RequestEmailChange {
   errors: [Error!]!
   user: User
   accountErrors: [AccountError!]!
+}
+
+type RequestInvoiceCreate {
+  errors: [Error!]!
+  invoice: Invoice
+  invoiceErrors: [InvoiceError!]!
+  order: Order
+}
+
+input RequestInvoiceCreateInput {
+  number: String
+}
+
+type RequestInvoiceDelete {
+  errors: [Error!]!
+  invoiceErrors: [InvoiceError!]!
+  order: Order
 }
 
 type RequestPasswordReset {
@@ -4990,6 +5082,9 @@ enum WebhookEventTypeEnum {
   PRODUCT_CREATED
   CHECKOUT_QUANTITY_CHANGED
   FULFILLMENT_CREATED
+  INVOICE_CREATED
+  INVOICE_DELETED
+  INVOICE_SENT
 }
 
 input WebhookFilterInput {
