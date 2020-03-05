@@ -161,8 +161,8 @@ class Order(ModelWithMetadata):
         default=0,
     )
     discount = MoneyField(amount_field="discount_amount", currency_field="currency")
-    discount_name = models.CharField(max_length=255, default="", blank=True)
-    translated_discount_name = models.CharField(max_length=255, default="", blank=True)
+    discount_name = models.CharField(max_length=255, blank=True, null=True)
+    translated_discount_name = models.CharField(max_length=255, blank=True, null=True)
     display_gross_prices = models.BooleanField(default=True)
     customer_note = models.TextField(blank=True, default="")
     weight = MeasurementField(
@@ -218,11 +218,6 @@ class Order(ModelWithMetadata):
 
     def __str__(self):
         return "#%d" % (self.id,)
-
-    # Deprecated. To remove in #5022
-    @staticmethod
-    def get_absolute_url():
-        return ""
 
     def get_last_payment(self):
         return max(self.payments.all(), default=None, key=attrgetter("pk"))

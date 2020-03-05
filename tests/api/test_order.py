@@ -1339,37 +1339,40 @@ def test_order_update_user_email_existing_user(
     assert order.user == customer_user
 
 
+ORDER_ADD_NOTE_MUTATION = """
+    mutation addNote($id: ID!, $message: String!) {
+        orderAddNote(order: $id, input: {message: $message}) {
+            orderErrors {
+                field
+                message
+                code
+            }
+            order {
+                id
+            }
+            event {
+                user {
+                    email
+                }
+                message
+            }
+        }
+    }
+"""
+
+
 def test_order_add_note_as_staff_user(
     staff_api_client, permission_manage_orders, order_with_lines, staff_user
 ):
     """We are testing that adding a note to an order as a staff user is doing the
     expected behaviors."""
     order = order_with_lines
-    query = """
-        mutation addNote($id: ID!, $message: String) {
-            orderAddNote(order: $id, input: {message: $message}) {
-                errors {
-                    field
-                    message
-                }
-                order {
-                    id
-                }
-                event {
-                    user {
-                        email
-                    }
-                    message
-                }
-            }
-        }
-    """
     assert not order.events.all()
     order_id = graphene.Node.to_global_id("Order", order.id)
     message = "nuclear note"
     variables = {"id": order_id, "message": message}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
+        ORDER_ADD_NOTE_MUTATION, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
     data = content["data"]["orderAddNote"]
@@ -1389,6 +1392,21 @@ def test_order_add_note_as_staff_user(
 
     # Ensure not customer events were created as it was a staff action
     assert not CustomerEvent.objects.exists()
+
+
+@pytest.mark.parametrize("message", ("", "   ",))
+def test_order_add_note_fail_on_empty_message(
+    staff_api_client, permission_manage_orders, order_with_lines, message
+):
+    order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
+    variables = {"id": order_id, "message": message}
+    response = staff_api_client.post_graphql(
+        ORDER_ADD_NOTE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderAddNote"]
+    assert data["orderErrors"][0]["field"] == "message"
+    assert data["orderErrors"][0]["code"] == OrderErrorCode.REQUIRED.name
 
 
 CANCEL_ORDER_QUERY = """
