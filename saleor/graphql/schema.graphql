@@ -2444,8 +2444,8 @@ type Order implements Node & ObjectWithMetadata {
   voucher: Voucher
   giftCards: [GiftCard]
   discount: Money
-  discountName: String!
-  translatedDiscountName: String!
+  discountName: String
+  translatedDiscountName: String
   displayGrossPrices: Boolean!
   customerNote: String!
   weight: Weight
