@@ -8,7 +8,7 @@ from graphene.utils.str_converters import to_camel_case
 from saleor.product.error_codes import ProductErrorCode
 from saleor.product.models import ProductVariant
 from saleor.product.utils.attributes import associate_attribute_values_to_instance
-from saleor.warehouse.error_codes import StockErorrCode
+from saleor.warehouse.error_codes import StockErrorCode
 from saleor.warehouse.models import Stock, Warehouse
 from tests.api.utils import get_graphql_content
 
@@ -1359,7 +1359,7 @@ def test_variant_stocks_create_stock_already_exists(
     errors = data["bulkStockErrors"]
 
     assert errors
-    assert errors[0]["code"] == StockErorrCode.UNIQUE.name
+    assert errors[0]["code"] == StockErrorCode.UNIQUE.name
     assert errors[0]["field"] == "warehouse"
     assert errors[0]["id"] == warehouse_id
 
@@ -1394,7 +1394,7 @@ def test_variant_stocks_create_stock_duplicated_warehouse(
     errors = data["bulkStockErrors"]
 
     assert errors
-    assert errors[0]["code"] == StockErorrCode.UNIQUE.name
+    assert errors[0]["code"] == StockErrorCode.UNIQUE.name
     assert errors[0]["field"] == "warehouse"
     assert errors[0]["id"] == second_warehouse_id
 
@@ -1434,7 +1434,7 @@ def test_variant_stocks_create_stock_duplicated_warehouse_and_warehouse_already_
 
     assert len(errors) == 2
     assert {error["code"] for error in errors} == {
-        StockErorrCode.UNIQUE.name,
+        StockErrorCode.UNIQUE.name,
     }
     assert {error["field"] for error in errors} == {
         "warehouse",
@@ -1551,7 +1551,7 @@ def test_variant_stocks_update_stock_duplicated_warehouse(
     errors = data["bulkStockErrors"]
 
     assert errors
-    assert errors[0]["code"] == StockErorrCode.UNIQUE.name
+    assert errors[0]["code"] == StockErrorCode.UNIQUE.name
     assert errors[0]["field"] == "warehouse"
     assert errors[0]["id"] == warehouse_id
 

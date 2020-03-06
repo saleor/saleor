@@ -11,7 +11,7 @@ from ....product.tasks import update_product_minimal_variant_price_task
 from ....product.utils import delete_categories
 from ....product.utils.attributes import generate_name_for_variant
 from ....warehouse import models as warehouse_models
-from ....warehouse.error_codes import StockErorrCode
+from ....warehouse.error_codes import StockErrorCode
 from ...core.mutations import (
     BaseBulkMutation,
     BaseMutation,
@@ -352,9 +352,9 @@ class ProductVariantStocksCreate(BaseMutation):
         )
         for warehouse_pk in existing_stocks:
             warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse_pk)
-            msg = "Stock for this warehouse already exists " "for this product variant."
+            msg = "Stock for this warehouse already exists for this product variant."
             error = ValidationError(
-                msg, code=StockErorrCode.UNIQUE, params={"id": warehouse_id}
+                msg, code=StockErrorCode.UNIQUE, params={"id": warehouse_id}
             )
             errors["warehouse"].append(error)
 
@@ -366,7 +366,7 @@ class ProductVariantStocksCreate(BaseMutation):
         error_msg = "Duplicated warehouse ID."
         for duplicated_id in duplicates:
             error = ValidationError(
-                error_msg, code=StockErorrCode.UNIQUE, params={"id": duplicated_id}
+                error_msg, code=StockErrorCode.UNIQUE, params={"id": duplicated_id}
             )
             errors["warehouse"].append(error)
 

@@ -4384,19 +4384,19 @@ type StockCountableEdge {
   cursor: String!
 }
 
-enum StockErorrCode {
+type StockError {
+  field: String
+  message: String
+  code: StockErrorCode!
+}
+
+enum StockErrorCode {
   ALREADY_EXISTS
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND
   REQUIRED
   UNIQUE
-}
-
-type StockError {
-  field: String
-  message: String
-  code: StockErorrCode!
 }
 
 input StockFilterInput {
