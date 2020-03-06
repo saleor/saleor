@@ -3826,9 +3826,8 @@ def test_create_stocks_failed(product_with_single_variant, warehouse):
         {"quantity": 10, "warehouse": "321"},
     ]
     warehouses = [warehouse, second_warehouse]
-    with pytest.raises(ValidationError) as error:
+    with pytest.raises(ValidationError):
         create_stocks(variant, stocks_data, warehouses)
-        error.params["id"] == stocks_data[0]["warehouse"]
 
 
 def test_create_stocks(variant, warehouse):
