@@ -43,7 +43,6 @@ env:
     - DIFF_RESULTS_BASE_URL="http://dhrwmpu5reeyd.cloudfront.net"
     - QUERIES_RESULTS_PATH=/tmp/queries-results.json
   matrix:
-    - DJANGO="2.2"
     - DJANGO="3.0"
     - DJANGO="master"
 
@@ -63,8 +62,6 @@ matrix:
     - env: TOXENV=pydocstyle
       python: "3.8"
   allow_failures:
-    - env: DJANGO="3.0"
-      python: "3.8"
     - env: DJANGO="master"
       python: "3.8"
 
@@ -72,7 +69,7 @@ services:
   - postgresql
 
 addons:
-  postgresql: 9.4
+  postgresql: 9.6
 
 after_success:
   - ../queries-ci-tools/handle-event.sh

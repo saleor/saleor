@@ -1,4 +1,3 @@
-import six
 from graphene import InputField, InputObjectType
 from graphene.types.inputobjecttype import InputObjectTypeOptions
 from graphene.types.utils import yank_fields_from_attrs
@@ -52,7 +51,7 @@ class FilterInputObjectType(InputObjectType):
         cls.filterset_class = get_filterset_class(cls.custom_filterset_class, **meta)
 
         args = {}
-        for name, filter_field in six.iteritems(cls.filterset_class.base_filters):
+        for name, filter_field in cls.filterset_class.base_filters.items():
             input_class = getattr(filter_field, "input_class", None)
             if input_class:
                 field_type = convert_form_field(filter_field)

@@ -160,7 +160,6 @@ context_processors = [
     "django.template.context_processors.debug",
     "django.template.context_processors.media",
     "django.template.context_processors.static",
-    "saleor.checkout.context_processors.checkout_counter",
     "saleor.site.context_processors.site",
 ]
 
@@ -194,8 +193,6 @@ MIDDLEWARE = [
     "saleor.core.middleware.currency",
     "saleor.core.middleware.site",
     "saleor.core.middleware.extensions",
-    "saleor.graphql.middleware.jwt_middleware",
-    "saleor.graphql.middleware.service_account_middleware",
 ]
 
 INSTALLED_APPS = [
@@ -532,9 +529,13 @@ if SENTRY_DSN:
     sentry_sdk.init(dsn=SENTRY_DSN, integrations=[DjangoIntegration()])
 
 GRAPHENE = {
-    "MIDDLEWARE": ("saleor.graphql.middleware.OpentracingGrapheneMiddleware",),
     "RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST": True,
     "RELAY_CONNECTION_MAX_LIMIT": 100,
+    "MIDDLEWARE": [
+        "saleor.graphql.middleware.OpentracingGrapheneMiddleware",
+        "saleor.graphql.middleware.JWTMiddleware",
+        "saleor.graphql.middleware.service_account_middleware",
+    ],
 }
 
 EXTENSIONS_MANAGER = "saleor.extensions.manager.ExtensionsManager"
