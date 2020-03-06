@@ -374,13 +374,6 @@ class ProductVariant(CountableDjangoObjectType):
         return graphene.Node.get_node_from_global_id(_info, root.id)
 
 
-class StockInput(graphene.InputObjectType):
-    warehouse = graphene.ID(
-        required=True, description="Warehouse in which stock is located."
-    )
-    quantity = graphene.Int(description="Quantity of items available for sell.")
-
-
 @key(fields="id")
 class Product(CountableDjangoObjectType):
     url = graphene.String(
@@ -866,15 +859,3 @@ class ProductImage(CountableDjangoObjectType):
     @staticmethod
     def __resolve_reference(root, _info, **_kwargs):
         return graphene.Node.get_node_from_global_id(_info, root.id)
-
-
-class MoveProductInput(graphene.InputObjectType):
-    product_id = graphene.ID(
-        description="The ID of the product to move.", required=True
-    )
-    sort_order = graphene.Int(
-        description=(
-            "The relative sorting position of the product (from -inf to +inf) "
-            "starting from the first given product's actual position."
-        )
-    )
