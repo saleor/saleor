@@ -949,11 +949,7 @@ class ProductCreate(ModelMutation):
         warehouses = cls.get_nodes_or_error(
             warehouse_ids, "warehouse", only_type=Warehouse
         )
-        try:
-            create_stocks(variant, stocks, warehouses)
-        except ValidationError as error:
-            error.code = ProductErrorCode.UNIQUE
-            raise ValidationError({"stocks": error})
+        create_stocks(variant, stocks, warehouses)
 
     @classmethod
     def _save_m2m(cls, info, instance, cleaned_data):
@@ -1263,11 +1259,7 @@ class ProductVariantCreate(ModelMutation):
         warehouses = cls.get_nodes_or_error(
             warehouse_ids, "warehouse", only_type=Warehouse
         )
-        try:
-            create_stocks(variant, stocks, warehouses)
-        except ValidationError as error:
-            error.code = ProductErrorCode.UNIQUE
-            raise ValidationError({"stocks": error})
+        create_stocks(variant, stocks, warehouses)
 
 
 class ProductVariantUpdate(ProductVariantCreate):

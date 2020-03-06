@@ -336,11 +336,7 @@ class ProductVariantStocksBulkCreate(BaseMutation):
         warehouses = cls.clean_stocks_input(variant, stocks, errors)
         if errors:
             raise ValidationError(errors)
-        try:
-            create_stocks(variant, stocks, warehouses)
-        except ValidationError as error:
-            error.code = ProductErrorCode.UNIQUE
-            raise ValidationError({"warehouse": error})
+        create_stocks(variant, stocks, warehouses)
         return cls(product_variant=variant)
 
     @classmethod
