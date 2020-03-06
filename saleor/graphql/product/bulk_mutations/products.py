@@ -31,8 +31,9 @@ from ..mutations.products import (
     AttributeValueInput,
     ProductVariantCreate,
     ProductVariantInput,
+    StockInput,
 )
-from ..types import ProductVariant, StockInput
+from ..types import ProductVariant
 from ..utils import create_stocks, get_used_variants_attribute_values
 
 

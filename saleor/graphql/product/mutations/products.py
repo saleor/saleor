@@ -42,15 +42,7 @@ from ...core.utils import (
 from ...core.utils.reordering import perform_reordering
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ...warehouse.types import Warehouse
-from ..types import (
-    Category,
-    Collection,
-    MoveProductInput,
-    Product,
-    ProductImage,
-    ProductVariant,
-    StockInput,
-)
+from ..types import Category, Collection, Product, ProductImage, ProductVariant
 from ..utils import (
     create_stocks,
     get_used_attibute_values_for_variant,
@@ -259,6 +251,18 @@ class CollectionDelete(ModelDeleteMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+
+
+class MoveProductInput(graphene.InputObjectType):
+    product_id = graphene.ID(
+        description="The ID of the product to move.", required=True
+    )
+    sort_order = graphene.Int(
+        description=(
+            "The relative sorting position of the product (from -inf to +inf) "
+            "starting from the first given product's actual position."
+        )
+    )
 
 
 class CollectionReorderProducts(BaseMutation):
@@ -539,6 +543,13 @@ class ProductInput(graphene.InputObjectType):
             "is only used if a product doesn't use variants."
         )
     )
+
+
+class StockInput(graphene.InputObjectType):
+    warehouse = graphene.ID(
+        required=True, description="Warehouse in which stock is located."
+    )
+    quantity = graphene.Int(description="Quantity of items available for sell.")
 
 
 class ProductCreateInput(ProductInput):
