@@ -106,16 +106,17 @@ def get_used_variants_attribute_values(product):
 def create_stocks(
     variant: "ProductVariant", stocks_data: List[Dict[str, str]], warehouses: "QuerySet"
 ):
-    for stock_data, warehouse in zip(stocks_data, warehouses):
-        try:
-            Stock.objects.create(
-                product_variant=variant,
-                warehouse=warehouse,
-                quantity=stock_data["quantity"],
-            )
-        except IntegrityError:
-            msg = (
-                "Stock for warehouse with id: {} already exists "
-                "for this product variant.".format(stock_data["warehouse"])
-            )
-            raise ValidationError(msg, params={"id": stock_data["warehouse"]})
+    try:
+        Stock.objects.bulk_create(
+            [
+                Stock(
+                    product_variant=variant,
+                    warehouse=warehouse,
+                    quantity=stock_data["quantity"],
+                )
+                for stock_data, warehouse in zip(stocks_data, warehouses)
+            ]
+        )
+    except IntegrityError:
+        msg = "Stock for one of warehouses already exists for this product variant."
+        raise ValidationError(msg)
