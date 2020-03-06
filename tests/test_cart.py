@@ -1,4 +1,3 @@
-from unittest.mock import Mock
 from uuid import uuid4
 
 import pytest
@@ -6,7 +5,6 @@ from measurement.measures import Weight
 from prices import Money, TaxedMoney
 
 from saleor.checkout import calculations, utils
-from saleor.checkout.context_processors import checkout_counter
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
 from saleor.product.models import Category
@@ -101,15 +99,6 @@ def test_shipping_detection(checkout, product):
     variant = product.variants.get()
     add_variant_to_checkout(checkout, variant, replace=True)
     assert checkout.is_shipping_required()
-
-
-def test_checkout_counter(monkeypatch):
-    monkeypatch.setattr(
-        "saleor.checkout.context_processors.get_checkout_from_request",
-        Mock(return_value=Mock(quantity=4)),
-    )
-    ret = checkout_counter(Mock())
-    assert ret == {"checkout_counter": 4}
 
 
 def test_get_prices_of_discounted_specific_product(
