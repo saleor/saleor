@@ -11,8 +11,8 @@ def test_product_variants_stocks_create(
     staff_api_client, variant, warehouse, permission_manage_products, count_queries
 ):
     query = """
-    mutation ProductVariantStocksBulkCreate($variantId: ID!, $stocks: [StockInput!]!){
-        productVariantStocksBulkCreate(variantId: $variantId, stocks: $stocks){
+    mutation ProductVariantStocksCreate($variantId: ID!, $stocks: [StockInput!]!){
+        productVariantStocksCreate(variantId: $variantId, stocks: $stocks){
             productVariant{
                 stocks {
                     quantity
@@ -55,7 +55,7 @@ def test_product_variants_stocks_create(
         query, variables, permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
-    data = content["data"]["productVariantStocksBulkCreate"]
+    data = content["data"]["productVariantStocksCreate"]
     assert not data["bulkStockErrors"]
     assert (
         len(data["productVariant"]["stocks"])
@@ -70,8 +70,8 @@ def test_product_variants_stocks_update(
     staff_api_client, variant, warehouse, permission_manage_products, count_queries
 ):
     query = """
-    mutation ProductVariantStocksBulkUpdate($variantId: ID!, $stocks: [StockInput!]!){
-            productVariantStocksBulkUpdate(variantId: $variantId, stocks: $stocks){
+    mutation ProductVariantStocksUpdate($variantId: ID!, $stocks: [StockInput!]!){
+            productVariantStocksUpdate(variantId: $variantId, stocks: $stocks){
                 productVariant{
                     stocks{
                         quantity
@@ -116,7 +116,7 @@ def test_product_variants_stocks_update(
         query, variables, permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
-    data = content["data"]["productVariantStocksBulkUpdate"]
+    data = content["data"]["productVariantStocksUpdate"]
 
     assert not data["bulkStockErrors"]
     assert len(data["productVariant"]["stocks"]) == len(stocks)
@@ -129,8 +129,8 @@ def test_product_variants_stocks_delete(
     staff_api_client, variant, warehouse, permission_manage_products, count_queries
 ):
     query = """
-    mutation ProductVariantStocksBulkDelete($variantId: ID!, $warehouseIds: [ID!]!){
-            productVariantStocksBulkDelete(
+    mutation ProductVariantStocksDelete($variantId: ID!, $warehouseIds: [ID!]!){
+            productVariantStocksDelete(
                 variantId: $variantId, warehouseIds: $warehouseIds
             ){
                 productVariant{
@@ -172,7 +172,7 @@ def test_product_variants_stocks_delete(
         query, variables, permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
-    data = content["data"]["productVariantStocksBulkDelete"]
+    data = content["data"]["productVariantStocksDelete"]
 
     assert not data["stockErrors"]
     assert (

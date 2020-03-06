@@ -1255,8 +1255,8 @@ def test_update_variant_changes_stock_only_when_quantity_is_passed(
 
 
 VARIANT_STOCKS_CREATE_MUTATION = """
-    mutation ProductVariantStocksBulkCreate($variantId: ID!, $stocks: [StockInput!]!){
-        productVariantStocksBulkCreate(variantId: $variantId, stocks: $stocks){
+    mutation ProductVariantStocksCreate($variantId: ID!, $stocks: [StockInput!]!){
+        productVariantStocksCreate(variantId: $variantId, stocks: $stocks){
             productVariant{
                 stocks {
                     quantity
@@ -1304,7 +1304,7 @@ def test_variant_stocks_create(
         permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
-    data = content["data"]["productVariantStocksBulkCreate"]
+    data = content["data"]["productVariantStocksCreate"]
 
     expected_result = [
         {
@@ -1355,7 +1355,7 @@ def test_variant_stocks_create_stock_already_exists(
         permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
-    data = content["data"]["productVariantStocksBulkCreate"]
+    data = content["data"]["productVariantStocksCreate"]
     errors = data["bulkStockErrors"]
 
     assert errors
@@ -1390,7 +1390,7 @@ def test_variant_stocks_create_stock_duplicated_warehouse(
         permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
-    data = content["data"]["productVariantStocksBulkCreate"]
+    data = content["data"]["productVariantStocksCreate"]
     errors = data["bulkStockErrors"]
 
     assert errors
@@ -1429,7 +1429,7 @@ def test_variant_stocks_create_stock_duplicated_warehouse_and_warehouse_already_
         permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
-    data = content["data"]["productVariantStocksBulkCreate"]
+    data = content["data"]["productVariantStocksCreate"]
     errors = data["bulkStockErrors"]
 
     assert len(errors) == 2
@@ -1445,8 +1445,8 @@ def test_variant_stocks_create_stock_duplicated_warehouse_and_warehouse_already_
 
 
 VARIANT_STOCKS_UPDATE_MUTATIONS = """
-    mutation ProductVariantStocksBulkUpdate($variantId: ID!, $stocks: [StockInput!]!){
-        productVariantStocksBulkUpdate(variantId: $variantId, stocks: $stocks){
+    mutation ProductVariantStocksUpdate($variantId: ID!, $stocks: [StockInput!]!){
+        productVariantStocksUpdate(variantId: $variantId, stocks: $stocks){
             productVariant{
                 stocks{
                     quantity
@@ -1496,7 +1496,7 @@ def test_product_variant_stocks_update(
         permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
-    data = content["data"]["productVariantStocksBulkUpdate"]
+    data = content["data"]["productVariantStocksUpdate"]
 
     expected_result = [
         {
@@ -1547,7 +1547,7 @@ def test_variant_stocks_update_stock_duplicated_warehouse(
         permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
-    data = content["data"]["productVariantStocksBulkUpdate"]
+    data = content["data"]["productVariantStocksUpdate"]
     errors = data["bulkStockErrors"]
 
     assert errors
@@ -1557,8 +1557,8 @@ def test_variant_stocks_update_stock_duplicated_warehouse(
 
 
 VARIANT_STOCKS_DELETE_MUTATION = """
-    mutation ProductVariantStocksBulkDelete($variantId: ID!, $warehouseIds: [ID!]!){
-        productVariantStocksBulkDelete(
+    mutation ProductVariantStocksDelete($variantId: ID!, $warehouseIds: [ID!]!){
+        productVariantStocksDelete(
             variantId: $variantId, warehouseIds: $warehouseIds
         ){
             productVariant{
@@ -1606,7 +1606,7 @@ def test_product_variant_stocks_delete_mutation(
         permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
-    data = content["data"]["productVariantStocksBulkDelete"]
+    data = content["data"]["productVariantStocksDelete"]
 
     variant.refresh_from_db()
     assert not data["stockErrors"]
@@ -1642,7 +1642,7 @@ def test_product_variant_stocks_delete_mutation_invalid_warehouse_id(
         permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
-    data = content["data"]["productVariantStocksBulkDelete"]
+    data = content["data"]["productVariantStocksDelete"]
 
     variant.refresh_from_db()
     assert not data["stockErrors"]
