@@ -304,7 +304,7 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         error_type_field = "product_errors"
 
 
-class ProductVariantStocksBulkCreate(BaseMutation):
+class ProductVariantStocksCreate(BaseMutation):
     product_variant = graphene.Field(
         ProductVariant, description="Updated product variant."
     )
@@ -384,7 +384,7 @@ class ProductVariantStocksBulkCreate(BaseMutation):
         return cls(errors=[e[0] for e in errors], **extra)
 
 
-class ProductVariantStocksBulkUpdate(ProductVariantStocksBulkCreate):
+class ProductVariantStocksUpdate(ProductVariantStocksCreate):
     class Meta:
         description = "Update stocks for product variant."
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
@@ -418,7 +418,7 @@ class ProductVariantStocksBulkUpdate(ProductVariantStocksBulkCreate):
             stock.save(update_fields=["quantity"])
 
 
-class ProductVariantStocksBulkDelete(BaseMutation):
+class ProductVariantStocksDelete(BaseMutation):
     product_variant = graphene.Field(
         ProductVariant, description="Updated product variant."
     )

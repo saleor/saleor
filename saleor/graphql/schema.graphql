@@ -2256,9 +2256,9 @@ type Mutation {
   productVariantDelete(id: ID!): ProductVariantDelete
   productVariantBulkCreate(product: ID!, variants: [ProductVariantBulkCreateInput]!): ProductVariantBulkCreate
   productVariantBulkDelete(ids: [ID]!): ProductVariantBulkDelete
-  productVariantStocksBulkCreate(stocks: [StockInput!]!, variantId: ID!): ProductVariantStocksBulkCreate
-  productVariantStocksBulkDelete(variantId: ID!, warehouseIds: [ID!]): ProductVariantStocksBulkDelete
-  productVariantStocksBulkUpdate(stocks: [StockInput!]!, variantId: ID!): ProductVariantStocksBulkUpdate
+  productVariantStocksCreate(stocks: [StockInput!]!, variantId: ID!): ProductVariantStocksCreate
+  productVariantStocksDelete(variantId: ID!, warehouseIds: [ID!]): ProductVariantStocksDelete
+  productVariantStocksUpdate(stocks: [StockInput!]!, variantId: ID!): ProductVariantStocksUpdate
   productVariantUpdate(id: ID!, input: ProductVariantInput!): ProductVariantUpdate
   productVariantTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): ProductVariantTranslate
   productVariantUpdateMetadata(id: ID!, input: MetaInput!): ProductVariantUpdateMeta @deprecated(reason: "Will be removed in Saleor 2.11. Use the `UpdateMetadata` mutation instead.")
@@ -3645,19 +3645,19 @@ input ProductVariantInput {
   weight: WeightScalar
 }
 
-type ProductVariantStocksBulkCreate {
+type ProductVariantStocksCreate {
   errors: [Error!]!
   productVariant: ProductVariant
   bulkStockErrors: [BulkStockError!]!
 }
 
-type ProductVariantStocksBulkDelete {
+type ProductVariantStocksDelete {
   errors: [Error!]!
   productVariant: ProductVariant
   stockErrors: [StockError!]!
 }
 
-type ProductVariantStocksBulkUpdate {
+type ProductVariantStocksUpdate {
   errors: [Error!]!
   productVariant: ProductVariant
   bulkStockErrors: [BulkStockError!]!
