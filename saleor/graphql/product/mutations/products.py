@@ -528,7 +528,8 @@ class ProductInput(graphene.InputObjectType):
             "only used if a product doesn't use variants."
         ),
         deprecation_reason=(
-            "DEPRECATED: Will be removed in 2.11. Use stocks input field instead."
+            "DEPRECATED: Will be removed in 2.11 (issue #5325)."
+            "Use stocks input field instead."
         ),
     )
     track_inventory = graphene.Boolean(
@@ -936,7 +937,7 @@ class ProductCreate(ModelMutation):
             quantity = cleaned_input.get("quantity")
             if stocks:
                 cls.create_variant_stocks(variant, stocks)
-            elif quantity:  # DEPRECATED: Will be removed in 2.11
+            elif quantity:  # DEPRECATED: Will be removed in 2.11 (issue #5325)
                 set_stock_quantity(variant, info.context.country, quantity)
 
         attributes = cleaned_input.get("attributes")
@@ -1005,7 +1006,8 @@ class ProductUpdate(ProductCreate):
             if "track_inventory" in cleaned_input:
                 variant.track_inventory = cleaned_input["track_inventory"]
                 update_fields.append("track_inventory")
-            # DEPRECATED: Wil be removed in 2.11. Use ProductVariantStocksUpdate insted.
+            # DEPRECATED: Wil be removed in 2.11 (issue #5325).
+            # Use ProductVariantStocksUpdate insted.
             if "quantity" in cleaned_input:
                 quantity = cleaned_input.get("quantity")
                 set_stock_quantity(variant, info.context.country, quantity)
@@ -1086,7 +1088,8 @@ class ProductVariantInput(graphene.InputObjectType):
     quantity = graphene.Int(
         description="The total quantity of this variant available for sale.",
         deprecation_reason=(
-            "DEPRECATED: Will be removed in 2.11. Use stocks input field instead."
+            "DEPRECATED: Will be removed in 2.11 (issue #5325)."
+            "Use stocks input field instead."
         ),
     )
     track_inventory = graphene.Boolean(
@@ -1244,7 +1247,7 @@ class ProductVariantCreate(ModelMutation):
         quantity = cleaned_input.get("quantity")
         if stocks:
             cls.create_variant_stocks(instance, stocks)
-        elif quantity:  # DEPRECATED: Will be removed in 2.11
+        elif quantity:  # DEPRECATED: Will be removed in 2.11 (issue #5325)
             set_stock_quantity(instance, info.context.country, quantity)
 
         attributes = cleaned_input.get("attributes")
