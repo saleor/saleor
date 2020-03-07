@@ -34,6 +34,17 @@ python-versions = "*"
 version = "1.4.3"
 
 [[package]]
+category = "main"
+description = "ASGI specs, helper code, and adapters"
+name = "asgiref"
+optional = false
+python-versions = "*"
+version = "3.2.3"
+
+[package.extras]
+tests = ["pytest (>=4.3.0,<4.4.0)", "pytest-asyncio (>=0.10.0,<0.11.0)"]
+
+[[package]]
 category = "dev"
 description = "A few extensions to pyyaml."
 name = "aspy.yaml"
@@ -424,12 +435,13 @@ category = "main"
 description = "A high-level Python Web framework that encourages rapid development and clean, pragmatic design."
 name = "django"
 optional = false
-python-versions = ">=3.5"
-version = "2.2.10"
+python-versions = ">=3.6"
+version = "3.0.4"
 
 [package.dependencies]
+asgiref = ">=3.2,<4.0"
 pytz = "*"
-sqlparse = "*"
+sqlparse = ">=0.2.2"
 
 [package.extras]
 argon2 = ["argon2-cffi (>=16.1.0)"]
@@ -446,18 +458,6 @@ version = "1.0.3"
 [package.dependencies]
 django = "*"
 six = "*"
-
-[[package]]
-category = "main"
-description = "Utilities for using Babel in Django"
-name = "django-babel"
-optional = false
-python-versions = "*"
-version = "0.6.2"
-
-[package.dependencies]
-babel = ">=1.3"
-django = ">=1.8,<3.0"
 
 [[package]]
 category = "main"
@@ -539,12 +539,13 @@ description = "JSON Web Token for Django GraphQL"
 name = "django-graphql-jwt"
 optional = false
 python-versions = "*"
-version = "0.2.1"
+version = "0.3.0"
 
 [package.dependencies]
 Django = ">=1.11"
 PyJWT = ">=1.5.0"
 graphene-django = ">=2.0.0"
+graphql-core = ">=2.1,<3"
 
 [[package]]
 category = "main"
@@ -601,12 +602,12 @@ description = "Django fields for the prices module"
 name = "django-prices"
 optional = false
 python-versions = "*"
-version = "2.1.0"
+version = "2.2.0"
 
 [package.dependencies]
 Babel = ">=2.2"
-Django = ">=1.11,<3"
-django-babel = "*"
+Django = ">=2.2,<4"
+enmerkar = ">=0.7.1"
 prices = ">=1.0.0"
 
 [[package]]
@@ -615,7 +616,7 @@ description = "openexchangerates.org support for django-prices"
 name = "django-prices-openexchangerates"
 optional = false
 python-versions = "*"
-version = "1.0.1"
+version = "1.1.0"
 
 [package.dependencies]
 Django = ">=1.11"
@@ -720,7 +721,7 @@ description = "A drop-in replacement for django's ImageField that provides a fle
 name = "django-versatileimagefield"
 optional = false
 python-versions = "*"
-version = "1.11"
+version = "2.0"
 
 [package.dependencies]
 Pillow = ">=2.4.0"
@@ -747,6 +748,18 @@ urllib3 = "*"
 
 [package.extras]
 dev = ["pre-commit", "pytest", "mock"]
+
+[[package]]
+category = "main"
+description = "Utilities for using Babel in Django"
+name = "enmerkar"
+optional = false
+python-versions = "*"
+version = "0.7.1"
+
+[package.dependencies]
+babel = ">=1.3"
+django = ">=2.2"
 
 [[package]]
 category = "dev"
@@ -966,7 +979,7 @@ description = "Graphene Django integration"
 name = "graphene-django"
 optional = false
 python-versions = "*"
-version = "2.6.0"
+version = "2.8.2"
 
 [package.dependencies]
 Django = ">=1.11"
@@ -2237,7 +2250,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "7d2f74a319b73f363e13c6d25cd8ea65180eaec3e0b0dca45e4e436b40110b16"
+content-hash = "884b42bafa5b9a53e62d75ec70c0d7f6fd234578891d94c40dac54f3b9b81581"
 python-versions = "~3.8"
 
 [metadata.files]
@@ -2256,6 +2269,10 @@ apipkg = [
 appdirs = [
     {file = "appdirs-1.4.3-py2.py3-none-any.whl", hash = "sha256:d8b24664561d0d34ddfaec54636d502d7cea6e29c3eaf68f3df6180863e2166e"},
     {file = "appdirs-1.4.3.tar.gz", hash = "sha256:9e5896d1372858f8dd3344faf4e5014d21849c756c8d5701f78f8a103b372d92"},
+]
+asgiref = [
+    {file = "asgiref-3.2.3-py2.py3-none-any.whl", hash = "sha256:ea448f92fc35a0ef4b1508f53a04c4670255a3f33d22a81c8fc9c872036adbe5"},
+    {file = "asgiref-3.2.3.tar.gz", hash = "sha256:7e06d934a7718bf3975acbf87780ba678957b87c7adc056f13b6215d610695a0"},
 ]
 "aspy.yaml" = [
     {file = "aspy.yaml-1.3.0-py2.py3-none-any.whl", hash = "sha256:463372c043f70160a9ec950c3f1e4c3a82db5fca01d334b6bc89c7164d744bdc"},
@@ -2436,16 +2453,12 @@ dj-email-url = [
     {file = "dj_email_url-0.2.0-py2.py3-none-any.whl", hash = "sha256:136ac43c7f29022130fc4769b4ca8b01cd1c39fedf1659c641c143808182a084"},
 ]
 django = [
-    {file = "Django-2.2.10-py3-none-any.whl", hash = "sha256:9a4635813e2d498a3c01b10c701fe4a515d76dd290aaa792ccb65ca4ccb6b038"},
-    {file = "Django-2.2.10.tar.gz", hash = "sha256:1226168be1b1c7efd0e66ee79b0e0b58b2caa7ed87717909cd8a57bb13a7079a"},
+    {file = "Django-3.0.4-py3-none-any.whl", hash = "sha256:89e451bfbb815280b137e33e454ddd56481fdaa6334054e6e031041ee1eda360"},
+    {file = "Django-3.0.4.tar.gz", hash = "sha256:50b781f6cbeb98f673aa76ed8e572a019a45e52bdd4ad09001072dfd91ab07c8"},
 ]
 django-appconf = [
     {file = "django-appconf-1.0.3.tar.gz", hash = "sha256:35f13ca4d567f132b960e2cd4c832c2d03cb6543452d34e29b7ba10371ba80e3"},
     {file = "django_appconf-1.0.3-py2.py3-none-any.whl", hash = "sha256:c98a7af40062e996b921f5962a1c4f3f0c979fa7885f7be4710cceb90ebe13a6"},
-]
-django-babel = [
-    {file = "django-babel-0.6.2.tar.gz", hash = "sha256:1e621b198e1f98ae4f93e43463cf78cbedbace475eb6e0853ba1e2567f3b8119"},
-    {file = "django_babel-0.6.2-py2.py3-none-any.whl", hash = "sha256:b62084a6f0cbf2e7af719bd129abfe54608a52645c0677aff5a728f586873af7"},
 ]
 django-countries = [
     {file = "django-countries-5.5.tar.gz", hash = "sha256:1cefad9ec804d6a0318b91c5394b5aef00336755928f44d0a6420507719d65c8"},
@@ -2470,7 +2483,8 @@ django-graphiql-debug-toolbar = [
     {file = "django-graphiql-debug-toolbar-0.1.4.tar.gz", hash = "sha256:946fba21418b3fd57e7e357d4cd110fb7881e08d3b7a0a8a00400fa2e75965f5"},
 ]
 django-graphql-jwt = [
-    {file = "django-graphql-jwt-0.2.1.tar.gz", hash = "sha256:6dcf9dd4990098e289d76ab4220edbf436a2e26dc6af1d4a526ac699ad93bf14"},
+    {file = "django-graphql-jwt-0.3.0.tar.gz", hash = "sha256:c9c611d98510b57146c21484478eae793249553af3766a593e8f25ce73d3255a"},
+    {file = "django_graphql_jwt-0.3.0-py2.py3-none-any.whl", hash = "sha256:bcf0882a492e2148cba7cba3c39cf57834f736a2c289b66852239faf9b59b61e"},
 ]
 django-js-asset = [
     {file = "django-js-asset-1.2.2.tar.gz", hash = "sha256:c163ae80d2e0b22d8fb598047cd0dcef31f81830e127cfecae278ad574167260"},
@@ -2488,10 +2502,12 @@ django-phonenumber-field = [
     {file = "django_phonenumber_field-2.4.0-py2.py3-none-any.whl", hash = "sha256:a4ddedf21df5443fe1f064b8162117b214b15d5b93b8109b84e031456fb1fe5c"},
 ]
 django-prices = [
-    {file = "django-prices-2.1.0.tar.gz", hash = "sha256:bf237495ca0d1e8ce6183909815e11d3f8e8c6a27ef9ddbb3b1e9829874d6e55"},
+    {file = "django-prices-2.2.0.tar.gz", hash = "sha256:cdbea06db683c589d4cf3ec48d4b2385000ddc4df6e641f48cea563e19f645a3"},
+    {file = "django_prices-2.2.0-py3-none-any.whl", hash = "sha256:4ef054a660663c216a869126f1d209752381d5e311e5808438d29c944c2009d3"},
 ]
 django-prices-openexchangerates = [
-    {file = "django-prices-openexchangerates-1.0.1.tar.gz", hash = "sha256:59ede6a48003c463dffeccee9a7f0a292baf763b7dc141255b693abe1f79208c"},
+    {file = "django-prices-openexchangerates-1.1.0.tar.gz", hash = "sha256:7d8d31c988dc42e9a90621eded3cef71de255bb6071aef942390bbd88edd4640"},
+    {file = "django_prices_openexchangerates-1.1.0-py3-none-any.whl", hash = "sha256:e8a8e85020ab62071bec29bf48eb7e688822141291e9d855b045efe1ab27ea74"},
 ]
 django-prices-vatlayer = [
     {file = "django-prices-vatlayer-1.0.2.tar.gz", hash = "sha256:cd0e45a8e71b680c5fa8d7b2022535d7ccfd2bf71b10b18aa7f78b3aa0d596af"},
@@ -2515,8 +2531,8 @@ django-templated-email = [
     {file = "django-templated-email-2.3.0.tar.gz", hash = "sha256:536c4e5ae099eabfb9aab36087d4d7799948c654e73da55a744213d086d5bb33"},
 ]
 django-versatileimagefield = [
-    {file = "django-versatileimagefield-1.11.tar.gz", hash = "sha256:8322ee9d7bf5ffa5360990320d2cc2efc7017feff35422636d49f625721edf82"},
-    {file = "django_versatileimagefield-1.11-py2.py3-none-any.whl", hash = "sha256:90e1614db9ee593f502f4e5ec0942611589e1d91567a20447c8cf48459ee52d5"},
+    {file = "django-versatileimagefield-2.0.tar.gz", hash = "sha256:b197e7066f23bb73b001a61525f2b1cae3dd654bf208a944a7ff5a3fe6107b51"},
+    {file = "django_versatileimagefield-2.0-py2.py3-none-any.whl", hash = "sha256:090f89fd72379dd072d4e76dd708245cddc4ff601de27ea5a7d26f005019ef4c"},
 ]
 docutils = [
     {file = "docutils-0.15.2-py2-none-any.whl", hash = "sha256:9e4d7ecfc600058e07ba661411a2b7de2fd0fafa17d1a7f7361cd47b1175c827"},
@@ -2525,6 +2541,10 @@ docutils = [
 ]
 draftjs-sanitizer = [
     {file = "draftjs-sanitizer-1.0.0.tar.gz", hash = "sha256:4603a9296153cd06d5a1d76a45a1ff0295363516af983d8dde28cafc5cd67583"},
+]
+enmerkar = [
+    {file = "enmerkar-0.7.1-py3-none-any.whl", hash = "sha256:ba5a79e022963580c994ce8f4fe8477d574159adbe86e5271b1a3d4127b8794d"},
+    {file = "enmerkar-0.7.1.tar.gz", hash = "sha256:a4a6c859b4ed293deee40ff61d6695b3ff7bc153770a1799f2be872181282e00"},
 ]
 entrypoints = [
     {file = "entrypoints-0.3-py2.py3-none-any.whl", hash = "sha256:589f874b313739ad35be6e0cd7efde2a4e9b6fea91edcc34e58ecbb8dbe56d19"},
@@ -2588,8 +2608,8 @@ graphene = [
     {file = "graphene-2.1.8.tar.gz", hash = "sha256:2cbe6d4ef15cfc7b7805e0760a0e5b80747161ce1b0f990dfdc0d2cf497c12f9"},
 ]
 graphene-django = [
-    {file = "graphene-django-2.6.0.tar.gz", hash = "sha256:0d1404ab1ba7873a8e848d87d138f615391d100ed0c046482c164429cfb992ef"},
-    {file = "graphene_django-2.6.0-py2.py3-none-any.whl", hash = "sha256:fa9e815f63e3c972773adc96c3f3c81e537dba0edcd0f1be92c799bc0b6ed0a8"},
+    {file = "graphene-django-2.8.2.tar.gz", hash = "sha256:1f65861af9422e42418c6caad3ab6b75ee52b2410dc860de3060a5dcd3840359"},
+    {file = "graphene_django-2.8.2-py2.py3-none-any.whl", hash = "sha256:d9e019a23f442ca31f0e012f578f2b84d40fbf66b88930fc747f7ad8f9a9f7c8"},
 ]
 graphene-django-optimizer = [
     {file = "graphene-django-optimizer-0.6.1.tar.gz", hash = "sha256:2c3902cfc739ae7f9953c9130fa4030d4f1bd9e81c820713c4270137e63f89cb"},
