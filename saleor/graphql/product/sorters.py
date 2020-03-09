@@ -53,10 +53,12 @@ class AttributeSortField(graphene.Enum):
                 "Sort attributes by their position in storefront"
             ),
             AttributeSortField.DASHBOARD_VARIANT_POSITION.name: (
-                "Deprecated: Sort variant attributes by their position in dashboard."
+                "DEPRECATED: Will be removed in Saleor 2.11. "
+                "Sort variant attributes by their position in dashboard."
             ),
             AttributeSortField.DASHBOARD_PRODUCT_POSITION.name: (
-                "Deprecated: Sort product attributes by their position in dashboard."
+                "DEPRECATED: Will be removed in Saleor 2.11. "
+                "Sort product attributes by their position in dashboard."
             ),
             AttributeSortField.AVAILABLE_IN_GRID.name: (
                 "Sort attributes based on whether they can be displayed "
