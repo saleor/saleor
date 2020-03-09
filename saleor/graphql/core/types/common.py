@@ -102,6 +102,12 @@ class StockError(Error):
     code = StockErrorCode(description="The error code.", required=True)
 
 
+class BulkStockError(ProductError):
+    index = graphene.Int(
+        description="Index of an input list item that caused the error."
+    )
+
+
 class WarehouseError(Error):
     code = WarehouseErrorCode(description="The error code.", required=True)
 
