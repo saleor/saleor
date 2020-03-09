@@ -9,7 +9,7 @@ from graphene_django.fields import DjangoConnectionField
 from graphql_relay.connection.arrayconnection import connection_from_list_slice
 from promise import Promise
 
-from ..utils import sort_queryset_for_connection
+from ..utils.sorting import sort_queryset_for_connection
 from .connection import connection_from_queryset_slice
 from .types.common import Weight
 from .types.money import Money, TaxedMoney
