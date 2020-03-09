@@ -79,6 +79,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Drop get_absolute_url methods - #5299 by @IKarbowiak
 - Add --force flag to cleardb command - #5302 by @maarcingebala
 - Require non-empty message in orderAddNote mutation - #5316 by @maarcingebala
+- Stock management refactor - #5323 by @IKarbowiak
 
 ## 2.9.0
 

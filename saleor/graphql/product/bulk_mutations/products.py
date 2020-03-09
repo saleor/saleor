@@ -10,21 +10,31 @@ from ....product.error_codes import ProductErrorCode
 from ....product.tasks import update_product_minimal_variant_price_task
 from ....product.utils import delete_categories
 from ....product.utils.attributes import generate_name_for_variant
+from ....warehouse import models as warehouse_models
+from ....warehouse.error_codes import StockErrorCode
 from ...core.mutations import (
     BaseBulkMutation,
     BaseMutation,
     ModelBulkDeleteMutation,
     ModelMutation,
 )
-from ...core.types.common import BulkProductError, ProductError
+from ...core.types.common import (
+    BulkProductError,
+    BulkStockError,
+    ProductError,
+    StockError,
+)
+from ...utils import resolve_global_ids_to_primary_keys
+from ...warehouse.types import Warehouse
 from ..mutations.products import (
     AttributeAssignmentMixin,
     AttributeValueInput,
     ProductVariantCreate,
     ProductVariantInput,
+    StockInput,
 )
 from ..types import ProductVariant
-from ..utils import get_used_variants_attribute_values
+from ..utils import create_stocks, get_used_variants_attribute_values
 
 
 class CategoryBulkDelete(ModelBulkDeleteMutation):
@@ -293,6 +303,164 @@ class ProductVariantBulkDelete(ModelBulkDeleteMutation):
         permissions = (ProductPermissions.MANAGE_PRODUCTS,)
         error_type_class = ProductError
         error_type_field = "product_errors"
+
+
+class ProductVariantStocksCreate(BaseMutation):
+    product_variant = graphene.Field(
+        ProductVariant, description="Updated product variant."
+    )
+
+    class Arguments:
+        variant_id = graphene.ID(
+            required=True,
+            description="ID of a product variant for which stocks will be created.",
+        )
+        stocks = graphene.List(
+            graphene.NonNull(StockInput),
+            required=True,
+            description="Input list of stocks to create.",
+        )
+
+    class Meta:
+        description = "Creates stocks for product variant."
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        error_type_class = BulkStockError
+        error_type_field = "bulk_stock_errors"
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        errors = defaultdict(list)
+        stocks = data["stocks"]
+        variant = cls.get_node_or_error(
+            info, data["variant_id"], only_type=ProductVariant
+        )
+        warehouses = cls.clean_stocks_input(variant, stocks, errors)
+        if errors:
+            raise ValidationError(errors)
+        create_stocks(variant, stocks, warehouses)
+        return cls(product_variant=variant)
+
+    @classmethod
+    def clean_stocks_input(cls, variant, stocks_data, errors):
+        warehouse_ids = [stock["warehouse"] for stock in stocks_data]
+        cls.check_for_duplicates(warehouse_ids, errors)
+        warehouses = cls.get_nodes_or_error(
+            warehouse_ids, "warehouse", only_type=Warehouse
+        )
+        existing_stocks = variant.stocks.filter(warehouse__in=warehouses).values_list(
+            "warehouse__pk", flat=True
+        )
+        error_msg = "Stock for this warehouse already exists for this product variant."
+        indexes = []
+        for warehouse_pk in existing_stocks:
+            warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse_pk)
+            indexes.extend(
+                [i for i, id in enumerate(warehouse_ids) if id == warehouse_id]
+            )
+        cls.update_errors(
+            errors, error_msg, "warehouse", StockErrorCode.UNIQUE, indexes
+        )
+
+        return warehouses
+
+    @classmethod
+    def check_for_duplicates(cls, warehouse_ids, errors):
+        duplicates = {id for id in warehouse_ids if warehouse_ids.count(id) > 1}
+        error_msg = "Duplicated warehouse ID."
+        indexes = []
+        for duplicated_id in duplicates:
+            indexes.append(
+                [i for i, id in enumerate(warehouse_ids) if id == duplicated_id][-1]
+            )
+        cls.update_errors(
+            errors, error_msg, "warehouse", StockErrorCode.UNIQUE, indexes
+        )
+
+    @classmethod
+    def update_errors(cls, errors, msg, field, code, indexes):
+        for index in indexes:
+            error = ValidationError(msg, code=code, params={"index": index})
+            errors[field].append(error)
+
+    @classmethod
+    def handle_typed_errors(cls, errors: list, **extra):
+        typed_errors = [
+            cls._meta.error_type_class(
+                field=e.field,
+                message=e.message,
+                code=code,
+                index=params.get("index") if params else None,
+            )
+            for e, code, params in errors
+        ]
+        extra.update({cls._meta.error_type_field: typed_errors})
+        return cls(errors=[e[0] for e in errors], **extra)
+
+
+class ProductVariantStocksUpdate(ProductVariantStocksCreate):
+    class Meta:
+        description = "Update stocks for product variant."
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        error_type_class = BulkStockError
+        error_type_field = "bulk_stock_errors"
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        errors = defaultdict(list)
+        stocks = data["stocks"]
+        variant = cls.get_node_or_error(
+            info, data["variant_id"], only_type=ProductVariant
+        )
+        warehouse_ids = [stock["warehouse"] for stock in stocks]
+        cls.check_for_duplicates(warehouse_ids, errors)
+        if errors:
+            raise ValidationError(errors)
+        warehouses = cls.get_nodes_or_error(
+            warehouse_ids, "warehouse", only_type=Warehouse
+        )
+        cls.create_variant_stocks(variant, stocks, warehouses)
+        return cls(product_variant=variant)
+
+    @classmethod
+    def create_variant_stocks(cls, variant, stocks, warehouses):
+        for stock_data, warehouse in zip(stocks, warehouses):
+            stock, _ = warehouse_models.Stock.objects.get_or_create(
+                product_variant=variant, warehouse=warehouse
+            )
+            stock.quantity = stock_data["quantity"]
+            stock.save(update_fields=["quantity"])
+
+
+class ProductVariantStocksDelete(BaseMutation):
+    product_variant = graphene.Field(
+        ProductVariant, description="Updated product variant."
+    )
+
+    class Arguments:
+        variant_id = graphene.ID(
+            required=True,
+            description="ID of product variant for which stocks will be deleted.",
+        )
+        warehouse_ids = graphene.List(graphene.NonNull(graphene.ID),)
+
+    class Meta:
+        description = "Delete stocks from product variant."
+        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
+        error_type_class = StockError
+        error_type_field = "stock_errors"
+
+    @classmethod
+    def perform_mutation(cls, root, info, **data):
+        variant = cls.get_node_or_error(
+            info, data["variant_id"], only_type=ProductVariant
+        )
+        _, warehouses_pks = resolve_global_ids_to_primary_keys(
+            data["warehouse_ids"], Warehouse
+        )
+        warehouse_models.Stock.objects.filter(
+            product_variant=variant, warehouse__pk__in=warehouses_pks
+        ).delete()
+        return cls(product_variant=variant)
 
 
 class ProductTypeBulkDelete(ModelBulkDeleteMutation):

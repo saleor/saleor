@@ -28,6 +28,7 @@ from ....warehouse.availability import (
     is_product_in_stock,
     is_variant_in_stock,
 )
+from ...account.enums import CountryCodeEnum
 from ...core.connection import CountableDjangoObjectType
 from ...core.enums import ReportingPeriod, TaxRateType
 from ...core.fields import FilterInputConnectionField, PrefetchingConnectionField
@@ -235,11 +236,15 @@ class ProductVariant(CountableDjangoObjectType):
         model_field="digital_content",
     )
 
-    stock = gql_optimizer.field(
+    stocks = gql_optimizer.field(
         graphene.Field(
             graphene.List(Stock),
             description="Stocks for the product variant.",
-            country=graphene.String(required=False),
+            country_code=graphene.Argument(
+                CountryCodeEnum,
+                description="Two-letter ISO 3166-1 country code.",
+                required=False,
+            ),
         )
     )
 
@@ -252,13 +257,14 @@ class ProductVariant(CountableDjangoObjectType):
         model = models.ProductVariant
 
     @staticmethod
-    def resolve_stock(root: models.ProductVariant, info, country=None):
-        if country is None:
+    def resolve_stocks(root: models.ProductVariant, info, country_code=None):
+        if not country_code:
             return gql_optimizer.query(
-                root.stock.annotate_available_quantity().all(), info
+                root.stocks.annotate_available_quantity().all(), info
             )
         return gql_optimizer.query(
-            root.stock.annotate_available_quantity().for_country(country).all(), info
+            root.stocks.annotate_available_quantity().for_country(country_code).all(),
+            info,
         )
 
     @staticmethod
@@ -859,15 +865,3 @@ class ProductImage(CountableDjangoObjectType):
     @staticmethod
     def __resolve_reference(root, _info, **_kwargs):
         return graphene.Node.get_node_from_global_id(_info, root.id)
-
-
-class MoveProductInput(graphene.InputObjectType):
-    product_id = graphene.ID(
-        description="The ID of the product to move.", required=True
-    )
-    sort_order = graphene.Int(
-        description=(
-            "The relative sorting position of the product (from -inf to +inf) "
-            "starting from the first given product's actual position."
-        )
-    )

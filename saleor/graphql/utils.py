@@ -32,7 +32,7 @@ def _check_graphene_type(requested_graphene_type, received_type):
         ).format(str(requested_graphene_type))
 
 
-def _resolve_nodes(ids, graphene_type=None):
+def resolve_global_ids_to_primary_keys(ids, graphene_type=None):
     pks = []
     invalid_ids = []
     used_type = graphene_type
@@ -76,7 +76,7 @@ def get_nodes(
 
     If the `graphene_type` is of type str, the model keyword argument must be provided.
     """
-    nodes_type, pks = _resolve_nodes(ids, graphene_type)
+    nodes_type, pks = resolve_global_ids_to_primary_keys(ids, graphene_type)
 
     # If `graphene_type` was not provided, check if all resolved types are
     # the same. This prevents from accidentally mismatching IDs of different
@@ -189,3 +189,14 @@ def get_user_or_service_account_from_context(context):
     # order is important
     # service_account can be None but user if None then is passed as anonymous
     return context.service_account or context.user
+
+
+def filter_range_field(qs, field, value):
+    gte, lte = value.get("gte"), value.get("lte")
+    if gte:
+        lookup = {f"{field}__gte": gte}
+        qs = qs.filter(**lookup)
+    if lte:
+        lookup = {f"{field}__lte": lte}
+        qs = qs.filter(**lookup)
+    return qs

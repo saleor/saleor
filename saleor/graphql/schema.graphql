@@ -493,6 +493,13 @@ type BulkProductError {
   index: Int
 }
 
+type BulkStockError {
+  field: String
+  message: String
+  code: ProductErrorCode!
+  index: Int
+}
+
 input CatalogueInput {
   products: [ID]
   categories: [ID]
@@ -2158,10 +2165,6 @@ type Mutation {
   deleteWarehouse(id: ID!): WarehouseDelete
   assignWarehouseShippingZone(id: ID!, shippingZoneIds: [ID!]!): WarehouseShippingZoneAssign
   unassignWarehouseShippingZone(id: ID!, shippingZoneIds: [ID!]!): WarehouseShippingZoneUnassign
-  createStock(input: StockInput!): StockCreate
-  updateStock(id: ID!, input: StockInput!): StockUpdate
-  deleteStock(id: ID!): StockDelete
-  bulkDeleteStock(ids: [ID]!): StockBulkDelete
   authorizationKeyAdd(input: AuthorizationKeyInput!, keyType: AuthorizationKeyType!): AuthorizationKeyAdd
   authorizationKeyDelete(keyType: AuthorizationKeyType!): AuthorizationKeyDelete
   staffNotificationRecipientCreate(input: StaffNotificationRecipientInput!): StaffNotificationRecipientCreate
@@ -2253,6 +2256,9 @@ type Mutation {
   productVariantDelete(id: ID!): ProductVariantDelete
   productVariantBulkCreate(product: ID!, variants: [ProductVariantBulkCreateInput]!): ProductVariantBulkCreate
   productVariantBulkDelete(ids: [ID]!): ProductVariantBulkDelete
+  productVariantStocksCreate(stocks: [StockInput!]!, variantId: ID!): ProductVariantStocksCreate
+  productVariantStocksDelete(variantId: ID!, warehouseIds: [ID!]): ProductVariantStocksDelete
+  productVariantStocksUpdate(stocks: [StockInput!]!, variantId: ID!): ProductVariantStocksUpdate
   productVariantUpdate(id: ID!, input: ProductVariantInput!): ProductVariantUpdate
   productVariantTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): ProductVariantTranslate
   productVariantUpdateMetadata(id: ID!, input: MetaInput!): ProductVariantUpdateMeta @deprecated(reason: "Will be removed in Saleor 2.11. Use the `UpdateMetadata` mutation instead.")
@@ -3218,6 +3224,7 @@ input ProductCreateInput {
   quantity: Int
   trackInventory: Boolean
   productType: ID!
+  stocks: [StockInput!]
 }
 
 type ProductDelete {
@@ -3255,6 +3262,7 @@ input ProductFilterInput {
   attributes: [AttributeInput]
   stockAvailability: StockAvailability
   productType: ID
+  stocks: ProductStockFilterInput
   search: String
   minimalPrice: PriceRangeInput
   productTypes: [ID]
@@ -3353,6 +3361,11 @@ type ProductPricingInfo {
   priceRange: TaxedMoneyRange
   priceRangeUndiscounted: TaxedMoneyRange
   priceRangeLocalCurrency: TaxedMoneyRange
+}
+
+input ProductStockFilterInput {
+  warehouseIds: [ID!]
+  quantity: IntRangeInput
 }
 
 type ProductTranslatableContent implements Node {
@@ -3549,7 +3562,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   images: [ProductImage]
   translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
   digitalContent: DigitalContent
-  stock(country: String): [Stock]
+  stocks(countryCode: CountryCode): [Stock]
 }
 
 type ProductVariantBulkCreate {
@@ -3613,6 +3626,7 @@ input ProductVariantCreateInput {
   trackInventory: Boolean
   weight: WeightScalar
   product: ID!
+  stocks: [StockInput!]
 }
 
 type ProductVariantDelete {
@@ -3629,6 +3643,24 @@ input ProductVariantInput {
   quantity: Int
   trackInventory: Boolean
   weight: WeightScalar
+}
+
+type ProductVariantStocksCreate {
+  errors: [Error!]!
+  productVariant: ProductVariant
+  bulkStockErrors: [BulkStockError!]!
+}
+
+type ProductVariantStocksDelete {
+  errors: [Error!]!
+  productVariant: ProductVariant
+  stockErrors: [StockError!]!
+}
+
+type ProductVariantStocksUpdate {
+  errors: [Error!]!
+  productVariant: ProductVariant
+  bulkStockErrors: [BulkStockError!]!
 }
 
 type ProductVariantTranslatableContent implements Node {
@@ -4341,12 +4373,6 @@ enum StockAvailability {
   OUT_OF_STOCK
 }
 
-type StockBulkDelete {
-  errors: [Error!]!
-  count: Int!
-  stockError: [StockError!]!
-}
-
 type StockCountableConnection {
   pageInfo: PageInfo!
   edges: [StockCountableEdge!]!
@@ -4358,30 +4384,19 @@ type StockCountableEdge {
   cursor: String!
 }
 
-type StockCreate {
-  errors: [Error!]!
-  stockErrors: [StockError!]!
-  stock: Stock
+type StockError {
+  field: String
+  message: String
+  code: StockErrorCode!
 }
 
-type StockDelete {
-  errors: [Error!]!
-  stock: Stock
-}
-
-enum StockErorrCode {
+enum StockErrorCode {
   ALREADY_EXISTS
   GRAPHQL_ERROR
   INVALID
   NOT_FOUND
   REQUIRED
   UNIQUE
-}
-
-type StockError {
-  field: String
-  message: String
-  code: StockErorrCode!
 }
 
 input StockFilterInput {
@@ -4391,15 +4406,8 @@ input StockFilterInput {
 }
 
 input StockInput {
-  productVariant: ID!
   warehouse: ID!
   quantity: Int
-}
-
-type StockUpdate {
-  errors: [Error!]!
-  stockError: [StockError!]!
-  stock: Stock
 }
 
 enum TaxRateType {

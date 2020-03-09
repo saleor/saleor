@@ -10,7 +10,7 @@ class WarehouseErrorCode(str, Enum):
     UNIQUE = "unique"
 
 
-class StockErorrCode(str, Enum):
+class StockErrorCode(str, Enum):
     ALREADY_EXISTS = "already_exists"
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
