@@ -2146,10 +2146,10 @@ input MoveProductInput {
 }
 
 type Mutation {
-  wishlistAddProduct(productId: ID!): WishlistAddProductMutation
-  wishlistRemoveProduct(productId: ID!): WishlistRemoveProductMutation
-  wishlistAddVariant(variantId: ID!): WishlistAddProductVariantMutation
-  wishlistRemoveVariant(variantId: ID!): WishlistRemoveProductVariantMutation
+  wishlistAddVariant(variantId: ID!): WishlistAddVariant
+  wishlistRemoveVariant(variantId: ID!): WishlistRemoveVariant
+  wishlistUpdateVariant(variantId: ID!, quantity: Int!): WishlistUpdateVariant
+  wishlistMoveItemsToCart(variantIds: [ID!]!): WishlistMoveItemsToCart
   webhookCreate(input: WebhookCreateInput!): WebhookCreate
   webhookDelete(id: ID!): WebhookDelete
   webhookUpdate(id: ID!, input: WebhookUpdateInput!): WebhookUpdate
@@ -4555,7 +4555,7 @@ type User implements Node & ObjectWithMetadata {
   avatar(size: Int): Image
   events: [CustomerEvent]
   storedPaymentSources: [PaymentSource]
-  wishlist(before: String, after: String, first: Int, last: Int): WishlistItemCountableConnection
+  wishlist: Wishlist
 }
 
 type UserAvatarDelete {
@@ -5043,19 +5043,33 @@ enum WeightUnitsEnum {
 
 type Wishlist implements Node {
   id: ID!
-  createdAt: DateTime!
-  items(before: String, after: String, first: Int, last: Int, id: ID): WishlistItemCountableConnection!
+  token: UUID!
+  user: User
+  items: [WishlistItem!]
 }
 
-type WishlistAddProductMutation {
+type WishlistAddVariant {
   errors: [Error!]!
-  wishlist: [WishlistItem]
+  wishlist: Wishlist
   wishlistErrors: [WishlistError!]!
 }
 
-type WishlistAddProductVariantMutation {
+type WishlistRemoveVariant {
   errors: [Error!]!
-  wishlist: [WishlistItem]
+  wishlist: Wishlist
+  wishlistErrors: [WishlistError!]!
+}
+
+type WishlistUpdateVariant {
+  errors: [Error!]!
+  wishlist: Wishlist
+  wishlistErrors: [WishlistError!]!
+}
+
+type wishlistMoveItemsToCart {
+  errors: [Error!]!
+  wishlist: Wishlist
+  lackOfQuantityVariants: [ID!]
   wishlistErrors: [WishlistError!]!
 }
 
@@ -5076,31 +5090,8 @@ enum WishlistErrorCode {
 type WishlistItem implements Node {
   id: ID!
   wishlist: Wishlist!
-  product: Product!
-  variants(before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection!
-}
-
-type WishlistItemCountableConnection {
-  pageInfo: PageInfo!
-  edges: [WishlistItemCountableEdge!]!
-  totalCount: Int
-}
-
-type WishlistItemCountableEdge {
-  node: WishlistItem!
-  cursor: String!
-}
-
-type WishlistRemoveProductMutation {
-  errors: [Error!]!
-  wishlist: [WishlistItem]
-  wishlistErrors: [WishlistError!]!
-}
-
-type WishlistRemoveProductVariantMutation {
-  errors: [Error!]!
-  wishlist: [WishlistItem]
-  wishlistErrors: [WishlistError!]!
+  variant: ProductVariant!
+  quantity: Int!
 }
 
 scalar _Any
