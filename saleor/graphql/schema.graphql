@@ -3562,7 +3562,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
   images: [ProductImage]
   translation(languageCode: LanguageCodeEnum!): ProductVariantTranslation
   digitalContent: DigitalContent
-  stocks(country: String): [Stock]
+  stocks(countryCode: CountryCode): [Stock]
 }
 
 type ProductVariantBulkCreate {

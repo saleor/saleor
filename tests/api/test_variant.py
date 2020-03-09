@@ -15,10 +15,10 @@ from tests.api.utils import get_graphql_content
 
 def test_fetch_variant(staff_api_client, product, permission_manage_products):
     query = """
-    query ProductVariantDetails($id: ID!) {
+    query ProductVariantDetails($id: ID!, $countyCode: CountryCode) {
         productVariant(id: $id) {
             id
-            stocks {
+            stocks(countryCode: $countyCode) {
                 id
             }
             attributes {
@@ -59,7 +59,7 @@ def test_fetch_variant(staff_api_client, product, permission_manage_products):
 
     variant = product.variants.first()
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.pk)
-    variables = {"id": variant_id}
+    variables = {"id": variant_id, "countyCode": "EU"}
     staff_api_client.user.user_permissions.add(permission_manage_products)
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
