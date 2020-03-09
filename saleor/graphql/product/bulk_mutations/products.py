@@ -350,13 +350,16 @@ class ProductVariantStocksCreate(BaseMutation):
         existing_stocks = variant.stocks.filter(warehouse__in=warehouses).values_list(
             "warehouse__pk", flat=True
         )
+        error_msg = "Stock for this warehouse already exists for this product variant."
+        indexes = []
         for warehouse_pk in existing_stocks:
             warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse_pk)
-            msg = "Stock for this warehouse already exists for this product variant."
-            error = ValidationError(
-                msg, code=StockErrorCode.UNIQUE, params={"id": warehouse_id}
+            indexes.extend(
+                [i for i, id in enumerate(warehouse_ids) if id == warehouse_id]
             )
-            errors["warehouse"].append(error)
+        cls.update_errors(
+            errors, error_msg, "warehouse", StockErrorCode.UNIQUE, indexes
+        )
 
         return warehouses
 
@@ -364,11 +367,20 @@ class ProductVariantStocksCreate(BaseMutation):
     def check_for_duplicates(cls, warehouse_ids, errors):
         duplicates = {id for id in warehouse_ids if warehouse_ids.count(id) > 1}
         error_msg = "Duplicated warehouse ID."
+        indexes = []
         for duplicated_id in duplicates:
-            error = ValidationError(
-                error_msg, code=StockErrorCode.UNIQUE, params={"id": duplicated_id}
+            indexes.append(
+                [i for i, id in enumerate(warehouse_ids) if id == duplicated_id][-1]
             )
-            errors["warehouse"].append(error)
+        cls.update_errors(
+            errors, error_msg, "warehouse", StockErrorCode.UNIQUE, indexes
+        )
+
+    @classmethod
+    def update_errors(cls, errors, msg, field, code, indexes):
+        for index in indexes:
+            error = ValidationError(msg, code=code, params={"index": index})
+            errors[field].append(error)
 
     @classmethod
     def handle_typed_errors(cls, errors: list, **extra):
@@ -377,7 +389,7 @@ class ProductVariantStocksCreate(BaseMutation):
                 field=e.field,
                 message=e.message,
                 code=code,
-                id=params.get("id") if params else None,
+                index=params.get("index") if params else None,
             )
             for e, code, params in errors
         ]
