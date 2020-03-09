@@ -27,7 +27,7 @@ def test_product_variants_stocks_create(
                 code
                 field
                 message
-                id
+                index
             }
         }
     }
@@ -86,7 +86,7 @@ def test_product_variants_stocks_update(
                     code
                     field
                     message
-                    id
+                    index
                 }
             }
         }

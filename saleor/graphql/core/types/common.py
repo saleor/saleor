@@ -103,7 +103,9 @@ class StockError(Error):
 
 
 class BulkStockError(ProductError):
-    id = graphene.ID(description="ID of input element which cause the error.")
+    index = graphene.Int(
+        description="Index of an input list item that caused the error."
+    )
 
 
 class WarehouseError(Error):

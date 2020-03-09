@@ -1271,7 +1271,7 @@ VARIANT_STOCKS_CREATE_MUTATION = """
                 code
                 field
                 message
-                id
+                index
             }
         }
     }
@@ -1339,10 +1339,11 @@ def test_variant_stocks_create_stock_already_exists(
 
     Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=10)
 
-    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
-
     stocks = [
-        {"warehouse": warehouse_id, "quantity": 20},
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.id),
+            "quantity": 20,
+        },
         {
             "warehouse": graphene.Node.to_global_id("Warehouse", second_warehouse.id),
             "quantity": 100,
@@ -1361,7 +1362,7 @@ def test_variant_stocks_create_stock_already_exists(
     assert errors
     assert errors[0]["code"] == StockErrorCode.UNIQUE.name
     assert errors[0]["field"] == "warehouse"
-    assert errors[0]["id"] == warehouse_id
+    assert errors[0]["index"] == 0
 
 
 def test_variant_stocks_create_stock_duplicated_warehouse(
@@ -1396,7 +1397,7 @@ def test_variant_stocks_create_stock_duplicated_warehouse(
     assert errors
     assert errors[0]["code"] == StockErrorCode.UNIQUE.name
     assert errors[0]["field"] == "warehouse"
-    assert errors[0]["id"] == second_warehouse_id
+    assert errors[0]["index"] == 2
 
 
 def test_variant_stocks_create_stock_duplicated_warehouse_and_warehouse_already_exists(
@@ -1432,16 +1433,14 @@ def test_variant_stocks_create_stock_duplicated_warehouse_and_warehouse_already_
     data = content["data"]["productVariantStocksCreate"]
     errors = data["bulkStockErrors"]
 
-    assert len(errors) == 2
+    assert len(errors) == 3
     assert {error["code"] for error in errors} == {
         StockErrorCode.UNIQUE.name,
     }
     assert {error["field"] for error in errors} == {
         "warehouse",
     }
-    assert {error["id"] for error in errors} == {
-        second_warehouse_id,
-    }
+    assert {error["index"] for error in errors} == {1, 2}
 
 
 VARIANT_STOCKS_UPDATE_MUTATIONS = """
@@ -1461,7 +1460,7 @@ VARIANT_STOCKS_UPDATE_MUTATIONS = """
                 code
                 field
                 message
-                id
+                index
             }
         }
     }
@@ -1531,14 +1530,19 @@ def test_variant_stocks_update_stock_duplicated_warehouse(
 
     Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=10)
 
-    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
     stocks = [
-        {"warehouse": warehouse_id, "quantity": 20},
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+            "quantity": 20,
+        },
         {
             "warehouse": graphene.Node.to_global_id("Warehouse", second_warehouse.pk),
             "quantity": 100,
         },
-        {"warehouse": warehouse_id, "quantity": 150},
+        {
+            "warehouse": graphene.Node.to_global_id("Warehouse", warehouse.pk),
+            "quantity": 150,
+        },
     ]
     variables = {"variantId": variant_id, "stocks": stocks}
     response = staff_api_client.post_graphql(
@@ -1553,7 +1557,7 @@ def test_variant_stocks_update_stock_duplicated_warehouse(
     assert errors
     assert errors[0]["code"] == StockErrorCode.UNIQUE.name
     assert errors[0]["field"] == "warehouse"
-    assert errors[0]["id"] == warehouse_id
+    assert errors[0]["index"] == 2
 
 
 VARIANT_STOCKS_DELETE_MUTATION = """

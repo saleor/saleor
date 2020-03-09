@@ -497,7 +497,7 @@ type BulkStockError {
   field: String
   message: String
   code: ProductErrorCode!
-  id: ID
+  index: Int
 }
 
 input CatalogueInput {
