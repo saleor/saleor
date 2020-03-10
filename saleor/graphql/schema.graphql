@@ -3668,6 +3668,7 @@ type ProductVariantUpdatePrivateMeta {
 }
 
 type Query {
+  wishlist(token: UUID!): Wishlist
   webhook(id: ID!): Webhook
   webhooks(sortBy: WebhookSortingInput, filter: WebhookFilterInput, before: String, after: String, first: Int, last: Int): WebhookCountableConnection
   webhookEvents: [WebhookEvent]
