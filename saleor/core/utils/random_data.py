@@ -29,6 +29,7 @@ from ...core.permissions import (
     CheckoutPermissions,
     GiftcardPermissions,
     OrderPermissions,
+    get_permissions,
 )
 from ...core.utils import build_absolute_uri
 from ...core.weight import zero_weight
@@ -569,7 +570,7 @@ def create_permission_groups():
     super_users = User.objects.filter(is_superuser=True)
     if not super_users:
         super_users = create_staff_users(1, True)
-    group = create_group("Full Access", Permission.objects.all(), super_users)
+    group = create_group("Full Access", get_permissions(), super_users)
     yield f"Group: {group}"
 
     staff_users = create_staff_users()
