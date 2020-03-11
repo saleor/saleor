@@ -2315,6 +2315,7 @@ type Mutation {
   menuItemUpdate(id: ID!, input: MenuItemInput!): MenuItemUpdate
   menuItemTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): MenuItemTranslate
   menuItemMove(menu: ID!, moves: [MenuItemMoveInput]!): MenuItemMove
+  requestInvoice(number: String, orderId: Int!): RequestInvoice
   giftCardActivate(id: ID!): GiftCardActivate
   giftCardCreate(input: GiftCardCreateInput!): GiftCardCreate
   giftCardDeactivate(id: ID!): GiftCardDeactivate
@@ -3761,6 +3762,10 @@ type RequestEmailChange {
   errors: [Error!]!
   user: User
   accountErrors: [AccountError!]!
+}
+
+type RequestInvoice {
+  errors: [Error!]!
 }
 
 type RequestPasswordReset {

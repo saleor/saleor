@@ -8,7 +8,7 @@ from .extensions.schema import ExtensionsMutations, ExtensionsQueries
 from .giftcard.schema import GiftCardMutations, GiftCardQueries
 from .menu.schema import MenuMutations, MenuQueries
 from .meta.schema import MetaMutations
-from .order.schema import OrderMutations, OrderQueries
+from .order.schema import InvoiceMutations, OrderMutations, OrderQueries
 from .page.schema import PageMutations, PageQueries
 from .payment.schema import PaymentMutations, PaymentQueries
 from .product.schema import ProductMutations, ProductQueries
@@ -54,6 +54,7 @@ class Mutation(
     DiscountMutations,
     ExtensionsMutations,
     GiftCardMutations,
+    InvoiceMutations,
     MenuMutations,
     MetaMutations,
     OrderMutations,

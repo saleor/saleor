@@ -14,3 +14,10 @@ class OrderStatusFilter(graphene.Enum):
     PARTIALLY_FULFILLED = "partially fulfilled"
     FULFILLED = "fulfilled"
     CANCELED = "canceled"
+
+
+class InvoiceStatus:
+    PENDING = "pending"
+    PENDING_DELETE = "pending_delete"
+    DELETED = "deleted"
+    READY = "ready"

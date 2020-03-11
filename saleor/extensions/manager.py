@@ -206,6 +206,12 @@ class ExtensionsManager(PaymentInterface):
         default_value = None
         return self.__run_method_on_plugins("order_created", default_value, order)
 
+    def invoice_request(self, order: "Order", invoice: "Invoice", number: str):
+        default_value = None
+        return self.__run_method_on_plugins(
+            "invoice_request", default_value, order, invoice, number
+        )
+
     def order_fully_paid(self, order: "Order"):
         default_value = None
         return self.__run_method_on_plugins("order_fully_paid", default_value, order)

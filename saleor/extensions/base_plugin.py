@@ -200,6 +200,15 @@ class BasePlugin:
         """
         return NotImplemented
 
+    def invoice_request(
+        self, order: "Order", invoice: "Invoice", number: str, previous_value: Any
+    ) -> Any:
+        """Trigger when invoice creation starts.
+
+        Overwrite to create invoice with proper data, call invoice.update_invoice.
+        """
+        return NotImplemented
+
     def assign_tax_code_to_object_meta(
         self, obj: Union["Product", "ProductType"], tax_code: str, previous_value: Any
     ):
