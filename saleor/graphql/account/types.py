@@ -209,7 +209,8 @@ class ServiceAccount(CountableDjangoObjectType):
         model = models.ServiceAccount
         permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
         only_fields = [
-            "name" "permissions",
+            "name",
+            "permissions",
             "created",
             "is_active",
             "tokens",
@@ -298,7 +299,6 @@ class User(CountableDjangoObjectType):
             "last_login",
             "last_name",
             "note",
-            "token",
         ]
 
     @staticmethod
