@@ -5,6 +5,7 @@ from ...translations.enums import LanguageCodeEnum
 from ..enums import (
     AccountErrorCode,
     CheckoutErrorCode,
+    DiscountErrorCode,
     ExtensionsErrorCode,
     GiftCardErrorCode,
     MenuErrorCode,
@@ -50,6 +51,10 @@ class AccountError(Error):
 
 class CheckoutError(Error):
     code = CheckoutErrorCode(description="The error code.", required=True)
+
+
+class DiscountError(Error):
+    code = DiscountErrorCode(description="The error code.", required=True)
 
 
 class MenuError(Error):
