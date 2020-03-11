@@ -3920,15 +3920,15 @@ input SeoInput {
 
 type ServiceAccount implements Node & ObjectWithMetadata {
   id: ID!
+  name: String
   created: DateTime
   isActive: Boolean
+  permissions: [PermissionDisplay]
   tokens: [ServiceAccountToken]
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `privetaMetadata` field instead. ")
   meta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `metadata` field instead. ")
-  permissions: [PermissionDisplay]
-  name: String
 }
 
 type ServiceAccountClearPrivateMeta {
