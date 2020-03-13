@@ -50,6 +50,7 @@ enum AccountErrorCode {
   INVALID
   INVALID_PASSWORD
   NOT_FOUND
+  NO_PERMISSION
   PASSWORD_ENTIRELY_NUMERIC
   PASSWORD_TOO_COMMON
   PASSWORD_TOO_SHORT
@@ -484,6 +485,13 @@ input AuthorizationKeyInput {
 enum AuthorizationKeyType {
   FACEBOOK
   GOOGLE_OAUTH2
+}
+
+type BulkAccountError {
+  field: String
+  message: String
+  code: AccountErrorCode!
+  index: Int
 }
 
 type BulkProductError {
@@ -2403,7 +2411,7 @@ type Mutation {
   serviceAccountTokenCreate(input: ServiceAccountTokenInput!): ServiceAccountTokenCreate
   serviceAccountTokenDelete(id: ID!): ServiceAccountTokenDelete
   permissionGroupCreate(input: PermissionGroupCreateInput!): PermissionGroupCreate
-  permissionGroupUpdate(id: ID!, input: PermissionGroupInput!): PermissionGroupUpdate
+  permissionGroupUpdate(id: ID!, input: PermissionGroupUpdateInput!): PermissionGroupUpdate
   permissionGroupDelete(id: ID!): PermissionGroupDelete
   permissionGroupAssignUsers(id: ID!, users: [ID!]!): PermissionGroupAssignUsers
   permissionGroupUnassignUsers(id: ID!, users: [ID!]!): PermissionGroupUnassignUsers
@@ -3034,7 +3042,7 @@ type PermissionGroupAssignUsers {
 type PermissionGroupCreate {
   errors: [Error!]!
   group: Group
-  accountErrors: [AccountError!]!
+  bulkAccountErrors: [BulkAccountError!]!
 }
 
 input PermissionGroupCreateInput {
@@ -3050,11 +3058,6 @@ type PermissionGroupDelete {
 
 input PermissionGroupFilterInput {
   search: String
-}
-
-input PermissionGroupInput {
-  name: String
-  permissions: [PermissionEnum!]
 }
 
 enum PermissionGroupSortField {
@@ -3075,7 +3078,12 @@ type PermissionGroupUnassignUsers {
 type PermissionGroupUpdate {
   errors: [Error!]!
   group: Group
-  accountErrors: [AccountError!]!
+  bulkAccountErrors: [BulkAccountError!]!
+}
+
+input PermissionGroupUpdateInput {
+  name: String
+  permissions: [PermissionEnum!]
 }
 
 type Plugin implements Node {

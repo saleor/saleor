@@ -15,6 +15,7 @@ class AccountErrorCode(Enum):
     INVALID = "invalid"
     INVALID_PASSWORD = "invalid_password"
     NOT_FOUND = "not_found"
+    NO_PERMISSION = "no_permission"
     PASSWORD_ENTIRELY_NUMERIC = "password_entirely_numeric"
     PASSWORD_TOO_COMMON = "password_too_common"
     PASSWORD_TOO_SHORT = "password_too_short"
