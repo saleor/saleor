@@ -3048,6 +3048,7 @@ type PermissionGroupCreate {
 input PermissionGroupCreateInput {
   name: String!
   permissions: [PermissionEnum!]
+  users: [ID!]
 }
 
 type PermissionGroupDelete {
