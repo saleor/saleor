@@ -1831,7 +1831,7 @@ type Image {
   alt: String
 }
 
-type Invoice implements Node & ObjectWithMetadata {
+type Invoice implements Job & Node & ObjectWithMetadata {
   id: ID!
   created: DateTime!
   number: String!
@@ -2476,7 +2476,7 @@ type Mutation {
   invoiceUpdate(invoiceID: ID!, input: InvoiceInput): InvoiceUpdate
   invoiceSend(id: ID!, email: String): InvoiceSend
   requestInvoiceCreate(orderID: ID!, input: RequestInvoiceCreateInput): RequestInvoiceCreate
-  requestInvoiceDelete(orderID: ID!): RequestInvoiceDelete
+  requestInvoiceDelete(orderID: ID!, invoiceID: ID!): RequestInvoiceDelete
 }
 
 input NameTranslationInput {
