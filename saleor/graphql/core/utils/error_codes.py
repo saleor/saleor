@@ -3,6 +3,7 @@ from enum import Enum
 from ....account.error_codes import AccountErrorCode
 from ....checkout.error_codes import CheckoutErrorCode
 from ....core.error_codes import ShopErrorCode
+from ....discount.error_codes import DiscountErrorCode
 from ....extensions.error_codes import ExtensionsErrorCode
 from ....giftcard.error_codes import GiftCardErrorCode
 from ....menu.error_codes import MenuErrorCode
@@ -42,6 +43,7 @@ DJANGO_FORM_FIELDS_ERROR_CODES = [
 SALEOR_ERROR_CODE_ENUMS = [
     AccountErrorCode,
     CheckoutErrorCode,
+    DiscountErrorCode,
     ExtensionsErrorCode,
     GiftCardErrorCode,
     MenuErrorCode,
