@@ -1843,19 +1843,6 @@ type Invoice implements Job & Node & ObjectWithMetadata {
   meta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `metadata` field instead. ")
 }
 
-type InvoiceCreate {
-  errors: [Error!]!
-  invoice: Invoice
-  invoiceErrors: [InvoiceError!]!
-  order: Order
-}
-
-type InvoiceDelete {
-  errors: [Error!]!
-  invoiceErrors: [InvoiceError!]!
-  order: Order
-}
-
 type InvoiceError {
   code: InvoiceErrorCode!
   field: String
@@ -1864,13 +1851,6 @@ type InvoiceError {
 
 enum InvoiceErrorCode {
   PLUGIN_NOT_ENABLED
-}
-
-type InvoiceUpdate {
-  errors: [Error!]!
-  invoice: Invoice
-  invoiceErrors: [InvoiceError!]!
-  order: Order
 }
 
 input InvoiceInput {
@@ -2471,12 +2451,12 @@ type Mutation {
   permissionGroupDelete(id: ID!): PermissionGroupDelete
   permissionGroupAssignUsers(id: ID!, users: [ID!]!): PermissionGroupAssignUsers
   permissionGroupUnassignUsers(id: ID!, users: [ID!]!): PermissionGroupUnassignUsers
-  invoiceCreate(orderID: ID!, input: InvoiceInput): InvoiceCreate
-  invoiceDelete(orderID: ID!, invoiceID: ID!): InvoiceDelete
-  invoiceUpdate(id: ID!, input: InvoiceInput): InvoiceUpdate
+  orderCreateInvoice(orderID: ID!, input: InvoiceInput): OrderCreateInvoice
+  orderDeleteInvoice(orderID: ID!, invoiceID: ID!): OrderDeleteInvoice
+  orderUpdateInvoice(id: ID!, input: InvoiceInput): OrderUpdateInvoice
   invoiceSend(id: ID!, email: String): InvoiceSend
-  requestInvoiceCreate(orderID: ID!, input: RequestInvoiceCreateInput): RequestInvoiceCreate
-  requestInvoiceDelete(orderID: ID!, invoiceID: ID!): RequestInvoiceDelete
+  requestOrderCreateInvoice(orderID: ID!, input: RequestOrderCreateInvoiceInput): RequestOrderCreateInvoice
+  requestOrderDeleteInvoice(orderID: ID!, invoiceID: ID!): RequestOrderDeleteInvoice
 }
 
 input NameTranslationInput {
@@ -2727,6 +2707,26 @@ input OrderFilterInput {
   customer: String
   created: DateRangeInput
   search: String
+}
+
+type OrderCreateInvoice {
+  errors: [Error!]!
+  invoice: Invoice
+  invoiceErrors: [InvoiceError!]!
+  order: Order
+}
+
+type OrderDeleteInvoice {
+  errors: [Error!]!
+  invoiceErrors: [InvoiceError!]!
+  order: Order
+}
+
+type OrderUpdateInvoice {
+  errors: [Error!]!
+  invoice: Invoice
+  invoiceErrors: [InvoiceError!]!
+  order: Order
 }
 
 type OrderLine implements Node {
@@ -3870,18 +3870,18 @@ type RequestEmailChange {
   accountErrors: [AccountError!]!
 }
 
-type RequestInvoiceCreate {
+type RequestOrderCreateInvoice {
   errors: [Error!]!
   invoice: Invoice
   invoiceErrors: [InvoiceError!]!
   order: Order
 }
 
-input RequestInvoiceCreateInput {
+input RequestOrderCreateInvoiceInput {
   number: String
 }
 
-type RequestInvoiceDelete {
+type RequestOrderDeleteInvoice {
   errors: [Error!]!
   invoiceErrors: [InvoiceError!]!
   order: Order
