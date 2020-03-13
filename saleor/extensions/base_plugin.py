@@ -16,7 +16,7 @@ if TYPE_CHECKING:
     from ..discount import DiscountInfo
     from ..product.models import Product, ProductType
     from ..account.models import Address, User
-    from ..order.models import Fulfillment, OrderLine, Order
+    from ..order.models import Fulfillment, Invoice, OrderLine, Order
     from ..payment.interface import GatewayResponse, PaymentData, CustomerSource
 
 
@@ -201,7 +201,11 @@ class BasePlugin:
         return NotImplemented
 
     def invoice_request(
-        self, order: "Order", invoice: "Invoice", number: str, previous_value: Any
+        self,
+        order: "Order",
+        invoice: "Invoice",
+        number: Optional[str],
+        previous_value: Any,
     ) -> Any:
         """Trigger when invoice creation starts.
 
