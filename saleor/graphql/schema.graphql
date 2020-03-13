@@ -2455,8 +2455,8 @@ type Mutation {
   orderDeleteInvoice(orderID: ID!, invoiceID: ID!): OrderDeleteInvoice
   orderUpdateInvoice(id: ID!, input: InvoiceInput): OrderUpdateInvoice
   invoiceSend(id: ID!, email: String): InvoiceSend
-  requestOrderCreateInvoice(orderID: ID!, input: RequestOrderCreateInvoiceInput): RequestOrderCreateInvoice
-  requestOrderDeleteInvoice(orderID: ID!, invoiceID: ID!): RequestOrderDeleteInvoice
+  requestOrderInvoiceCreation(orderID: ID!, input: RequestOrderInvoiceCreationInput): RequestOrderInvoiceCreation
+  requestOrderInvoiceDeletion(orderID: ID!, invoiceID: ID!): RequestOrderInvoiceDeletion
 }
 
 input NameTranslationInput {
@@ -3870,18 +3870,18 @@ type RequestEmailChange {
   accountErrors: [AccountError!]!
 }
 
-type RequestOrderCreateInvoice {
+type RequestOrderInvoiceCreation {
   errors: [Error!]!
   invoice: Invoice
   invoiceErrors: [InvoiceError!]!
   order: Order
 }
 
-input RequestOrderCreateInvoiceInput {
+input RequestOrderInvoiceCreationInput {
   number: String
 }
 
-type RequestOrderDeleteInvoice {
+type RequestOrderInvoiceDeletion {
   errors: [Error!]!
   invoiceErrors: [InvoiceError!]!
   order: Order
