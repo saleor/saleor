@@ -1509,6 +1509,20 @@ input DigitalContentUrlCreateInput {
   content: ID!
 }
 
+type DiscountError {
+  field: String
+  message: String
+  code: DiscountErrorCode!
+}
+
+enum DiscountErrorCode {
+  ALREADY_EXISTS
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+}
+
 enum DiscountStatusEnum {
   ACTIVE
   EXPIRED
@@ -3816,6 +3830,7 @@ type Sale implements Node {
 type SaleAddCatalogues {
   errors: [Error!]!
   sale: Sale
+  discountErrors: [DiscountError!]!
 }
 
 type SaleBulkDelete {
@@ -3836,11 +3851,13 @@ type SaleCountableEdge {
 
 type SaleCreate {
   errors: [Error!]!
+  discountErrors: [DiscountError!]!
   sale: Sale
 }
 
 type SaleDelete {
   errors: [Error!]!
+  discountErrors: [DiscountError!]!
   sale: Sale
 }
 
@@ -3865,6 +3882,7 @@ input SaleInput {
 type SaleRemoveCatalogues {
   errors: [Error!]!
   sale: Sale
+  discountErrors: [DiscountError!]!
 }
 
 enum SaleSortField {
@@ -3905,6 +3923,7 @@ enum SaleType {
 
 type SaleUpdate {
   errors: [Error!]!
+  discountErrors: [DiscountError!]!
   sale: Sale
 }
 
@@ -4701,6 +4720,7 @@ type Voucher implements Node {
 type VoucherAddCatalogues {
   errors: [Error!]!
   voucher: Voucher
+  discountErrors: [DiscountError!]!
 }
 
 type VoucherBulkDelete {
@@ -4721,11 +4741,13 @@ type VoucherCountableEdge {
 
 type VoucherCreate {
   errors: [Error!]!
+  discountErrors: [DiscountError!]!
   voucher: Voucher
 }
 
 type VoucherDelete {
   errors: [Error!]!
+  discountErrors: [DiscountError!]!
   voucher: Voucher
 }
 
@@ -4765,6 +4787,7 @@ input VoucherInput {
 type VoucherRemoveCatalogues {
   errors: [Error!]!
   voucher: Voucher
+  discountErrors: [DiscountError!]!
 }
 
 enum VoucherSortField {
@@ -4808,6 +4831,7 @@ enum VoucherTypeEnum {
 
 type VoucherUpdate {
   errors: [Error!]!
+  discountErrors: [DiscountError!]!
   voucher: Voucher
 }
 
