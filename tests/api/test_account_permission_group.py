@@ -21,6 +21,9 @@ PERMISSION_GROUP_CREATE_MUTATION = """
                     name
                     code
                 }
+                users {
+                    email
+                }
             }
             bulkAccountErrors{
                 field
@@ -40,6 +43,11 @@ def test_permission_group_create_mutation(
     permission_manage_users,
     permission_manage_service_accounts,
 ):
+    staff_user2 = User.objects.get(pk=staff_user.pk)
+    staff_user2.id = None
+    staff_user2.email = "test@example.com"
+    staff_user2.save()
+
     staff_user.user_permissions.add(
         permission_manage_users, permission_manage_service_accounts
     )
@@ -52,6 +60,10 @@ def test_permission_group_create_mutation(
                 AccountPermissions.MANAGE_USERS.name,
                 AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name,
             ],
+            "users": [
+                graphene.Node.to_global_id("User", staff_user.id),
+                graphene.Node.to_global_id("User", staff_user2.id),
+            ],
         }
     }
     response = staff_api_client.post_graphql(
@@ -61,8 +73,9 @@ def test_permission_group_create_mutation(
     data = content["data"]["permissionGroupCreate"]
     permission_group_data = data["group"]
 
+    users = [staff_user, staff_user2]
     group = Group.objects.get()
-    assert permission_group_data["name"] == group.name
+    assert permission_group_data["name"] == group.name == variables["input"]["name"]
     permissions = {
         permission["name"] for permission in permission_group_data["permissions"]
     }
@@ -74,6 +87,12 @@ def test_permission_group_create_mutation(
     assert (
         set(group.permissions.all().values_list("codename", flat=True))
         == permissions_codes
+        == set(perm.lower() for perm in variables["input"]["permissions"])
+    )
+    assert (
+        {user["email"] for user in permission_group_data["users"]}
+        == {user.email for user in users}
+        == set(group.user_set.all().values_list("email", flat=True))
     )
     assert data["bulkAccountErrors"] == []
 
@@ -127,6 +146,7 @@ def test_permission_group_create_mutation_group_exists(
                 AccountPermissions.MANAGE_USERS.name,
                 AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name,
             ],
+            "users": [graphene.Node.to_global_id("User", staff_user.id)],
         }
     }
     response = staff_api_client.post_graphql(
@@ -142,6 +162,47 @@ def test_permission_group_create_mutation_group_exists(
     assert errors[0]["field"] == "name"
     assert errors[0]["code"] == AccountErrorCode.UNIQUE.name
     assert errors[0]["index"] is None
+
+
+def test_permission_group_create_mutation_add_customer_user(
+    staff_user,
+    customer_user,
+    permission_manage_staff,
+    staff_api_client,
+    permission_manage_users,
+    permission_manage_service_accounts,
+):
+    staff_user.user_permissions.add(
+        permission_manage_users, permission_manage_service_accounts
+    )
+    query = PERMISSION_GROUP_CREATE_MUTATION
+
+    variables = {
+        "input": {
+            "name": "New permission group",
+            "permissions": [
+                AccountPermissions.MANAGE_USERS.name,
+                AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name,
+            ],
+            "users": [
+                graphene.Node.to_global_id("User", staff_user.id),
+                graphene.Node.to_global_id("User", customer_user.id),
+            ],
+        }
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_staff,)
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupCreate"]
+    errors = data["bulkAccountErrors"]
+
+    assert errors
+    assert len(errors) == 1
+    assert errors[0]["field"] == "users"
+    assert errors[0]["index"] == 1
+    assert errors[0]["code"] == AccountErrorCode.ASSIGN_NON_STAFF_MEMBER.name
+    assert data["group"] is None
 
 
 def test_permission_group_create_mutation_no_name(

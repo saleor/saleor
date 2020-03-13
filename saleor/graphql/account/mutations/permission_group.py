@@ -24,6 +24,11 @@ class PermissionGroupCreateInput(graphene.InputObjectType):
         description="List of permission code names to assign to this group.",
         required=False,
     )
+    users = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of users to assign to this group.",
+        required=False,
+    )
 
 
 class PermissionGroupCreate(ModelMutation):
@@ -42,10 +47,33 @@ class PermissionGroupCreate(ModelMutation):
         error_type_field = "bulk_account_errors"
 
     @classmethod
-    def clean_input(cls, info, instance, data):
+    def perform_mutation(cls, _root, info, **data):
+        group = cls.get_instance(info, **data)
+        data = data.get("input")
+        cleaned_input, user_pks = cls.clean_input(info, group, data)
+        group = cls.construct_instance(group, cleaned_input)
+        cls.clean_instance(info, group)
+        cls.save(info, group, cleaned_input)
+        cls._save_m2m(info, group, cleaned_input)
+        group.user_set.add(*user_pks)
+        return cls(group=group)
+
+    @classmethod
+    def clean_input(
+        cls, info, instance, data,
+    ):
         cleaned_input = super().clean_input(info, instance, data)
         errors = defaultdict(list)
-        # clean and prepare permissions
+        cls.clean_permissions(info, errors, cleaned_input)
+        user_pks = cls.clean_users(errors, cleaned_input)
+
+        if errors:
+            raise ValidationError(errors)
+
+        return cleaned_input, user_pks
+
+    @classmethod
+    def clean_permissions(cls, info, errors, cleaned_input):
         if "permissions" in cleaned_input:
             indexes = get_permissions_user_has_not(
                 info.context.user, cleaned_input["permissions"]
@@ -60,9 +88,44 @@ class PermissionGroupCreate(ModelMutation):
                     indexes,
                 )
             cleaned_input["permissions"] = get_permissions(cleaned_input["permissions"])
-        if errors:
-            raise ValidationError(errors)
         return cleaned_input
+
+    @classmethod
+    def clean_users(cls, errors, cleaned_input):
+        if "users" in cleaned_input:
+            user_pks = cls.prepare_user_pks(cleaned_input)
+            cls.check_if_users_are_staff(errors, user_pks)
+            return user_pks
+        return []
+
+    @classmethod
+    def prepare_user_pks(cls, cleaned_input):
+        user_ids: List[str] = cleaned_input["users"]
+
+        user_pks = [
+            from_global_id_strict_type(user_id, only_type=User, field="id")
+            for user_id in user_ids
+        ]
+
+        return user_pks
+
+    @classmethod
+    def check_if_users_are_staff(cls, errors, user_pks: List[str]):
+        non_staff_users = list(
+            account_models.User.objects.filter(pk__in=user_pks)
+            .filter(is_staff=False)
+            .values_list("pk", flat=True)
+        )
+        if non_staff_users:
+            indexes = [user_pks.index(str(pk)) for pk in non_staff_users]
+            error_msg = "User must be staff member."
+            cls.update_errors(
+                errors,
+                error_msg,
+                "users",
+                AccountErrorCode.ASSIGN_NON_STAFF_MEMBER.value,
+                indexes,
+            )
 
     @classmethod
     def update_errors(cls, errors, msg, field, code, indexes):

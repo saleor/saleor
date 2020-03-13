@@ -32,6 +32,9 @@ def test_permission_group_create(
                     name
                     code
                 }
+                users {
+                    email
+                }
             }
             bulkAccountErrors{
                 field
@@ -52,6 +55,7 @@ def test_permission_group_create(
                 AccountPermissions.MANAGE_USERS.name,
                 AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name,
             ],
+            "users": [graphene.Node.to_global_id("User", staff_user.id)],
         }
     }
     response = staff_api_client.post_graphql(
