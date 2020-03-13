@@ -1,8 +1,13 @@
+from typing import TYPE_CHECKING, List
+
 from django.core.exceptions import ValidationError
 from graphene.utils.str_converters import to_camel_case
 
 from ...account import events as account_events
 from ...account.error_codes import AccountErrorCode
+
+if TYPE_CHECKING:
+    from ...account.models import User
 
 
 class UserDeleteMixin:
@@ -93,3 +98,12 @@ def get_allowed_fields_camel_case(allowed_fields: set) -> set:
     if "streetAddress1" in fields:
         fields.add("streetAddress2")
     return fields
+
+
+def get_permissions_user_has_not(user: "User", permissions: List[str]):
+    """Return indexes of permissions that the user hasn't got."""
+    indexes = []
+    for index, perm in enumerate(permissions):
+        if not user.has_perm(perm):
+            indexes.append(index)
+    return indexes

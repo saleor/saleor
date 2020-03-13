@@ -1,3 +1,4 @@
+from collections import defaultdict
 from typing import List
 
 import graphene
@@ -8,9 +9,10 @@ from ....account import models as account_models
 from ....account.error_codes import AccountErrorCode
 from ....core.permissions import AccountPermissions, get_permissions
 from ...account.types import User
+from ...account.utils import get_permissions_user_has_not
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
-from ...core.types.common import AccountError
+from ...core.types.common import AccountError, BulkAccountError
 from ...core.utils import from_global_id_strict_type
 from ..types import Group
 
@@ -36,19 +38,54 @@ class PermissionGroupCreate(ModelMutation):
         description = "Create new permission group."
         model = auth_models.Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
-        error_type_class = AccountError
-        error_type_field = "account_errors"
+        error_type_class = BulkAccountError
+        error_type_field = "bulk_account_errors"
 
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
+        errors = defaultdict(list)
         # clean and prepare permissions
         if "permissions" in cleaned_input:
+            indexes = get_permissions_user_has_not(
+                info.context.user, cleaned_input["permissions"]
+            )
+            if indexes:
+                error_msg = "You can't add permission that you don't have."
+                cls.update_errors(
+                    errors,
+                    error_msg,
+                    "permissions",
+                    AccountErrorCode.NO_PERMISSION,
+                    indexes,
+                )
             cleaned_input["permissions"] = get_permissions(cleaned_input["permissions"])
+        if errors:
+            raise ValidationError(errors)
         return cleaned_input
 
+    @classmethod
+    def update_errors(cls, errors, msg, field, code, indexes):
+        for index in indexes:
+            error = ValidationError(msg, code=code, params={"index": index})
+            errors[field].append(error)
 
-class PermissionGroupInput(graphene.InputObjectType):
+    @classmethod
+    def handle_typed_errors(cls, errors: list, **extra):
+        typed_errors = [
+            cls._meta.error_type_class(
+                field=e.field,
+                message=e.message,
+                code=code,
+                index=params.get("index") if params else None,
+            )
+            for e, code, params in errors
+        ]
+        extra.update({cls._meta.error_type_field: typed_errors})
+        return cls(errors=[e[0] for e in errors], **extra)
+
+
+class PermissionGroupUpdateInput(graphene.InputObjectType):
     name = graphene.String(description="Group name.", required=False)
     permissions = graphene.List(
         graphene.NonNull(PermissionEnum),
@@ -62,7 +99,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
 
     class Arguments:
         id = graphene.ID(description="ID of the group to update.", required=True)
-        input = PermissionGroupInput(
+        input = PermissionGroupUpdateInput(
             description="Input fields to create permission group.", required=True
         )
 
@@ -70,8 +107,8 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         description = "Update permission group."
         model = auth_models.Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
-        error_type_class = AccountError
-        error_type_field = "account_errors"
+        error_type_class = BulkAccountError
+        error_type_field = "bulk_account_errors"
 
 
 class PermissionGroupDelete(ModelDeleteMutation):
