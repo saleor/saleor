@@ -2473,7 +2473,7 @@ type Mutation {
   permissionGroupUnassignUsers(id: ID!, users: [ID!]!): PermissionGroupUnassignUsers
   invoiceCreate(orderID: ID!, input: InvoiceInput): InvoiceCreate
   invoiceDelete(orderID: ID!, invoiceID: ID!): InvoiceDelete
-  invoiceUpdate(invoiceID: ID!, input: InvoiceInput): InvoiceUpdate
+  invoiceUpdate(id: ID!, input: InvoiceInput): InvoiceUpdate
   invoiceSend(id: ID!, email: String): InvoiceSend
   requestInvoiceCreate(orderID: ID!, input: RequestInvoiceCreateInput): RequestInvoiceCreate
   requestInvoiceDelete(orderID: ID!, invoiceID: ID!): RequestInvoiceDelete
