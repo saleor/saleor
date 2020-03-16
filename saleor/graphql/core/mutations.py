@@ -302,10 +302,17 @@ class BaseMutation(graphene.Mutation):
             cls._meta.error_type_class is not None
             and cls._meta.error_type_field is not None
         ):
-            typed_errors = [
-                cls._meta.error_type_class(field=e.field, message=e.message, code=code)
-                for e, code, _params in errors
-            ]
+            typed_errors = []
+            error_class_fields = set(cls._meta.error_type_class._meta.fields.keys())
+            for e, code, params in errors:
+                error_instance = cls._meta.error_type_class(
+                    field=e.field, message=e.message, code=code
+                )
+                if params:
+                    for error_field in set(params.keys()) & error_class_fields:
+                        setattr(error_instance, error_field, params[error_field])
+                typed_errors.append(error_instance)
+
             extra.update({cls._meta.error_type_field: typed_errors})
         return cls(errors=[e[0] for e in errors], **extra)
 
