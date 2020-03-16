@@ -518,26 +518,23 @@ class OrderClearPrivateMeta(ClearMetaBaseMutation):
 
 
 class RequestInvoice(BaseMutation):
+    class Meta:
+        description = "Request an invoice for the order."
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+
     class Arguments:
-        order_id = graphene.Int(
+        order_id = graphene.ID(
             required=True, description="ID of the order related to invoice."
         )
         number = graphene.String(
             required=False, description="Invoice number (optional)."
         )
 
-    class Meta:
-        description = "Request an invoice for the order."
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
-
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        try:
-            order = models.Order.objects.get(id=data.get("order_id"))
-        except models.Order.DoesNotExist:
-            raise ValidationError(
-                "Order with provided id does not exist.", code=OrderErrorCode.NOT_FOUND,
-            )
+        order = cls.get_node_or_error(
+            info, data["order_id"], only_type=Order, field="orderId"
+        )
 
         invoice = models.Invoice.objects.create(status=InvoiceStatus.PENDING)
         info.context.extensions.invoice_request(
