@@ -12,6 +12,7 @@ middleware here, or combine a Django application with an application of another
 framework.
 """
 import os
+import sys
 
 from django.core.wsgi import get_wsgi_application
 
@@ -27,3 +28,16 @@ application = get_wsgi_application()
 # from helloworld.wsgi import HelloWorldApplication
 # application = HelloWorldApplication(application)
 application = health_check(application, "/health/")
+
+# Warm-up the django application instead of letting it lazy-load
+application(
+    {
+        "REQUEST_METHOD": "GET",
+        "SERVER_NAME": "127.0.0.1",
+        "REMOTE_ADDR": "127.0.0.1",
+        "SERVER_PORT": 80,
+        "PATH_INFO": "/graphql/",
+        "wsgi.input": sys.stdin,
+    },
+    lambda x, y: None,
+)
