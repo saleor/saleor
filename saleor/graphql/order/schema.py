@@ -40,6 +40,7 @@ from .mutations.orders import (
     OrderUpdatePrivateMeta,
     OrderUpdateShipping,
     OrderVoid,
+    RequestInvoice,
 )
 from .resolvers import (
     resolve_draft_orders,
@@ -221,3 +222,7 @@ class OrderMutations(graphene.ObjectType):
     order_void = OrderVoid.Field()
 
     order_bulk_cancel = OrderBulkCancel.Field()
+
+
+class InvoiceMutations(graphene.ObjectType):
+    request_invoice = RequestInvoice.Field()

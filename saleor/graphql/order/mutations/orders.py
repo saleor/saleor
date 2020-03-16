@@ -26,6 +26,7 @@ from ...meta.deprecated.types import MetaInput, MetaPath
 from ...order.mutations.draft_orders import DraftOrderUpdate
 from ...order.types import Order, OrderEvent
 from ...shipping.types import ShippingMethod
+from ..enums import InvoiceStatus
 
 
 def clean_order_update_shipping(order, method):
@@ -514,3 +515,29 @@ class OrderClearPrivateMeta(ClearMetaBaseMutation):
         model = models.Order
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         public = False
+
+
+class RequestInvoice(BaseMutation):
+    class Meta:
+        description = "Request an invoice for the order."
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+
+    class Arguments:
+        order_id = graphene.ID(
+            required=True, description="ID of the order related to invoice."
+        )
+        number = graphene.String(
+            required=False, description="Invoice number (optional)."
+        )
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        order = cls.get_node_or_error(
+            info, data["order_id"], only_type=Order, field="orderId"
+        )
+
+        invoice = models.Invoice.objects.create(status=InvoiceStatus.PENDING)
+        info.context.extensions.invoice_request(
+            order=order, invoice=invoice, number=data.get("number")
+        )
+        return RequestInvoice()
