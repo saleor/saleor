@@ -36,10 +36,11 @@ def test_permission_group_create(
                     email
                 }
             }
-            bulkAccountErrors{
+            permissionGroupErrors{
                 field
                 code
-                index
+                permissions
+                users
                 message
             }
         }
@@ -65,7 +66,7 @@ def test_permission_group_create(
     data = content["data"]["permissionGroupCreate"]
 
     groups = Group.objects.all()
-    assert data["bulkAccountErrors"] == []
+    assert data["permissionGroupErrors"] == []
     assert len(groups) == group_count + 1
 
 
@@ -97,10 +98,11 @@ def test_permission_group_update(
                     code
                 }
             }
-            bulkAccountErrors{
+            permissionGroupErrors{
                 field
                 code
-                index
+                permissions
+                users
                 message
             }
         }
@@ -128,5 +130,5 @@ def test_permission_group_update(
     data = content["data"]["permissionGroupUpdate"]
 
     groups = Group.objects.all()
-    assert data["bulkAccountErrors"] == []
+    assert data["permissionGroupErrors"] == []
     assert len(groups) == group_count

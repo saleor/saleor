@@ -6,13 +6,13 @@ from django.contrib.auth import models as auth_models
 from django.core.exceptions import ValidationError
 
 from ....account import models as account_models
-from ....account.error_codes import AccountErrorCode
+from ....account.error_codes import AccountErrorCode, PermissionGroupErrorCode
 from ....core.permissions import AccountPermissions, get_permissions
 from ...account.types import User
 from ...account.utils import get_permissions_user_has_not
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
-from ...core.types.common import AccountError, BulkAccountError
+from ...core.types.common import AccountError, PermissionGroupError
 from ...core.utils import from_global_id_strict_type
 from ..types import Group
 
@@ -43,8 +43,8 @@ class PermissionGroupCreate(ModelMutation):
         description = "Create new permission group."
         model = auth_models.Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
-        error_type_class = BulkAccountError
-        error_type_field = "bulk_account_errors"
+        error_type_class = PermissionGroupError
+        error_type_field = "permission_group_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -75,17 +75,18 @@ class PermissionGroupCreate(ModelMutation):
     @classmethod
     def clean_permissions(cls, info, errors, cleaned_input):
         if "permissions" in cleaned_input:
-            indexes = get_permissions_user_has_not(
+            permissions = get_permissions_user_has_not(
                 info.context.user, cleaned_input["permissions"]
             )
-            if indexes:
+            if permissions:
                 error_msg = "You can't add permission that you don't have."
+                permission_enums = [PermissionEnum.get(perm) for perm in permissions]
                 cls.update_errors(
                     errors,
                     error_msg,
                     "permissions",
-                    AccountErrorCode.NO_PERMISSION,
-                    indexes,
+                    PermissionGroupErrorCode.NO_PERMISSION,
+                    permission_enums,
                 )
             cleaned_input["permissions"] = get_permissions(cleaned_input["permissions"])
         return cleaned_input
@@ -117,21 +118,20 @@ class PermissionGroupCreate(ModelMutation):
             .values_list("pk", flat=True)
         )
         if non_staff_users:
-            indexes = [user_pks.index(str(pk)) for pk in non_staff_users]
+            ids = [graphene.Node.to_global_id("User", pk) for pk in non_staff_users]
             error_msg = "User must be staff member."
             cls.update_errors(
                 errors,
                 error_msg,
                 "users",
-                AccountErrorCode.ASSIGN_NON_STAFF_MEMBER.value,
-                indexes,
+                PermissionGroupErrorCode.ASSIGN_NON_STAFF_MEMBER.value,
+                ids,
             )
 
     @classmethod
-    def update_errors(cls, errors, msg, field, code, indexes):
-        for index in indexes:
-            error = ValidationError(msg, code=code, params={"index": index})
-            errors[field].append(error)
+    def update_errors(cls, errors, msg, field, code, values):
+        error = ValidationError(msg, code=code, params={field: values})
+        errors[field].append(error)
 
     @classmethod
     def handle_typed_errors(cls, errors: list, **extra):
@@ -140,7 +140,8 @@ class PermissionGroupCreate(ModelMutation):
                 field=e.field,
                 message=e.message,
                 code=code,
-                index=params.get("index") if params else None,
+                permissions=params.get("permissions") if params else None,
+                users=params.get("users") if params else None,
             )
             for e, code, params in errors
         ]
@@ -170,8 +171,8 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         description = "Update permission group."
         model = auth_models.Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
-        error_type_class = BulkAccountError
-        error_type_field = "bulk_account_errors"
+        error_type_class = PermissionGroupError
+        error_type_field = "permission_group_errors"
 
 
 class PermissionGroupDelete(ModelDeleteMutation):
