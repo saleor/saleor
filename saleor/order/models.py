@@ -22,6 +22,7 @@ from ..core.utils.json_serializer import CustomJsonEncoder
 from ..core.weight import WeightUnits, zero_weight
 from ..discount.models import Voucher
 from ..giftcard.models import GiftCard
+from ..graphql.order.enums import InvoiceStatus
 from ..payment import ChargeStatus, TransactionKind
 from ..shipping.models import ShippingMethod
 from . import FulfillmentStatus, OrderEvents, OrderStatus
@@ -497,8 +498,16 @@ class OrderEvent(models.Model):
         return f"{self.__class__.__name__}(type={self.type!r}, user={self.user!r})"
 
 
-class Invoice(models.Model):
+class Invoice(ModelWithMetadata):
     order = models.ForeignKey(Order, null=True, on_delete=models.SET_NULL)
     number = models.CharField(max_length=255)
-    created = models.DateTimeField(auto_now_add=True)
+    created = models.DateTimeField(null=True)
     url = models.URLField(max_length=2048)
+    status = models.CharField(max_length=32, default=InvoiceStatus.PENDING)
+
+    def update_invoice(self, order, number, url, metadata):
+        # TODO: modify to actual update signature for plugin
+        self.number = number
+        self.url = url
+        self.metadata = metadata
+        self.save()
