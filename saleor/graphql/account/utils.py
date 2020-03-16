@@ -101,9 +101,9 @@ def get_allowed_fields_camel_case(allowed_fields: set) -> set:
 
 
 def get_permissions_user_has_not(user: "User", permissions: List[str]):
-    """Return indexes of permissions that the user hasn't got."""
-    indexes = []
-    for index, perm in enumerate(permissions):
+    """Return permissions that the user hasn't got."""
+    missing_permissions = []
+    for perm in permissions:
         if not user.has_perm(perm):
-            indexes.append(index)
-    return indexes
+            missing_permissions.append(perm)
+    return missing_permissions

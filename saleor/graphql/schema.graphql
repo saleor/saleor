@@ -50,7 +50,6 @@ enum AccountErrorCode {
   INVALID
   INVALID_PASSWORD
   NOT_FOUND
-  NO_PERMISSION
   PASSWORD_ENTIRELY_NUMERIC
   PASSWORD_TOO_COMMON
   PASSWORD_TOO_SHORT
@@ -485,13 +484,6 @@ input AuthorizationKeyInput {
 enum AuthorizationKeyType {
   FACEBOOK
   GOOGLE_OAUTH2
-}
-
-type BulkAccountError {
-  field: String
-  message: String
-  code: AccountErrorCode!
-  index: Int
 }
 
 type BulkProductError {
@@ -3042,7 +3034,7 @@ type PermissionGroupAssignUsers {
 type PermissionGroupCreate {
   errors: [Error!]!
   group: Group
-  bulkAccountErrors: [BulkAccountError!]!
+  permissionGroupErrors: [PermissionGroupError!]!
 }
 
 input PermissionGroupCreateInput {
@@ -3055,6 +3047,21 @@ type PermissionGroupDelete {
   errors: [Error!]!
   accountErrors: [AccountError!]!
   group: Group
+}
+
+type PermissionGroupError {
+  field: String
+  message: String
+  code: PermissionGroupErrorCode!
+  permissions: [PermissionEnum!]
+  users: [ID!]
+}
+
+enum PermissionGroupErrorCode {
+  ASSIGN_NON_STAFF_MEMBER
+  NO_PERMISSION
+  REQUIRED
+  UNIQUE
 }
 
 input PermissionGroupFilterInput {
@@ -3079,7 +3086,7 @@ type PermissionGroupUnassignUsers {
 type PermissionGroupUpdate {
   errors: [Error!]!
   group: Group
-  bulkAccountErrors: [BulkAccountError!]!
+  permissionGroupErrors: [PermissionGroupError!]!
 }
 
 input PermissionGroupUpdateInput {
