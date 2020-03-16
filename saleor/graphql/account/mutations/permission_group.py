@@ -130,23 +130,8 @@ class PermissionGroupCreate(ModelMutation):
 
     @classmethod
     def update_errors(cls, errors, msg, field, code, values):
-        error = ValidationError(msg, code=code, params={field: values})
+        error = ValidationError(message=msg, code=code, params={field: values})
         errors[field].append(error)
-
-    @classmethod
-    def handle_typed_errors(cls, errors: list, **extra):
-        typed_errors = [
-            cls._meta.error_type_class(
-                field=e.field,
-                message=e.message,
-                code=code,
-                permissions=params.get("permissions") if params else None,
-                users=params.get("users") if params else None,
-            )
-            for e, code, params in errors
-        ]
-        extra.update({cls._meta.error_type_field: typed_errors})
-        return cls(errors=[e[0] for e in errors], **extra)
 
 
 class PermissionGroupUpdateInput(graphene.InputObjectType):
