@@ -12,11 +12,18 @@ middleware here, or combine a Django application with an application of another
 framework.
 """
 import os
-import sys
 
 from django.core.wsgi import get_wsgi_application
+from django.utils.functional import SimpleLazyObject
 
 from saleor.wsgi.health_check import health_check
+
+
+def get_allowed_host_lazy():
+    from django.conf import settings
+
+    return settings.ALLOWED_HOSTS[0]
+
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "saleor.settings")
 
@@ -33,11 +40,11 @@ application = health_check(application, "/health/")
 application(
     {
         "REQUEST_METHOD": "GET",
-        "SERVER_NAME": "127.0.0.1",
+        "SERVER_NAME": SimpleLazyObject(get_allowed_host_lazy),
         "REMOTE_ADDR": "127.0.0.1",
         "SERVER_PORT": 80,
         "PATH_INFO": "/graphql/",
-        "wsgi.input": sys.stdin,
+        "wsgi.input": b"",
     },
     lambda x, y: None,
 )
