@@ -23,7 +23,7 @@ def _sort_queryset_by_attribute(queryset, sorting_attribute, sorting_direction):
 
 def sort_queryset_for_connection(iterable, args):
     sort_by = args.get("sort_by")
-    reversed = True if "before" in args else False
+    reversed = True if "last" in args else False
     if sort_by:
         iterable = sort_queryset(queryset=iterable, sort_by=sort_by, reversed=reversed)
     else:
@@ -106,9 +106,7 @@ def sort_queryset_by_default(
     direction = "-" if "-" in default_ordering[0] else ""
     if reversed:
         reversed_direction = REVERSED_DIRECTION[direction]
-        default_ordering = [
-            f"{reversed_direction}{field}" for field in ordering_fields
-        ]
+        default_ordering = [f"{reversed_direction}{field}" for field in ordering_fields]
 
     order_by = {"field": ordering_fields, "direction": direction}
     return queryset.order_by(*default_ordering), order_by
