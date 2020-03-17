@@ -4,12 +4,14 @@ from typing import List
 import graphene
 from django.contrib.auth import models as auth_models
 from django.core.exceptions import ValidationError
+from django.db import transaction
+from graphql_jwt.exceptions import PermissionDenied
 
 from ....account import models as account_models
 from ....account.error_codes import AccountErrorCode, PermissionGroupErrorCode
 from ....core.permissions import AccountPermissions, get_permissions
 from ...account.types import User
-from ...account.utils import get_permissions_user_has_not
+from ...account.utils import can_user_manage_group, get_permissions_user_has_not
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types.common import AccountError, PermissionGroupError
@@ -50,12 +52,12 @@ class PermissionGroupCreate(ModelMutation):
     def perform_mutation(cls, _root, info, **data):
         group = cls.get_instance(info, **data)
         data = data.get("input")
-        cleaned_input, user_pks = cls.clean_input(info, group, data)
+        cleaned_input = cls.clean_input(info, group, data)
         group = cls.construct_instance(group, cleaned_input)
         cls.clean_instance(info, group)
         cls.save(info, group, cleaned_input)
         cls._save_m2m(info, group, cleaned_input)
-        group.user_set.add(*user_pks)
+        group.user_set.add(*cleaned_input["users_pks"])
         return cls(group=group)
 
     @classmethod
@@ -64,19 +66,19 @@ class PermissionGroupCreate(ModelMutation):
     ):
         cleaned_input = super().clean_input(info, instance, data)
         errors = defaultdict(list)
-        cls.clean_permissions(info, errors, cleaned_input)
-        user_pks = cls.clean_users(errors, cleaned_input)
+        cls.clean_permissions(info, errors, "permissions", cleaned_input)
+        cls.clean_users(errors, "users", cleaned_input)
 
         if errors:
             raise ValidationError(errors)
 
-        return cleaned_input, user_pks
+        return cleaned_input
 
     @classmethod
-    def clean_permissions(cls, info, errors, cleaned_input):
-        if "permissions" in cleaned_input:
+    def clean_permissions(cls, info, errors, field, cleaned_input, error_field=None):
+        if field in cleaned_input:
             permissions = get_permissions_user_has_not(
-                info.context.user, cleaned_input["permissions"]
+                info.context.user, cleaned_input[field]
             )
             if permissions:
                 error_msg = "You can't add permission that you don't have."
@@ -84,24 +86,26 @@ class PermissionGroupCreate(ModelMutation):
                 cls.update_errors(
                     errors,
                     error_msg,
-                    "permissions",
+                    field,
                     PermissionGroupErrorCode.NO_PERMISSION,
                     permission_enums,
+                    error_field,
                 )
-            cleaned_input["permissions"] = get_permissions(cleaned_input["permissions"])
-        return cleaned_input
+            cleaned_input[field] = get_permissions(cleaned_input[field])
 
     @classmethod
-    def clean_users(cls, errors, cleaned_input):
-        if "users" in cleaned_input:
-            user_pks = cls.prepare_user_pks(cleaned_input)
-            cls.check_if_users_are_staff(errors, user_pks)
-            return user_pks
-        return []
+    def clean_users(cls, errors, field, cleaned_input, error_field=None):
+        if field in cleaned_input:
+            user_pks = cls.get_user_pks(cleaned_input, field)
+            cls.check_if_users_are_staff(errors, field, user_pks, error_field)
+            cleaned_input[f"{field}_pks"] = user_pks
 
     @classmethod
-    def prepare_user_pks(cls, cleaned_input):
-        user_ids: List[str] = cleaned_input["users"]
+    def get_user_pks(cls, cleaned_input, field):
+        if field not in cleaned_input:
+            return []
+
+        user_ids: List[str] = cleaned_input[field]
 
         user_pks = [
             from_global_id_strict_type(user_id, only_type=User, field="id")
@@ -111,7 +115,9 @@ class PermissionGroupCreate(ModelMutation):
         return user_pks
 
     @classmethod
-    def check_if_users_are_staff(cls, errors, user_pks: List[str]):
+    def check_if_users_are_staff(
+        cls, errors, field, user_pks: List[str], error_field=None
+    ):
         non_staff_users = list(
             account_models.User.objects.filter(pk__in=user_pks)
             .filter(is_staff=False)
@@ -123,22 +129,39 @@ class PermissionGroupCreate(ModelMutation):
             cls.update_errors(
                 errors,
                 error_msg,
-                "users",
+                field,
                 PermissionGroupErrorCode.ASSIGN_NON_STAFF_MEMBER.value,
                 ids,
+                error_field,
             )
 
     @classmethod
-    def update_errors(cls, errors, msg, field, code, values):
-        error = ValidationError(message=msg, code=code, params={field: values})
+    def update_errors(cls, errors, msg, field, code, values, error_field=None):
+        error_field = error_field or field
+        error = ValidationError(message=msg, code=code, params={error_field: values})
         errors[field].append(error)
 
 
 class PermissionGroupUpdateInput(graphene.InputObjectType):
     name = graphene.String(description="Group name.", required=False)
-    permissions = graphene.List(
+    add_permissions = graphene.List(
         graphene.NonNull(PermissionEnum),
         description="List of permission code names to assign to this group.",
+        required=False,
+    )
+    remove_permissions = graphene.List(
+        graphene.NonNull(PermissionEnum),
+        description="List of permission code names to unassign from this group.",
+        required=False,
+    )
+    add_users = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of users to assign to this group.",
+        required=False,
+    )
+    remove_users = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of users to unassign from this group.",
         required=False,
     )
 
@@ -158,6 +181,78 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = PermissionGroupError
         error_type_field = "permission_group_errors"
+
+    @classmethod
+    @transaction.atomic
+    def perform_mutation(cls, _root, info, **data):
+        group = cls.get_instance(info, **data)
+        if not can_user_manage_group(info.context.user, group):
+            raise PermissionDenied()
+        data = data.get("input")
+        cleaned_input = cls.clean_input(info, group, data)
+        group = cls.construct_instance(group, cleaned_input)
+        cls.clean_instance(info, group)
+        cls.save(info, group, cleaned_input)
+        cls.update_group_permissions_and_users(group, cleaned_input)
+        return cls(group=group)
+
+    @classmethod
+    def update_group_permissions_and_users(cls, group, cleaned_input):
+        if "add_users_pks" in cleaned_input:
+            group.user_set.add(*cleaned_input["add_users_pks"])
+        remove_users_pks = cls.get_user_pks(cleaned_input, "remove_users")
+        group.user_set.remove(*remove_users_pks)
+
+        if "add_permissions" in cleaned_input:
+            group.permissions.add(*cleaned_input["add_permissions"])
+        if "remove_perissions" in cleaned_input:
+            remove_permissions = get_permissions(cleaned_input["remove_perissions"])
+            group.permissions.remove(*remove_permissions)
+
+    @classmethod
+    def clean_input(
+        cls, info, instance, data,
+    ):
+        cleaned_input = super().clean_input(info, instance, data)
+        errors = defaultdict(list)
+        for field in ["users", "permissions"]:
+            cls.check_for_duplicates(errors, cleaned_input, field)
+
+        cls.clean_permissions(
+            info, errors, "add_permissions", cleaned_input, "permissions"
+        )
+        cls.clean_users(errors, "add_users", cleaned_input, "users")
+
+        if errors:
+            raise ValidationError(errors)
+
+        return cleaned_input
+
+    @classmethod
+    def check_for_duplicates(cls, errors, cleaned_input, field):
+        add_field = f"add_{field}"
+        remove_field = f"remove_{field}"
+        if add_field in cleaned_input and remove_field in cleaned_input:
+            common_items = set(cleaned_input[add_field]) & set(
+                cleaned_input[remove_field]
+            )
+            if common_items:
+                if field == "permission":
+                    values = [PermissionEnum.get(perm) for perm in common_items]
+                else:
+                    values = list(common_items)
+                error_msg = (
+                    "The same object cannot be in both list"
+                    "for adding and removing items."
+                )
+                cls.update_errors(
+                    errors,
+                    error_msg,
+                    None,
+                    PermissionGroupErrorCode.CANNOT_ADD_AND_REMOVE.value,
+                    values,
+                    field,
+                )
 
 
 class PermissionGroupDelete(ModelDeleteMutation):
@@ -196,13 +291,13 @@ class PermissionGroupAssignUsers(ModelMutation):
     @classmethod
     def perform_mutation(cls, root, info, **data):
         group = cls.get_instance(info, **data)
-        user_pks = cls.prepare_user_pks(info, group, **data)
+        user_pks = cls.get_user_pks(info, group, **data)
         cls.check_if_users_are_staff(user_pks)
         group.user_set.add(*user_pks)
         return cls(group=group)
 
     @classmethod
-    def prepare_user_pks(cls, info, group, **data):
+    def get_user_pks(cls, info, group, **data):
         cleaned_input = cls.clean_input(info, group, data, Group)
         user_ids: List[str] = cleaned_input["users"]
 
@@ -268,6 +363,6 @@ class PermissionGroupUnassignUsers(PermissionGroupAssignUsers):
     @classmethod
     def perform_mutation(cls, root, info, **data):
         group = cls.get_instance(info, **data)
-        user_pks = cls.prepare_user_pks(info, group, **data)
+        user_pks = cls.get_user_pks(info, group, **data)
         group.user_set.remove(*user_pks)
         return cls(group=group)

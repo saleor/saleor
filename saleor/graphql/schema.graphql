@@ -3059,6 +3059,7 @@ type PermissionGroupError {
 
 enum PermissionGroupErrorCode {
   ASSIGN_NON_STAFF_MEMBER
+  CANNOT_ADD_AND_REMOVE
   NO_PERMISSION
   REQUIRED
   UNIQUE
@@ -3091,7 +3092,10 @@ type PermissionGroupUpdate {
 
 input PermissionGroupUpdateInput {
   name: String
-  permissions: [PermissionEnum!]
+  addPermissions: [PermissionEnum!]
+  removePermissions: [PermissionEnum!]
+  addUsers: [ID!]
+  removeUsers: [ID!]
 }
 
 type Plugin implements Node {

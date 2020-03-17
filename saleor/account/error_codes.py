@@ -25,6 +25,7 @@ class AccountErrorCode(Enum):
 
 class PermissionGroupErrorCode(Enum):
     ASSIGN_NON_STAFF_MEMBER = "assign_non_staff_member"
+    CANNOT_ADD_AND_REMOVE = "cannot_add_and_remove"
     NO_PERMISSION = "no_permission"
     REQUIRED = "required"
     UNIQUE = "unique"

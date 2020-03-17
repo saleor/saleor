@@ -120,7 +120,12 @@ def test_permission_group_update(
         "id": graphene.Node.to_global_id("Group", group.id),
         "input": {
             "name": "New permission group",
-            "permissions": [AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name],
+            "addPermissions": [AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name],
+            "removePermissions": [AccountPermissions.MANAGE_USERS.name],
+            "addUsers": [graphene.Node.to_global_id("User", staff_user.pk)],
+            "removeUsers": [
+                graphene.Node.to_global_id("User", group.user_set.first().pk)
+            ],
         },
     }
     response = staff_api_client.post_graphql(
