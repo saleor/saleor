@@ -8,7 +8,7 @@ from django.db import transaction
 from graphql_jwt.exceptions import PermissionDenied
 
 from ....account import models as account_models
-from ....account.error_codes import AccountErrorCode, PermissionGroupErrorCode
+from ....account.error_codes import PermissionGroupErrorCode
 from ....core.permissions import AccountPermissions, get_permissions
 from ...account.types import User
 from ...account.utils import can_user_manage_group, get_permissions_user_has_not
@@ -265,104 +265,3 @@ class PermissionGroupDelete(ModelDeleteMutation):
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = AccountError
         error_type_field = "account_errors"
-
-
-class PermissionGroupAssignUsers(ModelMutation):
-    group = graphene.Field(Group, description="Group to which users were assigned.")
-
-    class Arguments:
-        id = graphene.ID(
-            description="ID of the group to which users will be assigned.",
-            required=True,
-        )
-        users = graphene.List(
-            graphene.NonNull(graphene.ID),
-            description="List of users to assign to this group.",
-            required=True,
-        )
-
-    class Meta:
-        description = "Assign users to group."
-        model = auth_models.Group
-        permissions = (AccountPermissions.MANAGE_STAFF,)
-        error_type_class = AccountError
-        error_type_field = "account_errors"
-
-    @classmethod
-    def perform_mutation(cls, root, info, **data):
-        group = cls.get_instance(info, **data)
-        user_pks = cls.get_user_pks(info, group, **data)
-        cls.check_if_users_are_staff(user_pks)
-        group.user_set.add(*user_pks)
-        return cls(group=group)
-
-    @classmethod
-    def get_user_pks(cls, info, group, **data):
-        cleaned_input = cls.clean_input(info, group, data, Group)
-        user_ids: List[str] = cleaned_input["users"]
-
-        user_pks = [
-            from_global_id_strict_type(user_id, only_type=User, field="id")
-            for user_id in user_ids
-        ]
-
-        return user_pks
-
-    @classmethod
-    def clean_input(cls, info, instance, data, input_cls=None):
-        cleaned_input = super().clean_input(info, instance, data, input_cls=input_cls)
-        user_ids: List[str] = cleaned_input["users"]
-        if not user_ids:
-            raise ValidationError(
-                {
-                    "users": ValidationError(
-                        "You must provide at least one staff user.",
-                        code=AccountErrorCode.REQUIRED.value,
-                    )
-                }
-            )
-        return cleaned_input
-
-    @staticmethod
-    def check_if_users_are_staff(user_pks: List[int]):
-        non_staff_users = account_models.User.objects.filter(pk__in=user_pks).filter(
-            is_staff=False
-        )
-        if non_staff_users:
-            raise ValidationError(
-                {
-                    "users": ValidationError(
-                        "Some of users aren't staff members.",
-                        code=AccountErrorCode.ASSIGN_NON_STAFF_MEMBER.value,
-                    )
-                }
-            )
-
-
-class PermissionGroupUnassignUsers(PermissionGroupAssignUsers):
-    group = graphene.Field(Group, description="Group from which users were unassigned.")
-
-    class Arguments:
-        id = graphene.ID(
-            description="ID of group from which users will be unassigned.",
-            required=True,
-        )
-        users = graphene.List(
-            graphene.NonNull(graphene.ID),
-            description="List of users to assign to this group.",
-            required=True,
-        )
-
-    class Meta:
-        description = "Unassign users from group."
-        model = auth_models.Group
-        permissions = (AccountPermissions.MANAGE_STAFF,)
-        error_type_class = AccountError
-        error_type_field = "account_errors"
-
-    @classmethod
-    def perform_mutation(cls, root, info, **data):
-        group = cls.get_instance(info, **data)
-        user_pks = cls.get_user_pks(info, group, **data)
-        group.user_set.remove(*user_pks)
-        return cls(group=group)
