@@ -2405,8 +2405,6 @@ type Mutation {
   permissionGroupCreate(input: PermissionGroupCreateInput!): PermissionGroupCreate
   permissionGroupUpdate(id: ID!, input: PermissionGroupUpdateInput!): PermissionGroupUpdate
   permissionGroupDelete(id: ID!): PermissionGroupDelete
-  permissionGroupAssignUsers(id: ID!, users: [ID!]!): PermissionGroupAssignUsers
-  permissionGroupUnassignUsers(id: ID!, users: [ID!]!): PermissionGroupUnassignUsers
 }
 
 input NameTranslationInput {
@@ -3025,12 +3023,6 @@ enum PermissionEnum {
   MANAGE_CHECKOUTS
 }
 
-type PermissionGroupAssignUsers {
-  errors: [Error!]!
-  group: Group
-  accountErrors: [AccountError!]!
-}
-
 type PermissionGroupCreate {
   errors: [Error!]!
   group: Group
@@ -3076,12 +3068,6 @@ enum PermissionGroupSortField {
 input PermissionGroupSortingInput {
   direction: OrderDirection!
   field: PermissionGroupSortField!
-}
-
-type PermissionGroupUnassignUsers {
-  errors: [Error!]!
-  group: Group
-  accountErrors: [AccountError!]!
 }
 
 type PermissionGroupUpdate {
