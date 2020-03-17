@@ -758,6 +758,63 @@ def test_permission_group_update_mutation_lack_of_permission(
     assert errors[0]["users"] is None
 
 
+def test_permission_group_update_mutation_multiply_errors(
+    permission_group_manage_users,
+    staff_user,
+    customer_user,
+    permission_manage_staff,
+    staff_api_client,
+    permission_manage_users,
+    permission_manage_service_accounts,
+    permission_manage_orders,
+):
+    staff_user.user_permissions.add(
+        permission_manage_service_accounts, permission_manage_users
+    )
+    group = permission_group_manage_users
+    query = PERMISSION_GROUP_UPDATE_MUTATION
+
+    user_ids = [
+        graphene.Node.to_global_id("User", user.pk)
+        for user in [staff_user, customer_user]
+    ]
+    permissions = [
+        OrderPermissions.MANAGE_ORDERS.name,
+        AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name,
+    ]
+    variables = {
+        "id": graphene.Node.to_global_id("Group", group.id),
+        "input": {
+            "name": "New permission group",
+            "addPermissions": permissions,
+            "removePermissions": [AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name],
+            "addUsers": user_ids,
+            "removeUsers": user_ids[:1],
+        },
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_staff,)
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupUpdate"]
+    errors = data["permissionGroupErrors"]
+
+    assert len(errors) == 4
+    assert {error["field"] for error in errors} == {None, "addPermissions", "addUsers"}
+    permission_errors = [error["permissions"] for error in errors]
+    assert permissions[:1] in permission_errors
+    assert permissions[1:] in permission_errors
+    user_errors = [error["users"] for error in errors]
+    assert user_ids[1:] in user_errors
+    assert user_ids[:1] in user_errors
+    assert {error["code"] for error in errors} == {
+        PermissionGroupErrorCode.ASSIGN_NON_STAFF_MEMBER.name,
+        PermissionGroupErrorCode.NO_PERMISSION.name,
+        PermissionGroupErrorCode.CANNOT_ADD_AND_REMOVE.name,
+    }
+    assert data["group"] is None
+
+
 PERMISSION_GROUP_DELETE_MUTATION = """
     mutation PermissionGroupDelete($id: ID!) {
         permissionGroupDelete(
