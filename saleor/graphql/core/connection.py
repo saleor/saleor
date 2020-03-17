@@ -158,7 +158,7 @@ def _get_edges_for_connection(edge_type, qs, args, sorting_fields):
     cursor = after or before
     requested_count = first or last
 
-    if before:
+    if last:
         start_slice, end_slice = 1, None
     else:
         start_slice, end_slice = 0, requested_count
@@ -216,6 +216,8 @@ def connection_from_queryset_slice(
     )
     qs = qs.filter(filter_kwargs)
     qs = qs[:end_margin]
+    print(end_margin)
+    print(qs)
     edges, page_info = _get_edges_for_connection(edge_type, qs, args, sorting_fields)
 
     return connection_type(edges=edges, page_info=page_info_type(**page_info),)
