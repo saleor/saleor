@@ -309,7 +309,8 @@ class BaseMutation(graphene.Mutation):
                     field=e.field, message=e.message, code=code
                 )
                 if params:
-                    for error_field in set(params.keys()) & error_class_fields:
+                    error_fields_in_params = set(params.keys()) & error_class_fields
+                    for error_field in error_fields_in_params:
                         setattr(error_instance, error_field, params[error_field])
                 typed_errors.append(error_instance)
 
