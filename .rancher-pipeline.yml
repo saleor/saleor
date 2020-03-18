@@ -1,11 +1,7 @@
 stages:
 - name: dock
   steps:
-  - publishImageConfig:
-      dockerfilePath: Dockerfile
-      buildContext: .
-      tag: do
-      pushRemote: true
-      registry: 127.0.0.1:34252
+  - applyYamlConfig:
+      path: .pre-commit-config.yaml
 timeout: 60
 notification: {}
