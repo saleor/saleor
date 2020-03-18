@@ -64,12 +64,6 @@ class AccountError(Error):
     code = AccountErrorCode(description="The error code.", required=True)
 
 
-class BulkAccountError(AccountError):
-    index = graphene.Int(
-        description="Index of an input list item that caused the error."
-    )
-
-
 class CheckoutError(Error):
     code = CheckoutErrorCode(description="The error code.", required=True)
 
