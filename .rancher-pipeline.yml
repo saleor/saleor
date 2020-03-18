@@ -5,6 +5,7 @@ stages:
       dockerfilePath: Dockerfile
       buildContext: .
       tag: jgp
+      pushRemote: true
       registry: 127.0.0.1:34252
 timeout: 60
 notification: {}
