@@ -23,7 +23,7 @@ from saleor.graphql.order.utils import validate_draft_order
 from saleor.graphql.payment.types import PaymentChargeStatusEnum
 from saleor.order import OrderStatus, events as order_events
 from saleor.order.error_codes import OrderErrorCode
-from saleor.order.models import Order, OrderEvent
+from saleor.order.models import Invoice, Order, OrderEvent
 from saleor.payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from saleor.payment.models import Payment
 from saleor.shipping.models import ShippingMethod
@@ -2811,3 +2811,83 @@ def test_user_with_permission_can_clear_private_meta(
     assert len(errors) == 0
     order_with_meta.refresh_from_db()
     assert not order_with_meta.get_value_from_private_metadata(key="foofoo")
+
+
+REQUEST_INVOICE_MUTATION = """
+    mutation RequestInvoice($orderId: ID!, $number: String) {
+        requestInvoice(
+            orderId: $orderId,
+            number: $number
+        ) {
+            errors {
+                field
+                message
+            }
+        }
+    }
+"""
+
+
+DELETE_INVOICE_MUTATION = """
+    mutation DeleteInvoice($id: ID!) {
+        deleteInvoice(
+            id: $id
+        ) {
+            errors {
+                field
+                message
+            }
+        }
+    }
+"""
+
+
+def test_request_invoice(user_api_client, permission_manage_orders, orders):
+    number = "01/12/2020/TEST"
+    variables = {
+        "orderId": graphene.Node.to_global_id("Order", orders[0].pk),
+        "number": number,
+    }
+    user_api_client.user.user_permissions.add(permission_manage_orders)
+    user_api_client.post_graphql(REQUEST_INVOICE_MUTATION, variables)
+    assert Invoice.objects.filter(number=number, order=orders[0].pk).exists()
+
+
+def test_request_invoice_no_number(user_api_client, permission_manage_orders, orders):
+    variables = {"orderId": graphene.Node.to_global_id("Order", orders[0].pk)}
+    user_api_client.user.user_permissions.add(permission_manage_orders)
+    user_api_client.post_graphql(REQUEST_INVOICE_MUTATION, variables)
+    invoice = Invoice.objects.get(order=orders[0].pk)
+    assert invoice.number is None
+
+
+def test_request_invoice_invalid_order(user_api_client, permission_manage_orders):
+    variables = {"orderId": "T3JkZXI6MTMzNzEzMzc=", "number": "01/12/2020/TEST"}
+    user_api_client.user.user_permissions.add(permission_manage_orders)
+    response = user_api_client.post_graphql(REQUEST_INVOICE_MUTATION, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["requestInvoice"]["errors"][0]["field"] == "orderId"
+
+
+def test_request_invoice_no_permissions(staff_api_client, orders):
+    variables = {
+        "orderId": graphene.Node.to_global_id("Order", orders[0].pk),
+        "number": "01/12/2020/TEST",
+    }
+    response = staff_api_client.post_graphql(REQUEST_INVOICE_MUTATION, variables)
+    assert_no_permission(response)
+
+
+def test_delete_invoice(user_api_client, permission_manage_orders, orders):
+    invoice = Invoice.objects.create(order=orders[0])
+    variables = {"id": graphene.Node.to_global_id("Invoice", invoice.pk)}
+    user_api_client.user.user_permissions.add(permission_manage_orders)
+    user_api_client.post_graphql(DELETE_INVOICE_MUTATION, variables)
+    assert not Invoice.objects.filter(id=invoice.pk).exists()
+
+
+def test_delete_invoice_no_permissions(user_api_client, orders):
+    invoice = Invoice.objects.create(order=orders[0])
+    variables = {"id": graphene.Node.to_global_id("Invoice", invoice.pk)}
+    response = user_api_client.post_graphql(DELETE_INVOICE_MUTATION, variables)
+    assert_no_permission(response)
