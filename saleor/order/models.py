@@ -500,7 +500,7 @@ class OrderEvent(models.Model):
 
 class Invoice(ModelWithMetadata):
     order = models.ForeignKey(Order, null=True, on_delete=models.SET_NULL)
-    number = models.CharField(max_length=255)
+    number = models.CharField(max_length=255, null=True)
     created = models.DateTimeField(null=True)
     url = models.URLField(max_length=2048)
     status = models.CharField(max_length=32, default=InvoiceStatus.PENDING)
