@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import List
+from typing import Dict, List, Optional
 
 import graphene
 from django.contrib.auth import models as auth_models
@@ -75,7 +75,14 @@ class PermissionGroupCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    def clean_permissions(cls, info, errors, field, cleaned_input, error_field=None):
+    def clean_permissions(
+        cls,
+        info,
+        errors: Dict[Optional[str], List[ValidationError]],
+        field: str,
+        cleaned_input: dict,
+        error_field: Optional[str] = None,
+    ):
         if field in cleaned_input:
             permissions = get_permissions_user_has_not(
                 info.context.user, cleaned_input[field]
@@ -87,21 +94,28 @@ class PermissionGroupCreate(ModelMutation):
                     errors,
                     error_msg,
                     field,
-                    PermissionGroupErrorCode.NO_PERMISSION,
+                    PermissionGroupErrorCode.NO_PERMISSION.value,
                     permission_enums,
                     error_field,
                 )
             cleaned_input[field] = get_permissions(cleaned_input[field])
 
     @classmethod
-    def clean_users(cls, errors, field, cleaned_input, error_field=None):
+    def clean_users(
+        cls,
+        errors: Dict[Optional[str], List[ValidationError]],
+        field: str,
+        cleaned_input: dict,
+        error_field: Optional[str] = None,
+    ):
         if field in cleaned_input:
             user_pks = cls.get_user_pks(cleaned_input, field)
             cls.check_if_users_are_staff(errors, field, user_pks, error_field)
+
             cleaned_input[f"{field}_pks"] = user_pks
 
     @classmethod
-    def get_user_pks(cls, cleaned_input, field):
+    def get_user_pks(cls, cleaned_input: dict, field: str):
         if field not in cleaned_input:
             return []
 
@@ -116,7 +130,11 @@ class PermissionGroupCreate(ModelMutation):
 
     @classmethod
     def check_if_users_are_staff(
-        cls, errors, field, user_pks: List[str], error_field=None
+        cls,
+        errors: Dict[Optional[str], List[ValidationError]],
+        field: str,
+        user_pks: List[str],
+        error_field: Optional[str] = None,
     ):
         non_staff_users = list(
             account_models.User.objects.filter(pk__in=user_pks)
@@ -136,9 +154,19 @@ class PermissionGroupCreate(ModelMutation):
             )
 
     @classmethod
-    def update_errors(cls, errors, msg, field, code, values, error_field=None):
+    def update_errors(
+        cls,
+        errors: Dict[Optional[str], List[ValidationError]],
+        msg: str,
+        field: Optional[str],
+        code: str,
+        values: list,
+        error_field: Optional[str] = None,
+    ):
         error_field = error_field or field
-        error = ValidationError(message=msg, code=code, params={error_field: values})
+        error = ValidationError(
+            message=msg, code=code, params={error_field: values}  # type: ignore
+        )
         errors[field].append(error)
 
 
@@ -197,7 +225,9 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         return cls(group=group)
 
     @classmethod
-    def update_group_permissions_and_users(cls, group, cleaned_input):
+    def update_group_permissions_and_users(
+        cls, group: auth_models.Group, cleaned_input: dict
+    ):
         if "add_users_pks" in cleaned_input:
             group.user_set.add(*cleaned_input["add_users_pks"])
         remove_users_pks = cls.get_user_pks(cleaned_input, "remove_users")
@@ -229,7 +259,12 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         return cleaned_input
 
     @classmethod
-    def check_for_duplicates(cls, errors, cleaned_input, field):
+    def check_for_duplicates(
+        cls,
+        errors: Dict[Optional[str], List[ValidationError]],
+        cleaned_input: dict,
+        field: str,
+    ):
         add_field = f"add_{field}"
         remove_field = f"remove_{field}"
         if add_field in cleaned_input and remove_field in cleaned_input:
