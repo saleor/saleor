@@ -18,13 +18,13 @@ from ....order.error_codes import OrderErrorCode
 from ....order.utils import get_valid_shipping_methods_for_order
 from ....payment import CustomPaymentChoices, PaymentError, gateway
 from ...account.types import AddressInput
-from ...core.mutations import BaseMutation
+from ...core.mutations import BaseMutation, ModelDeleteMutation
 from ...core.scalars import Decimal
 from ...core.types.common import OrderError
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ...meta.deprecated.types import MetaInput, MetaPath
 from ...order.mutations.draft_orders import DraftOrderUpdate
-from ...order.types import Order, OrderEvent
+from ...order.types import Invoice, Order, OrderEvent
 from ...shipping.types import ShippingMethod
 from ..enums import InvoiceStatus
 
@@ -536,8 +536,27 @@ class RequestInvoice(BaseMutation):
             info, data["order_id"], only_type=Order, field="orderId"
         )
 
-        invoice = models.Invoice.objects.create(status=InvoiceStatus.PENDING)
+        invoice = models.Invoice.objects.create(
+            order=order, status=InvoiceStatus.PENDING, number=data.get("number")
+        )
         info.context.extensions.invoice_request(
             order=order, invoice=invoice, number=data.get("number")
         )
         return RequestInvoice()
+
+
+class DeleteInvoice(ModelDeleteMutation):
+    class Arguments:
+        id = graphene.ID(required=True, description="ID of an invoice to delete.")
+
+    class Meta:
+        description = "Deletes an invoice."
+        model = models.Invoice
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        info.context.extensions.invoice_delete(
+            cls.get_node_or_error(info, data["id"], only_type=Invoice)
+        )
+        return super().perform_mutation(_root, info, **data)
