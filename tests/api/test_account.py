@@ -139,20 +139,7 @@ def test_token_create_user_data(permission_manage_orders, staff_api_client, staf
     assert token_data["user"]["permissions"][0]["code"] == "MANAGE_ORDERS"
 
 
-def test_query_user(
-    staff_api_client, customer_user, address, permission_manage_users, media_root
-):
-    user = customer_user
-    user.default_shipping_address.country = "US"
-    user.default_shipping_address.save()
-    user.addresses.add(address.get_copy())
-
-    avatar_mock = MagicMock(spec=File)
-    avatar_mock.name = "image.jpg"
-    user.avatar = avatar_mock
-    user.save()
-
-    query = """
+FULL_USER_QUERY = """
     query User($id: ID!) {
         user(id: $id) {
             email
@@ -207,9 +194,34 @@ def test_query_user(
             avatar {
                 url
             }
+            permissions {
+                code
+            }
+            permissionGroups {
+                name
+                permissions {
+                    code
+                }
+            }
         }
     }
-    """
+"""
+
+
+def test_query_customer_user(
+    staff_api_client, customer_user, address, permission_manage_users, media_root
+):
+    user = customer_user
+    user.default_shipping_address.country = "US"
+    user.default_shipping_address.save()
+    user.addresses.add(address.get_copy())
+
+    avatar_mock = MagicMock(spec=File)
+    avatar_mock.name = "image.jpg"
+    user.avatar = avatar_mock
+    user.save()
+
+    query = FULL_USER_QUERY
     ID = graphene.Node.to_global_id("User", customer_user.id)
     variables = {"id": ID}
     staff_api_client.user.user_permissions.add(permission_manage_users)
@@ -268,6 +280,56 @@ def test_query_user(
     assert address["phone"] == user_address.phone.as_e164
     assert address["isDefaultShippingAddress"] is None
     assert address["isDefaultBillingAddress"] is None
+
+
+def test_query_staff_user(
+    staff_api_client,
+    address,
+    permission_manage_users,
+    media_root,
+    permission_group_manage_users,
+    permission_manage_orders,
+    permission_manage_products,
+    permission_manage_staff,
+):
+    group = permission_group_manage_users
+    group.permissions.add(permission_manage_products)
+
+    staff_user = group.user_set.first()
+    staff_user.user_permissions.add(permission_manage_orders, permission_manage_staff)
+
+    avatar_mock = MagicMock(spec=File)
+    avatar_mock.name = "image2.jpg"
+    staff_user.avatar = avatar_mock
+    staff_user.save()
+
+    query = FULL_USER_QUERY
+    user_id = graphene.Node.to_global_id("User", staff_user.pk)
+    variables = {"id": user_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_staff]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["user"]
+
+    assert data["email"] == staff_user.email
+    assert data["firstName"] == staff_user.first_name
+    assert data["lastName"] == staff_user.last_name
+    assert data["isStaff"] == staff_user.is_staff
+    assert data["isActive"] == staff_user.is_active
+    assert data["orders"]["totalCount"] == staff_user.orders.count()
+    assert data["avatar"]["url"]
+
+    assert len(data["permissionGroups"]) == 1
+    assert data["permissionGroups"][0]["name"] == group.name
+    assert {
+        perm["code"].lower() for perm in data["permissionGroups"][0]["permissions"]
+    } == set(group.permissions.values_list("codename", flat=True))
+    assert len(data["permissions"]) == 4
+    all_permissions = group.permissions.all() | staff_user.user_permissions.all()
+    assert {perm["code"].lower() for perm in data["permissions"]} == set(
+        all_permissions.values_list("codename", flat=True)
+    )
 
 
 USER_QUERY = """

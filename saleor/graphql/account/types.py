@@ -267,8 +267,16 @@ class User(CountableDjangoObjectType):
         ),
         model_field="orders",
     )
-    permissions = graphene.List(
-        PermissionDisplay, description="List of user's permissions."
+    permissions = gql_optimizer.field(
+        graphene.List(PermissionDisplay, description="List of user's permissions."),
+        model_field="user_permissions",
+    )
+    permission_groups = gql_optimizer.field(
+        graphene.List(
+            "saleor.graphql.account.types.Group",
+            description="List of user's permission groups.",
+        ),
+        model_field="groups",
     )
     avatar = graphene.Field(Image, size=graphene.Int(description="Size of the avatar."))
     events = gql_optimizer.field(
@@ -321,7 +329,15 @@ class User(CountableDjangoObjectType):
             permissions = root.user_permissions.prefetch_related(
                 "content_type"
             ).order_by("codename")
+            groups = root.groups.all()
+            permissions = permissions | auth_models.Permission.objects.filter(
+                group__in=groups
+            )
         return format_permissions_for_display(permissions)
+
+    @staticmethod
+    def resolve_permission_groups(root: models.User, _info, **_kwargs):
+        return root.groups.all()
 
     @staticmethod
     @one_of_permissions_required(
