@@ -1,0 +1,11 @@
+stages:
+- name: dock
+  steps:
+  - publishImageConfig:
+      dockerfilePath: Dockerfile
+      buildContext: .
+      tag: do
+      pushRemote: true
+      registry: 127.0.0.1:34252
+timeout: 60
+notification: {}
