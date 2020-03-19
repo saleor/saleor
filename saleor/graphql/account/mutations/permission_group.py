@@ -15,7 +15,7 @@ from ...account.utils import can_user_manage_group, get_permissions_user_has_not
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types.common import AccountError, PermissionGroupError
-from ...core.utils import from_global_id_strict_type
+from ...utils import resolve_global_ids_to_primary_keys
 from ..types import Group
 
 
@@ -49,6 +49,7 @@ class PermissionGroupCreate(ModelMutation):
         error_type_field = "permission_group_errors"
 
     @classmethod
+    @transaction.atomic
     def perform_mutation(cls, _root, info, **data):
         group = cls.get_instance(info, **data)
         data = data.get("input")
@@ -115,17 +116,12 @@ class PermissionGroupCreate(ModelMutation):
             cleaned_input[f"{field}_pks"] = user_pks
 
     @classmethod
-    def get_user_pks(cls, cleaned_input: dict, field: str):
+    def get_user_pks(cls, cleaned_input: dict, field: str) -> List[str]:
         if field not in cleaned_input:
             return []
 
         user_ids: List[str] = cleaned_input[field]
-
-        user_pks = [
-            from_global_id_strict_type(user_id, only_type=User, field="id")
-            for user_id in user_ids
-        ]
-
+        _, user_pks = resolve_global_ids_to_primary_keys(user_ids, graphene_type=User)
         return user_pks
 
     @classmethod
@@ -136,6 +132,7 @@ class PermissionGroupCreate(ModelMutation):
         user_pks: List[str],
         error_field: Optional[str] = None,
     ):
+        """Check if all of the users are staff members."""
         non_staff_users = list(
             account_models.User.objects.filter(pk__in=user_pks)
             .filter(is_staff=False)
@@ -161,9 +158,19 @@ class PermissionGroupCreate(ModelMutation):
         field: Optional[str],
         code: str,
         values: list,
-        error_field: Optional[str] = None,
+        error_class_field: Optional[str] = None,
     ):
-        error_field = error_field or field
+        """Create ValidationError and add it to error list.
+
+        Args:
+            field: name of input field which causes the problem
+            code: error code
+            values: values which cause the problem
+            error_class_field: name of error class field corresponding
+                to the error values
+
+        """
+        error_field = error_class_field or field
         error = ValidationError(
             message=msg, code=code, params={error_field: values}  # type: ignore
         )
@@ -265,14 +272,20 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         cleaned_input: dict,
         field: str,
     ):
+        """Check if some of the items are in add and remove list at the same time.
+
+        Raise error if some of items are duplicated.
+        """
         add_field = f"add_{field}"
         remove_field = f"remove_{field}"
         if add_field in cleaned_input and remove_field in cleaned_input:
+            # get items which are in both list
             common_items = set(cleaned_input[add_field]) & set(
                 cleaned_input[remove_field]
             )
             if common_items:
                 if field == "permission":
+                    # prepare permissions enum list for error
                     values = [PermissionEnum.get(perm) for perm in common_items]
                 else:
                     values = list(common_items)
