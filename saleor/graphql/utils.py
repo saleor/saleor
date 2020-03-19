@@ -1,7 +1,8 @@
 from typing import Union
 
 import graphene
-from django.db.models import Q, QuerySet
+from django.db.models import Q, QuerySet, Value
+from django.db.models.functions import Concat
 from django.utils import timezone
 from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
@@ -168,12 +169,16 @@ def format_permissions_for_display(permissions):
         permissions - queryset with permissions
 
     """
-    formatted_permissions = []
-    for permission in permissions:
-        codename = ".".join([permission.content_type.app_label, permission.codename])
-        formatted_permissions.append(
-            PermissionDisplay(code=PermissionEnum.get(codename), name=permission.name)
+    permissions_data = permissions.annotate(
+        formated_codename=Concat("content_type__app_label", Value("."), "codename")
+    ).values("name", "formated_codename")
+
+    formatted_permissions = [
+        PermissionDisplay(
+            code=PermissionEnum.get(data["formated_codename"]), name=data["name"]
         )
+        for data in permissions_data
+    ]
     return formatted_permissions
 
 

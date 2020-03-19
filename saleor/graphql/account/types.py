@@ -326,12 +326,12 @@ class User(CountableDjangoObjectType):
         if root.is_superuser:
             permissions = get_permissions()
         else:
-            permissions = root.user_permissions.prefetch_related(
-                "content_type"
-            ).order_by("codename")
             groups = root.groups.all()
-            permissions = permissions | auth_models.Permission.objects.filter(
-                group__in=groups
+            user_permissions = root.user_permissions.all()
+            group_permissions = auth_models.Permission.objects.filter(group__in=groups)
+            permissions = user_permissions | group_permissions
+            permissions = permissions.prefetch_related("content_type").order_by(
+                "codename"
             )
         return format_permissions_for_display(permissions)
 
