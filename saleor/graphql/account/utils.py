@@ -103,7 +103,7 @@ def get_allowed_fields_camel_case(allowed_fields: set) -> set:
     return fields
 
 
-def get_permissions_user_has_not(user: "User", permissions: List[str]):
+def get_out_of_scope_permissions(user: "User", permissions: List[str]):
     """Return permissions that the user hasn't got."""
     missing_permissions = []
     for perm in permissions:
@@ -113,6 +113,7 @@ def get_permissions_user_has_not(user: "User", permissions: List[str]):
 
 
 def can_user_manage_group(user: "User", group: "Group"):
+    """User can't manage a group with permission that is out of the user's scope."""
     permissions = group.permissions.annotate(
         lookup_field=Concat("content_type__app_label", Value("."), "codename")
     ).values_list("lookup_field", flat=True)
