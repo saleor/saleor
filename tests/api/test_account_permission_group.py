@@ -178,6 +178,11 @@ def test_permission_group_create_mutation_add_customer_user(
     permission_manage_users,
     permission_manage_service_accounts,
 ):
+    """Ensure creating permission group with customer user in input field for adding
+    users failed. Mutations should failed. Error should contains list of wrong users
+    IDs.
+    """
+
     second_customer = User.objects.get(pk=customer_user.pk)
     second_customer.id = None
     second_customer.email = "second_customer@test.com"
@@ -323,7 +328,9 @@ def test_permission_group_update_mutation(
     group = permission_group_manage_users
     query = PERMISSION_GROUP_UPDATE_MUTATION
 
+    # set of users emails being in a group
     users = set(group.user_set.values_list("email", flat=True))
+
     group_user = group.user_set.first()
     variables = {
         "id": graphene.Node.to_global_id("Group", group.id),
@@ -342,8 +349,10 @@ def test_permission_group_update_mutation(
     data = content["data"]["permissionGroupUpdate"]
     permission_group_data = data["group"]
 
+    # remove and add user email for comparing users set
     users.remove(group_user.email)
     users.add(staff_user.email)
+
     group = Group.objects.get()
     assert permission_group_data["name"] == group.name
     permissions = {
@@ -369,6 +378,7 @@ def test_permission_group_update_mutation_only_name(
     staff_api_client,
     permission_manage_users,
 ):
+    """Ensure mutation update group when only name are passed in input."""
     staff_user.user_permissions.add(permission_manage_staff, permission_manage_users)
     group = permission_group_manage_users
     old_group_name = group.name
@@ -413,6 +423,9 @@ def test_permission_group_update_mutation_with_name_which_exists(
     staff_api_client,
     permission_manage_users,
 ):
+    """Ensure mutation failed where updating name with value which already is a name of
+    different group.
+    """
     staff_user.user_permissions.add(permission_manage_staff, permission_manage_users)
     group = permission_group_manage_users
     old_group_name = group.name
@@ -449,6 +462,7 @@ def test_permission_group_update_mutation_only_permissions(
     permission_manage_users,
     permission_manage_service_accounts,
 ):
+    """Ensure mutation update group when only permissions are passed in input."""
     staff_user.user_permissions.add(
         permission_manage_users, permission_manage_service_accounts
     )
@@ -484,6 +498,7 @@ def test_permission_group_update_mutation_no_input_data(
     permission_manage_users,
     staff_api_client,
 ):
+    """Ensure mutation doesn't change group when input is empty."""
     staff_user.user_permissions.add(permission_manage_staff, permission_manage_users)
     group = permission_group_manage_users
     query = PERMISSION_GROUP_UPDATE_MUTATION
@@ -510,6 +525,9 @@ def test_permission_group_update_mutation_user_cannot_manage_group(
     staff_api_client,
     permission_manage_users,
 ):
+    """Ensure that update mutation failed when user try to update group for which
+    he doesn't have permission.
+    """
     staff_user.user_permissions.add(permission_manage_users)
     group = permission_group_manage_users
     query = PERMISSION_GROUP_UPDATE_MUTATION
@@ -540,6 +558,10 @@ def test_permission_group_update_mutation_user_in_list_to_add_and_remove(
     permission_manage_users,
     permission_manage_service_accounts,
 ):
+    """Ensure update mutation failed when user IDs are in both lists for adding
+    and removing. Ensure mutation contains list of user IDs which cause
+    the problem.
+    """
     staff_user.user_permissions.add(
         permission_manage_users, permission_manage_service_accounts
     )
@@ -587,6 +609,10 @@ def test_permission_group_update_mutation_permissions_in_list_to_add_and_remove(
     permission_manage_service_accounts,
     permission_manage_orders,
 ):
+    """Ensure update mutation failed when permission items are in both lists for
+    adding and removing. Ensure mutation contains list of permissions which cause
+    the problem.
+    """
     staff_user.user_permissions.add(
         permission_manage_users,
         permission_manage_service_accounts,
@@ -630,6 +656,10 @@ def test_permission_group_update_mutation_permissions_and_users_duplicated(
     permission_manage_service_accounts,
     permission_manage_orders,
 ):
+    """Ensure updating mutations with the same permission and users in list for
+    adding and removing failed. Mutation should failed. Error should contains list of
+    users IDs and permissions that are duplicated.
+    """
     staff_user.user_permissions.add(
         permission_manage_users,
         permission_manage_service_accounts,
@@ -689,6 +719,9 @@ def test_permission_group_update_mutation_user_add_customer_user(
     permission_manage_service_accounts,
     customer_user,
 ):
+    """Ensure update mutation with customer user in field for adding users failed.
+    Ensure error contains list with user IDs which cause the problem.
+    """
     staff_user.user_permissions.add(
         permission_manage_users, permission_manage_service_accounts
     )
@@ -730,6 +763,9 @@ def test_permission_group_update_mutation_lack_of_permission(
     permission_manage_service_accounts,
     permission_manage_orders,
 ):
+    """Ensure update mutation failed when user trying to add permission which
+    he doesn't have.
+    """
     staff_user.user_permissions.add(
         permission_manage_users, permission_manage_service_accounts
     )
@@ -768,6 +804,13 @@ def test_permission_group_update_mutation_multiply_errors(
     permission_manage_service_accounts,
     permission_manage_orders,
 ):
+    """Ensure update mutation failed with all validation errors when input data
+    is incorrent:
+        - the same item in list for adding and removing (CANNOT_ADD_AND_REMOVE)
+        - adding permission which user hasn't (NO_PERMISSION)
+        - adding customer user (ASSIGN_NON_STAFF_MEMBER)
+    """
+
     staff_user.user_permissions.add(
         permission_manage_service_accounts, permission_manage_users
     )
