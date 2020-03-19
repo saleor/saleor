@@ -95,7 +95,7 @@ class PermissionGroupCreate(ModelMutation):
                     errors,
                     error_msg,
                     field,
-                    PermissionGroupErrorCode.NO_PERMISSION.value,
+                    PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.value,
                     permission_enums,
                     error_field,
                 )

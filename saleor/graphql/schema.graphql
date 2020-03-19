@@ -3052,7 +3052,7 @@ type PermissionGroupError {
 enum PermissionGroupErrorCode {
   ASSIGN_NON_STAFF_MEMBER
   CANNOT_ADD_AND_REMOVE
-  NO_PERMISSION
+  OUT_OF_SCOPE_PERMISSION
   REQUIRED
   UNIQUE
 }
