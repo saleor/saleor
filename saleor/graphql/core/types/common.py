@@ -32,8 +32,10 @@ class CountryDisplay(graphene.ObjectType):
 
 
 class LanguageDisplay(graphene.ObjectType):
-    code = LanguageCodeEnum(description="Language code.", required=True)
-    language = graphene.String(description="Language.", required=True)
+    code = LanguageCodeEnum(
+        description="ISO 639 representation of the language name.", required=True
+    )
+    language = graphene.String(description="Full name of the language.", required=True)
 
 
 class PermissionDisplay(graphene.ObjectType):

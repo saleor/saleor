@@ -309,6 +309,8 @@ class BaseMutation(graphene.Mutation):
                     field=e.field, message=e.message, code=code
                 )
                 if params:
+                    # If some of the params key overlap with error class fields
+                    # attach param value to the error
                     error_fields_in_params = set(params.keys()) & error_class_fields
                     for error_field in error_fields_in_params:
                         setattr(error_instance, error_field, params[error_field])
