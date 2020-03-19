@@ -42,6 +42,7 @@ from .mutations.orders import (
     OrderUpdateShipping,
     OrderVoid,
     RequestInvoice,
+    UpdateInvoice,
 )
 from .resolvers import (
     resolve_draft_orders,
@@ -228,3 +229,4 @@ class OrderMutations(graphene.ObjectType):
 class InvoiceMutations(graphene.ObjectType):
     request_invoice = RequestInvoice.Field()
     delete_invoice = DeleteInvoice.Field()
+    update_invoice = UpdateInvoice.Field()
