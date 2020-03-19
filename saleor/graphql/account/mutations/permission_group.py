@@ -11,7 +11,7 @@ from ....account import models as account_models
 from ....account.error_codes import PermissionGroupErrorCode
 from ....core.permissions import AccountPermissions, get_permissions
 from ...account.types import User
-from ...account.utils import can_user_manage_group, get_permissions_user_has_not
+from ...account.utils import can_user_manage_group, get_out_of_scope_permissions
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types.common import AccountError, PermissionGroupError
@@ -85,7 +85,7 @@ class PermissionGroupCreate(ModelMutation):
         error_field: Optional[str] = None,
     ):
         if field in cleaned_input:
-            permissions = get_permissions_user_has_not(
+            permissions = get_out_of_scope_permissions(
                 info.context.user, cleaned_input[field]
             )
             if permissions:
