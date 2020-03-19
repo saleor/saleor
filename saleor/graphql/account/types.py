@@ -21,6 +21,7 @@ from ..utils import format_permissions_for_display
 from ..wishlist.resolvers import resolve_wishlist_items_from_user
 from ..wishlist.types import WishlistItem
 from .enums import CountryCodeEnum, CustomerEventsEnum
+from .utils import can_user_manage_group
 
 
 class AddressInput(graphene.InputObjectType):
@@ -452,9 +453,12 @@ class Group(CountableDjangoObjectType):
     permissions = graphene.List(
         PermissionDisplay, description="List of group permissions"
     )
+    user_can_manage = graphene.Boolean(
+        required=True, description="True if user has rights to manage group."
+    )
 
     class Meta:
-        description = ""
+        description = "Represents permission group data."
         interfaces = [relay.Node]
         model = auth_models.Group
         only_fields = ["name", "permissions", "users", "id"]
@@ -472,3 +476,8 @@ class Group(CountableDjangoObjectType):
             "codename"
         )
         return format_permissions_for_display(permissions)
+
+    @staticmethod
+    def resolve_user_can_manage(root: auth_models.Group, info):
+        user = info.context.user
+        return can_user_manage_group(user, root)
