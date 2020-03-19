@@ -18,7 +18,7 @@ from ....order.error_codes import OrderErrorCode
 from ....order.utils import get_valid_shipping_methods_for_order
 from ....payment import CustomPaymentChoices, PaymentError, gateway
 from ...account.types import AddressInput
-from ...core.mutations import BaseMutation, ModelDeleteMutation
+from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import Decimal
 from ...core.types.common import OrderError
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
@@ -559,4 +559,26 @@ class DeleteInvoice(ModelDeleteMutation):
         info.context.extensions.invoice_delete(
             cls.get_node_or_error(info, data["id"], only_type=Invoice)
         )
+        return super().perform_mutation(_root, info, **data)
+
+
+class UpdateInvoice(ModelMutation):
+    class Arguments:
+        id = graphene.ID(required=True, description="ID of an invoice to update.")
+        number = graphene.String(description="Invoice number")
+        url = graphene.String(description="URL of an invoice to download.")
+
+    class Meta:
+        description = "Updates an invoice."
+        model = models.Invoice
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+
+    # @classmethod
+    # def clean_input(cls, _info, _instance, data):
+    #   pass
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        invoice = cls.get_instance(info, **data)
+        invoice.update_invoice(**data)
         return super().perform_mutation(_root, info, **data)
