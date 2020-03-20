@@ -13,7 +13,7 @@ from ...models import ServiceAccount
 
 
 class Command(BaseCommand):
-    help = "Used to create service account"
+    help = "Used to create service account."
 
     def add_arguments(self, parser: CommandParser) -> None:
         parser.add_argument("name", type=str)
@@ -29,7 +29,9 @@ class Command(BaseCommand):
         parser.add_argument(
             "--target_url",
             dest="target_url",
-            help="Url which will receive newly created data of service account object.",
+            help="Url which will receive newly created data of service account object. "
+            "Command doesn't return service account data to stdout when this "
+            "argument is provided.",
         )
 
     def validate_permissions(self, required_permissions: List[str]):
