@@ -1,11 +1,10 @@
 from collections import defaultdict
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import graphene
 from django.contrib.auth import models as auth_models
 from django.core.exceptions import ValidationError
 from django.db import transaction
-from graphql_jwt.exceptions import PermissionDenied
 
 from ....account import models as account_models
 from ....account.error_codes import PermissionGroupErrorCode
@@ -50,16 +49,9 @@ class PermissionGroupCreate(ModelMutation):
 
     @classmethod
     @transaction.atomic
-    def perform_mutation(cls, _root, info, **data):
-        group = cls.get_instance(info, **data)
-        data = data.get("input")
-        cleaned_input = cls.clean_input(info, group, data)
-        group = cls.construct_instance(group, cleaned_input)
-        cls.clean_instance(info, group)
-        cls.save(info, group, cleaned_input)
-        cls._save_m2m(info, group, cleaned_input)
-        group.user_set.add(*cleaned_input["users_pks"])
-        return cls(group=group)
+    def _save_m2m(cls, info, instance, cleaned_data):
+        super()._save_m2m(info, instance, cleaned_data)
+        instance.user_set.add(*cleaned_data["users_pks"])
 
     @classmethod
     def clean_input(
@@ -82,23 +74,18 @@ class PermissionGroupCreate(ModelMutation):
         errors: Dict[Optional[str], List[ValidationError]],
         field: str,
         cleaned_input: dict,
-        error_field: Optional[str] = None,
     ):
         if field in cleaned_input:
             permissions = get_out_of_scope_permissions(
                 info.context.user, cleaned_input[field]
             )
             if permissions:
+                # add error
                 error_msg = "You can't add permission that you don't have."
-                permission_enums = [PermissionEnum.get(perm) for perm in permissions]
-                cls.update_errors(
-                    errors,
-                    error_msg,
-                    field,
-                    PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.value,
-                    permission_enums,
-                    error_field,
-                )
+                code = PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.value
+                params = {"permissions": permissions}
+                cls.update_errors(errors, error_msg, field, code, params)
+
             cleaned_input[field] = get_permissions(cleaned_input[field])
 
     @classmethod
@@ -107,12 +94,10 @@ class PermissionGroupCreate(ModelMutation):
         errors: Dict[Optional[str], List[ValidationError]],
         field: str,
         cleaned_input: dict,
-        error_field: Optional[str] = None,
     ):
         if field in cleaned_input:
             user_pks = cls.get_user_pks(cleaned_input, field)
-            cls.check_if_users_are_staff(errors, field, user_pks, error_field)
-
+            cls.check_if_users_are_staff(errors, field, user_pks)
             cleaned_input[f"{field}_pks"] = user_pks
 
     @classmethod
@@ -130,7 +115,6 @@ class PermissionGroupCreate(ModelMutation):
         errors: Dict[Optional[str], List[ValidationError]],
         field: str,
         user_pks: List[str],
-        error_field: Optional[str] = None,
     ):
         """Check if all of the users are staff members."""
         non_staff_users = list(
@@ -139,16 +123,12 @@ class PermissionGroupCreate(ModelMutation):
             .values_list("pk", flat=True)
         )
         if non_staff_users:
+            # add error
             ids = [graphene.Node.to_global_id("User", pk) for pk in non_staff_users]
             error_msg = "User must be staff member."
-            cls.update_errors(
-                errors,
-                error_msg,
-                field,
-                PermissionGroupErrorCode.ASSIGN_NON_STAFF_MEMBER.value,
-                ids,
-                error_field,
-            )
+            code = PermissionGroupErrorCode.ASSIGN_NON_STAFF_MEMBER.value
+            params = {"users": ids}
+            cls.update_errors(errors, error_msg, field, code, params)
 
     @classmethod
     def update_errors(
@@ -157,23 +137,10 @@ class PermissionGroupCreate(ModelMutation):
         msg: str,
         field: Optional[str],
         code: str,
-        values: list,
-        error_class_field: Optional[str] = None,
+        params: dict,
     ):
-        """Create ValidationError and add it to error list.
-
-        Args:
-            field: name of input field which causes the problem
-            code: error code
-            values: values which cause the problem
-            error_class_field: name of error class field corresponding
-                to the error values
-
-        """
-        error_field = error_class_field or field
-        error = ValidationError(
-            message=msg, code=code, params={error_field: values}  # type: ignore
-        )
+        """Create ValidationError and add it to error list."""
+        error = ValidationError(message=msg, code=code, params=params)
         errors[field].append(error)
 
 
@@ -219,17 +186,8 @@ class PermissionGroupUpdate(PermissionGroupCreate):
 
     @classmethod
     @transaction.atomic
-    def perform_mutation(cls, _root, info, **data):
-        group = cls.get_instance(info, **data)
-        if not can_user_manage_group(info.context.user, group):
-            raise PermissionDenied()
-        data = data.get("input")
-        cleaned_input = cls.clean_input(info, group, data)
-        group = cls.construct_instance(group, cleaned_input)
-        cls.clean_instance(info, group)
-        cls.save(info, group, cleaned_input)
-        cls.update_group_permissions_and_users(group, cleaned_input)
-        return cls(group=group)
+    def _save_m2m(cls, info, instance, cleaned_data):
+        cls.update_group_permissions_and_users(instance, cleaned_data)
 
     @classmethod
     def update_group_permissions_and_users(
@@ -250,15 +208,21 @@ class PermissionGroupUpdate(PermissionGroupCreate):
     def clean_input(
         cls, info, instance, data,
     ):
+        if not can_user_manage_group(info.context.user, instance):
+            error_msg = "You can't manage group with permissions out of your scope.."
+            code = PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.value
+            raise ValidationError({None: ValidationError(error_msg, code)})
+
         cleaned_input = super().clean_input(info, instance, data)
         errors = defaultdict(list)
-        for field in ["users", "permissions"]:
-            cls.check_for_duplicates(errors, cleaned_input, field)
 
-        cls.clean_permissions(
-            info, errors, "add_permissions", cleaned_input, "permissions"
-        )
-        cls.clean_users(errors, "add_users", cleaned_input, "users")
+        permission_fields = ("add_permissions", "remove_permissions", "permissions")
+        user_fields = ("add_users", "remove_users", "users")
+
+        cls.check_for_duplicates(errors, cleaned_input, permission_fields)
+        cls.check_for_duplicates(errors, cleaned_input, user_fields)
+        cls.clean_permissions(info, errors, "add_permissions", cleaned_input)
+        cls.clean_users(errors, "add_users", cleaned_input)
 
         if errors:
             raise ValidationError(errors)
@@ -267,40 +231,26 @@ class PermissionGroupUpdate(PermissionGroupCreate):
 
     @classmethod
     def check_for_duplicates(
-        cls,
-        errors: Dict[Optional[str], List[ValidationError]],
-        cleaned_input: dict,
-        field: str,
+        cls, errors: dict, cleaned_input: dict, fields: Tuple[str, str, str],
     ):
-        """Check if some of the items are in add and remove list at the same time.
+        """Check if any items are on both input field.
 
         Raise error if some of items are duplicated.
         """
-        add_field = f"add_{field}"
-        remove_field = f"remove_{field}"
-        if add_field in cleaned_input and remove_field in cleaned_input:
-            # get items which are in both list
-            common_items = set(cleaned_input[add_field]) & set(
-                cleaned_input[remove_field]
+        add_field, remove_field, error_class_field = fields
+        # break if any of comparing field is not in input
+        if add_field not in cleaned_input or remove_field not in cleaned_input:
+            return
+
+        common_items = set(cleaned_input[add_field]) & set(cleaned_input[remove_field])
+        if common_items:
+            error_msg = (
+                "The same object cannot be in both list"
+                "for adding and removing items."
             )
-            if common_items:
-                if field == "permission":
-                    # prepare permissions enum list for error
-                    values = [PermissionEnum.get(perm) for perm in common_items]
-                else:
-                    values = list(common_items)
-                error_msg = (
-                    "The same object cannot be in both list"
-                    "for adding and removing items."
-                )
-                cls.update_errors(
-                    errors,
-                    error_msg,
-                    None,
-                    PermissionGroupErrorCode.CANNOT_ADD_AND_REMOVE.value,
-                    values,
-                    field,
-                )
+            code = PermissionGroupErrorCode.CANNOT_ADD_AND_REMOVE.value
+            params = {error_class_field: list(common_items)}
+            cls.update_errors(errors, error_msg, None, code, params)
 
 
 class PermissionGroupDelete(ModelDeleteMutation):

@@ -523,12 +523,12 @@ def test_permission_group_update_mutation_user_cannot_manage_group(
     staff_user,
     permission_manage_staff,
     staff_api_client,
-    permission_manage_users,
+    permission_manage_service_accounts,
 ):
     """Ensure that update mutation failed when user try to update group for which
     he doesn't have permission.
     """
-    staff_user.user_permissions.add(permission_manage_users)
+    staff_user.user_permissions.add(permission_manage_service_accounts)
     group = permission_group_manage_users
     query = PERMISSION_GROUP_UPDATE_MUTATION
 
@@ -548,6 +548,7 @@ def test_permission_group_update_mutation_user_cannot_manage_group(
 
     assert len(errors) == 1
     assert errors[0]["code"] == PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.name
+    assert errors[0]["field"] is None
 
 
 def test_permission_group_update_mutation_user_in_list_to_add_and_remove(
