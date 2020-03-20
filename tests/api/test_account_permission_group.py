@@ -38,17 +38,13 @@ PERMISSION_GROUP_CREATE_MUTATION = """
 
 
 def test_permission_group_create_mutation(
-    staff_user,
+    staff_users,
     permission_manage_staff,
     staff_api_client,
     permission_manage_users,
     permission_manage_service_accounts,
 ):
-    staff_user2 = User.objects.get(pk=staff_user.pk)
-    staff_user2.id = None
-    staff_user2.email = "test@example.com"
-    staff_user2.save()
-
+    staff_user = staff_users[0]
     staff_user.user_permissions.add(
         permission_manage_users, permission_manage_service_accounts
     )
@@ -62,8 +58,7 @@ def test_permission_group_create_mutation(
                 AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name,
             ],
             "users": [
-                graphene.Node.to_global_id("User", staff_user.id),
-                graphene.Node.to_global_id("User", staff_user2.id),
+                graphene.Node.to_global_id("User", user.id) for user in staff_users
             ],
         }
     }
@@ -74,7 +69,6 @@ def test_permission_group_create_mutation(
     data = content["data"]["permissionGroupCreate"]
     permission_group_data = data["group"]
 
-    users = [staff_user, staff_user2]
     group = Group.objects.get()
     assert permission_group_data["name"] == group.name == variables["input"]["name"]
     permissions = {
@@ -92,7 +86,7 @@ def test_permission_group_create_mutation(
     )
     assert (
         {user["email"] for user in permission_group_data["users"]}
-        == {user.email for user in users}
+        == {user.email for user in staff_users}
         == set(group.user_set.all().values_list("email", flat=True))
     )
     assert data["permissionGroupErrors"] == []
@@ -183,10 +177,9 @@ def test_permission_group_create_mutation_add_customer_user(
     IDs.
     """
 
-    second_customer = User.objects.get(pk=customer_user.pk)
-    second_customer.id = None
-    second_customer.email = "second_customer@test.com"
-    second_customer.save()
+    second_customer = User.objects.create(
+        email="second_customer@test.com", password="test"
+    )
 
     staff_user.user_permissions.add(
         permission_manage_users, permission_manage_service_accounts
@@ -553,7 +546,7 @@ def test_permission_group_update_mutation_user_cannot_manage_group(
 
 def test_permission_group_update_mutation_user_in_list_to_add_and_remove(
     permission_group_manage_users,
-    staff_user,
+    staff_users,
     permission_manage_staff,
     staff_api_client,
     permission_manage_users,
@@ -563,26 +556,21 @@ def test_permission_group_update_mutation_user_in_list_to_add_and_remove(
     and removing. Ensure mutation contains list of user IDs which cause
     the problem.
     """
+    staff_user = staff_users[0]
     staff_user.user_permissions.add(
         permission_manage_users, permission_manage_service_accounts
     )
     group = permission_group_manage_users
     query = PERMISSION_GROUP_UPDATE_MUTATION
 
-    staff_user2 = User.objects.get(pk=staff_user.pk)
-    staff_user2.id = None
-    staff_user2.email = "test@example.com"
-    staff_user2.save()
-
-    staff_user2_id = graphene.Node.to_global_id("User", staff_user2.pk)
+    staff_user2_id = graphene.Node.to_global_id("User", staff_users[1].pk)
 
     variables = {
         "id": graphene.Node.to_global_id("Group", group.id),
         "input": {
             "name": "New permission group",
             "addUsers": [
-                graphene.Node.to_global_id("User", user.pk)
-                for user in [staff_user, staff_user2]
+                graphene.Node.to_global_id("User", user.pk) for user in staff_users
             ],
             "removeUsers": [staff_user2_id],
         },
@@ -650,7 +638,7 @@ def test_permission_group_update_mutation_permissions_in_list_to_add_and_remove(
 
 def test_permission_group_update_mutation_permissions_and_users_duplicated(
     permission_group_manage_users,
-    staff_user,
+    staff_users,
     permission_manage_staff,
     staff_api_client,
     permission_manage_users,
@@ -661,6 +649,7 @@ def test_permission_group_update_mutation_permissions_and_users_duplicated(
     adding and removing failed. Mutation should failed. Error should contains list of
     users IDs and permissions that are duplicated.
     """
+    staff_user = staff_users[0]
     staff_user.user_permissions.add(
         permission_manage_users,
         permission_manage_service_accounts,
@@ -669,12 +658,7 @@ def test_permission_group_update_mutation_permissions_and_users_duplicated(
     group = permission_group_manage_users
     query = PERMISSION_GROUP_UPDATE_MUTATION
 
-    staff_user2 = User.objects.get(pk=staff_user.pk)
-    staff_user2.id = None
-    staff_user2.email = "test@example.com"
-    staff_user2.save()
-
-    staff_user2_id = graphene.Node.to_global_id("User", staff_user2.pk)
+    staff_user2_id = graphene.Node.to_global_id("User", staff_users[1].pk)
 
     permissions = [
         OrderPermissions.MANAGE_ORDERS.name,
@@ -687,8 +671,7 @@ def test_permission_group_update_mutation_permissions_and_users_duplicated(
             "addPermissions": permissions,
             "removePermissions": permissions,
             "addUsers": [
-                graphene.Node.to_global_id("User", user.pk)
-                for user in [staff_user, staff_user2]
+                graphene.Node.to_global_id("User", user.pk) for user in staff_users
             ],
             "removeUsers": [staff_user2_id],
         },
@@ -949,18 +932,11 @@ def test_permission_groups_query(
     count,
 ):
     staff_user.user_permissions.add(permission_manage_staff)
-    group = permission_group_manage_users
     query = QUERY_PERMISSION_GROUP_WITH_FILTER
 
-    group2 = Group.objects.get(pk=group.pk)
-    group2.id = None
-    group2.name = "Manage product."
-    group2.save()
-
-    group3 = Group.objects.get(pk=group.pk)
-    group3.id = None
-    group3.name = "Remove product."
-    group3.save()
+    Group.objects.bulk_create(
+        [Group(name="Manage product."), Group(name="Remove product.")]
+    )
 
     variables = {"filter": permission_group_filter}
     response = staff_api_client.post_graphql(query, variables)
@@ -1015,18 +991,9 @@ def test_permission_group_with_sort(
     result,
 ):
     staff_user.user_permissions.add(permission_manage_staff)
-    group = permission_group_manage_users
     query = QUERY_PERMISSION_GROUP_WITH_SORT
 
-    group2 = Group.objects.get(pk=group.pk)
-    group2.id = None
-    group2.name = "Add"
-    group2.save()
-
-    group3 = Group.objects.get(pk=group.pk)
-    group3.id = None
-    group3.name = "Remove"
-    group3.save()
+    Group.objects.bulk_create([Group(name="Add"), Group(name="Remove")])
 
     variables = {"sort_by": permission_group_sort}
     response = staff_api_client.post_graphql(query, variables)
