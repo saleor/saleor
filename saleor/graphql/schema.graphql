@@ -1417,6 +1417,11 @@ input DateTimeRangeInput {
 
 scalar Decimal
 
+type DeleteInvoice {
+  errors: [Error!]!
+  invoice: Invoice
+}
+
 type DeleteMetadata {
   errors: [Error!]!
   metadataErrors: [MetadataError!]!
@@ -1848,6 +1853,10 @@ type Image {
 input IntRangeInput {
   gte: Int
   lte: Int
+}
+
+type Invoice implements Node {
+  id: ID!
 }
 
 scalar JSONString
@@ -2336,6 +2345,7 @@ type Mutation {
   menuItemTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): MenuItemTranslate
   menuItemMove(menu: ID!, moves: [MenuItemMoveInput]!): MenuItemMove
   requestInvoice(number: String, orderId: ID!): RequestInvoice
+  deleteInvoice(id: ID!): DeleteInvoice
   giftCardActivate(id: ID!): GiftCardActivate
   giftCardCreate(input: GiftCardCreateInput!): GiftCardCreate
   giftCardDeactivate(id: ID!): GiftCardDeactivate

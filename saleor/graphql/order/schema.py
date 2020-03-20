@@ -28,6 +28,7 @@ from .mutations.fulfillments import (
     FulfillmentUpdateTracking,
 )
 from .mutations.orders import (
+    DeleteInvoice,
     OrderAddNote,
     OrderCancel,
     OrderCapture,
@@ -226,3 +227,4 @@ class OrderMutations(graphene.ObjectType):
 
 class InvoiceMutations(graphene.ObjectType):
     request_invoice = RequestInvoice.Field()
+    delete_invoice = DeleteInvoice.Field()

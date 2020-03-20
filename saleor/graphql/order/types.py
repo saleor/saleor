@@ -519,3 +519,11 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     def resolve_meta(root: models.Order, _info):
         return resolve_meta(root, _info)
+
+
+class Invoice(CountableDjangoObjectType):
+    class Meta:
+        description = "Represents an Invoice."
+        interfaces = [relay.Node]
+        model = models.Invoice
+        only_fields = ["id"]
