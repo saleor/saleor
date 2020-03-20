@@ -368,10 +368,12 @@ class ModelMutation(BaseMutation):
         """
 
         def is_list_of_ids(field):
-            return (
-                isinstance(field.type, graphene.List)
-                and field.type.of_type == graphene.ID
-            )
+            if isinstance(field.type, graphene.List):
+                of_type = field.type.of_type
+                if isinstance(of_type, graphene.NonNull):
+                    of_type = of_type.of_type
+                return of_type == graphene.ID
+            return False
 
         def is_id_field(field):
             return (

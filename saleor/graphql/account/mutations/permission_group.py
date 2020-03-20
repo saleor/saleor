@@ -6,15 +6,12 @@ from django.contrib.auth import models as auth_models
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
-from ....account import models as account_models
 from ....account.error_codes import PermissionGroupErrorCode
 from ....core.permissions import AccountPermissions, get_permissions
-from ...account.types import User
 from ...account.utils import can_user_manage_group, get_out_of_scope_permissions
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types.common import AccountError, PermissionGroupError
-from ...utils import resolve_global_ids_to_primary_keys
 from ..types import Group
 
 
@@ -51,7 +48,7 @@ class PermissionGroupCreate(ModelMutation):
     @transaction.atomic
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
-        instance.user_set.add(*cleaned_data["users_pks"])
+        instance.user_set.add(*cleaned_data["users"])
 
     @classmethod
     def clean_input(
@@ -60,7 +57,8 @@ class PermissionGroupCreate(ModelMutation):
         cleaned_input = super().clean_input(info, instance, data)
         errors = defaultdict(list)
         cls.clean_permissions(info, errors, "permissions", cleaned_input)
-        cls.clean_users(errors, "users", cleaned_input)
+        if "users" in cleaned_input:
+            cls.check_if_users_are_staff(errors, "users", cleaned_input)
 
         if errors:
             raise ValidationError(errors)
@@ -89,39 +87,15 @@ class PermissionGroupCreate(ModelMutation):
             cleaned_input[field] = get_permissions(cleaned_input[field])
 
     @classmethod
-    def clean_users(
+    def check_if_users_are_staff(
         cls,
         errors: Dict[Optional[str], List[ValidationError]],
         field: str,
         cleaned_input: dict,
     ):
-        if field in cleaned_input:
-            user_pks = cls.get_user_pks(cleaned_input, field)
-            cls.check_if_users_are_staff(errors, field, user_pks)
-            cleaned_input[f"{field}_pks"] = user_pks
-
-    @classmethod
-    def get_user_pks(cls, cleaned_input: dict, field: str) -> List[str]:
-        if field not in cleaned_input:
-            return []
-
-        user_ids: List[str] = cleaned_input[field]
-        _, user_pks = resolve_global_ids_to_primary_keys(user_ids, graphene_type=User)
-        return user_pks
-
-    @classmethod
-    def check_if_users_are_staff(
-        cls,
-        errors: Dict[Optional[str], List[ValidationError]],
-        field: str,
-        user_pks: List[str],
-    ):
         """Check if all of the users are staff members."""
-        non_staff_users = list(
-            account_models.User.objects.filter(pk__in=user_pks)
-            .filter(is_staff=False)
-            .values_list("pk", flat=True)
-        )
+        users = cleaned_input[field]
+        non_staff_users = [user.pk for user in users if not user.is_staff]
         if non_staff_users:
             # add error
             ids = [graphene.Node.to_global_id("User", pk) for pk in non_staff_users]
@@ -193,10 +167,10 @@ class PermissionGroupUpdate(PermissionGroupCreate):
     def update_group_permissions_and_users(
         cls, group: auth_models.Group, cleaned_input: dict
     ):
-        if "add_users_pks" in cleaned_input:
-            group.user_set.add(*cleaned_input["add_users_pks"])
-        remove_users_pks = cls.get_user_pks(cleaned_input, "remove_users")
-        group.user_set.remove(*remove_users_pks)
+        if "add_users" in cleaned_input:
+            group.user_set.add(*cleaned_input["add_users"])
+        if "remove_users" in cleaned_input:
+            group.user_set.remove(*cleaned_input["remove_users"])
 
         if "add_permissions" in cleaned_input:
             group.permissions.add(*cleaned_input["add_permissions"])
@@ -209,20 +183,22 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         cls, info, instance, data,
     ):
         if not can_user_manage_group(info.context.user, instance):
-            error_msg = "You can't manage group with permissions out of your scope.."
+            error_msg = "You can't manage group with permissions out of your scope."
             code = PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.value
             raise ValidationError({None: ValidationError(error_msg, code)})
 
-        cleaned_input = super().clean_input(info, instance, data)
         errors = defaultdict(list)
-
         permission_fields = ("add_permissions", "remove_permissions", "permissions")
         user_fields = ("add_users", "remove_users", "users")
 
-        cls.check_for_duplicates(errors, cleaned_input, permission_fields)
-        cls.check_for_duplicates(errors, cleaned_input, user_fields)
+        cls.check_for_duplicates(errors, data, permission_fields)
+        cls.check_for_duplicates(errors, data, user_fields)
+
+        cleaned_input = super().clean_input(info, instance, data)
+
         cls.clean_permissions(info, errors, "add_permissions", cleaned_input)
-        cls.clean_users(errors, "add_users", cleaned_input)
+        if "add_users" in cleaned_input:
+            cls.check_if_users_are_staff(errors, "add_users", cleaned_input)
 
         if errors:
             raise ValidationError(errors)
@@ -231,7 +207,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
 
     @classmethod
     def check_for_duplicates(
-        cls, errors: dict, cleaned_input: dict, fields: Tuple[str, str, str],
+        cls, errors: dict, input_data: dict, fields: Tuple[str, str, str],
     ):
         """Check if any items are on both input field.
 
@@ -239,10 +215,10 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         """
         add_field, remove_field, error_class_field = fields
         # break if any of comparing field is not in input
-        if add_field not in cleaned_input or remove_field not in cleaned_input:
+        if add_field not in input_data or remove_field not in input_data:
             return
 
-        common_items = set(cleaned_input[add_field]) & set(cleaned_input[remove_field])
+        common_items = set(input_data[add_field]) & set(input_data[remove_field])
         if common_items:
             error_msg = (
                 "The same object cannot be in both list"
