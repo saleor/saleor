@@ -33,7 +33,7 @@ class Command(BaseCommand):
         )
 
     def validate_permissions(self, required_permissions: List[str]):
-        permissions = list(map(lambda x: x[1], get_permissions_enum_list()))
+        permissions = [perm[1] for perm in get_permissions_enum_list()]
         for perm in required_permissions:
             if perm not in permissions:
                 raise CommandError(
