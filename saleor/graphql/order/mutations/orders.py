@@ -563,6 +563,8 @@ class DeleteInvoice(ModelDeleteMutation):
 
 
 class UpdateInvoice(ModelMutation):
+    invoice = graphene.Field(Invoice, description="An updated invoice.")
+
     class Arguments:
         id = graphene.ID(required=True, description="ID of an invoice to update.")
         number = graphene.String(description="Invoice number")
@@ -573,12 +575,11 @@ class UpdateInvoice(ModelMutation):
         model = models.Invoice
         permissions = (OrderPermissions.MANAGE_ORDERS,)
 
-    # @classmethod
-    # def clean_input(cls, _info, _instance, data):
-    #   pass
-
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         invoice = cls.get_instance(info, **data)
-        invoice.update_invoice(**data)
-        return super().perform_mutation(_root, info, **data)
+        update_fields = ("number", "url")
+        invoice.update_invoice(
+            **{arg: data[arg] for arg in update_fields if data.get(arg) is not None}
+        )
+        return UpdateInvoice(invoice=invoice)

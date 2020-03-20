@@ -1857,6 +1857,8 @@ input IntRangeInput {
 
 type Invoice implements Node {
   id: ID!
+  number: String
+  url: String!
 }
 
 scalar JSONString

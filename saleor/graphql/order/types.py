@@ -526,4 +526,4 @@ class Invoice(CountableDjangoObjectType):
         description = "Represents an Invoice."
         interfaces = [relay.Node]
         model = models.Invoice
-        only_fields = ["id"]
+        only_fields = ["id", "number", "url"]

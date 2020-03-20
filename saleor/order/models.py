@@ -505,9 +505,9 @@ class Invoice(ModelWithMetadata):
     url = models.URLField(max_length=2048)
     status = models.CharField(max_length=32, default=InvoiceStatus.PENDING)
 
-    def update_invoice(self, order, number, url, metadata):
-        # TODO: modify to actual update signature for plugin
-        self.number = number
-        self.url = url
-        self.metadata = metadata
+    def update_invoice(self, number=None, url=None):
+        if number is not None:
+            self.number = number
+        if url is not None:
+            self.url = url
         self.save()
