@@ -214,6 +214,10 @@ class ExtensionsManager(PaymentInterface):
             "invoice_request", default_value, order, invoice, number
         )
 
+    def invoice_delete(self, invoice: "Invoice"):
+        default_value = None
+        return self.__run_method_on_plugins("invoice_delete", default_value, invoice)
+
     def order_fully_paid(self, order: "Order"):
         default_value = None
         return self.__run_method_on_plugins("order_fully_paid", default_value, order)
