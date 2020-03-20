@@ -9,7 +9,7 @@ def test_can_manage_group_user_without_permissions(
     staff_user, permission_group_manage_users
 ):
     result = can_user_manage_group(staff_user, permission_group_manage_users)
-    assert not result
+    assert result is False
 
 
 def test_can_manage_group_user_with_different_permissions(
@@ -20,10 +20,10 @@ def test_can_manage_group_user_with_different_permissions(
 ):
     staff_user.user_permissions.add(permission_manage_orders)
     result = can_user_manage_group(staff_user, permission_group_manage_users)
-    assert not result
+    assert result is False
 
 
-def test_can_manage_group_true(
+def test_can_manage_group(
     staff_user,
     permission_group_manage_users,
     permission_manage_users,
@@ -31,14 +31,14 @@ def test_can_manage_group_true(
 ):
     staff_user.user_permissions.add(permission_manage_users, permission_manage_orders)
     result = can_user_manage_group(staff_user, permission_group_manage_users)
-    assert result
+    assert result is True
 
 
 def test_can_manage_group_user_superuser(
     admin_user, permission_group_manage_users, permission_manage_orders
 ):
     result = can_user_manage_group(admin_user, permission_group_manage_users)
-    assert result
+    assert result is True
 
 
 def test_get_out_of_scope_permissions_user_has_all_permissions(
@@ -48,7 +48,7 @@ def test_get_out_of_scope_permissions_user_has_all_permissions(
     result = get_out_of_scope_permissions(
         staff_user, [AccountPermissions.MANAGE_USERS, OrderPermissions.MANAGE_ORDERS]
     )
-    assert not result
+    assert result == []
 
 
 def test_get_out_of_scope_permissions_user_does_not_have_all_permissions(
