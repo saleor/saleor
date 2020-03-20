@@ -261,26 +261,6 @@ def test_permission_group_create_mutation_lack_of_permission_and_customer_user(
     assert data["group"] is None
 
 
-def test_permission_group_create_mutation_no_name(
-    staff_user, permission_manage_staff, staff_api_client
-):
-    staff_user.user_permissions.add(permission_manage_staff)
-    query = PERMISSION_GROUP_CREATE_MUTATION
-
-    variables = {
-        "input": {
-            "name": None,
-            "permissions": [
-                AccountPermissions.MANAGE_USERS.name,
-                AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name,
-            ],
-        }
-    }
-    response = staff_api_client.post_graphql(query, variables)
-    with pytest.raises(AssertionError):
-        get_graphql_content(response)
-
-
 PERMISSION_GROUP_UPDATE_MUTATION = """
     mutation PermissionGroupUpdate(
         $id: ID!, $input: PermissionGroupUpdateInput!) {
@@ -884,18 +864,6 @@ def test_group_delete_mutation(
     assert permission_group_data["id"] == variables["id"]
     assert permission_group_data["name"] == group_name
     assert permission_group_data["permissions"] == []
-
-
-def test_group_delete_mutation_no_id(
-    permission_group_manage_users, staff_user, permission_manage_staff, staff_api_client
-):
-    staff_user.user_permissions.add(permission_manage_staff)
-    query = PERMISSION_GROUP_DELETE_MUTATION
-
-    variables = {"id": None}
-    response = staff_api_client.post_graphql(query, variables)
-    with pytest.raises(AssertionError):
-        get_graphql_content(response)
 
 
 QUERY_PERMISSION_GROUP_WITH_FILTER = """
