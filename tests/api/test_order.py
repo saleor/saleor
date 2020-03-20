@@ -1,5 +1,6 @@
 import uuid
 from datetime import date, timedelta
+from unittest import mock
 from unittest.mock import ANY, MagicMock, Mock
 
 import graphene
@@ -2842,7 +2843,10 @@ DELETE_INVOICE_MUTATION = """
 """
 
 
-def test_request_invoice(user_api_client, permission_manage_orders, orders):
+@mock.patch("saleor.extensions.base_plugin.BasePlugin.invoice_request")
+def test_request_invoice(
+    plugin_mock, user_api_client, permission_manage_orders, orders
+):
     number = "01/12/2020/TEST"
     variables = {
         "orderId": graphene.Node.to_global_id("Order", orders[0].pk),
@@ -2851,6 +2855,7 @@ def test_request_invoice(user_api_client, permission_manage_orders, orders):
     user_api_client.user.user_permissions.add(permission_manage_orders)
     user_api_client.post_graphql(REQUEST_INVOICE_MUTATION, variables)
     assert Invoice.objects.filter(number=number, order=orders[0].pk).exists()
+    assert plugin_mock.called
 
 
 def test_request_invoice_no_number(user_api_client, permission_manage_orders, orders):
@@ -2878,12 +2883,14 @@ def test_request_invoice_no_permissions(staff_api_client, orders):
     assert_no_permission(response)
 
 
-def test_delete_invoice(user_api_client, permission_manage_orders, orders):
+@mock.patch("saleor.extensions.base_plugin.BasePlugin.invoice_delete")
+def test_delete_invoice(plugin_mock, user_api_client, permission_manage_orders, orders):
     invoice = Invoice.objects.create(order=orders[0])
     variables = {"id": graphene.Node.to_global_id("Invoice", invoice.pk)}
     user_api_client.user.user_permissions.add(permission_manage_orders)
     user_api_client.post_graphql(DELETE_INVOICE_MUTATION, variables)
     assert not Invoice.objects.filter(id=invoice.pk).exists()
+    assert plugin_mock.called
 
 
 def test_delete_invoice_no_permissions(user_api_client, orders):
