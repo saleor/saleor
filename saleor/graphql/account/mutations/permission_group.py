@@ -197,13 +197,31 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         cleaned_input = super().clean_input(info, instance, data)
 
         cls.clean_permissions(info, errors, "add_permissions", cleaned_input)
-        if "add_users" in cleaned_input:
-            cls.check_if_users_are_staff(errors, "add_users", cleaned_input)
+        cls.clean_users(info, errors, cleaned_input)
 
         if errors:
             raise ValidationError(errors)
 
         return cleaned_input
+
+    @classmethod
+    def clean_users(cls, info, errors: dict, cleaned_input: dict):
+        if "remove_users" in cleaned_input:
+            cls.clean_remove_users(info, errors, cleaned_input)
+        if "add_users" in cleaned_input:
+            cls.check_if_users_are_staff(errors, "add_users", cleaned_input)
+
+    @classmethod
+    def clean_remove_users(cls, info, errors, cleaned_input):
+        """Ensure user doesn't remove user's last group."""
+        user = info.context.user
+        remove_users = cleaned_input["remove_users"]
+        if user in remove_users and user.groups.count() == 1:
+            # add error
+            error_msg = "You cannot remove yourself from your last group."
+            code = PermissionGroupErrorCode.CANNOT_REMOVE_FROM_LAST_GROUP.value
+            params = {"users": [graphene.Node.to_global_id("User", user.pk)]}
+            cls.update_errors(errors, error_msg, "remove_users", code, params)
 
     @classmethod
     def check_for_duplicates(
@@ -220,6 +238,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
 
         common_items = set(input_data[add_field]) & set(input_data[remove_field])
         if common_items:
+            # add error
             error_msg = (
                 "The same object cannot be in both list"
                 "for adding and removing items."

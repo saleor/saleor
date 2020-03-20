@@ -274,6 +274,9 @@ PERMISSION_GROUP_UPDATE_MUTATION = """
                     name
                     code
                 }
+                users {
+                    email
+                }
             }
             permissionGroupErrors{
                 field
@@ -342,6 +345,120 @@ def test_permission_group_update_mutation(
     )
     assert set(group.user_set.all().values_list("email", flat=True)) == users
     assert data["permissionGroupErrors"] == []
+
+
+def test_permission_group_update_mutation_remove_me_from_last_group(
+    permission_group_manage_users,
+    staff_user,
+    permission_manage_staff,
+    staff_api_client,
+    permission_manage_users,
+):
+    """Ensure mutation failed when user removing himself from user's last group."""
+    staff_user.user_permissions.add(permission_manage_users)
+    group = permission_group_manage_users
+    # ensure user is in group
+    group.user_set.add(staff_user)
+    assert staff_user.groups.count() == 1
+
+    query = PERMISSION_GROUP_UPDATE_MUTATION
+
+    staff_user_id = graphene.Node.to_global_id("User", staff_user.pk)
+    variables = {
+        "id": graphene.Node.to_global_id("Group", group.id),
+        "input": {"removeUsers": [staff_user_id]},
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_staff,)
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupUpdate"]
+    permission_group_data = data["group"]
+    errors = data["permissionGroupErrors"]
+
+    assert not permission_group_data
+    assert len(errors) == 1
+    assert errors[0]["field"] == "removeUsers"
+    assert (
+        errors[0]["code"] == PermissionGroupErrorCode.CANNOT_REMOVE_FROM_LAST_GROUP.name
+    )
+    assert errors[0]["permissions"] is None
+    assert errors[0]["users"] == [staff_user_id]
+    assert staff_user.groups.count() == 1
+
+
+def test_permission_group_update_mutation_remove_me_from_not_last_group(
+    permission_group_manage_users,
+    staff_user,
+    permission_manage_staff,
+    staff_api_client,
+    permission_manage_users,
+):
+    """Ensure user can remove himself from group if he is a member of another group."""
+    staff_user.user_permissions.add(permission_manage_users)
+    group = permission_group_manage_users
+    group2 = Group.objects.create(name="Test group")
+
+    # ensure user is in group
+    group.user_set.add(staff_user)
+    group2.user_set.add(staff_user)
+
+    assert staff_user.groups.count() == 2
+
+    query = PERMISSION_GROUP_UPDATE_MUTATION
+
+    staff_user_id = graphene.Node.to_global_id("User", staff_user.pk)
+    variables = {
+        "id": graphene.Node.to_global_id("Group", group.id),
+        "input": {"removeUsers": [staff_user_id]},
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_staff,)
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupUpdate"]
+    permission_group_data = data["group"]
+    errors = data["permissionGroupErrors"]
+
+    assert not errors
+    assert staff_user_id not in permission_group_data["users"]
+    assert staff_user.groups.count() == 1
+
+
+def test_permission_group_update_mutation_remove_last_user_from_group(
+    permission_group_manage_users,
+    staff_user,
+    permission_manage_staff,
+    staff_api_client,
+    permission_manage_users,
+):
+    """Ensure user can remove last user from the group."""
+    staff_user.user_permissions.add(permission_manage_users)
+    group = permission_group_manage_users
+
+    # ensure group contains only 1 user
+    assert group.user_set.count() == 1
+
+    group_user = group.user_set.first()
+
+    query = PERMISSION_GROUP_UPDATE_MUTATION
+
+    group_user_id = graphene.Node.to_global_id("User", group_user.pk)
+    variables = {
+        "id": graphene.Node.to_global_id("Group", group.id),
+        "input": {"removeUsers": [group_user_id]},
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_staff,)
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupUpdate"]
+    permission_group_data = data["group"]
+    errors = data["permissionGroupErrors"]
+
+    assert not errors
+    assert staff_user.groups.count() == 0
+    assert permission_group_data["users"] == []
 
 
 def test_permission_group_update_mutation_only_name(
