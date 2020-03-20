@@ -2842,6 +2842,26 @@ DELETE_INVOICE_MUTATION = """
 """
 
 
+UPDATE_INVOICE_MUTATION = """
+    mutation UpdateInvoice($id: ID!, $number: String, $url: String) {
+        updateInvoice(
+            id: $id,
+            number: $number,
+            url: $url
+        ) {
+            invoice {
+                number
+                url
+            }
+            errors {
+                field
+                message
+            }
+        }
+    }
+"""
+
+
 def test_request_invoice(user_api_client, permission_manage_orders, orders):
     number = "01/12/2020/TEST"
     variables = {
@@ -2891,3 +2911,39 @@ def test_delete_invoice_no_permissions(user_api_client, orders):
     variables = {"id": graphene.Node.to_global_id("Invoice", invoice.pk)}
     response = user_api_client.post_graphql(DELETE_INVOICE_MUTATION, variables)
     assert_no_permission(response)
+
+
+def test_update_invoice(user_api_client, permission_manage_orders, orders):
+    invoice = Invoice.objects.create(order=orders[0])
+    number = "01/12/2020/TEST"
+    url = "http://www.example.com"
+    variables = {
+        "id": graphene.Node.to_global_id("Invoice", invoice.pk),
+        "number": number,
+        "url": url,
+    }
+    user_api_client.user.user_permissions.add(permission_manage_orders)
+    response = user_api_client.post_graphql(UPDATE_INVOICE_MUTATION, variables)
+    content = get_graphql_content(response)
+    invoice.refresh_from_db()
+    assert invoice.number == content["data"]["updateInvoice"]["invoice"]["number"]
+    assert invoice.url == content["data"]["updateInvoice"]["invoice"]["url"]
+
+
+def test_update_invoice_no_permissions(user_api_client, orders):
+    invoice = Invoice.objects.create(order=orders[0])
+    variables = {
+        "id": graphene.Node.to_global_id("Invoice", invoice.pk),
+        "number": "01/12/2020/TEST",
+        "url": "http://www.example.com",
+    }
+    response = user_api_client.post_graphql(UPDATE_INVOICE_MUTATION, variables)
+    assert_no_permission(response)
+
+
+def test_update_invoice_invalid_id(user_api_client, permission_manage_orders):
+    variables = {"id": "SW52b2ljZToxMzM3", "number": "01/12/2020/TEST"}
+    user_api_client.user.user_permissions.add(permission_manage_orders)
+    response = user_api_client.post_graphql(UPDATE_INVOICE_MUTATION, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["updateInvoice"]["errors"][0]["field"] == "id"
