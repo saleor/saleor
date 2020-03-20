@@ -74,4 +74,5 @@ class Command(BaseCommand):
         }
         if target_url:
             self.send_service_account_data(target_url, data)
-        return json.dumps(data)
+
+        return json.dumps(data) if not target_url else ""
