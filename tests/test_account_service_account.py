@@ -54,10 +54,6 @@ def test_createaccount_command_sends_data_to_target_url(monkeypatch):
     mocked_post.assert_called_once_with(
         target_url,
         headers={"x-saleor-domain": "mirumee.com"},
-        json={
-            "auth_token": token,
-            "name": "SA name",
-            "permissions": ["account.manage_users"],
-        },
+        json={"auth_token": token},
         timeout=ANY,
     )

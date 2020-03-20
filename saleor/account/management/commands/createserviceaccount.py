@@ -71,8 +71,6 @@ class Command(BaseCommand):
         token_obj = service_account.tokens.create()
         data = {
             "auth_token": token_obj.auth_token,
-            "name": name,
-            "permissions": permissions,
         }
         if target_url:
             self.send_service_account_data(target_url, data)
