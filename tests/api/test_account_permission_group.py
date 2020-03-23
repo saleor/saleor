@@ -997,6 +997,7 @@ QUERY_PERMISSION_GROUP_WITH_FILTER = """
                     users {
                         email
                     }
+                    userCanManage
                 }
             }
         }
@@ -1090,7 +1091,7 @@ def test_permission_group_with_sort(
 
 
 QUERY_PERMISSION_GROUP = """
-    query ($id: ID! ){
+    query ($id: ID!){
         permissionGroup(id: $id){
             id
             name
@@ -1101,12 +1102,49 @@ QUERY_PERMISSION_GROUP = """
             users{
                 email
             }
+            userCanManage
         }
     }
     """
 
 
 def test_permission_group_query(
+    permission_group_manage_users,
+    staff_user,
+    permission_manage_staff,
+    permission_manage_users,
+    staff_api_client,
+):
+    staff_user.user_permissions.add(permission_manage_staff, permission_manage_users)
+    group = permission_group_manage_users
+    query = QUERY_PERMISSION_GROUP
+
+    group_staff_user = group.user_set.first()
+
+    variables = {"id": graphene.Node.to_global_id("Group", group.id)}
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroup"]
+
+    assert data["name"] == group.name
+    assert len(data["users"]) == 1
+    assert data["users"][0]["email"] == group_staff_user.email
+    result_permissions = {permission["name"] for permission in data["permissions"]}
+    assert (
+        set(group.permissions.all().values_list("name", flat=True))
+        == result_permissions
+    )
+    permissions_codes = {
+        permission["code"].lower() for permission in data["permissions"]
+    }
+    assert (
+        set(group.permissions.all().values_list("codename", flat=True))
+        == permissions_codes
+    )
+    assert data["userCanManage"] is True
+
+
+def test_permission_group_query_user_cannot_manage(
     permission_group_manage_users,
     staff_user,
     permission_manage_staff,
@@ -1138,6 +1176,7 @@ def test_permission_group_query(
         set(group.permissions.all().values_list("codename", flat=True))
         == permissions_codes
     )
+    assert data["userCanManage"] is False
 
 
 def test_permission_group_no_permission_to_perform(
