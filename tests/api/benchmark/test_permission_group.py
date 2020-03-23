@@ -32,11 +32,15 @@ def test_permission_group_create(
                     name
                     code
                 }
+                users {
+                    email
+                }
             }
-            bulkAccountErrors{
+            permissionGroupErrors{
                 field
                 code
-                index
+                permissions
+                users
                 message
             }
         }
@@ -52,6 +56,7 @@ def test_permission_group_create(
                 AccountPermissions.MANAGE_USERS.name,
                 AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name,
             ],
+            "users": [graphene.Node.to_global_id("User", staff_user.id)],
         }
     }
     response = staff_api_client.post_graphql(
@@ -61,7 +66,7 @@ def test_permission_group_create(
     data = content["data"]["permissionGroupCreate"]
 
     groups = Group.objects.all()
-    assert data["bulkAccountErrors"] == []
+    assert data["permissionGroupErrors"] == []
     assert len(groups) == group_count + 1
 
 
@@ -93,10 +98,11 @@ def test_permission_group_update(
                     code
                 }
             }
-            bulkAccountErrors{
+            permissionGroupErrors{
                 field
                 code
-                index
+                permissions
+                users
                 message
             }
         }
@@ -114,7 +120,12 @@ def test_permission_group_update(
         "id": graphene.Node.to_global_id("Group", group.id),
         "input": {
             "name": "New permission group",
-            "permissions": [AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name],
+            "addPermissions": [AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name],
+            "removePermissions": [AccountPermissions.MANAGE_USERS.name],
+            "addUsers": [graphene.Node.to_global_id("User", staff_user.pk)],
+            "removeUsers": [
+                graphene.Node.to_global_id("User", group.user_set.first().pk)
+            ],
         },
     }
     response = staff_api_client.post_graphql(
@@ -124,7 +135,7 @@ def test_permission_group_update(
     data = content["data"]["permissionGroupUpdate"]
 
     groups = Group.objects.all()
-    assert data["bulkAccountErrors"] == []
+    assert data["permissionGroupErrors"] == []
     assert len(groups) == group_count
 
 

@@ -50,7 +50,6 @@ enum AccountErrorCode {
   INVALID
   INVALID_PASSWORD
   NOT_FOUND
-  NO_PERMISSION
   PASSWORD_ENTIRELY_NUMERIC
   PASSWORD_TOO_COMMON
   PASSWORD_TOO_SHORT
@@ -485,13 +484,6 @@ input AuthorizationKeyInput {
 enum AuthorizationKeyType {
   FACEBOOK
   GOOGLE_OAUTH2
-}
-
-type BulkAccountError {
-  field: String
-  message: String
-  code: AccountErrorCode!
-  index: Int
 }
 
 type BulkProductError {
@@ -2414,8 +2406,6 @@ type Mutation {
   permissionGroupCreate(input: PermissionGroupCreateInput!): PermissionGroupCreate
   permissionGroupUpdate(id: ID!, input: PermissionGroupUpdateInput!): PermissionGroupUpdate
   permissionGroupDelete(id: ID!): PermissionGroupDelete
-  permissionGroupAssignUsers(id: ID!, users: [ID!]!): PermissionGroupAssignUsers
-  permissionGroupUnassignUsers(id: ID!, users: [ID!]!): PermissionGroupUnassignUsers
 }
 
 input NameTranslationInput {
@@ -3034,27 +3024,39 @@ enum PermissionEnum {
   MANAGE_CHECKOUTS
 }
 
-type PermissionGroupAssignUsers {
-  errors: [Error!]!
-  group: Group
-  accountErrors: [AccountError!]!
-}
-
 type PermissionGroupCreate {
   errors: [Error!]!
   group: Group
-  bulkAccountErrors: [BulkAccountError!]!
+  permissionGroupErrors: [PermissionGroupError!]!
 }
 
 input PermissionGroupCreateInput {
   name: String!
   permissions: [PermissionEnum!]
+  users: [ID!]
 }
 
 type PermissionGroupDelete {
   errors: [Error!]!
   accountErrors: [AccountError!]!
   group: Group
+}
+
+type PermissionGroupError {
+  field: String
+  message: String
+  code: PermissionGroupErrorCode!
+  permissions: [PermissionEnum!]
+  users: [ID!]
+}
+
+enum PermissionGroupErrorCode {
+  ASSIGN_NON_STAFF_MEMBER
+  CANNOT_ADD_AND_REMOVE
+  OUT_OF_SCOPE_PERMISSION
+  CANNOT_REMOVE_FROM_LAST_GROUP
+  REQUIRED
+  UNIQUE
 }
 
 input PermissionGroupFilterInput {
@@ -3070,21 +3072,18 @@ input PermissionGroupSortingInput {
   field: PermissionGroupSortField!
 }
 
-type PermissionGroupUnassignUsers {
-  errors: [Error!]!
-  group: Group
-  accountErrors: [AccountError!]!
-}
-
 type PermissionGroupUpdate {
   errors: [Error!]!
   group: Group
-  bulkAccountErrors: [BulkAccountError!]!
+  permissionGroupErrors: [PermissionGroupError!]!
 }
 
 input PermissionGroupUpdateInput {
   name: String
-  permissions: [PermissionEnum!]
+  addPermissions: [PermissionEnum!]
+  removePermissions: [PermissionEnum!]
+  addUsers: [ID!]
+  removeUsers: [ID!]
 }
 
 type Plugin implements Node {
