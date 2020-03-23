@@ -2940,7 +2940,8 @@ def test_update_invoice(user_api_client, permission_manage_orders, orders):
 
 
 def test_update_invoice_single_value(user_api_client, permission_manage_orders, orders):
-    invoice = Invoice.objects.create(order=orders[0], number="01/12/2020/TEST")
+    number = "01/12/2020/TEST"
+    invoice = Invoice.objects.create(order=orders[0], number=number)
     url = "http://www.example.com"
     variables = {
         "id": graphene.Node.to_global_id("Invoice", invoice.pk),
@@ -2951,6 +2952,7 @@ def test_update_invoice_single_value(user_api_client, permission_manage_orders, 
     content = get_graphql_content(response)
     invoice.refresh_from_db()
     assert invoice.status == InvoiceStatus.READY
+    assert invoice.number == number
     assert invoice.url == content["data"]["updateInvoice"]["invoice"]["url"]
 
 
