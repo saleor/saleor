@@ -13,6 +13,7 @@ from ..enums import (
     PageErrorCode,
     PaymentErrorCode,
     PermissionEnum,
+    PermissionGroupErrorCode,
     ProductErrorCode,
     ShippingErrorCode,
     ShopErrorCode,
@@ -28,6 +29,23 @@ class CountryDisplay(graphene.ObjectType):
     code = graphene.String(description="Country code.", required=True)
     country = graphene.String(description="Country name.", required=True)
     vat = graphene.Field(VAT, description="Country tax.")
+
+
+class LanguageDisplay(graphene.ObjectType):
+    code = LanguageCodeEnum(
+        description="ISO 639 representation of the language name.", required=True
+    )
+    language = graphene.String(description="Full name of the language.", required=True)
+
+
+class PermissionDisplay(graphene.ObjectType):
+    code = PermissionEnum(description="Internal code for permission.", required=True)
+    name = graphene.String(
+        description="Describe action(s) allowed to do by permission.", required=True
+    )
+
+    class Meta:
+        description = "Represents a permission object in a friendly form."
 
 
 class Error(graphene.ObjectType):
@@ -48,12 +66,6 @@ class AccountError(Error):
     code = AccountErrorCode(description="The error code.", required=True)
 
 
-class BulkAccountError(AccountError):
-    index = graphene.Int(
-        description="Index of an input list item that caused the error."
-    )
-
-
 class CheckoutError(Error):
     code = CheckoutErrorCode(description="The error code.", required=True)
 
@@ -68,6 +80,20 @@ class MetadataError(Error):
 
 class OrderError(Error):
     code = OrderErrorCode(description="The error code.", required=True)
+
+
+class PermissionGroupError(Error):
+    code = PermissionGroupErrorCode(description="The error code.", required=True)
+    permissions = graphene.List(
+        graphene.NonNull(PermissionEnum),
+        description="List of permissions which causes the error.",
+        required=False,
+    )
+    users = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of user IDs which causes the error.",
+        required=False,
+    )
 
 
 class ProductError(Error):
@@ -124,21 +150,6 @@ class WebhookError(Error):
 
 class WishlistError(Error):
     code = WishlistErrorCode(description="The error code.", required=True)
-
-
-class LanguageDisplay(graphene.ObjectType):
-    code = LanguageCodeEnum(description="Language code.", required=True)
-    language = graphene.String(description="Language.", required=True)
-
-
-class PermissionDisplay(graphene.ObjectType):
-    code = PermissionEnum(description="Internal code for permission.", required=True)
-    name = graphene.String(
-        description="Describe action(s) allowed to do by permission.", required=True
-    )
-
-    class Meta:
-        description = "Represents a permission object in a friendly form."
 
 
 class SeoInput(graphene.InputObjectType):

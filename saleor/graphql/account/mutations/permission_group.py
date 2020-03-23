@@ -1,19 +1,17 @@
 from collections import defaultdict
-from typing import List
+from typing import Dict, List, Optional, Tuple
 
 import graphene
 from django.contrib.auth import models as auth_models
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
-from ....account import models as account_models
-from ....account.error_codes import AccountErrorCode
+from ....account.error_codes import PermissionGroupErrorCode
 from ....core.permissions import AccountPermissions, get_permissions
-from ...account.types import User
-from ...account.utils import get_permissions_user_has_not
+from ...account.utils import can_user_manage_group, get_out_of_scope_permissions
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
-from ...core.types.common import AccountError, BulkAccountError
-from ...core.utils import from_global_id_strict_type
+from ...core.types.common import AccountError, PermissionGroupError
 from ..types import Group
 
 
@@ -22,6 +20,11 @@ class PermissionGroupCreateInput(graphene.InputObjectType):
     permissions = graphene.List(
         graphene.NonNull(PermissionEnum),
         description="List of permission code names to assign to this group.",
+        required=False,
+    )
+    users = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of users to assign to this group.",
         required=False,
     )
 
@@ -38,58 +41,103 @@ class PermissionGroupCreate(ModelMutation):
         description = "Create new permission group."
         model = auth_models.Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
-        error_type_class = BulkAccountError
-        error_type_field = "bulk_account_errors"
+        error_type_class = PermissionGroupError
+        error_type_field = "permission_group_errors"
 
     @classmethod
-    def clean_input(cls, info, instance, data):
+    @transaction.atomic
+    def _save_m2m(cls, info, instance, cleaned_data):
+        super()._save_m2m(info, instance, cleaned_data)
+        instance.user_set.add(*cleaned_data["users"])
+
+    @classmethod
+    def clean_input(
+        cls, info, instance, data,
+    ):
         cleaned_input = super().clean_input(info, instance, data)
         errors = defaultdict(list)
-        # clean and prepare permissions
-        if "permissions" in cleaned_input:
-            indexes = get_permissions_user_has_not(
-                info.context.user, cleaned_input["permissions"]
-            )
-            if indexes:
-                error_msg = "You can't add permission that you don't have."
-                cls.update_errors(
-                    errors,
-                    error_msg,
-                    "permissions",
-                    AccountErrorCode.NO_PERMISSION,
-                    indexes,
-                )
-            cleaned_input["permissions"] = get_permissions(cleaned_input["permissions"])
+        cls.clean_permissions(info, errors, "permissions", cleaned_input)
+        if "users" in cleaned_input:
+            cls.check_if_users_are_staff(errors, "users", cleaned_input)
+
         if errors:
             raise ValidationError(errors)
+
         return cleaned_input
 
     @classmethod
-    def update_errors(cls, errors, msg, field, code, indexes):
-        for index in indexes:
-            error = ValidationError(msg, code=code, params={"index": index})
-            errors[field].append(error)
+    def clean_permissions(
+        cls,
+        info,
+        errors: Dict[Optional[str], List[ValidationError]],
+        field: str,
+        cleaned_input: dict,
+    ):
+        if field in cleaned_input:
+            permissions = get_out_of_scope_permissions(
+                info.context.user, cleaned_input[field]
+            )
+            if permissions:
+                # add error
+                error_msg = "You can't add permission that you don't have."
+                code = PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.value
+                params = {"permissions": permissions}
+                cls.update_errors(errors, error_msg, field, code, params)
+
+            cleaned_input[field] = get_permissions(cleaned_input[field])
 
     @classmethod
-    def handle_typed_errors(cls, errors: list, **extra):
-        typed_errors = [
-            cls._meta.error_type_class(
-                field=e.field,
-                message=e.message,
-                code=code,
-                index=params.get("index") if params else None,
-            )
-            for e, code, params in errors
-        ]
-        extra.update({cls._meta.error_type_field: typed_errors})
-        return cls(errors=[e[0] for e in errors], **extra)
+    def check_if_users_are_staff(
+        cls,
+        errors: Dict[Optional[str], List[ValidationError]],
+        field: str,
+        cleaned_input: dict,
+    ):
+        """Check if all of the users are staff members."""
+        users = cleaned_input[field]
+        non_staff_users = [user.pk for user in users if not user.is_staff]
+        if non_staff_users:
+            # add error
+            ids = [graphene.Node.to_global_id("User", pk) for pk in non_staff_users]
+            error_msg = "User must be staff member."
+            code = PermissionGroupErrorCode.ASSIGN_NON_STAFF_MEMBER.value
+            params = {"users": ids}
+            cls.update_errors(errors, error_msg, field, code, params)
+
+    @classmethod
+    def update_errors(
+        cls,
+        errors: Dict[Optional[str], List[ValidationError]],
+        msg: str,
+        field: Optional[str],
+        code: str,
+        params: dict,
+    ):
+        """Create ValidationError and add it to error list."""
+        error = ValidationError(message=msg, code=code, params=params)
+        errors[field].append(error)
 
 
 class PermissionGroupUpdateInput(graphene.InputObjectType):
     name = graphene.String(description="Group name.", required=False)
-    permissions = graphene.List(
+    add_permissions = graphene.List(
         graphene.NonNull(PermissionEnum),
         description="List of permission code names to assign to this group.",
+        required=False,
+    )
+    remove_permissions = graphene.List(
+        graphene.NonNull(PermissionEnum),
+        description="List of permission code names to unassign from this group.",
+        required=False,
+    )
+    add_users = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of users to assign to this group.",
+        required=False,
+    )
+    remove_users = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of users to unassign from this group.",
         required=False,
     )
 
@@ -107,8 +155,100 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         description = "Update permission group."
         model = auth_models.Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
-        error_type_class = BulkAccountError
-        error_type_field = "bulk_account_errors"
+        error_type_class = PermissionGroupError
+        error_type_field = "permission_group_errors"
+
+    @classmethod
+    @transaction.atomic
+    def _save_m2m(cls, info, instance, cleaned_data):
+        cls.update_group_permissions_and_users(instance, cleaned_data)
+
+    @classmethod
+    def update_group_permissions_and_users(
+        cls, group: auth_models.Group, cleaned_input: dict
+    ):
+        if "add_users" in cleaned_input:
+            group.user_set.add(*cleaned_input["add_users"])
+        if "remove_users" in cleaned_input:
+            group.user_set.remove(*cleaned_input["remove_users"])
+
+        if "add_permissions" in cleaned_input:
+            group.permissions.add(*cleaned_input["add_permissions"])
+        if "remove_perissions" in cleaned_input:
+            group.permissions.remove(*cleaned_input["remove_perissions"])
+
+    @classmethod
+    def clean_input(
+        cls, info, instance, data,
+    ):
+        if not can_user_manage_group(info.context.user, instance):
+            error_msg = "You can't manage group with permissions out of your scope."
+            code = PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.value
+            raise ValidationError(error_msg, code)
+
+        errors = defaultdict(list)
+        permission_fields = ("add_permissions", "remove_permissions", "permissions")
+        user_fields = ("add_users", "remove_users", "users")
+
+        cls.check_for_duplicates(errors, data, permission_fields)
+        cls.check_for_duplicates(errors, data, user_fields)
+
+        cleaned_input = super().clean_input(info, instance, data)
+
+        cls.clean_permissions(info, errors, "add_permissions", cleaned_input)
+        if "remove_permissions" in cleaned_input:
+            cleaned_input["remove_permissions"] = get_permissions(
+                cleaned_input["remove_permissions"]
+            )
+        cls.clean_users(info, errors, cleaned_input)
+
+        if errors:
+            raise ValidationError(errors)
+
+        return cleaned_input
+
+    @classmethod
+    def clean_users(cls, info, errors: dict, cleaned_input: dict):
+        if "remove_users" in cleaned_input:
+            cls.clean_remove_users(info, errors, cleaned_input)
+        if "add_users" in cleaned_input:
+            cls.check_if_users_are_staff(errors, "add_users", cleaned_input)
+
+    @classmethod
+    def clean_remove_users(cls, info, errors, cleaned_input):
+        """Ensure user doesn't remove user's last group."""
+        user = info.context.user
+        remove_users = cleaned_input["remove_users"]
+        if user in remove_users and user.groups.count() == 1:
+            # add error
+            error_msg = "You cannot remove yourself from your last group."
+            code = PermissionGroupErrorCode.CANNOT_REMOVE_FROM_LAST_GROUP.value
+            params = {"users": [graphene.Node.to_global_id("User", user.pk)]}
+            cls.update_errors(errors, error_msg, "remove_users", code, params)
+
+    @classmethod
+    def check_for_duplicates(
+        cls, errors: dict, input_data: dict, fields: Tuple[str, str, str],
+    ):
+        """Check if any items are on both input field.
+
+        Raise error if some of items are duplicated.
+        """
+        add_field, remove_field, error_class_field = fields
+        # break if any of comparing field is not in input
+        if add_field not in input_data or remove_field not in input_data:
+            return
+
+        common_items = set(input_data[add_field]) & set(input_data[remove_field])
+        if common_items:
+            # add error
+            error_msg = (
+                "The same object cannot be in both list"
+                "for adding and removing items."
+            )
+            code = PermissionGroupErrorCode.CANNOT_ADD_AND_REMOVE.value
+            params = {error_class_field: list(common_items)}
+            cls.update_errors(errors, error_msg, None, code, params)
 
 
 class PermissionGroupDelete(ModelDeleteMutation):
@@ -121,104 +261,3 @@ class PermissionGroupDelete(ModelDeleteMutation):
         permissions = (AccountPermissions.MANAGE_STAFF,)
         error_type_class = AccountError
         error_type_field = "account_errors"
-
-
-class PermissionGroupAssignUsers(ModelMutation):
-    group = graphene.Field(Group, description="Group to which users were assigned.")
-
-    class Arguments:
-        id = graphene.ID(
-            description="ID of the group to which users will be assigned.",
-            required=True,
-        )
-        users = graphene.List(
-            graphene.NonNull(graphene.ID),
-            description="List of users to assign to this group.",
-            required=True,
-        )
-
-    class Meta:
-        description = "Assign users to group."
-        model = auth_models.Group
-        permissions = (AccountPermissions.MANAGE_STAFF,)
-        error_type_class = AccountError
-        error_type_field = "account_errors"
-
-    @classmethod
-    def perform_mutation(cls, root, info, **data):
-        group = cls.get_instance(info, **data)
-        user_pks = cls.prepare_user_pks(info, group, **data)
-        cls.check_if_users_are_staff(user_pks)
-        group.user_set.add(*user_pks)
-        return cls(group=group)
-
-    @classmethod
-    def prepare_user_pks(cls, info, group, **data):
-        cleaned_input = cls.clean_input(info, group, data, Group)
-        user_ids: List[str] = cleaned_input["users"]
-
-        user_pks = [
-            from_global_id_strict_type(user_id, only_type=User, field="id")
-            for user_id in user_ids
-        ]
-
-        return user_pks
-
-    @classmethod
-    def clean_input(cls, info, instance, data, input_cls=None):
-        cleaned_input = super().clean_input(info, instance, data, input_cls=input_cls)
-        user_ids: List[str] = cleaned_input["users"]
-        if not user_ids:
-            raise ValidationError(
-                {
-                    "users": ValidationError(
-                        "You must provide at least one staff user.",
-                        code=AccountErrorCode.REQUIRED.value,
-                    )
-                }
-            )
-        return cleaned_input
-
-    @staticmethod
-    def check_if_users_are_staff(user_pks: List[int]):
-        non_staff_users = account_models.User.objects.filter(pk__in=user_pks).filter(
-            is_staff=False
-        )
-        if non_staff_users:
-            raise ValidationError(
-                {
-                    "users": ValidationError(
-                        "Some of users aren't staff members.",
-                        code=AccountErrorCode.ASSIGN_NON_STAFF_MEMBER.value,
-                    )
-                }
-            )
-
-
-class PermissionGroupUnassignUsers(PermissionGroupAssignUsers):
-    group = graphene.Field(Group, description="Group from which users were unassigned.")
-
-    class Arguments:
-        id = graphene.ID(
-            description="ID of group from which users will be unassigned.",
-            required=True,
-        )
-        users = graphene.List(
-            graphene.NonNull(graphene.ID),
-            description="List of users to assign to this group.",
-            required=True,
-        )
-
-    class Meta:
-        description = "Unassign users from group."
-        model = auth_models.Group
-        permissions = (AccountPermissions.MANAGE_STAFF,)
-        error_type_class = AccountError
-        error_type_field = "account_errors"
-
-    @classmethod
-    def perform_mutation(cls, root, info, **data):
-        group = cls.get_instance(info, **data)
-        user_pks = cls.prepare_user_pks(info, group, **data)
-        group.user_set.remove(*user_pks)
-        return cls(group=group)
