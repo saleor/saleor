@@ -454,7 +454,10 @@ class Group(CountableDjangoObjectType):
         PermissionDisplay, description="List of group permissions"
     )
     user_can_manage = graphene.Boolean(
-        required=True, description="True if user has rights to manage group."
+        required=True,
+        description=(
+            "True, if the currently authenticated user has rights to manage a group."
+        ),
     )
 
     class Meta:
