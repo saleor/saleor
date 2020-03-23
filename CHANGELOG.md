@@ -82,6 +82,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Stock management refactor - #5323 by @IKarbowiak
 - Update create permission group restriction - #5355 by @IKarbowiak
 - Add groups to user type - #5368 by @IKarbowiak
+- Allow specifying users in groups mutations - #5362 by @IKarbowiak
 
 ## 2.9.0
 
