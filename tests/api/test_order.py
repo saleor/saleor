@@ -2968,7 +2968,7 @@ def test_update_invoice_missing_number(
     content = get_graphql_content(response)
     invoice.refresh_from_db()
     assert content["data"]["updateInvoice"]["errors"][0]["field"] == "invoice"
-    assert invoice.url == ""
+    assert invoice.url is None
     assert invoice.status == InvoiceStatus.PENDING
 
 
