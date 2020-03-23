@@ -175,8 +175,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         if "add_permissions" in cleaned_input:
             group.permissions.add(*cleaned_input["add_permissions"])
         if "remove_perissions" in cleaned_input:
-            remove_permissions = get_permissions(cleaned_input["remove_perissions"])
-            group.permissions.remove(*remove_permissions)
+            group.permissions.remove(*cleaned_input["remove_perissions"])
 
     @classmethod
     def clean_input(
@@ -185,7 +184,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         if not can_user_manage_group(info.context.user, instance):
             error_msg = "You can't manage group with permissions out of your scope."
             code = PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.value
-            raise ValidationError({None: ValidationError(error_msg, code)})
+            raise ValidationError(error_msg, code)
 
         errors = defaultdict(list)
         permission_fields = ("add_permissions", "remove_permissions", "permissions")
@@ -197,6 +196,10 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         cleaned_input = super().clean_input(info, instance, data)
 
         cls.clean_permissions(info, errors, "add_permissions", cleaned_input)
+        if "remove_permissions" in cleaned_input:
+            cleaned_input["remove_permissions"] = get_permissions(
+                cleaned_input["remove_permissions"]
+            )
         cls.clean_users(info, errors, cleaned_input)
 
         if errors:
