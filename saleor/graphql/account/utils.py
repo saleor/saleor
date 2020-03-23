@@ -1,12 +1,15 @@
 from typing import TYPE_CHECKING, List
 
 from django.core.exceptions import ValidationError
+from django.db.models import Value
+from django.db.models.functions import Concat
 from graphene.utils.str_converters import to_camel_case
 
 from ...account import events as account_events
 from ...account.error_codes import AccountErrorCode
 
 if TYPE_CHECKING:
+    from django.contrib.auth.models import Group
     from ...account.models import User
 
 
@@ -100,10 +103,23 @@ def get_allowed_fields_camel_case(allowed_fields: set) -> set:
     return fields
 
 
-def get_permissions_user_has_not(user: "User", permissions: List[str]):
-    """Return indexes of permissions that the user hasn't got."""
-    indexes = []
-    for index, perm in enumerate(permissions):
+def get_out_of_scope_permissions(user: "User", permissions: List[str]):
+    """Return permissions that the user hasn't got."""
+    missing_permissions = []
+    for perm in permissions:
         if not user.has_perm(perm):
-            indexes.append(index)
-    return indexes
+            missing_permissions.append(perm)
+    return missing_permissions
+
+
+def can_user_manage_group(user: "User", group: "Group"):
+    """User can't manage a group with permission that is out of the user's scope."""
+    permissions = get_group_permission_codes(group)
+    return user.has_perms(permissions)
+
+
+def get_group_permission_codes(group: "Group"):
+    """Return group permissions in the format '<app label>.<permission codename>'."""
+    return group.permissions.annotate(
+        lookup_field=Concat("content_type__app_label", Value("."), "codename")
+    ).values_list("lookup_field", flat=True)
