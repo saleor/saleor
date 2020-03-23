@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, List
 
+from django.contrib.auth.models import Permission
 from django.core.exceptions import ValidationError
 from django.db.models import Value
 from django.db.models.functions import Concat
@@ -101,6 +102,15 @@ def get_allowed_fields_camel_case(allowed_fields: set) -> set:
     if "streetAddress1" in fields:
         fields.add("streetAddress2")
     return fields
+
+
+def get_user_permissions(user: "User"):
+    """Return all user permissions - from user groups and user_permissions field."""
+    groups = user.groups.all()
+    user_permissions = user.user_permissions.all()
+    group_permissions = Permission.objects.filter(group__in=groups)
+    permissions = user_permissions | group_permissions
+    return permissions
 
 
 def get_out_of_scope_permissions(user: "User", permissions: List[str]):

@@ -21,6 +21,7 @@ from ..utils import format_permissions_for_display
 from ..wishlist.resolvers import resolve_wishlist_items_from_user
 from ..wishlist.types import WishlistItem
 from .enums import CountryCodeEnum, CustomerEventsEnum
+from .utils import get_user_permissions
 
 
 class AddressInput(graphene.InputObjectType):
@@ -326,10 +327,7 @@ class User(CountableDjangoObjectType):
         if root.is_superuser:
             permissions = get_permissions()
         else:
-            groups = root.groups.all()
-            user_permissions = root.user_permissions.all()
-            group_permissions = auth_models.Permission.objects.filter(group__in=groups)
-            permissions = user_permissions | group_permissions
+            permissions = get_user_permissions(root)
             permissions = permissions.prefetch_related("content_type").order_by(
                 "codename"
             )
