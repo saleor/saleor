@@ -1807,6 +1807,7 @@ type Group implements Node {
   name: String!
   permissions: [PermissionDisplay]
   users: [User]
+  userCanManage: Boolean!
 }
 
 type GroupCountableConnection {
