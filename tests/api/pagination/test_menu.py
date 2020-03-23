@@ -47,8 +47,8 @@ QUERY_MENUS_PAGINATION = """
 @pytest.mark.parametrize(
     "sort_by, menus_order",
     [
-        ({"field": "NAME", "direction": "ASC"}, ["Menu1", "Menu2", "Menu3"]),
-        ({"field": "NAME", "direction": "DESC"}, ["navbar", "footer", "MenuMenu2"]),
+        ({"field": "NAME", "direction": "ASC"}, ["footer", "Menu1", "Menu2"]),
+        ({"field": "NAME", "direction": "DESC"}, ["navbar", "MenuMenu2", "MenuMenu1"]),
     ],
 )
 def test_menus_pagination_with_sorting(
