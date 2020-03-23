@@ -114,7 +114,12 @@ def get_out_of_scope_permissions(user: "User", permissions: List[str]):
 
 def can_user_manage_group(user: "User", group: "Group"):
     """User can't manage a group with permission that is out of the user's scope."""
-    permissions = group.permissions.annotate(
+    permissions = get_group_permission_codes(group)
+    return user.has_perms(permissions)
+
+
+def get_group_permission_codes(group: "Group"):
+    """Return group permissions in the format '<app label>.<permission codename>'."""
+    return group.permissions.annotate(
         lookup_field=Concat("content_type__app_label", Value("."), "codename")
     ).values_list("lookup_field", flat=True)
-    return user.has_perms(permissions)
