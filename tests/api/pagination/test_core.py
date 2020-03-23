@@ -135,8 +135,8 @@ def test_pagination_forward_first_page_info(books):
     assert not result.errors
     content = result.data
     page_info = content["books"]["pageInfo"]
-    assert page_info["hasNextPage"] == True  # noqa: F712
-    assert page_info["hasPreviousPage"] == False  # noqa: F712
+    assert page_info["hasNextPage"]
+    assert page_info["hasPreviousPage"] is False
 
 
 # Currently, page info has the bug, new pagination fixing it.
@@ -155,8 +155,8 @@ def test_pagination_forward_first_page_info(books):
 #     assert not result.errors
 #     content = result.data
 #     page_info = content["books"]["pageInfo"]
-#     assert page_info["hasNextPage"] == True  # noqa: F712
-#     assert page_info["hasPreviousPage"] == True  # noqa: F712
+#     assert page_info["hasNextPage"]
+#     assert page_info["hasPreviousPage"]
 
 # Currently, page info has the bug, new pagination fixing it.
 # We should uncomment this test in PR #5149.
@@ -174,8 +174,8 @@ def test_pagination_forward_first_page_info(books):
 #     assert not result.errors
 #     content = result.data
 #     page_info = content["books"]["pageInfo"]
-#     assert page_info["hasNextPage"] == False  # noqa: F712
-#     assert page_info["hasPreviousPage"] == True  # noqa: F712
+#     assert page_info["hasNextPage"] is False
+#     assert page_info["hasPreviousPage"]
 
 
 def test_pagination_backward_first_page_info(books):
@@ -184,8 +184,8 @@ def test_pagination_backward_first_page_info(books):
     assert not result.errors
     content = result.data
     page_info = content["books"]["pageInfo"]
-    assert page_info["hasNextPage"] == False  # noqa: F712
-    assert page_info["hasPreviousPage"] == True  # noqa: F712
+    assert page_info["hasNextPage"] is False
+    assert page_info["hasPreviousPage"]
 
 
 # Currently, page info has the bug, new pagination fixing it.
@@ -204,8 +204,8 @@ def test_pagination_backward_first_page_info(books):
 #     assert not result.errors
 #     content = result.data
 #     page_info = content["books"]["pageInfo"]
-#     assert page_info["hasNextPage"] == True  # noqa: F712
-#     assert page_info["hasPreviousPage"] == True  # noqa: F712
+#     assert page_info["hasNextPage"]
+#     assert page_info["hasPreviousPage"]
 
 # Currently, page info has the bug, new pagination fixing it.
 # We should uncomment this test in PR #5149.
@@ -223,5 +223,5 @@ def test_pagination_backward_first_page_info(books):
 #     assert not result.errors
 #     content = result.data
 #     page_info = content["books"]["pageInfo"]
-#     assert page_info["hasNextPage"] == True  # noqa: F712
-#     assert page_info["hasPreviousPage"] == False  # noqa: F712
+#     assert page_info["hasNextPage"]
+#     assert page_info["hasPreviousPage"] is False
