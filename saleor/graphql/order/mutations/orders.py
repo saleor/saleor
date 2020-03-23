@@ -596,3 +596,32 @@ class UpdateInvoice(ModelMutation):
                     }
                 )
         return UpdateInvoice(invoice=invoice)
+
+
+class CreateInvoice(ModelMutation):
+    invoice = graphene.Field(Invoice, description="Created invoice.")
+
+    class Arguments:
+        order_id = graphene.ID(
+            required=True, description="ID of the order related to invoice."
+        )
+        number = graphene.String(required=True, description="Invoice number")
+        url = graphene.String(
+            required=True, description="URL of an invoice to download."
+        )
+
+    class Meta:
+        description = "Updates an invoice."
+        model = models.Invoice
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        order = cls.get_node_or_error(
+            info, data["order_id"], only_type=Order, field="orderId"
+        )
+        invoice = cls.construct_instance(cls.get_instance(info, **data), data)
+        invoice.order = order
+        invoice.status = InvoiceStatus.READY
+        invoice.save()
+        return CreateInvoice(invoice=invoice)

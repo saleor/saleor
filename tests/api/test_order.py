@@ -2830,6 +2830,26 @@ REQUEST_INVOICE_MUTATION = """
 """
 
 
+CREATE_INVOICE_MUTATION = """
+    mutation CreateInvoice($orderId: ID!, $number: String!, $url: String!) {
+        createInvoice(
+            orderId: $orderId,
+            number: $number,
+            url: $url
+        ) {
+            invoice {
+                number
+                url
+            }
+            errors {
+                field
+                message
+            }
+        }
+    }
+"""
+
+
 DELETE_INVOICE_MUTATION = """
     mutation DeleteInvoice($id: ID!) {
         deleteInvoice(
@@ -2989,3 +3009,48 @@ def test_update_invoice_invalid_id(user_api_client, permission_manage_orders):
     response = user_api_client.post_graphql(UPDATE_INVOICE_MUTATION, variables)
     content = get_graphql_content(response)
     assert content["data"]["updateInvoice"]["errors"][0]["field"] == "id"
+
+
+def test_create_invoice(user_api_client, permission_manage_orders, orders):
+    number = "01/12/2020/TEST"
+    url = "http://www.example.com"
+    order = orders[0]
+    variables = {
+        "orderId": graphene.Node.to_global_id("Order", order.pk),
+        "number": number,
+        "url": url,
+    }
+    user_api_client.user.user_permissions.add(permission_manage_orders)
+    response = user_api_client.post_graphql(CREATE_INVOICE_MUTATION, variables)
+    content = get_graphql_content(response)
+    invoice = Invoice.objects.get(order_id=order.pk, url=url, number=number)
+    assert invoice.url == content["data"]["createInvoice"]["invoice"]["url"]
+    assert invoice.number == content["data"]["createInvoice"]["invoice"]["number"]
+    assert invoice.status == InvoiceStatus.READY
+
+
+def test_create_invoice_missing_params(
+    user_api_client, permission_manage_orders, orders
+):
+    order = orders[0]
+    number = "01/12/2020/TEST"
+    url = "http://www.example.com"
+    variable_set = [
+        {
+            "orderId": graphene.Node.to_global_id("Order", order.pk),
+            "number": number,
+            "url": None,
+        },
+        {
+            "orderId": graphene.Node.to_global_id("Order", order.pk),
+            "number": None,
+            "url": url,
+        },
+    ]
+    user_api_client.user.user_permissions.add(permission_manage_orders)
+    for variables in variable_set:
+        response = user_api_client.post_graphql(CREATE_INVOICE_MUTATION, variables)
+        assert response.status_code == 400
+    assert not Invoice.objects.filter(
+        order_id=order.pk, status=InvoiceStatus.READY
+    ).exists()
