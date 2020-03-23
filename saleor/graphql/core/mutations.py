@@ -302,10 +302,20 @@ class BaseMutation(graphene.Mutation):
             cls._meta.error_type_class is not None
             and cls._meta.error_type_field is not None
         ):
-            typed_errors = [
-                cls._meta.error_type_class(field=e.field, message=e.message, code=code)
-                for e, code, _params in errors
-            ]
+            typed_errors = []
+            error_class_fields = set(cls._meta.error_type_class._meta.fields.keys())
+            for e, code, params in errors:
+                error_instance = cls._meta.error_type_class(
+                    field=e.field, message=e.message, code=code
+                )
+                if params:
+                    # If some of the params key overlap with error class fields
+                    # attach param value to the error
+                    error_fields_in_params = set(params.keys()) & error_class_fields
+                    for error_field in error_fields_in_params:
+                        setattr(error_instance, error_field, params[error_field])
+                typed_errors.append(error_instance)
+
             extra.update({cls._meta.error_type_field: typed_errors})
         return cls(errors=[e[0] for e in errors], **extra)
 
@@ -358,10 +368,12 @@ class ModelMutation(BaseMutation):
         """
 
         def is_list_of_ids(field):
-            return (
-                isinstance(field.type, graphene.List)
-                and field.type.of_type == graphene.ID
-            )
+            if isinstance(field.type, graphene.List):
+                of_type = field.type.of_type
+                if isinstance(of_type, graphene.NonNull):
+                    of_type = of_type.of_type
+                return of_type == graphene.ID
+            return False
 
         def is_id_field(field):
             return (
