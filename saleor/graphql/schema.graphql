@@ -1318,6 +1318,11 @@ type CountryDisplay {
   vat: VAT
 }
 
+type CreateInvoice {
+  errors: [Error!]!
+  invoice: Invoice
+}
+
 type CreateToken {
   token: String
   errors: [Error]!
@@ -2347,6 +2352,7 @@ type Mutation {
   menuItemTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): MenuItemTranslate
   menuItemMove(menu: ID!, moves: [MenuItemMoveInput]!): MenuItemMove
   requestInvoice(number: String, orderId: ID!): RequestInvoice
+  createInvoice(number: String!, orderId: ID!, url: String!): CreateInvoice
   deleteInvoice(id: ID!): DeleteInvoice
   updateInvoice(id: ID!, number: String, url: String): UpdateInvoice
   giftCardActivate(id: ID!): GiftCardActivate
