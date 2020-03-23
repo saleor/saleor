@@ -14,6 +14,7 @@ from saleor.core.permissions import OrderPermissions
 from saleor.core.taxes import zero_taxed_money
 from saleor.extensions.manager import ExtensionsManager
 from saleor.graphql.core.enums import ReportingPeriod
+from saleor.graphql.order.enums import InvoiceStatus
 from saleor.graphql.order.mutations.orders import (
     clean_order_cancel,
     clean_order_capture,
@@ -2933,8 +2934,42 @@ def test_update_invoice(user_api_client, permission_manage_orders, orders):
     response = user_api_client.post_graphql(UPDATE_INVOICE_MUTATION, variables)
     content = get_graphql_content(response)
     invoice.refresh_from_db()
+    assert invoice.status == InvoiceStatus.READY
     assert invoice.number == content["data"]["updateInvoice"]["invoice"]["number"]
     assert invoice.url == content["data"]["updateInvoice"]["invoice"]["url"]
+
+
+def test_update_invoice_single_value(user_api_client, permission_manage_orders, orders):
+    invoice = Invoice.objects.create(order=orders[0], number="01/12/2020/TEST")
+    url = "http://www.example.com"
+    variables = {
+        "id": graphene.Node.to_global_id("Invoice", invoice.pk),
+        "url": url,
+    }
+    user_api_client.user.user_permissions.add(permission_manage_orders)
+    response = user_api_client.post_graphql(UPDATE_INVOICE_MUTATION, variables)
+    content = get_graphql_content(response)
+    invoice.refresh_from_db()
+    assert invoice.status == InvoiceStatus.READY
+    assert invoice.url == content["data"]["updateInvoice"]["invoice"]["url"]
+
+
+def test_update_invoice_missing_number(
+    user_api_client, permission_manage_orders, orders
+):
+    invoice = Invoice.objects.create(order=orders[0])
+    url = "http://www.example.com"
+    variables = {
+        "id": graphene.Node.to_global_id("Invoice", invoice.pk),
+        "url": url,
+    }
+    user_api_client.user.user_permissions.add(permission_manage_orders)
+    response = user_api_client.post_graphql(UPDATE_INVOICE_MUTATION, variables)
+    content = get_graphql_content(response)
+    invoice.refresh_from_db()
+    assert content["data"]["updateInvoice"]["errors"][0]["field"] == "invoice"
+    assert invoice.url == ""
+    assert invoice.status == InvoiceStatus.PENDING
 
 
 def test_update_invoice_no_permissions(user_api_client, orders):

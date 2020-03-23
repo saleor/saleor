@@ -1,5 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from ....account.models import User
 from ....core.permissions import OrderPermissions
@@ -14,7 +15,7 @@ from ....order.actions import (
     order_shipping_updated,
     order_voided,
 )
-from ....order.error_codes import OrderErrorCode
+from ....order.error_codes import InvoiceErrorCode, OrderErrorCode
 from ....order.utils import get_valid_shipping_methods_for_order
 from ....payment import CustomPaymentChoices, PaymentError, gateway
 from ...account.types import AddressInput
@@ -23,10 +24,10 @@ from ...core.scalars import Decimal
 from ...core.types.common import OrderError
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ...meta.deprecated.types import MetaInput, MetaPath
+from ...order.enums import InvoiceStatus
 from ...order.mutations.draft_orders import DraftOrderUpdate
 from ...order.types import Invoice, Order, OrderEvent
 from ...shipping.types import ShippingMethod
-from ..enums import InvoiceStatus
 
 
 def clean_order_update_shipping(order, method):
@@ -579,7 +580,19 @@ class UpdateInvoice(ModelMutation):
     def perform_mutation(cls, _root, info, **data):
         invoice = cls.get_instance(info, **data)
         update_fields = ("number", "url")
-        invoice.update_invoice(
-            **{arg: data[arg] for arg in update_fields if data.get(arg) is not None}
-        )
+        with transaction.atomic():
+            invoice.update_invoice(
+                **{arg: data[arg] for arg in update_fields if data.get(arg) is not None}
+            )
+            invoice.status = InvoiceStatus.READY
+            invoice.save()
+            if not (invoice.number and invoice.url):
+                raise ValidationError(
+                    {
+                        "invoice": ValidationError(
+                            "URL and number need to be set after update operation.",
+                            code=InvoiceErrorCode.URL_OR_NUMBER_NOT_SET,
+                        )
+                    }
+                )
         return UpdateInvoice(invoice=invoice)

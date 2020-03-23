@@ -22,3 +22,7 @@ class OrderErrorCode(Enum):
     UNIQUE = "unique"
     VOID_INACTIVE_PAYMENT = "void_inactive_payment"
     ZERO_QUANTITY = "zero_quantity"
+
+
+class InvoiceErrorCode(Enum):
+    URL_OR_NUMBER_NOT_SET = "url_or_number_not_set"
