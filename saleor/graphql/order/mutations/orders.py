@@ -579,11 +579,8 @@ class UpdateInvoice(ModelMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         invoice = cls.get_instance(info, **data)
-        update_fields = ("number", "url")
         with transaction.atomic():
-            invoice.update_invoice(
-                **{arg: data[arg] for arg in update_fields if data.get(arg) is not None}
-            )
+            invoice.update_invoice(number=data.get("number"), url=data.get("url"))
             invoice.status = InvoiceStatus.READY
             invoice.save()
             if not (invoice.number and invoice.url):
