@@ -131,5 +131,5 @@ def can_user_manage_group(user: "User", group: "Group"):
 def get_group_permission_codes(group: "Group"):
     """Return group permissions in the format '<app label>.<permission codename>'."""
     return group.permissions.annotate(
-        lookup_field=Concat("content_type__app_label", Value("."), "codename")
-    ).values_list("lookup_field", flat=True)
+        formated_codename=Concat("content_type__app_label", Value("."), "codename")
+    ).values_list("formated_codename", flat=True)
