@@ -11,7 +11,7 @@ autopep8==1.5
 babel==2.7.0
 beautifulsoup4==4.7.1
 beautifultable==0.7.0
-billiard==3.6.2.0
+billiard==3.6.3.0
 black==19.10b0
 bleach==2.1.4
 boto3==1.12.3
@@ -20,7 +20,7 @@ braintree==3.49.0
 cachetools==4.0.0
 cairocffi==1.1.0
 cairosvg==2.4.2
-celery==4.4.0
+celery==4.4.2
 certifi==2019.11.28
 cffi==1.14.0
 cfgv==3.0.0
@@ -89,7 +89,7 @@ jaeger-client==4.3.0
 jinja2==2.11.1
 jmespath==0.9.4
 jsonfield==3.0.0
-kombu==4.6.7
+kombu==4.6.8
 lazy-object-proxy==1.4.3
 lxml==4.5.0
 markdown==3.2.1
