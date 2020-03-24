@@ -11,7 +11,7 @@ from ....core.permissions import AccountPermissions, get_permissions
 from ...account.utils import can_user_manage_group, get_out_of_scope_permissions
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
-from ...core.types.common import AccountError, PermissionGroupError
+from ...core.types.common import PermissionGroupError
 from ..types import Group
 
 
@@ -259,5 +259,12 @@ class PermissionGroupDelete(ModelDeleteMutation):
         description = "Delete permission group."
         model = auth_models.Group
         permissions = (AccountPermissions.MANAGE_STAFF,)
-        error_type_class = AccountError
-        error_type_field = "account_errors"
+        error_type_class = PermissionGroupError
+        error_type_field = "permission_group_errors"
+
+    @classmethod
+    def clean_instance(cls, info, instance):
+        if not can_user_manage_group(info.context.user, instance):
+            error_msg = "You can't manage group with permissions out of your scope."
+            code = PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.value
+            raise ValidationError(error_msg, code)

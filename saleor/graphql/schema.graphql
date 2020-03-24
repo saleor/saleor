@@ -39,7 +39,6 @@ type AccountError {
 enum AccountErrorCode {
   ACTIVATE_OWN_ACCOUNT
   ACTIVATE_SUPERUSER_ACCOUNT
-  ASSIGN_NON_STAFF_MEMBER
   DEACTIVATE_OWN_ACCOUNT
   DEACTIVATE_SUPERUSER_ACCOUNT
   DELETE_NON_STAFF_USER
@@ -3038,7 +3037,7 @@ input PermissionGroupCreateInput {
 
 type PermissionGroupDelete {
   errors: [Error!]!
-  accountErrors: [AccountError!]!
+  permissionGroupErrors: [PermissionGroupError!]!
   group: Group
 }
 
