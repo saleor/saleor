@@ -566,11 +566,17 @@ class DeleteInvoice(ModelDeleteMutation):
         return super().perform_mutation(_root, info, **data)
 
 
+class UpdateInvoiceInput(graphene.InputObjectType):
+    number = graphene.String(description="Invoice number")
+    url = graphene.String(description="URL of an invoice to download.")
+
+
 class UpdateInvoice(ModelMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of an invoice to update.")
-        number = graphene.String(description="Invoice number")
-        url = graphene.String(description="URL of an invoice to download.")
+        input = UpdateInvoiceInput(
+            required=True, description="Fields to use when updating an invoice."
+        )
 
     class Meta:
         description = "Updates an invoice."
@@ -581,8 +587,8 @@ class UpdateInvoice(ModelMutation):
 
     @classmethod
     def clean_input(cls, info, instance, data):
-        number = instance.number or data.get("number")
-        url = instance.url or data.get("url")
+        number = instance.number or data["input"].get("number")
+        url = instance.url or data["input"].get("url")
         if not number or not url:
             raise ValidationError(
                 {
@@ -592,7 +598,7 @@ class UpdateInvoice(ModelMutation):
                     )
                 }
             )
-        return data
+        return data["input"]
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):

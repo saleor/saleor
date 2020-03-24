@@ -2850,8 +2850,10 @@ UPDATE_INVOICE_MUTATION = """
     mutation UpdateInvoice($id: ID!, $number: String, $url: String) {
         updateInvoice(
             id: $id,
-            number: $number,
-            url: $url
+            input: {
+                number: $number,
+                url: $url
+            }
         ) {
             invoice {
                 number

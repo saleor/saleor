@@ -2360,7 +2360,7 @@ type Mutation {
   menuItemMove(menu: ID!, moves: [MenuItemMoveInput]!): MenuItemMove
   requestInvoice(number: String, orderId: ID!): RequestInvoice
   deleteInvoice(id: ID!): DeleteInvoice
-  updateInvoice(id: ID!, number: String, url: String): UpdateInvoice
+  updateInvoice(id: ID!, input: UpdateInvoiceInput!): UpdateInvoice
   giftCardActivate(id: ID!): GiftCardActivate
   giftCardCreate(input: GiftCardCreateInput!): GiftCardCreate
   giftCardDeactivate(id: ID!): GiftCardDeactivate
@@ -4579,6 +4579,11 @@ type UpdateInvoice {
   errors: [Error!]!
   invoiceErrors: [InvoiceError!]!
   invoice: Invoice
+}
+
+input UpdateInvoiceInput {
+  number: String
+  url: String
 }
 
 type UpdateMetadata {
