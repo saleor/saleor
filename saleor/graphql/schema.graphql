@@ -1419,6 +1419,7 @@ scalar Decimal
 
 type DeleteInvoice {
   errors: [Error!]!
+  invoiceErrors: [InvoiceError!]!
   invoice: Invoice
 }
 
@@ -1859,6 +1860,17 @@ type Invoice implements Node {
   id: ID!
   number: String
   url: String
+}
+
+type InvoiceError {
+  field: String
+  message: String
+  code: InvoiceErrorCode!
+}
+
+enum InvoiceErrorCode {
+  URL_OR_NUMBER_NOT_SET
+  NOT_FOUND
 }
 
 scalar JSONString
@@ -3825,6 +3837,7 @@ type RequestEmailChange {
 
 type RequestInvoice {
   errors: [Error!]!
+  invoiceErrors: [InvoiceError!]!
 }
 
 type RequestPasswordReset {
@@ -4564,6 +4577,7 @@ scalar UUID
 
 type UpdateInvoice {
   errors: [Error!]!
+  invoiceErrors: [InvoiceError!]!
   invoice: Invoice
 }
 
