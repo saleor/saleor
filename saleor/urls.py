@@ -37,6 +37,3 @@ if settings.DEBUG:
         url(r"^static/(?P<path>.*)$", serve),
         url(r"^", RedirectView.as_view(url="/graphql/")),
     ]
-
-if settings.ENABLE_SILK:
-    urlpatterns += [url(r"^silk/", include("silk.urls", namespace="silk"))]

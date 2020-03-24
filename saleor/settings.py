@@ -264,11 +264,6 @@ if ENABLE_DEBUG_TOOLBAR:
         ]
         DEBUG_TOOLBAR_CONFIG = {"RESULTS_CACHE_SIZE": 100}
 
-ENABLE_SILK = get_bool_from_env("ENABLE_SILK", False)
-if ENABLE_SILK:
-    MIDDLEWARE.insert(0, "silk.middleware.SilkyMiddleware")
-    INSTALLED_APPS.append("silk")
-
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,
