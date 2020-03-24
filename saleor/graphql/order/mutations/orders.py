@@ -1,6 +1,5 @@
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 from ....account.models import User
 from ....core.permissions import OrderPermissions
@@ -577,19 +576,27 @@ class UpdateInvoice(ModelMutation):
         permissions = (OrderPermissions.MANAGE_ORDERS,)
 
     @classmethod
+    def clean_input(cls, info, instance, data):
+        if not (instance.number or data.get("number")) or not (
+            instance.url or data.get("url")
+        ):
+            raise ValidationError(
+                {
+                    "invoice": ValidationError(
+                        "URL and number need to be set after update operation.",
+                        code=InvoiceErrorCode.URL_OR_NUMBER_NOT_SET,
+                    )
+                }
+            )
+        return data
+
+    @classmethod
     def perform_mutation(cls, _root, info, **data):
-        invoice = cls.get_instance(info, **data)
-        with transaction.atomic():
-            invoice.update_invoice(number=data.get("number"), url=data.get("url"))
-            invoice.status = InvoiceStatus.READY
-            invoice.save()
-            if not (invoice.number and invoice.url):
-                raise ValidationError(
-                    {
-                        "invoice": ValidationError(
-                            "URL and number need to be set after update operation.",
-                            code=InvoiceErrorCode.URL_OR_NUMBER_NOT_SET,
-                        )
-                    }
-                )
-        return UpdateInvoice(invoice=invoice)
+        instance = cls.get_instance(info, **data)
+        cleaned_input = cls.clean_input(info, instance, data)
+        instance.update_invoice(
+            number=cleaned_input.get("number"), url=cleaned_input.get("url")
+        )
+        instance.status = InvoiceStatus.READY
+        instance.save()
+        return UpdateInvoice(invoice=instance)
