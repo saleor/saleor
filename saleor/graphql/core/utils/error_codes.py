@@ -7,7 +7,7 @@ from ....discount.error_codes import DiscountErrorCode
 from ....extensions.error_codes import ExtensionsErrorCode
 from ....giftcard.error_codes import GiftCardErrorCode
 from ....menu.error_codes import MenuErrorCode
-from ....order.error_codes import OrderErrorCode
+from ....order.error_codes import InvoiceErrorCode, OrderErrorCode
 from ....payment.error_codes import PaymentErrorCode
 from ....product.error_codes import ProductErrorCode
 from ....shipping.error_codes import ShippingErrorCode
@@ -46,6 +46,7 @@ SALEOR_ERROR_CODE_ENUMS = [
     DiscountErrorCode,
     ExtensionsErrorCode,
     GiftCardErrorCode,
+    InvoiceErrorCode,
     MenuErrorCode,
     OrderErrorCode,
     PaymentErrorCode,
