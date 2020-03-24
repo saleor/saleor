@@ -577,9 +577,9 @@ class UpdateInvoice(ModelMutation):
 
     @classmethod
     def clean_input(cls, info, instance, data):
-        if not (instance.number or data.get("number")) or not (
-            instance.url or data.get("url")
-        ):
+        number = instance.number or data.get("number")
+        url = instance.url or data.get("url")
+        if not number or not url:
             raise ValidationError(
                 {
                     "invoice": ValidationError(
