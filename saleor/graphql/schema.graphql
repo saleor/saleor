@@ -2359,6 +2359,7 @@ type Mutation {
   menuItemTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): MenuItemTranslate
   menuItemMove(menu: ID!, moves: [MenuItemMoveInput]!): MenuItemMove
   requestInvoice(number: String, orderId: ID!): RequestInvoice
+  requestDeleteInvoice(id: ID!): RequestDeleteInvoice
   deleteInvoice(id: ID!): DeleteInvoice
   updateInvoice(id: ID!, input: UpdateInvoiceInput!): UpdateInvoice
   giftCardActivate(id: ID!): GiftCardActivate
@@ -3827,6 +3828,12 @@ input ReorderInput {
 enum ReportingPeriod {
   TODAY
   THIS_MONTH
+}
+
+type RequestDeleteInvoice {
+  errors: [Error!]!
+  invoiceErrors: [InvoiceError!]!
+  invoice: Invoice
 }
 
 type RequestEmailChange {
