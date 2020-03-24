@@ -1,6 +1,5 @@
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 
 from ....account.models import User
 from ....core.permissions import OrderPermissions
@@ -21,7 +20,7 @@ from ....payment import CustomPaymentChoices, PaymentError, gateway
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import Decimal
-from ...core.types.common import OrderError
+from ...core.types.common import InvoiceError, OrderError
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ...meta.deprecated.types import MetaInput, MetaPath
 from ...order.enums import InvoiceStatus
@@ -522,6 +521,8 @@ class RequestInvoice(BaseMutation):
     class Meta:
         description = "Request an invoice for the order."
         permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = InvoiceError
+        error_type_field = "invoice_errors"
 
     class Arguments:
         order_id = graphene.ID(
@@ -546,6 +547,39 @@ class RequestInvoice(BaseMutation):
         return RequestInvoice()
 
 
+class CreateInvoiceInput(graphene.InputObjectType):
+    number = graphene.String(required=True, description="Invoice number")
+    url = graphene.String(required=True, description="URL of an invoice to download.")
+
+
+class CreateInvoice(ModelMutation):
+    class Arguments:
+        order_id = graphene.ID(
+            required=True, description="ID of the order related to invoice."
+        )
+        input = CreateInvoiceInput(
+            required=True, description="Fields required when creating an invoice."
+        )
+
+    class Meta:
+        description = "Updates an invoice."
+        model = models.Invoice
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = InvoiceError
+        error_type_field = "invoice_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        order = cls.get_node_or_error(
+            info, data["order_id"], only_type=Order, field="orderId"
+        )
+        invoice = cls.construct_instance(cls.get_instance(info, **data), data["input"])
+        invoice.order = order
+        invoice.status = InvoiceStatus.READY
+        invoice.save()
+        return CreateInvoice(invoice=invoice)
+
+
 class DeleteInvoice(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of an invoice to delete.")
@@ -554,6 +588,8 @@ class DeleteInvoice(ModelDeleteMutation):
         description = "Deletes an invoice."
         model = models.Invoice
         permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = InvoiceError
+        error_type_field = "invoice_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -563,62 +599,47 @@ class DeleteInvoice(ModelDeleteMutation):
         return super().perform_mutation(_root, info, **data)
 
 
-class UpdateInvoice(ModelMutation):
-    invoice = graphene.Field(Invoice, description="An updated invoice.")
+class UpdateInvoiceInput(graphene.InputObjectType):
+    number = graphene.String(description="Invoice number")
+    url = graphene.String(description="URL of an invoice to download.")
 
+
+class UpdateInvoice(ModelMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of an invoice to update.")
-        number = graphene.String(description="Invoice number")
-        url = graphene.String(description="URL of an invoice to download.")
-
-    class Meta:
-        description = "Updates an invoice."
-        model = models.Invoice
-        permissions = (OrderPermissions.MANAGE_ORDERS,)
-
-    @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        invoice = cls.get_instance(info, **data)
-        with transaction.atomic():
-            invoice.update_invoice(number=data.get("number"), url=data.get("url"))
-            invoice.status = InvoiceStatus.READY
-            invoice.save()
-            if not (invoice.number and invoice.url):
-                raise ValidationError(
-                    {
-                        "invoice": ValidationError(
-                            "URL and number need to be set after update operation.",
-                            code=InvoiceErrorCode.URL_OR_NUMBER_NOT_SET,
-                        )
-                    }
-                )
-        return UpdateInvoice(invoice=invoice)
-
-
-class CreateInvoice(ModelMutation):
-    invoice = graphene.Field(Invoice, description="Created invoice.")
-
-    class Arguments:
-        order_id = graphene.ID(
-            required=True, description="ID of the order related to invoice."
-        )
-        number = graphene.String(required=True, description="Invoice number")
-        url = graphene.String(
-            required=True, description="URL of an invoice to download."
+        input = UpdateInvoiceInput(
+            required=True, description="Fields to use when updating an invoice."
         )
 
     class Meta:
         description = "Updates an invoice."
         model = models.Invoice
         permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = InvoiceError
+        error_type_field = "invoice_errors"
+
+    @classmethod
+    def clean_input(cls, info, instance, data):
+        number = instance.number or data["input"].get("number")
+        url = instance.url or data["input"].get("url")
+        if not number or not url:
+            raise ValidationError(
+                {
+                    "invoice": ValidationError(
+                        "URL and number need to be set after update operation.",
+                        code=InvoiceErrorCode.URL_OR_NUMBER_NOT_SET,
+                    )
+                }
+            )
+        return data["input"]
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
-        order = cls.get_node_or_error(
-            info, data["order_id"], only_type=Order, field="orderId"
+        instance = cls.get_instance(info, **data)
+        cleaned_input = cls.clean_input(info, instance, data)
+        instance.update_invoice(
+            number=cleaned_input.get("number"), url=cleaned_input.get("url")
         )
-        invoice = cls.construct_instance(cls.get_instance(info, **data), data)
-        invoice.order = order
-        invoice.status = InvoiceStatus.READY
-        invoice.save()
-        return CreateInvoice(invoice=invoice)
+        instance.status = InvoiceStatus.READY
+        instance.save()
+        return UpdateInvoice(invoice=instance)
