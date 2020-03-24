@@ -1096,6 +1096,7 @@ class ProductVariantInput(graphene.InputObjectType):
     cost_price = Decimal(description="Cost price of the variant.")
     price_override = Decimal(description="Special price of the particular variant.")
     sku = graphene.String(description="Stock keeping unit.")
+    name = graphene.String(description="Special name for the particular variant.")
     quantity = graphene.Int(
         description="The total quantity of this variant available for sale.",
         deprecation_reason=(
