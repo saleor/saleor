@@ -21,7 +21,7 @@ from ..utils import format_permissions_for_display
 from ..wishlist.resolvers import resolve_wishlist_items_from_user
 from ..wishlist.types import WishlistItem
 from .enums import CountryCodeEnum, CustomerEventsEnum
-from .utils import can_user_manage_group
+from .utils import can_user_manage_group, get_user_permissions
 
 
 class AddressInput(graphene.InputObjectType):
@@ -268,8 +268,16 @@ class User(CountableDjangoObjectType):
         ),
         model_field="orders",
     )
-    permissions = graphene.List(
-        PermissionDisplay, description="List of user's permissions."
+    permissions = gql_optimizer.field(
+        graphene.List(PermissionDisplay, description="List of user's permissions."),
+        model_field="user_permissions",
+    )
+    permission_groups = gql_optimizer.field(
+        graphene.List(
+            "saleor.graphql.account.types.Group",
+            description="List of user's permission groups.",
+        ),
+        model_field="groups",
     )
     avatar = graphene.Field(Image, size=graphene.Int(description="Size of the avatar."))
     events = gql_optimizer.field(
@@ -319,10 +327,15 @@ class User(CountableDjangoObjectType):
         if root.is_superuser:
             permissions = get_permissions()
         else:
-            permissions = root.user_permissions.prefetch_related(
-                "content_type"
-            ).order_by("codename")
+            permissions = get_user_permissions(root)
+            permissions = permissions.prefetch_related("content_type").order_by(
+                "codename"
+            )
         return format_permissions_for_display(permissions)
+
+    @staticmethod
+    def resolve_permission_groups(root: models.User, _info, **_kwargs):
+        return root.groups.all()
 
     @staticmethod
     @one_of_permissions_required(

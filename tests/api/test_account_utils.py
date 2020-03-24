@@ -3,6 +3,7 @@ from saleor.graphql.account.utils import (
     can_user_manage_group,
     get_group_permission_codes,
     get_out_of_scope_permissions,
+    get_user_permissions,
 )
 
 
@@ -93,3 +94,44 @@ def test_get_group_permission_codes_group_without_permissions(
 
     assert len(permission_codes) == group.permissions.count()
     assert set(permission_codes) == set()
+
+
+def test_get_user_permissions(permission_group_manage_users, permission_manage_orders):
+    staff_user = permission_group_manage_users.user_set.first()
+    group_permissions = permission_group_manage_users.permissions.all()
+    staff_user.user_permissions.add(permission_manage_orders)
+
+    permissions = get_user_permissions(staff_user)
+
+    expected_permissions = group_permissions | staff_user.user_permissions.all()
+    assert set(permissions.values_list("codename", flat=True)) == set(
+        expected_permissions.values_list("codename", flat=True)
+    )
+
+
+def test_get_user_permissions_only_group_permissions(permission_group_manage_users):
+    staff_user = permission_group_manage_users.user_set.first()
+    group_permissions = permission_group_manage_users.permissions.all()
+
+    permissions = get_user_permissions(staff_user)
+
+    assert set(permissions.values_list("codename", flat=True)) == set(
+        group_permissions.values_list("codename", flat=True)
+    )
+
+
+def test_get_user_permissions_only_permissions(staff_user, permission_manage_orders):
+    staff_user.user_permissions.add(permission_manage_orders)
+
+    permissions = get_user_permissions(staff_user)
+
+    expected_permissions = staff_user.user_permissions.all()
+    assert set(permissions.values_list("codename", flat=True)) == set(
+        expected_permissions.values_list("codename", flat=True)
+    )
+
+
+def test_get_user_permissions_no_permissions(staff_user):
+    permissions = get_user_permissions(staff_user)
+
+    assert not permissions
