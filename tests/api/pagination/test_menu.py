@@ -10,11 +10,11 @@ def menus_for_pagination(db):
     # We have "footer" and "navbar" from default saleor configuration
     return Menu.objects.bulk_create(
         [
-            Menu(name="Menu1",),
-            Menu(name="MenuMenu1",),
-            Menu(name="MenuMenu2",),
-            Menu(name="Menu2",),
-            Menu(name="Menu3",),
+            Menu(name="menu1",),
+            Menu(name="menuMenu1",),
+            Menu(name="menuMenu2",),
+            Menu(name="menu2",),
+            Menu(name="menu3",),
         ]
     )
 
@@ -47,8 +47,8 @@ QUERY_MENUS_PAGINATION = """
 @pytest.mark.parametrize(
     "sort_by, menus_order",
     [
-        ({"field": "NAME", "direction": "ASC"}, ["footer", "Menu1", "Menu2"]),
-        ({"field": "NAME", "direction": "DESC"}, ["navbar", "MenuMenu2", "MenuMenu1"]),
+        ({"field": "NAME", "direction": "ASC"}, ["footer", "menu1", "menu2"]),
+        ({"field": "NAME", "direction": "DESC"}, ["navbar", "menuMenu2", "menuMenu1"]),
     ],
 )
 def test_menus_pagination_with_sorting(
@@ -69,16 +69,12 @@ def test_menus_pagination_with_sorting(
 @pytest.mark.parametrize(
     "filter_by, menus_order",
     [
-        ({"search": "MenuMenu"}, ["MenuMenu1", "MenuMenu2"]),
-        ({"search": "Menu1"}, ["Menu1", "MenuMenu1"]),
+        ({"search": "menuMenu"}, ["menuMenu1", "menuMenu2"]),
+        ({"search": "menu1"}, ["menu1", "menuMenu1"]),
     ],
 )
 def test_menus_pagination_with_filtering(
-    filter_by,
-    menus_order,
-    staff_api_client,
-    permission_manage_discounts,
-    menus_for_pagination,
+    filter_by, menus_order, staff_api_client, menus_for_pagination,
 ):
     page_size = 2
 
