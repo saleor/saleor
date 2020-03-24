@@ -137,3 +137,39 @@ def test_permission_group_update(
     groups = Group.objects.all()
     assert data["permissionGroupErrors"] == []
     assert len(groups) == group_count
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_permission_group_query(
+    permission_group_manage_users,
+    staff_user,
+    permission_manage_staff,
+    permission_manage_users,
+    staff_api_client,
+    count_queries,
+):
+    staff_user.user_permissions.add(permission_manage_staff, permission_manage_users)
+    group = permission_group_manage_users
+    query = """
+    query ($id: ID!){
+        permissionGroup(id: $id){
+            id
+            name
+            permissions {
+                name
+                code
+            }
+            users{
+                email
+            }
+            userCanManage
+        }
+    }
+    """
+
+    variables = {"id": graphene.Node.to_global_id("Group", group.id)}
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroup"]
+    assert data

@@ -83,6 +83,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Update create permission group restriction - #5355 by @IKarbowiak
 - Add groups to user type - #5368 by @IKarbowiak
 - Allow specifying users in groups mutations - #5362 by @IKarbowiak
+- Add user can manage field to group type - #5376 by @IKarbowiak
 
 ## 2.9.0
 
