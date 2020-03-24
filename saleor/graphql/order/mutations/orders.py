@@ -563,8 +563,6 @@ class DeleteInvoice(ModelDeleteMutation):
 
 
 class UpdateInvoice(ModelMutation):
-    invoice = graphene.Field(Invoice, description="An updated invoice.")
-
     class Arguments:
         id = graphene.ID(required=True, description="ID of an invoice to update.")
         number = graphene.String(description="Invoice number")
