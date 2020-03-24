@@ -502,12 +502,12 @@ class Invoice(ModelWithMetadata):
     order = models.ForeignKey(Order, null=True, on_delete=models.SET_NULL)
     number = models.CharField(max_length=255, null=True)
     created = models.DateTimeField(null=True)
-    url = models.URLField(max_length=2048)
+    url = models.URLField(null=True, max_length=2048)
     status = models.CharField(max_length=32, default=InvoiceStatus.PENDING)
 
-    def update_invoice(self, order, number, url, metadata):
-        # TODO: modify to actual update signature for plugin
-        self.number = number
-        self.url = url
-        self.metadata = metadata
+    def update_invoice(self, number=None, url=None):
+        if number is not None:
+            self.number = number
+        if url is not None:
+            self.url = url
         self.save()
