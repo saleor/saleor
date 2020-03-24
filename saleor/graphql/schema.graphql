@@ -1320,7 +1320,13 @@ type CountryDisplay {
 
 type CreateInvoice {
   errors: [Error!]!
+  invoiceErrors: [InvoiceError!]!
   invoice: Invoice
+}
+
+input CreateInvoiceInput {
+  number: String!
+  url: String!
 }
 
 type CreateToken {
@@ -1424,6 +1430,7 @@ scalar Decimal
 
 type DeleteInvoice {
   errors: [Error!]!
+  invoiceErrors: [InvoiceError!]!
   invoice: Invoice
 }
 
@@ -1864,6 +1871,17 @@ type Invoice implements Node {
   id: ID!
   number: String
   url: String
+}
+
+type InvoiceError {
+  field: String
+  message: String
+  code: InvoiceErrorCode!
+}
+
+enum InvoiceErrorCode {
+  URL_OR_NUMBER_NOT_SET
+  NOT_FOUND
 }
 
 scalar JSONString
@@ -2352,9 +2370,9 @@ type Mutation {
   menuItemTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): MenuItemTranslate
   menuItemMove(menu: ID!, moves: [MenuItemMoveInput]!): MenuItemMove
   requestInvoice(number: String, orderId: ID!): RequestInvoice
-  createInvoice(number: String!, orderId: ID!, url: String!): CreateInvoice
+  createInvoice(input: CreateInvoiceInput!, orderId: ID!): CreateInvoice
   deleteInvoice(id: ID!): DeleteInvoice
-  updateInvoice(id: ID!, number: String, url: String): UpdateInvoice
+  updateInvoice(id: ID!, input: UpdateInvoiceInput!): UpdateInvoice
   giftCardActivate(id: ID!): GiftCardActivate
   giftCardCreate(input: GiftCardCreateInput!): GiftCardCreate
   giftCardDeactivate(id: ID!): GiftCardDeactivate
@@ -3831,6 +3849,7 @@ type RequestEmailChange {
 
 type RequestInvoice {
   errors: [Error!]!
+  invoiceErrors: [InvoiceError!]!
 }
 
 type RequestPasswordReset {
@@ -4570,7 +4589,13 @@ scalar UUID
 
 type UpdateInvoice {
   errors: [Error!]!
+  invoiceErrors: [InvoiceError!]!
   invoice: Invoice
+}
+
+input UpdateInvoiceInput {
+  number: String
+  url: String
 }
 
 type UpdateMetadata {

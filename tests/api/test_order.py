@@ -24,7 +24,7 @@ from saleor.graphql.order.mutations.orders import (
 from saleor.graphql.order.utils import validate_draft_order
 from saleor.graphql.payment.types import PaymentChargeStatusEnum
 from saleor.order import OrderStatus, events as order_events
-from saleor.order.error_codes import OrderErrorCode
+from saleor.order.error_codes import InvoiceErrorCode, OrderErrorCode
 from saleor.order.models import Invoice, Order, OrderEvent
 from saleor.payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from saleor.payment.models import Payment
@@ -2821,9 +2821,10 @@ REQUEST_INVOICE_MUTATION = """
             orderId: $orderId,
             number: $number
         ) {
-            errors {
+            invoiceErrors {
                 field
                 message
+                code
             }
         }
     }
@@ -2834,16 +2835,19 @@ CREATE_INVOICE_MUTATION = """
     mutation CreateInvoice($orderId: ID!, $number: String!, $url: String!) {
         createInvoice(
             orderId: $orderId,
-            number: $number,
-            url: $url
+            input: {
+                number: $number,
+                url: $url
+            }
         ) {
             invoice {
                 number
                 url
             }
-            errors {
+            invoiceErrors {
                 field
                 message
+                code
             }
         }
     }
@@ -2855,9 +2859,10 @@ DELETE_INVOICE_MUTATION = """
         deleteInvoice(
             id: $id
         ) {
-            errors {
+            invoiceErrors {
                 field
                 message
+                code
             }
         }
     }
@@ -2868,16 +2873,19 @@ UPDATE_INVOICE_MUTATION = """
     mutation UpdateInvoice($id: ID!, $number: String, $url: String) {
         updateInvoice(
             id: $id,
-            number: $number,
-            url: $url
+            input: {
+                number: $number,
+                url: $url
+            }
         ) {
             invoice {
                 number
                 url
             }
-            errors {
+            invoiceErrors {
                 field
                 message
+                code
             }
         }
     }
@@ -2912,7 +2920,9 @@ def test_request_invoice_invalid_order(user_api_client, permission_manage_orders
     user_api_client.user.user_permissions.add(permission_manage_orders)
     response = user_api_client.post_graphql(REQUEST_INVOICE_MUTATION, variables)
     content = get_graphql_content(response)
-    assert content["data"]["requestInvoice"]["errors"][0]["field"] == "orderId"
+    errors = content["data"]["requestInvoice"]["invoiceErrors"][0]
+    assert errors["code"] == InvoiceErrorCode.NOT_FOUND.name
+    assert errors["field"] == "orderId"
 
 
 def test_request_invoice_no_permissions(staff_api_client, orders):
@@ -2932,6 +2942,20 @@ def test_delete_invoice(plugin_mock, user_api_client, permission_manage_orders, 
     user_api_client.post_graphql(DELETE_INVOICE_MUTATION, variables)
     assert not Invoice.objects.filter(id=invoice.pk).exists()
     assert plugin_mock.called
+
+
+@mock.patch("saleor.extensions.base_plugin.BasePlugin.invoice_delete")
+def test_delete_invoice_invalid_id(
+    plugin_mock, user_api_client, permission_manage_orders, orders
+):
+    variables = {"id": graphene.Node.to_global_id("Invoice", 1337)}
+    user_api_client.user.user_permissions.add(permission_manage_orders)
+    response = user_api_client.post_graphql(DELETE_INVOICE_MUTATION, variables)
+    content = get_graphql_content(response)
+    errors = content["data"]["deleteInvoice"]["invoiceErrors"][0]
+    assert errors["code"] == InvoiceErrorCode.NOT_FOUND.name
+    assert errors["field"] == "id"
+    assert not plugin_mock.called
 
 
 def test_delete_invoice_no_permissions(user_api_client, orders):
@@ -2989,7 +3013,9 @@ def test_update_invoice_missing_number(
     response = user_api_client.post_graphql(UPDATE_INVOICE_MUTATION, variables)
     content = get_graphql_content(response)
     invoice.refresh_from_db()
-    assert content["data"]["updateInvoice"]["errors"][0]["field"] == "invoice"
+    errors = content["data"]["updateInvoice"]["invoiceErrors"][0]
+    assert errors["code"] == InvoiceErrorCode.URL_OR_NUMBER_NOT_SET.name
+    assert errors["field"] == "invoice"
     assert invoice.url is None
     assert invoice.status == InvoiceStatus.PENDING
 
@@ -3010,7 +3036,9 @@ def test_update_invoice_invalid_id(user_api_client, permission_manage_orders):
     user_api_client.user.user_permissions.add(permission_manage_orders)
     response = user_api_client.post_graphql(UPDATE_INVOICE_MUTATION, variables)
     content = get_graphql_content(response)
-    assert content["data"]["updateInvoice"]["errors"][0]["field"] == "id"
+    errors = content["data"]["updateInvoice"]["invoiceErrors"][0]
+    assert errors["code"] == InvoiceErrorCode.NOT_FOUND.name
+    assert errors["field"] == "id"
 
 
 def test_create_invoice(user_api_client, permission_manage_orders, orders):
@@ -3029,6 +3057,20 @@ def test_create_invoice(user_api_client, permission_manage_orders, orders):
     assert invoice.url == content["data"]["createInvoice"]["invoice"]["url"]
     assert invoice.number == content["data"]["createInvoice"]["invoice"]["number"]
     assert invoice.status == InvoiceStatus.READY
+
+
+def test_create_invoice_invalid_id(user_api_client, permission_manage_orders):
+    variables = {
+        "orderId": graphene.Node.to_global_id("Order", 1337),
+        "number": "01/12/2020/TEST",
+        "url": "http://www.example.com",
+    }
+    user_api_client.user.user_permissions.add(permission_manage_orders)
+    response = user_api_client.post_graphql(CREATE_INVOICE_MUTATION, variables)
+    content = get_graphql_content(response)
+    errors = content["data"]["createInvoice"]["invoiceErrors"][0]
+    assert errors["code"] == InvoiceErrorCode.NOT_FOUND.name
+    assert errors["field"] == "orderId"
 
 
 def test_create_invoice_missing_params(
