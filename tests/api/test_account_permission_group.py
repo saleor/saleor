@@ -2,7 +2,7 @@ import graphene
 import pytest
 from django.contrib.auth.models import Group
 
-from saleor.account.error_codes import AccountErrorCode, PermissionGroupErrorCode
+from saleor.account.error_codes import PermissionGroupErrorCode
 from saleor.account.models import User
 from saleor.core.permissions import AccountPermissions, OrderPermissions
 
@@ -159,7 +159,7 @@ def test_permission_group_create_mutation_group_exists(
     assert permission_group_data is None
     assert len(errors) == 1
     assert errors[0]["field"] == "name"
-    assert errors[0]["code"] == AccountErrorCode.UNIQUE.name
+    assert errors[0]["code"] == PermissionGroupErrorCode.UNIQUE.name
     assert errors[0]["permissions"] is None
     assert errors[0]["users"] is None
 
@@ -212,7 +212,7 @@ def test_permission_group_create_mutation_add_customer_user(
     assert errors[0]["field"] == "users"
     assert errors[0]["permissions"] is None
     assert set(errors[0]["users"]) == set(user_ids[1:])
-    assert errors[0]["code"] == AccountErrorCode.ASSIGN_NON_STAFF_MEMBER.name
+    assert errors[0]["code"] == PermissionGroupErrorCode.ASSIGN_NON_STAFF_MEMBER.name
     assert data["group"] is None
 
 
@@ -255,7 +255,7 @@ def test_permission_group_create_mutation_lack_of_permission_and_customer_user(
     ]
     assert user_ids[1:] in [error["users"] for error in errors]
     assert {error["code"] for error in errors} == {
-        AccountErrorCode.ASSIGN_NON_STAFF_MEMBER.name,
+        PermissionGroupErrorCode.ASSIGN_NON_STAFF_MEMBER.name,
         PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.name,
     }
     assert data["group"] is None
@@ -952,9 +952,11 @@ PERMISSION_GROUP_DELETE_MUTATION = """
                     code
                 }
             }
-            accountErrors{
+            permissionGroupErrors{
                 field
                 code
+                users
+                permissions
                 message
             }
         }
@@ -963,24 +965,50 @@ PERMISSION_GROUP_DELETE_MUTATION = """
 
 
 def test_group_delete_mutation(
-    permission_group_manage_users, staff_user, permission_manage_staff, staff_api_client
+    permission_group_manage_users,
+    staff_user,
+    permission_manage_staff,
+    permission_manage_users,
+    staff_api_client,
 ):
-    staff_user.user_permissions.add(permission_manage_staff)
+    staff_user.user_permissions.add(permission_manage_users)
     group = permission_group_manage_users
     group_name = group.name
     query = PERMISSION_GROUP_DELETE_MUTATION
 
     variables = {"id": graphene.Node.to_global_id("Group", group.id)}
-    response = staff_api_client.post_graphql(query, variables)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_staff,)
+    )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupDelete"]
-    errors = data["accountErrors"]
+    errors = data["permissionGroupErrors"]
     permission_group_data = data["group"]
 
     assert errors == []
     assert permission_group_data["id"] == variables["id"]
     assert permission_group_data["name"] == group_name
     assert permission_group_data["permissions"] == []
+
+
+def test_group_delete_mutation_out_of_scope_permission(
+    permission_group_manage_users, staff_user, permission_manage_staff, staff_api_client
+):
+    group = permission_group_manage_users
+    query = PERMISSION_GROUP_DELETE_MUTATION
+
+    variables = {"id": graphene.Node.to_global_id("Group", group.id)}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_staff,)
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupDelete"]
+    errors = data["permissionGroupErrors"]
+    permission_group_data = data["group"]
+
+    assert not permission_group_data
+    assert errors[0]["code"] == PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.name
+    assert errors[0]["field"] is None
 
 
 QUERY_PERMISSION_GROUP_WITH_FILTER = """
