@@ -13,7 +13,6 @@ beautifulsoup4==4.7.1
 beautifultable==0.7.0
 billiard==3.6.3.0
 black==19.10b0
-bleach==2.1.4
 boto3==1.12.3
 botocore==1.15.3
 braintree==3.49.0
