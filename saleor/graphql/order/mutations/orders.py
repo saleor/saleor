@@ -20,7 +20,7 @@ from ....payment import CustomPaymentChoices, PaymentError, gateway
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import Decimal
-from ...core.types.common import OrderError
+from ...core.types.common import InvoiceError, OrderError
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ...meta.deprecated.types import MetaInput, MetaPath
 from ...order.enums import InvoiceStatus
@@ -521,6 +521,8 @@ class RequestInvoice(BaseMutation):
     class Meta:
         description = "Request an invoice for the order."
         permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = InvoiceError
+        error_type_field = "invoice_errors"
 
     class Arguments:
         order_id = graphene.ID(
@@ -553,6 +555,8 @@ class DeleteInvoice(ModelDeleteMutation):
         description = "Deletes an invoice."
         model = models.Invoice
         permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = InvoiceError
+        error_type_field = "invoice_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -572,6 +576,8 @@ class UpdateInvoice(ModelMutation):
         description = "Updates an invoice."
         model = models.Invoice
         permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = InvoiceError
+        error_type_field = "invoice_errors"
 
     @classmethod
     def clean_input(cls, info, instance, data):
