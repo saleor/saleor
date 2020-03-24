@@ -1,7 +1,7 @@
 import pytest
 from prices import Money
 
-from saleor.product.models import Category, Product
+from saleor.product.models import Category, Collection, Product
 
 from ..utils import get_graphql_content
 
@@ -132,3 +132,131 @@ def test_categories_pagination_with_filtering(
     assert categories_order[0] == categories_nodes[0]["node"]["name"]
     assert categories_order[1] == categories_nodes[1]["node"]["name"]
     assert len(categories_nodes) == page_size
+
+
+@pytest.fixture
+def collections_for_pagination(product, product_with_single_variant):
+    collections = Collection.objects.bulk_create(
+        [
+            Collection(name="Collection1", slug="col1", is_published=True),
+            Collection(
+                name="CollectionCollection1", slug="col_col1", is_published=True
+            ),
+            Collection(
+                name="CollectionCollection2", slug="col_col2", is_published=False
+            ),
+            Collection(name="Collection2", slug="col2", is_published=False),
+            Collection(name="Collection3", slug="col3", is_published=True),
+        ]
+    )
+    collections[2].products.add(product)
+    collections[4].products.add(product_with_single_variant)
+    return collections
+
+
+QUERY_COLLECTIONS_PAGINATION = """
+    query (
+        $first: Int, $last: Int, $after: String, $before: String,
+        $sortBy: CollectionSortingInput, $filter: CollectionFilterInput
+    ){
+        collections (
+            first: $first, last: $last, after: $after, before: $before,
+            sortBy: $sortBy, filter: $filter
+        ) {
+            edges {
+                node {
+                    name
+                                      products{
+                    totalCount
+                  }
+                }
+            }
+            pageInfo{
+                startCursor
+                endCursor
+                hasNextPage
+                hasPreviousPage
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "sort_by, collections_order",
+    [
+        (
+            {"field": "NAME", "direction": "ASC"},
+            ["Collection1", "Collection2", "Collection3"],
+        ),
+        (
+            {"field": "NAME", "direction": "DESC"},
+            ["CollectionCollection2", "CollectionCollection1", "Collection3"],
+        ),
+        (
+            {"field": "AVAILABILITY", "direction": "ASC"},
+            ["CollectionCollection2", "Collection2", "Collection1"],
+        ),
+        (
+            {"field": "PRODUCT_COUNT", "direction": "DESC"},
+            ["Collection3", "CollectionCollection2", "Collection1"],
+        ),
+    ],
+)
+def test_collections_pagination_with_sorting(
+    sort_by,
+    collections_order,
+    staff_api_client,
+    permission_manage_products,
+    collections_for_pagination,
+):
+    page_size = 3
+
+    variables = {"first": page_size, "after": None, "sortBy": sort_by}
+    response = staff_api_client.post_graphql(
+        QUERY_COLLECTIONS_PAGINATION,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    collections_nodes = content["data"]["collections"]["edges"]
+    assert collections_order[0] == collections_nodes[0]["node"]["name"]
+    assert collections_order[1] == collections_nodes[1]["node"]["name"]
+    assert collections_order[2] == collections_nodes[2]["node"]["name"]
+    assert len(collections_nodes) == page_size
+
+
+@pytest.mark.parametrize(
+    "filter_by, collections_order",
+    [
+        (
+            {"search": "CollectionCollection"},
+            ["CollectionCollection1", "CollectionCollection2"],
+        ),
+        ({"search": "col_col"}, ["CollectionCollection1", "CollectionCollection2"]),
+        ({"search": "Collection1"}, ["Collection1", "CollectionCollection1"]),
+        ({"published": "HIDDEN"}, ["Collection2", "CollectionCollection2"]),
+    ],
+)
+def test_collections_pagination_with_filtering(
+    filter_by,
+    collections_order,
+    staff_api_client,
+    permission_manage_products,
+    collections_for_pagination,
+):
+    page_size = 2
+
+    variables = {"first": page_size, "after": None, "filter": filter_by}
+    response = staff_api_client.post_graphql(
+        QUERY_COLLECTIONS_PAGINATION,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    collections_nodes = content["data"]["collections"]["edges"]
+    assert collections_order[0] == collections_nodes[0]["node"]["name"]
+    assert collections_order[1] == collections_nodes[1]["node"]["name"]
+    assert len(collections_nodes) == page_size
