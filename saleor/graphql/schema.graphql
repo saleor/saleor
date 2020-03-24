@@ -1880,6 +1880,8 @@ type InvoiceError {
 }
 
 enum InvoiceErrorCode {
+  EMPTY_URL
+  EMPTY_NUMBER
   URL_OR_NUMBER_NOT_SET
   NOT_FOUND
 }

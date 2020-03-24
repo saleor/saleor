@@ -562,19 +562,37 @@ class CreateInvoice(ModelMutation):
         )
 
     class Meta:
-        description = "Updates an invoice."
+        description = "Creates an invoice."
         model = models.Invoice
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
         error_type_field = "invoice_errors"
 
     @classmethod
+    def clean_input(cls, info, instance, data):
+        cleaning_map = {
+            "url": InvoiceErrorCode.EMPTY_URL,
+            "number": InvoiceErrorCode.EMPTY_NUMBER,
+        }
+        for field, error_code in cleaning_map.items():
+            if data["input"][field] == "":
+                raise ValidationError(
+                    {
+                        field: ValidationError(
+                            f"{field} cannot be empty.", code=error_code,
+                        )
+                    }
+                )
+        return data["input"]
+
+    @classmethod
     def perform_mutation(cls, _root, info, **data):
-        order = cls.get_node_or_error(
+        instance = cls.get_node_or_error(
             info, data["order_id"], only_type=Order, field="orderId"
         )
-        invoice = cls.construct_instance(cls.get_instance(info, **data), data["input"])
-        invoice.order = order
+        cleaned_input = cls.clean_input(info, instance, data)
+        invoice = cls.construct_instance(cls.get_instance(info, **data), cleaned_input)
+        invoice.order = instance
         invoice.status = InvoiceStatus.READY
         invoice.save()
         return CreateInvoice(invoice=invoice)

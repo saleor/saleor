@@ -3092,9 +3092,40 @@ def test_create_invoice_missing_params(
         },
     ]
     user_api_client.user.user_permissions.add(permission_manage_orders)
+
     for variables in variable_set:
         response = user_api_client.post_graphql(CREATE_INVOICE_MUTATION, variables)
         assert response.status_code == 400
+
+    assert not Invoice.objects.filter(
+        order_id=order.pk, status=InvoiceStatus.READY
+    ).exists()
+
+
+def test_create_invoice_empty_params(user_api_client, permission_manage_orders, orders):
+    order = orders[0]
+    number = "01/12/2020/TEST"
+    url = "http://www.example.com"
+    error_mapping = {
+        InvoiceErrorCode.EMPTY_URL: {
+            "orderId": graphene.Node.to_global_id("Order", order.pk),
+            "number": number,
+            "url": "",
+        },
+        InvoiceErrorCode.EMPTY_NUMBER: {
+            "orderId": graphene.Node.to_global_id("Order", order.pk),
+            "number": "",
+            "url": url,
+        },
+    }
+    user_api_client.user.user_permissions.add(permission_manage_orders)
+
+    for error_name, variables in error_mapping.items():
+        response = user_api_client.post_graphql(CREATE_INVOICE_MUTATION, variables)
+        content = get_graphql_content(response)
+        error = content["data"]["createInvoice"]["invoiceErrors"][0]
+        assert error["code"] == error_name.name
+
     assert not Invoice.objects.filter(
         order_id=order.pk, status=InvoiceStatus.READY
     ).exists()
