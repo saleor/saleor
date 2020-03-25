@@ -553,3 +553,133 @@ def test_products_pagination_with_filtering_by_stocks(
     assert products_order[0] == products_nodes[0]["node"]["name"]
     assert products_order[1] == products_nodes[1]["node"]["name"]
     assert len(products_nodes) == page_size
+
+
+@pytest.fixture
+def product_types_for_pagination(db):
+    return ProductType.objects.bulk_create(
+        [
+            ProductType(
+                name="ProductType1",
+                slug="pt1",
+                is_digital=True,
+                is_shipping_required=False,
+            ),
+            ProductType(
+                name="ProductTypeProductType1",
+                slug="pt_pt1",
+                is_digital=False,
+                is_shipping_required=False,
+            ),
+            ProductType(
+                name="ProductTypeProductType2",
+                slug="pt_pt2",
+                is_digital=False,
+                is_shipping_required=True,
+            ),
+            ProductType(
+                name="ProductType2",
+                slug="pt2",
+                is_digital=False,
+                is_shipping_required=True,
+                has_variants=False,
+            ),
+            ProductType(
+                name="ProductType3",
+                slug="pt3",
+                is_digital=True,
+                is_shipping_required=False,
+                has_variants=False,
+            ),
+        ]
+    )
+
+
+QUERY_PRODUCT_TYPES_PAGINATION = """
+    query (
+        $first: Int, $last: Int, $after: String, $before: String,
+        $sortBy: ProductTypeSortingInput, $filter: ProductTypeFilterInput
+    ){
+        productTypes (
+            first: $first, last: $last, after: $after, before: $before,
+            sortBy: $sortBy, filter: $filter
+        ) {
+            edges {
+                node {
+                    name
+                }
+            }
+            pageInfo{
+                startCursor
+                endCursor
+                hasNextPage
+                hasPreviousPage
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "sort_by, product_types_order",
+    [
+        (
+            {"field": "NAME", "direction": "ASC"},
+            ["ProductType1", "ProductType2", "ProductType3"],
+        ),
+        (
+            {"field": "NAME", "direction": "DESC"},
+            ["ProductTypeProductType2", "ProductTypeProductType1", "ProductType3"],
+        ),
+        (
+            {"field": "DIGITAL", "direction": "ASC"},
+            ["ProductTypeProductType1", "ProductTypeProductType2", "ProductType2"],
+        ),
+        (
+            {"field": "SHIPPING_REQUIRED", "direction": "ASC"},
+            ["ProductType1", "ProductTypeProductType1", "ProductType3"],
+        ),
+    ],
+)
+def test_product_types_pagination_with_sorting(
+    sort_by, product_types_order, staff_api_client, product_types_for_pagination,
+):
+    page_size = 3
+
+    variables = {"first": page_size, "after": None, "sortBy": sort_by}
+    response = staff_api_client.post_graphql(QUERY_PRODUCT_TYPES_PAGINATION, variables)
+    content = get_graphql_content(response)
+    product_types_nodes = content["data"]["productTypes"]["edges"]
+    assert product_types_order[0] == product_types_nodes[0]["node"]["name"]
+    assert product_types_order[1] == product_types_nodes[1]["node"]["name"]
+    assert product_types_order[2] == product_types_nodes[2]["node"]["name"]
+    assert len(product_types_nodes) == page_size
+
+
+@pytest.mark.parametrize(
+    "filter_by, product_types_order",
+    [
+        (
+            {"search": "ProductTypeProductType"},
+            ["ProductTypeProductType1", "ProductTypeProductType2"],
+        ),
+        ({"search": "ProductType1"}, ["ProductType1", "ProductTypeProductType1"]),
+        ({"search": "pt_pt"}, ["ProductTypeProductType1", "ProductTypeProductType2"]),
+        ({"productType": "DIGITAL"}, ["ProductType1", "ProductType3"],),
+        ({"productType": "SHIPPABLE"}, ["ProductType2", "ProductTypeProductType2"]),
+        ({"configurable": "CONFIGURABLE"}, ["ProductType1", "ProductTypeProductType1"]),
+        ({"configurable": "SIMPLE"}, ["ProductType2", "ProductType3"]),
+    ],
+)
+def test_product_types_pagination_with_filtering(
+    filter_by, product_types_order, staff_api_client, product_types_for_pagination,
+):
+    page_size = 2
+
+    variables = {"first": page_size, "after": None, "filter": filter_by}
+    response = staff_api_client.post_graphql(QUERY_PRODUCT_TYPES_PAGINATION, variables,)
+    content = get_graphql_content(response)
+    product_types_nodes = content["data"]["productTypes"]["edges"]
+    assert product_types_order[0] == product_types_nodes[0]["node"]["name"]
+    assert product_types_order[1] == product_types_nodes[1]["node"]["name"]
+    assert len(product_types_nodes) == page_size
