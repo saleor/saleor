@@ -38,7 +38,7 @@ class LanguageDisplay(graphene.ObjectType):
     language = graphene.String(description="Full name of the language.", required=True)
 
 
-class PermissionDisplay(graphene.ObjectType):
+class Permission(graphene.ObjectType):
     code = PermissionEnum(description="Internal code for permission.", required=True)
     name = graphene.String(
         description="Describe action(s) allowed to do by permission.", required=True
