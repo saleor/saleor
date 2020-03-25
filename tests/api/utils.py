@@ -21,6 +21,13 @@ def get_graphql_content(response, *, ignore_errors: bool = False):
     return content
 
 
+def assert_field_has_error(field: str, code: str, errors: list):
+    """Assert if there is an error with provided field and code in error list"""
+    assert list(
+        filter(lambda error: error["field"] == field and error["code"] == code, errors,)
+    )
+
+
 def assert_no_permission(response):
     content = _get_graphql_content_from_response(response)
     assert "errors" in content, content

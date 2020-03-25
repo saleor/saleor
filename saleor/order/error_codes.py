@@ -25,7 +25,6 @@ class OrderErrorCode(Enum):
 
 
 class InvoiceErrorCode(Enum):
-    EMPTY_URL = "empty_url"
-    EMPTY_NUMBER = "empty_number"
+    REQUIRED = "required"
     URL_OR_NUMBER_NOT_SET = "url_or_number_not_set"
     NOT_FOUND = "not_found"

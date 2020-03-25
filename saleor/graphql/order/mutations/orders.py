@@ -570,19 +570,14 @@ class CreateInvoice(ModelMutation):
 
     @classmethod
     def clean_input(cls, info, instance, data):
-        cleaning_map = {
-            "url": InvoiceErrorCode.EMPTY_URL,
-            "number": InvoiceErrorCode.EMPTY_NUMBER,
-        }
-        for field, error_code in cleaning_map.items():
+        validation_errors = {}
+        for field in ["url", "number"]:
             if data["input"][field] == "":
-                raise ValidationError(
-                    {
-                        field: ValidationError(
-                            f"{field} cannot be empty.", code=error_code,
-                        )
-                    }
+                validation_errors[field] = ValidationError(
+                    f"{field} cannot be empty.", code=InvoiceErrorCode.REQUIRED,
                 )
+        if validation_errors:
+            raise ValidationError(validation_errors)
         return data["input"]
 
     @classmethod
