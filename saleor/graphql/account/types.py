@@ -12,7 +12,7 @@ from ...order import models as order_models
 from ..checkout.types import Checkout
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import PrefetchingConnectionField
-from ..core.types import CountryDisplay, Image, PermissionDisplay
+from ..core.types import CountryDisplay, Image, Permission
 from ..core.utils import get_node_optimized
 from ..decorators import one_of_permissions_required, permission_required
 from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
@@ -190,7 +190,7 @@ class ServiceAccountToken(CountableDjangoObjectType):
 @key(fields="id")
 class ServiceAccount(CountableDjangoObjectType):
     permissions = graphene.List(
-        PermissionDisplay, description="List of the service's permissions."
+        Permission, description="List of the service's permissions."
     )
     created = graphene.DateTime(
         description="The date and time when the service account was created."
@@ -269,7 +269,7 @@ class User(CountableDjangoObjectType):
         model_field="orders",
     )
     permissions = gql_optimizer.field(
-        graphene.List(PermissionDisplay, description="List of user's permissions."),
+        graphene.List(Permission, description="List of user's permissions."),
         model_field="user_permissions",
     )
     permission_groups = gql_optimizer.field(
@@ -463,9 +463,7 @@ class StaffNotificationRecipient(CountableDjangoObjectType):
 @key(fields="id")
 class Group(CountableDjangoObjectType):
     users = graphene.List(User, description="List of group users")
-    permissions = graphene.List(
-        PermissionDisplay, description="List of group permissions"
-    )
+    permissions = graphene.List(Permission, description="List of group permissions")
     user_can_manage = graphene.Boolean(
         required=True,
         description=(
