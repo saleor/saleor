@@ -1,7 +1,18 @@
+import uuid
+
+import graphene
 import pytest
 from prices import Money
 
-from saleor.product.models import Category, Collection, Product
+from saleor.product.models import (
+    Category,
+    Collection,
+    Product,
+    ProductType,
+    ProductVariant,
+)
+from saleor.product.utils.attributes import associate_attribute_values_to_instance
+from saleor.warehouse.models import Stock
 
 from ..utils import get_graphql_content
 
@@ -260,3 +271,285 @@ def test_collections_pagination_with_filtering(
     assert collections_order[0] == collections_nodes[0]["node"]["name"]
     assert collections_order[1] == collections_nodes[1]["node"]["name"]
     assert len(collections_nodes) == page_size
+
+
+@pytest.fixture
+def products_for_pagination(product_type, color_attribute, category, warehouse):
+    product_type2 = ProductType.objects.create(name="Apple")
+    products = Product.objects.bulk_create(
+        [
+            Product(
+                name="Product1",
+                slug="prod1",
+                price=Money("10.00", "USD"),
+                category=category,
+                product_type=product_type2,
+                is_published=True,
+                description="desc1",
+            ),
+            Product(
+                name="ProductProduct1",
+                slug="prod_prod1",
+                price=Money("15.00", "USD"),
+                category=category,
+                product_type=product_type,
+                is_published=False,
+            ),
+            Product(
+                name="ProductProduct2",
+                slug="prod_prod2",
+                price=Money("8.00", "USD"),
+                category=category,
+                product_type=product_type2,
+                is_published=True,
+            ),
+            Product(
+                name="Product2",
+                slug="prod2",
+                price=Money("7.00", "USD"),
+                category=category,
+                product_type=product_type,
+                is_published=False,
+                description="desc2",
+            ),
+            Product(
+                name="Product3",
+                slug="prod3",
+                price=Money("15.00", "USD"),
+                category=category,
+                product_type=product_type2,
+                is_published=True,
+                description="desc3",
+            ),
+        ]
+    )
+
+    product_attrib_values = color_attribute.values.all()
+    associate_attribute_values_to_instance(
+        products[1], color_attribute, product_attrib_values[0]
+    )
+    associate_attribute_values_to_instance(
+        products[3], color_attribute, product_attrib_values[1]
+    )
+
+    variants = ProductVariant.objects.bulk_create(
+        [
+            ProductVariant(
+                product=products[0],
+                sku=str(uuid.uuid4()).replace("-", ""),
+                track_inventory=True,
+            ),
+            ProductVariant(
+                product=products[2],
+                sku=str(uuid.uuid4()).replace("-", ""),
+                track_inventory=True,
+            ),
+            ProductVariant(
+                product=products[4],
+                sku=str(uuid.uuid4()).replace("-", ""),
+                track_inventory=True,
+            ),
+        ]
+    )
+    Stock.objects.bulk_create(
+        [
+            Stock(warehouse=warehouse, product_variant=variants[0], quantity=100),
+            Stock(warehouse=warehouse, product_variant=variants[1], quantity=0),
+            Stock(warehouse=warehouse, product_variant=variants[2], quantity=0),
+        ]
+    )
+
+    return products
+
+
+QUERY_PRODUCTS_PAGINATION = """
+    query (
+        $first: Int, $last: Int, $after: String, $before: String,
+        $sortBy: ProductOrder, $filter: ProductFilterInput
+    ){
+        products (
+            first: $first, last: $last, after: $after, before: $before,
+            sortBy: $sortBy, filter: $filter
+        ) {
+            edges {
+                node {
+                    name
+                }
+            }
+            pageInfo{
+                startCursor
+                endCursor
+                hasNextPage
+                hasPreviousPage
+            }
+        }
+    }
+"""
+
+
+@pytest.mark.parametrize(
+    "sort_by, products_order",
+    [
+        ({"field": "NAME", "direction": "ASC"}, ["Product1", "Product2", "Product3"]),
+        (
+            {"field": "NAME", "direction": "DESC"},
+            ["ProductProduct2", "ProductProduct1", "Product3"],
+        ),
+        (
+            {"field": "PRICE", "direction": "ASC"},
+            ["Product2", "ProductProduct2", "Product1"],
+        ),
+        (
+            {"field": "TYPE", "direction": "ASC"},
+            ["Product1", "ProductProduct2", "Product3"],
+        ),
+        (
+            {"field": "PUBLISHED", "direction": "ASC"},
+            ["ProductProduct1", "Product2", "Product1"],
+        ),
+    ],
+)
+def test_products_pagination_with_sorting(
+    sort_by,
+    products_order,
+    staff_api_client,
+    permission_manage_products,
+    products_for_pagination,
+):
+    page_size = 3
+
+    variables = {"first": page_size, "after": None, "sortBy": sort_by}
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCTS_PAGINATION,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    products_nodes = content["data"]["products"]["edges"]
+    assert products_order[0] == products_nodes[0]["node"]["name"]
+    assert products_order[1] == products_nodes[1]["node"]["name"]
+    assert products_order[2] == products_nodes[2]["node"]["name"]
+    assert len(products_nodes) == page_size
+
+
+def test_products_pagination_with_sorting_by_attribute(
+    staff_api_client,
+    permission_manage_products,
+    products_for_pagination,
+    color_attribute,
+):
+    page_size = 3
+    products_order = ["Product2", "ProductProduct1", "Product1"]
+    attribute_id = graphene.Node.to_global_id("Attribute", color_attribute.id)
+
+    sort_by = {"attributeId": attribute_id, "direction": "ASC"}
+    variables = {"first": page_size, "after": None, "sortBy": sort_by}
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCTS_PAGINATION,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    products_nodes = content["data"]["products"]["edges"]
+    assert products_order[0] == products_nodes[0]["node"]["name"]
+    assert products_order[1] == products_nodes[1]["node"]["name"]
+    assert products_order[2] == products_nodes[2]["node"]["name"]
+    assert len(products_nodes) == page_size
+
+
+@pytest.mark.parametrize(
+    "filter_by, products_order",
+    [
+        ({"isPublished": False}, ["Product2", "ProductProduct1"]),
+        ({"price": {"gte": 8, "lte": 12}}, ["Product1", "ProductProduct2"]),
+        ({"stockAvailability": "OUT_OF_STOCK"}, ["Product3", "ProductProduct2"]),
+    ],
+)
+def test_products_pagination_with_filtering(
+    filter_by,
+    products_order,
+    staff_api_client,
+    permission_manage_products,
+    products_for_pagination,
+):
+    page_size = 2
+
+    variables = {"first": page_size, "after": None, "filter": filter_by}
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCTS_PAGINATION,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    products_nodes = content["data"]["products"]["edges"]
+    assert products_order[0] == products_nodes[0]["node"]["name"]
+    assert products_order[1] == products_nodes[1]["node"]["name"]
+    assert len(products_nodes) == page_size
+
+
+def test_products_pagination_with_filtering_by_attribute(
+    staff_api_client, permission_manage_products, products_for_pagination,
+):
+    page_size = 2
+    products_order = ["Product2", "ProductProduct1"]
+    filter_by = {"attributes": [{"slug": "color", "values": ["red", "blue"]}]}
+
+    variables = {"first": page_size, "after": None, "filter": filter_by}
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCTS_PAGINATION,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    products_nodes = content["data"]["products"]["edges"]
+    assert products_order[0] == products_nodes[0]["node"]["name"]
+    assert products_order[1] == products_nodes[1]["node"]["name"]
+    assert len(products_nodes) == page_size
+
+
+def test_products_pagination_with_filtering_by_product_types(
+    staff_api_client, permission_manage_products, products_for_pagination, product_type
+):
+    page_size = 2
+    products_order = ["Product2", "ProductProduct1"]
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.id)
+    filter_by = {"productTypes": [product_type_id]}
+
+    variables = {"first": page_size, "after": None, "filter": filter_by}
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCTS_PAGINATION,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    products_nodes = content["data"]["products"]["edges"]
+    assert products_order[0] == products_nodes[0]["node"]["name"]
+    assert products_order[1] == products_nodes[1]["node"]["name"]
+    assert len(products_nodes) == page_size
+
+
+def test_products_pagination_with_filtering_by_stocks(
+    staff_api_client, permission_manage_products, products_for_pagination, warehouse
+):
+    page_size = 2
+    products_order = ["Product3", "ProductProduct2"]
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
+    filter_by = {"stocks": {"warehouseIds": [warehouse_id], "quantity": {"lte": 10}}}
+
+    variables = {"first": page_size, "after": None, "filter": filter_by}
+    response = staff_api_client.post_graphql(
+        QUERY_PRODUCTS_PAGINATION,
+        variables,
+        permissions=[permission_manage_products],
+        check_no_permissions=False,
+    )
+    content = get_graphql_content(response)
+    products_nodes = content["data"]["products"]["edges"]
+    assert products_order[0] == products_nodes[0]["node"]["name"]
+    assert products_order[1] == products_nodes[1]["node"]["name"]
+    assert len(products_nodes) == page_size
