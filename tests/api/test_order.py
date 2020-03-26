@@ -2859,7 +2859,6 @@ REQUEST_DELETE_INVOICE_MUTATION = """
         ) {
             invoiceErrors {
                 field
-                message
                 code
             }
         }
