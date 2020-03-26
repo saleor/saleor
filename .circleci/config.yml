@@ -33,9 +33,10 @@ jobs:
           name: Push Docker image
           command: |
             docker login -u $DOCKERCLOUD_USER -p $DOCKERCLOUD_PASS
-            docker tag mirumee/saleor:latest mirumee/saleor:$CIRCLE_SHA1
+            docker tag mirumee/saleor:latest mirumee/saleor:$CIRCLE_SHA1 mirumee/saleor:$SALEOR_VERSION
             docker push mirumee/saleor:$CIRCLE_SHA1
             docker push mirumee/saleor:latest
+            docker push mirumee/saleor:$SALEOR_VERSION
       - run:
           name: Deploy saleor-demo
           command: |
