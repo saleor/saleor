@@ -5,6 +5,7 @@ from unittest.mock import ANY, MagicMock, Mock, patch
 import graphene
 import jwt
 import pytest
+from django.contrib.auth.models import Group
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 from django.core.files import File
@@ -311,6 +312,14 @@ def test_query_staff_user(
     staff_user = group.user_set.first()
     staff_user.user_permissions.add(permission_manage_orders, permission_manage_staff)
 
+    # another user group
+    group2 = Group.objects.create(name="another user group")
+    group2.user_set.add(staff_user)
+
+    # another group (not user group) with permission_manage_users
+    group3 = Group.objects.create(name="another group")
+    group3.permissions.add(permission_manage_users)
+
     avatar_mock = MagicMock(spec=File)
     avatar_mock.name = "image2.jpg"
     staff_user.avatar = avatar_mock
@@ -333,8 +342,11 @@ def test_query_staff_user(
     assert data["orders"]["totalCount"] == staff_user.orders.count()
     assert data["avatar"]["url"]
 
-    assert len(data["permissionGroups"]) == 1
-    assert data["permissionGroups"][0]["name"] == group.name
+    assert len(data["permissionGroups"]) == 2
+    assert {group_data["name"] for group_data in data["permissionGroups"]} == {
+        group.name,
+        group2.name,
+    }
     assert len(data["userPermissions"]) == 4
 
     formated_user_permissions_result = [
@@ -346,7 +358,7 @@ def test_query_staff_user(
     ]
     all_permissions = group.permissions.all() | staff_user.user_permissions.all()
     for perm in all_permissions:
-        source_groups = {group.name for group in perm.group_set.all()}
+        source_groups = {group.name for group in perm.group_set.filter(user=staff_user)}
         expected_data = {"code": perm.codename, "groups": source_groups}
         assert expected_data in formated_user_permissions_result
 

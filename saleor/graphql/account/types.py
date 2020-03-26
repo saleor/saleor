@@ -258,8 +258,9 @@ class UserPermission(Permission):
 
     def resolve_source_permission_groups(root: Permission, _info, user_id, **_kwargs):
         user_id = from_global_id_strict_type(user_id, only_type="User", field="pk")
-        user = models.User.objects.get(pk=user_id)  # type: ignore
-        groups = user.groups.filter(permissions__name=root.name)
+        groups = auth_models.Group.objects.filter(
+            user__pk=user_id, permissions__name=root.name
+        )
         return groups
 
 
