@@ -4566,7 +4566,8 @@ type User implements Node & ObjectWithMetadata {
   checkout: Checkout
   giftCards(before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
   orders(before: String, after: String, first: Int, last: Int): OrderCountableConnection
-  permissions: [Permission]
+  permissions: [Permission] @deprecated(reason: "Will be removed in Saleor 2.11.Use the `userPermissions` instead.")
+  userPermissions: [UserPermission]
   permissionGroups: [Group]
   avatar(size: Int): Image
   events: [CustomerEvent]
@@ -4624,6 +4625,12 @@ input UserCreateInput {
   isActive: Boolean
   note: String
   redirectUrl: String
+}
+
+type UserPermission {
+  code: PermissionEnum!
+  name: String!
+  sourcePermissionGroups(userId: ID!): [Group!]
 }
 
 enum UserSortField {
