@@ -82,6 +82,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Stock management refactor - #5323 by @IKarbowiak
 - Add discount error codes - #5348 by @IKarbowiak
 - Add benchmarks to checkout mutations - #5339 by @fowczarek
+- Push version tag to Docker Hub - #5394 by @machadovilaca
 
 ## 2.9.0
 
