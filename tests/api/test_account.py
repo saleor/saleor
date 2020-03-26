@@ -119,6 +119,10 @@ def test_token_create_user_data(permission_manage_orders, staff_api_client, staf
                     code
                     name
                 }
+                userPermissions {
+                    code
+                    name
+                }
             }
         }
     }
@@ -135,6 +139,9 @@ def test_token_create_user_data(permission_manage_orders, staff_api_client, staf
     token_data = content["data"]["tokenCreate"]
     assert token_data["user"]["id"] == user_id
     assert token_data["user"]["email"] == staff_user.email
+    assert token_data["user"]["userPermissions"][0]["name"] == name
+    assert token_data["user"]["userPermissions"][0]["code"] == "MANAGE_ORDERS"
+    # deprecated, to remove in #5389
     assert token_data["user"]["permissions"][0]["name"] == name
     assert token_data["user"]["permissions"][0]["code"] == "MANAGE_ORDERS"
 
@@ -196,6 +203,12 @@ FULL_USER_QUERY = """
             }
             permissions {
                 code
+            }
+            userPermissions {
+                code
+                sourcePermissionGroups(userId: $id) {
+                    name
+                }
             }
             permissionGroups {
                 name
@@ -322,11 +335,23 @@ def test_query_staff_user(
 
     assert len(data["permissionGroups"]) == 1
     assert data["permissionGroups"][0]["name"] == group.name
-    assert {
-        perm["code"].lower() for perm in data["permissionGroups"][0]["permissions"]
-    } == set(group.permissions.values_list("codename", flat=True))
-    assert len(data["permissions"]) == 4
+    assert len(data["userPermissions"]) == 4
+
+    formated_user_permissions_result = [
+        {
+            "code": perm["code"].lower(),
+            "groups": {group["name"] for group in perm["sourcePermissionGroups"]},
+        }
+        for perm in data["userPermissions"]
+    ]
     all_permissions = group.permissions.all() | staff_user.user_permissions.all()
+    for perm in all_permissions:
+        source_groups = {group.name for group in perm.group_set.all()}
+        expected_data = {"code": perm.codename, "groups": source_groups}
+        assert expected_data in formated_user_permissions_result
+
+    # deprecated, to remove in #5389
+    assert len(data["permissions"]) == 4
     assert {perm["code"].lower() for perm in data["permissions"]} == set(
         all_permissions.values_list("codename", flat=True)
     )
@@ -1416,6 +1441,9 @@ STAFF_CREATE_MUTATION = """
                 email
                 isStaff
                 isActive
+                userPermissions {
+                    code
+                }
                 permissions {
                     code
                 }
@@ -1452,6 +1480,10 @@ def test_staff_create(
         r"http://testserver/media/user-avatars/avatar\d+.*",
         data["user"]["avatar"]["url"],
     )
+    permissions = data["user"]["userPermissions"]
+    assert permissions[0]["code"] == "MANAGE_PRODUCTS"
+
+    # deprecated, to remove in #5389
     permissions = data["user"]["permissions"]
     assert permissions[0]["code"] == "MANAGE_PRODUCTS"
 
@@ -1552,6 +1584,9 @@ def test_staff_update(staff_api_client, permission_manage_staff, media_root):
                 message
             }
             user {
+                userPermissions {
+                    code
+                }
                 permissions {
                     code
                 }
@@ -1570,8 +1605,10 @@ def test_staff_update(staff_api_client, permission_manage_staff, media_root):
     content = get_graphql_content(response)
     data = content["data"]["staffUpdate"]
     assert data["errors"] == []
-    assert data["user"]["permissions"] == []
+    assert data["user"]["userPermissions"] == []
     assert not data["user"]["isActive"]
+    # deprecated, to remove in #5389
+    assert data["user"]["permissions"] == []
 
 
 @patch("saleor.graphql.account.mutations.staff.get_random_avatar")
