@@ -31,7 +31,7 @@ from saleor.payment.models import Payment
 from saleor.shipping.models import ShippingMethod
 from saleor.warehouse.models import Stock
 
-from .utils import assert_field_has_error, assert_no_permission, get_graphql_content
+from .utils import assert_no_permission, get_graphql_content
 
 
 @pytest.fixture
@@ -2823,7 +2823,6 @@ REQUEST_INVOICE_MUTATION = """
         ) {
             invoiceErrors {
                 field
-                message
                 code
             }
         }
@@ -2846,7 +2845,6 @@ CREATE_INVOICE_MUTATION = """
             }
             invoiceErrors {
                 field
-                message
                 code
             }
         }
@@ -2861,7 +2859,6 @@ DELETE_INVOICE_MUTATION = """
         ) {
             invoiceErrors {
                 field
-                message
                 code
             }
         }
@@ -2884,7 +2881,6 @@ UPDATE_INVOICE_MUTATION = """
             }
             invoiceErrors {
                 field
-                message
                 code
             }
         }
@@ -3104,8 +3100,14 @@ def test_create_invoice_empty_params(
     )
     content = get_graphql_content(response)
     errors = content["data"]["createInvoice"]["invoiceErrors"]
-    for field in ("number", "url"):
-        assert_field_has_error(field, InvoiceErrorCode.REQUIRED.name, errors)
+    assert errors[0] == {
+        "field": "url",
+        "code": InvoiceErrorCode.REQUIRED.name,
+    }
+    assert errors[1] == {
+        "field": "number",
+        "code": InvoiceErrorCode.REQUIRED.name,
+    }
 
     assert not Invoice.objects.filter(
         order_id=order.pk, status=InvoiceStatus.READY
