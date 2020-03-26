@@ -547,6 +547,52 @@ class RequestInvoice(BaseMutation):
         return RequestInvoice()
 
 
+class CreateInvoiceInput(graphene.InputObjectType):
+    number = graphene.String(required=True, description="Invoice number")
+    url = graphene.String(required=True, description="URL of an invoice to download.")
+
+
+class CreateInvoice(ModelMutation):
+    class Arguments:
+        order_id = graphene.ID(
+            required=True, description="ID of the order related to invoice."
+        )
+        input = CreateInvoiceInput(
+            required=True, description="Fields required when creating an invoice."
+        )
+
+    class Meta:
+        description = "Creates an invoice."
+        model = models.Invoice
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = InvoiceError
+        error_type_field = "invoice_errors"
+
+    @classmethod
+    def clean_input(cls, info, instance, data):
+        validation_errors = {}
+        for field in ["url", "number"]:
+            if data["input"][field] == "":
+                validation_errors[field] = ValidationError(
+                    f"{field} cannot be empty.", code=InvoiceErrorCode.REQUIRED,
+                )
+        if validation_errors:
+            raise ValidationError(validation_errors)
+        return data["input"]
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        instance = cls.get_node_or_error(
+            info, data["order_id"], only_type=Order, field="orderId"
+        )
+        cleaned_input = cls.clean_input(info, instance, data)
+        invoice = cls.construct_instance(cls.get_instance(info, **data), cleaned_input)
+        invoice.order = instance
+        invoice.status = InvoiceStatus.READY
+        invoice.save()
+        return CreateInvoice(invoice=invoice)
+
+
 class RequestDeleteInvoice(ModelMutation):
     class Arguments:
         id = graphene.ID(
