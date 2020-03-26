@@ -81,6 +81,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Require non-empty message in orderAddNote mutation - #5316 by @maarcingebala
 - Stock management refactor - #5323 by @IKarbowiak
 - Add discount error codes - #5348 by @IKarbowiak
+- Add benchmarks to checkout mutations - #5339 by @fowczarek
 
 ## 2.9.0
 
