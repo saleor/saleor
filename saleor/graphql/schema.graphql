@@ -1318,6 +1318,17 @@ type CountryDisplay {
   vat: VAT
 }
 
+type CreateInvoice {
+  errors: [Error!]!
+  invoiceErrors: [InvoiceError!]!
+  invoice: Invoice
+}
+
+input CreateInvoiceInput {
+  number: String!
+  url: String!
+}
+
 type CreateToken {
   token: String
   errors: [Error]!
@@ -1869,6 +1880,7 @@ type InvoiceError {
 }
 
 enum InvoiceErrorCode {
+  REQUIRED
   URL_OR_NUMBER_NOT_SET
   NOT_FOUND
 }
@@ -2359,6 +2371,7 @@ type Mutation {
   menuItemTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): MenuItemTranslate
   menuItemMove(menu: ID!, moves: [MenuItemMoveInput]!): MenuItemMove
   requestInvoice(number: String, orderId: ID!): RequestInvoice
+  createInvoice(input: CreateInvoiceInput!, orderId: ID!): CreateInvoice
   deleteInvoice(id: ID!): DeleteInvoice
   updateInvoice(id: ID!, input: UpdateInvoiceInput!): UpdateInvoice
   giftCardActivate(id: ID!): GiftCardActivate
