@@ -593,6 +593,28 @@ class CreateInvoice(ModelMutation):
         return CreateInvoice(invoice=invoice)
 
 
+class RequestDeleteInvoice(ModelMutation):
+    class Arguments:
+        id = graphene.ID(
+            required=True, description="ID of an invoice to request the deletion."
+        )
+
+    class Meta:
+        description = "Requests deletion of an invoice."
+        model = models.Invoice
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = InvoiceError
+        error_type_field = "invoice_errors"
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        invoice = cls.get_node_or_error(info, data["id"], only_type=Invoice)
+        invoice.status = InvoiceStatus.PENDING_DELETE
+        invoice.save()
+        info.context.extensions.invoice_delete(invoice)
+        return RequestDeleteInvoice()
+
+
 class DeleteInvoice(ModelDeleteMutation):
     class Arguments:
         id = graphene.ID(required=True, description="ID of an invoice to delete.")
@@ -603,13 +625,6 @@ class DeleteInvoice(ModelDeleteMutation):
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = InvoiceError
         error_type_field = "invoice_errors"
-
-    @classmethod
-    def perform_mutation(cls, _root, info, **data):
-        info.context.extensions.invoice_delete(
-            cls.get_node_or_error(info, data["id"], only_type=Invoice)
-        )
-        return super().perform_mutation(_root, info, **data)
 
 
 class UpdateInvoiceInput(graphene.InputObjectType):

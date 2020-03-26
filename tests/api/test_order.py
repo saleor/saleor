@@ -2852,6 +2852,20 @@ CREATE_INVOICE_MUTATION = """
 """
 
 
+REQUEST_DELETE_INVOICE_MUTATION = """
+    mutation RequestDeleteInvoice($id: ID!) {
+        requestDeleteInvoice(
+            id: $id
+        ) {
+            invoiceErrors {
+                field
+                code
+            }
+        }
+    }
+"""
+
+
 DELETE_INVOICE_MUTATION = """
     mutation DeleteInvoice($id: ID!) {
         deleteInvoice(
@@ -2936,16 +2950,52 @@ def test_request_invoice_no_permissions(staff_api_client, orders):
 
 
 @mock.patch("saleor.extensions.base_plugin.BasePlugin.invoice_delete")
-def test_delete_invoice(
+def test_request_delete_invoice(
     plugin_mock, staff_api_client, permission_manage_orders, orders
 ):
     invoice = Invoice.objects.create(order=orders[0])
     variables = {"id": graphene.Node.to_global_id("Invoice", invoice.pk)}
-    staff_api_client.post_graphql(
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    staff_api_client.post_graphql(REQUEST_DELETE_INVOICE_MUTATION, variables)
+    invoice.refresh_from_db()
+    assert invoice.status == InvoiceStatus.PENDING_DELETE
+    plugin_mock.assert_called_once_with(invoice, previous_value=None)
+
+
+@mock.patch("saleor.extensions.base_plugin.BasePlugin.invoice_delete")
+def test_request_delete_invoice_invalid_id(
+    plugin_mock, staff_api_client, permission_manage_orders, orders
+):
+    variables = {"id": graphene.Node.to_global_id("Invoice", 1337)}
+    staff_api_client.user.user_permissions.add(permission_manage_orders)
+    response = staff_api_client.post_graphql(REQUEST_DELETE_INVOICE_MUTATION, variables)
+    content = get_graphql_content(response)
+    errors = content["data"]["requestDeleteInvoice"]["invoiceErrors"][0]
+    assert errors["code"] == InvoiceErrorCode.NOT_FOUND.name
+    assert errors["field"] == "id"
+    plugin_mock.assert_not_called()
+
+
+@mock.patch("saleor.extensions.base_plugin.BasePlugin.invoice_delete")
+def test_request_delete_invoice_no_permission(
+    plugin_mock, staff_api_client, permission_manage_orders, orders
+):
+    invoice = Invoice.objects.create(order=orders[0])
+    variables = {"id": graphene.Node.to_global_id("Invoice", invoice.pk)}
+    response = staff_api_client.post_graphql(REQUEST_DELETE_INVOICE_MUTATION, variables)
+    assert_no_permission(response)
+    plugin_mock.assert_not_called()
+
+
+def test_delete_invoice(staff_api_client, permission_manage_orders, orders):
+    invoice = Invoice.objects.create(order=orders[0])
+    variables = {"id": graphene.Node.to_global_id("Invoice", invoice.pk)}
+    response = staff_api_client.post_graphql(
         DELETE_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
     )
+    content = get_graphql_content(response)
+    assert not content["data"]["deleteInvoice"]["invoiceErrors"]
     assert not Invoice.objects.filter(id=invoice.pk).exists()
-    plugin_mock.assert_called_once_with(invoice, previous_value=None)
 
 
 @mock.patch("saleor.extensions.base_plugin.BasePlugin.invoice_delete")
@@ -2960,7 +3010,7 @@ def test_delete_invoice_invalid_id(
     errors = content["data"]["deleteInvoice"]["invoiceErrors"][0]
     assert errors["code"] == InvoiceErrorCode.NOT_FOUND.name
     assert errors["field"] == "id"
-    assert not plugin_mock.called
+    plugin_mock.assert_not_called()
 
 
 def test_delete_invoice_no_permissions(staff_api_client, orders):
