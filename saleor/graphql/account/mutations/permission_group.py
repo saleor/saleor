@@ -6,13 +6,19 @@ from django.contrib.auth import models as auth_models
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
+from ....account import models
 from ....account.error_codes import PermissionGroupErrorCode
 from ....core.permissions import AccountPermissions, get_permissions
-from ...account.utils import can_user_manage_group, get_out_of_scope_permissions
+from ...account.utils import (
+    can_user_manage_group,
+    get_out_of_scope_permissions,
+    get_out_of_scope_users,
+)
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types.common import PermissionGroupError
-from ..types import Group
+from ...utils import resolve_global_ids_to_primary_keys
+from ..types import Group, User
 
 
 class PermissionGroupCreateInput(graphene.InputObjectType):
@@ -54,16 +60,16 @@ class PermissionGroupCreate(ModelMutation):
     def clean_input(
         cls, info, instance, data,
     ):
-        cleaned_input = super().clean_input(info, instance, data)
         errors = defaultdict(list)
-        cls.clean_permissions(info, errors, "permissions", cleaned_input)
-        if "users" in cleaned_input:
-            cls.check_if_users_are_staff(errors, "users", cleaned_input)
+        if "users" in data:
+            cls.can_manage_users(info, errors, "users", data)
+            cls.check_if_users_are_staff(errors, "users", data)
 
+        cls.clean_permissions(info, errors, "permissions", data)
         if errors:
             raise ValidationError(errors)
 
-        return cleaned_input
+        return data
 
     @classmethod
     def clean_permissions(
@@ -87,14 +93,41 @@ class PermissionGroupCreate(ModelMutation):
             cleaned_input[field] = get_permissions(cleaned_input[field])
 
     @classmethod
+    def can_manage_users(
+        cls,
+        info,
+        errors: Dict[Optional[str], List[ValidationError]],
+        field: str,
+        input_data: dict,
+    ):
+        """Check if user from request can manage users from input."""
+        user = info.context.user
+        user_ids = input_data[field]
+        _, pks = resolve_global_ids_to_primary_keys(user_ids, User)
+        users = models.User.objects.filter(pk__in=pks)
+        input_data[field] = users
+
+        out_of_scope_users = get_out_of_scope_users(user, users)
+        if out_of_scope_users:
+            # add error
+            ids = [
+                graphene.Node.to_global_id("User", user_instance.pk)
+                for user_instance in out_of_scope_users
+            ]
+            error_msg = "You can't manage these users."
+            code = PermissionGroupErrorCode.OUT_OF_SCOPE_USER.value
+            params = {"users": ids}
+            cls.update_errors(errors, error_msg, field, code, params)
+
+    @classmethod
     def check_if_users_are_staff(
         cls,
         errors: Dict[Optional[str], List[ValidationError]],
         field: str,
-        cleaned_input: dict,
+        input_data: dict,
     ):
         """Check if all of the users are staff members."""
-        users = cleaned_input[field]
+        users = input_data[field]
         non_staff_users = [user.pk for user in users if not user.is_staff]
         if non_staff_users:
             # add error
@@ -193,32 +226,30 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         cls.check_for_duplicates(errors, data, permission_fields)
         cls.check_for_duplicates(errors, data, user_fields)
 
-        cleaned_input = super().clean_input(info, instance, data)
-
-        cls.clean_permissions(info, errors, "add_permissions", cleaned_input)
-        if "remove_permissions" in cleaned_input:
-            cleaned_input["remove_permissions"] = get_permissions(
-                cleaned_input["remove_permissions"]
-            )
-        cls.clean_users(info, errors, cleaned_input)
+        cls.clean_users(info, errors, data)
+        cls.clean_permissions(info, errors, "add_permissions", data)
+        if "remove_permissions" in data:
+            data["remove_permissions"] = get_permissions(data["remove_permissions"])
 
         if errors:
             raise ValidationError(errors)
 
-        return cleaned_input
+        return data
 
     @classmethod
-    def clean_users(cls, info, errors: dict, cleaned_input: dict):
-        if "remove_users" in cleaned_input:
-            cls.clean_remove_users(info, errors, cleaned_input)
-        if "add_users" in cleaned_input:
-            cls.check_if_users_are_staff(errors, "add_users", cleaned_input)
+    def clean_users(cls, info, errors: dict, input_data: dict):
+        if "remove_users" in input_data:
+            cls.can_manage_users(info, errors, "remove_users", input_data)
+            cls.clean_remove_users(info, errors, input_data)
+        if "add_users" in input_data:
+            cls.can_manage_users(info, errors, "add_users", input_data)
+            cls.check_if_users_are_staff(errors, "add_users", input_data)
 
     @classmethod
-    def clean_remove_users(cls, info, errors, cleaned_input):
+    def clean_remove_users(cls, info, errors, input_data):
         """Ensure user doesn't remove user's last group."""
         user = info.context.user
-        remove_users = cleaned_input["remove_users"]
+        remove_users = input_data["remove_users"]
         if user in remove_users and user.groups.count() == 1:
             # add error
             error_msg = "You cannot remove yourself from your last group."
