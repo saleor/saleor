@@ -5,7 +5,7 @@ I want to merge this change because...
 # Impact
 
 * [ ] New migrations
-* [ ] New API fields or mutations
+* [ ] New/Updated API fields or mutations
 * [ ] Deprecated API fields or mutations
 * [ ] Removed API types, fields, or mutations
 
