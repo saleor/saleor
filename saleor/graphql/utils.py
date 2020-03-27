@@ -10,7 +10,7 @@ from graphql_jwt.utils import jwt_payload
 from graphql_relay import from_global_id
 
 from .core.enums import PermissionEnum, ReportingPeriod
-from .core.types import PermissionDisplay, SortInputObjectType
+from .core.types import Permission, SortInputObjectType
 
 ERROR_COULD_NO_RESOLVE_GLOBAL_ID = (
     "Could not resolve to a node with the global id list of '%s'."
@@ -163,7 +163,7 @@ def filter_by_period(queryset, period, field_name):
 
 
 def format_permissions_for_display(permissions):
-    """Transform permissions queryset into PermissionDisplay list.
+    """Transform permissions queryset into Permission list.
 
     Keyword Arguments:
         permissions - queryset with permissions
@@ -174,7 +174,7 @@ def format_permissions_for_display(permissions):
     ).values("name", "formated_codename")
 
     formatted_permissions = [
-        PermissionDisplay(
+        Permission(
             code=PermissionEnum.get(data["formated_codename"]), name=data["name"]
         )
         for data in permissions_data
