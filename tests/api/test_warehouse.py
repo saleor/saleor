@@ -606,14 +606,14 @@ def test_shipping_zone_can_be_assigned_only_to_one_warehouse(
 
 def test_shipping_zone_assign_to_warehouse(
     staff_api_client,
-    warehouse_wo_shipping_zone,
+    warehouse_no_shipping_zone,
     shipping_zone,
     permission_manage_products,
 ):
-    assert not warehouse_wo_shipping_zone.shipping_zones.all()
+    assert not warehouse_no_shipping_zone.shipping_zones.all()
     staff_api_client.user.user_permissions.add(permission_manage_products)
     variables = {
-        "id": graphene.Node.to_global_id("Warehouse", warehouse_wo_shipping_zone.pk),
+        "id": graphene.Node.to_global_id("Warehouse", warehouse_no_shipping_zone.pk),
         "shippingZoneIds": [
             graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
         ],
@@ -622,21 +622,21 @@ def test_shipping_zone_assign_to_warehouse(
     staff_api_client.post_graphql(
         MUTATION_ASSIGN_SHIPPING_ZONE_WAREHOUSE, variables=variables
     )
-    warehouse_wo_shipping_zone.refresh_from_db()
+    warehouse_no_shipping_zone.refresh_from_db()
     shipping_zone.refresh_from_db()
-    assert warehouse_wo_shipping_zone.shipping_zones.first().pk == shipping_zone.pk
+    assert warehouse_no_shipping_zone.shipping_zones.first().pk == shipping_zone.pk
 
 
 def test_empty_shipping_zone_assign_to_warehouse(
     staff_api_client,
-    warehouse_wo_shipping_zone,
+    warehouse_no_shipping_zone,
     shipping_zone,
     permission_manage_products,
 ):
-    assert not warehouse_wo_shipping_zone.shipping_zones.all()
+    assert not warehouse_no_shipping_zone.shipping_zones.all()
     staff_api_client.user.user_permissions.add(permission_manage_products)
     variables = {
-        "id": graphene.Node.to_global_id("Warehouse", warehouse_wo_shipping_zone.pk),
+        "id": graphene.Node.to_global_id("Warehouse", warehouse_no_shipping_zone.pk),
         "shippingZoneIds": [],
     }
 
@@ -645,10 +645,10 @@ def test_empty_shipping_zone_assign_to_warehouse(
     )
     content = get_graphql_content(response)
     errors = content["data"]["assignWarehouseShippingZone"]["warehouseErrors"]
-    warehouse_wo_shipping_zone.refresh_from_db()
+    warehouse_no_shipping_zone.refresh_from_db()
     shipping_zone.refresh_from_db()
 
-    assert not warehouse_wo_shipping_zone.shipping_zones.all()
+    assert not warehouse_no_shipping_zone.shipping_zones.all()
     assert errors[0]["field"] == "shippingZoneId"
     assert errors[0]["code"] == "GRAPHQL_ERROR"
 

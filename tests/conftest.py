@@ -1897,9 +1897,11 @@ def warehouse(address, shipping_zone):
 
 
 @pytest.fixture
-def warehouse_wo_shipping_zone(address, shipping_zone):
+def warehouse_no_shipping_zone(address):
     warehouse = Warehouse.objects.create(
-        address=address, name="Example Warehouse", email="test@example.com"
+        address=address,
+        name="Warehouse withot shipping zone",
+        email="test2@example.com",
     )
     return warehouse
 
