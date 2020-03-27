@@ -102,6 +102,12 @@ def send_staff_order_confirmation(order_pk, redirect_url):
 
 
 @app.task
+def send_invoice(invoice_pk):
+    """Sends an invoice to user of related order with URL to download it."""
+    pass
+
+
+@app.task
 def send_fulfillment_confirmation(order_pk, fulfillment_pk):
     email_data = collect_data_for_fullfillment_email(
         order_pk, CONFIRM_FULFILLMENT_TEMPLATE, fulfillment_pk
