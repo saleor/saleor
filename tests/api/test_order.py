@@ -2902,6 +2902,20 @@ UPDATE_INVOICE_MUTATION = """
 """
 
 
+SEND_INVOICE_MUTATION = """
+    mutation SendInvoice($id: ID!) {
+        sendInvoiceEmail(
+            id: $id
+        ) {
+            invoiceErrors {
+                field
+                code
+            }
+        }
+    }
+"""
+
+
 @mock.patch("saleor.extensions.base_plugin.BasePlugin.invoice_request")
 def test_request_invoice(
     plugin_mock, staff_api_client, permission_manage_orders, orders
@@ -3135,3 +3149,39 @@ def test_create_invoice_empty_params(
     assert not Invoice.objects.filter(
         order_id=order.pk, status=InvoiceStatus.READY
     ).exists()
+
+
+@mock.patch("saleor.order.emails.send_invoice.delay")
+def test_send_invoice(email_mock, staff_api_client, permission_manage_orders, orders):
+    number = "01/12/2020/TEST"
+    url = "http://www.example.com"
+    order = orders[0]
+    invoice = Invoice.objects.create(
+        order=order, number=number, url=url, status=InvoiceStatus.READY
+    )
+    variables = {"id": graphene.Node.to_global_id("Invoice", invoice.pk)}
+    response = staff_api_client.post_graphql(
+        SEND_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    assert not content["data"]["sendInvoiceEmail"]["invoiceErrors"]
+    email_mock.assert_called_with(invoice.pk)
+
+
+@mock.patch("saleor.order.emails.send_invoice.delay")
+def test_send_pending_invoice(
+    email_mock, staff_api_client, permission_manage_orders, orders
+):
+    invoice = Invoice.objects.create(
+        order=orders[0], number=None, url=None, status=InvoiceStatus.PENDING
+    )
+    variables = {"id": graphene.Node.to_global_id("Invoice", invoice.pk)}
+    response = staff_api_client.post_graphql(
+        SEND_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["sendInvoiceEmail"]["invoiceErrors"]
+    assert errors[0] == {"field": "invoice", "code": InvoiceErrorCode.INVALID.name}
+    assert errors[1] == {"field": "url", "code": InvoiceErrorCode.REQUIRED.name}
+    assert errors[2] == {"field": "number", "code": InvoiceErrorCode.REQUIRED.name}
+    email_mock.assert_not_called()
