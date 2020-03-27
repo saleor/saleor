@@ -1,7 +1,10 @@
+from django.contrib.auth.models import Group
+
 from saleor.core.permissions import AccountPermissions, OrderPermissions
 from saleor.graphql.account.utils import (
     can_user_manage_group,
     get_group_permission_codes,
+    get_groups_which_user_can_manage,
     get_out_of_scope_permissions,
     get_user_permissions,
 )
@@ -135,3 +138,67 @@ def test_get_user_permissions_no_permissions(staff_user):
     permissions = get_user_permissions(staff_user)
 
     assert not permissions
+
+
+def test_get_groups_which_user_can_manage(
+    staff_user,
+    permission_group_manage_users,
+    permission_manage_users,
+    permission_manage_orders,
+    permission_manage_products,
+):
+    staff_user.user_permissions.add(permission_manage_users, permission_manage_orders)
+
+    manage_orders_group = Group.objects.create(name="manage orders")
+    manage_orders_group.permissions.add(permission_manage_orders)
+
+    manage_orders_products_and_orders = Group.objects.create(
+        name="manage orders and products"
+    )
+    manage_orders_products_and_orders.permissions.add(
+        permission_manage_orders, permission_manage_products
+    )
+
+    no_permissions_group = Group.objects.create(name="empty group")
+
+    group_result = get_groups_which_user_can_manage(staff_user)
+
+    assert set(group_result) == {
+        no_permissions_group,
+        permission_group_manage_users,
+        manage_orders_group,
+    }
+
+
+def test_get_groups_which_user_can_manage_admin_user(
+    admin_user,
+    permission_group_manage_users,
+    permission_manage_users,
+    permission_manage_orders,
+    permission_manage_products,
+):
+    manage_orders_group = Group.objects.create(name="manage orders")
+    manage_orders_group.permissions.add(permission_manage_orders)
+
+    manage_orders_products_and_orders = Group.objects.create(
+        name="manage orders and products"
+    )
+    manage_orders_products_and_orders.permissions.add(
+        permission_manage_orders, permission_manage_products
+    )
+
+    Group.objects.create(name="empty group")
+
+    group_result = get_groups_which_user_can_manage(admin_user)
+
+    assert set(group_result) == set(Group.objects.all())
+
+
+def test_get_groups_which_user_can_manage_customer_user(
+    customer_user, permission_group_manage_users,
+):
+    Group.objects.create(name="empty group")
+
+    group_result = get_groups_which_user_can_manage(customer_user)
+
+    assert set(group_result) == set()
