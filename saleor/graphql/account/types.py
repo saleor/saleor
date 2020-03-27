@@ -21,8 +21,6 @@ from ..utils import format_permissions_for_display
 from ..wishlist.resolvers import resolve_wishlist_items_from_user
 from .enums import CountryCodeEnum, CustomerEventsEnum
 
-# from ..wishlist.types import WishlistItem
-
 
 class AddressInput(graphene.InputObjectType):
     first_name = graphene.String(description="Given name.")
@@ -282,9 +280,6 @@ class User(CountableDjangoObjectType):
         "saleor.graphql.payment.types.PaymentSource",
         description="List of stored payment sources.",
     )
-    # wishlist = PrefetchingConnectionField(
-    #   WishlistItem, description="User's wishlist."
-    # )
 
     class Meta:
         description = "Represents user data."
