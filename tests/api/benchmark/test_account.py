@@ -32,6 +32,7 @@ def test_query_staff_user(
     staff_user.avatar = avatar_mock
     staff_user.save()
 
+    # update query in #5389 (deprecated 'permissions' field)
     query = """
         query User($id: ID!) {
             user(id: $id) {
@@ -89,6 +90,11 @@ def test_query_staff_user(
                 }
                 permissions {
                     code
+                    name
+                }
+                userPermissions {
+                    code
+                    name
                 }
                 permissionGroups {
                     name
