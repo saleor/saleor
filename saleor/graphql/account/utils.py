@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, Optional
 
 from django.contrib.auth.models import Group, Permission
 from django.contrib.postgres.aggregates import ArrayAgg
@@ -12,6 +12,7 @@ from ...account.error_codes import AccountErrorCode
 from ...core.permissions import get_permissions
 
 if TYPE_CHECKING:
+    from django.db.models import QuerySet
     from ...account.models import User
 
 
@@ -105,7 +106,7 @@ def get_allowed_fields_camel_case(allowed_fields: set) -> set:
     return fields
 
 
-def get_user_permissions(user: "User"):
+def get_user_permissions(user: "User") -> "QuerySet":
     """Return all user permissions - from user groups and user_permissions field."""
     if user.is_superuser:
         return get_permissions()
@@ -116,7 +117,7 @@ def get_user_permissions(user: "User"):
     return permissions
 
 
-def get_out_of_scope_permissions(user: "User", permissions: List[str]):
+def get_out_of_scope_permissions(user: "User", permissions: List[str]) -> List[str]:
     """Return permissions that the user hasn't got."""
     missing_permissions = []
     for perm in permissions:
@@ -125,20 +126,20 @@ def get_out_of_scope_permissions(user: "User", permissions: List[str]):
     return missing_permissions
 
 
-def can_user_manage_group(user: "User", group: Group):
+def can_user_manage_group(user: "User", group: Group) -> bool:
     """User can't manage a group with permission that is out of the user's scope."""
     permissions = get_group_permission_codes(group)
     return user.has_perms(permissions)
 
 
-def get_group_permission_codes(group: Group):
+def get_group_permission_codes(group: Group) -> "QuerySet":
     """Return group permissions in the format '<app label>.<permission codename>'."""
     return group.permissions.annotate(
         formated_codename=Concat("content_type__app_label", Value("."), "codename")
     ).values_list("formated_codename", flat=True)
 
 
-def get_groups_which_user_can_manage(user: "User"):
+def get_groups_which_user_can_manage(user: "User") -> List[Optional[Group]]:
     """Return groups which user can manage."""
     if not user.is_staff:
         return []
