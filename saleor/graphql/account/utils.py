@@ -107,6 +107,8 @@ def get_allowed_fields_camel_case(allowed_fields: set) -> set:
 
 def get_user_permissions(user: "User"):
     """Return all user permissions - from user groups and user_permissions field."""
+    if user.is_superuser:
+        return get_permissions()
     groups = user.groups.all()
     user_permissions = user.user_permissions.all()
     group_permissions = Permission.objects.filter(group__in=groups)
@@ -141,10 +143,7 @@ def get_groups_which_user_can_manage(user: "User"):
     if not user.is_staff:
         return []
 
-    if user.is_superuser:
-        user_permissions = get_permissions()
-    else:
-        user_permissions = get_user_permissions(user)
+    user_permissions = get_user_permissions(user)
     user_permission_pks = set(user_permissions.values_list("pk", flat=True))
 
     groups = Group.objects.all().annotate(group_perms=ArrayAgg("permissions"))
