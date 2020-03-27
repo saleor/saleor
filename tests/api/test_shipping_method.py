@@ -221,9 +221,9 @@ UPDATE_SHIPPING_ZONE_QUERY = """
             shippingZone {
                 name
             }
-            errors {
+            shippingErrors {
                 field
-                message
+                code
             }
         }
     }
@@ -242,7 +242,7 @@ def test_update_shipping_zone(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
-    assert not data["errors"]
+    assert not data["shippingErrors"]
     data = content["data"]["shippingZoneUpdate"]["shippingZone"]
     assert data["name"] == name
 
@@ -264,9 +264,8 @@ def test_update_shipping_zone_default_exists(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
-    assert data["errors"]
-    assert data["errors"][0]["field"] == "default"
-    assert data["errors"][0]["message"] == ("Default shipping zone already exists.")
+    assert data["shippingErrors"][0]["field"] == "default"
+    assert data["shippingErrors"][0]["code"] == ShippingErrorCode.ALREADY_EXISTS.name
 
 
 def test_delete_shipping_zone(
@@ -302,9 +301,9 @@ PRICE_BASED_SHIPPING_QUERY = """
             name: $name, price: $price, shippingZone: $shippingZone,
             minimumOrderPrice: $minimumOrderPrice,
             maximumOrderPrice: $maximumOrderPrice, type: $type}) {
-        errors {
+        shippingErrors {
             field
-            message
+            code
         }
         shippingZone {
             id
@@ -387,10 +386,7 @@ def test_create_price_shipping_method_errors(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceCreate"]
-    assert (
-        data["errors"][0]["message"]
-        == "Maximum order price should be larger than the minimum order price."
-    )
+    assert data["shippingErrors"][0]["code"] == ShippingErrorCode.MAX_LESS_THAN_MIN.name
 
 
 WEIGHT_BASED_SHIPPING_QUERY = """
@@ -403,9 +399,9 @@ WEIGHT_BASED_SHIPPING_QUERY = """
                 name: $name, price: $price, shippingZone: $shippingZone,
                 minimumOrderWeight:$minimumOrderWeight,
                 maximumOrderWeight: $maximumOrderWeight, type: $type}) {
-            errors {
+            shippingErrors {
                 field
-                message
+                code
             }
             shippingMethod {
                 minimumOrderWeight {
@@ -479,10 +475,7 @@ def test_create_weight_shipping_method_errors(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceCreate"]
-    assert (
-        data["errors"][0]["message"]
-        == "Maximum order weight should be larger than the minimum order weight."
-    )
+    assert data["shippingErrors"][0]["code"] == ShippingErrorCode.MAX_LESS_THAN_MIN.name
 
 
 def test_update_shipping_method(
@@ -496,9 +489,9 @@ def test_update_shipping_method(
             id: $id, input: {
                 price: $price, shippingZone: $shippingZone,
                 type: $type, minimumOrderPrice: $minimumOrderPrice}) {
-            errors {
+            shippingErrors {
                 field
-                message
+                code
             }
             shippingZone {
                 id
