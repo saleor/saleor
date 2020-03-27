@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING, List
 
 from django.contrib.auth.models import Permission
-from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.exceptions import ValidationError
 from django.db.models import Value
 from django.db.models.functions import Concat
@@ -127,24 +126,10 @@ def get_out_of_scope_permissions(user: "User", permissions: List[str]):
 def get_out_of_scope_users(root_user: "User", users: "QuerySet"):
     """Return users whose permission scope is wider than the given user."""
     out_of_scope_users = []
-    root_user_permission_pks = set(
-        get_user_permissions(root_user).values_list("pk", flat=True)
-    )
-
-    users_data = users.annotate(
-        group_perms=ArrayAgg("groups__permissions"),
-        user_perms=ArrayAgg("user_permissions__pk"),
-    ).values("group_perms", "user_perms")
-
-    for index, user_data in enumerate(users_data):
-        user_permissions = set(user_data["group_perms"]).union(
-            set(user_data["user_perms"])
-        )
-        user_permissions.discard(None)
-        out_of_scope_permissions = user_permissions - root_user_permission_pks
-        if out_of_scope_permissions:
-            out_of_scope_users.append(users[index])
-
+    for user in users:
+        user_permissions = user.get_all_permissions()
+        if not root_user.has_perms(user_permissions):
+            out_of_scope_users.append(user)
     return out_of_scope_users
 
 
