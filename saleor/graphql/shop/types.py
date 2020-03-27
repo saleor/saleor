@@ -13,7 +13,7 @@ from ...product import models as product_models
 from ...site import models as site_models
 from ..account.types import Address, StaffNotificationRecipient
 from ..core.enums import WeightUnitsEnum
-from ..core.types.common import CountryDisplay, LanguageDisplay, PermissionDisplay
+from ..core.types.common import CountryDisplay, LanguageDisplay, Permission
 from ..core.utils import get_node_optimized, str_to_enum
 from ..decorators import permission_required
 from ..menu.types import Menu
@@ -110,7 +110,7 @@ class Shop(graphene.ObjectType):
     name = graphene.String(description="Shop's name.", required=True)
     navigation = graphene.Field(Navigation, description="Shop's navigation.")
     permissions = graphene.List(
-        PermissionDisplay, description="List of available permissions.", required=True
+        Permission, description="List of available permissions.", required=True
     )
     phone_prefixes = graphene.List(
         graphene.String, description="List of possible phone prefixes.", required=True
