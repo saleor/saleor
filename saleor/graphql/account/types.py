@@ -21,7 +21,7 @@ from ..utils import format_permissions_for_display
 from ..wishlist.resolvers import resolve_wishlist_items_from_user
 from ..wishlist.types import WishlistItem
 from .enums import CountryCodeEnum, CustomerEventsEnum
-from .utils import can_user_manage_group
+from .utils import can_user_manage_group, get_groups_which_user_can_manage
 
 
 class AddressInput(graphene.InputObjectType):
@@ -310,6 +310,13 @@ class User(CountableDjangoObjectType):
         ),
         model_field="groups",
     )
+    editable_groups = gql_optimizer.field(
+        graphene.List(
+            "saleor.graphql.account.types.Group",
+            description="List of user's permission groups which user can manage.",
+        ),
+        model_field="groups",
+    )
     avatar = graphene.Field(Image, size=graphene.Int(description="Size of the avatar."))
     events = gql_optimizer.field(
         graphene.List(
@@ -369,6 +376,10 @@ class User(CountableDjangoObjectType):
     @staticmethod
     def resolve_permission_groups(root: models.User, _info, **_kwargs):
         return root.groups.all()
+
+    @staticmethod
+    def resolve_editable_groups(root: models.User, _info, **_kwargs):
+        return get_groups_which_user_can_manage(root)
 
     @staticmethod
     @one_of_permissions_required(
