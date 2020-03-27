@@ -108,7 +108,6 @@ CREATE_SHIPPING_ZONE_QUERY = """
 
 
 def test_create_shipping_zone(staff_api_client, warehouse, permission_manage_shipping):
-    query = CREATE_SHIPPING_ZONE_QUERY
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
     variables = {
         "name": "test shipping",
@@ -116,7 +115,7 @@ def test_create_shipping_zone(staff_api_client, warehouse, permission_manage_shi
         "addWarehouses": [warehouse_id],
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_shipping]
+        CREATE_SHIPPING_ZONE_QUERY, variables, permissions=[permission_manage_shipping]
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneCreate"]
@@ -130,14 +129,13 @@ def test_create_shipping_zone(staff_api_client, warehouse, permission_manage_shi
 def test_create_shipping_zone_with_empty_warehouses(
     staff_api_client, permission_manage_shipping
 ):
-    query = CREATE_SHIPPING_ZONE_QUERY
     variables = {
         "name": "test shipping",
         "countries": ["PL"],
         "addWarehouses": [],
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_shipping]
+        CREATE_SHIPPING_ZONE_QUERY, variables, permissions=[permission_manage_shipping]
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneCreate"]
@@ -152,13 +150,12 @@ def test_create_shipping_zone_with_empty_warehouses(
 def test_create_shipping_zone_without_warehouses(
     staff_api_client, permission_manage_shipping
 ):
-    query = CREATE_SHIPPING_ZONE_QUERY
     variables = {
         "name": "test shipping",
         "countries": ["PL"],
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_shipping]
+        CREATE_SHIPPING_ZONE_QUERY, variables, permissions=[permission_manage_shipping]
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneCreate"]
@@ -173,7 +170,6 @@ def test_create_shipping_zone_without_warehouses(
 def test_create_default_shipping_zone(
     staff_api_client, warehouse, permission_manage_shipping
 ):
-    query = CREATE_SHIPPING_ZONE_QUERY
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
     variables = {
         "default": True,
@@ -182,7 +178,7 @@ def test_create_default_shipping_zone(
         "addWarehouses": [warehouse_id],
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_shipping]
+        CREATE_SHIPPING_ZONE_QUERY, variables, permissions=[permission_manage_shipping]
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneCreate"]
@@ -200,10 +196,9 @@ def test_create_duplicated_default_shipping_zone(
     shipping_zone.default = True
     shipping_zone.save()
 
-    query = CREATE_SHIPPING_ZONE_QUERY
     variables = {"default": True, "name": "test shipping", "countries": ["PL"]}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_shipping]
+        CREATE_SHIPPING_ZONE_QUERY, variables, permissions=[permission_manage_shipping]
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneCreate"]
@@ -249,12 +244,11 @@ UPDATE_SHIPPING_ZONE_QUERY = """
 def test_update_shipping_zone(
     staff_api_client, shipping_zone, permission_manage_shipping
 ):
-    query = UPDATE_SHIPPING_ZONE_QUERY
     name = "Parabolic name"
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     variables = {"id": shipping_id, "name": name, "countries": []}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_shipping]
+        UPDATE_SHIPPING_ZONE_QUERY, variables, permissions=[permission_manage_shipping]
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
@@ -266,7 +260,6 @@ def test_update_shipping_zone(
 def test_update_shipping_zone_default_exists(
     staff_api_client, shipping_zone, permission_manage_shipping
 ):
-    query = UPDATE_SHIPPING_ZONE_QUERY
     default_zone = shipping_zone
     default_zone.default = True
     default_zone.pk = None
@@ -276,7 +269,7 @@ def test_update_shipping_zone_default_exists(
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     variables = {"id": shipping_id, "name": "Name", "countries": [], "default": True}
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_shipping]
+        UPDATE_SHIPPING_ZONE_QUERY, variables, permissions=[permission_manage_shipping]
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
@@ -287,8 +280,6 @@ def test_update_shipping_zone_default_exists(
 def test_update_shipping_zone_add_warehouses(
     staff_api_client, shipping_zone, warehouses, permission_manage_shipping,
 ):
-    query = UPDATE_SHIPPING_ZONE_QUERY
-
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     warehouse_ids = [
         graphene.Node.to_global_id("Warehouse", warehouse.pk)
@@ -302,7 +293,7 @@ def test_update_shipping_zone_add_warehouses(
         "addWarehouses": warehouse_ids,
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_shipping]
+        UPDATE_SHIPPING_ZONE_QUERY, variables, permissions=[permission_manage_shipping]
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
@@ -320,7 +311,6 @@ def test_update_shipping_zone_add_second_warehouses(
     warehouse_no_shipping_zone,
     permission_manage_shipping,
 ):
-    query = UPDATE_SHIPPING_ZONE_QUERY
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     warehouse_id = graphene.Node.to_global_id(
         "Warehouse", warehouse_no_shipping_zone.pk
@@ -331,7 +321,7 @@ def test_update_shipping_zone_add_second_warehouses(
         "addWarehouses": [warehouse_id],
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_shipping]
+        UPDATE_SHIPPING_ZONE_QUERY, variables, permissions=[permission_manage_shipping]
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
@@ -344,7 +334,6 @@ def test_update_shipping_zone_add_second_warehouses(
 def test_update_shipping_zone_remove_warehouses(
     staff_api_client, shipping_zone, warehouse, permission_manage_shipping,
 ):
-    query = UPDATE_SHIPPING_ZONE_QUERY
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
     variables = {
@@ -353,7 +342,7 @@ def test_update_shipping_zone_remove_warehouses(
         "removeWarehouses": [warehouse_id],
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_shipping]
+        UPDATE_SHIPPING_ZONE_QUERY, variables, permissions=[permission_manage_shipping]
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
@@ -365,7 +354,6 @@ def test_update_shipping_zone_remove_warehouses(
 def test_update_shipping_zone_remove_one_warehouses(
     staff_api_client, shipping_zone, warehouses, permission_manage_shipping,
 ):
-    query = UPDATE_SHIPPING_ZONE_QUERY
     for warehouse in warehouses:
         warehouse.shipping_zones.add(shipping_zone)
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
@@ -376,7 +364,7 @@ def test_update_shipping_zone_remove_one_warehouses(
         "removeWarehouses": [warehouse_id],
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_shipping]
+        UPDATE_SHIPPING_ZONE_QUERY, variables, permissions=[permission_manage_shipping]
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
@@ -393,7 +381,6 @@ def test_update_shipping_zone_replace_warehouse(
     warehouse_no_shipping_zone,
     permission_manage_shipping,
 ):
-    query = UPDATE_SHIPPING_ZONE_QUERY
     assert shipping_zone.warehouses.first() == warehouse
 
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
@@ -408,7 +395,7 @@ def test_update_shipping_zone_replace_warehouse(
         "removeWarehouses": [remove_warehouse_id],
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_shipping]
+        UPDATE_SHIPPING_ZONE_QUERY, variables, permissions=[permission_manage_shipping]
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
@@ -421,7 +408,6 @@ def test_update_shipping_zone_replace_warehouse(
 def test_update_shipping_zone_same_warehouse_id_in_add_and_remove(
     staff_api_client, shipping_zone, warehouse, permission_manage_shipping,
 ):
-    query = UPDATE_SHIPPING_ZONE_QUERY
     shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
     variables = {
@@ -431,7 +417,7 @@ def test_update_shipping_zone_same_warehouse_id_in_add_and_remove(
         "removeWarehouses": [warehouse_id],
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_shipping]
+        UPDATE_SHIPPING_ZONE_QUERY, variables, permissions=[permission_manage_shipping]
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
@@ -517,7 +503,6 @@ def test_create_shipping_method(
     expected_max_price,
     permission_manage_shipping,
 ):
-    query = PRICE_BASED_SHIPPING_QUERY
     name = "DHL"
     price = 12.34
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
@@ -530,7 +515,7 @@ def test_create_shipping_method(
         "type": ShippingMethodTypeEnum.PRICE.name,
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_shipping]
+        PRICE_BASED_SHIPPING_QUERY, variables, permissions=[permission_manage_shipping]
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceCreate"]
@@ -546,7 +531,6 @@ def test_create_shipping_method(
 def test_create_price_shipping_method_errors(
     shipping_zone, staff_api_client, permission_manage_shipping
 ):
-    query = PRICE_BASED_SHIPPING_QUERY
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     variables = {
         "shippingZone": shipping_zone_id,
@@ -557,7 +541,7 @@ def test_create_price_shipping_method_errors(
         "type": ShippingMethodTypeEnum.PRICE.name,
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_shipping]
+        PRICE_BASED_SHIPPING_QUERY, variables, permissions=[permission_manage_shipping]
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceCreate"]
@@ -612,7 +596,6 @@ def test_create_weight_based_shipping_method(
     expected_max_weight,
     permission_manage_shipping,
 ):
-    query = WEIGHT_BASED_SHIPPING_QUERY
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     variables = {
         "shippingZone": shipping_zone_id,
@@ -623,7 +606,7 @@ def test_create_weight_based_shipping_method(
         "type": ShippingMethodTypeEnum.WEIGHT.name,
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_shipping]
+        WEIGHT_BASED_SHIPPING_QUERY, variables, permissions=[permission_manage_shipping]
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceCreate"]
@@ -635,7 +618,6 @@ def test_create_weight_based_shipping_method(
 def test_create_weight_shipping_method_errors(
     shipping_zone, staff_api_client, permission_manage_shipping
 ):
-    query = WEIGHT_BASED_SHIPPING_QUERY
     shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
     variables = {
         "shippingZone": shipping_zone_id,
@@ -646,7 +628,7 @@ def test_create_weight_shipping_method_errors(
         "type": ShippingMethodTypeEnum.WEIGHT.name,
     }
     response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_shipping]
+        WEIGHT_BASED_SHIPPING_QUERY, variables, permissions=[permission_manage_shipping]
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceCreate"]
