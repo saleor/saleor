@@ -2940,15 +2940,6 @@ def test_request_invoice_invalid_order(staff_api_client, permission_manage_order
     assert errors["field"] == "orderId"
 
 
-def test_request_invoice_no_permissions(staff_api_client, orders):
-    variables = {
-        "orderId": graphene.Node.to_global_id("Order", orders[0].pk),
-        "number": "01/12/2020/TEST",
-    }
-    response = staff_api_client.post_graphql(REQUEST_INVOICE_MUTATION, variables)
-    assert_no_permission(response)
-
-
 @mock.patch("saleor.extensions.base_plugin.BasePlugin.invoice_delete")
 def test_request_delete_invoice(
     plugin_mock, staff_api_client, permission_manage_orders, orders
@@ -3013,13 +3004,6 @@ def test_delete_invoice_invalid_id(
     plugin_mock.assert_not_called()
 
 
-def test_delete_invoice_no_permissions(staff_api_client, orders):
-    invoice = Invoice.objects.create(order=orders[0])
-    variables = {"id": graphene.Node.to_global_id("Invoice", invoice.pk)}
-    response = staff_api_client.post_graphql(DELETE_INVOICE_MUTATION, variables)
-    assert_no_permission(response)
-
-
 def test_update_invoice(staff_api_client, permission_manage_orders, orders):
     invoice = Invoice.objects.create(order=orders[0])
     number = "01/12/2020/TEST"
@@ -3078,17 +3062,6 @@ def test_update_invoice_missing_number(
     assert errors["field"] == "invoice"
     assert invoice.url is None
     assert invoice.status == InvoiceStatus.PENDING
-
-
-def test_update_invoice_no_permissions(staff_api_client, orders):
-    invoice = Invoice.objects.create(order=orders[0])
-    variables = {
-        "id": graphene.Node.to_global_id("Invoice", invoice.pk),
-        "number": "01/12/2020/TEST",
-        "url": "http://www.example.com",
-    }
-    response = staff_api_client.post_graphql(UPDATE_INVOICE_MUTATION, variables)
-    assert_no_permission(response)
 
 
 def test_update_invoice_invalid_id(staff_api_client, permission_manage_orders):
