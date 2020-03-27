@@ -34,7 +34,7 @@ class ShippingPriceInput(graphene.InputObjectType):
     )
 
 
-class ShippingZoneInput(graphene.InputObjectType):
+class ShippingZoneCreateInput(graphene.InputObjectType):
     name = graphene.String(
         description="Shipping zone's name. Visible only to the staff."
     )
@@ -47,7 +47,13 @@ class ShippingZoneInput(graphene.InputObjectType):
             "zones."
         )
     )
-    warehouses = graphene.List(
+    addWarehouses = graphene.List(
+        graphene.ID, description="List of warehouses in this shipping zone",
+    )
+
+
+class ShippingZoneUpdateInput(ShippingZoneCreateInput):
+    removeWarehouses = graphene.List(
         graphene.ID, description="List of warehouses in this shipping zone",
     )
 
@@ -56,6 +62,22 @@ class ShippingZoneMixin:
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
         cleaned_input = super().clean_input(info, instance, data)
+
+        if cls.check_for_duplicates_ids(
+            cleaned_input.get("addWarehouses"), cleaned_input.get("removeWarehouses")
+        ):
+            error_msg = (
+                "The same object cannot be in both lists "
+                "for adding and removing items."
+            )
+            raise ValidationError(
+                {
+                    "warehouses": ValidationError(
+                        error_msg, code=ShippingErrorCode.CANNOT_ADD_AND_REMOVE.value,
+                    )
+                }
+            )
+
         default = cleaned_input.get("default")
         if default:
             if default_shipping_zone_exists(instance.pk):
@@ -63,7 +85,7 @@ class ShippingZoneMixin:
                     {
                         "default": ValidationError(
                             "Default shipping zone already exists.",
-                            code=ShippingErrorCode.ALREADY_EXISTS,
+                            code=ShippingErrorCode.ALREADY_EXISTS.value,
                         )
                     }
                 )
@@ -77,16 +99,21 @@ class ShippingZoneMixin:
     @transaction.atomic
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
-        warehouses = cleaned_data.get("warehouses")
-        if warehouses:
-            instance.warehouses.add(*warehouses)
+
+        add_warehouses = cleaned_data.get("addWarehouses")
+        if add_warehouses:
+            instance.warehouses.add(*add_warehouses)
+
+        remove_warehouses = cleaned_data.get("removeWarehouses")
+        if remove_warehouses:
+            instance.warehouses.remove(*remove_warehouses)
 
 
 class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):
     shipping_zone = graphene.Field(ShippingZone, description="Created shipping zone.")
 
     class Arguments:
-        input = ShippingZoneInput(
+        input = ShippingZoneCreateInput(
             description="Fields required to create a shipping zone.", required=True
         )
 
@@ -103,7 +130,7 @@ class ShippingZoneUpdate(ShippingZoneMixin, ModelMutation):
 
     class Arguments:
         id = graphene.ID(description="ID of a shipping zone to update.", required=True)
-        input = ShippingZoneInput(
+        input = ShippingZoneUpdateInput(
             description="Fields required to update a shipping zone.", required=True
         )
 

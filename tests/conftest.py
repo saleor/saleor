@@ -1897,6 +1897,26 @@ def warehouse(address, shipping_zone):
 
 
 @pytest.fixture
+def warehouses(address):
+    return Warehouse.objects.bulk_create(
+        [
+            Warehouse(
+                address=address.get_copy(),
+                name="Warehouse1",
+                slug="warehouse1",
+                email="warehouse1@example.com",
+            ),
+            Warehouse(
+                address=address.get_copy(),
+                name="Warehouse2",
+                slug="warehouse2",
+                email="warehouse2@example.com",
+            ),
+        ]
+    )
+
+
+@pytest.fixture
 def warehouse_no_shipping_zone(address):
     warehouse = Warehouse.objects.create(
         address=address,

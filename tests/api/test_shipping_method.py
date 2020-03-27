@@ -3,7 +3,8 @@ import pytest
 
 from saleor.graphql.shipping.types import ShippingMethodTypeEnum
 from saleor.shipping.error_codes import ShippingErrorCode
-from tests.api.utils import get_graphql_content
+
+from ..api.utils import get_graphql_content
 
 
 def test_shipping_zone_query(
@@ -80,11 +81,11 @@ def test_shipping_zones_query(
 
 CREATE_SHIPPING_ZONE_QUERY = """
     mutation createShipping(
-        $name: String, $default: Boolean, $countries: [String], $warehouses: [ID] ) {
+        $name: String, $default: Boolean, $countries: [String], $addWarehouses: [ID] ){
         shippingZoneCreate(
             input: {
                 name: $name, countries: $countries,
-                default: $default, warehouses: $warehouses
+                default: $default, addWarehouses: $addWarehouses
             })
         {
             shippingErrors {
@@ -112,7 +113,7 @@ def test_create_shipping_zone(staff_api_client, warehouse, permission_manage_shi
     variables = {
         "name": "test shipping",
         "countries": ["PL"],
-        "warehouses": [warehouse_id],
+        "addWarehouses": [warehouse_id],
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping]
@@ -133,7 +134,7 @@ def test_create_shipping_zone_with_empty_warehouses(
     variables = {
         "name": "test shipping",
         "countries": ["PL"],
-        "warehouses": [],
+        "addWarehouses": [],
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping]
@@ -178,7 +179,7 @@ def test_create_default_shipping_zone(
         "default": True,
         "name": "test shipping",
         "countries": ["PL"],
-        "warehouses": [warehouse_id],
+        "addWarehouses": [warehouse_id],
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping]
@@ -213,13 +214,28 @@ def test_create_duplicated_default_shipping_zone(
 
 UPDATE_SHIPPING_ZONE_QUERY = """
     mutation updateShipping(
-            $id: ID!, $name: String, $default: Boolean, $countries: [String]) {
+        $id: ID!
+        $name: String
+        $default: Boolean
+        $countries: [String]
+        $addWarehouses: [ID]
+        $removeWarehouses: [ID]
+    ) {
         shippingZoneUpdate(
-            id: $id,
-            input: {name: $name, default: $default, countries: $countries})
-        {
+            id: $id
+            input: {
+                name: $name
+                default: $default
+                countries: $countries
+                addWarehouses: $addWarehouses
+                removeWarehouses: $removeWarehouses
+            }
+        ) {
             shippingZone {
                 name
+                warehouses {
+                    name
+                }
             }
             shippingErrors {
                 field
@@ -266,6 +282,165 @@ def test_update_shipping_zone_default_exists(
     data = content["data"]["shippingZoneUpdate"]
     assert data["shippingErrors"][0]["field"] == "default"
     assert data["shippingErrors"][0]["code"] == ShippingErrorCode.ALREADY_EXISTS.name
+
+
+def test_update_shipping_zone_add_warehouses(
+    staff_api_client, shipping_zone, warehouses, permission_manage_shipping,
+):
+    query = UPDATE_SHIPPING_ZONE_QUERY
+
+    shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    warehouse_ids = [
+        graphene.Node.to_global_id("Warehouse", warehouse.pk)
+        for warehouse in warehouses
+    ]
+    warehouse_names = [warehouse.name for warehouse in warehouses]
+
+    variables = {
+        "id": shipping_id,
+        "name": shipping_zone.name,
+        "addWarehouses": warehouse_ids,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_shipping]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shippingZoneUpdate"]
+    assert not data["shippingErrors"]
+    data = content["data"]["shippingZoneUpdate"]["shippingZone"]
+    for response_warehouse in data["warehouses"]:
+        assert response_warehouse["name"] in warehouse_names
+    assert len(data["warehouses"]) == len(warehouse_names)
+
+
+def test_update_shipping_zone_add_second_warehouses(
+    staff_api_client,
+    shipping_zone,
+    warehouse,
+    warehouse_no_shipping_zone,
+    permission_manage_shipping,
+):
+    query = UPDATE_SHIPPING_ZONE_QUERY
+    shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    warehouse_id = graphene.Node.to_global_id(
+        "Warehouse", warehouse_no_shipping_zone.pk
+    )
+    variables = {
+        "id": shipping_id,
+        "name": shipping_zone.name,
+        "addWarehouses": [warehouse_id],
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_shipping]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shippingZoneUpdate"]
+    assert not data["shippingErrors"]
+    data = content["data"]["shippingZoneUpdate"]["shippingZone"]
+    assert data["warehouses"][1]["name"] == warehouse.name
+    assert data["warehouses"][0]["name"] == warehouse_no_shipping_zone.name
+
+
+def test_update_shipping_zone_remove_warehouses(
+    staff_api_client, shipping_zone, warehouse, permission_manage_shipping,
+):
+    query = UPDATE_SHIPPING_ZONE_QUERY
+    shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    variables = {
+        "id": shipping_id,
+        "name": shipping_zone.name,
+        "removeWarehouses": [warehouse_id],
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_shipping]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shippingZoneUpdate"]
+    assert not data["shippingErrors"]
+    data = content["data"]["shippingZoneUpdate"]["shippingZone"]
+    assert not data["warehouses"]
+
+
+def test_update_shipping_zone_remove_one_warehouses(
+    staff_api_client, shipping_zone, warehouses, permission_manage_shipping,
+):
+    query = UPDATE_SHIPPING_ZONE_QUERY
+    for warehouse in warehouses:
+        warehouse.shipping_zones.add(shipping_zone)
+    shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouses[0].pk)
+    variables = {
+        "id": shipping_id,
+        "name": shipping_zone.name,
+        "removeWarehouses": [warehouse_id],
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_shipping]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shippingZoneUpdate"]
+    assert not data["shippingErrors"]
+    data = content["data"]["shippingZoneUpdate"]["shippingZone"]
+    assert data["warehouses"][0]["name"] == warehouses[1].name
+    assert len(data["warehouses"]) == 1
+
+
+def test_update_shipping_zone_replace_warehouse(
+    staff_api_client,
+    shipping_zone,
+    warehouse,
+    warehouse_no_shipping_zone,
+    permission_manage_shipping,
+):
+    query = UPDATE_SHIPPING_ZONE_QUERY
+    assert shipping_zone.warehouses.first() == warehouse
+
+    shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    add_warehouse_id = graphene.Node.to_global_id(
+        "Warehouse", warehouse_no_shipping_zone.pk
+    )
+    remove_warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    variables = {
+        "id": shipping_id,
+        "name": shipping_zone.name,
+        "addWarehouses": [add_warehouse_id],
+        "removeWarehouses": [remove_warehouse_id],
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_shipping]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shippingZoneUpdate"]
+    assert not data["shippingErrors"]
+    data = content["data"]["shippingZoneUpdate"]["shippingZone"]
+    assert data["warehouses"][0]["name"] == warehouse_no_shipping_zone.name
+    assert len(data["warehouses"]) == 1
+
+
+def test_update_shipping_zone_same_warehouse_id_in_add_and_remove(
+    staff_api_client, shipping_zone, warehouse, permission_manage_shipping,
+):
+    query = UPDATE_SHIPPING_ZONE_QUERY
+    shipping_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    variables = {
+        "id": shipping_id,
+        "name": shipping_zone.name,
+        "addWarehouses": [warehouse_id],
+        "removeWarehouses": [warehouse_id],
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_shipping]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shippingZoneUpdate"]
+    assert data["shippingErrors"]
+    assert data["shippingErrors"][0]["field"] == "warehouses"
+    assert (
+        data["shippingErrors"][0]["code"]
+        == ShippingErrorCode.CANNOT_ADD_AND_REMOVE.name
+    )
 
 
 def test_delete_shipping_zone(
