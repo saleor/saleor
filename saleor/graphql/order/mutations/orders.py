@@ -14,6 +14,7 @@ from ....order.actions import (
     order_shipping_updated,
     order_voided,
 )
+from ....order.emails import send_invoice
 from ....order.error_codes import InvoiceErrorCode, OrderErrorCode
 from ....order.utils import get_valid_shipping_methods_for_order
 from ....payment import CustomPaymentChoices, PaymentError, gateway
@@ -671,3 +672,40 @@ class UpdateInvoice(ModelMutation):
         instance.status = InvoiceStatus.READY
         instance.save()
         return UpdateInvoice(invoice=instance)
+
+
+class SendInvoiceEmail(ModelMutation):
+    class Arguments:
+        id = graphene.ID(required=True, description="ID of an invoice to be sent.")
+
+    class Meta:
+        description = "Send an invoice by email."
+        model = models.Invoice
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = InvoiceError
+        error_type_field = "invoice_errors"
+
+    @classmethod
+    def clean_input(cls, info, instance, data):
+        validation_errors = {}
+        if instance.status != InvoiceStatus.READY:
+            validation_errors['invoice'] = ValidationError(
+                "Invoice needs to be ready in order to send it.",
+                code=InvoiceErrorCode.INVALID,
+            )
+        for field in ('url', 'number'):
+            if not getattr(instance, field):
+                validation_errors[field] = ValidationError(
+                    f"Provided invoice needs to have {field} assigned in order to be sent.",
+                    code=InvoiceErrorCode.REQUIRED,
+                )
+        if validation_errors:
+            raise ValidationError(validation_errors)
+        return data
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        instance = cls.get_instance(info, **data)
+        cleaned_input = cls.clean_input(info, instance, data)
+        send_invoice.delay(instance.pk)
+        return SendInvoiceEmail(invoice=instance)
