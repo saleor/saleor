@@ -4172,6 +4172,7 @@ input ShippingZoneInput {
   name: String
   countries: [String]
   default: Boolean
+  warehouses: [ID]
 }
 
 type ShippingZoneUpdate {

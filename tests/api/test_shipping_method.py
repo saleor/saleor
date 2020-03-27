@@ -2,6 +2,7 @@ import graphene
 import pytest
 
 from saleor.graphql.shipping.types import ShippingMethodTypeEnum
+from saleor.shipping.error_codes import ShippingErrorCode
 from tests.api.utils import get_graphql_content
 
 
@@ -79,13 +80,16 @@ def test_shipping_zones_query(
 
 CREATE_SHIPPING_ZONE_QUERY = """
     mutation createShipping(
-        $name: String, $default: Boolean, $countries: [String]) {
+        $name: String, $default: Boolean, $countries: [String], $warehouses: [ID] ) {
         shippingZoneCreate(
-            input: {name: $name, countries: $countries, default: $default})
+            input: {
+                name: $name, countries: $countries,
+                default: $default, warehouses: $warehouses
+            })
         {
-            errors {
+            shippingErrors {
                 field
-                message
+                code
             }
             shippingZone {
                 name
@@ -93,40 +97,100 @@ CREATE_SHIPPING_ZONE_QUERY = """
                     code
                 }
                 default
+                warehouses {
+                    name
+                }
             }
         }
     }
 """
 
 
-def test_create_shipping_zone(staff_api_client, permission_manage_shipping):
+def test_create_shipping_zone(staff_api_client, warehouse, permission_manage_shipping):
     query = CREATE_SHIPPING_ZONE_QUERY
-    variables = {"name": "test shipping", "countries": ["PL"]}
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    variables = {
+        "name": "test shipping",
+        "countries": ["PL"],
+        "warehouses": [warehouse_id],
+    }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping]
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneCreate"]
-    assert not data["errors"]
     zone = data["shippingZone"]
     assert zone["name"] == "test shipping"
     assert zone["countries"] == [{"code": "PL"}]
-    assert not zone["default"]
+    assert zone["warehouses"][0]["name"] == warehouse.name
+    assert zone["default"] is False
 
 
-def test_create_default_shipping_zone(staff_api_client, permission_manage_shipping):
+def test_create_shipping_zone_with_empty_warehouses(
+    staff_api_client, permission_manage_shipping
+):
     query = CREATE_SHIPPING_ZONE_QUERY
-    variables = {"default": True, "name": "test shipping", "countries": ["PL"]}
+    variables = {
+        "name": "test shipping",
+        "countries": ["PL"],
+        "warehouses": [],
+    }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_shipping]
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneCreate"]
-    assert not data["errors"]
+    assert not data["shippingErrors"]
+    zone = data["shippingZone"]
+    assert zone["name"] == "test shipping"
+    assert zone["countries"] == [{"code": "PL"}]
+    assert not zone["warehouses"]
+    assert zone["default"] is False
+
+
+def test_create_shipping_zone_without_warehouses(
+    staff_api_client, permission_manage_shipping
+):
+    query = CREATE_SHIPPING_ZONE_QUERY
+    variables = {
+        "name": "test shipping",
+        "countries": ["PL"],
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_shipping]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shippingZoneCreate"]
+    assert not data["shippingErrors"]
+    zone = data["shippingZone"]
+    assert zone["name"] == "test shipping"
+    assert zone["countries"] == [{"code": "PL"}]
+    assert not zone["warehouses"]
+    assert zone["default"] is False
+
+
+def test_create_default_shipping_zone(
+    staff_api_client, warehouse, permission_manage_shipping
+):
+    query = CREATE_SHIPPING_ZONE_QUERY
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    variables = {
+        "default": True,
+        "name": "test shipping",
+        "countries": ["PL"],
+        "warehouses": [warehouse_id],
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_shipping]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shippingZoneCreate"]
+    assert not data["shippingErrors"]
     zone = data["shippingZone"]
     assert zone["name"] == "test shipping"
     assert zone["countries"] == []
-    assert zone["default"]
+    assert zone["warehouses"][0]["name"] == warehouse.name
+    assert zone["default"] is True
 
 
 def test_create_duplicated_default_shipping_zone(
@@ -142,9 +206,9 @@ def test_create_duplicated_default_shipping_zone(
     )
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneCreate"]
-    assert data["errors"]
-    assert data["errors"][0]["field"] == "default"
-    assert data["errors"][0]["message"] == ("Default shipping zone already exists.")
+    assert data["shippingErrors"]
+    assert data["shippingErrors"][0]["field"] == "default"
+    assert data["shippingErrors"][0]["code"] == ShippingErrorCode.ALREADY_EXISTS.name
 
 
 UPDATE_SHIPPING_ZONE_QUERY = """

@@ -1,5 +1,6 @@
 import graphene
 from django.core.exceptions import ValidationError
+from django.db import transaction
 
 from ...core.permissions import ShippingPermissions
 from ...shipping import models
@@ -46,6 +47,9 @@ class ShippingZoneInput(graphene.InputObjectType):
             "zones."
         )
     )
+    warehouses = graphene.List(
+        graphene.ID, description="List of warehouses in this shipping zone",
+    )
 
 
 class ShippingZoneMixin:
@@ -68,6 +72,14 @@ class ShippingZoneMixin:
         else:
             cleaned_input["default"] = False
         return cleaned_input
+
+    @classmethod
+    @transaction.atomic
+    def _save_m2m(cls, info, instance, cleaned_data):
+        super()._save_m2m(info, instance, cleaned_data)
+        warehouses = cleaned_data.get("warehouses")
+        if warehouses:
+            instance.warehouses.add(*warehouses)
 
 
 class ShippingZoneCreate(ShippingZoneMixin, ModelMutation):
