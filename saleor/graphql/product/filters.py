@@ -359,7 +359,9 @@ class CategoryFilter(django_filters.FilterSet):
 
 
 class ProductTypeFilter(django_filters.FilterSet):
-    search = django_filters.CharFilter(method=filter_fields_containing_value("name"))
+    search = django_filters.CharFilter(
+        method=filter_fields_containing_value("name", "slug")
+    )
 
     configurable = EnumFilter(
         input_class=ProductTypeConfigurable, method=filter_product_type_configurable
