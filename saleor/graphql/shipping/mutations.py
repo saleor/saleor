@@ -9,6 +9,7 @@ from ...shipping.utils import default_shipping_zone_exists
 from ..core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ..core.scalars import Decimal, WeightScalar
 from ..core.types.common import ShippingError
+from ..core.utils import get_duplicates_ids
 from .enums import ShippingMethodTypeEnum
 from .types import ShippingMethod, ShippingZone
 
@@ -47,22 +48,22 @@ class ShippingZoneCreateInput(graphene.InputObjectType):
             "zones."
         )
     )
-    addWarehouses = graphene.List(
-        graphene.ID, description="List of warehouses in this shipping zone",
+    add_warehouses = graphene.List(
+        graphene.ID, description="List of warehouses to assign to a shipping zone",
     )
 
 
 class ShippingZoneUpdateInput(ShippingZoneCreateInput):
-    removeWarehouses = graphene.List(
-        graphene.ID, description="List of warehouses in this shipping zone",
+    remove_warehouses = graphene.List(
+        graphene.ID, description="List of warehouses to unassign from a shipping zone",
     )
 
 
 class ShippingZoneMixin:
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
-        duplicates_ids = cls.get_duplicates_ids(
-            data.get("addWarehouses"), data.get("removeWarehouses")
+        duplicates_ids = get_duplicates_ids(
+            data.get("add_warehouses"), data.get("remove_warehouses")
         )
         if duplicates_ids:
             error_msg = (
@@ -116,11 +117,11 @@ class ShippingZoneMixin:
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
 
-        add_warehouses = cleaned_data.get("addWarehouses")
+        add_warehouses = cleaned_data.get("add_warehouses")
         if add_warehouses:
             instance.warehouses.add(*add_warehouses)
 
-        remove_warehouses = cleaned_data.get("removeWarehouses")
+        remove_warehouses = cleaned_data.get("remove_warehouses")
         if remove_warehouses:
             instance.warehouses.remove(*remove_warehouses)
 
