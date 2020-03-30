@@ -179,6 +179,15 @@ class ShippingPriceMixin:
         # Rename the price field to price_amount (the model's)
         price_amount = cleaned_input.pop("price", None)
         if price_amount is not None:
+            if price_amount < 0:
+                raise ValidationError(
+                    {
+                        "price": ValidationError(
+                            ("Shipping rate price cannot be lower than 0."),
+                            code=ShippingErrorCode.INVALID,
+                        )
+                    }
+                )
             cleaned_input["price_amount"] = price_amount
 
         cleaned_type = cleaned_input.get("type")

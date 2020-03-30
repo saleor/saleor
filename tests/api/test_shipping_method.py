@@ -468,6 +468,10 @@ PRICE_BASED_SHIPPING_QUERY = """
             field
             code
         }
+        shippingErrors {
+          field
+          code
+        }
         shippingZone {
             id
         }
@@ -528,6 +532,30 @@ def test_create_shipping_method(
     assert data["shippingMethod"]["maximumOrderPrice"] == expected_max_price
     assert data["shippingMethod"]["type"] == ShippingMethodTypeEnum.PRICE.name
     assert data["shippingZone"]["id"] == shipping_zone_id
+
+
+def test_create_shipping_method_with_invalid_price(
+    staff_api_client, shipping_zone, permission_manage_shipping,
+):
+    query = PRICE_BASED_SHIPPING_QUERY
+    name = "DHL"
+    price = -12.34
+    shipping_zone_id = graphene.Node.to_global_id("ShippingZone", shipping_zone.pk)
+    variables = {
+        "shippingZone": shipping_zone_id,
+        "name": name,
+        "price": price,
+        "minimumOrderPrice": 0,
+        "maximumOrderPrice": 20,
+        "type": ShippingMethodTypeEnum.PRICE.name,
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_shipping]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["shippingPriceCreate"]
+    assert data["shippingErrors"][0]["field"] == "price"
+    assert data["shippingErrors"][0]["code"] == "INVALID"
 
 
 def test_create_price_shipping_method_errors(
