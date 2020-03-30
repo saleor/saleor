@@ -1599,15 +1599,15 @@ def test_staff_create_with_not_allowed_url(
     assert not staff_user
 
 
-def test_staff_update(staff_api_client, permission_manage_staff, media_root):
-    query = """
+STAFF_UPDATE_MUTATIONS = """
     mutation UpdateStaff(
-            $id: ID!, $permissions: [PermissionEnum], $is_active: Boolean) {
+            $id: ID!, $input: StaffInput!) {
         staffUpdate(
                 id: $id,
-                input: {permissions: $permissions, isActive: $is_active}) {
-            errors {
+                input: $input) {
+            accountErrors {
                 field
+                code
                 message
             }
             user {
@@ -1621,44 +1621,52 @@ def test_staff_update(staff_api_client, permission_manage_staff, media_root):
             }
         }
     }
-    """
+"""
+
+
+def test_staff_update(staff_api_client, permission_manage_staff, media_root):
+    query = STAFF_UPDATE_MUTATIONS
     staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
     id = graphene.Node.to_global_id("User", staff_user.id)
-    variables = {"id": id, "permissions": [], "is_active": False}
+    variables = {"id": id, "input": {"permissions": [], "isActive": False}}
 
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_staff]
     )
     content = get_graphql_content(response)
     data = content["data"]["staffUpdate"]
-    assert data["errors"] == []
+    assert data["accountErrors"] == []
     assert data["user"]["userPermissions"] == []
     assert not data["user"]["isActive"]
     # deprecated, to remove in #5389
     assert data["user"]["permissions"] == []
 
 
+def test_staff_update_out_of_scope_user(
+    staff_api_client, permission_manage_staff, permission_manage_orders, media_root
+):
+    query = STAFF_UPDATE_MUTATIONS
+    staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
+    staff_user.user_permissions.add(permission_manage_orders)
+    id = graphene.Node.to_global_id("User", staff_user.id)
+    variables = {"id": id, "input": {"permissions": [], "isActive": False}}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_staff]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["staffUpdate"]
+    assert not data["user"]
+    assert len(data["accountErrors"]) == 1
+    assert data["accountErrors"][0]["field"] == "id"
+    assert data["accountErrors"][0]["code"] == AccountErrorCode.OUT_OF_SCOPE_USER.name
+
+
 @patch("saleor.graphql.account.mutations.staff.get_random_avatar")
 def test_staff_update_doesnt_change_existing_avatar(
     mock_get_random_avatar, staff_api_client, permission_manage_staff, media_root
 ):
-    query = """
-    mutation UpdateStaff(
-            $id: ID!, $permissions: [PermissionEnum], $is_active: Boolean) {
-        staffUpdate(
-                id: $id,
-                input: {permissions: $permissions, isActive: $is_active}) {
-            errors {
-                field
-                message
-            }
-            accountErrors {
-                field
-                code
-            }
-        }
-    }
-    """
+    query = STAFF_UPDATE_MUTATIONS
 
     mock_file = MagicMock(spec=File)
     mock_file.name = "image.jpg"
@@ -1672,13 +1680,13 @@ def test_staff_update_doesnt_change_existing_avatar(
     original_path = staff_user.avatar.path
 
     id = graphene.Node.to_global_id("User", staff_user.id)
-    variables = {"id": id, "permissions": [], "is_active": False}
+    variables = {"id": id, "input": {"permissions": [], "isActive": False}}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_staff]
     )
     content = get_graphql_content(response)
     data = content["data"]["staffUpdate"]
-    assert data["errors"] == []
+    assert data["accountErrors"] == []
 
     # Make sure that random avatar isn't recreated when there is one already set.
     mock_get_random_avatar.assert_not_called()
@@ -1686,12 +1694,12 @@ def test_staff_update_doesnt_change_existing_avatar(
     assert staff_user.avatar.path == original_path
 
 
-def test_staff_delete(staff_api_client, permission_manage_staff):
-    query = """
+STAFF_DELETE_MUTATION = """
         mutation DeleteStaff($id: ID!) {
             staffDelete(id: $id) {
-                errors {
+                accountErrors {
                     field
+                    code
                     message
                 }
                 user {
@@ -1700,6 +1708,10 @@ def test_staff_delete(staff_api_client, permission_manage_staff):
             }
         }
     """
+
+
+def test_staff_delete(staff_api_client, permission_manage_staff):
+    query = STAFF_DELETE_MUTATION
     staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
     user_id = graphene.Node.to_global_id("User", staff_user.id)
     variables = {"id": user_id}
@@ -1709,8 +1721,28 @@ def test_staff_delete(staff_api_client, permission_manage_staff):
     )
     content = get_graphql_content(response)
     data = content["data"]["staffDelete"]
-    assert data["errors"] == []
+    assert data["accountErrors"] == []
     assert not User.objects.filter(pk=staff_user.id).exists()
+
+
+def test_staff_delete_out_of_scope_user(
+    staff_api_client, permission_manage_staff, permission_manage_products
+):
+    query = STAFF_DELETE_MUTATION
+    staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
+    staff_user.user_permissions.add(permission_manage_products)
+    user_id = graphene.Node.to_global_id("User", staff_user.id)
+    variables = {"id": user_id}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_staff]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["staffDelete"]
+    assert not data["user"]
+    assert len(data["accountErrors"]) == 1
+    assert data["accountErrors"][0]["field"] == "id"
+    assert data["accountErrors"][0]["code"] == AccountErrorCode.OUT_OF_SCOPE_USER.name
 
 
 def test_user_delete_errors(staff_user, admin_user):
