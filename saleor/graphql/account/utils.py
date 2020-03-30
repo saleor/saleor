@@ -122,6 +122,16 @@ def get_out_of_scope_permissions(user: "User", permissions: List[str]):
     return missing_permissions
 
 
+def get_out_of_scope_users(root_user: "User", users: List["User"]):
+    """Return users whose permission scope is wider than the given user."""
+    out_of_scope_users = []
+    for user in users:
+        user_permissions = user.get_all_permissions()
+        if not root_user.has_perms(user_permissions):
+            out_of_scope_users.append(user)
+    return out_of_scope_users
+
+
 def can_user_manage_group(user: "User", group: "Group"):
     """User can't manage a group with permission that is out of the user's scope."""
     permissions = get_group_permission_codes(group)

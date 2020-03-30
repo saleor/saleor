@@ -1,8 +1,10 @@
+from saleor.account.models import User
 from saleor.core.permissions import AccountPermissions, OrderPermissions
 from saleor.graphql.account.utils import (
     can_user_manage_group,
     get_group_permission_codes,
     get_out_of_scope_permissions,
+    get_out_of_scope_users,
     get_user_permissions,
 )
 
@@ -135,3 +137,83 @@ def test_get_user_permissions_no_permissions(staff_user):
     permissions = get_user_permissions(staff_user)
 
     assert not permissions
+
+
+def test_get_out_of_scope_users_user_has_rights_to_manage_all_users(
+    staff_users,
+    permission_group_manage_users,
+    permission_manage_orders,
+    permission_manage_products,
+):
+    staff_user1 = staff_users[0]
+    staff_user2 = staff_users[1]
+    staff_user3 = User.objects.create_user(
+        email="staff3_test@example.com",
+        password="password",
+        is_staff=True,
+        is_active=True,
+    )
+
+    permission_group_manage_users.user_set.add(staff_user1, staff_user2)
+    staff_user1.user_permissions.add(
+        permission_manage_products, permission_manage_orders
+    )
+
+    staff_user3.user_permissions.add(permission_manage_orders)
+
+    users = User.objects.filter(pk__in=[staff_user1.pk, staff_user2.pk, staff_user3.pk])
+    result_users = get_out_of_scope_users(staff_user1, users)
+
+    assert result_users == []
+
+
+def test_get_out_of_scope_users_for_admin_user(
+    admin_user,
+    staff_users,
+    permission_group_manage_users,
+    permission_manage_orders,
+    permission_manage_products,
+):
+    staff_user1 = staff_users[0]
+    staff_user2 = staff_users[1]
+
+    permission_group_manage_users.user_set.add(staff_user1, staff_user2)
+    staff_user1.user_permissions.add(
+        permission_manage_products, permission_manage_orders
+    )
+
+    staff_user2.user_permissions.add(permission_manage_orders)
+
+    users = User.objects.filter(pk__in=[staff_user1.pk, staff_user2.pk])
+    result_users = get_out_of_scope_users(staff_user1, users)
+
+    assert result_users == []
+
+
+def test_get_out_of_scope_users_return_some_users(
+    admin_user,
+    staff_users,
+    permission_group_manage_users,
+    permission_manage_orders,
+    permission_manage_products,
+):
+    staff_user1 = staff_users[0]
+    staff_user2 = staff_users[1]
+    staff_user3 = User.objects.create_user(
+        email="staff3_test@example.com",
+        password="password",
+        is_staff=True,
+        is_active=True,
+    )
+
+    permission_group_manage_users.user_set.add(staff_user1, staff_user2)
+
+    staff_user3.user_permissions.add(
+        permission_manage_products, permission_manage_orders
+    )
+    staff_user2.user_permissions.add(permission_manage_orders)
+
+    users = User.objects.filter(pk__in=[staff_user1.pk, staff_user2.pk, staff_user3.pk])
+    result_users = get_out_of_scope_users(staff_user1, users)
+
+    assert result_users == [staff_user2, staff_user3]
