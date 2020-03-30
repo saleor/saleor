@@ -310,12 +310,9 @@ class User(CountableDjangoObjectType):
         ),
         model_field="groups",
     )
-    editable_groups = gql_optimizer.field(
-        graphene.List(
-            "saleor.graphql.account.types.Group",
-            description="List of user's permission groups which user can manage.",
-        ),
-        model_field="groups",
+    editable_groups = graphene.List(
+        "saleor.graphql.account.types.Group",
+        description="List of user's permission groups which user can manage.",
     )
     avatar = graphene.Field(Image, size=graphene.Int(description="Size of the avatar."))
     events = gql_optimizer.field(
