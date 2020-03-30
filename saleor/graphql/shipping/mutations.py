@@ -61,23 +61,25 @@ class ShippingZoneUpdateInput(ShippingZoneCreateInput):
 class ShippingZoneMixin:
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
-        cleaned_input = super().clean_input(info, instance, data)
-
-        if cls.check_for_duplicates_ids(
-            cleaned_input.get("addWarehouses"), cleaned_input.get("removeWarehouses")
-        ):
+        duplicates_ids = cls.get_duplicates_ids(
+            data.get("addWarehouses"), data.get("removeWarehouses")
+        )
+        if duplicates_ids:
             error_msg = (
                 "The same object cannot be in both lists "
                 "for adding and removing items."
             )
             raise ValidationError(
                 {
-                    "warehouses": ValidationError(
-                        error_msg, code=ShippingErrorCode.CANNOT_ADD_AND_REMOVE.value,
+                    "removeWarehouses": ValidationError(
+                        error_msg,
+                        code=ShippingErrorCode.CANNOT_ADD_AND_REMOVE.value,
+                        params={"warehouses": list(duplicates_ids)},
                     )
                 }
             )
 
+        cleaned_input = super().clean_input(info, instance, data)
         default = cleaned_input.get("default")
         if default:
             if default_shipping_zone_exists(instance.pk):
@@ -94,6 +96,20 @@ class ShippingZoneMixin:
         else:
             cleaned_input["default"] = False
         return cleaned_input
+
+    @classmethod
+    def handle_typed_errors(cls, errors: list, **extra):
+        typed_errors = [
+            cls._meta.error_type_class(  # type: ignore
+                field=e.field,
+                message=e.message,
+                code=code,
+                warehouses=params.get("warehouses") if params else None,
+            )
+            for e, code, params in errors
+        ]
+        extra.update({cls._meta.error_type_field: typed_errors})  # type: ignore
+        return cls(errors=[e[0] for e in errors], **extra)  # type: ignore
 
     @classmethod
     @transaction.atomic

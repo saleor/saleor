@@ -197,10 +197,10 @@ class BaseMutation(graphene.Mutation):
         return instances
 
     @classmethod
-    def check_for_duplicates_ids(cls, add_nodes, remove_nodes):
+    def get_duplicates_ids(cls, add_nodes, remove_nodes):
         if add_nodes and remove_nodes:
-            return bool(set(add_nodes) & set(remove_nodes))
-        return False
+            return set(add_nodes) & set(remove_nodes)
+        return []
 
     @classmethod
     def clean_instance(cls, info, instance):
