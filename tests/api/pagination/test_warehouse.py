@@ -1,3 +1,4 @@
+import graphene
 import pytest
 
 from saleor.warehouse.models import Warehouse
@@ -18,6 +19,7 @@ def warehouses_for_pagination(db, address):
     )
 
 
+# After fix #5410 we should remove `id` from requested fields.
 QUERY_WAREHOUSES_PAGINATION = """
     query (
         $first: Int, $last: Int, $after: String, $before: String,
@@ -29,6 +31,7 @@ QUERY_WAREHOUSES_PAGINATION = """
         ) {
             edges {
                 node {
+                    id
                     name
                 }
             }
@@ -77,35 +80,53 @@ def test_warehouses_pagination_with_sorting(
     assert len(warehouses_nodes) == page_size
 
 
-# Currently, page info has the bug, new pagination fixing it.
-# We should uncomment this test in PR #5149.
-# @pytest.mark.parametrize(
-#     "filter_by, warehouses_order",
-#     [
-#         (
-#             {"search": "WarehouseWarehouse"},
-#             ["WarehouseWarehouse1", "WarehouseWarehouse2"],
-#         ),
-#         ({"search": "Warehouse1"}, ["Warehouse1", "WarehouseWarehouse1"]),
-#     ],
-# )
-# def test_warehouses_pagination_with_filtering(
-#     filter_by,
-#     warehouses_order,
-#     staff_api_client,
-#     permission_manage_products,
-#     warehouses_for_pagination,
-# ):
-#     page_size = 2
+@pytest.mark.parametrize(
+    "filter_by, warehouses_order",
+    [
+        (
+            {"search": "WarehouseWarehouse"},
+            ["WarehouseWarehouse1", "WarehouseWarehouse2"],
+        ),
+        ({"search": "Warehouse1"}, ["Warehouse1", "WarehouseWarehouse1"]),
+    ],
+)
+def test_warehouses_pagination_with_filtering(
+    filter_by,
+    warehouses_order,
+    staff_api_client,
+    permission_manage_products,
+    warehouses_for_pagination,
+):
+    page_size = 2
 
-#     variables = {"first": page_size, "after": None, "filter": filter_by}
-#     response = staff_api_client.post_graphql(
-#         QUERY_WAREHOUSES_PAGINATION,
-#         variables,
-#         permissions=[permission_manage_products]
-#     )
-#     content = get_graphql_content(response)
-#     warehouses_nodes = content["data"]["warehouses"]["edges"]
-#     assert warehouses_order[0] == warehouses_nodes[0]["node"]["name"]
-#     assert warehouses_order[1] == warehouses_nodes[1]["node"]["name"]
-#     assert len(warehouses_nodes) == page_size
+    variables = {"first": page_size, "after": None, "filter": filter_by}
+    response = staff_api_client.post_graphql(
+        QUERY_WAREHOUSES_PAGINATION, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    warehouses_nodes = content["data"]["warehouses"]["edges"]
+    assert warehouses_order[0] == warehouses_nodes[0]["node"]["name"]
+    assert warehouses_order[1] == warehouses_nodes[1]["node"]["name"]
+    assert len(warehouses_nodes) == page_size
+
+
+def test_warehouses_pagination_with_filtering_by_id(
+    staff_api_client, permission_manage_products, warehouses_for_pagination,
+):
+    page_size = 2
+    warehouses_order = ["Warehouse1", "Warehouse2"]
+    warehouses_ids = [
+        graphene.Node.to_global_id("Warehouse", warehouse.pk)
+        for warehouse in warehouses_for_pagination
+    ]
+    filter_by = {"ids": warehouses_ids}
+
+    variables = {"first": page_size, "after": None, "filter": filter_by}
+    response = staff_api_client.post_graphql(
+        QUERY_WAREHOUSES_PAGINATION, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    warehouses_nodes = content["data"]["warehouses"]["edges"]
+    assert warehouses_order[0] == warehouses_nodes[0]["node"]["name"]
+    assert warehouses_order[1] == warehouses_nodes[1]["node"]["name"]
+    assert len(warehouses_nodes) == page_size
