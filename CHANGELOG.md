@@ -83,6 +83,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add discount error codes - #5348 by @IKarbowiak
 - Add benchmarks to checkout mutations - #5339 by @fowczarek
 - Add pagination tests - #5363 by @fowczarek
+- Add ability to assign multiple warehouses in mutations to create/update a shipping zone - #5399 by @fowczarek
 
 
 ## 2.9.0
