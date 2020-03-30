@@ -939,7 +939,7 @@ description = "Optimize database access inside graphene queries."
 name = "graphene-django-optimizer"
 optional = false
 python-versions = "*"
-version = "0.6.1"
+version = "0.6.2"
 
 [[package]]
 category = "main"
@@ -2524,7 +2524,7 @@ graphene-django = [
     {file = "graphene_django-2.8.2-py2.py3-none-any.whl", hash = "sha256:d9e019a23f442ca31f0e012f578f2b84d40fbf66b88930fc747f7ad8f9a9f7c8"},
 ]
 graphene-django-optimizer = [
-    {file = "graphene-django-optimizer-0.6.1.tar.gz", hash = "sha256:2c3902cfc739ae7f9953c9130fa4030d4f1bd9e81c820713c4270137e63f89cb"},
+    {file = "graphene-django-optimizer-0.6.2.tar.gz", hash = "sha256:34dd22ae8740076f5b8811bebac20a06d659ed3e9747453229ecb445f594cb4e"},
 ]
 graphene-federation = [
     {file = "graphene-federation-0.0.3.tar.gz", hash = "sha256:74b393daf8811fdd10e4b8395f33e3be667e0e4f6f9508c372758f6fd38f03c1"},
