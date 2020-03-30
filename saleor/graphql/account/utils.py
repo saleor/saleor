@@ -11,7 +11,6 @@ from ...account.error_codes import AccountErrorCode
 
 if TYPE_CHECKING:
     from django.contrib.auth.models import Group
-    from django.db.models import QuerySet
     from ...account.models import User
 
 
@@ -123,7 +122,7 @@ def get_out_of_scope_permissions(user: "User", permissions: List[str]):
     return missing_permissions
 
 
-def get_out_of_scope_users(root_user: "User", users: "QuerySet"):
+def get_out_of_scope_users(root_user: "User", users: List["User"]):
     """Return users whose permission scope is wider than the given user."""
     out_of_scope_users = []
     for user in users:
