@@ -14,6 +14,7 @@ from ....order.actions import (
     order_shipping_updated,
     order_voided,
 )
+from ....order.emails import send_invoice
 from ....order.error_codes import InvoiceErrorCode, OrderErrorCode
 from ....order.utils import get_valid_shipping_methods_for_order
 from ....payment import CustomPaymentChoices, PaymentError, gateway
@@ -671,3 +672,36 @@ class UpdateInvoice(ModelMutation):
         instance.status = InvoiceStatus.READY
         instance.save()
         return UpdateInvoice(invoice=instance)
+
+
+class SendInvoiceEmail(ModelMutation):
+    class Arguments:
+        id = graphene.ID(required=True, description="ID of an invoice to be sent.")
+
+    class Meta:
+        description = "Send an invoice by email."
+        model = models.Invoice
+        permissions = (OrderPermissions.MANAGE_ORDERS,)
+        error_type_class = InvoiceError
+        error_type_field = "invoice_errors"
+
+    @classmethod
+    def clean_instance(cls, info, instance):
+        error_code = None
+
+        if instance.status != InvoiceStatus.READY:
+            error_code = InvoiceErrorCode.NOT_READY
+        elif not instance.url or not instance.number:
+            error_code = InvoiceErrorCode.URL_OR_NUMBER_NOT_SET
+
+        if error_code:
+            raise ValidationError(
+                "Provided invoice is not ready to be sent.", code=error_code
+            )
+
+    @classmethod
+    def perform_mutation(cls, _root, info, **data):
+        instance = cls.get_instance(info, **data)
+        cls.clean_instance(info, instance)
+        send_invoice.delay(instance.pk)
+        return SendInvoiceEmail(invoice=instance)

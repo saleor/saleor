@@ -7,7 +7,7 @@ from ..celeryconf import app
 from ..core.emails import get_email_context, prepare_url
 from ..seo.schema.email import get_order_confirmation_markup
 from . import events
-from .models import Fulfillment, Order
+from .models import Fulfillment, Invoice, Order
 
 CONFIRM_ORDER_TEMPLATE = "order/confirm_order"
 STAFF_CONFIRM_ORDER_TEMPLATE = "order/staff_confirm_order"
@@ -99,6 +99,30 @@ def send_staff_order_confirmation(order_pk, redirect_url):
     )
     if staff_email_data["recipient_list"]:
         send_templated_mail(**staff_email_data)
+
+
+def collect_invoice_data_for_email(invoice_pk, template):
+    """Collect the required data for sending emails."""
+    invoice = Invoice.objects.get(pk=invoice_pk)
+    recipient_email = invoice.order.user.email
+    send_kwargs, email_context = get_email_context()
+
+    email_context["number"] = invoice.number
+    email_context["download_url"] = invoice.url
+
+    return {
+        "recipient_list": [recipient_email],
+        "template_name": template,
+        "context": email_context,
+        **send_kwargs,
+    }
+
+
+@app.task
+def send_invoice(invoice_pk):
+    """Send an invoice to user of related order with URL to download it."""
+    email_data = collect_invoice_data_for_email(invoice_pk, "order/send_invoice")
+    send_templated_mail(**email_data)
 
 
 @app.task
