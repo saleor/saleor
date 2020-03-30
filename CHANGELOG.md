@@ -86,6 +86,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add ability to assign multiple warehouses in mutations to create/update a shipping zone - #5399 by @fowczarek
 - Add filter by ids to warehouses query - #5414 by @fowczarek
 
+- Add shipping rate price validation - #5411 by @kswiatek92
 
 ## 2.9.0
 
