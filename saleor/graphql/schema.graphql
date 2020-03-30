@@ -1881,7 +1881,7 @@ type InvoiceError {
 
 enum InvoiceErrorCode {
   REQUIRED
-  INVALID
+  NOT_READY
   URL_OR_NUMBER_NOT_SET
   NOT_FOUND
 }

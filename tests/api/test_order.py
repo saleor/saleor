@@ -3173,7 +3173,25 @@ def test_send_pending_invoice(
     )
     content = get_graphql_content(response)
     errors = content["data"]["sendInvoiceEmail"]["invoiceErrors"]
-    assert errors[0] == {"field": "invoice", "code": InvoiceErrorCode.INVALID.name}
-    assert errors[1] == {"field": "url", "code": InvoiceErrorCode.REQUIRED.name}
-    assert errors[2] == {"field": "number", "code": InvoiceErrorCode.REQUIRED.name}
+    assert errors == [{"field": None, "code": InvoiceErrorCode.NOT_READY.name}]
+    email_mock.assert_not_called()
+
+
+@mock.patch("saleor.order.emails.send_invoice.delay")
+def test_send_not_ready_invoice(
+    email_mock, staff_api_client, permission_manage_orders, order
+):
+    invoice = Invoice.objects.create(
+        order=order, number=None, url=None, status=InvoiceStatus.READY
+    )
+    variables = {"id": graphene.Node.to_global_id("Invoice", invoice.pk)}
+    response = staff_api_client.post_graphql(
+        SEND_INVOICE_MUTATION, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["sendInvoiceEmail"]["invoiceErrors"]
+    [{"field": None, "code": "URL_OR_NUMBER_NOT_SET"}]
+    assert errors == [
+        {"field": None, "code": InvoiceErrorCode.URL_OR_NUMBER_NOT_SET.name}
+    ]
     email_mock.assert_not_called()
