@@ -1881,6 +1881,7 @@ type InvoiceError {
 
 enum InvoiceErrorCode {
   REQUIRED
+  NOT_READY
   URL_OR_NUMBER_NOT_SET
   NOT_FOUND
 }
@@ -2375,6 +2376,7 @@ type Mutation {
   createInvoice(input: CreateInvoiceInput!, orderId: ID!): CreateInvoice
   deleteInvoice(id: ID!): DeleteInvoice
   updateInvoice(id: ID!, input: UpdateInvoiceInput!): UpdateInvoice
+  sendInvoiceEmail(id: ID!): SendInvoiceEmail
   giftCardActivate(id: ID!): GiftCardActivate
   giftCardCreate(input: GiftCardCreateInput!): GiftCardCreate
   giftCardDeactivate(id: ID!): GiftCardDeactivate
@@ -3981,6 +3983,12 @@ type SaleUpdate {
 type SelectedAttribute {
   attribute: Attribute!
   values: [AttributeValue]!
+}
+
+type SendInvoiceEmail {
+  errors: [Error!]!
+  invoiceErrors: [InvoiceError!]!
+  invoice: Invoice
 }
 
 input SeoInput {
