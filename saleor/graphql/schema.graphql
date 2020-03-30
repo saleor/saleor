@@ -2191,10 +2191,10 @@ type Mutation {
   shippingPriceBulkDelete(ids: [ID]!): ShippingPriceBulkDelete
   shippingPriceUpdate(id: ID!, input: ShippingPriceInput!): ShippingPriceUpdate
   shippingPriceTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): ShippingPriceTranslate
-  shippingZoneCreate(input: ShippingZoneInput!): ShippingZoneCreate
+  shippingZoneCreate(input: ShippingZoneCreateInput!): ShippingZoneCreate
   shippingZoneDelete(id: ID!): ShippingZoneDelete
   shippingZoneBulkDelete(ids: [ID]!): ShippingZoneBulkDelete
-  shippingZoneUpdate(id: ID!, input: ShippingZoneInput!): ShippingZoneUpdate
+  shippingZoneUpdate(id: ID!, input: ShippingZoneUpdateInput!): ShippingZoneUpdate
   attributeCreate(input: AttributeCreateInput!): AttributeCreate
   attributeDelete(id: ID!): AttributeDelete
   attributeBulkDelete(ids: [ID]!): AttributeBulkDelete
@@ -4044,6 +4044,7 @@ type ShippingError {
   field: String
   message: String
   code: ShippingErrorCode!
+  warehouses: [ID!]
 }
 
 enum ShippingErrorCode {
@@ -4054,6 +4055,7 @@ enum ShippingErrorCode {
   NOT_FOUND
   REQUIRED
   UNIQUE
+  CANNOT_ADD_AND_REMOVE
 }
 
 type ShippingMethod implements Node {
@@ -4162,22 +4164,31 @@ type ShippingZoneCreate {
   shippingErrors: [ShippingError!]!
 }
 
+input ShippingZoneCreateInput {
+  name: String
+  countries: [String]
+  default: Boolean
+  addWarehouses: [ID]
+}
+
 type ShippingZoneDelete {
   errors: [Error!]!
   shippingErrors: [ShippingError!]!
   shippingZone: ShippingZone
 }
 
-input ShippingZoneInput {
-  name: String
-  countries: [String]
-  default: Boolean
-}
-
 type ShippingZoneUpdate {
   errors: [Error!]!
   shippingZone: ShippingZone
   shippingErrors: [ShippingError!]!
+}
+
+input ShippingZoneUpdateInput {
+  name: String
+  countries: [String]
+  default: Boolean
+  addWarehouses: [ID]
+  removeWarehouses: [ID]
 }
 
 type Shop {
