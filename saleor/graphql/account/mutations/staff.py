@@ -21,7 +21,12 @@ from ...core.types import Upload
 from ...core.types.common import AccountError
 from ...core.utils import validate_image_file
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
-from ..utils import CustomerDeleteMixin, StaffDeleteMixin, UserDeleteMixin
+from ..utils import (
+    CustomerDeleteMixin,
+    StaffDeleteMixin,
+    UserDeleteMixin,
+    get_out_of_scope_users,
+)
 from .base import (
     BaseAddressDelete,
     BaseAddressUpdate,
@@ -175,7 +180,7 @@ class StaffCreate(ModelMutation):
         cleaned_input["is_staff"] = True
 
         # clean and prepare permissions
-        if "permissions" in cleaned_input:
+        if cleaned_input.get("permissions"):
             permissions = cleaned_input.pop("permissions")
             cleaned_input["user_permissions"] = get_permissions(permissions)
         return cleaned_input
@@ -234,9 +239,17 @@ class StaffUpdate(StaffCreate):
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
+
+        # check if requestor can manage this user
+        if get_out_of_scope_users(info.context.user, [instance]):
+            msg = "You can't manage this user."
+            code = AccountErrorCode.OUT_OF_SCOPE_USER.value
+            raise ValidationError({"id": ValidationError(msg, code=code)})
+
         is_active = cleaned_input.get("is_active")
         if is_active is not None:
             cls.clean_is_active(is_active, instance, info.context.user)
+
         return cleaned_input
 
 
