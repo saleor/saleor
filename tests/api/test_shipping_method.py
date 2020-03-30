@@ -235,6 +235,7 @@ UPDATE_SHIPPING_ZONE_QUERY = """
             shippingErrors {
                 field
                 code
+                warehouses
             }
         }
     }
@@ -422,11 +423,12 @@ def test_update_shipping_zone_same_warehouse_id_in_add_and_remove(
     content = get_graphql_content(response)
     data = content["data"]["shippingZoneUpdate"]
     assert data["shippingErrors"]
-    assert data["shippingErrors"][0]["field"] == "warehouses"
+    assert data["shippingErrors"][0]["field"] == "removeWarehouses"
     assert (
         data["shippingErrors"][0]["code"]
         == ShippingErrorCode.CANNOT_ADD_AND_REMOVE.name
     )
+    assert data["shippingErrors"][0]["warehouses"][0] == warehouse_id
 
 
 def test_delete_shipping_zone(
