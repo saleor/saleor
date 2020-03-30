@@ -261,6 +261,50 @@ def test_permission_group_create_mutation_lack_of_permission_and_customer_user(
     assert data["group"] is None
 
 
+def test_permission_group_create_mutation_out_of_scope_users(
+    staff_users,
+    permission_group_manage_users,
+    permission_manage_staff,
+    staff_api_client,
+    permission_manage_users,
+    permission_manage_service_accounts,
+):
+    """Ensure user cannot create group with user whose permission scope
+    is wider than requestor scope."""
+
+    staff_user = staff_users[0]
+    staff_user.user_permissions.add(permission_manage_service_accounts)
+    permission_group_manage_users.user_set.add(staff_users[1])
+    query = PERMISSION_GROUP_CREATE_MUTATION
+
+    variables = {
+        "input": {
+            "name": "New permission group",
+            "permissions": [AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name],
+            "users": [
+                graphene.Node.to_global_id("User", user.id) for user in staff_users
+            ],
+        }
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_staff,)
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupCreate"]
+    errors = data["permissionGroupErrors"]
+
+    assert errors
+    assert len(errors) == 1
+    assert errors[0]["field"] == "users"
+    assert errors[0]["code"] == PermissionGroupErrorCode.OUT_OF_SCOPE_USER.name
+    assert errors[0]["permissions"] is None
+    assert len(errors[0]["users"]) == 1
+    assert errors[0]["users"][0] == graphene.Node.to_global_id(
+        "User", staff_users[1].pk
+    )
+    assert data["group"] is None
+
+
 PERMISSION_GROUP_UPDATE_MUTATION = """
     mutation PermissionGroupUpdate(
         $id: ID!, $input: PermissionGroupUpdateInput!) {
@@ -873,6 +917,78 @@ def test_permission_group_update_mutation_lack_of_permission(
     assert errors[0]["field"] == "addPermissions"
     assert errors[0]["permissions"] == [OrderPermissions.MANAGE_ORDERS.name]
     assert errors[0]["users"] is None
+
+
+def test_permission_group_update_mutation_out_of_scope_users(
+    staff_users,
+    permission_group_manage_users,
+    permission_manage_staff,
+    staff_api_client,
+    permission_manage_users,
+    permission_manage_service_accounts,
+    permission_manage_orders,
+    permission_manage_products,
+):
+    """Ensure user cannot assign and unasign users whose permission scope
+    is wider than requestor scope."""
+
+    staff_user = staff_users[0]
+    staff_user3 = User.objects.create_user(
+        email="staff3_test@example.com",
+        password="password",
+        is_staff=True,
+        is_active=True,
+    )
+
+    staff_user.user_permissions.add(
+        permission_manage_service_accounts, permission_manage_users
+    )
+    staff_users[1].user_permissions.add(permission_manage_products)
+    staff_user3.user_permissions.add(permission_manage_orders)
+
+    group = permission_group_manage_users
+    group.user_set.add(staff_users[1], staff_user3)
+
+    query = PERMISSION_GROUP_UPDATE_MUTATION
+
+    variables = {
+        "id": graphene.Node.to_global_id("Group", group.id),
+        "input": {
+            "addPermissions": [AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name],
+            "addUsers": [
+                graphene.Node.to_global_id("User", user.id) for user in staff_users
+            ],
+            "removeUsers": [graphene.Node.to_global_id("User", staff_user3.id)],
+        },
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_staff,)
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupUpdate"]
+    errors = data["permissionGroupErrors"]
+
+    assert errors
+    assert len(errors) == 2
+    assert data["group"] is None
+
+    expected_errors = [
+        {
+            "field": "addUsers",
+            "code": PermissionGroupErrorCode.OUT_OF_SCOPE_USER.name,
+            "permissions": None,
+            "users": [graphene.Node.to_global_id("User", staff_users[1].pk)],
+        },
+        {
+            "field": "removeUsers",
+            "code": PermissionGroupErrorCode.OUT_OF_SCOPE_USER.name,
+            "permissions": None,
+            "users": [graphene.Node.to_global_id("User", staff_user3.pk)],
+        },
+    ]
+    for error in errors:
+        error.pop("message")
+        assert error in expected_errors
 
 
 def test_permission_group_update_mutation_multiply_errors(
