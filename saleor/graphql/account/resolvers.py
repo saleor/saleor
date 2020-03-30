@@ -9,7 +9,7 @@ from graphql_jwt.exceptions import PermissionDenied
 from i18naddress import get_validation_rules
 
 from ...account import models
-from ...core.permissions import AccountPermissions, get_permissions
+from ...core.permissions import AccountPermissions
 from ...payment import gateway
 from ...payment.utils import fetch_customer_id
 from ..utils import (
@@ -185,9 +185,6 @@ def resolve_address(info, id):
 
 
 def resolve_permissions(root: models.User):
-    if root.is_superuser:
-        permissions = get_permissions()
-    else:
-        permissions = get_user_permissions(root)
-        permissions = permissions.prefetch_related("content_type").order_by("codename")
+    permissions = get_user_permissions(root)
+    permissions = permissions.prefetch_related("content_type").order_by("codename")
     return format_permissions_for_display(permissions)
