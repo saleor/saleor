@@ -687,23 +687,17 @@ class SendInvoiceEmail(ModelMutation):
 
     @classmethod
     def clean_instance(cls, info, instance):
-        validation_errors = {}
+        error_code = None
+
         if instance.status != InvoiceStatus.READY:
-            validation_errors["invoice"] = ValidationError(
-                "Invoice needs to be ready in order to send it.",
-                code=InvoiceErrorCode.INVALID,
+            error_code = InvoiceErrorCode.NOT_READY
+        elif not instance.url or not instance.number:
+            error_code = InvoiceErrorCode.URL_OR_NUMBER_NOT_SET
+
+        if error_code:
+            raise ValidationError(
+                "Provided invoice is not ready to be sent.", code=error_code
             )
-        for field in ("url", "number"):
-            if not getattr(instance, field):
-                validation_errors[field] = ValidationError(
-                    (
-                        f"Provided invoice needs to have {field} "
-                        "assigned in order to be sent."
-                    ),
-                    code=InvoiceErrorCode.REQUIRED,
-                )
-        if validation_errors:
-            raise ValidationError(validation_errors)
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
