@@ -260,6 +260,44 @@ def test_query_warehouse_with_filters_email(
     assert total_count == 0
 
 
+def test_query_warehouse_with_filters_by_ids(
+    staff_api_client, permission_manage_products, warehouse, warehouse_no_shipping_zone
+):
+    warehouse_ids = [
+        graphene.Node.to_global_id("Warehouse", warehouse.id),
+        graphene.Node.to_global_id("Warehouse", warehouse_no_shipping_zone.id),
+    ]
+    variables_exists = {"filters": {"ids": warehouse_ids}}
+    response_exists = staff_api_client.post_graphql(
+        QUERY_WAREHOUSES_WITH_FILTERS,
+        variables=variables_exists,
+        permissions=[permission_manage_products],
+    )
+    content_exists = get_graphql_content(response_exists)
+
+    content_warehouses = content_exists["data"]["warehouses"]["edges"]
+    for content_warehouse in content_warehouses:
+        assert content_warehouse["node"]["id"] in warehouse_ids
+    assert content_exists["data"]["warehouses"]["totalCount"] == 2
+
+
+def test_query_warehouse_with_filters_by_id(
+    staff_api_client, permission_manage_products, warehouse, warehouse_no_shipping_zone
+):
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
+    variables_exists = {"filters": {"ids": [warehouse_id]}}
+    response_exists = staff_api_client.post_graphql(
+        QUERY_WAREHOUSES_WITH_FILTERS,
+        variables=variables_exists,
+        permissions=[permission_manage_products],
+    )
+    content_exists = get_graphql_content(response_exists)
+
+    content_warehouses = content_exists["data"]["warehouses"]["edges"]
+    assert content_warehouses[0]["node"]["id"] == warehouse_id
+    assert content_exists["data"]["warehouses"]["totalCount"] == 1
+
+
 def test_mutation_create_warehouse(
     staff_api_client, permission_manage_products, shipping_zone
 ):
