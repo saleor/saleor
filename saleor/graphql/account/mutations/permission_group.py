@@ -52,7 +52,9 @@ class PermissionGroupCreate(ModelMutation):
     @transaction.atomic
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
-        instance.user_set.add(*cleaned_data["users"])
+        users = cleaned_data.get("users")
+        if users:
+            instance.user_set.add(*users)
 
     @classmethod
     def clean_input(
@@ -62,7 +64,8 @@ class PermissionGroupCreate(ModelMutation):
 
         errors = defaultdict(list)
         cls.clean_permissions(info, errors, "permissions", cleaned_input)
-        if "users" in cleaned_input:
+        user_items = cleaned_input.get("users")
+        if user_items:
             cls.can_manage_users(info, errors, "users", cleaned_input)
             cls.check_if_users_are_staff(errors, "users", cleaned_input)
 
@@ -79,7 +82,8 @@ class PermissionGroupCreate(ModelMutation):
         field: str,
         cleaned_input: dict,
     ):
-        if field in cleaned_input:
+        permission_items = cleaned_input.get(field)
+        if permission_items:
             permissions = get_out_of_scope_permissions(
                 info.context.user, cleaned_input[field]
             )
@@ -197,15 +201,19 @@ class PermissionGroupUpdate(PermissionGroupCreate):
     def update_group_permissions_and_users(
         cls, group: auth_models.Group, cleaned_input: dict
     ):
-        if "add_users" in cleaned_input:
-            group.user_set.add(*cleaned_input["add_users"])
-        if "remove_users" in cleaned_input:
-            group.user_set.remove(*cleaned_input["remove_users"])
+        add_users = cleaned_input.get("add_users")
+        remove_users = cleaned_input.get("remove_users")
+        if add_users:
+            group.user_set.add(*add_users)
+        if remove_users:
+            group.user_set.remove(*remove_users)
 
-        if "add_permissions" in cleaned_input:
-            group.permissions.add(*cleaned_input["add_permissions"])
-        if "remove_perissions" in cleaned_input:
-            group.permissions.remove(*cleaned_input["remove_perissions"])
+        add_permissions = cleaned_input.get("add_permissions")
+        remove_permissions = cleaned_input.get("remove_permissions")
+        if add_permissions:
+            group.permissions.add(*add_permissions)
+        if remove_permissions:
+            group.permissions.remove(*remove_permissions)
 
     @classmethod
     def clean_input(
@@ -227,10 +235,9 @@ class PermissionGroupUpdate(PermissionGroupCreate):
 
         cls.clean_users(info, errors, cleaned_input)
         cls.clean_permissions(info, errors, "add_permissions", cleaned_input)
-        if "remove_permissions" in cleaned_input:
-            cleaned_input["remove_permissions"] = get_permissions(
-                cleaned_input["remove_permissions"]
-            )
+        remove_permissions = cleaned_input.get("remove_permissions")
+        if remove_permissions:
+            cleaned_input["remove_permissions"] = get_permissions(remove_permissions)
 
         if errors:
             raise ValidationError(errors)
@@ -239,10 +246,12 @@ class PermissionGroupUpdate(PermissionGroupCreate):
 
     @classmethod
     def clean_users(cls, info, errors: dict, cleaned_input: dict):
-        if "remove_users" in cleaned_input:
+        remove_users = cleaned_input.get("remove_users")
+        add_users = cleaned_input.get("add_users")
+        if remove_users:
             cls.can_manage_users(info, errors, "remove_users", cleaned_input)
             cls.clean_remove_users(info, errors, cleaned_input)
-        if "add_users" in cleaned_input:
+        if add_users:
             cls.can_manage_users(info, errors, "add_users", cleaned_input)
             cls.check_if_users_are_staff(errors, "add_users", cleaned_input)
 
@@ -268,7 +277,9 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         """
         add_field, remove_field, error_class_field = fields
         # break if any of comparing field is not in input
-        if add_field not in input_data or remove_field not in input_data:
+        add_items = input_data.get(add_field)
+        remove_items = input_data.get(remove_field)
+        if not add_items or not remove_items:
             return
 
         common_items = set(input_data[add_field]) & set(input_data[remove_field])
