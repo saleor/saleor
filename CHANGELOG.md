@@ -86,6 +86,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add user can manage field to group type - #5376 by @IKarbowiak
 - Prevent users from modifying a group with permissions they don't hold - #5380 by @IKarbowiak
 - Add user_permissions on user type - #5390 by @IKarbowiak
+- Update user to group assign restriction - #5395 by @IKarbowiak
 - Add editable groups on user type - #5408 by @IKarbowiak
 
 ## 2.9.0
