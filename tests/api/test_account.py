@@ -217,6 +217,9 @@ FULL_USER_QUERY = """
                     code
                 }
             }
+            editableGroups {
+                name
+            }
         }
     }
 """
@@ -235,6 +238,8 @@ def test_query_customer_user(
     user.avatar = avatar_mock
     user.save()
 
+    Group.objects.create(name="empty group")
+
     query = FULL_USER_QUERY
     ID = graphene.Node.to_global_id("User", customer_user.id)
     variables = {"id": ID}
@@ -249,6 +254,7 @@ def test_query_customer_user(
     assert data["isActive"] == user.is_active
     assert data["orders"]["totalCount"] == user.orders.count()
     assert data["avatar"]["url"]
+    assert len(data["editableGroups"]) == 0
 
     assert len(data["addresses"]) == user.addresses.count()
     for address in data["addresses"]:
@@ -305,6 +311,7 @@ def test_query_staff_user(
     permission_manage_orders,
     permission_manage_products,
     permission_manage_staff,
+    permission_manage_menus,
 ):
     group = permission_group_manage_users
     group.permissions.add(permission_manage_products)
@@ -318,7 +325,9 @@ def test_query_staff_user(
 
     # another group (not user group) with permission_manage_users
     group3 = Group.objects.create(name="another group")
-    group3.permissions.add(permission_manage_users)
+    group3.permissions.add(permission_manage_users, permission_manage_menus)
+
+    group4 = Group.objects.create(name="empty group")
 
     avatar_mock = MagicMock(spec=File)
     avatar_mock.name = "image2.jpg"
@@ -348,6 +357,12 @@ def test_query_staff_user(
         group2.name,
     }
     assert len(data["userPermissions"]) == 4
+    assert len(data["editableGroups"]) == Group.objects.count() - 1
+    assert {data_group["name"] for data_group in data["editableGroups"]} == {
+        group.name,
+        group2.name,
+        group4.name,
+    }
 
     formated_user_permissions_result = [
         {
