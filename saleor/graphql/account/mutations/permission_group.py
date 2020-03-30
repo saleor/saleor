@@ -8,7 +8,11 @@ from django.db import transaction
 
 from ....account.error_codes import PermissionGroupErrorCode
 from ....core.permissions import AccountPermissions, get_permissions
-from ...account.utils import can_user_manage_group, get_out_of_scope_permissions
+from ...account.utils import (
+    can_user_manage_group,
+    get_out_of_scope_permissions,
+    get_out_of_scope_users,
+)
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types.common import PermissionGroupError
@@ -57,10 +61,12 @@ class PermissionGroupCreate(ModelMutation):
         cls, info, instance, data,
     ):
         cleaned_input = super().clean_input(info, instance, data)
+
         errors = defaultdict(list)
         cls.clean_permissions(info, errors, "permissions", cleaned_input)
         user_items = cleaned_input.get("users")
         if user_items:
+            cls.can_manage_users(info, errors, "users", cleaned_input)
             cls.check_if_users_are_staff(errors, "users", cleaned_input)
 
         if errors:
@@ -89,6 +95,30 @@ class PermissionGroupCreate(ModelMutation):
                 cls.update_errors(errors, error_msg, field, code, params)
 
             cleaned_input[field] = get_permissions(cleaned_input[field])
+
+    @classmethod
+    def can_manage_users(
+        cls,
+        info,
+        errors: Dict[Optional[str], List[ValidationError]],
+        field: str,
+        cleaned_input: dict,
+    ):
+        """Check if user from request can manage users from input."""
+        user = info.context.user
+        users = cleaned_input[field]
+
+        out_of_scope_users = get_out_of_scope_users(user, users)
+        if out_of_scope_users:
+            # add error
+            ids = [
+                graphene.Node.to_global_id("User", user_instance.pk)
+                for user_instance in out_of_scope_users
+            ]
+            error_msg = "You can't manage these users."
+            code = PermissionGroupErrorCode.OUT_OF_SCOPE_USER.value
+            params = {"users": ids}
+            cls.update_errors(errors, error_msg, field, code, params)
 
     @classmethod
     def check_if_users_are_staff(
@@ -203,11 +233,11 @@ class PermissionGroupUpdate(PermissionGroupCreate):
 
         cleaned_input = super().clean_input(info, instance, data)
 
+        cls.clean_users(info, errors, cleaned_input)
         cls.clean_permissions(info, errors, "add_permissions", cleaned_input)
         remove_permissions = cleaned_input.get("remove_permissions")
         if remove_permissions:
             cleaned_input["remove_permissions"] = get_permissions(remove_permissions)
-        cls.clean_users(info, errors, cleaned_input)
 
         if errors:
             raise ValidationError(errors)
@@ -219,8 +249,10 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         remove_users = cleaned_input.get("remove_users")
         add_users = cleaned_input.get("add_users")
         if remove_users:
+            cls.can_manage_users(info, errors, "remove_users", cleaned_input)
             cls.clean_remove_users(info, errors, cleaned_input)
         if add_users:
+            cls.can_manage_users(info, errors, "add_users", cleaned_input)
             cls.check_if_users_are_staff(errors, "add_users", cleaned_input)
 
     @classmethod
