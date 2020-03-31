@@ -124,6 +124,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Ensure that a GraphQL query is a string - #4836 by @nix010
 - Add ability to configure the password reset link - #4863 by @fowczarek
 - Fixed a performance issue where Saleor would sometimes run huge, unneeded prefetches when resolving categories or collections - #5291 by @NyanKiyoshi
+- uWSGI now forces the django application to directly load on startup instead of being lazy - #5357 by @NyanKiyoshi
 
 ### Core
 
