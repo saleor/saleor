@@ -4911,6 +4911,7 @@ enum WarehouseErrorCode {
 
 input WarehouseFilterInput {
   search: String
+  ids: [ID]
 }
 
 type WarehouseShippingZoneAssign {
