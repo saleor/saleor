@@ -84,6 +84,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add benchmarks to checkout mutations - #5339 by @fowczarek
 - Add pagination tests - #5363 by @fowczarek
 - Add ability to assign multiple warehouses in mutations to create/update a shipping zone - #5399 by @fowczarek
+- Add filter by ids to warehouses query - #5414 by @fowczarek
 
 
 ## 2.9.0
