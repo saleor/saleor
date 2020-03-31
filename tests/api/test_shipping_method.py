@@ -555,7 +555,7 @@ def test_create_shipping_method_with_invalid_price(
     content = get_graphql_content(response)
     data = content["data"]["shippingPriceCreate"]
     assert data["shippingErrors"][0]["field"] == "price"
-    assert data["shippingErrors"][0]["code"] == "INVALID"
+    assert data["shippingErrors"][0]["code"] == ShippingErrorCode.INVALID.name
 
 
 def test_create_price_shipping_method_errors(
