@@ -1884,6 +1884,57 @@ def test_staff_update_out_of_scope_groups(
         assert error in expected_errors
 
 
+def test_staff_update_cannot_add_and_remove(
+    staff_api_client,
+    permission_manage_staff,
+    media_root,
+    permission_manage_orders,
+    permission_group_manage_users,
+    permission_manage_products,
+    permission_manage_users,
+):
+    query = STAFF_UPDATE_MUTATIONS
+
+    group = permission_group_manage_users
+    group2 = Group.objects.create(name="manage orders")
+    group2.permissions.add(permission_manage_orders)
+    group3 = Group.objects.create(name="manage products")
+    group3.permissions.add()
+
+    staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
+    staff_api_client.user.user_permissions.add(
+        permission_manage_orders, permission_manage_users
+    )
+    id = graphene.Node.to_global_id("User", staff_user.id)
+    variables = {
+        "id": id,
+        "input": {
+            "addGroups": [
+                graphene.Node.to_global_id("Group", gr.pk) for gr in [group, group2]
+            ],
+            "removeGroups": [
+                graphene.Node.to_global_id("Group", gr.pk)
+                for gr in [group, group2, group3]
+            ],
+        },
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_staff]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["staffUpdate"]
+    errors = data["staffErrors"]
+
+    assert len(errors) == 1
+    assert errors[0]["field"] is None
+    assert errors[0]["code"] == AccountErrorCode.CANNOT_ADD_AND_REMOVE.name
+    assert set(errors[0]["groups"]) == {
+        graphene.Node.to_global_id("Group", gr.pk) for gr in [group, group2]
+    }
+    assert errors[0]["permissions"] is None
+
+
 @patch("saleor.graphql.account.mutations.staff.get_random_avatar")
 def test_staff_update_doesnt_change_existing_avatar(
     mock_get_random_avatar, staff_api_client, permission_manage_staff, media_root

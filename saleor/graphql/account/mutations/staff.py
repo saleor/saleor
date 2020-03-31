@@ -21,7 +21,7 @@ from ...core.enums import PermissionEnum
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types import Upload
 from ...core.types.common import AccountError, StaffError
-from ...core.utils import validate_image_file
+from ...core.utils import get_duplicates_ids, validate_image_file
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ..utils import (
     CustomerDeleteMixin,
@@ -293,9 +293,26 @@ class StaffUpdate(StaffCreate):
             code = AccountErrorCode.OUT_OF_SCOPE_USER.value
             raise ValidationError({"id": ValidationError(msg, code=code)})
 
+        cls.check_for_duplicates(data)
+
         cleaned_input = super().clean_input(info, instance, data)
 
         return cleaned_input
+
+    @classmethod
+    def check_for_duplicates(cls, input_data):
+        duplicated_ids = get_duplicates_ids(
+            input_data.get("add_groups"), input_data.get("remove_groups")
+        )
+        if duplicated_ids:
+            # add error
+            msg = (
+                "The same object cannot be in both list"
+                "for adding and removing items."
+            )
+            code = AccountErrorCode.CANNOT_ADD_AND_REMOVE.value
+            params = {"groups": duplicated_ids}
+            raise ValidationError(msg, code=code, params=params)
 
     @classmethod
     def clean_groups(cls, info, cleaned_input, errors):
