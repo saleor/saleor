@@ -66,6 +66,19 @@ class AccountError(Error):
     code = AccountErrorCode(description="The error code.", required=True)
 
 
+class StaffError(AccountError):
+    permissions = graphene.List(
+        graphene.NonNull(PermissionEnum),
+        description="List of permissions which causes the error.",
+        required=False,
+    )
+    groups = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of permission group IDs which cause the error.",
+        required=False,
+    )
+
+
 class CheckoutError(Error):
     code = CheckoutErrorCode(description="The error code.", required=True)
 
