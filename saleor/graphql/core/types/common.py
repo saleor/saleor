@@ -5,6 +5,7 @@ from ...translations.enums import LanguageCodeEnum
 from ..enums import (
     AccountErrorCode,
     CheckoutErrorCode,
+    DiscountErrorCode,
     ExtensionsErrorCode,
     GiftCardErrorCode,
     MenuErrorCode,
@@ -83,6 +84,10 @@ class CheckoutError(Error):
     code = CheckoutErrorCode(description="The error code.", required=True)
 
 
+class DiscountError(Error):
+    code = DiscountErrorCode(description="The error code.", required=True)
+
+
 class MenuError(Error):
     code = MenuErrorCode(description="The error code.", required=True)
 
@@ -125,6 +130,11 @@ class ShopError(Error):
 
 class ShippingError(Error):
     code = ShippingErrorCode(description="The error code.", required=True)
+    warehouses = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of warehouse IDs which causes the error.",
+        required=False,
+    )
 
 
 class PageError(Error):

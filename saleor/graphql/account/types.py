@@ -19,7 +19,6 @@ from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display
 from ..wishlist.resolvers import resolve_wishlist_items_from_user
-from ..wishlist.types import WishlistItem
 from .enums import CountryCodeEnum, CustomerEventsEnum
 from .utils import can_user_manage_group, get_groups_which_user_can_manage
 
@@ -325,7 +324,6 @@ class User(CountableDjangoObjectType):
         "saleor.graphql.payment.types.PaymentSource",
         description="List of stored payment sources.",
     )
-    wishlist = PrefetchingConnectionField(WishlistItem, description="User's wishlist.")
 
     class Meta:
         description = "Represents user data."

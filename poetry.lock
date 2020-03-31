@@ -46,17 +46,6 @@ tests = ["pytest (>=4.3.0,<4.4.0)", "pytest-asyncio (>=0.10.0,<0.11.0)"]
 
 [[package]]
 category = "dev"
-description = "A few extensions to pyyaml."
-name = "aspy.yaml"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-version = "1.3.0"
-
-[package.dependencies]
-pyyaml = "*"
-
-[[package]]
-category = "dev"
 description = "An abstract syntax tree for Python with inference support."
 name = "astroid"
 optional = false
@@ -90,17 +79,6 @@ azure-pipelines = ["coverage", "hypothesis", "pympler", "pytest (>=4.3.0)", "six
 dev = ["coverage", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface", "sphinx", "pre-commit"]
 docs = ["sphinx", "zope.interface"]
 tests = ["coverage", "hypothesis", "pympler", "pytest (>=4.3.0)", "six", "zope.interface"]
-
-[[package]]
-category = "main"
-description = "A tool that automatically formats Python code to conform to the PEP 8 style guide"
-name = "autopep8"
-optional = false
-python-versions = "*"
-version = "1.5"
-
-[package.dependencies]
-pycodestyle = ">=2.5.0"
 
 [[package]]
 category = "main"
@@ -142,7 +120,7 @@ description = "Python multiprocessing fork with improvements and bugfixes"
 name = "billiard"
 optional = false
 python-versions = "*"
-version = "3.6.2.0"
+version = "3.6.3.0"
 
 [[package]]
 category = "dev"
@@ -163,18 +141,6 @@ typed-ast = ">=1.4.0"
 
 [package.extras]
 d = ["aiohttp (>=3.3.2)", "aiohttp-cors"]
-
-[[package]]
-category = "main"
-description = "An easy safelist-based HTML-sanitizing tool."
-name = "bleach"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-version = "2.1.4"
-
-[package.dependencies]
-html5lib = ">=0.99999999pre,<1.0b1 || >1.0b1,<1.0b2 || >1.0b2,<1.0b3 || >1.0b3,<1.0b4 || >1.0b4,<1.0b5 || >1.0b5,<1.0b6 || >1.0b6,<1.0b7 || >1.0b7,<1.0b8 || >1.0b8"
-six = "*"
 
 [[package]]
 category = "main"
@@ -267,11 +233,11 @@ description = "Distributed Task Queue."
 name = "celery"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*,"
-version = "4.4.0"
+version = "4.4.2"
 
 [package.dependencies]
-billiard = ">=3.6.1,<4.0"
-kombu = ">=4.6.7,<4.7"
+billiard = ">=3.6.3.0,<4.0"
+kombu = ">=4.6.8,<4.7"
 pytz = ">0.0-dev"
 vine = "1.3.0"
 
@@ -307,7 +273,7 @@ s3 = ["boto3 (>=1.9.125)"]
 slmq = ["softlayer-messaging (>=1.0.3)"]
 solar = ["ephem"]
 sqlalchemy = ["sqlalchemy"]
-sqs = ["boto3 (>=1.9.125)", "pycurl"]
+sqs = ["boto3 (>=1.9.125)", "pycurl (7.43.0.2)"]
 tblib = ["tblib (>=1.3.0)", "tblib (>=1.5.0)"]
 yaml = ["PyYAML (>=3.10)"]
 zookeeper = ["kazoo (>=1.3.1)"]
@@ -650,25 +616,6 @@ django = ">=1.11"
 
 [[package]]
 category = "main"
-description = "Silky smooth profiling for the Django Framework"
-name = "django-silk"
-optional = false
-python-versions = "*"
-version = "2.0.0"
-
-[package.dependencies]
-Django = "*"
-Jinja2 = "*"
-Pygments = "*"
-autopep8 = "*"
-gprof2dot = "<2017.09.19"
-python-dateutil = "*"
-pytz = "*"
-requests = "*"
-sqlparse = "*"
-
-[[package]]
-category = "main"
 description = "Support for many storage backends in Django"
 name = "django-storages"
 optional = false
@@ -948,14 +895,6 @@ grpc = ["grpcio (>=1.0.0)"]
 
 [[package]]
 category = "main"
-description = "Generate a dot graph from the output of several profilers."
-name = "gprof2dot"
-optional = false
-python-versions = "*"
-version = "2016.10.13"
-
-[[package]]
-category = "main"
 description = "GraphQL Framework for Python"
 name = "graphene"
 optional = false
@@ -1000,7 +939,7 @@ description = "Optimize database access inside graphene queries."
 name = "graphene-django-optimizer"
 optional = false
 python-versions = "*"
-version = "0.6.1"
+version = "0.6.2"
 
 [[package]]
 category = "main"
@@ -1128,7 +1067,7 @@ tornado = ">=4.3"
 tests = ["mock (1.0.1)", "pycurl (>=7.43,<8)", "pytest (>=3.7.0,<3.8.0)", "pytest-cov (2.5.1)", "coverage (<4.4)", "pytest-timeout (1.3.1)", "pytest-tornado", "pytest-benchmark (>=3.0.0rc1,<3.2)", "pytest-localserver", "flake8", "flake8-quotes", "codecov", "opentracing_instrumentation (>=3,<4)", "prometheus_client (0.3.1)", "tchannel (>=0.27)"]
 
 [[package]]
-category = "main"
+category = "dev"
 description = "A very fast and expressive template engine."
 name = "jinja2"
 optional = false
@@ -1166,7 +1105,7 @@ description = "Messaging library for Python."
 name = "kombu"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-version = "4.6.7"
+version = "4.6.8"
 
 [package.dependencies]
 amqp = ">=2.5.2,<2.6"
@@ -1224,7 +1163,7 @@ setuptools = ">=36"
 testing = ["coverage", "pyyaml"]
 
 [[package]]
-category = "main"
+category = "dev"
 description = "Safely add untrusted strings to HTML/XML markup."
 name = "markupsafe"
 optional = false
@@ -1402,16 +1341,14 @@ category = "dev"
 description = "A framework for managing and maintaining multi-language pre-commit hooks."
 name = "pre-commit"
 optional = false
-python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
-version = "1.21.0"
+python-versions = ">=3.6.1"
+version = "2.2.0"
 
 [package.dependencies]
-"aspy.yaml" = "*"
 cfgv = ">=2.0.0"
 identify = ">=1.0.0"
 nodeenv = ">=0.11.1"
-pyyaml = "*"
-six = "*"
+pyyaml = ">=5.1"
 toml = "*"
 virtualenv = ">=15.2"
 
@@ -1500,7 +1437,7 @@ version = "0.2.8"
 pyasn1 = ">=0.4.6,<0.5.0"
 
 [[package]]
-category = "main"
+category = "dev"
 description = "Python style guide checker"
 name = "pycodestyle"
 optional = false
@@ -1533,14 +1470,6 @@ name = "pyflakes"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 version = "2.1.1"
-
-[[package]]
-category = "main"
-description = "Pygments is a syntax highlighting package written in Python."
-name = "pygments"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-version = "2.5.2"
 
 [[package]]
 category = "main"
@@ -1961,7 +1890,7 @@ description = "Python bindings for the Stripe API"
 name = "stripe"
 optional = false
 python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
-version = "2.42.0"
+version = "2.44.0"
 
 [package.dependencies]
 [package.dependencies.requests]
@@ -2052,7 +1981,7 @@ description = "tox is a generic virtualenv management and test command line tool
 name = "tox"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,>=2.7"
-version = "3.14.5"
+version = "3.14.6"
 
 [package.dependencies]
 colorama = ">=0.4.1"
@@ -2062,7 +1991,7 @@ pluggy = ">=0.12.0,<1"
 py = ">=1.4.17,<2"
 six = ">=1.14.0,<2"
 toml = ">=0.9.4"
-virtualenv = ">=16.0.0"
+virtualenv = ">=16.0.0,<20.0.0 || >20.0.0,<20.0.1 || >20.0.1,<20.0.2 || >20.0.2,<20.0.3 || >20.0.3,<20.0.4 || >20.0.4,<20.0.5 || >20.0.5,<20.0.6 || >20.0.6,<20.0.7 || >20.0.7"
 
 [package.extras]
 docs = ["sphinx (>=2.0.0,<3)", "towncrier (>=18.5.0)", "pygments-github-lexers (>=0.0.5)", "sphinxcontrib-autoprogram (>=0.1.5)"]
@@ -2178,7 +2107,7 @@ description = "Virtual Python Environment builder"
 name = "virtualenv"
 optional = false
 python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,>=2.7"
-version = "20.0.4"
+version = "20.0.15"
 
 [package.dependencies]
 appdirs = ">=1.4.3,<2"
@@ -2188,7 +2117,7 @@ six = ">=1.9.0,<2"
 
 [package.extras]
 docs = ["sphinx (>=2.0.0,<3)", "sphinx-argparse (>=0.2.5,<1)", "sphinx-rtd-theme (>=0.4.3,<1)", "towncrier (>=19.9.0rc1)", "proselint (>=0.10.2,<1)"]
-testing = ["pytest (>=4.0.0,<6)", "coverage (>=4.5.1,<6)", "pytest-mock (>=2.0.0,<3)", "pytest-env (>=0.6.2,<1)", "packaging (>=20.0)", "xonsh (>=0.9.13,<1)"]
+testing = ["pytest (>=4.0.0,<6)", "coverage (>=4.5.1,<6)", "pytest-mock (>=2.0.0,<3)", "pytest-env (>=0.6.2,<1)", "pytest-timeout (>=1.3.4,<2)", "packaging (>=20.0)", "xonsh (>=0.9.13,<1)"]
 
 [[package]]
 category = "dev"
@@ -2250,7 +2179,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "884b42bafa5b9a53e62d75ec70c0d7f6fd234578891d94c40dac54f3b9b81581"
+content-hash = "86e2cd307b70c4ac08dff365bd13ebac96ead039e0c2e2bc89ee11190ca07690"
 python-versions = "~3.8"
 
 [metadata.files]
@@ -2274,10 +2203,6 @@ asgiref = [
     {file = "asgiref-3.2.3-py2.py3-none-any.whl", hash = "sha256:ea448f92fc35a0ef4b1508f53a04c4670255a3f33d22a81c8fc9c872036adbe5"},
     {file = "asgiref-3.2.3.tar.gz", hash = "sha256:7e06d934a7718bf3975acbf87780ba678957b87c7adc056f13b6215d610695a0"},
 ]
-"aspy.yaml" = [
-    {file = "aspy.yaml-1.3.0-py2.py3-none-any.whl", hash = "sha256:463372c043f70160a9ec950c3f1e4c3a82db5fca01d334b6bc89c7164d744bdc"},
-    {file = "aspy.yaml-1.3.0.tar.gz", hash = "sha256:e7c742382eff2caed61f87a39d13f99109088e5e93f04d76eb8d4b28aa143f45"},
-]
 astroid = [
     {file = "astroid-2.3.3-py3-none-any.whl", hash = "sha256:840947ebfa8b58f318d42301cf8c0a20fd794a33b61cc4638e28e9e61ba32f42"},
     {file = "astroid-2.3.3.tar.gz", hash = "sha256:71ea07f44df9568a75d0f354c49143a4575d90645e9fead6dfb52c26a85ed13a"},
@@ -2289,9 +2214,6 @@ atomicwrites = [
 attrs = [
     {file = "attrs-19.3.0-py2.py3-none-any.whl", hash = "sha256:08a96c641c3a74e44eb59afb61a24f2cb9f4d7188748e76ba4bb5edfa3cb7d1c"},
     {file = "attrs-19.3.0.tar.gz", hash = "sha256:f7b7ce16570fe9965acd6d30101a28f62fb4a7f9e926b3bbc9b61f8b04247e72"},
-]
-autopep8 = [
-    {file = "autopep8-1.5.tar.gz", hash = "sha256:0f592a0447acea0c2b0a9602be1e4e3d86db52badd2e3c84f0193bfd89fd3a43"},
 ]
 babel = [
     {file = "Babel-2.7.0-py2.py3-none-any.whl", hash = "sha256:af92e6106cb7c55286b25b38ad7695f8b4efb36a90ba483d7f7a6628c46158ab"},
@@ -2307,16 +2229,12 @@ beautifultable = [
     {file = "beautifultable-0.7.0.tar.gz", hash = "sha256:8deee768c7939578412f930c95c2ac51307fb723a6368e9e233091cdad240537"},
 ]
 billiard = [
-    {file = "billiard-3.6.2.0-py3-none-any.whl", hash = "sha256:26fd494dc3251f8ce1f5559744f18aeed427fdaf29a75d7baae26752a5d3816f"},
-    {file = "billiard-3.6.2.0.tar.gz", hash = "sha256:f4e09366653aa3cb3ae8ed16423f9ba1665ff426f087bcdbbed86bf3664fe02c"},
+    {file = "billiard-3.6.3.0-py3-none-any.whl", hash = "sha256:bff575450859a6e0fbc2f9877d9b715b0bbc07c3565bb7ed2280526a0cdf5ede"},
+    {file = "billiard-3.6.3.0.tar.gz", hash = "sha256:d91725ce6425f33a97dfa72fb6bfef0e47d4652acd98a032bd1a7fbf06d5fa6a"},
 ]
 black = [
     {file = "black-19.10b0-py36-none-any.whl", hash = "sha256:1b30e59be925fafc1ee4565e5e08abef6b03fe455102883820fe5ee2e4734e0b"},
     {file = "black-19.10b0.tar.gz", hash = "sha256:c2edb73a08e9e0e6f65a0e6af18b059b8b1cdd5bef997d7a0b181df93dc81539"},
-]
-bleach = [
-    {file = "bleach-2.1.4-py2.py3-none-any.whl", hash = "sha256:24754b9a7d530bf30ce7cbc805bc6cce785660b4a10ff3a43633728438c105ab"},
-    {file = "bleach-2.1.4.tar.gz", hash = "sha256:0ee95f6167129859c5dce9b1ca291ebdb5d8cd7e382ca0e237dfd0dad63f63d8"},
 ]
 boto3 = [
     {file = "boto3-1.12.3-py2.py3-none-any.whl", hash = "sha256:4df9e5bca38488d55f6ead4bd02702c83bf56e11c4dfde7a759c2398f2cadff6"},
@@ -2342,8 +2260,8 @@ cairosvg = [
     {file = "CairoSVG-2.4.2.tar.gz", hash = "sha256:4e668f96653326780036ebb0a9ff2bb59a8443d7bcfc51a14aab77b57a8e67ad"},
 ]
 celery = [
-    {file = "celery-4.4.0-py2.py3-none-any.whl", hash = "sha256:7c544f37a84a5eadc44cab1aa8c9580dff94636bb81978cdf9bf8012d9ea7d8f"},
-    {file = "celery-4.4.0.tar.gz", hash = "sha256:d3363bb5df72d74420986a435449f3c3979285941dff57d5d97ecba352a0e3e2"},
+    {file = "celery-4.4.2-py2.py3-none-any.whl", hash = "sha256:5b4b37e276033fe47575107a2775469f0b721646a08c96ec2c61531e4fe45f2a"},
+    {file = "celery-4.4.2.tar.gz", hash = "sha256:108a0bf9018a871620936c33a3ee9f6336a89f8ef0a0f567a9001f4aa361415f"},
 ]
 certifi = [
     {file = "certifi-2019.11.28-py2.py3-none-any.whl", hash = "sha256:017c25db2a153ce562900032d5bc68e9f191e44e9a0f762f373977de9df1fbb3"},
@@ -2469,6 +2387,7 @@ django-debug-toolbar = [
     {file = "django_debug_toolbar-2.2-py3-none-any.whl", hash = "sha256:ff94725e7aae74b133d0599b9bf89bd4eb8f5d2c964106e61d11750228c8774c"},
 ]
 django-debug-toolbar-request-history = [
+    {file = "django-debug-toolbar-request-history-0.1.1.tar.gz", hash = "sha256:b4e53f1da523d6fe7d2a9cb1b0cf4ce7c83c8a02fad56555ec041911371e62cd"},
     {file = "django_debug_toolbar_request_history-0.1.1-py2.py3-none-any.whl", hash = "sha256:79013b50ba59d93d998b6f168ca4325eb5be3a9b859d48fb14aae80819f3a734"},
 ]
 django-extensions = [
@@ -2514,10 +2433,6 @@ django-prices-vatlayer = [
 ]
 django-render-block = [
     {file = "django_render_block-0.6-py2.py3-none-any.whl", hash = "sha256:95c7dc9610378a10e0c4a10d8364ec7307210889afccd6a67a6aaa0fd599bd4d"},
-]
-django-silk = [
-    {file = "django-silk-2.0.0.tar.gz", hash = "sha256:22b69762eee91138a3a58f960b35f18467d685c0db87ae42dca8bd4abef11a21"},
-    {file = "django_silk-2.0.0-py2.py3-none-any.whl", hash = "sha256:76a4240654642692eb9990f7bd0e4212483e5a58e2fc7ac315860a5544bc5e7d"},
 ]
 django-storages = [
     {file = "django-storages-1.9.1.tar.gz", hash = "sha256:a59e9923cbce7068792f75344ed7727021ee4ac20f227cf17297d0d03d141e91"},
@@ -2600,9 +2515,6 @@ google-resumable-media = [
 googleapis-common-protos = [
     {file = "googleapis-common-protos-1.51.0.tar.gz", hash = "sha256:013c91704279119150e44ef770086fdbba158c1f978a6402167d47d5409e226e"},
 ]
-gprof2dot = [
-    {file = "gprof2dot-2016.10.13.tar.gz", hash = "sha256:48c1e168c28b8a8eb23bf30fda78fe2ef218269a41505341ec27c27083e47cf4"},
-]
 graphene = [
     {file = "graphene-2.1.8-py2.py3-none-any.whl", hash = "sha256:09165f03e1591b76bf57b133482db9be6dac72c74b0a628d3c93182af9c5a896"},
     {file = "graphene-2.1.8.tar.gz", hash = "sha256:2cbe6d4ef15cfc7b7805e0760a0e5b80747161ce1b0f990dfdc0d2cf497c12f9"},
@@ -2612,7 +2524,7 @@ graphene-django = [
     {file = "graphene_django-2.8.2-py2.py3-none-any.whl", hash = "sha256:d9e019a23f442ca31f0e012f578f2b84d40fbf66b88930fc747f7ad8f9a9f7c8"},
 ]
 graphene-django-optimizer = [
-    {file = "graphene-django-optimizer-0.6.1.tar.gz", hash = "sha256:2c3902cfc739ae7f9953c9130fa4030d4f1bd9e81c820713c4270137e63f89cb"},
+    {file = "graphene-django-optimizer-0.6.2.tar.gz", hash = "sha256:34dd22ae8740076f5b8811bebac20a06d659ed3e9747453229ecb445f594cb4e"},
 ]
 graphene-federation = [
     {file = "graphene-federation-0.0.3.tar.gz", hash = "sha256:74b393daf8811fdd10e4b8395f33e3be667e0e4f6f9508c372758f6fd38f03c1"},
@@ -2660,8 +2572,8 @@ jsonfield = [
     {file = "jsonfield-3.0.0.tar.gz", hash = "sha256:1a17efe9a26850e9175900cb37cf30c6182fc2251989f8af44ef47fbbf48eaff"},
 ]
 kombu = [
-    {file = "kombu-4.6.7-py2.py3-none-any.whl", hash = "sha256:2a9e7adff14d046c9996752b2c48b6d9185d0b992106d5160e1a179907a5d4ac"},
-    {file = "kombu-4.6.7.tar.gz", hash = "sha256:67b32ccb6fea030f8799f8fd50dd08e03a4b99464ebc4952d71d8747b1a52ad1"},
+    {file = "kombu-4.6.8-py2.py3-none-any.whl", hash = "sha256:598e7e749d6ab54f646b74b2d2df67755dee13894f73ab02a2a9feb8870c7cb2"},
+    {file = "kombu-4.6.8.tar.gz", hash = "sha256:2d1cda774126a044d91a7ff5fa6d09edf99f46924ab332a810760fe6740e9b76"},
 ]
 lazy-object-proxy = [
     {file = "lazy-object-proxy-1.4.3.tar.gz", hash = "sha256:f3900e8a5de27447acbf900b4750b0ddfd7ec1ea7fbaf11dfa911141bc522af0"},
@@ -2747,6 +2659,11 @@ markupsafe = [
     {file = "MarkupSafe-1.1.1-cp37-cp37m-manylinux1_x86_64.whl", hash = "sha256:ba59edeaa2fc6114428f1637ffff42da1e311e29382d81b339c1817d37ec93c6"},
     {file = "MarkupSafe-1.1.1-cp37-cp37m-win32.whl", hash = "sha256:b00c1de48212e4cc9603895652c5c410df699856a2853135b3967591e4beebc2"},
     {file = "MarkupSafe-1.1.1-cp37-cp37m-win_amd64.whl", hash = "sha256:9bf40443012702a1d2070043cb6291650a0841ece432556f784f004937f0f32c"},
+    {file = "MarkupSafe-1.1.1-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:6788b695d50a51edb699cb55e35487e430fa21f1ed838122d722e0ff0ac5ba15"},
+    {file = "MarkupSafe-1.1.1-cp38-cp38-manylinux1_i686.whl", hash = "sha256:cdb132fc825c38e1aeec2c8aa9338310d29d337bebbd7baa06889d09a60a1fa2"},
+    {file = "MarkupSafe-1.1.1-cp38-cp38-manylinux1_x86_64.whl", hash = "sha256:13d3144e1e340870b25e7b10b98d779608c02016d5184cfb9927a9f10c689f42"},
+    {file = "MarkupSafe-1.1.1-cp38-cp38-win32.whl", hash = "sha256:596510de112c685489095da617b5bcbbac7dd6384aeebeda4df6025d0256a81b"},
+    {file = "MarkupSafe-1.1.1-cp38-cp38-win_amd64.whl", hash = "sha256:e8313f01ba26fbbe36c7be1966a7b7424942f670f38e666995b88d012765b9be"},
     {file = "MarkupSafe-1.1.1.tar.gz", hash = "sha256:29872e92839765e546828bb7754a68c418d927cd064fd4708fab9fe9c8bb116b"},
 ]
 maxminddb = [
@@ -2859,8 +2776,8 @@ pluggy = [
     {file = "pluggy-0.13.1.tar.gz", hash = "sha256:15b2acde666561e1298d71b523007ed7364de07029219b604cf808bfa1c765b0"},
 ]
 pre-commit = [
-    {file = "pre_commit-1.21.0-py2.py3-none-any.whl", hash = "sha256:f92a359477f3252452ae2e8d3029de77aec59415c16ae4189bcfba40b757e029"},
-    {file = "pre_commit-1.21.0.tar.gz", hash = "sha256:8f48d8637bdae6fa70cc97db9c1dd5aa7c5c8bf71968932a380628c25978b850"},
+    {file = "pre_commit-2.2.0-py2.py3-none-any.whl", hash = "sha256:487c675916e6f99d355ec5595ad77b325689d423ef4839db1ed2f02f639c9522"},
+    {file = "pre_commit-2.2.0.tar.gz", hash = "sha256:c0aa11bce04a7b46c5544723aedf4e81a4d5f64ad1205a30a9ea12d5e81969e1"},
 ]
 prices = [
     {file = "prices-1.0.0.tar.gz", hash = "sha256:1e920a2f3b8d610985e7effcecd2b9ccfe58798c4c9641f76f6b5eb4a4bcd91b"},
@@ -2975,10 +2892,6 @@ pydocstyle = [
 pyflakes = [
     {file = "pyflakes-2.1.1-py2.py3-none-any.whl", hash = "sha256:17dbeb2e3f4d772725c777fabc446d5634d1038f234e77343108ce445ea69ce0"},
     {file = "pyflakes-2.1.1.tar.gz", hash = "sha256:d976835886f8c5b31d47970ed689944a0262b5f3afa00a5a7b4dc81e5449f8a2"},
-]
-pygments = [
-    {file = "Pygments-2.5.2-py2.py3-none-any.whl", hash = "sha256:2a3fe295e54a20164a9df49c75fa58526d3be48e14aceba6d6b1e8ac0bfd6f1b"},
-    {file = "Pygments-2.5.2.tar.gz", hash = "sha256:98c8aa5a9f778fcd1026a17361ddaf7330d1b7c62ae97c3bb0ae73e0b9b6b0fe"},
 ]
 pyjwt = [
     {file = "PyJWT-1.7.1-py2.py3-none-any.whl", hash = "sha256:5c6eca3c2940464d106b99ba83b00c6add741c9becaec087fb7ccdefea71350e"},
@@ -3143,8 +3056,8 @@ sqlparse = [
     {file = "sqlparse-0.3.0.tar.gz", hash = "sha256:7c3dca29c022744e95b547e867cee89f4fce4373f3549ccd8797d8eb52cdb873"},
 ]
 stripe = [
-    {file = "stripe-2.42.0-py2.py3-none-any.whl", hash = "sha256:eb5c2c35b2d31eaccb43983ca83de513b335100d9b71e79ca4c60085da464b77"},
-    {file = "stripe-2.42.0.tar.gz", hash = "sha256:89b2dcf6a84f0433cc15908c7be23f06a88e472065bb4f7542470ad97c053aef"},
+    {file = "stripe-2.44.0-py2.py3-none-any.whl", hash = "sha256:c16f92ae001e415340fffd73c97ec29b2e1f6591b905e8741c4ff02eab35e104"},
+    {file = "stripe-2.44.0.tar.gz", hash = "sha256:b15ce50cac5961ce63873906eac1492a12ed01a6ba3606aca831a1741b724a29"},
 ]
 sympy = [
     {file = "sympy-1.5.1-py2.py3-none-any.whl", hash = "sha256:4880d3a351558063bd89febda302f220dc4b88de393bba81fa6539a3966f03fa"},
@@ -3180,8 +3093,8 @@ tornado = [
     {file = "tornado-6.0.3.tar.gz", hash = "sha256:c845db36ba616912074c5b1ee897f8e0124df269468f25e4fe21fe72f6edd7a9"},
 ]
 tox = [
-    {file = "tox-3.14.5-py2.py3-none-any.whl", hash = "sha256:0cbe98369081fa16bd6f1163d3d0b2a62afa29d402ccfad2bd09fb2668be0956"},
-    {file = "tox-3.14.5.tar.gz", hash = "sha256:676f1e3e7de245ad870f956436b84ea226210587d1f72c8dfb8cd5ac7b6f0e70"},
+    {file = "tox-3.14.6-py2.py3-none-any.whl", hash = "sha256:b2c4b91c975ea5c11463d9ca00bebf82654439c5df0f614807b9bdec62cc9471"},
+    {file = "tox-3.14.6.tar.gz", hash = "sha256:a4a6689045d93c208d77230853b28058b7513f5123647b67bf012f82fa168303"},
 ]
 tqdm = [
     {file = "tqdm-4.43.0-py2.py3-none-any.whl", hash = "sha256:0d8b5afb66e23d80433102e9bd8b5c8b65d34c2a2255b2de58d97bd2ea8170fd"},
@@ -3243,8 +3156,8 @@ vine = [
     {file = "vine-1.3.0.tar.gz", hash = "sha256:133ee6d7a9016f177ddeaf191c1f58421a1dcc6ee9a42c58b34bed40e1d2cd87"},
 ]
 virtualenv = [
-    {file = "virtualenv-20.0.4-py2.py3-none-any.whl", hash = "sha256:de2cbdd5926c48d7b84e0300dea9e8f276f61d186e8e49223d71d91250fbaebd"},
-    {file = "virtualenv-20.0.4.tar.gz", hash = "sha256:08f3623597ce73b85d6854fb26608a6f39ee9d055c81178dc6583803797f8994"},
+    {file = "virtualenv-20.0.15-py2.py3-none-any.whl", hash = "sha256:4e399f48c6b71228bf79f5febd27e3bbb753d9d5905776a86667bc61ab628a25"},
+    {file = "virtualenv-20.0.15.tar.gz", hash = "sha256:9e81279f4a9d16d1c0654a127c2c86e5bca2073585341691882c1e66e31ef8a5"},
 ]
 wcwidth = [
     {file = "wcwidth-0.1.8-py2.py3-none-any.whl", hash = "sha256:8fd29383f539be45b20bd4df0dc29c20ba48654a41e661925e612311e9f3c603"},
