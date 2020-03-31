@@ -1632,7 +1632,7 @@ def test_update_product_invalid_price(
     data = content["data"]["productUpdate"]
     errors = data["productErrors"]
     assert errors[0]["field"] == "basePrice"
-    assert errors[0]["code"] == "INVALID"
+    assert errors[0]["code"] == ProductErrorCode.INVALID.name
 
 
 SET_ATTRIBUTES_TO_PRODUCT_QUERY = """
