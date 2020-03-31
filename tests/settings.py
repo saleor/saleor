@@ -64,3 +64,5 @@ PLUGINS = []
 PATTERNS_IGNORED_IN_QUERY_CAPTURES: List[Union[Pattern, SimpleLazyObject]] = [
     lazy_re_compile(r"^SET\s+")
 ]
+
+INSTALLED_APPS.append("tests.api.pagination")  # noqa: F405

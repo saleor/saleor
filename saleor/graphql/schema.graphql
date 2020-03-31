@@ -1508,6 +1508,20 @@ input DigitalContentUrlCreateInput {
   content: ID!
 }
 
+type DiscountError {
+  field: String
+  message: String
+  code: DiscountErrorCode!
+}
+
+enum DiscountErrorCode {
+  ALREADY_EXISTS
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+}
+
 enum DiscountStatusEnum {
   ACTIVE
   EXPIRED
@@ -2153,10 +2167,6 @@ input MoveProductInput {
 }
 
 type Mutation {
-  wishlistAddProduct(productId: ID!): WishlistAddProductMutation
-  wishlistRemoveProduct(productId: ID!): WishlistRemoveProductMutation
-  wishlistAddVariant(variantId: ID!): WishlistAddProductVariantMutation
-  wishlistRemoveVariant(variantId: ID!): WishlistRemoveProductVariantMutation
   webhookCreate(input: WebhookCreateInput!): WebhookCreate
   webhookDelete(id: ID!): WebhookDelete
   webhookUpdate(id: ID!, input: WebhookUpdateInput!): WebhookUpdate
@@ -2181,10 +2191,10 @@ type Mutation {
   shippingPriceBulkDelete(ids: [ID]!): ShippingPriceBulkDelete
   shippingPriceUpdate(id: ID!, input: ShippingPriceInput!): ShippingPriceUpdate
   shippingPriceTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): ShippingPriceTranslate
-  shippingZoneCreate(input: ShippingZoneInput!): ShippingZoneCreate
+  shippingZoneCreate(input: ShippingZoneCreateInput!): ShippingZoneCreate
   shippingZoneDelete(id: ID!): ShippingZoneDelete
   shippingZoneBulkDelete(ids: [ID]!): ShippingZoneBulkDelete
-  shippingZoneUpdate(id: ID!, input: ShippingZoneInput!): ShippingZoneUpdate
+  shippingZoneUpdate(id: ID!, input: ShippingZoneUpdateInput!): ShippingZoneUpdate
   attributeCreate(input: AttributeCreateInput!): AttributeCreate
   attributeDelete(id: ID!): AttributeDelete
   attributeBulkDelete(ids: [ID]!): AttributeBulkDelete
@@ -3824,6 +3834,7 @@ type Sale implements Node {
 type SaleAddCatalogues {
   errors: [Error!]!
   sale: Sale
+  discountErrors: [DiscountError!]!
 }
 
 type SaleBulkDelete {
@@ -3844,11 +3855,13 @@ type SaleCountableEdge {
 
 type SaleCreate {
   errors: [Error!]!
+  discountErrors: [DiscountError!]!
   sale: Sale
 }
 
 type SaleDelete {
   errors: [Error!]!
+  discountErrors: [DiscountError!]!
   sale: Sale
 }
 
@@ -3873,6 +3886,7 @@ input SaleInput {
 type SaleRemoveCatalogues {
   errors: [Error!]!
   sale: Sale
+  discountErrors: [DiscountError!]!
 }
 
 enum SaleSortField {
@@ -3913,6 +3927,7 @@ enum SaleType {
 
 type SaleUpdate {
   errors: [Error!]!
+  discountErrors: [DiscountError!]!
   sale: Sale
 }
 
@@ -4037,6 +4052,7 @@ type ShippingError {
   field: String
   message: String
   code: ShippingErrorCode!
+  warehouses: [ID!]
 }
 
 enum ShippingErrorCode {
@@ -4047,6 +4063,7 @@ enum ShippingErrorCode {
   NOT_FOUND
   REQUIRED
   UNIQUE
+  CANNOT_ADD_AND_REMOVE
 }
 
 type ShippingMethod implements Node {
@@ -4155,22 +4172,31 @@ type ShippingZoneCreate {
   shippingErrors: [ShippingError!]!
 }
 
+input ShippingZoneCreateInput {
+  name: String
+  countries: [String]
+  default: Boolean
+  addWarehouses: [ID]
+}
+
 type ShippingZoneDelete {
   errors: [Error!]!
   shippingErrors: [ShippingError!]!
   shippingZone: ShippingZone
 }
 
-input ShippingZoneInput {
-  name: String
-  countries: [String]
-  default: Boolean
-}
-
 type ShippingZoneUpdate {
   errors: [Error!]!
   shippingZone: ShippingZone
   shippingErrors: [ShippingError!]!
+}
+
+input ShippingZoneUpdateInput {
+  name: String
+  countries: [String]
+  default: Boolean
+  addWarehouses: [ID]
+  removeWarehouses: [ID]
 }
 
 type Shop {
@@ -4574,7 +4600,6 @@ type User implements Node & ObjectWithMetadata {
   avatar(size: Int): Image
   events: [CustomerEvent]
   storedPaymentSources: [PaymentSource]
-  wishlist(before: String, after: String, first: Int, last: Int): WishlistItemCountableConnection
 }
 
 type UserAvatarDelete {
@@ -4718,6 +4743,7 @@ type Voucher implements Node {
 type VoucherAddCatalogues {
   errors: [Error!]!
   voucher: Voucher
+  discountErrors: [DiscountError!]!
 }
 
 type VoucherBulkDelete {
@@ -4738,11 +4764,13 @@ type VoucherCountableEdge {
 
 type VoucherCreate {
   errors: [Error!]!
+  discountErrors: [DiscountError!]!
   voucher: Voucher
 }
 
 type VoucherDelete {
   errors: [Error!]!
+  discountErrors: [DiscountError!]!
   voucher: Voucher
 }
 
@@ -4782,6 +4810,7 @@ input VoucherInput {
 type VoucherRemoveCatalogues {
   errors: [Error!]!
   voucher: Voucher
+  discountErrors: [DiscountError!]!
 }
 
 enum VoucherSortField {
@@ -4825,6 +4854,7 @@ enum VoucherTypeEnum {
 
 type VoucherUpdate {
   errors: [Error!]!
+  discountErrors: [DiscountError!]!
   voucher: Voucher
 }
 
@@ -4898,6 +4928,7 @@ enum WarehouseErrorCode {
 
 input WarehouseFilterInput {
   search: String
+  ids: [ID]
 }
 
 type WarehouseShippingZoneAssign {
@@ -5064,68 +5095,6 @@ enum WeightUnitsEnum {
   LB
   OZ
   G
-}
-
-type Wishlist implements Node {
-  id: ID!
-  createdAt: DateTime!
-  items(before: String, after: String, first: Int, last: Int, id: ID): WishlistItemCountableConnection!
-}
-
-type WishlistAddProductMutation {
-  errors: [Error!]!
-  wishlist: [WishlistItem]
-  wishlistErrors: [WishlistError!]!
-}
-
-type WishlistAddProductVariantMutation {
-  errors: [Error!]!
-  wishlist: [WishlistItem]
-  wishlistErrors: [WishlistError!]!
-}
-
-type WishlistError {
-  field: String
-  message: String
-  code: WishlistErrorCode!
-}
-
-enum WishlistErrorCode {
-  GRAPHQL_ERROR
-  INVALID
-  NOT_FOUND
-  REQUIRED
-  UNIQUE
-}
-
-type WishlistItem implements Node {
-  id: ID!
-  wishlist: Wishlist!
-  product: Product!
-  variants(before: String, after: String, first: Int, last: Int): ProductVariantCountableConnection!
-}
-
-type WishlistItemCountableConnection {
-  pageInfo: PageInfo!
-  edges: [WishlistItemCountableEdge!]!
-  totalCount: Int
-}
-
-type WishlistItemCountableEdge {
-  node: WishlistItem!
-  cursor: String!
-}
-
-type WishlistRemoveProductMutation {
-  errors: [Error!]!
-  wishlist: [WishlistItem]
-  wishlistErrors: [WishlistError!]!
-}
-
-type WishlistRemoveProductVariantMutation {
-  errors: [Error!]!
-  wishlist: [WishlistItem]
-  wishlistErrors: [WishlistError!]!
 }
 
 scalar _Any
