@@ -6,6 +6,7 @@ from saleor.wishlist.models import Wishlist
 from .utils import assert_no_permission, get_graphql_content
 
 
+@pytest.mark.skip(reason="Wishlist temporary removed from api")
 def test_wishlist_add_variant_to_anonymous_user(api_client, variant):
     query = """
     mutation WishlistAddVariant($variant_id: ID!) {
@@ -26,6 +27,7 @@ def test_wishlist_add_variant_to_anonymous_user(api_client, variant):
     assert_no_permission(response)
 
 
+@pytest.mark.skip(reason="Wishlist temporary removed from api")
 def test_wishlist_add_variant_to_logged_user(user_api_client, variant):
     user = user_api_client.user
     # Assert that user doesn't have a wishlist
@@ -59,6 +61,7 @@ def test_wishlist_add_variant_to_logged_user(user_api_client, variant):
     assert item_id == str(item.pk)
 
 
+@pytest.mark.skip(reason="Wishlist temporary removed from api")
 def test_wishlist_remove_variant_from_anonymous_user(
     api_client, customer_wishlist_item
 ):
@@ -83,6 +86,7 @@ def test_wishlist_remove_variant_from_anonymous_user(
     assert_no_permission(response)
 
 
+@pytest.mark.skip(reason="Wishlist temporary removed from api")
 def test_wishlist_remove_variant_from_logged_user(
     user_api_client, customer_wishlist_item
 ):
@@ -115,6 +119,7 @@ def test_wishlist_remove_variant_from_logged_user(
     assert wishlist.items.count() == 0
 
 
+@pytest.mark.skip(reason="Wishlist temporary removed from api")
 def test_wishlist_add_product_to_logged_user(user_api_client, product):
     user = user_api_client.user
     # Assert that user doesn't have a wishlist
@@ -148,6 +153,7 @@ def test_wishlist_add_product_to_logged_user(user_api_client, product):
     assert item_id == str(item.pk)
 
 
+@pytest.mark.skip(reason="Wishlist temporary removed from api")
 def test_wishlist_remove_product_from_logged_user(
     user_api_client, customer_wishlist_item
 ):
@@ -180,6 +186,7 @@ def test_wishlist_remove_product_from_logged_user(
     assert wishlist.items.count() == 0
 
 
+@pytest.mark.skip(reason="Wishlist temporary removed from api")
 def test_wishlist_get_items_from_anonymous_user(api_client):
     query = """
     query WishlistItems {
@@ -199,6 +206,7 @@ def test_wishlist_get_items_from_anonymous_user(api_client):
     assert content["data"]["me"] is None
 
 
+@pytest.mark.skip(reason="Wishlist temporary removed from api")
 def test_wishlist_get_items_from_logged_user(user_api_client, customer_wishlist_item):
     user = user_api_client.user
     wishlist = customer_wishlist_item.wishlist
