@@ -5,6 +5,7 @@ from ...checkout import error_codes as checkout_error_codes
 from ...core import error_codes as core_error_codes
 from ...core.permissions import get_permissions_enum_list
 from ...core.weight import WeightUnits
+from ...discount import error_codes as discount_error_codes
 from ...extensions import error_codes as extensions_error_codes
 from ...extensions.plugins.vatlayer import TaxRateType as CoreTaxRateType
 from ...giftcard import error_codes as giftcard_error_codes
@@ -85,6 +86,7 @@ WeightUnitsEnum = graphene.Enum(
 
 AccountErrorCode = graphene.Enum.from_enum(account_error_codes.AccountErrorCode)
 CheckoutErrorCode = graphene.Enum.from_enum(checkout_error_codes.CheckoutErrorCode)
+DiscountErrorCode = graphene.Enum.from_enum(discount_error_codes.DiscountErrorCode)
 ExtensionsErrorCode = graphene.Enum.from_enum(
     extensions_error_codes.ExtensionsErrorCode
 )

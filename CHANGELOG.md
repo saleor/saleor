@@ -88,6 +88,12 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add user_permissions on user type - #5390 by @IKarbowiak
 - Update user to group assign restriction - #5395 by @IKarbowiak
 - Add editable groups on user type - #5408 by @IKarbowiak
+- Add discount error codes - #5348 by @IKarbowiak
+- Add benchmarks to checkout mutations - #5339 by @fowczarek
+- Add pagination tests - #5363 by @fowczarek
+- Add ability to assign multiple warehouses in mutations to create/update a shipping zone - #5399 by @fowczarek
+- Add filter by ids to warehouses query - #5414 by @fowczarek
+
 
 ## 2.9.0
 
@@ -126,6 +132,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Ensure that a GraphQL query is a string - #4836 by @nix010
 - Add ability to configure the password reset link - #4863 by @fowczarek
 - Fixed a performance issue where Saleor would sometimes run huge, unneeded prefetches when resolving categories or collections - #5291 by @NyanKiyoshi
+- uWSGI now forces the django application to directly load on startup instead of being lazy - #5357 by @NyanKiyoshi
 
 ### Core
 
