@@ -458,3 +458,17 @@ def test_calculations_checkout_shipping_price_with_vatlayer(
     assert checkout_shipping_price == TaxedMoney(
         net=Money("0", "USD"), gross=Money("0", "USD")
     )
+
+
+def test_skip_diabled_plugin(settings):
+    settings.PLUGINS = ["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+    settings.VATLAYER_ACCESS_KEY = None
+    manager = get_extensions_manager()
+    plugin: VatlayerPlugin = manager.get_plugin("Vatlayer")
+
+    assert (
+        plugin._skip_plugin(
+            previous_value=TaxedMoney(net=Money(0, "USD"), gross=Money(0, "USD"))
+        )
+        is True
+    )

@@ -478,3 +478,17 @@ def test_plugin_uses_configuration_from_db(
     manager = get_extensions_manager()
     with pytest.raises(TaxError):
         manager.preprocess_order_creation(checkout_with_item, discounts)
+
+
+def test_skip_disabled_plugin(settings, plugin_configuration):
+    plugin_configuration(username=None, password=None)
+    settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
+    manager = get_extensions_manager()
+    plugin: AvataxPlugin = manager.get_plugin("Avalara")
+
+    assert (
+        plugin._skip_plugin(
+            previous_value=TaxedMoney(net=Money(0, "USD"), gross=Money(0, "USD"))
+        )
+        is True
+    )
