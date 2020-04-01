@@ -11,13 +11,11 @@ def resolve_plugin(info, plugin_name):
     if not plugin:
         return None
     return PluginConfiguration(
-        **{
-            "id": plugin.PLUGIN_NAME,
-            "active": plugin.active,
-            "configuration": plugin.configuration,
-            "description": plugin.PLUGIN_DESCRIPTION,
-            "name": plugin.PLUGIN_NAME,
-        }
+        id=plugin.PLUGIN_NAME,
+        active=plugin.active,
+        configuration=plugin.configuration,
+        description=plugin.PLUGIN_DESCRIPTION,
+        name=plugin.PLUGIN_NAME,
     )
 
 
@@ -48,13 +46,11 @@ def resolve_plugins(sort_by=None, **_kwargs):
 
     return [
         PluginConfiguration(
-            **{
-                "id": plugin.PLUGIN_NAME,
-                "active": plugin.active,
-                "configuration": plugin.configuration,
-                "description": plugin.PLUGIN_DESCRIPTION,
-                "name": plugin.PLUGIN_NAME,
-            }
+            id=plugin.PLUGIN_NAME,
+            active=plugin.active,
+            configuration=plugin.configuration,
+            description=plugin.PLUGIN_DESCRIPTION,
+            name=plugin.PLUGIN_NAME,
         )
         for plugin in plugins
     ]

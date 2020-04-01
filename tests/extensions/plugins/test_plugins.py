@@ -16,7 +16,6 @@ def test_update_config_items_keeps_bool_value(plugin_configuration, settings):
     ]
     manager = get_extensions_manager()
     plugin_sample = manager.get_plugin(PluginSample.PLUGIN_NAME)
-
     plugin_sample._update_config_items(data_to_update, plugin_sample.configuration)
 
     assert get_config_value("Use sandbox", plugin_sample.configuration) is False
