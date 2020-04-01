@@ -305,30 +305,34 @@ def test_query_customer_user(
 
 def test_query_staff_user(
     staff_api_client,
+    staff_user,
     address,
     permission_manage_users,
     media_root,
-    permission_group_manage_users,
     permission_manage_orders,
     permission_manage_products,
     permission_manage_staff,
     permission_manage_menus,
 ):
-    group = permission_group_manage_users
-    group.permissions.add(permission_manage_products)
-
-    staff_user = group.user_set.first()
     staff_user.user_permissions.add(permission_manage_orders, permission_manage_staff)
 
-    # another user group
-    group2 = Group.objects.create(name="another user group")
-    group2.user_set.add(staff_user)
+    groups = Group.objects.bulk_create(
+        [
+            Group(name="manage users"),
+            Group(name="another user group"),
+            Group(name="another group"),
+            Group(name="empty group"),
+        ]
+    )
+    group1, group2, group3, group4 = groups
+
+    group1.permissions.add(permission_manage_users, permission_manage_products)
+
+    # user groups
+    staff_user.groups.add(group1, group2)
 
     # another group (not user group) with permission_manage_users
-    group3 = Group.objects.create(name="another group")
     group3.permissions.add(permission_manage_users, permission_manage_menus)
-
-    group4 = Group.objects.create(name="empty group")
 
     avatar_mock = MagicMock(spec=File)
     avatar_mock.name = "image2.jpg"
@@ -338,9 +342,7 @@ def test_query_staff_user(
     query = FULL_USER_QUERY
     user_id = graphene.Node.to_global_id("User", staff_user.pk)
     variables = {"id": user_id}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_staff]
-    )
+    response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["user"]
 
@@ -354,13 +356,13 @@ def test_query_staff_user(
 
     assert len(data["permissionGroups"]) == 2
     assert {group_data["name"] for group_data in data["permissionGroups"]} == {
-        group.name,
+        group1.name,
         group2.name,
     }
     assert len(data["userPermissions"]) == 4
     assert len(data["editableGroups"]) == Group.objects.count() - 1
     assert {data_group["name"] for data_group in data["editableGroups"]} == {
-        group.name,
+        group1.name,
         group2.name,
         group4.name,
     }
@@ -372,7 +374,7 @@ def test_query_staff_user(
         }
         for perm in data["userPermissions"]
     ]
-    all_permissions = group.permissions.all() | staff_user.user_permissions.all()
+    all_permissions = group1.permissions.all() | staff_user.user_permissions.all()
     for perm in all_permissions:
         source_groups = {group.name for group in perm.group_set.filter(user=staff_user)}
         expected_data = {"code": perm.codename, "groups": source_groups}
@@ -1718,17 +1720,22 @@ def test_staff_update(staff_api_client, permission_manage_staff, media_root):
 def test_staff_update_groups_and_permissions(
     staff_api_client,
     media_root,
-    permission_group_manage_users,
     permission_manage_staff,
     permission_manage_users,
     permission_manage_orders,
     permission_manage_products,
 ):
     query = STAFF_UPDATE_MUTATIONS
-    group1 = permission_group_manage_users
-    group2 = Group.objects.create(name="manage orders")
+    groups = Group.objects.bulk_create(
+        [
+            Group(name="manage users"),
+            Group(name="manage orders"),
+            Group(name="manage products"),
+        ]
+    )
+    group1, group2, group3 = groups
+    group1.permissions.add(permission_manage_users)
     group2.permissions.add(permission_manage_orders)
-    group3 = Group.objects.create(name="empty")
 
     staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
     staff_user.groups.add(group1)
@@ -1829,16 +1836,23 @@ def test_staff_update_out_of_scope_groups(
     staff_api_client,
     permission_manage_staff,
     media_root,
+    permission_manage_users,
     permission_manage_orders,
-    permission_group_manage_users,
     permission_manage_products,
 ):
     query = STAFF_UPDATE_MUTATIONS
 
-    group = permission_group_manage_users
-    group2 = Group.objects.create(name="manage orders")
+    groups = Group.objects.bulk_create(
+        [
+            Group(name="manage users"),
+            Group(name="manage orders"),
+            Group(name="manage products"),
+        ]
+    )
+    group1, group2, group3 = groups
+
+    group1.permissions.add(permission_manage_users)
     group2.permissions.add(permission_manage_orders)
-    group3 = Group.objects.create(name="manage products")
     group3.permissions.add(permission_manage_products)
 
     staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
@@ -1850,7 +1864,7 @@ def test_staff_update_out_of_scope_groups(
             "permissions": [],
             "isActive": False,
             "addGroups": [
-                graphene.Node.to_global_id("Group", gr.pk) for gr in [group, group2]
+                graphene.Node.to_global_id("Group", gr.pk) for gr in [group1, group2]
             ],
             "removeGroups": [graphene.Node.to_global_id("Group", group3.pk)],
         },
@@ -1870,7 +1884,7 @@ def test_staff_update_out_of_scope_groups(
             "field": "addGroups",
             "code": AccountErrorCode.OUT_OF_SCOPE_GROUP.name,
             "permissions": None,
-            "groups": [graphene.Node.to_global_id("Group", group.pk)],
+            "groups": [graphene.Node.to_global_id("Group", group1.pk)],
         },
         {
             "field": "removeGroups",
@@ -1889,17 +1903,22 @@ def test_staff_update_cannot_add_and_remove(
     permission_manage_staff,
     media_root,
     permission_manage_orders,
-    permission_group_manage_users,
     permission_manage_products,
     permission_manage_users,
 ):
     query = STAFF_UPDATE_MUTATIONS
 
-    group = permission_group_manage_users
-    group2 = Group.objects.create(name="manage orders")
+    groups = Group.objects.bulk_create(
+        [
+            Group(name="manage users"),
+            Group(name="manage orders"),
+            Group(name="manage products"),
+        ]
+    )
+    group1, group2, group3 = groups
+
+    group1.permissions.add(permission_manage_users)
     group2.permissions.add(permission_manage_orders)
-    group3 = Group.objects.create(name="manage products")
-    group3.permissions.add()
 
     staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
     staff_api_client.user.user_permissions.add(
@@ -1910,11 +1929,11 @@ def test_staff_update_cannot_add_and_remove(
         "id": id,
         "input": {
             "addGroups": [
-                graphene.Node.to_global_id("Group", gr.pk) for gr in [group, group2]
+                graphene.Node.to_global_id("Group", gr.pk) for gr in [group1, group2]
             ],
             "removeGroups": [
                 graphene.Node.to_global_id("Group", gr.pk)
-                for gr in [group, group2, group3]
+                for gr in [group1, group2, group3]
             ],
         },
     }
@@ -1930,7 +1949,7 @@ def test_staff_update_cannot_add_and_remove(
     assert errors[0]["field"] is None
     assert errors[0]["code"] == AccountErrorCode.CANNOT_ADD_AND_REMOVE.name
     assert set(errors[0]["groups"]) == {
-        graphene.Node.to_global_id("Group", gr.pk) for gr in [group, group2]
+        graphene.Node.to_global_id("Group", gr.pk) for gr in [group1, group2]
     }
     assert errors[0]["permissions"] is None
 
