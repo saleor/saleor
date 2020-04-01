@@ -837,7 +837,7 @@ class ProductCreate(ModelMutation):
                 raise ValidationError(
                     {
                         "basePrice": ValidationError(
-                            ("Product base price cannot be lower than 0."),
+                            "Product base price cannot be lower than 0.",
                             code=ProductErrorCode.INVALID,
                         )
                     }
@@ -1185,11 +1185,11 @@ class ProductVariantCreate(ModelMutation):
 
         if "cost_price" in cleaned_input:
             cost_price = cleaned_input.pop("cost_price")
-            if cost_price < 0:
+            if cost_price and cost_price < 0:
                 raise ValidationError(
                     {
                         "costPrice": ValidationError(
-                            ("Product price cannot be lower than 0."),
+                            "Product price cannot be lower than 0.",
                             code=ProductErrorCode.INVALID,
                         )
                     }
@@ -1198,11 +1198,11 @@ class ProductVariantCreate(ModelMutation):
 
         if "price_override" in cleaned_input:
             price_override = cleaned_input.pop("price_override")
-            if price_override < 0:
+            if price_override and price_override < 0:
                 raise ValidationError(
                     {
                         "priceOverride": ValidationError(
-                            ("Product price cannot be lower than 0."),
+                            "Product price cannot be lower than 0.",
                             code=ProductErrorCode.INVALID,
                         )
                     }

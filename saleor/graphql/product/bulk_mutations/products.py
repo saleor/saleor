@@ -159,7 +159,7 @@ class ProductVariantBulkCreate(BaseMutation):
                 raise ValidationError(
                     {
                         "basePrice": ValidationError(
-                            ("Product price cannot be lower than 0."),
+                            "Product price cannot be lower than 0.",
                             code=ProductErrorCode.INVALID,
                         )
                     }
@@ -172,7 +172,7 @@ class ProductVariantBulkCreate(BaseMutation):
                 raise ValidationError(
                     {
                         "basePrice": ValidationError(
-                            ("Product price cannot be lower than 0."),
+                            "Product price cannot be lower than 0.",
                             code=ProductErrorCode.INVALID,
                         )
                     }
