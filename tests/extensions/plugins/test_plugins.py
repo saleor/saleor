@@ -58,21 +58,32 @@ def test_base_plugin__update_configuration_structure_configuration_has_change(
     assert old_configuration == plugin_configuration.configuration
 
 
-def test_base_plugin__append_config_structure_do_not_save_to_db(
-    plugin_configuration, settings
-):
+def test_base_plugin__append_config_structure_to_config(settings):
     settings.PLUGINS = ["tests.extensions.sample_plugins.PluginSample"]
     manager = get_extensions_manager()
     plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
-    old_config = copy.deepcopy(plugin_configuration.configuration)
-    configuration = plugin_configuration.configuration
-    plugin._append_config_structure(configuration)
-    for elem in old_config:
-        for new_elem in configuration:
-            if elem["name"] == new_elem["name"]:
-                assert not elem == new_elem
-    plugin_configuration.refresh_from_db()
-    assert old_config == plugin_configuration.configuration
+    config = [
+        {"name": "Username", "value": "my_test_user"},
+        {"name": "Password", "value": "my_password"},
+    ]
+    config_with_structure = [
+        {
+            "name": "Username",
+            "value": "my_test_user",
+            "type": "String",
+            "help_text": "Username input field",
+            "label": "Username",
+        },
+        {
+            "name": "Password",
+            "value": "my_password",
+            "type": "Password",
+            "help_text": "Password input field",
+            "label": "Password",
+        },
+    ]
+    plugin._append_config_structure(config)
+    assert config == config_with_structure
 
 
 def test_change_user_address_in_anonymize_plugin_reset_phone(address, settings):
