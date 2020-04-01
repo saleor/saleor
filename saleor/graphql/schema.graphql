@@ -3073,11 +3073,11 @@ type PermissionGroupUpdate {
 }
 
 type Plugin implements Node {
+  id: ID!
   name: String!
   description: String!
   active: Boolean!
   configuration: [ConfigurationItem]
-  id: ID!
 }
 
 type PluginCountableConnection {
