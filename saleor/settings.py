@@ -7,7 +7,6 @@ import dj_email_url
 import jaeger_client
 import jaeger_client.config
 import sentry_sdk
-from django.contrib.messages import constants as messages
 from django.core.exceptions import ImproperlyConfigured
 from django_prices.utils.formatting import get_currency_fraction
 from sentry_sdk.integrations.django import DjangoIntegration
@@ -357,10 +356,6 @@ AVATAX_USE_SANDBOX = get_bool_from_env("AVATAX_USE_SANDBOX", DEBUG)
 AVATAX_COMPANY_NAME = os.environ.get("AVATAX_COMPANY_NAME", "DEFAULT")
 AVATAX_AUTOCOMMIT = get_bool_from_env("AVATAX_AUTOCOMMIT", False)
 
-ACCOUNT_ACTIVATION_DAYS = 3
-
-LOGIN_REDIRECT_URL = "home"
-
 GOOGLE_ANALYTICS_TRACKING_ID = os.environ.get("GOOGLE_ANALYTICS_TRACKING_ID")
 
 
@@ -375,8 +370,6 @@ PAYMENT_HOST = get_host
 PAYMENT_MODEL = "order.Payment"
 
 SESSION_SERIALIZER = "django.contrib.sessions.serializers.JSONSerializer"
-
-MESSAGE_TAGS = {messages.ERROR: "danger"}
 
 LOW_STOCK_THRESHOLD = 10
 MAX_CHECKOUT_LINE_QUANTITY = int(os.environ.get("MAX_CHECKOUT_LINE_QUANTITY", 50))
@@ -455,8 +448,6 @@ PLACEHOLDER_IMAGES = {
 
 DEFAULT_PLACEHOLDER = "images/placeholder255x255.png"
 
-LOGOUT_ON_PASSWORD_CHANGE = False
-
 SEARCH_BACKEND = "saleor.search.backends.postgresql"
 
 AUTHENTICATION_BACKENDS = [
@@ -488,27 +479,6 @@ REAL_IP_ENVIRON = os.environ.get("REAL_IP_ENVIRON", "REMOTE_ADDR")
 # The maximum length of a graphql query to log in tracings
 OPENTRACING_MAX_QUERY_LENGTH_LOG = 2000
 
-# Rich-text editor
-ALLOWED_TAGS = [
-    "a",
-    "b",
-    "blockquote",
-    "br",
-    "em",
-    "h2",
-    "h3",
-    "i",
-    "img",
-    "li",
-    "ol",
-    "p",
-    "strong",
-    "ul",
-]
-ALLOWED_ATTRIBUTES = {"*": ["align", "style"], "a": ["href", "title"], "img": ["src"]}
-ALLOWED_STYLES = ["text-align"]
-
-
 # Slugs for menus precreated in Django migrations
 DEFAULT_MENUS = {"top_menu_name": "navbar", "bottom_menu_name": "footer"}
 
@@ -538,11 +508,6 @@ PLUGINS = [
     "saleor.payment.gateways.braintree.plugin.BraintreeGatewayPlugin",
     "saleor.payment.gateways.razorpay.plugin.RazorpayGatewayPlugin",
 ]
-
-# Whether DraftJS should be used be used instead of HTML
-# True to use DraftJS (JSON based), for the 2.0 dashboard
-# False to use the old editor from dashboard 1.0
-USE_JSON_CONTENT = get_bool_from_env("USE_JSON_CONTENT", False)
 
 if (
     not DEBUG
