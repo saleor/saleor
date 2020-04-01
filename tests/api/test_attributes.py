@@ -1183,8 +1183,9 @@ def test_resolve_assigned_attribute_without_values(api_client, product_type, pro
 ASSIGN_ATTR_QUERY = """
     mutation assign($productTypeId: ID!, $operations: [AttributeAssignInput]!) {
       attributeAssign(productTypeId: $productTypeId, operations: $operations) {
-        errors {
+        productErrors {
           field
+          code
           message
         }
         productType {
@@ -1229,7 +1230,7 @@ def test_assign_attributes_to_product_type(
             query, variables, permissions=[permission_manage_products]
         )
     )["data"]["attributeAssign"]
-    assert not content["errors"], "Should have succeeded"
+    assert not content["productErrors"], "Should have succeeded"
 
     assert content["productType"]["id"] == product_type_global_id
     assert len(content["productType"]["productAttributes"]) == len(
@@ -1250,6 +1251,27 @@ def test_assign_attributes_to_product_type(
 
     assert found_product_attrs_ids == product_attributes_ids
     assert found_variant_attrs_ids == variant_attributes_ids
+
+
+def test_assign_non_existing_attributes_to_product_type(
+    staff_api_client, permission_manage_products, attribute_list
+):
+    product_type = ProductType.objects.create(name="Default Type", has_variants=True)
+    product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+
+    query = ASSIGN_ATTR_QUERY
+    operations = [
+        {"type": "PRODUCT", "id": graphene.Node.to_global_id("Attribute", "555")}
+    ]
+    variables = {"productTypeId": product_type_global_id, "operations": operations}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    content = content["data"]["attributeAssign"]
+    assert content["productErrors"][0]["code"] == ProductErrorCode.NOT_FOUND.name
+    assert content["productErrors"][0]["field"] == "operations"
 
 
 def test_assign_variant_attribute_to_product_type_with_disabled_variants(
@@ -1277,12 +1299,15 @@ def test_assign_variant_attribute_to_product_type_with_disabled_variants(
     content = get_graphql_content(staff_api_client.post_graphql(query, variables))[
         "data"
     ]["attributeAssign"]
-    assert content["errors"] == [
-        {
-            "field": "operations",
-            "message": "Variants are disabled in this product type.",
-        }
-    ]
+    assert content["productErrors"][0]["field"] == "operations"
+    assert (
+        content["productErrors"][0]["message"]
+        == "Variants are disabled in this product type."
+    )
+    assert (
+        content["productErrors"][0]["code"]
+        == ProductErrorCode.ATTRIBUTE_VARIANTS_DISABLED.name
+    )
 
 
 def test_assign_variant_attribute_having_unsupported_input_type(
@@ -1310,15 +1335,16 @@ def test_assign_variant_attribute_having_unsupported_input_type(
     content = get_graphql_content(staff_api_client.post_graphql(query, variables))[
         "data"
     ]["attributeAssign"]
-    assert content["errors"] == [
-        {
-            "field": "operations",
-            "message": (
-                "Attributes having for input types ['multiselect'] cannot be assigned "
-                "as variant attributes"
-            ),
-        }
-    ]
+    assert content["productErrors"][0]["field"] == "operations"
+    assert (
+        content["productErrors"][0]["message"]
+        == "Attributes having for input types ['multiselect'] "
+        "cannot be assigned as variant attributes"
+    )
+    assert (
+        content["productErrors"][0]["code"]
+        == ProductErrorCode.ATTRIBUTE_CANNOT_BE_ASSIGNED.name
+    )
 
 
 @pytest.mark.parametrize(
@@ -1365,12 +1391,15 @@ def test_assign_attribute_to_product_type_having_already_that_attribute(
     content = get_graphql_content(staff_api_client.post_graphql(query, variables))[
         "data"
     ]["attributeAssign"]
-    assert content["errors"] == [
-        {
-            "field": "operations",
-            "message": "Color (color) have already been assigned to this product type.",
-        }
-    ]
+    assert content["productErrors"][0]["field"] == "operations"
+    assert (
+        content["productErrors"][0]["message"]
+        == "Color (color) have already been assigned to this product type."
+    )
+    assert (
+        content["productErrors"][0]["code"]
+        == ProductErrorCode.ATTRIBUTE_ALREADY_ASSIGNED.name
+    )
 
 
 UNASSIGN_ATTR_QUERY = """

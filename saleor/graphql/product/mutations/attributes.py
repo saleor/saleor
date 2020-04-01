@@ -317,6 +317,18 @@ class AttributeAssign(BaseMutation):
             pk = from_global_id_strict_type(
                 operation.id, only_type=Attribute, field="operations"
             )
+
+            try:
+                models.Attribute.objects.get(pk=pk)
+            except models.Attribute.DoesNotExist:
+                raise ValidationError(
+                    {
+                        "operations": ValidationError(
+                            f"Attribute doesn't exist.",
+                            code=ProductErrorCode.NOT_FOUND.value,
+                        )
+                    }
+                )
             if operation.type == AttributeTypeEnum.PRODUCT:
                 product_attrs_pks.append(pk)
             else:
