@@ -3,8 +3,7 @@ from typing import TYPE_CHECKING, Optional
 import graphene
 
 from ...extensions import ConfigurationTypeField, manager, models
-from ...extensions.base_plugin import BasePlugin
-from ..core.connection import CountableDjangoObjectType, CountableConnection
+from ..core.connection import CountableDjangoObjectType
 from .enums import ConfigurationTypeFieldEnum
 
 if TYPE_CHECKING:
