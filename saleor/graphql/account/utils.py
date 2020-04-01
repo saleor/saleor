@@ -84,6 +84,12 @@ class StaffDeleteMixin(UserDeleteMixin):
                 }
             )
 
+        # check if requestor can manage this user
+        if get_out_of_scope_users(info.context.user, [instance]):
+            msg = "You can't manage this user."
+            code = AccountErrorCode.OUT_OF_SCOPE_USER.value
+            raise ValidationError({"id": ValidationError(msg, code=code)})
+
 
 def get_required_fields_camel_case(required_fields: set) -> set:
     """Return set of AddressValidationRules required fields in camel case."""

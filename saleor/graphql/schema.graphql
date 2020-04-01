@@ -39,6 +39,7 @@ type AccountError {
 enum AccountErrorCode {
   ACTIVATE_OWN_ACCOUNT
   ACTIVATE_SUPERUSER_ACCOUNT
+  CANNOT_ADD_AND_REMOVE
   DEACTIVATE_OWN_ACCOUNT
   DEACTIVATE_SUPERUSER_ACCOUNT
   DELETE_NON_STAFF_USER
@@ -49,6 +50,9 @@ enum AccountErrorCode {
   INVALID
   INVALID_PASSWORD
   NOT_FOUND
+  OUT_OF_SCOPE_USER
+  OUT_OF_SCOPE_GROUP
+  OUT_OF_SCOPE_PERMISSION
   PASSWORD_ENTIRELY_NUMERIC
   PASSWORD_TOO_COMMON
   PASSWORD_TOO_SHORT
@@ -2395,7 +2399,7 @@ type Mutation {
   customerDelete(id: ID!): CustomerDelete
   customerBulkDelete(ids: [ID]!): CustomerBulkDelete
   staffCreate(input: StaffCreateInput!): StaffCreate
-  staffUpdate(id: ID!, input: StaffInput!): StaffUpdate
+  staffUpdate(id: ID!, input: StaffUpdateInput!): StaffUpdate
   staffDelete(id: ID!): StaffDelete
   staffBulkDelete(ids: [ID]!): StaffBulkDelete
   userAvatarUpdate(image: Upload!): UserAvatarUpdate
@@ -4317,7 +4321,7 @@ type StaffBulkDelete {
 
 type StaffCreate {
   errors: [Error!]!
-  accountErrors: [AccountError!]!
+  staffErrors: [StaffError!]!
   user: User
 }
 
@@ -4328,22 +4332,22 @@ input StaffCreateInput {
   isActive: Boolean
   note: String
   permissions: [PermissionEnum]
+  addGroups: [ID!]
   redirectUrl: String
 }
 
 type StaffDelete {
   errors: [Error!]!
-  accountErrors: [AccountError!]!
+  staffErrors: [StaffError!]!
   user: User
 }
 
-input StaffInput {
-  firstName: String
-  lastName: String
-  email: String
-  isActive: Boolean
-  note: String
-  permissions: [PermissionEnum]
+type StaffError {
+  field: String
+  message: String
+  code: AccountErrorCode!
+  permissions: [PermissionEnum!]
+  groups: [ID!]
 }
 
 enum StaffMemberStatus {
@@ -4384,8 +4388,19 @@ type StaffNotificationRecipientUpdate {
 
 type StaffUpdate {
   errors: [Error!]!
-  accountErrors: [AccountError!]!
+  staffErrors: [StaffError!]!
   user: User
+}
+
+input StaffUpdateInput {
+  firstName: String
+  lastName: String
+  email: String
+  isActive: Boolean
+  note: String
+  permissions: [PermissionEnum]
+  addGroups: [ID!]
+  removeGroups: [ID!]
 }
 
 input StaffUserInput {
