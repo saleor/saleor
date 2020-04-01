@@ -4,7 +4,7 @@ import pytest
 from saleor.extensions import ConfigurationTypeField
 from saleor.extensions.manager import get_extensions_manager
 from saleor.extensions.models import PluginConfiguration
-from tests.api.utils import get_graphql_content
+from tests.api.utils import assert_no_permission, get_graphql_content
 from tests.extensions.sample_plugins import PluginSample
 from tests.extensions.utils import get_config_value
 
@@ -123,6 +123,13 @@ def test_query_plugins_hides_secret_fields(
             assert conf_field["value"] == expected_api_key
 
 
+def test_query_plugin_configurations_as_customer_user(user_api_client, settings):
+    settings.PLUGINS = ["tests.api.test_extensions.PluginSample"]
+    response = user_api_client.post_graphql(PLUGINS_QUERY)
+
+    assert_no_permission(response)
+
+
 PLUGIN_QUERY = """
     query plugin($id: ID!){
       plugin(id:$id){
@@ -206,6 +213,27 @@ def test_query_plugin_configuration(
     configuration_item = plugin["configuration"][0]
     assert configuration_item["name"] == sample_plugin.configuration[0]["name"]
     assert configuration_item["value"] == sample_plugin.configuration[0]["value"]
+
+
+def test_query_plugin_configuration_for_invalid_plugin_name(
+    staff_api_client, permission_manage_plugins
+):
+    variables = {"id": "fake-name"}
+    staff_api_client.user.user_permissions.add(permission_manage_plugins)
+    response = staff_api_client.post_graphql(PLUGIN_QUERY, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["plugin"] is None
+
+
+def test_query_plugin_configuration_as_customer_user(user_api_client, settings):
+    settings.PLUGINS = ["tests.api.test_extensions.PluginSample"]
+    manager = get_extensions_manager()
+    sample_plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
+
+    variables = {"id": sample_plugin.PLUGIN_NAME}
+    response = user_api_client.post_graphql(PLUGIN_QUERY, variables)
+
+    assert_no_permission(response)
 
 
 PLUGIN_UPDATE_MUTATION = """
@@ -328,6 +356,21 @@ def test_plugins_query_with_filter(
     response = staff_api_client_can_manage_plugins.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert content["data"]["plugins"]["totalCount"] == count
+
+
+def test_plugin_configuration_update_as_customer_user(user_api_client, settings):
+    settings.PLUGINS = ["tests.extensions.sample_plugins.PluginSample"]
+    manager = get_extensions_manager()
+    plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
+
+    variables = {
+        "id": plugin.PLUGIN_NAME,
+        "active": True,
+        "configuration": [{"name": "Username", "value": "user"}],
+    }
+    response = user_api_client.post_graphql(PLUGIN_UPDATE_MUTATION, variables)
+
+    assert_no_permission(response)
 
 
 QUERY_PLUGIN_WITH_SORT = """
