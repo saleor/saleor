@@ -17,14 +17,8 @@ from saleor.extensions.plugins.avatax import (
 from saleor.extensions.plugins.avatax.plugin import AvataxPlugin
 
 
-@pytest.fixture(autouse=True)
-def clear_plugin_configs_cache():
-    manager = get_extensions_manager()
-    del manager._plugin_configs
-
-
 @pytest.fixture
-def plugin_configuration(db,):
+def plugin_configuration(db):
     def set_configuration(username="test", password="test", sandbox=True):
         data = {
             "active": True,
@@ -406,7 +400,10 @@ def test_save_plugin_configuration(settings):
     assert plugin_configuration.active
 
 
-def test_save_plugin_configuration_cannot_be_enabled_without_config(settings):
+def test_save_plugin_configuration_cannot_be_enabled_without_config(
+    settings, plugin_configuration
+):
+    plugin_configuration(None, None)
     settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
     manager = get_extensions_manager()
     with pytest.raises(ValidationError):
