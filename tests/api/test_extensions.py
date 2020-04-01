@@ -301,6 +301,21 @@ def test_plugin_configuration_update(
     assert second_configuration_item["value"] == old_configuration[1]["value"]
 
 
+def test_plugin_configuration_update_containing_invalid_plugin_name(
+    staff_api_client_can_manage_plugins,
+):
+    variables = {
+        "id": "fake-name",
+        "active": True,
+        "configuration": [{"name": "Username", "value": "user"}],
+    }
+    response = staff_api_client_can_manage_plugins.post_graphql(
+        PLUGIN_UPDATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["pluginUpdate"]["errors"]
+
+
 def test_plugin_update_saves_boolean_as_boolean(
     staff_api_client_can_manage_plugins, settings
 ):
