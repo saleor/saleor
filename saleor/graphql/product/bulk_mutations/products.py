@@ -158,9 +158,9 @@ class ProductVariantBulkCreate(BaseMutation):
             if cost_price_amount < 0:
                 raise ValidationError(
                     {
-                        "basePrice": ValidationError(
+                        "costPrice": ValidationError(
                             "Product price cannot be lower than 0.",
-                            code=ProductErrorCode.INVALID,
+                            code=ProductErrorCode.INVALID.value,
                         )
                     }
                 )
@@ -171,9 +171,9 @@ class ProductVariantBulkCreate(BaseMutation):
             if price_override_amount < 0:
                 raise ValidationError(
                     {
-                        "basePrice": ValidationError(
+                        "priceOverride": ValidationError(
                             "Product price cannot be lower than 0.",
-                            code=ProductErrorCode.INVALID,
+                            code=ProductErrorCode.INVALID.value,
                         )
                     }
                 )
