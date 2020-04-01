@@ -35,9 +35,6 @@ SEARCH_BACKEND = "saleor.search.backends.postgresql"
 
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"
 
-RECAPTCHA_PUBLIC_KEY = ""
-RECAPTCHA_PRIVATE_KEY = ""
-
 VATLAYER_ACCESS_KEY = ""
 
 if "sqlite" in DATABASES["default"]["ENGINE"]:  # noqa

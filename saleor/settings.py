@@ -508,16 +508,6 @@ ALLOWED_STYLES = ["text-align"]
 # Slugs for menus precreated in Django migrations
 DEFAULT_MENUS = {"top_menu_name": "navbar", "bottom_menu_name": "footer"}
 
-# This enable the new 'No Captcha reCaptcha' version (the simple checkbox)
-# instead of the old (deprecated) one. For more information see:
-#   https://github.com/praekelt/django-recaptcha/blob/34af16ba1e/README.rst
-NOCAPTCHA = True
-
-# Set Google's reCaptcha keys
-RECAPTCHA_PUBLIC_KEY = os.environ.get("RECAPTCHA_PUBLIC_KEY")
-RECAPTCHA_PRIVATE_KEY = os.environ.get("RECAPTCHA_PRIVATE_KEY")
-
-
 #  Sentry
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 if SENTRY_DSN:
