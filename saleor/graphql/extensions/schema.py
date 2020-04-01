@@ -11,15 +11,6 @@ from .sorters import PluginSortingInput
 from .types import Plugin
 
 
-class PluginItemConnection(CountableConnection):
-    class Meta:
-        node = Plugin
-
-    @staticmethod
-    def resolve_total_count(root, *_args, **_kwargs):
-        return root.length
-
-
 class ExtensionsQueries(graphene.ObjectType):
     plugin = graphene.Field(
         Plugin,
