@@ -4,6 +4,7 @@ from enum import Enum
 class AccountErrorCode(Enum):
     ACTIVATE_OWN_ACCOUNT = "activate_own_account"
     ACTIVATE_SUPERUSER_ACCOUNT = "activate_superuser_account"
+    CANNOT_ADD_AND_REMOVE = "cannot_add_and_remove"
     DEACTIVATE_OWN_ACCOUNT = "deactivate_own_account"
     DEACTIVATE_SUPERUSER_ACCOUNT = "deactivate_superuser_account"
     DELETE_NON_STAFF_USER = "delete_non_staff_user"
@@ -14,6 +15,9 @@ class AccountErrorCode(Enum):
     INVALID = "invalid"
     INVALID_PASSWORD = "invalid_password"
     NOT_FOUND = "not_found"
+    OUT_OF_SCOPE_USER = "out_of_scope_user"
+    OUT_OF_SCOPE_GROUP = "out_of_scope_group"
+    OUT_OF_SCOPE_PERMISSION = "out_of_scope_permission"
     PASSWORD_ENTIRELY_NUMERIC = "password_entirely_numeric"
     PASSWORD_TOO_COMMON = "password_too_common"
     PASSWORD_TOO_SHORT = "password_too_short"
