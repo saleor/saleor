@@ -31,13 +31,13 @@ if TYPE_CHECKING:
 class ExtensionsManager(PaymentInterface):
     """Base manager for handling plugins logic."""
 
-    plugins: list = []
+    plugins: List["BasePlugin"] = []
 
     def __init__(self, plugins: List[str]):
         self.plugins = []
         all_configs = self._get_all_plugin_configs()
         for plugin_path in plugins:
-            PluginClass: "BasePlugin" = import_string(plugin_path)
+            PluginClass = import_string(plugin_path)
             if PluginClass.PLUGIN_NAME in all_configs:
                 existing_config = all_configs[PluginClass.PLUGIN_NAME]
                 plugin_config = existing_config.configuration

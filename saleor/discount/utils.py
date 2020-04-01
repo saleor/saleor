@@ -75,7 +75,7 @@ def get_product_discounts(
 
 
 def calculate_discounted_price(
-    product: "Product", price: Money, discounts: Iterable[DiscountInfo]
+    product: "Product", price: Money, discounts: Optional[Iterable[DiscountInfo]]
 ) -> Money:
     """Return minimum product's price of all prices with discounts applied."""
     if discounts:
@@ -86,7 +86,9 @@ def calculate_discounted_price(
 
 
 def validate_voucher_for_checkout(
-    voucher: "Voucher", checkout: "Checkout", discounts: Iterable[DiscountInfo],
+    voucher: "Voucher",
+    checkout: "Checkout",
+    discounts: Optional[Iterable[DiscountInfo]],
 ):
     subtotal = calculations.checkout_subtotal(checkout, discounts)
 
