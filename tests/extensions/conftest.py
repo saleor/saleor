@@ -39,19 +39,3 @@ def new_config():
 @pytest.fixture
 def new_config_structure():
     return {"type": ConfigurationTypeField.STRING, "help_text": "foo", "label": "foo"}
-
-
-@pytest.fixture
-def manager_with_plugin_enabled():
-    plugins = ["tests.extensions.sample_plugins.PluginSample"]
-    manager = ExtensionsManager(plugins=plugins)
-    manager.get_plugin_configuration(plugin_name="Plugin Sample")
-    return manager
-
-
-@pytest.fixture
-def manager_with_plugin_without_configuration_enabled():
-    plugins = ["tests.extensions.sample_plugins.PluginInactive"]
-    manager = ExtensionsManager(plugins=plugins)
-    manager.get_plugin_configuration(plugin_name="PluginInactive")
-    return manager

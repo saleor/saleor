@@ -1,24 +1,25 @@
 import copy
 
 from saleor.extensions import ConfigurationTypeField
+from saleor.extensions.manager import get_extensions_manager
 from saleor.extensions.models import PluginConfiguration
 from saleor.extensions.plugins.anonymize.plugin import AnonymizePlugin
 from tests.extensions.sample_plugins import PluginSample
 from tests.extensions.utils import get_config_value
 
 
-def test_update_config_items_keeps_bool_value(plugin_configuration):
+def test_update_config_items_keeps_bool_value(plugin_configuration, settings):
+    settings.PLUGINS = ["tests.extensions.sample_plugins.PluginSample"]
     data_to_update = [
         {"name": "Username", "value": "new_admin@example.com"},
         {"name": "Use sandbox", "value": False},
     ]
-    plugin_sample = PluginSample()
-    qs = PluginConfiguration.objects.all()
-    configuration = PluginSample.get_plugin_configuration(qs)
-    plugin_sample._update_config_items(data_to_update, configuration.configuration)
-    configuration.save()
-    configuration.refresh_from_db()
-    assert get_config_value("Use sandbox", configuration.configuration) is False
+    manager = get_extensions_manager()
+    plugin_sample = manager.get_plugin(PluginSample.PLUGIN_NAME)
+
+    plugin_sample._update_config_items(data_to_update, plugin_sample.configuration)
+
+    assert get_config_value("Use sandbox", plugin_sample.configuration) is False
 
 
 def test_update_config_items_convert_to_bool_value():
@@ -30,9 +31,9 @@ def test_update_config_items_convert_to_bool_value():
         configuration=PluginSample.DEFAULT_CONFIGURATION,
         active=PluginSample.DEFAULT_ACTIVE,
     )
-    qs = PluginConfiguration.objects.all()
-    configuration = plugin_sample.configuration
-    assert get_config_value("Use sandbox", configuration) is False
+    plugin_sample._update_config_items(data_to_update, plugin_sample.configuration)
+
+    assert get_config_value("Use sandbox", plugin_sample.configuration) is False
 
 
 def test_base_plugin__update_configuration_structure_configuration_has_change(
@@ -49,31 +50,37 @@ def test_base_plugin__update_configuration_structure_configuration_has_change(
     monkeypatch.setattr(
         PluginSample,
         "DEFAULT_CONFIGURATION",
-        PluginSample.DEFAULT_CONFIGURATION + private_key_dict,
+        PluginSample.DEFAULT_CONFIGURATION + [private_key_dict],
     )
-    PluginSample._update_configuration_structure(plugin_configuration)
+    PluginSample._update_configuration_structure(plugin_configuration.configuration)
+    plugin_configuration.save()
     plugin_configuration.refresh_from_db()
     assert len(old_configuration) + 1 == len(plugin_configuration.configuration)
     old_configuration.append(private_key_dict)
     assert old_configuration == plugin_configuration.configuration
 
 
-def test_base_plugin__append_config_structure_do_not_save_to_db(plugin_configuration):
-    plugin = PluginSample()
+def test_base_plugin__append_config_structure_do_not_save_to_db(
+    plugin_configuration, settings
+):
+    settings.PLUGINS = ["tests.extensions.sample_plugins.PluginSample"]
+    manager = get_extensions_manager()
+    plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
     old_config = copy.deepcopy(plugin_configuration.configuration)
-    plugin._append_config_structure(plugin_configuration.configuration)
+    configuration = plugin_configuration.configuration
+    plugin._append_config_structure(configuration)
     for elem in old_config:
-        for new_elem in plugin_configuration.configuration:
+        for new_elem in configuration:
             if elem["name"] == new_elem["name"]:
                 assert not elem == new_elem
     plugin_configuration.refresh_from_db()
     assert old_config == plugin_configuration.configuration
-    for elem in plugin_configuration.configuration:
-        assert set(elem.keys()) == {"name", "value"}
 
 
-def test_change_user_address_in_anonymize_plugin_reset_phone(address):
-    anonymize_plugin = AnonymizePlugin()
+def test_change_user_address_in_anonymize_plugin_reset_phone(address, settings):
+    settings.PLUGINS = ["saleor.extensions.plugins.anonymize.plugin.AnonymizePlugin"]
+    manager = get_extensions_manager()
+    anonymize_plugin = manager.get_plugin(AnonymizePlugin.PLUGIN_NAME)
 
     # ensure that phone is set
     assert address.phone

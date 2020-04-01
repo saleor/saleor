@@ -17,25 +17,31 @@ from saleor.extensions.plugins.avatax import (
 from saleor.extensions.plugins.avatax.plugin import AvataxPlugin
 
 
+@pytest.fixture(autouse=True)
+def clear_plugin_configs_cache():
+    manager = get_extensions_manager()
+    del manager._plugin_configs
+
+
 @pytest.fixture
-def plugin_configuration(db):
-    default_configuration = {
-        "active": AvataxPlugin.DEFAULT_ACTIVE,
-        "configuration": dict(AvataxPlugin.DEFAULT_CONFIGURATION),
-        "name": AvataxPlugin.PLUGIN_NAME,
-    }
-    for elem in default_configuration["configuration"]:
-        if elem["name"] == "Use sandbox":
-            elem["value"] = False
-    plugin_configuration = PluginConfiguration.objects.create(**default_configuration)
-    config = [
-        {"name": "Username or account", "value": "2000134479"},
-        {"name": "Password or license", "value": "697932CFCBDE505B"},
-    ]
-    AvataxPlugin._update_config_items(config, plugin_configuration.configuration)
-    plugin_configuration.active = True
-    plugin_configuration.save()
-    return plugin_configuration
+def plugin_configuration(db,):
+    def set_configuration(username="test", password="test", sandbox=True):
+        data = {
+            "active": True,
+            "configuration": [
+                {"name": "Username or account", "value": username},
+                {"name": "Password or license", "value": password},
+                {"name": "Use sandbox", "value": sandbox},
+                {"name": "Company name", "value": "DEFAULT"},
+                {"name": "Autocommit", "value": False},
+            ],
+        }
+        configuration = PluginConfiguration.objects.create(
+            name=AvataxPlugin.PLUGIN_NAME, **data
+        )
+        return configuration
+
+    return set_configuration
 
 
 @pytest.mark.vcr()
@@ -60,16 +66,16 @@ def test_calculate_checkout_line_total(
     site_settings,
     monkeypatch,
     shipping_zone,
-    settings,
+    plugin_configuration,
 ):
-    settings.AVATAX_USERNAME_OR_ACCOUNT = "test"
-    settings.AVATAX_PASSWORD_OR_LICENSE = "test"
-    settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
+    plugin_configuration()
     monkeypatch.setattr(
         "saleor.extensions.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
         lambda _: {"PC040156": "desc"},
     )
-    manager = get_extensions_manager(plugins=settings.PLUGINS)
+    manager = get_extensions_manager(
+        plugins=["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
+    )
 
     checkout_with_item.shipping_address = address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
@@ -112,16 +118,16 @@ def test_calculate_checkout_total(
     address_usa,
     site_settings,
     monkeypatch,
-    settings,
+    plugin_configuration,
 ):
-    settings.AVATAX_USERNAME_OR_ACCOUNT = "test"
-    settings.AVATAX_PASSWORD_OR_LICENSE = "test"
-    settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
+    plugin_configuration()
     monkeypatch.setattr(
         "saleor.extensions.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
         lambda _: {"PC040156": "desc"},
     )
-    manager = get_extensions_manager(plugins=settings.PLUGINS)
+    manager = get_extensions_manager(
+        plugins=["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
+    )
     checkout_with_item.shipping_address = address
     checkout_with_item.save()
     site_settings.company_address = address_usa
@@ -153,16 +159,16 @@ def test_calculate_checkout_shipping(
     address_usa,
     site_settings,
     monkeypatch,
-    settings,
+    plugin_configuration,
 ):
-    settings.AVATAX_USERNAME_OR_ACCOUNT = "test"
-    settings.AVATAX_PASSWORD_OR_LICENSE = "test"
-    settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
+    plugin_configuration()
     monkeypatch.setattr(
         "saleor.extensions.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
         lambda _: {"PC040156": "desc"},
     )
-    manager = get_extensions_manager(plugins=settings.PLUGINS)
+    manager = get_extensions_manager(
+        plugins=["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
+    )
     site_settings.company_address = address_usa
     site_settings.save()
 
@@ -201,17 +207,17 @@ def test_calculate_checkout_subtotal(
     address_usa,
     shipping_zone,
     address,
-    settings,
+    plugin_configuration,
 ):
+    plugin_configuration()
     variant = stock.product_variant
-    settings.AVATAX_USERNAME_OR_ACCOUNT = "test"
-    settings.AVATAX_PASSWORD_OR_LICENSE = "test"
-    settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
     monkeypatch.setattr(
         "saleor.extensions.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
         lambda _: {"PC040156": "desc"},
     )
-    manager = get_extensions_manager(plugins=settings.PLUGINS)
+    manager = get_extensions_manager(
+        plugins=["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
+    )
     site_settings.company_address = address_usa
     site_settings.include_taxes_in_prices = taxes_in_prices
     site_settings.save()
@@ -231,12 +237,12 @@ def test_calculate_checkout_subtotal(
 
 @pytest.mark.vcr
 def test_calculate_order_shipping(
-    order_line, shipping_zone, site_settings, address_usa, settings
+    order_line, shipping_zone, site_settings, address_usa, plugin_configuration
 ):
-    settings.AVATAX_USERNAME_OR_ACCOUNT = "test"
-    settings.AVATAX_PASSWORD_OR_LICENSE = "test"
-    settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
-    manager = get_extensions_manager(plugins=settings.PLUGINS)
+    plugin_configuration()
+    manager = get_extensions_manager(
+        plugins=["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
+    )
     order = order_line.order
     method = shipping_zone.shipping_methods.get()
     order.shipping_address = order.billing_address.get_copy()
@@ -254,13 +260,12 @@ def test_calculate_order_shipping(
 
 @pytest.mark.vcr
 def test_calculate_order_line_unit(
-    order_line, shipping_zone, site_settings, address_usa, settings
+    order_line, shipping_zone, site_settings, address_usa, plugin_configuration,
 ):
-    settings.AVATAX_USERNAME_OR_ACCOUNT = "test"
-    settings.AVATAX_PASSWORD_OR_LICENSE = "test"
-    settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
-
-    manager = get_extensions_manager(plugins=settings.PLUGINS)
+    plugin_configuration()
+    manager = get_extensions_manager(
+        plugins=["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
+    )
     order_line.unit_price = TaxedMoney(
         net=Money("10.00", "USD"), gross=Money("10.00", "USD")
     )
@@ -278,6 +283,7 @@ def test_calculate_order_line_unit(
 
     line_price = manager.calculate_order_line_unit(order_line)
     line_price = quantize_price(line_price, line_price.currency)
+
     assert line_price == TaxedMoney(
         net=Money("8.13", "USD"), gross=Money("10.00", "USD")
     )
@@ -286,23 +292,23 @@ def test_calculate_order_line_unit(
 @pytest.mark.vcr
 def test_preprocess_order_creation(
     checkout_with_item,
-    settings,
     monkeypatch,
     address,
     address_usa,
     site_settings,
     shipping_zone,
     discount_info,
+    plugin_configuration,
 ):
 
-    settings.AVATAX_USERNAME_OR_ACCOUNT = "test"
-    settings.AVATAX_PASSWORD_OR_LICENSE = "test"
-    settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
+    plugin_configuration()
     monkeypatch.setattr(
         "saleor.extensions.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
         lambda _: {"PC040156": "desc"},
     )
-    manager = get_extensions_manager(plugins=settings.PLUGINS)
+    manager = get_extensions_manager(
+        plugins=["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
+    )
     site_settings.company_address = address_usa
     site_settings.save()
 
@@ -316,22 +322,21 @@ def test_preprocess_order_creation(
 @pytest.mark.vcr
 def test_preprocess_order_creation_wrong_data(
     checkout_with_item,
-    settings,
     monkeypatch,
     address,
-    address_usa,
-    site_settings,
     shipping_zone,
     discount_info,
+    plugin_configuration,
 ):
-    settings.AVATAX_USERNAME_OR_ACCOUNT = "wrong"
-    settings.AVATAX_PASSWORD_OR_LICENSE = "wrong"
-    settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
+    plugin_configuration("wrong", "wrong")
+
     monkeypatch.setattr(
         "saleor.extensions.plugins.avatax.plugin.get_cached_tax_codes_or_fetch",
         lambda _: {"PC040156": "desc"},
     )
-    manager = get_extensions_manager(plugins=settings.PLUGINS)
+    manager = get_extensions_manager(
+        plugins=["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
+    )
 
     checkout_with_item.shipping_address = address
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
@@ -372,15 +377,10 @@ def test_checkout_needs_new_fetch(monkeypatch, checkout_with_item, address):
 def test_get_plugin_configuration(settings):
     settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
     manager = get_extensions_manager()
-    configurations = manager.get_plugin_configurations()
-    assert len(configurations) == 1
-    configuration = configurations[0]
-
-    assert configuration.name == "Avalara"
-    assert not configuration.active
+    plugin = manager.get_plugin("Avalara")
 
     configuration_fields = [
-        configuration_item["name"] for configuration_item in configuration.configuration
+        configuration_item["name"] for configuration_item in plugin.configuration
     ]
     assert "Username or account" in configuration_fields
     assert "Password or license" in configuration_fields
@@ -392,7 +392,6 @@ def test_get_plugin_configuration(settings):
 def test_save_plugin_configuration(settings):
     settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
     manager = get_extensions_manager()
-    configuration = manager.get_plugin_configuration("Avalara")
     manager.save_plugin_configuration(
         "Avalara",
         {
@@ -403,31 +402,28 @@ def test_save_plugin_configuration(settings):
         },
     )
     manager.save_plugin_configuration("Avalara", {"active": True})
-    configuration.refresh_from_db()
-    assert configuration.active
+    plugin_configuration = PluginConfiguration.objects.get(name="Avalara")
+    assert plugin_configuration.active
 
 
 def test_save_plugin_configuration_cannot_be_enabled_without_config(settings):
     settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
     manager = get_extensions_manager()
-    manager.get_plugin_configuration("Avalara")
     with pytest.raises(ValidationError):
         manager.save_plugin_configuration("Avalara", {"active": True})
 
 
-def test_show_taxes_on_storefront(settings):
-    settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
-    settings.AVATAX_USERNAME_OR_ACCOUNT = "test"
-    settings.AVATAX_PASSWORD_OR_LICENSE = "test"
+def test_show_taxes_on_storefront(plugin_configuration):
+    plugin_configuration()
     manager = get_extensions_manager()
     assert manager.show_taxes_on_storefront() is False
 
 
-def test_order_created(settings, order, monkeypatch):
-    settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
-    settings.AVATAX_USERNAME_OR_ACCOUNT = "test"
-    settings.AVATAX_PASSWORD_OR_LICENSE = "test"
-    manager = get_extensions_manager()
+def test_order_created(order, monkeypatch, plugin_configuration):
+    plugin_configuration()
+    manager = get_extensions_manager(
+        plugins=["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
+    )
 
     mocked_task = Mock()
     monkeypatch.setattr(
@@ -445,9 +441,7 @@ def test_order_created(settings, order, monkeypatch):
 
 @pytest.mark.vcr
 def test_plugin_uses_configuration_from_db(
-    settings,
     plugin_configuration,
-    product,
     monkeypatch,
     address_usa,
     site_settings,
@@ -455,8 +449,12 @@ def test_plugin_uses_configuration_from_db(
     checkout_with_item,
     shipping_zone,
     discount_info,
+    settings,
 ):
     settings.PLUGINS = ["saleor.extensions.plugins.avatax.plugin.AvataxPlugin"]
+    configuration = plugin_configuration(
+        username="2000134479", password="697932CFCBDE505B", sandbox=False
+    )
     manager = get_extensions_manager()
 
     monkeypatch.setattr(
@@ -477,10 +475,8 @@ def test_plugin_uses_configuration_from_db(
         {"name": "Username or account", "value": "New value"},
         {"name": "Password or license", "value": "Wrong pass"},
     ]
-    AvataxPlugin._update_config_items(
-        field_to_update, plugin_configuration.configuration
-    )
-    plugin_configuration.save()
+    AvataxPlugin._update_config_items(field_to_update, configuration.configuration)
+    configuration.save()
 
     manager = get_extensions_manager()
     with pytest.raises(TaxError):
