@@ -31,13 +31,16 @@ if TYPE_CHECKING:
 
 class VatlayerPlugin(BasePlugin):
     PLUGIN_NAME = "Vatlayer"
-    DEFAULT_ACTIVE = bool(settings.VATLAYER_ACCESS_KEY)
     META_CODE_KEY = "vatlayer.code"
     META_DESCRIPTION_KEY = "vatlayer.description"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self._cached_taxes = {}
+
+    @classmethod
+    def get_default_active(cls):
+        return bool(settings.VATLAYER_ACCESS_KEY)
 
     def _skip_plugin(self, previous_value: Union[TaxedMoney, TaxedMoneyRange]) -> bool:
         if not self.active or not settings.VATLAYER_ACCESS_KEY:

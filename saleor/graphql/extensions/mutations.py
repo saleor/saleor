@@ -44,8 +44,10 @@ class PluginUpdate(BaseMutation):
     @classmethod
     def perform_mutation(cls, root, info, **data):
         plugin_id = data.get("id")
-        input = data.get("input")
-        instance = cls.get_node_or_error(info, plugin_id, only_type=Plugin)
+        data = data.get("input")
         manager = get_extensions_manager()
-        instance = manager.save_plugin_configuration(instance.name, input)
+        plugin = manager.get_plugin(plugin_id)
+        if not plugin:
+            return None
+        instance = manager.save_plugin_configuration(plugin_id, data)
         return PluginUpdate(plugin=instance)

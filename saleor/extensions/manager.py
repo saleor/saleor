@@ -44,7 +44,7 @@ class ExtensionsManager(PaymentInterface):
                 active = existing_config.active
             else:
                 plugin_config = PluginClass.DEFAULT_CONFIGURATION
-                active = PluginClass.DEFAULT_ACTIVE
+                active = PluginClass.get_default_active()
             self.plugins.append(PluginClass(configuration=plugin_config, active=active))
 
     def __run_method_on_plugins(
@@ -379,9 +379,11 @@ class ExtensionsManager(PaymentInterface):
         ).quantize(Decimal("1."))
 
     def save_plugin_configuration(self, plugin_name, cleaned_data: dict):
-        plugin_configuration = PluginConfiguration.objects.get(name=plugin_name)
         for plugin in self.plugins:
             if plugin.PLUGIN_NAME == plugin_name:
+                plugin_configuration, _ = PluginConfiguration.objects.get_or_create(
+                    name=plugin_name, defaults={"configuration": plugin.configuration}
+                )
                 return plugin.save_plugin_configuration(
                     plugin_configuration, cleaned_data
                 )

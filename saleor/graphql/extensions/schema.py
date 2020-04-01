@@ -1,13 +1,24 @@
 import graphene
 
+from ..core.connection import CountableConnection
 from ...core.permissions import ExtensionsPermissions
-from ..core.fields import FilterInputConnectionField
+from ..core.fields import FilterInputConnectionField, BaseConnectionField, BaseDjangoConnectionField
 from ..decorators import permission_required
 from .filters import PluginFilterInput
 from .mutations import PluginUpdate
 from .resolvers import resolve_plugin, resolve_plugins
 from .sorters import PluginSortingInput
 from .types import Plugin
+
+
+class PluginItemConnection(CountableConnection):
+    class Meta:
+        node = Plugin
+
+    @staticmethod
+    def resolve_total_count(root, *_args, **_kwargs):
+        print("ROOT", root)
+        return root.length
 
 
 class ExtensionsQueries(graphene.ObjectType):
@@ -18,7 +29,7 @@ class ExtensionsQueries(graphene.ObjectType):
         ),
         description="Look up a plugin by ID.",
     )
-    plugins = FilterInputConnectionField(
+    plugins = BaseDjangoConnectionField(
         Plugin,
         filter=PluginFilterInput(description="Filtering options for plugins."),
         sort_by=PluginSortingInput(description="Sort plugins."),

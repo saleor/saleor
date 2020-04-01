@@ -391,6 +391,10 @@ class BasePlugin:
         update_values = [copy(k) for k in default_config if k["name"] in missing_keys]
         config.extend(update_values)
 
+    @classmethod
+    def get_default_active(cls):
+        return cls.DEFAULT_ACTIVE
+
     def get_plugin_configuration(self, configuration: dict) -> "PluginConfiguration":
         self._update_configuration_structure(configuration)
         if configuration:
