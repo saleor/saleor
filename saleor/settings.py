@@ -464,8 +464,12 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
 
-
-GRAPHQL_JWT = {"JWT_PAYLOAD_HANDLER": "saleor.graphql.utils.create_jwt_payload"}
+# Django GraphQL JWT settings
+GRAPHQL_JWT = {
+    "JWT_PAYLOAD_HANDLER": "saleor.graphql.utils.create_jwt_payload",
+}
+if not DEBUG:
+    GRAPHQL_JWT["JWT_VERIFY_EXPIRATION"] = True  # type: ignore
 
 # CELERY SETTINGS
 CELERY_BROKER_URL = (
@@ -539,10 +543,6 @@ PLUGINS = [
 # True to use DraftJS (JSON based), for the 2.0 dashboard
 # False to use the old editor from dashboard 1.0
 USE_JSON_CONTENT = get_bool_from_env("USE_JSON_CONTENT", False)
-JWT_TOKEN_SECRET = os.environ.get("JWT_TOKEN_SECRET", "saleor")
-if not DEBUG:
-    JWT_VERIFY_EXPIRATION = True
-
 
 if (
     not DEBUG
