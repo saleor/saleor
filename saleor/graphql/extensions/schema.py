@@ -1,6 +1,5 @@
 import graphene
 
-from ..core.connection import CountableConnection
 from ...core.permissions import ExtensionsPermissions
 from ..core.fields import BaseDjangoConnectionField
 from ..decorators import permission_required
