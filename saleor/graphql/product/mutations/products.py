@@ -1190,7 +1190,7 @@ class ProductVariantCreate(ModelMutation):
                     {
                         "costPrice": ValidationError(
                             "Product price cannot be lower than 0.",
-                            code=ProductErrorCode.INVALID,
+                            code=ProductErrorCode.INVALID.value,
                         )
                     }
                 )
@@ -1203,7 +1203,7 @@ class ProductVariantCreate(ModelMutation):
                     {
                         "priceOverride": ValidationError(
                             "Product price cannot be lower than 0.",
-                            code=ProductErrorCode.INVALID,
+                            code=ProductErrorCode.INVALID.value,
                         )
                     }
                 )

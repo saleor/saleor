@@ -85,7 +85,6 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add pagination tests - #5363 by @fowczarek
 - Add ability to assign multiple warehouses in mutations to create/update a shipping zone - #5399 by @fowczarek
 - Add filter by ids to warehouses query - #5414 by @fowczarek
-
 - Add product price validation - #5413 by @kswiatek92
 
 ## 2.9.0
