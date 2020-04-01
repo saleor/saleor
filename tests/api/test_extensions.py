@@ -1,5 +1,4 @@
 import copy
-import graphene
 import pytest
 
 from saleor.extensions import ConfigurationTypeField
@@ -106,7 +105,7 @@ def test_query_plugins_hides_secret_fields(
         if conf_field["name"] == "API private key":
             conf_field["value"] = api_key
     manager.save_plugin_configuration(
-        PluginSample.PLUGIN_NAME, {"active": True, "configuration": configuration,},
+        PluginSample.PLUGIN_NAME, {"active": True, "configuration": configuration}
     )
 
     staff_api_client.user.user_permissions.add(permission_manage_plugins)
@@ -171,7 +170,7 @@ def test_query_plugin_hides_secret_fields(
         if conf_field["name"] == "API private key":
             conf_field["value"] = api_key
     manager.save_plugin_configuration(
-        PluginSample.PLUGIN_NAME, {"active": True, "configuration": configuration,},
+        PluginSample.PLUGIN_NAME, {"active": True, "configuration": configuration}
     )
 
     variables = {"id": plugin.PLUGIN_NAME}

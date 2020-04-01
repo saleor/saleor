@@ -1,7 +1,6 @@
 import pytest
 
 from saleor.extensions import ConfigurationTypeField
-from saleor.extensions.manager import ExtensionsManager
 from saleor.extensions.models import PluginConfiguration
 from tests.extensions.sample_plugins import PluginInactive, PluginSample
 

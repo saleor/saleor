@@ -2,7 +2,6 @@ import copy
 
 from saleor.extensions import ConfigurationTypeField
 from saleor.extensions.manager import get_extensions_manager
-from saleor.extensions.models import PluginConfiguration
 from saleor.extensions.plugins.anonymize.plugin import AnonymizePlugin
 from tests.extensions.sample_plugins import PluginSample
 from tests.extensions.utils import get_config_value
