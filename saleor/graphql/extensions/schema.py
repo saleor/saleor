@@ -2,7 +2,11 @@ import graphene
 
 from ..core.connection import CountableConnection
 from ...core.permissions import ExtensionsPermissions
-from ..core.fields import FilterInputConnectionField, BaseConnectionField, BaseDjangoConnectionField
+from ..core.fields import (
+    FilterInputConnectionField,
+    BaseConnectionField,
+    BaseDjangoConnectionField,
+)
 from ..decorators import permission_required
 from .filters import PluginFilterInput
 from .mutations import PluginUpdate
@@ -17,7 +21,6 @@ class PluginItemConnection(CountableConnection):
 
     @staticmethod
     def resolve_total_count(root, *_args, **_kwargs):
-        print("ROOT", root)
         return root.length
 
 
