@@ -1,5 +1,3 @@
-import copy
-
 from saleor.extensions import ConfigurationTypeField
 from saleor.extensions.manager import get_extensions_manager
 from saleor.extensions.plugins.anonymize.plugin import AnonymizePlugin
