@@ -100,16 +100,14 @@ def create_jwt_token(token_data):
     expiration_date = timezone.now() + timezone.timedelta(hours=1)
     token_kwargs = {"exp": expiration_date}
     token_kwargs.update(token_data)
-    token = jwt.encode(
-        token_kwargs, settings.JWT_TOKEN_SECRET, algorithm="HS256"
-    ).decode()
+    token = jwt.encode(token_kwargs, settings.SECRET_KEY, algorithm="HS256").decode()
     return token
 
 
 def decode_jwt_token(token):
     try:
         decoded_token = jwt.decode(
-            token.encode(), settings.JWT_TOKEN_SECRET, algorithms=["HS256"]
+            token.encode(), settings.SECRET_KEY, algorithms=["HS256"]
         )
     except jwt.PyJWTError:
         raise ValidationError(
