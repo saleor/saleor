@@ -358,7 +358,7 @@ class BasePlugin:
         return plugin_configuration
 
     @classmethod
-    def _append_config_structure(cls, configuration):
+    def _append_config_structure(cls, configuration: PluginConfigurationType):
         """Append configuration structure to config from the database.
 
         Database stores "key: value" pairs, the definition of fields should be declared
@@ -373,7 +373,7 @@ class BasePlugin:
                 configuration_field.update(structure_to_add)
 
     @classmethod
-    def _update_configuration_structure(cls, configuration):
+    def _update_configuration_structure(cls, configuration: PluginConfigurationType):
         config_structure = getattr(cls, "CONFIG_STRUCTURE") or {}
         desired_config_keys = set(config_structure.keys())
 
@@ -395,7 +395,9 @@ class BasePlugin:
     def get_default_active(cls):
         return cls.DEFAULT_ACTIVE
 
-    def get_plugin_configuration(self, configuration: dict) -> "PluginConfiguration":
+    def get_plugin_configuration(
+        self, configuration: PluginConfigurationType
+    ) -> PluginConfigurationType:
         self._update_configuration_structure(configuration)
         if configuration:
             # Let's add a translated descriptions and labels

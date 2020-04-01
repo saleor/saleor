@@ -1,6 +1,10 @@
-from typing import List
+from typing import TYPE_CHECKING, List
 
 import graphene
+
+if TYPE_CHECKING:
+    # flake8: noqa
+    from ...extensions.base_plugin import BasePlugin
 
 
 def filter_plugin_search(plugins: List["BasePlugin"], value) -> List["BasePlugin"]:

@@ -10,6 +10,7 @@ from .enums import ConfigurationTypeFieldEnum
 if TYPE_CHECKING:
     # flake8: noqa
     from django.contrib.postgres.fields import JSONField
+    from ...extensions.base_plugin import PluginConfigurationType
 
 
 def hide_private_configuration_fields(configuration, config_structure):
@@ -58,8 +59,8 @@ class Plugin(CountableDjangoObjectType):
     @staticmethod
     def resolve_configuration(
         root: models.PluginConfiguration, _info
-    ) -> Optional["JSONField"]:
-        plugin: BasePlugin = manager.get_extensions_manager().get_plugin(root.name)
+    ) -> Optional["PluginConfigurationType"]:
+        plugin = manager.get_extensions_manager().get_plugin(root.name)
         if not plugin:
             return None
         configuration = plugin.configuration

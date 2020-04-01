@@ -335,7 +335,9 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
         images = list(self.images.all())
         return images[0] if images else None
 
-    def get_price_range(self, discounts: Iterable[DiscountInfo] = None) -> MoneyRange:
+    def get_price_range(
+        self, discounts: Optional[Iterable[DiscountInfo]] = None
+    ) -> MoneyRange:
         if self.variants.all():
             prices = [variant.get_price(discounts) for variant in self]
             return MoneyRange(min(prices), max(prices))
@@ -460,7 +462,7 @@ class ProductVariant(ModelWithMetadata):
             else self.product.price
         )
 
-    def get_price(self, discounts: Iterable[DiscountInfo] = None) -> "Money":
+    def get_price(self, discounts: Optional[Iterable[DiscountInfo]] = None) -> "Money":
         return calculate_discounted_price(self.product, self.base_price, discounts)
 
     def get_weight(self):
