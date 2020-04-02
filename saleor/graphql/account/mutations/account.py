@@ -8,6 +8,7 @@ from ....account.error_codes import AccountErrorCode
 from ....account.utils import create_jwt_token, decode_jwt_token
 from ....checkout import AddressType
 from ....core.utils.url import validate_storefront_url
+from ....order.utils import match_orders_with_new_user
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -88,6 +89,7 @@ class AccountRegister(ModelMutation):
             emails.send_account_confirmation_email(user, cleaned_input["redirect_url"])
         else:
             user.save()
+            match_orders_with_new_user(user)
         account_events.customer_account_created_event(user=user)
         info.context.extensions.customer_created(customer=user)
 

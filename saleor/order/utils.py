@@ -5,6 +5,7 @@ from django.db import transaction
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
+from ..account.models import User
 from ..core.taxes import zero_money
 from ..core.weight import zero_weight
 from ..discount.models import NotApplicable, Voucher, VoucherType
@@ -333,3 +334,8 @@ def get_voucher_discount_for_order(order: Order) -> Money:
     if order.voucher.type == VoucherType.SPECIFIC_PRODUCT:
         return get_products_voucher_discount_for_order(order.voucher)
     raise NotImplementedError("Unknown discount type")
+
+
+def match_orders_with_new_user(user: User) -> None:
+    """Match Orders with a new user."""
+    Order.objects.filter(user_email=user.email, user=None).update(user=user)
