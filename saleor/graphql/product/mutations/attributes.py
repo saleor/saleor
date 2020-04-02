@@ -317,18 +317,6 @@ class AttributeAssign(BaseMutation):
             pk = from_global_id_strict_type(
                 operation.id, only_type=Attribute, field="operations"
             )
-
-            try:
-                models.Attribute.objects.get(pk=pk)
-            except models.Attribute.DoesNotExist:
-                raise ValidationError(
-                    {
-                        "operations": ValidationError(
-                            f"Attribute doesn't exist.",
-                            code=ProductErrorCode.NOT_FOUND.value,
-                        )
-                    }
-                )
             if operation.type == AttributeTypeEnum.PRODUCT:
                 product_attrs_pks.append(pk)
             else:
@@ -397,6 +385,17 @@ class AttributeAssign(BaseMutation):
     @classmethod
     def clean_operations(cls, product_type, product_attrs_pks, variant_attrs_pks):
         """Ensure the attributes are not already assigned to the product type."""
+        attrs_pk = product_attrs_pks + variant_attrs_pks
+        attributes_count = models.Attribute.objects.filter(id__in=attrs_pk).count()
+        if len(attrs_pk) != attributes_count:
+            raise ValidationError(
+                {
+                    "operations": ValidationError(
+                        f"Attribute doesn't exist.",
+                        code=ProductErrorCode.NOT_FOUND.value,
+                    )
+                }
+            )
         cls.check_product_operations_are_assignable(product_attrs_pks)
         cls.check_operations_not_assigned_already(
             product_type, product_attrs_pks, variant_attrs_pks
