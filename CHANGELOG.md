@@ -70,7 +70,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Customer shouldn't be able to see draft orders by token - #5259 by @fowczarek
 - Customer shouldn't be able to query checkout with another customer - #5268 by @fowczarek
 - Added integration support of Jaeger Tracing - #5282 by @NyanKiyoshi
-- Customer shouldn't be able to see draft orders by token  - #5259 by @fowczarek
+- Customer shouldn't be able to see draft orders by token - #5259 by @fowczarek
 - Return `null` when querying `me` as an anonymous user - #5231 as @maarcingebala
 - Add `fulfillment created` webhook - @szewczykmira
 - Unify saleor metadata - #5178 by @fowczarek
@@ -85,8 +85,8 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add pagination tests - #5363 by @fowczarek
 - Add ability to assign multiple warehouses in mutations to create/update a shipping zone - #5399 by @fowczarek
 - Add filter by ids to warehouses query - #5414 by @fowczarek
-
 - Add shipping rate price validation - #5411 by @kswiatek92
+- Remove unused settings and environment variables - #5420 by @maarcingebala
 
 ## 2.9.0
 
