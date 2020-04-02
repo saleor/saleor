@@ -10,6 +10,7 @@ from ....account.error_codes import PermissionGroupErrorCode
 from ....core.permissions import AccountPermissions, get_permissions
 from ...account.utils import (
     can_user_manage_group,
+    get_not_manageable_permissions_after_group_deleting,
     get_out_of_scope_permissions,
     get_out_of_scope_users,
 )
@@ -311,3 +312,22 @@ class PermissionGroupDelete(ModelDeleteMutation):
             error_msg = "You can't manage group with permissions out of your scope."
             code = PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.value
             raise ValidationError(error_msg, code)
+
+        cls.check_if_group_can_be_removed(instance)
+
+    @classmethod
+    def check_if_group_can_be_removed(cls, group):
+        """Return true if management of all permissions provided by other groups.
+
+        After removing group, for each permission, there should be at least one staff
+        member who can manage it (has both “manage staff” and this permission).
+        """
+        permissions = get_not_manageable_permissions_after_group_deleting(group)
+        if permissions:
+            permission_codes = [PermissionEnum.get(code) for code in permissions]
+            msg = "Group cannot be removed, some of permissions will not be manageable."
+            code = PermissionGroupErrorCode.LEFT_NOT_MANAGEABLE_PERMISSION.value
+            params = {"permissions": permission_codes}
+            raise ValidationError(
+                {"id": ValidationError(message=msg, code=code, params=params)}
+            )
