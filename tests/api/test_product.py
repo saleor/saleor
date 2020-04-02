@@ -1586,6 +1586,46 @@ def test_update_product_slug_and_name(
         assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
 
 
+UPDATE_PRODUCT_PRICE_MUTATION = """
+    mutation($id: ID!, $basePrice: Decimal) {
+        productUpdate(
+            id: $id
+            input: {
+                basePrice: $basePrice
+            }
+        ) {
+            product{
+                name
+                slug
+            }
+            productErrors {
+                field
+                message
+                code
+            }
+        }
+    }
+"""
+
+
+def test_update_product_invalid_price(
+    staff_api_client, product, permission_manage_products,
+):
+
+    node_id = graphene.Node.to_global_id("Product", product.id)
+    variables = {"basePrice": Decimal("-19"), "id": node_id}
+    response = staff_api_client.post_graphql(
+        UPDATE_PRODUCT_PRICE_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    errors = data["productErrors"]
+    assert errors[0]["field"] == "basePrice"
+    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+
+
 SET_ATTRIBUTES_TO_PRODUCT_QUERY = """
     mutation updateProduct($productId: ID!, $attributes: [AttributeValueInput!]) {
       productUpdate(id: $productId, input: { attributes: $attributes }) {
