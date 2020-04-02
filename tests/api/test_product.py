@@ -892,13 +892,11 @@ def test_create_product(
     category,
     size_attribute,
     description_json,
-    description_raw,
     permission_manage_products,
     settings,
     monkeypatch,
 ):
     query = CREATE_PRODUCT_MUTATION
-    settings.USE_JSON_CONTENT = True
 
     description_json = json.dumps(description_json)
 
@@ -977,14 +975,11 @@ def test_create_product_no_slug_in_input(
     category,
     size_attribute,
     description_json,
-    description_raw,
     permission_manage_products,
-    settings,
     monkeypatch,
     input_slug,
 ):
     query = CREATE_PRODUCT_MUTATION
-    settings.USE_JSON_CONTENT = True
 
     description_json = json.dumps(description_json)
 
@@ -1312,9 +1307,7 @@ def test_update_product(
     non_default_category,
     product,
     other_description_json,
-    other_description_raw,
     permission_manage_products,
-    settings,
     monkeypatch,
     color_attribute,
 ):
@@ -1380,8 +1373,6 @@ def test_update_product(
                         }
                       }
     """
-
-    settings.USE_JSON_CONTENT = True
 
     other_description_json = json.dumps(other_description_json)
 
