@@ -8,7 +8,6 @@ from django.db import models
 from django.db.models import Case, Count, F, FilteredRelation, Q, When
 from django.urls import reverse
 from django.utils.encoding import smart_text
-from django.utils.html import strip_tags
 from django.utils.text import slugify
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField
@@ -317,9 +316,7 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
 
     @property
     def plain_text_description(self) -> str:
-        if settings.USE_JSON_CONTENT:
-            return json_content_to_raw_text(self.description_json)
-        return strip_tags(self.description)
+        return json_content_to_raw_text(self.description_json)
 
     def get_first_image(self):
         images = list(self.images.all())
