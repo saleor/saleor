@@ -322,13 +322,21 @@ def test_get_group_to_permissions_and_users_mapping(
     result = get_group_to_permissions_and_users_mapping()
     excepted_result = {
         group1.pk: {
-            "permissions": {permission_manage_users.codename},
+            "permissions": {
+                permission_manage_users.content_type.app_label
+                + "."
+                + permission_manage_users.codename
+            },
             "users": {staff_user1.pk, staff_user2.pk},
         },
         group2.pk: {
             "permissions": {
-                permission_manage_products.codename,
-                permission_manage_orders.codename,
+                permission_manage_products.content_type.app_label
+                + "."
+                + permission_manage_products.codename,
+                permission_manage_orders.content_type.app_label
+                + "."
+                + permission_manage_orders.codename,
             },
             "users": set(),
         },
@@ -344,19 +352,26 @@ def test_get_users_and_look_for_permissions_in_groups_with_manage_staff():
     groups_data = {
         1: {
             "permissions": [
-                "manage_staff",
-                "manage_orders",
-                "manage_products",
-                "manage_checkouts",
+                "account.manage_staff",
+                "order.manage_orders",
+                "product.manage_products",
+                "checkout.manage_checkouts",
             ],
             "users": [1, 2],
         },
         2: {
-            "permissions": ["manage_staff", "manage_orders", "manage_checkouts"],
+            "permissions": [
+                "account.manage_staff",
+                "order.manage_orders",
+                "checkout.manage_checkouts",
+            ],
             "users": [],
         },
-        3: {"permissions": ["manage_staff", "manage_products"], "users": [3, 2]},
-        4: {"permissions": ["manage_checkouts"], "users": [2]},
+        3: {
+            "permissions": ["account.manage_staff", "product.manage_products"],
+            "users": [3, 2],
+        },
+        4: {"permissions": ["checkout.manage_checkouts"], "users": [2]},
     }
     group_pk = 1
     permissions_to_find = set(groups_data[group_pk]["permissions"])
@@ -366,26 +381,36 @@ def test_get_users_and_look_for_permissions_in_groups_with_manage_staff():
     )
 
     assert users == {2, 3}
-    assert permissions_to_find == {"manage_checkouts", "manage_orders"}
+    assert permissions_to_find == {"checkout.manage_checkouts", "order.manage_orders"}
 
 
 def test_look_for_permission_in_users_with_manage_staff():
     groups_data = {
         1: {
             "permissions": [
-                "manage_staff",
-                "manage_orders",
-                "manage_products",
-                "manage_checkouts",
+                "account.manage_staff",
+                "order.manage_orders",
+                "product.manage_products",
+                "checkout.manage_checkouts",
             ],
             "users": [1, 2],
         },
         2: {
-            "permissions": ["manage_staff", "manage_orders", "manage_checkouts"],
+            "permissions": [
+                "account.manage_staff",
+                "order.manage_orders",
+                "checkout.manage_checkouts",
+            ],
             "users": [],
         },
-        3: {"permissions": ["manage_staff", "manage_products"], "users": [3, 2]},
-        4: {"permissions": ["manage_checkouts", "manage_discounts"], "users": [2]},
+        3: {
+            "permissions": ["account.manage_staff", "product.manage_products"],
+            "users": [3, 2],
+        },
+        4: {
+            "permissions": ["checkout.manage_checkouts", "discount.manage_discounts"],
+            "users": [2],
+        },
         5: {"permissions": [], "users": [1, 2, 3]},
     }
     group_pk = 1
@@ -396,7 +421,7 @@ def test_look_for_permission_in_users_with_manage_staff():
         group_pk, groups_data, users_to_check, permissions_to_find
     )
 
-    assert permissions_to_find == {"manage_orders"}
+    assert permissions_to_find == {"order.manage_orders"}
 
 
 def test_get_not_manageable_permissions_after_group_deleting(
@@ -491,4 +516,4 @@ def test_get_not_manageable_permissions_after_group_deleting_some_cannot_be_mana
     non_managable_permissions = get_not_manageable_permissions_after_group_deleting(
         group1
     )
-    assert non_managable_permissions == {"manage_orders"}
+    assert non_managable_permissions == {"order.manage_orders"}

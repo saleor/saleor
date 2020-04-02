@@ -1192,18 +1192,31 @@ PERMISSION_GROUP_DELETE_MUTATION = """
 
 
 def test_group_delete_mutation(
-    permission_group_manage_users,
-    staff_user,
+    staff_users,
     permission_manage_staff,
-    permission_manage_users,
+    permission_manage_orders,
+    permission_manage_products,
     staff_api_client,
 ):
-    staff_user.user_permissions.add(permission_manage_users)
-    group = permission_group_manage_users
-    group_name = group.name
+    staff_user1, staff_user2 = staff_users
+    staff_user1.user_permissions.add(
+        permission_manage_orders, permission_manage_products
+    )
+    groups = Group.objects.bulk_create(
+        [Group(name="manage orders"), Group(name="manage orders and products")]
+    )
+    group1, group2 = groups
+    group1.permissions.add(permission_manage_orders, permission_manage_staff)
+    group2.permissions.add(
+        permission_manage_orders, permission_manage_products, permission_manage_staff
+    )
+
+    staff_user2.groups.add(group1, group2)
+
+    group1_name = group1.name
     query = PERMISSION_GROUP_DELETE_MUTATION
 
-    variables = {"id": graphene.Node.to_global_id("Group", group.id)}
+    variables = {"id": graphene.Node.to_global_id("Group", group1.id)}
     response = staff_api_client.post_graphql(
         query, variables, permissions=(permission_manage_staff,)
     )
@@ -1214,7 +1227,7 @@ def test_group_delete_mutation(
 
     assert errors == []
     assert permission_group_data["id"] == variables["id"]
-    assert permission_group_data["name"] == group_name
+    assert permission_group_data["name"] == group1_name
     assert permission_group_data["permissions"] == []
 
 
@@ -1236,6 +1249,132 @@ def test_group_delete_mutation_out_of_scope_permission(
     assert not permission_group_data
     assert errors[0]["code"] == PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.name
     assert errors[0]["field"] is None
+
+
+def test_group_delete_mutation_left_not_manageable_permission(
+    staff_users,
+    permission_manage_staff,
+    permission_manage_orders,
+    permission_manage_products,
+    staff_api_client,
+):
+    staff_user1, staff_user2 = staff_users
+    staff_user1.user_permissions.add(
+        permission_manage_orders, permission_manage_products
+    )
+    groups = Group.objects.bulk_create(
+        [
+            Group(name="manage orders and products"),
+            Group(name="manage products"),
+            Group(name="manage staff"),
+            Group(name="manage orders"),
+        ]
+    )
+    group1, group2, group3, group4 = groups
+
+    # add permissions to groups
+    group1.permissions.add(
+        permission_manage_orders, permission_manage_products, permission_manage_staff
+    )
+    group2.permissions.add(permission_manage_products)
+    group3.permissions.add(permission_manage_staff)
+    group4.permissions.add(permission_manage_orders)
+
+    # add users to groups
+    staff_user2.groups.add(group1, group2, group3)
+
+    query = PERMISSION_GROUP_DELETE_MUTATION
+
+    variables = {"id": graphene.Node.to_global_id("Group", group1.id)}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_staff,)
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupDelete"]
+    errors = data["permissionGroupErrors"]
+
+    assert not data["group"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "id"
+    assert (
+        errors[0]["code"]
+        == PermissionGroupErrorCode.LEFT_NOT_MANAGEABLE_PERMISSION.name
+    )
+    assert errors[0]["permissions"] == [OrderPermissions.MANAGE_ORDERS.name]
+
+
+# tets for remove last group with manage staff and without
+
+
+def test_group_delete_mutation_delete_last_group(
+    staff_users,
+    permission_group_manage_users,
+    staff_api_client,
+    permission_manage_staff,
+    permission_manage_users,
+):
+    staff_user1, staff_user2 = staff_users
+    staff_user1.user_permissions.add(permission_manage_users)
+    group = permission_group_manage_users
+    query = PERMISSION_GROUP_DELETE_MUTATION
+
+    variables = {"id": graphene.Node.to_global_id("Group", group.id)}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_staff,)
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupDelete"]
+    errors = data["permissionGroupErrors"]
+
+    assert not data["group"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "id"
+    assert (
+        errors[0]["code"]
+        == PermissionGroupErrorCode.LEFT_NOT_MANAGEABLE_PERMISSION.name
+    )
+    assert errors[0]["permissions"] == [AccountPermissions.MANAGE_USERS.name]
+
+
+def test_group_delete_mutation_delete_last_group_with_manage_staff(
+    staff_users,
+    permission_group_manage_users,
+    staff_api_client,
+    permission_manage_staff,
+    permission_manage_users,
+):
+    staff_user1, staff_user2 = staff_users
+    staff_user1.user_permissions.add(permission_manage_users)
+    groups = Group.objects.bulk_create(
+        [Group(name="manage users and staff"), Group(name="manage users")]
+    )
+    group1, group2 = groups
+    group1.permissions.add(permission_manage_staff, permission_manage_users)
+    group2.permissions.add(permission_manage_users)
+
+    staff_user2.groups.add(group1, group2)
+
+    query = PERMISSION_GROUP_DELETE_MUTATION
+
+    variables = {"id": graphene.Node.to_global_id("Group", group1.id)}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_staff,)
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupDelete"]
+    errors = data["permissionGroupErrors"]
+
+    assert not data["group"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "id"
+    assert (
+        errors[0]["code"]
+        == PermissionGroupErrorCode.LEFT_NOT_MANAGEABLE_PERMISSION.name
+    )
+    assert set(errors[0]["permissions"]) == {
+        AccountPermissions.MANAGE_STAFF.name,
+        AccountPermissions.MANAGE_USERS.name,
+    }
 
 
 QUERY_PERMISSION_GROUP_WITH_FILTER = """

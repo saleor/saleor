@@ -29,8 +29,9 @@ class AccountErrorCode(Enum):
 class PermissionGroupErrorCode(Enum):
     ASSIGN_NON_STAFF_MEMBER = "assign_non_staff_member"
     CANNOT_ADD_AND_REMOVE = "cannot_add_and_remove"
+    CANNOT_REMOVE_FROM_LAST_GROUP = "cannot_remove_from_last_group"
+    LEFT_NOT_MANAGEABLE_PERMISSION = "left_not_manageable_permission"
     OUT_OF_SCOPE_PERMISSION = "out_of_scope_permission"
     OUT_OF_SCOPE_USER = "out_of_scope_user"
-    CANNOT_REMOVE_FROM_LAST_GROUP = "cannot_remove_from_last_group"
     REQUIRED = "required"
     UNIQUE = "unique"
