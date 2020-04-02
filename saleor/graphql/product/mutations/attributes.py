@@ -386,13 +386,15 @@ class AttributeAssign(BaseMutation):
     def clean_operations(cls, product_type, product_attrs_pks, variant_attrs_pks):
         """Ensure the attributes are not already assigned to the product type."""
         attrs_pk = product_attrs_pks + variant_attrs_pks
-        attributes_count = models.Attribute.objects.filter(id__in=attrs_pk).count()
-        if len(attrs_pk) != attributes_count:
+        attributes = models.Attribute.objects.filter(id__in=attrs_pk).values_list("pk", flat=True)
+        if len(attrs_pk) != len(attributes):
+            invalid_attrs = set(attrs_pk) - set(attributes)
             raise ValidationError(
                 {
                     "operations": ValidationError(
                         f"Attribute doesn't exist.",
                         code=ProductErrorCode.NOT_FOUND.value,
+                        params={"attributes": list(invalid_attrs)}
                     )
                 }
             )
