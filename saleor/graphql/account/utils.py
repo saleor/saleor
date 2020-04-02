@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, List, Optional
 from django.contrib.auth.models import Group, Permission
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.exceptions import ValidationError
-from django.db.models import Value
+from django.db.models import Q, Value
 from django.db.models.functions import Concat
 from graphene.utils.str_converters import to_camel_case
 
@@ -173,3 +173,25 @@ def get_groups_which_user_can_manage(user: "User") -> List[Optional[Group]]:
             editable_groups.append(group)
 
     return editable_groups
+
+
+def get_group_to_permissions_and_users_mapping():
+    mapping = {}
+    groups_data = (
+        Group.objects.all()
+        .annotate(
+            perm_codenames=ArrayAgg(
+                "permissions__codename", filter=Q(permissions__isnull=False)
+            ),
+            users=ArrayAgg("user", filter=Q(user__is_active=True)),
+        )
+        .values("pk", "perm_codenames", "users")
+    )
+
+    for data in groups_data:
+        mapping[data["pk"]] = {
+            "permissions": data["perm_codenames"],
+            "users": data["users"],
+        }
+
+    return mapping
