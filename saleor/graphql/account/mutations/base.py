@@ -13,6 +13,7 @@ from ....account.emails import (
 from ....account.error_codes import AccountErrorCode
 from ....core.permissions import AccountPermissions
 from ....core.utils.url import validate_storefront_url
+from ....order.utils import match_orders_with_new_user
 from ...account.i18n import I18nMixin
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import (
@@ -186,6 +187,7 @@ class ConfirmAccount(BaseMutation):
 
         user.is_active = True
         user.save(update_fields=["is_active"])
+        match_orders_with_new_user(user)
 
         return ConfirmAccount()
 
