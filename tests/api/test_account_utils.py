@@ -7,9 +7,12 @@ from saleor.graphql.account.utils import (
     get_group_permission_codes,
     get_group_to_permissions_and_users_mapping,
     get_groups_which_user_can_manage,
+    get_not_manageable_permissions_after_group_deleting,
     get_out_of_scope_permissions,
     get_out_of_scope_users,
     get_user_permissions,
+    get_users_and_look_for_permissions_in_groups_with_manage_staff,
+    look_for_permission_in_users_with_manage_staff,
 )
 
 
@@ -335,3 +338,157 @@ def test_get_group_to_permissions_and_users_mapping(
         assert set(group_data.pop("permissions")) == excepted_result[pk]["permissions"]
         assert set(group_data.pop("users")) == excepted_result[pk]["users"]
         assert group_data == {}
+
+
+def test_get_users_and_look_for_permissions_in_groups_with_manage_staff():
+    groups_data = {
+        1: {
+            "permissions": [
+                "manage_staff",
+                "manage_orders",
+                "manage_products",
+                "manage_checkouts",
+            ],
+            "users": [1, 2],
+        },
+        2: {
+            "permissions": ["manage_staff", "manage_orders", "manage_checkouts"],
+            "users": [],
+        },
+        3: {"permissions": ["manage_staff", "manage_products"], "users": [3, 2]},
+        4: {"permissions": ["manage_checkouts"], "users": [2]},
+    }
+    group_pk = 1
+    permissions_to_find = set(groups_data[group_pk]["permissions"])
+
+    users = get_users_and_look_for_permissions_in_groups_with_manage_staff(
+        group_pk, groups_data, permissions_to_find
+    )
+
+    assert users == {2, 3}
+    assert permissions_to_find == {"manage_checkouts", "manage_orders"}
+
+
+def test_look_for_permission_in_users_with_manage_staff():
+    groups_data = {
+        1: {
+            "permissions": [
+                "manage_staff",
+                "manage_orders",
+                "manage_products",
+                "manage_checkouts",
+            ],
+            "users": [1, 2],
+        },
+        2: {
+            "permissions": ["manage_staff", "manage_orders", "manage_checkouts"],
+            "users": [],
+        },
+        3: {"permissions": ["manage_staff", "manage_products"], "users": [3, 2]},
+        4: {"permissions": ["manage_checkouts", "manage_discounts"], "users": [2]},
+        5: {"permissions": [], "users": [1, 2, 3]},
+    }
+    group_pk = 1
+    permissions_to_find = set(groups_data[group_pk]["permissions"])
+    users_to_check = {2, 3}
+
+    look_for_permission_in_users_with_manage_staff(
+        group_pk, groups_data, users_to_check, permissions_to_find
+    )
+
+    assert permissions_to_find == {"manage_orders"}
+
+
+def test_get_not_manageable_permissions_after_group_deleting(
+    staff_users,
+    permission_manage_orders,
+    permission_manage_products,
+    permission_manage_checkouts,
+    permission_manage_staff,
+    permission_manage_discounts,
+):
+    staff_user1, staff_user2 = staff_users
+    staff_user3 = User.objects.create_user(
+        email="staff3_test@example.com",
+        password="password",
+        is_staff=True,
+        is_active=False,
+    )
+
+    groups = Group.objects.bulk_create(
+        [
+            Group(name="group to remove"),
+            Group(name="group without users"),
+            Group(name="group with users and manage_staff"),
+            Group(name="group with user and without manage_staff"),
+        ]
+    )
+    group1, group2, group3, group4 = groups
+
+    group1.permissions.add(
+        permission_manage_orders,
+        permission_manage_products,
+        permission_manage_checkouts,
+        permission_manage_staff,
+    )
+    group2.permissions.add(permission_manage_orders, permission_manage_checkouts)
+    group3.permissions.add(permission_manage_products, permission_manage_staff)
+    group4.permissions.add(permission_manage_staff, permission_manage_discounts)
+
+    group1.user_set.add(staff_user1, staff_user2)
+    group2.user_set.add(staff_user1)
+    group3.user_set.add(staff_user2, staff_user3)
+    group4.user_set.add(staff_user1)
+
+    non_managable_permissions = get_not_manageable_permissions_after_group_deleting(
+        group1
+    )
+    assert non_managable_permissions == set()
+
+
+def test_get_not_manageable_permissions_after_group_deleting_some_cannot_be_manage(
+    staff_users,
+    permission_manage_orders,
+    permission_manage_products,
+    permission_manage_checkouts,
+    permission_manage_staff,
+    permission_manage_discounts,
+):
+    staff_user1, staff_user2 = staff_users
+    staff_user3 = User.objects.create_user(
+        email="staff3_test@example.com",
+        password="password",
+        is_staff=True,
+        is_active=False,
+    )
+
+    groups = Group.objects.bulk_create(
+        [
+            Group(name="group to remove"),
+            Group(name="group without users"),
+            Group(name="group with users and manage_staff"),
+            Group(name="group with user and without manage_staff"),
+        ]
+    )
+    group1, group2, group3, group4 = groups
+
+    group1.permissions.add(
+        permission_manage_orders,
+        permission_manage_products,
+        permission_manage_checkouts,
+        permission_manage_staff,
+    )
+    group2.permissions.add(
+        permission_manage_staff, permission_manage_orders, permission_manage_checkouts
+    )
+    group3.permissions.add(permission_manage_products, permission_manage_staff)
+    group4.permissions.add(permission_manage_checkouts, permission_manage_discounts)
+
+    group1.user_set.add(staff_user1, staff_user2)
+    group3.user_set.add(staff_user2, staff_user3)
+    group4.user_set.add(staff_user2)
+
+    non_managable_permissions = get_not_manageable_permissions_after_group_deleting(
+        group1
+    )
+    assert non_managable_permissions == {"manage_orders"}
