@@ -5,6 +5,7 @@ from saleor.core.permissions import AccountPermissions, OrderPermissions
 from saleor.graphql.account.utils import (
     can_user_manage_group,
     get_group_permission_codes,
+    get_group_to_permissions_and_users_mapping,
     get_groups_which_user_can_manage,
     get_out_of_scope_permissions,
     get_out_of_scope_users,
@@ -284,3 +285,53 @@ def test_get_out_of_scope_users_return_some_users(
     result_users = get_out_of_scope_users(staff_user1, users)
 
     assert result_users == [staff_user2, staff_user3]
+
+
+def test_get_group_to_permissions_and_users_mapping(
+    staff_users,
+    permission_manage_orders,
+    permission_manage_products,
+    permission_manage_users,
+):
+    staff_user1, staff_user2 = staff_users
+    staff_user3_not_active = User.objects.create_user(
+        email="staff3_test@example.com",
+        password="password",
+        is_staff=True,
+        is_active=False,
+    )
+    groups = Group.objects.bulk_create(
+        [
+            Group(name="manage users"),
+            Group(name="manage orders and products"),
+            Group(name="empty group"),
+        ]
+    )
+    group1, group2, group3 = groups
+
+    group1.permissions.add(permission_manage_users)
+    group2.permissions.add(permission_manage_products, permission_manage_orders)
+
+    group1.user_set.add(staff_user1, staff_user2)
+    group2.user_set.add(staff_user3_not_active)
+    group3.user_set.add(staff_user2, staff_user3_not_active)
+
+    result = get_group_to_permissions_and_users_mapping()
+    excepted_result = {
+        group1.pk: {
+            "permissions": {permission_manage_users.codename},
+            "users": {staff_user1.pk, staff_user2.pk},
+        },
+        group2.pk: {
+            "permissions": {
+                permission_manage_products.codename,
+                permission_manage_orders.codename,
+            },
+            "users": set(),
+        },
+        group3.pk: {"permissions": set(), "users": {staff_user2.pk}},
+    }
+    for pk, group_data in result.items():
+        assert set(group_data.pop("permissions")) == excepted_result[pk]["permissions"]
+        assert set(group_data.pop("users")) == excepted_result[pk]["users"]
+        assert group_data == {}
