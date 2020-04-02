@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, List, Optional, Set
 
 from django.contrib.auth.models import Group, Permission
 from django.contrib.postgres.aggregates import ArrayAgg
@@ -9,7 +9,7 @@ from graphene.utils.str_converters import to_camel_case
 
 from ...account import events as account_events
 from ...account.error_codes import AccountErrorCode
-from ...core.permissions import get_permissions
+from ...core.permissions import AccountPermissions, get_permissions
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
@@ -175,7 +175,46 @@ def get_groups_which_user_can_manage(user: "User") -> List[Optional[Group]]:
     return editable_groups
 
 
+def get_not_manageable_permissions_after_group_deleting(group):
+    """Return permissions that cannot be managed after deleting the group.
+
+    After removing group, for each permission, there should be at least one staff member
+    who can manage it (has both “manage staff” and this permission).
+    """
+    group_pk = group.pk
+    groups_data = get_group_to_permissions_and_users_mapping()
+    not_manageable_permissions = set(groups_data[group_pk]["permissions"])
+    manage_staff_users = get_users_and_look_for_permissions_in_groups_with_manage_staff(
+        group_pk, groups_data, not_manageable_permissions
+    )
+
+    # check if management of all permissions provided by other groups
+    if not not_manageable_permissions:
+        return set()
+
+    # check lack of users with manage staff in other groups
+    if not manage_staff_users:
+        return not_manageable_permissions
+
+    look_for_permission_in_users_with_manage_staff(
+        group_pk, groups_data, manage_staff_users, not_manageable_permissions
+    )
+
+    # return remaining not managable permissions
+    return not_manageable_permissions
+
+
 def get_group_to_permissions_and_users_mapping():
+    """Return group mapping with data about their permissions and user.
+
+    Get all groups and return mapping in structure:
+        {
+            group1_pk: {
+                "permissions": ["perm_codename1", "perm_codename2"],
+                "users": [user_pk1, user_pk2]
+            },
+        }
+    """
     mapping = {}
     groups_data = (
         Group.objects.all()
@@ -195,3 +234,59 @@ def get_group_to_permissions_and_users_mapping():
         }
 
     return mapping
+
+
+def get_users_and_look_for_permissions_in_groups_with_manage_staff(
+    group_pk: int, groups_data: dict, permissions_to_find: Set[str],
+):
+    """Search for permissions in groups with manage staff and return their users.
+
+    Args:
+        group_pk: pk of group which should be excluded for search
+        groups_data: dict with groups data, key is a group pk and value is group data
+            with permissions and users
+        permissions_to_find: searched permissions
+
+    """
+    users_with_manage_staff: Set[int] = set()
+    for pk, data in groups_data.items():
+        if pk == group_pk:
+            continue
+        permissions = data["permissions"]
+        users = data["users"]
+        has_manage_staff = AccountPermissions.MANAGE_STAFF.codename in permissions
+        has_users = bool(users)
+        # only consider groups with active users and manage_staff permission
+        if has_users and has_manage_staff:
+            common_permissions = permissions_to_find & set(permissions)
+            permissions_to_find.difference_update(common_permissions)
+            users_with_manage_staff.update(users)
+
+    return users_with_manage_staff
+
+
+def look_for_permission_in_users_with_manage_staff(
+    group_pk: int,
+    groups_data: dict,
+    users_to_check: Set[int],
+    permissions_to_find: Set[str],
+):
+    """Search for permissions in user with manage staff groups.
+
+    Args:
+        group_pk: pk of group which should be excluded for search
+        groups_data: dict with groups data, key is a group pk and value is group data
+            with permissions and users
+        users_to_check: users with manage_staff
+        permissions_to_find: searched permissions
+
+    """
+    for pk, data in groups_data.items():
+        if pk == group_pk:
+            continue
+        permissions = data["permissions"]
+        users = data["users"]
+        common_users = users_to_check & set(users)
+        if common_users:
+            common_permissions = permissions_to_find & set(permissions)
+            permissions_to_find.difference_update(common_permissions)
