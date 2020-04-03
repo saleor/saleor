@@ -337,5 +337,4 @@ def get_voucher_discount_for_order(order: Order) -> Money:
 
 
 def match_orders_with_new_user(user: User) -> None:
-    """Match Orders with a new user."""
     Order.objects.filter(user_email=user.email, user=None).update(user=user)
