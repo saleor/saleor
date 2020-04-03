@@ -1,8 +1,8 @@
 import pytest
 
 from saleor.order.events import OrderEvents
-from saleor.order.models import OrderEvent
-from saleor.order.utils import change_order_line_quantity
+from saleor.order.models import Order, OrderEvent
+from saleor.order.utils import change_order_line_quantity, match_orders_with_new_user
 
 
 @pytest.mark.parametrize(
@@ -44,3 +44,20 @@ def test_change_quantity_generates_proper_event(
             {"quantity": expected_quantity, "line_pk": line.pk, "item": str(line)}
         ]
     }
+
+
+def test_match_orders_with_new_user(customer_user):
+    def get_order_user_by_customer_email(email):
+        return Order.objects.filter(user_email=email).first().user
+
+    customer_email = customer_user.email
+    address = customer_user.default_billing_address.get_copy()
+    Order.objects.create(
+        billing_address=address, user=None, user_email=customer_email,
+    )
+
+    assert get_order_user_by_customer_email(customer_email) is None
+
+    match_orders_with_new_user(customer_user)
+
+    assert get_order_user_by_customer_email(customer_email) == customer_user
