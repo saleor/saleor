@@ -405,6 +405,9 @@ class AttributeAssign(BaseMutation):
         )
         if len(attrs_pk) != len(attributes):
             invalid_attrs = set(attrs_pk) - set(attributes)
+            invalid_attrs = [
+                graphene.Node.to_global_id("Attribute", pk) for pk in invalid_attrs
+            ]
             raise ValidationError(
                 {
                     "operations": ValidationError(
