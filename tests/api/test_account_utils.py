@@ -297,13 +297,10 @@ def test_get_group_to_permissions_and_users_mapping(
     permission_manage_products,
     permission_manage_users,
 ):
-    staff_user1, staff_user2 = staff_users
-    staff_user3_not_active = User.objects.create_user(
-        email="staff3_test@example.com",
-        password="password",
-        is_staff=True,
-        is_active=False,
-    )
+    staff_user1, staff_user2, staff_user3_not_active = staff_users
+    staff_user3_not_active.is_active = False
+    staff_user3_not_active.save()
+
     groups = Group.objects.bulk_create(
         [
             Group(name="manage users"),
@@ -433,13 +430,7 @@ def test_get_not_manageable_permissions_after_group_deleting(
     permission_manage_staff,
     permission_manage_discounts,
 ):
-    staff_user1, staff_user2 = staff_users
-    staff_user3 = User.objects.create_user(
-        email="staff3_test@example.com",
-        password="password",
-        is_staff=True,
-        is_active=False,
-    )
+    staff_user1, staff_user2, staff_user3 = staff_users
 
     groups = Group.objects.bulk_create(
         [
@@ -480,13 +471,7 @@ def test_get_not_manageable_permissions_after_group_deleting_some_cannot_be_mana
     permission_manage_staff,
     permission_manage_discounts,
 ):
-    staff_user1, staff_user2 = staff_users
-    staff_user3 = User.objects.create_user(
-        email="staff3_test@example.com",
-        password="password",
-        is_staff=True,
-        is_active=False,
-    )
+    staff_user1, staff_user2, staff_user3 = staff_users
 
     groups = Group.objects.bulk_create(
         [
@@ -551,7 +536,7 @@ def test_get_not_manageable_perms_removing_users_from_group_some_user_from_group
     group1.permissions.add(permission_manage_users)
     group2.permissions.add(permission_manage_staff)
 
-    staff_user1, staff_user2 = staff_users
+    staff_user1, staff_user2, _ = staff_users
     group1.user_set.add(*staff_users)
     group2.user_set.add(staff_user1)
 
@@ -576,7 +561,7 @@ def test_get_not_manageable_perms_removing_users_from_group_some_user_outside_gr
     group1.permissions.add(permission_manage_users)
     group2.permissions.add(permission_manage_staff, permission_manage_users)
 
-    staff_user1, staff_user2 = staff_users
+    staff_user1, staff_user2, _ = staff_users
     group1.user_set.add(staff_user1)
     group2.user_set.add(staff_user2)
 
@@ -609,7 +594,7 @@ def test_get_not_manageable_perms_removing_users_from_group_some_cannot_be_manag
     group2.permissions.add(permission_manage_staff)
     group3.permissions.add(permission_manage_users, permission_manage_orders)
 
-    staff_user1, staff_user2 = staff_users
+    staff_user1, staff_user2, _ = staff_users
     group1.user_set.add(staff_user1)
     group2.user_set.add(staff_user2)
     group3.user_set.add(staff_user1)

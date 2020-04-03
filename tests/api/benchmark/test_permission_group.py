@@ -81,9 +81,6 @@ def test_permission_group_update(
     permission_manage_users,
     count_queries,
 ):
-    staff_user.user_permissions.add(
-        permission_manage_users, permission_manage_service_accounts
-    )
     query = """
     mutation PermissionGroupUpdate(
         $id: ID!, $input: PermissionGroupUpdateInput!) {
@@ -115,6 +112,7 @@ def test_permission_group_update(
         permission_manage_service_accounts, permission_manage_users
     )
     group = permission_group_manage_users
+    group.permissions.add(permission_manage_staff)
 
     variables = {
         "id": graphene.Node.to_global_id("Group", group.id),
@@ -172,7 +170,7 @@ def test_permission_group_delete(
         }
     }
     """
-    staff_user1, staff_user2 = staff_users
+    staff_user1, staff_user2, _ = staff_users
     staff_user1.user_permissions.add(
         permission_manage_orders, permission_manage_products
     )
