@@ -1086,10 +1086,14 @@ class ProductVariantCreate(ModelMutation):
                     cleaned_input["product"]
                 )
 
+                try:
+                    cls.validate_duplicated_attribute_values(
+                        attributes, used_attribute_values
+                    )
+                except ValidationError as exc:
+                    raise ValidationError({"attributes": exc})
+
             try:
-                cls.validate_duplicated_attribute_values(
-                    attributes, used_attribute_values
-                )
                 cleaned_input["attributes"] = cls.clean_attributes(
                     attributes, product_type
                 )
