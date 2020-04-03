@@ -607,7 +607,10 @@ ACCOUNT_REGISTER_MUTATION = """
     ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True, ALLOWED_CLIENT_HOSTS=["localhost"]
 )
 @patch("saleor.account.emails._send_account_confirmation_email")
-def test_customer_register(send_account_confirmation_email_mock, api_client):
+@patch("saleor.graphql.account.mutations.account.match_orders_with_new_user")
+def test_customer_register(
+    match_orders_with_new_user_mock, send_account_confirmation_email_mock, api_client
+):
     email = "customer@example.com"
     variables = {
         "email": email,
@@ -633,18 +636,21 @@ def test_customer_register(send_account_confirmation_email_mock, api_client):
     customer_creation_event = account_events.CustomerEvent.objects.get()
     assert customer_creation_event.type == account_events.CustomerEvents.ACCOUNT_CREATED
     assert customer_creation_event.user == new_user
+    assert match_orders_with_new_user_mock.call_count == 0
 
 
 @override_settings(ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=False)
 @patch("saleor.account.emails._send_account_confirmation_email")
+@patch("saleor.graphql.account.mutations.account.match_orders_with_new_user")
 def test_customer_register_disabled_email_confirmation(
-    send_account_confirmation_email_mock, api_client
+    match_orders_with_new_user_mock, send_account_confirmation_email_mock, api_client
 ):
     variables = {"email": "customer@example.com", "password": "Password"}
     response = api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
     errors = response.json()["data"]["accountRegister"]["errors"]
     assert errors == []
     assert send_account_confirmation_email_mock.delay.call_count == 0
+    assert match_orders_with_new_user_mock.call_count == 1
 
 
 @override_settings(ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True)
