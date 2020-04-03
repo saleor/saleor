@@ -18,6 +18,7 @@ from ...account.utils import (
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types.common import PermissionGroupError
+from ...core.utils import get_duplicates_ids
 from ..types import Group
 
 
@@ -315,21 +316,17 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         Raise error if some of items are duplicated.
         """
         add_field, remove_field, error_class_field = fields
-        # break if any of comparing field is not in input
-        add_items = input_data.get(add_field)
-        remove_items = input_data.get(remove_field)
-        if not add_items or not remove_items:
-            return
-
-        common_items = set(input_data[add_field]) & set(input_data[remove_field])
-        if common_items:
+        duplicated_ids = get_duplicates_ids(
+            input_data.get(add_field), input_data.get(remove_field)
+        )
+        if duplicated_ids:
             # add error
             error_msg = (
                 "The same object cannot be in both list"
                 "for adding and removing items."
             )
             code = PermissionGroupErrorCode.CANNOT_ADD_AND_REMOVE.value
-            params = {error_class_field: list(common_items)}
+            params = {error_class_field: list(duplicated_ids)}
             cls.update_errors(errors, error_msg, None, code, params)
 
 
