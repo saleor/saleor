@@ -2,7 +2,7 @@ from ...extensions.base_plugin import BasePlugin
 from ...extensions.manager import get_extensions_manager
 from ...extensions.models import PluginConfiguration
 from .filters import filter_plugin_search
-from .sorters import PluginSortField
+from .sorters import sort_plugins
 
 
 def resolve_plugin(info, plugin_name):
@@ -19,30 +19,19 @@ def resolve_plugin(info, plugin_name):
     )
 
 
-def resolve_plugins(sort_by=None, **_kwargs):
-    plugin_filter = _kwargs.get("filter", {})
+def resolve_plugins(sort_by=None, **kwargs):
+    plugin_filter = kwargs.get("filter", {})
+    search_query = plugin_filter.get("search")
+    filter_active = plugin_filter.get("active")
+
     manager = get_extensions_manager()
-    sort_field = (
-        sort_by.get("field", PluginSortField.NAME) if sort_by else PluginSortField.NAME
-    )
-    sort_reverse = sort_by.get("direction", False) if sort_by else False
-    if sort_field == PluginSortField.IS_ACTIVE:
+    plugins = manager.plugins
 
-        plugins = sorted(
-            manager.plugins,
-            key=lambda p: (not p.active if sort_reverse else p.active, p.PLUGIN_NAME),
-        )
-    else:
-        plugins = sorted(manager.plugins, key=lambda p: p.PLUGIN_NAME)
-        if sort_reverse:
-            plugins = reversed(plugins)
+    if filter_active is not None:
+        plugins = [plugin for plugin in plugins if plugin.active is filter_active]
 
-    if "active" in plugin_filter:
-        plugins = [
-            plugin for plugin in plugins if plugin.active is plugin_filter["active"]
-        ]
-    search_query = plugin_filter.get("search", "").lower()
     plugins = filter_plugin_search(plugins, search_query)
+    plugins = sort_plugins(plugins, sort_by)
 
     return [
         PluginConfiguration(
