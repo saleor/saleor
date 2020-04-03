@@ -24,7 +24,7 @@ def sort_plugins(
     else:
         plugins = sorted(plugins, key=lambda p: p.PLUGIN_NAME)
         if sort_reverse:
-            plugins = reversed(plugins)
+            plugins = list(reversed(plugins))
     return plugins
 
 
