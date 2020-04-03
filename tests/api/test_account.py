@@ -652,7 +652,7 @@ def test_customer_register_disabled_email_confirmation(
     new_user = User.objects.get(email=email)
 
     assert errors == []
-    assert send_account_confirmation_email_mock.delay.call_count == 0
+    send_account_confirmation_email_mock.delay.assert_not_called()
     match_orders_with_new_user_mock.assert_called_once_with(new_user)
 
 
