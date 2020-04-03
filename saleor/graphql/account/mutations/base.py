@@ -49,6 +49,7 @@ class SetPassword(CreateToken):
     account_errors = graphene.List(
         graphene.NonNull(AccountError),
         description="List of errors that occurred executing the mutation.",
+        required=True,
     )
 
     class Arguments:
