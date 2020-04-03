@@ -18,6 +18,7 @@ from graphql_jwt.exceptions import JSONWebTokenError, PermissionDenied
 
 from ...account import models
 from ..account.types import User
+from .types.common import AccountError
 from ..utils import get_nodes
 from .types import Error, Upload
 from .utils import from_global_id_strict_type, snake_to_camel_case
@@ -588,6 +589,11 @@ class CreateToken(ObtainJSONWebToken):
     """
 
     errors = graphene.List(graphene.NonNull(Error), required=True)
+    account_errors = graphene.List(
+        graphene.NonNull(AccountError),
+        description="List of errors that occurred executing the mutation.",
+        required=True,
+    )
     user = graphene.Field(User)
 
     @classmethod
@@ -596,12 +602,29 @@ class CreateToken(ObtainJSONWebToken):
             result = super().mutate(root, info, **kwargs)
         except JSONWebTokenError as e:
             return CreateToken(errors=[Error(message=str(e))])
+        except ValidationError as e:
+            errors, account_errors = cls.handle_errors(e)
+            return CreateToken(errors=errors, account_errors=account_errors)
         else:
             return result
 
     @classmethod
+    def handle_errors(cls, error: ValidationError, **extra):
+        errors = validation_error_to_error_type(error)
+        return cls.handle_typed_errors(errors, **extra)
+
+    @classmethod
+    def handle_typed_errors(cls, errors: list):
+        errors = [e[0] for e in errors]
+        account_errors = [
+            AccountError(field=e.field, message=e.message, code=code)
+            for e, code, _params in errors
+        ]
+        return errors, account_errors
+
+    @classmethod
     def resolve(cls, root, info, **kwargs):
-        return cls(user=info.context.user, errors=[])
+        return cls(user=info.context.user, errors=[], account_errors=[])
 
 
 class VerifyToken(Verify):
