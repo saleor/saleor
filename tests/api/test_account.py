@@ -636,7 +636,7 @@ def test_customer_register(
     customer_creation_event = account_events.CustomerEvent.objects.get()
     assert customer_creation_event.type == account_events.CustomerEvents.ACCOUNT_CREATED
     assert customer_creation_event.user == new_user
-    assert match_orders_with_new_user_mock.call_count == 0
+    match_orders_with_new_user_mock.assert_not_called()
 
 
 @override_settings(ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=False)
@@ -645,12 +645,15 @@ def test_customer_register(
 def test_customer_register_disabled_email_confirmation(
     match_orders_with_new_user_mock, send_account_confirmation_email_mock, api_client
 ):
-    variables = {"email": "customer@example.com", "password": "Password"}
+    email = "customer@example.com"
+    variables = {"email": email, "password": "Password"}
     response = api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
     errors = response.json()["data"]["accountRegister"]["errors"]
+    new_user = User.objects.get(email=email)
+
     assert errors == []
     assert send_account_confirmation_email_mock.delay.call_count == 0
-    assert match_orders_with_new_user_mock.call_count == 1
+    match_orders_with_new_user_mock.assert_called_once_with(new_user)
 
 
 @override_settings(ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True)
