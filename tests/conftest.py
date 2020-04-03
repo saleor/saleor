@@ -416,13 +416,23 @@ def staff_user(db):
 @pytest.fixture
 def staff_users(staff_user):
     """Return a staff members."""
-    staff_user2 = User.objects.create_user(
-        email="staff2_test@example.com",
-        password="password",
-        is_staff=True,
-        is_active=True,
+    staff_users = User.objects.bulk_create(
+        [
+            User(
+                email="staff1_test@example.com",
+                password="password",
+                is_staff=True,
+                is_active=True,
+            ),
+            User(
+                email="staff2_test@example.com",
+                password="password",
+                is_staff=True,
+                is_active=True,
+            ),
+        ]
     )
-    return [staff_user, staff_user2]
+    return [staff_user] + staff_users
 
 
 @pytest.fixture
