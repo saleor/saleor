@@ -2,6 +2,7 @@ import copy
 import pytest
 
 from saleor.extensions import ConfigurationTypeField
+from saleor.extensions.error_codes import ExtensionsErrorCode
 from saleor.extensions.manager import get_extensions_manager
 from saleor.extensions.models import PluginConfiguration
 from tests.api.utils import assert_no_permission, get_graphql_content
@@ -258,6 +259,10 @@ PLUGIN_UPDATE_MUTATION = """
               field
               message
             }
+            extensionsErrors {
+              field
+              code
+            }
           }
         }
     """
@@ -313,7 +318,10 @@ def test_plugin_configuration_update_containing_invalid_plugin_name(
         PLUGIN_UPDATE_MUTATION, variables
     )
     content = get_graphql_content(response)
-    assert content["data"]["pluginUpdate"]["errors"]
+    assert content["data"]["pluginUpdate"]["extensionsErrors"][0] == {
+        "field": "id",
+        "code": ExtensionsErrorCode.NOT_FOUND.name,
+    }
 
 
 def test_plugin_update_saves_boolean_as_boolean(

@@ -3,6 +3,7 @@ import graphene
 from django.core.exceptions import ValidationError
 
 from ...core.permissions import ExtensionsPermissions
+from ...extensions.error_codes import ExtensionsErrorCode
 from ...extensions.manager import get_extensions_manager
 from ..core.mutations import BaseMutation
 from ..core.types.common import ExtensionsError
@@ -51,7 +52,11 @@ class PluginUpdate(BaseMutation):
         plugin = manager.get_plugin(plugin_id)
         if not plugin:
             raise ValidationError(
-                {"id": ValidationError("Plugin doesn't exist", code="not_found")}
+                {
+                    "id": ValidationError(
+                        "Plugin doesn't exist", code=ExtensionsErrorCode.NOT_FOUND
+                    )
+                }
             )
         instance = manager.save_plugin_configuration(plugin_id, data)
         return PluginUpdate(plugin=instance)
