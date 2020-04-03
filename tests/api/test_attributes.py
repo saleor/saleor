@@ -1187,6 +1187,7 @@ ASSIGN_ATTR_QUERY = """
           field
           code
           message
+          attributes
         }
         productType {
           id
@@ -1260,9 +1261,8 @@ def test_assign_non_existing_attributes_to_product_type(
     product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
 
     query = ASSIGN_ATTR_QUERY
-    operations = [
-        {"type": "PRODUCT", "id": graphene.Node.to_global_id("Attribute", "555")}
-    ]
+    attribute_id = graphene.Node.to_global_id("Attribute", "555")
+    operations = [{"type": "PRODUCT", "id": attribute_id}]
     variables = {"productTypeId": product_type_global_id, "operations": operations}
 
     response = staff_api_client.post_graphql(
@@ -1272,6 +1272,7 @@ def test_assign_non_existing_attributes_to_product_type(
     content = content["data"]["attributeAssign"]
     assert content["productErrors"][0]["code"] == ProductErrorCode.NOT_FOUND.name
     assert content["productErrors"][0]["field"] == "operations"
+    assert content["productErrors"][0]["attributes"] == [attribute_id]
 
 
 def test_assign_variant_attribute_to_product_type_with_disabled_variants(
