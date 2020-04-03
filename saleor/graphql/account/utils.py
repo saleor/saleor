@@ -175,6 +175,38 @@ def get_groups_which_user_can_manage(user: "User") -> List[Optional[Group]]:
     return editable_groups
 
 
+def get_not_manageable_permissions_after_removing_users_from_group(
+    group: Group, users: List["User"]
+):
+    """Return permissions that cannot be managed after removing users from group.
+
+    After removing users from group, for each permission, there should be at least
+    one staff member who can manage it (has both “manage staff” and this permission).
+    """
+    group_users = group.user_set.all()
+    group_permissions = group.permissions.values_list("codename", flat=True)
+    # If group has manage_staff permission and some users will stay in group
+    # given users can me removed (permissions will be manageable)
+    manage_staff_codename = AccountPermissions.MANAGE_STAFF.codename
+    if len(group_users) > len(users) and manage_staff_codename in group_permissions:
+        return set()
+
+    # check if any of remaining group user has manage staff permission
+    # if True, all group permissions can be managed
+    group_remaining_users = set(group_users) - set(users)
+    manage_staff_permission = AccountPermissions.MANAGE_STAFF.value
+    if any([user.has_perm(manage_staff_permission) for user in group_remaining_users]):
+        return set()
+
+    # if group and any of remaining group user doesn't have manage staff permission
+    # we can treat the situation as this when group is removing
+    not_manageable_permissions = get_not_manageable_permissions_after_group_deleting(
+        group
+    )
+
+    return not_manageable_permissions
+
+
 def get_not_manageable_permissions_after_group_deleting(group):
     """Return permissions that cannot be managed after deleting the group.
 
