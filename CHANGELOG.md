@@ -183,6 +183,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix bulk action checkboxes - #4618 by @dominik-zeglen
 - Fix rendering user avatar when it's empty #4546 by @maarcingebala
 - Remove Dashboard 2.0 files form Saleor repository - #4631 by @dominik-zeglen
+- Fix CreateToken mutation to use NonNull on errors field #5415 by @gabmartinez
 
 ### Other notable changes
 
