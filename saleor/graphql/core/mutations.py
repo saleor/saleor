@@ -587,7 +587,7 @@ class CreateToken(ObtainJSONWebToken):
     the mutation works.
     """
 
-    errors = graphene.List(Error, required=True)
+    errors = graphene.List(graphene.NonNull(Error), required=True)
     user = graphene.Field(User)
 
     @classmethod
