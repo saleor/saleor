@@ -1320,7 +1320,7 @@ type CountryDisplay {
 
 type CreateToken {
   token: String
-  errors: [Error]!
+  errors: [Error!]!
   user: User
 }
 
