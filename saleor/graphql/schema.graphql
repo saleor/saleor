@@ -4035,7 +4035,7 @@ type ServiceAccountUpdatePrivateMeta {
 
 type SetPassword {
   token: String
-  errors: [Error]!
+  errors: [Error!]!
   user: User
   accountErrors: [AccountError!]
 }
