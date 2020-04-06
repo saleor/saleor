@@ -214,7 +214,7 @@ type Attribute implements Node & ObjectWithMetadata {
 type AttributeAssign {
   errors: [Error!]!
   productType: ProductType
-  productErrors: [ProductError!]!
+  productErrors: [ProductAttributeError!]!
 }
 
 input AttributeAssignInput {
@@ -3172,6 +3172,13 @@ type Product implements Node & ObjectWithMetadata {
   images: [ProductImage]
   collections: [Collection]
   translation(languageCode: LanguageCodeEnum!): ProductTranslation
+}
+
+type ProductAttributeError {
+  field: String
+  message: String
+  code: ProductErrorCode!
+  attributes: [ID!]
 }
 
 type ProductBulkDelete {
