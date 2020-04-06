@@ -317,7 +317,7 @@ class PermissionGroupDelete(ModelDeleteMutation):
 
     @classmethod
     def check_if_group_can_be_removed(cls, group):
-        """Return true if management of all permissions provided by other groups.
+        """Return true if management of all permissions is provided by other groups.
 
         After removing group, for each permission, there should be at least one staff
         member who can manage it (has both “manage staff” and this permission).
