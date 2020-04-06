@@ -1,5 +1,6 @@
 import graphene
 from django.conf import settings
+from django.contrib.auth import password_validation
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 
@@ -80,6 +81,12 @@ class AccountRegister(ModelMutation):
                     )
                 }
             )
+
+        password = data["password"]
+        try:
+            password_validation.validate_password(password, instance)
+        except ValidationError as error:
+            raise ValidationError({"password": error})
 
         return super().clean_input(info, instance, data, input_cls=None)
 
@@ -378,7 +385,7 @@ class RequestEmailChange(BaseMutation):
         if not user.check_password(password):
             raise ValidationError(
                 {
-                    "user_password": ValidationError(
+                    "password": ValidationError(
                         "Password isn't valid.", code=AccountErrorCode.INVALID_PASSWORD
                     )
                 }
