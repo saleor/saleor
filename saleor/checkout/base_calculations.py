@@ -4,16 +4,16 @@ It's recommended to use functions from calculations.py module to take in account
 manager.
 """
 
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, Iterable, List, Optional
 
 from prices import TaxedMoney
 
 from ..core.taxes import quantize_price, zero_taxed_money
+from ..discount import DiscountInfo
 
 if TYPE_CHECKING:
     # flake8: noqa
     from .models import Checkout, CheckoutLine
-    from ..discount.types import DiscountsListType
 
 
 def base_checkout_shipping_price(checkout: "Checkout") -> TaxedMoney:
@@ -44,9 +44,9 @@ def base_checkout_total(
 
 
 def base_checkout_line_total(
-    line: "CheckoutLine", discounts: "DiscountsListType" = None
+    line: "CheckoutLine", discounts: Optional[Iterable[DiscountInfo]] = None
 ) -> TaxedMoney:
     """Return the total price of this line."""
-    amount = line.quantity * line.variant.get_price(discounts)
+    amount = line.quantity * line.variant.get_price(discounts or [])
     price = quantize_price(amount, amount.currency)
     return TaxedMoney(net=price, gross=price)

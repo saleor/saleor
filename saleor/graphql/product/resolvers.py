@@ -13,8 +13,8 @@ from ..utils import (
     filter_by_period,
     filter_by_query_param,
     get_database_id,
-    get_user_or_service_account_from_context,
     get_nodes,
+    get_user_or_service_account_from_context,
     sort_queryset,
 )
 from .filters import (
