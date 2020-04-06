@@ -88,6 +88,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add shipping rate price validation - #5411 by @kswiatek92
 - Remove unused settings and environment variables - #5420 by @maarcingebala
 - Add product price validation - #5413 by @kswiatek92
+- Add attribute validation to attributeAssign - #5423 by @kswiatek92
 
 ## 2.9.0
 
