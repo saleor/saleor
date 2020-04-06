@@ -1180,6 +1180,55 @@ def test_permission_group_update_mutation_multiply_errors(
     assert data["group"] is None
 
 
+def test_permission_group_update_mutation_remove_all_users_manageable_perms(
+    staff_users,
+    permission_manage_users,
+    permission_manage_staff,
+    permission_manage_orders,
+    staff_api_client,
+):
+    """Ensure that user can remove group users if there is other source of all group
+    permissions. """
+    staff_user, staff_user1, staff_user2 = staff_users
+
+    groups = Group.objects.bulk_create(
+        [Group(name="manage users"), Group(name="manage staff, order and users")]
+    )
+    group1, group2 = groups
+
+    group1.permissions.add(permission_manage_staff, permission_manage_users)
+    group2.permissions.add(
+        permission_manage_staff, permission_manage_orders, permission_manage_users
+    )
+
+    group1.user_set.add(staff_user1, staff_user2)
+    group2.user_set.add(staff_user2)
+
+    staff_user.user_permissions.add(permission_manage_users, permission_manage_orders)
+    query = PERMISSION_GROUP_UPDATE_MUTATION
+    variables = {
+        "id": graphene.Node.to_global_id("Group", group1.id),
+        "input": {
+            "removeUsers": [
+                graphene.Node.to_global_id("User", user.id)
+                for user in [staff_user1, staff_user2]
+            ],
+        },
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_staff,)
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupUpdate"]
+    errors = data["permissionGroupErrors"]
+
+    assert not errors
+    assert data["group"]
+    assert not data["group"]["users"]
+    assert data["group"]["name"] == group1.name
+
+
 def test_permission_group_update_mutation_remove_all_group_users_not_manageable_perms(
     staff_users,
     permission_manage_users,
@@ -1187,12 +1236,12 @@ def test_permission_group_update_mutation_remove_all_group_users_not_manageable_
     permission_manage_orders,
     staff_api_client,
 ):
-    """Ensure that user cannot remove group if there is no other source of some
+    """Ensure that user cannot remove group users if there is no other source of some
     of group permission. """
     staff_user, staff_user1, staff_user2 = staff_users
 
     groups = Group.objects.bulk_create(
-        [Group(name="manage users"), Group(name="manage staff and users")]
+        [Group(name="manage users"), Group(name="manage staff and orders")]
     )
     group1, group2 = groups
 
@@ -1202,7 +1251,7 @@ def test_permission_group_update_mutation_remove_all_group_users_not_manageable_
     group1.user_set.add(staff_user1, staff_user2)
     group2.user_set.add(staff_user2)
 
-    staff_user.user_permissions.add(permission_manage_users)
+    staff_user.user_permissions.add(permission_manage_users, permission_manage_orders)
     query = PERMISSION_GROUP_UPDATE_MUTATION
     variables = {
         "id": graphene.Node.to_global_id("Group", group1.id),
