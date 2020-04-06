@@ -603,24 +603,18 @@ class CreateToken(ObtainJSONWebToken):
         except JSONWebTokenError as e:
             return CreateToken(errors=[Error(message=str(e))])
         except ValidationError as e:
-            errors, account_errors = cls.handle_errors(e)
-            return CreateToken(errors=errors, account_errors=account_errors)
+            errors = validation_error_to_error_type(e)
+            return cls.handle_typed_errors(errors)
         else:
             return result
 
     @classmethod
-    def handle_errors(cls, error: ValidationError, **extra):
-        errors = validation_error_to_error_type(error)
-        return cls.handle_typed_errors(errors)
-
-    @classmethod
     def handle_typed_errors(cls, errors: list):
-        errors = [e[0] for e in errors]
         account_errors = [
             AccountError(field=e.field, message=e.message, code=code)
             for e, code, _params in errors
         ]
-        return errors, account_errors
+        return cls(errors=[e[0] for e in errors], account_errors=account_errors)
 
     @classmethod
     def resolve(cls, root, info, **kwargs):
