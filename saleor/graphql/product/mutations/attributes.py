@@ -412,7 +412,7 @@ class AttributeAssign(BaseMutation):
                 {
                     "operations": ValidationError(
                         f"Attribute doesn't exist.",
-                        code=ProductErrorCode.NOT_FOUND.value,
+                        code=ProductErrorCode.NOT_FOUND,
                         params={"attributes": list(invalid_attrs)},
                     )
                 }
