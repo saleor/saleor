@@ -89,6 +89,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Remove unused settings and environment variables - #5420 by @maarcingebala
 - Add product price validation - #5413 by @kswiatek92
 - Add attribute validation to attributeAssign - #5423 by @kswiatek92
+- Fis werhouses query not working without id - #5441 by @koradon
 
 ## 2.9.0
 
