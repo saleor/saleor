@@ -141,6 +141,67 @@ def test_permission_group_update(
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
+def test_permission_group_delete(
+    staff_users,
+    permission_manage_staff,
+    permission_manage_orders,
+    permission_manage_products,
+    staff_api_client,
+    count_queries,
+):
+    query = """
+    mutation PermissionGroupDelete($id: ID!) {
+        permissionGroupDelete(
+            id: $id)
+        {
+            group{
+                id
+                name
+                permissions {
+                    name
+                    code
+                }
+            }
+            permissionGroupErrors{
+                field
+                code
+                users
+                permissions
+                message
+            }
+        }
+    }
+    """
+    staff_user1, staff_user2 = staff_users
+    staff_user1.user_permissions.add(
+        permission_manage_orders, permission_manage_products
+    )
+    groups = Group.objects.bulk_create(
+        [Group(name="manage orders"), Group(name="manage orders and products")]
+    )
+    group1, group2 = groups
+    group1.permissions.add(permission_manage_orders, permission_manage_staff)
+    group2.permissions.add(
+        permission_manage_orders, permission_manage_products, permission_manage_staff
+    )
+
+    staff_user2.groups.add(group1, group2)
+
+    group_count = Group.objects.count()
+
+    variables = {"id": graphene.Node.to_global_id("Group", group1.id)}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=(permission_manage_staff,)
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupDelete"]
+
+    assert data
+    assert Group.objects.count() == group_count - 1
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
 def test_permission_group_query(
     permission_group_manage_users,
     staff_user,
