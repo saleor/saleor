@@ -56,6 +56,21 @@ query Warehouses($filters: WarehouseFilterInput) {
 }
 """
 
+QUERY_WERHOUSES_WITH_FILTERS_NO_IDS = """
+query Warehouses($filters: WarehouseFilterInput) {
+    warehouses(first:100, filter: $filters) {
+        totalCount
+        edges {
+            node {
+                name
+                companyName
+                email
+            }
+        }
+    }
+}
+"""
+
 QUERY_WAREHOUSE = """
 query warehouse($id: ID!){
     warehouse(id: $id) {
@@ -296,6 +311,29 @@ def test_query_warehouse_with_filters_by_id(
     content_warehouses = content_exists["data"]["warehouses"]["edges"]
     assert content_warehouses[0]["node"]["id"] == warehouse_id
     assert content_exists["data"]["warehouses"]["totalCount"] == 1
+
+
+def test_query_warehouses_with_filters_and_no_id(
+    staff_api_client, permission_manage_products, warehouse
+):
+    variables_exists = {"filters": {"search": "test"}}
+    response_exists = staff_api_client.post_graphql(
+        QUERY_WAREHOUSES_WITH_FILTERS,
+        variables=variables_exists,
+        permissions=[permission_manage_products],
+    )
+    content_exists = get_graphql_content(response_exists)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
+    content_warehouse = content_exists["data"]["warehouses"]["edges"][0]["node"]
+    assert content_warehouse["id"] == warehouse_id
+
+    variable_does_not_exists = {"filters": {"search": "Bad@email.pl"}}
+    response_not_exists = staff_api_client.post_graphql(
+        QUERY_WAREHOUSES_WITH_FILTERS, variables=variable_does_not_exists
+    )
+    content_not_exists = get_graphql_content(response_not_exists)
+    total_count = content_not_exists["data"]["warehouses"]["totalCount"]
+    assert total_count == 0
 
 
 def test_mutation_create_warehouse(
