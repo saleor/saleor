@@ -499,6 +499,7 @@ def test_sale_create_updates_products_minimal_variant_prices(
     mock_update_minimal_variant_prices_task,
     staff_api_client,
     permission_manage_discounts,
+    product,
 ):
     query = """
     mutation SaleCreate(
@@ -527,6 +528,7 @@ def test_sale_create_updates_products_minimal_variant_prices(
         "name": "Half price product",
         "type": DiscountValueTypeEnum.PERCENTAGE.name,
         "value": "50",
+        "products": [to_global_id("Product", product.id)],
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts]
@@ -585,6 +587,7 @@ def test_sale_delete_updates_products_minimal_variant_prices(
     mock_update_minimal_variant_prices_task,
     staff_api_client,
     sale,
+    product,
     permission_manage_discounts,
 ):
     query = """
@@ -600,6 +603,7 @@ def test_sale_delete_updates_products_minimal_variant_prices(
         }
     }
     """
+    sale.products.add(product)
     variables = {"id": to_global_id("Sale", sale.pk)}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_discounts]
