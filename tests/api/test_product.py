@@ -2543,7 +2543,7 @@ def test_product_image_create_mutation_without_file(
     content = get_graphql_content(response)
     errors = content["data"]["productImageCreate"]["productErrors"]
     assert errors[0]["field"] == "image"
-    assert errors[0]["code"] == ProductErrorCode.INVALID.name
+    assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
 
 
 def test_invalid_product_image_create_mutation(
