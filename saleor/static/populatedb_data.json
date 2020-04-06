@@ -1822,7 +1822,6 @@
             "product": 61,
             "track_inventory": true,
             "quantity": 116,
-            "quantity_allocated": 17,
             "cost_price_amount": "5.00",
             "weight": "1.0:kg"
         }
@@ -1840,7 +1839,6 @@
             "product": 61,
             "track_inventory": true,
             "quantity": 22,
-            "quantity_allocated": 3,
             "cost_price_amount": "10.00",
             "weight": "2.5:kg"
         }
@@ -1858,7 +1856,6 @@
             "product": 61,
             "track_inventory": true,
             "quantity": 15,
-            "quantity_allocated": 15,
             "cost_price_amount": "20.00",
             "weight": "5.0:kg"
         }
@@ -1876,7 +1873,6 @@
             "product": 62,
             "track_inventory": true,
             "quantity": 43,
-            "quantity_allocated": 19,
             "cost_price_amount": "5.00",
             "weight": "1.0:kg"
         }
@@ -1894,7 +1890,6 @@
             "product": 62,
             "track_inventory": true,
             "quantity": 110,
-            "quantity_allocated": 0,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -1912,7 +1907,6 @@
             "product": 62,
             "track_inventory": true,
             "quantity": 125,
-            "quantity_allocated": 14,
             "cost_price_amount": "25.00",
             "weight": "0.0:kg"
         }
@@ -1930,7 +1924,6 @@
             "product": 63,
             "track_inventory": true,
             "quantity": 1235,
-            "quantity_allocated": 4,
             "cost_price_amount": "5.00",
             "weight": "1.0:kg"
         }
@@ -1948,7 +1941,6 @@
             "product": 63,
             "track_inventory": true,
             "quantity": 1223,
-            "quantity_allocated": 12,
             "cost_price_amount": "10.00",
             "weight": "2.5:kg"
         }
@@ -1966,7 +1958,6 @@
             "product": 63,
             "track_inventory": true,
             "quantity": 475,
-            "quantity_allocated": 30,
             "cost_price_amount": "20.00",
             "weight": "5.0:kg"
         }
@@ -1984,7 +1975,6 @@
             "product": 64,
             "track_inventory": true,
             "quantity": 998,
-            "quantity_allocated": 12,
             "cost_price_amount": "5.00",
             "weight": "1.0:kg"
         }
@@ -2002,7 +1992,6 @@
             "product": 64,
             "track_inventory": true,
             "quantity": 760,
-            "quantity_allocated": 9,
             "cost_price_amount": "10.00",
             "weight": "2.5:kg"
         }
@@ -2020,7 +2009,6 @@
             "product": 64,
             "track_inventory": true,
             "quantity": 587,
-            "quantity_allocated": 16,
             "cost_price_amount": "15.00",
             "weight": "5.0:kg"
         }
@@ -2038,7 +2026,6 @@
             "product": 65,
             "track_inventory": true,
             "quantity": 427,
-            "quantity_allocated": 16,
             "cost_price_amount": "5.00",
             "weight": "1.0:kg"
         }
@@ -2056,7 +2043,6 @@
             "product": 65,
             "track_inventory": true,
             "quantity": 516,
-            "quantity_allocated": 5,
             "cost_price_amount": "10.00",
             "weight": "2.5:kg"
         }
@@ -2074,7 +2060,6 @@
             "product": 65,
             "track_inventory": true,
             "quantity": 159,
-            "quantity_allocated": 18,
             "cost_price_amount": "15.00",
             "weight": "5.0:kg"
         }
@@ -2092,7 +2077,6 @@
             "product": 71,
             "track_inventory": true,
             "quantity": 1221,
-            "quantity_allocated": 10,
             "cost_price_amount": "1.00",
             "weight": "1.0:kg"
         }
@@ -2110,7 +2094,6 @@
             "product": 71,
             "track_inventory": true,
             "quantity": 183,
-            "quantity_allocated": 8,
             "cost_price_amount": "1.50",
             "weight": "1.0:kg"
         }
@@ -2128,7 +2111,6 @@
             "product": 71,
             "track_inventory": true,
             "quantity": 221,
-            "quantity_allocated": 10,
             "cost_price_amount": "2.00",
             "weight": "2.0:kg"
         }
@@ -2146,7 +2128,6 @@
             "product": 81,
             "track_inventory": true,
             "quantity": 21244,
-            "quantity_allocated": 13,
             "cost_price_amount": null,
             "weight": "0.0:kg"
         }
@@ -2164,7 +2145,6 @@
             "product": 82,
             "track_inventory": true,
             "quantity": 12159,
-            "quantity_allocated": 28,
             "cost_price_amount": null,
             "weight": "0.0:kg"
         }
@@ -2182,7 +2162,6 @@
             "product": 83,
             "track_inventory": true,
             "quantity": 12141,
-            "quantity_allocated": 20,
             "cost_price_amount": null,
             "weight": "0.0:kg"
         }
@@ -2200,7 +2179,6 @@
             "product": 84,
             "track_inventory": true,
             "quantity": 975534,
-            "quantity_allocated": 17,
             "cost_price_amount": null,
             "weight": "0.0:kg"
         }
@@ -2218,7 +2196,6 @@
             "product": 85,
             "track_inventory": true,
             "quantity": 9873,
-            "quantity_allocated": 12,
             "cost_price_amount": "11.00",
             "weight": "0.0:kg"
         }
@@ -2236,7 +2213,6 @@
             "product": 85,
             "track_inventory": true,
             "quantity": 687,
-            "quantity_allocated": 16,
             "cost_price_amount": "12.00",
             "weight": "0.0:kg"
         }
@@ -2254,7 +2230,6 @@
             "product": 86,
             "track_inventory": true,
             "quantity": 573,
-            "quantity_allocated": 2,
             "cost_price_amount": "13.00",
             "weight": "0.0:kg"
         }
@@ -2272,7 +2247,6 @@
             "product": 86,
             "track_inventory": true,
             "quantity": 1020,
-            "quantity_allocated": 21,
             "cost_price_amount": "13.00",
             "weight": "0.0:kg"
         }
@@ -2290,7 +2264,6 @@
             "product": 72,
             "track_inventory": true,
             "quantity": 1224,
-            "quantity_allocated": 13,
             "cost_price_amount": "1.00",
             "weight": "1.0:kg"
         }
@@ -2308,7 +2281,6 @@
             "product": 72,
             "track_inventory": true,
             "quantity": 179,
-            "quantity_allocated": 4,
             "cost_price_amount": "1.50",
             "weight": "1.0:kg"
         }
@@ -2326,7 +2298,6 @@
             "product": 72,
             "track_inventory": true,
             "quantity": 227,
-            "quantity_allocated": 16,
             "cost_price_amount": "2.00",
             "weight": "2.0:kg"
         }
@@ -2344,7 +2315,6 @@
             "product": 73,
             "track_inventory": true,
             "quantity": 1220,
-            "quantity_allocated": 9,
             "cost_price_amount": "1.00",
             "weight": "1.0:kg"
         }
@@ -2362,7 +2332,6 @@
             "product": 73,
             "track_inventory": true,
             "quantity": 185,
-            "quantity_allocated": 10,
             "cost_price_amount": "1.50",
             "weight": "1.0:kg"
         }
@@ -2380,7 +2349,6 @@
             "product": 73,
             "track_inventory": true,
             "quantity": 223,
-            "quantity_allocated": 12,
             "cost_price_amount": "2.00",
             "weight": "2.0:kg"
         }
@@ -2398,7 +2366,6 @@
             "product": 74,
             "track_inventory": true,
             "quantity": 1219,
-            "quantity_allocated": 8,
             "cost_price_amount": "1.00",
             "weight": "1.0:kg"
         }
@@ -2416,7 +2383,6 @@
             "product": 74,
             "track_inventory": true,
             "quantity": 188,
-            "quantity_allocated": 13,
             "cost_price_amount": "1.50",
             "weight": "1.0:kg"
         }
@@ -2434,7 +2400,6 @@
             "product": 74,
             "track_inventory": true,
             "quantity": 225,
-            "quantity_allocated": 14,
             "cost_price_amount": "2.00",
             "weight": "2.0:kg"
         }
@@ -2452,7 +2417,6 @@
             "product": 75,
             "track_inventory": true,
             "quantity": 1219,
-            "quantity_allocated": 8,
             "cost_price_amount": "1.00",
             "weight": "1.0:kg"
         }
@@ -2470,7 +2434,6 @@
             "product": 75,
             "track_inventory": true,
             "quantity": 191,
-            "quantity_allocated": 16,
             "cost_price_amount": "1.50",
             "weight": "1.0:kg"
         }
@@ -2488,7 +2451,6 @@
             "product": 75,
             "track_inventory": true,
             "quantity": 225,
-            "quantity_allocated": 14,
             "cost_price_amount": "2.00",
             "weight": "2.0:kg"
         }
@@ -2506,7 +2468,6 @@
             "product": 76,
             "track_inventory": true,
             "quantity": 1214,
-            "quantity_allocated": 3,
             "cost_price_amount": "1.00",
             "weight": "1.0:kg"
         }
@@ -2524,7 +2485,6 @@
             "product": 76,
             "track_inventory": true,
             "quantity": 182,
-            "quantity_allocated": 7,
             "cost_price_amount": "1.50",
             "weight": "1.0:kg"
         }
@@ -2542,7 +2502,6 @@
             "product": 76,
             "track_inventory": true,
             "quantity": 238,
-            "quantity_allocated": 27,
             "cost_price_amount": "2.00",
             "weight": "2.0:kg"
         }
@@ -2560,7 +2519,6 @@
             "product": 77,
             "track_inventory": true,
             "quantity": 1222,
-            "quantity_allocated": 11,
             "cost_price_amount": "1.00",
             "weight": "1.0:kg"
         }
@@ -2578,7 +2536,6 @@
             "product": 77,
             "track_inventory": true,
             "quantity": 178,
-            "quantity_allocated": 3,
             "cost_price_amount": "1.50",
             "weight": "1.0:kg"
         }
@@ -2596,7 +2553,6 @@
             "product": 77,
             "track_inventory": true,
             "quantity": 224,
-            "quantity_allocated": 13,
             "cost_price_amount": "2.00",
             "weight": "2.0:kg"
         }
@@ -2614,7 +2570,6 @@
             "product": 78,
             "track_inventory": true,
             "quantity": 1218,
-            "quantity_allocated": 7,
             "cost_price_amount": "1.00",
             "weight": "1.0:kg"
         }
@@ -2632,7 +2587,6 @@
             "product": 78,
             "track_inventory": true,
             "quantity": 181,
-            "quantity_allocated": 6,
             "cost_price_amount": "1.50",
             "weight": "1.0:kg"
         }
@@ -2650,7 +2604,6 @@
             "product": 78,
             "track_inventory": true,
             "quantity": 238,
-            "quantity_allocated": 27,
             "cost_price_amount": "2.00",
             "weight": "2.0:kg"
         }
@@ -2668,7 +2621,6 @@
             "product": 79,
             "track_inventory": true,
             "quantity": 1221,
-            "quantity_allocated": 10,
             "cost_price_amount": "1.00",
             "weight": "1.0:kg"
         }
@@ -2686,7 +2638,6 @@
             "product": 79,
             "track_inventory": true,
             "quantity": 181,
-            "quantity_allocated": 6,
             "cost_price_amount": "1.50",
             "weight": "1.0:kg"
         }
@@ -2704,7 +2655,6 @@
             "product": 79,
             "track_inventory": true,
             "quantity": 237,
-            "quantity_allocated": 26,
             "cost_price_amount": "2.00",
             "weight": "2.0:kg"
         }
@@ -2722,7 +2672,6 @@
             "product": 87,
             "track_inventory": true,
             "quantity": 9125,
-            "quantity_allocated": 4,
             "cost_price_amount": "20.00",
             "weight": "0.0:kg"
         }
@@ -2740,7 +2689,6 @@
             "product": 87,
             "track_inventory": true,
             "quantity": 1,
-            "quantity_allocated": 0,
             "cost_price_amount": "20.00",
             "weight": "0.0:kg"
         }
@@ -2758,7 +2706,6 @@
             "product": 87,
             "track_inventory": true,
             "quantity": 2,
-            "quantity_allocated": 1,
             "cost_price_amount": "20.00",
             "weight": "0.0:kg"
         }
@@ -2776,7 +2723,6 @@
             "product": 87,
             "track_inventory": true,
             "quantity": 133,
-            "quantity_allocated": 2,
             "cost_price_amount": "20.00",
             "weight": "0.0:kg"
         }
@@ -2794,7 +2740,6 @@
             "product": 87,
             "track_inventory": true,
             "quantity": 884,
-            "quantity_allocated": 23,
             "cost_price_amount": "20.00",
             "weight": "0.0:kg"
         }
@@ -2812,7 +2757,6 @@
             "product": 88,
             "track_inventory": true,
             "quantity": 7625,
-            "quantity_allocated": 14,
             "cost_price_amount": "10.00",
             "weight": "1.0:kg"
         }
@@ -2830,7 +2774,6 @@
             "product": 88,
             "track_inventory": true,
             "quantity": 980,
-            "quantity_allocated": 9,
             "cost_price_amount": "20.00",
             "weight": "1.0:kg"
         }
@@ -2848,7 +2791,6 @@
             "product": 88,
             "track_inventory": true,
             "quantity": 0,
-            "quantity_allocated": 0,
             "cost_price_amount": null,
             "weight": "2.0:kg"
         }
@@ -2866,7 +2808,6 @@
             "product": 88,
             "track_inventory": true,
             "quantity": 27,
-            "quantity_allocated": 27,
             "cost_price_amount": "20.00",
             "weight": "2.0:kg"
         }
@@ -2884,7 +2825,6 @@
             "product": 89,
             "track_inventory": true,
             "quantity": 1217,
-            "quantity_allocated": 4,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -2902,7 +2842,6 @@
             "product": 89,
             "track_inventory": true,
             "quantity": 11,
-            "quantity_allocated": 10,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -2920,7 +2859,6 @@
             "product": 89,
             "track_inventory": true,
             "quantity": 9819,
-            "quantity_allocated": 1,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -2938,7 +2876,6 @@
             "product": 89,
             "track_inventory": true,
             "quantity": 2,
-            "quantity_allocated": 1,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -2956,7 +2893,6 @@
             "product": 89,
             "track_inventory": true,
             "quantity": 5804,
-            "quantity_allocated": 13,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -2974,7 +2910,6 @@
             "product": 107,
             "track_inventory": true,
             "quantity": 1227,
-            "quantity_allocated": 14,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -2992,7 +2927,6 @@
             "product": 107,
             "track_inventory": true,
             "quantity": 14,
-            "quantity_allocated": 13,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3010,7 +2944,6 @@
             "product": 107,
             "track_inventory": true,
             "quantity": 9822,
-            "quantity_allocated": 4,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3028,7 +2961,6 @@
             "product": 107,
             "track_inventory": true,
             "quantity": 5,
-            "quantity_allocated": 4,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3046,7 +2978,6 @@
             "product": 107,
             "track_inventory": true,
             "quantity": 5823,
-            "quantity_allocated": 32,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3064,7 +2995,6 @@
             "product": 108,
             "track_inventory": true,
             "quantity": 1217,
-            "quantity_allocated": 4,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3082,7 +3012,6 @@
             "product": 108,
             "track_inventory": true,
             "quantity": 9,
-            "quantity_allocated": 8,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3100,7 +3029,6 @@
             "product": 108,
             "track_inventory": true,
             "quantity": 9818,
-            "quantity_allocated": 0,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3118,7 +3046,6 @@
             "product": 108,
             "track_inventory": true,
             "quantity": 3,
-            "quantity_allocated": 2,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3136,7 +3063,6 @@
             "product": 108,
             "track_inventory": true,
             "quantity": 5820,
-            "quantity_allocated": 29,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3154,7 +3080,6 @@
             "product": 109,
             "track_inventory": true,
             "quantity": 1220,
-            "quantity_allocated": 7,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3172,7 +3097,6 @@
             "product": 109,
             "track_inventory": true,
             "quantity": 2,
-            "quantity_allocated": 1,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3190,7 +3114,6 @@
             "product": 109,
             "track_inventory": true,
             "quantity": 9823,
-            "quantity_allocated": 5,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3208,7 +3131,6 @@
             "product": 109,
             "track_inventory": true,
             "quantity": 7,
-            "quantity_allocated": 6,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3226,7 +3148,6 @@
             "product": 109,
             "track_inventory": true,
             "quantity": 5821,
-            "quantity_allocated": 30,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3244,7 +3165,6 @@
             "product": 110,
             "track_inventory": true,
             "quantity": 1223,
-            "quantity_allocated": 10,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3262,7 +3182,6 @@
             "product": 110,
             "track_inventory": true,
             "quantity": 9,
-            "quantity_allocated": 8,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3280,7 +3199,6 @@
             "product": 110,
             "track_inventory": true,
             "quantity": 9818,
-            "quantity_allocated": 0,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3298,7 +3216,6 @@
             "product": 110,
             "track_inventory": true,
             "quantity": 8,
-            "quantity_allocated": 7,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3316,7 +3233,6 @@
             "product": 110,
             "track_inventory": true,
             "quantity": 5817,
-            "quantity_allocated": 26,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3334,7 +3250,6 @@
             "product": 111,
             "track_inventory": true,
             "quantity": 1217,
-            "quantity_allocated": 4,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3352,7 +3267,6 @@
             "product": 111,
             "track_inventory": true,
             "quantity": 10,
-            "quantity_allocated": 9,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3370,7 +3284,6 @@
             "product": 111,
             "track_inventory": true,
             "quantity": 9824,
-            "quantity_allocated": 6,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3388,7 +3301,6 @@
             "product": 111,
             "track_inventory": true,
             "quantity": 2,
-            "quantity_allocated": 1,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3406,7 +3318,6 @@
             "product": 111,
             "track_inventory": true,
             "quantity": 5808,
-            "quantity_allocated": 17,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3424,7 +3335,6 @@
             "product": 112,
             "track_inventory": true,
             "quantity": 1220,
-            "quantity_allocated": 7,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3442,7 +3352,6 @@
             "product": 112,
             "track_inventory": true,
             "quantity": 9,
-            "quantity_allocated": 8,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3460,7 +3369,6 @@
             "product": 112,
             "track_inventory": true,
             "quantity": 9821,
-            "quantity_allocated": 3,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3478,7 +3386,6 @@
             "product": 112,
             "track_inventory": true,
             "quantity": 5,
-            "quantity_allocated": 4,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3496,7 +3403,6 @@
             "product": 112,
             "track_inventory": true,
             "quantity": 5812,
-            "quantity_allocated": 21,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3514,7 +3420,6 @@
             "product": 113,
             "track_inventory": true,
             "quantity": 1221,
-            "quantity_allocated": 8,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3532,7 +3437,6 @@
             "product": 113,
             "track_inventory": true,
             "quantity": 6,
-            "quantity_allocated": 5,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3550,7 +3454,6 @@
             "product": 113,
             "track_inventory": true,
             "quantity": 9818,
-            "quantity_allocated": 0,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3568,7 +3471,6 @@
             "product": 113,
             "track_inventory": true,
             "quantity": 2,
-            "quantity_allocated": 1,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3586,7 +3488,6 @@
             "product": 113,
             "track_inventory": true,
             "quantity": 5817,
-            "quantity_allocated": 26,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3604,7 +3505,6 @@
             "product": 114,
             "track_inventory": true,
             "quantity": 1213,
-            "quantity_allocated": 0,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3622,7 +3522,6 @@
             "product": 114,
             "track_inventory": true,
             "quantity": 3,
-            "quantity_allocated": 2,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3640,7 +3539,6 @@
             "product": 114,
             "track_inventory": true,
             "quantity": 9822,
-            "quantity_allocated": 4,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3658,7 +3556,6 @@
             "product": 114,
             "track_inventory": true,
             "quantity": 7,
-            "quantity_allocated": 6,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3676,7 +3573,6 @@
             "product": 114,
             "track_inventory": true,
             "quantity": 5808,
-            "quantity_allocated": 17,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3694,7 +3590,6 @@
             "product": 115,
             "track_inventory": true,
             "quantity": 1217,
-            "quantity_allocated": 4,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3712,7 +3607,6 @@
             "product": 115,
             "track_inventory": true,
             "quantity": 4,
-            "quantity_allocated": 3,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3730,7 +3624,6 @@
             "product": 115,
             "track_inventory": true,
             "quantity": 9823,
-            "quantity_allocated": 5,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3748,7 +3641,6 @@
             "product": 115,
             "track_inventory": true,
             "quantity": 1,
-            "quantity_allocated": 0,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3766,7 +3658,6 @@
             "product": 115,
             "track_inventory": true,
             "quantity": 5833,
-            "quantity_allocated": 42,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3784,7 +3675,6 @@
             "product": 116,
             "track_inventory": true,
             "quantity": 1224,
-            "quantity_allocated": 11,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3802,7 +3692,6 @@
             "product": 116,
             "track_inventory": true,
             "quantity": 11,
-            "quantity_allocated": 10,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3820,7 +3709,6 @@
             "product": 116,
             "track_inventory": true,
             "quantity": 9822,
-            "quantity_allocated": 4,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3838,7 +3726,6 @@
             "product": 116,
             "track_inventory": true,
             "quantity": 9,
-            "quantity_allocated": 8,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3856,7 +3743,6 @@
             "product": 116,
             "track_inventory": true,
             "quantity": 5812,
-            "quantity_allocated": 21,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3874,7 +3760,6 @@
             "product": 117,
             "track_inventory": true,
             "quantity": 1218,
-            "quantity_allocated": 5,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3892,7 +3777,6 @@
             "product": 117,
             "track_inventory": true,
             "quantity": 15,
-            "quantity_allocated": 14,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3910,7 +3794,6 @@
             "product": 117,
             "track_inventory": true,
             "quantity": 9823,
-            "quantity_allocated": 5,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3928,7 +3811,6 @@
             "product": 117,
             "track_inventory": true,
             "quantity": 3,
-            "quantity_allocated": 2,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3946,7 +3828,6 @@
             "product": 117,
             "track_inventory": true,
             "quantity": 5810,
-            "quantity_allocated": 19,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3964,7 +3845,6 @@
             "product": 118,
             "track_inventory": true,
             "quantity": 1217,
-            "quantity_allocated": 4,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -3982,7 +3862,6 @@
             "product": 118,
             "track_inventory": true,
             "quantity": 14,
-            "quantity_allocated": 13,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -4000,7 +3879,6 @@
             "product": 118,
             "track_inventory": true,
             "quantity": 9818,
-            "quantity_allocated": 0,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -4018,7 +3896,6 @@
             "product": 118,
             "track_inventory": true,
             "quantity": 3,
-            "quantity_allocated": 2,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }
@@ -4036,7 +3913,6 @@
             "product": 118,
             "track_inventory": true,
             "quantity": 5818,
-            "quantity_allocated": 27,
             "cost_price_amount": "10.00",
             "weight": "0.0:kg"
         }

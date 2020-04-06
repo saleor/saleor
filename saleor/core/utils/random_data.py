@@ -245,9 +245,8 @@ def create_product_variants(variants_data):
         set_field_as_money(defaults, "price_override")
         set_field_as_money(defaults, "cost_price")
         quantity = defaults.pop("quantity")
-        quantity_allocated = defaults.pop("quantity_allocated")
         variant, _ = ProductVariant.objects.update_or_create(pk=pk, defaults=defaults)
-        create_stocks(variant, quantity=quantity, quantity_allocated=quantity_allocated)
+        create_stocks(variant, quantity=quantity)
 
 
 def assign_attributes_to_product_types(
@@ -458,7 +457,7 @@ def create_order_lines(order, discounts, how_many=10):
     variants_iter = itertools.cycle(variants)
     lines = []
     stocks = []
-    country = order.shipping_address.country
+    country = order.shipping_method.shipping_zone.countries[0]
     for dummy in range(how_many):
         variant = next(variants_iter)
         product = variant.product
@@ -496,6 +495,7 @@ def create_order_lines(order, discounts, how_many=10):
 
 
 def create_fulfillments(order):
+    country = order.shipping_method.shipping_zone.countries[0]
     for line in order:
         if random.choice([False, True]):
             fulfillment, _ = Fulfillment.objects.get_or_create(order=order)
@@ -503,6 +503,10 @@ def create_fulfillments(order):
             fulfillment.lines.create(order_line=line, quantity=quantity)
             line.quantity_fulfilled = quantity
             line.save(update_fields=["quantity_fulfilled"])
+
+            Stock.objects.get_or_create_for_country(
+                country, line.variant
+            ).deallocate_stock(quantity)
 
     update_order_status(order)
 
@@ -531,7 +535,11 @@ def create_fake_order(discounts, max_order_lines=5):
     shipping_price = shipping_method.price
     shipping_price = manager.apply_taxes_to_shipping(shipping_price, address)
     order_data.update(
-        {"shipping_method_name": shipping_method.name, "shipping_price": shipping_price}
+        {
+            "shipping_method": shipping_method,
+            "shipping_method_name": shipping_method.name,
+            "shipping_price": shipping_price,
+        }
     )
 
     order = Order.objects.create(**order_data)
