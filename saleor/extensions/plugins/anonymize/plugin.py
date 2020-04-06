@@ -12,6 +12,11 @@ class AnonymizePlugin(BasePlugin):
     """Anonymize all user data in the checkout, user profile and its orders."""
 
     PLUGIN_NAME = "Anonymize"
+    DEFAULT_ACTIVE = True
+    PLUGIN_DESCRIPTION = (
+        "Anonymize customer's personal data in the checkout, such as shipping "
+        "or billing address, email and phone number."
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -37,16 +42,3 @@ class AnonymizePlugin(BasePlugin):
     def customer_created(self, customer: "User", previous_value: Any) -> Any:
         customer.email = obfuscate_email(customer.email)
         customer.save()
-
-    @classmethod
-    def _get_default_configuration(cls):
-        defaults = {
-            "name": cls.PLUGIN_NAME,
-            "description": (
-                "Anonymize customer's personal data in the checkout, such as shipping "
-                "or billing address, email and phone number."
-            ),
-            "active": True,
-            "configuration": None,
-        }
-        return defaults

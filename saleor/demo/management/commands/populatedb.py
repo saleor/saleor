@@ -14,7 +14,6 @@ def configure_braintree():
         return False
 
     manager = get_extensions_manager()
-    manager.get_plugin_configuration(BraintreeGatewayPlugin.PLUGIN_NAME)
     manager.save_plugin_configuration(
         BraintreeGatewayPlugin.PLUGIN_NAME,
         {

@@ -10,7 +10,7 @@ from ....core.permissions import ProductPermissions
 from ....product import AttributeInputType, models
 from ....product.error_codes import ProductErrorCode
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
-from ...core.types.common import ProductError
+from ...core.types.common import ProductAttributeError, ProductError
 from ...core.utils import (
     from_global_id_strict_type,
     validate_slug_and_generate_if_needed,
@@ -300,7 +300,7 @@ class AttributeAssign(BaseMutation):
 
     class Meta:
         description = "Assign attributes to a given product type."
-        error_type_class = ProductError
+        error_type_class = ProductAttributeError
         error_type_field = "product_errors"
 
     @classmethod
@@ -383,8 +383,40 @@ class AttributeAssign(BaseMutation):
             )
 
     @classmethod
+    def handle_typed_errors(cls, errors: list, **extra):
+        typed_errors = [
+            cls._meta.error_type_class(  # type: ignore
+                field=e.field,
+                message=e.message,
+                code=code,
+                attributes=params.get("attributes") if params else None,
+            )
+            for e, code, params in errors
+        ]
+        extra.update({cls._meta.error_type_field: typed_errors})  # type: ignore
+        return cls(errors=[e[0] for e in errors], **extra)  # type: ignore
+
+    @classmethod
     def clean_operations(cls, product_type, product_attrs_pks, variant_attrs_pks):
         """Ensure the attributes are not already assigned to the product type."""
+        attrs_pk = product_attrs_pks + variant_attrs_pks
+        attributes = models.Attribute.objects.filter(id__in=attrs_pk).values_list(
+            "pk", flat=True
+        )
+        if len(attrs_pk) != len(attributes):
+            invalid_attrs = set(attrs_pk) - set(attributes)
+            invalid_attrs = [
+                graphene.Node.to_global_id("Attribute", pk) for pk in invalid_attrs
+            ]
+            raise ValidationError(
+                {
+                    "operations": ValidationError(
+                        f"Attribute doesn't exist.",
+                        code=ProductErrorCode.NOT_FOUND,
+                        params={"attributes": list(invalid_attrs)},
+                    )
+                }
+            )
         cls.check_product_operations_are_assignable(product_attrs_pks)
         cls.check_operations_not_assigned_already(
             product_type, product_attrs_pks, variant_attrs_pks

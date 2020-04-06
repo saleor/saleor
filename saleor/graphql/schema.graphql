@@ -214,7 +214,7 @@ type Attribute implements Node & ObjectWithMetadata {
 type AttributeAssign {
   errors: [Error!]!
   productType: ProductType
-  productErrors: [ProductError!]!
+  productErrors: [ProductAttributeError!]!
 }
 
 input AttributeAssignInput {
@@ -1320,7 +1320,7 @@ type CountryDisplay {
 
 type CreateToken {
   token: String
-  errors: [Error]!
+  errors: [Error!]!
   user: User
 }
 
@@ -3089,11 +3089,11 @@ type PermissionGroupUpdate {
 }
 
 type Plugin implements Node {
+  id: ID!
   name: String!
   description: String!
   active: Boolean!
   configuration: [ConfigurationItem]
-  id: ID!
 }
 
 type PluginCountableConnection {
@@ -3172,6 +3172,13 @@ type Product implements Node & ObjectWithMetadata {
   images: [ProductImage]
   collections: [Collection]
   translation(languageCode: LanguageCodeEnum!): ProductTranslation
+}
+
+type ProductAttributeError {
+  field: String
+  message: String
+  code: ProductErrorCode!
+  attributes: [ID!]
 }
 
 type ProductBulkDelete {
@@ -4035,7 +4042,7 @@ type ServiceAccountUpdatePrivateMeta {
 
 type SetPassword {
   token: String
-  errors: [Error]!
+  errors: [Error!]!
   user: User
   accountErrors: [AccountError!]
 }
