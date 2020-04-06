@@ -351,30 +351,30 @@ def test_get_group_to_permissions_and_users_mapping(
 def test_get_users_and_look_for_permissions_in_groups_with_manage_staff():
     groups_data = {
         1: {
-            "permissions": [
+            "permissions": {
                 "account.manage_staff",
                 "order.manage_orders",
                 "product.manage_products",
                 "checkout.manage_checkouts",
-            ],
-            "users": [1, 2],
+            },
+            "users": {1, 2},
         },
         2: {
-            "permissions": [
+            "permissions": {
                 "account.manage_staff",
                 "order.manage_orders",
                 "checkout.manage_checkouts",
-            ],
-            "users": [],
+            },
+            "users": set(),
         },
         3: {
-            "permissions": ["account.manage_staff", "product.manage_products"],
-            "users": [3, 2],
+            "permissions": {"account.manage_staff", "product.manage_products"},
+            "users": {3, 2},
         },
-        4: {"permissions": ["checkout.manage_checkouts"], "users": [2]},
+        4: {"permissions": {"checkout.manage_checkouts"}, "users": {2}},
     }
     group_pk = 1
-    permissions_to_find = set(groups_data[group_pk]["permissions"])
+    permissions_to_find = groups_data[group_pk]["permissions"]
 
     users = get_users_and_look_for_permissions_in_groups_with_manage_staff(
         group_pk, groups_data, permissions_to_find
@@ -387,34 +387,34 @@ def test_get_users_and_look_for_permissions_in_groups_with_manage_staff():
 def test_look_for_permission_in_users_with_manage_staff():
     groups_data = {
         1: {
-            "permissions": [
+            "permissions": {
                 "account.manage_staff",
                 "order.manage_orders",
                 "product.manage_products",
                 "checkout.manage_checkouts",
-            ],
-            "users": [1, 2],
+            },
+            "users": {1, 2},
         },
         2: {
-            "permissions": [
+            "permissions": {
                 "account.manage_staff",
                 "order.manage_orders",
                 "checkout.manage_checkouts",
-            ],
-            "users": [],
+            },
+            "users": set(),
         },
         3: {
-            "permissions": ["account.manage_staff", "product.manage_products"],
-            "users": [3, 2],
+            "permissions": {"account.manage_staff", "product.manage_products"},
+            "users": {3, 2},
         },
         4: {
-            "permissions": ["checkout.manage_checkouts", "discount.manage_discounts"],
-            "users": [2],
+            "permissions": {"checkout.manage_checkouts", "discount.manage_discounts"},
+            "users": {2},
         },
-        5: {"permissions": [], "users": [1, 2, 3]},
+        5: {"permissions": set(), "users": {1, 2, 3}},
     }
     group_pk = 1
-    permissions_to_find = set(groups_data[group_pk]["permissions"])
+    permissions_to_find = groups_data[group_pk]["permissions"]
     users_to_check = {2, 3}
 
     look_for_permission_in_users_with_manage_staff(

@@ -183,7 +183,7 @@ def get_not_manageable_permissions_after_group_deleting(group):
     """
     group_pk = group.pk
     groups_data = get_group_to_permissions_and_users_mapping()
-    not_manageable_permissions = set(groups_data[group_pk]["permissions"])
+    not_manageable_permissions = groups_data[group_pk]["permissions"]
 
     # get users from groups with manage staff and look for not_manageable_permissions
     # if any of not_manageable_permissions is found it is removed from set
@@ -240,8 +240,8 @@ def get_group_to_permissions_and_users_mapping():
 
     for data in groups_data:
         mapping[data["pk"]] = {
-            "permissions": data["perm_codenames"],
-            "users": data["users"],
+            "permissions": set(data["perm_codenames"]),
+            "users": set(data["users"]),
         }
 
     return mapping
@@ -269,7 +269,7 @@ def get_users_and_look_for_permissions_in_groups_with_manage_staff(
         has_users = bool(users)
         # only consider groups with active users and manage_staff permission
         if has_users and has_manage_staff:
-            common_permissions = permissions_to_find & set(permissions)
+            common_permissions = permissions_to_find & permissions
             # remove found permission from set
             permissions_to_find.difference_update(common_permissions)
             users_with_manage_staff.update(users)
@@ -298,8 +298,8 @@ def look_for_permission_in_users_with_manage_staff(
             continue
         permissions = data["permissions"]
         users = data["users"]
-        common_users = users_to_check & set(users)
+        common_users = users_to_check & users
         if common_users:
-            common_permissions = permissions_to_find & set(permissions)
+            common_permissions = permissions_to_find & permissions
             # remove found permission from set
             permissions_to_find.difference_update(common_permissions)
