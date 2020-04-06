@@ -372,10 +372,10 @@ def test_get_users_and_look_for_permissions_in_groups_with_manage_staff():
         4: {"permissions": {"checkout.manage_checkouts"}, "users": {2}},
     }
     group_pk = 1
-    permissions_to_find = groups_data[group_pk]["permissions"]
+    permissions_to_find = groups_data.pop(group_pk)["permissions"]
 
     users = get_users_and_look_for_permissions_in_groups_with_manage_staff(
-        group_pk, groups_data, permissions_to_find
+        groups_data, permissions_to_find
     )
 
     assert users == {2, 3}
@@ -412,11 +412,11 @@ def test_look_for_permission_in_users_with_manage_staff():
         5: {"permissions": set(), "users": {1, 2, 3}},
     }
     group_pk = 1
-    permissions_to_find = groups_data[group_pk]["permissions"]
+    permissions_to_find = groups_data.pop(group_pk)["permissions"]
     users_to_check = {2, 3}
 
     look_for_permission_in_users_with_manage_staff(
-        group_pk, groups_data, users_to_check, permissions_to_find
+        groups_data, users_to_check, permissions_to_find
     )
 
     assert permissions_to_find == {"order.manage_orders"}
