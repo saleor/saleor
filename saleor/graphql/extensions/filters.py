@@ -1,25 +1,30 @@
-import django_filters
+from typing import TYPE_CHECKING, List, Optional
 
-from ...extensions.models import PluginConfiguration
-from ..core.types import FilterInputObjectType
-from ..utils import filter_by_query_param
+import graphene
 
-
-def filter_plugin_search(qs, _, value):
-    plugin_fields = ["name", "description"]
-    qs = filter_by_query_param(qs, value, plugin_fields)
-    return qs
+if TYPE_CHECKING:
+    # flake8: noqa
+    from ...extensions.base_plugin import BasePlugin
 
 
-class PluginFilter(django_filters.FilterSet):
-    active = django_filters.BooleanFilter()
-    search = django_filters.CharFilter(method=filter_plugin_search)
+def filter_plugin_search(
+    plugins: List["BasePlugin"], value: Optional[str]
+) -> List["BasePlugin"]:
+    plugin_fields = ["PLUGIN_NAME", "PLUGIN_DESCRIPTION"]
+    if value is not None:
+        return [
+            plugin
+            for plugin in plugins
+            if any(
+                [
+                    value.lower() in getattr(plugin, field).lower()
+                    for field in plugin_fields
+                ]
+            )
+        ]
+    return plugins
 
-    class Meta:
-        model = PluginConfiguration
-        fields = ["active", "search"]
 
-
-class PluginFilterInput(FilterInputObjectType):
-    class Meta:
-        filterset_class = PluginFilter
+class PluginFilterInput(graphene.InputObjectType):
+    active = graphene.Argument(graphene.Boolean)
+    search = graphene.Argument(graphene.String)
