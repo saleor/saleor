@@ -175,6 +175,38 @@ def get_groups_which_user_can_manage(user: "User") -> List[Optional[Group]]:
     return editable_groups
 
 
+def get_not_manageable_permissions_after_removing_users_from_group(
+    group: Group, users: List["User"]
+):
+    """Return permissions that cannot be managed after removing users from group.
+
+    After removing users from group, for each permission, there should be at least
+    one staff member who can manage it (has both “manage staff” and this permission).
+    """
+    group_users = group.user_set.all()
+    group_permissions = group.permissions.values_list("codename", flat=True)
+    # If group has manage_staff permission and some users will stay in group
+    # given users can me removed (permissions will be manageable)
+    manage_staff_codename = AccountPermissions.MANAGE_STAFF.codename
+    if len(group_users) > len(users) and manage_staff_codename in group_permissions:
+        return set()
+
+    # check if any of remaining group user has manage staff permission
+    # if True, all group permissions can be managed
+    group_remaining_users = set(group_users) - set(users)
+    manage_staff_permission = AccountPermissions.MANAGE_STAFF.value
+    if any([user.has_perm(manage_staff_permission) for user in group_remaining_users]):
+        return set()
+
+    # if group and any of remaining group user doesn't have manage staff permission
+    # we can treat the situation as this when group is removing
+    not_manageable_permissions = get_not_manageable_permissions_after_group_deleting(
+        group
+    )
+
+    return not_manageable_permissions
+
+
 def get_not_manageable_permissions_after_group_deleting(group):
     """Return permissions that cannot be managed after deleting the group.
 
@@ -183,12 +215,12 @@ def get_not_manageable_permissions_after_group_deleting(group):
     """
     group_pk = group.pk
     groups_data = get_group_to_permissions_and_users_mapping()
-    not_manageable_permissions = groups_data[group_pk]["permissions"]
+    not_manageable_permissions = groups_data.pop(group_pk)["permissions"]
 
     # get users from groups with manage staff and look for not_manageable_permissions
     # if any of not_manageable_permissions is found it is removed from set
     manage_staff_users = get_users_and_look_for_permissions_in_groups_with_manage_staff(
-        group_pk, groups_data, not_manageable_permissions
+        groups_data, not_manageable_permissions
     )
 
     # check if management of all permissions provided by other groups
@@ -203,7 +235,7 @@ def get_not_manageable_permissions_after_group_deleting(group):
     # manage staff permissions groups, if any of not_manageable_permissions is found
     # it is removed from set
     look_for_permission_in_users_with_manage_staff(
-        group_pk, groups_data, manage_staff_users, not_manageable_permissions
+        groups_data, manage_staff_users, not_manageable_permissions
     )
 
     # return remaining not managable permissions
@@ -248,21 +280,18 @@ def get_group_to_permissions_and_users_mapping():
 
 
 def get_users_and_look_for_permissions_in_groups_with_manage_staff(
-    group_pk: int, groups_data: dict, permissions_to_find: Set[str],
+    groups_data: dict, permissions_to_find: Set[str],
 ):
     """Search for permissions in groups with manage staff and return their users.
 
     Args:
-        group_pk: pk of group which should be excluded for search
         groups_data: dict with groups data, key is a group pk and value is group data
             with permissions and users
         permissions_to_find: searched permissions
 
     """
     users_with_manage_staff: Set[int] = set()
-    for pk, data in groups_data.items():
-        if pk == group_pk:
-            continue
+    for data in groups_data.values():
         permissions = data["permissions"]
         users = data["users"]
         has_manage_staff = AccountPermissions.MANAGE_STAFF.value in permissions
@@ -278,24 +307,18 @@ def get_users_and_look_for_permissions_in_groups_with_manage_staff(
 
 
 def look_for_permission_in_users_with_manage_staff(
-    group_pk: int,
-    groups_data: dict,
-    users_to_check: Set[int],
-    permissions_to_find: Set[str],
+    groups_data: dict, users_to_check: Set[int], permissions_to_find: Set[str],
 ):
     """Search for permissions in user with manage staff groups.
 
     Args:
-        group_pk: pk of group which should be excluded for search
         groups_data: dict with groups data, key is a group pk and value is group data
             with permissions and users
         users_to_check: users with manage_staff
         permissions_to_find: searched permissions
 
     """
-    for pk, data in groups_data.items():
-        if pk == group_pk:
-            continue
+    for data in groups_data.values():
         permissions = data["permissions"]
         users = data["users"]
         common_users = users_to_check & users

@@ -11,12 +11,14 @@ from ....core.permissions import AccountPermissions, get_permissions
 from ...account.utils import (
     can_user_manage_group,
     get_not_manageable_permissions_after_group_deleting,
+    get_not_manageable_permissions_after_removing_users_from_group,
     get_out_of_scope_permissions,
     get_out_of_scope_users,
 )
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types.common import PermissionGroupError
+from ...core.utils import get_duplicates_ids
 from ..types import Group
 
 
@@ -234,7 +236,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
 
         cleaned_input = super().clean_input(info, instance, data)
 
-        cls.clean_users(info, errors, cleaned_input)
+        cls.clean_users(info, errors, cleaned_input, instance)
         cls.clean_permissions(info, errors, "add_permissions", cleaned_input)
         remove_permissions = cleaned_input.get("remove_permissions")
         if remove_permissions:
@@ -246,18 +248,23 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         return cleaned_input
 
     @classmethod
-    def clean_users(cls, info, errors: dict, cleaned_input: dict):
-        remove_users = cleaned_input.get("remove_users")
+    def clean_users(cls, info, errors: dict, cleaned_input: dict, group: Group):
         add_users = cleaned_input.get("add_users")
-        if remove_users:
-            cls.can_manage_users(info, errors, "remove_users", cleaned_input)
-            cls.clean_remove_users(info, errors, cleaned_input)
+        remove_users = cleaned_input.get("remove_users")
         if add_users:
             cls.can_manage_users(info, errors, "add_users", cleaned_input)
             cls.check_if_users_are_staff(errors, "add_users", cleaned_input)
+        if remove_users:
+            cls.can_manage_users(info, errors, "remove_users", cleaned_input)
+            cls.clean_remove_users(info, errors, cleaned_input, group)
 
     @classmethod
-    def clean_remove_users(cls, info, errors, cleaned_input):
+    def clean_remove_users(cls, info, errors: dict, cleaned_input: dict, group: Group):
+        cls.check_if_removing_user_last_group(info, errors, cleaned_input)
+        cls.check_if_users_can_be_removed(errors, cleaned_input, group)
+
+    @classmethod
+    def check_if_removing_user_last_group(cls, info, errors, cleaned_input):
         """Ensure user doesn't remove user's last group."""
         user = info.context.user
         remove_users = cleaned_input["remove_users"]
@@ -269,6 +276,38 @@ class PermissionGroupUpdate(PermissionGroupCreate):
             cls.update_errors(errors, error_msg, "remove_users", code, params)
 
     @classmethod
+    def check_if_users_can_be_removed(
+        cls, errors: dict, cleaned_input: dict, group: Group
+    ):
+        """Check if after removing users from group all permissions will be manageable.
+
+        After removing users from group, for each permission, there should be
+        at least one staff member who can manage it (has both “manage staff”
+        and this permission).
+        """
+        remove_users = cleaned_input["remove_users"]
+        add_users = cleaned_input.get("add_users")
+        manage_staff_permission = AccountPermissions.MANAGE_STAFF.value
+
+        # check if user with manage staff will be added to the group
+        if add_users:
+            if any([user.has_perm(manage_staff_permission) for user in add_users]):
+                return True
+
+        permissions = get_not_manageable_permissions_after_removing_users_from_group(
+            group, remove_users
+        )
+        if permissions:
+            # add error
+            permission_codes = [PermissionEnum.get(code) for code in permissions]
+            msg = "Users cannot be removed, some of permissions will not be manageable."
+            code = PermissionGroupErrorCode.LEFT_NOT_MANAGEABLE_PERMISSION.value
+            params = {"permissions": permission_codes}
+            raise ValidationError(
+                {"remove_users": ValidationError(message=msg, code=code, params=params)}
+            )
+
+    @classmethod
     def check_for_duplicates(
         cls, errors: dict, input_data: dict, fields: Tuple[str, str, str],
     ):
@@ -277,21 +316,17 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         Raise error if some of items are duplicated.
         """
         add_field, remove_field, error_class_field = fields
-        # break if any of comparing field is not in input
-        add_items = input_data.get(add_field)
-        remove_items = input_data.get(remove_field)
-        if not add_items or not remove_items:
-            return
-
-        common_items = set(input_data[add_field]) & set(input_data[remove_field])
-        if common_items:
+        duplicated_ids = get_duplicates_ids(
+            input_data.get(add_field), input_data.get(remove_field)
+        )
+        if duplicated_ids:
             # add error
             error_msg = (
                 "The same object cannot be in both list"
                 "for adding and removing items."
             )
             code = PermissionGroupErrorCode.CANNOT_ADD_AND_REMOVE.value
-            params = {error_class_field: list(common_items)}
+            params = {error_class_field: list(duplicated_ids)}
             cls.update_errors(errors, error_msg, None, code, params)
 
 
