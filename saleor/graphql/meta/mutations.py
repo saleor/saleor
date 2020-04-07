@@ -102,7 +102,8 @@ class UpdateMetadata(BaseMetadataMutation):
 
     class Arguments:
         id = graphene.ID(description="ID of an object to update.", required=True)
-        input = MetadataInput(
+        input = graphene.List(
+            graphene.NonNull(MetadataInput),
             description="Fields required to update the object's metadata.",
             required=True,
         )
@@ -111,9 +112,9 @@ class UpdateMetadata(BaseMetadataMutation):
     def perform_mutation(cls, root, info, **data):
         instance = cls.get_instance(info, **data)
         if instance:
-            metadata = data.pop("input")
-            item = {metadata.key: metadata.value}
-            instance.store_value_in_metadata(items=item)
+            metadata_list = data.pop("input")
+            items = {data.key: data.value for data in metadata_list}
+            instance.store_value_in_metadata(items=items)
             instance.save(update_fields=["metadata"])
         return cls.success_response(instance)
 
@@ -127,14 +128,19 @@ class DeleteMetadata(BaseMetadataMutation):
 
     class Arguments:
         id = graphene.ID(description="ID of an object to update.", required=True)
-        key = graphene.String(description="Metadata key to delete.", required=True)
+        keys = graphene.List(
+            graphene.NonNull(graphene.String),
+            description="Metadata keys to delete.",
+            required=True,
+        )
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
         instance = cls.get_instance(info, **data)
         if instance:
-            metadata_key = data.pop("key")
-            instance.delete_value_from_metadata(metadata_key)
+            metadata_keys = data.pop("keys")
+            for key in metadata_keys:
+                instance.delete_value_from_metadata(key)
             instance.save(update_fields=["metadata"])
         return cls.success_response(instance)
 
@@ -148,7 +154,8 @@ class UpdatePrivateMetadata(BaseMetadataMutation):
 
     class Arguments:
         id = graphene.ID(description="ID of an object to update.", required=True)
-        input = MetadataInput(
+        input = graphene.List(
+            graphene.NonNull(MetadataInput),
             description=("Fields required to update the object's metadata."),
             required=True,
         )
@@ -157,9 +164,9 @@ class UpdatePrivateMetadata(BaseMetadataMutation):
     def perform_mutation(cls, root, info, **data):
         instance = cls.get_instance(info, **data)
         if instance:
-            metadata = data.pop("input")
-            item = {metadata.key: metadata.value}
-            instance.store_value_in_private_metadata(items=item)
+            metadata_list = data.pop("input")
+            items = {data.key: data.value for data in metadata_list}
+            instance.store_value_in_private_metadata(items=items)
             instance.save(update_fields=["private_metadata"])
         return cls.success_response(instance)
 
@@ -173,13 +180,18 @@ class DeletePrivateMetadata(BaseMetadataMutation):
 
     class Arguments:
         id = graphene.ID(description="ID of an object to update.", required=True)
-        key = graphene.String(description="Metadata key to delete.", required=True)
+        keys = graphene.List(
+            graphene.NonNull(graphene.String),
+            description="Metadata keys to delete.",
+            required=True,
+        )
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
         instance = cls.get_instance(info, **data)
         if instance:
-            metadata_key = data.pop("key")
-            instance.delete_value_from_private_metadata(metadata_key)
+            metadata_keys = data.pop("keys")
+            for key in metadata_keys:
+                instance.delete_value_from_private_metadata(key)
             instance.save(update_fields=["private_metadata"])
         return cls.success_response(instance)
