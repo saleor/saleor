@@ -154,6 +154,8 @@ class RequestPasswordReset(BaseMutation):
 
 
 class ConfirmAccount(BaseMutation):
+    user = graphene.Field(User, description="An activated user account.")
+
     class Arguments:
         token = graphene.String(
             description="A one-time token required to set the password.", required=True
@@ -165,6 +167,8 @@ class ConfirmAccount(BaseMutation):
 
     class Meta:
         description = "Confirm user account by token sent by email during registration"
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -188,8 +192,7 @@ class ConfirmAccount(BaseMutation):
         user.is_active = True
         user.save(update_fields=["is_active"])
         match_orders_with_new_user(user)
-
-        return ConfirmAccount()
+        return ConfirmAccount(user=user)
 
 
 class PasswordChange(BaseMutation):
