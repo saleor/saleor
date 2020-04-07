@@ -522,7 +522,7 @@ def test_get_not_manageable_permissions_removing_users_from_group(
     assert not permissions
 
 
-def test_get_not_manageable_perms_removing_users_from_group_some_user_from_group_can(
+def test_get_not_manageable_perms_removing_users_from_group_user_from_group_can_manage(
     staff_users, permission_manage_users, permission_manage_staff
 ):
     """Ensure not returning permission for group without manage staff permission when
@@ -547,7 +547,7 @@ def test_get_not_manageable_perms_removing_users_from_group_some_user_from_group
     assert not permissions
 
 
-def test_get_not_manageable_perms_removing_users_from_group_some_user_outside_group_can(
+def test_get_notmanageable_perms_removing_users_from_group_user_out_of_group_can_manage(
     staff_users, permission_manage_users, permission_manage_staff
 ):
     """Ensure not returning permission for group, when managable of all permissions are
