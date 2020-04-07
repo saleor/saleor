@@ -45,12 +45,6 @@ def can_edit_address(user, address):
 
 
 class SetPassword(CreateToken):
-    user = graphene.Field(User, description="A user instance with new password.")
-    account_errors = graphene.List(
-        graphene.NonNull(AccountError),
-        description="List of errors that occurred executing the mutation.",
-    )
-
     class Arguments:
         token = graphene.String(
             description="A one-time token required to set the password.", required=True
@@ -98,14 +92,6 @@ class SetPassword(CreateToken):
         user.set_password(password)
         user.save(update_fields=["password"])
         account_events.customer_password_reset_event(user=user)
-
-    @classmethod
-    def handle_typed_errors(cls, errors: list):
-        account_errors = [
-            AccountError(field=e.field, message=e.message, code=code)
-            for e, code, _params in errors
-        ]
-        return cls(errors=[e[0] for e in errors], account_errors=account_errors)
 
 
 class RequestPasswordReset(BaseMutation):
