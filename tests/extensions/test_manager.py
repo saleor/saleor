@@ -181,15 +181,15 @@ def test_manager_get_tax_rate_percentage_value(plugins, amount, product):
     assert tax_rate_value == Decimal(amount)
 
 
-def test_manager_get_plugin_configurations():
+def test_manager_get_plugin_configurations(plugin_configuration):
     plugins = [
         "tests.extensions.sample_plugins.PluginSample",
         "tests.extensions.sample_plugins.PluginInactive",
     ]
     manager = ExtensionsManager(plugins=plugins)
-    configurations = manager.get_plugin_configurations()
-    assert len(configurations) == len(plugins)
-    assert set(configurations) == set(list(PluginConfiguration.objects.all()))
+    plugin_configs = manager._plugin_configs.values()
+    assert len(plugin_configs) == 1
+    assert set(plugin_configs) == set(list(PluginConfiguration.objects.all()))
 
 
 def test_manager_get_plugin_configuration(plugin_configuration):
@@ -198,78 +198,57 @@ def test_manager_get_plugin_configuration(plugin_configuration):
         "tests.extensions.sample_plugins.PluginInactive",
     ]
     manager = ExtensionsManager(plugins=plugins)
-    configuration = manager.get_plugin_configuration(plugin_name="PluginSample")
+    plugin = manager.get_plugin("PluginSample")
     configuration_from_db = PluginConfiguration.objects.get(name="PluginSample")
-    assert configuration == configuration_from_db
+    assert plugin.DEFAULT_CONFIGURATION == configuration_from_db.configuration
 
 
 def test_manager_save_plugin_configuration(plugin_configuration):
     plugins = ["tests.extensions.sample_plugins.PluginSample"]
     manager = ExtensionsManager(plugins=plugins)
-    configuration = manager.get_plugin_configuration(plugin_name="PluginSample")
     manager.save_plugin_configuration("PluginSample", {"active": False})
-    configuration.refresh_from_db()
-    assert not configuration.active
+    plugin_configuration.refresh_from_db()
+    assert not plugin_configuration.active
 
 
 def test_plugin_updates_configuration_shape(
-    new_config,
-    new_config_structure,
-    manager_with_plugin_enabled,
-    plugin_configuration,
-    monkeypatch,
+    new_config, new_config_structure, plugin_configuration, monkeypatch,
 ):
-    def new_default_configuration():
-        defaults = {
-            "name": "PluginSample",
-            "description": "",
-            "active": True,
-            "configuration": plugin_configuration.configuration + [new_config],
-        }
-        return defaults
 
     config_structure = PluginSample.CONFIG_STRUCTURE.copy()
     config_structure["Foo"] = new_config_structure
     monkeypatch.setattr(PluginSample, "CONFIG_STRUCTURE", config_structure)
 
     monkeypatch.setattr(
-        PluginSample, "_get_default_configuration", new_default_configuration
+        PluginSample,
+        "DEFAULT_CONFIGURATION",
+        plugin_configuration.configuration + [new_config],
     )
 
-    configuration = manager_with_plugin_enabled.get_plugin_configuration(
-        plugin_name="PluginSample"
+    manager = ExtensionsManager(
+        plugins=["tests.extensions.sample_plugins.PluginSample"]
     )
+    plugin = manager.get_plugin("PluginSample")
 
-    assert len(configuration.configuration) == 5
-    assert configuration.configuration[-1] == {**new_config, **new_config_structure}
+    assert len(plugin.configuration) == 5
+    assert plugin.configuration[-1] == {**new_config, **new_config_structure}
 
 
 def test_plugin_add_new_configuration(
-    new_config,
-    new_config_structure,
-    manager_with_plugin_without_configuration_enabled,
-    inactive_plugin_configuration,
-    monkeypatch,
+    new_config, new_config_structure, monkeypatch,
 ):
-    def new_default_configuration():
-        defaults = {
-            "name": "PluginInactive",
-            "description": "",
-            "active": True,
-            "configuration": [new_config],
-        }
-        return defaults
-
+    monkeypatch.setattr(PluginInactive, "DEFAULT_ACTIVE", True)
     monkeypatch.setattr(
-        PluginInactive, "_get_default_configuration", new_default_configuration
+        PluginInactive, "DEFAULT_CONFIGURATION", [new_config],
     )
     config_structure = {"Foo": new_config_structure}
     monkeypatch.setattr(PluginInactive, "CONFIG_STRUCTURE", config_structure)
-    config = manager_with_plugin_without_configuration_enabled.get_plugin_configuration(
-        plugin_name="PluginInactive"
+    manager = ExtensionsManager(
+        plugins=["tests.extensions.sample_plugins.PluginInactive"]
     )
-    assert len(config.configuration) == 1
-    assert config.configuration[0] == {**new_config, **new_config_structure}
+    plugin = manager.get_plugin("PluginInactive")
+    assert len(plugin.configuration) == 1
+    assert plugin.configuration[0] == {**new_config, **new_config_structure}
 
 
 def test_manager_serve_list_of_payment_gateways():
