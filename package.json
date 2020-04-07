@@ -13,7 +13,7 @@
   "homepage": "http://getsaleor.com/",
   "dependencies": {},
   "devDependencies": {
-    "mjml": "^4.4.0"
+    "mjml": "^4.6.2"
   },
   "scripts": {
     "build-schema": "python manage.py get_graphql_schema > saleor/graphql/schema.graphql",
