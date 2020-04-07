@@ -20,7 +20,7 @@ from saleor.account.error_codes import AccountErrorCode
 from saleor.account.models import Address, User
 from saleor.account.utils import create_jwt_token, get_random_avatar
 from saleor.checkout import AddressType
-from saleor.core.permissions import AccountPermissions
+from saleor.core.permissions import AccountPermissions, OrderPermissions
 from saleor.graphql.account.mutations.base import INVALID_TOKEN
 from saleor.graphql.account.mutations.staff import (
     CustomerDelete,
@@ -2086,6 +2086,7 @@ STAFF_DELETE_MUTATION = """
                     field
                     code
                     message
+                    permissions
                 }
                 user {
                     id
@@ -2128,6 +2129,94 @@ def test_staff_delete_out_of_scope_user(
     assert len(data["staffErrors"]) == 1
     assert data["staffErrors"][0]["field"] == "id"
     assert data["staffErrors"][0]["code"] == AccountErrorCode.OUT_OF_SCOPE_USER.name
+
+
+def test_staff_delete_left_not_manageable_permissions(
+    staff_api_client,
+    staff_users,
+    permission_manage_staff,
+    permission_manage_users,
+    permission_manage_orders,
+):
+    query = STAFF_DELETE_MUTATION
+    groups = Group.objects.bulk_create(
+        [
+            Group(name="manage users"),
+            Group(name="manage staff"),
+            Group(name="manage orders"),
+        ]
+    )
+    group1, group2, group3 = groups
+
+    group1.permissions.add(permission_manage_users)
+    group2.permissions.add(permission_manage_staff)
+    group3.permissions.add(permission_manage_orders)
+
+    staff_user, staff_user1, staff_user2 = staff_users
+    group1.user_set.add(staff_user1)
+    group2.user_set.add(staff_user2, staff_user1)
+    group3.user_set.add(staff_user1)
+
+    user_id = graphene.Node.to_global_id("User", staff_user1.id)
+    variables = {"id": user_id}
+
+    staff_user.user_permissions.add(permission_manage_users, permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_staff]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["staffDelete"]
+    errors = data["staffErrors"]
+
+    assert len(errors) == 1
+    assert errors[0]["field"] == "id"
+    assert errors[0]["code"] == AccountErrorCode.LEFT_NOT_MANAGEABLE_PERMISSION.name
+    assert set(errors[0]["permissions"]) == {
+        AccountPermissions.MANAGE_USERS.name,
+        OrderPermissions.MANAGE_ORDERS.name,
+    }
+    assert User.objects.filter(pk=staff_user1.id).exists()
+
+
+def test_staff_delete_all_permissions_manageable(
+    staff_api_client,
+    staff_users,
+    permission_manage_staff,
+    permission_manage_users,
+    permission_manage_orders,
+):
+    query = STAFF_DELETE_MUTATION
+    groups = Group.objects.bulk_create(
+        [
+            Group(name="manage users"),
+            Group(name="manage staff"),
+            Group(name="manage users and orders"),
+        ]
+    )
+    group1, group2, group3 = groups
+
+    group1.permissions.add(permission_manage_users)
+    group2.permissions.add(permission_manage_staff)
+    group3.permissions.add(permission_manage_users, permission_manage_orders)
+
+    staff_user, staff_user1, staff_user2 = staff_users
+    group1.user_set.add(staff_user1)
+    group2.user_set.add(staff_user2)
+    group3.user_set.add(staff_user1)
+
+    user_id = graphene.Node.to_global_id("User", staff_user1.id)
+    variables = {"id": user_id}
+
+    staff_user.user_permissions.add(permission_manage_users, permission_manage_orders)
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_staff]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["staffDelete"]
+    errors = data["staffErrors"]
+
+    assert len(errors) == 0
+    assert not User.objects.filter(pk=staff_user1.id).exists()
 
 
 def test_user_delete_errors(staff_user, admin_user):
