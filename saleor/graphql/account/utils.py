@@ -346,7 +346,8 @@ def get_not_manageable_permissions_when_deactivate_or_remove_user(user: "User"):
     )
 
     # remove deactivating or removing user from manage staff users
-    manage_staff_users.remove(user.pk)
+    if user.pk in manage_staff_users:
+        manage_staff_users.remove(user.pk)
 
     not_manageable_permissions = user.get_all_permissions()
     # look for not_manageable_permissions in user with manage staff permissions groups,

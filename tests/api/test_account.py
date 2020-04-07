@@ -20,6 +20,7 @@ from saleor.account.error_codes import AccountErrorCode
 from saleor.account.models import Address, User
 from saleor.account.utils import create_jwt_token, get_random_avatar
 from saleor.checkout import AddressType
+from saleor.core.permissions import AccountPermissions
 from saleor.graphql.account.mutations.base import INVALID_TOKEN
 from saleor.graphql.account.mutations.staff import (
     CustomerDelete,
@@ -1956,7 +1957,11 @@ def test_staff_update_cannot_add_and_remove(
 
 @patch("saleor.graphql.account.mutations.staff.get_random_avatar")
 def test_staff_update_doesnt_change_existing_avatar(
-    mock_get_random_avatar, staff_api_client, permission_manage_staff, media_root
+    mock_get_random_avatar,
+    staff_api_client,
+    permission_manage_staff,
+    media_root,
+    staff_users,
 ):
     query = STAFF_UPDATE_MUTATIONS
 
@@ -1964,14 +1969,14 @@ def test_staff_update_doesnt_change_existing_avatar(
     mock_file.name = "image.jpg"
     mock_get_random_avatar.return_value = mock_file
 
-    staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
+    staff_user, staff_user1, _ = staff_users
 
     # Create random avatar
-    staff_user.avatar = get_random_avatar()
-    staff_user.save()
-    original_path = staff_user.avatar.path
+    staff_user1.avatar = get_random_avatar()
+    staff_user1.save()
+    original_path = staff_user1.avatar.path
 
-    id = graphene.Node.to_global_id("User", staff_user.id)
+    id = graphene.Node.to_global_id("User", staff_user1.id)
     variables = {"id": id, "input": {"permissions": [], "isActive": False}}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_staff]
@@ -1983,7 +1988,95 @@ def test_staff_update_doesnt_change_existing_avatar(
     # Make sure that random avatar isn't recreated when there is one already set.
     mock_get_random_avatar.assert_not_called()
     staff_user.refresh_from_db()
-    assert staff_user.avatar.path == original_path
+    assert staff_user1.avatar.path == original_path
+
+
+def test_staff_update_deactivate_with_manage_staff_left_not_manageable_perms(
+    staff_api_client,
+    staff_users,
+    permission_manage_users,
+    permission_manage_staff,
+    permission_manage_orders,
+):
+    query = STAFF_UPDATE_MUTATIONS
+    groups = Group.objects.bulk_create(
+        [
+            Group(name="manage users"),
+            Group(name="manage staff"),
+            Group(name="manage orders"),
+        ]
+    )
+    group1, group2, group3 = groups
+
+    group1.permissions.add(permission_manage_users)
+    group2.permissions.add(permission_manage_staff)
+    group3.permissions.add(permission_manage_orders)
+
+    staff_user, staff_user1, staff_user2 = staff_users
+    group1.user_set.add(staff_user1)
+    group2.user_set.add(staff_user2, staff_user1)
+    group3.user_set.add(staff_user2)
+
+    staff_user.user_permissions.add(permission_manage_users, permission_manage_orders)
+
+    id = graphene.Node.to_global_id("User", staff_user1.id)
+    variables = {"id": id, "input": {"isActive": False}}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_staff]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["staffUpdate"]
+    errors = data["staffErrors"]
+
+    assert not data["user"]
+    assert len(errors) == 1
+    assert errors[0]["field"] == "isActive"
+    assert errors[0]["code"] == AccountErrorCode.LEFT_NOT_MANAGEABLE_PERMISSION.name
+    assert len(errors[0]["permissions"]) == 1
+    assert errors[0]["permissions"][0] == AccountPermissions.MANAGE_USERS.name
+
+
+def test_staff_update_deactivate_with_manage_staff_all_perms_manageable(
+    staff_api_client,
+    staff_users,
+    permission_manage_users,
+    permission_manage_staff,
+    permission_manage_orders,
+    media_root,
+):
+    query = STAFF_UPDATE_MUTATIONS
+    groups = Group.objects.bulk_create(
+        [
+            Group(name="manage users"),
+            Group(name="manage staff"),
+            Group(name="manage orders"),
+        ]
+    )
+    group1, group2, group3 = groups
+
+    group1.permissions.add(permission_manage_users)
+    group2.permissions.add(permission_manage_staff)
+    group3.permissions.add(permission_manage_orders)
+
+    staff_user, staff_user1, staff_user2 = staff_users
+    group1.user_set.add(staff_user1, staff_user2)
+    group2.user_set.add(staff_user2, staff_user1)
+    group3.user_set.add(staff_user2)
+
+    staff_user.user_permissions.add(permission_manage_users, permission_manage_orders)
+
+    id = graphene.Node.to_global_id("User", staff_user1.id)
+    variables = {"id": id, "input": {"isActive": False}}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_staff]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["staffUpdate"]
+    errors = data["staffErrors"]
+
+    staff_user1.refresh_from_db()
+    assert not errors
+    assert staff_user1.is_active is False
 
 
 STAFF_DELETE_MUTATION = """
@@ -2075,16 +2168,17 @@ def test_staff_update_errors(staff_user, customer_user, admin_user):
     StaffUpdate.clean_is_active(input, staff_user, staff_user, errors)
     assert len(errors["is_active"]) == 1
     assert (
-        errors["is_active"][0].code.name == AccountErrorCode.DEACTIVATE_OWN_ACCOUNT.name
+        errors["is_active"][0].code.upper()
+        == AccountErrorCode.DEACTIVATE_OWN_ACCOUNT.name
     )
 
     errors = defaultdict(list)
     StaffUpdate.clean_is_active(input, admin_user, staff_user, errors)
-    assert len(errors["is_active"]) == 1
-    assert (
-        errors["is_active"][0].code.name
-        == AccountErrorCode.DEACTIVATE_SUPERUSER_ACCOUNT.name
-    )
+    assert len(errors["is_active"]) == 2
+    assert {error.code.upper() for error in errors["is_active"]} == {
+        AccountErrorCode.DEACTIVATE_SUPERUSER_ACCOUNT.name,
+        AccountErrorCode.LEFT_NOT_MANAGEABLE_PERMISSION.name,
+    }
 
     errors = defaultdict(list)
     # should not raise any errors
