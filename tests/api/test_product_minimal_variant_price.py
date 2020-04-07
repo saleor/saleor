@@ -613,7 +613,7 @@ def test_sale_delete_updates_products_minimal_variant_prices(
     content = get_graphql_content(response)
     assert content["data"]["saleDelete"]["errors"] == []
 
-    mock_update_minimal_variant_prices_task.delay.assert_called_once_with(sale.pk)
+    mock_update_minimal_variant_prices_task.delay.assert_not_called()
 
 
 @patch(

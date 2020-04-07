@@ -270,10 +270,11 @@ class SaleUpdateMinimalVariantPriceMixin:
     def success_response(cls, instance):
         # Update the "minimal_variant_prices" of the associated, discounted
         # products (including collections and categories).
-        products_exists = instance.products.all().exists()
-        categories_exists = instance.categories.all().exists()
-        collections_exists = instance.collections.all().exists()
-        if products_exists or categories_exists or collections_exists:
+        if (
+            instance.products.all()
+            or instance.categories.all()
+            or instance.collections.all()
+        ):
             update_products_minimal_variant_prices_of_discount_task.delay(instance.pk)
         return super().success_response(instance)
 
