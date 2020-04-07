@@ -31,7 +31,6 @@ QUERY_WAREHOUSES_PAGINATION = """
         ) {
             edges {
                 node {
-                    id
                     name
                 }
             }

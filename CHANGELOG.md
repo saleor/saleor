@@ -89,7 +89,9 @@ All notable, unreleased changes to this project will be documented in this file.
 - Remove unused settings and environment variables - #5420 by @maarcingebala
 - Add product price validation - #5413 by @kswiatek92
 - Add attribute validation to attributeAssign - #5423 by @kswiatek92
+- Add possibility to Update/Delete more than one item in metadata - #5446 by @koradon
 - Check if image exists before validating - #5425 by @kswiatek92
+- Fix warehouses query not working without id - #5441 by @koradon
 - Add accountErrors to CreateToken as a required field - #5437 by @koradon
 
 ## 2.9.0
