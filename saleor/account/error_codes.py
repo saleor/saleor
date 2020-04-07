@@ -14,6 +14,7 @@ class AccountErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
     INVALID_PASSWORD = "invalid_password"
+    LEFT_NOT_MANAGEABLE_PERMISSION = "left_not_manageable_permission"
     NOT_FOUND = "not_found"
     OUT_OF_SCOPE_USER = "out_of_scope_user"
     OUT_OF_SCOPE_GROUP = "out_of_scope_group"
