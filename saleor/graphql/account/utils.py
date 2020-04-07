@@ -102,8 +102,8 @@ class StaffDeleteMixin(UserDeleteMixin):
         active staff member who can manage it (has both “manage staff” and
         this permission).
         """
-        permissions = get_not_manageable_permissions_when_deactivate_or_remove_user(
-            user
+        permissions = get_not_manageable_permissions_when_deactivate_or_remove_users(
+            [user]
         )
         if permissions:
             # add error
@@ -197,6 +197,47 @@ def get_groups_which_user_can_manage(user: "User") -> List[Optional[Group]]:
             editable_groups.append(group)
 
     return editable_groups
+
+
+def get_not_manageable_permissions_when_deactivate_or_remove_users(users: List["User"]):
+    """Return permissions that cannot be managed after deactivating or removing users.
+
+    After removing or deactivating users, for each user permission which he can manage,
+    there should be at least one active staff member who can manage it
+    (has both “manage staff” and this permission).
+    """
+    # check only users who can manage permissions
+    users_to_check = {
+        user for user in users if user.has_perm(AccountPermissions.MANAGE_STAFF.value)
+    }
+
+    if not users_to_check:
+        return set()
+
+    user_pks = set()
+    not_manageable_permissions = set()
+    for user in users_to_check:
+        not_manageable_permissions.update(user.get_all_permissions())
+        user_pks.add(user.pk)
+
+    groups_data = get_group_to_permissions_and_users_mapping()
+
+    # get users from groups with manage staff
+    manage_staff_users = get_users_and_look_for_permissions_in_groups_with_manage_staff(
+        groups_data, set()
+    )
+
+    # remove deactivating or removing users from manage staff users
+    manage_staff_users = manage_staff_users - user_pks
+
+    # look for not_manageable_permissions in user with manage staff permissions groups,
+    # if any of not_manageable_permissions is found it is removed from set
+    look_for_permission_in_users_with_manage_staff(
+        groups_data, manage_staff_users, not_manageable_permissions
+    )
+
+    # return remaining not managable permissions
+    return not_manageable_permissions
 
 
 def get_not_manageable_permissions_after_removing_users_from_group(
@@ -350,35 +391,3 @@ def look_for_permission_in_users_with_manage_staff(
             common_permissions = permissions_to_find & permissions
             # remove found permission from set
             permissions_to_find.difference_update(common_permissions)
-
-
-def get_not_manageable_permissions_when_deactivate_or_remove_user(user: "User"):
-    """Return permissions that cannot be managed after deactivating or removing user.
-
-    After removing or deactivating user, for each user permission which he can manage,
-    there should be at least one active staff member who can manage it
-    (has both “manage staff” and this permission).
-    """
-    if not user.has_perm(AccountPermissions.MANAGE_STAFF.value):
-        return set()
-
-    groups_data = get_group_to_permissions_and_users_mapping()
-
-    # get users from groups with manage staff
-    manage_staff_users = get_users_and_look_for_permissions_in_groups_with_manage_staff(
-        groups_data, set()
-    )
-
-    # remove deactivating or removing user from manage staff users
-    if user.pk in manage_staff_users:
-        manage_staff_users.remove(user.pk)
-
-    not_manageable_permissions = user.get_all_permissions()
-    # look for not_manageable_permissions in user with manage staff permissions groups,
-    # if any of not_manageable_permissions is found it is removed from set
-    look_for_permission_in_users_with_manage_staff(
-        groups_data, manage_staff_users, not_manageable_permissions
-    )
-
-    # return remaining not managable permissions
-    return not_manageable_permissions

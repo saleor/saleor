@@ -13,7 +13,7 @@ from saleor.graphql.account.utils import (
     get_groups_which_user_can_manage,
     get_not_manageable_permissions_after_group_deleting,
     get_not_manageable_permissions_after_removing_users_from_group,
-    get_not_manageable_permissions_when_deactivate_or_remove_user,
+    get_not_manageable_permissions_when_deactivate_or_remove_users,
     get_out_of_scope_permissions,
     get_out_of_scope_users,
     get_user_permissions,
@@ -629,14 +629,14 @@ def test_get_not_manageable_permissions_when_deactivate_or_remove_user_no_permis
     group2.user_set.add(staff_user2, staff_user1)
     group3.user_set.add(staff_user2)
 
-    permissions = get_not_manageable_permissions_when_deactivate_or_remove_user(
-        staff_user1
+    permissions = get_not_manageable_permissions_when_deactivate_or_remove_users(
+        [staff_user1]
     )
 
     assert not permissions
 
 
-def test_get_not_manageable_permissions_when_deactivate_or_remove_user_some_permissions(
+def test_get_not_manageable_permissions_when_deactivate_or_remove_users_some_perms(
     staff_users,
     permission_manage_users,
     permission_manage_staff,
@@ -657,16 +657,19 @@ def test_get_not_manageable_permissions_when_deactivate_or_remove_user_some_perm
     group2.permissions.add(permission_manage_staff)
     group3.permissions.add(permission_manage_orders)
 
-    staff_user1, staff_user2, _ = staff_users
+    staff_user1, staff_user2, staff_user3 = staff_users
     group1.user_set.add(staff_user1)
-    group2.user_set.add(staff_user2, staff_user1)
+    group2.user_set.add(staff_user2, staff_user1, staff_user3)
     group3.user_set.add(staff_user2)
 
-    permissions = get_not_manageable_permissions_when_deactivate_or_remove_user(
-        staff_user1
+    permissions = get_not_manageable_permissions_when_deactivate_or_remove_users(
+        [staff_user1, staff_user2]
     )
 
-    assert permissions == {AccountPermissions.MANAGE_USERS.value}
+    assert permissions == {
+        AccountPermissions.MANAGE_USERS.value,
+        OrderPermissions.MANAGE_ORDERS.value,
+    }
 
 
 def test_get_not_manageable_permissions_deactivate_or_remove_user_cant_manage_staff(
@@ -694,8 +697,8 @@ def test_get_not_manageable_permissions_deactivate_or_remove_user_cant_manage_st
     group2.user_set.add(staff_user2)
     group3.user_set.add(staff_user2)
 
-    permissions = get_not_manageable_permissions_when_deactivate_or_remove_user(
-        staff_user1
+    permissions = get_not_manageable_permissions_when_deactivate_or_remove_users(
+        [staff_user1]
     )
 
     assert not permissions
