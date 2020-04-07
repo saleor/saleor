@@ -1321,6 +1321,7 @@ type CountryDisplay {
 type CreateToken {
   token: String
   errors: [Error!]!
+  accountErrors: [AccountError!]!
   user: User
 }
 
@@ -4043,8 +4044,8 @@ type ServiceAccountUpdatePrivateMeta {
 type SetPassword {
   token: String
   errors: [Error!]!
+  accountErrors: [AccountError!]!
   user: User
-  accountErrors: [AccountError!]
 }
 
 type ShippingError {
