@@ -9,6 +9,7 @@ from .enums import ConfigurationTypeFieldEnum
 if TYPE_CHECKING:
     # flake8: noqa
     from django.contrib.postgres.fields import JSONField
+    from ...extensions.base_plugin import PluginConfigurationType
 
 
 def hide_private_configuration_fields(configuration, config_structure):
@@ -42,22 +43,26 @@ class ConfigurationItem(graphene.ObjectType):
 
 
 class Plugin(CountableDjangoObjectType):
+    id = graphene.Field(type=graphene.ID, required=True)
     configuration = graphene.List(ConfigurationItem)
 
     class Meta:
         description = "Plugin."
         model = models.PluginConfiguration
         interfaces = [graphene.relay.Node]
-        only_fields = ["name", "description", "active", "configuration"]
+        only_fields = ["id", "name", "description", "active", "configuration"]
+
+    def resolve_id(self: models.PluginConfiguration, _info):
+        return self.name
 
     @staticmethod
     def resolve_configuration(
         root: models.PluginConfiguration, _info
-    ) -> Optional["JSONField"]:
+    ) -> Optional["PluginConfigurationType"]:
         plugin = manager.get_extensions_manager().get_plugin(root.name)
         if not plugin:
             return None
-        configuration = plugin.get_plugin_configuration().configuration
+        configuration = plugin.configuration
         if plugin.CONFIG_STRUCTURE and configuration:
             hide_private_configuration_fields(configuration, plugin.CONFIG_STRUCTURE)
         return configuration

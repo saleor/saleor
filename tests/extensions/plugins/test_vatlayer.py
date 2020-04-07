@@ -11,6 +11,7 @@ from saleor.checkout import calculations
 from saleor.checkout.utils import add_variant_to_checkout
 from saleor.core.taxes import quantize_price, zero_taxed_money
 from saleor.extensions.manager import get_extensions_manager
+from saleor.extensions.models import PluginConfiguration
 from saleor.extensions.plugins.vatlayer import (
     DEFAULT_TAX_RATE_NAME,
     apply_tax_to_price,
@@ -180,12 +181,13 @@ def test_apply_tax_to_price_no_taxes_raise_typeerror_for_invalid_type():
 
 
 def test_vatlayer_plugin_caches_taxes(vatlayer, monkeypatch, product, address):
-
     mocked_taxes = Mock(wraps=get_taxes_for_country)
     monkeypatch.setattr(
         "saleor.extensions.plugins.vatlayer.plugin.get_taxes_for_country", mocked_taxes
     )
-    plugin = VatlayerPlugin()
+
+    manager = get_extensions_manager()
+    plugin = manager.get_plugin(VatlayerPlugin.PLUGIN_NAME)
     price = product.variants.first().get_price()
     price = TaxedMoney(price, price)
     address.country = Country("de")
@@ -355,32 +357,18 @@ def test_get_tax_rate_percentage_value(
     assert tax_rate == Decimal("23")
 
 
-def test_get_plugin_configuration(vatlayer, settings):
-    settings.PLUGINS = ["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
-    manager = get_extensions_manager()
-    configurations = manager.get_plugin_configurations()
-    assert len(configurations) == 1
-    configuration = configurations[0]
-
-    assert configuration.name == "Vatlayer"
-    assert configuration.active
-    assert not configuration.configuration
-
-
 def test_save_plugin_configuration(vatlayer, settings):
     settings.PLUGINS = ["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
     manager = get_extensions_manager()
-    configuration = manager.get_plugin_configuration("Vatlayer")
     manager.save_plugin_configuration("Vatlayer", {"active": False})
 
-    configuration.refresh_from_db()
+    configuration = PluginConfiguration.objects.get(name=VatlayerPlugin.PLUGIN_NAME)
     assert not configuration.active
 
 
 def test_save_plugin_configuration_cannot_be_enabled_without_config(settings):
     settings.PLUGINS = ["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
     manager = get_extensions_manager()
-    manager.get_plugin_configuration("Vatlayer")
     with pytest.raises(ValidationError):
         manager.save_plugin_configuration("Vatlayer", {"active": True})
 
@@ -469,4 +457,18 @@ def test_calculations_checkout_shipping_price_with_vatlayer(
     checkout_shipping_price = calculations.checkout_shipping_price(checkout_with_item)
     assert checkout_shipping_price == TaxedMoney(
         net=Money("0", "USD"), gross=Money("0", "USD")
+    )
+
+
+def test_skip_diabled_plugin(settings):
+    settings.PLUGINS = ["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
+    settings.VATLAYER_ACCESS_KEY = None
+    manager = get_extensions_manager()
+    plugin: VatlayerPlugin = manager.get_plugin("Vatlayer")
+
+    assert (
+        plugin._skip_plugin(
+            previous_value=TaxedMoney(net=Money(0, "USD"), gross=Money(0, "USD"))
+        )
+        is True
     )

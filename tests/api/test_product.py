@@ -2519,6 +2519,33 @@ def test_product_image_create_mutation(
     mock_create_thumbnails.assert_called_once_with(product_image.pk)
 
 
+def test_product_image_create_mutation_without_file(
+    monkeypatch, staff_api_client, product, permission_manage_products, media_root
+):
+    query = """
+    mutation createProductImage($image: Upload!, $product: ID!) {
+        productImageCreate(input: {image: $image, product: $product}) {
+            productErrors {
+                code
+                field
+            }
+        }
+    }
+    """
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "image": "image name",
+    }
+    body = get_multipart_request_body(query, variables, file="", file_name="name")
+    response = staff_api_client.post_multipart(
+        body, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["productImageCreate"]["productErrors"]
+    assert errors[0]["field"] == "image"
+    assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
+
+
 def test_invalid_product_image_create_mutation(
     staff_api_client, product, permission_manage_products
 ):
