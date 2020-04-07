@@ -91,7 +91,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add attribute validation to attributeAssign - #5423 by @kswiatek92
 - Add possibility to Update/Delete more than one item in metadata - #5446 by @koradon
 - Check if image exists before validating - #5425 by @kswiatek92
-- Fis werhouses query not working without id - #5441 by @koradon
+- Fix warehouses query not working without id - #5441 by @koradon
 
 ## 2.9.0
 
