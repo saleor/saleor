@@ -1,20 +1,45 @@
-import graphene
-
+from ...extensions.base_plugin import BasePlugin
 from ...extensions.manager import get_extensions_manager
-from ..utils import sort_queryset
-from .sorters import PluginSortField
-from .types import Plugin
+from ...extensions.models import PluginConfiguration
+from .filters import filter_plugin_search
+from .sorters import sort_plugins
 
 
-def resolve_plugin(info, plugin_global_id):
+def resolve_plugin(info, plugin_name):
     manager = get_extensions_manager()
-    plugin = graphene.Node.get_node_from_global_id(info, plugin_global_id, Plugin)
+    plugin: BasePlugin = manager.get_plugin(plugin_name)
     if not plugin:
         return None
-    return manager.get_plugin_configuration(plugin.name)
+    return PluginConfiguration(
+        id=plugin.PLUGIN_NAME,
+        active=plugin.active,
+        configuration=plugin.configuration,
+        description=plugin.PLUGIN_DESCRIPTION,
+        name=plugin.PLUGIN_NAME,
+    )
 
 
-def resolve_plugins(sort_by=None, **_kwargs):
+def resolve_plugins(sort_by=None, **kwargs):
+    plugin_filter = kwargs.get("filter", {})
+    search_query = plugin_filter.get("search")
+    filter_active = plugin_filter.get("active")
+
     manager = get_extensions_manager()
-    qs = manager.get_plugin_configurations()
-    return sort_queryset(qs, sort_by, PluginSortField)
+    plugins = manager.plugins
+
+    if filter_active is not None:
+        plugins = [plugin for plugin in plugins if plugin.active is filter_active]
+
+    plugins = filter_plugin_search(plugins, search_query)
+    plugins = sort_plugins(plugins, sort_by)
+
+    return [
+        PluginConfiguration(
+            id=plugin.PLUGIN_NAME,
+            active=plugin.active,
+            configuration=plugin.configuration,
+            description=plugin.PLUGIN_DESCRIPTION,
+            name=plugin.PLUGIN_NAME,
+        )
+        for plugin in plugins
+    ]
