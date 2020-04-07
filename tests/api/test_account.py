@@ -1774,8 +1774,8 @@ def test_staff_update_groups_and_permissions(
         group3.name,
     }
     # deprecated, to remove in #5389
-    assert len(data["user"]["userPermissions"]) == 2
-    assert {perm["code"].lower() for perm in data["user"]["userPermissions"]} == {
+    assert len(data["user"]["permissions"]) == 2
+    assert {perm["code"].lower() for perm in data["user"]["permissions"]} == {
         permission_manage_orders.codename,
         permission_manage_products.codename,
     }

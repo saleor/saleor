@@ -1,7 +1,11 @@
 from django.contrib.auth.models import Group
 
 from saleor.account.models import User
-from saleor.core.permissions import AccountPermissions, OrderPermissions
+from saleor.core.permissions import (
+    AccountPermissions,
+    OrderPermissions,
+    ProductPermissions,
+)
 from saleor.graphql.account.utils import (
     can_user_manage_group,
     get_group_permission_codes,
@@ -321,21 +325,13 @@ def test_get_group_to_permissions_and_users_mapping(
     result = get_group_to_permissions_and_users_mapping()
     excepted_result = {
         group1.pk: {
-            "permissions": {
-                permission_manage_users.content_type.app_label
-                + "."
-                + permission_manage_users.codename
-            },
+            "permissions": {AccountPermissions.MANAGE_USERS.value},
             "users": {staff_user1.pk, staff_user2.pk},
         },
         group2.pk: {
             "permissions": {
-                permission_manage_products.content_type.app_label
-                + "."
-                + permission_manage_products.codename,
-                permission_manage_orders.content_type.app_label
-                + "."
-                + permission_manage_orders.codename,
+                ProductPermissions.MANAGE_PRODUCTS.value,
+                OrderPermissions.MANAGE_ORDERS.value,
             },
             "users": set(),
         },
@@ -604,11 +600,7 @@ def test_get_not_manageable_perms_removing_users_from_group_some_cannot_be_manag
         group1, [staff_user1]
     )
 
-    assert permissions == {
-        permission_manage_users.content_type.app_label
-        + "."
-        + permission_manage_users.codename
-    }
+    assert permissions == {AccountPermissions.MANAGE_USERS.value}
 
 
 def test_get_not_manageable_permissions_when_deactivate_or_remove_user_no_permissions(
@@ -674,11 +666,7 @@ def test_get_not_manageable_permissions_when_deactivate_or_remove_user_some_perm
         staff_user1
     )
 
-    assert permissions == {
-        permission_manage_users.content_type.app_label
-        + "."
-        + permission_manage_users.codename
-    }
+    assert permissions == {AccountPermissions.MANAGE_USERS.value}
 
 
 def test_get_not_manageable_permissions_deactivate_or_remove_user_cant_manage_staff(
