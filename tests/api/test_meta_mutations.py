@@ -11,11 +11,13 @@ PRIVATE_KEY = "private_key"
 PRIVATE_VALUE = "private_vale"
 
 PUBLIC_KEY = "key"
+PUBLIC_KEY2 = "key2"
 PUBLIC_VALUE = "value"
+PUBLIC_VALUE2 = "value2"
 
 
 UPDATE_PUBLIC_METADATA_MUTATION = """
-mutation UpdatePublicMetadata($id: ID!, $input: MetadataInput!) {
+mutation UpdatePublicMetadata($id: ID!, $input: [MetadataInput!]!) {
     updateMetadata(
         id: $id
         input: $input
@@ -43,7 +45,31 @@ def execute_update_public_metadata_for_item(
 ):
     variables = {
         "id": item_id,
-        "input": {"key": key, "value": value},
+        "input": [{"key": key, "value": value}],
+    }
+
+    response = client.post_graphql(
+        UPDATE_PUBLIC_METADATA_MUTATION % item_type,
+        variables,
+        permissions=[permissions] if permissions else None,
+    )
+    response = get_graphql_content(response)
+    return response
+
+
+def execute_update_public_metadata_for_multiple_items(
+    client,
+    permissions,
+    item_id,
+    item_type,
+    key=PUBLIC_KEY,
+    value=PUBLIC_VALUE,
+    key2=PUBLIC_KEY2,
+    value2=PUBLIC_VALUE2,
+):
+    variables = {
+        "id": item_id,
+        "input": [{"key": key, "value": value}, {"key": key2, "value": value2}],
     }
 
     response = client.post_graphql(
@@ -62,6 +88,26 @@ def item_contains_proper_public_metadata(
         return False
     item.refresh_from_db()
     return item.get_value_from_metadata(key) == value
+
+
+def item_contains_multiple_proper_public_metadata(
+    item_from_response,
+    item,
+    item_id,
+    key=PUBLIC_KEY,
+    value=PUBLIC_VALUE,
+    key2=PUBLIC_KEY2,
+    value2=PUBLIC_VALUE2,
+):
+    if item_from_response["id"] != item_id:
+        return False
+    item.refresh_from_db()
+    return all(
+        [
+            item.get_value_from_metadata(key) == value,
+            item.get_value_from_metadata(key2) == value2,
+        ]
+    )
 
 
 def test_add_public_metadata_for_customer_as_staff(
@@ -94,6 +140,23 @@ def test_add_public_metadata_for_customer_as_service_account(
 
     # then
     assert item_contains_proper_public_metadata(
+        response["data"]["updateMetadata"]["item"], customer_user, customer_id
+    )
+
+
+def test_add_multiple_public_metadata_for_customer_as_service_account(
+    service_account_api_client, permission_manage_users, customer_user
+):
+    # given
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+
+    # when
+    response = execute_update_public_metadata_for_multiple_items(
+        service_account_api_client, permission_manage_users, customer_id, "User"
+    )
+
+    # then
+    assert item_contains_multiple_proper_public_metadata(
         response["data"]["updateMetadata"]["item"], customer_user, customer_id
     )
 
@@ -428,10 +491,10 @@ def test_update_public_metadata_for_item_without_meta(api_client, address):
 
 
 DELETE_PUBLIC_METADATA_MUTATION = """
-mutation DeletePublicMetadata($id: ID!, $key: String!) {
+mutation DeletePublicMetadata($id: ID!, $keys: [String!]!) {
     deleteMetadata(
         id: $id
-        key: $key
+        keys: $keys
     ) {
         metadataErrors{
             field
@@ -456,7 +519,24 @@ def execute_clear_public_metadata_for_item(
 ):
     variables = {
         "id": item_id,
-        "key": key,
+        "keys": [key],
+    }
+
+    response = client.post_graphql(
+        DELETE_PUBLIC_METADATA_MUTATION % item_type,
+        variables,
+        permissions=[permissions] if permissions else None,
+    )
+    response = get_graphql_content(response)
+    return response
+
+
+def execute_clear_public_metadata_for_multiple_items(
+    client, permissions, item_id, item_type, key=PUBLIC_KEY, key2=PUBLIC_KEY2
+):
+    variables = {
+        "id": item_id,
+        "keys": [key, key2],
     }
 
     response = client.post_graphql(
@@ -475,6 +555,26 @@ def item_without_public_metadata(
         return False
     item.refresh_from_db()
     return item.get_value_from_metadata(key) != value
+
+
+def item_without_multiple_public_metadata(
+    item_from_response,
+    item,
+    item_id,
+    key=PUBLIC_KEY,
+    value=PUBLIC_VALUE,
+    key2=PUBLIC_KEY2,
+    value2=PUBLIC_VALUE2,
+):
+    if item_from_response["id"] != item_id:
+        return False
+    item.refresh_from_db()
+    return all(
+        [
+            item.get_value_from_metadata(key) != value,
+            item.get_value_from_metadata(key2) != value2,
+        ]
+    )
 
 
 def test_delete_public_metadata_for_customer_as_staff(
@@ -511,6 +611,27 @@ def test_delete_public_metadata_for_customer_as_service_account(
 
     # then
     assert item_without_public_metadata(
+        response["data"]["deleteMetadata"]["item"], customer_user, customer_id
+    )
+
+
+def test_delete_multiple_public_metadata_for_customer_as_service_account(
+    service_account_api_client, permission_manage_users, customer_user
+):
+    # given
+    customer_user.store_value_in_metadata(
+        {PUBLIC_KEY: PUBLIC_VALUE, PUBLIC_KEY2: PUBLIC_VALUE2}
+    )
+    customer_user.save(update_fields=["metadata"])
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+
+    # when
+    response = execute_clear_public_metadata_for_multiple_items(
+        service_account_api_client, permission_manage_users, customer_id, "User"
+    )
+
+    # then
+    assert item_without_multiple_public_metadata(
         response["data"]["deleteMetadata"]["item"], customer_user, customer_id
     )
 
@@ -897,7 +1018,7 @@ def test_delete_public_metadata_for_one_key(api_client, checkout):
 
 
 UPDATE_PRIVATE_METADATA_MUTATION = """
-mutation UpdatePrivateMetadata($id: ID!, $input: MetadataInput!) {
+mutation UpdatePrivateMetadata($id: ID!, $input: [MetadataInput!]!) {
     updatePrivateMetadata(
         id: $id
         input: $input
@@ -925,7 +1046,31 @@ def execute_update_private_metadata_for_item(
 ):
     variables = {
         "id": item_id,
-        "input": {"key": key, "value": value},
+        "input": [{"key": key, "value": value}],
+    }
+
+    response = client.post_graphql(
+        UPDATE_PRIVATE_METADATA_MUTATION % item_type,
+        variables,
+        permissions=[permissions] if permissions else None,
+    )
+    response = get_graphql_content(response)
+    return response
+
+
+def execute_update_private_metadata_for_multiple_items(
+    client,
+    permissions,
+    item_id,
+    item_type,
+    key=PUBLIC_KEY,
+    value=PUBLIC_VALUE,
+    key2=PUBLIC_KEY2,
+    value2=PUBLIC_VALUE2,
+):
+    variables = {
+        "id": item_id,
+        "input": [{"key": key, "value": value}, {"key": key2, "value": value2}],
     }
 
     response = client.post_graphql(
@@ -944,6 +1089,26 @@ def item_contains_proper_private_metadata(
         return False
     item.refresh_from_db()
     return item.get_value_from_private_metadata(key) == value
+
+
+def item_contains_multiple_proper_private_metadata(
+    item_from_response,
+    item,
+    item_id,
+    key=PUBLIC_KEY,
+    value=PUBLIC_VALUE,
+    key2=PUBLIC_KEY2,
+    value2=PUBLIC_VALUE2,
+):
+    if item_from_response["id"] != item_id:
+        return False
+    item.refresh_from_db()
+    return all(
+        [
+            item.get_value_from_private_metadata(key) == value,
+            item.get_value_from_private_metadata(key2) == value2,
+        ]
+    )
 
 
 def test_add_private_metadata_for_customer_as_staff(
@@ -976,6 +1141,23 @@ def test_add_private_metadata_for_customer_as_service_account(
 
     # then
     assert item_contains_proper_private_metadata(
+        response["data"]["updatePrivateMetadata"]["item"], customer_user, customer_id
+    )
+
+
+def test_add_multiple_private_metadata_for_customer_as_service_account(
+    service_account_api_client, permission_manage_users, customer_user
+):
+    # given
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+
+    # when
+    response = execute_update_private_metadata_for_multiple_items(
+        service_account_api_client, permission_manage_users, customer_id, "User"
+    )
+
+    # then
+    assert item_contains_multiple_proper_private_metadata(
         response["data"]["updatePrivateMetadata"]["item"], customer_user, customer_id
     )
 
@@ -1020,7 +1202,7 @@ def test_add_private_metadata_for_myself_as_customer_no_permission(user_api_clie
     customer = user_api_client.user
     variables = {
         "id": graphene.Node.to_global_id("User", customer.pk),
-        "input": {"key": PRIVATE_KEY, "value": PRIVATE_VALUE},
+        "input": [{"key": PRIVATE_KEY, "value": PRIVATE_VALUE}],
     }
 
     # when
@@ -1037,7 +1219,7 @@ def test_add_private_metadata_for_myself_as_staff(staff_api_client):
     staff = staff_api_client.user
     variables = {
         "id": graphene.Node.to_global_id("User", staff.pk),
-        "input": {"key": PRIVATE_KEY, "value": PRIVATE_VALUE},
+        "input": [{"key": PRIVATE_KEY, "value": PRIVATE_VALUE}],
     }
 
     # when
@@ -1330,10 +1512,10 @@ def test_update_private_metadata_for_item_without_meta(api_client, address):
 
 
 DELETE_PRIVATE_METADATA_MUTATION = """
-mutation DeletePrivateMetadata($id: ID!, $key: String!) {
+mutation DeletePrivateMetadata($id: ID!, $keys: [String!]!) {
     deletePrivateMetadata(
         id: $id
-        key: $key
+        keys: $keys
     ) {
         metadataErrors{
             field
@@ -1358,11 +1540,28 @@ def execute_clear_private_metadata_for_item(
 ):
     variables = {
         "id": item_id,
-        "key": key,
+        "keys": [key],
     }
 
     response = client.post_graphql(
         DELETE_PRIVATE_METADATA_MUTATION % item_type,
+        variables,
+        permissions=[permissions] if permissions else None,
+    )
+    response = get_graphql_content(response)
+    return response
+
+
+def execute_clear_private_metadata_for_multiple_items(
+    client, permissions, item_id, item_type, key=PUBLIC_KEY, key2=PUBLIC_KEY2
+):
+    variables = {
+        "id": item_id,
+        "keys": [key, key2],
+    }
+
+    response = client.post_graphql(
+        DELETE_PUBLIC_METADATA_MUTATION % item_type,
         variables,
         permissions=[permissions] if permissions else None,
     )
@@ -1377,6 +1576,26 @@ def item_without_private_metadata(
         return False
     item.refresh_from_db()
     return item.get_value_from_private_metadata(key) != value
+
+
+def item_without_multiple_private_metadata(
+    item_from_response,
+    item,
+    item_id,
+    key=PUBLIC_KEY,
+    value=PUBLIC_VALUE,
+    key2=PUBLIC_KEY2,
+    value2=PUBLIC_VALUE2,
+):
+    if item_from_response["id"] != item_id:
+        return False
+    item.refresh_from_db()
+    return all(
+        [
+            item.get_value_from_private_metadata(key) != value,
+            item.get_value_from_private_metadata(key2) != value2,
+        ]
+    )
 
 
 def test_delete_private_metadata_for_customer_as_staff(
@@ -1414,6 +1633,27 @@ def test_delete_private_metadata_for_customer_as_service_account(
     # then
     assert item_without_private_metadata(
         response["data"]["deletePrivateMetadata"]["item"], customer_user, customer_id
+    )
+
+
+def test_delete_multiple_private_metadata_for_customer_as_service_account(
+    service_account_api_client, permission_manage_users, customer_user
+):
+    # given
+    customer_user.store_value_in_metadata(
+        {PUBLIC_KEY: PUBLIC_VALUE, PUBLIC_KEY2: PUBLIC_VALUE2}
+    )
+    customer_user.save(update_fields=["metadata"])
+    customer_id = graphene.Node.to_global_id("User", customer_user.pk)
+
+    # when
+    response = execute_clear_private_metadata_for_multiple_items(
+        service_account_api_client, permission_manage_users, customer_id, "User"
+    )
+
+    # then
+    assert item_without_multiple_private_metadata(
+        response["data"]["deleteMetadata"]["item"], customer_user, customer_id
     )
 
 
@@ -1463,7 +1703,7 @@ def test_delete_private_metadata_for_myself_as_customer_no_permission(user_api_c
     customer.save(update_fields=["private_metadata"])
     variables = {
         "id": graphene.Node.to_global_id("User", customer.pk),
-        "key": PRIVATE_KEY,
+        "keys": [PRIVATE_KEY],
     }
 
     # when
@@ -1484,7 +1724,7 @@ def test_delete_private_metadata_for_myself_as_staff_no_permission(
     staff.save(update_fields=["private_metadata"])
     variables = {
         "id": graphene.Node.to_global_id("User", staff.pk),
-        "key": PRIVATE_KEY,
+        "keys": [PRIVATE_KEY],
     }
 
     # when

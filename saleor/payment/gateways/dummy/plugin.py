@@ -23,7 +23,6 @@ if TYPE_CHECKING:
 def require_active_plugin(fn):
     def wrapped(self, *args, **kwargs):
         previous = kwargs.get("previous_value", None)
-        self._initialize_plugin_configuration()
         if not self.active:
             return previous
         return fn(self, *args, **kwargs)
@@ -33,6 +32,11 @@ def require_active_plugin(fn):
 
 class DummyGatewayPlugin(BasePlugin):
     PLUGIN_NAME = GATEWAY_NAME
+    DEFAULT_ACTIVE = True
+    DEFAULT_CONFIGURATION = [
+        {"name": "Store customers card", "value": False},
+        {"name": "Automatic payment capture", "value": True},
+    ]
     CONFIG_STRUCTURE = {
         "Store customers card": {
             "type": ConfigurationTypeField.BOOLEAN,
@@ -48,40 +52,13 @@ class DummyGatewayPlugin(BasePlugin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.active = True
+        configuration = {item["name"]: item["value"] for item in self.configuration}
         self.config = GatewayConfig(
             gateway_name=GATEWAY_NAME,
-            auto_capture=True,
+            auto_capture=configuration["Automatic payment capture"],
             connection_params={},
-            store_customer=False,
+            store_customer=configuration["Store customers card"],
         )
-
-    def _initialize_plugin_configuration(self):
-        super()._initialize_plugin_configuration()
-
-        if self._cached_config and self._cached_config.configuration:
-            configuration = self._cached_config.configuration
-
-            configuration = {item["name"]: item["value"] for item in configuration}
-            self.config = GatewayConfig(
-                gateway_name=GATEWAY_NAME,
-                auto_capture=configuration["Automatic payment capture"],
-                connection_params={},
-                store_customer=configuration["Store customers card"],
-            )
-
-    @classmethod
-    def _get_default_configuration(cls):
-        defaults = {
-            "name": cls.PLUGIN_NAME,
-            "description": "",
-            "active": True,
-            "configuration": [
-                {"name": "Store customers card", "value": False},
-                {"name": "Automatic payment capture", "value": True},
-            ],
-        }
-        return defaults
 
     def _get_gateway_config(self):
         return self.config
