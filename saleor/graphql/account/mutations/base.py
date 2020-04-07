@@ -45,13 +45,6 @@ def can_edit_address(user, address):
 
 
 class SetPassword(CreateToken):
-    user = graphene.Field(User, description="A user instance with new password.")
-    account_errors = graphene.List(
-        graphene.NonNull(AccountError),
-        description="List of errors that occurred executing the mutation.",
-        required=True,
-    )
-
     class Arguments:
         token = graphene.String(
             description="A one-time token required to set the password.", required=True
