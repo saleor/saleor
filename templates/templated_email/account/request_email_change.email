@@ -18,5 +18,5 @@ It can be safely ignored if you did not request an email change. Click the link 
 {% endblock %}
 
 {% block html %}
-{% include 'templated_email/compiled/password_reset.html' %}
+{% include 'templated_email/compiled/request_email_change.html' %}
 {% endblock %}

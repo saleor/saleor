@@ -1051,6 +1051,8 @@ enum ConfigurationTypeFieldEnum {
 
 type ConfirmAccount {
   errors: [Error!]!
+  user: User
+  accountErrors: [AccountError!]!
 }
 
 type ConfirmEmailChange {
