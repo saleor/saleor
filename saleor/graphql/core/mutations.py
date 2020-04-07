@@ -18,9 +18,9 @@ from graphql_jwt.exceptions import JSONWebTokenError, PermissionDenied
 
 from ...account import models
 from ..account.types import User
-from .types.common import AccountError
 from ..utils import get_nodes
 from .types import Error, Upload
+from .types.common import AccountError
 from .utils import from_global_id_strict_type, snake_to_camel_case
 from .utils.error_codes import get_error_code_from_error
 
@@ -594,7 +594,7 @@ class CreateToken(ObtainJSONWebToken):
         description="List of errors that occurred executing the mutation.",
         required=True,
     )
-    user = graphene.Field(User)
+    user = graphene.Field(User, description="A user instance.")
 
     @classmethod
     def mutate(cls, root, info, **kwargs):
