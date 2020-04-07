@@ -96,6 +96,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Allow assigning groups in staff mutations - #5418 by @IKarbowiak
 - Add delete group restriction - #5424 by @IKarbowiak
 - Add restrictions to delete users from group - #5438 by @IKarbowiak
+- Add restriction to deactivating staff - #5449 by @IKarbowiak
 
 ## 2.9.0
 
