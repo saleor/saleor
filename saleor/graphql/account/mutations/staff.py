@@ -28,7 +28,7 @@ from ..utils import (
     StaffDeleteMixin,
     UserDeleteMixin,
     get_groups_which_user_can_manage,
-    get_not_manageable_permissions_when_deactivate_or_remove_user,
+    get_not_manageable_permissions_when_deactivate_or_remove_users,
     get_out_of_scope_permissions,
     get_out_of_scope_users,
 )
@@ -365,8 +365,8 @@ class StaffUpdate(StaffCreate):
         active staff member who can manage it (has both “manage staff” and
         this permission).
         """
-        permissions = get_not_manageable_permissions_when_deactivate_or_remove_user(
-            user
+        permissions = get_not_manageable_permissions_when_deactivate_or_remove_users(
+            [user]
         )
         if permissions:
             # add error
