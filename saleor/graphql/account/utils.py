@@ -84,11 +84,35 @@ class StaffDeleteMixin(UserDeleteMixin):
                 }
             )
 
-        # check if requestor can manage this user
+        cls.check_if_requestor_can_manage_user(info, instance)
+        cls.check_if_removing_left_not_manageable_permissions(instance)
+
+    @classmethod
+    def check_if_requestor_can_manage_user(cls, info, instance):
         if get_out_of_scope_users(info.context.user, [instance]):
             msg = "You can't manage this user."
             code = AccountErrorCode.OUT_OF_SCOPE_USER.value
             raise ValidationError({"id": ValidationError(msg, code=code)})
+
+    @classmethod
+    def check_if_removing_left_not_manageable_permissions(cls, user):
+        """Check if after removing user all permissions will be manageable.
+
+        After removing user, for each permission, there should be at least one
+        active staff member who can manage it (has both “manage staff” and
+        this permission).
+        """
+        permissions = get_not_manageable_permissions_when_deactivate_or_remove_user(
+            user
+        )
+        if permissions:
+            # add error
+            msg = "Users cannot be removed, some of permissions will not be manageable."
+            code = AccountErrorCode.LEFT_NOT_MANAGEABLE_PERMISSION.value
+            params = {"permissions": permissions}
+            raise ValidationError(
+                {"id": ValidationError(msg, code=code, params=params)}
+            )
 
 
 def get_required_fields_camel_case(required_fields: set) -> set:
