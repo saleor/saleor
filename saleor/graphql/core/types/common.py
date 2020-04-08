@@ -78,6 +78,11 @@ class StaffError(AccountError):
         description="List of permission group IDs which cause the error.",
         required=False,
     )
+    users = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of user IDs which causes the error.",
+        required=False,
+    )
 
 
 class CheckoutError(Error):

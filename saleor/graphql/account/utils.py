@@ -78,7 +78,9 @@ class StaffDeleteMixin(UserDeleteMixin):
         errors = defaultdict(list)
         cls.check_if_users_can_be_deleted(info, [instance], "id", errors)
         cls.check_if_requestor_can_manage_users(info, [instance], "id", errors)
-        cls.check_if_removing_left_not_manageable_permissions([instance], "id", errors)
+        cls.check_if_removing_left_not_manageable_permissions(
+            info, [instance], "id", errors
+        )
         if errors:
             raise ValidationError(errors)
 
@@ -104,7 +106,10 @@ class StaffDeleteMixin(UserDeleteMixin):
 
     @classmethod
     def check_if_requestor_can_manage_users(cls, info, instances, field, errors):
-        out_of_scope_users = get_out_of_scope_users(info.context.user, instances)
+        user = info.context.user
+        if user.is_superuser:
+            return
+        out_of_scope_users = get_out_of_scope_users(user, instances)
         if out_of_scope_users:
             user_pks = [
                 graphene.Node.to_global_id("User", user.pk)
@@ -117,13 +122,17 @@ class StaffDeleteMixin(UserDeleteMixin):
             errors[field] = error
 
     @classmethod
-    def check_if_removing_left_not_manageable_permissions(cls, users, field, errors):
+    def check_if_removing_left_not_manageable_permissions(
+        cls, info, users, field, errors
+    ):
         """Check if after removing users all permissions will be manageable.
 
         After removing users, for each permission, there should be at least one
         active staff member who can manage it (has both “manage staff” and
         this permission).
         """
+        if info.context.user.is_superuser:
+            return
         permissions = get_not_manageable_permissions_when_deactivate_or_remove_users(
             users
         )

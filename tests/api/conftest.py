@@ -119,6 +119,11 @@ def staff_api_client(staff_user):
 
 
 @pytest.fixture
+def superuser_api_client(superuser):
+    return ApiClient(user=superuser)
+
+
+@pytest.fixture
 def user_api_client(customer_user):
     return ApiClient(user=customer_user)
 

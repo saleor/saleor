@@ -2131,6 +2131,25 @@ def test_staff_delete_out_of_scope_user(
     assert data["staffErrors"][0]["code"] == AccountErrorCode.OUT_OF_SCOPE_USER.name
 
 
+def test_staff_delete_superuser_can_delete_out_of_scope_user(
+    superuser_api_client, permission_manage_staff, permission_manage_products
+):
+    """Ensure superuser can delete users even when he doesn't have all user permissions.
+    """
+    query = STAFF_DELETE_MUTATION
+    staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
+    staff_user.user_permissions.add(permission_manage_products)
+    user_id = graphene.Node.to_global_id("User", staff_user.id)
+    variables = {"id": user_id}
+
+    response = superuser_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["staffDelete"]
+
+    assert data["staffErrors"] == []
+    assert not User.objects.filter(pk=staff_user.id).exists()
+
+
 def test_staff_delete_left_not_manageable_permissions(
     staff_api_client,
     staff_users,
@@ -2176,6 +2195,48 @@ def test_staff_delete_left_not_manageable_permissions(
         OrderPermissions.MANAGE_ORDERS.name,
     }
     assert User.objects.filter(pk=staff_user1.id).exists()
+
+
+def test_staff_delete_superuser_can_delete_when_delete_left_notmanageable_perms(
+    superuser_api_client,
+    staff_users,
+    permission_manage_staff,
+    permission_manage_users,
+    permission_manage_orders,
+):
+    """Ensure that superuser can delete user even when not all permissions which be
+    manageable by other users.
+    """
+    query = STAFF_DELETE_MUTATION
+    groups = Group.objects.bulk_create(
+        [
+            Group(name="manage users"),
+            Group(name="manage staff"),
+            Group(name="manage orders"),
+        ]
+    )
+    group1, group2, group3 = groups
+
+    group1.permissions.add(permission_manage_users)
+    group2.permissions.add(permission_manage_staff)
+    group3.permissions.add(permission_manage_orders)
+
+    staff_user, staff_user1, staff_user2 = staff_users
+    group1.user_set.add(staff_user1)
+    group2.user_set.add(staff_user2, staff_user1)
+    group3.user_set.add(staff_user1)
+
+    user_id = graphene.Node.to_global_id("User", staff_user1.id)
+    variables = {"id": user_id}
+
+    staff_user.user_permissions.add(permission_manage_users, permission_manage_orders)
+    response = superuser_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["staffDelete"]
+    errors = data["staffErrors"]
+
+    assert not errors
+    assert not User.objects.filter(pk=staff_user1.id).exists()
 
 
 def test_staff_delete_all_permissions_manageable(
