@@ -37,6 +37,8 @@ from saleor.order import OrderEvents, OrderEventsEmails
 from saleor.order.models import OrderEvent
 from saleor.shipping.models import ShippingZone
 
+from .utils import flush_post_commit_hooks
+
 
 def test_is_valid_shipping_method(checkout_with_item, address, shipping_zone):
     checkout = checkout_with_item
@@ -111,6 +113,7 @@ def test_create_order_creates_expected_events(
         user=customer_user if not is_anonymous_user else AnonymousUser(),
         redirect_url="https://www.example.com",
     )
+    flush_post_commit_hooks()
 
     # Ensure only two events were created, and retrieve them
     placement_event, email_sent_event = order.events.all()  # type: OrderEvent
