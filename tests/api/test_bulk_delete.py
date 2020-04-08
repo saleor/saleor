@@ -778,6 +778,7 @@ def test_delete_staff_members_left_not_manageable_permissions(
     errors = data["staffErrors"]
 
     assert len(errors) == 1
+    assert data["count"] == 0
     assert errors[0]["field"] == "ids"
     assert errors[0]["code"] == AccountErrorCode.LEFT_NOT_MANAGEABLE_PERMISSION.name
     assert set(errors[0]["permissions"]) == {
@@ -785,6 +786,54 @@ def test_delete_staff_members_left_not_manageable_permissions(
         OrderPermissions.MANAGE_ORDERS.name,
     }
     assert User.objects.filter(
+        id__in=[user.id for user in [staff_user1, staff_user2]]
+    ).exists()
+
+
+def test_delete_staff_members_all_permissions_manageable(
+    staff_api_client,
+    staff_users,
+    permission_manage_staff,
+    permission_manage_users,
+    permission_manage_orders,
+):
+    query = STAFF_BULK_DELETE_MUTATION
+
+    groups = Group.objects.bulk_create(
+        [
+            Group(name="manage users"),
+            Group(name="manage staff"),
+            Group(name="manage users and orders"),
+        ]
+    )
+    group1, group2, group3 = groups
+
+    group1.permissions.add(permission_manage_users)
+    group2.permissions.add(permission_manage_staff)
+    group3.permissions.add(permission_manage_orders, permission_manage_users)
+
+    staff_user, staff_user1, staff_user2 = staff_users
+    group1.user_set.add(staff_user1)
+    group2.user_set.add(staff_user2, staff_user1, staff_user)
+    group3.user_set.add(staff_user1, staff_user)
+
+    staff_user.user_permissions.add(
+        permission_manage_users, permission_manage_orders, permission_manage_staff
+    )
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("User", user.id)
+            for user in [staff_user1, staff_user2]
+        ]
+    }
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["staffBulkDelete"]
+    errors = data["staffErrors"]
+
+    assert not errors
+    assert data["count"] == 2
+    assert not User.objects.filter(
         id__in=[user.id for user in [staff_user1, staff_user2]]
     ).exists()
 
