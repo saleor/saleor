@@ -98,6 +98,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add restrictions to delete users from group - #5438 by @IKarbowiak
 - Add restriction to deactivating staff - #5449 by @IKarbowiak
 - Add restriction to removing staff - #5450 by @IKarbowiak
+- Add restriction to bulk staff delete mutation - #5456 by @IKarbowiak
 
 ## 2.9.0
 
