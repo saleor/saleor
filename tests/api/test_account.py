@@ -2239,7 +2239,7 @@ def test_staff_delete_errors(staff_user, customer_user, admin_user):
     info = Mock(context=Mock(user=staff_user))
     with pytest.raises(ValidationError) as e:
         StaffDelete.clean_instance(info, customer_user)
-    msg = "Cannot delete a non-staff user."
+    msg = "Cannot delete a non-staff users."
     assert e.value.error_dict["id"][0].message == msg
 
     # should not raise any errors

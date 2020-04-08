@@ -4318,7 +4318,7 @@ input SiteDomainInput {
 type StaffBulkDelete {
   errors: [Error!]!
   count: Int!
-  accountErrors: [AccountError!]!
+  staffErrors: [StaffError!]!
 }
 
 type StaffCreate {
