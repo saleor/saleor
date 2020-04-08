@@ -63,7 +63,9 @@ class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
         errors = defaultdict(list)
         cls.check_if_users_can_be_deleted(info, users, "ids", errors)
         cls.check_if_requestor_can_manage_users(info, users, "ids", errors)
-        cls.check_if_removing_left_not_manageable_permissions(users, "ids", errors)
+        cls.check_if_removing_left_not_manageable_permissions(
+            info, users, "ids", errors
+        )
         return ValidationError(errors) if errors else {}
 
 
