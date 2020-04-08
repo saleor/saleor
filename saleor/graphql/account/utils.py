@@ -257,6 +257,9 @@ def get_not_manageable_permissions_when_deactivate_or_remove_users(users: List["
         groups_data, set()
     )
 
+    if not manage_staff_users:
+        return not_manageable_permissions
+
     # remove deactivating or removing users from manage staff users
     manage_staff_users = manage_staff_users - user_pks
 
