@@ -12,7 +12,7 @@ from graphql_relay import to_global_id
 from prices import Money
 
 from saleor.core.taxes import TaxType
-from saleor.extensions.manager import ExtensionsManager
+from saleor.plugins.manager import PluginsManager
 from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.product.utils import create_stocks
 from saleor.product import AttributeInputType
@@ -911,7 +911,7 @@ def test_create_product(
 
     # Mock tax interface with fake response from tax gateway
     monkeypatch.setattr(
-        ExtensionsManager,
+        PluginsManager,
         "get_tax_code_from_object_meta",
         lambda self, x: TaxType(description="", code=product_tax_rate),
     )
@@ -992,7 +992,7 @@ def test_create_product_no_slug_in_input(
 
     # Mock tax interface with fake response from tax gateway
     monkeypatch.setattr(
-        ExtensionsManager,
+        PluginsManager,
         "get_tax_code_from_object_meta",
         lambda self, x: TaxType(description="", code=product_tax_rate),
     )
@@ -1280,7 +1280,7 @@ def test_product_create_with_collections_webhook(
         assert product.collections.first() == collection
 
     monkeypatch.setattr(
-        "saleor.extensions.manager.ExtensionsManager.product_created",
+        "saleor.plugins.manager.PluginsManager.product_created",
         lambda _, product: assert_product_has_collections(product),
     )
 
@@ -1388,7 +1388,7 @@ def test_update_product(
 
     # Mock tax interface with fake response from tax gateway
     monkeypatch.setattr(
-        ExtensionsManager,
+        PluginsManager,
         "get_tax_code_from_object_meta",
         lambda self, x: TaxType(description="", code=product_tax_rate),
     )
@@ -2050,7 +2050,7 @@ def test_product_type_query(
     monkeypatch,
 ):
     monkeypatch.setattr(
-        ExtensionsManager,
+        PluginsManager,
         "get_tax_code_from_object_meta",
         lambda self, x: TaxType(code="123", description="Standard Taxes"),
     )
@@ -2097,8 +2097,8 @@ def test_product_type_create_mutation(
     staff_api_client, product_type, permission_manage_products, monkeypatch, settings
 ):
     settings.VATLAYER_ACCESS_KEY = "test"
-    settings.PLUGINS = ["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
-    manager = ExtensionsManager(plugins=settings.PLUGINS)
+    settings.PLUGINS = ["saleor.plugins.plugins.vatlayer.plugin.VatlayerPlugin"]
+    manager = PluginsManager(plugins=settings.PLUGINS)
     query = """
     mutation createProductType(
         $name: String!,

@@ -294,7 +294,7 @@ class GraphQLView(View):
         else:
             unhandled_errors_logger.error("A query failed unexpectedly", exc_info=exc)
 
-        result["extensions"] = {"exception": {"code": type(exc).__name__}}
+        result["plugins"] = {"exception": {"code": type(exc).__name__}}
         if settings.DEBUG:
             lines = []
 
@@ -303,7 +303,7 @@ class GraphQLView(View):
                     type(exc), exc, exc.__traceback__
                 ):
                     lines.extend(line.rstrip().splitlines())
-            result["extensions"]["exception"]["stacktrace"] = lines
+            result["plugins"]["exception"]["stacktrace"] = lines
         return result
 
 

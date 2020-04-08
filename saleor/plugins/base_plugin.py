@@ -5,7 +5,6 @@ from typing import TYPE_CHECKING, Any, List, Optional, Union
 from django_countries.fields import Country
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from . import ConfigurationTypeField
 from .models import PluginConfiguration
 
 if TYPE_CHECKING:
@@ -20,6 +19,19 @@ if TYPE_CHECKING:
 
 
 PluginConfigurationType = List[dict]
+
+
+class ConfigurationTypeField:
+    STRING = "String"
+    BOOLEAN = "Boolean"
+    SECRET = "Secret"
+    PASSWORD = "Password"
+    CHOICES = [
+        (STRING, "Field is a String"),
+        (BOOLEAN, "Field is a Boolean"),
+        (SECRET, "Field is a Secret"),
+        (PASSWORD, "Field is a Password"),
+    ]
 
 
 class BasePlugin:

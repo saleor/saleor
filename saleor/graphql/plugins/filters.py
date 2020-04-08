@@ -4,7 +4,7 @@ import graphene
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ...extensions.base_plugin import BasePlugin
+    from ...plugins import BasePlugin
 
 
 def filter_plugin_search(

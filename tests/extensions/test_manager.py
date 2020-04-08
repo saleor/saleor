@@ -5,9 +5,9 @@ from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
 from saleor.core.taxes import TaxType
-from saleor.extensions.manager import ExtensionsManager, get_extensions_manager
-from saleor.extensions.models import PluginConfiguration
-from tests.extensions.sample_plugins import (
+from saleor.plugins.manager import PluginsManager, get_plugins_manager
+from saleor.plugins.models import PluginConfiguration
+from tests.plugins.sample_plugins import (
     ActivePaymentGateway,
     InactivePaymentGateway,
     PluginInactive,
@@ -15,38 +15,38 @@ from tests.extensions.sample_plugins import (
 )
 
 
-def test_get_extensions_manager():
-    manager_path = "saleor.extensions.manager.ExtensionsManager"
-    plugin_path = "tests.extensions.sample_plugins.PluginSample"
-    manager = get_extensions_manager(manager_path=manager_path, plugins=[plugin_path])
-    assert isinstance(manager, ExtensionsManager)
+def test_get_plugins_manager():
+    manager_path = "saleor.plugins.manager.PluginsManager"
+    plugin_path = "tests.plugins.sample_plugins.PluginSample"
+    manager = get_plugins_manager(manager_path=manager_path, plugins=[plugin_path])
+    assert isinstance(manager, PluginsManager)
     assert len(manager.plugins) == 1
 
 
 @pytest.mark.parametrize(
     "plugins, total_amount",
-    [(["tests.extensions.sample_plugins.PluginSample"], "1.0"), ([], "15.0")],
+    [(["tests.plugins.sample_plugins.PluginSample"], "1.0"), ([], "15.0")],
 )
 def test_manager_calculates_checkout_total(
     checkout_with_item, discount_info, plugins, total_amount
 ):
     currency = checkout_with_item.currency
     expected_total = Money(total_amount, currency)
-    manager = ExtensionsManager(plugins=plugins)
+    manager = PluginsManager(plugins=plugins)
     taxed_total = manager.calculate_checkout_total(checkout_with_item, [discount_info])
     assert TaxedMoney(expected_total, expected_total) == taxed_total
 
 
 @pytest.mark.parametrize(
     "plugins, subtotal_amount",
-    [(["tests.extensions.sample_plugins.PluginSample"], "1.0"), ([], "15.0")],
+    [(["tests.plugins.sample_plugins.PluginSample"], "1.0"), ([], "15.0")],
 )
 def test_manager_calculates_checkout_subtotal(
     checkout_with_item, discount_info, plugins, subtotal_amount
 ):
     currency = checkout_with_item.currency
     expected_subtotal = Money(subtotal_amount, currency)
-    taxed_subtotal = ExtensionsManager(plugins=plugins).calculate_checkout_subtotal(
+    taxed_subtotal = PluginsManager(plugins=plugins).calculate_checkout_subtotal(
         checkout_with_item, [discount_info]
     )
     assert TaxedMoney(expected_subtotal, expected_subtotal) == taxed_subtotal
@@ -54,14 +54,14 @@ def test_manager_calculates_checkout_subtotal(
 
 @pytest.mark.parametrize(
     "plugins, shipping_amount",
-    [(["tests.extensions.sample_plugins.PluginSample"], "1.0"), ([], "0.0")],
+    [(["tests.plugins.sample_plugins.PluginSample"], "1.0"), ([], "0.0")],
 )
 def test_manager_calculates_checkout_shipping(
     checkout_with_item, discount_info, plugins, shipping_amount
 ):
     currency = checkout_with_item.currency
     expected_shipping_price = Money(shipping_amount, currency)
-    taxed_shipping_price = ExtensionsManager(
+    taxed_shipping_price = PluginsManager(
         plugins=plugins
     ).calculate_checkout_shipping(checkout_with_item, [discount_info])
     assert (
@@ -72,13 +72,13 @@ def test_manager_calculates_checkout_shipping(
 
 @pytest.mark.parametrize(
     "plugins, shipping_amount",
-    [(["tests.extensions.sample_plugins.PluginSample"], "1.0"), ([], "10.0")],
+    [(["tests.plugins.sample_plugins.PluginSample"], "1.0"), ([], "10.0")],
 )
 def test_manager_calculates_order_shipping(order_with_lines, plugins, shipping_amount):
     currency = order_with_lines.total.currency
     expected_shipping_price = Money(shipping_amount, currency)
 
-    taxed_shipping_price = ExtensionsManager(plugins=plugins).calculate_order_shipping(
+    taxed_shipping_price = PluginsManager(plugins=plugins).calculate_order_shipping(
         order_with_lines
     )
     assert (
@@ -89,7 +89,7 @@ def test_manager_calculates_order_shipping(order_with_lines, plugins, shipping_a
 
 @pytest.mark.parametrize(
     "plugins, amount",
-    [(["tests.extensions.sample_plugins.PluginSample"], "1.0"), ([], "15.0")],
+    [(["tests.plugins.sample_plugins.PluginSample"], "1.0"), ([], "15.0")],
 )
 def test_manager_calculates_checkout_line_total(
     checkout_with_item, discount_info, plugins, amount
@@ -97,7 +97,7 @@ def test_manager_calculates_checkout_line_total(
     line = checkout_with_item.lines.all()[0]
     currency = checkout_with_item.currency
     expected_total = Money(amount, currency)
-    taxed_total = ExtensionsManager(plugins=plugins).calculate_checkout_line_total(
+    taxed_total = PluginsManager(plugins=plugins).calculate_checkout_line_total(
         line, [discount_info]
     )
     assert TaxedMoney(expected_total, expected_total) == taxed_total
@@ -105,12 +105,12 @@ def test_manager_calculates_checkout_line_total(
 
 @pytest.mark.parametrize(
     "plugins, amount",
-    [(["tests.extensions.sample_plugins.PluginSample"], "1.0"), ([], "12.30")],
+    [(["tests.extenspluginsions.sample_plugins.PluginSample"], "1.0"), ([], "12.30")],
 )
 def test_manager_calculates_order_line(order_line, plugins, amount):
     currency = order_line.unit_price.currency
     expected_price = Money(amount, currency)
-    unit_price = ExtensionsManager(plugins=plugins).calculate_order_line_unit(
+    unit_price = PluginsManager(plugins=plugins).calculate_order_line_unit(
         order_line
     )
     assert expected_price == unit_price.gross
@@ -120,7 +120,7 @@ def test_manager_calculates_order_line(order_line, plugins, amount):
     "plugins, tax_rate_list",
     [
         (
-            ["tests.extensions.sample_plugins.PluginSample"],
+            ["tests.plugins.sample_plugins.PluginSample"],
             [TaxType(code="123", description="abc")],
         ),
         ([], []),
@@ -128,28 +128,28 @@ def test_manager_calculates_order_line(order_line, plugins, amount):
 )
 def test_manager_uses_get_tax_rate_choices(plugins, tax_rate_list):
     assert (
-        tax_rate_list == ExtensionsManager(plugins=plugins).get_tax_rate_type_choices()
+        tax_rate_list == {PluginsManager}(plugins=plugins).get_tax_rate_type_choices()
     )
 
 
 @pytest.mark.parametrize(
     "plugins, show_taxes",
-    [(["tests.extensions.sample_plugins.PluginSample"], True), ([], False)],
+    [(["tests.plugins.sample_plugins.PluginSample"], True), ([], False)],
 )
 def test_manager_show_taxes_on_storefront(plugins, show_taxes):
-    assert show_taxes == ExtensionsManager(plugins=plugins).show_taxes_on_storefront()
+    assert show_taxes == PluginsManager(plugins=plugins).show_taxes_on_storefront()
 
 
 @pytest.mark.parametrize(
     "plugins, price",
-    [(["tests.extensions.sample_plugins.PluginSample"], "1.0"), ([], "10.0")],
+    [(["tests.plugins.sample_plugins.PluginSample"], "1.0"), ([], "10.0")],
 )
 def test_manager_apply_taxes_to_product(product, plugins, price):
     country = Country("PL")
     variant = product.variants.all()[0]
     currency = variant.get_price().currency
     expected_price = Money(price, currency)
-    taxed_price = ExtensionsManager(plugins=plugins).apply_taxes_to_product(
+    taxed_price = PluginsManager(plugins=plugins).apply_taxes_to_product(
         product, variant.get_price(), country
     )
     assert TaxedMoney(expected_price, expected_price) == taxed_price
@@ -157,13 +157,13 @@ def test_manager_apply_taxes_to_product(product, plugins, price):
 
 @pytest.mark.parametrize(
     "plugins, price_amount",
-    [(["tests.extensions.sample_plugins.PluginSample"], "1.0"), ([], "10.0")],
+    [(["tests.plugins.sample_plugins.PluginSample"], "1.0"), ([], "10.0")],
 )
 def test_manager_apply_taxes_to_shipping(
     shipping_method, address, plugins, price_amount
 ):
     expected_price = Money(price_amount, "USD")
-    taxed_price = ExtensionsManager(plugins=plugins).apply_taxes_to_shipping(
+    taxed_price = PluginsManager(plugins=plugins).apply_taxes_to_shipping(
         shipping_method.price, address
     )
     assert TaxedMoney(expected_price, expected_price) == taxed_price
@@ -171,11 +171,11 @@ def test_manager_apply_taxes_to_shipping(
 
 @pytest.mark.parametrize(
     "plugins, amount",
-    [(["tests.extensions.sample_plugins.PluginSample"], "15.0"), ([], "0")],
+    [(["tests.plugins.sample_plugins.PluginSample"], "15.0"), ([], "0")],
 )
 def test_manager_get_tax_rate_percentage_value(plugins, amount, product):
     country = Country("PL")
-    tax_rate_value = ExtensionsManager(plugins=plugins).get_tax_rate_percentage_value(
+    tax_rate_value = PluginsManager(plugins=plugins).get_tax_rate_percentage_value(
         product, country
     )
     assert tax_rate_value == Decimal(amount)
@@ -183,10 +183,10 @@ def test_manager_get_tax_rate_percentage_value(plugins, amount, product):
 
 def test_manager_get_plugin_configurations(plugin_configuration):
     plugins = [
-        "tests.extensions.sample_plugins.PluginSample",
-        "tests.extensions.sample_plugins.PluginInactive",
+        "tests.plugins.sample_plugins.PluginSample",
+        "tests.plugins.sample_plugins.PluginInactive",
     ]
-    manager = ExtensionsManager(plugins=plugins)
+    manager = PluginsManager(plugins=plugins)
     plugin_configs = manager._plugin_configs.values()
     assert len(plugin_configs) == 1
     assert set(plugin_configs) == set(list(PluginConfiguration.objects.all()))
@@ -194,18 +194,18 @@ def test_manager_get_plugin_configurations(plugin_configuration):
 
 def test_manager_get_plugin_configuration(plugin_configuration):
     plugins = [
-        "tests.extensions.sample_plugins.PluginSample",
-        "tests.extensions.sample_plugins.PluginInactive",
+        "tests.plugins.sample_plugins.PluginSample",
+        "tests.plugins.sample_plugins.PluginInactive",
     ]
-    manager = ExtensionsManager(plugins=plugins)
+    manager = PluginsManager(plugins=plugins)
     plugin = manager.get_plugin("PluginSample")
     configuration_from_db = PluginConfiguration.objects.get(name="PluginSample")
     assert plugin.DEFAULT_CONFIGURATION == configuration_from_db.configuration
 
 
 def test_manager_save_plugin_configuration(plugin_configuration):
-    plugins = ["tests.extensions.sample_plugins.PluginSample"]
-    manager = ExtensionsManager(plugins=plugins)
+    plugins = ["tests.plugins.sample_plugins.PluginSample"]
+    manager = PluginsManager(plugins=plugins)
     manager.save_plugin_configuration("PluginSample", {"active": False})
     plugin_configuration.refresh_from_db()
     assert not plugin_configuration.active
@@ -225,8 +225,8 @@ def test_plugin_updates_configuration_shape(
         plugin_configuration.configuration + [new_config],
     )
 
-    manager = ExtensionsManager(
-        plugins=["tests.extensions.sample_plugins.PluginSample"]
+    manager = PluginsManager(
+        plugins=["tests.plugins.sample_plugins.PluginSample"]
     )
     plugin = manager.get_plugin("PluginSample")
 
@@ -243,8 +243,8 @@ def test_plugin_add_new_configuration(
     )
     config_structure = {"Foo": new_config_structure}
     monkeypatch.setattr(PluginInactive, "CONFIG_STRUCTURE", config_structure)
-    manager = ExtensionsManager(
-        plugins=["tests.extensions.sample_plugins.PluginInactive"]
+    manager = PluginsManager(
+        plugins=["tests.plugins.sample_plugins.PluginInactive"]
     )
     plugin = manager.get_plugin("PluginInactive")
     assert len(plugin.configuration) == 1
@@ -257,11 +257,11 @@ def test_manager_serve_list_of_payment_gateways():
         "config": ActivePaymentGateway.CLIENT_CONFIG,
     }
     plugins = [
-        "tests.extensions.sample_plugins.PluginSample",
-        "tests.extensions.sample_plugins.ActivePaymentGateway",
-        "tests.extensions.sample_plugins.InactivePaymentGateway",
+        "tests.plugins.sample_plugins.PluginSample",
+        "tests.plugins.sample_plugins.ActivePaymentGateway",
+        "tests.plugins.sample_plugins.InactivePaymentGateway",
     ]
-    manager = ExtensionsManager(plugins=plugins)
+    manager = PluginsManager(plugins=plugins)
     assert manager.list_payment_gateways() == [expected_gateway]
 
 
@@ -275,8 +275,8 @@ def test_manager_serve_list_all_payment_gateways():
     ]
 
     plugins = [
-        "tests.extensions.sample_plugins.ActivePaymentGateway",
-        "tests.extensions.sample_plugins.InactivePaymentGateway",
+        "tests.plugins.sample_plugins.ActivePaymentGateway",
+        "tests.plugins.sample_plugins.InactivePaymentGateway",
     ]
-    manager = ExtensionsManager(plugins=plugins)
+    manager = PluginsManager(plugins=plugins)
     assert manager.list_payment_gateways(active_only=False) == expected_gateways

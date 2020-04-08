@@ -15,7 +15,7 @@ from saleor.checkout.models import Checkout
 from saleor.checkout.utils import clean_checkout, is_fully_paid
 from saleor.core.payments import PaymentInterface
 from saleor.core.taxes import zero_money
-from saleor.extensions.manager import ExtensionsManager
+from saleor.plugins.manager import PluginsManager
 from saleor.graphql.checkout.mutations import (
     clean_shipping_method,
     update_checkout_shipping_method_if_invalid,
@@ -466,7 +466,7 @@ def test_checkout_available_shipping_methods_with_price_displayed(
     taxed_price = TaxedMoney(net=Money(10, "USD"), gross=Money(13, "USD"))
     apply_taxes_to_shipping_mock = mock.Mock(return_value=taxed_price)
     monkeypatch.setattr(
-        ExtensionsManager, "apply_taxes_to_shipping", apply_taxes_to_shipping_mock
+        PluginsManager, "apply_taxes_to_shipping", apply_taxes_to_shipping_mock
     )
     site_settings.display_gross_prices = display_gross_prices
     site_settings.save()
@@ -1358,7 +1358,7 @@ def fake_manager(mocker):
 @pytest.fixture
 def mock_get_manager(mocker, fake_manager):
     manager = mocker.patch(
-        "saleor.payment.gateway.get_extensions_manager",
+        "saleor.payment.gateway.get_plugins_manager",
         autospec=True,
         return_value=fake_manager,
     )

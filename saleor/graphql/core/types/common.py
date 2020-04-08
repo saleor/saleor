@@ -6,7 +6,7 @@ from ..enums import (
     AccountErrorCode,
     CheckoutErrorCode,
     DiscountErrorCode,
-    ExtensionsErrorCode,
+    PluginsErrorCode,
     GiftCardErrorCode,
     MenuErrorCode,
     MetadataErrorCode,
@@ -112,8 +112,8 @@ class GiftCardError(Error):
     code = GiftCardErrorCode(description="The error code.", required=True)
 
 
-class ExtensionsError(Error):
-    code = ExtensionsErrorCode(description="The error code.", required=True)
+class PluginsError(Error):
+    code = PluginsErrorCode(description="The error code.", required=True)
 
 
 class StockError(Error):

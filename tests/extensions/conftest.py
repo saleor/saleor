@@ -1,8 +1,8 @@
 import pytest
 
-from saleor.extensions import ConfigurationTypeField
-from saleor.extensions.models import PluginConfiguration
-from tests.extensions.sample_plugins import PluginInactive, PluginSample
+from saleor.plugins import ConfigurationTypeField
+from saleor.plugins.models import PluginConfiguration
+from tests.pliugins.sample_plugins import PluginInactive, PluginSample
 
 
 @pytest.fixture

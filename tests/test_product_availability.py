@@ -4,7 +4,7 @@ from unittest.mock import Mock
 import pytest
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
-from saleor.extensions.manager import ExtensionsManager
+from saleor.plugins.manager import PluginsManager
 from saleor.product import ProductAvailabilityStatus, VariantAvailabilityStatus, models
 from saleor.product.utils.availability import (
     get_product_availability,
@@ -121,7 +121,7 @@ def test_availability(stock, monkeypatch, settings):
     product = stock.product_variant.product
     taxed_price = TaxedMoney(Money("10.0", "USD"), Money("12.30", "USD"))
     monkeypatch.setattr(
-        ExtensionsManager, "apply_taxes_to_product", Mock(return_value=taxed_price)
+        PluginsManager, "apply_taxes_to_product", Mock(return_value=taxed_price)
     )
     availability = get_product_availability(product, country="PL")
     taxed_price_range = TaxedMoneyRange(start=taxed_price, stop=taxed_price)

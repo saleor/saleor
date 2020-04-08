@@ -199,7 +199,7 @@ MIDDLEWARE = [
     "saleor.core.middleware.country",
     "saleor.core.middleware.currency",
     "saleor.core.middleware.site",
-    "saleor.core.middleware.extensions",
+    "saleor.core.middleware.plugins",
 ]
 
 INSTALLED_APPS = [
@@ -212,7 +212,7 @@ INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.postgres",
     # Local apps
-    "saleor.extensions",
+    "saleor.plugins",
     "saleor.account",
     "saleor.discount",
     "saleor.giftcard",
@@ -505,12 +505,12 @@ GRAPHENE = {
     ],
 }
 
-EXTENSIONS_MANAGER = "saleor.extensions.manager.ExtensionsManager"
+PLUGINS_MANAGER = "saleor.plugins.manager.PluginsManager"
 
 PLUGINS = [
-    "saleor.extensions.plugins.avatax.plugin.AvataxPlugin",
-    "saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin",
-    "saleor.extensions.plugins.webhook.plugin.WebhookPlugin",
+    "saleor.plugins.avatax.plugin.AvataxPlugin",
+    "saleor.plugins.vatlayer.plugin.VatlayerPlugin",
+    "saleor.plugins.webhook.plugin.WebhookPlugin",
     "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
     "saleor.payment.gateways.stripe.plugin.StripeGatewayPlugin",
     "saleor.payment.gateways.braintree.plugin.BraintreeGatewayPlugin",

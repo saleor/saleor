@@ -6,11 +6,10 @@ from urllib.parse import urljoin
 from django.core.exceptions import ValidationError
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
-from ....core.taxes import TaxError, TaxType, zero_taxed_money
-from ....discount import DiscountInfo
-from ... import ConfigurationTypeField
-from ...base_plugin import BasePlugin
-from ...error_codes import ExtensionsErrorCode
+from ...core.taxes import TaxError, TaxType, zero_taxed_money
+from ...discount import DiscountInfo
+from ..base_plugin import BasePlugin, ConfigurationTypeField
+from ..error_codes import PluginsErrorCode
 from . import (
     META_CODE_KEY,
     META_DESCRIPTION_KEY,
@@ -30,10 +29,10 @@ from .tasks import api_post_request_task
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ....checkout.models import Checkout, CheckoutLine
-    from ....order.models import Order, OrderLine
-    from ....product.models import Product, ProductType
-    from ...models import PluginConfiguration
+    from ...checkout.models import Checkout, CheckoutLine
+    from ...order.models import Order, OrderLine
+    from ...product.models import Product, ProductType
+    from ..models import PluginConfiguration
 
 
 logger = logging.getLogger(__name__)
@@ -255,7 +254,7 @@ class AvataxPlugin(BasePlugin):
         transaction_url = urljoin(
             get_api_url(self.config.use_sandbox), "transactions/createoradjust"
         )
-        api_post_request_task.delay(transaction_url, data)
+        api_post_request_task.delay(transaction_url, data, self.config)
         return previous_value
 
     def calculate_checkout_line_total(
@@ -386,5 +385,5 @@ class AvataxPlugin(BasePlugin):
             )
             raise ValidationError(
                 error_msg + ", ".join(missing_fields),
-                code=ExtensionsErrorCode.PLUGIN_MISCONFIGURED.value,
+                code=PluginsErrorCode.PLUGIN_MISCONFIGURED.value,
             )

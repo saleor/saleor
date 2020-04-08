@@ -1,17 +1,16 @@
-from saleor.extensions import ConfigurationTypeField
-from saleor.extensions.manager import get_extensions_manager
-from saleor.extensions.plugins.anonymize.plugin import AnonymizePlugin
-from tests.extensions.sample_plugins import PluginSample
-from tests.extensions.utils import get_config_value
+from saleor.plugins import ConfigurationTypeField, AnonymizePlugin
+from saleor.plugins.manager import get_plugins_manager
+from tests.plugins.sample_plugins import PluginSample
+from tests.plugins.utils import get_config_value
 
 
 def test_update_config_items_keeps_bool_value(plugin_configuration, settings):
-    settings.PLUGINS = ["tests.extensions.sample_plugins.PluginSample"]
+    settings.PLUGINS = ["tests.plugins.sample_plugins.PluginSample"]
     data_to_update = [
         {"name": "Username", "value": "new_admin@example.com"},
         {"name": "Use sandbox", "value": False},
     ]
-    manager = get_extensions_manager()
+    manager = get_plugins_manager()
     plugin_sample = manager.get_plugin(PluginSample.PLUGIN_NAME)
     plugin_sample._update_config_items(data_to_update, plugin_sample.configuration)
 
@@ -57,8 +56,8 @@ def test_base_plugin__update_configuration_structure_configuration_has_change(
 
 
 def test_base_plugin__append_config_structure_to_config(settings):
-    settings.PLUGINS = ["tests.extensions.sample_plugins.PluginSample"]
-    manager = get_extensions_manager()
+    settings.PLUGINS = ["tests.plugins.sample_plugins.PluginSample"]
+    manager = get_plugins_manager()
     plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
     config = [
         {"name": "Username", "value": "my_test_user"},
@@ -85,8 +84,8 @@ def test_base_plugin__append_config_structure_to_config(settings):
 
 
 def test_change_user_address_in_anonymize_plugin_reset_phone(address, settings):
-    settings.PLUGINS = ["saleor.extensions.plugins.anonymize.plugin.AnonymizePlugin"]
-    manager = get_extensions_manager()
+    settings.PLUGINS = ["saleor.plugins.plugins.anonymize.plugin.AnonymizePlugin"]
+    manager = get_plugins_manager()
     anonymize_plugin = manager.get_plugin(AnonymizePlugin.PLUGIN_NAME)
 
     # ensure that phone is set

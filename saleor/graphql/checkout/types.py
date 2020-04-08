@@ -6,7 +6,7 @@ from ...checkout import calculations, models
 from ...checkout.utils import get_valid_shipping_methods_for_checkout
 from ...core.permissions import AccountPermissions, CheckoutPermissions
 from ...core.taxes import display_gross_prices, zero_taxed_money
-from ...extensions.manager import get_extensions_manager
+from ...plugins.manager import get_plugins_manager
 from ..core.connection import CountableDjangoObjectType
 from ..core.types.money import TaxedMoney
 from ..decorators import permission_required
@@ -57,7 +57,7 @@ class CheckoutLine(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_total_price(self, info):
-        return info.context.extensions.calculate_checkout_line_total(
+        return info.context.plugins.calculate_checkout_line_total(
             checkout_line=self, discounts=info.context.discounts
         )
 
@@ -177,7 +177,7 @@ class Checkout(CountableDjangoObjectType):
         if available is None:
             return []
 
-        manager = get_extensions_manager()
+        manager = get_plugins_manager()
         display_gross = display_gross_prices()
         for shipping_method in available:
             # ignore mypy checking because it is checked in
@@ -193,7 +193,7 @@ class Checkout(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_available_payment_gateways(_: models.Checkout, _info):
-        return [gtw for gtw in get_extensions_manager().list_payment_gateways()]
+        return [gtw for gtw in get_plugins_manager().list_payment_gateways()]
 
     @staticmethod
     def resolve_gift_cards(root: models.Checkout, _info):

@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 @register()
-def check_extensions(app_configs, **kwargs):
+def check_plugins(app_configs, **kwargs):
     """Confirm a correct import of plugins and manager."""
     errors = []
     check_manager(errors)
@@ -23,16 +23,16 @@ def check_extensions(app_configs, **kwargs):
 
 
 def check_manager(errors: List[Error]):
-    if not hasattr(settings, "EXTENSIONS_MANAGER") or not settings.EXTENSIONS_MANAGER:
-        errors.append(Error("Settings should contain EXTENSIONS_MANAGER env"))
+    if not hasattr(settings, "PLUGINS_MANAGER") or not settings.PLUGINS_MANAGER:
+        errors.append(Error("Settings should contain PLUGINS_MANAGER env"))
         return
 
     try:
-        import_string(settings.EXTENSIONS_MANAGER)
+        import_string(settings.PLUGINS_MANAGER)
     except ImportError:
         errors.append(
             Error(
-                "Extension Manager path: %s doesn't exist" % settings.EXTENSIONS_MANAGER
+                "Plugins Manager path: %s doesn't exist" % settings.PLUGINS_MANAGER
             )
         )
 

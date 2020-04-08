@@ -1625,13 +1625,13 @@ type Error {
   message: String
 }
 
-type ExtensionsError {
+type PluginsError {
   field: String
   message: String
-  code: ExtensionsErrorCode!
+  code: PluginsErrorCode!
 }
 
-enum ExtensionsErrorCode {
+enum PluginsErrorCode {
   GRAPHQL_ERROR
   INVALID
   PLUGIN_MISCONFIGURED
@@ -3125,7 +3125,7 @@ input PluginSortingInput {
 type PluginUpdate {
   errors: [Error!]!
   plugin: Plugin
-  extensionsErrors: [ExtensionsError!]!
+  pluginsErrors: [PluginsError!]!
 }
 
 input PluginUpdateInput {

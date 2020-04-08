@@ -6,7 +6,7 @@ from ..core.types import SortInputObjectType
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ...extensions.base_plugin import BasePlugin
+    from ...plugins import BasePlugin
 
 
 def sort_plugins(
