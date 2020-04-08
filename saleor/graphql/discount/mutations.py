@@ -271,9 +271,9 @@ class SaleUpdateMinimalVariantPriceMixin:
         # Update the "minimal_variant_prices" of the associated, discounted
         # products (including collections and categories).
         if (
-            instance.products.all()
-            or instance.categories.all()
-            or instance.collections.all()
+            instance.products.all().exists()
+            or instance.categories.all().exists()
+            or instance.collections.all().exists()
         ):
             update_products_minimal_variant_prices_of_discount_task.delay(instance.pk)
         return super().success_response(instance)
