@@ -1,21 +1,21 @@
 from typing import TYPE_CHECKING, Any
 
-from ....webhook.event_types import WebhookEventType
-from ....webhook.payloads import (
+from ...webhook.event_types import WebhookEventType
+from ...webhook.payloads import (
     generate_checkout_payload,
     generate_customer_payload,
     generate_fulfillment_payload,
     generate_order_payload,
     generate_product_payload,
 )
-from ...base_plugin import BasePlugin
+from ..base_plugin import BasePlugin
 from .tasks import trigger_webhooks_for_event
 
 if TYPE_CHECKING:
-    from ....order.models import Fulfillment, Order
-    from ....account.models import User
-    from ....product.models import Product
-    from ....checkout.models import Checkout
+    from ...order.models import Fulfillment, Order
+    from ...account.models import User
+    from ...product.models import Product
+    from ...checkout.models import Checkout
 
 
 class WebhookPlugin(BasePlugin):

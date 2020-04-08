@@ -7,10 +7,10 @@ from django_countries.fields import Country
 from django_prices_vatlayer.utils import get_tax_rate_types
 from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
-from ....checkout import calculations
-from ....core.taxes import TaxType
-from ....graphql.core.utils.error_codes import ExtensionsErrorCode
-from ...base_plugin import BasePlugin
+from ...checkout import calculations
+from ...core.taxes import TaxType
+from ...graphql.core.utils.error_codes import PluginsErrorCode
+from ..base_plugin import BasePlugin
 from . import (
     DEFAULT_TAX_RATE_NAME,
     TaxRateType,
@@ -21,12 +21,12 @@ from . import (
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ....checkout.models import Checkout, CheckoutLine
-    from ....discount import DiscountInfo
-    from ....product.models import Product, ProductType
-    from ....account.models import Address
-    from ....order.models import OrderLine, Order
-    from ...models import PluginConfiguration
+    from ...checkout.models import Checkout, CheckoutLine
+    from ...discount import DiscountInfo
+    from ...product.models import Product, ProductType
+    from ...account.models import Address
+    from ...order.models import OrderLine, Order
+    from ..models import PluginConfiguration
 
 
 class VatlayerPlugin(BasePlugin):
@@ -263,5 +263,5 @@ class VatlayerPlugin(BasePlugin):
         if not settings.VATLAYER_ACCESS_KEY and plugin_configuration.active:
             raise ValidationError(
                 "Cannot be enabled without provided 'settings.VATLAYER_ACCESS_KEY'",
-                code=ExtensionsErrorCode.PLUGIN_MISCONFIGURED.value,
+                code=PluginsErrorCode.PLUGIN_MISCONFIGURED.value,
             )

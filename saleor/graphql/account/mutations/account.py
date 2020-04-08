@@ -91,7 +91,7 @@ class AccountRegister(ModelMutation):
             user.save()
             match_orders_with_new_user(user)
         account_events.customer_account_created_event(user=user)
-        info.context.extensions.customer_created(customer=user)
+        info.context.plugins.customer_created(customer=user)
 
 
 class AccountInput(graphene.InputObjectType):

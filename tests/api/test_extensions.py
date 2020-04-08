@@ -1,13 +1,13 @@
 import copy
 import pytest
 
-from saleor.extensions import ConfigurationTypeField
-from saleor.extensions.error_codes import ExtensionsErrorCode
-from saleor.extensions.manager import get_extensions_manager
-from saleor.extensions.models import PluginConfiguration
+from saleor.plugins import ConfigurationTypeField
+from saleor.plugins.error_codes import PluginsErrorCode
+from saleor.plugins.manager import get_plugins_manager
+from saleor.plugins.models import PluginConfiguration
 from tests.api.utils import assert_no_permission, get_graphql_content
-from tests.extensions.sample_plugins import PluginSample
-from tests.extensions.utils import get_config_value
+from tests.plugins.sample_plugins import PluginSample
+from tests.plugins.utils import get_config_value
 
 
 @pytest.fixture
@@ -42,7 +42,7 @@ PLUGINS_QUERY = """
 def test_query_plugin_configurations(staff_api_client_can_manage_plugins, settings):
 
     # Enable test plugin
-    settings.PLUGINS = ["tests.api.test_extensions.PluginSample"]
+    settings.PLUGINS = ["tests.api.plugins.PluginSample"]
     response = staff_api_client_can_manage_plugins.post_graphql(PLUGINS_QUERY)
     content = get_graphql_content(response)
 
@@ -50,7 +50,7 @@ def test_query_plugin_configurations(staff_api_client_can_manage_plugins, settin
 
     assert len(plugins) == 1
     plugin = plugins[0]["node"]
-    manager = get_extensions_manager()
+    manager = get_plugins_manager()
     sample_plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
     confiugration_structure = PluginSample.CONFIG_STRUCTURE
 
@@ -96,8 +96,8 @@ def test_query_plugins_hides_secret_fields(
     settings,
 ):
 
-    settings.PLUGINS = ["tests.api.test_extensions.PluginSample"]
-    manager = get_extensions_manager()
+    settings.PLUGINS = ["tests.api.plugins.PluginSample"]
+    manager = get_plugins_manager()
     plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
     configuration = copy.deepcopy(plugin.configuration)
     for conf_field in configuration:
@@ -125,7 +125,7 @@ def test_query_plugins_hides_secret_fields(
 
 
 def test_query_plugin_configurations_as_customer_user(user_api_client, settings):
-    settings.PLUGINS = ["tests.api.test_extensions.PluginSample"]
+    settings.PLUGINS = ["tests.api.plugins.PluginSample"]
     response = user_api_client.post_graphql(PLUGINS_QUERY)
 
     assert_no_permission(response)
@@ -168,8 +168,8 @@ def test_query_plugin_hides_secret_fields(
     settings,
 ):
 
-    settings.PLUGINS = ["tests.api.test_extensions.PluginSample"]
-    manager = get_extensions_manager()
+    settings.PLUGINS = ["tests.api.test_plugins.PluginSample"]
+    manager = get_plugins_manager()
     plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
     configuration = copy.deepcopy(plugin.configuration)
     for conf_field in configuration:
@@ -198,8 +198,8 @@ def test_query_plugin_hides_secret_fields(
 def test_query_plugin_configuration(
     staff_api_client, permission_manage_plugins, settings
 ):
-    settings.PLUGINS = ["tests.api.test_extensions.PluginSample"]
-    manager = get_extensions_manager()
+    settings.PLUGINS = ["tests.api.test_plugins.PluginSample"]
+    manager = get_plugins_manager()
     sample_plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
 
     variables = {"id": sample_plugin.PLUGIN_NAME}
@@ -227,8 +227,8 @@ def test_query_plugin_configuration_for_invalid_plugin_name(
 
 
 def test_query_plugin_configuration_as_customer_user(user_api_client, settings):
-    settings.PLUGINS = ["tests.api.test_extensions.PluginSample"]
-    manager = get_extensions_manager()
+    settings.PLUGINS = ["tests.api.test_plugins.PluginSample"]
+    manager = get_plugins_manager()
     sample_plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
 
     variables = {"id": sample_plugin.PLUGIN_NAME}
@@ -259,7 +259,7 @@ PLUGIN_UPDATE_MUTATION = """
               field
               message
             }
-            extensionsErrors {
+            pluginsErrors {
               field
               code
             }
@@ -279,8 +279,8 @@ def test_plugin_configuration_update(
     staff_api_client_can_manage_plugins, settings, active, updated_configuration_item
 ):
 
-    settings.PLUGINS = ["tests.extensions.sample_plugins.PluginSample"]
-    manager = get_extensions_manager()
+    settings.PLUGINS = ["tests.plugins.sample_plugins.PluginSample"]
+    manager = get_plugins_manager()
     plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
     old_configuration = copy.deepcopy(plugin.configuration)
 
@@ -318,17 +318,17 @@ def test_plugin_configuration_update_containing_invalid_plugin_name(
         PLUGIN_UPDATE_MUTATION, variables
     )
     content = get_graphql_content(response)
-    assert content["data"]["pluginUpdate"]["extensionsErrors"][0] == {
+    assert content["data"]["pluginUpdate"]["pluginsErrors"][0] == {
         "field": "id",
-        "code": ExtensionsErrorCode.NOT_FOUND.name,
+        "code": PluginsErrorCode.NOT_FOUND.name,
     }
 
 
 def test_plugin_update_saves_boolean_as_boolean(
     staff_api_client_can_manage_plugins, settings
 ):
-    settings.PLUGINS = ["tests.extensions.sample_plugins.PluginSample"]
-    manager = get_extensions_manager()
+    settings.PLUGINS = ["tests.plugins.sample_plugins.PluginSample"]
+    manager = get_plugins_manager()
     plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
     use_sandbox = get_config_value("Use sandbox", plugin.configuration)
     variables = {
@@ -359,9 +359,9 @@ def test_plugins_query_with_filter(
     plugin_filter, count, staff_api_client_can_manage_plugins, settings
 ):
     settings.PLUGINS = [
-        "tests.extensions.sample_plugins.PluginSample",
-        "tests.extensions.sample_plugins.PluginInactive",
-        "tests.extensions.sample_plugins.ActivePlugin",
+        "tests.plugins.sample_plugins.PluginSample",
+        "tests.plugins.sample_plugins.PluginInactive",
+        "tests.plugins.sample_plugins.ActivePlugin",
     ]
     query = """
         query ($filter: PluginFilterInput) {
@@ -382,8 +382,8 @@ def test_plugins_query_with_filter(
 
 
 def test_plugin_configuration_update_as_customer_user(user_api_client, settings):
-    settings.PLUGINS = ["tests.extensions.sample_plugins.PluginSample"]
-    manager = get_extensions_manager()
+    settings.PLUGINS = ["tests.plugins.sample_plugins.PluginSample"]
+    manager = get_plugins_manager()
     plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
 
     variables = {
@@ -434,9 +434,9 @@ def test_query_plugins_with_sort(
     plugin_sort, result_order, staff_api_client_can_manage_plugins, settings
 ):
     settings.PLUGINS = [
-        "tests.extensions.sample_plugins.PluginSample",
-        "tests.extensions.sample_plugins.PluginInactive",
-        "tests.extensions.sample_plugins.ActivePlugin",
+        "tests.plugins.sample_plugins.PluginSample",
+        "tests.plugins.sample_plugins.PluginInactive",
+        "tests.plugins.sample_plugins.ActivePlugin",
     ]
     variables = {"sort_by": plugin_sort}
     response = staff_api_client_can_manage_plugins.post_graphql(

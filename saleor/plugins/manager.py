@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     )
 
 
-class ExtensionsManager(PaymentInterface):
+class PluginsManager(PaymentInterface):
     """Base manager for handling plugins logic."""
 
     plugins: List["BasePlugin"] = []
@@ -395,11 +395,11 @@ class ExtensionsManager(PaymentInterface):
         return None
 
 
-def get_extensions_manager(
+def get_plugins_manager(
     manager_path: str = None, plugins: List[str] = None
-) -> ExtensionsManager:
+) -> PluginsManager:
     if not manager_path:
-        manager_path = settings.EXTENSIONS_MANAGER
+        manager_path = settings.PLUGINS_MANAGER
     if plugins is None:
         plugins = settings.PLUGINS
     manager = import_string(manager_path)

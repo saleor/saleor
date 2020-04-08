@@ -1,11 +1,11 @@
 from typing import TYPE_CHECKING, Any, Optional
 
-from ...base_plugin import BasePlugin
+from ..base_plugin import BasePlugin
 from . import obfuscate_address, obfuscate_email, obfuscate_order
 
 if TYPE_CHECKING:
-    from ....account.models import Address, User
-    from ....order.models import Order
+    from ...account.models import Address, User
+    from ...order.models import Order
 
 
 class AnonymizePlugin(BasePlugin):

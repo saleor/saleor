@@ -1,21 +1,21 @@
 import pytest
 
-from saleor.extensions.checks import check_extensions
+from saleor.plugins.checks import check_plugins
 
 
 @pytest.mark.parametrize(
-    "manager_path", [None, "", "saleor.core.extension.wrong_path.Manager"]
+    "manager_path", [None, "", "saleor.core.plugins.wrong_path.Manager"]
 )
-def test_check_extensions_missing_manager(manager_path, settings):
-    settings.EXTENSIONS_MANAGER = manager_path
-    errors = check_extensions({})
+def test_check_plugins_missing_manager(manager_path, settings):
+    settings.PLUGINS_MANAGER = manager_path
+    errors = check_plugins({})
     assert errors
 
 
 @pytest.mark.parametrize(
-    "plugin_path", [None, "", "saleor.core.extension.wrong_path.Plugin"]
+    "plugin_path", [None, "", "saleor.core.plugins.wrong_path.Plugin"]
 )
-def test_check_extensions_wrong_declaration_of_plugins(plugin_path, settings):
+def test_check_plugins_wrong_declaration_of_plugins(plugin_path, settings):
     settings.PLUGINS = [plugin_path]
-    errors = check_extensions({})
+    errors = check_plugins({})
     assert errors

@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, Iterable, Optional
 
 from ..discount import DiscountInfo
-from ..extensions.manager import get_extensions_manager
+from ..plugins.manager import get_plugins_manager
 
 if TYPE_CHECKING:
     from prices import TaxedMoney
@@ -13,9 +13,9 @@ def checkout_shipping_price(
 ) -> "TaxedMoney":
     """Return checkout shipping price.
 
-    It takes in account all extensions.
+    It takes in account all plugins.
     """
-    return get_extensions_manager().calculate_checkout_shipping(
+    return get_plugins_manager().calculate_checkout_shipping(
         checkout, discounts or []
     )
 
@@ -25,9 +25,9 @@ def checkout_subtotal(
 ) -> "TaxedMoney":
     """Return the total cost of all the checkout lines, taxes included.
 
-    It takes in account all extensions.
+    It takes in account all plugins.
     """
-    return get_extensions_manager().calculate_checkout_subtotal(
+    return get_plugins_manager().calculate_checkout_subtotal(
         checkout, discounts or []
     )
 
@@ -40,9 +40,9 @@ def checkout_total(
     Total is a cost of all lines and shipping fees, minus checkout discounts,
     taxes included.
 
-    It takes in account all extensions.
+    It takes in account all plugins.
     """
-    return get_extensions_manager().calculate_checkout_total(checkout, discounts or [])
+    return get_plugins_manager().calculate_checkout_total(checkout, discounts or [])
 
 
 def checkout_line_total(
@@ -50,6 +50,6 @@ def checkout_line_total(
 ) -> "TaxedMoney":
     """Return the total price of provided line, taxes included.
 
-    It takes in account all extensions.
+    It takes in account all plugins.
     """
-    return get_extensions_manager().calculate_checkout_line_total(line, discounts or [])
+    return get_plugins_manager().calculate_checkout_line_total(line, discounts or [])

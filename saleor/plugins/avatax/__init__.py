@@ -12,13 +12,13 @@ from django.contrib.sites.models import Site
 from django.core.cache import cache
 from requests.auth import HTTPBasicAuth
 
-from ....checkout import base_calculations
+from ...checkout import base_calculations
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ....checkout.models import Checkout
-    from ....order.models import Order
-    from ....product.models import Product, ProductVariant, ProductType
+    from ...checkout.models import Checkout
+    from ...order.models import Order
+    from ...product.models import Product, ProductVariant, ProductType
 
 logger = logging.getLogger(__name__)
 

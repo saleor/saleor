@@ -2,7 +2,7 @@ from unittest.mock import Mock
 
 from prices import Money, TaxedMoney
 
-from saleor.extensions.manager import ExtensionsManager
+from saleor.plugins.manager import PluginsManager
 from saleor.product.models import ProductVariant
 from saleor.product.utils.availability import get_variant_availability
 from tests.api.utils import get_graphql_content
@@ -101,7 +101,7 @@ def test_get_variant_pricing_not_on_sale(api_client, product):
 def test_variant_pricing(variant: ProductVariant, monkeypatch, settings, stock):
     taxed_price = TaxedMoney(Money("10.0", "USD"), Money("12.30", "USD"))
     monkeypatch.setattr(
-        ExtensionsManager, "apply_taxes_to_product", Mock(return_value=taxed_price)
+        PluginsManager, "apply_taxes_to_product", Mock(return_value=taxed_price)
     )
 
     pricing = get_variant_availability(variant)

@@ -1,6 +1,6 @@
 import graphene
 
-from ...core.permissions import ExtensionsPermissions
+from ...core.permissions import PluginsPermissions
 from ..core.fields import BaseDjangoConnectionField
 from ..decorators import permission_required
 from .filters import PluginFilterInput
@@ -10,7 +10,7 @@ from .sorters import PluginSortingInput
 from .types import Plugin
 
 
-class ExtensionsQueries(graphene.ObjectType):
+class PluginsQueries(graphene.ObjectType):
     plugin = graphene.Field(
         Plugin,
         id=graphene.Argument(
@@ -25,14 +25,14 @@ class ExtensionsQueries(graphene.ObjectType):
         description="List of plugins.",
     )
 
-    @permission_required(ExtensionsPermissions.MANAGE_PLUGINS)
+    @permission_required(PluginsPermissions.MANAGE_PLUGINS)
     def resolve_plugin(self, info, **data):
         return resolve_plugin(info, data.get("id"))
 
-    @permission_required(ExtensionsPermissions.MANAGE_PLUGINS)
+    @permission_required(PluginsPermissions.MANAGE_PLUGINS)
     def resolve_plugins(self, _info, **kwargs):
         return resolve_plugins(**kwargs)
 
 
-class ExtensionsMutations(graphene.ObjectType):
+class PluginsMutations(graphene.ObjectType):
     plugin_update = PluginUpdate.Field()

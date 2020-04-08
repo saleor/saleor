@@ -5,9 +5,9 @@ import requests
 from django.core.serializers import serialize
 
 from saleor.account.models import ServiceAccount
-from saleor.extensions.manager import get_extensions_manager
-from saleor.extensions.plugins.webhook import create_hmac_signature
-from saleor.extensions.plugins.webhook.tasks import trigger_webhooks_for_event
+from saleor.plugins.manager import get_plugins_manager
+from saleor.plugins.webhook import create_hmac_signature
+from saleor.plugins.webhook.tasks import trigger_webhooks_for_event
 from saleor.webhook.event_types import WebhookEventType
 from saleor.webhook.payloads import (
     generate_checkout_payload,
@@ -19,7 +19,7 @@ from saleor.webhook.payloads import (
 
 @pytest.mark.vcr
 @mock.patch(
-    "saleor.extensions.plugins.webhook.tasks.requests.post", wraps=requests.post
+    "saleor.plugins.webhook.tasks.requests.post", wraps=requests.post
 )
 def test_trigger_webhooks_for_event(
     mock_request,
@@ -63,7 +63,7 @@ third_url = "http://www.example.com/third/"
         (WebhookEventType.CUSTOMER_CREATED, 0, set()),
     ],
 )
-@mock.patch("saleor.extensions.plugins.webhook.tasks.send_webhook_request.delay")
+@mock.patch("saleor.plugins.webhook.tasks.send_webhook_request.delay")
 def test_trigger_webhooks_for_event_calls_expected_events(
     mock_request,
     event_name,
@@ -111,7 +111,7 @@ def test_trigger_webhooks_for_event_calls_expected_events(
 
 @pytest.mark.vcr
 @mock.patch(
-    "saleor.extensions.plugins.webhook.tasks.requests.post", wraps=requests.post
+    "saleor.plugins.webhook.tasks.requests.post", wraps=requests.post
 )
 def test_trigger_webhooks_for_event_with_secret_key(
     mock_request, webhook, order_with_lines, permission_manage_orders
@@ -138,10 +138,10 @@ def test_trigger_webhooks_for_event_with_secret_key(
     )
 
 
-@mock.patch("saleor.extensions.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_order_created(mocked_webhook_trigger, settings, order_with_lines):
-    settings.PLUGINS = ["saleor.extensions.plugins.webhook.plugin.WebhookPlugin"]
-    manager = get_extensions_manager()
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
     manager.order_created(order_with_lines)
 
     expected_data = generate_order_payload(order_with_lines)
@@ -150,10 +150,10 @@ def test_order_created(mocked_webhook_trigger, settings, order_with_lines):
     )
 
 
-@mock.patch("saleor.extensions.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_customer_created(mocked_webhook_trigger, settings, customer_user):
-    settings.PLUGINS = ["saleor.extensions.plugins.webhook.plugin.WebhookPlugin"]
-    manager = get_extensions_manager()
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
     manager.customer_created(customer_user)
 
     expected_data = generate_customer_payload(customer_user)
@@ -162,10 +162,10 @@ def test_customer_created(mocked_webhook_trigger, settings, customer_user):
     )
 
 
-@mock.patch("saleor.extensions.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_order_fully_paid(mocked_webhook_trigger, settings, order_with_lines):
-    settings.PLUGINS = ["saleor.extensions.plugins.webhook.plugin.WebhookPlugin"]
-    manager = get_extensions_manager()
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
     manager.order_fully_paid(order_with_lines)
 
     expected_data = generate_order_payload(order_with_lines)
@@ -174,10 +174,10 @@ def test_order_fully_paid(mocked_webhook_trigger, settings, order_with_lines):
     )
 
 
-@mock.patch("saleor.extensions.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_product_created(mocked_webhook_trigger, settings, product):
-    settings.PLUGINS = ["saleor.extensions.plugins.webhook.plugin.WebhookPlugin"]
-    manager = get_extensions_manager()
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
     manager.product_created(product)
 
     expected_data = generate_product_payload(product)
@@ -186,10 +186,10 @@ def test_product_created(mocked_webhook_trigger, settings, product):
     )
 
 
-@mock.patch("saleor.extensions.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_order_updated(mocked_webhook_trigger, settings, order_with_lines):
-    settings.PLUGINS = ["saleor.extensions.plugins.webhook.plugin.WebhookPlugin"]
-    manager = get_extensions_manager()
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
     manager.order_updated(order_with_lines)
 
     expected_data = generate_order_payload(order_with_lines)
@@ -198,10 +198,10 @@ def test_order_updated(mocked_webhook_trigger, settings, order_with_lines):
     )
 
 
-@mock.patch("saleor.extensions.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_order_cancelled(mocked_webhook_trigger, settings, order_with_lines):
-    settings.PLUGINS = ["saleor.extensions.plugins.webhook.plugin.WebhookPlugin"]
-    manager = get_extensions_manager()
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
     manager.order_cancelled(order_with_lines)
 
     expected_data = generate_order_payload(order_with_lines)
@@ -210,12 +210,12 @@ def test_order_cancelled(mocked_webhook_trigger, settings, order_with_lines):
     )
 
 
-@mock.patch("saleor.extensions.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
+@mock.patch("saleor.plugins.webhook.plugin.trigger_webhooks_for_event.delay")
 def test_checkout_quantity_changed(
     mocked_webhook_trigger, settings, checkout_with_items
 ):
-    settings.PLUGINS = ["saleor.extensions.plugins.webhook.plugin.WebhookPlugin"]
-    manager = get_extensions_manager()
+    settings.PLUGINS = ["saleor.plugins.webhook.plugin.WebhookPlugin"]
+    manager = get_plugins_manager()
     manager.checkout_quantity_changed(checkout_with_items)
 
     expected_data = generate_checkout_payload(checkout_with_items)
