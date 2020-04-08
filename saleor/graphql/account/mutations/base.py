@@ -13,6 +13,7 @@ from ....account.emails import (
 from ....account.error_codes import AccountErrorCode
 from ....core.permissions import AccountPermissions
 from ....core.utils.url import validate_storefront_url
+from ....order.utils import match_orders_with_new_user
 from ...account.i18n import I18nMixin
 from ...account.types import Address, AddressInput, User
 from ...core.mutations import (
@@ -44,12 +45,6 @@ def can_edit_address(user, address):
 
 
 class SetPassword(CreateToken):
-    user = graphene.Field(User, description="A user instance with new password.")
-    account_errors = graphene.List(
-        graphene.NonNull(AccountError),
-        description="List of errors that occurred executing the mutation.",
-    )
-
     class Arguments:
         token = graphene.String(
             description="A one-time token required to set the password.", required=True
@@ -98,14 +93,6 @@ class SetPassword(CreateToken):
         user.save(update_fields=["password"])
         account_events.customer_password_reset_event(user=user)
 
-    @classmethod
-    def handle_typed_errors(cls, errors: list):
-        account_errors = [
-            AccountError(field=e.field, message=e.message, code=code)
-            for e, code, _params in errors
-        ]
-        return cls(errors=[e[0] for e in errors], account_errors=account_errors)
-
 
 class RequestPasswordReset(BaseMutation):
     class Arguments:
@@ -153,6 +140,8 @@ class RequestPasswordReset(BaseMutation):
 
 
 class ConfirmAccount(BaseMutation):
+    user = graphene.Field(User, description="An activated user account.")
+
     class Arguments:
         token = graphene.String(
             description="A one-time token required to set the password.", required=True
@@ -164,6 +153,8 @@ class ConfirmAccount(BaseMutation):
 
     class Meta:
         description = "Confirm user account by token sent by email during registration"
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     def perform_mutation(cls, _root, info, **data):
@@ -186,8 +177,8 @@ class ConfirmAccount(BaseMutation):
 
         user.is_active = True
         user.save(update_fields=["is_active"])
-
-        return ConfirmAccount()
+        match_orders_with_new_user(user)
+        return ConfirmAccount(user=user)
 
 
 class PasswordChange(BaseMutation):

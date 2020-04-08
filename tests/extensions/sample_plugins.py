@@ -18,6 +18,15 @@ if TYPE_CHECKING:
 
 class PluginSample(BasePlugin):
     PLUGIN_NAME = "PluginSample"
+    PLUGIN_DESCRIPTION = "Test plugin description"
+    DEFAULT_ACTIVE = True
+    DEFAULT_CONFIGURATION = [
+        {"name": "Username", "value": "admin"},
+        {"name": "Password", "value": None},
+        {"name": "Use sandbox", "value": False},
+        {"name": "API private key", "value": None},
+    ]
+
     CONFIG_STRUCTURE = {
         "Username": {
             "type": ConfigurationTypeField.STRING,
@@ -40,20 +49,6 @@ class PluginSample(BasePlugin):
             "label": "Private key",
         },
     }
-
-    @classmethod
-    def _get_default_configuration(cls):
-        return {
-            "name": "PluginSample",
-            "description": "Test plugin description",
-            "active": True,
-            "configuration": [
-                {"name": "Username", "value": "admin"},
-                {"name": "Password", "value": None},
-                {"name": "Use sandbox", "value": False},
-                {"name": "API private key", "value": None},
-            ],
-        }
 
     def calculate_checkout_total(self, checkout, discounts, previous_value):
         total = Money("1.0", currency=checkout.currency)
@@ -104,51 +99,19 @@ class PluginSample(BasePlugin):
 
 class PluginInactive(BasePlugin):
     PLUGIN_NAME = "PluginInactive"
-
-    @classmethod
-    def _get_default_configuration(cls):
-        return {
-            "name": "PluginInactive",
-            "description": "Test plugin description_2",
-            "active": False,
-            "configuration": None,
-        }
+    PLUGIN_DESCRIPTION = "Test plugin description_2"
 
 
 class ActivePlugin(BasePlugin):
-    PLUGIN_NAME = "Plugin1"
-
-    @classmethod
-    def get_plugin_configuration(
-        cls, queryset: "QuerySet" = None
-    ) -> "PluginConfiguration":
-        if queryset:
-            configuration = queryset.filter(name="Active").first()
-            if configuration:
-                return configuration
-
-        defaults = {
-            "name": "Active",
-            "description": "Not working",
-            "active": True,
-            "configuration": [],
-        }
-        return PluginConfiguration.objects.create(**defaults)
+    PLUGIN_NAME = "Active"
+    PLUGIN_DESCRIPTION = "Not working"
+    DEFAULT_ACTIVE = True
 
 
 class ActivePaymentGateway(BasePlugin):
     CLIENT_CONFIG = [{"field": "foo", "value": "bar"}]
     PLUGIN_NAME = "braintree"
-
-    @classmethod
-    def _get_default_configuration(cls):
-        defaults = {
-            "name": "braintree",
-            "description": "",
-            "active": True,
-            "configuration": None,
-        }
-        return defaults
+    DEFAULT_ACTIVE = True
 
     def process_payment(self, payment_information, previous_value):
         pass
@@ -159,16 +122,6 @@ class ActivePaymentGateway(BasePlugin):
 
 class InactivePaymentGateway(BasePlugin):
     PLUGIN_NAME = "stripe"
-
-    @classmethod
-    def _get_default_configuration(cls):
-        defaults = {
-            "name": "stripe",
-            "description": "",
-            "active": False,
-            "configuration": None,
-        }
-        return defaults
 
     def process_payment(self, payment_information, previous_value):
         pass

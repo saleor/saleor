@@ -1,10 +1,11 @@
-import graphene
+import copy
 import pytest
 
 from saleor.extensions import ConfigurationTypeField
+from saleor.extensions.error_codes import ExtensionsErrorCode
 from saleor.extensions.manager import get_extensions_manager
 from saleor.extensions.models import PluginConfiguration
-from tests.api.utils import get_graphql_content
+from tests.api.utils import assert_no_permission, get_graphql_content
 from tests.extensions.sample_plugins import PluginSample
 from tests.extensions.utils import get_config_value
 
@@ -49,17 +50,15 @@ def test_query_plugin_configurations(staff_api_client_can_manage_plugins, settin
 
     assert len(plugins) == 1
     plugin = plugins[0]["node"]
-    plugin_configuration = PluginConfiguration.objects.get()
+    manager = get_extensions_manager()
+    sample_plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
     confiugration_structure = PluginSample.CONFIG_STRUCTURE
 
-    assert plugin["name"] == plugin_configuration.name
-    assert plugin["active"] == plugin_configuration.active
-    assert plugin["description"] == plugin_configuration.description
+    assert plugin["name"] == sample_plugin.PLUGIN_NAME
+    assert plugin["active"] == sample_plugin.DEFAULT_ACTIVE
+    assert plugin["description"] == sample_plugin.PLUGIN_DESCRIPTION
     for index, configuration_item in enumerate(plugin["configuration"]):
-        assert (
-            configuration_item["name"]
-            == plugin_configuration.configuration[index]["name"]
-        )
+        assert configuration_item["name"] == sample_plugin.configuration[index]["name"]
 
         if (
             confiugration_structure[configuration_item["name"]]["type"]
@@ -67,14 +66,14 @@ def test_query_plugin_configurations(staff_api_client_can_manage_plugins, settin
         ):
             assert (
                 configuration_item["value"]
-                == plugin_configuration.configuration[index]["value"]
+                == sample_plugin.configuration[index]["value"]
             )
         elif configuration_item["value"] is None:
-            assert not plugin_configuration.configuration[index]["value"]
+            assert not sample_plugin.configuration[index]["value"]
         else:
             assert (
                 configuration_item["value"]
-                == str(plugin_configuration.configuration[index]["value"]).lower()
+                == str(sample_plugin.configuration[index]["value"]).lower()
             )
 
 
@@ -99,13 +98,16 @@ def test_query_plugins_hides_secret_fields(
 
     settings.PLUGINS = ["tests.api.test_extensions.PluginSample"]
     manager = get_extensions_manager()
-    plugin_configuration = manager.get_plugin_configuration(PluginSample.PLUGIN_NAME)
-    for conf_field in plugin_configuration.configuration:
+    plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
+    configuration = copy.deepcopy(plugin.configuration)
+    for conf_field in configuration:
         if conf_field["name"] == "Password":
             conf_field["value"] = password
         if conf_field["name"] == "API private key":
             conf_field["value"] = api_key
-    plugin_configuration.save()
+    manager.save_plugin_configuration(
+        PluginSample.PLUGIN_NAME, {"active": True, "configuration": configuration}
+    )
 
     staff_api_client.user.user_permissions.add(permission_manage_plugins)
     response = staff_api_client.post_graphql(PLUGINS_QUERY)
@@ -120,6 +122,13 @@ def test_query_plugins_hides_secret_fields(
             assert conf_field["value"] == expected_password
         if conf_field["name"] == "API private key":
             assert conf_field["value"] == expected_api_key
+
+
+def test_query_plugin_configurations_as_customer_user(user_api_client, settings):
+    settings.PLUGINS = ["tests.api.test_extensions.PluginSample"]
+    response = user_api_client.post_graphql(PLUGINS_QUERY)
+
+    assert_no_permission(response)
 
 
 PLUGIN_QUERY = """
@@ -161,16 +170,18 @@ def test_query_plugin_hides_secret_fields(
 
     settings.PLUGINS = ["tests.api.test_extensions.PluginSample"]
     manager = get_extensions_manager()
-    plugin_configuration = manager.get_plugin_configuration(PluginSample.PLUGIN_NAME)
-    for conf_field in plugin_configuration.configuration:
+    plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
+    configuration = copy.deepcopy(plugin.configuration)
+    for conf_field in configuration:
         if conf_field["name"] == "Password":
             conf_field["value"] = password
         if conf_field["name"] == "API private key":
             conf_field["value"] = api_key
-    plugin_configuration.save()
-    configuration_id = graphene.Node.to_global_id("Plugin", plugin_configuration.pk)
+    manager.save_plugin_configuration(
+        PluginSample.PLUGIN_NAME, {"active": True, "configuration": configuration}
+    )
 
-    variables = {"id": configuration_id}
+    variables = {"id": plugin.PLUGIN_NAME}
     staff_api_client.user.user_permissions.add(permission_manage_plugins)
     response = staff_api_client.post_graphql(PLUGIN_QUERY, variables)
     content = get_graphql_content(response)
@@ -189,21 +200,41 @@ def test_query_plugin_configuration(
 ):
     settings.PLUGINS = ["tests.api.test_extensions.PluginSample"]
     manager = get_extensions_manager()
-    plugin_configuration = manager.get_plugin_configuration("PluginSample")
-    configuration_id = graphene.Node.to_global_id("Plugin", plugin_configuration.pk)
+    sample_plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
 
-    variables = {"id": configuration_id}
+    variables = {"id": sample_plugin.PLUGIN_NAME}
     staff_api_client.user.user_permissions.add(permission_manage_plugins)
     response = staff_api_client.post_graphql(PLUGIN_QUERY, variables)
     content = get_graphql_content(response)
     plugin = content["data"]["plugin"]
-    assert plugin["name"] == plugin_configuration.name
-    assert plugin["active"] == plugin_configuration.active
-    assert plugin["description"] == plugin_configuration.description
+    assert plugin["name"] == sample_plugin.PLUGIN_NAME
+    assert plugin["active"] == sample_plugin.active
+    assert plugin["description"] == sample_plugin.PLUGIN_DESCRIPTION
 
     configuration_item = plugin["configuration"][0]
-    assert configuration_item["name"] == plugin_configuration.configuration[0]["name"]
-    assert configuration_item["value"] == plugin_configuration.configuration[0]["value"]
+    assert configuration_item["name"] == sample_plugin.configuration[0]["name"]
+    assert configuration_item["value"] == sample_plugin.configuration[0]["value"]
+
+
+def test_query_plugin_configuration_for_invalid_plugin_name(
+    staff_api_client, permission_manage_plugins
+):
+    variables = {"id": "fake-name"}
+    staff_api_client.user.user_permissions.add(permission_manage_plugins)
+    response = staff_api_client.post_graphql(PLUGIN_QUERY, variables)
+    content = get_graphql_content(response)
+    assert content["data"]["plugin"] is None
+
+
+def test_query_plugin_configuration_as_customer_user(user_api_client, settings):
+    settings.PLUGINS = ["tests.api.test_extensions.PluginSample"]
+    manager = get_extensions_manager()
+    sample_plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
+
+    variables = {"id": sample_plugin.PLUGIN_NAME}
+    response = user_api_client.post_graphql(PLUGIN_QUERY, variables)
+
+    assert_no_permission(response)
 
 
 PLUGIN_UPDATE_MUTATION = """
@@ -228,6 +259,10 @@ PLUGIN_UPDATE_MUTATION = """
               field
               message
             }
+            extensionsErrors {
+              field
+              code
+            }
           }
         }
     """
@@ -246,11 +281,11 @@ def test_plugin_configuration_update(
 
     settings.PLUGINS = ["tests.extensions.sample_plugins.PluginSample"]
     manager = get_extensions_manager()
-    plugin = manager.get_plugin_configuration(plugin_name="PluginSample")
-    old_configuration = plugin.configuration
-    plugin_id = graphene.Node.to_global_id("Plugin", plugin.pk)
+    plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
+    old_configuration = copy.deepcopy(plugin.configuration)
+
     variables = {
-        "id": plugin_id,
+        "id": plugin.PLUGIN_NAME,
         "active": active,
         "configuration": [updated_configuration_item],
     }
@@ -259,18 +294,34 @@ def test_plugin_configuration_update(
     )
     get_graphql_content(response)
 
-    plugin = PluginConfiguration.objects.get(name="PluginSample")
+    plugin = PluginConfiguration.objects.get(name=PluginSample.PLUGIN_NAME)
     assert plugin.active == active
 
     first_configuration_item = plugin.configuration[0]
     assert first_configuration_item["name"] == updated_configuration_item["name"]
     assert first_configuration_item["value"] == updated_configuration_item["value"]
-    assert set(first_configuration_item.keys()) == {"name", "value"}
 
     second_configuration_item = plugin.configuration[1]
     assert second_configuration_item["name"] == old_configuration[1]["name"]
     assert second_configuration_item["value"] == old_configuration[1]["value"]
-    assert set(second_configuration_item.keys()) == {"name", "value"}
+
+
+def test_plugin_configuration_update_containing_invalid_plugin_name(
+    staff_api_client_can_manage_plugins,
+):
+    variables = {
+        "id": "fake-name",
+        "active": True,
+        "configuration": [{"name": "Username", "value": "user"}],
+    }
+    response = staff_api_client_can_manage_plugins.post_graphql(
+        PLUGIN_UPDATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    assert content["data"]["pluginUpdate"]["extensionsErrors"][0] == {
+        "field": "id",
+        "code": ExtensionsErrorCode.NOT_FOUND.name,
+    }
 
 
 def test_plugin_update_saves_boolean_as_boolean(
@@ -278,11 +329,10 @@ def test_plugin_update_saves_boolean_as_boolean(
 ):
     settings.PLUGINS = ["tests.extensions.sample_plugins.PluginSample"]
     manager = get_extensions_manager()
-    plugin = manager.get_plugin_configuration(plugin_name="PluginSample")
+    plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
     use_sandbox = get_config_value("Use sandbox", plugin.configuration)
-    plugin_id = graphene.Node.to_global_id("Plugin", plugin.pk)
     variables = {
-        "id": plugin_id,
+        "id": plugin.PLUGIN_NAME,
         "active": plugin.active,
         "configuration": [{"name": "Use sandbox", "value": True}],
     }
@@ -291,7 +341,6 @@ def test_plugin_update_saves_boolean_as_boolean(
     )
     content = get_graphql_content(response)
     assert len(content["data"]["pluginUpdate"]["errors"]) == 0
-    plugin.refresh_from_db()
     use_sandbox_new_value = get_config_value("Use sandbox", plugin.configuration)
     assert type(use_sandbox) == type(use_sandbox_new_value)
 
@@ -330,6 +379,21 @@ def test_plugins_query_with_filter(
     response = staff_api_client_can_manage_plugins.post_graphql(query, variables)
     content = get_graphql_content(response)
     assert content["data"]["plugins"]["totalCount"] == count
+
+
+def test_plugin_configuration_update_as_customer_user(user_api_client, settings):
+    settings.PLUGINS = ["tests.extensions.sample_plugins.PluginSample"]
+    manager = get_extensions_manager()
+    plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
+
+    variables = {
+        "id": plugin.PLUGIN_NAME,
+        "active": True,
+        "configuration": [{"name": "Username", "value": "user"}],
+    }
+    response = user_api_client.post_graphql(PLUGIN_UPDATE_MUTATION, variables)
+
+    assert_no_permission(response)
 
 
 QUERY_PLUGIN_WITH_SORT = """
