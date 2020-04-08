@@ -1768,22 +1768,6 @@ def description_json():
 
 
 @pytest.fixture
-def description_raw():
-    return """\
-E-commerce for the PWA era
-A modular, high performance e-commerce storefront built with GraphQL, Django, \
-and ReactJS.
-
-Saleor is a rapidly-growing open source e-commerce platform that has served \
-high-volume companies from branches like publishing and apparel since 2012. \
-Based on Python and Django, the latest major update introduces a modular \
-front end with a GraphQL API and storefront and dashboard written in React \
-to make Saleor a full-functionality open source e-commerce.
-
-Get Saleor today!"""
-
-
-@pytest.fixture
 def other_description_json():
     return {
         "blocks": [
@@ -1811,15 +1795,6 @@ def other_description_json():
         ],
         "entityMap": {},
     }
-
-
-@pytest.fixture
-def other_description_raw():
-    return (
-        "A GRAPHQL-FIRST ECOMMERCE PLATFORM FOR PERFECTIONISTS\n"
-        "Saleor is powered by a GraphQL server running on top of Python 3 "
-        "and a Django 2 framework."
-    )
 
 
 @pytest.fixture
@@ -1897,9 +1872,31 @@ def warehouse(address, shipping_zone):
 
 
 @pytest.fixture
-def warehouse_wo_shipping_zone(address, shipping_zone):
+def warehouses(address):
+    return Warehouse.objects.bulk_create(
+        [
+            Warehouse(
+                address=address.get_copy(),
+                name="Warehouse1",
+                slug="warehouse1",
+                email="warehouse1@example.com",
+            ),
+            Warehouse(
+                address=address.get_copy(),
+                name="Warehouse2",
+                slug="warehouse2",
+                email="warehouse2@example.com",
+            ),
+        ]
+    )
+
+
+@pytest.fixture
+def warehouse_no_shipping_zone(address):
     warehouse = Warehouse.objects.create(
-        address=address, name="Example Warehouse", email="test@example.com"
+        address=address,
+        name="Warehouse withot shipping zone",
+        email="test2@example.com",
     )
     return warehouse
 

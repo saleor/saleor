@@ -833,6 +833,15 @@ class ProductCreate(ModelMutation):
         # from the schema, only "basePrice" should be used here.
         price = data.get("base_price", data.get("price"))
         if price is not None:
+            if price < 0:
+                raise ValidationError(
+                    {
+                        "basePrice": ValidationError(
+                            "Product base price cannot be lower than 0.",
+                            code=ProductErrorCode.INVALID,
+                        )
+                    }
+                )
             cleaned_input["price_amount"] = price
             if instance.minimal_variant_price_amount is None:
                 # Set the default "minimal_variant_price" to the "price"
@@ -1175,10 +1184,30 @@ class ProductVariantCreate(ModelMutation):
         cleaned_input = super().clean_input(info, instance, data)
 
         if "cost_price" in cleaned_input:
-            cleaned_input["cost_price_amount"] = cleaned_input.pop("cost_price")
+            cost_price = cleaned_input.pop("cost_price")
+            if cost_price and cost_price < 0:
+                raise ValidationError(
+                    {
+                        "costPrice": ValidationError(
+                            "Product price cannot be lower than 0.",
+                            code=ProductErrorCode.INVALID.value,
+                        )
+                    }
+                )
+            cleaned_input["cost_price_amount"] = cost_price
 
         if "price_override" in cleaned_input:
-            cleaned_input["price_override_amount"] = cleaned_input.pop("price_override")
+            price_override = cleaned_input.pop("price_override")
+            if price_override and price_override < 0:
+                raise ValidationError(
+                    {
+                        "priceOverride": ValidationError(
+                            "Product price cannot be lower than 0.",
+                            code=ProductErrorCode.INVALID.value,
+                        )
+                    }
+                )
+            cleaned_input["price_override_amount"] = price_override
 
         stocks = cleaned_input.get("stocks")
         if stocks:

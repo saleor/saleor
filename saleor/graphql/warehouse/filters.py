@@ -1,4 +1,5 @@
 import django_filters
+from graphene_django.filter import GlobalIDMultipleChoiceFilter
 
 from ...warehouse.models import Stock, Warehouse
 from ..core.types import FilterInputObjectType
@@ -6,7 +7,7 @@ from ..utils import filter_by_query_param
 
 
 def prefech_qs_for_filter(qs):
-    return qs.select_related("address")
+    return qs.prefetch_related("address")
 
 
 def filter_search_warehouse(qs, _, value):
@@ -44,6 +45,7 @@ def filter_search_stock(qs, _, value):
 
 class WarehouseFilter(django_filters.FilterSet):
     search = django_filters.CharFilter(method=filter_search_warehouse)
+    ids = GlobalIDMultipleChoiceFilter(field_name="id")
 
     class Meta:
         model = Warehouse
