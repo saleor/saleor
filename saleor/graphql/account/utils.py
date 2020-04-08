@@ -1,5 +1,7 @@
+from collections import defaultdict
 from typing import TYPE_CHECKING, List, Optional, Set
 
+import graphene
 from django.contrib.auth.models import Group, Permission
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.exceptions import ValidationError
@@ -73,46 +75,65 @@ class StaffDeleteMixin(UserDeleteMixin):
 
     @classmethod
     def clean_instance(cls, info, instance):
-        super().clean_instance(info, instance)
-        if not instance.is_staff:
-            raise ValidationError(
-                {
-                    "id": ValidationError(
-                        "Cannot delete a non-staff user.",
-                        code=AccountErrorCode.DELETE_NON_STAFF_USER,
-                    )
-                }
-            )
-
-        cls.check_if_requestor_can_manage_user(info, instance)
-        cls.check_if_removing_left_not_manageable_permissions(instance)
+        errors = defaultdict(list)
+        cls.check_if_users_can_be_deleted(info, [instance], "id", errors)
+        cls.check_if_requestor_can_manage_users(info, [instance], "id", errors)
+        cls.check_if_removing_left_not_manageable_permissions([instance], "id", errors)
+        if errors:
+            raise ValidationError(errors)
 
     @classmethod
-    def check_if_requestor_can_manage_user(cls, info, instance):
-        if get_out_of_scope_users(info.context.user, [instance]):
-            msg = "You can't manage this user."
+    def check_if_users_can_be_deleted(cls, info, instances, field, errors):
+        not_staff_users = set()
+        for user in instances:
+            if not user.is_staff:
+                not_staff_users.add(user)
+            try:
+                super().clean_instance(info, user)
+            except ValidationError as error:
+                errors["ids"].append(error)
+
+        if not_staff_users:
+            user_pks = [
+                graphene.Node.to_global_id("User", user.pk) for user in not_staff_users
+            ]
+            msg = "Cannot delete a non-staff users."
+            code = AccountErrorCode.DELETE_NON_STAFF_USER
+            params = {"users": user_pks}
+            errors[field].append(ValidationError(msg, code=code, params=params))
+
+    @classmethod
+    def check_if_requestor_can_manage_users(cls, info, instances, field, errors):
+        out_of_scope_users = get_out_of_scope_users(info.context.user, instances)
+        if out_of_scope_users:
+            user_pks = [
+                graphene.Node.to_global_id("User", user.pk)
+                for user in out_of_scope_users
+            ]
+            msg = "You can't manage this users."
             code = AccountErrorCode.OUT_OF_SCOPE_USER.value
-            raise ValidationError({"id": ValidationError(msg, code=code)})
+            params = {"users": user_pks}
+            error = ValidationError(msg, code=code, params=params)
+            errors[field] = error
 
     @classmethod
-    def check_if_removing_left_not_manageable_permissions(cls, user):
-        """Check if after removing user all permissions will be manageable.
+    def check_if_removing_left_not_manageable_permissions(cls, users, field, errors):
+        """Check if after removing users all permissions will be manageable.
 
-        After removing user, for each permission, there should be at least one
+        After removing users, for each permission, there should be at least one
         active staff member who can manage it (has both “manage staff” and
         this permission).
         """
         permissions = get_not_manageable_permissions_when_deactivate_or_remove_users(
-            [user]
+            users
         )
         if permissions:
             # add error
             msg = "Users cannot be removed, some of permissions will not be manageable."
             code = AccountErrorCode.LEFT_NOT_MANAGEABLE_PERMISSION.value
             params = {"permissions": permissions}
-            raise ValidationError(
-                {"id": ValidationError(msg, code=code, params=params)}
-            )
+            error = ValidationError(msg, code=code, params=params)
+            errors[field] = error
 
 
 def get_required_fields_camel_case(required_fields: set) -> set:
