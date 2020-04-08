@@ -8,6 +8,7 @@ import jaeger_client
 import jaeger_client.config
 import sentry_sdk
 from django.core.exceptions import ImproperlyConfigured
+from django.core.management.utils import get_random_secret_key
 from django_prices.utils.formatting import get_currency_fraction
 from sentry_sdk.integrations.django import DjangoIntegration
 
@@ -190,6 +191,10 @@ TEMPLATES = [
 
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = os.environ.get("SECRET_KEY")
+
+if not SECRET_KEY and DEBUG:
+    warnings.warn("SECRET_KEY not configured, using a random temporary key.")
+    SECRET_KEY = get_random_secret_key()
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
