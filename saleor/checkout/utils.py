@@ -758,8 +758,12 @@ def create_order(
     order_created(order=order, user=user)
 
     # Send the order confirmation email
-    send_order_confirmation.delay(order.pk, redirect_url, user.pk)
-    send_staff_order_confirmation.delay(order.pk, redirect_url)
+    transaction.on_commit(
+        lambda: send_order_confirmation.delay(order.pk, redirect_url, user.pk)
+    )
+    transaction.on_commit(
+        lambda: send_staff_order_confirmation.delay(order.pk, redirect_url)
+    )
 
     return order
 
