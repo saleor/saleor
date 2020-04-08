@@ -29,7 +29,7 @@ from saleor.product.models import (
 )
 from saleor.product.tasks import update_variants_names
 from saleor.product.utils.attributes import associate_attribute_values_to_instance
-from saleor.warehouse.models import Stock, Warehouse
+from saleor.warehouse.models import Allocation, Stock, Warehouse
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image, create_pdf_file_with_image_ext
 
@@ -452,6 +452,29 @@ def test_products_query_with_filter_search_by_sku(
     assert len(products) == 1
     assert products[0]["node"]["id"] == product_id
     assert products[0]["node"]["name"] == product_with_default_variant.name
+
+
+def test_products_query_with_filter_stock_availability(
+    query_products_with_filter,
+    staff_api_client,
+    product,
+    order_line,
+    permission_manage_products,
+):
+    stock = product.variants.first().stocks.first()
+    Allocation.objects.create(
+        order_line=order_line, stock=stock, quantity_allocated=stock.quantity
+    )
+    variables = {"filter": {"stockAvailability": "OUT_OF_STOCK"}}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == product_id
+    assert products[0]["node"]["name"] == product.name
 
 
 @pytest.mark.parametrize(

@@ -20,7 +20,6 @@ from ....product.utils.availability import (
     get_variant_availability,
 )
 from ....product.utils.costs import get_margin_for_variant, get_product_costs_data
-from ....warehouse import models as stock_models
 from ....warehouse.availability import (
     get_available_quantity,
     get_available_quantity_for_customer,
@@ -278,14 +277,7 @@ class ProductVariant(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_stock_quantity(root: models.ProductVariant, info):
-        country = info.context.country
-        try:
-            stock = stock_models.Stock.objects.get_variant_stock_for_country(
-                country, root
-            )
-        except stock_models.Stock.DoesNotExist:
-            return 0
-        return get_available_quantity_for_customer(stock)
+        return get_available_quantity_for_customer(root, info.context.country)
 
     @staticmethod
     @gql_optimizer.resolver_hints(

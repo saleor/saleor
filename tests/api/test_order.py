@@ -29,6 +29,7 @@ from saleor.payment.models import Payment
 from saleor.shipping.models import ShippingMethod
 from saleor.warehouse.models import Stock
 
+from ..utils import get_available_quantity_for_stock
 from .utils import assert_no_permission, get_graphql_content
 
 
@@ -798,8 +799,8 @@ def test_draft_order_complete(
     line_1.save(update_fields=["quantity"])
     stock_1 = Stock.objects.get(product_variant=line_1.variant)
     stock_2 = Stock.objects.get(product_variant=line_2.variant)
-    assert stock_1.quantity_available >= line_1.quantity
-    assert stock_2.quantity_available < line_2.quantity
+    assert get_available_quantity_for_stock(stock_1) >= line_1.quantity
+    assert get_available_quantity_for_stock(stock_2) < line_2.quantity
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}

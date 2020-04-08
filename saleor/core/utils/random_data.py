@@ -67,7 +67,7 @@ from ...product.thumbnails import (
     create_product_thumbnails,
 )
 from ...shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
-from ...warehouse.management import increase_stock
+from ...warehouse.management import deallocate_stock, increase_stock
 from ...warehouse.models import Stock, Warehouse
 
 fake = Factory.create()
@@ -456,15 +456,10 @@ def create_order_lines(order, discounts, how_many=10):
     )
     variants_iter = itertools.cycle(variants)
     lines = []
-    stocks = []
-    country = order.shipping_method.shipping_zone.countries[0]
     for dummy in range(how_many):
         variant = next(variants_iter)
         product = variant.product
         quantity = random.randrange(1, 5)
-        stocks.append(
-            increase_stock(variant, country, quantity, allocate=True, commit=False)
-        )
         unit_price = variant.get_price(discounts)
         unit_price = TaxedMoney(net=unit_price, gross=unit_price)
         lines.append(
@@ -480,13 +475,14 @@ def create_order_lines(order, discounts, how_many=10):
                 tax_rate=0,
             )
         )
-    Stock.objects.bulk_update(stocks, ["quantity", "quantity_allocated"])
     lines = OrderLine.objects.bulk_create(lines)
     manager = get_plugins_manager()
+    country = order.shipping_method.shipping_zone.countries[0]
     for line in lines:
         unit_price = manager.calculate_order_line_unit(line)
         line.unit_price = unit_price
         line.tax_rate = unit_price.tax / unit_price.net
+        increase_stock(line, country, line.quantity, allocate=True)
     OrderLine.objects.bulk_update(
         lines,
         ["unit_price_net_amount", "unit_price_gross_amount", "currency", "tax_rate"],
@@ -504,9 +500,7 @@ def create_fulfillments(order):
             line.quantity_fulfilled = quantity
             line.save(update_fields=["quantity_fulfilled"])
 
-            Stock.objects.get_or_create_for_country(
-                country, line.variant
-            ).deallocate_stock(quantity)
+            deallocate_stock(line, country, quantity)
 
     update_order_status(order)
 

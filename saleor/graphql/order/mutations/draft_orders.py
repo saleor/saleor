@@ -274,10 +274,10 @@ class DraftOrderComplete(BaseMutation):
         for line in order:
             try:
                 check_stock_quantity(line.variant, country, line.quantity)
-                allocate_stock(line.variant, country, line.quantity)
+                allocate_stock(line, country, line.quantity)
             except InsufficientStock:
                 available_stock = get_available_quantity(line.variant, country)
-                allocate_stock(line.variant, country, available_stock)
+                allocate_stock(line, country, available_stock)
                 oversold_items.append(str(line))
         order_created(order, user=info.context.user, from_draft=True)
 

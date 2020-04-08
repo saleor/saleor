@@ -26,7 +26,9 @@ from saleor.payment.interface import GatewayResponse
 from saleor.shipping import ShippingMethodType
 from saleor.shipping.models import ShippingMethod
 from saleor.warehouse.models import Stock
-from tests.api.utils import assert_no_permission, get_graphql_content
+
+from ..utils import get_available_quantity_for_stock
+from .utils import assert_no_permission, get_graphql_content
 
 
 @pytest.fixture
@@ -377,7 +379,7 @@ def test_checkout_create_check_lines_quantity(
     shipping_address = graphql_address_data
     variables = {
         "checkoutInput": {
-            "lines": [{"quantity": 3, "variantId": variant_id}],
+            "lines": [{"quantity": 16, "variantId": variant_id}],
             "email": test_email,
             "shippingAddress": shipping_address,
         }
@@ -387,7 +389,7 @@ def test_checkout_create_check_lines_quantity(
     content = get_graphql_content(response)
     data = content["data"]["checkoutCreate"]
     assert data["errors"][0]["message"] == (
-        "Could not add item Test product (SKU_A). Only 2 remaining in stock."
+        "Could not add item Test product (SKU_A). Only 15 remaining in stock."
     )
     assert data["errors"][0]["field"] == "quantity"
 
@@ -631,13 +633,13 @@ def test_checkout_lines_add_check_lines_quantity(user_api_client, checkout, stoc
 
     variables = {
         "checkoutId": checkout_id,
-        "lines": [{"variantId": variant_id, "quantity": 3}],
+        "lines": [{"variantId": variant_id, "quantity": 16}],
     }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutLinesAdd"]
     assert data["errors"][0]["message"] == (
-        "Could not add item Test product (SKU_A). Only 2 remaining in stock."
+        "Could not add item Test product (SKU_A). Only 15 remaining in stock."
     )
     assert data["errors"][0]["field"] == "quantity"
 
@@ -739,14 +741,14 @@ def test_checkout_lines_update_check_lines_quantity(
 
     variables = {
         "checkoutId": checkout_id,
-        "lines": [{"variantId": variant_id, "quantity": 10}],
+        "lines": [{"variantId": variant_id, "quantity": 11}],
     }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
     content = get_graphql_content(response)
 
     data = content["data"]["checkoutLinesUpdate"]
     assert data["errors"][0]["message"] == (
-        "Could not add item Test product (123). Only 9 remaining in stock."
+        "Could not add item Test product (123). Only 10 remaining in stock."
     )
     assert data["errors"][0]["field"] == "quantity"
 
@@ -1559,7 +1561,7 @@ def test_checkout_complete_insufficient_stock(
     checkout = checkout_with_item
     checkout_line = checkout.lines.first()
     stock = Stock.objects.get(product_variant=checkout_line.variant)
-    quantity_available = stock.quantity_available
+    quantity_available = get_available_quantity_for_stock(stock)
     checkout_line.quantity = quantity_available + 1
     checkout_line.save()
     checkout.shipping_address = address
