@@ -223,7 +223,7 @@ def add_variant_to_order(
         )
 
     if variant.track_inventory and track_inventory:
-        allocate_stock(variant, country, quantity)
+        allocate_stock(line, country, quantity)
     return line
 
 
@@ -278,9 +278,9 @@ def restock_order_lines(order):
     for line in order:
         if line.variant and line.variant.track_inventory:
             if line.quantity_unfulfilled > 0:
-                deallocate_stock(line.variant, country, line.quantity_unfulfilled)
+                deallocate_stock(line, country, line.quantity_unfulfilled)
             if line.quantity_fulfilled > 0:
-                increase_stock(line.variant, country, line.quantity_fulfilled)
+                increase_stock(line, country, line.quantity_fulfilled)
 
         if line.quantity_fulfilled > 0:
             line.quantity_fulfilled = 0
@@ -292,9 +292,7 @@ def restock_fulfillment_lines(fulfillment):
     country = get_order_country(fulfillment.order)
     for line in fulfillment:
         if line.order_line.variant and line.order_line.variant.track_inventory:
-            increase_stock(
-                line.order_line.variant, country, line.quantity, allocate=True
-            )
+            increase_stock(line.order_line, country, line.quantity, allocate=True)
 
 
 def sum_order_totals(qs):

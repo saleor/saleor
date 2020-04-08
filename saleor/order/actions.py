@@ -210,7 +210,7 @@ def fulfill_order_line(order_line, quantity):
     """Fulfill order line with given quantity."""
     country = get_order_country(order_line.order)
     if order_line.variant and order_line.variant.track_inventory:
-        decrease_stock(order_line.variant, country, quantity)
+        decrease_stock(order_line, country, quantity)
     order_line.quantity_fulfilled += quantity
     order_line.save(update_fields=["quantity_fulfilled"])
 
