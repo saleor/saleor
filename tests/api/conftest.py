@@ -10,6 +10,7 @@ from graphql_jwt.shortcuts import get_token
 
 from saleor.account.models import ServiceAccount, User
 
+from ..utils import flush_post_commit_hooks
 from .utils import assert_no_permission
 
 API_PATH = reverse("api")
@@ -91,7 +92,9 @@ class ApiClient(Client):
                 self.service_account.permissions.add(*permissions)
             else:
                 self.user.user_permissions.add(*permissions)
-        return super().post(API_PATH, data, **kwargs)
+        result = super().post(API_PATH, data, **kwargs)
+        flush_post_commit_hooks()
+        return result
 
     def post_multipart(self, *args, permissions=None, **kwargs):
         """Send a multipart POST request.
