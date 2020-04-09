@@ -1,3 +1,4 @@
+import json
 from functools import partial
 
 import graphene
@@ -192,7 +193,7 @@ class FilterInputConnectionField(BaseDjangoConnectionField):
             )
             # Make sure filter input has valid values
             if not instance.is_valid():
-                raise GraphQLError(instance.errors.get_json_data())
+                raise GraphQLError(json.dumps(instance.errors.get_json_data()))
             iterable = instance.qs
 
         if Promise.is_thenable(iterable):
