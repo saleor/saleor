@@ -3461,7 +3461,9 @@ NOT_EXISTS_IDS_COLLECTIONS_QUERY = """
 @pytest.mark.parametrize(
     "product_type_filter", [{"ids": ["fTEJRuFHU6fd2RU=", "2XwnQNNhwCdEjhP="]}],
 )
-def test_product_type_not_exit_ids(product_type_filter, user_api_client, category):
+def test_product_types_query_ids_not_exists(
+    product_type_filter, user_api_client, category
+):
     query = NOT_EXISTS_IDS_COLLECTIONS_QUERY
     variables = {"filter": product_type_filter}
     response = user_api_client.post_graphql(query, variables)

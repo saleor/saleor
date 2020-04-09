@@ -698,7 +698,7 @@ NOT_EXISTS_IDS_CATEGORIES_QUERY = """
 @pytest.mark.parametrize(
     "category_filter", [{"ids": ["W3KATGDn3fq3ZH4=", "zH9pYmz7yWD3Hy8="]}],
 )
-def test_category_not_exit_ids(category_filter, user_api_client, category):
+def test_categories_query_ids_not_exists(category_filter, user_api_client, category):
     query = NOT_EXISTS_IDS_CATEGORIES_QUERY
     variables = {"filter": category_filter}
     response = user_api_client.post_graphql(query, variables)

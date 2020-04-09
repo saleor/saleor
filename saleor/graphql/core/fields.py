@@ -193,8 +193,7 @@ class FilterInputConnectionField(BaseDjangoConnectionField):
             # Make sure filter input has valid values
             if not instance.is_valid():
                 raise ValidationError(instance.errors, code="invalid_list")
-            else:
-                iterable = instance.qs
+            iterable = instance.qs
 
         if Promise.is_thenable(iterable):
             return Promise.resolve(iterable).then(on_resolve)
