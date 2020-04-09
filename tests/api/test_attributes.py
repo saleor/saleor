@@ -122,7 +122,7 @@ def test_attributes_query_ids_not_exists(attribute_filter, user_api_client, cate
     content = get_graphql_content(response, ignore_errors=True)
     message_error = "{'ids': [{'message': 'Invalid ID specified.', 'code': ''}]}"
 
-    assert content["errors"]
+    assert len(content["errors"]) == 1
     assert content["errors"][0]["message"] == message_error
     assert content["data"]["attributes"] is None
 
