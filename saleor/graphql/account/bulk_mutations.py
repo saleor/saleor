@@ -61,10 +61,11 @@ class StaffBulkDelete(StaffDeleteMixin, UserBulkDelete):
     @classmethod
     def clean_instances(cls, info, users):
         errors = defaultdict(list)
+        requestor = info.context.user
         cls.check_if_users_can_be_deleted(info, users, "ids", errors)
-        cls.check_if_requestor_can_manage_users(info, users, "ids", errors)
+        cls.check_if_requestor_can_manage_users(requestor, users, "ids", errors)
         cls.check_if_removing_left_not_manageable_permissions(
-            info, users, "ids", errors
+            requestor, users, "ids", errors
         )
         return ValidationError(errors) if errors else {}
 
