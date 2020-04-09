@@ -1625,21 +1625,6 @@ type Error {
   message: String
 }
 
-type PluginsError {
-  field: String
-  message: String
-  code: PluginsErrorCode!
-}
-
-enum PluginsErrorCode {
-  GRAPHQL_ERROR
-  INVALID
-  PLUGIN_MISCONFIGURED
-  NOT_FOUND
-  REQUIRED
-  UNIQUE
-}
-
 type Fulfillment implements Node & ObjectWithMetadata {
   id: ID!
   fulfillmentOrder: Int!
@@ -3131,6 +3116,21 @@ type PluginUpdate {
 input PluginUpdateInput {
   active: Boolean
   configuration: [ConfigurationItemInput]
+}
+
+type PluginsError {
+  field: String
+  message: String
+  code: PluginsErrorCode!
+}
+
+enum PluginsErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  PLUGIN_MISCONFIGURED
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
 }
 
 input PriceRangeInput {

@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING
 
-from saleor.plugins import ConfigurationTypeField, BasePlugin
+from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
 
 from . import (
     GatewayConfig,

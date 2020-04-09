@@ -18,9 +18,7 @@ from saleor.webhook.payloads import (
 
 
 @pytest.mark.vcr
-@mock.patch(
-    "saleor.plugins.webhook.tasks.requests.post", wraps=requests.post
-)
+@mock.patch("saleor.plugins.webhook.tasks.requests.post", wraps=requests.post)
 def test_trigger_webhooks_for_event(
     mock_request,
     webhook,
@@ -110,9 +108,7 @@ def test_trigger_webhooks_for_event_calls_expected_events(
 
 
 @pytest.mark.vcr
-@mock.patch(
-    "saleor.plugins.webhook.tasks.requests.post", wraps=requests.post
-)
+@mock.patch("saleor.plugins.webhook.tasks.requests.post", wraps=requests.post)
 def test_trigger_webhooks_for_event_with_secret_key(
     mock_request, webhook, order_with_lines, permission_manage_orders
 ):

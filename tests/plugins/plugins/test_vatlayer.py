@@ -12,14 +12,14 @@ from saleor.checkout.utils import add_variant_to_checkout
 from saleor.core.taxes import quantize_price, zero_taxed_money
 from saleor.plugins.manager import get_plugins_manager
 from saleor.plugins.models import PluginConfiguration
-from saleor.plugins.plugins.vatlayer import (
+from saleor.plugins.vatlayer import (
     DEFAULT_TAX_RATE_NAME,
     apply_tax_to_price,
     get_tax_rate_by_name,
     get_taxed_shipping_price,
     get_taxes_for_country,
 )
-from saleor.plugins import VatlayerPlugin
+from saleor.plugins.vatlayer.plugin import VatlayerPlugin
 
 
 def get_url_path(url):
@@ -183,7 +183,7 @@ def test_apply_tax_to_price_no_taxes_raise_typeerror_for_invalid_type():
 def test_vatlayer_plugin_caches_taxes(vatlayer, monkeypatch, product, address):
     mocked_taxes = Mock(wraps=get_taxes_for_country)
     monkeypatch.setattr(
-        "saleor.plugins.plugins.vatlayer.plugin.get_taxes_for_country", mocked_taxes
+        "saleor.plugins.vatlayer.plugin.get_taxes_for_country", mocked_taxes
     )
 
     manager = get_plugins_manager()
@@ -386,8 +386,7 @@ def test_get_tax_rate_type_choices(vatlayer, settings, monkeypatch):
         "admission to entertainment events",
     ]
     monkeypatch.setattr(
-        "saleor.plugins.vatlayer.plugin.get_tax_rate_types",
-        lambda: expected_choices,
+        "saleor.plugins.vatlayer.plugin.get_tax_rate_types", lambda: expected_choices,
     )
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     manager = get_plugins_manager()

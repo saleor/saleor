@@ -5,7 +5,7 @@ from django_countries.fields import Country
 from prices import Money, TaxedMoney
 
 from saleor.core.taxes import TaxType
-from saleor.plugins import ConfigurationTypeField, BasePlugin
+from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
 from saleor.plugins.models import PluginConfiguration
 from saleor.product.models import Product, ProductType
 

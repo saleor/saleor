@@ -1,7 +1,8 @@
 import copy
+
 import pytest
 
-from saleor.plugins import ConfigurationTypeField
+from saleor.plugins.base_plugin import ConfigurationTypeField
 from saleor.plugins.error_codes import PluginsErrorCode
 from saleor.plugins.manager import get_plugins_manager
 from saleor.plugins.models import PluginConfiguration
@@ -42,7 +43,7 @@ PLUGINS_QUERY = """
 def test_query_plugin_configurations(staff_api_client_can_manage_plugins, settings):
 
     # Enable test plugin
-    settings.PLUGINS = ["tests.api.plugins.PluginSample"]
+    settings.PLUGINS = ["tests.plugins.sample_plugins.PluginSample"]
     response = staff_api_client_can_manage_plugins.post_graphql(PLUGINS_QUERY)
     content = get_graphql_content(response)
 
@@ -96,7 +97,7 @@ def test_query_plugins_hides_secret_fields(
     settings,
 ):
 
-    settings.PLUGINS = ["tests.api.plugins.PluginSample"]
+    settings.PLUGINS = ["tests.plugins.sample_plugins.PluginSample"]
     manager = get_plugins_manager()
     plugin = manager.get_plugin(PluginSample.PLUGIN_NAME)
     configuration = copy.deepcopy(plugin.configuration)
@@ -125,7 +126,7 @@ def test_query_plugins_hides_secret_fields(
 
 
 def test_query_plugin_configurations_as_customer_user(user_api_client, settings):
-    settings.PLUGINS = ["tests.api.plugins.PluginSample"]
+    settings.PLUGINS = ["tests.plugins.sample_plugins.PluginSample"]
     response = user_api_client.post_graphql(PLUGINS_QUERY)
 
     assert_no_permission(response)
