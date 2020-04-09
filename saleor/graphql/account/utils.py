@@ -76,16 +76,18 @@ class StaffDeleteMixin(UserDeleteMixin):
     @classmethod
     def clean_instance(cls, info, instance):
         errors = defaultdict(list)
+        requestor = info.context.user
         cls.check_if_users_can_be_deleted(info, [instance], "id", errors)
-        cls.check_if_requestor_can_manage_users(info, [instance], "id", errors)
+        cls.check_if_requestor_can_manage_users(requestor, [instance], "id", errors)
         cls.check_if_removing_left_not_manageable_permissions(
-            info, [instance], "id", errors
+            requestor, [instance], "id", errors
         )
         if errors:
             raise ValidationError(errors)
 
     @classmethod
     def check_if_users_can_be_deleted(cls, info, instances, field, errors):
+        """Check if only staff users will be deleted. Cannot delete non-staff users."""
         not_staff_users = set()
         for user in instances:
             if not user.is_staff:
@@ -105,11 +107,11 @@ class StaffDeleteMixin(UserDeleteMixin):
             errors[field].append(ValidationError(msg, code=code, params=params))
 
     @classmethod
-    def check_if_requestor_can_manage_users(cls, info, instances, field, errors):
-        user = info.context.user
-        if user.is_superuser:
+    def check_if_requestor_can_manage_users(cls, requestor, instances, field, errors):
+        """Requestor can't manage users with wider scope of permissions."""
+        if requestor.is_superuser:
             return
-        out_of_scope_users = get_out_of_scope_users(user, instances)
+        out_of_scope_users = get_out_of_scope_users(requestor, instances)
         if out_of_scope_users:
             user_pks = [
                 graphene.Node.to_global_id("User", user.pk)
@@ -123,7 +125,7 @@ class StaffDeleteMixin(UserDeleteMixin):
 
     @classmethod
     def check_if_removing_left_not_manageable_permissions(
-        cls, info, users, field, errors
+        cls, requestor, users, field, errors
     ):
         """Check if after removing users all permissions will be manageable.
 
@@ -131,7 +133,7 @@ class StaffDeleteMixin(UserDeleteMixin):
         active staff member who can manage it (has both “manage staff” and
         this permission).
         """
-        if info.context.user.is_superuser:
+        if requestor.is_superuser:
             return
         permissions = get_not_manageable_permissions_when_deactivate_or_remove_users(
             users
