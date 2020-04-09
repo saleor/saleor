@@ -1,13 +1,13 @@
 from functools import partial
 
 import graphene
-from django.core.exceptions import ValidationError
 from django.db.models.query import QuerySet
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
 from graphene.relay import PageInfo
 from graphene_django.converter import convert_django_field
 from graphene_django.fields import DjangoConnectionField
+from graphql.error import GraphQLError
 from graphql_relay.connection.arrayconnection import connection_from_list_slice
 from promise import Promise
 
@@ -192,7 +192,7 @@ class FilterInputConnectionField(BaseDjangoConnectionField):
             )
             # Make sure filter input has valid values
             if not instance.is_valid():
-                raise ValidationError(instance.errors, code="invalid_list")
+                raise GraphQLError("You must provide valid fields.")
             iterable = instance.qs
 
         if Promise.is_thenable(iterable):
