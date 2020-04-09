@@ -5,6 +5,7 @@ import pytest
 from django.contrib.auth.models import Group
 from django.core.files import File
 
+from saleor.account.models import User
 from saleor.graphql.core.enums import PermissionEnum
 from tests.api.utils import get_graphql_content
 
@@ -117,6 +118,8 @@ def test_query_staff_user(
     assert data
 
 
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
 def test_staff_update_groups_and_permissions(
     staff_api_client,
     staff_users,
@@ -125,6 +128,7 @@ def test_staff_update_groups_and_permissions(
     permission_manage_users,
     permission_manage_orders,
     permission_manage_products,
+    count_queries,
 ):
     query = """
     mutation UpdateStaff(
@@ -211,3 +215,67 @@ def test_staff_update_groups_and_permissions(
         permission_manage_products.codename,
         permission_manage_staff.codename,
     }
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
+def test_delete_staff_members(
+    staff_api_client,
+    staff_users,
+    permission_manage_staff,
+    permission_manage_users,
+    permission_manage_orders,
+    count_queries,
+):
+    """Ensure user can delete users when all permissions will be manageable."""
+    query = """
+        mutation staffBulkDelete($ids: [ID]!) {
+            staffBulkDelete(ids: $ids) {
+                count
+                staffErrors{
+                    code
+                    field
+                    permissions
+                    users
+                }
+            }
+        }
+    """
+
+    groups = Group.objects.bulk_create(
+        [
+            Group(name="manage users"),
+            Group(name="manage staff"),
+            Group(name="manage users and orders"),
+        ]
+    )
+    group1, group2, group3 = groups
+
+    group1.permissions.add(permission_manage_users)
+    group2.permissions.add(permission_manage_staff)
+    group3.permissions.add(permission_manage_orders, permission_manage_users)
+
+    staff_user, staff_user1, staff_user2 = staff_users
+    group1.user_set.add(staff_user1)
+    group2.user_set.add(staff_user2, staff_user1, staff_user)
+    group3.user_set.add(staff_user1, staff_user)
+
+    staff_user.user_permissions.add(
+        permission_manage_users, permission_manage_orders, permission_manage_staff
+    )
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("User", user.id)
+            for user in [staff_user1, staff_user2]
+        ]
+    }
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["staffBulkDelete"]
+    errors = data["staffErrors"]
+
+    assert not errors
+    assert data["count"] == 2
+    assert not User.objects.filter(
+        id__in=[user.id for user in [staff_user1, staff_user2]]
+    ).exists()

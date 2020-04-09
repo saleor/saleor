@@ -1,5 +1,7 @@
+from collections import defaultdict
 from typing import TYPE_CHECKING, List, Optional, Set
 
+import graphene
 from django.contrib.auth.models import Group, Permission
 from django.contrib.postgres.aggregates import ArrayAgg
 from django.core.exceptions import ValidationError
@@ -73,46 +75,76 @@ class StaffDeleteMixin(UserDeleteMixin):
 
     @classmethod
     def clean_instance(cls, info, instance):
-        super().clean_instance(info, instance)
-        if not instance.is_staff:
-            raise ValidationError(
-                {
-                    "id": ValidationError(
-                        "Cannot delete a non-staff user.",
-                        code=AccountErrorCode.DELETE_NON_STAFF_USER,
-                    )
-                }
-            )
-
-        cls.check_if_requestor_can_manage_user(info, instance)
-        cls.check_if_removing_left_not_manageable_permissions(instance)
+        errors = defaultdict(list)
+        requestor = info.context.user
+        cls.check_if_users_can_be_deleted(info, [instance], "id", errors)
+        cls.check_if_requestor_can_manage_users(requestor, [instance], "id", errors)
+        cls.check_if_removing_left_not_manageable_permissions(
+            requestor, [instance], "id", errors
+        )
+        if errors:
+            raise ValidationError(errors)
 
     @classmethod
-    def check_if_requestor_can_manage_user(cls, info, instance):
-        if get_out_of_scope_users(info.context.user, [instance]):
-            msg = "You can't manage this user."
+    def check_if_users_can_be_deleted(cls, info, instances, field, errors):
+        """Check if only staff users will be deleted. Cannot delete non-staff users."""
+        not_staff_users = set()
+        for user in instances:
+            if not user.is_staff:
+                not_staff_users.add(user)
+            try:
+                super().clean_instance(info, user)
+            except ValidationError as error:
+                errors["ids"].append(error)
+
+        if not_staff_users:
+            user_pks = [
+                graphene.Node.to_global_id("User", user.pk) for user in not_staff_users
+            ]
+            msg = "Cannot delete a non-staff users."
+            code = AccountErrorCode.DELETE_NON_STAFF_USER
+            params = {"users": user_pks}
+            errors[field].append(ValidationError(msg, code=code, params=params))
+
+    @classmethod
+    def check_if_requestor_can_manage_users(cls, requestor, instances, field, errors):
+        """Requestor can't manage users with wider scope of permissions."""
+        if requestor.is_superuser:
+            return
+        out_of_scope_users = get_out_of_scope_users(requestor, instances)
+        if out_of_scope_users:
+            user_pks = [
+                graphene.Node.to_global_id("User", user.pk)
+                for user in out_of_scope_users
+            ]
+            msg = "You can't manage this users."
             code = AccountErrorCode.OUT_OF_SCOPE_USER.value
-            raise ValidationError({"id": ValidationError(msg, code=code)})
+            params = {"users": user_pks}
+            error = ValidationError(msg, code=code, params=params)
+            errors[field] = error
 
     @classmethod
-    def check_if_removing_left_not_manageable_permissions(cls, user):
-        """Check if after removing user all permissions will be manageable.
+    def check_if_removing_left_not_manageable_permissions(
+        cls, requestor, users, field, errors
+    ):
+        """Check if after removing users all permissions will be manageable.
 
-        After removing user, for each permission, there should be at least one
+        After removing users, for each permission, there should be at least one
         active staff member who can manage it (has both “manage staff” and
         this permission).
         """
-        permissions = get_not_manageable_permissions_when_deactivate_or_remove_user(
-            user
+        if requestor.is_superuser:
+            return
+        permissions = get_not_manageable_permissions_when_deactivate_or_remove_users(
+            users
         )
         if permissions:
             # add error
             msg = "Users cannot be removed, some of permissions will not be manageable."
             code = AccountErrorCode.LEFT_NOT_MANAGEABLE_PERMISSION.value
             params = {"permissions": permissions}
-            raise ValidationError(
-                {"id": ValidationError(msg, code=code, params=params)}
-            )
+            error = ValidationError(msg, code=code, params=params)
+            errors[field] = error
 
 
 def get_required_fields_camel_case(required_fields: set) -> set:
@@ -197,6 +229,50 @@ def get_groups_which_user_can_manage(user: "User") -> List[Optional[Group]]:
             editable_groups.append(group)
 
     return editable_groups
+
+
+def get_not_manageable_permissions_when_deactivate_or_remove_users(users: List["User"]):
+    """Return permissions that cannot be managed after deactivating or removing users.
+
+    After removing or deactivating users, for each user permission which he can manage,
+    there should be at least one active staff member who can manage it
+    (has both “manage staff” and this permission).
+    """
+    # check only users who can manage permissions
+    users_to_check = {
+        user for user in users if user.has_perm(AccountPermissions.MANAGE_STAFF.value)
+    }
+
+    if not users_to_check:
+        return set()
+
+    user_pks = set()
+    not_manageable_permissions = set()
+    for user in users_to_check:
+        not_manageable_permissions.update(user.get_all_permissions())
+        user_pks.add(user.pk)
+
+    groups_data = get_group_to_permissions_and_users_mapping()
+
+    # get users from groups with manage staff
+    manage_staff_users = get_users_and_look_for_permissions_in_groups_with_manage_staff(
+        groups_data, set()
+    )
+
+    if not manage_staff_users:
+        return not_manageable_permissions
+
+    # remove deactivating or removing users from manage staff users
+    manage_staff_users = manage_staff_users - user_pks
+
+    # look for not_manageable_permissions in user with manage staff permissions groups,
+    # if any of not_manageable_permissions is found it is removed from set
+    look_for_permission_in_users_with_manage_staff(
+        groups_data, manage_staff_users, not_manageable_permissions
+    )
+
+    # return remaining not managable permissions
+    return not_manageable_permissions
 
 
 def get_not_manageable_permissions_after_removing_users_from_group(
@@ -350,35 +426,3 @@ def look_for_permission_in_users_with_manage_staff(
             common_permissions = permissions_to_find & permissions
             # remove found permission from set
             permissions_to_find.difference_update(common_permissions)
-
-
-def get_not_manageable_permissions_when_deactivate_or_remove_user(user: "User"):
-    """Return permissions that cannot be managed after deactivating or removing user.
-
-    After removing or deactivating user, for each user permission which he can manage,
-    there should be at least one active staff member who can manage it
-    (has both “manage staff” and this permission).
-    """
-    if not user.has_perm(AccountPermissions.MANAGE_STAFF.value):
-        return set()
-
-    groups_data = get_group_to_permissions_and_users_mapping()
-
-    # get users from groups with manage staff
-    manage_staff_users = get_users_and_look_for_permissions_in_groups_with_manage_staff(
-        groups_data, set()
-    )
-
-    # remove deactivating or removing user from manage staff users
-    if user.pk in manage_staff_users:
-        manage_staff_users.remove(user.pk)
-
-    not_manageable_permissions = user.get_all_permissions()
-    # look for not_manageable_permissions in user with manage staff permissions groups,
-    # if any of not_manageable_permissions is found it is removed from set
-    look_for_permission_in_users_with_manage_staff(
-        groups_data, manage_staff_users, not_manageable_permissions
-    )
-
-    # return remaining not managable permissions
-    return not_manageable_permissions
