@@ -2112,14 +2112,22 @@ def test_staff_delete(staff_api_client, permission_manage_staff):
 
 
 def test_staff_delete_out_of_scope_user(
-    staff_api_client, permission_manage_staff, permission_manage_products
+    staff_api_client,
+    superuser_api_client,
+    permission_manage_staff,
+    permission_manage_products,
 ):
+    """Ensure that staff user can't delete staff when some users has wider scope of
+    permissions than requestor.
+    Ensure that superuser pass restriction.
+    """
     query = STAFF_DELETE_MUTATION
     staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
     staff_user.user_permissions.add(permission_manage_products)
     user_id = graphene.Node.to_global_id("User", staff_user.id)
     variables = {"id": user_id}
 
+    # fot staff user
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_staff]
     )
@@ -2130,14 +2138,26 @@ def test_staff_delete_out_of_scope_user(
     assert data["staffErrors"][0]["field"] == "id"
     assert data["staffErrors"][0]["code"] == AccountErrorCode.OUT_OF_SCOPE_USER.name
 
+    # for superuser
+    response = superuser_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["staffDelete"]
+
+    assert data["staffErrors"] == []
+    assert not User.objects.filter(pk=staff_user.id).exists()
+
 
 def test_staff_delete_left_not_manageable_permissions(
     staff_api_client,
+    superuser_api_client,
     staff_users,
     permission_manage_staff,
     permission_manage_users,
     permission_manage_orders,
 ):
+    """Ensure staff user can't and superuser can delete staff user when some of
+    permissions will be not manageable.
+    """
     query = STAFF_DELETE_MUTATION
     groups = Group.objects.bulk_create(
         [
@@ -2160,6 +2180,7 @@ def test_staff_delete_left_not_manageable_permissions(
     user_id = graphene.Node.to_global_id("User", staff_user1.id)
     variables = {"id": user_id}
 
+    # for staff user
     staff_user.user_permissions.add(permission_manage_users, permission_manage_orders)
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_staff]
@@ -2176,6 +2197,16 @@ def test_staff_delete_left_not_manageable_permissions(
         OrderPermissions.MANAGE_ORDERS.name,
     }
     assert User.objects.filter(pk=staff_user1.id).exists()
+
+    # for superuser
+    staff_user.user_permissions.add(permission_manage_users, permission_manage_orders)
+    response = superuser_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["staffDelete"]
+    errors = data["staffErrors"]
+
+    assert not errors
+    assert not User.objects.filter(pk=staff_user1.id).exists()
 
 
 def test_staff_delete_all_permissions_manageable(
@@ -2239,7 +2270,7 @@ def test_staff_delete_errors(staff_user, customer_user, admin_user):
     info = Mock(context=Mock(user=staff_user))
     with pytest.raises(ValidationError) as e:
         StaffDelete.clean_instance(info, customer_user)
-    msg = "Cannot delete a non-staff user."
+    msg = "Cannot delete a non-staff users."
     assert e.value.error_dict["id"][0].message == msg
 
     # should not raise any errors
