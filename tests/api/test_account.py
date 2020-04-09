@@ -1844,8 +1844,8 @@ def test_staff_update_out_of_scope_user(
     permission_manage_orders,
     media_root,
 ):
-    """Ensure that staff user cannot and superuser can update user with wider
-    scope of permission.
+    """Ensure that staff user cannot update user with wider scope of permission.
+    Ensure superuser pass restrictions.
     """
     query = STAFF_UPDATE_MUTATIONS
     staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
@@ -1881,7 +1881,9 @@ def test_staff_update_out_of_scope_permissions(
     permission_manage_orders,
     permission_manage_products,
 ):
-    """Ensure that user cannot and superuser can add permissions which doesn't have."""
+    """Ensure that user cannot add permissions which doesn't have.
+    Ensure superuser pass restrictions.
+    """
     query = STAFF_UPDATE_MUTATIONS
     staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
     staff_api_client.user.user_permissions.add(permission_manage_orders)
@@ -1933,8 +1935,9 @@ def test_staff_update_out_of_scope_groups(
     permission_manage_orders,
     permission_manage_products,
 ):
-    """Ensure that staff user cannot and superuser can add to groups which permission
-    scope is wider than user's scope.
+    """Ensure that staff user cannot add to groups which permission scope is wider
+    than user's scope.
+    Ensure superuser pass restrictions.
     """
     query = STAFF_UPDATE_MUTATIONS
 
@@ -2244,9 +2247,9 @@ def test_staff_delete_out_of_scope_user(
     permission_manage_staff,
     permission_manage_products,
 ):
-    """Ensure that staff user can't delete staff when some users has wider scope of
-    permissions than requestor.
-    Ensure that superuser pass restriction.
+    """Ensure staff user cannot delete users even when some of user permissions are
+    out of requestor scope.
+    Ensure superuser pass restrictions.
     """
     query = STAFF_DELETE_MUTATION
     staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
@@ -2254,7 +2257,7 @@ def test_staff_delete_out_of_scope_user(
     user_id = graphene.Node.to_global_id("User", staff_user.id)
     variables = {"id": user_id}
 
-    # fot staff user
+    # for staff user
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_staff]
     )
