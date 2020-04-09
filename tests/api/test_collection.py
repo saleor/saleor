@@ -598,6 +598,32 @@ def test_remove_products_from_collection(
     assert data["products"]["totalCount"] == no_products_before - len(product_ids)
 
 
+NOT_EXISTS_IDS_COLLECTIONS_QUERY = """
+    query ($filter: CollectionFilterInput!) {
+        collections(first: 5, filter: $filter) {
+            edges {
+                node {
+                    id
+                    name
+                }
+            }
+        }
+    }
+    """
+
+
+@pytest.mark.parametrize(
+    "collection_filter", [{"ids": ["ncXc5tP7kmV6pxE=", "yMyDVE5S2LWWTqK="]}],
+)
+def test_collection_not_exit_ids(collection_filter, user_api_client, category):
+    query = NOT_EXISTS_IDS_COLLECTIONS_QUERY
+    variables = {"filter": collection_filter}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response, ignore_errors=True)
+    assert len(content["errors"]) != 0
+    assert content["data"]["collections"] is None
+
+
 FETCH_COLLECTION_QUERY = """
     query fetchCollection($id: ID!){
         collection(id: $id) {

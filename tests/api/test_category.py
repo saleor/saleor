@@ -681,6 +681,32 @@ def test_category_level(user_api_client, category):
     assert category_data["parent"]["name"] == category.name
 
 
+NOT_EXISTS_IDS_CATEGORIES_QUERY = """
+    query ($filter: CategoryFilterInput!) {
+        categories(first: 5, filter: $filter) {
+            edges {
+                node {
+                    id
+                    name
+                }
+            }
+        }
+    }
+    """
+
+
+@pytest.mark.parametrize(
+    "category_filter", [{"ids": ["W3KATGDn3fq3ZH4=", "zH9pYmz7yWD3Hy8="]}],
+)
+def test_category_not_exit_ids(category_filter, user_api_client, category):
+    query = NOT_EXISTS_IDS_CATEGORIES_QUERY
+    variables = {"filter": category_filter}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response, ignore_errors=True)
+    assert len(content["errors"]) != 0
+    assert content["data"]["categories"] is None
+
+
 FETCH_CATEGORY_QUERY = """
     query fetchCategory($id: ID!){
         category(id: $id) {

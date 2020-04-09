@@ -98,6 +98,32 @@ def test_attributes_query(user_api_client, product):
     assert len(attributes_data) == attributes.count()
 
 
+NOT_EXISTS_IDS_ATTRIBUTES_QUERY = """
+    query ($filter: AttributeFilterInput!) {
+        attributes(first: 5, filter: $filter) {
+            edges {
+                node {
+                    id
+                    name
+                }
+            }
+        }
+    }
+    """
+
+
+@pytest.mark.parametrize(
+    "attribute_filter", [{"ids": ["ygRqjpmXYqaTD9r=", "PBa4ZLBhnXHSz6v="]}],
+)
+def test_attribute_not_exit_ids(attribute_filter, user_api_client, category):
+    query = NOT_EXISTS_IDS_ATTRIBUTES_QUERY
+    variables = {"filter": attribute_filter}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response, ignore_errors=True)
+    assert len(content["errors"]) != 0
+    assert content["data"]["attributes"] is None
+
+
 def test_attributes_query_hidden_attribute(user_api_client, product, color_attribute):
     query = QUERY_ATTRIBUTES
 
