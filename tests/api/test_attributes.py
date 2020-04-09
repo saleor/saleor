@@ -115,7 +115,7 @@ NOT_EXISTS_IDS_ATTRIBUTES_QUERY = """
 @pytest.mark.parametrize(
     "attribute_filter", [{"ids": ["ygRqjpmXYqaTD9r=", "PBa4ZLBhnXHSz6v="]}],
 )
-def test_attribute_not_exit_ids(attribute_filter, user_api_client, category):
+def test_attributes_query_ids_not_exists(attribute_filter, user_api_client, category):
     query = NOT_EXISTS_IDS_ATTRIBUTES_QUERY
     variables = {"filter": attribute_filter}
     response = user_api_client.post_graphql(query, variables)

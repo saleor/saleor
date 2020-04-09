@@ -615,7 +615,7 @@ NOT_EXISTS_IDS_COLLECTIONS_QUERY = """
 @pytest.mark.parametrize(
     "collection_filter", [{"ids": ["ncXc5tP7kmV6pxE=", "yMyDVE5S2LWWTqK="]}],
 )
-def test_collection_not_exit_ids(collection_filter, user_api_client, category):
+def test_collections_query_ids_not_exists(collection_filter, user_api_client, category):
     query = NOT_EXISTS_IDS_COLLECTIONS_QUERY
     variables = {"filter": collection_filter}
     response = user_api_client.post_graphql(query, variables)
