@@ -3444,6 +3444,32 @@ def test_product_type_query_with_sort(
         assert product_types[order]["node"]["name"] == product_type_name
 
 
+NOT_EXISTS_IDS_COLLECTIONS_QUERY = """
+    query ($filter: ProductTypeFilterInput!) {
+        productTypes(first: 5, filter: $filter) {
+            edges {
+                node {
+                    id
+                    name
+                }
+            }
+        }
+    }
+    """
+
+
+@pytest.mark.parametrize(
+    "product_type_filter", [{"ids": ["fTEJRuFHU6fd2RU=", "2XwnQNNhwCdEjhP="]}],
+)
+def test_product_type_not_exit_ids(product_type_filter, user_api_client, category):
+    query = NOT_EXISTS_IDS_COLLECTIONS_QUERY
+    variables = {"filter": product_type_filter}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response, ignore_errors=True)
+    assert len(content["errors"]) != 0
+    assert content["data"]["productTypes"] is None
+
+
 MUTATION_BULK_PUBLISH_PRODUCTS = """
         mutation publishManyProducts($ids: [ID]!, $is_published: Boolean!) {
             productBulkPublish(ids: $ids, isPublished: $is_published) {

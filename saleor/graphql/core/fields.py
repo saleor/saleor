@@ -1,6 +1,7 @@
 from functools import partial
 
 import graphene
+from django.core.exceptions import ValidationError
 from django.db.models.query import QuerySet
 from django_measurement.models import MeasurementField
 from django_prices.models import MoneyField, TaxedMoneyField
@@ -186,9 +187,14 @@ class FilterInputConnectionField(BaseDjangoConnectionField):
         filter_input = args.get(filters_name)
 
         if filter_input and filterset_class:
-            iterable = filterset_class(
+            instance = filterset_class(
                 data=dict(filter_input), queryset=iterable, request=info.context
-            ).qs
+            )
+            # Make sure filter input has valid values
+            if not instance.is_valid():
+                raise ValidationError(instance.errors, code="invalid_list")
+            else:
+                iterable = instance.qs
 
         if Promise.is_thenable(iterable):
             return Promise.resolve(iterable).then(on_resolve)
