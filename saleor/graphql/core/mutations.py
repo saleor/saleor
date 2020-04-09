@@ -17,8 +17,8 @@ from graphql_jwt import ObtainJSONWebToken, Verify
 from graphql_jwt.exceptions import JSONWebTokenError, PermissionDenied
 
 from ...account import models
-from ..account.types import User
 from ...account.error_codes import AccountErrorCode
+from ..account.types import User
 from ..utils import get_nodes
 from .types import Error, Upload
 from .types.common import AccountError
