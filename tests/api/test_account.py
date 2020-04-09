@@ -2112,14 +2112,22 @@ def test_staff_delete(staff_api_client, permission_manage_staff):
 
 
 def test_staff_delete_out_of_scope_user(
-    staff_api_client, permission_manage_staff, permission_manage_products
+    staff_api_client,
+    superuser_api_client,
+    permission_manage_staff,
+    permission_manage_products,
 ):
+    """Ensure that staff user can't delete staff when some users has wider scope of
+    permissions than requestor.
+    Ensure that superuser pass restriction.
+    """
     query = STAFF_DELETE_MUTATION
     staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
     staff_user.user_permissions.add(permission_manage_products)
     user_id = graphene.Node.to_global_id("User", staff_user.id)
     variables = {"id": user_id}
 
+    # fot staff user
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_staff]
     )
@@ -2130,18 +2138,7 @@ def test_staff_delete_out_of_scope_user(
     assert data["staffErrors"][0]["field"] == "id"
     assert data["staffErrors"][0]["code"] == AccountErrorCode.OUT_OF_SCOPE_USER.name
 
-
-def test_staff_delete_superuser_can_delete_out_of_scope_user(
-    superuser_api_client, permission_manage_staff, permission_manage_products
-):
-    """Ensure superuser can delete users even when he doesn't have all user permissions.
-    """
-    query = STAFF_DELETE_MUTATION
-    staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
-    staff_user.user_permissions.add(permission_manage_products)
-    user_id = graphene.Node.to_global_id("User", staff_user.id)
-    variables = {"id": user_id}
-
+    # for superuser
     response = superuser_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["staffDelete"]
@@ -2152,11 +2149,15 @@ def test_staff_delete_superuser_can_delete_out_of_scope_user(
 
 def test_staff_delete_left_not_manageable_permissions(
     staff_api_client,
+    superuser_api_client,
     staff_users,
     permission_manage_staff,
     permission_manage_users,
     permission_manage_orders,
 ):
+    """Ensure staff user can't and superuser can delete staff user when some of
+    permissions will be not manageable.
+    """
     query = STAFF_DELETE_MUTATION
     groups = Group.objects.bulk_create(
         [
@@ -2179,6 +2180,7 @@ def test_staff_delete_left_not_manageable_permissions(
     user_id = graphene.Node.to_global_id("User", staff_user1.id)
     variables = {"id": user_id}
 
+    # for staff user
     staff_user.user_permissions.add(permission_manage_users, permission_manage_orders)
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_staff]
@@ -2196,39 +2198,7 @@ def test_staff_delete_left_not_manageable_permissions(
     }
     assert User.objects.filter(pk=staff_user1.id).exists()
 
-
-def test_staff_delete_superuser_can_delete_when_delete_left_notmanageable_perms(
-    superuser_api_client,
-    staff_users,
-    permission_manage_staff,
-    permission_manage_users,
-    permission_manage_orders,
-):
-    """Ensure that superuser can delete user even when not all permissions which be
-    manageable by other users.
-    """
-    query = STAFF_DELETE_MUTATION
-    groups = Group.objects.bulk_create(
-        [
-            Group(name="manage users"),
-            Group(name="manage staff"),
-            Group(name="manage orders"),
-        ]
-    )
-    group1, group2, group3 = groups
-
-    group1.permissions.add(permission_manage_users)
-    group2.permissions.add(permission_manage_staff)
-    group3.permissions.add(permission_manage_orders)
-
-    staff_user, staff_user1, staff_user2 = staff_users
-    group1.user_set.add(staff_user1)
-    group2.user_set.add(staff_user2, staff_user1)
-    group3.user_set.add(staff_user1)
-
-    user_id = graphene.Node.to_global_id("User", staff_user1.id)
-    variables = {"id": user_id}
-
+    # for superuser
     staff_user.user_permissions.add(permission_manage_users, permission_manage_orders)
     response = superuser_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
