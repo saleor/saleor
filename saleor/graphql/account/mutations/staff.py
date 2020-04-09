@@ -211,17 +211,17 @@ class StaffCreate(ModelMutation):
     @classmethod
     def clean_permissions(cls, info, cleaned_input, errors):
         permissions = cleaned_input.get("permissions")
-        out_of_scope_permissions = get_out_of_scope_permissions(
-            info.context.user, permissions
-        )
+        cleaned_input["user_permissions"] = get_permissions(permissions)
+        user = info.context.user
+        if user.is_superuser:
+            return
+        out_of_scope_permissions = get_out_of_scope_permissions(user, permissions)
         if out_of_scope_permissions:
             error_msg = "You can't manage permission that you don't have."
             code = AccountErrorCode.OUT_OF_SCOPE_PERMISSION.value
             params = {"permissions": out_of_scope_permissions}
             error = ValidationError(message=error_msg, code=code, params=params)
             errors["permissions"].append(error)
-
-        cleaned_input["user_permissions"] = get_permissions(permissions)
 
     @classmethod
     def clean_groups(cls, info, cleaned_input, errors):
@@ -230,8 +230,11 @@ class StaffCreate(ModelMutation):
 
     @classmethod
     def can_manage_groups(cls, info, cleaned_input, field, errors):
+        user = info.context.user
+        if user.is_superuser:
+            return
         groups = cleaned_input[field]
-        user_editable_groups = get_groups_which_user_can_manage(info.context.user)
+        user_editable_groups = get_groups_which_user_can_manage(user)
         out_of_scope_groups = set(groups) - set(user_editable_groups)
         if out_of_scope_groups:
             # add error
@@ -288,8 +291,9 @@ class StaffUpdate(StaffCreate):
 
     @classmethod
     def clean_input(cls, info, instance, data):
+        user = info.context.user
         # check if requestor can manage this user
-        if get_out_of_scope_users(info.context.user, [instance]):
+        if not user.is_superuser and get_out_of_scope_users(user, [instance]):
             msg = "You can't manage this user."
             code = AccountErrorCode.OUT_OF_SCOPE_USER.value
             raise ValidationError({"id": ValidationError(msg, code=code)})
@@ -329,7 +333,9 @@ class StaffUpdate(StaffCreate):
             return
         if not is_active:
             cls.check_if_deactivating_superuser_or_own_account(instance, user, errors)
-            cls.check_if_deactivating_left_not_manageable_permissions(instance, errors)
+            cls.check_if_deactivating_left_not_manageable_permissions(
+                instance, user, errors
+            )
 
     @classmethod
     def check_if_deactivating_superuser_or_own_account(
@@ -357,7 +363,7 @@ class StaffUpdate(StaffCreate):
 
     @classmethod
     def check_if_deactivating_left_not_manageable_permissions(
-        cls, user: User, errors: dict
+        cls, user: User, requestor: User, errors: dict
     ):
         """Check if after deactivating user all permissions will be manageable.
 
@@ -365,6 +371,8 @@ class StaffUpdate(StaffCreate):
         active staff member who can manage it (has both “manage staff” and
         this permission).
         """
+        if requestor.is_superuser:
+            return
         permissions = get_not_manageable_permissions_when_deactivate_or_remove_users(
             [user]
         )
