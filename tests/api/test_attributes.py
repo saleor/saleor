@@ -1,4 +1,3 @@
-import json
 from typing import Union
 from unittest import mock
 
@@ -121,11 +120,10 @@ def test_attributes_query_ids_not_exists(attribute_filter, user_api_client, cate
     variables = {"filter": attribute_filter}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response, ignore_errors=True)
+    message_error = '{"ids": [{"message": "Invalid ID specified.", "code": ""}]}'
 
     assert len(content["errors"]) == 1
-
-    error = json.loads(content["errors"][0]["message"])
-    assert error["ids"][0]["message"] == "Invalid ID specified."
+    assert content["errors"][0]["message"] == message_error
     assert content["data"]["attributes"] is None
 
 
