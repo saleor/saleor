@@ -28,6 +28,7 @@ from ..utils import (
     StaffDeleteMixin,
     UserDeleteMixin,
     get_groups_which_user_can_manage,
+    get_not_manageable_permissions_when_deactivate_or_remove_user,
     get_out_of_scope_permissions,
     get_out_of_scope_users,
 )
@@ -327,18 +328,56 @@ class StaffUpdate(StaffCreate):
         if is_active is None:
             return
         if not is_active:
-            if user == instance:
-                error = ValidationError(
-                    "Cannot deactivate your own account.",
-                    code=AccountErrorCode.DEACTIVATE_OWN_ACCOUNT,
-                )
-                errors["is_active"].append(error)
-            elif instance.is_superuser:
-                error = ValidationError(
-                    "Cannot deactivate superuser's account.",
-                    code=AccountErrorCode.DEACTIVATE_SUPERUSER_ACCOUNT,
-                )
-                errors["is_active"].append(error)
+            cls.check_if_deactivating_superuser_or_own_account(instance, user, errors)
+            cls.check_if_deactivating_left_not_manageable_permissions(instance, errors)
+
+    @classmethod
+    def check_if_deactivating_superuser_or_own_account(
+        cls, instance: User, user: User, errors: dict
+    ):
+        """User cannot deactivate superuser or own account.
+
+        Args:
+            instance: user instance which is going to deactivated
+            user: requestor
+
+        """
+        if user == instance:
+            error = ValidationError(
+                "Cannot deactivate your own account.",
+                code=AccountErrorCode.DEACTIVATE_OWN_ACCOUNT.value,
+            )
+            errors["is_active"].append(error)
+        elif instance.is_superuser:
+            error = ValidationError(
+                "Cannot deactivate superuser's account.",
+                code=AccountErrorCode.DEACTIVATE_SUPERUSER_ACCOUNT.value,
+            )
+            errors["is_active"].append(error)
+
+    @classmethod
+    def check_if_deactivating_left_not_manageable_permissions(
+        cls, user: User, errors: dict
+    ):
+        """Check if after deactivating user all permissions will be manageable.
+
+        After deactivating user, for each permission, there should be at least one
+        active staff member who can manage it (has both “manage staff” and
+        this permission).
+        """
+        permissions = get_not_manageable_permissions_when_deactivate_or_remove_user(
+            user
+        )
+        if permissions:
+            # add error
+            msg = (
+                "Users cannot be deactivated, some of permissions "
+                "will not be manageable."
+            )
+            code = AccountErrorCode.LEFT_NOT_MANAGEABLE_PERMISSION.value
+            params = {"permissions": permissions}
+            error = ValidationError(msg, code=code, params=params)
+            errors["is_active"].append(error)
 
     @classmethod
     @transaction.atomic

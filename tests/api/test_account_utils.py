@@ -1,7 +1,11 @@
 from django.contrib.auth.models import Group
 
 from saleor.account.models import User
-from saleor.core.permissions import AccountPermissions, OrderPermissions
+from saleor.core.permissions import (
+    AccountPermissions,
+    OrderPermissions,
+    ProductPermissions,
+)
 from saleor.graphql.account.utils import (
     can_user_manage_group,
     get_group_permission_codes,
@@ -9,6 +13,7 @@ from saleor.graphql.account.utils import (
     get_groups_which_user_can_manage,
     get_not_manageable_permissions_after_group_deleting,
     get_not_manageable_permissions_after_removing_users_from_group,
+    get_not_manageable_permissions_when_deactivate_or_remove_user,
     get_out_of_scope_permissions,
     get_out_of_scope_users,
     get_user_permissions,
@@ -320,21 +325,13 @@ def test_get_group_to_permissions_and_users_mapping(
     result = get_group_to_permissions_and_users_mapping()
     excepted_result = {
         group1.pk: {
-            "permissions": {
-                permission_manage_users.content_type.app_label
-                + "."
-                + permission_manage_users.codename
-            },
+            "permissions": {AccountPermissions.MANAGE_USERS.value},
             "users": {staff_user1.pk, staff_user2.pk},
         },
         group2.pk: {
             "permissions": {
-                permission_manage_products.content_type.app_label
-                + "."
-                + permission_manage_products.codename,
-                permission_manage_orders.content_type.app_label
-                + "."
-                + permission_manage_orders.codename,
+                ProductPermissions.MANAGE_PRODUCTS.value,
+                OrderPermissions.MANAGE_ORDERS.value,
             },
             "users": set(),
         },
@@ -578,8 +575,8 @@ def test_get_not_manageable_perms_removing_users_from_group_some_cannot_be_manag
     permission_manage_staff,
     permission_manage_orders,
 ):
-    """Ensure returning permission for group, when not all permissions are ensure
-    by other groups.
+    """Ensure returning permission for group, when managable of all permissions are not
+    ensure by other groups.
     """
     groups = Group.objects.bulk_create(
         [
@@ -603,8 +600,102 @@ def test_get_not_manageable_perms_removing_users_from_group_some_cannot_be_manag
         group1, [staff_user1]
     )
 
-    assert permissions == {
-        permission_manage_users.content_type.app_label
-        + "."
-        + permission_manage_users.codename
-    }
+    assert permissions == {AccountPermissions.MANAGE_USERS.value}
+
+
+def test_get_not_manageable_permissions_when_deactivate_or_remove_user_no_permissions(
+    staff_users,
+    permission_manage_users,
+    permission_manage_staff,
+    permission_manage_orders,
+):
+    """Ensure user can be deactivated or removed when managable of all permissions are
+    ensure by other users."""
+    groups = Group.objects.bulk_create(
+        [
+            Group(name="manage users"),
+            Group(name="manage staff"),
+            Group(name="manage users and orders"),
+        ]
+    )
+    group1, group2, group3 = groups
+
+    group1.permissions.add(permission_manage_users)
+    group2.permissions.add(permission_manage_staff)
+    group3.permissions.add(permission_manage_users, permission_manage_orders)
+
+    staff_user1, staff_user2, _ = staff_users
+    group1.user_set.add(staff_user1)
+    group2.user_set.add(staff_user2, staff_user1)
+    group3.user_set.add(staff_user2)
+
+    permissions = get_not_manageable_permissions_when_deactivate_or_remove_user(
+        staff_user1
+    )
+
+    assert not permissions
+
+
+def test_get_not_manageable_permissions_when_deactivate_or_remove_user_some_permissions(
+    staff_users,
+    permission_manage_users,
+    permission_manage_staff,
+    permission_manage_orders,
+):
+    """Ensure user cannot be deactivated or removed when managable of all permissions
+    are not ensure by other users."""
+    groups = Group.objects.bulk_create(
+        [
+            Group(name="manage users"),
+            Group(name="manage staff"),
+            Group(name="manage orders"),
+        ]
+    )
+    group1, group2, group3 = groups
+
+    group1.permissions.add(permission_manage_users)
+    group2.permissions.add(permission_manage_staff)
+    group3.permissions.add(permission_manage_orders)
+
+    staff_user1, staff_user2, _ = staff_users
+    group1.user_set.add(staff_user1)
+    group2.user_set.add(staff_user2, staff_user1)
+    group3.user_set.add(staff_user2)
+
+    permissions = get_not_manageable_permissions_when_deactivate_or_remove_user(
+        staff_user1
+    )
+
+    assert permissions == {AccountPermissions.MANAGE_USERS.value}
+
+
+def test_get_not_manageable_permissions_deactivate_or_remove_user_cant_manage_staff(
+    staff_users,
+    permission_manage_users,
+    permission_manage_staff,
+    permission_manage_orders,
+):
+    """Ensure user can be deactivated when user doesn't have manage staff permission."""
+    groups = Group.objects.bulk_create(
+        [
+            Group(name="manage users"),
+            Group(name="manage staff"),
+            Group(name="manage orders"),
+        ]
+    )
+    group1, group2, group3 = groups
+
+    group1.permissions.add(permission_manage_users)
+    group2.permissions.add(permission_manage_staff)
+    group3.permissions.add(permission_manage_orders)
+
+    staff_user1, staff_user2, _ = staff_users
+    group1.user_set.add(staff_user1)
+    group2.user_set.add(staff_user2)
+    group3.user_set.add(staff_user2)
+
+    permissions = get_not_manageable_permissions_when_deactivate_or_remove_user(
+        staff_user1
+    )
+
+    assert not permissions
