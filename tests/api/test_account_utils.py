@@ -1,4 +1,4 @@
-from django.contrib.auth.models import Group
+from django.contrib.auth.models import Group, Permission
 
 from saleor.account.models import User
 from saleor.core.permissions import (
@@ -7,7 +7,9 @@ from saleor.core.permissions import (
     ProductPermissions,
 )
 from saleor.graphql.account.utils import (
+    add_user_to_group_with_given_permissions,
     can_user_manage_group,
+    create_group_name,
     get_group_permission_codes,
     get_group_to_permissions_and_users_mapping,
     get_groups_which_user_can_manage,
@@ -702,3 +704,116 @@ def test_get_not_manageable_permissions_deactivate_or_remove_user_cant_manage_st
     )
 
     assert not permissions
+
+
+def test_create_group_name(
+    permission_manage_users, permission_manage_staff, permission_manage_gift_card
+):
+    perm_pks = [
+        perm.pk
+        for perm in [
+            permission_manage_users,
+            permission_manage_staff,
+            permission_manage_gift_card,
+        ]
+    ]
+    permissions = Permission.objects.filter(pk__in=perm_pks).order_by("name")
+
+    group_name = create_group_name(permissions)
+
+    assert group_name == "Manage customers, gift cards, staff"
+
+
+def test_create_group_name_for_one_permission(permission_manage_gift_card):
+    permissions = Permission.objects.filter(pk__in=[permission_manage_gift_card.pk])
+
+    group_name = create_group_name(permissions)
+
+    assert group_name == "Manage gift cards"
+
+
+def test_add_user_to_group_with_given_permissions(
+    staff_user,
+    permission_manage_users,
+    permission_manage_discounts,
+    permission_manage_staff,
+    permission_manage_orders,
+):
+    """Ensure that user will be added to correct group."""
+    groups = Group.objects.bulk_create(
+        [
+            Group(name="manage orders, users and discounts"),
+            Group(name="manage users and discounts"),
+            Group(name="manage staff"),
+        ]
+    )
+    group1, group2, group3 = groups
+
+    group1.permissions.add(
+        permission_manage_orders, permission_manage_users, permission_manage_discounts
+    )
+    group2.permissions.add(permission_manage_staff)
+    group3.permissions.add(permission_manage_users, permission_manage_discounts)
+
+    perm_pks = [
+        perm.pk for perm in [permission_manage_users, permission_manage_discounts]
+    ]
+    permissions = Permission.objects.filter(pk__in=perm_pks)
+
+    add_user_to_group_with_given_permissions(staff_user, permissions)
+
+    group1.refresh_from_db()
+    group2.refresh_from_db()
+    group3.refresh_from_db()
+    assert group3.user_set.count() == 1
+    assert group3.user_set.all()[0].pk == staff_user.pk
+    assert group2.user_set.count() == 0
+    assert group1.user_set.count() == 0
+
+
+def test_add_user_to_group_with_given_permissions_creates_new_group(
+    staff_user,
+    permission_manage_users,
+    permission_manage_discounts,
+    permission_manage_staff,
+    permission_manage_orders,
+):
+    """Ensure that user will be added to correct group."""
+    groups = Group.objects.bulk_create(
+        [
+            Group(name="manage orders, users"),
+            Group(name="manage users and discounts"),
+            Group(name="manage staff"),
+        ]
+    )
+    group1, group2, group3 = groups
+
+    group1.permissions.add(permission_manage_orders, permission_manage_users)
+    group2.permissions.add(permission_manage_staff)
+    group3.permissions.add(permission_manage_users, permission_manage_discounts)
+
+    perm_pks = [
+        perm.pk
+        for perm in [
+            permission_manage_orders,
+            permission_manage_users,
+            permission_manage_discounts,
+        ]
+    ]
+    permissions = Permission.objects.filter(pk__in=perm_pks).order_by("name")
+
+    add_user_to_group_with_given_permissions(staff_user, permissions)
+
+    group1.refresh_from_db()
+    group2.refresh_from_db()
+    group3.refresh_from_db()
+    assert group3.user_set.count() == 0
+    assert group2.user_set.count() == 0
+    assert group1.user_set.count() == 0
+
+    group = Group.objects.last()
+    assert group.user_set.count() == 1
+    assert group.user_set.all()[0].pk == staff_user.pk
+    assert set(group.permissions.all().values_list("codename", flat=True)) == set(
+        permissions.values_list("codename", flat=True)
+    )

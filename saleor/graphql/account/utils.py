@@ -1,3 +1,4 @@
+import re
 from collections import defaultdict
 from typing import TYPE_CHECKING, List, Optional, Set
 
@@ -426,3 +427,42 @@ def look_for_permission_in_users_with_manage_staff(
             common_permissions = permissions_to_find & permissions
             # remove found permission from set
             permissions_to_find.difference_update(common_permissions)
+
+
+def add_user_to_group_with_given_permissions(user: "User", permissions: "QuerySet"):
+    """Add user to group with given permissions if exists, else create new one.
+
+    If group with exact scope of permissions exists, add user to it, else create
+    new group with this scope of permissions and add user to it.
+    """
+    if not permissions:
+        return
+
+    groups = (
+        Group.objects.filter(permissions__in=permissions)
+        .distinct()
+        .prefetch_related("permissions")
+    )
+
+    num_of_permissions = permissions.count()
+    # if a group with an exact set of permissions exists, add the user to this group
+    for group in groups:
+        if group.permissions.count() == num_of_permissions:
+            group.user_set.add(user)
+            return
+
+    group_name = create_group_name(permissions)
+
+    group = Group.objects.create(name=group_name)
+    group.permissions.set(permissions)
+    group.user_set.add(user)
+
+
+def create_group_name(permissions: "QuerySet"):
+    """Create group name based on permissions."""
+    perm_names = permissions.values_list("name", flat=True)
+    formatted_names = [
+        re.sub(r"^Manage ", "", name).rstrip(".").rstrip(".") for name in perm_names
+    ]
+    group_name = "Manage " + ", ".join(formatted_names)
+    return group_name
