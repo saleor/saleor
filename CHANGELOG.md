@@ -93,7 +93,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Check if image exists before validating - #5425 by @kswiatek92
 - Fix warehouses query not working without id - #5441 by @koradon
 - Add accountErrors to CreateToken as a required field - #5437 by @koradon
-- Raise ValidationError if filter has not valid IDs - #5460 @gabmartinez
+- Raise GraphQLError if filter has not valid IDs - #5460 @gabmartinez
 
 ## 2.9.0
 
