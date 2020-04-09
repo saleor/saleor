@@ -2,7 +2,7 @@ import hashlib
 import hmac
 from typing import Optional
 
-from ....site.models import Site
+from ...site.models import Site
 
 
 def create_hmac_signature(body: str, secret_key: str, encoding: str):

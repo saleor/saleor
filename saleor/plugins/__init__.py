@@ -3,12 +3,6 @@ from typing import List
 
 from .checks import check_plugins  # NOQA: F401
 
-from .base_plugin import BasePlugin, ConfigurationTypeField
-from .anonymize.plugin import AnonymizePlugin
-from .avatax.plugin import AvataxPlugin
-from .vatlayer.plugin import VatlayerPlugin
-from .webhook.plugin import WebhookPlugin
-
 
 def discover_plugins_modules(plugins: List[str]):
     plugins_modules = []

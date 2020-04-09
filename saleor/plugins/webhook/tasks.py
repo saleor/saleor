@@ -3,9 +3,9 @@ import logging
 import requests
 from requests.exceptions import RequestException
 
-from ....celeryconf import app
-from ....webhook.event_types import WebhookEventType
-from ....webhook.models import Webhook
+from ...celeryconf import app
+from ...webhook.event_types import WebhookEventType
+from ...webhook.models import Webhook
 from . import create_webhook_headers
 
 logger = logging.getLogger(__name__)

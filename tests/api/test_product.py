@@ -12,9 +12,9 @@ from graphql_relay import to_global_id
 from prices import Money
 
 from saleor.core.taxes import TaxType
-from saleor.plugins.manager import PluginsManager
 from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.product.utils import create_stocks
+from saleor.plugins.manager import PluginsManager
 from saleor.product import AttributeInputType
 from saleor.product.error_codes import ProductErrorCode
 from saleor.product.models import (
@@ -2097,7 +2097,7 @@ def test_product_type_create_mutation(
     staff_api_client, product_type, permission_manage_products, monkeypatch, settings
 ):
     settings.VATLAYER_ACCESS_KEY = "test"
-    settings.PLUGINS = ["saleor.plugins.plugins.vatlayer.plugin.VatlayerPlugin"]
+    settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     manager = PluginsManager(plugins=settings.PLUGINS)
     query = """
     mutation createProductType(

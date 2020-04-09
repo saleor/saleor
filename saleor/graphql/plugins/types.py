@@ -2,7 +2,8 @@ from typing import TYPE_CHECKING, Optional
 
 import graphene
 
-from ...plugins import ConfigurationTypeField, manager, models
+from ...plugins import manager, models
+from ...plugins.base_plugin import ConfigurationTypeField
 from ..core.connection import CountableDjangoObjectType
 from .enums import ConfigurationTypeFieldEnum
 

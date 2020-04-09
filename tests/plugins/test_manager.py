@@ -61,9 +61,9 @@ def test_manager_calculates_checkout_shipping(
 ):
     currency = checkout_with_item.currency
     expected_shipping_price = Money(shipping_amount, currency)
-    taxed_shipping_price = PluginsManager(
-        plugins=plugins
-    ).calculate_checkout_shipping(checkout_with_item, [discount_info])
+    taxed_shipping_price = PluginsManager(plugins=plugins).calculate_checkout_shipping(
+        checkout_with_item, [discount_info]
+    )
     assert (
         TaxedMoney(expected_shipping_price, expected_shipping_price)
         == taxed_shipping_price
@@ -105,14 +105,12 @@ def test_manager_calculates_checkout_line_total(
 
 @pytest.mark.parametrize(
     "plugins, amount",
-    [(["tests.extenspluginsions.sample_plugins.PluginSample"], "1.0"), ([], "12.30")],
+    [(["tests.plugins.sample_plugins.PluginSample"], "1.0"), ([], "12.30")],
 )
 def test_manager_calculates_order_line(order_line, plugins, amount):
     currency = order_line.unit_price.currency
     expected_price = Money(amount, currency)
-    unit_price = PluginsManager(plugins=plugins).calculate_order_line_unit(
-        order_line
-    )
+    unit_price = PluginsManager(plugins=plugins).calculate_order_line_unit(order_line)
     assert expected_price == unit_price.gross
 
 
@@ -127,9 +125,7 @@ def test_manager_calculates_order_line(order_line, plugins, amount):
     ],
 )
 def test_manager_uses_get_tax_rate_choices(plugins, tax_rate_list):
-    assert (
-        tax_rate_list == {PluginsManager}(plugins=plugins).get_tax_rate_type_choices()
-    )
+    assert tax_rate_list == PluginsManager(plugins=plugins).get_tax_rate_type_choices()
 
 
 @pytest.mark.parametrize(
@@ -225,9 +221,7 @@ def test_plugin_updates_configuration_shape(
         plugin_configuration.configuration + [new_config],
     )
 
-    manager = PluginsManager(
-        plugins=["tests.plugins.sample_plugins.PluginSample"]
-    )
+    manager = PluginsManager(plugins=["tests.plugins.sample_plugins.PluginSample"])
     plugin = manager.get_plugin("PluginSample")
 
     assert len(plugin.configuration) == 5
@@ -243,9 +237,7 @@ def test_plugin_add_new_configuration(
     )
     config_structure = {"Foo": new_config_structure}
     monkeypatch.setattr(PluginInactive, "CONFIG_STRUCTURE", config_structure)
-    manager = PluginsManager(
-        plugins=["tests.plugins.sample_plugins.PluginInactive"]
-    )
+    manager = PluginsManager(plugins=["tests.plugins.sample_plugins.PluginInactive"])
     plugin = manager.get_plugin("PluginInactive")
     assert len(plugin.configuration) == 1
     assert plugin.configuration[0] == {**new_config, **new_config_structure}

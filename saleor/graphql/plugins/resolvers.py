@@ -1,4 +1,4 @@
-from ...plugins import BasePlugin
+from ...plugins.base_plugin import BasePlugin
 from ...plugins.manager import get_plugins_manager
 from ...plugins.models import PluginConfiguration
 from .filters import filter_plugin_search
