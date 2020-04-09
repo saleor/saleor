@@ -96,6 +96,7 @@ class BaseMutation(graphene.Mutation):
     errors = graphene.List(
         graphene.NonNull(Error),
         description="List of errors that occurred executing the mutation.",
+        deprecation_reason="Use typed errors with error codes.",
         required=True,
     )
 
