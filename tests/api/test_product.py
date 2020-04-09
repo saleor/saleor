@@ -3468,7 +3468,10 @@ def test_product_types_query_ids_not_exists(
     variables = {"filter": product_type_filter}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response, ignore_errors=True)
-    assert len(content["errors"]) != 0
+    message_error = "{'ids': [{'message': 'Invalid ID specified.', 'code': ''}]}"
+
+    assert content["errors"]
+    assert content["errors"][0]["message"] == message_error
     assert content["data"]["productTypes"] is None
 
 

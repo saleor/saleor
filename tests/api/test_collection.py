@@ -620,7 +620,10 @@ def test_collections_query_ids_not_exists(collection_filter, user_api_client, ca
     variables = {"filter": collection_filter}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response, ignore_errors=True)
-    assert len(content["errors"]) != 0
+    message_error = "{'ids': [{'message': 'Invalid ID specified.', 'code': ''}]}"
+
+    assert content["errors"]
+    assert content["errors"][0]["message"] == message_error
     assert content["data"]["collections"] is None
 
 
