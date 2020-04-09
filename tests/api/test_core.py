@@ -24,6 +24,7 @@ from saleor.graphql.utils import (
     reporting_period_to_date,
 )
 from saleor.product.models import Category, Product
+from saleor.account.error_codes import AccountErrorCode
 from tests.api.utils import _get_graphql_content_from_response, get_graphql_content
 
 
@@ -286,6 +287,68 @@ def test_mutation_invalid_permission_in_meta(_mocked, should_fail, permissions_v
         _run_test()
 
     assert exc.value.args[0] == "Permissions should be a tuple or a string in Meta"
+
+
+MUTATION_CREATE_TOKEN = """
+    mutation tokenCreate($email: String!, $password: String!){
+        tokenCreate(email: $email, password: $password) {
+            token
+            user {
+                email
+            }
+            errors {
+                field
+                message
+            }
+            accountErrors {
+                field
+                message
+                code
+            }
+        }
+    }
+"""
+
+
+def test_create_token(api_client, customer_user):
+    variables = {"email": customer_user.email, "password": customer_user._password}
+    response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
+    content = get_graphql_content(response)
+    user_email = content["data"]["tokenCreate"]["user"]["email"]
+    assert customer_user.email == user_email
+    assert content["data"]["tokenCreate"]["token"]
+    assert content["data"]["tokenCreate"]["errors"] == []
+    assert content["data"]["tokenCreate"]["accountErrors"] == []
+
+
+def test_create_token_invalid_password(api_client, customer_user):
+    variables = {"email": customer_user.email, "password": "wrongpassword"}
+    response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
+    content = get_graphql_content(response)
+    assert (
+        content["data"]["tokenCreate"]["errors"][0]["message"]
+        == "Please, enter valid credentials"
+    )
+    assert (
+        content["data"]["tokenCreate"]["accountErrors"][0]["code"]
+        == AccountErrorCode.INVALID_CREDENTIALS.value.upper()
+    )
+    assert content["data"]["tokenCreate"]["accountErrors"][0]["field"] == "email"
+
+
+def test_create_token_invalid_email(api_client, customer_user):
+    variables = {"email": "wrongemail", "password": "wrongpassword"}
+    response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
+    content = get_graphql_content(response)
+    assert (
+        content["data"]["tokenCreate"]["errors"][0]["message"]
+        == "Please, enter valid credentials"
+    )
+    assert (
+        content["data"]["tokenCreate"]["accountErrors"][0]["code"]
+        == AccountErrorCode.INVALID_CREDENTIALS.value.upper()
+    )
+    assert content["data"]["tokenCreate"]["accountErrors"][0]["field"] == "email"
 
 
 MUTATION_TOKEN_VERIFY = """
