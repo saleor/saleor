@@ -153,8 +153,15 @@ def test_permission_group_create_mutation_only_required_fields_not_none(
 
 
 def test_permission_group_create_mutation_lack_of_permission(
-    staff_user, permission_manage_staff, staff_api_client, permission_manage_orders,
+    staff_user,
+    permission_manage_staff,
+    staff_api_client,
+    superuser_api_client,
+    permission_manage_orders,
 ):
+    """Ensue staff user can't create group with wider scope of permissions.
+    Ensure that superuser pass restrictions.
+    """
     staff_user.user_permissions.add(permission_manage_orders)
     query = PERMISSION_GROUP_CREATE_MUTATION
 
@@ -168,13 +175,15 @@ def test_permission_group_create_mutation_lack_of_permission(
             ],
         }
     }
+
+    # for staff user
     response = staff_api_client.post_graphql(
         query, variables, permissions=(permission_manage_staff,)
     )
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupCreate"]
-
     errors = data["permissionGroupErrors"]
+
     assert len(errors) == 1
     assert errors[0]["field"] == "permissions"
     assert errors[0]["code"] == PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.name
@@ -183,6 +192,24 @@ def test_permission_group_create_mutation_lack_of_permission(
         AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name,
     }
     assert errors[0]["users"] is None
+
+    # for superuser
+    response = superuser_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupCreate"]
+    errors = data["permissionGroupErrors"]
+
+    assert not errors
+    group = Group.objects.get()
+    assert data["group"]["name"] == group.name == variables["input"]["name"]
+    permissions_codes = {
+        permission["code"].lower() for permission in data["group"]["permissions"]
+    }
+    assert (
+        set(group.permissions.all().values_list("codename", flat=True))
+        == permissions_codes
+        == set(perm.lower() for perm in variables["input"]["permissions"])
+    )
 
 
 def test_permission_group_create_mutation_group_exists(
@@ -229,12 +256,14 @@ def test_permission_group_create_mutation_add_customer_user(
     customer_user,
     permission_manage_staff,
     staff_api_client,
+    superuser_api_client,
     permission_manage_users,
     permission_manage_service_accounts,
 ):
     """Ensure creating permission group with customer user in input field for adding
     users failed. Mutations should failed. Error should contains list of wrong users
     IDs.
+    Ensure this mutation also fail for superuser.
     """
 
     second_customer = User.objects.create(
@@ -260,9 +289,25 @@ def test_permission_group_create_mutation_add_customer_user(
             "users": user_ids,
         }
     }
+
+    # for staff user
     response = staff_api_client.post_graphql(
         query, variables, permissions=(permission_manage_staff,)
     )
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupCreate"]
+    errors = data["permissionGroupErrors"]
+
+    assert errors
+    assert len(errors) == 1
+    assert errors[0]["field"] == "users"
+    assert errors[0]["permissions"] is None
+    assert set(errors[0]["users"]) == set(user_ids[1:])
+    assert errors[0]["code"] == PermissionGroupErrorCode.ASSIGN_NON_STAFF_MEMBER.name
+    assert data["group"] is None
+
+    # for superuser
+    response = superuser_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupCreate"]
     errors = data["permissionGroupErrors"]
@@ -326,11 +371,14 @@ def test_permission_group_create_mutation_out_of_scope_users(
     permission_group_manage_users,
     permission_manage_staff,
     staff_api_client,
+    superuser_api_client,
     permission_manage_users,
     permission_manage_service_accounts,
 ):
     """Ensure user cannot create group with user whose permission scope
-    is wider than requestor scope."""
+    is wider than requestor scope.
+    Ensure superuser pass restriction.
+    """
 
     staff_user = staff_users[0]
     staff_user.user_permissions.add(permission_manage_service_accounts)
@@ -346,6 +394,8 @@ def test_permission_group_create_mutation_out_of_scope_users(
             ],
         }
     }
+
+    # for staff user
     response = staff_api_client.post_graphql(
         query, variables, permissions=(permission_manage_staff,)
     )
@@ -363,6 +413,30 @@ def test_permission_group_create_mutation_out_of_scope_users(
         "User", staff_users[1].pk
     )
     assert data["group"] is None
+
+    # for superuser
+    response = superuser_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupCreate"]
+    errors = data["permissionGroupErrors"]
+
+    assert not errors
+    group_name = variables["input"]["name"]
+    group = Group.objects.get(name=group_name)
+    assert data["group"]["name"] == group.name == group_name
+    permissions_codes = {
+        permission["code"].lower() for permission in data["group"]["permissions"]
+    }
+    assert (
+        set(group.permissions.all().values_list("codename", flat=True))
+        == permissions_codes
+        == set(perm.lower() for perm in variables["input"]["permissions"])
+    )
+    assert (
+        {user["email"] for user in data["group"]["users"]}
+        == {user.email for user in staff_users}
+        == set(group.user_set.all().values_list("email", flat=True))
+    )
 
 
 PERMISSION_GROUP_UPDATE_MUTATION = """
@@ -782,10 +856,12 @@ def test_permission_group_update_mutation_user_cannot_manage_group(
     staff_user,
     permission_manage_staff,
     staff_api_client,
+    superuser_api_client,
     permission_manage_service_accounts,
 ):
     """Ensure that update mutation failed when user try to update group for which
     he doesn't have permission.
+    Ensure superuser pass restrictions.
     """
     staff_user.user_permissions.add(permission_manage_service_accounts)
     group = permission_group_manage_users
@@ -798,6 +874,8 @@ def test_permission_group_update_mutation_user_cannot_manage_group(
             "addPermissions": [AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name],
         },
     }
+
+    # for staff user
     response = staff_api_client.post_graphql(
         query, variables, permissions=(permission_manage_staff,)
     )
@@ -808,6 +886,25 @@ def test_permission_group_update_mutation_user_cannot_manage_group(
     assert len(errors) == 1
     assert errors[0]["code"] == PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.name
     assert errors[0]["field"] is None
+
+    # for superuser
+    response = superuser_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupUpdate"]
+    errors = data["permissionGroupErrors"]
+
+    group_name = variables["input"]["name"]
+    group = Group.objects.get(name=group_name)
+    assert not errors
+    assert data["group"]["name"] == group_name == group.name
+    permissions_codes = {
+        permission["code"].lower() for permission in data["group"]["permissions"]
+    }
+    assert (
+        set(group.permissions.all().values_list("codename", flat=True))
+        == permissions_codes
+    )
+    assert variables["input"]["addPermissions"][0].lower() in permissions_codes
 
 
 def test_permission_group_update_mutation_user_in_list_to_add_and_remove(
@@ -965,12 +1062,14 @@ def test_permission_group_update_mutation_user_add_customer_user(
     staff_user,
     permission_manage_staff,
     staff_api_client,
+    superuser_api_client,
     permission_manage_users,
     permission_manage_service_accounts,
     customer_user,
 ):
     """Ensure update mutation with customer user in field for adding users failed.
     Ensure error contains list with user IDs which cause the problem.
+    Ensure it also fail for superuser.
     """
     staff_user.user_permissions.add(
         permission_manage_users, permission_manage_service_accounts
@@ -990,9 +1089,23 @@ def test_permission_group_update_mutation_user_add_customer_user(
             ],
         },
     }
+
+    # for staff user
     response = staff_api_client.post_graphql(
         query, variables, permissions=(permission_manage_staff,)
     )
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupUpdate"]
+    errors = data["permissionGroupErrors"]
+
+    assert len(errors) == 1
+    assert errors[0]["code"] == PermissionGroupErrorCode.ASSIGN_NON_STAFF_MEMBER.name
+    assert errors[0]["field"] == "addUsers"
+    assert errors[0]["permissions"] is None
+    assert errors[0]["users"] == [customer_user_id]
+
+    # for superuser
+    response = superuser_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupUpdate"]
     errors = data["permissionGroupErrors"]
@@ -1009,12 +1122,14 @@ def test_permission_group_update_mutation_lack_of_permission(
     staff_user,
     permission_manage_staff,
     staff_api_client,
+    superuser_api_client,
     permission_manage_users,
     permission_manage_service_accounts,
     permission_manage_orders,
 ):
     """Ensure update mutation failed when user trying to add permission which
     he doesn't have.
+    Ensure superuser pass the restrictions.
     """
     staff_user.user_permissions.add(
         permission_manage_users, permission_manage_service_accounts
@@ -1030,6 +1145,8 @@ def test_permission_group_update_mutation_lack_of_permission(
         "id": graphene.Node.to_global_id("Group", group.id),
         "input": {"name": "New permission group", "addPermissions": permissions},
     }
+
+    # for staff user
     response = staff_api_client.post_graphql(
         query, variables, permissions=(permission_manage_staff,)
     )
@@ -1043,19 +1160,43 @@ def test_permission_group_update_mutation_lack_of_permission(
     assert errors[0]["permissions"] == [OrderPermissions.MANAGE_ORDERS.name]
     assert errors[0]["users"] is None
 
+    # for superuser
+    response = superuser_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupUpdate"]
+    errors = data["permissionGroupErrors"]
+
+    assert not errors
+    group_name = variables["input"]["name"]
+    group = Group.objects.get(name=group_name)
+    assert not errors
+    assert data["group"]["name"] == group_name == group.name
+    permissions_codes = {
+        permission["code"].lower() for permission in data["group"]["permissions"]
+    }
+    assert (
+        set(group.permissions.all().values_list("codename", flat=True))
+        == permissions_codes
+    )
+    for perm in permissions:
+        assert perm.lower() in permissions_codes
+
 
 def test_permission_group_update_mutation_out_of_scope_users(
     staff_users,
     permission_group_manage_users,
     permission_manage_staff,
     staff_api_client,
+    superuser_api_client,
     permission_manage_users,
     permission_manage_service_accounts,
     permission_manage_orders,
     permission_manage_products,
 ):
     """Ensure user cannot assign and unasign users whose permission scope
-    is wider than requestor scope."""
+    is wider than requestor scope.
+    Ensure superuser pass restrictions.
+    """
 
     staff_user = staff_users[0]
     staff_user3 = User.objects.create_user(
@@ -1086,6 +1227,8 @@ def test_permission_group_update_mutation_out_of_scope_users(
             "removeUsers": [graphene.Node.to_global_id("User", staff_user3.id)],
         },
     }
+
+    # for staff user
     response = staff_api_client.post_graphql(
         query, variables, permissions=(permission_manage_staff,)
     )
@@ -1114,6 +1257,28 @@ def test_permission_group_update_mutation_out_of_scope_users(
     for error in errors:
         error.pop("message")
         assert error in expected_errors
+
+    # for superuser
+    response = superuser_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupUpdate"]
+    errors = data["permissionGroupErrors"]
+
+    assert not errors
+    group = Group.objects.get()
+    assert not errors
+    permissions_codes = {
+        permission["code"].lower() for permission in data["group"]["permissions"]
+    }
+    assert (
+        set(group.permissions.all().values_list("codename", flat=True))
+        == permissions_codes
+    )
+    assert variables["input"]["addPermissions"][0].lower() in permissions_codes
+    group_users = group.user_set.all()
+    assert staff_user3 not in group_users
+    for staff in staff_users:
+        assert staff in group_users
 
 
 def test_permission_group_update_mutation_multiply_errors(
@@ -1235,9 +1400,12 @@ def test_permission_group_update_mutation_remove_all_group_users_not_manageable_
     permission_manage_staff,
     permission_manage_orders,
     staff_api_client,
+    superuser_api_client,
 ):
     """Ensure that user cannot remove group users if there is no other source of some
-    of group permission. """
+    of group permission.
+    Ensure superuser pass restrictions.
+    """
     staff_user, staff_user1, staff_user2 = staff_users
 
     groups = Group.objects.bulk_create(
@@ -1263,6 +1431,7 @@ def test_permission_group_update_mutation_remove_all_group_users_not_manageable_
         },
     }
 
+    # for staff user
     response = staff_api_client.post_graphql(
         query, variables, permissions=(permission_manage_staff,)
     )
@@ -1278,6 +1447,18 @@ def test_permission_group_update_mutation_remove_all_group_users_not_manageable_
         == PermissionGroupErrorCode.LEFT_NOT_MANAGEABLE_PERMISSION.name
     )
     assert errors[0]["permissions"] == [permission_manage_users.codename.upper()]
+
+    # for superuser
+    response = superuser_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupUpdate"]
+    errors = data["permissionGroupErrors"]
+
+    assert not errors
+    group1.refresh_from_db()
+    group_users = group1.user_set.all()
+    for staff in [staff_user1, staff_user2]:
+        assert staff not in group_users
 
 
 def test_permission_group_update_mutation_remove_group_users_add_with_manage_stuff(
@@ -1573,12 +1754,21 @@ def test_group_delete_mutation(
 
 
 def test_group_delete_mutation_out_of_scope_permission(
-    permission_group_manage_users, staff_user, permission_manage_staff, staff_api_client
+    permission_group_manage_users,
+    staff_user,
+    permission_manage_staff,
+    staff_api_client,
+    superuser_api_client,
 ):
+    """Ensure staff user can't delete group which is out of user's permission scope.
+    Ensure superuser pass restrictions.
+    """
     group = permission_group_manage_users
     query = PERMISSION_GROUP_DELETE_MUTATION
 
     variables = {"id": graphene.Node.to_global_id("Group", group.id)}
+
+    # for staff user
     response = staff_api_client.post_graphql(
         query, variables, permissions=(permission_manage_staff,)
     )
@@ -1591,6 +1781,16 @@ def test_group_delete_mutation_out_of_scope_permission(
     assert errors[0]["code"] == PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.name
     assert errors[0]["field"] is None
 
+    # for superuser
+    response = superuser_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupDelete"]
+    errors = data["permissionGroupErrors"]
+    permission_group_data = data["group"]
+
+    assert not errors
+    assert not Group.objects.filter(pk=group.pk).exists()
+
 
 def test_group_delete_mutation_left_not_manageable_permission(
     staff_users,
@@ -1598,7 +1798,12 @@ def test_group_delete_mutation_left_not_manageable_permission(
     permission_manage_orders,
     permission_manage_products,
     staff_api_client,
+    superuser_api_client,
 ):
+    """Ensure staff user can't delete group when some permissions will be not
+    manageable.
+    Ensure superuser pass restrictions.
+    """
     staff_user, staff_user1, staff_user2 = staff_users
     staff_user.user_permissions.add(
         permission_manage_orders, permission_manage_products
@@ -1627,6 +1832,8 @@ def test_group_delete_mutation_left_not_manageable_permission(
     query = PERMISSION_GROUP_DELETE_MUTATION
 
     variables = {"id": graphene.Node.to_global_id("Group", group1.id)}
+
+    # for staff user
     response = staff_api_client.post_graphql(
         query, variables, permissions=(permission_manage_staff,)
     )
@@ -1643,8 +1850,14 @@ def test_group_delete_mutation_left_not_manageable_permission(
     )
     assert errors[0]["permissions"] == [OrderPermissions.MANAGE_ORDERS.name]
 
+    # for superuser
+    response = superuser_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupDelete"]
+    errors = data["permissionGroupErrors"]
 
-# tets for remove last group with manage staff and without
+    assert not errors
+    assert not Group.objects.filter(pk=group1.pk).exists()
 
 
 def test_group_delete_mutation_delete_last_group(

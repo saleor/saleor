@@ -87,17 +87,19 @@ class PermissionGroupCreate(ModelMutation):
     ):
         permission_items = cleaned_input.get(field)
         if permission_items:
-            permissions = get_out_of_scope_permissions(
-                info.context.user, cleaned_input[field]
-            )
+            cleaned_input[field] = get_permissions(cleaned_input[field])
+
+            user = info.context.user
+            if user.is_superuser:
+                return
+
+            permissions = get_out_of_scope_permissions(user, permission_items)
             if permissions:
                 # add error
                 error_msg = "You can't add permission that you don't have."
                 code = PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.value
                 params = {"permissions": permissions}
                 cls.update_errors(errors, error_msg, field, code, params)
-
-            cleaned_input[field] = get_permissions(cleaned_input[field])
 
     @classmethod
     def can_manage_users(
@@ -110,7 +112,8 @@ class PermissionGroupCreate(ModelMutation):
         """Check if user from request can manage users from input."""
         user = info.context.user
         users = cleaned_input[field]
-
+        if user.is_superuser:
+            return
         out_of_scope_users = get_out_of_scope_users(user, users)
         if out_of_scope_users:
             # add error
@@ -222,7 +225,8 @@ class PermissionGroupUpdate(PermissionGroupCreate):
     def clean_input(
         cls, info, instance, data,
     ):
-        if not can_user_manage_group(info.context.user, instance):
+        user = info.context.user
+        if not user.is_superuser and not can_user_manage_group(user, instance):
             error_msg = "You can't manage group with permissions out of your scope."
             code = PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.value
             raise ValidationError(error_msg, code)
@@ -261,7 +265,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
     @classmethod
     def clean_remove_users(cls, info, errors: dict, cleaned_input: dict, group: Group):
         cls.check_if_removing_user_last_group(info, errors, cleaned_input)
-        cls.check_if_users_can_be_removed(errors, cleaned_input, group)
+        cls.check_if_users_can_be_removed(info, errors, cleaned_input, group)
 
     @classmethod
     def check_if_removing_user_last_group(cls, info, errors, cleaned_input):
@@ -277,7 +281,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
 
     @classmethod
     def check_if_users_can_be_removed(
-        cls, errors: dict, cleaned_input: dict, group: Group
+        cls, info, errors: dict, cleaned_input: dict, group: Group
     ):
         """Check if after removing users from group all permissions will be manageable.
 
@@ -285,6 +289,9 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         at least one staff member who can manage it (has both “manage staff”
         and this permission).
         """
+        if info.context.user.is_superuser:
+            return
+
         remove_users = cleaned_input["remove_users"]
         add_users = cleaned_input.get("add_users")
         manage_staff_permission = AccountPermissions.MANAGE_STAFF.value
@@ -343,7 +350,10 @@ class PermissionGroupDelete(ModelDeleteMutation):
 
     @classmethod
     def clean_instance(cls, info, instance):
-        if not can_user_manage_group(info.context.user, instance):
+        user = info.context.user
+        if user.is_superuser:
+            return
+        if not can_user_manage_group(user, instance):
             error_msg = "You can't manage group with permissions out of your scope."
             code = PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.value
             raise ValidationError(error_msg, code)
