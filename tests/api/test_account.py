@@ -608,10 +608,7 @@ ACCOUNT_REGISTER_MUTATION = """
     ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True, ALLOWED_CLIENT_HOSTS=["localhost"]
 )
 @patch("saleor.account.emails._send_account_confirmation_email")
-@patch("saleor.graphql.account.mutations.account.match_orders_with_new_user")
-def test_customer_register(
-    match_orders_with_new_user_mock, send_account_confirmation_email_mock, api_client
-):
+def test_customer_register(send_account_confirmation_email_mock, api_client):
     email = "customer@example.com"
     variables = {
         "email": email,
@@ -637,24 +634,20 @@ def test_customer_register(
     customer_creation_event = account_events.CustomerEvent.objects.get()
     assert customer_creation_event.type == account_events.CustomerEvents.ACCOUNT_CREATED
     assert customer_creation_event.user == new_user
-    match_orders_with_new_user_mock.assert_not_called()
 
 
 @override_settings(ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=False)
 @patch("saleor.account.emails._send_account_confirmation_email")
-@patch("saleor.graphql.account.mutations.account.match_orders_with_new_user")
 def test_customer_register_disabled_email_confirmation(
-    match_orders_with_new_user_mock, send_account_confirmation_email_mock, api_client
+    send_account_confirmation_email_mock, api_client
 ):
     email = "customer@example.com"
     variables = {"email": email, "password": "Password"}
     response = api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
     errors = response.json()["data"]["accountRegister"]["accountErrors"]
-    new_user = User.objects.get(email=email)
 
     assert errors == []
     send_account_confirmation_email_mock.delay.assert_not_called()
-    match_orders_with_new_user_mock.assert_called_once_with(new_user)
 
 
 @override_settings(ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True)
@@ -2199,7 +2192,10 @@ def test_account_reset_password(
     url_validator(url)
 
 
-def test_account_confirmation(api_client, customer_user):
+@patch("saleor.graphql.account.mutations.base.match_orders_with_new_user")
+def test_account_confirmation(
+    match_orders_with_new_user_mock, api_client, customer_user
+):
     customer_user.is_active = False
     customer_user.save()
 
@@ -2212,10 +2208,14 @@ def test_account_confirmation(api_client, customer_user):
     assert not content["data"]["confirmAccount"]["accountErrors"]
     assert content["data"]["confirmAccount"]["user"]["email"] == customer_user.email
     customer_user.refresh_from_db()
+    match_orders_with_new_user_mock.assert_called_once_with(customer_user)
     assert customer_user.is_active is True
 
 
-def test_account_confirmation_invalid_user(user_api_client, customer_user):
+@patch("saleor.graphql.account.mutations.base.match_orders_with_new_user")
+def test_account_confirmation_invalid_user(
+    match_orders_with_new_user_mock, user_api_client, customer_user
+):
     variables = {
         "email": "non-existing@example.com",
         "token": default_token_generator.make_token(customer_user),
@@ -2227,9 +2227,13 @@ def test_account_confirmation_invalid_user(user_api_client, customer_user):
         content["data"]["confirmAccount"]["accountErrors"][0]["code"]
         == AccountErrorCode.NOT_FOUND.name
     )
+    match_orders_with_new_user_mock.assert_not_called()
 
 
-def test_account_confirmation_invalid_token(user_api_client, customer_user):
+@patch("saleor.graphql.account.mutations.base.match_orders_with_new_user")
+def test_account_confirmation_invalid_token(
+    match_orders_with_new_user_mock, user_api_client, customer_user
+):
     variables = {"email": customer_user.email, "token": "invalid_token"}
     response = user_api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
     content = get_graphql_content(response)
@@ -2238,6 +2242,7 @@ def test_account_confirmation_invalid_token(user_api_client, customer_user):
         content["data"]["confirmAccount"]["accountErrors"][0]["code"]
         == AccountErrorCode.INVALID.name
     )
+    match_orders_with_new_user_mock.assert_not_called()
 
 
 @patch("saleor.account.emails._send_password_reset_email")
