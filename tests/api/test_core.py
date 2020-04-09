@@ -8,6 +8,7 @@ from django.utils import timezone
 from graphene import InputField
 from graphql_jwt.shortcuts import get_token
 
+from saleor.account.error_codes import AccountErrorCode
 from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.core.filters import EnumFilter
 from saleor.graphql.core.mutations import BaseMutation
@@ -24,7 +25,6 @@ from saleor.graphql.utils import (
     reporting_period_to_date,
 )
 from saleor.product.models import Category, Product
-from saleor.account.error_codes import AccountErrorCode
 from tests.api.utils import _get_graphql_content_from_response, get_graphql_content
 
 
