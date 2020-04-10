@@ -120,6 +120,77 @@ def test_query_staff_user(
 
 @pytest.mark.django_db
 @pytest.mark.count_queries(autouse=False)
+def test_staff_create(
+    staff_api_client,
+    staff_user,
+    media_root,
+    permission_group_manage_users,
+    permission_manage_products,
+    permission_manage_staff,
+    permission_manage_users,
+    count_queries,
+):
+    query = """
+        mutation CreateStaff(
+                $email: String, $permissions: [PermissionEnum], $redirect_url: String,
+                $add_groups: [ID!]
+            ) {
+            staffCreate(input: {email: $email, permissions: $permissions,
+                    redirectUrl: $redirect_url, addGroups: $add_groups }) {
+                staffErrors {
+                    field
+                    code
+                    permissions
+                    groups
+                }
+                user {
+                    id
+                    email
+                    isStaff
+                    isActive
+                    userPermissions {
+                        code
+                    }
+                    permissions {
+                        code
+                    }
+                    permissionGroups {
+                        name
+                        permissions {
+                            code
+                        }
+                    }
+                    avatar {
+                        url
+                    }
+                }
+            }
+        }
+    """
+    group = permission_group_manage_users
+    staff_user.user_permissions.add(permission_manage_products, permission_manage_users)
+    email = "api_user@example.com"
+    variables = {
+        "email": email,
+        "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
+        "redirect_url": "https://www.example.com",
+        "add_groups": [graphene.Node.to_global_id("Group", group.pk)],
+    }
+
+    staff_count = User.objects.filter(is_staff=True).count()
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_staff]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["staffCreate"]
+
+    assert User.objects.filter(is_staff=True).count() + staff_count + 1
+    assert data
+    assert not data["staffErrors"]
+
+
+@pytest.mark.django_db
+@pytest.mark.count_queries(autouse=False)
 def test_staff_update_groups_and_permissions(
     staff_api_client,
     staff_users,
