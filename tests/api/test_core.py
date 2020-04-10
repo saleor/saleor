@@ -317,7 +317,6 @@ def test_create_token(api_client, customer_user):
     user_email = content["data"]["tokenCreate"]["user"]["email"]
     assert customer_user.email == user_email
     assert content["data"]["tokenCreate"]["token"]
-    assert content["data"]["tokenCreate"]["errors"] == []
     assert content["data"]["tokenCreate"]["accountErrors"] == []
 
 
