@@ -1532,12 +1532,10 @@ def test_staff_create(
         permission_manage_users.codename,
     }
     permissions = data["user"]["userPermissions"]
-    assert len(permissions) == 2
     assert {perm["code"].lower() for perm in permissions} == expected_perms
 
     # deprecated, to remove in #5389
     permissions = data["user"]["permissions"]
-    assert len(permissions) == 2
     assert {perm["code"].lower() for perm in permissions} == expected_perms
 
     staff_user = User.objects.get(email=email)
@@ -1617,12 +1615,10 @@ def test_staff_create_out_of_scope_group(
         permission_manage_users.codename,
     }
     permissions = data["user"]["userPermissions"]
-    assert len(permissions) == 2
     assert {perm["code"].lower() for perm in permissions} == expected_perms
 
     # deprecated, to remove in #5389
     permissions = data["user"]["permissions"]
-    assert len(permissions) == 2
     assert {perm["code"].lower() for perm in permissions} == expected_perms
 
     staff_user = User.objects.get(email=email)
@@ -1818,17 +1814,14 @@ def test_staff_update_groups_and_permissions(
     content = get_graphql_content(response)
     data = content["data"]["staffUpdate"]
     assert data["staffErrors"] == []
-    assert len(data["user"]["userPermissions"]) == 1
     assert {perm["code"].lower() for perm in data["user"]["userPermissions"]} == {
         permission_manage_orders.codename,
     }
-    assert len(data["user"]["permissionGroups"]) == 2
     assert {group["name"] for group in data["user"]["permissionGroups"]} == {
         group2.name,
         group3.name,
     }
     # deprecated, to remove in #5389
-    assert len(data["user"]["permissions"]) == 1
     assert {perm["code"].lower() for perm in data["user"]["permissions"]} == {
         permission_manage_orders.codename,
     }
