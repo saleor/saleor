@@ -163,12 +163,14 @@ def test_staff_update_groups_and_permissions(
             Group(name="manage users"),
             Group(name="manage staff"),
             Group(name="manage orders"),
+            Group(name="manage products"),
         ]
     )
-    group1, group2, group3 = groups
+    group1, group2, group3, group4 = groups
     group1.permissions.add(permission_manage_users)
     group2.permissions.add(permission_manage_staff)
     group3.permissions.add(permission_manage_orders)
+    group4.permissions.add(permission_manage_products)
 
     staff_user, staff_user1, staff_user2 = staff_users
     group1.user_set.add(staff_user1, staff_user2)
@@ -203,10 +205,11 @@ def test_staff_update_groups_and_permissions(
         permission_manage_products.codename,
         permission_manage_staff.codename,
     }
-    assert len(data["user"]["permissionGroups"]) == 2
+    assert len(data["user"]["permissionGroups"]) == 3
     assert {group["name"] for group in data["user"]["permissionGroups"]} == {
         group2.name,
         group3.name,
+        group4.name,
     }
     # deprecated, to remove in #5389
     assert len(data["user"]["permissions"]) == 3

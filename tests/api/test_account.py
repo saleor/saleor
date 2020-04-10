@@ -1478,6 +1478,12 @@ STAFF_CREATE_MUTATION = """
                 permissions {
                     code
                 }
+                permissionGroups {
+                    name
+                    permissions {
+                        code
+                    }
+                }
                 avatar {
                     url
                 }
@@ -1531,6 +1537,23 @@ def test_staff_create(
     staff_user = User.objects.get(email=email)
 
     assert staff_user.is_staff
+
+    groups = data["user"]["permissionGroups"]
+    assert len(groups) == 2
+    expected_groups = [
+        {
+            "name": group.name,
+            "permissions": [{"code": permission_manage_users.codename.upper()}],
+        },
+        {
+            "name": "Manage products",
+            "permissions": [{"code": permission_manage_products.codename.upper()}],
+        },
+    ]
+    for group in expected_groups:
+        assert group in groups
+
+    assert staff_user.user_permissions.count() == 0
 
     _send_set_password_email_mock.assert_called_once_with(
         staff_user.email, ANY, "dashboard/staff/set_password"
@@ -1779,20 +1802,29 @@ def test_staff_update_groups_and_permissions(
     media_root,
     permission_manage_staff,
     permission_manage_users,
-    permission_manage_orders,
+    permission_manage_discounts,
     permission_manage_products,
+    permission_manage_orders,
 ):
+    """Ensure that when providing permissions it won't be added to `user_permission`
+    field. User will be added to group with given perimssions. If one doesn't exists,
+    new one is created.
+    Ensure user is added to existing group.
+    """
     query = STAFF_UPDATE_MUTATIONS
     groups = Group.objects.bulk_create(
         [
             Group(name="manage users"),
             Group(name="manage orders"),
+            Group(name="manage discounts"),
             Group(name="manage products"),
         ]
     )
-    group1, group2, group3 = groups
+    group1, group2, group3, group4 = groups
     group1.permissions.add(permission_manage_users)
     group2.permissions.add(permission_manage_orders)
+    group3.permissions.add(permission_manage_discounts)
+    group4.permissions.add(permission_manage_products)
 
     staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
     staff_user.groups.add(group1)
@@ -1810,7 +1842,10 @@ def test_staff_update_groups_and_permissions(
     }
 
     staff_api_client.user.user_permissions.add(
-        permission_manage_users, permission_manage_orders, permission_manage_products
+        permission_manage_users,
+        permission_manage_orders,
+        permission_manage_products,
+        permission_manage_discounts,
     )
 
     response = staff_api_client.post_graphql(
@@ -1819,22 +1854,101 @@ def test_staff_update_groups_and_permissions(
     content = get_graphql_content(response)
     data = content["data"]["staffUpdate"]
     assert data["staffErrors"] == []
-    assert len(data["user"]["userPermissions"]) == 2
+    assert len(data["user"]["userPermissions"]) == 3
     assert {perm["code"].lower() for perm in data["user"]["userPermissions"]} == {
+        permission_manage_discounts.codename,
         permission_manage_orders.codename,
         permission_manage_products.codename,
     }
-    assert len(data["user"]["permissionGroups"]) == 2
+    assert len(data["user"]["permissionGroups"]) == 3
     assert {group["name"] for group in data["user"]["permissionGroups"]} == {
+        group4.name,
         group2.name,
         group3.name,
     }
     # deprecated, to remove in #5389
-    assert len(data["user"]["permissions"]) == 2
+    assert len(data["user"]["permissions"]) == 3
     assert {perm["code"].lower() for perm in data["user"]["permissions"]} == {
+        permission_manage_discounts.codename,
         permission_manage_orders.codename,
         permission_manage_products.codename,
     }
+
+
+def test_staff_update_groups_and_permissions_creates_new_group(
+    staff_api_client,
+    media_root,
+    permission_manage_staff,
+    permission_manage_users,
+    permission_manage_discounts,
+    permission_manage_products,
+    permission_manage_orders,
+):
+    """Ensure that when providing permissions it won't be added to `user_permission`
+    field. User will be added to group with given perimssions. If one doesn't exists,
+    new one is created.
+    Ensure new group is created.
+    """
+    query = STAFF_UPDATE_MUTATIONS
+    groups = Group.objects.bulk_create(
+        [
+            Group(name="manage users"),
+            Group(name="manage orders"),
+            Group(name="manage discounts"),
+        ]
+    )
+    group1, group2, group3 = groups
+    group1.permissions.add(permission_manage_users)
+    group2.permissions.add(permission_manage_orders)
+    group3.permissions.add(permission_manage_discounts)
+
+    staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
+    staff_user.groups.add(group1)
+
+    id = graphene.Node.to_global_id("User", staff_user.id)
+    variables = {
+        "id": id,
+        "input": {
+            "addGroups": [
+                graphene.Node.to_global_id("Group", gr.pk) for gr in [group2, group3]
+            ],
+            "removeGroups": [graphene.Node.to_global_id("Group", group1.pk)],
+            "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
+        },
+    }
+
+    staff_api_client.user.user_permissions.add(
+        permission_manage_users,
+        permission_manage_orders,
+        permission_manage_products,
+        permission_manage_discounts,
+    )
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_staff]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["staffUpdate"]
+    assert data["staffErrors"] == []
+    assert len(data["user"]["userPermissions"]) == 3
+    assert {perm["code"].lower() for perm in data["user"]["userPermissions"]} == {
+        permission_manage_discounts.codename,
+        permission_manage_orders.codename,
+        permission_manage_products.codename,
+    }
+    assert len(data["user"]["permissionGroups"]) == 3
+    group_names = {group["name"] for group in data["user"]["permissionGroups"]}
+    assert group2.name in group_names
+    assert group3.name in group_names
+    assert "Manage products" in group_names
+    # deprecated, to remove in #5389
+    assert len(data["user"]["permissions"]) == 3
+    assert {perm["code"].lower() for perm in data["user"]["permissions"]} == {
+        permission_manage_discounts.codename,
+        permission_manage_orders.codename,
+        permission_manage_products.codename,
+    }
+    assert staff_user.user_permissions.count() == 0
 
 
 def test_staff_update_out_of_scope_user(

@@ -27,6 +27,7 @@ from ..utils import (
     CustomerDeleteMixin,
     StaffDeleteMixin,
     UserDeleteMixin,
+    add_user_to_group_with_given_permissions,
     get_groups_which_user_can_manage,
     get_not_manageable_permissions_when_deactivate_or_remove_users,
     get_out_of_scope_permissions,
@@ -44,7 +45,10 @@ from .base import (
 class StaffInput(UserInput):
     permissions = graphene.List(
         PermissionEnum,
-        description="List of permission code names to assign to this user.",
+        description=(
+            "List of permission code names to assign to this user. "
+            "DEPRECATED: Will be removed in Saleor 2.11. Use groups instead."
+        ),
     )
     add_groups = graphene.List(
         graphene.NonNull(graphene.ID),
@@ -214,7 +218,7 @@ class StaffCreate(ModelMutation):
         cls, requestor: models.User, cleaned_input: dict, errors: dict
     ):
         permissions = cleaned_input["permissions"]
-        cleaned_input["user_permissions"] = get_permissions(permissions)
+        cleaned_input["permissions"] = get_permissions(permissions)
         if requestor.is_superuser:
             return
         out_of_scope_permissions = get_out_of_scope_permissions(requestor, permissions)
@@ -275,6 +279,8 @@ class StaffCreate(ModelMutation):
         groups = cleaned_data.get("add_groups")
         if groups:
             instance.groups.add(*groups)
+        permissions = cleaned_data.get("permissions")
+        add_user_to_group_with_given_permissions(instance, permissions)
 
 
 class StaffUpdate(StaffCreate):
