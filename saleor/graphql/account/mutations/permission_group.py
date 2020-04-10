@@ -361,10 +361,10 @@ class PermissionGroupDelete(ModelDeleteMutation):
 
     @classmethod
     def clean_instance(cls, info, instance):
-        user = info.context.user
-        if user.is_superuser:
+        requestor = info.context.user
+        if requestor.is_superuser:
             return
-        if not can_user_manage_group(user, instance):
+        if not can_user_manage_group(requestor, instance):
             error_msg = "You can't manage group with permissions out of your scope."
             code = PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.value
             raise ValidationError(error_msg, code)
