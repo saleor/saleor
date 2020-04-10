@@ -15,9 +15,7 @@ def checkout_shipping_price(
 
     It takes in account all plugins.
     """
-    return get_plugins_manager().calculate_checkout_shipping(
-        checkout, discounts or []
-    )
+    return get_plugins_manager().calculate_checkout_shipping(checkout, discounts or [])
 
 
 def checkout_subtotal(
@@ -27,9 +25,7 @@ def checkout_subtotal(
 
     It takes in account all plugins.
     """
-    return get_plugins_manager().calculate_checkout_subtotal(
-        checkout, discounts or []
-    )
+    return get_plugins_manager().calculate_checkout_subtotal(checkout, discounts or [])
 
 
 def checkout_total(
