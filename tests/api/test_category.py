@@ -692,15 +692,12 @@ NOT_EXISTS_IDS_CATEGORIES_QUERY = """
             }
         }
     }
-    """
+"""
 
 
-@pytest.mark.parametrize(
-    "category_filter", [{"ids": ["W3KATGDn3fq3ZH4=", "zH9pYmz7yWD3Hy8="]}],
-)
-def test_categories_query_ids_not_exists(category_filter, user_api_client, category):
+def test_categories_query_ids_not_exists(user_api_client, category):
     query = NOT_EXISTS_IDS_CATEGORIES_QUERY
-    variables = {"filter": category_filter}
+    variables = {"filter": {"ids": ["W3KATGDn3fq3ZH4=", "zH9pYmz7yWD3Hy8="]}}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response, ignore_errors=True)
     message_error = '{"ids": [{"message": "Invalid ID specified.", "code": ""}]}'

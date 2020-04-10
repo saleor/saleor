@@ -109,15 +109,12 @@ NOT_EXISTS_IDS_ATTRIBUTES_QUERY = """
             }
         }
     }
-    """
+"""
 
 
-@pytest.mark.parametrize(
-    "attribute_filter", [{"ids": ["ygRqjpmXYqaTD9r=", "PBa4ZLBhnXHSz6v="]}],
-)
-def test_attributes_query_ids_not_exists(attribute_filter, user_api_client, category):
+def test_attributes_query_ids_not_exists(user_api_client, category):
     query = NOT_EXISTS_IDS_ATTRIBUTES_QUERY
-    variables = {"filter": attribute_filter}
+    variables = {"filter": {"ids": ["ygRqjpmXYqaTD9r=", "PBa4ZLBhnXHSz6v="]}}
     response = user_api_client.post_graphql(query, variables)
     content = get_graphql_content(response, ignore_errors=True)
     message_error = '{"ids": [{"message": "Invalid ID specified.", "code": ""}]}'
