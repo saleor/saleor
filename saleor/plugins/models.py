@@ -14,9 +14,7 @@ class PluginConfiguration(models.Model):
     )
 
     class Meta:
-        permissions = (
-            (PluginsPermissions.MANAGE_PLUGINS.codename, "Manage plugins"),
-        )
+        permissions = ((PluginsPermissions.MANAGE_PLUGINS.codename, "Manage plugins"),)
 
     def __str__(self):
         return f"Configuration of {self.name}, active: {self.active}"

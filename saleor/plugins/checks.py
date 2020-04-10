@@ -31,9 +31,7 @@ def check_manager(errors: List[Error]):
         import_string(settings.PLUGINS_MANAGER)
     except ImportError:
         errors.append(
-            Error(
-                "Plugins Manager path: %s doesn't exist" % settings.PLUGINS_MANAGER
-            )
+            Error("Plugins Manager path: %s doesn't exist" % settings.PLUGINS_MANAGER)
         )
 
 

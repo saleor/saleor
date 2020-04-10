@@ -264,9 +264,7 @@ class BaseAddressUpdate(ModelMutation):
     def perform_mutation(cls, root, info, **data):
         response = super().perform_mutation(root, info, **data)
         user = response.address.user_addresses.first()
-        address = info.context.plugins.change_user_address(
-            response.address, None, user
-        )
+        address = info.context.plugins.change_user_address(response.address, None, user)
         response.user = user
         response.address = address
         return response
