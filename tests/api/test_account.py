@@ -28,7 +28,6 @@ from saleor.graphql.account.mutations.staff import (
     StaffUpdate,
     UserDelete,
 )
-from saleor.graphql.core.enums import PermissionEnum
 from saleor.graphql.core.utils import str_to_enum
 from saleor.order.models import FulfillmentStatus, Order
 from tests.api.utils import get_graphql_content
@@ -1456,11 +1455,11 @@ def test_customer_delete_errors(customer_user, admin_user, staff_user):
 
 STAFF_CREATE_MUTATION = """
     mutation CreateStaff(
-            $email: String, $permissions: [PermissionEnum], $redirect_url: String,
-            $add_groups: [ID!]
+            $email: String, $redirect_url: String, $add_groups: [ID!]
         ) {
-        staffCreate(input: {email: $email, permissions: $permissions,
-                redirectUrl: $redirect_url, addGroups: $add_groups }) {
+        staffCreate(input: {email: $email, redirectUrl: $redirect_url,
+            addGroups: $add_groups}
+        ) {
             staffErrors {
                 field
                 code
@@ -1477,6 +1476,12 @@ STAFF_CREATE_MUTATION = """
                 }
                 permissions {
                     code
+                }
+                permissionGroups {
+                    name
+                    permissions {
+                        code
+                    }
                 }
                 avatar {
                     url
@@ -1499,11 +1504,11 @@ def test_staff_create(
     permission_manage_users,
 ):
     group = permission_group_manage_users
+    group.permissions.add(permission_manage_products)
     staff_user.user_permissions.add(permission_manage_products, permission_manage_users)
     email = "api_user@example.com"
     variables = {
         "email": email,
-        "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
         "redirect_url": "https://www.example.com",
         "add_groups": [graphene.Node.to_global_id("Group", group.pk)],
     }
@@ -1521,16 +1526,27 @@ def test_staff_create(
         r"http://testserver/media/user-avatars/avatar\d+.*",
         data["user"]["avatar"]["url"],
     )
+
+    expected_perms = {
+        permission_manage_products.codename,
+        permission_manage_users.codename,
+    }
     permissions = data["user"]["userPermissions"]
-    assert permissions[0]["code"] == "MANAGE_PRODUCTS"
+    assert len(permissions) == 2
+    assert {perm["code"].lower() for perm in permissions} == expected_perms
 
     # deprecated, to remove in #5389
     permissions = data["user"]["permissions"]
-    assert permissions[0]["code"] == "MANAGE_PRODUCTS"
+    assert len(permissions) == 2
+    assert {perm["code"].lower() for perm in permissions} == expected_perms
 
     staff_user = User.objects.get(email=email)
 
     assert staff_user.is_staff
+
+    groups = data["user"]["permissionGroups"]
+    assert len(groups) == 1
+    assert {perm["code"].lower() for perm in groups[0]["permissions"]} == expected_perms
 
     _send_set_password_email_mock.assert_called_once_with(
         staff_user.email, ANY, "dashboard/staff/set_password"
@@ -1538,68 +1554,17 @@ def test_staff_create(
 
 
 @patch("saleor.account.emails._send_set_password_email")
-def test_staff_create_out_of_scope_permission_and_group(
+def test_staff_create_out_of_scope_group(
     _send_set_password_email_mock,
     staff_api_client,
-    media_root,
-    permission_manage_staff,
-    permission_group_manage_users,
-):
-    group = permission_group_manage_users
-    group2 = Group.objects.create(name="second group")
-    group2.permissions.add(permission_manage_staff)
-    email = "api_user@example.com"
-    variables = {
-        "email": email,
-        "permissions": [
-            PermissionEnum.MANAGE_PRODUCTS.name,
-            PermissionEnum.MANAGE_STAFF.name,
-        ],
-        "redirect_url": "https://www.example.com",
-        "add_groups": [
-            graphene.Node.to_global_id("Group", gr.pk) for gr in [group, group2]
-        ],
-    }
-
-    response = staff_api_client.post_graphql(
-        STAFF_CREATE_MUTATION, variables, permissions=[permission_manage_staff]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["staffCreate"]
-    errors = data["staffErrors"]
-    assert not data["user"]
-    assert len(errors) == 2
-
-    expected_errors = [
-        {
-            "field": "permissions",
-            "code": AccountErrorCode.OUT_OF_SCOPE_PERMISSION.name,
-            "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
-            "groups": None,
-        },
-        {
-            "field": "addGroups",
-            "code": AccountErrorCode.OUT_OF_SCOPE_GROUP.name,
-            "permissions": None,
-            "groups": [graphene.Node.to_global_id("Group", group.pk)],
-        },
-    ]
-    for error in errors:
-        assert error in expected_errors
-
-    _send_set_password_email_mock.assert_not_called()
-
-
-@patch("saleor.account.emails._send_set_password_email")
-def test_staff_create_superuser_pass_restrictions(
-    _send_set_password_email_mock,
     superuser_api_client,
     media_root,
     permission_manage_staff,
+    permission_manage_users,
     permission_group_manage_users,
 ):
-    """Ensure user can create staff even if permissions ang groups are out of scope
-    based on checks.
+    """Ensure user can't create staff with groups which are out of user scope.
+    Ensure superuser pass restrictions.
     """
     group = permission_group_manage_users
     group2 = Group.objects.create(name="second group")
@@ -1607,16 +1572,34 @@ def test_staff_create_superuser_pass_restrictions(
     email = "api_user@example.com"
     variables = {
         "email": email,
-        "permissions": [
-            PermissionEnum.MANAGE_PRODUCTS.name,
-            PermissionEnum.MANAGE_STAFF.name,
-        ],
         "redirect_url": "https://www.example.com",
         "add_groups": [
             graphene.Node.to_global_id("Group", gr.pk) for gr in [group, group2]
         ],
     }
 
+    # for staff user
+    response = staff_api_client.post_graphql(
+        STAFF_CREATE_MUTATION, variables, permissions=[permission_manage_staff]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["staffCreate"]
+    errors = data["staffErrors"]
+    assert not data["user"]
+    assert len(errors) == 1
+
+    expected_error = {
+        "field": "addGroups",
+        "code": AccountErrorCode.OUT_OF_SCOPE_GROUP.name,
+        "permissions": None,
+        "groups": [graphene.Node.to_global_id("Group", group.pk)],
+    }
+
+    assert errors[0] == expected_error
+
+    _send_set_password_email_mock.assert_not_called()
+
+    # for superuser
     response = superuser_api_client.post_graphql(STAFF_CREATE_MUTATION, variables)
     content = get_graphql_content(response)
     data = content["data"]["staffCreate"]
@@ -1629,16 +1612,37 @@ def test_staff_create_superuser_pass_restrictions(
         r"http://testserver/media/user-avatars/avatar\d+.*",
         data["user"]["avatar"]["url"],
     )
+    expected_perms = {
+        permission_manage_staff.codename,
+        permission_manage_users.codename,
+    }
     permissions = data["user"]["userPermissions"]
-    assert permissions[0]["code"] == "MANAGE_PRODUCTS"
+    assert len(permissions) == 2
+    assert {perm["code"].lower() for perm in permissions} == expected_perms
 
     # deprecated, to remove in #5389
     permissions = data["user"]["permissions"]
-    assert permissions[0]["code"] == "MANAGE_PRODUCTS"
+    assert len(permissions) == 2
+    assert {perm["code"].lower() for perm in permissions} == expected_perms
 
     staff_user = User.objects.get(email=email)
 
     assert staff_user.is_staff
+
+    expected_groups = [
+        {
+            "name": group.name,
+            "permissions": [{"code": permission_manage_users.codename.upper()}],
+        },
+        {
+            "name": group2.name,
+            "permissions": [{"code": permission_manage_staff.codename.upper()}],
+        },
+    ]
+    groups = data["user"]["permissionGroups"]
+    assert len(groups) == 2
+    for group in expected_groups:
+        assert group in groups
 
     _send_set_password_email_mock.assert_called_once_with(
         staff_user.email, ANY, "dashboard/staff/set_password"
@@ -1760,7 +1764,7 @@ def test_staff_update(staff_api_client, permission_manage_staff, media_root):
     query = STAFF_UPDATE_MUTATIONS
     staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
     id = graphene.Node.to_global_id("User", staff_user.id)
-    variables = {"id": id, "input": {"permissions": [], "isActive": False}}
+    variables = {"id": id, "input": {"isActive": False}}
 
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_staff]
@@ -1784,11 +1788,7 @@ def test_staff_update_groups_and_permissions(
 ):
     query = STAFF_UPDATE_MUTATIONS
     groups = Group.objects.bulk_create(
-        [
-            Group(name="manage users"),
-            Group(name="manage orders"),
-            Group(name="manage products"),
-        ]
+        [Group(name="manage users"), Group(name="manage orders"), Group(name="empty")]
     )
     group1, group2, group3 = groups
     group1.permissions.add(permission_manage_users)
@@ -1805,7 +1805,6 @@ def test_staff_update_groups_and_permissions(
                 graphene.Node.to_global_id("Group", gr.pk) for gr in [group2, group3]
             ],
             "removeGroups": [graphene.Node.to_global_id("Group", group1.pk)],
-            "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
         },
     }
 
@@ -1819,10 +1818,9 @@ def test_staff_update_groups_and_permissions(
     content = get_graphql_content(response)
     data = content["data"]["staffUpdate"]
     assert data["staffErrors"] == []
-    assert len(data["user"]["userPermissions"]) == 2
+    assert len(data["user"]["userPermissions"]) == 1
     assert {perm["code"].lower() for perm in data["user"]["userPermissions"]} == {
         permission_manage_orders.codename,
-        permission_manage_products.codename,
     }
     assert len(data["user"]["permissionGroups"]) == 2
     assert {group["name"] for group in data["user"]["permissionGroups"]} == {
@@ -1830,10 +1828,9 @@ def test_staff_update_groups_and_permissions(
         group3.name,
     }
     # deprecated, to remove in #5389
-    assert len(data["user"]["permissions"]) == 2
+    assert len(data["user"]["permissions"]) == 1
     assert {perm["code"].lower() for perm in data["user"]["permissions"]} == {
         permission_manage_orders.codename,
-        permission_manage_products.codename,
     }
 
 
@@ -1851,7 +1848,7 @@ def test_staff_update_out_of_scope_user(
     staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
     staff_user.user_permissions.add(permission_manage_orders)
     id = graphene.Node.to_global_id("User", staff_user.id)
-    variables = {"id": id, "input": {"permissions": [], "isActive": False}}
+    variables = {"id": id, "input": {"isActive": False}}
 
     # for staff user
     response = staff_api_client.post_graphql(
@@ -1871,59 +1868,6 @@ def test_staff_update_out_of_scope_user(
     assert data["user"]["email"] == staff_user.email
     assert data["user"]["isActive"] is False
     assert not data["staffErrors"]
-
-
-def test_staff_update_out_of_scope_permissions(
-    staff_api_client,
-    superuser_api_client,
-    permission_manage_staff,
-    media_root,
-    permission_manage_orders,
-    permission_manage_products,
-):
-    """Ensure that user cannot add permissions which doesn't have.
-    Ensure superuser pass restrictions.
-    """
-    query = STAFF_UPDATE_MUTATIONS
-    staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
-    staff_api_client.user.user_permissions.add(permission_manage_orders)
-    id = graphene.Node.to_global_id("User", staff_user.id)
-    variables = {
-        "id": id,
-        "input": {
-            "permissions": [
-                PermissionEnum.MANAGE_PRODUCTS.name,
-                PermissionEnum.MANAGE_ORDERS.name,
-            ],
-            "isActive": False,
-        },
-    }
-
-    # for staff user
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_staff]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["staffUpdate"]
-    errors = data["staffErrors"]
-    assert not data["user"]
-    assert len(errors) == 1
-    assert errors[0]["code"] == AccountErrorCode.OUT_OF_SCOPE_PERMISSION.name
-    assert errors[0]["field"] == "permissions"
-    assert errors[0]["permissions"] == [PermissionEnum.MANAGE_PRODUCTS.name]
-    assert errors[0]["groups"] is None
-
-    # for superuser
-    response = superuser_api_client.post_graphql(query, variables)
-    content = get_graphql_content(response)
-    data = content["data"]["staffUpdate"]
-    errors = data["staffErrors"]
-    assert not errors
-    assert data["user"]["email"] == staff_user.email
-    assert {perm["code"].lower() for perm in data["user"]["userPermissions"]} == {
-        permission_manage_orders.codename,
-        permission_manage_products.codename,
-    }
 
 
 def test_staff_update_out_of_scope_groups(
@@ -1960,7 +1904,6 @@ def test_staff_update_out_of_scope_groups(
     variables = {
         "id": id,
         "input": {
-            "permissions": [],
             "isActive": False,
             "addGroups": [
                 graphene.Node.to_global_id("Group", gr.pk) for gr in [group1, group2]
@@ -2015,17 +1958,12 @@ def test_staff_update_cannot_add_and_remove(
     permission_manage_staff,
     media_root,
     permission_manage_orders,
-    permission_manage_products,
     permission_manage_users,
 ):
     query = STAFF_UPDATE_MUTATIONS
 
     groups = Group.objects.bulk_create(
-        [
-            Group(name="manage users"),
-            Group(name="manage orders"),
-            Group(name="manage products"),
-        ]
+        [Group(name="manage users"), Group(name="manage orders"), Group(name="empty")]
     )
     group1, group2, group3 = groups
 
@@ -2088,7 +2026,7 @@ def test_staff_update_doesnt_change_existing_avatar(
     original_path = staff_user1.avatar.path
 
     id = graphene.Node.to_global_id("User", staff_user1.id)
-    variables = {"id": id, "input": {"permissions": [], "isActive": False}}
+    variables = {"id": id, "input": {"isActive": False}}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_staff]
     )
