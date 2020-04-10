@@ -326,10 +326,6 @@ def test_create_token_invalid_password(api_client, customer_user):
     response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
     content = get_graphql_content(response)
     assert (
-        content["data"]["tokenCreate"]["errors"][0]["message"]
-        == "Please, enter valid credentials"
-    )
-    assert (
         content["data"]["tokenCreate"]["accountErrors"][0]["code"]
         == AccountErrorCode.INVALID_CREDENTIALS.value.upper()
     )
@@ -340,10 +336,6 @@ def test_create_token_invalid_email(api_client, customer_user):
     variables = {"email": "wrongemail", "password": "wrongpassword"}
     response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
     content = get_graphql_content(response)
-    assert (
-        content["data"]["tokenCreate"]["errors"][0]["message"]
-        == "Please, enter valid credentials"
-    )
     assert (
         content["data"]["tokenCreate"]["accountErrors"][0]["code"]
         == AccountErrorCode.INVALID_CREDENTIALS.value.upper()
