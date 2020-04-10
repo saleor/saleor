@@ -4333,7 +4333,6 @@ input StaffCreateInput {
   email: String
   isActive: Boolean
   note: String
-  permissions: [PermissionEnum]
   addGroups: [ID!]
   redirectUrl: String
 }
@@ -4401,7 +4400,6 @@ input StaffUpdateInput {
   email: String
   isActive: Boolean
   note: String
-  permissions: [PermissionEnum]
   addGroups: [ID!]
   removeGroups: [ID!]
 }
