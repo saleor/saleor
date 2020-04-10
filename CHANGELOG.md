@@ -93,6 +93,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Check if image exists before validating - #5425 by @kswiatek92
 - Fix warehouses query not working without id - #5441 by @koradon
 - Add accountErrors to CreateToken as a required field - #5437 by @koradon
+- Fix missing accountError when JSONWebTokenError is raised in CreateToken - #5465 by @koradon
 
 ## 2.9.0
 
