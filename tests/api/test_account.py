@@ -1590,6 +1590,61 @@ def test_staff_create_out_of_scope_permission_and_group(
     _send_set_password_email_mock.assert_not_called()
 
 
+@patch("saleor.account.emails._send_set_password_email")
+def test_staff_create_superuser_pass_restrictions(
+    _send_set_password_email_mock,
+    superuser_api_client,
+    media_root,
+    permission_manage_staff,
+    permission_group_manage_users,
+):
+    """Ensure user can create staff even if permissions ang groups are out of scope
+    based on checks.
+    """
+    group = permission_group_manage_users
+    group2 = Group.objects.create(name="second group")
+    group2.permissions.add(permission_manage_staff)
+    email = "api_user@example.com"
+    variables = {
+        "email": email,
+        "permissions": [
+            PermissionEnum.MANAGE_PRODUCTS.name,
+            PermissionEnum.MANAGE_STAFF.name,
+        ],
+        "redirect_url": "https://www.example.com",
+        "add_groups": [
+            graphene.Node.to_global_id("Group", gr.pk) for gr in [group, group2]
+        ],
+    }
+
+    response = superuser_api_client.post_graphql(STAFF_CREATE_MUTATION, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["staffCreate"]
+
+    assert data["staffErrors"] == []
+    assert data["user"]["email"] == email
+    assert data["user"]["isStaff"]
+    assert data["user"]["isActive"]
+    assert re.match(
+        r"http://testserver/media/user-avatars/avatar\d+.*",
+        data["user"]["avatar"]["url"],
+    )
+    permissions = data["user"]["userPermissions"]
+    assert permissions[0]["code"] == "MANAGE_PRODUCTS"
+
+    # deprecated, to remove in #5389
+    permissions = data["user"]["permissions"]
+    assert permissions[0]["code"] == "MANAGE_PRODUCTS"
+
+    staff_user = User.objects.get(email=email)
+
+    assert staff_user.is_staff
+
+    _send_set_password_email_mock.assert_called_once_with(
+        staff_user.email, ANY, "dashboard/staff/set_password"
+    )
+
+
 @patch("saleor.account.emails._send_set_user_password_email_with_url.delay")
 def test_staff_create_send_password_with_url(
     _send_set_user_password_email_with_url_mock,
@@ -1694,6 +1749,7 @@ STAFF_UPDATE_MUTATIONS = """
                     name
                 }
                 isActive
+                email
             }
         }
     }
@@ -1782,14 +1838,22 @@ def test_staff_update_groups_and_permissions(
 
 
 def test_staff_update_out_of_scope_user(
-    staff_api_client, permission_manage_staff, permission_manage_orders, media_root
+    staff_api_client,
+    superuser_api_client,
+    permission_manage_staff,
+    permission_manage_orders,
+    media_root,
 ):
+    """Ensure that staff user cannot update user with wider scope of permission.
+    Ensure superuser pass restrictions.
+    """
     query = STAFF_UPDATE_MUTATIONS
     staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
     staff_user.user_permissions.add(permission_manage_orders)
     id = graphene.Node.to_global_id("User", staff_user.id)
     variables = {"id": id, "input": {"permissions": [], "isActive": False}}
 
+    # for staff user
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_staff]
     )
@@ -1800,10 +1864,26 @@ def test_staff_update_out_of_scope_user(
     assert data["staffErrors"][0]["field"] == "id"
     assert data["staffErrors"][0]["code"] == AccountErrorCode.OUT_OF_SCOPE_USER.name
 
+    # for superuser
+    response = superuser_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["staffUpdate"]
+    assert data["user"]["email"] == staff_user.email
+    assert data["user"]["isActive"] is False
+    assert not data["staffErrors"]
+
 
 def test_staff_update_out_of_scope_permissions(
-    staff_api_client, permission_manage_staff, media_root, permission_manage_orders
+    staff_api_client,
+    superuser_api_client,
+    permission_manage_staff,
+    media_root,
+    permission_manage_orders,
+    permission_manage_products,
 ):
+    """Ensure that user cannot add permissions which doesn't have.
+    Ensure superuser pass restrictions.
+    """
     query = STAFF_UPDATE_MUTATIONS
     staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
     staff_api_client.user.user_permissions.add(permission_manage_orders)
@@ -1819,6 +1899,7 @@ def test_staff_update_out_of_scope_permissions(
         },
     }
 
+    # for staff user
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_staff]
     )
@@ -1832,15 +1913,32 @@ def test_staff_update_out_of_scope_permissions(
     assert errors[0]["permissions"] == [PermissionEnum.MANAGE_PRODUCTS.name]
     assert errors[0]["groups"] is None
 
+    # for superuser
+    response = superuser_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["staffUpdate"]
+    errors = data["staffErrors"]
+    assert not errors
+    assert data["user"]["email"] == staff_user.email
+    assert {perm["code"].lower() for perm in data["user"]["userPermissions"]} == {
+        permission_manage_orders.codename,
+        permission_manage_products.codename,
+    }
+
 
 def test_staff_update_out_of_scope_groups(
     staff_api_client,
+    superuser_api_client,
     permission_manage_staff,
     media_root,
     permission_manage_users,
     permission_manage_orders,
     permission_manage_products,
 ):
+    """Ensure that staff user cannot add to groups which permission scope is wider
+    than user's scope.
+    Ensure superuser pass restrictions.
+    """
     query = STAFF_UPDATE_MUTATIONS
 
     groups = Group.objects.bulk_create(
@@ -1871,6 +1969,7 @@ def test_staff_update_out_of_scope_groups(
         },
     }
 
+    # for staff user
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_staff]
     )
@@ -1897,6 +1996,18 @@ def test_staff_update_out_of_scope_groups(
     for error in errors:
         error.pop("message")
         assert error in expected_errors
+
+    # for superuser
+    response = superuser_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["staffUpdate"]
+    errors = data["staffErrors"]
+    assert not errors
+    assert data["user"]["email"] == staff_user.email
+    assert {group["name"] for group in data["user"]["permissionGroups"]} == {
+        group1.name,
+        group2.name,
+    }
 
 
 def test_staff_update_cannot_add_and_remove(
@@ -1993,11 +2104,16 @@ def test_staff_update_doesnt_change_existing_avatar(
 
 def test_staff_update_deactivate_with_manage_staff_left_not_manageable_perms(
     staff_api_client,
+    superuser_api_client,
     staff_users,
     permission_manage_users,
     permission_manage_staff,
     permission_manage_orders,
+    media_root,
 ):
+    """Ensure that staff user can't and superuser can deactivate user where some
+    permissions will be not manageable.
+    """
     query = STAFF_UPDATE_MUTATIONS
     groups = Group.objects.bulk_create(
         [
@@ -2021,6 +2137,8 @@ def test_staff_update_deactivate_with_manage_staff_left_not_manageable_perms(
 
     id = graphene.Node.to_global_id("User", staff_user1.id)
     variables = {"id": id, "input": {"isActive": False}}
+
+    # for staff user
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_staff]
     )
@@ -2034,6 +2152,18 @@ def test_staff_update_deactivate_with_manage_staff_left_not_manageable_perms(
     assert errors[0]["code"] == AccountErrorCode.LEFT_NOT_MANAGEABLE_PERMISSION.name
     assert len(errors[0]["permissions"]) == 1
     assert errors[0]["permissions"][0] == AccountPermissions.MANAGE_USERS.name
+
+    # for superuser
+    response = superuser_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["staffUpdate"]
+    errors = data["staffErrors"]
+
+    staff_user1.refresh_from_db()
+    assert data["user"]["email"] == staff_user1.email
+    assert data["user"]["isActive"] is False
+    assert not errors
+    assert not staff_user1.is_active
 
 
 def test_staff_update_deactivate_with_manage_staff_all_perms_manageable(
@@ -2117,9 +2247,9 @@ def test_staff_delete_out_of_scope_user(
     permission_manage_staff,
     permission_manage_products,
 ):
-    """Ensure that staff user can't delete staff when some users has wider scope of
-    permissions than requestor.
-    Ensure that superuser pass restriction.
+    """Ensure staff user cannot delete users even when some of user permissions are
+    out of requestor scope.
+    Ensure superuser pass restrictions.
     """
     query = STAFF_DELETE_MUTATION
     staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
@@ -2127,7 +2257,7 @@ def test_staff_delete_out_of_scope_user(
     user_id = graphene.Node.to_global_id("User", staff_user.id)
     variables = {"id": user_id}
 
-    # fot staff user
+    # for staff user
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_staff]
     )

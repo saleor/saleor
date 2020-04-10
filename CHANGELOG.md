@@ -99,6 +99,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add restriction to deactivating staff - #5449 by @IKarbowiak
 - Add restriction to removing staff - #5450 by @IKarbowiak
 - Add restriction to bulk staff delete mutation - #5456 by @IKarbowiak
+- Exclude superuser from staff and groups restrictions - #5463 by @IKarbowiak
 
 ## 2.9.0
 

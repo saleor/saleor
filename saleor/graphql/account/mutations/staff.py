@@ -196,11 +196,12 @@ class StaffCreate(ModelMutation):
                 error.code = AccountErrorCode.INVALID
                 errors["redirect_url"].append(error)
 
+        requestor = info.context.user
         # set is_staff to True to create a staff user
         cleaned_input["is_staff"] = True
         if cleaned_input.get("permissions"):
-            cls.clean_permissions(info, cleaned_input, errors)
-        cls.clean_groups(info, cleaned_input, errors)
+            cls.clean_permissions(requestor, cleaned_input, errors)
+        cls.clean_groups(requestor, cleaned_input, errors)
         cls.clean_is_active(cleaned_input, instance, info.context.user, errors)
 
         if errors:
@@ -209,11 +210,14 @@ class StaffCreate(ModelMutation):
         return cleaned_input
 
     @classmethod
-    def clean_permissions(cls, info, cleaned_input, errors):
-        permissions = cleaned_input.get("permissions")
-        out_of_scope_permissions = get_out_of_scope_permissions(
-            info.context.user, permissions
-        )
+    def clean_permissions(
+        cls, requestor: models.User, cleaned_input: dict, errors: dict
+    ):
+        permissions = cleaned_input["permissions"]
+        cleaned_input["user_permissions"] = get_permissions(permissions)
+        if requestor.is_superuser:
+            return
+        out_of_scope_permissions = get_out_of_scope_permissions(requestor, permissions)
         if out_of_scope_permissions:
             error_msg = "You can't manage permission that you don't have."
             code = AccountErrorCode.OUT_OF_SCOPE_PERMISSION.value
@@ -221,17 +225,19 @@ class StaffCreate(ModelMutation):
             error = ValidationError(message=error_msg, code=code, params=params)
             errors["permissions"].append(error)
 
-        cleaned_input["user_permissions"] = get_permissions(permissions)
-
     @classmethod
-    def clean_groups(cls, info, cleaned_input, errors):
+    def clean_groups(cls, requestor: models.User, cleaned_input: dict, errors: dict):
         if cleaned_input.get("add_groups"):
-            cls.can_manage_groups(info, cleaned_input, "add_groups", errors)
+            cls.can_manage_groups(requestor, cleaned_input, "add_groups", errors)
 
     @classmethod
-    def can_manage_groups(cls, info, cleaned_input, field, errors):
+    def can_manage_groups(
+        cls, requestor: models.User, cleaned_input: dict, field: str, errors: dict
+    ):
+        if requestor.is_superuser:
+            return
         groups = cleaned_input[field]
-        user_editable_groups = get_groups_which_user_can_manage(info.context.user)
+        user_editable_groups = get_groups_which_user_can_manage(requestor)
         out_of_scope_groups = set(groups) - set(user_editable_groups)
         if out_of_scope_groups:
             # add error
@@ -288,8 +294,9 @@ class StaffUpdate(StaffCreate):
 
     @classmethod
     def clean_input(cls, info, instance, data):
+        requestor = info.context.user
         # check if requestor can manage this user
-        if get_out_of_scope_users(info.context.user, [instance]):
+        if not requestor.is_superuser and get_out_of_scope_users(requestor, [instance]):
             msg = "You can't manage this user."
             code = AccountErrorCode.OUT_OF_SCOPE_USER.value
             raise ValidationError({"id": ValidationError(msg, code=code)})
@@ -323,17 +330,21 @@ class StaffUpdate(StaffCreate):
             cls.can_manage_groups(info, cleaned_input, "remove_groups", errors)
 
     @classmethod
-    def clean_is_active(cls, cleaned_input, instance, user, errors):
+    def clean_is_active(cls, cleaned_input, instance, requestor, errors):
         is_active = cleaned_input.get("is_active")
         if is_active is None:
             return
         if not is_active:
-            cls.check_if_deactivating_superuser_or_own_account(instance, user, errors)
-            cls.check_if_deactivating_left_not_manageable_permissions(instance, errors)
+            cls.check_if_deactivating_superuser_or_own_account(
+                instance, requestor, errors
+            )
+            cls.check_if_deactivating_left_not_manageable_permissions(
+                instance, requestor, errors
+            )
 
     @classmethod
     def check_if_deactivating_superuser_or_own_account(
-        cls, instance: User, user: User, errors: dict
+        cls, instance: models.User, requestor: models.User, errors: dict
     ):
         """User cannot deactivate superuser or own account.
 
@@ -342,7 +353,7 @@ class StaffUpdate(StaffCreate):
             user: requestor
 
         """
-        if user == instance:
+        if requestor == instance:
             error = ValidationError(
                 "Cannot deactivate your own account.",
                 code=AccountErrorCode.DEACTIVATE_OWN_ACCOUNT.value,
@@ -357,7 +368,7 @@ class StaffUpdate(StaffCreate):
 
     @classmethod
     def check_if_deactivating_left_not_manageable_permissions(
-        cls, user: User, errors: dict
+        cls, user: models.User, requestor: models.User, errors: dict
     ):
         """Check if after deactivating user all permissions will be manageable.
 
@@ -365,6 +376,8 @@ class StaffUpdate(StaffCreate):
         active staff member who can manage it (has both “manage staff” and
         this permission).
         """
+        if requestor.is_superuser:
+            return
         permissions = get_not_manageable_permissions_when_deactivate_or_remove_users(
             [user]
         )
