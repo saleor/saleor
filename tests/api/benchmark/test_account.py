@@ -181,8 +181,8 @@ def test_staff_create(
     content = get_graphql_content(response)
     data = content["data"]["staffCreate"]
 
-    assert User.objects.filter(is_staff=True).count() + staff_count + 1
-    assert data
+    assert User.objects.filter(is_staff=True).count() == staff_count + 1
+    assert data["user"]
     assert not data["staffErrors"]
 
 
