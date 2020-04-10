@@ -13,11 +13,10 @@ from ....account.error_codes import AccountErrorCode
 from ....account.thumbnails import create_user_avatar_thumbnails
 from ....account.utils import get_random_avatar, remove_staff_member
 from ....checkout import AddressType
-from ....core.permissions import AccountPermissions, get_permissions
+from ....core.permissions import AccountPermissions
 from ....core.utils.url import validate_storefront_url
 from ...account.enums import AddressTypeEnum
 from ...account.types import Address, AddressInput, User
-from ...core.enums import PermissionEnum
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.types import Upload
 from ...core.types.common import AccountError, StaffError
@@ -29,7 +28,6 @@ from ..utils import (
     UserDeleteMixin,
     get_groups_which_user_can_manage,
     get_not_manageable_permissions_when_deactivate_or_remove_users,
-    get_out_of_scope_permissions,
     get_out_of_scope_users,
 )
 from .base import (
@@ -42,10 +40,6 @@ from .base import (
 
 
 class StaffInput(UserInput):
-    permissions = graphene.List(
-        PermissionEnum,
-        description="List of permission code names to assign to this user.",
-    )
     add_groups = graphene.List(
         graphene.NonNull(graphene.ID),
         description="List of permission group IDs to which user should be assigned.",
@@ -199,8 +193,6 @@ class StaffCreate(ModelMutation):
         requestor = info.context.user
         # set is_staff to True to create a staff user
         cleaned_input["is_staff"] = True
-        if cleaned_input.get("permissions"):
-            cls.clean_permissions(requestor, cleaned_input, errors)
         cls.clean_groups(requestor, cleaned_input, errors)
         cls.clean_is_active(cleaned_input, instance, info.context.user, errors)
 
@@ -208,22 +200,6 @@ class StaffCreate(ModelMutation):
             raise ValidationError(errors)
 
         return cleaned_input
-
-    @classmethod
-    def clean_permissions(
-        cls, requestor: models.User, cleaned_input: dict, errors: dict
-    ):
-        permissions = cleaned_input["permissions"]
-        cleaned_input["user_permissions"] = get_permissions(permissions)
-        if requestor.is_superuser:
-            return
-        out_of_scope_permissions = get_out_of_scope_permissions(requestor, permissions)
-        if out_of_scope_permissions:
-            error_msg = "You can't manage permission that you don't have."
-            code = AccountErrorCode.OUT_OF_SCOPE_PERMISSION.value
-            params = {"permissions": out_of_scope_permissions}
-            error = ValidationError(message=error_msg, code=code, params=params)
-            errors["permissions"].append(error)
 
     @classmethod
     def clean_groups(cls, requestor: models.User, cleaned_input: dict, errors: dict):
