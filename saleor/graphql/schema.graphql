@@ -3092,6 +3092,21 @@ type PluginCountableEdge {
   cursor: String!
 }
 
+type PluginError {
+  field: String
+  message: String
+  code: PluginErrorCode!
+}
+
+enum PluginErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  PLUGIN_MISCONFIGURED
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+}
+
 input PluginFilterInput {
   active: Boolean
   search: String
@@ -3110,27 +3125,12 @@ input PluginSortingInput {
 type PluginUpdate {
   errors: [Error!]!
   plugin: Plugin
-  pluginsErrors: [PluginsError!]!
+  pluginsErrors: [PluginError!]!
 }
 
 input PluginUpdateInput {
   active: Boolean
   configuration: [ConfigurationItemInput]
-}
-
-type PluginsError {
-  field: String
-  message: String
-  code: PluginsErrorCode!
-}
-
-enum PluginsErrorCode {
-  GRAPHQL_ERROR
-  INVALID
-  PLUGIN_MISCONFIGURED
-  NOT_FOUND
-  REQUIRED
-  UNIQUE
 }
 
 input PriceRangeInput {

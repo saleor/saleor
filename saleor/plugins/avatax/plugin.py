@@ -9,7 +9,7 @@ from prices import Money, TaxedMoney, TaxedMoneyRange
 from ...core.taxes import TaxError, TaxType, zero_taxed_money
 from ...discount import DiscountInfo
 from ..base_plugin import BasePlugin, ConfigurationTypeField
-from ..error_codes import PluginsErrorCode
+from ..error_codes import PluginErrorCode
 from . import (
     META_CODE_KEY,
     META_DESCRIPTION_KEY,
@@ -385,5 +385,5 @@ class AvataxPlugin(BasePlugin):
             )
             raise ValidationError(
                 error_msg + ", ".join(missing_fields),
-                code=PluginsErrorCode.PLUGIN_MISCONFIGURED.value,
+                code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
             )

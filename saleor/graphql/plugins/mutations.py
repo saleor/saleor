@@ -1,12 +1,11 @@
 import graphene
-
 from django.core.exceptions import ValidationError
 
 from ...core.permissions import PluginsPermissions
-from ...plugins.error_codes import PluginsErrorCode
+from ...plugins.error_codes import PluginErrorCode
 from ...plugins.manager import get_plugins_manager
 from ..core.mutations import BaseMutation
-from ..core.types.common import PluginsError
+from ..core.types.common import PluginError
 from .types import Plugin
 
 
@@ -41,7 +40,7 @@ class PluginUpdate(BaseMutation):
     class Meta:
         description = "Update plugin configuration."
         permissions = (PluginsPermissions.MANAGE_PLUGINS,)
-        error_type_class = PluginsError
+        error_type_class = PluginError
         error_type_field = "plugins_errors"
 
     @classmethod
@@ -54,7 +53,7 @@ class PluginUpdate(BaseMutation):
             raise ValidationError(
                 {
                     "id": ValidationError(
-                        "Plugin doesn't exist", code=PluginsErrorCode.NOT_FOUND
+                        "Plugin doesn't exist", code=PluginErrorCode.NOT_FOUND
                     )
                 }
             )
