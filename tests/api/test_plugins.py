@@ -3,7 +3,7 @@ import copy
 import pytest
 
 from saleor.plugins.base_plugin import ConfigurationTypeField
-from saleor.plugins.error_codes import PluginsErrorCode
+from saleor.plugins.error_codes import PluginErrorCode
 from saleor.plugins.manager import get_plugins_manager
 from saleor.plugins.models import PluginConfiguration
 from tests.api.utils import assert_no_permission, get_graphql_content
@@ -321,7 +321,7 @@ def test_plugin_configuration_update_containing_invalid_plugin_name(
     content = get_graphql_content(response)
     assert content["data"]["pluginUpdate"]["pluginsErrors"][0] == {
         "field": "id",
-        "code": PluginsErrorCode.NOT_FOUND.name,
+        "code": PluginErrorCode.NOT_FOUND.name,
     }
 
 

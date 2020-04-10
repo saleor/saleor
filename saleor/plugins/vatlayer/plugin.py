@@ -9,7 +9,7 @@ from prices import Money, MoneyRange, TaxedMoney, TaxedMoneyRange
 
 from ...checkout import calculations
 from ...core.taxes import TaxType
-from ...graphql.core.utils.error_codes import PluginsErrorCode
+from ...graphql.core.utils.error_codes import PluginErrorCode
 from ..base_plugin import BasePlugin
 from . import (
     DEFAULT_TAX_RATE_NAME,
@@ -263,5 +263,5 @@ class VatlayerPlugin(BasePlugin):
         if not settings.VATLAYER_ACCESS_KEY and plugin_configuration.active:
             raise ValidationError(
                 "Cannot be enabled without provided 'settings.VATLAYER_ACCESS_KEY'",
-                code=PluginsErrorCode.PLUGIN_MISCONFIGURED.value,
+                code=PluginErrorCode.PLUGIN_MISCONFIGURED.value,
             )
