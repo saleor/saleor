@@ -323,24 +323,22 @@ def test_create_token(api_client, customer_user):
 
 def test_create_token_invalid_password(api_client, customer_user):
     variables = {"email": customer_user.email, "password": "wrongpassword"}
+    expected_error_code = AccountErrorCode.INVALID_CREDENTIALS.value.upper()
     response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
     content = get_graphql_content(response)
-    assert (
-        content["data"]["tokenCreate"]["accountErrors"][0]["code"]
-        == AccountErrorCode.INVALID_CREDENTIALS.value.upper()
-    )
-    assert content["data"]["tokenCreate"]["accountErrors"][0]["field"] == "email"
+    response_error = content["data"]["tokenCreate"]["accountErrors"][0]
+    assert response_error["code"] == expected_error_code
+    assert response_error["field"] == "email"
 
 
 def test_create_token_invalid_email(api_client, customer_user):
     variables = {"email": "wrongemail", "password": "wrongpassword"}
+    expected_error_code = AccountErrorCode.INVALID_CREDENTIALS.value.upper()
     response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
     content = get_graphql_content(response)
-    assert (
-        content["data"]["tokenCreate"]["accountErrors"][0]["code"]
-        == AccountErrorCode.INVALID_CREDENTIALS.value.upper()
-    )
-    assert content["data"]["tokenCreate"]["accountErrors"][0]["field"] == "email"
+    response_error = content["data"]["tokenCreate"]["accountErrors"][0]
+    assert response_error["code"] == expected_error_code
+    assert response_error["field"] == "email"
 
 
 MUTATION_TOKEN_VERIFY = """
