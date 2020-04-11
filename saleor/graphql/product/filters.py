@@ -99,11 +99,10 @@ def sort_qs(qs, sort_by):
 
 
 def filter_products_by_stock_availability(qs, stock_availability):
-    qs = qs.annotate(total_quantity=Sum("variants__quantity"))
     if stock_availability == StockAvailability.IN_STOCK:
-        qs = qs.filter(total_quantity__gt=0)
+        qs = qs.filter(variants__quantity__isnull=False).extra(where=["product_productvariant.quantity > product_productvariant.quantity_allocated"]).distinct()
     elif stock_availability == StockAvailability.OUT_OF_STOCK:
-        qs = qs.filter(total_quantity=0)
+        qs = qs.filter(variants__quantity__isnull=False).extra(where=["product_productvariant.quantity <= product_productvariant.quantity_allocated"]).distinct()
     return qs
 
 
