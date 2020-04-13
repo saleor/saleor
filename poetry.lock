@@ -397,7 +397,7 @@ description = "Use an URL to configure email backend settings in your Django App
 name = "dj-email-url"
 optional = false
 python-versions = "*"
-version = "0.2.0"
+version = "1.0.0"
 
 [[package]]
 category = "main"
@@ -2180,7 +2180,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "8d98a9bc230305ff4c811665fd82ad3fe2c56ecbd31c6a52f00a9569a9e199b0"
+content-hash = "1e92fabb6cd585b6d61b42ca11d6a6c075e97de309fa8c58a50c9261f7c71595"
 python-versions = "~3.8"
 
 [metadata.files]
@@ -2368,8 +2368,8 @@ dj-database-url = [
     {file = "dj_database_url-0.5.0-py2.py3-none-any.whl", hash = "sha256:851785365761ebe4994a921b433062309eb882fedd318e1b0fcecc607ed02da9"},
 ]
 dj-email-url = [
-    {file = "dj-email-url-0.2.0.tar.gz", hash = "sha256:0362e390c17cc377f03bcbf6daf3f671797c929c1bf78a9f439d78f215ebe3fd"},
-    {file = "dj_email_url-0.2.0-py2.py3-none-any.whl", hash = "sha256:136ac43c7f29022130fc4769b4ca8b01cd1c39fedf1659c641c143808182a084"},
+    {file = "dj-email-url-1.0.0.tar.gz", hash = "sha256:0cb37ac18ffdfecf362a7ff59a8e4ddeb01ac0b0325092e69206656a50bd068a"},
+    {file = "dj_email_url-1.0.0-py2.py3-none-any.whl", hash = "sha256:19a0450378831e2707e00404866e632837efc67dcc2e7e7a98f72df94b89c1f6"},
 ]
 django = [
     {file = "Django-3.0.5-py3-none-any.whl", hash = "sha256:642d8eceab321ca743ae71e0f985ff8fdca59f07aab3a9fb362c617d23e33a76"},
@@ -2388,6 +2388,7 @@ django-debug-toolbar = [
     {file = "django_debug_toolbar-2.2-py3-none-any.whl", hash = "sha256:ff94725e7aae74b133d0599b9bf89bd4eb8f5d2c964106e61d11750228c8774c"},
 ]
 django-debug-toolbar-request-history = [
+    {file = "django-debug-toolbar-request-history-0.1.1.tar.gz", hash = "sha256:b4e53f1da523d6fe7d2a9cb1b0cf4ce7c83c8a02fad56555ec041911371e62cd"},
     {file = "django_debug_toolbar_request_history-0.1.1-py2.py3-none-any.whl", hash = "sha256:79013b50ba59d93d998b6f168ca4325eb5be3a9b859d48fb14aae80819f3a734"},
 ]
 django-extensions = [
