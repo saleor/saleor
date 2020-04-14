@@ -6,14 +6,15 @@ from django.db import migrations
 def add_users_to_groups_based_on_users_permissions(apps, schema_editor):
     """Add every user to group with "user_permissions" if exists, else create new one.
 
-    For every user, iff group with exact scope of permissions exists, add user to it,
-    else create new group with this scope of permissions and add user to it.
+    For each user, if the group with the exact scope of permissions exists,
+    add the user to it, else create a new group with this scope of permissions
+    and add the user to it.
     """
     User = apps.get_model("account", "User")
     Group = apps.get_model("auth", "Group")
+    GroupData = namedtuple("GroupData", ["users", "group_name"])
 
     groups = Group.objects.all().prefetch_related("permissions")
-    GroupData = namedtuple("GroupData", ["users", "group_name"])
 
     mapping = create_permissions_mapping(User, GroupData)
     for perms, group_data in mapping.items():
@@ -34,7 +35,7 @@ def create_permissions_mapping(User, GroupData):
     )
     for user in users:
         permissions = user.user_permissions.all()
-        perm_pks = tuple(permissions.values_list("pk", flat=True))
+        perm_pks = (perm.pk for perm in permissions)
         if perm_pks not in mapping:
             group_name = create_group_name(permissions)
             mapping[perm_pks] = GroupData({user.pk}, group_name)
@@ -46,8 +47,7 @@ def create_permissions_mapping(User, GroupData):
 
 def create_group_name(permissions):
     """Create group name based on permissions."""
-    perm_names = permissions.values_list("name", flat=True)
-    formatted_names = [name.rstrip(".").lower() for name in perm_names]
+    formatted_names = [perm.name.rstrip(".").lower() for perm in permissions]
     group_name = ", ".join(formatted_names).capitalize()
     return group_name
 
