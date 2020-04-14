@@ -730,7 +730,7 @@ class CheckoutComplete(BaseMutation):
                     code=CheckoutErrorCode.VOUCHER_NOT_APPLICABLE,
                 )
             except TaxError as tax_error:
-                return ValidationError(
+                raise ValidationError(
                     "Unable to calculate taxes - %s" % str(tax_error),
                     code=CheckoutErrorCode.TAX_ERROR,
                 )
