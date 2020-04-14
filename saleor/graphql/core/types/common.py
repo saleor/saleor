@@ -18,6 +18,7 @@ from ..enums import (
     ShippingErrorCode,
     ShopErrorCode,
     StockErrorCode,
+    TranslationErrorCode,
     WarehouseErrorCode,
     WebhookErrorCode,
     WishlistErrorCode,
@@ -136,6 +137,10 @@ class WebhookError(Error):
 
 class WishlistError(Error):
     code = WishlistErrorCode(description="The error code.", required=True)
+
+
+class TranslationError(Error):
+    code = TranslationErrorCode(description="The error code.", required=True)
 
 
 class LanguageDisplay(graphene.ObjectType):

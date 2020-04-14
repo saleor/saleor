@@ -25,13 +25,6 @@ def get_database_id(info, node_id, only_type):
     return _id
 
 
-def _check_graphene_type(requested_graphene_type, received_type):
-    if requested_graphene_type:
-        assert str(requested_graphene_type) == received_type, (
-            "Must receive an {} id."
-        ).format(str(requested_graphene_type))
-
-
 def resolve_global_ids_to_primary_keys(ids, graphene_type=None):
     pks = []
     invalid_ids = []
@@ -47,7 +40,10 @@ def resolve_global_ids_to_primary_keys(ids, graphene_type=None):
             invalid_ids.append(graphql_id)
             continue
 
-        _check_graphene_type(used_type, node_type)
+        # Raise GraphQL error if ID of a different type was passed
+        if used_type and str(used_type) != str(node_type):
+            raise GraphQLError(f"Must receive {str(used_type)} id: {graphql_id}")
+
         used_type = node_type
         pks.append(_id)
 
@@ -61,7 +57,7 @@ def _resolve_graphene_type(type_name):
     for _, _type in registry._registry.items():
         if _type._meta.name == type_name:
             return _type
-    raise AssertionError("Could not resolve the type {}".format(type_name))
+    raise GraphQLError("Could not resolve the type {}".format(type_name))
 
 
 def get_nodes(

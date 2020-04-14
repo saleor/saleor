@@ -336,6 +336,7 @@ type AttributeTranslatableContent implements Node {
 
 type AttributeTranslate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
+  translationErrors: [TranslationError!]!
   attribute: Attribute
 }
 
@@ -435,6 +436,7 @@ type AttributeValueTranslatableContent implements Node {
 
 type AttributeValueTranslate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
+  translationErrors: [TranslationError!]!
   attributeValue: AttributeValue
 }
 
@@ -609,6 +611,7 @@ type CategoryTranslatableContent implements Node {
 
 type CategoryTranslate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
+  translationErrors: [TranslationError!]!
   category: Category
 }
 
@@ -999,6 +1002,7 @@ type CollectionTranslatableContent implements Node {
 
 type CollectionTranslate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
+  translationErrors: [TranslationError!]!
   collection: Collection
 }
 
@@ -1323,7 +1327,7 @@ type CountryDisplay {
 
 type CreateToken {
   token: String
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   accountErrors: [AccountError!]!
   user: User
 }
@@ -1521,6 +1525,7 @@ type DiscountError {
 
 enum DiscountErrorCode {
   ALREADY_EXISTS
+  GRAPHQL_ERROR
   INVALID
   NOT_FOUND
   REQUIRED
@@ -2054,6 +2059,7 @@ type MenuItemTranslatableContent implements Node {
 
 type MenuItemTranslate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
+  translationErrors: [TranslationError!]!
   menuItem: MenuItem
 }
 
@@ -2870,6 +2876,7 @@ type PageTranslatableContent implements Node {
 
 type PageTranslate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
+  translationErrors: [TranslationError!]!
   page: PageTranslatableContent
 }
 
@@ -3404,6 +3411,7 @@ type ProductTranslatableContent implements Node {
 
 type ProductTranslate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
+  translationErrors: [TranslationError!]!
   product: Product
 }
 
@@ -3695,6 +3703,7 @@ type ProductVariantTranslatableContent implements Node {
 
 type ProductVariantTranslate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
+  translationErrors: [TranslationError!]!
   productVariant: ProductVariant
 }
 
@@ -3845,6 +3854,7 @@ type SaleAddCatalogues {
 type SaleBulkDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   count: Int!
+  discountErrors: [DiscountError!]!
 }
 
 type SaleCountableConnection {
@@ -3916,6 +3926,7 @@ type SaleTranslatableContent implements Node {
 
 type SaleTranslate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
+  translationErrors: [TranslationError!]!
   sale: Sale
 }
 
@@ -4048,7 +4059,7 @@ type ServiceAccountUpdatePrivateMeta {
 
 type SetPassword {
   token: String
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   accountErrors: [AccountError!]!
   user: User
 }
@@ -4134,6 +4145,7 @@ input ShippingPriceInput {
 
 type ShippingPriceTranslate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
+  translationErrors: [TranslationError!]!
   shippingMethod: ShippingMethod
 }
 
@@ -4289,6 +4301,7 @@ input ShopSettingsInput {
 type ShopSettingsTranslate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   shop: Shop
+  translationErrors: [TranslationError!]!
 }
 
 input ShopSettingsTranslationInput {
@@ -4554,6 +4567,18 @@ enum TranslatableKinds {
   VOUCHER
 }
 
+type TranslationError {
+  field: String
+  message: String
+  code: TranslationErrorCode!
+}
+
+enum TranslationErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  REQUIRED
+}
+
 input TranslationInput {
   seoTitle: String
   seoDescription: String
@@ -4745,6 +4770,7 @@ type VoucherAddCatalogues {
 type VoucherBulkDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   count: Int!
+  discountErrors: [DiscountError!]!
 }
 
 type VoucherCountableConnection {
@@ -4833,6 +4859,7 @@ type VoucherTranslatableContent implements Node {
 
 type VoucherTranslate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
+  translationErrors: [TranslationError!]!
   voucher: Voucher
 }
 
