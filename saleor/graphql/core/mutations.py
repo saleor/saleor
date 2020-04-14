@@ -590,7 +590,11 @@ class CreateToken(ObtainJSONWebToken):
     the mutation works.
     """
 
-    errors = graphene.List(graphene.NonNull(Error), required=True)
+    errors = graphene.List(
+        graphene.NonNull(Error),
+        required=True,
+        deprecation_reason="Use typed errors with error codes.",
+    )
     account_errors = graphene.List(
         graphene.NonNull(AccountError),
         description="List of errors that occurred executing the mutation.",
