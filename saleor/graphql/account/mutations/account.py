@@ -100,7 +100,7 @@ class AccountRegister(ModelMutation):
         else:
             user.save()
         account_events.customer_account_created_event(user=user)
-        info.context.extensions.customer_created(customer=user)
+        info.context.plugins.customer_created(customer=user)
 
 
 class AccountInput(graphene.InputObjectType):
