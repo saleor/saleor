@@ -1,4 +1,3 @@
-from enum import Enum
 import graphene
 from django.core.exceptions import ValidationError
 
@@ -9,8 +8,8 @@ from ...page import models as page_models
 from ...product import models as product_models
 from ...shipping import models as shipping_models
 from ..core.mutations import BaseMutation, ModelMutation, registry
-from ..shop.types import Shop
 from ..core.types.common import TranslationError
+from ..shop.types import Shop
 from .enums import LanguageCodeEnum
 
 # discount types need to be imported to get Voucher in the graphene registry
