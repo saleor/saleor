@@ -1,8 +1,8 @@
 from django.contrib.postgres.fields import JSONField
 from django.db import models
 
-from saleor.core.permissions import PluginsPermissions
-from saleor.core.utils.json_serializer import CustomJsonEncoder
+from ..core.permissions import PluginsPermissions
+from ..core.utils.json_serializer import CustomJsonEncoder
 
 
 class PluginConfiguration(models.Model):
