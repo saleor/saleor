@@ -1819,7 +1819,7 @@ def fake_payment_interface(mocker):
 @pytest.fixture
 def mock_get_manager(mocker, fake_payment_interface):
     mgr = mocker.patch(
-        "saleor.payment.gateway.get_extensions_manager",
+        "saleor.payment.gateway.get_plugins_manager",
         autospec=True,
         return_value=fake_payment_interface,
     )

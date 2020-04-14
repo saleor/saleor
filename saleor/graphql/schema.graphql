@@ -1629,21 +1629,6 @@ type Error {
   message: String
 }
 
-type ExtensionsError {
-  field: String
-  message: String
-  code: ExtensionsErrorCode!
-}
-
-enum ExtensionsErrorCode {
-  GRAPHQL_ERROR
-  INVALID
-  PLUGIN_MISCONFIGURED
-  NOT_FOUND
-  REQUIRED
-  UNIQUE
-}
-
 type Fulfillment implements Node & ObjectWithMetadata {
   id: ID!
   fulfillmentOrder: Int!
@@ -3111,6 +3096,21 @@ type PluginCountableEdge {
   cursor: String!
 }
 
+type PluginError {
+  field: String
+  message: String
+  code: PluginErrorCode!
+}
+
+enum PluginErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  PLUGIN_MISCONFIGURED
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+}
+
 input PluginFilterInput {
   active: Boolean
   search: String
@@ -3129,7 +3129,7 @@ input PluginSortingInput {
 type PluginUpdate {
   errors: [Error!]!
   plugin: Plugin
-  extensionsErrors: [ExtensionsError!]!
+  pluginsErrors: [PluginError!]!
 }
 
 input PluginUpdateInput {

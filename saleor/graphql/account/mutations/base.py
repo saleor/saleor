@@ -253,9 +253,7 @@ class BaseAddressUpdate(ModelMutation):
     def perform_mutation(cls, root, info, **data):
         response = super().perform_mutation(root, info, **data)
         user = response.address.user_addresses.first()
-        address = info.context.extensions.change_user_address(
-            response.address, None, user
-        )
+        address = info.context.plugins.change_user_address(response.address, None, user)
         response.user = user
         response.address = address
         return response
@@ -393,14 +391,14 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
         # FIXME: save address in user.addresses as well
         default_shipping_address = cleaned_input.get(SHIPPING_ADDRESS_FIELD)
         if default_shipping_address:
-            default_shipping_address = info.context.extensions.change_user_address(
+            default_shipping_address = info.context.plugins.change_user_address(
                 default_shipping_address, "shipping", instance
             )
             default_shipping_address.save()
             instance.default_shipping_address = default_shipping_address
         default_billing_address = cleaned_input.get(BILLING_ADDRESS_FIELD)
         if default_billing_address:
-            default_billing_address = info.context.extensions.change_user_address(
+            default_billing_address = info.context.plugins.change_user_address(
                 default_billing_address, "billing", instance
             )
             default_billing_address.save()
@@ -411,7 +409,7 @@ class BaseCustomerCreate(ModelMutation, I18nMixin):
 
         # The instance is a new object in db, create an event
         if is_creation:
-            info.context.extensions.customer_created(customer=instance)
+            info.context.plugins.customer_created(customer=instance)
             account_events.customer_account_created_event(user=instance)
 
         if cleaned_input.get("redirect_url"):
