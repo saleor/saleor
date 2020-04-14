@@ -27,6 +27,7 @@ def add_users_to_groups_based_on_users_permissions(apps, schema_editor):
 
 
 def create_permissions_mapping(User, GroupData):
+    """Create mapping permissions to users and potential new group name."""
     mapping = {}
     users = User.objects.filter(user_permissions__isnull=False).prefetch_related(
         "user_permissions"
@@ -52,6 +53,7 @@ def create_group_name(permissions):
 
 
 def get_group_with_given_permissions(permissions, groups):
+    """Get group with given set of permissions."""
     for group in groups:
         group_perm_pks = {perm.pk for perm in group.permissions.all()}
         if group_perm_pks == set(permissions):
@@ -59,6 +61,7 @@ def get_group_with_given_permissions(permissions, groups):
 
 
 def create_group_with_given_permissions(perm_pks, group_name, Group):
+    """Create new group with given set of permissions."""
     group = Group.objects.create(name=group_name)
     group.permissions.add(*perm_pks)
     return group
