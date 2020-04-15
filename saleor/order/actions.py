@@ -5,8 +5,8 @@ from typing import TYPE_CHECKING, List
 from django.db import transaction
 
 from ..core import analytics
-from ..plugins.manager import get_plugins_manager
 from ..payment import ChargeStatus, CustomPaymentChoices, PaymentError
+from ..plugins.manager import get_plugins_manager
 from ..warehouse.management import decrease_stock
 from . import FulfillmentStatus, OrderStatus, emails, events, utils
 from .emails import send_fulfillment_confirmation_to_customer, send_payment_confirmation

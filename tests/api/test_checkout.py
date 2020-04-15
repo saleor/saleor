@@ -15,7 +15,6 @@ from saleor.checkout.models import Checkout
 from saleor.checkout.utils import clean_checkout, is_fully_paid
 from saleor.core.payments import PaymentInterface
 from saleor.core.taxes import zero_money
-from saleor.plugins.manager import PluginsManager
 from saleor.graphql.checkout.mutations import (
     clean_shipping_method,
     update_checkout_shipping_method_if_invalid,
@@ -23,6 +22,7 @@ from saleor.graphql.checkout.mutations import (
 from saleor.order.models import Order
 from saleor.payment import TransactionKind
 from saleor.payment.interface import GatewayResponse
+from saleor.plugins.manager import PluginsManager
 from saleor.shipping import ShippingMethodType
 from saleor.shipping.models import ShippingMethod
 from saleor.warehouse.models import Stock
@@ -395,6 +395,7 @@ def test_checkout_create_check_lines_quantity(
 @pytest.fixture
 def expected_dummy_gateway():
     return {
+        "id": "mirumee.gateway.dummy",
         "name": "Dummy",
         "config": [{"field": "store_customer_card", "value": "false"}],
     }
@@ -407,6 +408,7 @@ def test_checkout_available_payment_gateways(
     query getCheckout($token: UUID!) {
         checkout(token: $token) {
            availablePaymentGateways {
+               id
                name
                config {
                    field

@@ -12,7 +12,7 @@ from ...order import error_codes as order_error_codes
 from ...page import error_codes as page_error_codes
 from ...payment import error_codes as payment_error_codes
 from ...plugins import error_codes as plugin_error_codes
-from ...plugins.vatlayer.plugin import TaxRateType as CoreTaxRateType
+from ...plugins.vatlayer import TaxRateType as CoreTaxRateType
 from ...product import error_codes as product_error_codes
 from ...shipping import error_codes as shipping_error_codes
 from ...warehouse import error_codes as warehouse_error_codes

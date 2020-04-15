@@ -10,9 +10,9 @@ from ..core.taxes import zero_money
 from ..core.weight import zero_weight
 from ..discount.models import NotApplicable, Voucher, VoucherType
 from ..discount.utils import get_products_voucher_discount, validate_voucher_in_order
-from ..plugins.manager import get_plugins_manager
 from ..order import OrderStatus
 from ..order.models import Order, OrderLine
+from ..plugins.manager import get_plugins_manager
 from ..product.utils.digital_products import get_default_digital_content_settings
 from ..shipping.models import ShippingMethod
 from ..warehouse.availability import check_stock_quantity

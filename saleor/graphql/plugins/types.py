@@ -54,13 +54,13 @@ class Plugin(CountableDjangoObjectType):
         only_fields = ["id", "name", "description", "active", "configuration"]
 
     def resolve_id(self: models.PluginConfiguration, _info):
-        return self.name
+        return self.id
 
     @staticmethod
     def resolve_configuration(
         root: models.PluginConfiguration, _info
     ) -> Optional["PluginConfigurationType"]:
-        plugin = manager.get_plugins_manager().get_plugin(root.name)
+        plugin = manager.get_plugins_manager().get_plugin(str(root.id))
         if not plugin:
             return None
         configuration = plugin.configuration

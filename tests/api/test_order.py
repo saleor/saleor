@@ -11,7 +11,6 @@ from prices import Money, TaxedMoney
 from saleor.account.models import CustomerEvent
 from saleor.core.permissions import OrderPermissions
 from saleor.core.taxes import zero_taxed_money
-from saleor.plugins.manager import PluginsManager
 from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.order.mutations.orders import (
     clean_order_cancel,
@@ -26,6 +25,7 @@ from saleor.order.error_codes import OrderErrorCode
 from saleor.order.models import Order, OrderEvent
 from saleor.payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from saleor.payment.models import Payment
+from saleor.plugins.manager import PluginsManager
 from saleor.shipping.models import ShippingMethod
 from saleor.warehouse.models import Stock
 
@@ -1505,7 +1505,7 @@ def test_order_capture(
     assert event_captured.user == staff_user
     assert event_captured.parameters == {
         "amount": str(amount),
-        "payment_gateway": "Dummy",
+        "payment_gateway": "mirumee.gateway.dummy",
         "payment_id": "",
     }
 

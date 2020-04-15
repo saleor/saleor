@@ -19,10 +19,10 @@ def sort_plugins(
     if sort_field == PluginSortField.IS_ACTIVE:
         plugins = sorted(
             plugins,
-            key=lambda p: (not p.active if sort_reverse else p.active, p.PLUGIN_NAME),
+            key=lambda p: (not p.active if sort_reverse else p.active, p.PLUGIN_ID),
         )
     else:
-        plugins = sorted(plugins, key=lambda p: p.PLUGIN_NAME)
+        plugins = sorted(plugins, key=lambda p: p.PLUGIN_ID)
         if sort_reverse:
             plugins = list(reversed(plugins))
     return plugins

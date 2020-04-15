@@ -108,6 +108,7 @@ FRAGMENT_CHECKOUT = (
     + """
         fragment Checkout on Checkout {
           availablePaymentGateways {
+            id
             name
             config {
               field

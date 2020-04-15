@@ -2968,6 +2968,7 @@ enum PaymentErrorCode {
 
 type PaymentGateway {
   name: String!
+  id: ID!
   config: [GatewayConfigLine!]!
 }
 
@@ -3079,7 +3080,7 @@ type PermissionGroupUpdate {
 
 type Plugin implements Node {
   id: ID!
-  name: String!
+  name: String
   description: String!
   active: Boolean!
   configuration: [ConfigurationItem]
