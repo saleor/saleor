@@ -99,20 +99,6 @@ class ShippingZoneMixin:
         return cleaned_input
 
     @classmethod
-    def handle_typed_errors(cls, errors: list, **extra):
-        typed_errors = [
-            cls._meta.error_type_class(  # type: ignore
-                field=e.field,
-                message=e.message,
-                code=code,
-                warehouses=params.get("warehouses") if params else None,
-            )
-            for e, code, params in errors
-        ]
-        extra.update({cls._meta.error_type_field: typed_errors})  # type: ignore
-        return cls(errors=[e[0] for e in errors], **extra)  # type: ignore
-
-    @classmethod
     @transaction.atomic
     def _save_m2m(cls, info, instance, cleaned_data):
         super()._save_m2m(info, instance, cleaned_data)
