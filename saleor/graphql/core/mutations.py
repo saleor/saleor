@@ -274,6 +274,7 @@ class BaseMutation(graphene.Mutation):
             return True
         service_account = getattr(context, "service_account", None)
         if service_account:
+            # for now MANAGE_STAFF permission for service account is not supported
             if AccountPermissions.MANAGE_STAFF in permissions:
                 return False
             return service_account.has_perms(permissions)
