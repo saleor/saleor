@@ -111,6 +111,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add accountErrors to CreateToken as a required field - #5437 by @koradon
 - Raise GraphQLError if filter has not valid IDs - #5460 by @gabmartinez
 - Fix missing accountError when JSONWebTokenError is raised in CreateToken - #5465 by @koradon
+- Remove service account access to staff related operations - #5485 by @IKarbowiak
 
 ## 2.9.0
 
