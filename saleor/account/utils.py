@@ -64,7 +64,6 @@ def create_superuser(credentials):
         defaults={"is_active": True, "is_staff": True, "is_superuser": True},
     )
     if created:
-        user.avatar = get_random_avatar()
         user.set_password(credentials["password"])
         user.save()
         create_thumbnails(
@@ -74,13 +73,6 @@ def create_superuser(credentials):
     else:
         msg = "Superuser already exists - %(email)s" % credentials
     return msg
-
-
-def get_random_avatar():
-    """Return random avatar picked from a pool of static avatars."""
-    avatar_name = random.choice(os.listdir(AVATARS_PATH))
-    avatar_path = os.path.join(AVATARS_PATH, avatar_name)
-    return File(open(avatar_path, "rb"), name=avatar_name)
 
 
 def remove_staff_member(staff):
