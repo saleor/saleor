@@ -404,9 +404,9 @@ class CheckoutCustomerAttach(BaseMutation):
         customer_id = graphene.ID(
             required=False,
             description=(
-                "The ID of the customer. DEPRECATED: This field is deprecated and will "
-                "be removed in Saleor 2.11. To identify a customer you should "
-                "authenticate with JWT token."
+                "[Deprecated] The ID of the customer. To identify a customer you "
+                "should authenticate with JWT. This field will be removed after "
+                "2020-07-31."
             ),
         )
 
