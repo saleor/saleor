@@ -108,6 +108,10 @@ class Address(CountableDjangoObjectType):
         if user_default_billing_address_pk == root.pk:
             return True
         return False
+    
+    @classmethod
+    def get_node(cls, info, id):
+        return get_address(id)
 
     @staticmethod
     def __resolve_reference(root, _info, **_kwargs):
