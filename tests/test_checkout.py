@@ -32,9 +32,9 @@ from saleor.core.exceptions import InsufficientStock
 from saleor.core.taxes import zero_money, zero_taxed_money
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import NotApplicable, Voucher
-from saleor.plugins.manager import get_plugins_manager
 from saleor.order import OrderEvents, OrderEventsEmails
 from saleor.order.models import OrderEvent
+from saleor.plugins.manager import get_plugins_manager
 from saleor.shipping.models import ShippingZone
 
 from .utils import flush_post_commit_hooks

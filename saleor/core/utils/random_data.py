@@ -36,7 +36,6 @@ from ...core.weight import zero_weight
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
 from ...discount.utils import fetch_discounts
-from ...plugins.manager import get_plugins_manager
 from ...giftcard.models import GiftCard
 from ...menu.models import Menu
 from ...menu.utils import update_menu
@@ -45,6 +44,7 @@ from ...order.utils import update_order_status
 from ...page.models import Page
 from ...payment import gateway
 from ...payment.utils import create_payment
+from ...plugins.manager import get_plugins_manager
 from ...product.models import (
     AssignedProductAttribute,
     AssignedVariantAttribute,
@@ -423,7 +423,7 @@ def create_fake_user(save=True):
 @patch("saleor.order.emails.send_payment_confirmation.delay")
 def create_fake_payment(mock_email_confirmation, order):
     payment = create_payment(
-        gateway="Dummy",
+        gateway="mirumee.gateway.dummy",
         customer_ip_address=fake.ipv4(),
         email=order.user_email,
         order=order,

@@ -604,7 +604,7 @@ def set_braintree_customer_id(customer_user, braintree_customer_id):
 
 @pytest.fixture
 def set_dummy_customer_id(customer_user, dummy_customer_id):
-    gateway_name = "dummy"
+    gateway_name = "mirumee.gateway.dummy"
     store_customer_id(customer_user, gateway_name, dummy_customer_id)
     return customer_user
 
@@ -612,6 +612,7 @@ def set_dummy_customer_id(customer_user, dummy_customer_id):
 def test_list_payment_sources(
     mocker, dummy_customer_id, set_dummy_customer_id, user_api_client
 ):
+    gateway = "mirumee.gateway.dummy"
     query = """
     {
         me {
@@ -627,7 +628,7 @@ def test_list_payment_sources(
     card = CreditCardInfo(
         last_4="5678", exp_year=2020, exp_month=12, name_on_card="JohnDoe"
     )
-    source = CustomerSource(id="test1", gateway="dummy", credit_card_info=card)
+    source = CustomerSource(id="test1", gateway=gateway, credit_card_info=card)
     mock_get_source_list = mocker.patch(
         "saleor.graphql.account.resolvers.gateway.list_payment_sources",
         return_value=[source],
@@ -635,10 +636,10 @@ def test_list_payment_sources(
     )
     response = user_api_client.post_graphql(query)
 
-    mock_get_source_list.assert_called_once_with("Dummy", dummy_customer_id)
+    mock_get_source_list.assert_called_once_with(gateway, dummy_customer_id)
     content = get_graphql_content(response)["data"]["me"]["storedPaymentSources"]
     assert content is not None and len(content) == 1
-    assert content[0] == {"gateway": "dummy", "creditCardInfo": {"lastDigits": "5678"}}
+    assert content[0] == {"gateway": gateway, "creditCardInfo": {"lastDigits": "5678"}}
 
 
 def test_stored_payment_sources_restriction(
