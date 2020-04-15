@@ -45,6 +45,7 @@ application(
         "SERVER_PORT": 80,
         "PATH_INFO": "/graphql/",
         "wsgi.input": b"",
+        "wsgi.multiprocess": True,
     },
     lambda x, y: None,
 )

@@ -708,9 +708,10 @@ ACCOUNT_REGISTER_MUTATION = """
                 redirectUrl: $redirectUrl
             }
         ) {
-            errors {
+            accountErrors {
                 field
                 message
+                code
             }
             user {
                 id
@@ -736,16 +737,16 @@ def test_customer_register(send_account_confirmation_email_mock, api_client):
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"][mutation_name]
-    assert not data["errors"]
+    assert not data["accountErrors"]
     assert send_account_confirmation_email_mock.delay.call_count == 1
     new_user = User.objects.get(email=email)
 
     response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"][mutation_name]
-    assert data["errors"]
-    assert data["errors"][0]["field"] == "email"
-    assert data["errors"][0]["message"] == ("User with this Email already exists.")
+    assert data["accountErrors"]
+    assert data["accountErrors"][0]["field"] == "email"
+    assert data["accountErrors"][0]["code"] == AccountErrorCode.UNIQUE.name
 
     customer_creation_event = account_events.CustomerEvent.objects.get()
     assert customer_creation_event.type == account_events.CustomerEvents.ACCOUNT_CREATED
@@ -757,11 +758,13 @@ def test_customer_register(send_account_confirmation_email_mock, api_client):
 def test_customer_register_disabled_email_confirmation(
     send_account_confirmation_email_mock, api_client
 ):
-    variables = {"email": "customer@example.com", "password": "Password"}
+    email = "customer@example.com"
+    variables = {"email": email, "password": "Password"}
     response = api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
-    errors = response.json()["data"]["accountRegister"]["errors"]
+    errors = response.json()["data"]["accountRegister"]["accountErrors"]
+
     assert errors == []
-    assert send_account_confirmation_email_mock.delay.call_count == 0
+    send_account_confirmation_email_mock.delay.assert_not_called()
 
 
 @override_settings(ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL=True)
@@ -771,7 +774,7 @@ def test_customer_register_no_redirect_url(
 ):
     variables = {"email": "customer@example.com", "password": "Password"}
     response = api_client.post_graphql(ACCOUNT_REGISTER_MUTATION, variables)
-    errors = response.json()["data"]["accountRegister"]["errors"]
+    errors = response.json()["data"]["accountRegister"]["accountErrors"]
     assert "redirectUrl" in map(lambda error: error["field"], errors)
     assert send_account_confirmation_email_mock.delay.call_count == 0
 
@@ -2893,9 +2896,13 @@ REQUEST_PASSWORD_RESET_MUTATION = """
 CONFIRM_ACCOUNT_MUTATION = """
     mutation ConfirmAccount($email: String!, $token: String!) {
         confirmAccount(email: $email, token: $token) {
-            errors {
+            accountErrors {
                 field
-                message
+                code
+            }
+            user {
+                id
+                email
             }
         }
     }
@@ -2920,7 +2927,10 @@ def test_account_reset_password(
     url_validator(url)
 
 
-def test_account_confirmation(api_client, customer_user):
+@patch("saleor.graphql.account.mutations.base.match_orders_with_new_user")
+def test_account_confirmation(
+    match_orders_with_new_user_mock, api_client, customer_user
+):
     customer_user.is_active = False
     customer_user.save()
 
@@ -2930,31 +2940,44 @@ def test_account_confirmation(api_client, customer_user):
     }
     response = api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
     content = get_graphql_content(response)
-    assert not content["data"]["confirmAccount"]["errors"]
-
+    assert not content["data"]["confirmAccount"]["accountErrors"]
+    assert content["data"]["confirmAccount"]["user"]["email"] == customer_user.email
     customer_user.refresh_from_db()
+    match_orders_with_new_user_mock.assert_called_once_with(customer_user)
     assert customer_user.is_active is True
 
 
-def test_account_confirmation_invalid_user(user_api_client, customer_user):
+@patch("saleor.graphql.account.mutations.base.match_orders_with_new_user")
+def test_account_confirmation_invalid_user(
+    match_orders_with_new_user_mock, user_api_client, customer_user
+):
     variables = {
         "email": "non-existing@example.com",
         "token": default_token_generator.make_token(customer_user),
     }
     response = user_api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
     content = get_graphql_content(response)
-    assert content["data"]["confirmAccount"]["errors"] == [
-        {"field": "email", "message": "User with this email doesn't exist"}
-    ]
+    assert content["data"]["confirmAccount"]["accountErrors"][0]["field"] == "email"
+    assert (
+        content["data"]["confirmAccount"]["accountErrors"][0]["code"]
+        == AccountErrorCode.NOT_FOUND.name
+    )
+    match_orders_with_new_user_mock.assert_not_called()
 
 
-def test_account_confirmation_invalid_token(user_api_client, customer_user):
+@patch("saleor.graphql.account.mutations.base.match_orders_with_new_user")
+def test_account_confirmation_invalid_token(
+    match_orders_with_new_user_mock, user_api_client, customer_user
+):
     variables = {"email": customer_user.email, "token": "invalid_token"}
     response = user_api_client.post_graphql(CONFIRM_ACCOUNT_MUTATION, variables)
     content = get_graphql_content(response)
-    assert content["data"]["confirmAccount"]["errors"] == [
-        {"field": "token", "message": "Invalid or expired token."}
-    ]
+    assert content["data"]["confirmAccount"]["accountErrors"][0]["field"] == "token"
+    assert (
+        content["data"]["confirmAccount"]["accountErrors"][0]["code"]
+        == AccountErrorCode.INVALID.name
+    )
+    match_orders_with_new_user_mock.assert_not_called()
 
 
 @patch("saleor.account.emails._send_password_reset_email")
@@ -3982,6 +4005,20 @@ def test_request_email_change_with_invalid_redirect_url(
             "field": "redirectUrl",
         }
     ]
+
+
+def test_request_email_change_with_invalid_password(user_api_client, customer_user):
+    variables = {
+        "password": "spanishinquisition",
+        "new_email": "new_email@example.com",
+        "redirect_url": "http://www.example.com",
+    }
+    response = user_api_client.post_graphql(REQUEST_EMAIL_CHANGE_QUERY, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["requestEmailChange"]
+    assert not data["user"]
+    assert data["accountErrors"][0]["code"] == AccountErrorCode.INVALID_PASSWORD.name
+    assert data["accountErrors"][0]["field"] == "password"
 
 
 EMAIL_UPDATE_QUERY = """

@@ -155,10 +155,28 @@ class ProductVariantBulkCreate(BaseMutation):
 
         cost_price_amount = cleaned_input.pop("cost_price", None)
         if cost_price_amount is not None:
+            if cost_price_amount < 0:
+                raise ValidationError(
+                    {
+                        "costPrice": ValidationError(
+                            "Product price cannot be lower than 0.",
+                            code=ProductErrorCode.INVALID.value,
+                        )
+                    }
+                )
             cleaned_input["cost_price_amount"] = cost_price_amount
 
         price_override_amount = cleaned_input.pop("price_override", None)
         if price_override_amount is not None:
+            if price_override_amount < 0:
+                raise ValidationError(
+                    {
+                        "priceOverride": ValidationError(
+                            "Product price cannot be lower than 0.",
+                            code=ProductErrorCode.INVALID.value,
+                        )
+                    }
+                )
             cleaned_input["price_override_amount"] = price_override_amount
 
         attributes = cleaned_input.get("attributes")

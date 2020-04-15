@@ -69,7 +69,7 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
     @classmethod
     def calculate_total(cls, info, checkout):
         checkout_total = (
-            info.context.extensions.calculate_checkout_total(
+            info.context.plugins.calculate_checkout_total(
                 checkout, discounts=info.context.discounts
             )
             - checkout.get_total_gift_cards_balance()

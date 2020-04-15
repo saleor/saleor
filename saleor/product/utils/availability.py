@@ -9,7 +9,7 @@ from saleor.product.models import Product, ProductVariant
 
 from ...core.utils import to_local_currency
 from ...discount import DiscountInfo
-from ...extensions.manager import get_extensions_manager
+from ...plugins.manager import get_plugins_manager
 from ...warehouse.availability import (
     are_all_product_variants_in_stock,
     is_product_in_stock,
@@ -19,7 +19,7 @@ from .. import ProductAvailabilityStatus, VariantAvailabilityStatus
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ...extensions.manager import ExtensionsManager
+    from ...plugins.manager import PluginsManager
 
 
 @dataclass
@@ -118,26 +118,26 @@ def get_product_availability(
     discounts: Iterable[DiscountInfo] = None,
     country: Optional[str] = None,
     local_currency: Optional[str] = None,
-    extensions: Optional["ExtensionsManager"] = None,
+    plugins: Optional["PluginsManager"] = None,
 ) -> ProductAvailability:
 
-    if not extensions:
-        extensions = get_extensions_manager()
+    if not plugins:
+        plugins = get_plugins_manager()
     discounted_net_range = product.get_price_range(discounts=discounts)
     undiscounted_net_range = product.get_price_range()
     discounted = TaxedMoneyRange(
-        start=extensions.apply_taxes_to_product(
+        start=plugins.apply_taxes_to_product(
             product, discounted_net_range.start, country
         ),
-        stop=extensions.apply_taxes_to_product(
+        stop=plugins.apply_taxes_to_product(
             product, discounted_net_range.stop, country
         ),
     )
     undiscounted = TaxedMoneyRange(
-        start=extensions.apply_taxes_to_product(
+        start=plugins.apply_taxes_to_product(
             product, undiscounted_net_range.start, country
         ),
-        stop=extensions.apply_taxes_to_product(
+        stop=plugins.apply_taxes_to_product(
             product, undiscounted_net_range.stop, country
         ),
     )
@@ -163,15 +163,15 @@ def get_variant_availability(
     discounts: Iterable[DiscountInfo] = None,
     country: Optional[str] = None,
     local_currency: Optional[str] = None,
-    extensions: Optional["ExtensionsManager"] = None,
+    plugins: Optional["PluginsManager"] = None,
 ) -> VariantAvailability:
 
-    if not extensions:
-        extensions = get_extensions_manager()
-    discounted = extensions.apply_taxes_to_product(
+    if not plugins:
+        plugins = get_plugins_manager()
+    discounted = plugins.apply_taxes_to_product(
         variant.product, variant.get_price(discounts=discounts), country
     )
-    undiscounted = extensions.apply_taxes_to_product(
+    undiscounted = plugins.apply_taxes_to_product(
         variant.product, variant.get_price(), country
     )
 
