@@ -247,7 +247,8 @@ class AccountMutations(graphene.ObjectType):
 
     account_update_meta = AccountUpdateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11. Use the `UpdateMetadata` mutation instead."
+            "Use the `updateMetadata` mutation. This field will be removed after "
+            "2020-07-31."
         )
     )
 
@@ -273,25 +274,27 @@ class AccountMutations(graphene.ObjectType):
 
     user_update_metadata = UserUpdateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11. Use the `UpdateMetadata` mutation instead."
+            "Use the `updateMetadata` mutation. This field will be removed after "
+            "2020-07-31."
         )
     )
     user_clear_metadata = UserClearMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11. Use the `DeleteMetadata` mutation instead."
+            "Use the `deleteMetadata` mutation. This field will be removed after "
+            "2020-07-31."
         )
     )
 
     user_update_private_metadata = UserUpdatePrivateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11."
-            "Use the `UpdatePrivateMetadata` mutation instead."
+            "Use the `updatePrivateMetadata` mutation. This field will be removed "
+            "after 2020-07-31."
         )
     )
     user_clear_private_metadata = UserClearPrivateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11."
-            "Use the `DeletePrivateMetadata` mutation instead."
+            "Use the `deletePrivateMetadata` mutation. This field will be removed "
+            "after 2020-07-31."
         )
     )
 
@@ -301,14 +304,14 @@ class AccountMutations(graphene.ObjectType):
 
     service_account_update_private_metadata = ServiceAccountUpdatePrivateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11."
-            "Use the `UpdatePrivateMetadata` mutation instead."
+            "Use the `updatePrivateMetadata` mutation. This field will be removed "
+            "after 2020-07-31."
         )
     )
     service_account_clear_private_metadata = ServiceAccountClearPrivateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11."
-            "Use the `DeletePrivateMetadata` mutation instead."
+            "Use the `deletePrivateMetadata` mutation. This field will be removed "
+            "after 2020-07-31."
         )
     )
 
