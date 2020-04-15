@@ -4,28 +4,28 @@ schema {
 }
 
 type AccountAddressCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   user: User
   accountErrors: [AccountError!]!
   address: Address
 }
 
 type AccountAddressDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   user: User
   accountErrors: [AccountError!]!
   address: Address
 }
 
 type AccountAddressUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   user: User
   accountErrors: [AccountError!]!
   address: Address
 }
 
 type AccountDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   accountErrors: [AccountError!]!
   user: User
 }
@@ -50,6 +50,7 @@ enum AccountErrorCode {
   INVALID
   INVALID_PASSWORD
   LEFT_NOT_MANAGEABLE_PERMISSION
+  INVALID_CREDENTIALS
   NOT_FOUND
   OUT_OF_SCOPE_USER
   OUT_OF_SCOPE_GROUP
@@ -70,7 +71,7 @@ input AccountInput {
 }
 
 type AccountRegister {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   requiresConfirmation: Boolean
   accountErrors: [AccountError!]!
   user: User
@@ -83,24 +84,24 @@ input AccountRegisterInput {
 }
 
 type AccountRequestDeletion {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   accountErrors: [AccountError!]!
 }
 
 type AccountSetDefaultAddress {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   user: User
   accountErrors: [AccountError!]!
 }
 
 type AccountUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   accountErrors: [AccountError!]!
   user: User
 }
 
 type AccountUpdateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   accountErrors: [AccountError!]!
   user: User
 }
@@ -123,14 +124,14 @@ type Address implements Node {
 }
 
 type AddressCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   user: User
   accountErrors: [AccountError!]!
   address: Address
 }
 
 type AddressDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   user: User
   accountErrors: [AccountError!]!
   address: Address
@@ -151,7 +152,7 @@ input AddressInput {
 }
 
 type AddressSetDefault {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   user: User
   accountErrors: [AccountError!]!
 }
@@ -162,7 +163,7 @@ enum AddressTypeEnum {
 }
 
 type AddressUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   user: User
   accountErrors: [AccountError!]!
   address: Address
@@ -189,7 +190,7 @@ type AddressValidationData {
 }
 
 type AssignNavigation {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   menu: Menu
   menuErrors: [MenuError!]!
 }
@@ -216,9 +217,9 @@ type Attribute implements Node & ObjectWithMetadata {
 }
 
 type AttributeAssign {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productType: ProductType
-  productErrors: [ProductError!]!
+  productErrors: [ProductAttributeError!]!
 }
 
 input AttributeAssignInput {
@@ -227,19 +228,19 @@ input AttributeAssignInput {
 }
 
 type AttributeBulkDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   count: Int!
   productErrors: [ProductError!]!
 }
 
 type AttributeClearMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   attribute: Attribute
 }
 
 type AttributeClearPrivateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   attribute: Attribute
 }
@@ -256,7 +257,7 @@ type AttributeCountableEdge {
 }
 
 type AttributeCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   attribute: Attribute
   productErrors: [ProductError!]!
 }
@@ -276,7 +277,7 @@ input AttributeCreateInput {
 }
 
 type AttributeDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   attribute: Attribute
 }
@@ -306,7 +307,7 @@ enum AttributeInputTypeEnum {
 }
 
 type AttributeReorderValues {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   attribute: Attribute
   productErrors: [ProductError!]!
 }
@@ -338,7 +339,8 @@ type AttributeTranslatableContent implements Node {
 }
 
 type AttributeTranslate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
+  translationErrors: [TranslationError!]!
   attribute: Attribute
 }
 
@@ -354,13 +356,13 @@ enum AttributeTypeEnum {
 }
 
 type AttributeUnassign {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productType: ProductType
   productErrors: [ProductError!]!
 }
 
 type AttributeUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   attribute: Attribute
   productErrors: [ProductError!]!
 }
@@ -380,13 +382,13 @@ input AttributeUpdateInput {
 }
 
 type AttributeUpdateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   attribute: Attribute
 }
 
 type AttributeUpdatePrivateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   attribute: Attribute
 }
@@ -401,13 +403,13 @@ type AttributeValue implements Node {
 }
 
 type AttributeValueBulkDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   count: Int!
   productErrors: [ProductError!]!
 }
 
 type AttributeValueCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   attribute: Attribute
   productErrors: [ProductError!]!
   attributeValue: AttributeValue
@@ -418,7 +420,7 @@ input AttributeValueCreateInput {
 }
 
 type AttributeValueDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   attribute: Attribute
   productErrors: [ProductError!]!
   attributeValue: AttributeValue
@@ -437,7 +439,8 @@ type AttributeValueTranslatableContent implements Node {
 }
 
 type AttributeValueTranslate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
+  translationErrors: [TranslationError!]!
   attributeValue: AttributeValue
 }
 
@@ -455,7 +458,7 @@ enum AttributeValueType {
 }
 
 type AttributeValueUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   attribute: Attribute
   productErrors: [ProductError!]!
   attributeValue: AttributeValue
@@ -467,14 +470,14 @@ type AuthorizationKey {
 }
 
 type AuthorizationKeyAdd {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   authorizationKey: AuthorizationKey
   shop: Shop
   shopErrors: [ShopError!]!
 }
 
 type AuthorizationKeyDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   authorizationKey: AuthorizationKey
   shop: Shop
   shopErrors: [ShopError!]!
@@ -533,19 +536,19 @@ type Category implements Node & ObjectWithMetadata {
 }
 
 type CategoryBulkDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   count: Int!
   productErrors: [ProductError!]!
 }
 
 type CategoryClearMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   category: Category
 }
 
 type CategoryClearPrivateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   category: Category
 }
@@ -562,13 +565,13 @@ type CategoryCountableEdge {
 }
 
 type CategoryCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   category: Category
 }
 
 type CategoryDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   category: Category
 }
@@ -611,7 +614,8 @@ type CategoryTranslatableContent implements Node {
 }
 
 type CategoryTranslate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
+  translationErrors: [TranslationError!]!
   category: Category
 }
 
@@ -626,19 +630,19 @@ type CategoryTranslation implements Node {
 }
 
 type CategoryUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   category: Category
 }
 
 type CategoryUpdateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   category: Category
 }
 
 type CategoryUpdatePrivateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   category: Category
 }
@@ -674,31 +678,31 @@ type Checkout implements Node & ObjectWithMetadata {
 }
 
 type CheckoutAddPromoCode {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   checkout: Checkout
   checkoutErrors: [CheckoutError!]!
 }
 
 type CheckoutBillingAddressUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   checkout: Checkout
   checkoutErrors: [CheckoutError!]!
 }
 
 type CheckoutClearMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   checkoutErrors: [CheckoutError!]!
   checkout: Checkout
 }
 
 type CheckoutClearPrivateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   checkoutErrors: [CheckoutError!]!
   checkout: Checkout
 }
 
 type CheckoutComplete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   order: Order
   confirmationNeeded: Boolean!
   checkoutErrors: [CheckoutError!]!
@@ -716,7 +720,7 @@ type CheckoutCountableEdge {
 }
 
 type CheckoutCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   created: Boolean
   checkoutErrors: [CheckoutError!]!
   checkout: Checkout
@@ -730,19 +734,19 @@ input CheckoutCreateInput {
 }
 
 type CheckoutCustomerAttach {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   checkout: Checkout
   checkoutErrors: [CheckoutError!]!
 }
 
 type CheckoutCustomerDetach {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   checkout: Checkout
   checkoutErrors: [CheckoutError!]!
 }
 
 type CheckoutEmailUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   checkout: Checkout
   checkoutErrors: [CheckoutError!]!
 }
@@ -794,7 +798,7 @@ type CheckoutLineCountableEdge {
 }
 
 type CheckoutLineDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   checkout: Checkout
   checkoutErrors: [CheckoutError!]!
 }
@@ -805,50 +809,50 @@ input CheckoutLineInput {
 }
 
 type CheckoutLinesAdd {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   checkout: Checkout
   checkoutErrors: [CheckoutError!]!
 }
 
 type CheckoutLinesUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   checkout: Checkout
   checkoutErrors: [CheckoutError!]!
 }
 
 type CheckoutPaymentCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   checkout: Checkout
   payment: Payment
   paymentErrors: [PaymentError!]!
 }
 
 type CheckoutRemovePromoCode {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   checkout: Checkout
   checkoutErrors: [CheckoutError!]!
 }
 
 type CheckoutShippingAddressUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   checkout: Checkout
   checkoutErrors: [CheckoutError!]!
 }
 
 type CheckoutShippingMethodUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   checkout: Checkout
   checkoutErrors: [CheckoutError!]!
 }
 
 type CheckoutUpdateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   checkoutErrors: [CheckoutError!]!
   checkout: Checkout
 }
 
 type CheckoutUpdatePrivateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   checkoutErrors: [CheckoutError!]!
   checkout: Checkout
 }
@@ -878,31 +882,31 @@ type Collection implements Node & ObjectWithMetadata {
 }
 
 type CollectionAddProducts {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   collection: Collection
   productErrors: [ProductError!]!
 }
 
 type CollectionBulkDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   count: Int!
   productErrors: [ProductError!]!
 }
 
 type CollectionBulkPublish {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   count: Int!
   productErrors: [ProductError!]!
 }
 
 type CollectionClearMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   collection: Collection
 }
 
 type CollectionClearPrivateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   collection: Collection
 }
@@ -919,7 +923,7 @@ type CollectionCountableEdge {
 }
 
 type CollectionCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   collection: Collection
 }
@@ -938,7 +942,7 @@ input CollectionCreateInput {
 }
 
 type CollectionDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   collection: Collection
 }
@@ -967,13 +971,13 @@ enum CollectionPublished {
 }
 
 type CollectionRemoveProducts {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   collection: Collection
   productErrors: [ProductError!]!
 }
 
 type CollectionReorderProducts {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   collection: Collection
   productErrors: [ProductError!]!
 }
@@ -1001,7 +1005,8 @@ type CollectionTranslatableContent implements Node {
 }
 
 type CollectionTranslate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
+  translationErrors: [TranslationError!]!
   collection: Collection
 }
 
@@ -1016,19 +1021,19 @@ type CollectionTranslation implements Node {
 }
 
 type CollectionUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   collection: Collection
 }
 
 type CollectionUpdateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   collection: Collection
 }
 
 type CollectionUpdatePrivateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   collection: Collection
 }
@@ -1054,11 +1059,13 @@ enum ConfigurationTypeFieldEnum {
 }
 
 type ConfirmAccount {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
+  user: User
+  accountErrors: [AccountError!]!
 }
 
 type ConfirmEmailChange {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   user: User
   accountErrors: [AccountError!]!
 }
@@ -1324,7 +1331,8 @@ type CountryDisplay {
 
 type CreateToken {
   token: String
-  errors: [Error]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
+  accountErrors: [AccountError!]!
   user: User
 }
 
@@ -1337,19 +1345,19 @@ type CreditCard {
 }
 
 type CustomerBulkDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   count: Int!
   accountErrors: [AccountError!]!
 }
 
 type CustomerCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   accountErrors: [AccountError!]!
   user: User
 }
 
 type CustomerDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   accountErrors: [AccountError!]!
   user: User
 }
@@ -1400,7 +1408,7 @@ input CustomerInput {
 }
 
 type CustomerUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   accountErrors: [AccountError!]!
   user: User
 }
@@ -1422,13 +1430,13 @@ input DateTimeRangeInput {
 scalar Decimal
 
 type DeleteMetadata {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   metadataErrors: [MetadataError!]!
   item: ObjectWithMetadata
 }
 
 type DeletePrivateMetadata {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   metadataErrors: [MetadataError!]!
   item: ObjectWithMetadata
 }
@@ -1460,14 +1468,14 @@ type DigitalContentCountableEdge {
 }
 
 type DigitalContentCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   variant: ProductVariant
   content: DigitalContent
   productErrors: [ProductError!]!
 }
 
 type DigitalContentDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   variant: ProductVariant
   productErrors: [ProductError!]!
 }
@@ -1480,7 +1488,7 @@ input DigitalContentInput {
 }
 
 type DigitalContentUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   variant: ProductVariant
   content: DigitalContent
   productErrors: [ProductError!]!
@@ -1504,7 +1512,7 @@ type DigitalContentUrl implements Node {
 }
 
 type DigitalContentUrlCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   digitalContentUrl: DigitalContentUrl
 }
@@ -1521,6 +1529,7 @@ type DiscountError {
 
 enum DiscountErrorCode {
   ALREADY_EXISTS
+  GRAPHQL_ERROR
   INVALID
   NOT_FOUND
   REQUIRED
@@ -1545,19 +1554,19 @@ type Domain {
 }
 
 type DraftOrderBulkDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   count: Int!
   orderErrors: [OrderError!]!
 }
 
 type DraftOrderComplete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   order: Order
   orderErrors: [OrderError!]!
 }
 
 type DraftOrderCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   orderErrors: [OrderError!]!
   order: Order
 }
@@ -1575,7 +1584,7 @@ input DraftOrderCreateInput {
 }
 
 type DraftOrderDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   orderErrors: [OrderError!]!
   order: Order
 }
@@ -1592,34 +1601,34 @@ input DraftOrderInput {
 }
 
 type DraftOrderLineDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   order: Order
   orderLine: OrderLine
   orderErrors: [OrderError!]!
 }
 
 type DraftOrderLineUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   order: Order
   orderErrors: [OrderError!]!
   orderLine: OrderLine
 }
 
 type DraftOrderLinesBulkDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   count: Int!
   orderErrors: [OrderError!]!
 }
 
 type DraftOrderLinesCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   order: Order
   orderLines: [OrderLine!]
   orderErrors: [OrderError!]!
 }
 
 type DraftOrderUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   orderErrors: [OrderError!]!
   order: Order
 }
@@ -1627,21 +1636,6 @@ type DraftOrderUpdate {
 type Error {
   field: String
   message: String
-}
-
-type ExtensionsError {
-  field: String
-  message: String
-  code: ExtensionsErrorCode!
-}
-
-enum ExtensionsErrorCode {
-  GRAPHQL_ERROR
-  INVALID
-  PLUGIN_MISCONFIGURED
-  NOT_FOUND
-  REQUIRED
-  UNIQUE
 }
 
 type Fulfillment implements Node & ObjectWithMetadata {
@@ -1659,7 +1653,7 @@ type Fulfillment implements Node & ObjectWithMetadata {
 }
 
 type FulfillmentCancel {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   fulfillment: Fulfillment
   order: Order
   orderErrors: [OrderError!]!
@@ -1670,17 +1664,17 @@ input FulfillmentCancelInput {
 }
 
 type FulfillmentClearMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   fulfillment: Fulfillment
 }
 
 type FulfillmentClearPrivateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   fulfillment: Fulfillment
 }
 
 type FulfillmentCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   fulfillment: Fulfillment
   order: Order
   orderErrors: [OrderError!]!
@@ -1709,17 +1703,17 @@ enum FulfillmentStatus {
 }
 
 type FulfillmentUpdateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   fulfillment: Fulfillment
 }
 
 type FulfillmentUpdatePrivateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   fulfillment: Fulfillment
 }
 
 type FulfillmentUpdateTracking {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   fulfillment: Fulfillment
   order: Order
   orderErrors: [OrderError!]!
@@ -1756,7 +1750,7 @@ type GiftCard implements Node {
 }
 
 type GiftCardActivate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   giftCard: GiftCard
   giftCardErrors: [GiftCardError!]!
 }
@@ -1773,7 +1767,7 @@ type GiftCardCountableEdge {
 }
 
 type GiftCardCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   giftCardErrors: [GiftCardError!]!
   giftCard: GiftCard
 }
@@ -1787,7 +1781,7 @@ input GiftCardCreateInput {
 }
 
 type GiftCardDeactivate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   giftCard: GiftCard
   giftCardErrors: [GiftCardError!]!
 }
@@ -1808,7 +1802,7 @@ enum GiftCardErrorCode {
 }
 
 type GiftCardUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   giftCardErrors: [GiftCardError!]!
   giftCard: GiftCard
 }
@@ -1840,7 +1834,7 @@ type GroupCountableEdge {
 }
 
 type HomepageCollectionUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   shop: Shop
   shopErrors: [ShopError!]!
 }
@@ -1920,7 +1914,7 @@ type Menu implements Node {
 }
 
 type MenuBulkDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   count: Int!
   menuErrors: [MenuError!]!
 }
@@ -1937,7 +1931,7 @@ type MenuCountableEdge {
 }
 
 type MenuCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   menuErrors: [MenuError!]!
   menu: Menu
 }
@@ -1948,7 +1942,7 @@ input MenuCreateInput {
 }
 
 type MenuDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   menuErrors: [MenuError!]!
   menu: Menu
 }
@@ -1994,7 +1988,7 @@ type MenuItem implements Node {
 }
 
 type MenuItemBulkDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   count: Int!
   menuErrors: [MenuError!]!
 }
@@ -2011,7 +2005,7 @@ type MenuItemCountableEdge {
 }
 
 type MenuItemCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   menuErrors: [MenuError!]!
   menuItem: MenuItem
 }
@@ -2027,7 +2021,7 @@ input MenuItemCreateInput {
 }
 
 type MenuItemDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   menuErrors: [MenuError!]!
   menuItem: MenuItem
 }
@@ -2045,7 +2039,7 @@ input MenuItemInput {
 }
 
 type MenuItemMove {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   menu: Menu
   menuErrors: [MenuError!]!
 }
@@ -2069,7 +2063,8 @@ type MenuItemTranslatableContent implements Node {
 }
 
 type MenuItemTranslate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
+  translationErrors: [TranslationError!]!
   menuItem: MenuItem
 }
 
@@ -2080,7 +2075,7 @@ type MenuItemTranslation implements Node {
 }
 
 type MenuItemUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   menuErrors: [MenuError!]!
   menuItem: MenuItem
 }
@@ -2100,7 +2095,7 @@ input MenuSortingInput {
 }
 
 type MenuUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   menuErrors: [MenuError!]!
   menu: Menu
 }
@@ -2321,10 +2316,10 @@ type Mutation {
   orderUpdateShipping(order: ID!, input: OrderUpdateShippingInput): OrderUpdateShipping
   orderVoid(id: ID!): OrderVoid
   orderBulkCancel(ids: [ID]!, restock: Boolean!): OrderBulkCancel
-  deleteMetadata(id: ID!, key: String!): DeleteMetadata
-  deletePrivateMetadata(id: ID!, key: String!): DeletePrivateMetadata
-  updateMetadata(id: ID!, input: MetadataInput!): UpdateMetadata
-  updatePrivateMetadata(id: ID!, input: MetadataInput!): UpdatePrivateMetadata
+  deleteMetadata(id: ID!, keys: [String!]!): DeleteMetadata
+  deletePrivateMetadata(id: ID!, keys: [String!]!): DeletePrivateMetadata
+  updateMetadata(id: ID!, input: [MetadataInput!]!): UpdateMetadata
+  updatePrivateMetadata(id: ID!, input: [MetadataInput!]!): UpdatePrivateMetadata
   assignNavigation(menu: ID, navigationType: NavigationType!): AssignNavigation
   menuCreate(input: MenuCreateInput!): MenuCreate
   menuDelete(id: ID!): MenuDelete
@@ -2501,7 +2496,7 @@ enum OrderAction {
 }
 
 type OrderAddNote {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   order: Order
   event: OrderEvent
   orderErrors: [OrderError!]!
@@ -2512,30 +2507,30 @@ input OrderAddNoteInput {
 }
 
 type OrderBulkCancel {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   count: Int!
   orderErrors: [OrderError!]!
 }
 
 type OrderCancel {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   order: Order
   orderErrors: [OrderError!]!
 }
 
 type OrderCapture {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   order: Order
   orderErrors: [OrderError!]!
 }
 
 type OrderClearMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   order: Order
 }
 
 type OrderClearPrivateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   order: Order
 }
 
@@ -2694,13 +2689,13 @@ input OrderLineInput {
 }
 
 type OrderMarkAsPaid {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   order: Order
   orderErrors: [OrderError!]!
 }
 
 type OrderRefund {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   order: Order
   orderErrors: [OrderError!]!
 }
@@ -2737,7 +2732,7 @@ enum OrderStatusFilter {
 }
 
 type OrderUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   orderErrors: [OrderError!]!
   order: Order
 }
@@ -2749,17 +2744,17 @@ input OrderUpdateInput {
 }
 
 type OrderUpdateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   order: Order
 }
 
 type OrderUpdatePrivateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   order: Order
 }
 
 type OrderUpdateShipping {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   order: Order
   orderErrors: [OrderError!]!
 }
@@ -2769,7 +2764,7 @@ input OrderUpdateShippingInput {
 }
 
 type OrderVoid {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   order: Order
   orderErrors: [OrderError!]!
 }
@@ -2789,13 +2784,15 @@ type Page implements Node {
 }
 
 type PageBulkDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   count: Int!
+  pageErrors: [PageError!]!
 }
 
 type PageBulkPublish {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   count: Int!
+  pageErrors: [PageError!]!
 }
 
 type PageCountableConnection {
@@ -2810,13 +2807,13 @@ type PageCountableEdge {
 }
 
 type PageCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   pageErrors: [PageError!]!
   page: Page
 }
 
 type PageDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   pageErrors: [PageError!]!
   page: Page
 }
@@ -2881,7 +2878,8 @@ type PageTranslatableContent implements Node {
 }
 
 type PageTranslate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
+  translationErrors: [TranslationError!]!
   page: PageTranslatableContent
 }
 
@@ -2904,13 +2902,13 @@ input PageTranslationInput {
 }
 
 type PageUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   pageErrors: [PageError!]!
   page: Page
 }
 
 type PasswordChange {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   user: User
   accountErrors: [AccountError!]!
 }
@@ -2939,7 +2937,7 @@ type Payment implements Node {
 }
 
 type PaymentCapture {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   payment: Payment
   paymentErrors: [PaymentError!]!
 }
@@ -2993,13 +2991,13 @@ input PaymentInput {
 }
 
 type PaymentRefund {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   payment: Payment
   paymentErrors: [PaymentError!]!
 }
 
 type PaymentSecureConfirm {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   payment: Payment
   paymentErrors: [PaymentError!]!
 }
@@ -3010,7 +3008,7 @@ type PaymentSource {
 }
 
 type PaymentVoid {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   payment: Payment
   paymentErrors: [PaymentError!]!
 }
@@ -3039,7 +3037,7 @@ enum PermissionEnum {
 }
 
 type PermissionGroupCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   group: Group
   permissionGroupErrors: [PermissionGroupError!]!
 }
@@ -3051,7 +3049,7 @@ input PermissionGroupCreateInput {
 }
 
 type PermissionGroupDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   permissionGroupErrors: [PermissionGroupError!]!
   group: Group
 }
@@ -3089,7 +3087,7 @@ input PermissionGroupSortingInput {
 }
 
 type PermissionGroupUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   group: Group
   permissionGroupErrors: [PermissionGroupError!]!
 }
@@ -3103,11 +3101,11 @@ input PermissionGroupUpdateInput {
 }
 
 type Plugin implements Node {
+  id: ID!
   name: String!
   description: String!
   active: Boolean!
   configuration: [ConfigurationItem]
-  id: ID!
 }
 
 type PluginCountableConnection {
@@ -3119,6 +3117,21 @@ type PluginCountableConnection {
 type PluginCountableEdge {
   node: Plugin!
   cursor: String!
+}
+
+type PluginError {
+  field: String
+  message: String
+  code: PluginErrorCode!
+}
+
+enum PluginErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  PLUGIN_MISCONFIGURED
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
 }
 
 input PluginFilterInput {
@@ -3137,9 +3150,9 @@ input PluginSortingInput {
 }
 
 type PluginUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   plugin: Plugin
-  extensionsErrors: [ExtensionsError!]!
+  pluginsErrors: [PluginError!]!
 }
 
 input PluginUpdateInput {
@@ -3188,26 +3201,33 @@ type Product implements Node & ObjectWithMetadata {
   translation(languageCode: LanguageCodeEnum!): ProductTranslation
 }
 
+type ProductAttributeError {
+  field: String
+  message: String
+  code: ProductErrorCode!
+  attributes: [ID!]
+}
+
 type ProductBulkDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   count: Int!
   productErrors: [ProductError!]!
 }
 
 type ProductBulkPublish {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   count: Int!
   productErrors: [ProductError!]!
 }
 
 type ProductClearMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   product: Product
 }
 
 type ProductClearPrivateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   product: Product
 }
@@ -3224,7 +3244,7 @@ type ProductCountableEdge {
 }
 
 type ProductCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   product: Product
 }
@@ -3252,7 +3272,7 @@ input ProductCreateInput {
 }
 
 type ProductDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   product: Product
 }
@@ -3300,13 +3320,13 @@ type ProductImage implements Node {
 }
 
 type ProductImageBulkDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   count: Int!
   productErrors: [ProductError!]!
 }
 
 type ProductImageCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   product: Product
   image: ProductImage
   productErrors: [ProductError!]!
@@ -3319,21 +3339,21 @@ input ProductImageCreateInput {
 }
 
 type ProductImageDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   product: Product
   image: ProductImage
   productErrors: [ProductError!]!
 }
 
 type ProductImageReorder {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   product: Product
   images: [ProductImage]
   productErrors: [ProductError!]!
 }
 
 type ProductImageUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   product: Product
   image: ProductImage
   productErrors: [ProductError!]!
@@ -3404,7 +3424,8 @@ type ProductTranslatableContent implements Node {
 }
 
 type ProductTranslate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
+  translationErrors: [TranslationError!]!
   product: Product
 }
 
@@ -3439,19 +3460,19 @@ type ProductType implements Node & ObjectWithMetadata {
 }
 
 type ProductTypeBulkDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   count: Int!
   productErrors: [ProductError!]!
 }
 
 type ProductTypeClearMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   productType: ProductType
 }
 
 type ProductTypeClearPrivateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   productType: ProductType
 }
@@ -3473,13 +3494,13 @@ type ProductTypeCountableEdge {
 }
 
 type ProductTypeCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   productType: ProductType
 }
 
 type ProductTypeDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   productType: ProductType
 }
@@ -3509,7 +3530,7 @@ input ProductTypeInput {
 }
 
 type ProductTypeReorderAttributes {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productType: ProductType
   productErrors: [ProductError!]!
 }
@@ -3526,37 +3547,37 @@ input ProductTypeSortingInput {
 }
 
 type ProductTypeUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   productType: ProductType
 }
 
 type ProductTypeUpdateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   productType: ProductType
 }
 
 type ProductTypeUpdatePrivateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   productType: ProductType
 }
 
 type ProductUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   product: Product
 }
 
 type ProductUpdateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   product: Product
 }
 
 type ProductUpdatePrivateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   product: Product
 }
@@ -3590,7 +3611,7 @@ type ProductVariant implements Node & ObjectWithMetadata {
 }
 
 type ProductVariantBulkCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   count: Int!
   productVariants: [ProductVariant!]!
   bulkProductErrors: [BulkProductError!]!
@@ -3607,19 +3628,19 @@ input ProductVariantBulkCreateInput {
 }
 
 type ProductVariantBulkDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   count: Int!
   productErrors: [ProductError!]!
 }
 
 type ProductVariantClearMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   productVariant: ProductVariant
 }
 
 type ProductVariantClearPrivateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   productVariant: ProductVariant
 }
@@ -3636,7 +3657,7 @@ type ProductVariantCountableEdge {
 }
 
 type ProductVariantCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   productVariant: ProductVariant
 }
@@ -3654,7 +3675,7 @@ input ProductVariantCreateInput {
 }
 
 type ProductVariantDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   productVariant: ProductVariant
 }
@@ -3670,19 +3691,19 @@ input ProductVariantInput {
 }
 
 type ProductVariantStocksCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productVariant: ProductVariant
   bulkStockErrors: [BulkStockError!]!
 }
 
 type ProductVariantStocksDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productVariant: ProductVariant
   stockErrors: [StockError!]!
 }
 
 type ProductVariantStocksUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productVariant: ProductVariant
   bulkStockErrors: [BulkStockError!]!
 }
@@ -3695,7 +3716,8 @@ type ProductVariantTranslatableContent implements Node {
 }
 
 type ProductVariantTranslate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
+  translationErrors: [TranslationError!]!
   productVariant: ProductVariant
 }
 
@@ -3706,19 +3728,19 @@ type ProductVariantTranslation implements Node {
 }
 
 type ProductVariantUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   productVariant: ProductVariant
 }
 
 type ProductVariantUpdateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   productVariant: ProductVariant
 }
 
 type ProductVariantUpdatePrivateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productErrors: [ProductError!]!
   productVariant: ProductVariant
 }
@@ -3814,13 +3836,13 @@ enum ReportingPeriod {
 }
 
 type RequestEmailChange {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   user: User
   accountErrors: [AccountError!]!
 }
 
 type RequestPasswordReset {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   accountErrors: [AccountError!]!
 }
 
@@ -3838,14 +3860,15 @@ type Sale implements Node {
 }
 
 type SaleAddCatalogues {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   sale: Sale
   discountErrors: [DiscountError!]!
 }
 
 type SaleBulkDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   count: Int!
+  discountErrors: [DiscountError!]!
 }
 
 type SaleCountableConnection {
@@ -3860,13 +3883,13 @@ type SaleCountableEdge {
 }
 
 type SaleCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   discountErrors: [DiscountError!]!
   sale: Sale
 }
 
 type SaleDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   discountErrors: [DiscountError!]!
   sale: Sale
 }
@@ -3890,7 +3913,7 @@ input SaleInput {
 }
 
 type SaleRemoveCatalogues {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   sale: Sale
   discountErrors: [DiscountError!]!
 }
@@ -3916,7 +3939,8 @@ type SaleTranslatableContent implements Node {
 }
 
 type SaleTranslate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
+  translationErrors: [TranslationError!]!
   sale: Sale
 }
 
@@ -3932,7 +3956,7 @@ enum SaleType {
 }
 
 type SaleUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   discountErrors: [DiscountError!]!
   sale: Sale
 }
@@ -3961,7 +3985,7 @@ type ServiceAccount implements Node & ObjectWithMetadata {
 }
 
 type ServiceAccountClearPrivateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   accountErrors: [AccountError!]!
   serviceAccount: ServiceAccount
 }
@@ -3978,14 +4002,14 @@ type ServiceAccountCountableEdge {
 }
 
 type ServiceAccountCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   authToken: String
   accountErrors: [AccountError!]!
   serviceAccount: ServiceAccount
 }
 
 type ServiceAccountDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   accountErrors: [AccountError!]!
   serviceAccount: ServiceAccount
 }
@@ -4018,14 +4042,14 @@ type ServiceAccountToken implements Node {
 }
 
 type ServiceAccountTokenCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   authToken: String
   accountErrors: [AccountError!]!
   serviceAccountToken: ServiceAccountToken
 }
 
 type ServiceAccountTokenDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   accountErrors: [AccountError!]!
   serviceAccountToken: ServiceAccountToken
 }
@@ -4036,22 +4060,22 @@ input ServiceAccountTokenInput {
 }
 
 type ServiceAccountUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   accountErrors: [AccountError!]!
   serviceAccount: ServiceAccount
 }
 
 type ServiceAccountUpdatePrivateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   accountErrors: [AccountError!]!
   serviceAccount: ServiceAccount
 }
 
 type SetPassword {
   token: String
-  errors: [Error]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
+  accountErrors: [AccountError!]!
   user: User
-  accountErrors: [AccountError!]
 }
 
 type ShippingError {
@@ -4103,20 +4127,20 @@ enum ShippingMethodTypeEnum {
 }
 
 type ShippingPriceBulkDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   count: Int!
   shippingErrors: [ShippingError!]!
 }
 
 type ShippingPriceCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   shippingZone: ShippingZone
   shippingErrors: [ShippingError!]!
   shippingMethod: ShippingMethod
 }
 
 type ShippingPriceDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   shippingMethod: ShippingMethod
   shippingZone: ShippingZone
   shippingErrors: [ShippingError!]!
@@ -4134,12 +4158,13 @@ input ShippingPriceInput {
 }
 
 type ShippingPriceTranslate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
+  translationErrors: [TranslationError!]!
   shippingMethod: ShippingMethod
 }
 
 type ShippingPriceUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   shippingZone: ShippingZone
   shippingErrors: [ShippingError!]!
   shippingMethod: ShippingMethod
@@ -4156,7 +4181,7 @@ type ShippingZone implements Node {
 }
 
 type ShippingZoneBulkDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   count: Int!
   shippingErrors: [ShippingError!]!
 }
@@ -4173,7 +4198,7 @@ type ShippingZoneCountableEdge {
 }
 
 type ShippingZoneCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   shippingZone: ShippingZone
   shippingErrors: [ShippingError!]!
 }
@@ -4186,13 +4211,13 @@ input ShippingZoneCreateInput {
 }
 
 type ShippingZoneDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   shippingErrors: [ShippingError!]!
   shippingZone: ShippingZone
 }
 
 type ShippingZoneUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   shippingZone: ShippingZone
   shippingErrors: [ShippingError!]!
 }
@@ -4238,13 +4263,13 @@ type Shop {
 }
 
 type ShopAddressUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   shop: Shop
   shopErrors: [ShopError!]!
 }
 
 type ShopDomainUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   shop: Shop
   shopErrors: [ShopError!]!
 }
@@ -4266,7 +4291,7 @@ enum ShopErrorCode {
 }
 
 type ShopFetchTaxRates {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   shop: Shop
   shopErrors: [ShopError!]!
 }
@@ -4288,8 +4313,9 @@ input ShopSettingsInput {
 }
 
 type ShopSettingsTranslate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   shop: Shop
+  translationErrors: [TranslationError!]!
 }
 
 input ShopSettingsTranslationInput {
@@ -4298,7 +4324,7 @@ input ShopSettingsTranslationInput {
 }
 
 type ShopSettingsUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   shop: Shop
   shopErrors: [ShopError!]!
 }
@@ -4316,13 +4342,13 @@ input SiteDomainInput {
 }
 
 type StaffBulkDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   count: Int!
   staffErrors: [StaffError!]!
 }
 
 type StaffCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   staffErrors: [StaffError!]!
   user: User
 }
@@ -4338,7 +4364,7 @@ input StaffCreateInput {
 }
 
 type StaffDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   staffErrors: [StaffError!]!
   user: User
 }
@@ -4365,13 +4391,13 @@ type StaffNotificationRecipient implements Node {
 }
 
 type StaffNotificationRecipientCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   shopErrors: [ShopError!]!
   staffNotificationRecipient: StaffNotificationRecipient
 }
 
 type StaffNotificationRecipientDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   shopErrors: [ShopError!]!
   staffNotificationRecipient: StaffNotificationRecipient
 }
@@ -4383,13 +4409,13 @@ input StaffNotificationRecipientInput {
 }
 
 type StaffNotificationRecipientUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   shopErrors: [ShopError!]!
   staffNotificationRecipient: StaffNotificationRecipient
 }
 
 type StaffUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   staffErrors: [StaffError!]!
   user: User
 }
@@ -4565,6 +4591,18 @@ enum TranslatableKinds {
   VOUCHER
 }
 
+type TranslationError {
+  field: String
+  message: String
+  code: TranslationErrorCode!
+}
+
+enum TranslationErrorCode {
+  GRAPHQL_ERROR
+  NOT_FOUND
+  REQUIRED
+}
+
 input TranslationInput {
   seoTitle: String
   seoDescription: String
@@ -4576,13 +4614,13 @@ input TranslationInput {
 scalar UUID
 
 type UpdateMetadata {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   metadataErrors: [MetadataError!]!
   item: ObjectWithMetadata
 }
 
 type UpdatePrivateMetadata {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   metadataErrors: [MetadataError!]!
   item: ObjectWithMetadata
 }
@@ -4619,31 +4657,31 @@ type User implements Node & ObjectWithMetadata {
 }
 
 type UserAvatarDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   user: User
   accountErrors: [AccountError!]!
 }
 
 type UserAvatarUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   user: User
   accountErrors: [AccountError!]!
 }
 
 type UserBulkSetActive {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   count: Int!
   accountErrors: [AccountError!]!
 }
 
 type UserClearMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   accountErrors: [AccountError!]!
   user: User
 }
 
 type UserClearPrivateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   accountErrors: [AccountError!]!
   user: User
 }
@@ -4689,13 +4727,13 @@ input UserSortingInput {
 }
 
 type UserUpdateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   accountErrors: [AccountError!]!
   user: User
 }
 
 type UserUpdatePrivateMeta {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   accountErrors: [AccountError!]!
   user: User
 }
@@ -4707,14 +4745,14 @@ type VAT {
 }
 
 type VariantImageAssign {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productVariant: ProductVariant
   image: ProductImage
   productErrors: [ProductError!]!
 }
 
 type VariantImageUnassign {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   productVariant: ProductVariant
   image: ProductImage
   productErrors: [ProductError!]!
@@ -4757,14 +4795,15 @@ type Voucher implements Node {
 }
 
 type VoucherAddCatalogues {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   voucher: Voucher
   discountErrors: [DiscountError!]!
 }
 
 type VoucherBulkDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   count: Int!
+  discountErrors: [DiscountError!]!
 }
 
 type VoucherCountableConnection {
@@ -4779,13 +4818,13 @@ type VoucherCountableEdge {
 }
 
 type VoucherCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   discountErrors: [DiscountError!]!
   voucher: Voucher
 }
 
 type VoucherDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   discountErrors: [DiscountError!]!
   voucher: Voucher
 }
@@ -4824,7 +4863,7 @@ input VoucherInput {
 }
 
 type VoucherRemoveCatalogues {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   voucher: Voucher
   discountErrors: [DiscountError!]!
 }
@@ -4852,7 +4891,8 @@ type VoucherTranslatableContent implements Node {
 }
 
 type VoucherTranslate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
+  translationErrors: [TranslationError!]!
   voucher: Voucher
 }
 
@@ -4869,7 +4909,7 @@ enum VoucherTypeEnum {
 }
 
 type VoucherUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   discountErrors: [DiscountError!]!
   voucher: Voucher
 }
@@ -4907,7 +4947,7 @@ type WarehouseCountableEdge {
 }
 
 type WarehouseCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   warehouseErrors: [WarehouseError!]!
   warehouse: Warehouse
 }
@@ -4922,7 +4962,7 @@ input WarehouseCreateInput {
 }
 
 type WarehouseDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   warehouseErrors: [WarehouseError!]!
   warehouse: Warehouse
 }
@@ -4948,13 +4988,13 @@ input WarehouseFilterInput {
 }
 
 type WarehouseShippingZoneAssign {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   warehouse: Warehouse
   warehouseErrors: [WarehouseError!]!
 }
 
 type WarehouseShippingZoneUnassign {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   warehouse: Warehouse
   warehouseErrors: [WarehouseError!]!
 }
@@ -4969,7 +5009,7 @@ input WarehouseSortingInput {
 }
 
 type WarehouseUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   warehouseErrors: [WarehouseError!]!
   warehouse: Warehouse
 }
@@ -5004,7 +5044,7 @@ type WebhookCountableEdge {
 }
 
 type WebhookCreate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   webhookErrors: [WebhookError!]!
   webhook: Webhook
 }
@@ -5019,7 +5059,7 @@ input WebhookCreateInput {
 }
 
 type WebhookDelete {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   webhook: Webhook
   webhookErrors: [WebhookError!]!
 }
@@ -5085,7 +5125,7 @@ input WebhookSortingInput {
 }
 
 type WebhookUpdate {
-  errors: [Error!]!
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes.")
   webhook: Webhook
   webhookErrors: [WebhookError!]!
 }

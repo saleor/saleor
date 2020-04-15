@@ -315,7 +315,7 @@ class ProductVariant(CountableDjangoObjectType):
             context.discounts,
             context.country,
             context.currency,
-            extensions=context.extensions,
+            plugins=context.plugins,
         )
         return VariantPricingInfo(**asdict(availability))
 
@@ -462,7 +462,7 @@ class Product(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_tax_type(root: models.Product, info):
-        tax_data = info.context.extensions.get_tax_code_from_object_meta(root)
+        tax_data = info.context.plugins.get_tax_code_from_object_meta(root)
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
 
     @staticmethod
@@ -493,11 +493,7 @@ class Product(CountableDjangoObjectType):
     def resolve_pricing(root: models.Product, info):
         context = info.context
         availability = get_product_availability(
-            root,
-            context.discounts,
-            context.country,
-            context.currency,
-            context.extensions,
+            root, context.discounts, context.country, context.currency, context.plugins,
         )
         return ProductPricingInfo(**asdict(availability))
 
@@ -526,7 +522,7 @@ class Product(CountableDjangoObjectType):
     )
     def resolve_price(root: models.Product, info):
         price_range = root.get_price_range(info.context.discounts)
-        price = info.context.extensions.apply_taxes_to_product(
+        price = info.context.plugins.apply_taxes_to_product(
             root, price_range.start, info.context.country
         )
         return price.net
@@ -639,7 +635,7 @@ class ProductType(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_tax_type(root: models.ProductType, info):
-        tax_data = info.context.extensions.get_tax_code_from_object_meta(root)
+        tax_data = info.context.plugins.get_tax_code_from_object_meta(root)
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
 
     @staticmethod

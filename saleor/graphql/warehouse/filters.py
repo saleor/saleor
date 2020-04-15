@@ -7,7 +7,7 @@ from ..utils import filter_by_query_param
 
 
 def prefech_qs_for_filter(qs):
-    return qs.select_related("address")
+    return qs.prefetch_related("address")
 
 
 def filter_search_warehouse(qs, _, value):

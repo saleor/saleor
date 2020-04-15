@@ -5,11 +5,12 @@ from django.db import transaction
 from django.utils import timezone
 from prices import Money, TaxedMoney
 
+from ..account.models import User
 from ..core.taxes import zero_money
 from ..core.weight import zero_weight
 from ..discount.models import NotApplicable, Voucher, VoucherType
 from ..discount.utils import get_products_voucher_discount, validate_voucher_in_order
-from ..extensions.manager import get_extensions_manager
+from ..plugins.manager import get_plugins_manager
 from ..order import OrderStatus
 from ..order.models import Order, OrderLine
 from ..product.utils.digital_products import get_default_digital_content_settings
@@ -110,7 +111,7 @@ def recalculate_order_weight(order):
 
 def update_order_prices(order, discounts):
     """Update prices in order with given discounts and proper taxes."""
-    manager = get_extensions_manager()
+    manager = get_plugins_manager()
     for line in order:  # type: OrderLine
         if line.variant:
             unit_price = line.variant.get_price(discounts)
@@ -208,7 +209,7 @@ def add_variant_to_order(
             unit_price=unit_price,
             variant=variant,
         )
-        manager = get_extensions_manager()
+        manager = get_plugins_manager()
         unit_price = manager.calculate_order_line_unit(line)
         line.unit_price = unit_price
         line.tax_rate = unit_price.tax / unit_price.net
@@ -333,3 +334,7 @@ def get_voucher_discount_for_order(order: Order) -> Money:
     if order.voucher.type == VoucherType.SPECIFIC_PRODUCT:
         return get_products_voucher_discount_for_order(order.voucher)
     raise NotImplementedError("Unknown discount type")
+
+
+def match_orders_with_new_user(user: User) -> None:
+    Order.objects.confirmed().filter(user_email=user.email, user=None).update(user=user)

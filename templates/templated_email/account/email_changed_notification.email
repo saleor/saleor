@@ -12,11 +12,9 @@ You're receiving this e-mail because you or someone else has changed email for y
 If you didn't request this change, please contact the administrator.
 {% endblocktrans %}
 
-{{ reset_url }}
-
 {% include 'templated_email/shared/_footer.email' %}
 {% endblock %}
 
 {% block html %}
-{% include 'templated_email/compiled/password_reset.html' %}
+{% include 'templated_email/compiled/email_changed_notification.html' %}
 {% endblock %}

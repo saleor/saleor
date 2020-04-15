@@ -1784,22 +1784,6 @@ def description_json():
 
 
 @pytest.fixture
-def description_raw():
-    return """\
-E-commerce for the PWA era
-A modular, high performance e-commerce storefront built with GraphQL, Django, \
-and ReactJS.
-
-Saleor is a rapidly-growing open source e-commerce platform that has served \
-high-volume companies from branches like publishing and apparel since 2012. \
-Based on Python and Django, the latest major update introduces a modular \
-front end with a GraphQL API and storefront and dashboard written in React \
-to make Saleor a full-functionality open source e-commerce.
-
-Get Saleor today!"""
-
-
-@pytest.fixture
 def other_description_json():
     return {
         "blocks": [
@@ -1830,15 +1814,6 @@ def other_description_json():
 
 
 @pytest.fixture
-def other_description_raw():
-    return (
-        "A GRAPHQL-FIRST ECOMMERCE PLATFORM FOR PERFECTIONISTS\n"
-        "Saleor is powered by a GraphQL server running on top of Python 3 "
-        "and a Django 2 framework."
-    )
-
-
-@pytest.fixture
 def service_account(db):
     return ServiceAccount.objects.create(name="Sample service account", is_active=True)
 
@@ -1860,7 +1835,7 @@ def fake_payment_interface(mocker):
 @pytest.fixture
 def mock_get_manager(mocker, fake_payment_interface):
     mgr = mocker.patch(
-        "saleor.payment.gateway.get_extensions_manager",
+        "saleor.payment.gateway.get_plugins_manager",
         autospec=True,
         return_value=fake_payment_interface,
     )

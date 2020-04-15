@@ -12,9 +12,9 @@ from graphql_relay import to_global_id
 from prices import Money
 
 from saleor.core.taxes import TaxType
-from saleor.extensions.manager import ExtensionsManager
 from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.product.utils import create_stocks
+from saleor.plugins.manager import PluginsManager
 from saleor.product import AttributeInputType
 from saleor.product.error_codes import ProductErrorCode
 from saleor.product.models import (
@@ -892,13 +892,11 @@ def test_create_product(
     category,
     size_attribute,
     description_json,
-    description_raw,
     permission_manage_products,
     settings,
     monkeypatch,
 ):
     query = CREATE_PRODUCT_MUTATION
-    settings.USE_JSON_CONTENT = True
 
     description_json = json.dumps(description_json)
 
@@ -913,7 +911,7 @@ def test_create_product(
 
     # Mock tax interface with fake response from tax gateway
     monkeypatch.setattr(
-        ExtensionsManager,
+        PluginsManager,
         "get_tax_code_from_object_meta",
         lambda self, x: TaxType(description="", code=product_tax_rate),
     )
@@ -977,14 +975,11 @@ def test_create_product_no_slug_in_input(
     category,
     size_attribute,
     description_json,
-    description_raw,
     permission_manage_products,
-    settings,
     monkeypatch,
     input_slug,
 ):
     query = CREATE_PRODUCT_MUTATION
-    settings.USE_JSON_CONTENT = True
 
     description_json = json.dumps(description_json)
 
@@ -997,7 +992,7 @@ def test_create_product_no_slug_in_input(
 
     # Mock tax interface with fake response from tax gateway
     monkeypatch.setattr(
-        ExtensionsManager,
+        PluginsManager,
         "get_tax_code_from_object_meta",
         lambda self, x: TaxType(description="", code=product_tax_rate),
     )
@@ -1285,7 +1280,7 @@ def test_product_create_with_collections_webhook(
         assert product.collections.first() == collection
 
     monkeypatch.setattr(
-        "saleor.extensions.manager.ExtensionsManager.product_created",
+        "saleor.plugins.manager.PluginsManager.product_created",
         lambda _, product: assert_product_has_collections(product),
     )
 
@@ -1312,9 +1307,7 @@ def test_update_product(
     non_default_category,
     product,
     other_description_json,
-    other_description_raw,
     permission_manage_products,
-    settings,
     monkeypatch,
     color_attribute,
 ):
@@ -1381,8 +1374,6 @@ def test_update_product(
                       }
     """
 
-    settings.USE_JSON_CONTENT = True
-
     other_description_json = json.dumps(other_description_json)
 
     product_id = graphene.Node.to_global_id("Product", product.pk)
@@ -1397,7 +1388,7 @@ def test_update_product(
 
     # Mock tax interface with fake response from tax gateway
     monkeypatch.setattr(
-        ExtensionsManager,
+        PluginsManager,
         "get_tax_code_from_object_meta",
         lambda self, x: TaxType(description="", code=product_tax_rate),
     )
@@ -1593,6 +1584,46 @@ def test_update_product_slug_and_name(
         assert errors
         assert errors[0]["field"] == error_field
         assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
+
+
+UPDATE_PRODUCT_PRICE_MUTATION = """
+    mutation($id: ID!, $basePrice: Decimal) {
+        productUpdate(
+            id: $id
+            input: {
+                basePrice: $basePrice
+            }
+        ) {
+            product{
+                name
+                slug
+            }
+            productErrors {
+                field
+                message
+                code
+            }
+        }
+    }
+"""
+
+
+def test_update_product_invalid_price(
+    staff_api_client, product, permission_manage_products,
+):
+
+    node_id = graphene.Node.to_global_id("Product", product.id)
+    variables = {"basePrice": Decimal("-19"), "id": node_id}
+    response = staff_api_client.post_graphql(
+        UPDATE_PRODUCT_PRICE_MUTATION,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    errors = data["productErrors"]
+    assert errors[0]["field"] == "basePrice"
+    assert errors[0]["code"] == ProductErrorCode.INVALID.name
 
 
 SET_ATTRIBUTES_TO_PRODUCT_QUERY = """
@@ -2019,7 +2050,7 @@ def test_product_type_query(
     monkeypatch,
 ):
     monkeypatch.setattr(
-        ExtensionsManager,
+        PluginsManager,
         "get_tax_code_from_object_meta",
         lambda self, x: TaxType(code="123", description="Standard Taxes"),
     )
@@ -2066,8 +2097,8 @@ def test_product_type_create_mutation(
     staff_api_client, product_type, permission_manage_products, monkeypatch, settings
 ):
     settings.VATLAYER_ACCESS_KEY = "test"
-    settings.PLUGINS = ["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
-    manager = ExtensionsManager(plugins=settings.PLUGINS)
+    settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
+    manager = PluginsManager(plugins=settings.PLUGINS)
     query = """
     mutation createProductType(
         $name: String!,
@@ -2486,6 +2517,33 @@ def test_product_image_create_mutation(
 
     # The image creation should have triggered a warm-up
     mock_create_thumbnails.assert_called_once_with(product_image.pk)
+
+
+def test_product_image_create_mutation_without_file(
+    monkeypatch, staff_api_client, product, permission_manage_products, media_root
+):
+    query = """
+    mutation createProductImage($image: Upload!, $product: ID!) {
+        productImageCreate(input: {image: $image, product: $product}) {
+            productErrors {
+                code
+                field
+            }
+        }
+    }
+    """
+    variables = {
+        "product": graphene.Node.to_global_id("Product", product.id),
+        "image": "image name",
+    }
+    body = get_multipart_request_body(query, variables, file="", file_name="name")
+    response = staff_api_client.post_multipart(
+        body, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    errors = content["data"]["productImageCreate"]["productErrors"]
+    assert errors[0]["field"] == "image"
+    assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
 
 
 def test_invalid_product_image_create_mutation(
@@ -3384,6 +3442,32 @@ def test_product_type_query_with_sort(
 
     for order, product_type_name in enumerate(result_order):
         assert product_types[order]["node"]["name"] == product_type_name
+
+
+NOT_EXISTS_IDS_COLLECTIONS_QUERY = """
+    query ($filter: ProductTypeFilterInput!) {
+        productTypes(first: 5, filter: $filter) {
+            edges {
+                node {
+                    id
+                    name
+                }
+            }
+        }
+    }
+"""
+
+
+def test_product_types_query_ids_not_exists(user_api_client, category):
+    query = NOT_EXISTS_IDS_COLLECTIONS_QUERY
+    variables = {"filter": {"ids": ["fTEJRuFHU6fd2RU=", "2XwnQNNhwCdEjhP="]}}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response, ignore_errors=True)
+    message_error = '{"ids": [{"message": "Invalid ID specified.", "code": ""}]}'
+
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == message_error
+    assert content["data"]["productTypes"] is None
 
 
 MUTATION_BULK_PUBLISH_PRODUCTS = """
