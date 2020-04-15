@@ -23,7 +23,7 @@ from saleor.product.models import (
 )
 from saleor.shipping.models import ShippingMethod, ShippingZone
 
-from .utils import get_graphql_content, menu_item_to_json
+from .utils import assert_no_permission, get_graphql_content, menu_item_to_json
 
 MUTATION_DELETE_ORDER_LINES = """
     mutation draftOrderLinesBulkDelete($ids: [ID]!) {
@@ -735,6 +735,26 @@ def test_delete_staff_members(
         id__in=[user.id for user in [staff_1, staff_2]]
     ).exists()
     assert User.objects.filter(id__in=[user.id for user in users]).count() == len(users)
+
+
+def test_delete_staff_members_service_account_no_permission(
+    service_account_api_client, user_list, permission_manage_staff, superuser
+):
+    *users, staff_1, staff_2 = user_list
+    users.append(superuser)
+
+    query = STAFF_BULK_DELETE_MUTATION
+
+    variables = {
+        "ids": [
+            graphene.Node.to_global_id("User", user.id) for user in [staff_1, staff_2]
+        ]
+    }
+    response = service_account_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_staff]
+    )
+
+    assert_no_permission(response)
 
 
 def test_delete_staff_members_left_not_manageable_permissions(
