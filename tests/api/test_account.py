@@ -303,6 +303,68 @@ def test_query_customer_user(
     assert address["isDefaultBillingAddress"] is None
 
 
+def test_query_customer_user_service_account(
+    service_account_api_client,
+    customer_user,
+    address,
+    permission_manage_users,
+    permission_manage_staff,
+    media_root,
+    service_account,
+):
+    user = customer_user
+    user.default_shipping_address.country = "US"
+    user.default_shipping_address.save()
+    user.addresses.add(address.get_copy())
+
+    avatar_mock = MagicMock(spec=File)
+    avatar_mock.name = "image.jpg"
+    user.avatar = avatar_mock
+    user.save()
+
+    Group.objects.create(name="empty group")
+
+    query = FULL_USER_QUERY
+    ID = graphene.Node.to_global_id("User", customer_user.id)
+    variables = {"id": ID}
+    service_account.permissions.add(permission_manage_staff, permission_manage_users)
+    response = service_account_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["user"]
+    assert data["email"] == user.email
+
+
+def test_query_customer_user_service_account_no_permission(
+    service_account_api_client,
+    customer_user,
+    address,
+    permission_manage_users,
+    permission_manage_staff,
+    media_root,
+    service_account,
+):
+    user = customer_user
+    user.default_shipping_address.country = "US"
+    user.default_shipping_address.save()
+    user.addresses.add(address.get_copy())
+
+    avatar_mock = MagicMock(spec=File)
+    avatar_mock.name = "image.jpg"
+    user.avatar = avatar_mock
+    user.save()
+
+    Group.objects.create(name="empty group")
+
+    query = FULL_USER_QUERY
+    ID = graphene.Node.to_global_id("User", customer_user.id)
+    variables = {"id": ID}
+    service_account.permissions.add(permission_manage_staff)
+    response = service_account_api_client.post_graphql(query, variables)
+
+    assert_no_permission(response)
+
+
 def test_query_staff_user(
     staff_api_client,
     staff_user,
