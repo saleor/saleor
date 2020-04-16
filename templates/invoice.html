@@ -63,6 +63,10 @@
             padding: 20px;
         }
 
+        .content-tight-padded {
+            padding: 0 20px 10px 20px;
+        }
+
         .normal-text {
             color: #28234A;
         }
@@ -88,8 +92,8 @@
             padding-top: 20px;
         }
 
-        .row-category>td,
-        .row-product>td {
+        .row-category > td,
+        .row-product > td {
             border-bottom: 2px solid #EFF5F8;
         }
 
@@ -152,7 +156,7 @@
             <br />
             <span class="header-category">Order:</span>
             <br />
-            <span class="header-item">{{ ordr.id }}</span>
+            <span class="header-item">{{ order.id }}</span>
             <br />
 
             <span class="header-category">Date:</span>
@@ -220,7 +224,7 @@
             <br />
         </div>
     </div>
-    <div class="content-padded">
+    <div class="content-tight-padded">
         <div class="content-separator">&nbsp;</div>
     </div>
     <div class="section-left">
@@ -237,11 +241,9 @@
             <br />
             <span class="normal-text">{{ order.shipping_method_name }}</span>
             <br />
-            <span class="normal-text">Tracking number: 21212112</span>
-            <br />
         </div>
     </div>
-    <div class="content-padded">
+    <div class="content-tight-padded">
         <div class="content-separator">&nbsp;</div>
     </div>
     <div class="content-padded">
