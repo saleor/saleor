@@ -96,6 +96,30 @@ def staff_for_search(db, address):
                 is_active=True,
                 default_shipping_address=address,
             ),
+            User(
+                first_name="Jack4",
+                last_name="Allen4",
+                email="allen4@example.com",
+                is_staff=True,
+                is_active=False,
+                default_shipping_address=address,
+            ),
+            User(
+                first_name="Jack5",
+                last_name="Allen5",
+                email="allen5@example.com",
+                is_staff=True,
+                is_active=False,
+                default_shipping_address=address,
+            ),
+            User(
+                first_name="Jack6",
+                last_name="Allen6",
+                email="allen6@example.com",
+                is_staff=True,
+                is_active=False,
+                default_shipping_address=address,
+            ),
         ]
     )
     return accounts
@@ -277,6 +301,8 @@ def test_query_customer_members_pagination_with_filter_search(
             {"search": "pl"},
             ["Jack1", "Jack2"],
         ),  # default_shipping_address__country, email
+        ({"status": "DEACTIVATED"}, ["Jack4", "Jack5"]),
+        ({"status": "ACTIVE"}, ["Jack1", "Jack2"]),
     ],
 )
 def test_query_staff_members_pagination_with_filter_search(
@@ -297,31 +323,6 @@ def test_query_staff_members_pagination_with_filter_search(
     assert users_order[0] == users[0]["node"]["firstName"]
     assert users_order[1] == users[1]["node"]["firstName"]
     assert len(users) == page_size
-
-
-@pytest.mark.parametrize(
-    "staff_member_filter, count",
-    [({"status": "DEACTIVATED"}, 1), ({"status": "ACTIVE"}, 2)],
-)
-def test_query_staff_members_pagination_with_filter_status(
-    staff_member_filter, count, staff_api_client, permission_manage_staff, staff_user,
-):
-
-    User.objects.bulk_create(
-        [
-            User(email="second@example.com", is_staff=True, is_active=False),
-            User(email="third@example.com", is_staff=True, is_active=True),
-        ]
-    )
-    page_size = 2
-    variables = {"first": page_size, "after": None, "filter": staff_member_filter}
-    response = staff_api_client.post_graphql(
-        QUERY_STAFF_WITH_PAGINATION, variables, permissions=[permission_manage_staff]
-    )
-    content = get_graphql_content(response)
-    users = content["data"]["staffUsers"]["edges"]
-
-    assert len(users) == count
 
 
 @pytest.fixture
