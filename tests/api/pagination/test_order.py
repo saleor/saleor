@@ -250,7 +250,6 @@ def test_order_query_pagination_with_filter_status(
     content = get_graphql_content(response)
 
     orders = content["data"]["orders"]["edges"]
-    order_id = graphene.Node.to_global_id("Order", order.pk)
 
     orders = content["data"]["orders"]["edges"]
     total_count = content["data"]["orders"]["totalCount"]
