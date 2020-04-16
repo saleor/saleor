@@ -1,7 +1,6 @@
 import re
 
 import graphene
-import graphene_django_optimizer as gql_optimizer
 from graphene import relay
 
 from ....core.permissions import ProductPermissions
@@ -38,10 +37,7 @@ class AttributeValue(CountableDjangoObjectType):
         AttributeValueTranslation, type_name="attribute value"
     )
 
-    input_type = gql_optimizer.field(
-        AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE),
-        model_field="attribute",
-    )
+    input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
 
     class Meta:
         description = "Represents a value of an attribute."

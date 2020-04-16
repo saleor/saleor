@@ -1,5 +1,4 @@
 import graphene
-import graphene_django_optimizer as gql_optimizer
 from graphene_federation import key
 
 from ....app.models import App, AppToken
@@ -73,7 +72,6 @@ class ServiceAccount(CountableDjangoObjectType):
         return format_permissions_for_display(permissions)
 
     @staticmethod
-    @gql_optimizer.resolver_hints(prefetch_related="tokens")
     def resolve_tokens(root: App, _info, **_kwargs):
         return root.tokens.all()
 
