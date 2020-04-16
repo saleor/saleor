@@ -199,7 +199,7 @@ class ProductQueries(graphene.ObjectType):
         stock_availability=graphene.Argument(
             StockAvailability,
             description=(
-                "Filter products by stock availability. Use the `filter` field "
+                "[Deprecated] Filter products by stock availability. Use the `filter` field "
                 "instead. This field will be removed after 2020-07-31."
             ),
         ),
