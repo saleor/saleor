@@ -9,7 +9,7 @@ from ....account import events as account_events, models, utils
 from ....account.emails import send_set_password_email_with_url
 from ....account.error_codes import AccountErrorCode
 from ....account.thumbnails import create_user_avatar_thumbnails
-from ....account.utils import get_random_avatar, remove_staff_member
+from ....account.utils import remove_staff_member
 from ....checkout import AddressType
 from ....core.permissions import AccountPermissions, get_permissions
 from ....core.utils.url import validate_storefront_url
@@ -182,12 +182,7 @@ class StaffCreate(ModelMutation):
 
     @classmethod
     def save(cls, info, user, cleaned_input):
-        create_avatar = not user.avatar
-        if create_avatar:
-            user.avatar = get_random_avatar()
         user.save()
-        if create_avatar:
-            create_user_avatar_thumbnails.delay(user_id=user.pk)
         if cleaned_input.get("redirect_url"):
             send_set_password_email_with_url(
                 redirect_url=cleaned_input.get("redirect_url"), user=user, staff=True
