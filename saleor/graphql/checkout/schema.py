@@ -76,23 +76,25 @@ class CheckoutMutations(graphene.ObjectType):
     checkout_shipping_method_update = CheckoutShippingMethodUpdate.Field()
     checkout_update_metadata = CheckoutUpdateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11. Use the `UpdateMetadata` mutation instead."
+            "Use the `updateMetadata` mutation. This field will be removed after "
+            "2020-07-31."
         )
     )
     checkout_clear_metadata = CheckoutClearMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11. Use the `DeleteMetadata` mutation instead."
+            "Use the `deleteMetadata` mutation. This field will be removed after "
+            "2020-07-31."
         )
     )
     checkout_update_private_metadata = CheckoutUpdatePrivateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11."
-            "Use the `UpdatePrivateMetadata` mutation instead."
+            "Use the `updatePrivateMetadata` mutation. This field will be removed "
+            "after 2020-07-31."
         )
     )
     checkout_clear_private_metadata = CheckoutClearPrivateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11."
-            "Use the `DeletePrivateMetadata` mutation instead."
+            "Use the `deletePrivateMetadata` mutation. This field will be removed "
+            "after 2020-07-31."
         )
     )

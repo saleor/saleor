@@ -528,12 +528,9 @@ class ProductInput(graphene.InputObjectType):
     )
     quantity = graphene.Int(
         description=(
-            "The total quantity of a product available for sale. Note: this field is "
-            "only used if a product doesn't use variants."
-        ),
-        deprecation_reason=(
-            "DEPRECATED: Will be removed in 2.11 (issue #5325)."
-            "Use stocks input field instead."
+            "[Deprecated] Use stocks input field instead. This field will be removed "
+            "after 2020-07-31. The total quantity of a product available for sale. "
+            "Note: this field is only used if a product doesn't use variants."
         ),
     )
     track_inventory = graphene.Boolean(
@@ -1106,10 +1103,9 @@ class ProductVariantInput(graphene.InputObjectType):
     price_override = Decimal(description="Special price of the particular variant.")
     sku = graphene.String(description="Stock keeping unit.")
     quantity = graphene.Int(
-        description="The total quantity of this variant available for sale.",
-        deprecation_reason=(
-            "DEPRECATED: Will be removed in 2.11 (issue #5325)."
-            "Use stocks input field instead."
+        description=(
+            "[Deprecated] Use stocks input field instead. This field will be removed "
+            "after 2020-07-31. The total quantity of this variant available for sale."
         ),
     )
     track_inventory = graphene.Boolean(
