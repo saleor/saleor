@@ -2781,54 +2781,6 @@ QUERY_CUSTOMERS_WITH_SORT = """
 
 
 @pytest.mark.parametrize(
-    "customer_filter, count",
-    [
-        ({"search": "example.com"}, 2),
-        ({"search": "Alice"}, 1),
-        ({"search": "Kowalski"}, 1),
-        ({"search": "John"}, 1),  # default_shipping_address__first_name
-        ({"search": "Doe"}, 1),  # default_shipping_address__last_name
-        ({"search": "wroc"}, 1),  # default_shipping_address__city
-        ({"search": "pl"}, 2),  # default_shipping_address__country, email
-    ],
-)
-def test_query_customer_members_with_filter_search(
-    customer_filter,
-    count,
-    query_customer_with_filter,
-    staff_api_client,
-    permission_manage_users,
-    address,
-    staff_user,
-):
-
-    User.objects.bulk_create(
-        [
-            User(
-                email="second@example.com",
-                first_name="Alice",
-                last_name="Kowalski",
-                is_active=False,
-            ),
-            User(
-                email="third@example.com",
-                is_active=True,
-                default_shipping_address=address,
-            ),
-        ]
-    )
-
-    variables = {"filter": customer_filter}
-    response = staff_api_client.post_graphql(
-        query_customer_with_filter, variables, permissions=[permission_manage_users]
-    )
-    content = get_graphql_content(response)
-    users = content["data"]["customers"]["edges"]
-
-    assert len(users) == count
-
-
-@pytest.mark.parametrize(
     "customer_sort, result_order",
     [
         ({"field": "FIRST_NAME", "direction": "ASC"}, ["Joe", "John", "Leslie"]),
@@ -2878,6 +2830,54 @@ def test_query_customers_with_sort(
 
     for order, user_first_name in enumerate(result_order):
         assert users[order]["node"]["firstName"] == user_first_name
+
+
+@pytest.mark.parametrize(
+    "customer_filter, count",
+    [
+        ({"search": "example.com"}, 2),
+        ({"search": "Alice"}, 1),
+        ({"search": "Kowalski"}, 1),
+        ({"search": "John"}, 1),  # default_shipping_address__first_name
+        ({"search": "Doe"}, 1),  # default_shipping_address__last_name
+        ({"search": "wroc"}, 1),  # default_shipping_address__city
+        ({"search": "pl"}, 2),  # default_shipping_address__country, email
+    ],
+)
+def test_query_customer_members_with_filter_search(
+    customer_filter,
+    count,
+    query_customer_with_filter,
+    staff_api_client,
+    permission_manage_users,
+    address,
+    staff_user,
+):
+
+    User.objects.bulk_create(
+        [
+            User(
+                email="second@example.com",
+                first_name="Alice",
+                last_name="Kowalski",
+                is_active=False,
+            ),
+            User(
+                email="third@example.com",
+                is_active=True,
+                default_shipping_address=address,
+            ),
+        ]
+    )
+
+    variables = {"filter": customer_filter}
+    response = staff_api_client.post_graphql(
+        query_customer_with_filter, variables, permissions=[permission_manage_users]
+    )
+    content = get_graphql_content(response)
+    users = content["data"]["customers"]["edges"]
+
+    assert len(users) == count
 
 
 @pytest.mark.parametrize(
