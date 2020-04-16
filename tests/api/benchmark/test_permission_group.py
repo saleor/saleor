@@ -52,11 +52,11 @@ def test_permission_group_create(
     variables = {
         "input": {
             "name": "New permission group",
-            "permissions": [
+            "addPermissions": [
                 AccountPermissions.MANAGE_USERS.name,
                 AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name,
             ],
-            "users": [graphene.Node.to_global_id("User", staff_user.id)],
+            "addUsers": [graphene.Node.to_global_id("User", staff_user.id)],
         }
     }
     response = staff_api_client.post_graphql(
