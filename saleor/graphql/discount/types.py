@@ -1,5 +1,4 @@
 import graphene
-import graphene_django_optimizer as gql_optimizer
 from graphene import relay
 
 from ...discount import models
@@ -13,23 +12,14 @@ from .enums import DiscountValueTypeEnum, VoucherTypeEnum
 
 
 class Sale(CountableDjangoObjectType):
-    categories = gql_optimizer.field(
-        PrefetchingConnectionField(
-            Category, description="List of categories this sale applies to."
-        ),
-        model_field="categories",
+    categories = PrefetchingConnectionField(
+        Category, description="List of categories this sale applies to."
     )
-    collections = gql_optimizer.field(
-        PrefetchingConnectionField(
-            Collection, description="List of collections this sale applies to."
-        ),
-        model_field="collections",
+    collections = PrefetchingConnectionField(
+        Collection, description="List of collections this sale applies to."
     )
-    products = gql_optimizer.field(
-        PrefetchingConnectionField(
-            Product, description="List of products this sale applies to."
-        ),
-        model_field="products",
+    products = PrefetchingConnectionField(
+        Product, description="List of products this sale applies to."
     )
     translation = TranslationField(SaleTranslation, type_name="sale")
 
@@ -56,23 +46,14 @@ class Sale(CountableDjangoObjectType):
 
 
 class Voucher(CountableDjangoObjectType):
-    categories = gql_optimizer.field(
-        PrefetchingConnectionField(
-            Category, description="List of categories this voucher applies to."
-        ),
-        model_field="categories",
+    categories = PrefetchingConnectionField(
+        Category, description="List of categories this voucher applies to."
     )
-    collections = gql_optimizer.field(
-        PrefetchingConnectionField(
-            Collection, description="List of collections this voucher applies to."
-        ),
-        model_field="collections",
+    collections = PrefetchingConnectionField(
+        Collection, description="List of collections this voucher applies to."
     )
-    products = gql_optimizer.field(
-        PrefetchingConnectionField(
-            Product, description="List of products this voucher applies to."
-        ),
-        model_field="products",
+    products = PrefetchingConnectionField(
+        Product, description="List of products this voucher applies to."
     )
     countries = graphene.List(
         types.CountryDisplay,

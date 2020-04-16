@@ -1,5 +1,4 @@
 import graphene
-import graphene_django_optimizer as gql_optimizer
 from graphql_jwt.exceptions import PermissionDenied
 
 from ...checkout import calculations, models
@@ -76,24 +75,18 @@ class Checkout(CountableDjangoObjectType):
         PaymentGateway, description="List of available payment gateways.", required=True
     )
     email = graphene.String(description="Email of a customer.", required=True)
-    gift_cards = gql_optimizer.field(
-        graphene.List(
-            GiftCard, description="List of gift cards associated with this checkout."
-        ),
-        model_field="gift_cards",
+    gift_cards = graphene.List(
+        GiftCard, description="List of gift cards associated with this checkout."
     )
     is_shipping_required = graphene.Boolean(
         description="Returns True, if checkout requires shipping.", required=True
     )
-    lines = gql_optimizer.field(
-        graphene.List(
-            CheckoutLine,
-            description=(
-                "A list of checkout lines, each containing information about "
-                "an item in the checkout."
-            ),
+    lines = graphene.List(
+        CheckoutLine,
+        description=(
+            "A list of checkout lines, each containing information about "
+            "an item in the checkout."
         ),
-        model_field="lines",
     )
     shipping_price = graphene.Field(
         TaxedMoney,

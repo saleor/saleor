@@ -2,8 +2,6 @@ from dataclasses import asdict
 from typing import List, Union
 
 import graphene
-import graphene_django_optimizer as gql_optimizer
-from django.db.models import Prefetch
 from graphene import relay
 from graphene_federation import key
 from graphql.error import GraphQLError
@@ -213,12 +211,10 @@ class ProductVariant(CountableDjangoObjectType):
         ),
     )
 
-    attributes = gql_optimizer.field(
-        graphene.List(
-            graphene.NonNull(SelectedAttribute),
-            required=True,
-            description="List of attributes assigned to this variant.",
-        )
+    attributes = graphene.List(
+        graphene.NonNull(SelectedAttribute),
+        required=True,
+        description="List of attributes assigned to this variant.",
     )
     cost_price = graphene.Field(Money, description="Cost price of the variant.")
     margin = graphene.Int(description="Gross margin percentage value.")
@@ -232,32 +228,24 @@ class ProductVariant(CountableDjangoObjectType):
             "optimizations suitable for such calculations."
         ),
     )
-    images = gql_optimizer.field(
-        graphene.List(
-            lambda: ProductImage, description="List of images for the product variant."
-        ),
-        model_field="images",
+    images = graphene.List(
+        lambda: ProductImage, description="List of images for the product variant."
     )
     translation = TranslationField(
         ProductVariantTranslation, type_name="product variant"
     )
-    digital_content = gql_optimizer.field(
-        graphene.Field(
-            DigitalContent, description="Digital content for the product variant."
-        ),
-        model_field="digital_content",
+    digital_content = graphene.Field(
+        DigitalContent, description="Digital content for the product variant."
     )
 
-    stocks = gql_optimizer.field(
-        graphene.Field(
-            graphene.List(Stock),
-            description="Stocks for the product variant.",
-            country_code=graphene.Argument(
-                CountryCodeEnum,
-                description="Two-letter ISO 3166-1 country code.",
-                required=False,
-            ),
-        )
+    stocks = graphene.Field(
+        graphene.List(Stock),
+        description="Stocks for the product variant.",
+        country_code=graphene.Argument(
+            CountryCodeEnum,
+            description="Two-letter ISO 3166-1 country code.",
+            required=False,
+        ),
     )
 
     class Meta:
@@ -271,13 +259,8 @@ class ProductVariant(CountableDjangoObjectType):
     @staticmethod
     def resolve_stocks(root: models.ProductVariant, info, country_code=None):
         if not country_code:
-            return gql_optimizer.query(
-                root.stocks.annotate_available_quantity().all(), info
-            )
-        return gql_optimizer.query(
-            root.stocks.annotate_available_quantity().for_country(country_code).all(),
-            info,
-        )
+            return root.stocks.annotate_available_quantity().all()
+        return root.stocks.annotate_available_quantity().for_country(country_code).all()
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -445,17 +428,11 @@ class Product(CountableDjangoObjectType):
     variants = graphene.List(
         ProductVariant, description="List of variants for the product."
     )
-    images = gql_optimizer.field(
-        graphene.List(
-            lambda: ProductImage, description="List of images for the product."
-        ),
-        model_field="images",
+    images = graphene.List(
+        lambda: ProductImage, description="List of images for the product."
     )
-    collections = gql_optimizer.field(
-        graphene.List(
-            lambda: Collection, description="List of collections for the product."
-        ),
-        model_field="collections",
+    collections = graphene.List(
+        lambda: Collection, description="List of collections for the product."
     )
     translation = TranslationField(ProductTranslation, type_name="product")
 
@@ -639,8 +616,8 @@ class ProductType(CountableDjangoObjectType):
     product_attributes = graphene.List(
         Attribute, description="Product attributes of that product type."
     )
-    available_attributes = gql_optimizer.field(
-        FilterInputConnectionField(Attribute, filter=AttributeFilterInput())
+    available_attributes = FilterInputConnectionField(
+        Attribute, filter=AttributeFilterInput()
     )
 
     class Meta:
@@ -674,23 +651,16 @@ class ProductType(CountableDjangoObjectType):
         return root.get_value_from_metadata("vatlayer.code")
 
     @staticmethod
-    @gql_optimizer.resolver_hints(
-        prefetch_related="product_attributes__attributeproduct"
-    )
     def resolve_product_attributes(root: models.ProductType, *_args, **_kwargs):
         return root.product_attributes.product_attributes_sorted().all()
 
     @staticmethod
-    @gql_optimizer.resolver_hints(
-        prefetch_related="variant_attributes__attributevariant"
-    )
     def resolve_variant_attributes(root: models.ProductType, *_args, **_kwargs):
         return root.variant_attributes.variant_attributes_sorted().all()
 
     @staticmethod
     def resolve_products(root: models.ProductType, info, **_kwargs):
-        qs = root.products.visible_to_user(info.context.user)
-        return gql_optimizer.query(qs, info)
+        return root.products.visible_to_user(info.context.user)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -758,7 +728,7 @@ class Collection(CountableDjangoObjectType):
         if info.context:
             user = info.context.user
             qs = cls._meta.model.objects.visible_to_user(user)
-            return cls.maybe_optimize(info, qs, id)
+            return qs.filter(id=id).first()
         return None
 
     @staticmethod
@@ -817,8 +787,7 @@ class Category(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_ancestors(root: models.Category, info, **_kwargs):
-        qs = root.get_ancestors()
-        return gql_optimizer.query(qs, info)
+        return root.get_ancestors()
 
     @staticmethod
     def resolve_background_image(root: models.Category, info, size=None, **_kwargs):
@@ -833,8 +802,7 @@ class Category(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_children(root: models.Category, info, **_kwargs):
-        qs = root.children.all()
-        return gql_optimizer.query(qs, info)
+        return root.children.all()
 
     @staticmethod
     def resolve_url(root: models.Category, _info):
@@ -844,8 +812,7 @@ class Category(CountableDjangoObjectType):
     def resolve_products(root: models.Category, info, **_kwargs):
         tree = root.get_descendants(include_self=True)
         qs = models.Product.objects.published()
-        qs = qs.filter(category__in=tree)
-        return gql_optimizer.query(qs, info)
+        return qs.filter(category__in=tree)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
