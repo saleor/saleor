@@ -6,6 +6,101 @@ from saleor.order.models import Order
 
 from ..utils import get_graphql_content
 
+
+@pytest.fixture()
+def customers_for_search(db, address):
+    accounts = User.objects.bulk_create(
+        [
+            User(
+                first_name="Jack1",
+                last_name="Allen1",
+                email="allen1@example.com",
+                is_staff=False,
+                is_active=True,
+                default_shipping_address=address,
+            ),
+            User(
+                first_name="JackJack1",
+                last_name="AllenAllen2",
+                email="allenallen2@example.com",
+                is_staff=False,
+                is_active=True,
+            ),
+            User(
+                first_name="JackJack2",
+                last_name="AllenAllen2",
+                email="jackjack2allenallen2@example.com",
+                is_staff=False,
+                is_active=True,
+            ),
+            User(
+                first_name="Jack2",
+                last_name="Allen2",
+                email="allen2@example.com",
+                is_staff=False,
+                is_active=True,
+                default_shipping_address=address,
+            ),
+            User(
+                first_name="Jack3",
+                last_name="Allen3",
+                email="allen3@example.com",
+                is_staff=False,
+                is_active=True,
+                default_shipping_address=address,
+            ),
+        ]
+    )
+    return accounts
+
+
+@pytest.fixture()
+def staff_for_search(db, address):
+    accounts = User.objects.bulk_create(
+        [
+            User(
+                first_name="Jack1",
+                last_name="Allen1",
+                email="allen1@example.com",
+                is_staff=True,
+                is_active=True,
+                default_shipping_address=address,
+            ),
+            User(
+                first_name="JackJack1",
+                last_name="AllenAllen2",
+                email="allenallen2@example.com",
+                is_staff=True,
+                is_active=True,
+            ),
+            User(
+                first_name="JackJack2",
+                last_name="AllenAllen2",
+                email="jackjack2allenallen2@example.com",
+                is_staff=True,
+                is_active=True,
+            ),
+            User(
+                first_name="Jack2",
+                last_name="Allen2",
+                email="allen2@example.com",
+                is_staff=True,
+                is_active=True,
+                default_shipping_address=address,
+            ),
+            User(
+                first_name="Jack3",
+                last_name="Allen3",
+                email="allen3@example.com",
+                is_staff=True,
+                is_active=True,
+                default_shipping_address=address,
+            ),
+        ]
+    )
+    return accounts
+
+
 QUERY_CUSTOMERS_WITH_PAGINATION = """
     query (
         $first: Int, $last: Int, $after: String, $before: String,
@@ -120,40 +215,35 @@ def test_query_customers_pagination_with_sort(
 
 
 @pytest.mark.parametrize(
-    "customer_filter, count",
+    "customer_filter, users_order",
     [
-        ({"search": "example.com"}, 2),
-        ({"search": "Alice"}, 1),
-        ({"search": "Kowalski"}, 1),
-        ({"search": "John"}, 1),  # default_shipping_address__first_name
-        ({"search": "Doe"}, 1),  # default_shipping_address__last_name
-        ({"search": "wroc"}, 1),  # default_shipping_address__city
-        ({"search": "pl"}, 2),  # default_shipping_address__country, email
+        ({"search": "example.com"}, ["Jack1", "Jack2"]),
+        ({"search": "Jack"}, ["Jack1", "Jack2"]),
+        ({"search": "Allen"}, ["Jack1", "Jack2"]),
+        ({"search": "JackJack"}, ["JackJack1", "JackJack2"]),
+        ({"search": "jackjack"}, ["JackJack1", "JackJack2"]),
+        ({"search": "Jack1"}, ["Jack1", "JackJack1"]),
+        (
+            {"search": "John"},
+            ["Jack1", "Jack2"],
+        ),  # default_shipping_address__first_name
+        ({"search": "Doe"}, ["Jack1", "Jack2"]),  # default_shipping_address__last_name
+        ({"search": "wroc"}, ["Jack1", "Jack2"]),  # default_shipping_address__city
+        (
+            {"search": "pl"},
+            ["Jack1", "Jack2"],
+        ),  # default_shipping_address__country, email
     ],
 )
 def test_query_customer_members_pagination_with_filter_search(
     customer_filter,
-    count,
+    users_order,
     staff_api_client,
     permission_manage_users,
     address,
     staff_user,
+    customers_for_search,
 ):
-    User.objects.bulk_create(
-        [
-            User(
-                email="second@example.com",
-                first_name="Alice",
-                last_name="Kowalski",
-                is_active=False,
-            ),
-            User(
-                email="third@example.com",
-                is_active=True,
-                default_shipping_address=address,
-            ),
-        ]
-    )
     page_size = 2
     variables = {"first": page_size, "after": None, "filter": customer_filter}
     staff_api_client.user.user_permissions.add(permission_manage_users)
@@ -161,63 +251,52 @@ def test_query_customer_members_pagination_with_filter_search(
         QUERY_CUSTOMERS_WITH_PAGINATION, variables,
     )
     content = get_graphql_content(response)
-    users = content["data"]["customers"]["edges"]
 
-    assert len(users) == count
+    users = content["data"]["customers"]["edges"]
+    assert users_order[0] == users[0]["node"]["firstName"]
+    assert users_order[1] == users[1]["node"]["firstName"]
+    assert len(users) == page_size
 
 
 @pytest.mark.parametrize(
-    "staff_member_filter, count",
+    "staff_member_filter, users_order",
     [
-        ({"search": "example.com"}, 2),
-        ({"search": "Alice"}, 1),
-        ({"search": "Kowalski"}, 1),
-        ({"search": "John"}, 1),  # default_shipping_address__first_name
-        ({"search": "Doe"}, 1),  # default_shipping_address__last_name
-        ({"search": "wroc"}, 1),  # default_shipping_address__city
-        ({"search": "pl"}, 2),  # default_shipping_address__country, email
+        ({"search": "example.com"}, ["Jack1", "Jack2"]),
+        ({"search": "Jack"}, ["Jack1", "Jack2"]),
+        ({"search": "Allen"}, ["Jack1", "Jack2"]),
+        ({"search": "JackJack"}, ["JackJack1", "JackJack2"]),
+        ({"search": "jackjack"}, ["JackJack1", "JackJack2"]),
+        ({"search": "Jack1"}, ["Jack1", "JackJack1"]),
+        (
+            {"search": "John"},
+            ["Jack1", "Jack2"],
+        ),  # default_shipping_address__first_name
+        ({"search": "Doe"}, ["Jack1", "Jack2"]),  # default_shipping_address__last_name
+        ({"search": "wroc"}, ["Jack1", "Jack2"]),  # default_shipping_address__city
+        (
+            {"search": "pl"},
+            ["Jack1", "Jack2"],
+        ),  # default_shipping_address__country, email
     ],
 )
 def test_query_staff_members_pagination_with_filter_search(
     staff_member_filter,
-    count,
+    users_order,
     staff_api_client,
     permission_manage_staff,
     address,
     staff_user,
+    staff_for_search,
 ):
-    User.objects.bulk_create(
-        [
-            User(
-                email="second@example.com",
-                first_name="Alice",
-                last_name="Kowalski",
-                is_staff=True,
-                is_active=False,
-            ),
-            User(
-                email="third@example.com",
-                is_staff=True,
-                is_active=True,
-                default_shipping_address=address,
-            ),
-            User(
-                email="customer@example.com",
-                first_name="Alice",
-                last_name="Kowalski",
-                is_staff=False,
-                is_active=True,
-            ),
-        ]
-    )
     page_size = 2
     variables = {"first": page_size, "after": None, "filter": staff_member_filter}
     staff_api_client.user.user_permissions.add(permission_manage_staff)
     response = staff_api_client.post_graphql(QUERY_STAFF_WITH_PAGINATION, variables)
     content = get_graphql_content(response)
     users = content["data"]["staffUsers"]["edges"]
-
-    assert len(users) == count
+    assert users_order[0] == users[0]["node"]["firstName"]
+    assert users_order[1] == users[1]["node"]["firstName"]
+    assert len(users) == page_size
 
 
 @pytest.mark.parametrize(

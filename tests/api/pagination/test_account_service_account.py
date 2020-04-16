@@ -98,9 +98,7 @@ def test_attributes_pagination_with_filtering(
         QUERY_SERVICE_ACCOUNT_PAGINATION, variables,
     )
     content = get_graphql_content(response)
-    from pprint import pprint
 
-    pprint(content)
     nodes = content["data"]["serviceAccounts"]["edges"]
     assert service_account_order[0] == nodes[0]["node"]["name"]
     assert service_account_order[1] == nodes[1]["node"]["name"]
