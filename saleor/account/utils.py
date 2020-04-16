@@ -13,10 +13,6 @@ from ..core.utils import create_thumbnails
 from ..plugins.manager import get_plugins_manager
 from .models import User
 
-AVATARS_PATH = os.path.join(
-    settings.PROJECT_ROOT, "saleor", "static", "images", "avatars"
-)
-
 
 def store_user_address(user, address, address_type):
     """Add address to user address book and set as default one."""
