@@ -53,11 +53,11 @@ def test_permission_group_create_mutation(
     variables = {
         "input": {
             "name": "New permission group",
-            "permissions": [
+            "addPermissions": [
                 AccountPermissions.MANAGE_USERS.name,
                 AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name,
             ],
-            "users": [
+            "addUsers": [
                 graphene.Node.to_global_id("User", user.id) for user in staff_users
             ],
         }
@@ -82,7 +82,7 @@ def test_permission_group_create_mutation(
     assert (
         set(group.permissions.all().values_list("codename", flat=True))
         == permissions_codes
-        == set(perm.lower() for perm in variables["input"]["permissions"])
+        == set(perm.lower() for perm in variables["input"]["addPermissions"])
     )
     assert (
         {user["email"] for user in permission_group_data["users"]}
@@ -135,7 +135,11 @@ def test_permission_group_create_mutation_only_required_fields_not_none(
     query = PERMISSION_GROUP_CREATE_MUTATION
 
     variables = {
-        "input": {"name": "New permission group", "users": None, "permissions": None}
+        "input": {
+            "name": "New permission group",
+            "addUsers": None,
+            "addPermissions": None,
+        }
     }
     response = staff_api_client.post_graphql(
         query, variables, permissions=(permission_manage_staff,)
@@ -168,7 +172,7 @@ def test_permission_group_create_mutation_lack_of_permission(
     variables = {
         "input": {
             "name": "New permission group",
-            "permissions": [
+            "addPermissions": [
                 AccountPermissions.MANAGE_USERS.name,
                 OrderPermissions.MANAGE_ORDERS.name,
                 AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name,
@@ -185,7 +189,7 @@ def test_permission_group_create_mutation_lack_of_permission(
     errors = data["permissionGroupErrors"]
 
     assert len(errors) == 1
-    assert errors[0]["field"] == "permissions"
+    assert errors[0]["field"] == "addPermissions"
     assert errors[0]["code"] == PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.name
     assert set(errors[0]["permissions"]) == {
         AccountPermissions.MANAGE_USERS.name,
@@ -208,7 +212,7 @@ def test_permission_group_create_mutation_lack_of_permission(
     assert (
         set(group.permissions.all().values_list("codename", flat=True))
         == permissions_codes
-        == set(perm.lower() for perm in variables["input"]["permissions"])
+        == set(perm.lower() for perm in variables["input"]["addPermissions"])
     )
 
 
@@ -228,11 +232,11 @@ def test_permission_group_create_mutation_group_exists(
     variables = {
         "input": {
             "name": permission_group_manage_users.name,
-            "permissions": [
+            "addPermissions": [
                 AccountPermissions.MANAGE_USERS.name,
                 AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name,
             ],
-            "users": [graphene.Node.to_global_id("User", staff_user.id)],
+            "addUsers": [graphene.Node.to_global_id("User", staff_user.id)],
         }
     }
     response = staff_api_client.post_graphql(
@@ -282,11 +286,11 @@ def test_permission_group_create_mutation_add_customer_user(
     variables = {
         "input": {
             "name": "New permission group",
-            "permissions": [
+            "addPermissions": [
                 AccountPermissions.MANAGE_USERS.name,
                 AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name,
             ],
-            "users": user_ids,
+            "addUsers": user_ids,
         }
     }
 
@@ -300,7 +304,7 @@ def test_permission_group_create_mutation_add_customer_user(
 
     assert errors
     assert len(errors) == 1
-    assert errors[0]["field"] == "users"
+    assert errors[0]["field"] == "addUsers"
     assert errors[0]["permissions"] is None
     assert set(errors[0]["users"]) == set(user_ids[1:])
     assert errors[0]["code"] == PermissionGroupErrorCode.ASSIGN_NON_STAFF_MEMBER.name
@@ -314,7 +318,7 @@ def test_permission_group_create_mutation_add_customer_user(
 
     assert errors
     assert len(errors) == 1
-    assert errors[0]["field"] == "users"
+    assert errors[0]["field"] == "addUsers"
     assert errors[0]["permissions"] is None
     assert set(errors[0]["users"]) == set(user_ids[1:])
     assert errors[0]["code"] == PermissionGroupErrorCode.ASSIGN_NON_STAFF_MEMBER.name
@@ -338,11 +342,11 @@ def test_permission_group_create_mutation_lack_of_permission_and_customer_user(
     variables = {
         "input": {
             "name": "New permission group",
-            "permissions": [
+            "addPermissions": [
                 AccountPermissions.MANAGE_USERS.name,
                 AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name,
             ],
-            "users": user_ids,
+            "addUsers": user_ids,
         }
     }
     response = staff_api_client.post_graphql(
@@ -354,7 +358,7 @@ def test_permission_group_create_mutation_lack_of_permission_and_customer_user(
 
     assert errors
     assert len(errors) == 2
-    assert {error["field"] for error in errors} == {"users", "permissions"}
+    assert {error["field"] for error in errors} == {"addUsers", "addPermissions"}
     assert [AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name] in [
         error["permissions"] for error in errors
     ]
@@ -388,8 +392,8 @@ def test_permission_group_create_mutation_out_of_scope_users(
     variables = {
         "input": {
             "name": "New permission group",
-            "permissions": [AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name],
-            "users": [
+            "addPermissions": [AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name],
+            "addUsers": [
                 graphene.Node.to_global_id("User", user.id) for user in staff_users
             ],
         }
@@ -405,7 +409,7 @@ def test_permission_group_create_mutation_out_of_scope_users(
 
     assert errors
     assert len(errors) == 1
-    assert errors[0]["field"] == "users"
+    assert errors[0]["field"] == "addUsers"
     assert errors[0]["code"] == PermissionGroupErrorCode.OUT_OF_SCOPE_USER.name
     assert errors[0]["permissions"] is None
     assert len(errors[0]["users"]) == 1
@@ -430,7 +434,7 @@ def test_permission_group_create_mutation_out_of_scope_users(
     assert (
         set(group.permissions.all().values_list("codename", flat=True))
         == permissions_codes
-        == set(perm.lower() for perm in variables["input"]["permissions"])
+        == set(perm.lower() for perm in variables["input"]["addPermissions"])
     )
     assert (
         {user["email"] for user in data["group"]["users"]}
@@ -1293,7 +1297,6 @@ def test_permission_group_update_mutation_multiply_errors(
 ):
     """Ensure update mutation failed with all validation errors when input data
     is incorrent:
-        - the same item in list for adding and removing (CANNOT_ADD_AND_REMOVE)
         - adding permission which user hasn't (OUT_OF_SCOPE_PERMISSION)
         - adding customer user (ASSIGN_NON_STAFF_MEMBER)
     """
@@ -1317,9 +1320,8 @@ def test_permission_group_update_mutation_multiply_errors(
         "input": {
             "name": "New permission group",
             "addPermissions": permissions,
-            "removePermissions": [AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name],
-            "addUsers": user_ids,
-            "removeUsers": user_ids[:1],
+            "addUsers": user_ids[1],
+            "removeUsers": user_ids[0],
         },
     }
     response = staff_api_client.post_graphql(
@@ -1329,19 +1331,30 @@ def test_permission_group_update_mutation_multiply_errors(
     data = content["data"]["permissionGroupUpdate"]
     errors = data["permissionGroupErrors"]
 
-    assert len(errors) == 4
-    assert {error["field"] for error in errors} == {None, "addPermissions", "addUsers"}
-    permission_errors = [error["permissions"] for error in errors]
-    assert permissions[:1] in permission_errors
-    assert permissions[1:] in permission_errors
-    user_errors = [error["users"] for error in errors]
-    assert user_ids[1:] in user_errors
-    assert user_ids[:1] in user_errors
-    assert {error["code"] for error in errors} == {
-        PermissionGroupErrorCode.ASSIGN_NON_STAFF_MEMBER.name,
-        PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.name,
-        PermissionGroupErrorCode.CANNOT_ADD_AND_REMOVE.name,
-    }
+    assert len(errors) == 3
+    expected_errors = [
+        {
+            "code": "OUT_OF_SCOPE_PERMISSION",
+            "field": "addPermissions",
+            "permissions": [OrderPermissions.MANAGE_ORDERS.codename],
+            "users": None,
+        },
+        {
+            "code": "ASSIGN_NON_STAFF_MEMBER",
+            "field": "addUsers",
+            "permissions": None,
+            "users": user_ids[1],
+        },
+        {
+            "code": "LEFT_NOT_MANAGEABLE_PERMISSION",
+            "field": "removeUsers",
+            "permissions": None,
+            "users": user_ids[0],
+        },
+    ]
+    for error in errors:
+        error.pop("message")
+        error in expected_errors
     assert data["group"] is None
 
 
@@ -1612,7 +1625,7 @@ def test_permission_group_update_mutation_remove_user_with_manage_staff(
     group1.user_set.add(staff_user1, staff_user2)
     group2.user_set.add(staff_user2)
 
-    staff_user.user_permissions.add(permission_manage_users)
+    staff_user.user_permissions.add(permission_manage_users, permission_manage_orders)
     query = PERMISSION_GROUP_UPDATE_MUTATION
     variables = {
         "id": graphene.Node.to_global_id("Group", group1.id),
