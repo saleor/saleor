@@ -1,4 +1,6 @@
+import os.path
 from functools import wraps
+from secrets import token_urlsafe
 
 from django.conf import settings
 from django.contrib.staticfiles import finders as static_finders
@@ -343,10 +345,16 @@ def match_orders_with_new_user(user: User) -> None:
     Order.objects.confirmed().filter(user_email=user.email, user=None).update(user=user)
 
 
+def _get_unique_pdf_file_name():
+    while True:
+        pdf_path = f"{settings.MEDIA_ROOT}/{token_urlsafe(32)}.pdf"
+        if not os.path.isfile(pdf_path):
+            return pdf_path
+
+
 def generate_invoice_pdf_for_order(invoice):
     logo_path = static_finders.find("images/logo-light.svg")
     rendered_template = get_template("invoice.html").render(
         {"invoice": invoice, "order": invoice.order, "logo_path": f"file://{logo_path}"}
     )
-    pdf_path = f"/tmp/{invoice.number}.pdf"
-    return HTML(string=rendered_template).write_pdf(pdf_path)
+    return HTML(string=rendered_template).write_pdf(_get_unique_pdf_file_name())
