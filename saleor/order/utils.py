@@ -6,6 +6,7 @@ from django.db import transaction
 from django.template.loader import get_template
 from django.utils import timezone
 from prices import Money, TaxedMoney
+from weasyprint import HTML
 
 from ..account.models import User
 from ..core.taxes import zero_money
@@ -342,18 +343,10 @@ def match_orders_with_new_user(user: User) -> None:
     Order.objects.confirmed().filter(user_email=user.email, user=None).update(user=user)
 
 
-def _create_pdf(rendered_template, path):
-    from weasyprint import HTML
-
-    pdf_file = HTML(string=rendered_template).write_pdf(path)
-    return pdf_file
-
-
 def generate_invoice_pdf_for_order(invoice):
     logo_path = static_finders.find("images/logo-light.svg")
     rendered_template = get_template("invoice.html").render(
         {"invoice": invoice, "order": invoice.order, "logo_path": f"file://{logo_path}"}
     )
     pdf_path = f"/tmp/{invoice.number}.pdf"
-    pdf_file = _create_pdf(rendered_template, pdf_path)
-    return pdf_file
+    return HTML(string=rendered_template).write_pdf(pdf_path)
