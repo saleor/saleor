@@ -1,10 +1,6 @@
-import os
-import random
-
 import jwt
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.files import File
 from django.utils import timezone
 
 from ..account.error_codes import AccountErrorCode

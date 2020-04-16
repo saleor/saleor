@@ -1,10 +1,8 @@
-import re
 from urllib.parse import urlencode
 
 import i18naddress
 import pytest
 from django.core.exceptions import ValidationError
-from django.core.files import File
 from django.http import QueryDict
 from django.template import Context, Template
 from django_countries.fields import Country
@@ -13,7 +11,7 @@ from saleor.account import forms, i18n
 from saleor.account.i18n import AddressForm
 from saleor.account.models import User
 from saleor.account.templatetags.i18n_address_tags import format_address
-from saleor.account.utils import get_random_avatar, remove_staff_member
+from saleor.account.utils import remove_staff_member
 from saleor.account.validators import validate_possible_number
 
 
@@ -291,12 +289,6 @@ def test_get_full_name(email, first_name, last_name, full_name, address):
         default_billing_address=address,
     )
     assert user.get_full_name() == full_name
-
-
-def test_get_random_avatar():
-    avatar = get_random_avatar()
-    assert isinstance(avatar, File)
-    assert re.match(r"avatar\d+.png", avatar.name)
 
 
 def test_remove_staff_member_with_orders(staff_user, permission_manage_products, order):
