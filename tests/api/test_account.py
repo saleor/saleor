@@ -303,6 +303,68 @@ def test_query_customer_user(
     assert address["isDefaultBillingAddress"] is None
 
 
+def test_query_customer_user_service_account(
+    service_account_api_client,
+    customer_user,
+    address,
+    permission_manage_users,
+    permission_manage_staff,
+    media_root,
+    service_account,
+):
+    user = customer_user
+    user.default_shipping_address.country = "US"
+    user.default_shipping_address.save()
+    user.addresses.add(address.get_copy())
+
+    avatar_mock = MagicMock(spec=File)
+    avatar_mock.name = "image.jpg"
+    user.avatar = avatar_mock
+    user.save()
+
+    Group.objects.create(name="empty group")
+
+    query = FULL_USER_QUERY
+    ID = graphene.Node.to_global_id("User", customer_user.id)
+    variables = {"id": ID}
+    service_account.permissions.add(permission_manage_staff, permission_manage_users)
+    response = service_account_api_client.post_graphql(query, variables)
+
+    content = get_graphql_content(response)
+    data = content["data"]["user"]
+    assert data["email"] == user.email
+
+
+def test_query_customer_user_service_account_no_permission(
+    service_account_api_client,
+    customer_user,
+    address,
+    permission_manage_users,
+    permission_manage_staff,
+    media_root,
+    service_account,
+):
+    user = customer_user
+    user.default_shipping_address.country = "US"
+    user.default_shipping_address.save()
+    user.addresses.add(address.get_copy())
+
+    avatar_mock = MagicMock(spec=File)
+    avatar_mock.name = "image.jpg"
+    user.avatar = avatar_mock
+    user.save()
+
+    Group.objects.create(name="empty group")
+
+    query = FULL_USER_QUERY
+    ID = graphene.Node.to_global_id("User", customer_user.id)
+    variables = {"id": ID}
+    service_account.permissions.add(permission_manage_staff)
+    response = service_account_api_client.post_graphql(query, variables)
+
+    assert_no_permission(response)
+
+
 def test_query_staff_user(
     staff_api_client,
     staff_user,
@@ -1554,6 +1616,32 @@ def test_staff_create(
     )
 
 
+def test_staff_create_service_account_no_permission(
+    service_account_api_client,
+    staff_user,
+    media_root,
+    permission_group_manage_users,
+    permission_manage_products,
+    permission_manage_staff,
+    permission_manage_users,
+):
+    group = permission_group_manage_users
+    group.permissions.add(permission_manage_products)
+    staff_user.user_permissions.add(permission_manage_products, permission_manage_users)
+    email = "api_user@example.com"
+    variables = {
+        "email": email,
+        "redirect_url": "https://www.example.com",
+        "add_groups": [graphene.Node.to_global_id("Group", group.pk)],
+    }
+
+    response = service_account_api_client.post_graphql(
+        STAFF_CREATE_MUTATION, variables, permissions=[permission_manage_staff]
+    )
+
+    assert_no_permission(response)
+
+
 @patch("saleor.account.emails._send_set_password_email")
 def test_staff_create_out_of_scope_group(
     _send_set_password_email_mock,
@@ -1775,6 +1863,21 @@ def test_staff_update(staff_api_client, permission_manage_staff, media_root):
     assert not data["user"]["isActive"]
     # deprecated, to remove in #5389
     assert data["user"]["permissions"] == []
+
+
+def test_staff_update_service_account_no_permission(
+    service_account_api_client, permission_manage_staff, media_root
+):
+    query = STAFF_UPDATE_MUTATIONS
+    staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
+    id = graphene.Node.to_global_id("User", staff_user.id)
+    variables = {"id": id, "input": {"isActive": False}}
+
+    response = service_account_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_staff]
+    )
+
+    assert_no_permission(response)
 
 
 def test_staff_update_groups_and_permissions(
@@ -2173,6 +2276,21 @@ def test_staff_delete(staff_api_client, permission_manage_staff):
     data = content["data"]["staffDelete"]
     assert data["staffErrors"] == []
     assert not User.objects.filter(pk=staff_user.id).exists()
+
+
+def test_staff_delete_service_account_no_permission(
+    service_account_api_client, permission_manage_staff
+):
+    query = STAFF_DELETE_MUTATION
+    staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
+    user_id = graphene.Node.to_global_id("User", staff_user.id)
+    variables = {"id": user_id}
+
+    response = service_account_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_staff]
+    )
+
+    assert_no_permission(response)
 
 
 def test_staff_delete_out_of_scope_user(
@@ -3643,6 +3761,25 @@ def test_query_staff_members_with_filter_status(
     users = content["data"]["staffUsers"]["edges"]
 
     assert len(users) == count
+
+
+def test_query_staff_members_service_account_no_permission(
+    query_staff_users_with_filter, service_account_api_client, permission_manage_staff,
+):
+
+    User.objects.bulk_create(
+        [
+            User(email="second@example.com", is_staff=True, is_active=False),
+            User(email="third@example.com", is_staff=True, is_active=True),
+        ]
+    )
+
+    variables = {"filter": {"status": "DEACTIVATED"}}
+    response = service_account_api_client.post_graphql(
+        query_staff_users_with_filter, variables, permissions=[permission_manage_staff]
+    )
+
+    assert_no_permission(response)
 
 
 @pytest.mark.parametrize(
