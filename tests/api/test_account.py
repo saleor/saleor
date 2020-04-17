@@ -3268,7 +3268,7 @@ def test_request_email_change_with_invalid_password(user_api_client, customer_us
     content = get_graphql_content(response)
     data = content["data"]["requestEmailChange"]
     assert not data["user"]
-    assert data["accountErrors"][0]["code"] == AccountErrorCode.INVALID_PASSWORD.name
+    assert data["accountErrors"][0]["code"] == AccountErrorCode.INVALID_CREDENTIALS.name
     assert data["accountErrors"][0]["field"] == "password"
 
 
