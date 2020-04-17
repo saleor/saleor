@@ -766,6 +766,14 @@ def variant(product) -> ProductVariant:
 
 
 @pytest.fixture
+def variant_with_many_stocks(variant, warehouses_with_shipping_zone):
+    warehouses = warehouses_with_shipping_zone
+    Stock.objects.create(warehouse=warehouses[0], product_variant=variant, quantity=4)
+    Stock.objects.create(warehouse=warehouses[1], product_variant=variant, quantity=3)
+    return variant
+
+
+@pytest.fixture
 def product_variant_list(product):
     return list(
         ProductVariant.objects.bulk_create(
@@ -1033,6 +1041,39 @@ def order_line(order, variant):
 
 
 @pytest.fixture
+def order_line_with_allocation_in_many_stocks(customer_user, variant_with_many_stocks):
+    address = customer_user.default_billing_address.get_copy()
+    variant = variant_with_many_stocks
+    stocks = variant.stocks.all().order_by("pk")
+
+    order = Order.objects.create(
+        billing_address=address, user_email=customer_user.email, user=customer_user
+    )
+
+    net = variant.get_price()
+    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    order_line = order.lines.create(
+        product_name=str(variant.product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        quantity=2,
+        variant=variant,
+        unit_price=TaxedMoney(net=net, gross=gross),
+        tax_rate=23,
+    )
+
+    Allocation.objects.bulk_create(
+        [
+            Allocation(order_line=order_line, stock=stocks[0], quantity_allocated=2),
+            Allocation(order_line=order_line, stock=stocks[1], quantity_allocated=1),
+        ]
+    )
+
+    return order_line
+
+
+@pytest.fixture
 def gift_card(customer_user, staff_user):
     return GiftCard.objects.create(
         code="mirumee_giftcard",
@@ -1179,6 +1220,7 @@ def fulfillment(fulfilled_order):
 
 @pytest.fixture
 def draft_order(order_with_lines):
+    Allocation.objects.filter(order_line__order=order_with_lines).delete()
     order_with_lines.status = OrderStatus.DRAFT
     order_with_lines.save(update_fields=["status"])
     return order_with_lines
@@ -1878,6 +1920,13 @@ def warehouses(address):
             ),
         ]
     )
+
+
+@pytest.fixture
+def warehouses_with_shipping_zone(warehouses, shipping_zone):
+    warehouses[0].shipping_zones.add(shipping_zone)
+    warehouses[1].shipping_zones.add(shipping_zone)
+    return warehouses
 
 
 @pytest.fixture

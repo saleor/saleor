@@ -482,7 +482,12 @@ def create_order_lines(order, discounts, how_many=10):
         unit_price = manager.calculate_order_line_unit(line)
         line.unit_price = unit_price
         line.tax_rate = unit_price.tax / unit_price.net
-        increase_stock(line, country, line.quantity, allocate=True)
+        warehouse = (
+            Warehouse.objects.filter(shipping_zones__countries__contains=country)
+            .order_by("?")
+            .first()
+        )
+        increase_stock(line, warehouse, line.quantity, allocate=True)
     OrderLine.objects.bulk_update(
         lines,
         ["unit_price_net_amount", "unit_price_gross_amount", "currency", "tax_rate"],
@@ -491,7 +496,6 @@ def create_order_lines(order, discounts, how_many=10):
 
 
 def create_fulfillments(order):
-    country = order.shipping_method.shipping_zone.countries[0]
     for line in order:
         if random.choice([False, True]):
             fulfillment, _ = Fulfillment.objects.get_or_create(order=order)
@@ -500,7 +504,7 @@ def create_fulfillments(order):
             line.quantity_fulfilled = quantity
             line.save(update_fields=["quantity_fulfilled"])
 
-            deallocate_stock(line, country, quantity)
+            deallocate_stock(line, quantity)
 
     update_order_status(order)
 

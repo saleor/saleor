@@ -36,11 +36,12 @@ def create_allocations(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("order", "0080_invoice"),
+        ("order", "0081_auto_20200406_0456"),
         ("warehouse", "0006_auto_20200228_0519"),
     ]
 
     operations = [
+        migrations.AlterModelOptions(name="stock", options={"ordering": ("pk",)},),
         migrations.CreateModel(
             name="Allocation",
             fields=[
@@ -71,7 +72,10 @@ class Migration(migrations.Migration):
                     ),
                 ),
             ],
-            options={"unique_together": {("order_line", "stock")}},
+            options={
+                "ordering": ("pk",),
+                "unique_together": {("order_line", "stock")},
+            },
         ),
         migrations.RunPython(create_allocations),
         migrations.RemoveField(model_name="stock", name="quantity_allocated",),

@@ -15,8 +15,8 @@ from ..order import OrderStatus
 from ..order.models import Order, OrderLine
 from ..product.utils.digital_products import get_default_digital_content_settings
 from ..shipping.models import ShippingMethod
-from ..warehouse.availability import check_stock_quantity
-from ..warehouse.management import allocate_stock, deallocate_stock, increase_stock
+from ..warehouse.management import deallocate_stock, increase_stock
+from ..warehouse.models import Warehouse
 from . import events
 
 
@@ -163,24 +163,11 @@ def update_order_status(order):
 
 
 @transaction.atomic
-def add_variant_to_order(
-    order,
-    variant,
-    quantity,
-    discounts=None,
-    allow_overselling=False,
-    track_inventory=True,
-):
+def add_variant_to_draft_order(order, variant, quantity, discounts=None):
     """Add total_quantity of variant to order.
 
     Returns an order line the variant was added to.
-
-    By default, raises InsufficientStock exception if  quantity could not be
-    fulfilled. This can be disabled by setting `allow_overselling` to True.
     """
-    country = get_order_country(order)
-    if not allow_overselling:
-        check_stock_quantity(variant, country, quantity)
 
     try:
         line = order.lines.get(variant=variant)
@@ -222,8 +209,6 @@ def add_variant_to_order(
             ]
         )
 
-    if variant.track_inventory and track_inventory:
-        allocate_stock(line, country, quantity)
     return line
 
 
@@ -278,9 +263,16 @@ def restock_order_lines(order):
     for line in order:
         if line.variant and line.variant.track_inventory:
             if line.quantity_unfulfilled > 0:
-                deallocate_stock(line, country, line.quantity_unfulfilled)
+                deallocate_stock(line, line.quantity_unfulfilled)
             if line.quantity_fulfilled > 0:
-                increase_stock(line, country, line.quantity_fulfilled)
+                allocation = line.allocations.first()
+                if allocation:
+                    warehouse = allocation.stock.warehouse
+                else:
+                    warehouse = Warehouse.objects.filter(
+                        shipping_zones__countries__contains=country
+                    ).first()
+                increase_stock(line, warehouse, line.quantity_fulfilled)
 
         if line.quantity_fulfilled > 0:
             line.quantity_fulfilled = 0
@@ -292,7 +284,14 @@ def restock_fulfillment_lines(fulfillment):
     country = get_order_country(fulfillment.order)
     for line in fulfillment:
         if line.order_line.variant and line.order_line.variant.track_inventory:
-            increase_stock(line.order_line, country, line.quantity, allocate=True)
+            allocation = line.order_line.allocations.first()
+            if allocation:
+                warehouse = allocation.stock.warehouse
+            else:
+                warehouse = Warehouse.objects.filter(
+                    shipping_zones__countries__contains=country
+                ).first()
+            increase_stock(line.order_line, warehouse, line.quantity, allocate=True)
 
 
 def sum_order_totals(qs):

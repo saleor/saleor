@@ -17,7 +17,11 @@ class WarehouseQueryset(models.QuerySet):
         return self.select_related("address").prefetch_related("shipping_zones")
 
     def for_country(self, country: str):
-        return self.prefetch_data().get(shipping_zones__countries__contains=country)
+        return (
+            self.prefetch_data()
+            .filter(shipping_zones__countries__contains=country)
+            .order_by("pk")
+        )
 
 
 class Warehouse(models.Model):
@@ -69,23 +73,14 @@ class StockQuerySet(models.QuerySet):
             warehouse__in=query_warehouse
         )
 
-    def get_variant_stock_for_country(
+    def get_variant_stocks_for_country(
         self, country_code: str, product_variant: ProductVariant
     ):
         """Return the stock information about the a stock for a given country.
 
         Note it will raise a 'Stock.DoesNotExist' exception if no such stock is found.
         """
-        return self.for_country(country_code).get(product_variant=product_variant)
-
-    def get_or_create_for_country(
-        self, country_code: str, product_variant: ProductVariant
-    ):
-        try:
-            return self.get_variant_stock_for_country(country_code, product_variant)
-        except Stock.DoesNotExist:
-            warehouse = Warehouse.objects.for_country(country_code)
-            return self.create(product_variant=product_variant, warehouse=warehouse)
+        return self.for_country(country_code).filter(product_variant=product_variant)
 
 
 class Stock(models.Model):
@@ -99,6 +94,7 @@ class Stock(models.Model):
 
     class Meta:
         unique_together = [["warehouse", "product_variant"]]
+        ordering = ("pk",)
 
     def __str__(self):
         return f"{self.product_variant} - {self.warehouse.name}"
@@ -134,13 +130,4 @@ class Allocation(models.Model):
 
     class Meta:
         unique_together = [["order_line", "stock"]]
-
-    def allocate_stock(self, quantity: int, commit: bool = True):
-        self.quantity_allocated = F("quantity_allocated") + quantity
-        if commit:
-            self.save(update_fields=["quantity_allocated"])
-
-    def deallocate_stock(self, quantity: int, commit: bool = True):
-        self.quantity_allocated = F("quantity_allocated") - quantity
-        if commit:
-            self.save(update_fields=["quantity_allocated"])
+        ordering = ("pk",)

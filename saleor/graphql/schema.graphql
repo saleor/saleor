@@ -2580,6 +2580,7 @@ enum OrderErrorCode {
   UNIQUE
   VOID_INACTIVE_PAYMENT
   ZERO_QUANTITY
+  INSUFFICIENT_STOCK
 }
 
 type OrderEvent implements Node {
