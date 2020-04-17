@@ -1957,6 +1957,7 @@ def job_list(staff_user):
     ]
     for counter, job in enumerate(job_list):
         job.created_at = new_created_dates[counter]
-        job.save()
+
+    Job.objects.bulk_update(job_list, ["created_at"])
 
     return job_list

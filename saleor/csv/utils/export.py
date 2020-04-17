@@ -82,13 +82,10 @@ def create_csv_file_and_save_in_job(
     table = etl.fromdicts(export_data, header=headers, missing=" ")
     table = etl.rename(table, csv_headers_mapping)
 
-    temporary_file = NamedTemporaryFile()
-    etl.tocsv(table, temporary_file.name, delimiter=delimiter)
+    with NamedTemporaryFile() as temporary_file:
+        etl.tocsv(table, temporary_file.name, delimiter=delimiter)
 
-    save_csv_file_in_job(job, temporary_file, file_name)
-
-    # remove temporary file
-    temporary_file.close()
+        save_csv_file_in_job(job, temporary_file, file_name)
 
 
 def save_csv_file_in_job(job: Job, temporary_file: IO[bytes], file_name: str):
