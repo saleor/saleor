@@ -504,7 +504,7 @@ def test_non_staff_user_cannot_only_see_his_order(user_api_client, order):
 
 
 def test_query_order_as_service_account(
-    service_account_api_client, permission_manage_orders, order
+    app_api_client, permission_manage_orders, order
 ):
     query = """
     query OrderQuery($id: ID!) {
@@ -515,7 +515,7 @@ def test_query_order_as_service_account(
     """
     ID = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": ID}
-    response = service_account_api_client.post_graphql(
+    response = app_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)

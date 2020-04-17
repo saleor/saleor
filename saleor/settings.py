@@ -237,6 +237,7 @@ INSTALLED_APPS = [
     "saleor.warehouse",
     "saleor.webhook",
     "saleor.wishlist",
+    "saleor.app",
     # External apps
     "versatileimagefield",
     "django_measurement",
@@ -506,7 +507,7 @@ GRAPHENE = {
     "MIDDLEWARE": [
         "saleor.graphql.middleware.OpentracingGrapheneMiddleware",
         "saleor.graphql.middleware.JWTMiddleware",
-        "saleor.graphql.middleware.service_account_middleware",
+        "saleor.graphql.middleware.app_middleware",
     ],
 }
 

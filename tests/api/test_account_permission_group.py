@@ -3,7 +3,7 @@ import pytest
 from django.contrib.auth.models import Group
 
 from saleor.account.models import User
-from saleor.core.permissions import AccountPermissions
+from saleor.core.permissions import AccountPermissions, AppPermission
 
 from .utils import assert_no_permission, get_graphql_content
 
@@ -41,7 +41,7 @@ def test_permission_group_create_mutation(
             "name": "New permission group",
             "permissions": [
                 AccountPermissions.MANAGE_USERS.name,
-                AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name,
+                AppPermission.MANAGE_APPS.name,
             ],
         }
     }
@@ -77,7 +77,7 @@ def test_permission_group_create_mutation_no_permission_to_perform_mutation(
             "name": "New permission group",
             "permissions": [
                 AccountPermissions.MANAGE_USERS.name,
-                AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name,
+                AppPermission.MANAGE_APPS.name,
             ],
         }
     }
@@ -96,7 +96,7 @@ def test_permission_group_create_mutation_group_exists(
             "name": permission_group_manage_users.name,
             "permissions": [
                 AccountPermissions.MANAGE_USERS.name,
-                AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name,
+                AppPermission.MANAGE_APPS.name,
             ],
         }
     }
@@ -141,7 +141,7 @@ def test_permission_group_create_mutation_no_name(
             "name": None,
             "permissions": [
                 AccountPermissions.MANAGE_USERS.name,
-                AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name,
+                AppPermission.MANAGE_APPS.name,
             ],
         }
     }
@@ -184,7 +184,7 @@ def test_permission_group_update_mutation(
         "id": graphene.Node.to_global_id("Group", group.id),
         "input": {
             "name": "New permission group",
-            "permissions": [AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name],
+            "permissions": [AppPermission.MANAGE_APPS.name],
         },
     }
     response = staff_api_client.post_graphql(query, variables)
@@ -263,7 +263,7 @@ def test_permission_group_update_mutation_only_permissions(
 
     variables = {
         "id": graphene.Node.to_global_id("Group", group.id),
-        "input": {"permissions": [AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name]},
+        "input": {"permissions": [AppPermission.MANAGE_APPS.name]},
     }
     response = staff_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
@@ -290,7 +290,7 @@ def test_permission_group_update_mutation_no_permission_to_perform_mutation(
         "id": graphene.Node.to_global_id("Group", group.id),
         "input": {
             "name": "New permission group",
-            "permissions": [AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name],
+            "permissions": [AppPermission.MANAGE_APPS.name],
         },
     }
     response = staff_api_client.post_graphql(query, variables)

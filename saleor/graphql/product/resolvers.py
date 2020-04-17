@@ -14,7 +14,7 @@ from ..utils import (
     filter_by_query_param,
     get_database_id,
     get_nodes,
-    get_user_or_service_account_from_context,
+    get_user_or_app_from_context,
     sort_queryset,
 )
 from .filters import (
@@ -145,7 +145,7 @@ def resolve_products(
     **_kwargs,
 ):
 
-    user = get_user_or_service_account_from_context(info.context)
+    user = get_user_or_app_from_context(info.context)
     qs = models.Product.objects.visible_to_user(user)
     qs = sort_products(qs, sort_by)
 

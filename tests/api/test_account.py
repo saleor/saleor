@@ -305,12 +305,10 @@ def test_user_query_permission_manage_users_get_customer(
     assert customer_user.email == data["email"]
 
 
-def test_user_query_as_service_account(
-    service_account_api_client, customer_user, permission_manage_users
-):
+def test_user_query_as_app(app_api_client, customer_user, permission_manage_users):
     customer_id = graphene.Node.to_global_id("User", customer_user.pk)
     variables = {"id": customer_id}
-    response = service_account_api_client.post_graphql(
+    response = app_api_client.post_graphql(
         USER_QUERY, variables, permissions=[permission_manage_users]
     )
     content = get_graphql_content(response)
@@ -3168,11 +3166,11 @@ def test_address_query_as_not_owner(
     assert not data
 
 
-def test_address_query_as_service_account_with_permission(
-    service_account_api_client, address_other_country, permission_manage_users,
+def test_address_query_as_app_with_permission(
+    app_api_client, address_other_country, permission_manage_users,
 ):
     variables = {"id": graphene.Node.to_global_id("Address", address_other_country.pk)}
-    response = service_account_api_client.post_graphql(
+    response = app_api_client.post_graphql(
         ADDRESS_QUERY, variables, permissions=[permission_manage_users]
     )
     content = get_graphql_content(response)
@@ -3180,12 +3178,12 @@ def test_address_query_as_service_account_with_permission(
     assert data["country"]["code"] == address_other_country.country.code
 
 
-def test_address_query_as_service_account_without_permission(
-    service_account_api_client, service_account, address_other_country
+def test_address_query_as_app_without_permission(
+    app_api_client, app, address_other_country
 ):
 
     variables = {"id": graphene.Node.to_global_id("Address", address_other_country.pk)}
-    response = service_account_api_client.post_graphql(ADDRESS_QUERY, variables)
+    response = app_api_client.post_graphql(ADDRESS_QUERY, variables)
     assert_no_permission(response)
 
 

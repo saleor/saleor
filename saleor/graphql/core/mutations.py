@@ -269,8 +269,8 @@ class BaseMutation(graphene.Mutation):
             return True
         if context.user.has_perms(permissions):
             return True
-        service_account = getattr(context, "service_account", None)
-        if service_account and service_account.has_perms(permissions):
+        app = getattr(context, "app", None)
+        if app and app.has_perms(permissions):
             return True
         return False
 
