@@ -6,7 +6,6 @@ from ..enums import (
     AccountErrorCode,
     CheckoutErrorCode,
     DiscountErrorCode,
-    ExtensionsErrorCode,
     GiftCardErrorCode,
     MenuErrorCode,
     MetadataErrorCode,
@@ -14,10 +13,12 @@ from ..enums import (
     PageErrorCode,
     PaymentErrorCode,
     PermissionEnum,
+    PluginErrorCode,
     ProductErrorCode,
     ShippingErrorCode,
     ShopErrorCode,
     StockErrorCode,
+    TranslationErrorCode,
     WarehouseErrorCode,
     WebhookErrorCode,
     WishlistErrorCode,
@@ -112,8 +113,8 @@ class GiftCardError(Error):
     code = GiftCardErrorCode(description="The error code.", required=True)
 
 
-class ExtensionsError(Error):
-    code = ExtensionsErrorCode(description="The error code.", required=True)
+class PluginError(Error):
+    code = PluginErrorCode(description="The error code.", required=True)
 
 
 class StockError(Error):
@@ -136,6 +137,10 @@ class WebhookError(Error):
 
 class WishlistError(Error):
     code = WishlistErrorCode(description="The error code.", required=True)
+
+
+class TranslationError(Error):
+    code = TranslationErrorCode(description="The error code.", required=True)
 
 
 class LanguageDisplay(graphene.ObjectType):

@@ -10,6 +10,7 @@ import sentry_sdk
 from django.core.exceptions import ImproperlyConfigured
 from django.core.management.utils import get_random_secret_key
 from django_prices.utils.formatting import get_currency_fraction
+from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
 
 
@@ -204,7 +205,7 @@ MIDDLEWARE = [
     "saleor.core.middleware.country",
     "saleor.core.middleware.currency",
     "saleor.core.middleware.site",
-    "saleor.core.middleware.extensions",
+    "saleor.core.middleware.plugins",
 ]
 
 INSTALLED_APPS = [
@@ -217,7 +218,7 @@ INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.postgres",
     # Local apps
-    "saleor.extensions",
+    "saleor.plugins",
     "saleor.account",
     "saleor.discount",
     "saleor.giftcard",
@@ -498,7 +499,9 @@ DEFAULT_MENUS = {"top_menu_name": "navbar", "bottom_menu_name": "footer"}
 #  Sentry
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 if SENTRY_DSN:
-    sentry_sdk.init(dsn=SENTRY_DSN, integrations=[DjangoIntegration()])
+    sentry_sdk.init(
+        dsn=SENTRY_DSN, integrations=[CeleryIntegration(), DjangoIntegration()]
+    )
 
 GRAPHENE = {
     "RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST": True,
@@ -510,12 +513,12 @@ GRAPHENE = {
     ],
 }
 
-EXTENSIONS_MANAGER = "saleor.extensions.manager.ExtensionsManager"
+PLUGINS_MANAGER = "saleor.plugins.manager.PluginsManager"
 
 PLUGINS = [
-    "saleor.extensions.plugins.avatax.plugin.AvataxPlugin",
-    "saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin",
-    "saleor.extensions.plugins.webhook.plugin.WebhookPlugin",
+    "saleor.plugins.avatax.plugin.AvataxPlugin",
+    "saleor.plugins.vatlayer.plugin.VatlayerPlugin",
+    "saleor.plugins.webhook.plugin.WebhookPlugin",
     "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
     "saleor.payment.gateways.stripe.plugin.StripeGatewayPlugin",
     "saleor.payment.gateways.braintree.plugin.BraintreeGatewayPlugin",

@@ -166,20 +166,23 @@ class ProductVariant(CountableDjangoObjectType):
         required=True,
         description="Quantity of a product in the store's possession, "
         "including the allocated stock that is waiting for shipment.",
-        deprecation_reason="This field will be removed in Saleor 2.11. "
-        "Use the stock field instead.",
+        deprecation_reason=(
+            "Use the stock field instead. This field will be removed after 2020-07-31."
+        ),
     )
     quantity_allocated = graphene.Int(
         required=False,
         description="Quantity allocated for orders",
-        deprecation_reason="This field will be removed in Saleor 2.11. "
-        "Use the stock field instead.",
+        deprecation_reason=(
+            "Use the stock field instead. This field will be removed after 2020-07-31."
+        ),
     )
     stock_quantity = graphene.Int(
         required=True,
         description="Quantity of a product available for sale.",
-        deprecation_reason="This field will be removed in Saleor 2.11. "
-        "Use the stock field instead.",
+        deprecation_reason=(
+            "Use the stock field instead. This field will be removed after 2020-07-31."
+        ),
     )
     price_override = graphene.Field(
         Money,
@@ -197,8 +200,9 @@ class ProductVariant(CountableDjangoObjectType):
     )
     is_available = graphene.Boolean(
         description="Whether the variant is in stock and visible or not.",
-        deprecation_reason="This field will be removed in Saleor 2.11. "
-        "Use the stock field instead.",
+        deprecation_reason=(
+            "Use the stock field instead. This field will be removed after 2020-07-31."
+        ),
     )
 
     attributes = gql_optimizer.field(
@@ -315,7 +319,7 @@ class ProductVariant(CountableDjangoObjectType):
             context.discounts,
             context.country,
             context.currency,
-            extensions=context.extensions,
+            plugins=context.plugins,
         )
         return VariantPricingInfo(**asdict(availability))
 
@@ -385,7 +389,7 @@ class Product(CountableDjangoObjectType):
     url = graphene.String(
         description="The storefront URL for the product.",
         required=True,
-        deprecation_reason="DEPRECATED: Will be removed in Saleor 2.11.",
+        deprecation_reason="This field will be removed after 2020-07-31.",
     )
     thumbnail = graphene.Field(
         Image,
@@ -462,7 +466,7 @@ class Product(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_tax_type(root: models.Product, info):
-        tax_data = info.context.extensions.get_tax_code_from_object_meta(root)
+        tax_data = info.context.plugins.get_tax_code_from_object_meta(root)
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
 
     @staticmethod
@@ -493,11 +497,7 @@ class Product(CountableDjangoObjectType):
     def resolve_pricing(root: models.Product, info):
         context = info.context
         availability = get_product_availability(
-            root,
-            context.discounts,
-            context.country,
-            context.currency,
-            context.extensions,
+            root, context.discounts, context.country, context.currency, context.plugins,
         )
         return ProductPricingInfo(**asdict(availability))
 
@@ -526,7 +526,7 @@ class Product(CountableDjangoObjectType):
     )
     def resolve_price(root: models.Product, info):
         price_range = root.get_price_range(info.context.discounts)
-        price = info.context.extensions.apply_taxes_to_product(
+        price = info.context.plugins.apply_taxes_to_product(
             root, price_range.start, info.context.country
         )
         return price.net
@@ -639,7 +639,7 @@ class ProductType(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_tax_type(root: models.ProductType, info):
-        tax_data = info.context.extensions.get_tax_code_from_object_meta(root)
+        tax_data = info.context.plugins.get_tax_code_from_object_meta(root)
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
 
     @staticmethod
@@ -764,7 +764,7 @@ class Category(CountableDjangoObjectType):
     )
     url = graphene.String(
         description="The storefront's URL for the category.",
-        deprecation_reason="DEPRECATED: Will be removed in Saleor 2.11.",
+        deprecation_reason="This field will be removed after 2020-07-31.",
     )
     children = PrefetchingConnectionField(
         lambda: Category, description="List of children of the category."

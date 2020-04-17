@@ -2,7 +2,7 @@ import logging
 from decimal import Decimal
 from typing import TYPE_CHECKING, Callable, List
 
-from ..extensions.manager import get_extensions_manager
+from ..plugins.manager import get_plugins_manager
 from ..payment.interface import TokenConfig
 from . import GatewayError, PaymentError, TransactionKind
 from .models import Payment, Transaction
@@ -60,7 +60,7 @@ def require_active_payment(fn: Callable) -> Callable:
 def process_payment(
     payment: Payment, token: str, store_source: bool = False
 ) -> Transaction:
-    plugin_manager = get_extensions_manager()
+    plugin_manager = get_plugins_manager()
     payment_data = create_payment_information(
         payment=payment, payment_token=token, store_source=store_source
     )
@@ -82,7 +82,7 @@ def process_payment(
 @raise_payment_error
 @require_active_payment
 def authorize(payment: Payment, token: str, store_source: bool = False) -> Transaction:
-    plugin_manager = get_extensions_manager()
+    plugin_manager = get_plugins_manager()
     clean_authorize(payment)
     payment_data = create_payment_information(
         payment=payment, payment_token=token, store_source=store_source
@@ -105,7 +105,7 @@ def authorize(payment: Payment, token: str, store_source: bool = False) -> Trans
 def capture(
     payment: Payment, amount: Decimal = None, store_source: bool = False
 ) -> Transaction:
-    plugin_manager = get_extensions_manager()
+    plugin_manager = get_plugins_manager()
     if amount is None:
         amount = payment.get_charge_amount()
     clean_capture(payment, Decimal(amount))
@@ -131,7 +131,7 @@ def capture(
 @raise_payment_error
 @require_active_payment
 def refund(payment: Payment, amount: Decimal = None) -> Transaction:
-    plugin_manager = get_extensions_manager()
+    plugin_manager = get_plugins_manager()
     if amount is None:
         amount = payment.captured_amount
     _validate_refund_amount(payment, amount)
@@ -157,7 +157,7 @@ def refund(payment: Payment, amount: Decimal = None) -> Transaction:
 @raise_payment_error
 @require_active_payment
 def void(payment: Payment) -> Transaction:
-    plugin_manager = get_extensions_manager()
+    plugin_manager = get_plugins_manager()
     token = _get_past_transaction_token(payment, TransactionKind.AUTH)
     payment_data = create_payment_information(payment=payment, payment_token=token)
     response, error = _fetch_gateway_response(
@@ -176,7 +176,7 @@ def void(payment: Payment) -> Transaction:
 @raise_payment_error
 @require_active_payment
 def confirm(payment: Payment) -> Transaction:
-    plugin_manager = get_extensions_manager()
+    plugin_manager = get_plugins_manager()
     token = _get_past_transaction_token(payment, TransactionKind.CAPTURE)
     payment_data = create_payment_information(payment=payment, payment_token=token)
     response, error = _fetch_gateway_response(
@@ -192,18 +192,18 @@ def confirm(payment: Payment) -> Transaction:
 
 
 def list_payment_sources(gateway: str, customer_id: str) -> List["CustomerSource"]:
-    plugin_manager = get_extensions_manager()
+    plugin_manager = get_plugins_manager()
     return plugin_manager.list_payment_sources(gateway, customer_id)
 
 
 def get_client_token(gateway: str, customer_id: str = None) -> str:
-    plugin_manager = get_extensions_manager()
+    plugin_manager = get_plugins_manager()
     token_config = TokenConfig(customer_id=customer_id)
     return plugin_manager.get_client_token(gateway, token_config)
 
 
 def list_gateways() -> List[dict]:
-    return get_extensions_manager().list_payment_gateways()
+    return get_plugins_manager().list_payment_gateways()
 
 
 def _fetch_gateway_response(fn, *args, **kwargs):

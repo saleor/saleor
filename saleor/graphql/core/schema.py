@@ -17,7 +17,7 @@ class CoreQueries(graphene.ObjectType):
     )
 
     def resolve_tax_types(self, info):
-        manager = info.context.extensions
+        manager = info.context.plugins
         return [
             TaxType(description=tax.description, tax_code=tax.code)
             for tax in manager.get_tax_rate_type_choices()
