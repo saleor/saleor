@@ -57,11 +57,6 @@ class MenuItem(MPTTModel, SortableModel):
     def linked_object(self):
         return self.category or self.collection or self.page
 
-    def get_url(self):
-        linked_object = self.linked_object
-        # Deprecated. To remove in #5022
-        return linked_object.get_absolute_url() if linked_object else self.url
-
     def is_public(self):
         return not self.linked_object or getattr(
             self.linked_object, "is_published", True

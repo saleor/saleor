@@ -36,6 +36,10 @@ def str_to_enum(name):
 
 def validate_image_file(file, field_name):
     """Validate if the file is an image."""
+    if not file:
+        raise ValidationError(
+            {field_name: ValidationError("File is required", code="required")}
+        )
     if not file.content_type.startswith("image/"):
         raise ValidationError(
             {field_name: ValidationError("Invalid file type", code="invalid")}
@@ -99,3 +103,10 @@ def validate_slug_value(cleaned_input, slug_field_name: str = "slug"):
             raise ValidationError(
                 f"{slug_field_name.capitalize()} value cannot be blank."
             )
+
+
+def get_duplicates_ids(first_list, second_list):
+    """Return items that appear on both provided lists."""
+    if first_list and second_list:
+        return set(first_list) & set(second_list)
+    return []

@@ -86,7 +86,7 @@ def test_prepare_products_data(product, product_with_image, collection, image):
             variant_data["price_override_amount"] = variant.price_override_amount
             variant_data["cost_price_amount"] = variant.cost_price_amount
 
-            for stock in variant.stock.all():
+            for stock in variant.stocks.all():
                 slug = stock.warehouse.slug
                 warehouse_headers = [
                     f"{slug} (warehouse quantity allocated)",
@@ -152,8 +152,7 @@ def test_prepare_variants_data(product):
         expected_result[header] = assigned_attribute.values.first().slug
         attribute_headers.add(header)
 
-    stock = variant.stock
-    for stock in variant.stock.all():
+    for stock in variant.stocks.all():
         slug = stock.warehouse.slug
         headers = [
             f"{slug} (warehouse quantity allocated)",

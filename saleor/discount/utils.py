@@ -14,7 +14,6 @@ from .models import NotApplicable, Sale, VoucherCustomer
 if TYPE_CHECKING:
     # flake8: noqa
     from .models import Voucher
-    from .types import DiscountsListType
     from ..product.models import Product
     from ..checkout.models import Checkout
     from ..order.models import Order
@@ -63,7 +62,9 @@ def get_product_discount_on_sale(
     raise NotApplicable("Discount not applicable for this product")
 
 
-def get_product_discounts(product: "Product", discounts: "DiscountsListType") -> Money:
+def get_product_discounts(
+    product: "Product", discounts: Iterable[DiscountInfo]
+) -> Money:
     """Return discount values for all discounts applicable to a product."""
     product_collections = set(product.collections.all().values_list("pk", flat=True))
     for discount in discounts or []:
@@ -74,7 +75,7 @@ def get_product_discounts(product: "Product", discounts: "DiscountsListType") ->
 
 
 def calculate_discounted_price(
-    product: "Product", price: Money, discounts: "DiscountsListType"
+    product: "Product", price: Money, discounts: Optional[Iterable[DiscountInfo]]
 ) -> Money:
     """Return minimum product's price of all prices with discounts applied."""
     if discounts:
@@ -85,7 +86,9 @@ def calculate_discounted_price(
 
 
 def validate_voucher_for_checkout(
-    voucher: "Voucher", checkout: "Checkout", discounts: "DiscountsListType"
+    voucher: "Voucher",
+    checkout: "Checkout",
+    discounts: Optional[Iterable[DiscountInfo]],
 ):
     subtotal = calculations.checkout_subtotal(checkout, discounts)
 

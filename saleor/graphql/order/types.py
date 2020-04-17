@@ -6,7 +6,7 @@ from graphql_jwt.exceptions import PermissionDenied
 
 from ...core.permissions import AccountPermissions, OrderPermissions
 from ...core.taxes import display_gross_prices
-from ...extensions.manager import get_extensions_manager
+from ...plugins.manager import get_plugins_manager
 from ...order import models
 from ...order.models import FulfillmentStatus
 from ...order.utils import get_valid_shipping_methods_for_order
@@ -489,7 +489,7 @@ class Order(CountableDjangoObjectType):
         if available is None:
             return []
 
-        manager = get_extensions_manager()
+        manager = get_plugins_manager()
         display_gross = display_gross_prices()
         for shipping_method in available:
             # Ignore typing check because it is checked in

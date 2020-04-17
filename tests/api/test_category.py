@@ -681,6 +681,32 @@ def test_category_level(user_api_client, category):
     assert category_data["parent"]["name"] == category.name
 
 
+NOT_EXISTS_IDS_CATEGORIES_QUERY = """
+    query ($filter: CategoryFilterInput!) {
+        categories(first: 5, filter: $filter) {
+            edges {
+                node {
+                    id
+                    name
+                }
+            }
+        }
+    }
+"""
+
+
+def test_categories_query_ids_not_exists(user_api_client, category):
+    query = NOT_EXISTS_IDS_CATEGORIES_QUERY
+    variables = {"filter": {"ids": ["W3KATGDn3fq3ZH4=", "zH9pYmz7yWD3Hy8="]}}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response, ignore_errors=True)
+    message_error = '{"ids": [{"message": "Invalid ID specified.", "code": ""}]}'
+
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == message_error
+    assert content["data"]["categories"] is None
+
+
 FETCH_CATEGORY_QUERY = """
     query fetchCategory($id: ID!){
         category(id: $id) {

@@ -9,7 +9,7 @@ from django.conf import settings
 from django.db import connection
 from django.db.backends.postgresql.base import DatabaseWrapper
 from django.http import HttpRequest, HttpResponseNotAllowed, JsonResponse
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 from django.urls import reverse
 from django.utils.functional import SimpleLazyObject
 from django.views.generic import View
@@ -98,7 +98,7 @@ class GraphQLView(View):
         return response
 
     def render_playground(self, request):
-        return render_to_response("graphql/playground.html", {})
+        return render(request, "graphql/playground.html", {})
 
     def _handle_query(self, request: HttpRequest) -> JsonResponse:
         try:

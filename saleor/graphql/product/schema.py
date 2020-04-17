@@ -23,6 +23,9 @@ from .bulk_mutations.products import (
     ProductTypeBulkDelete,
     ProductVariantBulkCreate,
     ProductVariantBulkDelete,
+    ProductVariantStocksCreate,
+    ProductVariantStocksDelete,
+    ProductVariantStocksUpdate,
 )
 from .enums import StockAvailability
 from .filters import (
@@ -196,9 +199,8 @@ class ProductQueries(graphene.ObjectType):
         stock_availability=graphene.Argument(
             StockAvailability,
             description=(
-                "Filter products by stock availability."
-                "DEPRECATED: Will be removed in Saleor 2.11, "
-                "use the `filter` field instead."
+                "[Deprecated] Filter products by stock availability. Use the `filter` "
+                "field instead. This field will be removed after 2020-07-31."
             ),
         ),
         description="List of the shop's products.",
@@ -299,24 +301,26 @@ class ProductMutations(graphene.ObjectType):
     attribute_translate = AttributeTranslate.Field()
     attribute_update_metadata = AttributeUpdateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11. Use the `UpdateMetadata` mutation instead."
+            "Use the `updateMetadata` mutation instead. This field will be removed "
+            "after 2020-07-31."
         )
     )
     attribute_clear_metadata = AttributeClearMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11. Use the `DeleteMetadata` mutation instead."
+            "Use the `deleteMetadata` mutation instead. This field will be removed "
+            "after 2020-07-31."
         )
     )
     attribute_update_private_metadata = AttributeUpdatePrivateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11."
-            "Use the `UpdatePrivateMetadata` mutation instead."
+            "Use the `updatePrivateMetadata` mutation instead. This field will be "
+            "removed after 2020-07-31."
         )
     )
     attribute_clear_private_metadata = AttributeClearPrivateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11."
-            "Use the `DeletePrivateMetadata` mutation instead."
+            "Use the `deletePrivateMetadata` mutation instead. This field will be "
+            "removed after 2020-07-31."
         )
     )
 
@@ -334,24 +338,26 @@ class ProductMutations(graphene.ObjectType):
     category_translate = CategoryTranslate.Field()
     category_update_metadata = CategoryUpdateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11. Use the `UpdateMetadata` mutation instead."
+            "Use the `updateMetadata` mutation instead. This field will be removed "
+            "after 2020-07-31."
         )
     )
     category_clear_metadata = CategoryClearMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11. Use the `DeleteMetadata` mutation instead."
+            "Use the `deleteMetadata` mutation instead. This field will be removed "
+            "after 2020-07-31."
         )
     )
     category_update_private_metadata = CategoryUpdatePrivateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11."
-            "Use the `UpdatePrivateMetadata` mutation instead."
+            "Use the `updatePrivateMetadata` mutation instead. This field will be "
+            "removed after 2020-07-31."
         )
     )
     category_clear_private_metadata = CategoryClearPrivateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11."
-            "Use the `DeletePrivateMetadata` mutation instead."
+            "Use the `deletePrivateMetadata` mutation instead. This field will be "
+            "removed after 2020-07-31."
         )
     )
 
@@ -366,24 +372,26 @@ class ProductMutations(graphene.ObjectType):
     collection_translate = CollectionTranslate.Field()
     collection_update_metadata = CollectionUpdateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11. Use the `UpdateMetadata` mutation instead."
+            "Use the `updateMetadata` mutation instead. This field will be removed "
+            "after 2020-07-31."
         )
     )
     collection_clear_metadata = CollectionClearMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11. Use the `DeleteMetadata` mutation instead."
+            "Use the `deleteMetadata` mutation instead. This field will be removed "
+            "after 2020-07-31."
         )
     )
     collection_update_private_metadata = CollectionUpdatePrivateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11."
-            "Use the `UpdatePrivateMetadata` mutation instead."
+            "Use the `updatePrivateMetadata` mutation instead. This field will be "
+            "removed after 2020-07-31."
         )
     )
     collection_clear_private_metadata = CollectionClearPrivateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11."
-            "Use the `DeletePrivateMetadata` mutation instead."
+            "Use the `deletePrivateMetadata` mutation instead. This field will be "
+            "removed after 2020-07-31."
         )
     )
 
@@ -395,24 +403,26 @@ class ProductMutations(graphene.ObjectType):
     product_translate = ProductTranslate.Field()
     product_update_metadata = ProductUpdateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11. Use the `UpdateMetadata` mutation instead."
+            "Use the `updateMetadata` mutation instead. This field will be removed "
+            "after 2020-07-31."
         )
     )
     product_clear_metadata = ProductClearMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11. Use the `DeleteMetadata` mutation instead."
+            "Use the `deleteMetadata` mutation instead. This field will be removed "
+            "after 2020-07-31."
         )
     )
     product_update_private_metadata = ProductUpdatePrivateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11."
-            "Use the `UpdatePrivateMetadata` mutation instead."
+            "Use the `updatePrivateMetadata` mutation instead. This field will be "
+            "removed after 2020-07-31."
         )
     )
     product_clear_private_metadata = ProductClearPrivateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11."
-            "Use the `DeletePrivateMetadata` mutation instead."
+            "Use the `deletePrivateMetadata` mutation instead. This field will be "
+            "removed after 2020-07-31."
         )
     )
 
@@ -430,24 +440,26 @@ class ProductMutations(graphene.ObjectType):
 
     product_type_update_metadata = ProductTypeUpdateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11. Use the `UpdateMetadata` mutation instead."
+            "Use the `updateMetadata` mutation instead. This field will be removed "
+            "after 2020-07-31."
         )
     )
     product_type_clear_metadata = ProductTypeClearMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11. Use the `DeleteMetadata` mutation instead."
+            "Use the `deleteMetadata` mutation instead. This field will be removed "
+            "after 2020-07-31."
         )
     )
     product_type_update_private_metadata = ProductTypeUpdatePrivateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11."
-            "Use the `UpdatePrivateMetadata` mutation instead."
+            "Use the `updatePrivateMetadata` mutation instead. This field will be "
+            "removed after 2020-07-31."
         )
     )
     product_type_clear_private_metadata = ProductTypeClearPrivateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11."
-            "Use the `DeletePrivateMetadata` mutation instead."
+            "Use the `deletePrivateMetadata` mutation instead. This field will be "
+            "removed after 2020-07-31."
         )
     )
 
@@ -461,28 +473,33 @@ class ProductMutations(graphene.ObjectType):
     product_variant_delete = ProductVariantDelete.Field()
     product_variant_bulk_create = ProductVariantBulkCreate.Field()
     product_variant_bulk_delete = ProductVariantBulkDelete.Field()
+    product_variant_stocks_create = ProductVariantStocksCreate.Field()
+    product_variant_stocks_delete = ProductVariantStocksDelete.Field()
+    product_variant_stocks_update = ProductVariantStocksUpdate.Field()
     product_variant_update = ProductVariantUpdate.Field()
     product_variant_translate = ProductVariantTranslate.Field()
     product_variant_update_metadata = ProductVariantUpdateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11. Use the `UpdateMetadata` mutation instead."
+            "Use the `updateMetadata` mutation instead. This field will be removed "
+            "after 2020-07-31."
         )
     )
     product_variant_clear_metadata = ProductVariantClearMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11. Use the `DeleteMetadata` mutation instead."
+            "Use the `deleteMetadata` mutation instead. This field will be removed "
+            "after 2020-07-31."
         )
     )
     product_variant_update_private_metadata = ProductVariantUpdatePrivateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11."
-            "Use the `UpdatePrivateMetadata` mutation instead."
+            "Use the `updatePrivateMetadata` mutation instead. This field will be "
+            "removed after 2020-07-31."
         )
     )
     product_variant_clear_private_metadata = ProductVariantClearPrivateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11."
-            "Use the `DeletePrivateMetadata` mutation instead."
+            "Use the `deletePrivateMetadata` mutation instead. This field will be "
+            "removed after 2020-07-31."
         )
     )
 

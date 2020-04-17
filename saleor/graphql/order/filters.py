@@ -5,7 +5,7 @@ from ...order.models import Order
 from ..core.filters import ListObjectTypeFilter, ObjectTypeFilter
 from ..core.types.common import DateRangeInput
 from ..payment.enums import PaymentChargeStatusEnum
-from ..utils import filter_by_query_param
+from ..utils import filter_by_query_param, filter_range_field
 from .enums import OrderStatusFilter
 
 
@@ -47,12 +47,7 @@ def filter_customer(qs, _, value):
 
 
 def filter_created_range(qs, _, value):
-    gte, lte = value.get("gte"), value.get("lte")
-    if gte:
-        qs = qs.filter(created__date__gte=gte)
-    if lte:
-        qs = qs.filter(created__date__lte=lte)
-    return qs
+    return filter_range_field(qs, "created__date", value)
 
 
 def filter_order_search(qs, _, value):

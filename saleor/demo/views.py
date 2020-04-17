@@ -1,4 +1,4 @@
-from django.shortcuts import render_to_response
+from django.shortcuts import render
 
 from ..graphql.views import API_PATH, GraphQLView
 
@@ -30,4 +30,4 @@ class DemoGraphQLView(GraphQLView):
             "query": EXAMPLE_QUERY,
             "api_url": request.build_absolute_uri(str(API_PATH)),
         }
-        return render_to_response("graphql/playground.html", ctx)
+        return render(request, "graphql/playground.html", ctx)

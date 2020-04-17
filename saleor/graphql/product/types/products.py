@@ -28,6 +28,7 @@ from ....warehouse.availability import (
     is_product_in_stock,
     is_variant_in_stock,
 )
+from ...account.enums import CountryCodeEnum
 from ...core.connection import CountableDjangoObjectType
 from ...core.enums import ReportingPeriod, TaxRateType
 from ...core.fields import FilterInputConnectionField, PrefetchingConnectionField
@@ -165,20 +166,23 @@ class ProductVariant(CountableDjangoObjectType):
         required=True,
         description="Quantity of a product in the store's possession, "
         "including the allocated stock that is waiting for shipment.",
-        deprecation_reason="This field will be removed in Saleor 2.11. "
-        "Use the stock field instead.",
+        deprecation_reason=(
+            "Use the stock field instead. This field will be removed after 2020-07-31."
+        ),
     )
     quantity_allocated = graphene.Int(
         required=False,
         description="Quantity allocated for orders",
-        deprecation_reason="This field will be removed in Saleor 2.11. "
-        "Use the stock field instead.",
+        deprecation_reason=(
+            "Use the stock field instead. This field will be removed after 2020-07-31."
+        ),
     )
     stock_quantity = graphene.Int(
         required=True,
         description="Quantity of a product available for sale.",
-        deprecation_reason="This field will be removed in Saleor 2.11. "
-        "Use the stock field instead.",
+        deprecation_reason=(
+            "Use the stock field instead. This field will be removed after 2020-07-31."
+        ),
     )
     price_override = graphene.Field(
         Money,
@@ -196,8 +200,9 @@ class ProductVariant(CountableDjangoObjectType):
     )
     is_available = graphene.Boolean(
         description="Whether the variant is in stock and visible or not.",
-        deprecation_reason="This field will be removed in Saleor 2.11. "
-        "Use the stock field instead.",
+        deprecation_reason=(
+            "Use the stock field instead. This field will be removed after 2020-07-31."
+        ),
     )
 
     attributes = gql_optimizer.field(
@@ -235,11 +240,15 @@ class ProductVariant(CountableDjangoObjectType):
         model_field="digital_content",
     )
 
-    stock = gql_optimizer.field(
+    stocks = gql_optimizer.field(
         graphene.Field(
             graphene.List(Stock),
             description="Stocks for the product variant.",
-            country=graphene.String(required=False),
+            country_code=graphene.Argument(
+                CountryCodeEnum,
+                description="Two-letter ISO 3166-1 country code.",
+                required=False,
+            ),
         )
     )
 
@@ -252,13 +261,14 @@ class ProductVariant(CountableDjangoObjectType):
         model = models.ProductVariant
 
     @staticmethod
-    def resolve_stock(root: models.ProductVariant, info, country=None):
-        if country is None:
+    def resolve_stocks(root: models.ProductVariant, info, country_code=None):
+        if not country_code:
             return gql_optimizer.query(
-                root.stock.annotate_available_quantity().all(), info
+                root.stocks.annotate_available_quantity().all(), info
             )
         return gql_optimizer.query(
-            root.stock.annotate_available_quantity().for_country(country).all(), info
+            root.stocks.annotate_available_quantity().for_country(country_code).all(),
+            info,
         )
 
     @staticmethod
@@ -309,7 +319,7 @@ class ProductVariant(CountableDjangoObjectType):
             context.discounts,
             context.country,
             context.currency,
-            extensions=context.extensions,
+            plugins=context.plugins,
         )
         return VariantPricingInfo(**asdict(availability))
 
@@ -377,7 +387,9 @@ class ProductVariant(CountableDjangoObjectType):
 @key(fields="id")
 class Product(CountableDjangoObjectType):
     url = graphene.String(
-        description="The storefront URL for the product.", required=True
+        description="The storefront URL for the product.",
+        required=True,
+        deprecation_reason="This field will be removed after 2020-07-31.",
     )
     thumbnail = graphene.Field(
         Image,
@@ -454,7 +466,7 @@ class Product(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_tax_type(root: models.Product, info):
-        tax_data = info.context.extensions.get_tax_code_from_object_meta(root)
+        tax_data = info.context.plugins.get_tax_code_from_object_meta(root)
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
 
     @staticmethod
@@ -469,7 +481,7 @@ class Product(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_url(root: models.Product, *_args):
-        return root.get_absolute_url()
+        return ""
 
     @staticmethod
     @gql_optimizer.resolver_hints(
@@ -485,11 +497,7 @@ class Product(CountableDjangoObjectType):
     def resolve_pricing(root: models.Product, info):
         context = info.context
         availability = get_product_availability(
-            root,
-            context.discounts,
-            context.country,
-            context.currency,
-            context.extensions,
+            root, context.discounts, context.country, context.currency, context.plugins,
         )
         return ProductPricingInfo(**asdict(availability))
 
@@ -518,7 +526,7 @@ class Product(CountableDjangoObjectType):
     )
     def resolve_price(root: models.Product, info):
         price_range = root.get_price_range(info.context.discounts)
-        price = info.context.extensions.apply_taxes_to_product(
+        price = info.context.plugins.apply_taxes_to_product(
             root, price_range.start, info.context.country
         )
         return price.net
@@ -631,7 +639,7 @@ class ProductType(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_tax_type(root: models.ProductType, info):
-        tax_data = info.context.extensions.get_tax_code_from_object_meta(root)
+        tax_data = info.context.plugins.get_tax_code_from_object_meta(root)
         return TaxType(tax_code=tax_data.code, description=tax_data.description)
 
     @staticmethod
@@ -754,8 +762,10 @@ class Category(CountableDjangoObjectType):
     products = PrefetchingConnectionField(
         Product, description="List of products in the category."
     )
-    # Deprecated. To remove in #5022
-    url = graphene.String(description="The storefront's URL for the category.")
+    url = graphene.String(
+        description="The storefront's URL for the category.",
+        deprecation_reason="This field will be removed after 2020-07-31.",
+    )
     children = PrefetchingConnectionField(
         lambda: Category, description="List of children of the category."
     )
@@ -805,10 +815,9 @@ class Category(CountableDjangoObjectType):
         qs = root.children.all()
         return gql_optimizer.query(qs, info)
 
-    # Deprecated. To remove in #5022
     @staticmethod
     def resolve_url(root: models.Category, _info):
-        return root.get_absolute_url()
+        return ""
 
     @staticmethod
     def resolve_products(root: models.Category, info, **_kwargs):
@@ -856,15 +865,3 @@ class ProductImage(CountableDjangoObjectType):
     @staticmethod
     def __resolve_reference(root, _info, **_kwargs):
         return graphene.Node.get_node_from_global_id(_info, root.id)
-
-
-class MoveProductInput(graphene.InputObjectType):
-    product_id = graphene.ID(
-        description="The ID of the product to move.", required=True
-    )
-    sort_order = graphene.Int(
-        description=(
-            "The relative sorting position of the product (from -inf to +inf) "
-            "starting from the first given product's actual position."
-        )
-    )

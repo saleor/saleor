@@ -24,7 +24,6 @@ ATTRIBUTES = [
     "title",
     "product_type",
     "google_product_category",
-    "link",
     "image_link",
     "condition",
     "availability",
@@ -69,10 +68,6 @@ def item_mpn(item: ProductVariant):
 
 def item_guid(item: ProductVariant):
     return item.sku
-
-
-def item_link(item: ProductVariant, current_site):
-    return add_domain(current_site.domain, item.get_absolute_url(), not settings.DEBUG)
 
 
 def item_title(item: ProductVariant):
@@ -197,7 +192,6 @@ def item_attributes(
         "item_group_id": item_group_id(item),
         "availability": item_availability(item),
         "google_product_category": item_google_product_category(item, category_paths),
-        "link": item_link(item, current_site),
     }
 
     image_link = item_image_link(item, current_site)
