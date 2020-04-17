@@ -5,7 +5,7 @@ from ..core.types import SortInputObjectType
 
 class WebhookSortField(graphene.Enum):
     NAME = "name"
-    SERVICE_ACCOUNT = "service_account__name"
+    SERVICE_ACCOUNT = "app__name"
     TARGET_URL = "target_url"
 
     @property

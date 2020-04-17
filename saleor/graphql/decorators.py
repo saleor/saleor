@@ -7,7 +7,7 @@ from graphql_jwt.decorators import context
 
 
 def account_passes_test(test_func):
-    """Determine if user/service_account has permission to access to content."""
+    """Determine if user/app has permission to access to content."""
 
     def decorator(f):
         @wraps(f)
@@ -25,8 +25,8 @@ def account_passes_test(test_func):
 def _permission_required(perms: Iterable[Enum], context):
     if context.user.has_perms(perms):
         return True
-    service_account = getattr(context, "service_account", None)
-    if service_account and service_account.has_perms(perms):
+    app = getattr(context, "app", None)
+    if app and app.has_perms(perms):
         return True
     return False
 

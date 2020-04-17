@@ -5,13 +5,21 @@ from ..core.fields import FilterInputConnectionField
 from ..core.types import FilterInputObjectType
 from ..decorators import one_of_permissions_required, permission_required
 from .bulk_mutations import CustomerBulkDelete, StaffBulkDelete, UserBulkSetActive
-from .enums import CountryCodeEnum
-from .filters import (
-    CustomerFilter,
-    PermissionGroupFilter,
-    ServiceAccountFilter,
-    StaffUserFilter,
+from .deprecated.filters import ServiceAccountFilter
+from .deprecated.mutations_service_account import (
+    ServiceAccountClearPrivateMeta,
+    ServiceAccountCreate,
+    ServiceAccountDelete,
+    ServiceAccountTokenCreate,
+    ServiceAccountTokenDelete,
+    ServiceAccountUpdate,
+    ServiceAccountUpdatePrivateMeta,
 )
+from .deprecated.resolvers import resolve_service_accounts
+from .deprecated.sorters import ServiceAccountSortingInput
+from .deprecated.types import ServiceAccount
+from .enums import CountryCodeEnum
+from .filters import CustomerFilter, PermissionGroupFilter, StaffUserFilter
 from .mutations.account import (
     AccountAddressCreate,
     AccountAddressDelete,
@@ -40,15 +48,6 @@ from .mutations.permission_group import (
     PermissionGroupUnassignUsers,
     PermissionGroupUpdate,
 )
-from .mutations.service_account import (
-    ServiceAccountClearPrivateMeta,
-    ServiceAccountCreate,
-    ServiceAccountDelete,
-    ServiceAccountTokenCreate,
-    ServiceAccountTokenDelete,
-    ServiceAccountUpdate,
-    ServiceAccountUpdatePrivateMeta,
-)
 from .mutations.staff import (
     AddressCreate,
     AddressDelete,
@@ -70,16 +69,11 @@ from .resolvers import (
     resolve_address_validation_rules,
     resolve_customers,
     resolve_permission_groups,
-    resolve_service_accounts,
     resolve_staff_users,
     resolve_user,
 )
-from .sorters import (
-    PermissionGroupSortingInput,
-    ServiceAccountSortingInput,
-    UserSortingInput,
-)
-from .types import Address, AddressValidationData, Group, ServiceAccount, User
+from .sorters import PermissionGroupSortingInput, UserSortingInput
+from .types import Address, AddressValidationData, Group, User
 
 
 class CustomerFilterInput(FilterInputObjectType):

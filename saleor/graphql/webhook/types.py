@@ -3,6 +3,7 @@ import graphene_django_optimizer as gql_optimizer
 
 from ...webhook import models
 from ...webhook.event_types import WebhookEventType
+from ..account.deprecated.types import ServiceAccount
 from ..core.connection import CountableDjangoObjectType
 from .enums import WebhookEventTypeEnum
 
@@ -33,18 +34,22 @@ class Webhook(CountableDjangoObjectType):
         ),
         model_field="events",
     )
+    service_account = graphene.Field(ServiceAccount, required=True)
 
     class Meta:
         description = "Webhook."
         model = models.Webhook
         interfaces = [graphene.relay.Node]
         only_fields = [
-            "service_account",
             "target_url",
             "is_active",
             "secret_key",
             "name",
         ]
+
+    @staticmethod
+    def resolve_service_account(root: models.Webhook, *_args, **_kwargs):
+        return root.app
 
     @staticmethod
     @gql_optimizer.resolver_hints(prefetch_related=("events",))

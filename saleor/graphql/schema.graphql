@@ -3024,6 +3024,7 @@ enum PermissionEnum {
   MANAGE_USERS
   MANAGE_STAFF
   MANAGE_SERVICE_ACCOUNTS
+  MANAGE_APPS
   MANAGE_DISCOUNTS
   MANAGE_PLUGINS
   MANAGE_GIFT_CARD
@@ -4961,12 +4962,12 @@ input WarehouseUpdateInput {
 
 type Webhook implements Node {
   name: String!
-  serviceAccount: ServiceAccount!
   targetUrl: String!
   isActive: Boolean!
   secretKey: String
   id: ID!
   events: [WebhookEvent!]!
+  serviceAccount: ServiceAccount!
 }
 
 type WebhookCountableConnection {
@@ -4991,6 +4992,7 @@ input WebhookCreateInput {
   targetUrl: String
   events: [WebhookEventTypeEnum]
   serviceAccount: ID
+  app: ID
   isActive: Boolean
   secretKey: String
 }
@@ -5072,6 +5074,7 @@ input WebhookUpdateInput {
   targetUrl: String
   events: [WebhookEventTypeEnum]
   serviceAccount: ID
+  app: ID
   isActive: Boolean
   secretKey: String
 }
@@ -5092,7 +5095,7 @@ enum WeightUnitsEnum {
 
 scalar _Any
 
-union _Entity = Address | ServiceAccount | User | Group | ProductVariant | Product | ProductType | Collection | Category | ProductImage
+union _Entity = Address | User | Group | ServiceAccount | ProductVariant | Product | ProductType | Collection | Category | ProductImage
 
 type _Service {
   sdl: String

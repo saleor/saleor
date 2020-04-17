@@ -5,6 +5,7 @@ from graphql_jwt.exceptions import PermissionDenied
 from ...account import models as account_models
 from ...core.permissions import (
     AccountPermissions,
+    AppPermission,
     BasePermissionEnum,
     CheckoutPermissions,
     OrderPermissions,
@@ -51,7 +52,7 @@ def order_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
 
 
 def service_account_permissions(_info, _object_pk: int) -> List[BasePermissionEnum]:
-    return [AccountPermissions.MANAGE_SERVICE_ACCOUNTS]
+    return [AppPermission.MANAGE_APPS]
 
 
 def checkout_permissions(_info, _object_pk: Any) -> List[BasePermissionEnum]:
