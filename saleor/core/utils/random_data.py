@@ -12,7 +12,7 @@ from django.conf import settings
 from django.contrib.auth.models import Group, Permission
 from django.contrib.sites.models import Site
 from django.core.files import File
-from django.db.models import Q
+from django.db.models import F, Q
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.text import slugify
@@ -67,7 +67,7 @@ from ...product.thumbnails import (
     create_product_thumbnails,
 )
 from ...shipping.models import ShippingMethod, ShippingMethodType, ShippingZone
-from ...warehouse.management import deallocate_stock, increase_stock
+from ...warehouse.management import increase_stock
 from ...warehouse.models import Stock, Warehouse
 
 fake = Factory.create()
@@ -500,11 +500,15 @@ def create_fulfillments(order):
         if random.choice([False, True]):
             fulfillment, _ = Fulfillment.objects.get_or_create(order=order)
             quantity = random.randrange(0, line.quantity) + 1
-            fulfillment.lines.create(order_line=line, quantity=quantity)
+            allocation = line.allocations.get()
+            fulfillment.lines.create(
+                order_line=line, quantity=quantity, stock=allocation.stock
+            )
             line.quantity_fulfilled = quantity
             line.save(update_fields=["quantity_fulfilled"])
 
-            deallocate_stock(line, quantity)
+            allocation.quantity_allocated = F("quantity_allocated") - quantity
+            allocation.save(update_fields=["quantity_allocated"])
 
     update_order_status(order)
 
