@@ -95,10 +95,12 @@ class PermissionGroupCreate(ModelMutation):
         permission_items = cleaned_input.get(field)
         if permission_items:
             cleaned_input[field] = get_permissions(permission_items)
-            cls.can_manage_permissions(requestor, errors, field, permission_items)
+            cls.ensure_can_manage_permissions(
+                requestor, errors, field, permission_items
+            )
 
     @classmethod
-    def can_manage_permissions(
+    def ensure_can_manage_permissions(
         cls,
         requestor: "User",
         errors: Dict[Optional[str], List[ValidationError]],
@@ -129,11 +131,11 @@ class PermissionGroupCreate(ModelMutation):
     ):
         user_items = cleaned_input.get("add_users")
         if user_items:
-            cls.can_manage_users(requestor, errors, "add_users", cleaned_input)
-            cls.check_if_users_are_staff(errors, "add_users", cleaned_input)
+            cls.ensure_can_manage_users(requestor, errors, "add_users", cleaned_input)
+            cls.ensure_users_are_staff(errors, "add_users", cleaned_input)
 
     @classmethod
-    def can_manage_users(
+    def ensure_can_manage_users(
         cls,
         requestor: "User",
         errors: Dict[Optional[str], List[ValidationError]],
@@ -160,13 +162,13 @@ class PermissionGroupCreate(ModelMutation):
             cls.update_errors(errors, error_msg, field, code, params)
 
     @classmethod
-    def check_if_users_are_staff(
+    def ensure_users_are_staff(
         cls,
         errors: Dict[Optional[str], List[ValidationError]],
         field: str,
         cleaned_input: dict,
     ):
-        """Check if all of the users are staff members."""
+        """Ensure all of the users are staff members, raise error if not."""
         users = cleaned_input[field]
         non_staff_users = [user.pk for user in users if not user.is_staff]
         if non_staff_users:
@@ -237,7 +239,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         cls, info, instance, data,
     ):
         requestor = info.context.user
-        cls.can_manage_group(requestor, instance)
+        cls.ensure_requestor_can_manage_group(requestor, instance)
 
         errors = defaultdict(list)
         permission_fields = ("add_permissions", "remove_permissions", "permissions")
@@ -254,7 +256,9 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         return cleaned_input
 
     @classmethod
-    def can_manage_group(cls, requestor: "User", group: auth_models.Group):
+    def ensure_requestor_can_manage_group(
+        cls, requestor: "User", group: auth_models.Group
+    ):
         """Check if requestor can manage group.
 
         Requestor cannot manage group with wider scope of permissions.
@@ -276,7 +280,9 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         permission_items = cleaned_input.get(field)
         if permission_items:
             cleaned_input[field] = get_permissions(permission_items)
-            cls.can_manage_permissions(requestor, errors, field, permission_items)
+            cls.ensure_can_manage_permissions(
+                requestor, errors, field, permission_items
+            )
 
     @classmethod
     def clean_users(
@@ -289,7 +295,9 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         super().clean_users(requestor, errors, cleaned_input, group)
         remove_users = cleaned_input.get("remove_users")
         if remove_users:
-            cls.can_manage_users(requestor, errors, "remove_users", cleaned_input)
+            cls.ensure_can_manage_users(
+                requestor, errors, "remove_users", cleaned_input
+            )
             cls.clean_remove_users(requestor, errors, cleaned_input, group)
 
     @classmethod
