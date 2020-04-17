@@ -2311,7 +2311,7 @@ def test_draft_order_query_with_filter_customer_fields(
         ({"created": {"gte": str(date.today() + timedelta(days=1))}}, 0),
     ],
 )
-def test_order_query_with_filter_created_(
+def test_draft_order_query_with_filter_created_(
     orders_filter,
     count,
     draft_orders_query_with_filter,

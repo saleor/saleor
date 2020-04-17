@@ -2781,7 +2781,7 @@ QUERY_CUSTOMERS_WITH_SORT = """
     ],
 )
 def test_query_customers_with_sort(
-    customer_sort, result_order, staff_api_client, permission_manage_users
+    customer_sort, result_order, staff_api_client, permission_manage_users,
 ):
     User.objects.bulk_create(
         [
@@ -2918,7 +2918,6 @@ def test_query_staff_members_with_filter_search(
     address,
     staff_user,
 ):
-
     User.objects.bulk_create(
         [
             User(
