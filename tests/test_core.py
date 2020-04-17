@@ -99,7 +99,7 @@ def test_create_superuser(db, client, media_root):
     assert User.objects.all().count() == 1
     admin = User.objects.all().first()
     assert admin.is_superuser
-    assert admin.avatar
+    assert not admin.avatar
     # Test duplicating
     create_superuser(credentials)
     assert User.objects.all().count() == 1
@@ -160,7 +160,7 @@ def test_create_vouchers(db):
     assert Voucher.objects.all().count() == 0
     for _ in random_data.create_vouchers():
         pass
-    assert Voucher.objects.all().count() == 2
+    assert Voucher.objects.all().count() == 3
 
 
 def test_create_gift_card(db):
@@ -300,6 +300,11 @@ def test_generate_unique_slug_non_slugable_value_and_slugable_field(category):
 def test_cleardb_exits_with_debug_off():
     with pytest.raises(CommandError):
         call_command("cleardb")
+
+
+@override_settings(DEBUG=False)
+def test_cleardb_passes_with_force_flag_in_debug_off():
+    call_command("cleardb", "--force")
 
 
 @override_settings(DEBUG=True)

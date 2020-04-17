@@ -7,9 +7,10 @@ import dj_email_url
 import jaeger_client
 import jaeger_client.config
 import sentry_sdk
-from django.contrib.messages import constants as messages
 from django.core.exceptions import ImproperlyConfigured
+from django.core.management.utils import get_random_secret_key
 from django_prices.utils.formatting import get_currency_fraction
+from sentry_sdk.integrations.celery import CeleryIntegration
 from sentry_sdk.integrations.django import DjangoIntegration
 
 
@@ -43,9 +44,17 @@ ADMINS = (
 MANAGERS = ADMINS
 
 _DEFAULT_CLIENT_HOSTS = "localhost,127.0.0.1"
-ALLOWED_CLIENT_HOSTS = get_list(
-    os.environ.get("ALLOWED_CLIENT_HOSTS", _DEFAULT_CLIENT_HOSTS)
-)
+
+ALLOWED_CLIENT_HOSTS = os.environ.get("ALLOWED_CLIENT_HOSTS")
+if not ALLOWED_CLIENT_HOSTS:
+    if DEBUG:
+        ALLOWED_CLIENT_HOSTS = _DEFAULT_CLIENT_HOSTS
+    else:
+        raise ImproperlyConfigured(
+            "ALLOWED_CLIENT_HOSTS environment variable must be set when DEBUG=False."
+        )
+
+ALLOWED_CLIENT_HOSTS = get_list(ALLOWED_CLIENT_HOSTS)
 
 INTERNAL_IPS = get_list(os.environ.get("INTERNAL_IPS", "127.0.0.1"))
 
@@ -160,7 +169,6 @@ context_processors = [
     "django.template.context_processors.debug",
     "django.template.context_processors.media",
     "django.template.context_processors.static",
-    "saleor.checkout.context_processors.checkout_counter",
     "saleor.site.context_processors.site",
 ]
 
@@ -185,6 +193,10 @@ TEMPLATES = [
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = os.environ.get("SECRET_KEY")
 
+if not SECRET_KEY and DEBUG:
+    warnings.warn("SECRET_KEY not configured, using a random temporary key.")
+    SECRET_KEY = get_random_secret_key()
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -193,9 +205,7 @@ MIDDLEWARE = [
     "saleor.core.middleware.country",
     "saleor.core.middleware.currency",
     "saleor.core.middleware.site",
-    "saleor.core.middleware.extensions",
-    "saleor.graphql.middleware.jwt_middleware",
-    "saleor.graphql.middleware.service_account_middleware",
+    "saleor.core.middleware.plugins",
 ]
 
 INSTALLED_APPS = [
@@ -208,7 +218,7 @@ INSTALLED_APPS = [
     "django.contrib.auth",
     "django.contrib.postgres",
     # Local apps
-    "saleor.extensions",
+    "saleor.plugins",
     "saleor.account",
     "saleor.discount",
     "saleor.giftcard",
@@ -267,11 +277,6 @@ if ENABLE_DEBUG_TOOLBAR:
             "debug_toolbar.panels.profiling.ProfilingPanel",
         ]
         DEBUG_TOOLBAR_CONFIG = {"RESULTS_CACHE_SIZE": 100}
-
-ENABLE_SILK = get_bool_from_env("ENABLE_SILK", False)
-if ENABLE_SILK:
-    MIDDLEWARE.insert(0, "silk.middleware.SilkyMiddleware")
-    INSTALLED_APPS.append("silk")
 
 LOGGING = {
     "version": 1,
@@ -366,10 +371,6 @@ AVATAX_USE_SANDBOX = get_bool_from_env("AVATAX_USE_SANDBOX", DEBUG)
 AVATAX_COMPANY_NAME = os.environ.get("AVATAX_COMPANY_NAME", "DEFAULT")
 AVATAX_AUTOCOMMIT = get_bool_from_env("AVATAX_AUTOCOMMIT", False)
 
-ACCOUNT_ACTIVATION_DAYS = 3
-
-LOGIN_REDIRECT_URL = "home"
-
 GOOGLE_ANALYTICS_TRACKING_ID = os.environ.get("GOOGLE_ANALYTICS_TRACKING_ID")
 
 
@@ -384,8 +385,6 @@ PAYMENT_HOST = get_host
 PAYMENT_MODEL = "order.Payment"
 
 SESSION_SERIALIZER = "django.contrib.sessions.serializers.JSONSerializer"
-
-MESSAGE_TAGS = {messages.ERROR: "danger"}
 
 LOW_STOCK_THRESHOLD = 10
 MAX_CHECKOUT_LINE_QUANTITY = int(os.environ.get("MAX_CHECKOUT_LINE_QUANTITY", 50))
@@ -464,8 +463,6 @@ PLACEHOLDER_IMAGES = {
 
 DEFAULT_PLACEHOLDER = "images/placeholder255x255.png"
 
-LOGOUT_ON_PASSWORD_CHANGE = False
-
 SEARCH_BACKEND = "saleor.search.backends.postgresql"
 
 AUTHENTICATION_BACKENDS = [
@@ -473,8 +470,12 @@ AUTHENTICATION_BACKENDS = [
     "django.contrib.auth.backends.ModelBackend",
 ]
 
-
-GRAPHQL_JWT = {"JWT_PAYLOAD_HANDLER": "saleor.graphql.utils.create_jwt_payload"}
+# Django GraphQL JWT settings
+GRAPHQL_JWT = {
+    "JWT_PAYLOAD_HANDLER": "saleor.graphql.utils.create_jwt_payload",
+}
+if not DEBUG:
+    GRAPHQL_JWT["JWT_VERIFY_EXPIRATION"] = True  # type: ignore
 
 # CELERY SETTINGS
 CELERY_BROKER_URL = (
@@ -493,71 +494,37 @@ REAL_IP_ENVIRON = os.environ.get("REAL_IP_ENVIRON", "REMOTE_ADDR")
 # The maximum length of a graphql query to log in tracings
 OPENTRACING_MAX_QUERY_LENGTH_LOG = 2000
 
-# Rich-text editor
-ALLOWED_TAGS = [
-    "a",
-    "b",
-    "blockquote",
-    "br",
-    "em",
-    "h2",
-    "h3",
-    "i",
-    "img",
-    "li",
-    "ol",
-    "p",
-    "strong",
-    "ul",
-]
-ALLOWED_ATTRIBUTES = {"*": ["align", "style"], "a": ["href", "title"], "img": ["src"]}
-ALLOWED_STYLES = ["text-align"]
-
-
 # Slugs for menus precreated in Django migrations
 DEFAULT_MENUS = {"top_menu_name": "navbar", "bottom_menu_name": "footer"}
-
-# This enable the new 'No Captcha reCaptcha' version (the simple checkbox)
-# instead of the old (deprecated) one. For more information see:
-#   https://github.com/praekelt/django-recaptcha/blob/34af16ba1e/README.rst
-NOCAPTCHA = True
-
-# Set Google's reCaptcha keys
-RECAPTCHA_PUBLIC_KEY = os.environ.get("RECAPTCHA_PUBLIC_KEY")
-RECAPTCHA_PRIVATE_KEY = os.environ.get("RECAPTCHA_PRIVATE_KEY")
-
 
 #  Sentry
 SENTRY_DSN = os.environ.get("SENTRY_DSN")
 if SENTRY_DSN:
-    sentry_sdk.init(dsn=SENTRY_DSN, integrations=[DjangoIntegration()])
+    sentry_sdk.init(
+        dsn=SENTRY_DSN, integrations=[CeleryIntegration(), DjangoIntegration()]
+    )
 
 GRAPHENE = {
-    "MIDDLEWARE": ("saleor.graphql.middleware.OpentracingGrapheneMiddleware",),
     "RELAY_CONNECTION_ENFORCE_FIRST_OR_LAST": True,
     "RELAY_CONNECTION_MAX_LIMIT": 100,
+    "MIDDLEWARE": [
+        "saleor.graphql.middleware.OpentracingGrapheneMiddleware",
+        "saleor.graphql.middleware.JWTMiddleware",
+        "saleor.graphql.middleware.service_account_middleware",
+    ],
 }
 
-EXTENSIONS_MANAGER = "saleor.extensions.manager.ExtensionsManager"
+PLUGINS_MANAGER = "saleor.plugins.manager.PluginsManager"
 
 PLUGINS = [
-    "saleor.extensions.plugins.avatax.plugin.AvataxPlugin",
-    "saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin",
-    "saleor.extensions.plugins.webhook.plugin.WebhookPlugin",
+    "saleor.plugins.avatax.plugin.AvataxPlugin",
+    "saleor.plugins.vatlayer.plugin.VatlayerPlugin",
+    "saleor.plugins.webhook.plugin.WebhookPlugin",
     "saleor.payment.gateways.dummy.plugin.DummyGatewayPlugin",
     "saleor.payment.gateways.stripe.plugin.StripeGatewayPlugin",
     "saleor.payment.gateways.braintree.plugin.BraintreeGatewayPlugin",
     "saleor.payment.gateways.razorpay.plugin.RazorpayGatewayPlugin",
 ]
-
-# Whether DraftJS should be used be used instead of HTML
-# True to use DraftJS (JSON based), for the 2.0 dashboard
-# False to use the old editor from dashboard 1.0
-USE_JSON_CONTENT = get_bool_from_env("USE_JSON_CONTENT", False)
-JWT_TOKEN_SECRET = os.environ.get("JWT_TOKEN_SECRET", "saleor")
-if not DEBUG:
-    JWT_VERIFY_EXPIRATION = True
-
 
 if (
     not DEBUG
@@ -572,7 +539,7 @@ if (
 # Initialize a simple and basic Jaeger Tracing integration
 # for open-tracing if enabled.
 #
-# Refer to https://www.jaegertracing.io/docs/1.16/getting-started/ on how to install.
+# Refer to our guide on https://docs.saleor.io/docs/next/guides/opentracing-jaeger/.
 #
 # If running locally, set:
 #   JAEGER_AGENT_HOST=localhost

@@ -29,13 +29,14 @@ from ...core.permissions import (
     CheckoutPermissions,
     GiftcardPermissions,
     OrderPermissions,
+    get_permissions,
 )
 from ...core.utils import build_absolute_uri
 from ...core.weight import zero_weight
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
 from ...discount.utils import fetch_discounts
-from ...extensions.manager import get_extensions_manager
+from ...plugins.manager import get_plugins_manager
 from ...giftcard.models import GiftCard
 from ...menu.models import Menu
 from ...menu.utils import update_menu
@@ -482,7 +483,7 @@ def create_order_lines(order, discounts, how_many=10):
         )
     Stock.objects.bulk_update(stocks, ["quantity", "quantity_allocated"])
     lines = OrderLine.objects.bulk_create(lines)
-    manager = get_extensions_manager()
+    manager = get_plugins_manager()
     for line in lines:
         unit_price = manager.calculate_order_line_unit(line)
         line.unit_price = unit_price
@@ -525,7 +526,7 @@ def create_fake_order(discounts, max_order_lines=5):
             "user_email": get_email(address.first_name, address.last_name),
         }
 
-    manager = get_extensions_manager()
+    manager = get_plugins_manager()
     shipping_method = ShippingMethod.objects.order_by("?").first()
     shipping_price = shipping_method.price
     shipping_price = manager.apply_taxes_to_shipping(shipping_price, address)
@@ -569,7 +570,7 @@ def create_permission_groups():
     super_users = User.objects.filter(is_superuser=True)
     if not super_users:
         super_users = create_staff_users(1, True)
-    group = create_group("Full Access", Permission.objects.all(), super_users)
+    group = create_group("Full Access", get_permissions(), super_users)
     yield f"Group: {group}"
 
     staff_users = create_staff_users()
@@ -981,6 +982,19 @@ def create_vouchers():
             "discount_value_type": DiscountValueType.FIXED,
             "discount_value": 25,
             "min_spent": Money(200, settings.DEFAULT_CURRENCY),
+        },
+    )
+    if created:
+        yield "Voucher #%d" % voucher.id
+    else:
+        yield "Value voucher already exists"
+
+    voucher, created = Voucher.objects.get_or_create(
+        code="VCO9KV98LC",
+        defaults={
+            "type": VoucherType.ENTIRE_ORDER,
+            "discount_value_type": DiscountValueType.PERCENTAGE,
+            "discount_value": 5,
         },
     )
     if created:

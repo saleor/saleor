@@ -1,26 +1,18 @@
-import os
-import random
-
 import jwt
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.files import File
 from django.utils import timezone
 
 from ..account.error_codes import AccountErrorCode
 from ..checkout import AddressType
 from ..core.utils import create_thumbnails
-from ..extensions.manager import get_extensions_manager
+from ..plugins.manager import get_plugins_manager
 from .models import User
-
-AVATARS_PATH = os.path.join(
-    settings.PROJECT_ROOT, "saleor", "static", "images", "avatars"
-)
 
 
 def store_user_address(user, address, address_type):
     """Add address to user address book and set as default one."""
-    address = get_extensions_manager().change_user_address(address, address_type, user)
+    address = get_plugins_manager().change_user_address(address, address_type, user)
     address_data = address.as_data()
 
     address = user.addresses.filter(**address_data).first()
@@ -46,7 +38,7 @@ def set_user_default_shipping_address(user, address):
 
 
 def change_user_default_address(user, address, address_type):
-    address = get_extensions_manager().change_user_address(address, address_type, user)
+    address = get_plugins_manager().change_user_address(address, address_type, user)
     if address_type == AddressType.BILLING:
         if user.default_billing_address:
             user.addresses.add(user.default_billing_address)
@@ -64,7 +56,6 @@ def create_superuser(credentials):
         defaults={"is_active": True, "is_staff": True, "is_superuser": True},
     )
     if created:
-        user.avatar = get_random_avatar()
         user.set_password(credentials["password"])
         user.save()
         create_thumbnails(
@@ -74,13 +65,6 @@ def create_superuser(credentials):
     else:
         msg = "Superuser already exists - %(email)s" % credentials
     return msg
-
-
-def get_random_avatar():
-    """Return random avatar picked from a pool of static avatars."""
-    avatar_name = random.choice(os.listdir(AVATARS_PATH))
-    avatar_path = os.path.join(AVATARS_PATH, avatar_name)
-    return File(open(avatar_path, "rb"), name=avatar_name)
 
 
 def remove_staff_member(staff):
@@ -100,16 +84,14 @@ def create_jwt_token(token_data):
     expiration_date = timezone.now() + timezone.timedelta(hours=1)
     token_kwargs = {"exp": expiration_date}
     token_kwargs.update(token_data)
-    token = jwt.encode(
-        token_kwargs, settings.JWT_TOKEN_SECRET, algorithm="HS256"
-    ).decode()
+    token = jwt.encode(token_kwargs, settings.SECRET_KEY, algorithm="HS256").decode()
     return token
 
 
 def decode_jwt_token(token):
     try:
         decoded_token = jwt.decode(
-            token.encode(), settings.JWT_TOKEN_SECRET, algorithms=["HS256"]
+            token.encode(), settings.SECRET_KEY, algorithms=["HS256"]
         )
     except jwt.PyJWTError:
         raise ValidationError(

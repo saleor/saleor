@@ -6,11 +6,11 @@ from ...warehouse import models
 from ...warehouse.error_codes import WarehouseErrorCode
 from ...warehouse.validation import validate_warehouse_count  # type: ignore
 from ..account.i18n import I18nMixin
-from ..core.mutations import ModelBulkDeleteMutation, ModelDeleteMutation, ModelMutation
-from ..core.types.common import StockError, WarehouseError
+from ..core.mutations import ModelDeleteMutation, ModelMutation
+from ..core.types.common import WarehouseError
 from ..core.utils import validate_slug_and_generate_if_needed
 from ..shipping.types import ShippingZone
-from .types import StockInput, Warehouse, WarehouseCreateInput, WarehouseUpdateInput
+from .types import Warehouse, WarehouseCreateInput, WarehouseUpdateInput
 
 ADDRESS_FIELDS = [
     "street_address_1",
@@ -162,56 +162,3 @@ class WarehouseDelete(ModelDeleteMutation):
 
     class Arguments:
         id = graphene.ID(description="ID of a warehouse to delete.", required=True)
-
-
-class StockCreate(ModelMutation):
-    class Arguments:
-        input = StockInput(
-            required=True, description="Fields required to create stock."
-        )
-
-    class Meta:
-        description = "Creates new stock."
-        model = models.Stock
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        error_type_class = StockError
-        error_type_field = "stock_errors"
-
-
-class StockUpdate(ModelMutation):
-    class Arguments:
-        input = StockInput(
-            required=True, description="Fields required to update stock."
-        )
-        id = graphene.ID(required=True, description="ID of stock to update.")
-
-    class Meta:
-        model = models.Stock
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        description = "Update given stock."
-        error_type_class = StockError
-        error_type_field = "stock_error"
-
-
-class StockDelete(ModelDeleteMutation):
-    class Arguments:
-        id = graphene.ID(required=True, description="ID of stock to delete.")
-
-    class Meta:
-        model = models.Stock
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        description = "Deletes selected stock."
-        erorr_type_class = StockError
-        error_type_field = "stock_error"
-
-
-class StockBulkDelete(ModelBulkDeleteMutation):
-    class Arguments:
-        ids = graphene.List(graphene.ID, required=True)
-
-    class Meta:
-        model = models.Stock
-        permissions = (ProductPermissions.MANAGE_PRODUCTS,)
-        description = "Deletes stocks in bulk"
-        error_type_class = StockError
-        error_type_field = "stock_error"

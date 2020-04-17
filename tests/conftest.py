@@ -668,6 +668,7 @@ def product_with_two_variants(product_type, category, warehouse):
         price=Money("10.00", "USD"),
         product_type=product_type,
         category=category,
+        is_published=True,
     )
 
     variants = [
@@ -851,7 +852,7 @@ def product_list(product_type, category, warehouse):
                     pk=1489,
                     name="Test product 3",
                     slug="test-product-c",
-                    price=Money(20, "USD"),
+                    price=Money(30, "USD"),
                     category=category,
                     product_type=product_type,
                     is_published=True,
@@ -1770,22 +1771,6 @@ def description_json():
 
 
 @pytest.fixture
-def description_raw():
-    return """\
-E-commerce for the PWA era
-A modular, high performance e-commerce storefront built with GraphQL, Django, \
-and ReactJS.
-
-Saleor is a rapidly-growing open source e-commerce platform that has served \
-high-volume companies from branches like publishing and apparel since 2012. \
-Based on Python and Django, the latest major update introduces a modular \
-front end with a GraphQL API and storefront and dashboard written in React \
-to make Saleor a full-functionality open source e-commerce.
-
-Get Saleor today!"""
-
-
-@pytest.fixture
 def other_description_json():
     return {
         "blocks": [
@@ -1816,15 +1801,6 @@ def other_description_json():
 
 
 @pytest.fixture
-def other_description_raw():
-    return (
-        "A GRAPHQL-FIRST ECOMMERCE PLATFORM FOR PERFECTIONISTS\n"
-        "Saleor is powered by a GraphQL server running on top of Python 3 "
-        "and a Django 2 framework."
-    )
-
-
-@pytest.fixture
 def service_account(db):
     return ServiceAccount.objects.create(name="Sample service account", is_active=True)
 
@@ -1846,7 +1822,7 @@ def fake_payment_interface(mocker):
 @pytest.fixture
 def mock_get_manager(mocker, fake_payment_interface):
     mgr = mocker.patch(
-        "saleor.payment.gateway.get_extensions_manager",
+        "saleor.payment.gateway.get_plugins_manager",
         autospec=True,
         return_value=fake_payment_interface,
     )
@@ -1899,9 +1875,31 @@ def warehouse(address, shipping_zone):
 
 
 @pytest.fixture
-def warehouse_wo_shipping_zone(address, shipping_zone):
+def warehouses(address):
+    return Warehouse.objects.bulk_create(
+        [
+            Warehouse(
+                address=address.get_copy(),
+                name="Warehouse1",
+                slug="warehouse1",
+                email="warehouse1@example.com",
+            ),
+            Warehouse(
+                address=address.get_copy(),
+                name="Warehouse2",
+                slug="warehouse2",
+                email="warehouse2@example.com",
+            ),
+        ]
+    )
+
+
+@pytest.fixture
+def warehouse_no_shipping_zone(address):
     warehouse = Warehouse.objects.create(
-        address=address, name="Example Warehouse", email="test@example.com"
+        address=address,
+        name="Warehouse withot shipping zone",
+        email="test2@example.com",
     )
     return warehouse
 

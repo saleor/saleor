@@ -19,7 +19,6 @@ from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display
 from ..wishlist.resolvers import resolve_wishlist_items_from_user
-from ..wishlist.types import WishlistItem
 from .enums import CountryCodeEnum, CustomerEventsEnum
 
 
@@ -209,7 +208,8 @@ class ServiceAccount(CountableDjangoObjectType):
         model = models.ServiceAccount
         permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
         only_fields = [
-            "name" "permissions",
+            "name",
+            "permissions",
             "created",
             "is_active",
             "tokens",
@@ -280,7 +280,6 @@ class User(CountableDjangoObjectType):
         "saleor.graphql.payment.types.PaymentSource",
         description="List of stored payment sources.",
     )
-    wishlist = PrefetchingConnectionField(WishlistItem, description="User's wishlist.")
 
     class Meta:
         description = "Represents user data."
@@ -298,7 +297,6 @@ class User(CountableDjangoObjectType):
             "last_login",
             "last_name",
             "note",
-            "token",
         ]
 
     @staticmethod

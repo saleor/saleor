@@ -23,9 +23,9 @@ class ProductExportFields:
         "image_path",
     ]
     WAREHOUSE_FIELDS = [
-        "stock__warehouse__slug",
-        "stock__quantity",
-        "stock__quantity_allocated",
+        "stocks__warehouse__slug",
+        "stocks__quantity",
+        "stocks__quantity_allocated",
     ]
     ATTRIBUTE_FIELDS = ["slugs_of_values", "attribute_slug"]
     PRODUCT_HEADERS_MAPPING = {
@@ -226,9 +226,9 @@ def update_variant_data(
             "value": data.pop("slugs_of_values"),
         }
         warehouse_data = {
-            "slug": data.pop("stock__warehouse__slug"),
-            "qty": data.pop("stock__quantity"),
-            "qty_alc": data.pop("stock__quantity_allocated"),
+            "slug": data.pop("stocks__warehouse__slug"),
+            "qty": data.pop("stocks__quantity"),
+            "qty_alc": data.pop("stocks__quantity_allocated"),
         }
         image: str = data.pop("image_path")  # type: ignore
 

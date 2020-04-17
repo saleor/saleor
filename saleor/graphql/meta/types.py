@@ -35,15 +35,18 @@ class ObjectWithMetadata(graphene.Interface):
         "saleor.graphql.meta.deprecated.types.MetaStore",
         required=True,
         description="List of privately stored metadata namespaces.",
-        deprecation_reason="DEPRECATED: Will be removed in Saleor 2.11. "
-        "use the `privetaMetadata` field instead. ",
+        deprecation_reason=(
+            "Use the `privetaMetadata` field. This field will be removed after "
+            "2020-07-31."
+        ),
     )
     meta = graphene.List(
         "saleor.graphql.meta.deprecated.types.MetaStore",
         required=True,
         description="List of publicly stored metadata namespaces.",
-        deprecation_reason="DEPRECATED: Will be removed in Saleor 2.11. "
-        "use the `metadata` field instead. ",
+        deprecation_reason=(
+            "Use the `metadata` field. This field will be removed after 2020-07-31."
+        ),
     )
 
     @staticmethod

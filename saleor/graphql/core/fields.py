@@ -1,3 +1,4 @@
+import json
 from functools import partial
 
 import graphene
@@ -7,6 +8,7 @@ from django_prices.models import MoneyField, TaxedMoneyField
 from graphene.relay import PageInfo
 from graphene_django.converter import convert_django_field
 from graphene_django.fields import DjangoConnectionField
+from graphql.error import GraphQLError
 from graphql_relay.connection.arrayconnection import connection_from_list_slice
 from promise import Promise
 
@@ -68,6 +70,7 @@ class PrefetchingConnectionField(BaseDjangoConnectionField):
         resolver,
         connection,
         default_manager,
+        queryset_resolver,
         max_limit,
         enforce_first_or_last,
         root,
@@ -86,6 +89,7 @@ class PrefetchingConnectionField(BaseDjangoConnectionField):
             resolver,
             connection,
             default_manager,
+            queryset_resolver,
             max_limit,
             enforce_first_or_last,
             root,
@@ -94,10 +98,7 @@ class PrefetchingConnectionField(BaseDjangoConnectionField):
         )
 
     @classmethod
-    def resolve_connection(cls, connection, default_manager, args, iterable):
-        if iterable is None:
-            iterable = default_manager
-
+    def resolve_connection(cls, connection, args, iterable):
         if isinstance(iterable, QuerySet):
             _len = iterable.count()
         else:
@@ -133,6 +134,7 @@ class FilterInputConnectionField(BaseDjangoConnectionField):
         resolver,
         connection,
         default_manager,
+        queryset_resolver,
         max_limit,
         enforce_first_or_last,
         filterset_class,
@@ -175,14 +177,24 @@ class FilterInputConnectionField(BaseDjangoConnectionField):
 
         iterable = resolver(root, info, **args)
 
-        on_resolve = partial(cls.resolve_connection, connection, default_manager, args)
+        if iterable is None:
+            iterable = default_manager
+        # thus the iterable gets refiltered by resolve_queryset
+        # but iterable might be promise
+        iterable = queryset_resolver(connection, iterable, info, args)
+
+        on_resolve = partial(cls.resolve_connection, connection, args)
 
         filter_input = args.get(filters_name)
 
         if filter_input and filterset_class:
-            iterable = filterset_class(
+            instance = filterset_class(
                 data=dict(filter_input), queryset=iterable, request=info.context
-            ).qs
+            )
+            # Make sure filter input has valid values
+            if not instance.is_valid():
+                raise GraphQLError(json.dumps(instance.errors.get_json_data()))
+            iterable = instance.qs
 
         if Promise.is_thenable(iterable):
             return Promise.resolve(iterable).then(on_resolve)

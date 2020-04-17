@@ -6,7 +6,7 @@ from ..enums import (
     AccountErrorCode,
     CheckoutErrorCode,
     CsvErrorCode,
-    ExtensionsErrorCode,
+    DiscountErrorCode,
     GiftCardErrorCode,
     MenuErrorCode,
     MetadataErrorCode,
@@ -14,10 +14,12 @@ from ..enums import (
     PageErrorCode,
     PaymentErrorCode,
     PermissionEnum,
+    PluginErrorCode,
     ProductErrorCode,
     ShippingErrorCode,
     ShopErrorCode,
     StockErrorCode,
+    TranslationErrorCode,
     WarehouseErrorCode,
     WebhookErrorCode,
     WishlistErrorCode,
@@ -46,11 +48,15 @@ class Error(graphene.ObjectType):
 
 
 class AccountError(Error):
-    code = AccountErrorCode(description="The error code.")
+    code = AccountErrorCode(description="The error code.", required=True)
 
 
 class CheckoutError(Error):
-    code = CheckoutErrorCode(description="The error code.")
+    code = CheckoutErrorCode(description="The error code.", required=True)
+
+
+class DiscountError(Error):
+    code = DiscountErrorCode(description="The error code.", required=True)
 
 
 class CsvError(Error):
@@ -58,19 +64,27 @@ class CsvError(Error):
 
 
 class MenuError(Error):
-    code = MenuErrorCode(description="The error code.")
+    code = MenuErrorCode(description="The error code.", required=True)
 
 
 class MetadataError(Error):
-    code = MetadataErrorCode(description="The error code.")
+    code = MetadataErrorCode(description="The error code.", required=True)
 
 
 class OrderError(Error):
-    code = OrderErrorCode(description="The error code.")
+    code = OrderErrorCode(description="The error code.", required=True)
 
 
 class ProductError(Error):
-    code = ProductErrorCode(description="The error code.")
+    code = ProductErrorCode(description="The error code.", required=True)
+
+
+class ProductAttributeError(ProductError):
+    attributes = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of attributes IDs which causes the error.",
+        required=False,
+    )
 
 
 class BulkProductError(ProductError):
@@ -80,43 +94,58 @@ class BulkProductError(ProductError):
 
 
 class ShopError(Error):
-    code = ShopErrorCode(description="The error code.")
+    code = ShopErrorCode(description="The error code.", required=True)
 
 
 class ShippingError(Error):
-    code = ShippingErrorCode(description="The error code.")
+    code = ShippingErrorCode(description="The error code.", required=True)
+    warehouses = graphene.List(
+        graphene.NonNull(graphene.ID),
+        description="List of warehouse IDs which causes the error.",
+        required=False,
+    )
 
 
 class PageError(Error):
-    code = PageErrorCode(description="The error code.")
+    code = PageErrorCode(description="The error code.", required=True)
 
 
 class PaymentError(Error):
-    code = PaymentErrorCode(description="The error code.")
+    code = PaymentErrorCode(description="The error code.", required=True)
 
 
 class GiftCardError(Error):
-    code = GiftCardErrorCode(description="The error code.")
+    code = GiftCardErrorCode(description="The error code.", required=True)
 
 
-class ExtensionsError(Error):
-    code = ExtensionsErrorCode(description="The error code.")
+class PluginError(Error):
+    code = PluginErrorCode(description="The error code.", required=True)
 
 
 class StockError(Error):
-    code = StockErrorCode(description="The error code.")
+    code = StockErrorCode(description="The error code.", required=True)
+
+
+class BulkStockError(ProductError):
+    index = graphene.Int(
+        description="Index of an input list item that caused the error."
+    )
 
 
 class WarehouseError(Error):
-    code = WarehouseErrorCode(description="The error code.")
+    code = WarehouseErrorCode(description="The error code.", required=True)
 
 
 class WebhookError(Error):
-    code = WebhookErrorCode(description="The error code.")
+    code = WebhookErrorCode(description="The error code.", required=True)
 
 
 class WishlistError(Error):
-    code = WishlistErrorCode(description="The error code.")
+    code = WishlistErrorCode(description="The error code.", required=True)
+
+
+class TranslationError(Error):
+    code = TranslationErrorCode(description="The error code.", required=True)
 
 
 class LanguageDisplay(graphene.ObjectType):
