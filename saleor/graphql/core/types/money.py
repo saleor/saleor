@@ -10,9 +10,10 @@ class Money(graphene.ObjectType):
     localized = graphene.String(
         description="Money formatted according to the current locale.",
         required=True,
-        deprecation_reason="DEPRECATED: Will be removed in Saleor 2.11. "
-        "Price formatting according to the current locale should be "
-        "handled by the frontend client.",
+        deprecation_reason=(
+            "Price formatting according to the current locale should be handled by the "
+            "frontend client. This field will be removed after 2020-07-31."
+        ),
     )
 
     class Meta:

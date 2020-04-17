@@ -16,7 +16,7 @@ from prices import Money
 from saleor.account import events as account_events
 from saleor.account.error_codes import AccountErrorCode
 from saleor.account.models import Address, User
-from saleor.account.utils import create_jwt_token, get_random_avatar
+from saleor.account.utils import create_jwt_token
 from saleor.checkout import AddressType
 from saleor.graphql.account.mutations.base import INVALID_TOKEN
 from saleor.graphql.account.mutations.staff import (
@@ -1389,10 +1389,6 @@ def test_staff_create(
     assert data["user"]["email"] == email
     assert data["user"]["isStaff"]
     assert data["user"]["isActive"]
-    assert re.match(
-        r"http://testserver/media/user-avatars/avatar\d+.*",
-        data["user"]["avatar"]["url"],
-    )
     permissions = data["user"]["permissions"]
     assert permissions[0]["code"] == "MANAGE_PRODUCTS"
 
@@ -1515,9 +1511,8 @@ def test_staff_update(staff_api_client, permission_manage_staff, media_root):
     assert not data["user"]["isActive"]
 
 
-@patch("saleor.graphql.account.mutations.staff.get_random_avatar")
 def test_staff_update_doesnt_change_existing_avatar(
-    mock_get_random_avatar, staff_api_client, permission_manage_staff, media_root
+    staff_api_client, permission_manage_staff, media_root
 ):
     query = """
     mutation UpdateStaff(
@@ -1539,14 +1534,8 @@ def test_staff_update_doesnt_change_existing_avatar(
 
     mock_file = MagicMock(spec=File)
     mock_file.name = "image.jpg"
-    mock_get_random_avatar.return_value = mock_file
 
     staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
-
-    # Create random avatar
-    staff_user.avatar = get_random_avatar()
-    staff_user.save()
-    original_path = staff_user.avatar.path
 
     id = graphene.Node.to_global_id("User", staff_user.id)
     variables = {"id": id, "permissions": [], "is_active": False}
@@ -1557,10 +1546,8 @@ def test_staff_update_doesnt_change_existing_avatar(
     data = content["data"]["staffUpdate"]
     assert data["errors"] == []
 
-    # Make sure that random avatar isn't recreated when there is one already set.
-    mock_get_random_avatar.assert_not_called()
     staff_user.refresh_from_db()
-    assert staff_user.avatar.path == original_path
+    assert not staff_user.avatar
 
 
 def test_staff_delete(staff_api_client, permission_manage_staff):
