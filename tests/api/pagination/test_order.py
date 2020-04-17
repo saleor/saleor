@@ -524,24 +524,19 @@ def test_draft_orders_query_pagination_with_filter_search_by_id(
     assert content["data"]["draftOrders"]["totalCount"] == 1
 
 
-# Currently sorting is not working properly for orders.
-@pytest.mark.skip(
-    reason="""Currently sorting is not working properly for orders.
-Turn on this test after merging #5149"""
-)
 @pytest.mark.parametrize(
     "order_sort, result_order",
     [
-        ({"field": "NUMBER", "direction": "ASC"}, [0, 1, 2]),
-        ({"field": "NUMBER", "direction": "DESC"}, [2, 1, 0]),
-        ({"field": "CREATION_DATE", "direction": "ASC"}, [1, 0, 2]),
-        ({"field": "CREATION_DATE", "direction": "DESC"}, [2, 0, 1]),
-        ({"field": "CUSTOMER", "direction": "ASC"}, [2, 0, 1]),
-        ({"field": "CUSTOMER", "direction": "DESC"}, [1, 0, 2]),
-        ({"field": "FULFILLMENT_STATUS", "direction": "ASC"}, [2, 1, 0]),
-        ({"field": "FULFILLMENT_STATUS", "direction": "DESC"}, [0, 1, 2]),
-        ({"field": "TOTAL", "direction": "ASC"}, [0, 2, 1]),
-        ({"field": "TOTAL", "direction": "DESC"}, [1, 2, 0]),
+        ({"field": "NUMBER", "direction": "ASC"}, [0, 1]),
+        ({"field": "NUMBER", "direction": "DESC"}, [2, 1]),
+        ({"field": "CREATION_DATE", "direction": "ASC"}, [1, 0]),
+        ({"field": "CREATION_DATE", "direction": "DESC"}, [2, 0]),
+        ({"field": "CUSTOMER", "direction": "ASC"}, [2, 0]),
+        ({"field": "CUSTOMER", "direction": "DESC"}, [1, 0]),
+        ({"field": "FULFILLMENT_STATUS", "direction": "ASC"}, [2, 1]),
+        ({"field": "FULFILLMENT_STATUS", "direction": "DESC"}, [0, 1]),
+        ({"field": "TOTAL", "direction": "ASC"}, [0, 2]),
+        ({"field": "TOTAL", "direction": "DESC"}, [1, 2]),
     ],
 )
 def test_query_orders_pagination_with_sort(
@@ -581,7 +576,7 @@ def test_query_orders_pagination_with_sort(
         )
     )
     page_size = 2
-    variables = {"first": page_size, "after": None, "sort_by": order_sort}
+    variables = {"first": page_size, "after": None, "sortBy": order_sort}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(QUERY_ORDERS_WITH_PAGINATION, variables)
     content = get_graphql_content(response)
