@@ -204,12 +204,18 @@ class StaffCreate(ModelMutation):
     @classmethod
     def clean_groups(cls, requestor: models.User, cleaned_input: dict, errors: dict):
         if cleaned_input.get("add_groups"):
-            cls.can_manage_groups(requestor, cleaned_input, "add_groups", errors)
+            cls.ensure_requestor_can_manage_groups(
+                requestor, cleaned_input, "add_groups", errors
+            )
 
     @classmethod
-    def can_manage_groups(
+    def ensure_requestor_can_manage_groups(
         cls, requestor: models.User, cleaned_input: dict, field: str, errors: dict
     ):
+        """Check if requestor can manage group.
+
+        Requestor cannot manage group with wider scope of permissions.
+        """
         if requestor.is_superuser:
             return
         groups = cleaned_input[field]
@@ -228,7 +234,7 @@ class StaffCreate(ModelMutation):
             errors[field].append(error)
 
     @classmethod
-    def clean_is_active(cls, cleaned_input, user, instance, errors):
+    def clean_is_active(cls, cleaned_input, instance, request, errors):
         pass
 
     @classmethod
@@ -299,14 +305,24 @@ class StaffUpdate(StaffCreate):
             raise ValidationError(msg, code=code, params=params)
 
     @classmethod
-    def clean_groups(cls, info, cleaned_input, errors):
+    def clean_groups(cls, requestor: models.User, cleaned_input: dict, errors: dict):
         if cleaned_input.get("add_groups"):
-            cls.can_manage_groups(info, cleaned_input, "add_groups", errors)
+            cls.ensure_requestor_can_manage_groups(
+                requestor, cleaned_input, "add_groups", errors
+            )
         if cleaned_input.get("remove_groups"):
-            cls.can_manage_groups(info, cleaned_input, "remove_groups", errors)
+            cls.ensure_requestor_can_manage_groups(
+                requestor, cleaned_input, "remove_groups", errors
+            )
 
     @classmethod
-    def clean_is_active(cls, cleaned_input, instance, requestor, errors):
+    def clean_is_active(
+        cls,
+        cleaned_input: dict,
+        instance: models.User,
+        requestor: models.User,
+        errors: dict,
+    ):
         is_active = cleaned_input.get("is_active")
         if is_active is None:
             return
