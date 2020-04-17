@@ -140,7 +140,7 @@ def test_pagination_forward_first_page_info(books):
 
 
 @pytest.mark.skip(
-    reason="""Currently, page info has the bug, new pagination fixing it. 
+    reason="""Currently, page info has the bug, new pagination fixing it.
     We should uncomment this test in PR #5149."""
 )
 def test_pagination_forward_middle_page_info(books):
@@ -162,7 +162,7 @@ def test_pagination_forward_middle_page_info(books):
 
 
 @pytest.mark.skip(
-    reason="""Currently, page info has the bug, new pagination fixing it. 
+    reason="""Currently, page info has the bug, new pagination fixing it.
     We should uncomment this test in PR #5149."""
 )
 def test_pagination_forward_last_page_info(books):
@@ -194,7 +194,7 @@ def test_pagination_backward_first_page_info(books):
 
 
 @pytest.mark.skip(
-    reason="""Currently, page info has the bug, new pagination fixing it. 
+    reason="""Currently, page info has the bug, new pagination fixing it.
     We should uncomment this test in PR #5149."""
 )
 def test_pagination_backward_middle_page_info(books):
@@ -216,7 +216,7 @@ def test_pagination_backward_middle_page_info(books):
 
 
 @pytest.mark.skip(
-    reason="""Currently, page info has the bug, new pagination fixing it. 
+    reason="""Currently, page info has the bug, new pagination fixing it.
     We should uncomment this test in PR #5149."""
 )
 def test_pagination_backward_last_page_info(books):
