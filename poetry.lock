@@ -951,7 +951,7 @@ description = "Federation implementation for graphene"
 name = "graphene-federation"
 optional = false
 python-versions = "*"
-version = "0.0.3"
+version = "0.1.0"
 
 [package.dependencies]
 graphene = ">=2.1.0,<3"
@@ -2183,7 +2183,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "37af9cd21f8dde97b1ddd9522cd369929756badb45e24f1ad9f7d707aa64c2cc"
+content-hash = "7e2de484335ecdad427ae964c97904ac7cc2c8955caac9915ae57f53bdbf1acf"
 python-versions = "~3.8"
 
 [metadata.files]
@@ -2530,7 +2530,7 @@ graphene-django-optimizer = [
     {file = "graphene-django-optimizer-0.6.2.tar.gz", hash = "sha256:34dd22ae8740076f5b8811bebac20a06d659ed3e9747453229ecb445f594cb4e"},
 ]
 graphene-federation = [
-    {file = "graphene-federation-0.0.3.tar.gz", hash = "sha256:74b393daf8811fdd10e4b8395f33e3be667e0e4f6f9508c372758f6fd38f03c1"},
+    {file = "graphene-federation-0.1.0.tar.gz", hash = "sha256:e44e8e354d0c8eeb03547d5c262d01c868d4ea7d1458512c994176eed80fd2bf"},
 ]
 graphql-core = [
     {file = "graphql-core-2.3.1.tar.gz", hash = "sha256:74a8f509ae8c4a58271f5d6b46d5c75b4aed116821ab62dea252d8041bfe057a"},
