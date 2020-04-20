@@ -108,7 +108,7 @@ def create_payment(
     if checkout is not None:
         data["checkout"] = checkout
 
-    payment, _ = Payment.objects.get_or_create(defaults=defaults, **data)
+    payment, _ = Payment.objects.get_or_create(gateway=gateway, defaults=defaults, **data)
     return payment
 
 
