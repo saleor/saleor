@@ -478,15 +478,15 @@ def create_order_lines(order, discounts, how_many=10):
     lines = OrderLine.objects.bulk_create(lines)
     manager = get_plugins_manager()
     country = order.shipping_method.shipping_zone.countries[0]
+    warehouses = Warehouse.objects.filter(
+        shipping_zones__countries__contains=country
+    ).order_by("?")
+    warehouse_iter = itertools.cycle(warehouses)
     for line in lines:
         unit_price = manager.calculate_order_line_unit(line)
         line.unit_price = unit_price
         line.tax_rate = unit_price.tax / unit_price.net
-        warehouse = (
-            Warehouse.objects.filter(shipping_zones__countries__contains=country)
-            .order_by("?")
-            .first()
-        )
+        warehouse = next(warehouse_iter)
         increase_stock(line, warehouse, line.quantity, allocate=True)
     OrderLine.objects.bulk_update(
         lines,

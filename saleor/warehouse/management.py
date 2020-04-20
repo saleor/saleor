@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING
 from django.db import transaction
 from django.db.models import F, Sum
 
-from ..core.exceptions import InsufficientStock
+from ..core.exceptions import AllocationError, InsufficientStock
 from .models import Allocation, Stock, Warehouse
 
 if TYPE_CHECKING:
@@ -63,8 +63,9 @@ def allocate_stock(
             quantity_allocated += quantity_to_allocate
             if quantity_allocated == quantity:
                 Allocation.objects.bulk_create(allocations)
-                return None
-    raise InsufficientStock(order_line.variant)
+                break
+    if not quantity_allocated == quantity:
+        raise InsufficientStock(order_line.variant)
 
 
 @transaction.atomic
@@ -94,11 +95,9 @@ def deallocate_stock(order_line: "OrderLine", quantity: int):
             quantity_dealocated += quantity_to_deallocate
             if quantity_dealocated == quantity:
                 Allocation.objects.bulk_update(allocations, ["quantity_allocated"])
-                return None
-    raise Exception(
-        f"Can't deallocate {quantity} for variant: {order_line.variant}"
-        f" in order: {order_line.order}"
-    )
+                break
+    if not quantity_dealocated == quantity:
+        raise AllocationError(order_line, quantity)
 
 
 @transaction.atomic
@@ -176,11 +175,9 @@ def decrease_stock(order_line: "OrderLine", quantity: int):
             if quantity_decreased == quantity:
                 Allocation.objects.bulk_update(allocations, ["quantity_allocated"])
                 Stock.objects.bulk_update(updated_stocks, ["quantity"])
-                return None
-    raise Exception(
-        f"Can't decrease {quantity} for variant: {order_line.variant}"
-        f" in order: {order_line.order}"
-    )
+                break
+    if not quantity_decreased == quantity:
+        raise AllocationError(order_line, quantity)
 
 
 @transaction.atomic

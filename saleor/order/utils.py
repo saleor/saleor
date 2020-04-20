@@ -10,9 +10,9 @@ from ..core.taxes import zero_money
 from ..core.weight import zero_weight
 from ..discount.models import NotApplicable, Voucher, VoucherType
 from ..discount.utils import get_products_voucher_discount, validate_voucher_in_order
-from ..plugins.manager import get_plugins_manager
 from ..order import OrderStatus
 from ..order.models import Order, OrderLine
+from ..plugins.manager import get_plugins_manager
 from ..product.utils.digital_products import get_default_digital_content_settings
 from ..shipping.models import ShippingMethod
 from ..warehouse.management import deallocate_stock, increase_stock
@@ -259,6 +259,9 @@ def delete_order_line(line):
 def restock_order_lines(order):
     """Return ordered products to corresponding stocks."""
     country = get_order_country(order)
+    default_warehouse = Warehouse.objects.filter(
+        shipping_zones__countries__contains=country
+    ).first()
 
     for line in order:
         if line.variant and line.variant.track_inventory:
@@ -266,12 +269,9 @@ def restock_order_lines(order):
                 deallocate_stock(line, line.quantity_unfulfilled)
             if line.quantity_fulfilled > 0:
                 allocation = line.allocations.first()
-                if allocation:
-                    warehouse = allocation.stock.warehouse
-                else:
-                    warehouse = Warehouse.objects.filter(
-                        shipping_zones__countries__contains=country
-                    ).first()
+                warehouse = (
+                    allocation.stock.warehouse if allocation else default_warehouse
+                )
                 increase_stock(line, warehouse, line.quantity_fulfilled)
 
         if line.quantity_fulfilled > 0:
@@ -282,15 +282,14 @@ def restock_order_lines(order):
 def restock_fulfillment_lines(fulfillment):
     """Return fulfilled products to corresponding stocks."""
     country = get_order_country(fulfillment.order)
+    default_warehouse = Warehouse.objects.filter(
+        shipping_zones__countries__contains=country
+    ).first()
+
     for line in fulfillment:
         if line.order_line.variant and line.order_line.variant.track_inventory:
             allocation = line.order_line.allocations.first()
-            if allocation:
-                warehouse = allocation.stock.warehouse
-            else:
-                warehouse = Warehouse.objects.filter(
-                    shipping_zones__countries__contains=country
-                ).first()
+            warehouse = allocation.stock.warehouse if allocation else default_warehouse
             increase_stock(line.order_line, warehouse, line.quantity, allocate=True)
 
 
