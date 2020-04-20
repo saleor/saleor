@@ -36,7 +36,6 @@ from ...core.weight import zero_weight
 from ...discount import DiscountValueType, VoucherType
 from ...discount.models import Sale, Voucher
 from ...discount.utils import fetch_discounts
-from ...plugins.manager import get_plugins_manager
 from ...giftcard.models import GiftCard
 from ...menu.models import Menu
 from ...menu.utils import update_menu
@@ -45,6 +44,7 @@ from ...order.utils import update_order_status
 from ...page.models import Page
 from ...payment import gateway
 from ...payment.utils import create_payment
+from ...plugins.manager import get_plugins_manager
 from ...product.models import (
     AssignedProductAttribute,
     AssignedVariantAttribute,
@@ -137,7 +137,7 @@ COLLECTION_IMAGES = {1: "summer.jpg", 2: "clothing.jpg"}
 def get_weight(weight):
     if not weight:
         return zero_weight()
-    value, unit = weight.split()
+    value, unit = weight.split(":")
     return Weight(**{unit: value})
 
 
