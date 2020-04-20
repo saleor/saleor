@@ -3,6 +3,8 @@ from uuid import uuid4
 
 from django.conf import settings
 from django.contrib.staticfiles import finders as static_finders
+from django.core.files.base import ContentFile
+from django.core.files.storage import default_storage
 from django.db import transaction
 from django.template.loader import get_template
 from django.utils import timezone
@@ -349,6 +351,5 @@ def generate_invoice_pdf_for_order(invoice):
     rendered_template = get_template("invoice.html").render(
         {"invoice": invoice, "order": invoice.order, "logo_path": f"file://{logo_path}"}
     )
-    return HTML(string=rendered_template).write_pdf(
-        f"{settings.MEDIA_ROOT}/{uuid4()}.pdf"
-    )
+    content_file = ContentFile(HTML(string=rendered_template).write_pdf())
+    return default_storage.save(f"{uuid4()}.pdf", content_file)

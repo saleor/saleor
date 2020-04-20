@@ -1,3 +1,4 @@
+{% load i18n %}
 {% load price from taxed_prices %}
 <!DOCTYPE html>
 <html>
@@ -152,19 +153,26 @@
     </div>
     <div class="section-invoice-info section-right">
         <div class="content-padded">
-            <span class="header-title">INVOICE INFORMATION</span>
+            <span class="header-title">
+                {% trans "INVOICE INFORMATION" context "Invoice PDF header" %}
+            </span>
             <br />
-            <span class="header-category">Order:</span>
+            <span class="header-category">
+                {% trans "Order:" context "Invoice PDF header" %}
+            </span>
             <br />
             <span class="header-item">{{ order.id }}</span>
             <br />
 
-            <span class="header-category">Date:</span>
+            <span class="header-category">
+                {% trans "Date:" context "Invoice PDF header" %}
+            </span>
             <br />
             <span class="header-item">{{ invoice.created }}</span>
             <br />
-
-            <span class="header-category">Amount:</span>
+            <span class="header-category">
+                {% trans "Amount:" context "Invoice PDF amount (price)" %}
+            </span>
             <br />
             <span class="header-item">{% price order.total_gross %}</span>
             <br />
@@ -172,7 +180,9 @@
     </div>
     <div class="section-left">
         <div class="content-padded">
-            <span class="header-title">BILLING ADDRESS</span>
+            <span class="header-title">
+                {% trans "BILLING ADDRESS" context "Invoice PDF" %}
+            </span>
             <br />
             <span class="normal-text">
                 {{ order.billing_address.first_name }}
@@ -199,7 +209,9 @@
     </div>
     <div class="section-right">
         <div class="content-padded">
-            <span class="header-title">SHIPMENT ADDRESS</span>
+            <span class="header-title">
+                {% trans "SHIPMENT ADDRESS" context "Invoice PDF" %}
+            </span>
             <br />
             <span class="normal-text">
                 {{ order.shipping_address.first_name }}
@@ -229,7 +241,7 @@
     </div>
     <div class="section-left">
         <div class="content-padded">
-            <span class="header-title">PAYMENT METHOD</span>
+            <span class="header-title">{% trans "PAYMENT METHOD" context "Invoice PDF" %}</span>
             <br />
             <span class="normal-text">Credit Card</span>
             <br />
@@ -237,7 +249,7 @@
     </div>
     <div class="section-right">
         <div class="content-padded">
-            <span class="header-title">SHIPMENT METHOD</span>
+            <span class="header-title">{% trans "SHIPMENT METHOD" context "Invoice PDF" %}</span>
             <br />
             <span class="normal-text">{{ order.shipping_method_name }}</span>
             <br />
@@ -247,22 +259,22 @@
         <div class="content-separator">&nbsp;</div>
     </div>
     <div class="content-padded">
-        <span class="header-title">ITEMS ORDERED</span>
+        <span class="header-title">{% trans "ITEMS ORDERED" context "Invoice PDF table header" %}</span>
         <br />
         <table class="products-table">
             <tbody>
                 <tr class="row-category">
                     <td class="cell-product">
-                        <span class="header-category">Products</span>
+                        <span class="header-category">{% trans "Products" context "Invoice PDF table" %}</span>
                     </td>
                     <td class="cell-price">
-                        <span class="header-category">Price</span>
+                        <span class="header-category">{% trans "Price" context "Invoice PDF table" %}</span>
                     </td>
                     <td class="cell-quantity">
-                        <span class="header-category">Quantity</span>
+                        <span class="header-category">{% trans "Quantity" context "Invoice PDF table" %}</span>
                     </td>
                     <td class="cell-total-price">
-                        <span class="header-category">Total Price</span>
+                        <span class="header-category">{% trans "Total Price" context "Invoice PDF table" %}</span>
                     </td>
                 </tr>
                 {% for line in order %}
@@ -286,7 +298,7 @@
                 <tr class="summary-row">
                     <td class="cell-summary">
                         <span class="normal-text">
-                            Subtotal
+                            {% trans "Subtotal" context "Invoice PDF summary" %}
                         </span>
                     </td>
                     <td class="cell-quantity"></td>
@@ -299,7 +311,7 @@
                 <tr class="summary-row">
                     <td class="cell-summary">
                         <span class="normal-text">
-                            Delivery Cost
+                            {% trans "Delivery Cost" context "Invoice PDF summary" %}
                         </span>
                     </td>
                     <td class="cell-quantity"></td>
@@ -312,7 +324,7 @@
                 <tr class="summary-row">
                     <td class="cell-summary">
                         <span class="normal-text">
-                            Tax
+                            {% trans "Tax" context "Invoice PDF summary" %}
                         </span>
                     </td>
                     <td class="cell-quantity"></td>
@@ -325,7 +337,7 @@
                 <tr class="summary-row">
                     <td class="cell-summary">
                         <span class="normal-text">
-                            Grand Total
+                            {% trans "Grand Total" context "Invoice PDF summary" %}
                         </span>
                     </td>
                     <td class="cell-quantity"></td>
