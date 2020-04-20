@@ -15,7 +15,7 @@ if TYPE_CHECKING:
     # flake8: noqa
     from .models import Voucher
     from ..product.models import Collection, Product
-    from ..checkout.models import Checkout
+    from ..checkout.models import Checkout, CheckoutLine
     from ..order.models import Order
 
 
@@ -99,9 +99,12 @@ def calculate_discounted_price(
 def validate_voucher_for_checkout(
     voucher: "Voucher",
     checkout: "Checkout",
+    lines: Iterable["CheckoutLine"],
     discounts: Optional[Iterable[DiscountInfo]],
 ):
-    subtotal = calculations.checkout_subtotal(checkout, discounts)
+    subtotal = calculations.checkout_subtotal(
+        checkout=checkout, lines=lines, discounts=discounts
+    )
 
     customer_email = checkout.get_customer_email()
     validate_voucher(voucher, subtotal.gross, checkout.quantity, customer_email)

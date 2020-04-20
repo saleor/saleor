@@ -38,7 +38,6 @@ def resolve_digital_contents(info):
 
 
 def resolve_products(info, stock_availability=None, **_kwargs):
-
     user = get_user_or_app_from_context(info.context)
     qs = models.Product.objects.visible_to_user(user)
 
@@ -65,9 +64,7 @@ def resolve_product_variants(info, ids=None):
 
 
 def resolve_report_product_sales(period):
-    qs = models.ProductVariant.objects.prefetch_related(
-        "product", "product__images", "order_lines__order"
-    ).all()
+    qs = models.ProductVariant.objects.all()
 
     # exclude draft and canceled orders
     exclude_status = [OrderStatus.DRAFT, OrderStatus.CANCELED]
