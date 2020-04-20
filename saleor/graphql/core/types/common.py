@@ -4,6 +4,7 @@ from ....product.templatetags.product_images import get_thumbnail
 from ...translations.enums import LanguageCodeEnum
 from ..enums import (
     AccountErrorCode,
+    AppErrorCode,
     CheckoutErrorCode,
     DiscountErrorCode,
     ExtensionsErrorCode,
@@ -47,6 +48,10 @@ class Error(graphene.ObjectType):
 
 class AccountError(Error):
     code = AccountErrorCode(description="The error code.", required=True)
+
+
+class AppError(Error):
+    code = AppErrorCode(description="The error code.", required=True)
 
 
 class CheckoutError(Error):
