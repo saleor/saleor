@@ -184,6 +184,108 @@ type AddressValidationData {
   postalCodePrefix: String
 }
 
+type App implements Node & ObjectWithMetadata {
+  id: ID!
+  name: String
+  created: DateTime
+  isActive: Boolean
+  permissions: [PermissionDisplay]
+  tokens: [AppToken]
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
+  privateMeta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `privetaMetadata` field instead. ")
+  meta: [MetaStore]! @deprecated(reason: "DEPRECATED: Will be removed in Saleor 2.11. use the `metadata` field instead. ")
+}
+
+type AppCountableConnection {
+  pageInfo: PageInfo!
+  edges: [AppCountableEdge!]!
+  totalCount: Int
+}
+
+type AppCountableEdge {
+  node: App!
+  cursor: String!
+}
+
+type AppCreate {
+  errors: [Error!]!
+  authToken: String
+  appErrors: [AppError!]!
+  app: App
+}
+
+type AppDelete {
+  errors: [Error!]!
+  appErrors: [AppError!]!
+  app: App
+}
+
+type AppError {
+  field: String
+  message: String
+  code: AppErrorCode!
+}
+
+enum AppErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+}
+
+input AppFilterInput {
+  search: String
+  isActive: Boolean
+}
+
+input AppInput {
+  name: String
+  isActive: Boolean
+  permissions: [PermissionEnum]
+}
+
+enum AppSortField {
+  NAME
+  CREATION_DATE
+}
+
+input AppSortingInput {
+  direction: OrderDirection!
+  field: AppSortField!
+}
+
+type AppToken implements Node {
+  name: String
+  authToken: String
+  id: ID!
+}
+
+type AppTokenCreate {
+  errors: [Error!]!
+  authToken: String
+  appErrors: [AppError!]!
+  appToken: AppToken
+}
+
+type AppTokenDelete {
+  errors: [Error!]!
+  appErrors: [AppError!]!
+  appToken: AppToken
+}
+
+input AppTokenInput {
+  name: String
+  app: ID!
+}
+
+type AppUpdate {
+  errors: [Error!]!
+  appErrors: [AppError!]!
+  app: App
+}
+
 type AssignNavigation {
   errors: [Error!]!
   menu: Menu
@@ -2374,6 +2476,11 @@ type Mutation {
   checkoutClearMetadata(id: ID!, input: MetaPath!): CheckoutClearMeta @deprecated(reason: "Will be removed in Saleor 2.11. Use the `DeleteMetadata` mutation instead.")
   checkoutUpdatePrivateMetadata(id: ID!, input: MetaInput!): CheckoutUpdatePrivateMeta @deprecated(reason: "Will be removed in Saleor 2.11.Use the `UpdatePrivateMetadata` mutation instead.")
   checkoutClearPrivateMetadata(id: ID!, input: MetaPath!): CheckoutClearPrivateMeta @deprecated(reason: "Will be removed in Saleor 2.11.Use the `DeletePrivateMetadata` mutation instead.")
+  appCreate(input: AppInput!): AppCreate
+  appUpdate(id: ID!, input: AppInput!): AppUpdate
+  appDelete(id: ID!): AppDelete
+  appTokenCreate(input: AppTokenInput!): AppTokenCreate
+  appTokenDelete(id: ID!): AppTokenDelete
   requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
   confirmAccount(email: String!, token: String!): ConfirmAccount
   setPassword(token: String!, email: String!, password: String!): SetPassword
@@ -3776,6 +3883,8 @@ type Query {
   checkouts(before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
   checkoutLine(id: ID): CheckoutLine
   checkoutLines(before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection
+  apps(filter: AppFilterInput, sortBy: AppSortingInput, before: String, after: String, first: Int, last: Int): AppCountableConnection
+  app(id: ID!): App
   addressValidationRules(countryCode: CountryCode!, countryArea: String, city: String, cityArea: String): AddressValidationData
   address(id: ID!): Address
   customers(filter: CustomerFilterInput, sortBy: UserSortingInput, before: String, after: String, first: Int, last: Int): UserCountableConnection
@@ -5095,7 +5204,7 @@ enum WeightUnitsEnum {
 
 scalar _Any
 
-union _Entity = Address | User | Group | ServiceAccount | ProductVariant | Product | ProductType | Collection | Category | ProductImage
+union _Entity = Address | User | Group | ServiceAccount | App | ProductVariant | Product | ProductType | Collection | Category | ProductImage
 
 type _Service {
   sdl: String

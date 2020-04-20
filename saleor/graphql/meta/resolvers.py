@@ -15,7 +15,7 @@ from .permissions import PRIVATE_META_PERMISSION_MAP
 def resolve_object_with_metadata_type(instance: ModelWithMetadata):
     # Imports inside resolvers to avoid circular imports.
     from ..account import types as account_types
-    from ..account.deprecated.types import ServiceAccount
+    from ..app import types as app_types
     from ..checkout import types as checkout_types
     from ..order import types as order_types
     from ..product import types as product_types
@@ -31,7 +31,7 @@ def resolve_object_with_metadata_type(instance: ModelWithMetadata):
         product_models.Product: product_types.Product,
         product_models.ProductType: product_types.ProductType,
         product_models.ProductVariant: product_types.ProductVariant,
-        app_models.App: ServiceAccount,  # FIXME
+        app_models.App: app_types.App,
         account_models.User: account_types.User,
     }
     return MODEL_TO_TYPE_MAP.get(type(instance), None)

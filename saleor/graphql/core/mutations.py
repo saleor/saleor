@@ -425,6 +425,10 @@ class ModelMutation(BaseMutation):
         instance.save()
 
     @classmethod
+    def get_type_for_model(cls):
+        return registry.get_type_for_model(cls._meta.model)
+
+    @classmethod
     def get_instance(cls, info, **data):
         """Retrieve an instance from the supplied global id.
 
@@ -432,7 +436,7 @@ class ModelMutation(BaseMutation):
         """
         object_id = data.get("id")
         if object_id:
-            model_type = registry.get_type_for_model(cls._meta.model)
+            model_type = cls.get_type_for_model()
             instance = cls.get_node_or_error(info, object_id, only_type=model_type)
         else:
             instance = cls._meta.model()
@@ -476,7 +480,7 @@ class ModelDeleteMutation(ModelMutation):
             raise PermissionDenied()
 
         node_id = data.get("id")
-        model_type = registry.get_type_for_model(cls._meta.model)
+        model_type = cls.get_type_for_model()
         instance = cls.get_node_or_error(info, node_id, only_type=model_type)
 
         if instance:
