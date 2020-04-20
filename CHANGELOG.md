@@ -97,6 +97,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix missing accountError when JSONWebTokenError is raised in CreateToken - #5465 by @koradon
 - Use AccountErrorCode.INVALID_CREDENTIALS instead of INVALID_PASSWORD - #5495 by @koradon
 - Add tests for pagination - #5468 by @koradon
+- Add job abstract model and interface - #5510 by @IKarbowiak
 
 ## 2.9.0
 
