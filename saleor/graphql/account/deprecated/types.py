@@ -5,10 +5,16 @@ from graphene_federation import key
 from ....app.models import App, AppToken
 from ....core.permissions import AccountPermissions
 from ...core.connection import CountableDjangoObjectType
-from ...core.types import PermissionDisplay
+from ...core.types import FilterInputObjectType, PermissionDisplay
 from ...meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ...meta.types import ObjectWithMetadata
 from ...utils import format_permissions_for_display
+from .filters import ServiceAccountFilter
+
+
+class ServiceAccountFilterInput(FilterInputObjectType):
+    class Meta:
+        filterset_class = ServiceAccountFilter
 
 
 class ServiceAccountToken(CountableDjangoObjectType):
