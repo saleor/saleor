@@ -310,19 +310,29 @@ class AccountMutations(graphene.ObjectType):
 
     service_account_update_private_metadata = ServiceAccountUpdatePrivateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11."
-            "Use the `UpdatePrivateMetadata` mutation instead."
+            "This field will be removed after 2020-07-31."
+            "Use the `UpdatePrivateMetadata`  mutation with App instead."
         )
     )
     service_account_clear_private_metadata = ServiceAccountClearPrivateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11."
-            "Use the `DeletePrivateMetadata` mutation instead."
+            "This field will be removed after 2020-07-31."
+            "Use the `DeletePrivateMetadata` mutation with App instead."
         )
     )
 
-    service_account_token_create = ServiceAccountTokenCreate.Field()
-    service_account_token_delete = ServiceAccountTokenDelete.Field()
+    service_account_token_create = ServiceAccountTokenCreate.Field(
+        deprecation_reason=(
+            "Use the `appTokenCreate` mutation instead. This field will be removed "
+            "after 2020-07-31."
+        )
+    )
+    service_account_token_delete = ServiceAccountTokenDelete.Field(
+        deprecation_reason=(
+            "Use the `appTokenDelete` mutation instead. This field will be removed "
+            "after 2020-07-31."
+        )
+    )
 
     # Permission group mutations
     permission_group_create = PermissionGroupCreate.Field()
