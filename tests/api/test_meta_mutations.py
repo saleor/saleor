@@ -127,7 +127,7 @@ def test_add_public_metadata_for_customer_as_staff(
     )
 
 
-def test_add_public_metadata_for_customer_as_service_account(
+def test_add_public_metadata_for_customer_as_app(
     app_api_client, permission_manage_users, customer_user
 ):
     # given
@@ -144,7 +144,7 @@ def test_add_public_metadata_for_customer_as_service_account(
     )
 
 
-def test_add_multiple_public_metadata_for_customer_as_service_account(
+def test_add_multiple_public_metadata_for_customer_as_app(
     app_api_client, permission_manage_users, customer_user
 ):
     # given
@@ -179,7 +179,7 @@ def test_add_public_metadata_for_other_staff_as_staff(
     )
 
 
-def test_add_public_metadata_for_staff_as_service_account(
+def test_add_public_metadata_for_staff_as_app(
     app_api_client, permission_manage_staff, admin_user
 ):
     # given
@@ -414,23 +414,18 @@ def test_add_public_metadata_for_product_variant(
     )
 
 
-def test_add_public_metadata_for_service_account(
-    staff_api_client, permission_manage_service_accounts, app
-):
+def test_add_public_metadata_for_app(staff_api_client, permission_manage_apps, app):
     # given
-    service_account_id = graphene.Node.to_global_id("ServiceAccount", app.pk)
+    app_id = graphene.Node.to_global_id("App", app.pk)
 
     # when
     response = execute_update_public_metadata_for_item(
-        staff_api_client,
-        permission_manage_service_accounts,
-        service_account_id,
-        "ServiceAccount",
+        staff_api_client, permission_manage_apps, app_id, "App",
     )
 
     # then
     assert item_contains_proper_public_metadata(
-        response["data"]["updateMetadata"]["item"], app, service_account_id
+        response["data"]["updateMetadata"]["item"], app, app_id
     )
 
 
@@ -594,7 +589,7 @@ def test_delete_public_metadata_for_customer_as_staff(
     )
 
 
-def test_delete_public_metadata_for_customer_as_service_account(
+def test_delete_public_metadata_for_customer_as_app(
     app_api_client, permission_manage_users, customer_user
 ):
     # given
@@ -613,7 +608,7 @@ def test_delete_public_metadata_for_customer_as_service_account(
     )
 
 
-def test_delete_multiple_public_metadata_for_customer_as_service_account(
+def test_delete_multiple_public_metadata_for_customer_as_app(
     app_api_client, permission_manage_users, customer_user
 ):
     # given
@@ -654,7 +649,7 @@ def test_delete_public_metadata_for_other_staff_as_staff(
     )
 
 
-def test_delete_public_metadata_for_staff_as_service_account(
+def test_delete_public_metadata_for_staff_as_app(
     app_api_client, permission_manage_staff, admin_user
 ):
     # given
@@ -917,23 +912,18 @@ def test_delete_public_metadata_for_product_variant(
     )
 
 
-def test_delete_public_metadata_for_service_account(
-    staff_api_client, permission_manage_service_accounts, app
-):
+def test_delete_public_metadata_for_app(staff_api_client, permission_manage_apps, app):
     # given
-    service_account_id = graphene.Node.to_global_id("ServiceAccount", app.pk)
+    app_id = graphene.Node.to_global_id("App", app.pk)
 
     # when
     response = execute_clear_public_metadata_for_item(
-        staff_api_client,
-        permission_manage_service_accounts,
-        service_account_id,
-        "ServiceAccount",
+        staff_api_client, permission_manage_apps, app_id, "App",
     )
 
     # then
     assert item_without_public_metadata(
-        response["data"]["deleteMetadata"]["item"], app, service_account_id
+        response["data"]["deleteMetadata"]["item"], app, app_id
     )
 
 
@@ -1124,7 +1114,7 @@ def test_add_private_metadata_for_customer_as_staff(
     )
 
 
-def test_add_private_metadata_for_customer_as_service_account(
+def test_add_private_metadata_for_customer_as_app(
     app_api_client, permission_manage_users, customer_user
 ):
     # given
@@ -1141,7 +1131,7 @@ def test_add_private_metadata_for_customer_as_service_account(
     )
 
 
-def test_add_multiple_private_metadata_for_customer_as_service_account(
+def test_add_multiple_private_metadata_for_customer_as_app(
     app_api_client, permission_manage_users, customer_user
 ):
     # given
@@ -1176,7 +1166,7 @@ def test_add_private_metadata_for_other_staff_as_staff(
     )
 
 
-def test_add_private_metadata_for_staff_as_service_account(
+def test_add_private_metadata_for_staff_as_app(
     app_api_client, permission_manage_staff, admin_user
 ):
     # given
@@ -1421,23 +1411,18 @@ def test_add_private_metadata_for_product_variant(
     )
 
 
-def test_add_private_metadata_for_service_account(
-    staff_api_client, permission_manage_service_accounts, app
-):
+def test_add_private_metadata_for_app(staff_api_client, permission_manage_apps, app):
     # given
-    service_account_id = graphene.Node.to_global_id("ServiceAccount", app.pk)
+    app_id = graphene.Node.to_global_id("App", app.pk)
 
     # when
     response = execute_update_private_metadata_for_item(
-        staff_api_client,
-        permission_manage_service_accounts,
-        service_account_id,
-        "ServiceAccount",
+        staff_api_client, permission_manage_apps, app_id, "App",
     )
 
     # then
     assert item_contains_proper_private_metadata(
-        response["data"]["updatePrivateMetadata"]["item"], app, service_account_id,
+        response["data"]["updatePrivateMetadata"]["item"], app, app_id,
     )
 
 
@@ -1609,7 +1594,7 @@ def test_delete_private_metadata_for_customer_as_staff(
     )
 
 
-def test_delete_private_metadata_for_customer_as_service_account(
+def test_delete_private_metadata_for_customer_as_app(
     app_api_client, permission_manage_users, customer_user
 ):
     # given
@@ -1628,7 +1613,7 @@ def test_delete_private_metadata_for_customer_as_service_account(
     )
 
 
-def test_delete_multiple_private_metadata_for_customer_as_service_account(
+def test_delete_multiple_private_metadata_for_customer_as_app(
     app_api_client, permission_manage_users, customer_user
 ):
     # given
@@ -1669,7 +1654,7 @@ def test_delete_private_metadata_for_other_staff_as_staff(
     )
 
 
-def test_delete_private_metadata_for_staff_as_service_account(
+def test_delete_private_metadata_for_staff_as_app(
     app_api_client, permission_manage_staff, admin_user
 ):
     # given
@@ -1946,23 +1931,18 @@ def test_delete_private_metadata_for_product_variant(
     )
 
 
-def test_delete_private_metadata_for_service_account(
-    staff_api_client, permission_manage_service_accounts, app
-):
+def test_delete_private_metadata_for_app(staff_api_client, permission_manage_apps, app):
     # given
-    service_account_id = graphene.Node.to_global_id("ServiceAccount", app.pk)
+    app_id = graphene.Node.to_global_id("App", app.pk)
 
     # when
     response = execute_clear_private_metadata_for_item(
-        staff_api_client,
-        permission_manage_service_accounts,
-        service_account_id,
-        "ServiceAccount",
+        staff_api_client, permission_manage_apps, app_id, "App",
     )
 
     # then
     assert item_without_private_metadata(
-        response["data"]["deletePrivateMetadata"]["item"], app, service_account_id,
+        response["data"]["deletePrivateMetadata"]["item"], app, app_id,
     )
 
 

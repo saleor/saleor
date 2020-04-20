@@ -6,7 +6,7 @@ from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types.common import AccountError
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
-from .types import ServiceAccount, ServiceAccountToken  # noqa: F401
+from .types import ServiceAccount, ServiceAccountToken
 
 
 class ServiceAccountInput(graphene.InputObjectType):
@@ -44,6 +44,10 @@ class ServiceAccountTokenCreate(ModelMutation):
         error_type_field = "account_errors"
 
     @classmethod
+    def get_type_for_model(cls):
+        return ServiceAccountToken
+
+    @classmethod
     def perform_mutation(cls, root, info, **data):
         input_data = data.get("input", {})
         instance = cls.get_instance(info, **data)
@@ -70,6 +74,10 @@ class ServiceAccountTokenDelete(ModelDeleteMutation):
         error_type_class = AccountError
         error_type_field = "account_errors"
 
+    @classmethod
+    def get_type_for_model(cls):
+        return ServiceAccountToken
+
 
 class ServiceAccountCreate(ModelMutation):
     auth_token = graphene.types.String(
@@ -89,6 +97,10 @@ class ServiceAccountCreate(ModelMutation):
         permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
+
+    @classmethod
+    def get_type_for_model(cls):
+        return ServiceAccount
 
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
@@ -137,6 +149,10 @@ class ServiceAccountUpdate(ModelMutation):
             cleaned_input["permissions"] = get_permissions(cleaned_input["permissions"])
         return cleaned_input
 
+    @classmethod
+    def get_type_for_model(cls):
+        return ServiceAccount
+
 
 class ServiceAccountDelete(ModelDeleteMutation):
     class Arguments:
@@ -151,6 +167,10 @@ class ServiceAccountDelete(ModelDeleteMutation):
         permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
+
+    @classmethod
+    def get_type_for_model(cls):
+        return ServiceAccount
 
 
 class ServiceAccountUpdatePrivateMeta(UpdateMetaBaseMutation):
