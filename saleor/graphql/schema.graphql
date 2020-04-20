@@ -2346,7 +2346,7 @@ type Mutation {
   voucherCataloguesRemove(id: ID!, input: CatalogueInput!): VoucherRemoveCatalogues
   voucherTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): VoucherTranslate
   tokenCreate(email: String!, password: String!): CreateToken
-  tokenRefresh(token: String!): Refresh
+  tokenRefresh(token: String!): RefreshToken
   tokenVerify(token: String!): VerifyToken
   checkoutAddPromoCode(checkoutId: ID!, promoCode: String!): CheckoutAddPromoCode
   checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID!): CheckoutBillingAddressUpdate
@@ -3807,7 +3807,7 @@ type ReducedRate {
   rateType: TaxRateType!
 }
 
-type Refresh {
+type RefreshToken {
   token: String
   payload: GenericScalar
 }
