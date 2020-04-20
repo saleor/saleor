@@ -207,22 +207,6 @@ def test_decrease_stock_many_allocations(order_line_with_allocation_in_many_stoc
     decrease_stock(order_line, 3)
 
     allocations = order_line.allocations.all()
-    if not allocations[0].quantity_allocated == 0:
-        import ipdb
-
-        ipdb.set_trace()
-    if not allocations[0].stock.quantity == 2:
-        import ipdb
-
-        ipdb.set_trace()
-    if not allocations[1].quantity_allocated == 0:
-        import ipdb
-
-        ipdb.set_trace()
-    if not allocations[1].stock.quantity == 2:
-        import ipdb
-
-        ipdb.set_trace()
     assert allocations[0].quantity_allocated == 0
     assert allocations[0].stock.quantity == 2
     assert allocations[1].quantity_allocated == 0
@@ -237,22 +221,6 @@ def test_decrease_stock_many_allocations_partially(
     decrease_stock(order_line, 2)
 
     allocations = order_line.allocations.all()
-    if not allocations[0].quantity_allocated == 0:
-        import ipdb
-
-        ipdb.set_trace()
-    if not allocations[0].stock.quantity == 2:
-        import ipdb
-
-        ipdb.set_trace()
-    if not allocations[1].quantity_allocated == 1:
-        import ipdb
-
-        ipdb.set_trace()
-    if not allocations[1].stock.quantity == 3:
-        import ipdb
-
-        ipdb.set_trace()
     assert allocations[0].quantity_allocated == 0
     assert allocations[0].stock.quantity == 2
     assert allocations[1].quantity_allocated == 1
