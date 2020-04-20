@@ -5,7 +5,6 @@ from ..core.fields import FilterInputConnectionField
 from ..core.types import FilterInputObjectType
 from ..decorators import one_of_permissions_required, permission_required
 from .bulk_mutations import CustomerBulkDelete, StaffBulkDelete, UserBulkSetActive
-from .deprecated.filters import ServiceAccountFilter
 from .deprecated.mutations_service_account import (
     ServiceAccountClearPrivateMeta,
     ServiceAccountCreate,
@@ -17,7 +16,7 @@ from .deprecated.mutations_service_account import (
 )
 from .deprecated.resolvers import resolve_service_accounts
 from .deprecated.sorters import ServiceAccountSortingInput
-from .deprecated.types import ServiceAccount
+from .deprecated.types import ServiceAccount, ServiceAccountFilterInput
 from .enums import CountryCodeEnum
 from .filters import CustomerFilter, PermissionGroupFilter, StaffUserFilter
 from .mutations.account import (
@@ -91,11 +90,6 @@ class StaffUserInput(FilterInputObjectType):
         filterset_class = StaffUserFilter
 
 
-class ServiceAccountFilterInput(FilterInputObjectType):
-    class Meta:
-        filterset_class = ServiceAccountFilter
-
-
 class AccountQueries(graphene.ObjectType):
     address_validation_rules = graphene.Field(
         AddressValidationData,
@@ -155,6 +149,9 @@ class AccountQueries(graphene.ObjectType):
         ),
         sort_by=ServiceAccountSortingInput(description="Sort service accounts."),
         description="List of the service accounts.",
+        deprecation_reason=(
+            "Use the `apps` query instead. This field will be removed after 2020-07-31."
+        ),
     )
     service_account = graphene.Field(
         ServiceAccount,
@@ -162,6 +159,9 @@ class AccountQueries(graphene.ObjectType):
             graphene.ID, description="ID of the service account.", required=True
         ),
         description="Look up a service account by ID.",
+        deprecation_reason=(
+            "Use the `app` query instead. This field will be removed after 2020-07-31."
+        ),
     )
 
     user = graphene.Field(
@@ -289,9 +289,24 @@ class AccountMutations(graphene.ObjectType):
         )
     )
 
-    service_account_create = ServiceAccountCreate.Field()
-    service_account_update = ServiceAccountUpdate.Field()
-    service_account_delete = ServiceAccountDelete.Field()
+    service_account_create = ServiceAccountCreate.Field(
+        deprecation_reason=(
+            "Use the `appCreate` mutation instead. This field will be removed after "
+            "2020-07-31."
+        )
+    )
+    service_account_update = ServiceAccountUpdate.Field(
+        deprecation_reason=(
+            "Use the `appUpdate` mutation instead. This field will be removed after "
+            "2020-07-31."
+        )
+    )
+    service_account_delete = ServiceAccountDelete.Field(
+        deprecation_reason=(
+            "Use the `appDelete` mutation instead. This field will be removed after "
+            "2020-07-31."
+        )
+    )
 
     service_account_update_private_metadata = ServiceAccountUpdatePrivateMeta.Field(
         deprecation_reason=(
