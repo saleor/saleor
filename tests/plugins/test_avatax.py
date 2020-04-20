@@ -133,7 +133,9 @@ def test_calculate_checkout_total(
     product.save()
 
     discounts = [discount_info] if with_discount else None
-    total = manager.calculate_checkout_total(checkout_with_item, discounts)
+    total = manager.calculate_checkout_total(
+        checkout_with_item, list(checkout_with_item), discounts
+    )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
@@ -164,7 +166,7 @@ def test_calculate_checkout_shipping(
     checkout_with_item.shipping_method = shipping_zone.shipping_methods.get()
     checkout_with_item.save()
     shipping_price = manager.calculate_checkout_shipping(
-        checkout_with_item, [discount_info]
+        checkout_with_item, list(checkout_with_item), [discount_info]
     )
     shipping_price = quantize_price(shipping_price, shipping_price.currency)
     assert shipping_price == TaxedMoney(
@@ -214,7 +216,9 @@ def test_calculate_checkout_subtotal(
 
     discounts = [discount_info] if with_discount else None
     add_variant_to_checkout(checkout_with_item, variant, 2)
-    total = manager.calculate_checkout_subtotal(checkout_with_item, discounts)
+    total = manager.calculate_checkout_subtotal(
+        checkout_with_item, list(checkout_with_item), discounts
+    )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")

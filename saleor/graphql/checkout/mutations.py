@@ -50,7 +50,10 @@ ERROR_DOES_NOT_SHIP = "This checkout doesn't need shipping"
 
 
 def clean_shipping_method(
-    checkout: models.Checkout, method: Optional[models.ShippingMethod], discounts
+    checkout: models.Checkout,
+    lines: List[models.CheckoutLine],
+    method: Optional[models.ShippingMethod],
+    discounts,
 ) -> bool:
     """Check if current shipping method is valid."""
 
@@ -70,23 +73,28 @@ def clean_shipping_method(
             code=CheckoutErrorCode.SHIPPING_ADDRESS_NOT_SET.value,
         )
 
-    valid_methods = get_valid_shipping_methods_for_checkout(checkout, discounts)
+    valid_methods = get_valid_shipping_methods_for_checkout(checkout, lines, discounts)
     return method in valid_methods
 
 
-def update_checkout_shipping_method_if_invalid(checkout: models.Checkout, discounts):
+def update_checkout_shipping_method_if_invalid(
+    checkout: models.Checkout, lines: List[models.CheckoutLine], discounts
+):
     # remove shipping method when empty checkout
     if checkout.quantity == 0 or not checkout.is_shipping_required():
         checkout.shipping_method = None
         checkout.save(update_fields=["shipping_method", "last_change"])
 
     is_valid = clean_shipping_method(
-        checkout=checkout, method=checkout.shipping_method, discounts=discounts
+        checkout=checkout,
+        lines=lines,
+        method=checkout.shipping_method,
+        discounts=discounts,
     )
 
     if not is_valid:
         cheapest_alternative = get_valid_shipping_methods_for_checkout(
-            checkout, discounts
+            checkout, lines, discounts
         ).first()
         checkout.shipping_method = cheapest_alternative
         checkout.save(update_fields=["shipping_method", "last_change"])
@@ -347,8 +355,12 @@ class CheckoutLinesAdd(BaseMutation):
                         f"Insufficient product stock: {exc.item}", code=exc.code
                     )
 
-        update_checkout_shipping_method_if_invalid(checkout, info.context.discounts)
-        recalculate_checkout_discount(checkout, info.context.discounts)
+        lines = list(checkout)
+
+        update_checkout_shipping_method_if_invalid(
+            checkout, lines, info.context.discounts
+        )
+        recalculate_checkout_discount(checkout, lines, info.context.discounts)
 
         return CheckoutLinesAdd(checkout=checkout)
 
@@ -390,8 +402,12 @@ class CheckoutLineDelete(BaseMutation):
         if line and line in checkout.lines.all():
             line.delete()
 
-        update_checkout_shipping_method_if_invalid(checkout, info.context.discounts)
-        recalculate_checkout_discount(checkout, info.context.discounts)
+        lines = list(checkout)
+
+        update_checkout_shipping_method_if_invalid(
+            checkout, lines, info.context.discounts
+        )
+        recalculate_checkout_discount(checkout, lines, info.context.discounts)
 
         return CheckoutLineDelete(checkout=checkout)
 
@@ -515,12 +531,16 @@ class CheckoutShippingAddressUpdate(BaseMutation, I18nMixin):
             shipping_address, instance=checkout.shipping_address, info=info
         )
 
-        update_checkout_shipping_method_if_invalid(checkout, info.context.discounts)
+        lines = list(checkout)
+
+        update_checkout_shipping_method_if_invalid(
+            checkout, lines, info.context.discounts
+        )
 
         with transaction.atomic():
             shipping_address.save()
             change_shipping_address_in_checkout(checkout, shipping_address)
-        recalculate_checkout_discount(checkout, info.context.discounts)
+        recalculate_checkout_discount(checkout, lines, info.context.discounts)
 
         return CheckoutShippingAddressUpdate(checkout=checkout)
 
@@ -628,8 +648,12 @@ class CheckoutShippingMethodUpdate(BaseMutation):
             field="shipping_method_id",
         )
 
+        lines = list(checkout)
         shipping_method_is_valid = clean_shipping_method(
-            checkout=checkout, method=shipping_method, discounts=info.context.discounts
+            checkout=checkout,
+            lines=lines,
+            method=shipping_method,
+            discounts=info.context.discounts,
         )
 
         if not shipping_method_is_valid:
@@ -644,7 +668,7 @@ class CheckoutShippingMethodUpdate(BaseMutation):
 
         checkout.shipping_method = shipping_method
         checkout.save(update_fields=["shipping_method", "last_change"])
-        recalculate_checkout_discount(checkout, info.context.discounts)
+        recalculate_checkout_discount(checkout, lines, info.context.discounts)
 
         return CheckoutShippingMethodUpdate(checkout=checkout)
 
@@ -706,10 +730,11 @@ class CheckoutComplete(BaseMutation):
                 ),
             ).select_related("shipping_method", "shipping_method__shipping_zone"),
         )
+        lines = list(checkout)
 
         discounts = info.context.discounts
         user = info.context.user
-        clean_checkout(checkout, discounts)
+        clean_checkout(checkout, list(checkout), discounts)
 
         payment = checkout.get_last_active_payment()
 
@@ -717,6 +742,7 @@ class CheckoutComplete(BaseMutation):
             try:
                 order_data = prepare_order_data(
                     checkout=checkout,
+                    lines=lines,
                     tracking_code=analytics.get_client_id(info.context),
                     discounts=discounts,
                 )
@@ -811,7 +837,8 @@ class CheckoutAddPromoCode(BaseMutation):
         checkout = cls.get_node_or_error(
             info, checkout_id, only_type=Checkout, field="checkout_id"
         )
-        add_promo_code_to_checkout(checkout, promo_code, info.context.discounts)
+        lines = list(checkout)
+        add_promo_code_to_checkout(checkout, lines, promo_code, info.context.discounts)
         return CheckoutAddPromoCode(checkout=checkout)
 
 
