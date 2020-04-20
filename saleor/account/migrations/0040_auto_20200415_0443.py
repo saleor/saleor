@@ -25,6 +25,9 @@ def change_extension_permission_to_plugin_permission(apps, schema_editor):
         user.user_permissions.remove(extension_permission)
         user.user_permissions.add(plugin_permission)
 
+    if extension_permission:
+        extension_permission.delete()
+
 
 class Migration(migrations.Migration):
 
