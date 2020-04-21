@@ -14,17 +14,6 @@ class AttributeSortField(graphene.Enum):
     VISIBLE_IN_STOREFRONT = ["visible_in_storefront", "name", "slug"]
     FILTERABLE_IN_STOREFRONT = ["filterable_in_storefront", "name", "slug"]
     FILTERABLE_IN_DASHBOARD = ["filterable_in_dashboard", "name", "slug"]
-
-    # Deprecated: doesn't work
-    DASHBOARD_VARIANT_POSITION = [
-        "attributevariant__sort_order",
-        "attributevariant__id",
-    ]
-    # Deprecated: doesn't work
-    DASHBOARD_PRODUCT_POSITION = [
-        "attributeproduct__sort_order",
-        "attributevariant__id",
-    ]
     STOREFRONT_SEARCH_POSITION = ["storefront_search_position", "name", "pk"]
     AVAILABLE_IN_GRID = ["available_in_grid", "name", "pk"]
 
@@ -51,14 +40,6 @@ class AttributeSortField(graphene.Enum):
             ),
             AttributeSortField.STOREFRONT_SEARCH_POSITION.name: (
                 "Sort attributes by their position in storefront"
-            ),
-            AttributeSortField.DASHBOARD_VARIANT_POSITION.name: (
-                "DEPRECATED: Will be removed in Saleor 2.11. "
-                "Sort variant attributes by their position in dashboard."
-            ),
-            AttributeSortField.DASHBOARD_PRODUCT_POSITION.name: (
-                "DEPRECATED: Will be removed in Saleor 2.11. "
-                "Sort product attributes by their position in dashboard."
             ),
             AttributeSortField.AVAILABLE_IN_GRID.name: (
                 "Sort attributes based on whether they can be displayed "

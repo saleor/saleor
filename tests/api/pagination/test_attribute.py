@@ -124,14 +124,6 @@ QUERY_ATTRIBUTES_PAGINATION = """
             {"field": "STOREFRONT_SEARCH_POSITION", "direction": "ASC"},
             ["Attr3", "AttrAttr2", "AttrAttr1"],
         ),
-        (
-            {"field": "DASHBOARD_VARIANT_POSITION", "direction": "ASC"},
-            ["AttrAttr1", "Attr2", "Attr3"],
-        ),
-        (
-            {"field": "DASHBOARD_PRODUCT_POSITION", "direction": "ASC"},
-            ["AttrAttr2", "Attr1", "AttrAttr1"],
-        ),
     ],
 )
 def test_attributes_pagination_with_sorting(
