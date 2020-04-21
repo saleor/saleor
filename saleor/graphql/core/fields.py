@@ -49,7 +49,7 @@ class BaseDjangoConnectionField(DjangoConnectionField):
         common_args = {
             "connection_type": connection,
             "edge_type": connection.Edge,
-            "page_info_type": PageInfo,
+            "pageinfo_type": PageInfo,
         }
         if isinstance(iterable, list):
             common_args["args"] = args
@@ -163,7 +163,7 @@ class FilterInputConnectionField(PrefetchingConnectionField):
         if enforce_first_or_last and not (first or last):
             raise GraphQLError(
                 f"You must provide a `first` or `last` value to properly paginate "
-                f"the {info.field_name} connection."
+                f"the `{info.field_name}` connection."
             )
 
         if max_limit:
