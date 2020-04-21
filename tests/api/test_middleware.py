@@ -5,7 +5,7 @@ from django.urls import reverse
 from saleor.graphql.middleware import app_middleware
 
 
-def test_service_account_middleware_accepts_api_requests(app, rf):
+def test_app_middleware_accepts_api_requests(app, rf):
 
     # Retrieve sample request object
     request = rf.get(reverse("api"))

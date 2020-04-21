@@ -7,6 +7,7 @@ class WebhookSortField(graphene.Enum):
     NAME = "name"
     SERVICE_ACCOUNT = "app__name"
     TARGET_URL = "target_url"
+    APP = "app__name"
 
     @property
     def description(self):
