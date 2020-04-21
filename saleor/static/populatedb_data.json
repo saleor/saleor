@@ -25,7 +25,7 @@
                 "entityMap": {}
             },
             "parent": null,
-            "background_image": "category-backgrounds/accessories_cXABqme.jpg",
+            "background_image": "category-backgrounds/accessories_D67x97h.jpg",
             "background_image_alt": "",
             "lft": 1,
             "rght": 6,
@@ -59,7 +59,7 @@
                 "entityMap": {}
             },
             "parent": null,
-            "background_image": "category-backgrounds/groceries_Q8EWi6D.jpg",
+            "background_image": "category-backgrounds/groceries_nY0iaoF.jpg",
             "background_image_alt": "",
             "lft": 1,
             "rght": 6,
@@ -93,7 +93,7 @@
                 "entityMap": {}
             },
             "parent": null,
-            "background_image": "category-backgrounds/apparel_8VnaY4M.jpg",
+            "background_image": "category-backgrounds/apparel_qlg6QDz.jpg",
             "background_image_alt": "",
             "lft": 1,
             "rght": 10,
@@ -114,7 +114,7 @@
             "description": "",
             "description_json": {},
             "parent": 9,
-            "background_image": "category-backgrounds/apparel_1nWUfHj.jpg",
+            "background_image": "category-backgrounds/apparel_nEuWqXt.jpg",
             "background_image_alt": "",
             "lft": 2,
             "rght": 3,
@@ -135,7 +135,7 @@
             "description": "",
             "description_json": {},
             "parent": 9,
-            "background_image": "category-backgrounds/apparel_WWKtSmD.jpg",
+            "background_image": "category-backgrounds/apparel_U7MxAWo.jpg",
             "background_image_alt": "",
             "lft": 4,
             "rght": 5,
@@ -156,7 +156,7 @@
             "description": "",
             "description_json": {},
             "parent": 9,
-            "background_image": "category-backgrounds/apparel_tkqrz7K.jpg",
+            "background_image": "category-backgrounds/apparel_xoziiPz.jpg",
             "background_image_alt": "",
             "lft": 6,
             "rght": 7,
@@ -177,7 +177,7 @@
             "description": "",
             "description_json": {},
             "parent": 9,
-            "background_image": "category-backgrounds/apparel_hOnlE29.jpg",
+            "background_image": "category-backgrounds/apparel_LfFdurb.jpg",
             "background_image_alt": "",
             "lft": 8,
             "rght": 9,
@@ -198,7 +198,7 @@
             "description": "",
             "description_json": {},
             "parent": 8,
-            "background_image": "category-backgrounds/groceries_FJ8dnIs.jpg",
+            "background_image": "category-backgrounds/groceries_6I5MN02.jpg",
             "background_image_alt": "",
             "lft": 2,
             "rght": 3,
@@ -219,7 +219,7 @@
             "description": "",
             "description_json": {},
             "parent": 8,
-            "background_image": "category-backgrounds/groceries_y8mVDcs.jpg",
+            "background_image": "category-backgrounds/groceries_UkB6ATa.jpg",
             "background_image_alt": "",
             "lft": 4,
             "rght": 5,
@@ -240,7 +240,7 @@
             "description": "",
             "description_json": {},
             "parent": 7,
-            "background_image": "category-backgrounds/accessories_gqxufm3.jpg",
+            "background_image": "category-backgrounds/accessories_jnRKK3i.jpg",
             "background_image_alt": "",
             "lft": 2,
             "rght": 3,
@@ -261,7 +261,7 @@
             "description": "",
             "description_json": {},
             "parent": 7,
-            "background_image": "category-backgrounds/accessories_PB9mWQO.jpg",
+            "background_image": "category-backgrounds/accessories_us8G3dU.jpg",
             "background_image_alt": "",
             "lft": 4,
             "rght": 5,
@@ -283,7 +283,7 @@
             "has_variants": true,
             "is_shipping_required": true,
             "is_digital": false,
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -300,7 +300,7 @@
             "has_variants": true,
             "is_shipping_required": true,
             "is_digital": false,
-            "weight": "0.2 kg"
+            "weight": "0.2:kg"
         }
     },
     {
@@ -317,7 +317,7 @@
             "has_variants": true,
             "is_shipping_required": true,
             "is_digital": false,
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -334,7 +334,7 @@
             "has_variants": false,
             "is_shipping_required": true,
             "is_digital": false,
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -351,7 +351,7 @@
             "has_variants": false,
             "is_shipping_required": true,
             "is_digital": false,
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -368,7 +368,7 @@
             "has_variants": true,
             "is_shipping_required": true,
             "is_digital": false,
-            "weight": "0.5 kg"
+            "weight": "0.5:kg"
         }
     },
     {
@@ -385,7 +385,7 @@
             "has_variants": true,
             "is_shipping_required": true,
             "is_digital": false,
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -402,7 +402,7 @@
             "has_variants": true,
             "is_shipping_required": true,
             "is_digital": false,
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -443,10 +443,10 @@
             "category": 20,
             "currency": "USD",
             "price_amount": "15.00",
-            "minimal_variant_price_amount": "7.50",
-            "updated_at": "2020-01-29T14:07:37.851Z",
+            "minimal_variant_price_amount": "13.50",
+            "updated_at": "2020-04-17T14:22:48.130Z",
             "charge_taxes": true,
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -484,9 +484,9 @@
             "currency": "USD",
             "price_amount": "15.00",
             "minimal_variant_price_amount": "15.00",
-            "updated_at": "2020-01-29T14:07:37.934Z",
+            "updated_at": "2020-04-17T14:22:32.078Z",
             "charge_taxes": true,
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -523,10 +523,10 @@
             "category": 20,
             "currency": "USD",
             "price_amount": "15.00",
-            "minimal_variant_price_amount": "7.50",
-            "updated_at": "2020-01-29T14:07:37.915Z",
+            "minimal_variant_price_amount": "15.00",
+            "updated_at": "2020-04-17T14:22:48.352Z",
             "charge_taxes": true,
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -563,10 +563,10 @@
             "category": 20,
             "currency": "USD",
             "price_amount": "15.00",
-            "minimal_variant_price_amount": "10.50",
-            "updated_at": "2020-01-29T14:07:37.836Z",
+            "minimal_variant_price_amount": "13.50",
+            "updated_at": "2020-04-17T14:22:48.436Z",
             "charge_taxes": true,
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -603,10 +603,10 @@
             "category": 20,
             "currency": "USD",
             "price_amount": "15.00",
-            "minimal_variant_price_amount": "12.00",
-            "updated_at": "2020-01-29T14:07:37.831Z",
+            "minimal_variant_price_amount": "15.00",
+            "updated_at": "2020-04-17T14:22:48.573Z",
             "charge_taxes": true,
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -644,9 +644,9 @@
             "currency": "USD",
             "price_amount": "3.00",
             "minimal_variant_price_amount": "3.00",
-            "updated_at": "2020-01-29T14:07:37.862Z",
+            "updated_at": "2020-04-17T14:22:33.321Z",
             "charge_taxes": true,
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -683,10 +683,10 @@
             "category": 14,
             "currency": "USD",
             "price_amount": "3.00",
-            "minimal_variant_price_amount": "1.50",
-            "updated_at": "2020-01-29T14:07:37.765Z",
+            "minimal_variant_price_amount": "3.00",
+            "updated_at": "2020-04-17T14:22:49.025Z",
             "charge_taxes": true,
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -724,9 +724,9 @@
             "currency": "USD",
             "price_amount": "3.00",
             "minimal_variant_price_amount": "3.00",
-            "updated_at": "2020-01-29T14:07:37.807Z",
+            "updated_at": "2020-04-17T14:22:33.818Z",
             "charge_taxes": true,
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -763,10 +763,10 @@
             "category": 14,
             "currency": "USD",
             "price_amount": "3.00",
-            "minimal_variant_price_amount": "2.10",
-            "updated_at": "2020-01-29T14:07:37.773Z",
+            "minimal_variant_price_amount": "2.70",
+            "updated_at": "2020-04-17T14:22:49.191Z",
             "charge_taxes": true,
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -803,10 +803,10 @@
             "category": 14,
             "currency": "USD",
             "price_amount": "3.00",
-            "minimal_variant_price_amount": "3.00",
-            "updated_at": "2020-01-29T14:07:37.870Z",
+            "minimal_variant_price_amount": "1.50",
+            "updated_at": "2020-04-17T14:22:34.373Z",
             "charge_taxes": true,
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -843,10 +843,10 @@
             "category": 14,
             "currency": "USD",
             "price_amount": "3.00",
-            "minimal_variant_price_amount": "1.50",
-            "updated_at": "2020-01-29T14:07:37.812Z",
+            "minimal_variant_price_amount": "2.10",
+            "updated_at": "2020-04-17T14:22:49.354Z",
             "charge_taxes": true,
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -883,10 +883,10 @@
             "category": 14,
             "currency": "USD",
             "price_amount": "3.00",
-            "minimal_variant_price_amount": "3.00",
-            "updated_at": "2020-01-29T14:07:37.909Z",
+            "minimal_variant_price_amount": "2.10",
+            "updated_at": "2020-04-17T14:22:34.921Z",
             "charge_taxes": true,
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -924,9 +924,9 @@
             "currency": "USD",
             "price_amount": "3.00",
             "minimal_variant_price_amount": "3.00",
-            "updated_at": "2020-01-29T14:07:37.826Z",
+            "updated_at": "2020-04-17T14:22:35.164Z",
             "charge_taxes": true,
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -964,9 +964,9 @@
             "currency": "USD",
             "price_amount": "3.00",
             "minimal_variant_price_amount": "3.00",
-            "updated_at": "2020-01-29T14:07:37.780Z",
+            "updated_at": "2020-04-17T14:22:35.431Z",
             "charge_taxes": true,
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -1003,10 +1003,10 @@
             "category": 15,
             "currency": "USD",
             "price_amount": "15.00",
-            "minimal_variant_price_amount": "15.00",
-            "updated_at": "2020-01-29T14:07:37.920Z",
+            "minimal_variant_price_amount": "13.50",
+            "updated_at": "2020-04-17T14:22:35.729Z",
             "charge_taxes": true,
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -1044,9 +1044,9 @@
             "currency": "USD",
             "price_amount": "15.00",
             "minimal_variant_price_amount": "15.00",
-            "updated_at": "2020-01-29T14:07:37.980Z",
+            "updated_at": "2020-04-17T14:22:36.016Z",
             "charge_taxes": true,
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -1083,10 +1083,10 @@
             "category": 15,
             "currency": "USD",
             "price_amount": "3.00",
-            "minimal_variant_price_amount": "1.50",
-            "updated_at": "2020-01-29T14:07:37.929Z",
+            "minimal_variant_price_amount": "3.00",
+            "updated_at": "2020-04-17T14:22:48.853Z",
             "charge_taxes": true,
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -1123,10 +1123,10 @@
             "category": 15,
             "currency": "USD",
             "price_amount": "3.20",
-            "minimal_variant_price_amount": "3.20",
-            "updated_at": "2020-01-29T14:07:37.925Z",
+            "minimal_variant_price_amount": "1.60",
+            "updated_at": "2020-04-17T14:22:37.171Z",
             "charge_taxes": true,
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -1163,10 +1163,10 @@
             "category": 22,
             "currency": "USD",
             "price_amount": "20.00",
-            "minimal_variant_price_amount": "20.00",
-            "updated_at": "2020-01-29T14:07:37.822Z",
+            "minimal_variant_price_amount": "18.00",
+            "updated_at": "2020-04-17T14:22:38.060Z",
             "charge_taxes": true,
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -1203,10 +1203,10 @@
             "category": 22,
             "currency": "USD",
             "price_amount": "20.00",
-            "minimal_variant_price_amount": "14.00",
-            "updated_at": "2020-01-29T14:07:37.968Z",
+            "minimal_variant_price_amount": "10.00",
+            "updated_at": "2020-04-17T14:22:48.969Z",
             "charge_taxes": true,
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -1244,9 +1244,9 @@
             "currency": "USD",
             "price_amount": "59.00",
             "minimal_variant_price_amount": "59.00",
-            "updated_at": "2020-01-29T14:07:37.990Z",
+            "updated_at": "2020-04-17T14:22:38.672Z",
             "charge_taxes": true,
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -1284,9 +1284,9 @@
             "currency": "USD",
             "price_amount": "49.00",
             "minimal_variant_price_amount": "24.50",
-            "updated_at": "2020-01-29T14:07:37.974Z",
+            "updated_at": "2020-04-17T14:22:49.883Z",
             "charge_taxes": true,
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -1324,9 +1324,9 @@
             "currency": "USD",
             "price_amount": "30.00",
             "minimal_variant_price_amount": "30.00",
-            "updated_at": "2020-01-29T14:07:37.818Z",
+            "updated_at": "2020-04-17T14:22:40.481Z",
             "charge_taxes": true,
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -1363,10 +1363,10 @@
             "category": 11,
             "currency": "USD",
             "price_amount": "30.00",
-            "minimal_variant_price_amount": "30.00",
-            "updated_at": "2020-01-29T14:07:37.876Z",
+            "minimal_variant_price_amount": "15.00",
+            "updated_at": "2020-04-17T14:22:40.970Z",
             "charge_taxes": true,
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -1404,9 +1404,9 @@
             "currency": "USD",
             "price_amount": "30.00",
             "minimal_variant_price_amount": "30.00",
-            "updated_at": "2020-01-29T14:07:37.883Z",
+            "updated_at": "2020-04-17T14:22:41.332Z",
             "charge_taxes": true,
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -1443,10 +1443,10 @@
             "category": 11,
             "currency": "USD",
             "price_amount": "30.00",
-            "minimal_variant_price_amount": "30.00",
-            "updated_at": "2020-01-29T14:07:37.892Z",
+            "minimal_variant_price_amount": "15.00",
+            "updated_at": "2020-04-17T14:22:41.931Z",
             "charge_taxes": true,
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -1484,9 +1484,9 @@
             "currency": "USD",
             "price_amount": "30.00",
             "minimal_variant_price_amount": "30.00",
-            "updated_at": "2020-01-29T14:07:37.903Z",
+            "updated_at": "2020-04-17T14:22:42.300Z",
             "charge_taxes": true,
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -1524,9 +1524,9 @@
             "currency": "USD",
             "price_amount": "30.00",
             "minimal_variant_price_amount": "15.00",
-            "updated_at": "2020-01-29T14:07:37.945Z",
+            "updated_at": "2020-04-17T14:22:50.773Z",
             "charge_taxes": true,
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -1563,10 +1563,10 @@
             "category": 10,
             "currency": "USD",
             "price_amount": "30.00",
-            "minimal_variant_price_amount": "24.00",
-            "updated_at": "2020-01-29T14:07:37.939Z",
+            "minimal_variant_price_amount": "30.00",
+            "updated_at": "2020-04-17T14:22:50.918Z",
             "charge_taxes": true,
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -1603,10 +1603,10 @@
             "category": 10,
             "currency": "USD",
             "price_amount": "30.00",
-            "minimal_variant_price_amount": "24.00",
-            "updated_at": "2020-01-29T14:07:37.956Z",
+            "minimal_variant_price_amount": "30.00",
+            "updated_at": "2020-04-17T14:22:51.187Z",
             "charge_taxes": true,
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -1644,9 +1644,9 @@
             "currency": "USD",
             "price_amount": "30.00",
             "minimal_variant_price_amount": "30.00",
-            "updated_at": "2020-01-29T14:07:37.951Z",
+            "updated_at": "2020-04-17T14:22:45.309Z",
             "charge_taxes": true,
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -1683,10 +1683,10 @@
             "category": 12,
             "currency": "USD",
             "price_amount": "30.00",
-            "minimal_variant_price_amount": "21.00",
-            "updated_at": "2020-01-29T14:07:37.789Z",
+            "minimal_variant_price_amount": "30.00",
+            "updated_at": "2020-04-17T14:22:51.476Z",
             "charge_taxes": true,
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -1724,9 +1724,9 @@
             "currency": "USD",
             "price_amount": "30.00",
             "minimal_variant_price_amount": "30.00",
-            "updated_at": "2020-01-29T14:07:37.798Z",
+            "updated_at": "2020-04-17T14:22:46.458Z",
             "charge_taxes": true,
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -1764,9 +1764,9 @@
             "currency": "USD",
             "price_amount": "30.00",
             "minimal_variant_price_amount": "30.00",
-            "updated_at": "2020-01-29T14:07:37.842Z",
+            "updated_at": "2020-04-17T14:22:46.791Z",
             "charge_taxes": true,
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -1803,10 +1803,10 @@
             "category": 12,
             "currency": "USD",
             "price_amount": "30.00",
-            "minimal_variant_price_amount": "15.00",
-            "updated_at": "2020-01-29T14:07:37.961Z",
+            "minimal_variant_price_amount": "27.00",
+            "updated_at": "2020-04-17T14:22:52.023Z",
             "charge_taxes": true,
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -1822,9 +1822,8 @@
             "product": 61,
             "track_inventory": true,
             "quantity": 116,
-            "quantity_allocated": 17,
             "cost_price_amount": "5.00",
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -1840,9 +1839,8 @@
             "product": 61,
             "track_inventory": true,
             "quantity": 22,
-            "quantity_allocated": 3,
             "cost_price_amount": "10.00",
-            "weight": "2.5 kg"
+            "weight": "2.5:kg"
         }
     },
     {
@@ -1858,9 +1856,8 @@
             "product": 61,
             "track_inventory": true,
             "quantity": 15,
-            "quantity_allocated": 15,
             "cost_price_amount": "20.00",
-            "weight": "5.0 kg"
+            "weight": "5.0:kg"
         }
     },
     {
@@ -1876,9 +1873,8 @@
             "product": 62,
             "track_inventory": true,
             "quantity": 43,
-            "quantity_allocated": 19,
             "cost_price_amount": "5.00",
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -1894,9 +1890,8 @@
             "product": 62,
             "track_inventory": true,
             "quantity": 110,
-            "quantity_allocated": 0,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -1912,9 +1907,8 @@
             "product": 62,
             "track_inventory": true,
             "quantity": 125,
-            "quantity_allocated": 14,
             "cost_price_amount": "25.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -1930,9 +1924,8 @@
             "product": 63,
             "track_inventory": true,
             "quantity": 1235,
-            "quantity_allocated": 4,
             "cost_price_amount": "5.00",
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -1948,9 +1941,8 @@
             "product": 63,
             "track_inventory": true,
             "quantity": 1223,
-            "quantity_allocated": 12,
             "cost_price_amount": "10.00",
-            "weight": "2.5 kg"
+            "weight": "2.5:kg"
         }
     },
     {
@@ -1966,9 +1958,8 @@
             "product": 63,
             "track_inventory": true,
             "quantity": 475,
-            "quantity_allocated": 30,
             "cost_price_amount": "20.00",
-            "weight": "5.0 kg"
+            "weight": "5.0:kg"
         }
     },
     {
@@ -1984,9 +1975,8 @@
             "product": 64,
             "track_inventory": true,
             "quantity": 998,
-            "quantity_allocated": 12,
             "cost_price_amount": "5.00",
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -2002,9 +1992,8 @@
             "product": 64,
             "track_inventory": true,
             "quantity": 760,
-            "quantity_allocated": 9,
             "cost_price_amount": "10.00",
-            "weight": "2.5 kg"
+            "weight": "2.5:kg"
         }
     },
     {
@@ -2020,9 +2009,8 @@
             "product": 64,
             "track_inventory": true,
             "quantity": 587,
-            "quantity_allocated": 16,
             "cost_price_amount": "15.00",
-            "weight": "5.0 kg"
+            "weight": "5.0:kg"
         }
     },
     {
@@ -2038,9 +2026,8 @@
             "product": 65,
             "track_inventory": true,
             "quantity": 427,
-            "quantity_allocated": 16,
             "cost_price_amount": "5.00",
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -2056,9 +2043,8 @@
             "product": 65,
             "track_inventory": true,
             "quantity": 516,
-            "quantity_allocated": 5,
             "cost_price_amount": "10.00",
-            "weight": "2.5 kg"
+            "weight": "2.5:kg"
         }
     },
     {
@@ -2074,9 +2060,8 @@
             "product": 65,
             "track_inventory": true,
             "quantity": 159,
-            "quantity_allocated": 18,
             "cost_price_amount": "15.00",
-            "weight": "5.0 kg"
+            "weight": "5.0:kg"
         }
     },
     {
@@ -2092,9 +2077,8 @@
             "product": 71,
             "track_inventory": true,
             "quantity": 1221,
-            "quantity_allocated": 10,
             "cost_price_amount": "1.00",
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -2110,9 +2094,8 @@
             "product": 71,
             "track_inventory": true,
             "quantity": 183,
-            "quantity_allocated": 8,
             "cost_price_amount": "1.50",
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -2128,9 +2111,8 @@
             "product": 71,
             "track_inventory": true,
             "quantity": 221,
-            "quantity_allocated": 10,
             "cost_price_amount": "2.00",
-            "weight": "2.0 kg"
+            "weight": "2.0:kg"
         }
     },
     {
@@ -2146,9 +2128,8 @@
             "product": 81,
             "track_inventory": true,
             "quantity": 21244,
-            "quantity_allocated": 13,
             "cost_price_amount": null,
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -2164,9 +2145,8 @@
             "product": 82,
             "track_inventory": true,
             "quantity": 12159,
-            "quantity_allocated": 28,
             "cost_price_amount": null,
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -2182,9 +2162,8 @@
             "product": 83,
             "track_inventory": true,
             "quantity": 12141,
-            "quantity_allocated": 20,
             "cost_price_amount": null,
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -2200,9 +2179,8 @@
             "product": 84,
             "track_inventory": true,
             "quantity": 975534,
-            "quantity_allocated": 17,
             "cost_price_amount": null,
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -2218,9 +2196,8 @@
             "product": 85,
             "track_inventory": true,
             "quantity": 9873,
-            "quantity_allocated": 12,
             "cost_price_amount": "11.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -2236,9 +2213,8 @@
             "product": 85,
             "track_inventory": true,
             "quantity": 687,
-            "quantity_allocated": 16,
             "cost_price_amount": "12.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -2254,9 +2230,8 @@
             "product": 86,
             "track_inventory": true,
             "quantity": 573,
-            "quantity_allocated": 2,
             "cost_price_amount": "13.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -2272,9 +2247,8 @@
             "product": 86,
             "track_inventory": true,
             "quantity": 1020,
-            "quantity_allocated": 21,
             "cost_price_amount": "13.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -2290,9 +2264,8 @@
             "product": 72,
             "track_inventory": true,
             "quantity": 1224,
-            "quantity_allocated": 13,
             "cost_price_amount": "1.00",
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -2308,9 +2281,8 @@
             "product": 72,
             "track_inventory": true,
             "quantity": 179,
-            "quantity_allocated": 4,
             "cost_price_amount": "1.50",
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -2326,9 +2298,8 @@
             "product": 72,
             "track_inventory": true,
             "quantity": 227,
-            "quantity_allocated": 16,
             "cost_price_amount": "2.00",
-            "weight": "2.0 kg"
+            "weight": "2.0:kg"
         }
     },
     {
@@ -2344,9 +2315,8 @@
             "product": 73,
             "track_inventory": true,
             "quantity": 1220,
-            "quantity_allocated": 9,
             "cost_price_amount": "1.00",
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -2362,9 +2332,8 @@
             "product": 73,
             "track_inventory": true,
             "quantity": 185,
-            "quantity_allocated": 10,
             "cost_price_amount": "1.50",
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -2380,9 +2349,8 @@
             "product": 73,
             "track_inventory": true,
             "quantity": 223,
-            "quantity_allocated": 12,
             "cost_price_amount": "2.00",
-            "weight": "2.0 kg"
+            "weight": "2.0:kg"
         }
     },
     {
@@ -2398,9 +2366,8 @@
             "product": 74,
             "track_inventory": true,
             "quantity": 1219,
-            "quantity_allocated": 8,
             "cost_price_amount": "1.00",
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -2416,9 +2383,8 @@
             "product": 74,
             "track_inventory": true,
             "quantity": 188,
-            "quantity_allocated": 13,
             "cost_price_amount": "1.50",
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -2434,9 +2400,8 @@
             "product": 74,
             "track_inventory": true,
             "quantity": 225,
-            "quantity_allocated": 14,
             "cost_price_amount": "2.00",
-            "weight": "2.0 kg"
+            "weight": "2.0:kg"
         }
     },
     {
@@ -2452,9 +2417,8 @@
             "product": 75,
             "track_inventory": true,
             "quantity": 1219,
-            "quantity_allocated": 8,
             "cost_price_amount": "1.00",
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -2470,9 +2434,8 @@
             "product": 75,
             "track_inventory": true,
             "quantity": 191,
-            "quantity_allocated": 16,
             "cost_price_amount": "1.50",
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -2488,9 +2451,8 @@
             "product": 75,
             "track_inventory": true,
             "quantity": 225,
-            "quantity_allocated": 14,
             "cost_price_amount": "2.00",
-            "weight": "2.0 kg"
+            "weight": "2.0:kg"
         }
     },
     {
@@ -2506,9 +2468,8 @@
             "product": 76,
             "track_inventory": true,
             "quantity": 1214,
-            "quantity_allocated": 3,
             "cost_price_amount": "1.00",
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -2524,9 +2485,8 @@
             "product": 76,
             "track_inventory": true,
             "quantity": 182,
-            "quantity_allocated": 7,
             "cost_price_amount": "1.50",
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -2542,9 +2502,8 @@
             "product": 76,
             "track_inventory": true,
             "quantity": 238,
-            "quantity_allocated": 27,
             "cost_price_amount": "2.00",
-            "weight": "2.0 kg"
+            "weight": "2.0:kg"
         }
     },
     {
@@ -2560,9 +2519,8 @@
             "product": 77,
             "track_inventory": true,
             "quantity": 1222,
-            "quantity_allocated": 11,
             "cost_price_amount": "1.00",
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -2578,9 +2536,8 @@
             "product": 77,
             "track_inventory": true,
             "quantity": 178,
-            "quantity_allocated": 3,
             "cost_price_amount": "1.50",
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -2596,9 +2553,8 @@
             "product": 77,
             "track_inventory": true,
             "quantity": 224,
-            "quantity_allocated": 13,
             "cost_price_amount": "2.00",
-            "weight": "2.0 kg"
+            "weight": "2.0:kg"
         }
     },
     {
@@ -2614,9 +2570,8 @@
             "product": 78,
             "track_inventory": true,
             "quantity": 1218,
-            "quantity_allocated": 7,
             "cost_price_amount": "1.00",
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -2632,9 +2587,8 @@
             "product": 78,
             "track_inventory": true,
             "quantity": 181,
-            "quantity_allocated": 6,
             "cost_price_amount": "1.50",
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -2650,9 +2604,8 @@
             "product": 78,
             "track_inventory": true,
             "quantity": 238,
-            "quantity_allocated": 27,
             "cost_price_amount": "2.00",
-            "weight": "2.0 kg"
+            "weight": "2.0:kg"
         }
     },
     {
@@ -2668,9 +2621,8 @@
             "product": 79,
             "track_inventory": true,
             "quantity": 1221,
-            "quantity_allocated": 10,
             "cost_price_amount": "1.00",
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -2686,9 +2638,8 @@
             "product": 79,
             "track_inventory": true,
             "quantity": 181,
-            "quantity_allocated": 6,
             "cost_price_amount": "1.50",
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -2704,9 +2655,8 @@
             "product": 79,
             "track_inventory": true,
             "quantity": 237,
-            "quantity_allocated": 26,
             "cost_price_amount": "2.00",
-            "weight": "2.0 kg"
+            "weight": "2.0:kg"
         }
     },
     {
@@ -2722,9 +2672,8 @@
             "product": 87,
             "track_inventory": true,
             "quantity": 9125,
-            "quantity_allocated": 4,
             "cost_price_amount": "20.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -2740,9 +2689,8 @@
             "product": 87,
             "track_inventory": true,
             "quantity": 1,
-            "quantity_allocated": 0,
             "cost_price_amount": "20.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -2758,9 +2706,8 @@
             "product": 87,
             "track_inventory": true,
             "quantity": 2,
-            "quantity_allocated": 1,
             "cost_price_amount": "20.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -2776,9 +2723,8 @@
             "product": 87,
             "track_inventory": true,
             "quantity": 133,
-            "quantity_allocated": 2,
             "cost_price_amount": "20.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -2794,9 +2740,8 @@
             "product": 87,
             "track_inventory": true,
             "quantity": 884,
-            "quantity_allocated": 23,
             "cost_price_amount": "20.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -2812,9 +2757,8 @@
             "product": 88,
             "track_inventory": true,
             "quantity": 7625,
-            "quantity_allocated": 14,
             "cost_price_amount": "10.00",
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -2830,9 +2774,8 @@
             "product": 88,
             "track_inventory": true,
             "quantity": 980,
-            "quantity_allocated": 9,
             "cost_price_amount": "20.00",
-            "weight": "1.0 kg"
+            "weight": "1.0:kg"
         }
     },
     {
@@ -2848,9 +2791,8 @@
             "product": 88,
             "track_inventory": true,
             "quantity": 0,
-            "quantity_allocated": 0,
             "cost_price_amount": null,
-            "weight": "2.0 kg"
+            "weight": "2.0:kg"
         }
     },
     {
@@ -2866,9 +2808,8 @@
             "product": 88,
             "track_inventory": true,
             "quantity": 27,
-            "quantity_allocated": 27,
             "cost_price_amount": "20.00",
-            "weight": "2.0 kg"
+            "weight": "2.0:kg"
         }
     },
     {
@@ -2884,9 +2825,8 @@
             "product": 89,
             "track_inventory": true,
             "quantity": 1217,
-            "quantity_allocated": 4,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -2902,9 +2842,8 @@
             "product": 89,
             "track_inventory": true,
             "quantity": 11,
-            "quantity_allocated": 10,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -2920,9 +2859,8 @@
             "product": 89,
             "track_inventory": true,
             "quantity": 9819,
-            "quantity_allocated": 1,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -2938,9 +2876,8 @@
             "product": 89,
             "track_inventory": true,
             "quantity": 2,
-            "quantity_allocated": 1,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -2956,9 +2893,8 @@
             "product": 89,
             "track_inventory": true,
             "quantity": 5804,
-            "quantity_allocated": 13,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -2974,9 +2910,8 @@
             "product": 107,
             "track_inventory": true,
             "quantity": 1227,
-            "quantity_allocated": 14,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -2992,9 +2927,8 @@
             "product": 107,
             "track_inventory": true,
             "quantity": 14,
-            "quantity_allocated": 13,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3010,9 +2944,8 @@
             "product": 107,
             "track_inventory": true,
             "quantity": 9822,
-            "quantity_allocated": 4,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3028,9 +2961,8 @@
             "product": 107,
             "track_inventory": true,
             "quantity": 5,
-            "quantity_allocated": 4,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3046,9 +2978,8 @@
             "product": 107,
             "track_inventory": true,
             "quantity": 5823,
-            "quantity_allocated": 32,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3064,9 +2995,8 @@
             "product": 108,
             "track_inventory": true,
             "quantity": 1217,
-            "quantity_allocated": 4,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3082,9 +3012,8 @@
             "product": 108,
             "track_inventory": true,
             "quantity": 9,
-            "quantity_allocated": 8,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3100,9 +3029,8 @@
             "product": 108,
             "track_inventory": true,
             "quantity": 9818,
-            "quantity_allocated": 0,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3118,9 +3046,8 @@
             "product": 108,
             "track_inventory": true,
             "quantity": 3,
-            "quantity_allocated": 2,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3136,9 +3063,8 @@
             "product": 108,
             "track_inventory": true,
             "quantity": 5820,
-            "quantity_allocated": 29,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3154,9 +3080,8 @@
             "product": 109,
             "track_inventory": true,
             "quantity": 1220,
-            "quantity_allocated": 7,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3172,9 +3097,8 @@
             "product": 109,
             "track_inventory": true,
             "quantity": 2,
-            "quantity_allocated": 1,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3190,9 +3114,8 @@
             "product": 109,
             "track_inventory": true,
             "quantity": 9823,
-            "quantity_allocated": 5,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3208,9 +3131,8 @@
             "product": 109,
             "track_inventory": true,
             "quantity": 7,
-            "quantity_allocated": 6,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3226,9 +3148,8 @@
             "product": 109,
             "track_inventory": true,
             "quantity": 5821,
-            "quantity_allocated": 30,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3244,9 +3165,8 @@
             "product": 110,
             "track_inventory": true,
             "quantity": 1223,
-            "quantity_allocated": 10,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3262,9 +3182,8 @@
             "product": 110,
             "track_inventory": true,
             "quantity": 9,
-            "quantity_allocated": 8,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3280,9 +3199,8 @@
             "product": 110,
             "track_inventory": true,
             "quantity": 9818,
-            "quantity_allocated": 0,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3298,9 +3216,8 @@
             "product": 110,
             "track_inventory": true,
             "quantity": 8,
-            "quantity_allocated": 7,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3316,9 +3233,8 @@
             "product": 110,
             "track_inventory": true,
             "quantity": 5817,
-            "quantity_allocated": 26,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3334,9 +3250,8 @@
             "product": 111,
             "track_inventory": true,
             "quantity": 1217,
-            "quantity_allocated": 4,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3352,9 +3267,8 @@
             "product": 111,
             "track_inventory": true,
             "quantity": 10,
-            "quantity_allocated": 9,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3370,9 +3284,8 @@
             "product": 111,
             "track_inventory": true,
             "quantity": 9824,
-            "quantity_allocated": 6,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3388,9 +3301,8 @@
             "product": 111,
             "track_inventory": true,
             "quantity": 2,
-            "quantity_allocated": 1,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3406,9 +3318,8 @@
             "product": 111,
             "track_inventory": true,
             "quantity": 5808,
-            "quantity_allocated": 17,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3424,9 +3335,8 @@
             "product": 112,
             "track_inventory": true,
             "quantity": 1220,
-            "quantity_allocated": 7,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3442,9 +3352,8 @@
             "product": 112,
             "track_inventory": true,
             "quantity": 9,
-            "quantity_allocated": 8,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3460,9 +3369,8 @@
             "product": 112,
             "track_inventory": true,
             "quantity": 9821,
-            "quantity_allocated": 3,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3478,9 +3386,8 @@
             "product": 112,
             "track_inventory": true,
             "quantity": 5,
-            "quantity_allocated": 4,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3496,9 +3403,8 @@
             "product": 112,
             "track_inventory": true,
             "quantity": 5812,
-            "quantity_allocated": 21,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3514,9 +3420,8 @@
             "product": 113,
             "track_inventory": true,
             "quantity": 1221,
-            "quantity_allocated": 8,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3532,9 +3437,8 @@
             "product": 113,
             "track_inventory": true,
             "quantity": 6,
-            "quantity_allocated": 5,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3550,9 +3454,8 @@
             "product": 113,
             "track_inventory": true,
             "quantity": 9818,
-            "quantity_allocated": 0,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3568,9 +3471,8 @@
             "product": 113,
             "track_inventory": true,
             "quantity": 2,
-            "quantity_allocated": 1,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3586,9 +3488,8 @@
             "product": 113,
             "track_inventory": true,
             "quantity": 5817,
-            "quantity_allocated": 26,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3604,9 +3505,8 @@
             "product": 114,
             "track_inventory": true,
             "quantity": 1213,
-            "quantity_allocated": 0,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3622,9 +3522,8 @@
             "product": 114,
             "track_inventory": true,
             "quantity": 3,
-            "quantity_allocated": 2,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3640,9 +3539,8 @@
             "product": 114,
             "track_inventory": true,
             "quantity": 9822,
-            "quantity_allocated": 4,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3658,9 +3556,8 @@
             "product": 114,
             "track_inventory": true,
             "quantity": 7,
-            "quantity_allocated": 6,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3676,9 +3573,8 @@
             "product": 114,
             "track_inventory": true,
             "quantity": 5808,
-            "quantity_allocated": 17,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3694,9 +3590,8 @@
             "product": 115,
             "track_inventory": true,
             "quantity": 1217,
-            "quantity_allocated": 4,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3712,9 +3607,8 @@
             "product": 115,
             "track_inventory": true,
             "quantity": 4,
-            "quantity_allocated": 3,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3730,9 +3624,8 @@
             "product": 115,
             "track_inventory": true,
             "quantity": 9823,
-            "quantity_allocated": 5,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3748,9 +3641,8 @@
             "product": 115,
             "track_inventory": true,
             "quantity": 1,
-            "quantity_allocated": 0,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3766,9 +3658,8 @@
             "product": 115,
             "track_inventory": true,
             "quantity": 5833,
-            "quantity_allocated": 42,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3784,9 +3675,8 @@
             "product": 116,
             "track_inventory": true,
             "quantity": 1224,
-            "quantity_allocated": 11,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3802,9 +3692,8 @@
             "product": 116,
             "track_inventory": true,
             "quantity": 11,
-            "quantity_allocated": 10,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3820,9 +3709,8 @@
             "product": 116,
             "track_inventory": true,
             "quantity": 9822,
-            "quantity_allocated": 4,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3838,9 +3726,8 @@
             "product": 116,
             "track_inventory": true,
             "quantity": 9,
-            "quantity_allocated": 8,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3856,9 +3743,8 @@
             "product": 116,
             "track_inventory": true,
             "quantity": 5812,
-            "quantity_allocated": 21,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3874,9 +3760,8 @@
             "product": 117,
             "track_inventory": true,
             "quantity": 1218,
-            "quantity_allocated": 5,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3892,9 +3777,8 @@
             "product": 117,
             "track_inventory": true,
             "quantity": 15,
-            "quantity_allocated": 14,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3910,9 +3794,8 @@
             "product": 117,
             "track_inventory": true,
             "quantity": 9823,
-            "quantity_allocated": 5,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3928,9 +3811,8 @@
             "product": 117,
             "track_inventory": true,
             "quantity": 3,
-            "quantity_allocated": 2,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3946,9 +3828,8 @@
             "product": 117,
             "track_inventory": true,
             "quantity": 5810,
-            "quantity_allocated": 19,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3964,9 +3845,8 @@
             "product": 118,
             "track_inventory": true,
             "quantity": 1217,
-            "quantity_allocated": 4,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -3982,9 +3862,8 @@
             "product": 118,
             "track_inventory": true,
             "quantity": 14,
-            "quantity_allocated": 13,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -4000,9 +3879,8 @@
             "product": 118,
             "track_inventory": true,
             "quantity": 9818,
-            "quantity_allocated": 0,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -4018,9 +3896,8 @@
             "product": 118,
             "track_inventory": true,
             "quantity": 3,
-            "quantity_allocated": 2,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -4036,9 +3913,8 @@
             "product": 118,
             "track_inventory": true,
             "quantity": 5818,
-            "quantity_allocated": 27,
             "cost_price_amount": "10.00",
-            "weight": "0.0 kg"
+            "weight": "0.0:kg"
         }
     },
     {
@@ -6456,7 +6332,7 @@
         "fields": {
             "sort_order": 0,
             "product": 61,
-            "image": "products/saleordemoproduct_paints_01_oAlKeNM.png",
+            "image": "products/saleordemoproduct_paints_01_stdygda.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6467,7 +6343,7 @@
         "fields": {
             "sort_order": 0,
             "product": 62,
-            "image": "products/saleordemoproduct_paints_02_DZyELXo.png",
+            "image": "products/saleordemoproduct_paints_02_5n8zsUA.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6478,7 +6354,7 @@
         "fields": {
             "sort_order": 0,
             "product": 63,
-            "image": "products/saleordemoproduct_paints_03_tElEpXM.png",
+            "image": "products/saleordemoproduct_paints_03_wk2MTHi.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6489,7 +6365,7 @@
         "fields": {
             "sort_order": 0,
             "product": 64,
-            "image": "products/saleordemoproduct_paints_04_N0yrhDp.png",
+            "image": "products/saleordemoproduct_paints_04_DU4zZqT.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6500,7 +6376,7 @@
         "fields": {
             "sort_order": 0,
             "product": 65,
-            "image": "products/saleordemoproduct_paints_05_9ZaltWy.png",
+            "image": "products/saleordemoproduct_paints_05_juemr1c.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6511,7 +6387,7 @@
         "fields": {
             "sort_order": 0,
             "product": 71,
-            "image": "products/saleordemoproduct_fd_juice_06_HceOLxL.png",
+            "image": "products/saleordemoproduct_fd_juice_06_k9z7OUO.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6522,7 +6398,7 @@
         "fields": {
             "sort_order": 0,
             "product": 72,
-            "image": "products/saleordemoproduct_fd_juice_06_tfQaLPL.png",
+            "image": "products/saleordemoproduct_fd_juice_06_RjWl7u8.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6533,7 +6409,7 @@
         "fields": {
             "sort_order": 0,
             "product": 73,
-            "image": "products/saleordemoproduct_fd_juice_05_sZZW2Xo.png",
+            "image": "products/saleordemoproduct_fd_juice_05_MzkPidl.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6544,7 +6420,7 @@
         "fields": {
             "sort_order": 0,
             "product": 74,
-            "image": "products/saleordemoproduct_fd_juice_01_IPQVJWG.png",
+            "image": "products/saleordemoproduct_fd_juice_01_V6506Ts.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6555,7 +6431,7 @@
         "fields": {
             "sort_order": 0,
             "product": 75,
-            "image": "products/saleordemoproduct_fd_juice_03_9xujWY3.png",
+            "image": "products/saleordemoproduct_fd_juice_03_O142bWS.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6566,7 +6442,7 @@
         "fields": {
             "sort_order": 0,
             "product": 76,
-            "image": "products/saleordemoproduct_fd_juice_02_VcpACWv.png",
+            "image": "products/saleordemoproduct_fd_juice_02_BAzvnlK.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6577,7 +6453,7 @@
         "fields": {
             "sort_order": 0,
             "product": 77,
-            "image": "products/saleordemoproduct_fd_juice_03_i6kE2Y9.png",
+            "image": "products/saleordemoproduct_fd_juice_03_lZiLGKI.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6588,7 +6464,7 @@
         "fields": {
             "sort_order": 0,
             "product": 78,
-            "image": "products/saleordemoproduct_fd_juice_04_IJpmarG.png",
+            "image": "products/saleordemoproduct_fd_juice_04_g36b7LH.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6599,7 +6475,7 @@
         "fields": {
             "sort_order": 0,
             "product": 79,
-            "image": "products/saleordemoproduct_fd_juice_02_QNMJ5El.png",
+            "image": "products/saleordemoproduct_fd_juice_02_z9aL4aX.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6610,7 +6486,7 @@
         "fields": {
             "sort_order": 0,
             "product": 81,
-            "image": "products/saleordemoproduct_wine-red_Za6fbDb.png",
+            "image": "products/saleordemoproduct_wine-red_51nip0Q.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6621,7 +6497,7 @@
         "fields": {
             "sort_order": 0,
             "product": 82,
-            "image": "products/saleordemoproduct_wine-white_mFtF5hS.png",
+            "image": "products/saleordemoproduct_wine-white_e3ay13x.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6632,7 +6508,7 @@
         "fields": {
             "sort_order": 0,
             "product": 83,
-            "image": "products/saleordemoproduct_beer-02_1_4UI6ZYf.png",
+            "image": "products/saleordemoproduct_beer-02_1_G0GYtom.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6643,7 +6519,7 @@
         "fields": {
             "sort_order": 1,
             "product": 83,
-            "image": "products/saleordemoproduct_beer-02_2_nw4WMKj.png",
+            "image": "products/saleordemoproduct_beer-02_2_4yjTwGr.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6654,7 +6530,7 @@
         "fields": {
             "sort_order": 0,
             "product": 84,
-            "image": "products/saleordemoproduct_beer-01_1_5855gQX.png",
+            "image": "products/saleordemoproduct_beer-01_1_TunfUiv.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6665,7 +6541,7 @@
         "fields": {
             "sort_order": 1,
             "product": 84,
-            "image": "products/saleordemoproduct_beer-01_2_CtUhcIw.png",
+            "image": "products/saleordemoproduct_beer-01_2_ESV0Rte.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6676,7 +6552,7 @@
         "fields": {
             "sort_order": 0,
             "product": 85,
-            "image": "products/saleordemoproduct_cuschion01_WTYMHuY.png",
+            "image": "products/saleordemoproduct_cuschion01_pBGkXlA.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6687,7 +6563,7 @@
         "fields": {
             "sort_order": 0,
             "product": 86,
-            "image": "products/saleordemoproduct_cuschion02_HkMKj9u.png",
+            "image": "products/saleordemoproduct_cuschion02_YJsGAlj.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6698,7 +6574,7 @@
         "fields": {
             "sort_order": 0,
             "product": 87,
-            "image": "products/saleordemoproduct_sneakers_01_1_cYWlNte.png",
+            "image": "products/saleordemoproduct_sneakers_01_1_2r1OBiC.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6709,7 +6585,7 @@
         "fields": {
             "sort_order": 1,
             "product": 87,
-            "image": "products/saleordemoproduct_sneakers_01_2_1wpPloj.png",
+            "image": "products/saleordemoproduct_sneakers_01_2_34nhuNf.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6720,7 +6596,7 @@
         "fields": {
             "sort_order": 2,
             "product": 87,
-            "image": "products/saleordemoproduct_sneakers_01_3_93AdOzU.png",
+            "image": "products/saleordemoproduct_sneakers_01_3_9EUjwva.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6731,7 +6607,7 @@
         "fields": {
             "sort_order": 3,
             "product": 87,
-            "image": "products/saleordemoproduct_sneakers_01_4_oHljbOJ.png",
+            "image": "products/saleordemoproduct_sneakers_01_4_GnWInHA.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6742,7 +6618,7 @@
         "fields": {
             "sort_order": 0,
             "product": 88,
-            "image": "products/saleordemoproduct_sneakers_02_1_YEgefnA.png",
+            "image": "products/saleordemoproduct_sneakers_02_1_RlhHWcA.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6753,7 +6629,7 @@
         "fields": {
             "sort_order": 1,
             "product": 88,
-            "image": "products/saleordemoproduct_sneakers_02_2_dHzce7A.png",
+            "image": "products/saleordemoproduct_sneakers_02_2_WQmqmQD.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6764,7 +6640,7 @@
         "fields": {
             "sort_order": 2,
             "product": 88,
-            "image": "products/saleordemoproduct_sneakers_02_3_Z5uIzzB.png",
+            "image": "products/saleordemoproduct_sneakers_02_3_YylCXxs.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6775,7 +6651,7 @@
         "fields": {
             "sort_order": 3,
             "product": 88,
-            "image": "products/saleordemoproduct_sneakers_02_4_N3wSwso.png",
+            "image": "products/saleordemoproduct_sneakers_02_4_Gu0yFCa.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6786,7 +6662,7 @@
         "fields": {
             "sort_order": 0,
             "product": 89,
-            "image": "products/saleordemoproduct_cl_boot07_1_TBfMKTC.png",
+            "image": "products/saleordemoproduct_cl_boot07_1_tWVidbh.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6797,7 +6673,7 @@
         "fields": {
             "sort_order": 1,
             "product": 89,
-            "image": "products/saleordemoproduct_cl_boot07_2_2ivN4rh.png",
+            "image": "products/saleordemoproduct_cl_boot07_2_U3hk3Hh.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6808,7 +6684,7 @@
         "fields": {
             "sort_order": 0,
             "product": 107,
-            "image": "products/saleordemoproduct_cl_polo01_QzVHHcm.png",
+            "image": "products/saleordemoproduct_cl_polo01_yCZRhZO.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6819,7 +6695,7 @@
         "fields": {
             "sort_order": 0,
             "product": 108,
-            "image": "products/saleordemoproduct_cl_polo02_ciJhqR3.png",
+            "image": "products/saleordemoproduct_cl_polo02_wZTQnGf.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6830,7 +6706,7 @@
         "fields": {
             "sort_order": 0,
             "product": 109,
-            "image": "products/saleordemoproduct_cl_polo03-woman_n6YLhKo.png",
+            "image": "products/saleordemoproduct_cl_polo03-woman_J9K34ZP.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6841,7 +6717,7 @@
         "fields": {
             "sort_order": 0,
             "product": 110,
-            "image": "products/saleordemoproduct_cl_polo04-woman_CodBZ5u.png",
+            "image": "products/saleordemoproduct_cl_polo04-woman_mQe8FkA.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6852,7 +6728,7 @@
         "fields": {
             "sort_order": 0,
             "product": 111,
-            "image": "products/saleordemoproduct_cl_boot01_1_VcJYN2e.png",
+            "image": "products/saleordemoproduct_cl_boot01_1_bLHxD4F.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6863,7 +6739,7 @@
         "fields": {
             "sort_order": 1,
             "product": 111,
-            "image": "products/saleordemoproduct_cl_boot01_2_UOZKCom.png",
+            "image": "products/saleordemoproduct_cl_boot01_2_9k9Mz4l.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6874,7 +6750,7 @@
         "fields": {
             "sort_order": 2,
             "product": 111,
-            "image": "products/saleordemoproduct_cl_boot01_3_57XgZyv.png",
+            "image": "products/saleordemoproduct_cl_boot01_3_oveC30U.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6885,7 +6761,7 @@
         "fields": {
             "sort_order": 0,
             "product": 112,
-            "image": "products/saleordemoproduct_cl_boot03_1_6Rn0nQC.png",
+            "image": "products/saleordemoproduct_cl_boot03_1_biaCKC2.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6896,7 +6772,7 @@
         "fields": {
             "sort_order": 1,
             "product": 112,
-            "image": "products/saleordemoproduct_cl_boot03_2_yhoyRpu.png",
+            "image": "products/saleordemoproduct_cl_boot03_2_2r0mXDy.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6907,7 +6783,7 @@
         "fields": {
             "sort_order": 0,
             "product": 113,
-            "image": "products/saleordemoproduct_cl_boot06_1_UcBLi8k.png",
+            "image": "products/saleordemoproduct_cl_boot06_1_9i85eGr.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6918,7 +6794,7 @@
         "fields": {
             "sort_order": 1,
             "product": 113,
-            "image": "products/saleordemoproduct_cl_boot06_2_k9ZWc6e.png",
+            "image": "products/saleordemoproduct_cl_boot06_2_Oo2Xhzm.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6929,7 +6805,7 @@
         "fields": {
             "sort_order": 0,
             "product": 114,
-            "image": "products/saleordemoproduct_cl_boot06_1_09Hhw6s.png",
+            "image": "products/saleordemoproduct_cl_boot06_1_k99mhKI.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6940,7 +6816,7 @@
         "fields": {
             "sort_order": 1,
             "product": 114,
-            "image": "products/saleordemoproduct_cl_boot06_2_7cmpaDa.png",
+            "image": "products/saleordemoproduct_cl_boot06_2_JAHsuvj.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6951,7 +6827,7 @@
         "fields": {
             "sort_order": 0,
             "product": 115,
-            "image": "products/saleordemoproduct_cl_bogo01_1_ZTxBvNd.png",
+            "image": "products/saleordemoproduct_cl_bogo01_1_j7H8d5R.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6962,7 +6838,7 @@
         "fields": {
             "sort_order": 0,
             "product": 116,
-            "image": "products/saleordemoproduct_cl_bogo02_1_q4DzbUK.png",
+            "image": "products/saleordemoproduct_cl_bogo02_1_0zMVF4G.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6973,7 +6849,7 @@
         "fields": {
             "sort_order": 0,
             "product": 117,
-            "image": "products/saleordemoproduct_cl_bogo03_1_kqGABYk.png",
+            "image": "products/saleordemoproduct_cl_bogo03_1_ECVOjfU.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6984,7 +6860,7 @@
         "fields": {
             "sort_order": 0,
             "product": 118,
-            "image": "products/saleordemoproduct_cl_bogo04_1_GXXZ6Xy.png",
+            "image": "products/saleordemoproduct_cl_bogo04_1_Yw7vYBV.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -6995,7 +6871,7 @@
         "fields": {
             "sort_order": 1,
             "product": 118,
-            "image": "products/saleordemoproduct_cl_bogo04_2_5aI63Yw.png",
+            "image": "products/saleordemoproduct_cl_bogo04_2_7AACjM1.png",
             "ppoi": "0.5x0.5",
             "alt": ""
         }
@@ -7084,7 +6960,7 @@
             "seo_description": null,
             "name": "Summer collection",
             "slug": "summer-collection",
-            "background_image": "collection-backgrounds/summer_4axBcWf.jpg",
+            "background_image": "collection-backgrounds/summer_NwQRrlU.jpg",
             "background_image_alt": "",
             "description": "The Saleor Summer Collection features a range of products that feel the heat of the market. A demo store for all seasons. Saleor captures the open source, e-commerce sun.",
             "description_json": {
@@ -7115,7 +6991,7 @@
             "seo_description": null,
             "name": "Winter sale",
             "slug": "winter-sale",
-            "background_image": "collection-backgrounds/clothing_AagrQJ0.jpg",
+            "background_image": "collection-backgrounds/clothing_5N8owkB.jpg",
             "background_image_alt": "",
             "description": "The Saleor Winter Sale is snowed under with seasonal offers. Unreal products at unreal prices. Literally, they are not real products, but the Saleor demo store is a genuine e-commerce leader.",
             "description_json": {

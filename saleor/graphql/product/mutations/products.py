@@ -528,12 +528,9 @@ class ProductInput(graphene.InputObjectType):
     )
     quantity = graphene.Int(
         description=(
-            "The total quantity of a product available for sale. Note: this field is "
-            "only used if a product doesn't use variants."
-        ),
-        deprecation_reason=(
-            "DEPRECATED: Will be removed in 2.11 (issue #5325)."
-            "Use stocks input field instead."
+            "[Deprecated] Use stocks input field instead. This field will be removed "
+            "after 2020-07-31. The total quantity of a product available for sale. "
+            "Note: this field is only used if a product doesn't use variants."
         ),
     )
     track_inventory = graphene.Boolean(
@@ -833,6 +830,15 @@ class ProductCreate(ModelMutation):
         # from the schema, only "basePrice" should be used here.
         price = data.get("base_price", data.get("price"))
         if price is not None:
+            if price < 0:
+                raise ValidationError(
+                    {
+                        "basePrice": ValidationError(
+                            "Product base price cannot be lower than 0.",
+                            code=ProductErrorCode.INVALID,
+                        )
+                    }
+                )
             cleaned_input["price_amount"] = price
             if instance.minimal_variant_price_amount is None:
                 # Set the default "minimal_variant_price" to the "price"
@@ -841,11 +847,11 @@ class ProductCreate(ModelMutation):
         # FIXME  tax_rate logic should be dropped after we remove tax_rate from input
         tax_rate = cleaned_input.pop("tax_rate", "")
         if tax_rate:
-            info.context.extensions.assign_tax_code_to_object_meta(instance, tax_rate)
+            info.context.plugins.assign_tax_code_to_object_meta(instance, tax_rate)
 
         tax_code = cleaned_input.pop("tax_code", "")
         if tax_code:
-            info.context.extensions.assign_tax_code_to_object_meta(instance, tax_code)
+            info.context.plugins.assign_tax_code_to_object_meta(instance, tax_code)
 
         if attributes and product_type:
             try:
@@ -972,7 +978,7 @@ class ProductCreate(ModelMutation):
     @classmethod
     def perform_mutation(cls, _root, info, **data):
         response = super().perform_mutation(_root, info, **data)
-        info.context.extensions.product_created(response.product)
+        info.context.plugins.product_created(response.product)
         return response
 
 
@@ -1097,10 +1103,9 @@ class ProductVariantInput(graphene.InputObjectType):
     price_override = Decimal(description="Special price of the particular variant.")
     sku = graphene.String(description="Stock keeping unit.")
     quantity = graphene.Int(
-        description="The total quantity of this variant available for sale.",
-        deprecation_reason=(
-            "DEPRECATED: Will be removed in 2.11 (issue #5325)."
-            "Use stocks input field instead."
+        description=(
+            "[Deprecated] Use stocks input field instead. This field will be removed "
+            "after 2020-07-31. The total quantity of this variant available for sale."
         ),
     )
     track_inventory = graphene.Boolean(
@@ -1175,10 +1180,30 @@ class ProductVariantCreate(ModelMutation):
         cleaned_input = super().clean_input(info, instance, data)
 
         if "cost_price" in cleaned_input:
-            cleaned_input["cost_price_amount"] = cleaned_input.pop("cost_price")
+            cost_price = cleaned_input.pop("cost_price")
+            if cost_price and cost_price < 0:
+                raise ValidationError(
+                    {
+                        "costPrice": ValidationError(
+                            "Product price cannot be lower than 0.",
+                            code=ProductErrorCode.INVALID.value,
+                        )
+                    }
+                )
+            cleaned_input["cost_price_amount"] = cost_price
 
         if "price_override" in cleaned_input:
-            cleaned_input["price_override_amount"] = cleaned_input.pop("price_override")
+            price_override = cleaned_input.pop("price_override")
+            if price_override and price_override < 0:
+                raise ValidationError(
+                    {
+                        "priceOverride": ValidationError(
+                            "Product price cannot be lower than 0.",
+                            code=ProductErrorCode.INVALID.value,
+                        )
+                    }
+                )
+            cleaned_input["price_override_amount"] = price_override
 
         stocks = cleaned_input.get("stocks")
         if stocks:
@@ -1432,11 +1457,11 @@ class ProductTypeCreate(ModelMutation):
             instance.store_value_in_metadata(
                 {"vatlayer.code": tax_rate, "description": tax_rate}
             )
-            info.context.extensions.assign_tax_code_to_object_meta(instance, tax_rate)
+            info.context.plugins.assign_tax_code_to_object_meta(instance, tax_rate)
 
         tax_code = cleaned_input.pop("tax_code", "")
         if tax_code:
-            info.context.extensions.assign_tax_code_to_object_meta(instance, tax_code)
+            info.context.plugins.assign_tax_code_to_object_meta(instance, tax_code)
 
         return cleaned_input
 

@@ -1,3 +1,4 @@
+import json
 from functools import partial
 
 import graphene
@@ -6,6 +7,7 @@ from django_prices.models import MoneyField, TaxedMoneyField
 from graphene.relay import PageInfo
 from graphene_django.converter import convert_django_field
 from graphene_django.fields import DjangoConnectionField
+from graphql.error import GraphQLError
 from graphql_relay.connection.arrayconnection import connection_from_list_slice
 from promise import Promise
 
@@ -158,11 +160,11 @@ class FilterInputConnectionField(PrefetchingConnectionField):
         first = args.get("first")
         last = args.get("last")
 
-        if enforce_first_or_last:
-            assert first or last, (
-                "You must provide a `first` or `last` value to properly "
-                "paginate the `{}` connection."
-            ).format(info.field_name)
+        if enforce_first_or_last and not (first or last):
+            raise GraphQLError(
+                f"You must provide a `first` or `last` value to properly paginate "
+                f"the {info.field_name} connection."
+            )
 
         if max_limit:
             if first:
@@ -192,9 +194,13 @@ class FilterInputConnectionField(PrefetchingConnectionField):
         filter_input = args.get(filters_name)
 
         if filter_input and filterset_class:
-            iterable = filterset_class(
+            instance = filterset_class(
                 data=dict(filter_input), queryset=iterable, request=info.context
-            ).qs
+            )
+            # Make sure filter input has valid values
+            if not instance.is_valid():
+                raise GraphQLError(json.dumps(instance.errors.get_json_data()))
+            iterable = instance.qs
 
         if Promise.is_thenable(iterable):
             return Promise.resolve(iterable).then(on_resolve)

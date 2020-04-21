@@ -465,6 +465,13 @@ class FulfillmentLine(models.Model):
         Fulfillment, related_name="lines", on_delete=models.CASCADE
     )
     quantity = models.PositiveIntegerField()
+    stock = models.ForeignKey(
+        "warehouse.Stock",
+        related_name="fulfillment_lines",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+    )
 
 
 class OrderEvent(models.Model):

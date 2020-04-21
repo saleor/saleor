@@ -887,6 +887,36 @@ def test_product_variant_bulk_create_by_attribute_id(
     assert not product_variant.price_override
 
 
+@pytest.mark.parametrize(
+    "price_field", ("priceOverride", "costPrice",),
+)
+def test_product_variant_bulk_create_by_attribute_id_with_invalid_price(
+    staff_api_client, product, size_attribute, permission_manage_products, price_field
+):
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+    attribut_id = graphene.Node.to_global_id("Attribute", size_attribute.pk)
+    attribute_value = size_attribute.values.last()
+    sku = str(uuid4())[:12]
+    variant = {
+        "sku": sku,
+        "quantity": 1000,
+        "weight": 2.5,
+        "trackInventory": True,
+        "attributes": [{"id": attribut_id, "values": [attribute_value.name]}],
+    }
+    variant[price_field] = "-1"
+
+    variables = {"productId": product_id, "variants": [variant]}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(
+        PRODUCT_VARIANT_BULK_CREATE_MUTATION, variables
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productVariantBulkCreate"]
+    assert data["bulkProductErrors"][0]["field"] == price_field
+    assert data["bulkProductErrors"][0]["code"] == ProductErrorCode.INVALID.name
+
+
 def test_product_variant_bulk_create_empty_attribute(
     staff_api_client, product, size_attribute, permission_manage_products
 ):

@@ -13,7 +13,7 @@ from django.utils.translation import get_language
 from django_countries.fields import Country
 
 from ..discount.utils import fetch_discounts
-from ..extensions.manager import get_extensions_manager
+from ..plugins.manager import get_plugins_manager
 from ..graphql.views import API_PATH, GraphQLView
 from . import analytics
 from .exceptions import ReadOnlyException
@@ -101,17 +101,17 @@ def site(get_response):
     return _site_middleware
 
 
-def extensions(get_response):
-    """Assign extensions manager."""
+def plugins(get_response):
+    """Assign plugins manager."""
 
     def _get_manager():
-        return get_extensions_manager(plugins=settings.PLUGINS)
+        return get_plugins_manager(plugins=settings.PLUGINS)
 
-    def _extensions_middleware(request):
-        request.extensions = SimpleLazyObject(lambda: _get_manager())
+    def _plugins_middleware(request):
+        request.plugins = SimpleLazyObject(lambda: _get_manager())
         return get_response(request)
 
-    return _extensions_middleware
+    return _plugins_middleware
 
 
 class ReadOnlyMiddleware:

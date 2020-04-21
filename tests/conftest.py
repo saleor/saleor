@@ -44,7 +44,7 @@ from saleor.menu.utils import update_menu
 from saleor.order import OrderStatus
 from saleor.order.actions import fulfill_order_line
 from saleor.order.events import OrderEvents
-from saleor.order.models import FulfillmentStatus, Order, OrderEvent
+from saleor.order.models import FulfillmentStatus, Order, OrderEvent, OrderLine
 from saleor.order.utils import recalculate_order
 from saleor.page.models import Page, PageTranslation
 from saleor.payment import ChargeStatus, TransactionKind
@@ -77,7 +77,7 @@ from saleor.shipping.models import (
 )
 from saleor.site import AuthenticationBackends
 from saleor.site.models import AuthorizationKey, SiteSettings
-from saleor.warehouse.models import Stock, Warehouse
+from saleor.warehouse.models import Allocation, Stock, Warehouse
 from saleor.webhook.event_types import WebhookEventType
 from saleor.webhook.models import Webhook
 from saleor.wishlist.models import Wishlist
@@ -630,9 +630,7 @@ def product(product_type, category, warehouse):
     variant = ProductVariant.objects.create(
         product=product, sku="123", cost_price=Money("1.00", "USD")
     )
-    Stock.objects.create(
-        warehouse=warehouse, product_variant=variant, quantity=10, quantity_allocated=1
-    )
+    Stock.objects.create(warehouse=warehouse, product_variant=variant, quantity=10)
 
     associate_attribute_values_to_instance(variant, variant_attr, variant_attr_value)
     return product
@@ -651,9 +649,7 @@ def product_with_single_variant(product_type, category, warehouse):
     variant = ProductVariant.objects.create(
         product=product, sku="SKU_SINGLE_VARIANT", cost_price=Money("1.00", "USD")
     )
-    Stock.objects.create(
-        product_variant=variant, warehouse=warehouse, quantity=101, quantity_allocated=1
-    )
+    Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=101)
     return product
 
 
@@ -679,12 +675,7 @@ def product_with_two_variants(product_type, category, warehouse):
     ProductVariant.objects.bulk_create(variants)
     Stock.objects.bulk_create(
         [
-            Stock(
-                warehouse=warehouse,
-                product_variant=variant,
-                quantity=10,
-                quantity_allocated=1,
-            )
+            Stock(warehouse=warehouse, product_variant=variant, quantity=10,)
             for variant in variants
         ]
     )
@@ -716,9 +707,6 @@ def product_with_variant_with_two_attributes(
 
     variant = ProductVariant.objects.create(
         product=product, sku="prodVar1", cost_price=Money("1.00", "USD")
-    )
-    Stock.objects.create(
-        product_variant=variant, warehouse=warehouse, quantity=10, quantity_allocated=1
     )
 
     associate_attribute_values_to_instance(
@@ -775,6 +763,14 @@ def variant(product) -> ProductVariant:
         product=product, sku="SKU_A", cost_price=Money(1, "USD")
     )
     return product_variant
+
+
+@pytest.fixture
+def variant_with_many_stocks(variant, warehouses_with_shipping_zone):
+    warehouses = warehouses_with_shipping_zone
+    Stock.objects.create(warehouse=warehouses[0], product_variant=variant, quantity=4)
+    Stock.objects.create(warehouse=warehouses[1], product_variant=variant, quantity=3)
+    return variant
 
 
 @pytest.fixture
@@ -954,9 +950,7 @@ def unavailable_product_with_variant(product_type, category, warehouse):
     variant = ProductVariant.objects.create(
         product=product, sku="123", cost_price=Money(1, "USD")
     )
-    Stock.objects.create(
-        product_variant=variant, warehouse=warehouse, quantity=10, quantity_allocated=1
-    )
+    Stock.objects.create(product_variant=variant, warehouse=warehouse, quantity=10)
 
     associate_attribute_values_to_instance(variant, variant_attr, variant_attr_value)
     return product
@@ -1047,6 +1041,39 @@ def order_line(order, variant):
 
 
 @pytest.fixture
+def order_line_with_allocation_in_many_stocks(customer_user, variant_with_many_stocks):
+    address = customer_user.default_billing_address.get_copy()
+    variant = variant_with_many_stocks
+    stocks = variant.stocks.all().order_by("pk")
+
+    order = Order.objects.create(
+        billing_address=address, user_email=customer_user.email, user=customer_user
+    )
+
+    net = variant.get_price()
+    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    order_line = order.lines.create(
+        product_name=str(variant.product),
+        variant_name=str(variant),
+        product_sku=variant.sku,
+        is_shipping_required=variant.is_shipping_required(),
+        quantity=2,
+        variant=variant,
+        unit_price=TaxedMoney(net=net, gross=gross),
+        tax_rate=23,
+    )
+
+    Allocation.objects.bulk_create(
+        [
+            Allocation(order_line=order_line, stock=stocks[0], quantity_allocated=2),
+            Allocation(order_line=order_line, stock=stocks[1], quantity_allocated=1),
+        ]
+    )
+
+    return order_line
+
+
+@pytest.fixture
 def gift_card(customer_user, staff_user):
     return GiftCard.objects.create(
         code="mirumee_giftcard",
@@ -1087,12 +1114,12 @@ def order_with_lines(order, product_type, category, shipping_zone, warehouse):
     variant = ProductVariant.objects.create(
         product=product, sku="SKU_A", cost_price=Money(1, "USD")
     )
-    Stock.objects.create(
-        warehouse=warehouse, product_variant=variant, quantity=5, quantity_allocated=3
+    stock = Stock.objects.create(
+        warehouse=warehouse, product_variant=variant, quantity=5
     )
     net = variant.get_price()
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
-    order.lines.create(
+    line = order.lines.create(
         product_name=str(variant.product),
         variant_name=str(variant),
         product_sku=variant.sku,
@@ -1101,6 +1128,9 @@ def order_with_lines(order, product_type, category, shipping_zone, warehouse):
         variant=variant,
         unit_price=TaxedMoney(net=net, gross=gross),
         tax_rate=23,
+    )
+    Allocation.objects.create(
+        order_line=line, stock=stock, quantity_allocated=line.quantity
     )
 
     product = Product.objects.create(
@@ -1114,13 +1144,13 @@ def order_with_lines(order, product_type, category, shipping_zone, warehouse):
     variant = ProductVariant.objects.create(
         product=product, sku="SKU_B", cost_price=Money(2, "USD")
     )
-    Stock.objects.create(
-        product_variant=variant, warehouse=warehouse, quantity=2, quantity_allocated=2
+    stock = Stock.objects.create(
+        product_variant=variant, warehouse=warehouse, quantity=2
     )
 
     net = variant.get_price()
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
-    order.lines.create(
+    line = order.lines.create(
         product_name=str(variant.product),
         variant_name=str(variant),
         product_sku=variant.sku,
@@ -1129,6 +1159,9 @@ def order_with_lines(order, product_type, category, shipping_zone, warehouse):
         variant=variant,
         unit_price=TaxedMoney(net=net, gross=gross),
         tax_rate=23,
+    )
+    Allocation.objects.create(
+        order_line=line, stock=stock, quantity_allocated=line.quantity
     )
 
     order.shipping_address = order.billing_address.get_copy()
@@ -1187,6 +1220,7 @@ def fulfillment(fulfilled_order):
 
 @pytest.fixture
 def draft_order(order_with_lines):
+    Allocation.objects.filter(order_line__order=order_with_lines).delete()
     order_with_lines.status = OrderStatus.DRAFT
     order_with_lines.save(update_fields=["status"])
     return order_with_lines
@@ -1660,10 +1694,7 @@ def digital_content(category, media_root, warehouse) -> DigitalContent:
         product=product, sku="SKU_554", cost_price=Money(1, "USD")
     )
     Stock.objects.create(
-        product_variant=product_variant,
-        warehouse=warehouse,
-        quantity=5,
-        quantity_allocated=3,
+        product_variant=product_variant, warehouse=warehouse, quantity=5,
     )
 
     assert product_variant.is_digital()
@@ -1768,22 +1799,6 @@ def description_json():
 
 
 @pytest.fixture
-def description_raw():
-    return """\
-E-commerce for the PWA era
-A modular, high performance e-commerce storefront built with GraphQL, Django, \
-and ReactJS.
-
-Saleor is a rapidly-growing open source e-commerce platform that has served \
-high-volume companies from branches like publishing and apparel since 2012. \
-Based on Python and Django, the latest major update introduces a modular \
-front end with a GraphQL API and storefront and dashboard written in React \
-to make Saleor a full-functionality open source e-commerce.
-
-Get Saleor today!"""
-
-
-@pytest.fixture
 def other_description_json():
     return {
         "blocks": [
@@ -1814,15 +1829,6 @@ def other_description_json():
 
 
 @pytest.fixture
-def other_description_raw():
-    return (
-        "A GRAPHQL-FIRST ECOMMERCE PLATFORM FOR PERFECTIONISTS\n"
-        "Saleor is powered by a GraphQL server running on top of Python 3 "
-        "and a Django 2 framework."
-    )
-
-
-@pytest.fixture
 def service_account(db):
     return ServiceAccount.objects.create(name="Sample service account", is_active=True)
 
@@ -1844,7 +1850,7 @@ def fake_payment_interface(mocker):
 @pytest.fixture
 def mock_get_manager(mocker, fake_payment_interface):
     mgr = mocker.patch(
-        "saleor.payment.gateway.get_extensions_manager",
+        "saleor.payment.gateway.get_plugins_manager",
         autospec=True,
         return_value=fake_payment_interface,
     )
@@ -1897,17 +1903,108 @@ def warehouse(address, shipping_zone):
 
 
 @pytest.fixture
-def warehouse_wo_shipping_zone(address, shipping_zone):
+def warehouses(address):
+    return Warehouse.objects.bulk_create(
+        [
+            Warehouse(
+                address=address.get_copy(),
+                name="Warehouse1",
+                slug="warehouse1",
+                email="warehouse1@example.com",
+            ),
+            Warehouse(
+                address=address.get_copy(),
+                name="Warehouse2",
+                slug="warehouse2",
+                email="warehouse2@example.com",
+            ),
+        ]
+    )
+
+
+@pytest.fixture
+def warehouses_with_shipping_zone(warehouses, shipping_zone):
+    warehouses[0].shipping_zones.add(shipping_zone)
+    warehouses[1].shipping_zones.add(shipping_zone)
+    return warehouses
+
+
+@pytest.fixture
+def warehouse_no_shipping_zone(address):
     warehouse = Warehouse.objects.create(
-        address=address, name="Example Warehouse", email="test@example.com"
+        address=address,
+        name="Warehouse withot shipping zone",
+        email="test2@example.com",
     )
     return warehouse
 
 
 @pytest.fixture
 def stock(variant, warehouse):
-    return Stock.objects.get_or_create(
-        product_variant=variant,
-        warehouse=warehouse,
-        defaults={"quantity": 5, "quantity_allocated": 3},
-    )[0]
+    return Stock.objects.create(
+        product_variant=variant, warehouse=warehouse, quantity=15
+    )
+
+
+@pytest.fixture
+def allocation(order_line, stock):
+    return Allocation.objects.create(
+        order_line=order_line, stock=stock, quantity_allocated=order_line.quantity
+    )
+
+
+@pytest.fixture
+def allocations(order_list, stock):
+    variant = stock.product_variant
+    net = variant.get_price()
+    gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
+    lines = OrderLine.objects.bulk_create(
+        [
+            OrderLine(
+                order=order_list[0],
+                variant=variant,
+                quantity=1,
+                product_name=str(variant.product),
+                variant_name=str(variant),
+                product_sku=variant.sku,
+                is_shipping_required=variant.is_shipping_required(),
+                unit_price=TaxedMoney(net=net, gross=gross),
+                tax_rate=23,
+            ),
+            OrderLine(
+                order=order_list[1],
+                variant=variant,
+                quantity=2,
+                product_name=str(variant.product),
+                variant_name=str(variant),
+                product_sku=variant.sku,
+                is_shipping_required=variant.is_shipping_required(),
+                unit_price=TaxedMoney(net=net, gross=gross),
+                tax_rate=23,
+            ),
+            OrderLine(
+                order=order_list[2],
+                variant=variant,
+                quantity=4,
+                product_name=str(variant.product),
+                variant_name=str(variant),
+                product_sku=variant.sku,
+                is_shipping_required=variant.is_shipping_required(),
+                unit_price=TaxedMoney(net=net, gross=gross),
+                tax_rate=23,
+            ),
+        ]
+    )
+    return Allocation.objects.bulk_create(
+        [
+            Allocation(
+                order_line=lines[0], stock=stock, quantity_allocated=lines[0].quantity
+            ),
+            Allocation(
+                order_line=lines[1], stock=stock, quantity_allocated=lines[1].quantity
+            ),
+            Allocation(
+                order_line=lines[2], stock=stock, quantity_allocated=lines[2].quantity
+            ),
+        ]
+    )
