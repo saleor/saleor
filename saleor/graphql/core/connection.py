@@ -192,7 +192,7 @@ def connection_from_queryset_slice(
     args: ConnectionArguments = None,
     connection_type: Any = Connection,
     edge_type: Any = Edge,
-    page_info_type: Any = PageInfo,
+    pageinfo_type: Any = PageInfo,
 ) -> Connection:
     """Create a connection object from a QuerySet."""
     args = args or {}
@@ -219,7 +219,7 @@ def connection_from_queryset_slice(
     qs = qs[:end_margin]
     edges, page_info = _get_edges_for_connection(edge_type, qs, args, sorting_fields)
 
-    return connection_type(edges=edges, page_info=page_info_type(**page_info),)
+    return connection_type(edges=edges, page_info=pageinfo_type(**page_info),)
 
 
 class NonNullConnection(Connection):
