@@ -26,7 +26,7 @@ class Migration(migrations.Migration):
             model_name="apptoken", old_name="service_account", new_name="app",
         ),
         migrations.AlterModelOptions(
-            name="app", options={"permissions": (("manage_app", "Manage app"),)},
+            name="app", options={"permissions": (("manage_apps", "Manage apps"),)},
         ),
         migrations.AlterField(
             model_name="app",

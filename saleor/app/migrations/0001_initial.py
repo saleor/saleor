@@ -94,7 +94,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 "db_table": "app_app",
-                "permissions": (("manage_apps", "Manage app"),),
+                "permissions": (("manage_apps", "Manage apps"),),
             },
         ),
         migrations.CreateModel(
