@@ -38,6 +38,17 @@ def update_contentypes_reverse(apps, schema_editor):
     qs.update(app_label="account")
 
 
+def convert_service_account_permissions_to_app_permissions(apps, schema_editor):
+    Permission = apps.get_model("auth", "Permission")
+    service_account_permission = Permission.objects.filter(
+        codename="manage_service_accounts", content_type__app_label="app"
+    ).first()
+    if service_account_permission:
+        service_account_permission.codename = "manage_apps"
+        service_account_permission.name = "Manage apps"
+        service_account_permission.save()
+
+
 class Migration(migrations.Migration):
 
     initial = True
@@ -141,4 +152,5 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterModelTable(name="app", table=None,),
         migrations.AlterModelTable(name="apptoken", table=None,),
+        migrations.RunPython(convert_service_account_permissions_to_app_permissions),
     ]
