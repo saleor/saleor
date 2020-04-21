@@ -496,6 +496,7 @@ type BulkProductError {
   message: String
   code: ProductErrorCode!
   index: Int
+  warehouses: [ID!]
 }
 
 type BulkStockError {
@@ -3622,6 +3623,7 @@ input ProductVariantBulkCreateInput {
   sku: String!
   trackInventory: Boolean
   weight: WeightScalar
+  stocks: [StockInput!]
 }
 
 type ProductVariantBulkDelete {
