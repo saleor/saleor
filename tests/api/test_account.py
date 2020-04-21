@@ -18,7 +18,7 @@ from prices import Money
 from saleor.account import events as account_events
 from saleor.account.error_codes import AccountErrorCode
 from saleor.account.models import Address, User
-from saleor.account.utils import create_jwt_token, get_random_avatar
+from saleor.account.utils import create_jwt_token
 from saleor.checkout import AddressType
 from saleor.core.permissions import AccountPermissions, OrderPermissions
 from saleor.graphql.account.mutations.base import INVALID_TOKEN
@@ -1587,10 +1587,6 @@ def test_staff_create(
     assert data["user"]["email"] == email
     assert data["user"]["isStaff"]
     assert data["user"]["isActive"]
-    assert re.match(
-        r"http://testserver/media/user-avatars/avatar\d+.*",
-        data["user"]["avatar"]["url"],
-    )
 
     expected_perms = {
         permission_manage_products.codename,
@@ -1697,10 +1693,6 @@ def test_staff_create_out_of_scope_group(
     assert data["user"]["email"] == email
     assert data["user"]["isStaff"]
     assert data["user"]["isActive"]
-    assert re.match(
-        r"http://testserver/media/user-avatars/avatar\d+.*",
-        data["user"]["avatar"]["url"],
-    )
     expected_perms = {
         permission_manage_staff.codename,
         permission_manage_users.codename,
@@ -2103,26 +2095,15 @@ def test_staff_update_cannot_add_and_remove(
     assert errors[0]["permissions"] is None
 
 
-@patch("saleor.graphql.account.mutations.staff.get_random_avatar")
 def test_staff_update_doesnt_change_existing_avatar(
-    mock_get_random_avatar,
-    staff_api_client,
-    permission_manage_staff,
-    media_root,
-    staff_users,
+    staff_api_client, permission_manage_staff, media_root, staff_users,
 ):
     query = STAFF_UPDATE_MUTATIONS
 
     mock_file = MagicMock(spec=File)
     mock_file.name = "image.jpg"
-    mock_get_random_avatar.return_value = mock_file
 
     staff_user, staff_user1, _ = staff_users
-
-    # Create random avatar
-    staff_user1.avatar = get_random_avatar()
-    staff_user1.save()
-    original_path = staff_user1.avatar.path
 
     id = graphene.Node.to_global_id("User", staff_user1.id)
     variables = {"id": id, "input": {"isActive": False}}
@@ -2133,10 +2114,8 @@ def test_staff_update_doesnt_change_existing_avatar(
     data = content["data"]["staffUpdate"]
     assert data["staffErrors"] == []
 
-    # Make sure that random avatar isn't recreated when there is one already set.
-    mock_get_random_avatar.assert_not_called()
     staff_user.refresh_from_db()
-    assert staff_user1.avatar.path == original_path
+    assert not staff_user.avatar
 
 
 def test_staff_update_deactivate_with_manage_staff_left_not_manageable_perms(
@@ -3647,7 +3626,7 @@ QUERY_CUSTOMERS_WITH_SORT = """
     ],
 )
 def test_query_customers_with_sort(
-    customer_sort, result_order, staff_api_client, permission_manage_users
+    customer_sort, result_order, staff_api_client, permission_manage_users,
 ):
     User.objects.bulk_create(
         [
@@ -3803,7 +3782,6 @@ def test_query_staff_members_with_filter_search(
     address,
     staff_user,
 ):
-
     User.objects.bulk_create(
         [
             User(
@@ -4154,7 +4132,7 @@ def test_request_email_change_with_invalid_password(user_api_client, customer_us
     content = get_graphql_content(response)
     data = content["data"]["requestEmailChange"]
     assert not data["user"]
-    assert data["accountErrors"][0]["code"] == AccountErrorCode.INVALID_PASSWORD.name
+    assert data["accountErrors"][0]["code"] == AccountErrorCode.INVALID_CREDENTIALS.name
     assert data["accountErrors"][0]["field"] == "password"
 
 

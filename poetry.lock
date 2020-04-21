@@ -436,15 +436,12 @@ description = "Provides a country field for Django models."
 name = "django-countries"
 optional = false
 python-versions = "*"
-version = "5.5"
-
-[package.dependencies]
-six = "*"
+version = "6.1.2"
 
 [package.extras]
-dev = ["tox", "django", "pytest", "pytest-django", "djangorestframework", "mock"]
+dev = ["tox", "black", "django", "pytest", "pytest-django", "djangorestframework", "graphene-django"]
 maintainer = ["transifex-client", "zest.releaser", "django"]
-test = ["pytest", "pytest-django", "pytest-cov", "mock"]
+test = ["pytest", "pytest-django", "pytest-cov", "graphene-django"]
 
 [[package]]
 category = "dev"
@@ -741,7 +738,7 @@ description = "Faker is a Python package that generates fake data for you."
 name = "faker"
 optional = false
 python-versions = ">=3.4"
-version = "4.0.2"
+version = "4.0.3"
 
 [package.dependencies]
 python-dateutil = ">=2.4"
@@ -922,7 +919,7 @@ description = "Graphene Django integration"
 name = "graphene-django"
 optional = false
 python-versions = "*"
-version = "2.9.0"
+version = "2.9.1"
 
 [package.dependencies]
 Django = ">=1.11"
@@ -933,7 +930,7 @@ singledispatch = ">=3.4.0.3"
 six = ">=1.10.0"
 
 [package.extras]
-dev = ["black (19.3b0)", "flake8 (3.7.7)", "flake8-black (0.1.0)", "flake8-bugbear (19.3.0)", "pytest (>=3.6.3)", "pytest-cov", "coveralls", "mock", "pytz", "pytest-django (>=3.3.2)", "djangorestframework (>=3.6.3)", "django-filter (<2)", "django-filter (>=2)"]
+dev = ["black (19.10b0)", "flake8 (3.7.9)", "flake8-black (0.1.1)", "flake8-bugbear (20.1.4)", "pytest (>=3.6.3)", "pytest-cov", "coveralls", "mock", "pytz", "pytest-django (>=3.3.2)", "djangorestframework (>=3.6.3)", "django-filter (<2)", "django-filter (>=2)"]
 rest_framework = ["djangorestframework (>=3.6.3)"]
 test = ["pytest (>=3.6.3)", "pytest-cov", "coveralls", "mock", "pytz", "pytest-django (>=3.3.2)", "djangorestframework (>=3.6.3)", "django-filter (<2)", "django-filter (>=2)"]
 
@@ -951,7 +948,7 @@ description = "Federation implementation for graphene"
 name = "graphene-federation"
 optional = false
 python-versions = "*"
-version = "0.0.3"
+version = "0.1.0"
 
 [package.dependencies]
 graphene = ">=2.1.0,<3"
@@ -1521,7 +1518,7 @@ description = "A Pylint plugin to help Pylint understand the Django web framewor
 name = "pylint-django"
 optional = false
 python-versions = "*"
-version = "2.0.14"
+version = "2.0.15"
 
 [package.dependencies]
 pylint = ">=2.0"
@@ -2183,7 +2180,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "37af9cd21f8dde97b1ddd9522cd369929756badb45e24f1ad9f7d707aa64c2cc"
+content-hash = "fbfaf7b7b745416fd9960784c12d7ffe9c1264a1899f58d1d9b4374b68a26549"
 python-versions = "~3.8"
 
 [metadata.files]
@@ -2382,8 +2379,8 @@ django-appconf = [
     {file = "django_appconf-1.0.4-py2.py3-none-any.whl", hash = "sha256:1b1d0e1069c843ebe8ae5aa48ec52403b1440402b320c3e3a206a0907e97bb06"},
 ]
 django-countries = [
-    {file = "django-countries-5.5.tar.gz", hash = "sha256:1cefad9ec804d6a0318b91c5394b5aef00336755928f44d0a6420507719d65c8"},
-    {file = "django_countries-5.5-py2.py3-none-any.whl", hash = "sha256:22e96236101783cfe5222ef5174972242a7e8176336d119a4dc111aedce35897"},
+    {file = "django-countries-6.1.2.tar.gz", hash = "sha256:e2ae9b76f9a0b5f3f365b5b81fe4972df0a5878c930139586f43f7d6d50a9594"},
+    {file = "django_countries-6.1.2-py3-none-any.whl", hash = "sha256:2e852c9693818d64d28758a720a0cb8277673ac495af8b855c4dc64940703bd2"},
 ]
 django-debug-toolbar = [
     {file = "django-debug-toolbar-2.2.tar.gz", hash = "sha256:eabbefe89881bbe4ca7c980ff102e3c35c8e8ad6eb725041f538988f2f39a943"},
@@ -2473,8 +2470,8 @@ execnet = [
     {file = "execnet-1.7.1.tar.gz", hash = "sha256:cacb9df31c9680ec5f95553976c4da484d407e85e41c83cb812aa014f0eddc50"},
 ]
 faker = [
-    {file = "Faker-4.0.2-py3-none-any.whl", hash = "sha256:b89aa33837498498e15c709eb40c31386408a901a53c7a5e12a425737a767976"},
-    {file = "Faker-4.0.2.tar.gz", hash = "sha256:2d3f866ef25e1a5af80e7b0ceeacc3c92dec5d0fdbad3e2cb6adf6e60b22188f"},
+    {file = "Faker-4.0.3-py3-none-any.whl", hash = "sha256:53bf2c8a2de8af271466e7b9cc2f08ecf83c4c947981680eb61080779a0adace"},
+    {file = "Faker-4.0.3.tar.gz", hash = "sha256:7292806948ed848f1bcea1e7b963bae6f398687d1da0ea096e156fea2787f454"},
 ]
 filelock = [
     {file = "filelock-3.0.12-py3-none-any.whl", hash = "sha256:929b7d63ec5b7d6b71b0fa5ac14e030b3f70b75747cef1b10da9b879fef15836"},
@@ -2523,14 +2520,14 @@ graphene = [
     {file = "graphene-2.1.8.tar.gz", hash = "sha256:2cbe6d4ef15cfc7b7805e0760a0e5b80747161ce1b0f990dfdc0d2cf497c12f9"},
 ]
 graphene-django = [
-    {file = "graphene-django-2.9.0.tar.gz", hash = "sha256:85420f93926f874c48b5dd119e4a0e231000a7501d7fc2218aa67f6deaf924d9"},
-    {file = "graphene_django-2.9.0-py2.py3-none-any.whl", hash = "sha256:2d1db0022740475bc76a7372f6d9637ab3dc3217f1b330c6090b1cca7f9538fd"},
+    {file = "graphene-django-2.9.1.tar.gz", hash = "sha256:9a95913e3c70e8013c4908b916c68ab1497e1a6cd1cdd1793010f79777978596"},
+    {file = "graphene_django-2.9.1-py2.py3-none-any.whl", hash = "sha256:33843f3f86b4d580a7cc69ccf5d2cff9e275597ae2c33c906627fa15e0c18590"},
 ]
 graphene-django-optimizer = [
     {file = "graphene-django-optimizer-0.6.2.tar.gz", hash = "sha256:34dd22ae8740076f5b8811bebac20a06d659ed3e9747453229ecb445f594cb4e"},
 ]
 graphene-federation = [
-    {file = "graphene-federation-0.0.3.tar.gz", hash = "sha256:74b393daf8811fdd10e4b8395f33e3be667e0e4f6f9508c372758f6fd38f03c1"},
+    {file = "graphene-federation-0.1.0.tar.gz", hash = "sha256:e44e8e354d0c8eeb03547d5c262d01c868d4ea7d1458512c994176eed80fd2bf"},
 ]
 graphql-core = [
     {file = "graphql-core-2.3.1.tar.gz", hash = "sha256:74a8f509ae8c4a58271f5d6b46d5c75b4aed116821ab62dea252d8041bfe057a"},
@@ -2908,8 +2905,8 @@ pylint-celery = [
     {file = "pylint-celery-0.3.tar.gz", hash = "sha256:41e32094e7408d15c044178ea828dd524beedbdbe6f83f712c5e35bde1de4beb"},
 ]
 pylint-django = [
-    {file = "pylint-django-2.0.14.tar.gz", hash = "sha256:c9bbcff6b87ee8466fae274fd7aae3d2d3d4c4d1ea20c48cbce673e837e36048"},
-    {file = "pylint_django-2.0.14-py3-none-any.whl", hash = "sha256:3a4cc19dd6301fc2d36c9fb6e15163001a6d12723c1f7f8c2249223c2a8c68f0"},
+    {file = "pylint-django-2.0.15.tar.gz", hash = "sha256:06a64331c498a3f049ba669dc0c174b92209e164198d43e589b1096ee616d5f8"},
+    {file = "pylint_django-2.0.15-py3-none-any.whl", hash = "sha256:3d3436ba8d0fae576ae2db160e33a8f2746a101fda4463f2b3ff3a8b6fccec38"},
 ]
 pylint-plugin-utils = [
     {file = "pylint-plugin-utils-0.6.tar.gz", hash = "sha256:57625dcca20140f43731311cd8fd879318bf45a8b0fd17020717a8781714a25a"},

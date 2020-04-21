@@ -2,7 +2,7 @@ import graphene
 
 from ...account import error_codes as account_error_codes
 from ...checkout import error_codes as checkout_error_codes
-from ...core import error_codes as core_error_codes
+from ...core import JobStatus, error_codes as core_error_codes
 from ...core.permissions import get_permissions_enum_list
 from ...core.weight import WeightUnits
 from ...discount import error_codes as discount_error_codes
@@ -12,7 +12,7 @@ from ...order import error_codes as order_error_codes
 from ...page import error_codes as page_error_codes
 from ...payment import error_codes as payment_error_codes
 from ...plugins import error_codes as plugin_error_codes
-from ...plugins.vatlayer.plugin import TaxRateType as CoreTaxRateType
+from ...plugins.vatlayer import TaxRateType as CoreTaxRateType
 from ...product import error_codes as product_error_codes
 from ...shipping import error_codes as shipping_error_codes
 from ...warehouse import error_codes as warehouse_error_codes
@@ -75,10 +75,8 @@ TaxRateType = graphene.Enum(
     "TaxRateType", [(str_to_enum(rate[0]), rate[0]) for rate in CoreTaxRateType.CHOICES]
 )
 
-
+JobStatusEnum = to_enum(JobStatus)
 PermissionEnum = graphene.Enum("PermissionEnum", get_permissions_enum_list())
-
-
 WeightUnitsEnum = graphene.Enum(
     "WeightUnitsEnum", [(str_to_enum(unit[0]), unit[0]) for unit in WeightUnits.CHOICES]
 )

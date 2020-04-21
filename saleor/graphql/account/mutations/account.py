@@ -384,7 +384,8 @@ class RequestEmailChange(BaseMutation):
             raise ValidationError(
                 {
                     "password": ValidationError(
-                        "Password isn't valid.", code=AccountErrorCode.INVALID_PASSWORD
+                        "Password isn't valid.",
+                        code=AccountErrorCode.INVALID_CREDENTIALS,
                     )
                 }
             )
