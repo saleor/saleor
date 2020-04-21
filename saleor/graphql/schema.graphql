@@ -2580,6 +2580,7 @@ enum OrderErrorCode {
   UNIQUE
   VOID_INACTIVE_PAYMENT
   ZERO_QUANTITY
+  INSUFFICIENT_STOCK
 }
 
 type OrderEvent implements Node {
@@ -4415,9 +4416,9 @@ type Stock implements Node {
   warehouse: Warehouse!
   productVariant: ProductVariant!
   quantity: Int!
-  quantityAllocated: Int!
   id: ID!
   stockQuantity: Int!
+  quantityAllocated: Int!
 }
 
 enum StockAvailability {
@@ -4453,7 +4454,6 @@ enum StockErrorCode {
 
 input StockFilterInput {
   quantity: Float
-  quantityAllocated: Float
   search: String
 }
 

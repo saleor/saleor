@@ -26,7 +26,9 @@ from saleor.payment.interface import GatewayResponse
 from saleor.shipping import ShippingMethodType
 from saleor.shipping.models import ShippingMethod
 from saleor.warehouse.models import Stock
-from tests.api.utils import assert_no_permission, get_graphql_content
+
+from ..utils import get_available_quantity_for_stock
+from .utils import assert_no_permission, get_graphql_content
 
 
 @pytest.fixture
@@ -166,6 +168,37 @@ def test_checkout_create(api_client, stock, graphql_address_data):
     assert new_checkout.shipping_address.postal_code == shipping_address["postalCode"]
     assert new_checkout.shipping_address.country == shipping_address["country"]
     assert new_checkout.shipping_address.city == shipping_address["city"].upper()
+
+
+def test_checkout_create_multiple_warehouse(
+    api_client, variant_with_many_stocks, graphql_address_data
+):
+    variant = variant_with_many_stocks
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    shipping_address = graphql_address_data
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 4, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+        }
+    }
+    assert not Checkout.objects.exists()
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)["data"]["checkoutCreate"]
+
+    # Look at the flag to see whether a new checkout was created or not
+    assert content["created"] is True
+
+    new_checkout = Checkout.objects.first()
+    assert new_checkout is not None
+    checkout_data = content["checkout"]
+    assert checkout_data["token"] == str(new_checkout.token)
+    assert new_checkout.lines.count() == 1
+    checkout_line = new_checkout.lines.first()
+    assert checkout_line.variant == variant
+    assert checkout_line.quantity == 4
 
 
 @pytest.mark.parametrize(
@@ -368,16 +401,17 @@ def test_checkout_create_logged_in_customer_custom_addresses(
     assert new_checkout.billing_address.first_name == billing_address["firstName"]
 
 
-def test_checkout_create_check_lines_quantity(
-    user_api_client, stock, graphql_address_data
+def test_checkout_create_check_lines_quantity_multiple_warehouse(
+    user_api_client, variant_with_many_stocks, graphql_address_data
 ):
-    variant = stock.product_variant
+    variant = variant_with_many_stocks
+
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
     test_email = "test@example.com"
     shipping_address = graphql_address_data
     variables = {
         "checkoutInput": {
-            "lines": [{"quantity": 3, "variantId": variant_id}],
+            "lines": [{"quantity": 16, "variantId": variant_id}],
             "email": test_email,
             "shippingAddress": shipping_address,
         }
@@ -387,7 +421,31 @@ def test_checkout_create_check_lines_quantity(
     content = get_graphql_content(response)
     data = content["data"]["checkoutCreate"]
     assert data["errors"][0]["message"] == (
-        "Could not add item Test product (SKU_A). Only 2 remaining in stock."
+        "Could not add item Test product (SKU_A). Only 7 remaining in stock."
+    )
+    assert data["errors"][0]["field"] == "quantity"
+
+
+def test_checkout_create_check_lines_quantity(
+    user_api_client, stock, graphql_address_data
+):
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    test_email = "test@example.com"
+    shipping_address = graphql_address_data
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 16, "variantId": variant_id}],
+            "email": test_email,
+            "shippingAddress": shipping_address,
+        }
+    }
+    assert not Checkout.objects.exists()
+    response = user_api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["checkoutCreate"]
+    assert data["errors"][0]["message"] == (
+        "Could not add item Test product (SKU_A). Only 15 remaining in stock."
     )
     assert data["errors"][0]["field"] == "quantity"
 
@@ -631,13 +689,13 @@ def test_checkout_lines_add_check_lines_quantity(user_api_client, checkout, stoc
 
     variables = {
         "checkoutId": checkout_id,
-        "lines": [{"variantId": variant_id, "quantity": 3}],
+        "lines": [{"variantId": variant_id, "quantity": 16}],
     }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_ADD, variables)
     content = get_graphql_content(response)
     data = content["data"]["checkoutLinesAdd"]
     assert data["errors"][0]["message"] == (
-        "Could not add item Test product (SKU_A). Only 2 remaining in stock."
+        "Could not add item Test product (SKU_A). Only 15 remaining in stock."
     )
     assert data["errors"][0]["field"] == "quantity"
 
@@ -739,14 +797,14 @@ def test_checkout_lines_update_check_lines_quantity(
 
     variables = {
         "checkoutId": checkout_id,
-        "lines": [{"variantId": variant_id, "quantity": 10}],
+        "lines": [{"variantId": variant_id, "quantity": 11}],
     }
     response = user_api_client.post_graphql(MUTATION_CHECKOUT_LINES_UPDATE, variables)
     content = get_graphql_content(response)
 
     data = content["data"]["checkoutLinesUpdate"]
     assert data["errors"][0]["message"] == (
-        "Could not add item Test product (123). Only 9 remaining in stock."
+        "Could not add item Test product (123). Only 10 remaining in stock."
     )
     assert data["errors"][0]["field"] == "quantity"
 
@@ -1559,7 +1617,7 @@ def test_checkout_complete_insufficient_stock(
     checkout = checkout_with_item
     checkout_line = checkout.lines.first()
     stock = Stock.objects.get(product_variant=checkout_line.variant)
-    quantity_available = stock.quantity_available
+    quantity_available = get_available_quantity_for_stock(stock)
     checkout_line.quantity = quantity_available + 1
     checkout_line.save()
     checkout.shipping_address = address

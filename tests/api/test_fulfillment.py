@@ -6,6 +6,7 @@ import pytest
 from saleor.core.permissions import OrderPermissions
 from saleor.order.events import OrderEvents
 from saleor.order.models import FulfillmentStatus
+from saleor.warehouse.models import Allocation
 from tests.api.utils import assert_no_permission, get_graphql_content
 
 CREATE_FULFILLMENT_QUERY = """
@@ -323,6 +324,11 @@ def test_create_digital_fulfillment(
     order_line = order.lines.first()
     order_line.variant = digital_content.product_variant
     order_line.save()
+
+    stock = digital_content.product_variant.stocks.first()
+    Allocation.objects.create(
+        order_line=order_line, stock=stock, quantity_allocated=order_line.quantity
+    )
 
     second_line = order.lines.last()
     first_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)

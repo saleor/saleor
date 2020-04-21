@@ -385,7 +385,6 @@ PAYMENT_MODEL = "order.Payment"
 
 SESSION_SERIALIZER = "django.contrib.sessions.serializers.JSONSerializer"
 
-LOW_STOCK_THRESHOLD = 10
 MAX_CHECKOUT_LINE_QUANTITY = int(os.environ.get("MAX_CHECKOUT_LINE_QUANTITY", 50))
 
 TEST_RUNNER = "tests.runner.PytestTestRunner"
