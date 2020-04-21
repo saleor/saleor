@@ -35,6 +35,7 @@ from ...core.types.common import ProductError
 from ...core.utils import (
     clean_seo_fields,
     from_global_id_strict_type,
+    get_duplicated_values,
     validate_image_file,
     validate_slug_and_generate_if_needed,
 )
@@ -904,7 +905,7 @@ class ProductCreate(ModelMutation):
     @classmethod
     def check_for_duplicates_in_stocks(cls, stocks_data):
         warehouse_ids = [stock["warehouse"] for stock in stocks_data]
-        duplicates = {id for id in warehouse_ids if warehouse_ids.count(id) > 1}
+        duplicates = get_duplicated_values(warehouse_ids)
         if duplicates:
             error_msg = "Duplicated warehouse ID: {}".format(duplicates.join(", "))
             raise ValidationError(
@@ -1146,7 +1147,7 @@ class ProductVariantCreate(ModelMutation):
         if attribute_values in used_attribute_values:
             raise ValidationError(
                 "Duplicated attribute values for product variant.",
-                ProductErrorCode.UNIQUE,
+                ProductErrorCode.DUPLICATED,
             )
         else:
             used_attribute_values.append(attribute_values)
@@ -1222,7 +1223,7 @@ class ProductVariantCreate(ModelMutation):
     @classmethod
     def check_for_duplicates_in_stocks(cls, stocks_data):
         warehouse_ids = [stock["warehouse"] for stock in stocks_data]
-        duplicates = {id for id in warehouse_ids if warehouse_ids.count(id) > 1}
+        duplicates = get_duplicated_values(warehouse_ids)
         if duplicates:
             error_msg = "Duplicated warehouse ID: {}".format(", ".join(duplicates))
             raise ValidationError(

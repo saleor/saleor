@@ -274,7 +274,7 @@ def test_create_product_variant_duplicated_attributes(
     assert content["data"]["productVariantCreate"]["productErrors"]
     assert content["data"]["productVariantCreate"]["productErrors"][0] == {
         "field": "attributes",
-        "code": ProductErrorCode.UNIQUE.name,
+        "code": ProductErrorCode.DUPLICATED.name,
         "message": ANY,
     }
     assert not product.variants.filter(sku=sku).exists()
@@ -656,7 +656,7 @@ def test_update_product_variant_with_duplicated_attribute(
     data = content["data"]["productVariantUpdate"]
     assert data["productErrors"][0] == {
         "field": "attributes",
-        "code": ProductErrorCode.UNIQUE.name,
+        "code": ProductErrorCode.DUPLICATED.name,
     }
 
 
@@ -1126,7 +1126,7 @@ def test_product_variant_bulk_create_two_variants_duplicated_attribute_value(
     assert len(data["bulkProductErrors"]) == 1
     error = data["bulkProductErrors"][0]
     assert error["field"] == "attributes"
-    assert error["code"] == ProductErrorCode.UNIQUE.name
+    assert error["code"] == ProductErrorCode.DUPLICATED.name
     assert error["index"] == 0
     assert product_variant_count == ProductVariant.objects.count()
 
@@ -1161,7 +1161,7 @@ def test_product_variant_bulk_create_two_variants_duplicated_attribute_value_in_
     assert len(data["bulkProductErrors"]) == 1
     error = data["bulkProductErrors"][0]
     assert error["field"] == "attributes"
-    assert error["code"] == ProductErrorCode.UNIQUE.name
+    assert error["code"] == ProductErrorCode.DUPLICATED.name
     assert error["index"] == 1
     assert product_variant_count == ProductVariant.objects.count()
 
