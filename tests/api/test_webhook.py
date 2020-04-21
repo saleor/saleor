@@ -13,7 +13,7 @@ from saleor.webhook.models import Webhook
 
 from .utils import assert_no_permission, get_graphql_content
 
-WEBHOOK_CREATE_BY_SERVICE_ACCOUNT = """
+WEBHOOK_CREATE_BY_APP = """
     mutation webhookCreate($name: String, $target_url: String,
             $events: [WebhookEventTypeEnum]){
       webhookCreate(input:{name: $name, targetUrl:$target_url, events:$events}){
@@ -29,8 +29,8 @@ WEBHOOK_CREATE_BY_SERVICE_ACCOUNT = """
 """
 
 
-def test_webhook_create_by_service_account(app_api_client, permission_manage_orders):
-    query = WEBHOOK_CREATE_BY_SERVICE_ACCOUNT
+def test_webhook_create_by_app(app_api_client, permission_manage_orders):
+    query = WEBHOOK_CREATE_BY_APP
     variables = {
         "name": "New integration",
         "target_url": "https://www.example.com",
@@ -54,12 +54,10 @@ def test_webhook_create_by_service_account(app_api_client, permission_manage_ord
     assert events[0].event_type == WebhookEventTypeEnum.ORDER_CREATED.value
 
 
-def test_webhook_create_inactive_service_account(
-    app_api_client, app, permission_manage_orders
-):
+def test_webhook_create_inactive_app(app_api_client, app, permission_manage_orders):
     app.is_active = False
     app.save()
-    query = WEBHOOK_CREATE_BY_SERVICE_ACCOUNT
+    query = WEBHOOK_CREATE_BY_APP
     variables = {
         "target_url": "https://www.example.com",
         "events": [WebhookEventTypeEnum.ORDER_CREATED.name],
@@ -72,10 +70,10 @@ def test_webhook_create_inactive_service_account(
     assert_no_permission(response)
 
 
-def test_webhook_create_without_service_account(app_api_client, app):
+def test_webhook_create_without_app(app_api_client, app):
     app_api_client.app = None
     app_api_client.app_token = None
-    query = WEBHOOK_CREATE_BY_SERVICE_ACCOUNT
+    query = WEBHOOK_CREATE_BY_APP
     variables = {
         "target_url": "https://www.example.com",
         "events": [WebhookEventTypeEnum.ORDER_CREATED.name],
@@ -85,10 +83,10 @@ def test_webhook_create_without_service_account(app_api_client, app):
     assert_no_permission(response)
 
 
-def test_webhook_create_service_account_doesnt_exist(app_api_client, app):
+def test_webhook_create_app_doesnt_exist(app_api_client, app):
     app.delete()
 
-    query = WEBHOOK_CREATE_BY_SERVICE_ACCOUNT
+    query = WEBHOOK_CREATE_BY_APP
     variables = {
         "target_url": "https://www.example.com",
         "events": [WebhookEventTypeEnum.ORDER_CREATED.name],
@@ -100,9 +98,9 @@ def test_webhook_create_service_account_doesnt_exist(app_api_client, app):
 
 WEBHOOK_CREATE_BY_STAFF = """
     mutation webhookCreate(
-        $target_url: String, $events: [WebhookEventTypeEnum], $service_account: ID){
+        $target_url: String, $events: [WebhookEventTypeEnum], $app: ID){
       webhookCreate(input:{
-            targetUrl:$target_url, events:$events, serviceAccount: $service_account}){
+            targetUrl:$target_url, events:$events, app: $app}){
         errors{
           field
           message
@@ -120,11 +118,11 @@ def test_webhook_create_by_staff(
 ):
     query = WEBHOOK_CREATE_BY_STAFF
     app.permissions.add(permission_manage_orders)
-    service_account_id = graphene.Node.to_global_id("ServiceAccount", app.pk)
+    app_id = graphene.Node.to_global_id("App", app.pk)
     variables = {
         "target_url": "https://www.example.com",
         "events": [WebhookEventTypeEnum.ORDER_CREATED.name],
-        "service_account": service_account_id,
+        "app": app_id,
     }
     staff_api_client.user.user_permissions.add(permission_manage_webhooks)
     response = staff_api_client.post_graphql(query, variables=variables)
@@ -137,14 +135,14 @@ def test_webhook_create_by_staff(
     assert events[0].event_type == WebhookEventTypeEnum.ORDER_CREATED.value
 
 
-def test_webhook_create_by_staff_with_inactive_service_account(staff_api_client, app):
+def test_webhook_create_by_staff_with_inactive_app(staff_api_client, app):
     app.is_active = False
     query = WEBHOOK_CREATE_BY_STAFF
-    service_account_id = graphene.Node.to_global_id("ServiceAccount", app.pk)
+    app_id = graphene.Node.to_global_id("App", app.pk)
     variables = {
         "target_url": "https://www.example.com",
         "events": [WebhookEventTypeEnum.ORDER_CREATED.name],
-        "service_account": service_account_id,
+        "app": app_id,
     }
     response = staff_api_client.post_graphql(query, variables=variables)
     assert_no_permission(response)
@@ -153,18 +151,18 @@ def test_webhook_create_by_staff_with_inactive_service_account(staff_api_client,
 
 def test_webhook_create_by_staff_without_permission(staff_api_client, app):
     query = WEBHOOK_CREATE_BY_STAFF
-    service_account_id = graphene.Node.to_global_id("ServiceAccount", app.pk)
+    app_id = graphene.Node.to_global_id("App", app.pk)
     variables = {
         "target_url": "https://www.example.com",
         "events": [WebhookEventTypeEnum.ORDER_CREATED.name],
-        "service_account": service_account_id,
+        "app": app_id,
     }
     response = staff_api_client.post_graphql(query, variables=variables)
     assert_no_permission(response)
     assert Webhook.objects.count() == 0
 
 
-WEBHOOK_DELETE_BY_SERVICE_ACCOUNT = """
+WEBHOOK_DELETE_BY_APP = """
     mutation webhookDelete($id: ID!){
       webhookDelete(id: $id){
         webhookErrors{
@@ -177,8 +175,8 @@ WEBHOOK_DELETE_BY_SERVICE_ACCOUNT = """
 """
 
 
-def test_webhook_delete_by_service_account(app_api_client, webhook):
-    query = WEBHOOK_DELETE_BY_SERVICE_ACCOUNT
+def test_webhook_delete_by_app(app_api_client, webhook):
+    query = WEBHOOK_DELETE_BY_APP
     webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
     variables = {"id": webhook_id}
     response = app_api_client.post_graphql(query, variables=variables)
@@ -186,12 +184,14 @@ def test_webhook_delete_by_service_account(app_api_client, webhook):
     assert Webhook.objects.count() == 0
 
 
-def test_webhook_delete_by_service_account_with_wrong_webhook(app_api_client, webhook):
+def test_webhook_delete_by_app_and_webhook_assigned_to_other_app(
+    app_api_client, webhook
+):
     second_app = App.objects.create(name="second")
     webhook.app = second_app
     webhook.save()
 
-    query = WEBHOOK_DELETE_BY_SERVICE_ACCOUNT
+    query = WEBHOOK_DELETE_BY_APP
     webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
     variables = {"id": webhook_id}
     response = app_api_client.post_graphql(query, variables=variables)
@@ -201,8 +201,8 @@ def test_webhook_delete_by_service_account_with_wrong_webhook(app_api_client, we
     assert Webhook.objects.count() == 1
 
 
-def test_webhook_delete_by_service_account_wrong_webhook(app_api_client, webhook):
-    query = WEBHOOK_DELETE_BY_SERVICE_ACCOUNT
+def test_webhook_delete_by_app_and_missing_webhook(app_api_client, webhook):
+    query = WEBHOOK_DELETE_BY_APP
     webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
     variables = {"id": webhook_id}
     webhook.delete()
@@ -213,21 +213,21 @@ def test_webhook_delete_by_service_account_wrong_webhook(app_api_client, webhook
     assert errors[0]["code"] == "GRAPHQL_ERROR"
 
 
-def test_webhook_delete_by_inactive_service_account(app_api_client, webhook):
+def test_webhook_delete_by_inactive_app(app_api_client, webhook):
     app = webhook.app
     app.is_active = False
     app.save()
-    query = WEBHOOK_DELETE_BY_SERVICE_ACCOUNT
+    query = WEBHOOK_DELETE_BY_APP
     webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
     variables = {"id": webhook_id}
     response = app_api_client.post_graphql(query, variables=variables)
     assert_no_permission(response)
 
 
-def test_webhook_delete_service_account_doesnt_exist(app_api_client, app):
+def test_webhook_delete_when_app_doesnt_exist(app_api_client, app):
     app.delete()
 
-    query = WEBHOOK_DELETE_BY_SERVICE_ACCOUNT
+    query = WEBHOOK_DELETE_BY_APP
     webhook_id = graphene.Node.to_global_id("Webhook", 1)
     variables = {"id": webhook_id}
     response = app_api_client.post_graphql(query, variables=variables)
@@ -253,7 +253,7 @@ WEBHOOK_UPDATE = """
 """
 
 
-def test_webhook_update_not_allowed_by_service_account(app_api_client, app, webhook):
+def test_webhook_update_not_allowed_by_app(app_api_client, app, webhook):
     query = WEBHOOK_UPDATE
     webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
     variables = {
@@ -308,7 +308,7 @@ QUERY_WEBHOOKS = """
       webhooks(first:5, filter: $filter){
         edges{
           node{
-            serviceAccount{
+            app{
               id
             }
             targetUrl
@@ -342,7 +342,7 @@ def test_query_webhooks_by_staff_without_permission(staff_api_client, webhook):
     assert_no_permission(response)
 
 
-def test_query_webhooks_by_service_account(app_api_client, webhook):
+def test_query_webhooks_by_app(app_api_client, webhook):
     second_app = App.objects.create(name="Sample app", is_active=True)
     second_webhook = Webhook.objects.create(
         app=second_app, target_url="http://www.example.com/test"
@@ -412,14 +412,8 @@ QUERY_WEBHOOKS_WITH_SORT = """
     [
         ({"field": "NAME", "direction": "ASC"}, ["backup", "hook1", "hook2"]),
         ({"field": "NAME", "direction": "DESC"}, ["hook2", "hook1", "backup"]),
-        (
-            {"field": "SERVICE_ACCOUNT", "direction": "ASC"},
-            ["hook2", "backup", "hook1"],
-        ),
-        (
-            {"field": "SERVICE_ACCOUNT", "direction": "DESC"},
-            ["backup", "hook1", "hook2"],
-        ),
+        ({"field": "APP", "direction": "ASC"}, ["hook2", "backup", "hook1"],),
+        ({"field": "APP", "direction": "DESC"}, ["backup", "hook1", "hook2"],),
         ({"field": "TARGET_URL", "direction": "ASC"}, ["hook2", "hook1", "backup"]),
         ({"field": "TARGET_URL", "direction": "DESC"}, ["backup", "hook1", "hook2"]),
     ],
@@ -450,7 +444,7 @@ def test_query_webhooks_with_sort(
         assert webhooks[order]["node"]["name"] == webhook_name
 
 
-def test_query_webhooks_by_service_account_without_permissions(app_api_client,):
+def test_query_webhooks_by_app_without_permissions(app_api_client,):
     second_app = App.objects.create(name="Sample app account", is_active=True)
     second_webhook = Webhook.objects.create(
         app=second_app, target_url="http://www.example.com/test"
@@ -503,7 +497,7 @@ def test_query_webhook_by_staff_without_permission(staff_api_client, webhook):
     assert_no_permission(response)
 
 
-def test_query_webhook_by_service_account(app_api_client, webhook):
+def test_query_webhook_by_app(app_api_client, webhook):
     query = QUERY_WEBHOOK
 
     webhook_id = graphene.Node.to_global_id("Webhook", webhook.pk)
@@ -519,7 +513,7 @@ def test_query_webhook_by_service_account(app_api_client, webhook):
     assert events[0].event_type == WebhookEventTypeEnum.ORDER_CREATED.value
 
 
-def test_query_webhook_by_service_account_without_permission(app_api_client,):
+def test_query_webhook_by_app_without_permission(app_api_client,):
     second_app = App.objects.create(name="Sample app account", is_active=True)
     webhook = Webhook.objects.create(
         app=second_app, target_url="http://www.example.com/test"
@@ -585,7 +579,7 @@ SAMPLE_PAYLOAD_QUERY = """
         (WebhookSampleEventTypeEnum.FULFILLMENT_CREATED, True),
     ],
 )
-def test_sample_payload_query_by_service_account(
+def test_sample_payload_query_by_app(
     mock_generate_sample_payload,
     event_type,
     has_access,

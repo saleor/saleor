@@ -5076,7 +5076,8 @@ type Webhook implements Node {
   secretKey: String
   id: ID!
   events: [WebhookEvent!]!
-  serviceAccount: ServiceAccount!
+  serviceAccount: ServiceAccount! @deprecated(reason: "Use the `app` field instead. This field will be removed after 2020-07-31.")
+  app: App!
 }
 
 type WebhookCountableConnection {
@@ -5165,6 +5166,7 @@ enum WebhookSortField {
   NAME
   SERVICE_ACCOUNT
   TARGET_URL
+  APP
 }
 
 input WebhookSortingInput {

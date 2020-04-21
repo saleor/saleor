@@ -256,7 +256,7 @@ class BaseMutation(graphene.Mutation):
 
     @classmethod
     def check_permissions(cls, context, permissions=None):
-        """Determine whether user or service account has rights to perform this mutation.
+        """Determine whether user or app has rights to perform this mutation.
 
         Default implementation assumes that account is allowed to perform any
         mutation. By overriding this method or defining required permissions

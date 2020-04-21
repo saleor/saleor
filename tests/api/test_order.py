@@ -503,9 +503,7 @@ def test_non_staff_user_cannot_only_see_his_order(user_api_client, order):
     assert_no_permission(response)
 
 
-def test_query_order_as_service_account(
-    app_api_client, permission_manage_orders, order
-):
+def test_query_order_as_app(app_api_client, permission_manage_orders, order):
     query = """
     query OrderQuery($id: ID!) {
         order(id: $id) {

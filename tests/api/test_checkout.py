@@ -1806,7 +1806,7 @@ def test_query_anonymous_customer_checkout_as_staff_user(
     assert content["data"]["checkout"]["token"] == str(checkout.token)
 
 
-def test_query_anonymous_customer_checkout_as_service_account(
+def test_query_anonymous_customer_checkout_as_app(
     app_api_client, checkout, permission_manage_checkouts
 ):
     variables = {"token": str(checkout.token)}
@@ -1867,7 +1867,7 @@ def test_query_customer_checkout_as_staff_user(
     assert content["data"]["checkout"]["token"] == str(checkout.token)
 
 
-def test_query_customer_checkout_as_service_account(
+def test_query_customer_checkout_as_app(
     staff_api_client, checkout, customer_user, permission_manage_checkouts
 ):
     checkout.user = customer_user

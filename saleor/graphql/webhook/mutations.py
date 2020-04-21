@@ -18,7 +18,8 @@ class WebhookCreateInput(graphene.InputObjectType):
     )
     service_account = graphene.ID(
         required=False,
-        description="ID of the service account to which webhook belongs.",
+        description="DEPRECATED: Use the `app` field instead. This field will be "
+        "removed after 2020-07-31.",
     )
     app = graphene.ID(
         required=False, description="ID of the app to which webhook belongs.",
@@ -108,7 +109,8 @@ class WebhookUpdateInput(graphene.InputObjectType):
     )
     service_account = graphene.ID(
         required=False,
-        description="ID of the service account to which webhook belongs.",
+        description="DEPRECATED: Use the `app` field instead. This field will be "
+        "removed after 2020-07-31.",
     )
     app = graphene.ID(
         required=False, description="ID of the app to which webhook belongs.",
@@ -189,7 +191,7 @@ class WebhookDelete(ModelDeleteMutation):
         if app:
             if not app.is_active:
                 raise ValidationError(
-                    "Service account needs to be active to delete webhook",
+                    "App needs to be active to delete webhook",
                     code=WebhookErrorCode.INVALID,
                 )
             try:
