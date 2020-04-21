@@ -108,11 +108,11 @@ def test_permission_group_create_service_account_no_permission(
     variables = {
         "input": {
             "name": "New permission group",
-            "permissions": [
+            "addPermissions": [
                 AccountPermissions.MANAGE_USERS.name,
                 AccountPermissions.MANAGE_SERVICE_ACCOUNTS.name,
             ],
-            "users": [
+            "addUsers": [
                 graphene.Node.to_global_id("User", user.id) for user in staff_users
             ],
         }

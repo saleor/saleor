@@ -97,7 +97,10 @@ class BaseMutation(graphene.Mutation):
     errors = graphene.List(
         graphene.NonNull(Error),
         description="List of errors that occurred executing the mutation.",
-        deprecation_reason="Use typed errors with error codes.",
+        deprecation_reason=(
+            "Use typed errors with error codes. This field will be removed after "
+            "2020-07-31."
+        ),
         required=True,
     )
 
@@ -609,7 +612,10 @@ class CreateToken(ObtainJSONWebToken):
     errors = graphene.List(
         graphene.NonNull(Error),
         required=True,
-        deprecation_reason="Use typed errors with error codes.",
+        deprecation_reason=(
+            "Use typed errors with error codes. This field will be removed after "
+            "2020-07-31."
+        ),
     )
     account_errors = graphene.List(
         graphene.NonNull(AccountError),

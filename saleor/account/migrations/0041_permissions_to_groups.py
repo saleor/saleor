@@ -70,7 +70,7 @@ def create_group_with_given_permissions(perm_pks, group_name, Group):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("account", "0039_auto_20200221_0257"),
+        ("account", "0040_auto_20200415_0443"),
     ]
     operations = [
         migrations.RunPython(

@@ -19,7 +19,6 @@ def warehouses_for_pagination(db, address):
     )
 
 
-# After fix #5410 we should remove `id` from requested fields.
 QUERY_WAREHOUSES_PAGINATION = """
     query (
         $first: Int, $last: Int, $after: String, $before: String,

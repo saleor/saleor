@@ -7,6 +7,7 @@ from ..enums import (
     CheckoutErrorCode,
     DiscountErrorCode,
     GiftCardErrorCode,
+    JobStatusEnum,
     MenuErrorCode,
     MetadataErrorCode,
     OrderErrorCode,
@@ -255,4 +256,15 @@ class TaxType(graphene.ObjectType):
     description = graphene.String(description="Description of the tax type.")
     tax_code = graphene.String(
         description="External tax code used to identify given tax group."
+    )
+
+
+class Job(graphene.Interface):
+    id = graphene.ID(description="ID of job.", required=True)
+    status = JobStatusEnum(description="Job status.", required=True)
+    created_at = graphene.DateTime(
+        description="Created date time of job in ISO 8601 format.", required=True
+    )
+    updated_at = graphene.DateTime(
+        description="Date time of job last update in ISO 8601 format.", required=True
     )

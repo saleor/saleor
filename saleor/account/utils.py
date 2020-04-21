@@ -1,10 +1,6 @@
-import os
-import random
-
 import jwt
 from django.conf import settings
 from django.core.exceptions import ValidationError
-from django.core.files import File
 from django.utils import timezone
 
 from ..account.error_codes import AccountErrorCode
@@ -12,10 +8,6 @@ from ..checkout import AddressType
 from ..core.utils import create_thumbnails
 from ..plugins.manager import get_plugins_manager
 from .models import User
-
-AVATARS_PATH = os.path.join(
-    settings.PROJECT_ROOT, "saleor", "static", "images", "avatars"
-)
 
 
 def store_user_address(user, address, address_type):
@@ -64,7 +56,6 @@ def create_superuser(credentials):
         defaults={"is_active": True, "is_staff": True, "is_superuser": True},
     )
     if created:
-        user.avatar = get_random_avatar()
         user.set_password(credentials["password"])
         user.save()
         create_thumbnails(
@@ -74,13 +65,6 @@ def create_superuser(credentials):
     else:
         msg = "Superuser already exists - %(email)s" % credentials
     return msg
-
-
-def get_random_avatar():
-    """Return random avatar picked from a pool of static avatars."""
-    avatar_name = random.choice(os.listdir(AVATARS_PATH))
-    avatar_path = os.path.join(AVATARS_PATH, avatar_name)
-    return File(open(avatar_path, "rb"), name=avatar_name)
 
 
 def remove_staff_member(staff):
