@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <title>It works!</title>
+</head>
+
+<body>
+  {% if dashboard %}
+    <a href={{dashboard}} target="_blank">Dashboard</a>
+  {% endif %}
+  {% if storefront %}
+    <a href={{storefront}} target="_blank">Storefront</a>
+  {% endif %}
+  <a href="{% url "api" %}" target="_blank">Playground</a>
+</body>
+
+</html>
