@@ -5,13 +5,13 @@ from .app.schema import AppMutations, AppQueries
 from .checkout.schema import CheckoutMutations, CheckoutQueries
 from .core.schema import CoreMutations, CoreQueries
 from .discount.schema import DiscountMutations, DiscountQueries
-from .extensions.schema import ExtensionsMutations, ExtensionsQueries
 from .giftcard.schema import GiftCardMutations, GiftCardQueries
 from .menu.schema import MenuMutations, MenuQueries
 from .meta.schema import MetaMutations
 from .order.schema import OrderMutations, OrderQueries
 from .page.schema import PageMutations, PageQueries
 from .payment.schema import PaymentMutations, PaymentQueries
+from .plugins.schema import PluginsMutations, PluginsQueries
 from .product.schema import ProductMutations, ProductQueries
 from .shipping.schema import ShippingMutations, ShippingQueries
 from .shop.schema import ShopMutations, ShopQueries
@@ -26,7 +26,7 @@ class Query(
     CheckoutQueries,
     CoreQueries,
     DiscountQueries,
-    ExtensionsQueries,
+    PluginsQueries,
     GiftCardQueries,
     MenuQueries,
     OrderQueries,
@@ -49,7 +49,7 @@ class Mutation(
     CheckoutMutations,
     CoreMutations,
     DiscountMutations,
-    ExtensionsMutations,
+    PluginsMutations,
     GiftCardMutations,
     MenuMutations,
     MetaMutations,

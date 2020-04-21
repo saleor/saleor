@@ -14,6 +14,7 @@ class AccountErrorCode(Enum):
     GRAPHQL_ERROR = "graphql_error"
     INVALID = "invalid"
     INVALID_PASSWORD = "invalid_password"
+    INVALID_CREDENTIALS = "invalid_credentials"
     NOT_FOUND = "not_found"
     PASSWORD_ENTIRELY_NUMERIC = "password_entirely_numeric"
     PASSWORD_TOO_COMMON = "password_too_common"

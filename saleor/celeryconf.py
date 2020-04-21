@@ -3,7 +3,7 @@ import os
 from celery import Celery
 from django.conf import settings
 
-from .extensions import discover_plugins_modules
+from .plugins import discover_plugins_modules
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "saleor.settings")
 

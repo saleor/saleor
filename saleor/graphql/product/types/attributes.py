@@ -164,8 +164,8 @@ class AttributeInput(graphene.InputObjectType):
     value = graphene.String(
         required=False,
         description=(
-            "Internal representation of a value (unique per attribute). "
-            "DEPRECATED: Will be removed in Saleor 2.11"
+            "[Deprecated] Internal representation of a value (unique per attribute). "
+            "This field will be removed after 2020-07-31."
         ),
     )  # deprecated
     values = graphene.List(

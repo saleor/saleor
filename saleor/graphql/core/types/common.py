@@ -7,18 +7,20 @@ from ..enums import (
     AppErrorCode,
     CheckoutErrorCode,
     DiscountErrorCode,
-    ExtensionsErrorCode,
     GiftCardErrorCode,
+    JobStatusEnum,
     MenuErrorCode,
     MetadataErrorCode,
     OrderErrorCode,
     PageErrorCode,
     PaymentErrorCode,
     PermissionEnum,
+    PluginErrorCode,
     ProductErrorCode,
     ShippingErrorCode,
     ShopErrorCode,
     StockErrorCode,
+    TranslationErrorCode,
     WarehouseErrorCode,
     WebhookErrorCode,
     WishlistErrorCode,
@@ -117,8 +119,8 @@ class GiftCardError(Error):
     code = GiftCardErrorCode(description="The error code.", required=True)
 
 
-class ExtensionsError(Error):
-    code = ExtensionsErrorCode(description="The error code.", required=True)
+class PluginError(Error):
+    code = PluginErrorCode(description="The error code.", required=True)
 
 
 class StockError(Error):
@@ -141,6 +143,10 @@ class WebhookError(Error):
 
 class WishlistError(Error):
     code = WishlistErrorCode(description="The error code.", required=True)
+
+
+class TranslationError(Error):
+    code = TranslationErrorCode(description="The error code.", required=True)
 
 
 class LanguageDisplay(graphene.ObjectType):
@@ -220,4 +226,15 @@ class TaxType(graphene.ObjectType):
     description = graphene.String(description="Description of the tax type.")
     tax_code = graphene.String(
         description="External tax code used to identify given tax group."
+    )
+
+
+class Job(graphene.Interface):
+    id = graphene.ID(description="ID of job.", required=True)
+    status = JobStatusEnum(description="Job status.", required=True)
+    created_at = graphene.DateTime(
+        description="Created date time of job in ISO 8601 format.", required=True
+    )
+    updated_at = graphene.DateTime(
+        description="Date time of job last update in ISO 8601 format.", required=True
     )

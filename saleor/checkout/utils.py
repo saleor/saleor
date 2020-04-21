@@ -31,7 +31,7 @@ from ..discount.utils import (
     remove_voucher_usage_by_customer,
     validate_voucher_for_checkout,
 )
-from ..extensions.manager import get_extensions_manager
+from ..plugins.manager import get_plugins_manager
 from ..giftcard.utils import (
     add_gift_card_code_to_checkout,
     remove_gift_card_code_from_checkout,
@@ -97,7 +97,7 @@ def update_checkout_quantity(checkout):
     checkout.quantity = total_lines
     checkout.save(update_fields=["quantity"])
 
-    manager = get_extensions_manager()
+    manager = get_plugins_manager()
     manager.checkout_quantity_changed(checkout)
 
 
@@ -467,7 +467,7 @@ def get_valid_shipping_methods_for_checkout(
     discounts: Iterable[DiscountInfo],
     country_code: Optional[str] = None,
 ):
-    manager = get_extensions_manager()
+    manager = get_plugins_manager()
     return ShippingMethod.objects.applicable_shipping_methods_for_instance(
         checkout,
         price=manager.calculate_checkout_subtotal(checkout, discounts).gross,
@@ -507,7 +507,7 @@ def get_shipping_price_estimate(
     if min_price_amount is None:
         return None
 
-    manager = get_extensions_manager()
+    manager = get_plugins_manager()
     prices = MoneyRange(
         start=Money(min_price_amount, checkout.currency),
         stop=Money(max_price_amount, checkout.currency),
@@ -627,7 +627,7 @@ def create_line_for_order(checkout_line: "CheckoutLine", discounts) -> OrderLine
     if translated_variant_name == variant_name:
         translated_variant_name = ""
 
-    manager = get_extensions_manager()
+    manager = get_plugins_manager()
     total_line_price = manager.calculate_checkout_line_total(checkout_line, discounts)
     unit_price = quantize_price(
         total_line_price / checkout_line.quantity, total_line_price.currency
@@ -660,7 +660,7 @@ def prepare_order_data(*, checkout: Checkout, tracking_code: str, discounts) -> 
     """
     order_data = {}
 
-    manager = get_extensions_manager()
+    manager = get_plugins_manager()
     taxed_total = calculations.checkout_total(checkout=checkout, discounts=discounts)
     cards_total = checkout.get_total_gift_cards_balance()
     taxed_total.gross -= cards_total
@@ -741,7 +741,7 @@ def create_order(
     for line in order_lines:  # type: OrderLine
         variant = line.variant
         if variant and variant.track_inventory:
-            allocate_stock(variant, checkout.get_country(), line.quantity)
+            allocate_stock(line, checkout.get_country(), line.quantity)
 
     # Add gift cards to the order
     for gift_card in checkout.gift_cards.select_for_update():
