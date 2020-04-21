@@ -1,8 +1,10 @@
 import graphene
+from django.conf import settings
+from django.db.models import Sum
+from django.db.models.functions import Coalesce
 
 from ...core.permissions import ProductPermissions
 from ...warehouse import models
-from ...warehouse.availability import get_available_quantity_for_customer
 from ..account.enums import CountryCodeEnum
 from ..core.connection import CountableDjangoObjectType
 from ..decorators import permission_required
@@ -80,7 +82,11 @@ class Stock(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_stock_quantity(root, *_args):
-        return get_available_quantity_for_customer(root)
+        quantity_allocated = root.allocations.aggregate(
+            quantity_allocated=Coalesce(Sum("quantity_allocated"), 0)
+        )["quantity_allocated"]
+        available_quantity = max(root.quantity - quantity_allocated, 0)
+        return min(available_quantity, settings.MAX_CHECKOUT_LINE_QUANTITY)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -90,4 +96,6 @@ class Stock(CountableDjangoObjectType):
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_quantity_allocated(root, *_args):
-        return root.quantity_allocated
+        return root.allocations.aggregate(
+            quantity_allocated=Coalesce(Sum("quantity_allocated"), 0)
+        )["quantity_allocated"]
