@@ -598,6 +598,32 @@ def test_remove_products_from_collection(
     assert data["products"]["totalCount"] == no_products_before - len(product_ids)
 
 
+NOT_EXISTS_IDS_COLLECTIONS_QUERY = """
+    query ($filter: CollectionFilterInput!) {
+        collections(first: 5, filter: $filter) {
+            edges {
+                node {
+                    id
+                    name
+                }
+            }
+        }
+    }
+"""
+
+
+def test_collections_query_ids_not_exists(user_api_client, category):
+    query = NOT_EXISTS_IDS_COLLECTIONS_QUERY
+    variables = {"filter": {"ids": ["ncXc5tP7kmV6pxE=", "yMyDVE5S2LWWTqK="]}}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response, ignore_errors=True)
+    message_error = '{"ids": [{"message": "Invalid ID specified.", "code": ""}]}'
+
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == message_error
+    assert content["data"]["collections"] is None
+
+
 FETCH_COLLECTION_QUERY = """
     query fetchCollection($id: ID!){
         collection(id: $id) {

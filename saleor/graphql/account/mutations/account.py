@@ -1,5 +1,6 @@
 import graphene
 from django.conf import settings
+from django.contrib.auth import password_validation
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 
@@ -53,10 +54,7 @@ class AccountRegister(ModelMutation):
     @classmethod
     def mutate(cls, root, info, **data):
         response = super().mutate(root, info, **data)
-        if not response.errors:
-            response.requires_confirmation = (
-                settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL
-            )
+        response.requires_confirmation = settings.ENABLE_ACCOUNT_CONFIRMATION_BY_EMAIL
         return response
 
     @classmethod
@@ -65,16 +63,29 @@ class AccountRegister(ModelMutation):
             return super().clean_input(info, instance, data, input_cls=None)
         elif not data.get("redirect_url"):
             raise ValidationError(
-                {"redirect_url": "This field is required."},
-                code=AccountErrorCode.INVALID,
+                {
+                    "redirect_url": ValidationError(
+                        "This field is required.", code=AccountErrorCode.REQUIRED
+                    )
+                }
             )
 
         try:
             validate_storefront_url(data["redirect_url"])
         except ValidationError as error:
             raise ValidationError(
-                {"redirect_url": error}, code=AccountErrorCode.INVALID
+                {
+                    "redirect_url": ValidationError(
+                        error.message, code=AccountErrorCode.INVALID
+                    )
+                }
             )
+
+        password = data["password"]
+        try:
+            password_validation.validate_password(password, instance)
+        except ValidationError as error:
+            raise ValidationError({"password": error})
 
         return super().clean_input(info, instance, data, input_cls=None)
 
@@ -89,7 +100,7 @@ class AccountRegister(ModelMutation):
         else:
             user.save()
         account_events.customer_account_created_event(user=user)
-        info.context.extensions.customer_created(customer=user)
+        info.context.plugins.customer_created(customer=user)
 
 
 class AccountInput(graphene.InputObjectType):
@@ -372,8 +383,9 @@ class RequestEmailChange(BaseMutation):
         if not user.check_password(password):
             raise ValidationError(
                 {
-                    "user_password": ValidationError(
-                        "Password isn't valid.", code=AccountErrorCode.INVALID_PASSWORD
+                    "password": ValidationError(
+                        "Password isn't valid.",
+                        code=AccountErrorCode.INVALID_CREDENTIALS,
                     )
                 }
             )

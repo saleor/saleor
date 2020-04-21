@@ -4,7 +4,7 @@ from .account.schema import AccountMutations, AccountQueries
 from .checkout.schema import CheckoutMutations, CheckoutQueries
 from .core.schema import CoreMutations, CoreQueries
 from .discount.schema import DiscountMutations, DiscountQueries
-from .extensions.schema import ExtensionsMutations, ExtensionsQueries
+from .plugins.schema import PluginsMutations, PluginsQueries
 from .giftcard.schema import GiftCardMutations, GiftCardQueries
 from .menu.schema import MenuMutations, MenuQueries
 from .meta.schema import MetaMutations
@@ -17,7 +17,6 @@ from .shop.schema import ShopMutations, ShopQueries
 from .translations.schema import TranslationQueries
 from .warehouse.schema import StockQueries, WarehouseMutations, WarehouseQueries
 from .webhook.schema import WebhookMutations, WebhookQueries
-from .wishlist.schema import WishlistMutations
 
 
 class Query(
@@ -25,7 +24,7 @@ class Query(
     CheckoutQueries,
     CoreQueries,
     DiscountQueries,
-    ExtensionsQueries,
+    PluginsQueries,
     GiftCardQueries,
     MenuQueries,
     OrderQueries,
@@ -47,7 +46,7 @@ class Mutation(
     CheckoutMutations,
     CoreMutations,
     DiscountMutations,
-    ExtensionsMutations,
+    PluginsMutations,
     GiftCardMutations,
     MenuMutations,
     MetaMutations,
@@ -59,7 +58,6 @@ class Mutation(
     ShopMutations,
     WarehouseMutations,
     WebhookMutations,
-    WishlistMutations,
 ):
     pass
 

@@ -6,6 +6,7 @@ import opentracing as ot
 from django.db.models import Manager, Model as DjangoModel, Q, QuerySet
 from graphene.relay.connection import Connection
 from graphene_django_optimizer.types import OptimizedDjangoObjectType
+from graphql.error import GraphQLError
 from graphql_relay.connection.connectiontypes import Edge, PageInfo
 from graphql_relay.utils import base64, unbase64
 
@@ -97,15 +98,15 @@ def _validate_connection_args(args):
     last = args.get("last")
 
     if first and not (isinstance(first, int) and first > 0):
-        raise ValueError('Argument "first" must be a non-negative integer.')
+        raise GraphQLError("Argument `first` must be a non-negative integer.")
     if last and not (isinstance(last, int) and last > 0):
-        raise ValueError('Argument "last" must be a non-negative integer.')
+        raise GraphQLError("Argument `last` must be a non-negative integer.")
     if first and last:
-        raise ValueError('Argument "last" cannot be combined with "first".')
+        raise GraphQLError("Argument `last` cannot be combined with `first`.")
     if first and args.get("before"):
-        raise ValueError('Argument "first" cannot be combined with "before".')
+        raise GraphQLError("Argument `first` cannot be combined with `before`.")
     if last and args.get("after"):
-        raise ValueError('Argument "last" cannot be combined with "after".')
+        raise GraphQLError("Argument `last` cannot be combined with `after`.")
 
 
 def _get_sorting_fields(sort_by, qs):
@@ -210,14 +211,12 @@ def connection_from_queryset_slice(
     sorting_fields = _get_sorting_fields(sort_by, qs)
     sorting_direction = _get_sorting_direction(sort_by, last)
     if cursor and len(cursor) != len(sorting_fields):
-        raise ValueError("Received cursor is invalid.")
+        raise GraphQLError("Received cursor is invalid.")
     filter_kwargs = (
         _prepare_filter(cursor, sorting_fields, sorting_direction) if cursor else Q()
     )
     qs = qs.filter(filter_kwargs)
     qs = qs[:end_margin]
-    print(end_margin)
-    print(qs)
     edges, page_info = _get_edges_for_connection(edge_type, qs, args, sorting_fields)
 
     return connection_type(edges=edges, page_info=page_info_type(**page_info),)

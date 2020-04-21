@@ -49,15 +49,15 @@ COUNTRIES_ONLY = None
 MEDIA_ROOT = None
 MAX_CHECKOUT_LINE_QUANTITY = 50
 
-USE_JSON_CONTENT = False
-
 AUTH_PASSWORD_VALIDATORS = []
 
 PASSWORD_HASHERS = ["tests.dummy_password_hasher.DummyHasher"]
-EXTENSIONS_MANAGER = "saleor.extensions.manager.ExtensionsManager"
+PLUGINS_MANAGER = "saleor.plugins.manager.PluginsManager"
 
 PLUGINS = []
 
 PATTERNS_IGNORED_IN_QUERY_CAPTURES: List[Union[Pattern, SimpleLazyObject]] = [
     lazy_re_compile(r"^SET\s+")
 ]
+
+INSTALLED_APPS.append("tests.api.pagination")  # noqa: F405

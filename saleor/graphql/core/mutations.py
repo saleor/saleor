@@ -17,9 +17,11 @@ from graphql_jwt import ObtainJSONWebToken, Verify
 from graphql_jwt.exceptions import JSONWebTokenError, PermissionDenied
 
 from ...account import models
+from ...account.error_codes import AccountErrorCode
 from ..account.types import User
 from ..utils import get_nodes
 from .types import Error, Upload
+from .types.common import AccountError
 from .utils import from_global_id_strict_type, snake_to_camel_case
 from .utils.error_codes import get_error_code_from_error
 
@@ -94,6 +96,10 @@ class BaseMutation(graphene.Mutation):
     errors = graphene.List(
         graphene.NonNull(Error),
         description="List of errors that occurred executing the mutation.",
+        deprecation_reason=(
+            "Use typed errors with error codes. This field will be removed after "
+            "2020-07-31."
+        ),
         required=True,
     )
 
@@ -587,21 +593,52 @@ class CreateToken(ObtainJSONWebToken):
     the mutation works.
     """
 
-    errors = graphene.List(Error, required=True)
-    user = graphene.Field(User)
+    errors = graphene.List(
+        graphene.NonNull(Error),
+        required=True,
+        deprecation_reason=(
+            "Use typed errors with error codes. This field will be removed after "
+            "2020-07-31."
+        ),
+    )
+    account_errors = graphene.List(
+        graphene.NonNull(AccountError),
+        description="List of errors that occurred executing the mutation.",
+        required=True,
+    )
+    user = graphene.Field(User, description="A user instance.")
 
     @classmethod
     def mutate(cls, root, info, **kwargs):
         try:
             result = super().mutate(root, info, **kwargs)
         except JSONWebTokenError as e:
-            return CreateToken(errors=[Error(message=str(e))])
+            errors = [Error(message=str(e))]
+            account_errors = [
+                AccountError(
+                    field="email",
+                    message="Please, enter valid credentials",
+                    code=AccountErrorCode.INVALID_CREDENTIALS,
+                )
+            ]
+            return CreateToken(errors=errors, account_errors=account_errors)
+        except ValidationError as e:
+            errors = validation_error_to_error_type(e)
+            return cls.handle_typed_errors(errors)
         else:
             return result
 
     @classmethod
+    def handle_typed_errors(cls, errors: list):
+        account_errors = [
+            AccountError(field=e.field, message=e.message, code=code)
+            for e, code, _params in errors
+        ]
+        return cls(errors=[e[0] for e in errors], account_errors=account_errors)
+
+    @classmethod
     def resolve(cls, root, info, **kwargs):
-        return cls(user=info.context.user, errors=[])
+        return cls(user=info.context.user, errors=[], account_errors=[])
 
 
 class VerifyToken(Verify):

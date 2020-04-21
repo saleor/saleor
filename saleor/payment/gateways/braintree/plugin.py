@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING, List
 
-from saleor.extensions import ConfigurationTypeField
-from saleor.extensions.base_plugin import BasePlugin
+from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
 
 from . import (
     GatewayConfig,
@@ -25,7 +24,6 @@ if TYPE_CHECKING:
 def require_active_plugin(fn):
     def wrapped(self, *args, **kwargs):
         previous = kwargs.get("previous_value", None)
-        self._initialize_plugin_configuration()
         if not self.active:
             return previous
         return fn(self, *args, **kwargs)
@@ -35,6 +33,16 @@ def require_active_plugin(fn):
 
 class BraintreeGatewayPlugin(BasePlugin):
     PLUGIN_NAME = GATEWAY_NAME
+    DEFAULT_CONFIGURATION = [
+        {"name": "Public API key", "value": None},
+        {"name": "Secret API key", "value": None},
+        {"name": "Use sandbox", "value": True},
+        {"name": "Merchant ID", "value": None},
+        {"name": "Store customers card", "value": False},
+        {"name": "Automatic payment capture", "value": True},
+        {"name": "Require 3D secure", "value": False},
+    ]
+
     CONFIG_STRUCTURE = {
         "Public API key": {
             "type": ConfigurationTypeField.SECRET,
@@ -76,47 +84,19 @@ class BraintreeGatewayPlugin(BasePlugin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        configuration = {item["name"]: item["value"] for item in self.configuration}
         self.config = GatewayConfig(
-            gateway_name=GATEWAY_NAME, auto_capture=True, connection_params={}
+            gateway_name=GATEWAY_NAME,
+            auto_capture=configuration["Automatic payment capture"],
+            connection_params={
+                "sandbox_mode": configuration["Use sandbox"],
+                "merchant_id": configuration["Merchant ID"],
+                "public_key": configuration["Public API key"],
+                "private_key": configuration["Secret API key"],
+            },
+            store_customer=configuration["Store customers card"],
+            require_3d_secure=configuration["Require 3D secure"],
         )
-
-    def _initialize_plugin_configuration(self):
-        super()._initialize_plugin_configuration()
-
-        if self._cached_config and self._cached_config.configuration:
-            configuration = self._cached_config.configuration
-
-            configuration = {item["name"]: item["value"] for item in configuration}
-            self.config = GatewayConfig(
-                gateway_name=GATEWAY_NAME,
-                auto_capture=configuration["Automatic payment capture"],
-                connection_params={
-                    "sandbox_mode": configuration["Use sandbox"],
-                    "merchant_id": configuration["Merchant ID"],
-                    "public_key": configuration["Public API key"],
-                    "private_key": configuration["Secret API key"],
-                },
-                store_customer=configuration["Store customers card"],
-                require_3d_secure=configuration["Require 3D secure"],
-            )
-
-    @classmethod
-    def _get_default_configuration(cls):
-        defaults = {
-            "name": cls.PLUGIN_NAME,
-            "description": "",
-            "active": False,
-            "configuration": [
-                {"name": "Public API key", "value": None},
-                {"name": "Secret API key", "value": None},
-                {"name": "Use sandbox", "value": True},
-                {"name": "Merchant ID", "value": None},
-                {"name": "Store customers card", "value": False},
-                {"name": "Automatic payment capture", "value": True},
-                {"name": "Require 3D secure", "value": False},
-            ],
-        }
-        return defaults
 
     def _get_gateway_config(self) -> GatewayConfig:
         return self.config

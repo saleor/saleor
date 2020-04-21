@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 # Override urls to use different GraphQL view on demo
 ROOT_URLCONF = "saleor.demo.urls"
 
-PLUGINS += ["saleor.extensions.plugins.anonymize.plugin.AnonymizePlugin"]
+PLUGINS += ["saleor.plugins.anonymize.plugin.AnonymizePlugin"]
 
 MIDDLEWARE += ["saleor.core.middleware.ReadOnlyMiddleware"]
 
@@ -36,8 +36,6 @@ if not (BRAINTREE_API_KEY and BRAINTREE_MERCHANT_ID and BRAINTREE_SECRET_API_KEY
         "Some Braintree environment variables are missing. Set them to create the "
         "sandbox configuration in the demo mode with `populatedb` command."
     )
-
-USE_JSON_CONTENT = True
 
 PWA_ORIGINS = get_list(os.environ.get("PWA_ORIGINS", "pwa.saleor.io"))
 PWA_DASHBOARD_URL_RE = re.compile("^https?://[^/]+/dashboard/.*")
