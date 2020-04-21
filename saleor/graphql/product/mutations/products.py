@@ -45,7 +45,7 @@ from ...warehouse.types import Warehouse
 from ..types import Category, Collection, Product, ProductImage, ProductVariant
 from ..utils import (
     create_stocks,
-    get_used_attibute_values_for_variant,
+    get_used_attribute_values_for_variant,
     get_used_variants_attribute_values,
     validate_attribute_input_for_product,
     validate_attribute_input_for_variant,
@@ -1324,7 +1324,7 @@ class ProductVariantUpdate(ProductVariantCreate):
         # Check if the variant is getting updated,
         # and the assigned attributes do not change
         if instance.product_id is not None:
-            assigned_attributes = get_used_attibute_values_for_variant(instance)
+            assigned_attributes = get_used_attribute_values_for_variant(instance)
             input_attribute_values = defaultdict(list)
             for attribute in attributes:
                 input_attribute_values[attribute.id].extend(attribute.values)
