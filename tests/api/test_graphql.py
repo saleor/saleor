@@ -6,6 +6,7 @@ import pytest
 from django.contrib.auth.models import AnonymousUser
 from django.db.models import Q
 from django.shortcuts import reverse
+from graphql.error import GraphQLError
 from graphql_relay import to_global_id
 
 from saleor.graphql.product.types import Product
@@ -247,10 +248,10 @@ def test_get_nodes(product_list):
     invalid_item = Mock(type="test", pk=123)
     invalid_item_global_id = to_global_id(invalid_item.type, invalid_item.pk)
     global_ids.append(invalid_item_global_id)
-    with pytest.raises(AssertionError) as exc:
+    with pytest.raises(GraphQLError) as exc:
         get_nodes(global_ids, Product)
 
-    assert exc.value.args == ("Must receive an Product id.",)
+    assert exc.value.args == (f"Must receive Product id: {invalid_item_global_id}",)
 
     # Raise an error if no nodes were found
     global_ids = []

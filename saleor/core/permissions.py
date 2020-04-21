@@ -24,8 +24,8 @@ class DiscountPermissions(BasePermissionEnum):
     MANAGE_DISCOUNTS = "discount.manage_discounts"
 
 
-class ExtensionsPermissions(BasePermissionEnum):
-    MANAGE_PLUGINS = "extensions.manage_plugins"
+class PluginsPermissions(BasePermissionEnum):
+    MANAGE_PLUGINS = "plugins.manage_plugins"
 
 
 class GiftcardPermissions(BasePermissionEnum):
@@ -69,7 +69,7 @@ PERMISSIONS_ENUMS = [
     AccountPermissions,
     AppPermission,
     DiscountPermissions,
-    ExtensionsPermissions,
+    PluginsPermissions,
     GiftcardPermissions,
     MenuPermissions,
     OrderPermissions,

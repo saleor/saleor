@@ -93,6 +93,12 @@ All notable, unreleased changes to this project will be documented in this file.
 - Check if image exists before validating - #5425 by @kswiatek92
 - Fix warehouses query not working without id - #5441 by @koradon
 - Add accountErrors to CreateToken as a required field - #5437 by @koradon
+- Raise GraphQLError if filter has not valid IDs - #5460 by @gabmartinez
+- Fix missing accountError when JSONWebTokenError is raised in CreateToken - #5465 by @koradon
+- Use AccountErrorCode.INVALID_CREDENTIALS instead of INVALID_PASSWORD - #5495 by @koradon
+- Add tests for pagination - #5468 by @koradon
+- Add job abstract model and interface - #5510 by @IKarbowiak
+- Refactor implementation of allocation - #5445 by @fowczarek
 
 ## 2.9.0
 

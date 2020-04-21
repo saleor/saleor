@@ -100,7 +100,7 @@ class AccountRegister(ModelMutation):
         else:
             user.save()
         account_events.customer_account_created_event(user=user)
-        info.context.extensions.customer_created(customer=user)
+        info.context.plugins.customer_created(customer=user)
 
 
 class AccountInput(graphene.InputObjectType):
@@ -384,7 +384,8 @@ class RequestEmailChange(BaseMutation):
             raise ValidationError(
                 {
                     "password": ValidationError(
-                        "Password isn't valid.", code=AccountErrorCode.INVALID_PASSWORD
+                        "Password isn't valid.",
+                        code=AccountErrorCode.INVALID_CREDENTIALS,
                     )
                 }
             )
