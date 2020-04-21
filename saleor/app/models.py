@@ -23,7 +23,7 @@ class App(ModelWithMetadata):
     )
 
     class Meta:
-        permissions = ((AppPermission.MANAGE_APPS.codename, "Manage app",),)
+        permissions = ((AppPermission.MANAGE_APPS.codename, "Manage apps",),)
 
     def _get_permissions(self) -> Set[str]:
         """Return the permissions of the app."""
