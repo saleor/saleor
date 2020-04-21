@@ -3,7 +3,6 @@
 from django.db import migrations, models
 
 
-# TODO Apply step to move SA permission to MANAFGE APPS
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -16,10 +15,6 @@ class Migration(migrations.Migration):
     operations = [
         migrations.RenameModel(old_name="ServiceAccount", new_name="App",),
         migrations.RenameModel(old_name="ServiceAccountToken", new_name="AppToken",),
-        migrations.AlterModelOptions(
-            name="app",
-            options={"permissions": (("manage_app", "Manage service account"),)},
-        ),
         migrations.AlterModelTable(name="app", table="app_app",),
         migrations.AlterModelTable(name="apptoken", table="app_apptoken",),
         migrations.RenameField(
