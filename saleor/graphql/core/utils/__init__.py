@@ -110,3 +110,8 @@ def get_duplicates_ids(first_list, second_list):
     if first_list and second_list:
         return set(first_list) & set(second_list)
     return []
+
+
+def get_duplicated_values(values):
+    """Return set of duplicated values."""
+    return {value for value in values if values.count(value) > 1}
