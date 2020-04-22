@@ -83,7 +83,7 @@ def test_webhook_create_by_staff_for_sa_without_permission(staff_api_client, app
         ),
         (
             {"field": "SERVICE_ACCOUNT", "direction": "DESC"},
-            ["backup", "hook1", "hook2"],
+            ["hook1", "backup", "hook2"],
         ),
     ],
 )

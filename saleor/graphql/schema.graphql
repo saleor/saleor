@@ -422,8 +422,6 @@ enum AttributeSortField {
   VISIBLE_IN_STOREFRONT
   FILTERABLE_IN_STOREFRONT
   FILTERABLE_IN_DASHBOARD
-  DASHBOARD_VARIANT_POSITION
-  DASHBOARD_PRODUCT_POSITION
   STOREFRONT_SEARCH_POSITION
   AVAILABLE_IN_GRID
 }
@@ -600,6 +598,7 @@ type BulkProductError {
   message: String
   code: ProductErrorCode!
   index: Int
+  warehouses: [ID!]
 }
 
 type BulkStockError {
@@ -3396,6 +3395,7 @@ enum ProductErrorCode {
   ATTRIBUTE_ALREADY_ASSIGNED
   ATTRIBUTE_CANNOT_BE_ASSIGNED
   ATTRIBUTE_VARIANTS_DISABLED
+  DUPLICATED_INPUT_ITEM
   GRAPHQL_ERROR
   INVALID
   NOT_PRODUCTS_IMAGE
@@ -3731,6 +3731,7 @@ input ProductVariantBulkCreateInput {
   sku: String!
   trackInventory: Boolean
   weight: WeightScalar
+  stocks: [StockInput!]
 }
 
 type ProductVariantBulkDelete {

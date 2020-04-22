@@ -428,6 +428,9 @@ class Fulfillment(ModelWithMetadata):
     tracking_number = models.CharField(max_length=255, default="", blank=True)
     created = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ("pk",)
+
     def __str__(self):
         return f"Fulfillment #{self.composed_id}"
 

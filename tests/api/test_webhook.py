@@ -413,7 +413,7 @@ QUERY_WEBHOOKS_WITH_SORT = """
         ({"field": "NAME", "direction": "ASC"}, ["backup", "hook1", "hook2"]),
         ({"field": "NAME", "direction": "DESC"}, ["hook2", "hook1", "backup"]),
         ({"field": "APP", "direction": "ASC"}, ["hook2", "backup", "hook1"],),
-        ({"field": "APP", "direction": "DESC"}, ["backup", "hook1", "hook2"],),
+        ({"field": "APP", "direction": "DESC"}, ["hook1", "backup", "hook2"],),
         ({"field": "TARGET_URL", "direction": "ASC"}, ["hook2", "hook1", "backup"]),
         ({"field": "TARGET_URL", "direction": "DESC"}, ["backup", "hook1", "hook2"]),
     ],
@@ -439,7 +439,6 @@ def test_query_webhooks_with_sort(
     response = staff_api_client.post_graphql(QUERY_WEBHOOKS_WITH_SORT, variables)
     content = get_graphql_content(response)
     webhooks = content["data"]["webhooks"]["edges"]
-
     for order, webhook_name in enumerate(result_order):
         assert webhooks[order]["node"]["name"] == webhook_name
 
