@@ -14,6 +14,7 @@ from ...payment import gateway
 from ...payment.utils import fetch_customer_id
 from ..utils import (
     filter_by_query_param,
+    format_permissions_for_display,
     get_user_or_service_account_from_context,
     sort_queryset,
 )
@@ -24,7 +25,11 @@ from .sorters import (
     UserSortingInput,
 )
 from .types import AddressValidationData, ChoiceValue
-from .utils import get_allowed_fields_camel_case, get_required_fields_camel_case
+from .utils import (
+    get_allowed_fields_camel_case,
+    get_required_fields_camel_case,
+    get_user_permissions,
+)
 
 USER_SEARCH_FIELDS = (
     "email",
@@ -177,3 +182,9 @@ def resolve_address(info, id):
     if user and not user.is_anonymous:
         return user.addresses.filter(id=address_pk).first()
     return PermissionDenied()
+
+
+def resolve_permissions(root: models.User):
+    permissions = get_user_permissions(root)
+    permissions = permissions.prefetch_related("content_type").order_by("codename")
+    return format_permissions_for_display(permissions)

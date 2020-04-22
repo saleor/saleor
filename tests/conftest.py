@@ -414,6 +414,28 @@ def staff_user(db):
 
 
 @pytest.fixture
+def staff_users(staff_user):
+    """Return a staff members."""
+    staff_users = User.objects.bulk_create(
+        [
+            User(
+                email="staff1_test@example.com",
+                password="password",
+                is_staff=True,
+                is_active=True,
+            ),
+            User(
+                email="staff2_test@example.com",
+                password="password",
+                is_staff=True,
+                is_active=True,
+            ),
+        ]
+    )
+    return [staff_user] + staff_users
+
+
+@pytest.fixture
 def shipping_zone(db):  # pylint: disable=W0613
     shipping_zone = ShippingZone.objects.create(
         name="Europe", countries=[code for code, name in countries]
@@ -1383,17 +1405,11 @@ def permission_manage_webhooks():
 
 
 @pytest.fixture
-def permission_group_manage_users(permission_manage_users, staff_user):
+def permission_group_manage_users(permission_manage_users, staff_users):
     group = Group.objects.create(name="Manage user groups.")
     group.permissions.add(permission_manage_users)
 
-    staff_user2 = User.objects.get(pk=staff_user.pk)
-    staff_user2.id = None
-    staff_user2.email = "test_staff@example.com"
-    staff_user2.save()
-    staff_user2.refresh_from_db()
-
-    group.user_set.add(staff_user2)
+    group.user_set.add(staff_users[1])
     return group
 
 
