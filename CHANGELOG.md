@@ -51,7 +51,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix getting title field in page mutations #5160 by @maarcingebala
 - Copy public and private metadata from the checkout to the order upon creation - #5165 by @dankolbman
 - Add warehouses and stocks- #4986 by @szewczykmira
-- Add permission groups - #5176 by @IKarbowiak
+- Add permission groups - #5176, #5513 by @IKarbowiak
 - Drop gettext occurrences - #5189 by @IKarbowiak
 - Fix `product_created` webhook - #5187 by @dzkb
 - Drop unused resolver `resolve_availability` - #5190 by @maarcingebala

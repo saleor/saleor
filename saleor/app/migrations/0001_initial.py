@@ -55,7 +55,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("auth", "0011_update_proxy_permissions"),
-        ("account", "0042_auto_20200416_0107"),
+        ("account", "0043_unmount_app_and_app_token"),
     ]
 
     state_operations = [

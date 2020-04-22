@@ -7,19 +7,20 @@ from graphql_jwt.exceptions import PermissionDenied
 
 from ...account import models
 from ...checkout.utils import get_user_checkout
-from ...core.permissions import AccountPermissions, OrderPermissions, get_permissions
+from ...core.permissions import AccountPermissions, OrderPermissions
 from ...order import models as order_models
 from ..checkout.types import Checkout
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import PrefetchingConnectionField
-from ..core.types import CountryDisplay, Image, PermissionDisplay
-from ..core.utils import get_node_optimized
+from ..core.types import CountryDisplay, Image, Permission
+from ..core.utils import from_global_id_strict_type, get_node_optimized
 from ..decorators import one_of_permissions_required, permission_required
 from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display
 from ..wishlist.resolvers import resolve_wishlist_items_from_user
 from .enums import CountryCodeEnum, CustomerEventsEnum
+from .utils import can_user_manage_group, get_groups_which_user_can_manage
 
 
 class AddressInput(graphene.InputObjectType):
@@ -169,6 +170,26 @@ class CustomerEvent(CountableDjangoObjectType):
         return None
 
 
+class UserPermission(Permission):
+    source_permission_groups = graphene.List(
+        graphene.NonNull("saleor.graphql.account.types.Group"),
+        description="List of user permission groups which contains this permission.",
+        user_id=graphene.Argument(
+            graphene.ID,
+            description="ID of user whose groups should be returned.",
+            required=True,
+        ),
+        required=False,
+    )
+
+    def resolve_source_permission_groups(root: Permission, _info, user_id, **_kwargs):
+        user_id = from_global_id_strict_type(user_id, only_type="User", field="pk")
+        groups = auth_models.Group.objects.filter(
+            user__pk=user_id, permissions__name=root.name
+        )
+        return groups
+
+
 @key("id")
 @key("email")
 class User(CountableDjangoObjectType):
@@ -193,8 +214,31 @@ class User(CountableDjangoObjectType):
         ),
         model_field="orders",
     )
-    permissions = graphene.List(
-        PermissionDisplay, description="List of user's permissions."
+    # deprecated, to remove in #5389
+    permissions = gql_optimizer.field(
+        graphene.List(
+            Permission,
+            description="List of user's permissions.",
+            deprecation_reason=(
+                "Will be removed in Saleor 2.11." "Use the `userPermissions` instead."
+            ),
+        ),
+        model_field="user_permissions",
+    )
+    user_permissions = gql_optimizer.field(
+        graphene.List(UserPermission, description="List of user's permissions."),
+        model_field="user_permissions",
+    )
+    permission_groups = gql_optimizer.field(
+        graphene.List(
+            "saleor.graphql.account.types.Group",
+            description="List of user's permission groups.",
+        ),
+        model_field="groups",
+    )
+    editable_groups = graphene.List(
+        "saleor.graphql.account.types.Group",
+        description="List of user's permission groups which user can manage.",
     )
     avatar = graphene.Field(Image, size=graphene.Int(description="Size of the avatar."))
     events = gql_optimizer.field(
@@ -240,13 +284,24 @@ class User(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_permissions(root: models.User, _info, **_kwargs):
-        if root.is_superuser:
-            permissions = get_permissions()
-        else:
-            permissions = root.user_permissions.prefetch_related(
-                "content_type"
-            ).order_by("codename")
-        return format_permissions_for_display(permissions)
+        # deprecated, to remove in #5389
+        from .resolvers import resolve_permissions
+
+        return resolve_permissions(root)
+
+    @staticmethod
+    def resolve_user_permissions(root: models.User, _info, **_kwargs):
+        from .resolvers import resolve_permissions
+
+        return resolve_permissions(root)
+
+    @staticmethod
+    def resolve_permission_groups(root: models.User, _info, **_kwargs):
+        return root.groups.all()
+
+    @staticmethod
+    def resolve_editable_groups(root: models.User, _info, **_kwargs):
+        return get_groups_which_user_can_manage(root)
 
     @staticmethod
     @one_of_permissions_required(
@@ -374,12 +429,16 @@ class StaffNotificationRecipient(CountableDjangoObjectType):
 @key(fields="id")
 class Group(CountableDjangoObjectType):
     users = graphene.List(User, description="List of group users")
-    permissions = graphene.List(
-        PermissionDisplay, description="List of group permissions"
+    permissions = graphene.List(Permission, description="List of group permissions")
+    user_can_manage = graphene.Boolean(
+        required=True,
+        description=(
+            "True, if the currently authenticated user has rights to manage a group."
+        ),
     )
 
     class Meta:
-        description = ""
+        description = "Represents permission group data."
         interfaces = [relay.Node]
         model = auth_models.Group
         only_fields = ["name", "permissions", "users", "id"]
@@ -397,3 +456,8 @@ class Group(CountableDjangoObjectType):
             "codename"
         )
         return format_permissions_for_display(permissions)
+
+    @staticmethod
+    def resolve_user_can_manage(root: auth_models.Group, info):
+        user = info.context.user
+        return can_user_manage_group(user, root)

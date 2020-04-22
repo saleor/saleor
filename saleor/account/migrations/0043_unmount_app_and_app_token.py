@@ -6,7 +6,7 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("account", "0041_auto_20200416_0100"),
+        ("account", "0042_rename_service_account_to_app"),
         ("webhook", "0003_unmount_service_account"),
     ]
 

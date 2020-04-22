@@ -5,7 +5,7 @@ from graphene_federation import key
 from ...app import models
 from ...core.permissions import AppPermission
 from ..core.connection import CountableDjangoObjectType
-from ..core.types import PermissionDisplay
+from ..core.types import Permission
 from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display
@@ -30,7 +30,7 @@ class AppToken(CountableDjangoObjectType):
 @key(fields="id")
 class App(CountableDjangoObjectType):
     permissions = graphene.List(
-        PermissionDisplay, description="List of the app's permissions."
+        Permission, description="List of the app's permissions."
     )
     created = graphene.DateTime(
         description="The date and time when the app was created."
