@@ -4,7 +4,7 @@ from enum import Enum
 class AccountErrorCode(Enum):
     ACTIVATE_OWN_ACCOUNT = "activate_own_account"
     ACTIVATE_SUPERUSER_ACCOUNT = "activate_superuser_account"
-    CANNOT_ADD_AND_REMOVE = "cannot_add_and_remove"
+    DUPLICATED_INPUT_ITEM = "duplicated_input_item"
     DEACTIVATE_OWN_ACCOUNT = "deactivate_own_account"
     DEACTIVATE_SUPERUSER_ACCOUNT = "deactivate_superuser_account"
     DELETE_NON_STAFF_USER = "delete_non_staff_user"
@@ -30,7 +30,7 @@ class AccountErrorCode(Enum):
 
 class PermissionGroupErrorCode(Enum):
     ASSIGN_NON_STAFF_MEMBER = "assign_non_staff_member"
-    CANNOT_ADD_AND_REMOVE = "cannot_add_and_remove"
+    DUPLICATED_INPUT_ITEM = "duplicated_input_item"
     CANNOT_REMOVE_FROM_LAST_GROUP = "cannot_remove_from_last_group"
     LEFT_NOT_MANAGEABLE_PERMISSION = "left_not_manageable_permission"
     OUT_OF_SCOPE_PERMISSION = "out_of_scope_permission"

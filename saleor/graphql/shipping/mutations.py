@@ -74,7 +74,7 @@ class ShippingZoneMixin:
                 {
                     "removeWarehouses": ValidationError(
                         error_msg,
-                        code=ShippingErrorCode.CANNOT_ADD_AND_REMOVE.value,
+                        code=ShippingErrorCode.DUPLICATED_INPUT_ITEM.value,
                         params={"warehouses": list(duplicates_ids)},
                     )
                 }
