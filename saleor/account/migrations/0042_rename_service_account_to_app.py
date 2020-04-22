@@ -9,7 +9,7 @@ class Migration(migrations.Migration):
         ("core", "0001_migrate_metadata"),
         ("auth", "0011_update_proxy_permissions"),
         ("webhook", "0002_webhook_name"),
-        ("account", "0040_auto_20200415_0443"),
+        ("account", "0041_permissions_to_groups"),
     ]
 
     operations = [

@@ -1,3 +1,5 @@
+from typing import Union
+
 from django.conf import settings
 from django.contrib.auth.models import (
     AbstractBaseUser,
@@ -170,9 +172,10 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
     def get_short_name(self):
         return self.email
 
-    def has_perm(self, perm: BasePermissionEnum, obj=None):  # type: ignore
+    def has_perm(self, perm: Union[BasePermissionEnum, str], obj=None):  # type: ignore
         # This method is overridden to accept perm as BasePermissionEnum
-        return super().has_perm(perm.value, obj)
+        perm_value = perm.value if hasattr(perm, "value") else perm  # type: ignore
+        return super().has_perm(perm_value, obj)
 
 
 class CustomerNote(models.Model):

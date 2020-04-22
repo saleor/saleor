@@ -28,7 +28,6 @@ from ....product.utils.attributes import (
     associate_attribute_values_to_instance,
     generate_name_for_variant,
 )
-from ....warehouse.management import set_stock_quantity
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
 from ...core.scalars import Decimal, WeightScalar
 from ...core.types import SeoInput, Upload
@@ -45,7 +44,7 @@ from ...warehouse.types import Warehouse
 from ..types import Category, Collection, Product, ProductImage, ProductVariant
 from ..utils import (
     create_stocks,
-    get_used_attibute_values_for_variant,
+    get_used_attribute_values_for_variant,
     get_used_variants_attribute_values,
     validate_attribute_input_for_product,
     validate_attribute_input_for_variant,
@@ -526,13 +525,6 @@ class ProductInput(graphene.InputObjectType):
             "a product doesn't use variants."
         )
     )
-    quantity = graphene.Int(
-        description=(
-            "[Deprecated] Use stocks input field instead. This field will be removed "
-            "after 2020-07-31. The total quantity of a product available for sale. "
-            "Note: this field is only used if a product doesn't use variants."
-        ),
-    )
     track_inventory = graphene.Boolean(
         description=(
             "Determines if the inventory of this product should be tracked. If false, "
@@ -951,11 +943,8 @@ class ProductCreate(ModelMutation):
                 product=instance, track_inventory=track_inventory, sku=sku
             )
             stocks = cleaned_input.get("stocks")
-            quantity = cleaned_input.get("quantity")
             if stocks:
                 cls.create_variant_stocks(variant, stocks)
-            elif quantity:  # DEPRECATED: Will be removed in 2.11 (issue #5325)
-                set_stock_quantity(variant, info.context.country, quantity)
 
         attributes = cleaned_input.get("attributes")
         if attributes:
@@ -1023,11 +1012,6 @@ class ProductUpdate(ProductCreate):
             if "track_inventory" in cleaned_input:
                 variant.track_inventory = cleaned_input["track_inventory"]
                 update_fields.append("track_inventory")
-            # DEPRECATED: Wil be removed in 2.11 (issue #5325).
-            # Use ProductVariantStocksUpdate insted.
-            if "quantity" in cleaned_input:
-                quantity = cleaned_input.get("quantity")
-                set_stock_quantity(variant, info.context.country, quantity)
             if "sku" in cleaned_input:
                 variant.sku = cleaned_input["sku"]
                 update_fields.append("sku")
@@ -1102,12 +1086,6 @@ class ProductVariantInput(graphene.InputObjectType):
     cost_price = Decimal(description="Cost price of the variant.")
     price_override = Decimal(description="Special price of the particular variant.")
     sku = graphene.String(description="Stock keeping unit.")
-    quantity = graphene.Int(
-        description=(
-            "[Deprecated] Use stocks input field instead. This field will be removed "
-            "after 2020-07-31. The total quantity of this variant available for sale."
-        ),
-    )
     track_inventory = graphene.Boolean(
         description=(
             "Determines if the inventory of this variant should be tracked. If false, "
@@ -1280,11 +1258,8 @@ class ProductVariantCreate(ModelMutation):
         # Recalculate the "minimal variant price" for the parent product
         update_product_minimal_variant_price_task.delay(instance.product_id)
         stocks = cleaned_input.get("stocks")
-        quantity = cleaned_input.get("quantity")
         if stocks:
             cls.create_variant_stocks(instance, stocks)
-        elif quantity:  # DEPRECATED: Will be removed in 2.11 (issue #5325)
-            set_stock_quantity(instance, info.context.country, quantity)
 
         attributes = cleaned_input.get("attributes")
         if attributes:
@@ -1324,7 +1299,7 @@ class ProductVariantUpdate(ProductVariantCreate):
         # Check if the variant is getting updated,
         # and the assigned attributes do not change
         if instance.product_id is not None:
-            assigned_attributes = get_used_attibute_values_for_variant(instance)
+            assigned_attributes = get_used_attribute_values_for_variant(instance)
             input_attribute_values = defaultdict(list)
             for attribute in attributes:
                 input_attribute_values[attribute.id].extend(attribute.values)

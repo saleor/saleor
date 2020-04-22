@@ -292,20 +292,6 @@ class ProductVariantBulkCreate(BaseMutation):
             count=len(instances), product_variants=instances
         )
 
-    @classmethod
-    def handle_typed_errors(cls, errors: list, **extra):
-        typed_errors = [
-            cls._meta.error_type_class(
-                field=e.field,
-                message=e.message,
-                code=code,
-                index=params.get("index") if params else None,
-            )
-            for e, code, params in errors
-        ]
-        extra.update({cls._meta.error_type_field: typed_errors})
-        return cls(errors=[e[0] for e in errors], **extra)
-
 
 class ProductVariantBulkDelete(ModelBulkDeleteMutation):
     class Arguments:
@@ -399,20 +385,6 @@ class ProductVariantStocksCreate(BaseMutation):
         for index in indexes:
             error = ValidationError(msg, code=code, params={"index": index})
             errors[field].append(error)
-
-    @classmethod
-    def handle_typed_errors(cls, errors: list, **extra):
-        typed_errors = [
-            cls._meta.error_type_class(
-                field=e.field,
-                message=e.message,
-                code=code,
-                index=params.get("index") if params else None,
-            )
-            for e, code, params in errors
-        ]
-        extra.update({cls._meta.error_type_field: typed_errors})
-        return cls(errors=[e[0] for e in errors], **extra)
 
 
 class ProductVariantStocksUpdate(ProductVariantStocksCreate):

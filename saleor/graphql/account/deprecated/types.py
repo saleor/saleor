@@ -5,7 +5,7 @@ from graphene_federation import key
 from ....app.models import App, AppToken
 from ....core.permissions import AppPermission
 from ...core.connection import CountableDjangoObjectType
-from ...core.types import FilterInputObjectType, PermissionDisplay
+from ...core.types import FilterInputObjectType, Permission
 from ...meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ...meta.types import ObjectWithMetadata
 from ...utils import format_permissions_for_display
@@ -36,7 +36,7 @@ class ServiceAccountToken(CountableDjangoObjectType):
 @key(fields="id")
 class ServiceAccount(CountableDjangoObjectType):
     permissions = graphene.List(
-        PermissionDisplay, description="List of the service's permissions."
+        Permission, description="List of the service's permissions."
     )
     created = graphene.DateTime(
         description="The date and time when the service account was created."
