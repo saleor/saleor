@@ -149,7 +149,6 @@ class ServiceAccountUpdate(ModelMutation):
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
         requestor = info.context.user
-
         if not requestor.is_superuser and not can_manage_service_account(
             requestor, instance
         ):
@@ -179,6 +178,16 @@ class ServiceAccountDelete(ModelDeleteMutation):
         permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
         error_type_class = ServiceAccountError
         error_type_field = "service_account_errors"
+
+    @classmethod
+    def clean_instance(cls, info, instance):
+        requestor = info.context.user
+        if not requestor.is_superuser and not can_manage_service_account(
+            requestor, instance
+        ):
+            msg = "You can't delete this service account."
+            code = AccountErrorCode.OUT_OF_SCOPE_SERVICE_ACCOUNT.value
+            raise ValidationError({"id": ValidationError(msg, code=code)})
 
 
 class ServiceAccountUpdatePrivateMeta(UpdateMetaBaseMutation):
