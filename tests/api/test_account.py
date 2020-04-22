@@ -3627,7 +3627,7 @@ QUERY_CUSTOMERS_WITH_SORT = """
         ({"field": "EMAIL", "direction": "ASC"}, ["John", "Leslie", "Joe"]),
         ({"field": "EMAIL", "direction": "DESC"}, ["Joe", "Leslie", "John"]),
         ({"field": "ORDER_COUNT", "direction": "ASC"}, ["John", "Leslie", "Joe"]),
-        ({"field": "ORDER_COUNT", "direction": "DESC"}, ["Joe", "John", "Leslie"]),
+        ({"field": "ORDER_COUNT", "direction": "DESC"}, ["Joe", "Leslie", "John"]),
     ],
 )
 def test_query_customers_with_sort(
@@ -3846,7 +3846,7 @@ QUERY_STAFF_USERS_WITH_SORT = """
         ({"field": "EMAIL", "direction": "ASC"}, ["John", "Leslie", "", "Joe"]),
         ({"field": "EMAIL", "direction": "DESC"}, ["Joe", "", "Leslie", "John"]),
         ({"field": "ORDER_COUNT", "direction": "ASC"}, ["John", "Leslie", "", "Joe"]),
-        ({"field": "ORDER_COUNT", "direction": "DESC"}, ["Joe", "John", "Leslie", ""]),
+        ({"field": "ORDER_COUNT", "direction": "DESC"}, ["Joe", "", "Leslie", "John"]),
     ],
 )
 def test_query_staff_members_with_sort(

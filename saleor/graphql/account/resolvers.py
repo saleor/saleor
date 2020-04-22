@@ -4,7 +4,6 @@ from typing import Optional
 import graphene
 import graphene_django_optimizer as gql_optimizer
 from django.contrib.auth import models as auth_models
-from django.db.models import QuerySet
 from graphql_jwt.exceptions import PermissionDenied
 from i18naddress import get_validation_rules
 
@@ -16,13 +15,6 @@ from ..utils import (
     filter_by_query_param,
     format_permissions_for_display,
     get_user_or_service_account_from_context,
-    sort_queryset,
-)
-from .sorters import (
-    PermissionGroupSortingInput,
-    ServiceAccountSortField,
-    UserSortField,
-    UserSortingInput,
 )
 from .types import AddressValidationData, ChoiceValue
 from .utils import (
@@ -42,34 +34,25 @@ USER_SEARCH_FIELDS = (
 )
 
 
-def sort_users(qs: QuerySet, sort_by: UserSortingInput) -> QuerySet:
-    if sort_by:
-        return sort_queryset(qs, sort_by, UserSortField)
-    return qs.order_by("email")
-
-
-def resolve_customers(info, query, sort_by=None, **_kwargs):
+def resolve_customers(info, query, **_kwargs):
     qs = models.User.objects.customers()
     qs = filter_by_query_param(
         queryset=qs, query=query, search_fields=USER_SEARCH_FIELDS
     )
-    qs = sort_users(qs, sort_by)
     qs = qs.distinct()
     return gql_optimizer.query(qs, info)
 
 
-def resolve_permission_groups(info, query, sort_by=None, **_kwargs):
+def resolve_permission_groups(info, **_kwargs):
     qs = auth_models.Group.objects.all()
-    qs = sort_queryset(qs, sort_by, PermissionGroupSortingInput)
     return gql_optimizer.query(qs, info)
 
 
-def resolve_staff_users(info, query, sort_by=None, **_kwargs):
+def resolve_staff_users(info, query, **_kwargs):
     qs = models.User.objects.staff()
     qs = filter_by_query_param(
         queryset=qs, query=query, search_fields=USER_SEARCH_FIELDS
     )
-    qs = sort_users(qs, sort_by)
     qs = qs.distinct()
     return gql_optimizer.query(qs, info)
 
@@ -89,9 +72,8 @@ def resolve_user(info, id):
     return PermissionDenied()
 
 
-def resolve_service_accounts(info, sort_by=None, **_kwargs):
+def resolve_service_accounts(info, **_kwargs):
     qs = models.ServiceAccount.objects.all()
-    qs = sort_queryset(qs, sort_by, ServiceAccountSortField)
     return gql_optimizer.query(qs, info)
 
 
