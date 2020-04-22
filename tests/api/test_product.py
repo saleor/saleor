@@ -3780,7 +3780,6 @@ mutation createProduct(
         $name: String!,
         $sku: String,
         $stocks: [StockInput!],
-        $quantity: Int,
         $basePrice: Decimal!
         $trackInventory: Boolean)
     {
@@ -3792,7 +3791,6 @@ mutation createProduct(
                 sku: $sku,
                 stocks: $stocks,
                 trackInventory: $trackInventory,
-                quantity: $quantity,
                 basePrice: $basePrice,
             })
         {
@@ -3804,6 +3802,7 @@ mutation createProduct(
                     sku
                     trackInventory
                     quantity
+                    stockQuantity
                 }
             }
             productErrors {
@@ -3837,7 +3836,6 @@ def test_create_product_without_variant_creates_stocks(
         "category": category_id,
         "productType": product_type_id,
         "name": "Test",
-        "quantity": 8,
         "stocks": stocks,
         "sku": "23434",
         "trackInventory": True,
@@ -3849,7 +3847,8 @@ def test_create_product_without_variant_creates_stocks(
         permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
-    quantity = content["data"]["productCreate"]["product"]["variants"][0]["quantity"]
+    data = content["data"]["productCreate"]
+    quantity = data["product"]["variants"][0]["stockQuantity"]
     assert quantity == 20
 
 
@@ -3883,41 +3882,6 @@ def test_create_product_with_variants_does_not_create_stock(
     variants = content["data"]["productCreate"]["product"]["variants"]
     assert len(variants) == 0
     assert not Stock.objects.exists()
-
-
-MUTATION_UPDATE_PRODUCT_QUANTITY = """
-mutation updateProduct(
-    $productId: ID!,
-
-    $quantity: Int,
-    ) {
-        productUpdate(
-            id: $productId,
-            input: {
-                quantity: $quantity
-            }) {
-                product {
-                    variants {
-                        quantity
-                    }
-                }
-}}
-"""
-
-
-def test_update_product_without_variants_updates_stock(
-    staff_api_client, product_with_default_variant, permission_manage_products
-):
-    product_id = graphene.Node.to_global_id("Product", product_with_default_variant.pk)
-    stock = product_with_default_variant.variants.first().stocks.first()
-    variables = {"productId": product_id, "quantity": 17}
-    staff_api_client.post_graphql(
-        MUTATION_UPDATE_PRODUCT_QUANTITY,
-        variables,
-        permissions=[permission_manage_products],
-    )
-    stock.refresh_from_db()
-    assert stock.quantity == 17
 
 
 def test_create_stocks_failed(product_with_single_variant, warehouse):

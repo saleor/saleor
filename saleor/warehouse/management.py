@@ -8,7 +8,6 @@ from .models import Allocation, Stock, Warehouse
 
 if TYPE_CHECKING:
     from ..order.models import OrderLine
-    from ..product.models import ProductVariant
 
 
 @transaction.atomic
@@ -178,24 +177,3 @@ def decrease_stock(order_line: "OrderLine", quantity: int):
                 break
     if not quantity_decreased == quantity:
         raise AllocationError(order_line, quantity)
-
-
-@transaction.atomic
-def set_stock_quantity(
-    variant: "ProductVariant", country_code: str, quantity: int
-) -> Stock:
-    stock = (
-        Stock.objects.select_for_update(of=("self",))
-        .get_variant_stocks_for_country(country_code, variant)
-        .order_by("pk")
-        .first()
-    )
-    if stock:
-        stock.quantity = quantity
-        stock.save(update_fields=["quantity"])
-    else:
-        warehouse = Warehouse.objects.for_country(country_code).first()
-        stock = Stock.objects.create(
-            warehouse=warehouse, product_variant=variant, quantity=quantity
-        )
-    return stock
