@@ -656,6 +656,7 @@ SERVICE_ACCOUNT_TOKEN_DELETE_MUTATION = """
         serviceAccountErrors{
           field
           message
+          code
         }
         serviceAccountToken{
           name
@@ -667,16 +668,23 @@ SERVICE_ACCOUNT_TOKEN_DELETE_MUTATION = """
 
 
 def test_service_account_token_delete(
-    permission_manage_service_accounts, staff_api_client, staff_user, service_account
+    permission_manage_service_accounts,
+    staff_api_client,
+    staff_user,
+    service_account,
+    permission_manage_products,
 ):
 
     query = SERVICE_ACCOUNT_TOKEN_DELETE_MUTATION
     token = service_account.tokens.get()
+    staff_user.user_permissions.add(permission_manage_products)
+    service_account.permissions.add(permission_manage_products)
     id = graphene.Node.to_global_id("ServiceAccountToken", token.id)
-    staff_user.user_permissions.add(permission_manage_service_accounts)
 
     variables = {"id": id}
-    response = staff_api_client.post_graphql(query, variables=variables)
+    response = staff_api_client.post_graphql(
+        query, variables=variables, permissions=(permission_manage_service_accounts,)
+    )
     get_graphql_content(response)
     assert not ServiceAccountToken.objects.filter(id=token.id).first()
 
@@ -693,6 +701,53 @@ def test_service_account_token_delete_no_permissions(
     response = staff_api_client.post_graphql(query, variables=variables)
     assert_no_permission(response)
     token.refresh_from_db()
+
+
+def test_service_account_token_delete_out_of_scope_service_account(
+    permission_manage_service_accounts,
+    staff_api_client,
+    superuser_api_client,
+    staff_user,
+    service_account,
+    permission_manage_products,
+):
+    """Ensure user can't delete service account token with wider scope of permissions.
+
+    Ensure superuser pass restrictions.
+    """
+    query = SERVICE_ACCOUNT_TOKEN_DELETE_MUTATION
+    token = service_account.tokens.get()
+    service_account.permissions.add(permission_manage_products)
+    id = graphene.Node.to_global_id("ServiceAccountToken", token.id)
+
+    variables = {"id": id}
+
+    # for staff user
+    response = staff_api_client.post_graphql(
+        query, variables=variables, permissions=(permission_manage_service_accounts,)
+    )
+    content = get_graphql_content(response)
+
+    data = content["data"]["serviceAccountTokenDelete"]
+    errors = data["serviceAccountErrors"]
+
+    assert not data["serviceAccountToken"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["code"] == AccountErrorCode.OUT_OF_SCOPE_SERVICE_ACCOUNT.name
+    assert error["field"] == "id"
+    assert ServiceAccountToken.objects.filter(id=token.id).exists()
+
+    # for superuser
+    response = superuser_api_client.post_graphql(query, variables=variables)
+    content = get_graphql_content(response)
+
+    data = content["data"]["serviceAccountTokenDelete"]
+    errors = data["serviceAccountErrors"]
+
+    assert data["serviceAccountToken"]
+    assert not errors
+    assert not ServiceAccountToken.objects.filter(id=token.id).exists()
 
 
 SERVICE_ACCOUNT_DELETE_MUTATION = """

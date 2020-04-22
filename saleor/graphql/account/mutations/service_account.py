@@ -82,6 +82,17 @@ class ServiceAccountTokenDelete(ModelDeleteMutation):
         error_type_class = ServiceAccountError
         error_type_field = "service_account_errors"
 
+    @classmethod
+    def clean_instance(cls, info, instance):
+        requestor = info.context.user
+        service_account = instance.service_account
+        if not requestor.is_superuser and not can_manage_service_account(
+            requestor, service_account
+        ):
+            msg = "You can't delete this service account token."
+            code = AccountErrorCode.OUT_OF_SCOPE_SERVICE_ACCOUNT.value
+            raise ValidationError({"id": ValidationError(msg, code=code)})
+
 
 class ServiceAccountCreate(ModelMutation):
     auth_token = graphene.types.String(
