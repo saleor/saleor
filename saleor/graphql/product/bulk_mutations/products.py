@@ -209,7 +209,7 @@ class ProductVariantBulkCreate(BaseMutation):
         if duplicates:
             errors["stocks"] = ValidationError(
                 "Duplicated warehouse ID.",
-                code=ProductErrorCode.DUPLICATED,
+                code=ProductErrorCode.DUPLICATED_INPUT_ITEM,
                 params={"warehouses": duplicates, "index": variant_index},
             )
 

@@ -274,7 +274,7 @@ def test_create_product_variant_duplicated_attributes(
     assert content["data"]["productVariantCreate"]["productErrors"]
     assert content["data"]["productVariantCreate"]["productErrors"][0] == {
         "field": "attributes",
-        "code": ProductErrorCode.DUPLICATED.name,
+        "code": ProductErrorCode.DUPLICATED_INPUT_ITEM.name,
         "message": ANY,
     }
     assert not product.variants.filter(sku=sku).exists()
@@ -656,7 +656,7 @@ def test_update_product_variant_with_duplicated_attribute(
     data = content["data"]["productVariantUpdate"]
     assert data["productErrors"][0] == {
         "field": "attributes",
-        "code": ProductErrorCode.DUPLICATED.name,
+        "code": ProductErrorCode.DUPLICATED_INPUT_ITEM.name,
     }
 
 
@@ -1097,7 +1097,7 @@ def test_product_variant_bulk_create_duplicated_warehouses(
     error = errors[0]
     assert error["field"] == "stocks"
     assert error["index"] == 1
-    assert error["code"] == ProductErrorCode.DUPLICATED.name
+    assert error["code"] == ProductErrorCode.DUPLICATED_INPUT_ITEM.name
     assert error["warehouses"] == [warehouse1_id]
 
 
@@ -1265,7 +1265,7 @@ def test_product_variant_bulk_create_two_variants_duplicated_attribute_value(
     assert len(data["bulkProductErrors"]) == 1
     error = data["bulkProductErrors"][0]
     assert error["field"] == "attributes"
-    assert error["code"] == ProductErrorCode.DUPLICATED.name
+    assert error["code"] == ProductErrorCode.DUPLICATED_INPUT_ITEM.name
     assert error["index"] == 0
     assert product_variant_count == ProductVariant.objects.count()
 
@@ -1300,7 +1300,7 @@ def test_product_variant_bulk_create_two_variants_duplicated_attribute_value_in_
     assert len(data["bulkProductErrors"]) == 1
     error = data["bulkProductErrors"][0]
     assert error["field"] == "attributes"
-    assert error["code"] == ProductErrorCode.DUPLICATED.name
+    assert error["code"] == ProductErrorCode.DUPLICATED_INPUT_ITEM.name
     assert error["index"] == 1
     assert product_variant_count == ProductVariant.objects.count()
 

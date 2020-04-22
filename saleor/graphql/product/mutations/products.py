@@ -1147,7 +1147,7 @@ class ProductVariantCreate(ModelMutation):
         if attribute_values in used_attribute_values:
             raise ValidationError(
                 "Duplicated attribute values for product variant.",
-                ProductErrorCode.DUPLICATED,
+                ProductErrorCode.DUPLICATED_INPUT_ITEM,
             )
         else:
             used_attribute_values.append(attribute_values)
