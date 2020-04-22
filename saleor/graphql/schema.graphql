@@ -496,6 +496,7 @@ type BulkProductError {
   message: String
   code: ProductErrorCode!
   index: Int
+  warehouses: [ID!]
 }
 
 type BulkStockError {
@@ -3286,6 +3287,7 @@ enum ProductErrorCode {
   ATTRIBUTE_ALREADY_ASSIGNED
   ATTRIBUTE_CANNOT_BE_ASSIGNED
   ATTRIBUTE_VARIANTS_DISABLED
+  DUPLICATED_INPUT_ITEM
   GRAPHQL_ERROR
   INVALID
   NOT_PRODUCTS_IMAGE
@@ -3621,6 +3623,7 @@ input ProductVariantBulkCreateInput {
   sku: String!
   trackInventory: Boolean
   weight: WeightScalar
+  stocks: [StockInput!]
 }
 
 type ProductVariantBulkDelete {
