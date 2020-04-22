@@ -42,8 +42,6 @@ class AppTokenCreate(ModelMutation):
 
     @classmethod
     def get_type_for_model(cls):
-        # Fixme this method can be deleted when we will drop support for ServiceAccount
-        # Let's create ticket for this
         return AppToken
 
     @classmethod
