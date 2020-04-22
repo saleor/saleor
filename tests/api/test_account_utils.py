@@ -7,6 +7,7 @@ from saleor.core.permissions import (
     ProductPermissions,
 )
 from saleor.graphql.account.utils import (
+    can_manage_service_account,
     can_user_manage_group,
     get_group_permission_codes,
     get_group_to_permissions_and_users_mapping,
@@ -702,3 +703,31 @@ def test_get_not_manageable_permissions_deactivate_or_remove_user_cant_manage_st
     )
 
     assert not permissions
+
+
+def test_can_manage_service_account_no_permission(
+    service_account,
+    staff_user,
+    permission_manage_products,
+    permission_manage_service_accounts,
+):
+    service_account.permissions.add(permission_manage_products)
+    staff_user.user_permissions.add(permission_manage_service_accounts)
+
+    result = can_manage_service_account(staff_user, service_account)
+    assert result is False
+
+
+def test_can_manage_service_account(
+    service_account,
+    staff_user,
+    permission_manage_products,
+    permission_manage_service_accounts,
+):
+    service_account.permissions.add(permission_manage_products)
+    staff_user.user_permissions.add(
+        permission_manage_service_accounts, permission_manage_products
+    )
+
+    result = can_manage_service_account(staff_user, service_account)
+    assert result is True

@@ -15,7 +15,7 @@ from ...core.permissions import AccountPermissions, get_permissions
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
-    from ...account.models import User
+    from ...account.models import User, ServiceAccount
 
 
 class UserDeleteMixin:
@@ -201,6 +201,12 @@ def get_out_of_scope_users(root_user: "User", users: List["User"]):
 def can_user_manage_group(user: "User", group: Group) -> bool:
     """User can't manage a group with permission that is out of the user's scope."""
     permissions = get_group_permission_codes(group)
+    return user.has_perms(permissions)
+
+
+def can_manage_service_account(user: "User", service_account: "ServiceAccount") -> bool:
+    """User can't manage service account with permission that is out of scope."""
+    permissions = service_account.get_permissions()
     return user.has_perms(permissions)
 
 
