@@ -214,7 +214,7 @@ def customers_for_pagination(db):
         ({"field": "EMAIL", "direction": "ASC"}, ["John", "Leslie", "Joe"]),
         ({"field": "EMAIL", "direction": "DESC"}, ["Joe", "Leslie", "John"]),
         ({"field": "ORDER_COUNT", "direction": "ASC"}, ["John", "Leslie", "Joe"]),
-        ({"field": "ORDER_COUNT", "direction": "DESC"}, ["Joe", "John", "Leslie"]),
+        ({"field": "ORDER_COUNT", "direction": "DESC"}, ["Joe", "Leslie", "John"]),
     ],
 )
 def test_query_customers_pagination_with_sort(
