@@ -3,7 +3,7 @@ import graphene_django_optimizer as gql_optimizer
 from graphene_federation import key
 
 from ....app.models import App, AppToken
-from ....core.permissions import AccountPermissions
+from ....core.permissions import AppPermission
 from ...core.connection import CountableDjangoObjectType
 from ...core.types import FilterInputObjectType, PermissionDisplay
 from ...meta.deprecated.resolvers import resolve_meta, resolve_private_meta
@@ -25,7 +25,7 @@ class ServiceAccountToken(CountableDjangoObjectType):
         description = "Represents token data."
         model = AppToken
         interfaces = [graphene.relay.Node]
-        permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
+        permissions = (AppPermission.MANAGE_APPS,)
         only_fields = ["name", "auth_token"]
 
     @staticmethod
@@ -54,7 +54,7 @@ class ServiceAccount(CountableDjangoObjectType):
         description = "Represents service account data."
         interfaces = [graphene.relay.Node, ObjectWithMetadata]
         model = App
-        permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
+        permissions = (AppPermission.MANAGE_APPS,)
         only_fields = [
             "name",
             "permissions",

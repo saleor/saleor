@@ -1,6 +1,6 @@
 import graphene
 
-from ...core.permissions import AccountPermissions
+from ...core.permissions import AccountPermissions, AppPermission
 from ..core.fields import FilterInputConnectionField
 from ..core.types import FilterInputObjectType
 from ..decorators import one_of_permissions_required, permission_required
@@ -181,11 +181,11 @@ class AccountQueries(graphene.ObjectType):
             city_area=city_area,
         )
 
-    @permission_required(AccountPermissions.MANAGE_SERVICE_ACCOUNTS)
+    @permission_required(AppPermission.MANAGE_APPS)
     def resolve_service_accounts(self, info, **kwargs):
         return resolve_service_accounts(info, **kwargs)
 
-    @permission_required(AccountPermissions.MANAGE_SERVICE_ACCOUNTS)
+    @permission_required(AppPermission.MANAGE_APPS)
     def resolve_service_account(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, ServiceAccount)
 
