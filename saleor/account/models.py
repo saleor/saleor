@@ -202,7 +202,7 @@ class ServiceAccount(ModelWithMetadata):
             ),
         )
 
-    def _get_permissions(self) -> Set[str]:
+    def get_permissions(self) -> Set[str]:
         """Return the permissions of the service."""
         if not self.is_active:
             return set()
@@ -219,7 +219,7 @@ class ServiceAccount(ModelWithMetadata):
             return False
 
         wanted_perms = {perm.value for perm in perm_list}
-        actual_perms = self._get_permissions()
+        actual_perms = self.get_permissions()
 
         return (wanted_perms & actual_perms) == wanted_perms
 
@@ -228,7 +228,7 @@ class ServiceAccount(ModelWithMetadata):
         if not self.is_active:
             return False
 
-        return perm.value in self._get_permissions()
+        return perm.value in self.get_permissions()
 
 
 class ServiceAccountToken(models.Model):
