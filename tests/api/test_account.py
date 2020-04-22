@@ -10,6 +10,7 @@ from django.core.exceptions import ValidationError
 from django.core.files import File
 from django.core.validators import URLValidator
 from django.test import override_settings
+from django.utils import timezone
 from freezegun import freeze_time
 from prices import Money
 
@@ -89,10 +90,14 @@ def test_create_token_mutation(api_client, staff_user, settings):
     }
     """
     variables = {"email": staff_user.email, "password": "password"}
-    response = api_client.post_graphql(query, variables)
+    time = timezone.now()
+    with freeze_time(time):
+        response = api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     token_data = content["data"]["tokenCreate"]
     token = jwt.decode(token_data["token"], settings.SECRET_KEY)
+    staff_user.refresh_from_db()
+    assert staff_user.last_login == time
     assert token["email"] == staff_user.email
     assert token["user_id"] == graphene.Node.to_global_id("User", staff_user.id)
 

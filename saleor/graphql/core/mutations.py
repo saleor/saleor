@@ -9,11 +9,12 @@ from django.core.exceptions import (
     ValidationError,
 )
 from django.db.models.fields.files import FileField
+from django.utils import timezone
 from graphene import ObjectType
 from graphene.types.mutation import MutationOptions
 from graphene_django.registry import get_global_registry
 from graphql.error import GraphQLError
-from graphql_jwt import ObtainJSONWebToken, Verify
+from graphql_jwt import ObtainJSONWebToken, Refresh, Verify
 from graphql_jwt.exceptions import JSONWebTokenError, PermissionDenied
 
 from ...account import models
@@ -626,6 +627,9 @@ class CreateToken(ObtainJSONWebToken):
             errors = validation_error_to_error_type(e)
             return cls.handle_typed_errors(errors)
         else:
+            user = result.user
+            user.last_login = timezone.now()
+            user.save(update_fields=["last_login"])
             return result
 
     @classmethod
@@ -639,6 +643,21 @@ class CreateToken(ObtainJSONWebToken):
     @classmethod
     def resolve(cls, root, info, **kwargs):
         return cls(user=info.context.user, errors=[], account_errors=[])
+
+
+class RefreshToken(Refresh):
+    """Mutation that refresh user token.
+
+    It overrides the default graphql_jwt.Refresh to update user's last_login field.
+    """
+
+    @classmethod
+    def mutate(cls, root, info, **kwargs):
+        result = super().mutate(root, info, **kwargs)
+        user = graphene.Node.get_node_from_global_id(info, result.payload["user_id"])
+        user.last_login = timezone.now()
+        user.save(update_fields=["last_login"])
+        return result
 
 
 class VerifyToken(Verify):
