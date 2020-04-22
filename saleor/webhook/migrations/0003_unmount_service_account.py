@@ -7,7 +7,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("webhook", "0002_webhook_name"),
-        ("account", "0042_rename_service_account_to_app"),
+        ("account", "0043_rename_service_account_to_app"),
     ]
 
     state_operations = [

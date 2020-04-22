@@ -21,13 +21,14 @@ from ..utils import get_graphql_content
 def categories_for_pagination(product_type):
     categories = Category.tree.build_tree_nodes(
         {
+            "id": 1,
             "name": "Category2",
             "slug": "cat1",
             "children": [
-                {"name": "CategoryCategory1", "slug": "cat_cat1"},
-                {"name": "CategoryCategory2", "slug": "cat_cat2"},
-                {"name": "Category1", "slug": "cat2"},
-                {"name": "Category3", "slug": "cat3"},
+                {"parent_id": 1, "name": "CategoryCategory1", "slug": "cat_cat1"},
+                {"parent_id": 1, "name": "CategoryCategory2", "slug": "cat_cat2"},
+                {"parent_id": 1, "name": "Category1", "slug": "cat2"},
+                {"parent_id": 1, "name": "Category3", "slug": "cat3"},
             ],
         }
     )
@@ -100,11 +101,11 @@ QUERY_CATEGORIES_PAGINATION = """
         ),
         (
             {"field": "SUBCATEGORY_COUNT", "direction": "ASC"},
-            ["Category2", "CategoryCategory1", "CategoryCategory2"],
+            ["Category1", "Category3", "CategoryCategory1"],
         ),
         (
             {"field": "PRODUCT_COUNT", "direction": "ASC"},
-            ["CategoryCategory1", "Category1", "CategoryCategory2"],
+            ["Category1", "CategoryCategory1", "CategoryCategory2"],
         ),
     ],
 )
@@ -177,9 +178,9 @@ QUERY_COLLECTIONS_PAGINATION = """
             edges {
                 node {
                     name
-                                      products{
-                    totalCount
-                  }
+                    products{
+                        totalCount
+                    }
                 }
             }
             pageInfo{
@@ -206,11 +207,11 @@ QUERY_COLLECTIONS_PAGINATION = """
         ),
         (
             {"field": "AVAILABILITY", "direction": "ASC"},
-            ["CollectionCollection2", "Collection2", "Collection1"],
+            ["Collection2", "CollectionCollection2", "Collection1"],
         ),
         (
             {"field": "PRODUCT_COUNT", "direction": "DESC"},
-            ["Collection3", "CollectionCollection2", "Collection1"],
+            ["CollectionCollection2", "Collection3", "CollectionCollection1"],
         ),
     ],
 )
@@ -401,11 +402,11 @@ QUERY_PRODUCTS_PAGINATION = """
         ),
         (
             {"field": "TYPE", "direction": "ASC"},
-            ["Product1", "ProductProduct2", "Product3"],
+            ["Product1", "Product3", "ProductProduct2"],
         ),
         (
             {"field": "PUBLISHED", "direction": "ASC"},
-            ["ProductProduct1", "Product2", "Product1"],
+            ["Product2", "ProductProduct1", "Product1"],
         ),
     ],
 )
@@ -633,11 +634,11 @@ QUERY_PRODUCT_TYPES_PAGINATION = """
         ),
         (
             {"field": "DIGITAL", "direction": "ASC"},
-            ["ProductTypeProductType1", "ProductTypeProductType2", "ProductType2"],
+            ["ProductType2", "ProductTypeProductType1", "ProductTypeProductType2"],
         ),
         (
             {"field": "SHIPPING_REQUIRED", "direction": "ASC"},
-            ["ProductType1", "ProductTypeProductType1", "ProductType3"],
+            ["ProductType1", "ProductType3", "ProductTypeProductType1"],
         ),
     ],
 )

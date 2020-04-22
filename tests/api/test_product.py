@@ -13,6 +13,7 @@ from prices import Money
 
 from saleor.core.taxes import TaxType
 from saleor.graphql.core.enums import ReportingPeriod
+from saleor.graphql.product.bulk_mutations.products import ProductVariantStocksUpdate
 from saleor.graphql.product.utils import create_stocks
 from saleor.plugins.manager import PluginsManager
 from saleor.product import AttributeInputType
@@ -3172,8 +3173,8 @@ QUERY_COLLECTIONS_WITH_SORT = """
         ({"field": "NAME", "direction": "ASC"}, ["Coll1", "Coll2", "Coll3"]),
         ({"field": "NAME", "direction": "DESC"}, ["Coll3", "Coll2", "Coll1"]),
         ({"field": "AVAILABILITY", "direction": "ASC"}, ["Coll2", "Coll1", "Coll3"]),
-        ({"field": "AVAILABILITY", "direction": "DESC"}, ["Coll1", "Coll3", "Coll2"]),
-        ({"field": "PRODUCT_COUNT", "direction": "ASC"}, ["Coll3", "Coll1", "Coll2"]),
+        ({"field": "AVAILABILITY", "direction": "DESC"}, ["Coll3", "Coll1", "Coll2"]),
+        ({"field": "PRODUCT_COUNT", "direction": "ASC"}, ["Coll1", "Coll3", "Coll2"]),
         ({"field": "PRODUCT_COUNT", "direction": "DESC"}, ["Coll2", "Coll3", "Coll1"]),
     ],
 )
@@ -3268,7 +3269,7 @@ QUERY_CATEGORIES_WITH_SORT = """
         ),
         (
             {"field": "SUBCATEGORY_COUNT", "direction": "DESC"},
-            ["Cat1", "SubCat", "Cat2", "SubSubCat"],
+            ["SubCat", "Cat1", "SubSubCat", "Cat2"],
         ),
         (
             {"field": "PRODUCT_COUNT", "direction": "ASC"},
@@ -3276,7 +3277,7 @@ QUERY_CATEGORIES_WITH_SORT = """
         ),
         (
             {"field": "PRODUCT_COUNT", "direction": "DESC"},
-            ["Cat1", "SubCat", "SubSubCat", "Cat2"],
+            ["Cat1", "SubSubCat", "SubCat", "Cat2"],
         ),
     ],
 )
@@ -3411,7 +3412,7 @@ QUERY_PRODUCT_TYPE_WITH_SORT = """
         # is_digital
         (
             {"field": "DIGITAL", "direction": "ASC"},
-            ["Tools", "Subscription", "Digital"],
+            ["Subscription", "Tools", "Digital"],
         ),
         (
             {"field": "DIGITAL", "direction": "DESC"},
@@ -3424,7 +3425,7 @@ QUERY_PRODUCT_TYPE_WITH_SORT = """
         ),
         (
             {"field": "SHIPPING_REQUIRED", "direction": "DESC"},
-            ["Tools", "Digital", "Subscription"],
+            ["Tools", "Subscription", "Digital"],
         ),
     ],
 )
@@ -3923,3 +3924,40 @@ def test_create_stocks(variant, warehouse):
     assert {stock.quantity for stock in variant.stocks.all()} == {
         data["quantity"] for data in stocks_data
     }
+
+
+def test_update_or_create_variant_stocks(variant, warehouses):
+    Stock.objects.create(
+        product_variant=variant, warehouse=warehouses[0], quantity=5,
+    )
+    stocks_data = [
+        {"quantity": 10, "warehouse": "123"},
+        {"quantity": 10, "warehouse": "321"},
+    ]
+
+    ProductVariantStocksUpdate.update_or_create_variant_stocks(
+        variant, stocks_data, warehouses
+    )
+
+    variant.refresh_from_db()
+    assert variant.stocks.count() == 2
+    assert {stock.warehouse.pk for stock in variant.stocks.all()} == {
+        warehouse.pk for warehouse in warehouses
+    }
+    assert {stock.quantity for stock in variant.stocks.all()} == {
+        data["quantity"] for data in stocks_data
+    }
+
+
+def test_update_or_create_variant_stocks_empty_stocks_data(variant, warehouses):
+    Stock.objects.create(
+        product_variant=variant, warehouse=warehouses[0], quantity=5,
+    )
+
+    ProductVariantStocksUpdate.update_or_create_variant_stocks(variant, [], warehouses)
+
+    variant.refresh_from_db()
+    assert variant.stocks.count() == 1
+    stock = variant.stocks.first()
+    assert stock.warehouse == warehouses[0]
+    assert stock.quantity == 5

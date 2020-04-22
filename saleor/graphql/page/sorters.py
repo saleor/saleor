@@ -4,11 +4,11 @@ from ..core.types import SortInputObjectType
 
 
 class PageSortField(graphene.Enum):
-    TITLE = "title"
-    SLUG = "slug"
-    VISIBILITY = "is_published"
-    CREATION_DATE = "created"
-    PUBLICATION_DATE = "publication_date"
+    TITLE = ["title", "slug"]
+    SLUG = ["slug"]
+    VISIBILITY = ["is_published", "title", "slug"]
+    CREATION_DATE = ["created", "title", "slug"]
+    PUBLICATION_DATE = ["publication_date", "title", "slug"]
 
     @property
     def description(self):

@@ -7,8 +7,6 @@ from oauthlib.common import generate_token
 from ..core.models import ModelWithMetadata
 from ..core.permissions import AppPermission
 
-#
-
 
 class App(ModelWithMetadata):
     name = models.CharField(max_length=60)
@@ -23,6 +21,7 @@ class App(ModelWithMetadata):
     )
 
     class Meta:
+        ordering = ("name", "pk")
         permissions = ((AppPermission.MANAGE_APPS.codename, "Manage apps",),)
 
     def _get_permissions(self) -> Set[str]:
@@ -54,8 +53,6 @@ class App(ModelWithMetadata):
         return perm.value in self._get_permissions()
 
 
-#
-#
 class AppToken(models.Model):
     app = models.ForeignKey(App, on_delete=models.CASCADE, related_name="tokens")
     name = models.CharField(blank=True, default="", max_length=128)

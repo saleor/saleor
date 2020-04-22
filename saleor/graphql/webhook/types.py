@@ -18,7 +18,7 @@ class WebhookEvent(CountableDjangoObjectType):
     class Meta:
         model = models.WebhookEvent
         description = "Webhook event."
-        only_fields = ["event_type", "name"]
+        only_fields = ["event_type"]
 
     @staticmethod
     def resolve_name(root: models.WebhookEvent, *_args, **_kwargs):

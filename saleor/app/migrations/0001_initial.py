@@ -55,7 +55,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("auth", "0011_update_proxy_permissions"),
-        ("account", "0043_unmount_app_and_app_token"),
+        ("account", "0044_unmount_app_and_app_token"),
     ]
 
     state_operations = [
@@ -105,6 +105,7 @@ class Migration(migrations.Migration):
             ],
             options={
                 "db_table": "app_app",
+                "ordering": ("name", "pk"),
                 "permissions": (("manage_apps", "Manage apps"),),
             },
         ),

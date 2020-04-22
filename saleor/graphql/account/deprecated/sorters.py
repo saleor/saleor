@@ -4,8 +4,8 @@ from ...core.types import SortInputObjectType
 
 
 class ServiceAccountSortField(graphene.Enum):
-    NAME = "name"
-    CREATION_DATE = "created"
+    NAME = ["name", "pk"]
+    CREATION_DATE = ["created", "name", "pk"]
 
     @property
     def description(self):

@@ -1,7 +1,7 @@
 from typing import Union
 
 import graphene
-from django.db.models import Q, QuerySet, Value
+from django.db.models import Q, Value
 from django.db.models.functions import Concat
 from django.utils import timezone
 from graphene_django.registry import get_global_registry
@@ -9,13 +9,17 @@ from graphql.error import GraphQLError
 from graphql_jwt.utils import jwt_payload
 from graphql_relay import from_global_id
 
-from .core.enums import PermissionEnum, ReportingPeriod
-from .core.types import Permission, SortInputObjectType
+from ..core.enums import PermissionEnum, ReportingPeriod
+from ..core.types import Permission
 
 ERROR_COULD_NO_RESOLVE_GLOBAL_ID = (
     "Could not resolve to a node with the global id list of '%s'."
 )
 registry = get_global_registry()
+REVERSED_DIRECTION = {
+    "-": "",
+    "": "-",
+}
 
 
 def get_database_id(info, node_id, only_type):
@@ -118,28 +122,6 @@ def filter_by_query_param(queryset, query, search_fields):
             query_objects |= Q(**{q: query_by[q]})
         return queryset.filter(query_objects).distinct()
     return queryset
-
-
-def sort_queryset(
-    queryset: QuerySet, sort_by: SortInputObjectType, sort_enum: graphene.Enum
-) -> QuerySet:
-    """Sort queryset according to given parameters.
-
-    Keyword Arguments:
-        queryset - queryset to be filtered
-        sort_by - dictionary with sorting field and direction
-
-    """
-    if sort_by is None or not sort_by.field:
-        return queryset
-
-    direction = sort_by.direction
-    sorting_field = sort_by.field
-
-    custom_sort_by = getattr(sort_enum, f"sort_by_{sorting_field}", None)
-    if custom_sort_by:
-        return custom_sort_by(queryset, sort_by)
-    return queryset.order_by(f"{direction}{sorting_field}")
 
 
 def reporting_period_to_date(period):
