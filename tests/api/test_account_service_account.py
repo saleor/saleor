@@ -558,6 +558,7 @@ mutation serviceAccountTokenCreate($input: ServiceAccountTokenInput!) {
     serviceAccountErrors{
       field
       message
+      code
     }
   }
 }
@@ -565,16 +566,71 @@ mutation serviceAccountTokenCreate($input: ServiceAccountTokenInput!) {
 
 
 def test_service_account_token_create(
-    permission_manage_service_accounts, staff_api_client, staff_user
+    permission_manage_service_accounts,
+    staff_api_client,
+    staff_user,
+    permission_manage_orders,
 ):
 
     service_account = ServiceAccount.objects.create(name="New_sa")
     query = SERVICE_ACCOUNT_TOKEN_CREATE_MUTATION
-    staff_user.user_permissions.add(permission_manage_service_accounts)
+    staff_user.user_permissions.add(permission_manage_orders)
+    service_account.permissions.add(permission_manage_orders)
 
     id = graphene.Node.to_global_id("ServiceAccount", service_account.id)
     variables = {"name": "Default token", "serviceAccount": id}
-    response = staff_api_client.post_graphql(query, variables={"input": variables})
+    response = staff_api_client.post_graphql(
+        query,
+        variables={"input": variables},
+        permissions=(permission_manage_service_accounts,),
+    )
+    content = get_graphql_content(response)
+    token_data = content["data"]["serviceAccountTokenCreate"]["serviceAccountToken"]
+    auth_token_data = content["data"]["serviceAccountTokenCreate"]["authToken"]
+    auth_token = service_account.tokens.get().auth_token
+    assert auth_token_data == auth_token
+
+    assert token_data["authToken"] == auth_token[-4:]
+    assert token_data["name"] == "Default token"
+
+
+def test_service_account_token_create_out_of_scope_service_account(
+    permission_manage_service_accounts,
+    staff_api_client,
+    superuser_api_client,
+    staff_user,
+    permission_manage_orders,
+):
+    """Ensure user can't create token for service account with wider
+    scope of permissions.
+
+    Ensure superuser pass restrictions.
+    """
+    service_account = ServiceAccount.objects.create(name="New_sa")
+    query = SERVICE_ACCOUNT_TOKEN_CREATE_MUTATION
+    service_account.permissions.add(permission_manage_orders)
+
+    id = graphene.Node.to_global_id("ServiceAccount", service_account.id)
+    variables = {"name": "Default token", "serviceAccount": id}
+
+    # for staff user
+    response = staff_api_client.post_graphql(
+        query,
+        variables={"input": variables},
+        permissions=(permission_manage_service_accounts,),
+    )
+    content = get_graphql_content(response)
+
+    data = content["data"]["serviceAccountTokenCreate"]
+    errors = data["serviceAccountErrors"]
+    assert not data["serviceAccountToken"]
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["code"] == AccountErrorCode.OUT_OF_SCOPE_SERVICE_ACCOUNT.name
+    assert error["field"] == "serviceAccount"
+
+    # for superuser
+    response = superuser_api_client.post_graphql(query, variables={"input": variables})
     content = get_graphql_content(response)
     token_data = content["data"]["serviceAccountTokenCreate"]["serviceAccountToken"]
     auth_token_data = content["data"]["serviceAccountTokenCreate"]["authToken"]

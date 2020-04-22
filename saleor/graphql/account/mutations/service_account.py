@@ -57,6 +57,19 @@ class ServiceAccountTokenCreate(ModelMutation):
         response.auth_token = instance.auth_token
         return response
 
+    @classmethod
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
+        service_account = cleaned_input.get("service_account")
+        requestor = info.context.user
+        if not requestor.is_superuser and not can_manage_service_account(
+            requestor, service_account
+        ):
+            msg = "You can't manage this service account."
+            code = AccountErrorCode.OUT_OF_SCOPE_SERVICE_ACCOUNT.value
+            raise ValidationError({"service_account": ValidationError(msg, code=code)})
+        return cleaned_input
+
 
 class ServiceAccountTokenDelete(ModelDeleteMutation):
     class Arguments:
