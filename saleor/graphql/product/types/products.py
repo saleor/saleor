@@ -163,15 +163,14 @@ class ProductPricingInfo(BasePricingInfo):
 class ProductVariant(CountableDjangoObjectType):
     quantity = graphene.Int(
         required=True,
-        description="Quantity of a product in the store's possession, "
-        "including the allocated stock that is waiting for shipment.",
+        description="Quantity of a product available for sale.",
         deprecation_reason=(
             "Use the stock field instead. This field will be removed after 2020-07-31."
         ),
     )
     quantity_allocated = graphene.Int(
         required=False,
-        description="Quantity allocated for orders",
+        description="Quantity allocated for orders.",
         deprecation_reason=(
             "Use the stock field instead. This field will be removed after 2020-07-31."
         ),

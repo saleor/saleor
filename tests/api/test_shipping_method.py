@@ -426,7 +426,7 @@ def test_update_shipping_zone_same_warehouse_id_in_add_and_remove(
     assert data["shippingErrors"][0]["field"] == "removeWarehouses"
     assert (
         data["shippingErrors"][0]["code"]
-        == ShippingErrorCode.CANNOT_ADD_AND_REMOVE.name
+        == ShippingErrorCode.DUPLICATED_INPUT_ITEM.name
     )
     assert data["shippingErrors"][0]["warehouses"][0] == warehouse_id
 
