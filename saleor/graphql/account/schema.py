@@ -319,7 +319,7 @@ class AccountMutations(graphene.ObjectType):
     )
     service_account_clear_private_metadata = ServiceAccountClearPrivateMeta.Field(
         deprecation_reason=(
-            "Use the `DeletePrivateMetadata` mutation with App instead."
+            "Use the `deletePrivateMetadata` mutation with App instead."
             "This field will be removed after 2020-07-31."
         )
     )
