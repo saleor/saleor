@@ -2044,7 +2044,7 @@ def test_staff_update_out_of_scope_groups(
     }
 
 
-def test_staff_update_cannot_add_and_remove(
+def test_staff_update_duplicated_input_items(
     staff_api_client,
     permission_manage_staff,
     media_root,
@@ -2088,7 +2088,7 @@ def test_staff_update_cannot_add_and_remove(
 
     assert len(errors) == 1
     assert errors[0]["field"] is None
-    assert errors[0]["code"] == AccountErrorCode.CANNOT_ADD_AND_REMOVE.name
+    assert errors[0]["code"] == AccountErrorCode.DUPLICATED_INPUT_ITEM.name
     assert set(errors[0]["groups"]) == {
         graphene.Node.to_global_id("Group", gr.pk) for gr in [group1, group2]
     }

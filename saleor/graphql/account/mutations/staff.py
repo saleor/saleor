@@ -295,7 +295,7 @@ class StaffUpdate(StaffCreate):
                 "The same object cannot be in both list"
                 "for adding and removing items."
             )
-            code = AccountErrorCode.CANNOT_ADD_AND_REMOVE.value
+            code = AccountErrorCode.DUPLICATED_INPUT_ITEM.value
             params = {"groups": duplicated_ids}
             raise ValidationError(msg, code=code, params=params)
 

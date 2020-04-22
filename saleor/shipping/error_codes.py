@@ -9,4 +9,4 @@ class ShippingErrorCode(Enum):
     NOT_FOUND = "not_found"
     REQUIRED = "required"
     UNIQUE = "unique"
-    CANNOT_ADD_AND_REMOVE = "cannot_add_and_remove"
+    DUPLICATED_INPUT_ITEM = "duplicated_input_item"

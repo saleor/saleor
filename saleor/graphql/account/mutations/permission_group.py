@@ -379,7 +379,7 @@ class PermissionGroupUpdate(PermissionGroupCreate):
                 "The same object cannot be in both list"
                 "for adding and removing items."
             )
-            code = PermissionGroupErrorCode.CANNOT_ADD_AND_REMOVE.value
+            code = PermissionGroupErrorCode.DUPLICATED_INPUT_ITEM.value
             params = {error_class_field: list(duplicated_ids)}
             cls.update_errors(errors, error_msg, None, code, params)
 
