@@ -451,7 +451,7 @@ QUERY_WEBHOOKS_WITH_SORT = """
         ),
         (
             {"field": "SERVICE_ACCOUNT", "direction": "DESC"},
-            ["backup", "hook1", "hook2"],
+            ["hook1", "backup", "hook2"],
         ),
         ({"field": "TARGET_URL", "direction": "ASC"}, ["hook2", "hook1", "backup"]),
         ({"field": "TARGET_URL", "direction": "DESC"}, ["backup", "hook1", "hook2"]),

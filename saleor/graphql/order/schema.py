@@ -131,16 +131,12 @@ class OrderQueries(graphene.ObjectType):
         return resolve_order(info, data.get("id"))
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
-    def resolve_orders(
-        self, info, created=None, status=None, query=None, sort_by=None, **_kwargs
-    ):
-        return resolve_orders(info, created, status, query, sort_by)
+    def resolve_orders(self, info, created=None, status=None, **_kwargs):
+        return resolve_orders(info, created, status)
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
-    def resolve_draft_orders(
-        self, info, created=None, query=None, sort_by=None, **_kwargs
-    ):
-        return resolve_draft_orders(info, created, query, sort_by)
+    def resolve_draft_orders(self, info, created=None, **_kwargs):
+        return resolve_draft_orders(info, created)
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_orders_total(self, info, period, **_kwargs):

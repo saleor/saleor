@@ -78,7 +78,7 @@ def test_attributes_pagination_with_sorting(
 @pytest.mark.parametrize(
     "filter_by, service_account_order",
     [
-        ({"search": "Account"}, ["Account1", "AccountAccount1"]),
+        ({"search": "Account"}, ["Account1", "Account2"]),
         ({"search": "AccountAccount"}, ["AccountAccount1", "AccountAccount2"]),
         ({"search": "accountaccount"}, ["AccountAccount1", "AccountAccount2"]),
         ({"search": "Account1"}, ["Account1", "AccountAccount1"]),

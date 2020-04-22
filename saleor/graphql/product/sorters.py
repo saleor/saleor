@@ -1,24 +1,21 @@
 import graphene
-from django.db.models import Count, QuerySet
+from django.db.models import Count, IntegerField, OuterRef, QuerySet, Subquery
+from django.db.models.functions import Coalesce
 
 from ...product.models import Category, Product
-from ..core.enums import OrderDirection
 from ..core.types import SortInputObjectType
 
 
 class AttributeSortField(graphene.Enum):
-    NAME = "name"
-    SLUG = "slug"
-    VALUE_REQUIRED = "value_required"
-    IS_VARIANT_ONLY = "is_variant_only"
-    VISIBLE_IN_STOREFRONT = "visible_in_storefront"
-    FILTERABLE_IN_STOREFRONT = "filterable_in_storefront"
-    FILTERABLE_IN_DASHBOARD = "filterable_in_dashboard"
-
-    DASHBOARD_VARIANT_POSITION = "dashboard_variant_position"
-    DASHBOARD_PRODUCT_POSITION = "dashboard_product_position"
-    STOREFRONT_SEARCH_POSITION = "storefront_search_position"
-    AVAILABLE_IN_GRID = "available_in_grid"
+    NAME = ["name", "slug"]
+    SLUG = ["slug"]
+    VALUE_REQUIRED = ["value_required", "name", "slug"]
+    IS_VARIANT_ONLY = ["is_variant_only", "name", "slug"]
+    VISIBLE_IN_STOREFRONT = ["visible_in_storefront", "name", "slug"]
+    FILTERABLE_IN_STOREFRONT = ["filterable_in_storefront", "name", "slug"]
+    FILTERABLE_IN_DASHBOARD = ["filterable_in_dashboard", "name", "slug"]
+    STOREFRONT_SEARCH_POSITION = ["storefront_search_position", "name", "pk"]
+    AVAILABLE_IN_GRID = ["available_in_grid", "name", "pk"]
 
     @property
     def description(self):
@@ -44,12 +41,6 @@ class AttributeSortField(graphene.Enum):
             AttributeSortField.STOREFRONT_SEARCH_POSITION.name: (
                 "Sort attributes by their position in storefront"
             ),
-            AttributeSortField.DASHBOARD_VARIANT_POSITION.name: (
-                "Sort variant attributes by their position in dashboard."
-            ),
-            AttributeSortField.DASHBOARD_PRODUCT_POSITION.name: (
-                "Sort product attributes by their position in dashboard."
-            ),
             AttributeSortField.AVAILABLE_IN_GRID.name: (
                 "Sort attributes based on whether they can be displayed "
                 "or not in a product grid."
@@ -59,22 +50,6 @@ class AttributeSortField(graphene.Enum):
             return descriptions[self.name]
         raise ValueError("Unsupported enum value: %s" % self.value)
 
-    @staticmethod
-    def sort_by_dashboard_variant_position(
-        queryset: QuerySet, sort_by: SortInputObjectType
-    ) -> QuerySet:
-        # pylint: disable=no-member
-        is_asc = sort_by["direction"] == OrderDirection.ASC.value  # type: ignore
-        return queryset.variant_attributes_sorted(is_asc)
-
-    @staticmethod
-    def sort_by_dashboard_product_position(
-        queryset: QuerySet, sort_by: SortInputObjectType
-    ) -> QuerySet:
-        # pylint: disable=no-member
-        is_asc = sort_by["direction"] == OrderDirection.ASC.value  # type: ignore
-        return queryset.product_attributes_sorted(is_asc)
-
 
 class AttributeSortingInput(SortInputObjectType):
     class Meta:
@@ -83,9 +58,9 @@ class AttributeSortingInput(SortInputObjectType):
 
 
 class CategorySortField(graphene.Enum):
-    NAME = "name"
-    PRODUCT_COUNT = "product_count"
-    SUBCATEGORY_COUNT = "subcategory_count"
+    NAME = ["name", "slug"]
+    PRODUCT_COUNT = ["product_count", "name", "slug"]
+    SUBCATEGORY_COUNT = ["subcategory_count", "name", "slug"]
 
     @property
     def description(self):
@@ -100,20 +75,24 @@ class CategorySortField(graphene.Enum):
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod
-    def sort_by_product_count(
-        queryset: QuerySet, sort_by: SortInputObjectType
-    ) -> QuerySet:
-        return Category.tree.add_related_count(
-            queryset, Product, "category", "product_count", cumulative=True
-        ).order_by(f"{sort_by.direction}product_count")
+    def qs_with_product_count(queryset: QuerySet) -> QuerySet:
+        return queryset.annotate(
+            product_count=Coalesce(
+                Subquery(
+                    Category.tree.add_related_count(
+                        queryset, Product, "category", "p_c", cumulative=True
+                    )
+                    .values("p_c")
+                    .filter(pk=OuterRef("pk"))[:1]
+                ),
+                0,
+                output_field=IntegerField(),
+            )
+        )
 
     @staticmethod
-    def sort_by_subcategory_count(
-        queryset: QuerySet, sort_by: SortInputObjectType
-    ) -> QuerySet:
-        return queryset.annotate(subcategory_count=Count("children__id")).order_by(
-            f"{sort_by.direction}subcategory_count", "pk"
-        )
+    def qs_with_subcategory_count(queryset: QuerySet) -> QuerySet:
+        return queryset.annotate(subcategory_count=Count("children__id"))
 
 
 class CategorySortingInput(SortInputObjectType):
@@ -123,9 +102,9 @@ class CategorySortingInput(SortInputObjectType):
 
 
 class CollectionSortField(graphene.Enum):
-    NAME = "name"
-    AVAILABILITY = "is_published"
-    PRODUCT_COUNT = "product_count"
+    NAME = ["name"]
+    AVAILABILITY = ["is_published", "name"]
+    PRODUCT_COUNT = ["product_count", "name"]
 
     @property
     def description(self):
@@ -140,12 +119,8 @@ class CollectionSortField(graphene.Enum):
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod
-    def sort_by_product_count(
-        queryset: QuerySet, sort_by: SortInputObjectType
-    ) -> QuerySet:
-        return queryset.annotate(product_count=Count("collectionproduct__id")).order_by(
-            f"{sort_by.direction}product_count", "slug"
-        )
+    def qs_with_product_count(queryset: QuerySet) -> QuerySet:
+        return queryset.annotate(product_count=Count("collectionproduct__id"))
 
 
 class CollectionSortingInput(SortInputObjectType):
@@ -155,12 +130,12 @@ class CollectionSortingInput(SortInputObjectType):
 
 
 class ProductOrderField(graphene.Enum):
-    NAME = "name"
-    PRICE = "price_amount"
-    MINIMAL_PRICE = "minimal_variant_price_amount"
-    DATE = "updated_at"
-    TYPE = "product_type__name"
-    PUBLISHED = "is_published"
+    NAME = ["name", "slug"]
+    PRICE = ["price_amount", "name", "slug"]
+    MINIMAL_PRICE = ["minimal_variant_price_amount", "name", "slug"]
+    DATE = ["updated_at", "name", "slug"]
+    TYPE = ["product_type__name", "name", "slug"]
+    PUBLISHED = ["is_published", "name", "slug"]
 
     @property
     def description(self):
@@ -192,11 +167,14 @@ class ProductOrder(SortInputObjectType):
         ProductOrderField, description=f"Sort products by the selected field."
     )
 
+    class Meta:
+        sort_enum = ProductOrderField
+
 
 class ProductTypeSortField(graphene.Enum):
-    NAME = "name"
-    DIGITAL = "is_digital"
-    SHIPPING_REQUIRED = "is_shipping_required"
+    NAME = ["name", "slug"]
+    DIGITAL = ["is_digital", "name", "slug"]
+    SHIPPING_REQUIRED = ["is_shipping_required", "name", "slug"]
 
     @property
     def description(self):
