@@ -13,6 +13,7 @@ from prices import Money
 
 from saleor.core.taxes import TaxType
 from saleor.graphql.core.enums import ReportingPeriod
+from saleor.graphql.product.bulk_mutations.products import ProductVariantStocksUpdate
 from saleor.graphql.product.utils import create_stocks
 from saleor.plugins.manager import PluginsManager
 from saleor.product import AttributeInputType
@@ -3923,3 +3924,40 @@ def test_create_stocks(variant, warehouse):
     assert {stock.quantity for stock in variant.stocks.all()} == {
         data["quantity"] for data in stocks_data
     }
+
+
+def test_update_or_create_variant_stocks(variant, warehouses):
+    Stock.objects.create(
+        product_variant=variant, warehouse=warehouses[0], quantity=5,
+    )
+    stocks_data = [
+        {"quantity": 10, "warehouse": "123"},
+        {"quantity": 10, "warehouse": "321"},
+    ]
+
+    ProductVariantStocksUpdate.update_or_create_variant_stocks(
+        variant, stocks_data, warehouses
+    )
+
+    variant.refresh_from_db()
+    assert variant.stocks.count() == 2
+    assert {stock.warehouse.pk for stock in variant.stocks.all()} == {
+        warehouse.pk for warehouse in warehouses
+    }
+    assert {stock.quantity for stock in variant.stocks.all()} == {
+        data["quantity"] for data in stocks_data
+    }
+
+
+def test_update_or_create_variant_stocks_empty_stocks_data(variant, warehouses):
+    Stock.objects.create(
+        product_variant=variant, warehouse=warehouses[0], quantity=5,
+    )
+
+    ProductVariantStocksUpdate.update_or_create_variant_stocks(variant, [], warehouses)
+
+    variant.refresh_from_db()
+    assert variant.stocks.count() == 1
+    stock = variant.stocks.first()
+    assert stock.warehouse == warehouses[0]
+    assert stock.quantity == 5
