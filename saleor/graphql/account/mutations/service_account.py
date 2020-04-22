@@ -1,11 +1,14 @@
 import graphene
+from django.core.exceptions import ValidationError
 
 from ....account import models
+from ....account.error_codes import AccountErrorCode
 from ....core.permissions import AccountPermissions, get_permissions
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
-from ...core.types.common import AccountError
+from ...core.types.common import ServiceAccountError
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
+from ..utils import can_manage_service_account, get_out_of_scope_permissions
 
 
 class ServiceAccountInput(graphene.InputObjectType):
@@ -38,8 +41,8 @@ class ServiceAccountTokenCreate(ModelMutation):
         description = "Creates a new token."
         model = models.ServiceAccountToken
         permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
-        error_type_class = AccountError
-        error_type_field = "account_errors"
+        error_type_class = ServiceAccountError
+        error_type_field = "service_account_errors"
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
@@ -63,8 +66,8 @@ class ServiceAccountTokenDelete(ModelDeleteMutation):
         description = "Deletes an authentication token assigned to service account."
         model = models.ServiceAccountToken
         permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
-        error_type_class = AccountError
-        error_type_field = "account_errors"
+        error_type_class = ServiceAccountError
+        error_type_field = "service_account_errors"
 
 
 class ServiceAccountCreate(ModelMutation):
@@ -82,8 +85,8 @@ class ServiceAccountCreate(ModelMutation):
         description = "Creates a new service account."
         model = models.ServiceAccount
         permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
-        error_type_class = AccountError
-        error_type_field = "account_errors"
+        error_type_class = ServiceAccountError
+        error_type_field = "service_account_errors"
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -92,7 +95,26 @@ class ServiceAccountCreate(ModelMutation):
         if "permissions" in cleaned_input:
             permissions = cleaned_input.pop("permissions")
             cleaned_input["permissions"] = get_permissions(permissions)
+            cls.ensure_can_manage_permissions(info.context.user, permissions)
         return cleaned_input
+
+    @classmethod
+    def ensure_can_manage_permissions(cls, requestor, permission_items):
+        """Check if requestor can manage permissions from input.
+
+        Requestor cannot manage permissions witch he doesn't have.
+        """
+        if requestor.is_superuser:
+            return
+        permissions = get_out_of_scope_permissions(requestor, permission_items)
+        if permissions:
+            # add error
+            error_msg = "You can't add permission that you don't have."
+            code = AccountErrorCode.OUT_OF_SCOPE_PERMISSION.value
+            params = {"permissions": permissions}
+            raise ValidationError(
+                {"permissions": ValidationError(error_msg, code=code, params=params)}
+            )
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -120,15 +142,28 @@ class ServiceAccountUpdate(ModelMutation):
         description = "Updates an existing service account."
         model = models.ServiceAccount
         permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
-        error_type_class = AccountError
-        error_type_field = "account_errors"
+        error_type_class = ServiceAccountError
+        error_type_field = "service_account_errors"
 
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
+        requestor = info.context.user
+
+        if not requestor.is_superuser and not can_manage_service_account(
+            requestor, instance
+        ):
+            msg = "You can't manage this service account."
+            code = AccountErrorCode.OUT_OF_SCOPE_SERVICE_ACCOUNT.value
+            raise ValidationError({"id": ValidationError(msg, code=code)})
+
         # clean and prepare permissions
         if "permissions" in cleaned_input:
-            cleaned_input["permissions"] = get_permissions(cleaned_input["permissions"])
+            permissions = cleaned_input.pop("permissions")
+            cleaned_input["permissions"] = get_permissions(permissions)
+            ServiceAccountCreate.ensure_can_manage_permissions(
+                info.context.user, permissions
+            )
         return cleaned_input
 
 
@@ -142,8 +177,8 @@ class ServiceAccountDelete(ModelDeleteMutation):
         description = "Deletes a service account."
         model = models.ServiceAccount
         permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
-        error_type_class = AccountError
-        error_type_field = "account_errors"
+        error_type_class = ServiceAccountError
+        error_type_field = "service_account_errors"
 
 
 class ServiceAccountUpdatePrivateMeta(UpdateMetaBaseMutation):
@@ -152,8 +187,8 @@ class ServiceAccountUpdatePrivateMeta(UpdateMetaBaseMutation):
         permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
         model = models.ServiceAccount
         public = False
-        error_type_class = AccountError
-        error_type_field = "account_errors"
+        error_type_class = ServiceAccountError
+        error_type_field = "service_account_errors"
 
 
 class ServiceAccountClearPrivateMeta(ClearMetaBaseMutation):
@@ -162,5 +197,5 @@ class ServiceAccountClearPrivateMeta(ClearMetaBaseMutation):
         model = models.ServiceAccount
         permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
         public = False
-        error_type_class = AccountError
-        error_type_field = "account_errors"
+        error_type_class = ServiceAccountError
+        error_type_field = "service_account_errors"
