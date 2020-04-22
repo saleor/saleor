@@ -3252,7 +3252,6 @@ input ProductCreateInput {
   seo: SeoInput
   weight: WeightScalar
   sku: String
-  quantity: Int
   trackInventory: Boolean
   productType: ID!
   stocks: [StockInput!]
@@ -3366,7 +3365,6 @@ input ProductInput {
   seo: SeoInput
   weight: WeightScalar
   sku: String
-  quantity: Int
   trackInventory: Boolean
 }
 
@@ -3609,7 +3607,6 @@ input ProductVariantBulkCreateInput {
   costPrice: Decimal
   priceOverride: Decimal
   sku: String!
-  quantity: Int
   trackInventory: Boolean
   weight: WeightScalar
 }
@@ -3654,7 +3651,6 @@ input ProductVariantCreateInput {
   costPrice: Decimal
   priceOverride: Decimal
   sku: String
-  quantity: Int
   trackInventory: Boolean
   weight: WeightScalar
   product: ID!
@@ -3672,7 +3668,6 @@ input ProductVariantInput {
   costPrice: Decimal
   priceOverride: Decimal
   sku: String
-  quantity: Int
   trackInventory: Boolean
   weight: WeightScalar
 }
