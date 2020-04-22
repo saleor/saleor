@@ -12,7 +12,7 @@
       <h2>{% trans "Add a note to your order" context "Checkout summary note title" %}</h2>
           {% bootstrap_form note_form show_label=False %}
       <p class="text-md-right">
-        <button type="submit" class="btn btn-primary">
+        <button type="submit" class="btn btn-primary btn-only-once">
           {% trans "Order & Pay" context "Checkout summary primary action" %}
         </button>
       </p>
