@@ -12,7 +12,6 @@ class BasePermissionEnum(Enum):
 class AccountPermissions(BasePermissionEnum):
     MANAGE_USERS = "account.manage_users"
     MANAGE_STAFF = "account.manage_staff"
-    # TODO Migrations for account.manage_sa to manage_app
     MANAGE_SERVICE_ACCOUNTS = "app.manage_apps"
 
 
