@@ -60,17 +60,7 @@
             {% get_available_languages as LANGUAGES %}
 
             {# We display language picker only if there're languages to pick from #}
-            {% if LANGUAGES|length > 1 %}
-              {% get_current_language as LANGUAGE_CODE %}
-              <li>
-                <div class="language-picker dropdown show">
-                  <a class="dropdown-toggle dropdown-link " id="language-picker-button">
-                    {{ LANGUAGE_CODE|language_name_local }}
-                  </a>
-                  {% include "_language_picker.html" %}
-                </div>
-              </li>
-            {% endif %}
+           
             {% if user.is_authenticated %}
               {% if user.is_staff or request.impersonator.is_staff %}
                 <li>
