@@ -4100,9 +4100,6 @@ def test_create_product_with_weight_variable(
         permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
-    from pprint import pprint
-
-    pprint(content)
     result_weight = content["data"]["productCreate"]["product"]["weight"]
     assert result_weight["value"] == expected_weight_value
     assert result_weight["unit"] == expected_weight_unit
@@ -4148,9 +4145,6 @@ def test_create_product_with_weight_input(
         permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
-    from pprint import pprint
-
-    pprint(content)
     result_weight = content["data"]["productCreate"]["product"]["weight"]
     assert result_weight["value"] == expected_weight_value
     assert result_weight["unit"] == expected_weight_unit
