@@ -34,6 +34,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         ("account", "0039_auto_20200221_0257"),
+        ("plugins", "0002_auto_20200417_0335"),
     ]
 
     operations = [migrations.RunPython(convert_user_payments_customer_id)]
