@@ -8,6 +8,7 @@ from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types.common import ServiceAccountError
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
+from ...utils import get_user_or_service_account_from_context, requestor_is_superuser
 from ..utils import can_manage_service_account, get_out_of_scope_permissions
 
 
@@ -61,8 +62,8 @@ class ServiceAccountTokenCreate(ModelMutation):
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
         service_account = cleaned_input.get("service_account")
-        requestor = info.context.user
-        if not requestor.is_superuser and not can_manage_service_account(
+        requestor = get_user_or_service_account_from_context(info.context)
+        if not requestor_is_superuser(requestor) and not can_manage_service_account(
             requestor, service_account
         ):
             msg = "You can't manage this service account."
@@ -84,9 +85,9 @@ class ServiceAccountTokenDelete(ModelDeleteMutation):
 
     @classmethod
     def clean_instance(cls, info, instance):
-        requestor = info.context.user
         service_account = instance.service_account
-        if not requestor.is_superuser and not can_manage_service_account(
+        requestor = get_user_or_service_account_from_context(info.context)
+        if not requestor_is_superuser(requestor) and not can_manage_service_account(
             requestor, service_account
         ):
             msg = "You can't delete this service account token."
@@ -117,9 +118,10 @@ class ServiceAccountCreate(ModelMutation):
         cleaned_input = super().clean_input(info, instance, data)
         # clean and prepare permissions
         if "permissions" in cleaned_input:
+            requestor = get_user_or_service_account_from_context(info.context)
             permissions = cleaned_input.pop("permissions")
             cleaned_input["permissions"] = get_permissions(permissions)
-            cls.ensure_can_manage_permissions(info.context.user, permissions)
+            cls.ensure_can_manage_permissions(requestor, permissions)
         return cleaned_input
 
     @classmethod
@@ -128,7 +130,7 @@ class ServiceAccountCreate(ModelMutation):
 
         Requestor cannot manage permissions witch he doesn't have.
         """
-        if requestor.is_superuser:
+        if requestor_is_superuser(requestor):
             return
         permissions = get_out_of_scope_permissions(requestor, permission_items)
         if permissions:
@@ -172,8 +174,8 @@ class ServiceAccountUpdate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
-        requestor = info.context.user
-        if not requestor.is_superuser and not can_manage_service_account(
+        requestor = get_user_or_service_account_from_context(info.context)
+        if not requestor_is_superuser(requestor) and not can_manage_service_account(
             requestor, instance
         ):
             msg = "You can't manage this service account."
@@ -184,9 +186,7 @@ class ServiceAccountUpdate(ModelMutation):
         if "permissions" in cleaned_input:
             permissions = cleaned_input.pop("permissions")
             cleaned_input["permissions"] = get_permissions(permissions)
-            ServiceAccountCreate.ensure_can_manage_permissions(
-                info.context.user, permissions
-            )
+            ServiceAccountCreate.ensure_can_manage_permissions(requestor, permissions)
         return cleaned_input
 
 
@@ -205,8 +205,8 @@ class ServiceAccountDelete(ModelDeleteMutation):
 
     @classmethod
     def clean_instance(cls, info, instance):
-        requestor = info.context.user
-        if not requestor.is_superuser and not can_manage_service_account(
+        requestor = get_user_or_service_account_from_context(info.context)
+        if not requestor_is_superuser(requestor) and not can_manage_service_account(
             requestor, instance
         ):
             msg = "You can't delete this service account."
