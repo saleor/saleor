@@ -46,7 +46,7 @@ class WeightScalar(graphene.Scalar):
             default_unit = get_default_weight_unit()
             weight = Weight(**{default_unit: value})
         if not weight:
-            raise ValueError()
+            raise ValueError(f"Unsupported value: {node.value}")
         return weight
 
     @staticmethod
@@ -66,7 +66,7 @@ class WeightScalar(graphene.Scalar):
         else:
             weight = WeightScalar.parse_literal_decimal(node)
         if not weight:
-            raise ValueError()
+            raise ValueError(f"Unsupported value: {node.value}")
         return weight
 
     @staticmethod
