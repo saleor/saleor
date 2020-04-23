@@ -1211,9 +1211,11 @@ def fulfilled_order(order_with_lines):
     line_1 = order.lines.first()
     line_2 = order.lines.last()
     fulfillment.lines.create(order_line=line_1, quantity=line_1.quantity)
-    fulfill_order_line(line_1, line_1.quantity)
+    warehouse_1_pk = line_1.allocations.get().stock.warehouse.pk
+    fulfill_order_line(line_1, line_1.quantity, warehouse_1_pk)
     fulfillment.lines.create(order_line=line_2, quantity=line_2.quantity)
-    fulfill_order_line(line_2, line_2.quantity)
+    warehouse_2_pk = line_2.allocations.get().stock.warehouse.pk
+    fulfill_order_line(line_2, line_2.quantity, warehouse_2_pk)
     order.status = OrderStatus.FULFILLED
     order.save(update_fields=["status"])
     return order

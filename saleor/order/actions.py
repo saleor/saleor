@@ -5,8 +5,9 @@ from typing import TYPE_CHECKING, List
 from django.db import transaction
 
 from ..core import analytics
-from ..plugins.manager import get_plugins_manager
+from ..core.exceptions import InsufficientStock
 from ..payment import ChargeStatus, CustomPaymentChoices, PaymentError
+from ..plugins.manager import get_plugins_manager
 from ..warehouse.management import decrease_stock
 from . import FulfillmentStatus, OrderStatus, emails, events, utils
 from .emails import send_fulfillment_confirmation_to_customer, send_payment_confirmation
@@ -103,25 +104,28 @@ def order_voided(order: "Order", user: "User", payment: "Payment"):
 
 
 def order_fulfilled(
-    fulfillment: "Fulfillment",
+    fulfillments: List["Fulfillment"],
     user: "User",
     fulfillment_lines: List["FulfillmentLine"],
     notify_customer=True,
 ):
-    order = fulfillment.order
+    order = fulfillments[0].order
     update_order_status(order)
     events.fulfillment_fulfilled_items_event(
         order=order, user=user, fulfillment_lines=fulfillment_lines
     )
     manager = get_plugins_manager()
     manager.order_updated(order)
-    manager.fulfillment_created(fulfillment)
+
+    for fulfillment in fulfillments:
+        manager.fulfillment_created(fulfillment)
 
     if order.status == OrderStatus.FULFILLED:
         manager.order_fulfilled(order)
 
     if notify_customer:
-        send_fulfillment_confirmation_to_customer(order, fulfillment, user)
+        for fulfillment in fulfillments:
+            send_fulfillment_confirmation_to_customer(order, fulfillment, user)
 
 
 def order_shipping_updated(order: "Order"):
@@ -205,10 +209,13 @@ def clean_mark_order_as_paid(order: "Order"):
         raise PaymentError("Orders with payments can not be manually marked as paid.",)
 
 
-def fulfill_order_line(order_line, quantity):
+def fulfill_order_line(order_line, quantity, warehouse_pk):
     """Fulfill order line with given quantity."""
     if order_line.variant and order_line.variant.track_inventory:
-        decrease_stock(order_line, quantity)
+        try:
+            decrease_stock(order_line, quantity, warehouse_pk)
+        except InsufficientStock as exc:
+            raise exc
     order_line.quantity_fulfilled += quantity
     order_line.save(update_fields=["quantity_fulfilled"])
 
@@ -236,7 +243,10 @@ def automatically_fulfill_digital_lines(order: "Order"):
         FulfillmentLine.objects.create(
             fulfillment=fulfillment, order_line=line, quantity=quantity
         )
-        fulfill_order_line(order_line=line, quantity=quantity)
+        warehouse_pk = line.allocations.first().stock.warehouse.pk  # type: ignore
+        fulfill_order_line(
+            order_line=line, quantity=quantity, warehouse_pk=warehouse_pk
+        )
     emails.send_fulfillment_confirmation_to_customer(
         order, fulfillment, user=order.user
     )
