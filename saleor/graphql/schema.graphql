@@ -1751,6 +1751,7 @@ type Fulfillment implements Node & ObjectWithMetadata {
   meta: [MetaStore]! @deprecated(reason: "Use the `metadata` field. This field will be removed after 2020-07-31.")
   lines: [FulfillmentLine]
   statusDisplay: String
+  warehouse: Warehouse
 }
 
 type FulfillmentCancel {

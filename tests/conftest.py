@@ -1207,14 +1207,16 @@ def order_events(order):
 @pytest.fixture
 def fulfilled_order(order_with_lines):
     order = order_with_lines
-    fulfillment = order.fulfillments.create()
+    fulfillment = order.fulfillments.create(tracking_number="123")
     line_1 = order.lines.first()
+    stock_1 = line_1.allocations.get().stock
+    warehouse_1_pk = stock_1.warehouse.pk
     line_2 = order.lines.last()
-    fulfillment.lines.create(order_line=line_1, quantity=line_1.quantity)
-    warehouse_1_pk = line_1.allocations.get().stock.warehouse.pk
+    stock_2 = line_2.allocations.get().stock
+    warehouse_2_pk = stock_2.warehouse.pk
+    fulfillment.lines.create(order_line=line_1, quantity=line_1.quantity, stock=stock_1)
     fulfill_order_line(line_1, line_1.quantity, warehouse_1_pk)
-    fulfillment.lines.create(order_line=line_2, quantity=line_2.quantity)
-    warehouse_2_pk = line_2.allocations.get().stock.warehouse.pk
+    fulfillment.lines.create(order_line=line_2, quantity=line_2.quantity, stock=stock_2)
     fulfill_order_line(line_2, line_2.quantity, warehouse_2_pk)
     order.status = OrderStatus.FULFILLED
     order.save(update_fields=["status"])
