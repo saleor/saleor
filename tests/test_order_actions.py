@@ -142,12 +142,12 @@ def test_clean_mark_order_as_paid(payment_txn_preauth):
         clean_mark_order_as_paid(order)
 
 
-def test_cancel_fulfillment(fulfilled_order):
+def test_cancel_fulfillment(fulfilled_order, warehouse):
     fulfillment = fulfilled_order.fulfillments.first()
     line_1 = fulfillment.lines.first()
     line_2 = fulfillment.lines.first()
 
-    cancel_fulfillment(fulfillment, None, restock=False)
+    cancel_fulfillment(fulfillment, None, warehouse)
 
     assert fulfillment.status == FulfillmentStatus.CANCELED
     assert fulfilled_order.status == OrderStatus.UNFULFILLED

@@ -483,12 +483,12 @@ def test_fulfillment_update_tracking_send_notification_false(
     send_fulfillment_update_mock.assert_not_called()
 
 
-def test_cancel_fulfillment_restock_items(
-    staff_api_client, fulfillment, staff_user, permission_manage_orders
+def test_cancel_fulfillment(
+    staff_api_client, fulfillment, staff_user, permission_manage_orders, warehouse
 ):
     query = """
-    mutation cancelFulfillment($id: ID!, $restock: Boolean) {
-            orderFulfillmentCancel(id: $id, input: {restock: $restock}) {
+    mutation cancelFulfillment($id: ID!, $warehouseId: ID!) {
+            orderFulfillmentCancel(id: $id, input: {warehouseId: $warehouseId}) {
                     fulfillment {
                         status
                     }
@@ -496,7 +496,8 @@ def test_cancel_fulfillment_restock_items(
         }
     """
     fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.id)
-    variables = {"id": fulfillment_id, "restock": True}
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.id)
+    variables = {"id": fulfillment_id, "warehouseId": warehouse_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
@@ -513,34 +514,6 @@ def test_cancel_fulfillment_restock_items(
         "quantity": fulfillment.get_total_quantity()
     }
     assert event_restocked_items.user == staff_user
-
-
-def test_cancel_fulfillment(
-    staff_api_client, fulfillment, staff_user, permission_manage_orders
-):
-    query = """
-    mutation cancelFulfillment($id: ID!, $restock: Boolean) {
-            orderFulfillmentCancel(id: $id, input: {restock: $restock}) {
-                    fulfillment {
-                        status
-                    }
-                }
-        }
-    """
-    fulfillment_id = graphene.Node.to_global_id("Fulfillment", fulfillment.id)
-    variables = {"id": fulfillment_id, "restock": False}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["orderFulfillmentCancel"]["fulfillment"]
-    assert data["status"] == FulfillmentStatus.CANCELED.upper()
-    event_cancel_fulfillment = fulfillment.order.events.get()
-    assert event_cancel_fulfillment.type == (OrderEvents.FULFILLMENT_CANCELED)
-    assert event_cancel_fulfillment.parameters == {
-        "composed_id": fulfillment.composed_id
-    }
-    assert event_cancel_fulfillment.user == staff_user
 
 
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
