@@ -700,8 +700,8 @@
             </p>
 
             <div class="tile__container">
-              {% if dashboard %}
-              <a href="{{dashboard}}" target="_blank">
+              {% if dashboard_url %}
+              <a href="{{ dashboard_url }}" target="_blank">
                 <button class="btn tile">
                   <svg
                     class="tile__icon"
@@ -912,8 +912,8 @@
                   <span class="tile__label" href="#">Dashboard</span>
                 </button>
               </a>
-              {% endif %} {% if storefront %}
-              <a href="{{storefront}}" target="_blank">
+              {% endif %} {% if storefront_url %}
+              <a href="{{ storefront_url }}" target="_blank">
                 <button class="btn tile">
                   <svg
                     class="tile__icon"
