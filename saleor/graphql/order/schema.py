@@ -26,6 +26,7 @@ from .mutations.fulfillments import (
     FulfillmentUpdateMeta,
     FulfillmentUpdatePrivateMeta,
     FulfillmentUpdateTracking,
+    OrderFulfill,
 )
 from .mutations.orders import (
     OrderAddNote,
@@ -172,6 +173,7 @@ class OrderMutations(graphene.ObjectType):
             "after 2020-07-31."
         )
     )
+    order_fulfill = OrderFulfill.Field()
     order_fulfillment_cancel = FulfillmentCancel.Field()
     order_fulfillment_create = FulfillmentCreate.Field()
     order_fulfillment_update_tracking = FulfillmentUpdateTracking.Field()
