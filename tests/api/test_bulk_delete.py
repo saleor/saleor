@@ -737,8 +737,8 @@ def test_delete_staff_members(
     assert User.objects.filter(id__in=[user.id for user in users]).count() == len(users)
 
 
-def test_delete_staff_members_service_account_no_permission(
-    service_account_api_client, user_list, permission_manage_staff, superuser
+def test_delete_staff_members_app_no_permission(
+    app_api_client, user_list, permission_manage_staff, superuser
 ):
     *users, staff_1, staff_2 = user_list
     users.append(superuser)
@@ -750,7 +750,7 @@ def test_delete_staff_members_service_account_no_permission(
             graphene.Node.to_global_id("User", user.id) for user in [staff_1, staff_2]
         ]
     }
-    response = service_account_api_client.post_graphql(
+    response = app_api_client.post_graphql(
         query, variables, permissions=[permission_manage_staff]
     )
 

@@ -15,7 +15,6 @@ from saleor.checkout.models import Checkout
 from saleor.checkout.utils import clean_checkout, is_fully_paid
 from saleor.core.payments import PaymentInterface
 from saleor.core.taxes import zero_money
-from saleor.plugins.manager import PluginsManager
 from saleor.graphql.checkout.mutations import (
     clean_shipping_method,
     update_checkout_shipping_method_if_invalid,
@@ -23,6 +22,7 @@ from saleor.graphql.checkout.mutations import (
 from saleor.order.models import Order
 from saleor.payment import TransactionKind
 from saleor.payment.interface import GatewayResponse
+from saleor.plugins.manager import PluginsManager
 from saleor.shipping import ShippingMethodType
 from saleor.shipping.models import ShippingMethod
 from saleor.warehouse.models import Stock
@@ -1864,11 +1864,11 @@ def test_query_anonymous_customer_checkout_as_staff_user(
     assert content["data"]["checkout"]["token"] == str(checkout.token)
 
 
-def test_query_anonymous_customer_checkout_as_service_account(
-    service_account_api_client, checkout, permission_manage_checkouts
+def test_query_anonymous_customer_checkout_as_app(
+    app_api_client, checkout, permission_manage_checkouts
 ):
     variables = {"token": str(checkout.token)}
-    response = service_account_api_client.post_graphql(
+    response = app_api_client.post_graphql(
         QUERY_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
@@ -1910,12 +1910,12 @@ def test_query_other_customer_checkout_as_customer(
 
 
 def test_query_customer_checkout_as_staff_user(
-    service_account_api_client, checkout, customer_user, permission_manage_checkouts
+    app_api_client, checkout, customer_user, permission_manage_checkouts
 ):
     checkout.user = customer_user
     checkout.save(update_fields=["user"])
     variables = {"token": str(checkout.token)}
-    response = service_account_api_client.post_graphql(
+    response = app_api_client.post_graphql(
         QUERY_CHECKOUT,
         variables,
         permissions=[permission_manage_checkouts],
@@ -1925,7 +1925,7 @@ def test_query_customer_checkout_as_staff_user(
     assert content["data"]["checkout"]["token"] == str(checkout.token)
 
 
-def test_query_customer_checkout_as_service_account(
+def test_query_customer_checkout_as_app(
     staff_api_client, checkout, customer_user, permission_manage_checkouts
 ):
     checkout.user = customer_user

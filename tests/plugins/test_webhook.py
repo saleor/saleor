@@ -4,7 +4,7 @@ import pytest
 import requests
 from django.core.serializers import serialize
 
-from saleor.account.models import ServiceAccount
+from saleor.app.models import App
 from saleor.plugins.manager import get_plugins_manager
 from saleor.plugins.webhook import create_hmac_signature
 from saleor.plugins.webhook.tasks import trigger_webhooks_for_event
@@ -27,7 +27,7 @@ def test_trigger_webhooks_for_event(
     permission_manage_users,
     permission_manage_products,
 ):
-    webhook.service_account.permissions.add(permission_manage_orders)
+    webhook.app.permissions.add(permission_manage_orders)
     webhook.target_url = "https://webhook.site/f0fc9979-cbd4-47b7-8705-1acb03fff1d0"
     webhook.save()
 
@@ -67,7 +67,7 @@ def test_trigger_webhooks_for_event_calls_expected_events(
     event_name,
     total_webhook_calls,
     expected_target_urls,
-    service_account,
+    app,
     order_with_lines,
     permission_manage_orders,
     permission_manage_users,
@@ -75,27 +75,25 @@ def test_trigger_webhooks_for_event_calls_expected_events(
 ):
     """Confirm that Saleor executes only valid and allowed webhook events."""
 
-    service_account.permissions.add(permission_manage_orders)
-    service_account.permissions.add(permission_manage_products)
-    webhook = service_account.webhooks.create(
-        target_url="http://www.example.com/first/"
-    )
+    app.permissions.add(permission_manage_orders)
+    app.permissions.add(permission_manage_products)
+    webhook = app.webhooks.create(target_url="http://www.example.com/first/")
     webhook.events.create(event_type=WebhookEventType.CUSTOMER_CREATED)
     webhook.events.create(event_type=WebhookEventType.PRODUCT_CREATED)
     webhook.events.create(event_type=WebhookEventType.ORDER_FULLY_PAID)
 
-    sa_without_permissions = ServiceAccount.objects.create()
+    app_without_permissions = App.objects.create()
 
-    second_webhook = sa_without_permissions.webhooks.create(
+    second_webhook = app_without_permissions.webhooks.create(
         target_url="http://www.example.com/wrong"
     )
     second_webhook.events.create(event_type=WebhookEventType.ANY)
     second_webhook.events.create(event_type=WebhookEventType.PRODUCT_CREATED)
     second_webhook.events.create(event_type=WebhookEventType.CUSTOMER_CREATED)
 
-    sa_with_partial_permissions = ServiceAccount.objects.create()
-    sa_with_partial_permissions.permissions.add(permission_manage_orders)
-    third_webhook = sa_with_partial_permissions.webhooks.create(
+    app_with_partial_permissions = App.objects.create()
+    app_with_partial_permissions.permissions.add(permission_manage_orders)
+    third_webhook = app_with_partial_permissions.webhooks.create(
         target_url="http://www.example.com/third/"
     )
     third_webhook.events.create(event_type=WebhookEventType.ANY)
@@ -112,7 +110,7 @@ def test_trigger_webhooks_for_event_calls_expected_events(
 def test_trigger_webhooks_for_event_with_secret_key(
     mock_request, webhook, order_with_lines, permission_manage_orders
 ):
-    webhook.service_account.permissions.add(permission_manage_orders)
+    webhook.app.permissions.add(permission_manage_orders)
     webhook.target_url = "https://webhook.site/f0fc9979-cbd4-47b7-8705-1acb03fff1d0"
     webhook.secret_key = "secret_key"
     webhook.save()
