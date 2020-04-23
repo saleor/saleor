@@ -53,9 +53,5 @@ def check_plugin_fields(
 ):
     for field in fields:
         if not getattr(plugin_class, field, None):
-            errors.append(
-                Error(
-                    f"Missing field {field} for "
-                    f"plugin - {plugin_class.__name__}"  # type: ignore
-                )
-            )
+            name = plugin_class.__name__  # type: ignore
+            errors.append(Error(f"Missing field {field} for plugin - {name}"))
