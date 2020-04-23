@@ -62,13 +62,7 @@
             {# We display language picker only if there're languages to pick from #}
            
             {% if user.is_authenticated %}
-              {% if user.is_staff or request.impersonator.is_staff %}
-                <li>
-                  <a href="{% url "dashboard:index" %}" target="_blank" rel="noopener">
-                    {% trans "Dashboard" context "Main navigation item" %}
-                  </a>
-                </li>
-              {% endif %}
+              
               <li>
                 <a href="{% url "account:details" %}">
                   {% trans "Your account" context "Main navigation item" %}</a>
@@ -195,22 +189,11 @@
             <hr />
             <li>
               <a rel="nofollow" href="{% url "checkout:index" %}">
-                Sua conta
+                Carrinho
               </a>
             </li>
             {% if user.is_authenticated %}
-              {% if user.is_staff %}
-                <li>
-                  <a href="{% url "dashboard:index" %}" target="_blank" rel="noopener">
-                    {% trans "Dashboard" context "Main navigation item" %}
-                  </a>
-                </li>
-                <li>
-                  <a href="{% url "styleguide" %}" target="_blank">
-                    {% trans "Style guide" context "Main navigation item" %}
-                  </a>
-                </li>
-              {% endif %}
+              
               <li>
                 <a href="{% url "account:details" %}">
                   Sua conta
