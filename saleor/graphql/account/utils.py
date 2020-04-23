@@ -205,7 +205,7 @@ def can_user_manage_group(user: "User", group: Group) -> bool:
 
 
 def can_manage_service_account(user: "User", service_account: "ServiceAccount") -> bool:
-    """User can't manage service account with permission that is out of scope."""
+    """User can't manage service account with permission that is out of user's scope."""
     permissions = service_account.get_permissions()
     return user.has_perms(permissions)
 
