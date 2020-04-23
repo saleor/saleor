@@ -218,7 +218,10 @@ class ServiceAccount(ModelWithMetadata):
         if not self.is_active:
             return False
 
-        wanted_perms = {perm.value for perm in perm_list}
+        try:
+            wanted_perms = {perm.value for perm in perm_list}
+        except AttributeError:
+            wanted_perms = set(perm_list)
         actual_perms = self.get_permissions()
 
         return (wanted_perms & actual_perms) == wanted_perms
@@ -228,7 +231,8 @@ class ServiceAccount(ModelWithMetadata):
         if not self.is_active:
             return False
 
-        return perm.value in self.get_permissions()
+        perm_value = perm.value if hasattr(perm, "value") else perm
+        return perm_value in self.get_permissions()
 
 
 class ServiceAccountToken(models.Model):

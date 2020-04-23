@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, List, Optional, Set
+from typing import TYPE_CHECKING, List, Optional, Set, Union
 
 import graphene
 from django.contrib.auth.models import Group, Permission
@@ -179,11 +179,13 @@ def get_user_permissions(user: "User") -> "QuerySet":
     return permissions
 
 
-def get_out_of_scope_permissions(user: "User", permissions: List[str]) -> List[str]:
-    """Return permissions that the user hasn't got."""
+def get_out_of_scope_permissions(
+    requestor: Union["User", "ServiceAccount"], permissions: List[str]
+) -> List[str]:
+    """Return permissions that the requestor hasn't got."""
     missing_permissions = []
     for perm in permissions:
-        if not user.has_perm(perm):
+        if not requestor.has_perm(perm):
             missing_permissions.append(perm)
     return missing_permissions
 
@@ -204,10 +206,12 @@ def can_user_manage_group(user: "User", group: Group) -> bool:
     return user.has_perms(permissions)
 
 
-def can_manage_service_account(user: "User", service_account: "ServiceAccount") -> bool:
-    """User can't manage service account with permission that is out of user's scope."""
+def can_manage_service_account(
+    requestor: Union["User", "ServiceAccount"], service_account: "ServiceAccount"
+) -> bool:
+    """Requestor can't manage service account with wider scope of permissions."""
     permissions = service_account.get_permissions()
-    return user.has_perms(permissions)
+    return requestor.has_perms(permissions)
 
 
 def get_group_permission_codes(group: Group) -> "QuerySet":

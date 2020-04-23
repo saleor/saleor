@@ -1,6 +1,6 @@
 from django.contrib.auth.models import Group
 
-from saleor.account.models import User
+from saleor.account.models import ServiceAccount, User
 from saleor.core.permissions import (
     AccountPermissions,
     OrderPermissions,
@@ -85,6 +85,28 @@ def test_get_out_of_scope_permissions_user_without_permissions(
     permissions = [AccountPermissions.MANAGE_USERS, OrderPermissions.MANAGE_ORDERS]
     result = get_out_of_scope_permissions(staff_user, permissions)
     assert result == permissions
+
+
+def test_get_out_of_scope_permissions_service_account_has_all_permissions(
+    service_account, permission_manage_orders, permission_manage_users
+):
+    service_account.permissions.add(permission_manage_orders, permission_manage_users)
+    result = get_out_of_scope_permissions(
+        service_account,
+        [AccountPermissions.MANAGE_USERS, OrderPermissions.MANAGE_ORDERS],
+    )
+    assert result == []
+
+
+def test_get_out_of_scope_permissions_service_account_does_not_have_all_permissions(
+    service_account, permission_manage_orders, permission_manage_users
+):
+    service_account.permissions.add(permission_manage_orders)
+    result = get_out_of_scope_permissions(
+        service_account,
+        [AccountPermissions.MANAGE_USERS, OrderPermissions.MANAGE_ORDERS],
+    )
+    assert result == [AccountPermissions.MANAGE_USERS]
 
 
 def test_get_group_permission_codes(
@@ -730,4 +752,32 @@ def test_can_manage_service_account(
     )
 
     result = can_manage_service_account(staff_user, service_account)
+    assert result is True
+
+
+def test_can_manage_service_account_for_service_account_no_permission(
+    permission_manage_products, permission_manage_service_accounts,
+):
+    service_accounts = ServiceAccount.objects.bulk_create(
+        [ServiceAccount(name="sa1"), ServiceAccount(name="sa2")]
+    )
+    service_accounts[1].permissions.add(permission_manage_products)
+    service_accounts[0].permissions.add(permission_manage_service_accounts)
+
+    result = can_manage_service_account(service_accounts[0], service_accounts[1])
+    assert result is False
+
+
+def test_can_manage_service_account_for_service_account(
+    permission_manage_products, permission_manage_service_accounts,
+):
+    service_accounts = ServiceAccount.objects.bulk_create(
+        [ServiceAccount(name="sa1"), ServiceAccount(name="sa2")]
+    )
+    service_accounts[1].permissions.add(permission_manage_products)
+    service_accounts[0].permissions.add(
+        permission_manage_service_accounts, permission_manage_products
+    )
+
+    result = can_manage_service_account(service_accounts[0], service_accounts[1])
     assert result is True
