@@ -908,3 +908,59 @@ def test_fulfillment_clear_private_meta_user_has_permission(
     assert content.get("errors") is None
     fulfillment.refresh_from_db()
     assert not fulfillment.get_value_from_private_metadata(key="foo")
+
+
+QUERY_FULFILLMENT = """
+query fulfillment($id: ID!){
+    order(id: $id){
+        fulfillments{
+            id
+            fulfillmentOrder
+            status
+            trackingNumber
+            warehouse{
+                id
+            }
+            lines{
+                orderLine{
+                    id
+                }
+                quantity
+            }
+        }
+    }
+}
+"""
+
+
+def test_fulfillment_query(
+    staff_api_client, fulfilled_order, warehouse, permission_manage_orders,
+):
+    order = fulfilled_order
+    order_line_1, order_line_2 = order.lines.all()
+    order_id = graphene.Node.to_global_id("Order", order.pk)
+    order_line_1_id = graphene.Node.to_global_id("OrderLine", order_line_1.pk)
+    order_line_2_id = graphene.Node.to_global_id("OrderLine", order_line_2.pk)
+    warehose_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(
+        QUERY_FULFILLMENT, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["order"]["fulfillments"]
+    assert len(data) == 1
+    fulfillment_data = data[0]
+
+    assert fulfillment_data["fulfillmentOrder"] == 1
+    assert fulfillment_data["status"] == FulfillmentStatus.FULFILLED.upper()
+    assert fulfillment_data["trackingNumber"] == "123"
+    assert fulfillment_data["warehouse"]["id"] == warehose_id
+    assert len(fulfillment_data["lines"]) == 2
+    assert {
+        "orderLine": {"id": order_line_1_id},
+        "quantity": order_line_1.quantity,
+    } in fulfillment_data["lines"]
+    assert {
+        "orderLine": {"id": order_line_2_id},
+        "quantity": order_line_2.quantity,
+    } in fulfillment_data["lines"]
