@@ -679,7 +679,7 @@ msgstr "%(discount)s de desconto"
 #, python-format
 msgctxt "Voucher not applicable"
 msgid "This offer is only valid for orders over %(amount)s."
-msgstr "Esta oferta só é válida para encomendas superiores %(amount)s."
+msgstr "Esta oferta só é válida para pedidos superiores %(amount)s."
 
 #: saleor/discount/models.py:199
 msgctxt "Permission description"
@@ -2256,7 +2256,7 @@ msgstr "Liquidações"
 #: templates/dashboard/order/list.html:29
 msgctxt "Dashboard orders list"
 msgid "Orders"
-msgstr "Encomendas"
+msgstr "Pedidos"
 
 #: templates/dashboard/base.html:158
 #: templates/dashboard/customer/detail.html:9
@@ -3192,7 +3192,7 @@ msgstr "Mostrando os últimos %(counter)s resultados"
 #: templates/dashboard/index.html:16
 msgctxt "Dashboard homepage table title"
 msgid "Orders ready for shipment"
-msgstr "Encomendas prontas para envio"
+msgstr "Pedidos prontas para envio"
 
 #: templates/dashboard/index.html:28 templates/dashboard/order/list.html:44
 msgctxt "Orders table header"
