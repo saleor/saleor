@@ -3961,3 +3961,196 @@ def test_update_or_create_variant_stocks_empty_stocks_data(variant, warehouses):
     stock = variant.stocks.first()
     assert stock.warehouse == warehouses[0]
     assert stock.quantity == 5
+
+
+# Because we use Scalars for Weight this test query tests only a scenario when weight
+# value is passed by a variable
+MUTATION_CREATE_PRODUCT_WITH_WEIGHT_GQL_VARIABLE = """
+mutation createProduct(
+        $productType: ID!,
+        $category: ID!
+        $name: String!,
+        $sku: String,
+        $quantity: Int,
+        $basePrice: Decimal!
+        $weight: WeightScalar
+        $trackInventory: Boolean)
+    {
+        productCreate(
+            input: {
+                category: $category,
+                productType: $productType,
+                name: $name,
+                sku: $sku,
+                trackInventory: $trackInventory,
+                quantity: $quantity,
+                basePrice: $basePrice,
+                weight: $weight
+            })
+        {
+            product {
+                id
+                name
+                variants{
+                    id
+                    sku
+                    trackInventory
+                    quantity
+                }
+                weight{
+                    value
+                    unit
+                }
+            }
+            productErrors {
+                message
+                field
+                code
+            }
+        }
+    }
+    """
+
+# Because we use Scalars for Weight this test query tests only a scenario when weight
+# value is passed by directly in input
+MUTATION_CREATE_PRODUCT_WITH_WEIGHT_GQL_INPUT = """
+mutation createProduct(
+        $productType: ID!,
+        $category: ID!
+        $name: String!,
+        $sku: String,
+        $quantity: Int,
+        $basePrice: Decimal!
+        $trackInventory: Boolean)
+    {{
+        productCreate(
+            input: {{
+                category: $category,
+                productType: $productType,
+                name: $name,
+                sku: $sku,
+                trackInventory: $trackInventory,
+                quantity: $quantity,
+                basePrice: $basePrice,
+                weight: {weight}
+            }})
+        {{
+            product {{
+                id
+                name
+                variants{{
+                    id
+                    sku
+                    trackInventory
+                    quantity
+                }}
+                weight{{
+                    value
+                    unit
+                }}
+            }}
+            productErrors {{
+                message
+                field
+                code
+            }}
+        }}
+    }}
+    """
+
+
+@pytest.mark.parametrize(
+    "weight, expected_weight_value, expected_weight_unit",
+    (
+        (11.11, 11.11, "kg"),
+        (11, 11.0, "kg"),
+        ("11.11", 11.11, "kg"),
+        ({"value": 11.11, "unit": "kg"}, 11.11, "kg",),
+        ({"value": 11, "unit": "g"}, 11.0, "g",),
+        ({"value": "11.11", "unit": "ounce"}, 11.11, "oz",),
+    ),
+)
+def test_create_product_with_weight_variable(
+    weight,
+    expected_weight_value,
+    expected_weight_unit,
+    staff_api_client,
+    category,
+    permission_manage_products,
+    product_type_without_variant,
+    warehouse,
+):
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_type_id = graphene.Node.to_global_id(
+        "ProductType", product_type_without_variant.pk
+    )
+    variables = {
+        "category": category_id,
+        "productType": product_type_id,
+        "name": "Test",
+        "quantity": 8,
+        "sku": "23434",
+        "trackInventory": True,
+        "basePrice": Decimal("19"),
+        "weight": weight,
+    }
+    response = staff_api_client.post_graphql(
+        MUTATION_CREATE_PRODUCT_WITH_WEIGHT_GQL_VARIABLE,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    from pprint import pprint
+
+    pprint(content)
+    result_weight = content["data"]["productCreate"]["product"]["weight"]
+    assert result_weight["value"] == expected_weight_value
+    assert result_weight["unit"] == expected_weight_unit
+
+
+@pytest.mark.parametrize(
+    "weight, expected_weight_value, expected_weight_unit",
+    (
+        ("11.11", 11.11, "kg"),
+        ("11", 11.0, "kg"),
+        ('"11.11"', 11.11, "kg"),
+        ('{value: 11.11, unit: "kg"}', 11.11, "kg",),
+        ('{value: 11, unit: "g"}', 11.0, "g",),
+        ('{value: "11.11", unit: "ounce"}', 11.11, "oz",),
+    ),
+)
+def test_create_product_with_weight_input(
+    weight,
+    expected_weight_value,
+    expected_weight_unit,
+    staff_api_client,
+    category,
+    permission_manage_products,
+    product_type_without_variant,
+    warehouse,
+):
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_type_id = graphene.Node.to_global_id(
+        "ProductType", product_type_without_variant.pk
+    )
+    variables = {
+        "category": category_id,
+        "productType": product_type_id,
+        "name": "Test",
+        "quantity": 8,
+        "sku": "23434",
+        "trackInventory": True,
+        "basePrice": Decimal("19"),
+    }
+    response = staff_api_client.post_graphql(
+        MUTATION_CREATE_PRODUCT_WITH_WEIGHT_GQL_INPUT.format(weight=weight),
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    from pprint import pprint
+
+    pprint(content)
+    result_weight = content["data"]["productCreate"]["product"]["weight"]
+    assert result_weight["value"] == expected_weight_value
+    assert result_weight["unit"] == expected_weight_unit
