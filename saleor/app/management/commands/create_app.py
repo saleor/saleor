@@ -22,14 +22,14 @@ class Command(BaseCommand):
             action="append",
             default=[],
             dest="permissions",
-            help="Assign new permission to App. "
+            help="Assign new permission to app."
             "Argument can be specified multiple times.",
         )
         parser.add_argument("--is_active", default=True, dest="is_active")
         parser.add_argument(
             "--target_url",
             dest="target_url",
-            help="Url which will receive newly created data of App object. "
+            help="Url which will receive newly created data of app object. "
             "Command doesn't return app data to stdout when this "
             "argument is provided.",
         )

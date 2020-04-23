@@ -5,7 +5,6 @@ from ...core.permissions import AppPermission, get_permissions
 from ..core.enums import PermissionEnum
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types.common import AppError
-from ..meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from .types import App, AppToken
 
 
@@ -151,34 +150,6 @@ class AppDelete(ModelDeleteMutation):
         description = "Deletes an app."
         model = models.App
         permissions = (AppPermission.MANAGE_APPS,)
-        error_type_class = AppError
-        error_type_field = "app_errors"
-
-    @classmethod
-    def get_type_for_model(cls):
-        return App
-
-
-class AppUpdatePrivateMeta(UpdateMetaBaseMutation):
-    class Meta:
-        description = "Updates private metadata for an app."
-        permissions = (AppPermission.MANAGE_APPS,)
-        model = models.App
-        public = False
-        error_type_class = AppError
-        error_type_field = "app_errors"
-
-    @classmethod
-    def get_type_for_model(cls):
-        return App
-
-
-class AppClearPrivateMeta(ClearMetaBaseMutation):
-    class Meta:
-        description = "Clear private metadata for an app."
-        model = models.App
-        permissions = (AppPermission.MANAGE_APPS,)
-        public = False
         error_type_class = AppError
         error_type_field = "app_errors"
 
