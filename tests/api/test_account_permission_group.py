@@ -390,18 +390,16 @@ def test_permission_group_create_mutation_lack_of_permission_and_customer_user(
     assert data["group"] is None
 
 
-def test_permission_group_create_mutation_out_of_scope_users(
+def test_permission_group_create_mutation_requestor_does_not_have_all_users_perms(
     staff_users,
     permission_group_manage_users,
     permission_manage_staff,
     staff_api_client,
-    superuser_api_client,
     permission_manage_users,
     permission_manage_apps,
 ):
-    """Ensure user cannot create group with user whose permission scope
+    """Ensure user can create group with user whose permission scope
     is wider than requestor scope.
-    Ensure superuser pass restriction.
     """
 
     staff_user = staff_users[0]
@@ -423,23 +421,6 @@ def test_permission_group_create_mutation_out_of_scope_users(
     response = staff_api_client.post_graphql(
         query, variables, permissions=(permission_manage_staff,)
     )
-    content = get_graphql_content(response)
-    data = content["data"]["permissionGroupCreate"]
-    errors = data["permissionGroupErrors"]
-
-    assert errors
-    assert len(errors) == 1
-    assert errors[0]["field"] == "addUsers"
-    assert errors[0]["code"] == PermissionGroupErrorCode.OUT_OF_SCOPE_USER.name
-    assert errors[0]["permissions"] is None
-    assert len(errors[0]["users"]) == 1
-    assert errors[0]["users"][0] == graphene.Node.to_global_id(
-        "User", staff_users[1].pk
-    )
-    assert data["group"] is None
-
-    # for superuser
-    response = superuser_api_client.post_graphql(query, variables)
     content = get_graphql_content(response)
     data = content["data"]["permissionGroupCreate"]
     errors = data["permissionGroupErrors"]
@@ -1275,26 +1256,13 @@ def test_permission_group_update_mutation_out_of_scope_users(
     errors = data["permissionGroupErrors"]
 
     assert errors
-    assert len(errors) == 2
     assert data["group"] is None
-
-    expected_errors = [
-        {
-            "field": "addUsers",
-            "code": PermissionGroupErrorCode.OUT_OF_SCOPE_USER.name,
-            "permissions": None,
-            "users": [graphene.Node.to_global_id("User", staff_users[1].pk)],
-        },
-        {
-            "field": "removeUsers",
-            "code": PermissionGroupErrorCode.OUT_OF_SCOPE_USER.name,
-            "permissions": None,
-            "users": [graphene.Node.to_global_id("User", staff_user3.pk)],
-        },
-    ]
-    for error in errors:
-        error.pop("message")
-        assert error in expected_errors
+    assert len(errors) == 1
+    error = errors[0]
+    assert error["field"] == "removeUsers"
+    assert error["code"] == PermissionGroupErrorCode.OUT_OF_SCOPE_USER.name
+    assert error["users"] == [graphene.Node.to_global_id("User", staff_user3.pk)]
+    assert error["permissions"] is None
 
     # for superuser
     response = superuser_api_client.post_graphql(query, variables)
