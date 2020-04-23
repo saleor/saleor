@@ -22,3 +22,4 @@ class OrderErrorCode(Enum):
     UNIQUE = "unique"
     VOID_INACTIVE_PAYMENT = "void_inactive_payment"
     ZERO_QUANTITY = "zero_quantity"
+    INSUFFICIENT_STOCK = "insufficient_stock"

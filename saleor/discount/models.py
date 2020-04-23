@@ -91,6 +91,9 @@ class Voucher(models.Model):
     objects = VoucherQueryset.as_manager()
     translated = TranslationProxy()
 
+    class Meta:
+        ordering = ("code",)
+
     def __str__(self):
         if self.name:
             return self.name
@@ -160,6 +163,7 @@ class VoucherCustomer(models.Model):
     customer_email = models.EmailField()
 
     class Meta:
+        ordering = ("voucher", "customer_email")
         unique_together = (("voucher", "customer_email"),)
 
 
@@ -185,6 +189,7 @@ class VoucherTranslation(models.Model):
     )
 
     class Meta:
+        ordering = ("language_code", "voucher")
         unique_together = (("language_code", "voucher"),)
 
 
@@ -210,6 +215,7 @@ class Sale(models.Model):
     translated = TranslationProxy()
 
     class Meta:
+        ordering = ("name", "pk")
         app_label = "discount"
         permissions = (
             (
@@ -245,4 +251,5 @@ class SaleTranslation(models.Model):
     )
 
     class Meta:
+        ordering = ("language_code", "name", "pk")
         unique_together = (("language_code", "sale"),)

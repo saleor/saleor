@@ -13,6 +13,7 @@ from prices import Money
 
 from saleor.core.taxes import TaxType
 from saleor.graphql.core.enums import ReportingPeriod
+from saleor.graphql.product.bulk_mutations.products import ProductVariantStocksUpdate
 from saleor.graphql.product.utils import create_stocks
 from saleor.plugins.manager import PluginsManager
 from saleor.product import AttributeInputType
@@ -29,7 +30,7 @@ from saleor.product.models import (
 )
 from saleor.product.tasks import update_variants_names
 from saleor.product.utils.attributes import associate_attribute_values_to_instance
-from saleor.warehouse.models import Stock, Warehouse
+from saleor.warehouse.models import Allocation, Stock, Warehouse
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image, create_pdf_file_with_image_ext
 
@@ -452,6 +453,29 @@ def test_products_query_with_filter_search_by_sku(
     assert len(products) == 1
     assert products[0]["node"]["id"] == product_id
     assert products[0]["node"]["name"] == product_with_default_variant.name
+
+
+def test_products_query_with_filter_stock_availability(
+    query_products_with_filter,
+    staff_api_client,
+    product,
+    order_line,
+    permission_manage_products,
+):
+    stock = product.variants.first().stocks.first()
+    Allocation.objects.create(
+        order_line=order_line, stock=stock, quantity_allocated=stock.quantity
+    )
+    variables = {"filter": {"stockAvailability": "OUT_OF_STOCK"}}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == product_id
+    assert products[0]["node"]["name"] == product.name
 
 
 @pytest.mark.parametrize(
@@ -3149,8 +3173,8 @@ QUERY_COLLECTIONS_WITH_SORT = """
         ({"field": "NAME", "direction": "ASC"}, ["Coll1", "Coll2", "Coll3"]),
         ({"field": "NAME", "direction": "DESC"}, ["Coll3", "Coll2", "Coll1"]),
         ({"field": "AVAILABILITY", "direction": "ASC"}, ["Coll2", "Coll1", "Coll3"]),
-        ({"field": "AVAILABILITY", "direction": "DESC"}, ["Coll1", "Coll3", "Coll2"]),
-        ({"field": "PRODUCT_COUNT", "direction": "ASC"}, ["Coll3", "Coll1", "Coll2"]),
+        ({"field": "AVAILABILITY", "direction": "DESC"}, ["Coll3", "Coll1", "Coll2"]),
+        ({"field": "PRODUCT_COUNT", "direction": "ASC"}, ["Coll1", "Coll3", "Coll2"]),
         ({"field": "PRODUCT_COUNT", "direction": "DESC"}, ["Coll2", "Coll3", "Coll1"]),
     ],
 )
@@ -3245,7 +3269,7 @@ QUERY_CATEGORIES_WITH_SORT = """
         ),
         (
             {"field": "SUBCATEGORY_COUNT", "direction": "DESC"},
-            ["Cat1", "SubCat", "Cat2", "SubSubCat"],
+            ["SubCat", "Cat1", "SubSubCat", "Cat2"],
         ),
         (
             {"field": "PRODUCT_COUNT", "direction": "ASC"},
@@ -3253,7 +3277,7 @@ QUERY_CATEGORIES_WITH_SORT = """
         ),
         (
             {"field": "PRODUCT_COUNT", "direction": "DESC"},
-            ["Cat1", "SubCat", "SubSubCat", "Cat2"],
+            ["Cat1", "SubSubCat", "SubCat", "Cat2"],
         ),
     ],
 )
@@ -3388,7 +3412,7 @@ QUERY_PRODUCT_TYPE_WITH_SORT = """
         # is_digital
         (
             {"field": "DIGITAL", "direction": "ASC"},
-            ["Tools", "Subscription", "Digital"],
+            ["Subscription", "Tools", "Digital"],
         ),
         (
             {"field": "DIGITAL", "direction": "DESC"},
@@ -3401,7 +3425,7 @@ QUERY_PRODUCT_TYPE_WITH_SORT = """
         ),
         (
             {"field": "SHIPPING_REQUIRED", "direction": "DESC"},
-            ["Tools", "Digital", "Subscription"],
+            ["Tools", "Subscription", "Digital"],
         ),
     ],
 )
@@ -3757,7 +3781,6 @@ mutation createProduct(
         $name: String!,
         $sku: String,
         $stocks: [StockInput!],
-        $quantity: Int,
         $basePrice: Decimal!
         $trackInventory: Boolean)
     {
@@ -3769,7 +3792,6 @@ mutation createProduct(
                 sku: $sku,
                 stocks: $stocks,
                 trackInventory: $trackInventory,
-                quantity: $quantity,
                 basePrice: $basePrice,
             })
         {
@@ -3781,6 +3803,7 @@ mutation createProduct(
                     sku
                     trackInventory
                     quantity
+                    stockQuantity
                 }
             }
             productErrors {
@@ -3814,7 +3837,6 @@ def test_create_product_without_variant_creates_stocks(
         "category": category_id,
         "productType": product_type_id,
         "name": "Test",
-        "quantity": 8,
         "stocks": stocks,
         "sku": "23434",
         "trackInventory": True,
@@ -3826,7 +3848,8 @@ def test_create_product_without_variant_creates_stocks(
         permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
-    quantity = content["data"]["productCreate"]["product"]["variants"][0]["quantity"]
+    data = content["data"]["productCreate"]
+    quantity = data["product"]["variants"][0]["stockQuantity"]
     assert quantity == 20
 
 
@@ -3860,41 +3883,6 @@ def test_create_product_with_variants_does_not_create_stock(
     variants = content["data"]["productCreate"]["product"]["variants"]
     assert len(variants) == 0
     assert not Stock.objects.exists()
-
-
-MUTATION_UPDATE_PRODUCT_QUANTITY = """
-mutation updateProduct(
-    $productId: ID!,
-
-    $quantity: Int,
-    ) {
-        productUpdate(
-            id: $productId,
-            input: {
-                quantity: $quantity
-            }) {
-                product {
-                    variants {
-                        quantity
-                    }
-                }
-}}
-"""
-
-
-def test_update_product_without_variants_updates_stock(
-    staff_api_client, product_with_default_variant, permission_manage_products
-):
-    product_id = graphene.Node.to_global_id("Product", product_with_default_variant.pk)
-    stock = product_with_default_variant.variants.first().stocks.first()
-    variables = {"productId": product_id, "quantity": 17}
-    staff_api_client.post_graphql(
-        MUTATION_UPDATE_PRODUCT_QUANTITY,
-        variables,
-        permissions=[permission_manage_products],
-    )
-    stock.refresh_from_db()
-    assert stock.quantity == 17
 
 
 def test_create_stocks_failed(product_with_single_variant, warehouse):
@@ -3936,3 +3924,40 @@ def test_create_stocks(variant, warehouse):
     assert {stock.quantity for stock in variant.stocks.all()} == {
         data["quantity"] for data in stocks_data
     }
+
+
+def test_update_or_create_variant_stocks(variant, warehouses):
+    Stock.objects.create(
+        product_variant=variant, warehouse=warehouses[0], quantity=5,
+    )
+    stocks_data = [
+        {"quantity": 10, "warehouse": "123"},
+        {"quantity": 10, "warehouse": "321"},
+    ]
+
+    ProductVariantStocksUpdate.update_or_create_variant_stocks(
+        variant, stocks_data, warehouses
+    )
+
+    variant.refresh_from_db()
+    assert variant.stocks.count() == 2
+    assert {stock.warehouse.pk for stock in variant.stocks.all()} == {
+        warehouse.pk for warehouse in warehouses
+    }
+    assert {stock.quantity for stock in variant.stocks.all()} == {
+        data["quantity"] for data in stocks_data
+    }
+
+
+def test_update_or_create_variant_stocks_empty_stocks_data(variant, warehouses):
+    Stock.objects.create(
+        product_variant=variant, warehouse=warehouses[0], quantity=5,
+    )
+
+    ProductVariantStocksUpdate.update_or_create_variant_stocks(variant, [], warehouses)
+
+    variant.refresh_from_db()
+    assert variant.stocks.count() == 1
+    stock = variant.stocks.first()
+    assert stock.warehouse == warehouses[0]
+    assert stock.quantity == 5

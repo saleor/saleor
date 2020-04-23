@@ -5,8 +5,8 @@ from ..core.types import SortInputObjectType
 
 
 class ServiceAccountSortField(graphene.Enum):
-    NAME = "name"
-    CREATION_DATE = "created"
+    NAME = ["name", "pk"]
+    CREATION_DATE = ["created", "name", "pk"]
 
     @property
     def description(self):
@@ -27,10 +27,10 @@ class ServiceAccountSortingInput(SortInputObjectType):
 
 
 class UserSortField(graphene.Enum):
-    FIRST_NAME = "first_name"
-    LAST_NAME = "last_name"
-    EMAIL = "email"
-    ORDER_COUNT = "order_count"
+    FIRST_NAME = ["first_name", "last_name", "pk"]
+    LAST_NAME = ["last_name", "first_name", "pk"]
+    EMAIL = ["email"]
+    ORDER_COUNT = ["order_count", "email"]
 
     @property
     def description(self):
@@ -46,12 +46,8 @@ class UserSortField(graphene.Enum):
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod
-    def sort_by_order_count(
-        queryset: QuerySet, sort_by: SortInputObjectType
-    ) -> QuerySet:
-        return queryset.annotate(order_count=Count("orders__id")).order_by(
-            f"{sort_by.direction}order_count", "email"
-        )
+    def qs_with_order_count(queryset: QuerySet) -> QuerySet:
+        return queryset.annotate(order_count=Count("orders__id"))
 
 
 class UserSortingInput(SortInputObjectType):
@@ -61,7 +57,7 @@ class UserSortingInput(SortInputObjectType):
 
 
 class PermissionGroupSortField(graphene.Enum):
-    NAME = "name"
+    NAME = ["name"]
 
     @property
     def description(self):

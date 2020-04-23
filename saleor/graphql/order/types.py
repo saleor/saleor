@@ -7,9 +7,9 @@ from graphql_jwt.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions, OrderPermissions
 from ...core.taxes import display_gross_prices
 from ...plugins.manager import get_plugins_manager
-from ...order import models
+from ...order import OrderStatus, models
 from ...order.models import FulfillmentStatus
-from ...order.utils import get_valid_shipping_methods_for_order
+from ...order.utils import get_order_country, get_valid_shipping_methods_for_order
 from ...product.templatetags.product_images import get_product_image_thumbnail
 from ..account.types import User
 from ..core.connection import CountableDjangoObjectType
@@ -465,10 +465,12 @@ class Order(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_can_finalize(root: models.Order, _info):
-        try:
-            validate_draft_order(root)
-        except ValidationError:
-            return False
+        if root.status == OrderStatus.DRAFT:
+            country = get_order_country(root)
+            try:
+                validate_draft_order(root, country)
+            except ValidationError:
+                return False
         return True
 
     @staticmethod

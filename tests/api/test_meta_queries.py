@@ -137,12 +137,9 @@ def test_query_public_meta_for_staff_as_service_account(
     response = service_account_api_client.post_graphql(
         QUERY_USER_PUBLIC_META, variables, [permission_manage_staff]
     )
-    content = get_graphql_content(response)
 
     # then
-    metadata = content["data"]["user"]["metadata"][0]
-    assert metadata["key"] == PUBLIC_KEY
-    assert metadata["value"] == PUBLIC_VALUE
+    assert_no_permission(response)
 
 
 QUERY_CHECKOUT_PUBLIC_META = """
@@ -1480,12 +1477,9 @@ def test_query_private_meta_for_staff_as_service_account(
     response = service_account_api_client.post_graphql(
         QUERY_USER_PRIVATE_META, variables, [permission_manage_staff]
     )
-    content = get_graphql_content(response)
 
     # then
-    metadata = content["data"]["user"]["privateMetadata"][0]
-    assert metadata["key"] == PRIVATE_KEY
-    assert metadata["value"] == PRIVATE_VALUE
+    assert_no_permission(response)
 
 
 QUERY_CHECKOUT_PRIVATE_META = """

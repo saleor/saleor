@@ -83,8 +83,7 @@ def test_variant_is_out_of_stock_when_product_is_unavalable(
 )
 def test_variant_availability_status(stock, current_stock, expected_status):
     stock.quantity = current_stock
-    stock.quantity_allocated = 0
-    stock.save(update_fields=["quantity", "quantity_allocated"])
+    stock.save(update_fields=["quantity"])
     variant = stock.product_variant
 
     status = get_variant_availability_status(variant, "US")
@@ -104,10 +103,7 @@ def test_variant_is_still_available_when_another_variant_is_unavailable(
         product_variant=unavailable_variant, warehouse=warehouse, quantity=0
     )
     Stock.objects.create(
-        product_variant=available_variant,
-        warehouse=warehouse,
-        quantity=1,
-        quantity_allocated=0,
+        product_variant=available_variant, warehouse=warehouse, quantity=1,
     )
 
     status = get_variant_availability_status(available_variant, "US")

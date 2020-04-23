@@ -24,6 +24,7 @@ from ...core.types.common import (
     ProductError,
     StockError,
 )
+from ...core.utils import get_duplicated_values
 from ...utils import resolve_global_ids_to_primary_keys
 from ...warehouse.types import Warehouse
 from ..mutations.products import (
@@ -113,6 +114,11 @@ class ProductVariantBulkCreateInput(ProductVariantInput):
         required=True,
         description="List of attributes specific to this variant.",
     )
+    stocks = graphene.List(
+        graphene.NonNull(StockInput),
+        description=("Stocks of a product available for sale."),
+        required=False,
+    )
     sku = graphene.String(required=True, description="Stock keeping unit.")
 
 
@@ -148,7 +154,14 @@ class ProductVariantBulkCreate(BaseMutation):
         error_type_field = "bulk_product_errors"
 
     @classmethod
-    def clean_input(cls, info, instance: models.ProductVariant, data: dict):
+    def clean_variant_input(
+        cls,
+        info,
+        instance: models.ProductVariant,
+        data: dict,
+        errors: dict,
+        variant_index: int,
+    ):
         cleaned_input = ModelMutation.clean_input(
             info, instance, data, input_cls=ProductVariantBulkCreateInput
         )
@@ -156,26 +169,20 @@ class ProductVariantBulkCreate(BaseMutation):
         cost_price_amount = cleaned_input.pop("cost_price", None)
         if cost_price_amount is not None:
             if cost_price_amount < 0:
-                raise ValidationError(
-                    {
-                        "costPrice": ValidationError(
-                            "Product price cannot be lower than 0.",
-                            code=ProductErrorCode.INVALID.value,
-                        )
-                    }
+                errors["costPrice"] = ValidationError(
+                    "Product price cannot be lower than 0.",
+                    code=ProductErrorCode.INVALID.value,
+                    params={"index": variant_index},
                 )
             cleaned_input["cost_price_amount"] = cost_price_amount
 
         price_override_amount = cleaned_input.pop("price_override", None)
         if price_override_amount is not None:
             if price_override_amount < 0:
-                raise ValidationError(
-                    {
-                        "priceOverride": ValidationError(
-                            "Product price cannot be lower than 0.",
-                            code=ProductErrorCode.INVALID.value,
-                        )
-                    }
+                errors["priceOverride"] = ValidationError(
+                    "Product price cannot be lower than 0.",
+                    code=ProductErrorCode.INVALID.value,
+                    params={"index": variant_index},
                 )
             cleaned_input["price_override_amount"] = price_override_amount
 
@@ -186,9 +193,25 @@ class ProductVariantBulkCreate(BaseMutation):
                     attributes, data["product_type"]
                 )
             except ValidationError as exc:
-                raise ValidationError({"attributes": exc})
+                exc.params = {"index": variant_index}
+                errors["attributes"] = exc
+
+        stocks = cleaned_input.get("stocks")
+        if stocks:
+            cls.clean_stocks(stocks, errors, variant_index)
 
         return cleaned_input
+
+    @classmethod
+    def clean_stocks(cls, stocks_data, errors, variant_index):
+        warehouse_ids = [stock["warehouse"] for stock in stocks_data]
+        duplicates = get_duplicated_values(warehouse_ids)
+        if duplicates:
+            errors["stocks"] = ValidationError(
+                "Duplicated warehouse ID.",
+                code=ProductErrorCode.DUPLICATED_INPUT_ITEM,
+                params={"warehouses": duplicates, "index": variant_index},
+            )
 
     @classmethod
     def add_indexes_to_errors(cls, index, error, error_dict):
@@ -253,11 +276,11 @@ class ProductVariantBulkCreate(BaseMutation):
                 )
 
             cleaned_input = None
-            try:
-                variant_data["product_type"] = product.product_type
-                cleaned_input = cls.clean_input(info, None, variant_data)
-            except ValidationError as exc:
-                cls.add_indexes_to_errors(index, exc, errors)
+            variant_data["product_type"] = product.product_type
+            cleaned_input = cls.clean_variant_input(
+                info, None, variant_data, errors, index
+            )
+
             cleaned_inputs.append(cleaned_input if cleaned_input else None)
 
             if not variant_data.sku:
@@ -273,6 +296,18 @@ class ProductVariantBulkCreate(BaseMutation):
         ), "There should be the same number of instances and cleaned inputs."
         for instance, cleaned_input in zip(instances, cleaned_inputs):
             cls.save(info, instance, cleaned_input)
+            cls.create_variant_stocks(instance, cleaned_input)
+
+    @classmethod
+    def create_variant_stocks(cls, variant, cleaned_input):
+        stocks = cleaned_input.get("stocks")
+        if not stocks:
+            return
+        warehouse_ids = [stock["warehouse"] for stock in stocks]
+        warehouses = cls.get_nodes_or_error(
+            warehouse_ids, "warehouse", only_type=Warehouse
+        )
+        create_stocks(variant, stocks, warehouses)
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
@@ -291,20 +326,6 @@ class ProductVariantBulkCreate(BaseMutation):
         return ProductVariantBulkCreate(
             count=len(instances), product_variants=instances
         )
-
-    @classmethod
-    def handle_typed_errors(cls, errors: list, **extra):
-        typed_errors = [
-            cls._meta.error_type_class(
-                field=e.field,
-                message=e.message,
-                code=code,
-                index=params.get("index") if params else None,
-            )
-            for e, code, params in errors
-        ]
-        extra.update({cls._meta.error_type_field: typed_errors})
-        return cls(errors=[e[0] for e in errors], **extra)
 
 
 class ProductVariantBulkDelete(ModelBulkDeleteMutation):
@@ -400,20 +421,6 @@ class ProductVariantStocksCreate(BaseMutation):
             error = ValidationError(msg, code=code, params={"index": index})
             errors[field].append(error)
 
-    @classmethod
-    def handle_typed_errors(cls, errors: list, **extra):
-        typed_errors = [
-            cls._meta.error_type_class(
-                field=e.field,
-                message=e.message,
-                code=code,
-                index=params.get("index") if params else None,
-            )
-            for e, code, params in errors
-        ]
-        extra.update({cls._meta.error_type_field: typed_errors})
-        return cls(errors=[e[0] for e in errors], **extra)
-
 
 class ProductVariantStocksUpdate(ProductVariantStocksCreate):
     class Meta:
@@ -436,17 +443,20 @@ class ProductVariantStocksUpdate(ProductVariantStocksCreate):
         warehouses = cls.get_nodes_or_error(
             warehouse_ids, "warehouse", only_type=Warehouse
         )
-        cls.create_variant_stocks(variant, stocks, warehouses)
+        cls.update_or_create_variant_stocks(variant, stocks, warehouses)
         return cls(product_variant=variant)
 
     @classmethod
-    def create_variant_stocks(cls, variant, stocks, warehouses):
-        for stock_data, warehouse in zip(stocks, warehouses):
+    @transaction.atomic
+    def update_or_create_variant_stocks(cls, variant, stocks_data, warehouses):
+        stocks = []
+        for stock_data, warehouse in zip(stocks_data, warehouses):
             stock, _ = warehouse_models.Stock.objects.get_or_create(
                 product_variant=variant, warehouse=warehouse
             )
             stock.quantity = stock_data["quantity"]
-            stock.save(update_fields=["quantity"])
+            stocks.append(stock)
+        warehouse_models.Stock.objects.bulk_update(stocks, ["quantity"])
 
 
 class ProductVariantStocksDelete(BaseMutation):

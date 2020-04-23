@@ -178,7 +178,7 @@ def append_line_to_data(
     amount: Decimal,
     tax_code: str,
     item_code: str,
-    description: str = None,
+    name: str = None,
     tax_included: Optional[bool] = None,
 ):
     if tax_included is None:
@@ -190,7 +190,7 @@ def append_line_to_data(
             "taxCode": tax_code,
             "taxIncluded": tax_included,
             "itemCode": item_code,
-            "description": description[:2000] if description else "",
+            "description": name,
         }
     )
 
@@ -221,7 +221,7 @@ def get_checkout_lines_data(
     for line in lines:
         if not line.variant.product.charge_taxes:
             continue
-        description = line.variant.product.plain_text_description
+        name = line.variant.product.name
         product = line.variant.product
         product_type = line.variant.product.product_type
         tax_code = retrieve_tax_code_from_meta(product)
@@ -234,7 +234,7 @@ def get_checkout_lines_data(
             ).gross.amount,
             tax_code=tax_code,
             item_code=line.variant.sku,
-            description=description,
+            name=name,
         )
 
     append_shipping_to_data(data, checkout.shipping_method)
@@ -263,7 +263,7 @@ def get_order_lines_data(
             amount=line.unit_price_net_amount * line.quantity,
             tax_code=tax_code,
             item_code=line.variant.sku,
-            description=line.variant.product.plain_text_description,
+            name=line.variant.product.name,
         )
     if order.discount_amount:
         append_line_to_data(
@@ -272,7 +272,7 @@ def get_order_lines_data(
             amount=order.discount_amount * -1,
             tax_code=COMMON_DISCOUNT_VOUCHER_CODE,
             item_code="Voucher",
-            description=order.discount_name,
+            name=order.discount_name,
             tax_included=True,  # Voucher should be always applied as a gross amount
         )
     append_shipping_to_data(data, order.shipping_method)
