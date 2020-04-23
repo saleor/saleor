@@ -1,11 +1,12 @@
 import graphene
 
-from ....account import models
-from ....core.permissions import AccountPermissions, get_permissions
+from ....app import models
+from ....core.permissions import AppPermission, get_permissions
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types.common import AccountError
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
+from .types import ServiceAccount, ServiceAccountToken
 
 
 class ServiceAccountInput(graphene.InputObjectType):
@@ -35,17 +36,23 @@ class ServiceAccountTokenCreate(ModelMutation):
         )
 
     class Meta:
+        return_field_name = "serviceAccountToken"
         description = "Creates a new token."
-        model = models.ServiceAccountToken
-        permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
+        model = models.AppToken
+        permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
 
     @classmethod
+    def get_type_for_model(cls):
+        return ServiceAccountToken
+
+    @classmethod
     def perform_mutation(cls, root, info, **data):
+        input_data = data.get("input", {})
         instance = cls.get_instance(info, **data)
-        data = data.get("input")
-        cleaned_input = cls.clean_input(info, instance, data)
+        cleaned_input = cls.clean_input(info, instance, input_data)
+        cleaned_input["app"] = cleaned_input.pop("service_account", None)
         instance = cls.construct_instance(instance, cleaned_input)
         cls.clean_instance(info, instance)
         cls.save(info, instance, cleaned_input)
@@ -60,11 +67,16 @@ class ServiceAccountTokenDelete(ModelDeleteMutation):
         id = graphene.ID(description="ID of an auth token to delete.", required=True)
 
     class Meta:
+        return_field_name = "serviceAccountToken"
         description = "Deletes an authentication token assigned to service account."
-        model = models.ServiceAccountToken
-        permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
+        model = models.AppToken
+        permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
+
+    @classmethod
+    def get_type_for_model(cls):
+        return ServiceAccountToken
 
 
 class ServiceAccountCreate(ModelMutation):
@@ -79,15 +91,20 @@ class ServiceAccountCreate(ModelMutation):
         )
 
     class Meta:
+        return_field_name = "serviceAccount"
         description = "Creates a new service account."
-        model = models.ServiceAccount
-        permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
+        model = models.App
+        permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
 
     @classmethod
-    def clean_input(cls, info, instance, data):
-        cleaned_input = super().clean_input(info, instance, data)
+    def get_type_for_model(cls):
+        return ServiceAccount
+
+    @classmethod
+    def clean_input(cls, info, instance, data, input_cls=None):
+        cleaned_input = super().clean_input(info, instance, data, input_cls)
         # clean and prepare permissions
         if "permissions" in cleaned_input:
             permissions = cleaned_input.pop("permissions")
@@ -117,19 +134,24 @@ class ServiceAccountUpdate(ModelMutation):
         )
 
     class Meta:
+        return_field_name = "serviceAccount"
         description = "Updates an existing service account."
-        model = models.ServiceAccount
-        permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
+        model = models.App
+        permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
 
     @classmethod
-    def clean_input(cls, info, instance, data):
-        cleaned_input = super().clean_input(info, instance, data)
+    def clean_input(cls, info, instance, data, input_cls=None):
+        cleaned_input = super().clean_input(info, instance, data, input_cls)
         # clean and prepare permissions
         if "permissions" in cleaned_input:
             cleaned_input["permissions"] = get_permissions(cleaned_input["permissions"])
         return cleaned_input
+
+    @classmethod
+    def get_type_for_model(cls):
+        return ServiceAccount
 
 
 class ServiceAccountDelete(ModelDeleteMutation):
@@ -139,18 +161,24 @@ class ServiceAccountDelete(ModelDeleteMutation):
         )
 
     class Meta:
+        return_field_name = "serviceAccount"
         description = "Deletes a service account."
-        model = models.ServiceAccount
-        permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
+        model = models.App
+        permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = AccountError
         error_type_field = "account_errors"
+
+    @classmethod
+    def get_type_for_model(cls):
+        return ServiceAccount
 
 
 class ServiceAccountUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
+        return_field_name = "serviceAccount"
         description = "Updates private metadata for a service account."
-        permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
-        model = models.ServiceAccount
+        permissions = (AppPermission.MANAGE_APPS,)
+        model = models.App
         public = False
         error_type_class = AccountError
         error_type_field = "account_errors"
@@ -158,9 +186,10 @@ class ServiceAccountUpdatePrivateMeta(UpdateMetaBaseMutation):
 
 class ServiceAccountClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
+        return_field_name = "serviceAccount"
         description = "Clear private metadata for a service account."
-        model = models.ServiceAccount
-        permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
+        model = models.App
+        permissions = (AppPermission.MANAGE_APPS,)
         public = False
         error_type_class = AccountError
         error_type_field = "account_errors"
