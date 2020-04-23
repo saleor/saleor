@@ -18,10 +18,12 @@ def _get_quantity_allocated(stocks: StockQuerySet) -> int:
 
 
 def _get_available_quantity(stocks: StockQuerySet) -> int:
-    quantity_allocated = _get_quantity_allocated(stocks)
-    total_quantity = stocks.aggregate(total_quantity=Coalesce(Sum("quantity"), 0))[
-        "total_quantity"
-    ]
+    results = stocks.aggregate(
+        total_quantity=Coalesce(Sum("quantity"), 0),
+        quantity_allocated=Coalesce(Sum("allocations__quantity_allocated"), 0),
+    )
+    total_quantity = results["total_quantity"]
+    quantity_allocated = results["quantity_allocated"]
     return max(total_quantity - quantity_allocated, 0)
 
 
