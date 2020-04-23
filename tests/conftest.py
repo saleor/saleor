@@ -20,12 +20,8 @@ from django_countries import countries
 from PIL import Image
 from prices import Money, TaxedMoney
 
-from saleor.account.models import (
-    Address,
-    ServiceAccount,
-    StaffNotificationRecipient,
-    User,
-)
+from saleor.account.models import Address, StaffNotificationRecipient, User
+from saleor.app.models import App
 from saleor.checkout import utils
 from saleor.checkout.models import Checkout
 from saleor.checkout.utils import add_variant_to_checkout
@@ -605,8 +601,8 @@ def permission_manage_plugins():
 
 
 @pytest.fixture
-def permission_manage_service_accounts():
-    return Permission.objects.get(codename="manage_service_accounts")
+def permission_manage_apps():
+    return Permission.objects.get(codename="manage_apps")
 
 
 @pytest.fixture
@@ -1845,15 +1841,13 @@ def other_description_json():
 
 
 @pytest.fixture
-def service_account(db):
-    return ServiceAccount.objects.create(name="Sample service account", is_active=True)
+def app(db):
+    return App.objects.create(name="Sample app objects", is_active=True)
 
 
 @pytest.fixture
-def webhook(service_account):
-    webhook = Webhook.objects.create(
-        service_account=service_account, target_url="http://www.example.com/test"
-    )
+def webhook(app):
+    webhook = Webhook.objects.create(app=app, target_url="http://www.example.com/test")
     webhook.events.create(event_type=WebhookEventType.ORDER_CREATED)
     return webhook
 

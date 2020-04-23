@@ -308,14 +308,14 @@ def test_query_customer_user(
     assert address["isDefaultBillingAddress"] is None
 
 
-def test_query_customer_user_service_account(
-    service_account_api_client,
+def test_query_customer_user_app(
+    app_api_client,
     customer_user,
     address,
     permission_manage_users,
     permission_manage_staff,
     media_root,
-    service_account,
+    app,
 ):
     user = customer_user
     user.default_shipping_address.country = "US"
@@ -332,22 +332,22 @@ def test_query_customer_user_service_account(
     query = FULL_USER_QUERY
     ID = graphene.Node.to_global_id("User", customer_user.id)
     variables = {"id": ID}
-    service_account.permissions.add(permission_manage_staff, permission_manage_users)
-    response = service_account_api_client.post_graphql(query, variables)
+    app.permissions.add(permission_manage_staff, permission_manage_users)
+    response = app_api_client.post_graphql(query, variables)
 
     content = get_graphql_content(response)
     data = content["data"]["user"]
     assert data["email"] == user.email
 
 
-def test_query_customer_user_service_account_no_permission(
-    service_account_api_client,
+def test_query_customer_user_app_no_permission(
+    app_api_client,
     customer_user,
     address,
     permission_manage_users,
     permission_manage_staff,
     media_root,
-    service_account,
+    app,
 ):
     user = customer_user
     user.default_shipping_address.country = "US"
@@ -364,8 +364,8 @@ def test_query_customer_user_service_account_no_permission(
     query = FULL_USER_QUERY
     ID = graphene.Node.to_global_id("User", customer_user.id)
     variables = {"id": ID}
-    service_account.permissions.add(permission_manage_staff)
-    response = service_account_api_client.post_graphql(query, variables)
+    app.permissions.add(permission_manage_staff)
+    response = app_api_client.post_graphql(query, variables)
 
     assert_no_permission(response)
 
@@ -489,12 +489,10 @@ def test_user_query_permission_manage_users_get_customer(
     assert customer_user.email == data["email"]
 
 
-def test_user_query_as_service_account(
-    service_account_api_client, customer_user, permission_manage_users
-):
+def test_user_query_as_app(app_api_client, customer_user, permission_manage_users):
     customer_id = graphene.Node.to_global_id("User", customer_user.pk)
     variables = {"id": customer_id}
-    response = service_account_api_client.post_graphql(
+    response = app_api_client.post_graphql(
         USER_QUERY, variables, permissions=[permission_manage_users]
     )
     content = get_graphql_content(response)
@@ -1617,8 +1615,8 @@ def test_staff_create(
     )
 
 
-def test_staff_create_service_account_no_permission(
-    service_account_api_client,
+def test_staff_create_app_no_permission(
+    app_api_client,
     staff_user,
     media_root,
     permission_group_manage_users,
@@ -1636,7 +1634,7 @@ def test_staff_create_service_account_no_permission(
         "add_groups": [graphene.Node.to_global_id("Group", group.pk)],
     }
 
-    response = service_account_api_client.post_graphql(
+    response = app_api_client.post_graphql(
         STAFF_CREATE_MUTATION, variables, permissions=[permission_manage_staff]
     )
 
@@ -1862,15 +1860,15 @@ def test_staff_update(staff_api_client, permission_manage_staff, media_root):
     assert data["user"]["permissions"] == []
 
 
-def test_staff_update_service_account_no_permission(
-    service_account_api_client, permission_manage_staff, media_root
+def test_staff_update_app_no_permission(
+    app_api_client, permission_manage_staff, media_root
 ):
     query = STAFF_UPDATE_MUTATIONS
     staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
     id = graphene.Node.to_global_id("User", staff_user.id)
     variables = {"id": id, "input": {"isActive": False}}
 
-    response = service_account_api_client.post_graphql(
+    response = app_api_client.post_graphql(
         query, variables, permissions=[permission_manage_staff]
     )
 
@@ -2262,15 +2260,13 @@ def test_staff_delete(staff_api_client, permission_manage_staff):
     assert not User.objects.filter(pk=staff_user.id).exists()
 
 
-def test_staff_delete_service_account_no_permission(
-    service_account_api_client, permission_manage_staff
-):
+def test_staff_delete_app_no_permission(app_api_client, permission_manage_staff):
     query = STAFF_DELETE_MUTATION
     staff_user = User.objects.create(email="staffuser@example.com", is_staff=True)
     user_id = graphene.Node.to_global_id("User", staff_user.id)
     variables = {"id": user_id}
 
-    response = service_account_api_client.post_graphql(
+    response = app_api_client.post_graphql(
         query, variables, permissions=[permission_manage_staff]
     )
 
@@ -3747,8 +3743,8 @@ def test_query_staff_members_with_filter_status(
     assert len(users) == count
 
 
-def test_query_staff_members_service_account_no_permission(
-    query_staff_users_with_filter, service_account_api_client, permission_manage_staff,
+def test_query_staff_members_app_no_permission(
+    query_staff_users_with_filter, app_api_client, permission_manage_staff,
 ):
 
     User.objects.bulk_create(
@@ -3759,7 +3755,7 @@ def test_query_staff_members_service_account_no_permission(
     )
 
     variables = {"filter": {"status": "DEACTIVATED"}}
-    response = service_account_api_client.post_graphql(
+    response = app_api_client.post_graphql(
         query_staff_users_with_filter, variables, permissions=[permission_manage_staff]
     )
 
@@ -4023,11 +4019,11 @@ def test_address_query_as_not_owner(
     assert not data
 
 
-def test_address_query_as_service_account_with_permission(
-    service_account_api_client, address_other_country, permission_manage_users,
+def test_address_query_as_app_with_permission(
+    app_api_client, address_other_country, permission_manage_users,
 ):
     variables = {"id": graphene.Node.to_global_id("Address", address_other_country.pk)}
-    response = service_account_api_client.post_graphql(
+    response = app_api_client.post_graphql(
         ADDRESS_QUERY, variables, permissions=[permission_manage_users]
     )
     content = get_graphql_content(response)
@@ -4035,12 +4031,12 @@ def test_address_query_as_service_account_with_permission(
     assert data["country"]["code"] == address_other_country.country.code
 
 
-def test_address_query_as_service_account_without_permission(
-    service_account_api_client, service_account, address_other_country
+def test_address_query_as_app_without_permission(
+    app_api_client, app, address_other_country
 ):
 
     variables = {"id": graphene.Node.to_global_id("Address", address_other_country.pk)}
-    response = service_account_api_client.post_graphql(ADDRESS_QUERY, variables)
+    response = app_api_client.post_graphql(ADDRESS_QUERY, variables)
     assert_no_permission(response)
 
 

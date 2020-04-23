@@ -13,12 +13,10 @@ def test_permission_group_create(
     permission_manage_staff,
     staff_api_client,
     permission_manage_users,
-    permission_manage_service_accounts,
+    permission_manage_apps,
     count_queries,
 ):
-    staff_user.user_permissions.add(
-        permission_manage_users, permission_manage_service_accounts
-    )
+    staff_user.user_permissions.add(permission_manage_users, permission_manage_apps)
     query = """
         mutation PermissionGroupCreate(
         $input: PermissionGroupCreateInput!) {
@@ -77,7 +75,7 @@ def test_permission_group_update(
     staff_user,
     permission_manage_staff,
     staff_api_client,
-    permission_manage_service_accounts,
+    permission_manage_apps,
     permission_manage_users,
     count_queries,
 ):
@@ -108,9 +106,7 @@ def test_permission_group_update(
 
     group_count = Group.objects.count()
 
-    staff_user.user_permissions.add(
-        permission_manage_service_accounts, permission_manage_users
-    )
+    staff_user.user_permissions.add(permission_manage_apps, permission_manage_users)
     group = permission_group_manage_users
     group.permissions.add(permission_manage_staff)
 
@@ -144,7 +140,7 @@ def test_permission_group_update_remove_users_with_manage_staff(
     staff_users,
     permission_manage_staff,
     staff_api_client,
-    permission_manage_service_accounts,
+    permission_manage_apps,
     permission_manage_users,
     permission_manage_orders,
     count_queries,

@@ -1287,7 +1287,7 @@ def test_assign_non_existing_attributes_to_product_type(
     product_type_global_id = graphene.Node.to_global_id("ProductType", product_type.pk)
 
     query = ASSIGN_ATTR_QUERY
-    attribute_id = graphene.Node.to_global_id("Attribute", "555")
+    attribute_id = graphene.Node.to_global_id("Attribute", "55511155593")
     operations = [{"type": "PRODUCT", "id": attribute_id}]
     variables = {"productTypeId": product_type_global_id, "operations": operations}
 
