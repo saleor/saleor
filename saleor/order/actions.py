@@ -22,6 +22,7 @@ if TYPE_CHECKING:
     from .models import Order
     from ..account.models import User
     from ..payment.models import Payment
+    from ..warehouse.models import Warehouse
 
 
 logger = logging.getLogger(__name__)
@@ -151,23 +152,20 @@ def fulfillment_tracking_updated(
     get_plugins_manager().order_updated(fulfillment.order)
 
 
-def cancel_fulfillment(fulfillment: "Fulfillment", user: "User", restock: bool):
+def cancel_fulfillment(
+    fulfillment: "Fulfillment", user: "User", warehouse: "Warehouse"
+):
     """Cancel fulfillment.
 
-    Return products to corresponding stocks if restock is set to True.
+    Return products to corresponding stocks.
     """
     events.fulfillment_canceled_event(
         order=fulfillment.order, user=user, fulfillment=fulfillment
     )
-    if restock:
-        events.fulfillment_restocked_items_event(
-            order=fulfillment.order, user=user, fulfillment=fulfillment
-        )
-        restock_fulfillment_lines(fulfillment)
-    for line in fulfillment:
-        order_line = line.order_line
-        order_line.quantity_fulfilled -= line.quantity
-        order_line.save(update_fields=["quantity_fulfilled"])
+    events.fulfillment_restocked_items_event(
+        order=fulfillment.order, user=user, fulfillment=fulfillment
+    )
+    restock_fulfillment_lines(fulfillment, warehouse)
     fulfillment.status = FulfillmentStatus.CANCELED
     fulfillment.save(update_fields=["status"])
     update_order_status(fulfillment.order)

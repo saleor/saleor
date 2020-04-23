@@ -194,7 +194,7 @@ def test_restock_fulfilled_order_lines(fulfilled_order):
     assert stock_2.quantity == stock_2_quantity_before + line_2.quantity
 
 
-def test_restock_fulfillment_lines(fulfilled_order):
+def test_restock_fulfillment_lines(fulfilled_order, warehouse):
     fulfillment = fulfilled_order.fulfillments.first()
     line_1 = fulfillment.lines.first()
     line_2 = fulfillment.lines.last()
@@ -205,7 +205,7 @@ def test_restock_fulfillment_lines(fulfilled_order):
     stock_1_quantity_before = stock_1.quantity
     stock_2_quantity_before = stock_2.quantity
 
-    restock_fulfillment_lines(fulfillment)
+    restock_fulfillment_lines(fulfillment, warehouse)
 
     stock_1.refresh_from_db()
     stock_2.refresh_from_db()
