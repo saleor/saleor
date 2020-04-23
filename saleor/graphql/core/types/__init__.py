@@ -4,7 +4,7 @@ from .common import (
     Error,
     Image,
     LanguageDisplay,
-    PermissionDisplay,
+    Permission,
     SeoInput,
     TaxType,
     Weight,

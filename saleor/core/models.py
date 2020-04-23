@@ -5,6 +5,7 @@ from django.contrib.postgres.fields import JSONField
 from django.db import models
 from django.db.models import F, Max, Q
 
+from . import JobStatus
 from .permissions import ProductPermissions
 from .utils.json_serializer import CustomJsonEncoder
 
@@ -112,3 +113,14 @@ class ModelWithMetadata(models.Model):
     def delete_value_from_metadata(self, key: str):
         if key in self.metadata:
             del self.metadata[key]
+
+
+class Job(models.Model):
+    status = models.CharField(
+        max_length=50, choices=JobStatus.CHOICES, default=JobStatus.PENDING
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        abstract = True

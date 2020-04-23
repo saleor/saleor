@@ -4,12 +4,10 @@ from graphql_jwt.exceptions import PermissionDenied
 from ...core.permissions import WebhookPermissions
 from ...webhook import models, payloads
 from ...webhook.event_types import WebhookEventType
-from ..utils import sort_queryset
-from .sorters import WebhookSortField
 from .types import Webhook, WebhookEvent
 
 
-def resolve_webhooks(info, sort_by=None, **_kwargs):
+def resolve_webhooks(info, **_kwargs):
     service_account = info.context.service_account
     if service_account:
         qs = models.Webhook.objects.filter(service_account=service_account)
@@ -18,7 +16,7 @@ def resolve_webhooks(info, sort_by=None, **_kwargs):
         if not user.has_perm(WebhookPermissions.MANAGE_WEBHOOKS):
             raise PermissionDenied()
         qs = models.Webhook.objects.all()
-    return sort_queryset(qs, sort_by, WebhookSortField)
+    return qs
 
 
 def resolve_webhook(info, webhook_id):

@@ -1,4 +1,4 @@
-from typing import Set
+from typing import Set, Union
 
 from django.conf import settings
 from django.contrib.auth.models import (
@@ -156,6 +156,7 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
     objects = UserManager()
 
     class Meta:
+        ordering = ("email",)
         permissions = (
             (AccountPermissions.MANAGE_USERS.codename, "Manage customers."),
             (AccountPermissions.MANAGE_STAFF.codename, "Manage staff."),
@@ -174,9 +175,10 @@ class User(PermissionsMixin, ModelWithMetadata, AbstractBaseUser):
     def get_short_name(self):
         return self.email
 
-    def has_perm(self, perm: BasePermissionEnum, obj=None):  # type: ignore
+    def has_perm(self, perm: Union[BasePermissionEnum, str], obj=None):  # type: ignore
         # This method is overridden to accept perm as BasePermissionEnum
-        return super().has_perm(perm.value, obj)
+        perm_value = perm.value if hasattr(perm, "value") else perm  # type: ignore
+        return super().has_perm(perm_value, obj)
 
 
 class ServiceAccount(ModelWithMetadata):
@@ -192,6 +194,7 @@ class ServiceAccount(ModelWithMetadata):
     )
 
     class Meta:
+        ordering = ("name", "pk")
         permissions = (
             (
                 AccountPermissions.MANAGE_SERVICE_ACCOUNTS.codename,
@@ -284,6 +287,9 @@ class StaffNotificationRecipient(models.Model):
     )
     staff_email = models.EmailField(unique=True, blank=True, null=True)
     active = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ("staff_email",)
 
     def get_email(self):
         return self.user.email if self.user else self.staff_email

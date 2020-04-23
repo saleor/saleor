@@ -144,7 +144,8 @@ class ConfirmAccount(BaseMutation):
 
     class Arguments:
         token = graphene.String(
-            description="A one-time token required to set the password.", required=True
+            description="A one-time token required to confirm the account.",
+            required=True,
         )
         email = graphene.String(
             description="E-mail of the user performing account confirmation.",
@@ -152,7 +153,9 @@ class ConfirmAccount(BaseMutation):
         )
 
     class Meta:
-        description = "Confirm user account by token sent by email during registration"
+        description = (
+            "Confirm user account with token sent by email during registration."
+        )
         error_type_class = AccountError
         error_type_field = "account_errors"
 
@@ -210,7 +213,7 @@ class PasswordChange(BaseMutation):
                 {
                     "old_password": ValidationError(
                         "Old password isn't valid.",
-                        code=AccountErrorCode.INVALID_PASSWORD,
+                        code=AccountErrorCode.INVALID_CREDENTIALS,
                     )
                 }
             )

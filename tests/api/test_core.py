@@ -15,6 +15,7 @@ from saleor.graphql.core.mutations import BaseMutation
 from saleor.graphql.core.types import FilterInputObjectType
 from saleor.graphql.core.utils import (
     clean_seo_fields,
+    get_duplicated_values,
     snake_to_camel_case,
     validate_slug_and_generate_if_needed,
 )
@@ -423,3 +424,11 @@ def test_filter_range_field(value, count, product_indexes, product_list):
     expected_products = [qs[index] for index in product_indexes]
     assert result.count() == count
     assert list(result) == expected_products
+
+
+def test_get_duplicated_values():
+    values = ("a", "b", "a", 1, 1, 1, 2)
+
+    result = get_duplicated_values(values)
+
+    assert result == {"a", 1}

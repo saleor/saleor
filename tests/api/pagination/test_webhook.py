@@ -83,7 +83,7 @@ QUERY_WEBHOOKS_PAGINATION = """
         ),
         (
             {"field": "SERVICE_ACCOUNT", "direction": "ASC"},
-            ["Webhook3", "WebhookWebhook1", "Webhook2"],
+            ["Webhook3", "WebhookWebhook1", "Webhook1"],
         ),
         (
             {"field": "TARGET_URL", "direction": "ASC"},

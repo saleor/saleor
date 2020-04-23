@@ -56,6 +56,7 @@ class GiftCard(models.Model):
     objects = GiftCardQueryset.as_manager()
 
     class Meta:
+        ordering = ("code",)
         permissions = (
             (GiftcardPermissions.MANAGE_GIFT_CARD.codename, "Manage gift cards."),
         )
