@@ -320,10 +320,10 @@ def test_cleardb_delete_staff_parameter(staff_user):
 
 
 @override_settings(DEBUG=True)
-def test_cleardb_preserves_data(admin_user, service_account, site_settings, staff_user):
+def test_cleardb_preserves_data(admin_user, app, site_settings, staff_user):
     call_command("cleardb")
     # These shouldn't be deleted when running `cleardb`.
     admin_user.refresh_from_db()
-    service_account.refresh_from_db()
+    app.refresh_from_db()
     site_settings.refresh_from_db()
     staff_user.refresh_from_db()

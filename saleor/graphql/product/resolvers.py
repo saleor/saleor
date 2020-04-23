@@ -3,11 +3,7 @@ from django.db.models import Sum
 
 from ...order import OrderStatus
 from ...product import models
-from ..utils import (
-    filter_by_period,
-    get_database_id,
-    get_user_or_service_account_from_context,
-)
+from ..utils import filter_by_period, get_database_id, get_user_or_app_from_context
 from .filters import (
     filter_attributes_by_product_types,
     filter_products_by_stock_availability,
@@ -48,7 +44,7 @@ def resolve_digital_contents(info):
 
 def resolve_products(info, stock_availability=None, **_kwargs):
 
-    user = get_user_or_service_account_from_context(info.context)
+    user = get_user_or_app_from_context(info.context)
     qs = models.Product.objects.visible_to_user(user)
 
     if stock_availability:

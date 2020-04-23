@@ -8,7 +8,7 @@ from django.utils.functional import SimpleLazyObject
 from graphql import ResolveInfo
 from graphql_jwt.middleware import JSONWebTokenMiddleware
 
-from ..account.models import ServiceAccount
+from ..app.models import App
 from ..core.tracing import should_trace
 from .views import API_PATH, GraphQLView
 
@@ -36,27 +36,25 @@ class OpentracingGrapheneMiddleware:
             return next_(root, info, **kwargs)
 
 
-def get_service_account(auth_token) -> Optional[ServiceAccount]:
-    qs = ServiceAccount.objects.filter(tokens__auth_token=auth_token, is_active=True)
+def get_app(auth_token) -> Optional[App]:
+    qs = App.objects.filter(tokens__auth_token=auth_token, is_active=True)
     return qs.first()
 
 
-def service_account_middleware(next, root, info, **kwargs):
+def app_middleware(next, root, info, **kwargs):
 
-    service_account_auth_header = "HTTP_AUTHORIZATION"
+    app_auth_header = "HTTP_AUTHORIZATION"
     prefix = "bearer"
     request = info.context
 
     if request.path == API_PATH:
-        if not hasattr(request, "service_account"):
-            request.service_account = None
-            auth = request.META.get(service_account_auth_header, "").split()
+        if not hasattr(request, "app"):
+            request.app = None
+            auth = request.META.get(app_auth_header, "").split()
             if len(auth) == 2:
                 auth_prefix, auth_token = auth
                 if auth_prefix.lower() == prefix:
-                    request.service_account = SimpleLazyObject(
-                        lambda: get_service_account(auth_token)
-                    )
+                    request.app = SimpleLazyObject(lambda: get_app(auth_token))
     return next(root, info, **kwargs)
 
 

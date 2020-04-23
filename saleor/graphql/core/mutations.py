@@ -263,7 +263,7 @@ class BaseMutation(graphene.Mutation):
 
     @classmethod
     def check_permissions(cls, context, permissions=None):
-        """Determine whether user or service account has rights to perform this mutation.
+        """Determine whether user or app has rights to perform this mutation.
 
         Default implementation assumes that account is allowed to perform any
         mutation. By overriding this method or defining required permissions
@@ -276,12 +276,12 @@ class BaseMutation(graphene.Mutation):
             return True
         if context.user.has_perms(permissions):
             return True
-        service_account = getattr(context, "service_account", None)
-        if service_account:
-            # for now MANAGE_STAFF permission for service account is not supported
+        app = getattr(context, "app", None)
+        if app:
+            # for now MANAGE_STAFF permission for app is not supported
             if AccountPermissions.MANAGE_STAFF in permissions:
                 return False
-            return service_account.has_perms(permissions)
+            return app.has_perms(permissions)
         return False
 
     @classmethod
@@ -447,6 +447,10 @@ class ModelMutation(BaseMutation):
         instance.save()
 
     @classmethod
+    def get_type_for_model(cls):
+        return registry.get_type_for_model(cls._meta.model)
+
+    @classmethod
     def get_instance(cls, info, **data):
         """Retrieve an instance from the supplied global id.
 
@@ -454,7 +458,7 @@ class ModelMutation(BaseMutation):
         """
         object_id = data.get("id")
         if object_id:
-            model_type = registry.get_type_for_model(cls._meta.model)
+            model_type = cls.get_type_for_model()
             instance = cls.get_node_or_error(info, object_id, only_type=model_type)
         else:
             instance = cls._meta.model()
@@ -498,7 +502,7 @@ class ModelDeleteMutation(ModelMutation):
             raise PermissionDenied()
 
         node_id = data.get("id")
-        model_type = registry.get_type_for_model(cls._meta.model)
+        model_type = cls.get_type_for_model()
         instance = cls.get_node_or_error(info, node_id, only_type=model_type)
 
         if instance:
