@@ -101,6 +101,7 @@ def create_payment(
         "customer_ip_address": customer_ip_address,
         "extra_data": extra_data,
         "token": payment_token,
+        "gateway": gateway,
     }
 
     if order is not None:
@@ -108,7 +109,7 @@ def create_payment(
     if checkout is not None:
         data["checkout"] = checkout
 
-    payment, _ = Payment.objects.get_or_create(gateway=gateway, defaults=defaults, **data)
+    payment, _ = Payment.objects.get_or_create(defaults=defaults, **data)
     return payment
 
 
