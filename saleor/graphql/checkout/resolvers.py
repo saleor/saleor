@@ -1,6 +1,6 @@
 from ...checkout import models
 from ...core.permissions import CheckoutPermissions
-from ..utils import get_user_or_service_account_from_context
+from ..utils import get_user_or_app_from_context
 
 
 def resolve_checkout_lines():
@@ -28,7 +28,7 @@ def resolve_checkout(info, token):
         return checkout
 
     # resolve checkout for staff user
-    requester = get_user_or_service_account_from_context(info.context)
+    requester = get_user_or_app_from_context(info.context)
     if requester.has_perm(CheckoutPermissions.MANAGE_CHECKOUTS):
         return checkout
 

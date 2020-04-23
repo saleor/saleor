@@ -1,12 +1,19 @@
 import graphene
 import pytest
+from django.contrib.auth.models import Permission
 from freezegun import freeze_time
 
 from saleor.account.error_codes import AccountErrorCode
-from saleor.account.models import ServiceAccount, ServiceAccountToken
+from saleor.app.models import App, AppToken
 from saleor.graphql.core.enums import PermissionEnum
 
 from .utils import assert_no_permission, get_graphql_content
+
+
+@pytest.fixture
+def permission_manage_service_accounts():
+    return Permission.objects.get(codename="manage_apps")
+
 
 SERVICE_ACCOUNT_CREATE_MUTATION = """
     mutation ServiceAccountCreate(
@@ -58,21 +65,21 @@ def test_service_account_create_mutation(
     content = get_graphql_content(response)
     service_account_data = content["data"]["serviceAccountCreate"]["serviceAccount"]
     default_token = content["data"]["serviceAccountCreate"]["authToken"]
-    service_account = ServiceAccount.objects.get()
-    assert service_account_data["isActive"] == service_account.is_active
-    assert service_account_data["name"] == service_account.name
-    assert list(service_account.permissions.all()) == [permission_manage_products]
-    assert default_token == service_account.tokens.get().auth_token
+    app = App.objects.get()
+    assert service_account_data["isActive"] == app.is_active
+    assert service_account_data["name"] == app.name
+    assert list(app.permissions.all()) == [permission_manage_products]
+    assert default_token == app.tokens.get().auth_token
 
 
 def test_service_account_create_mutation_for_service_account(
     permission_manage_service_accounts,
     permission_manage_products,
-    service_account_api_client,
+    app_api_client,
     staff_user,
 ):
     query = SERVICE_ACCOUNT_CREATE_MUTATION
-    requestor = service_account_api_client.service_account
+    requestor = app_api_client.app
     requestor.permissions.add(
         permission_manage_service_accounts, permission_manage_products
     )
@@ -82,15 +89,15 @@ def test_service_account_create_mutation_for_service_account(
         "is_active": True,
         "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
     }
-    response = service_account_api_client.post_graphql(query, variables=variables)
+    response = app_api_client.post_graphql(query, variables=variables)
     content = get_graphql_content(response)
     service_account_data = content["data"]["serviceAccountCreate"]["serviceAccount"]
     default_token = content["data"]["serviceAccountCreate"]["authToken"]
-    service_account = ServiceAccount.objects.exclude(pk=requestor.pk).get()
-    assert service_account_data["isActive"] == service_account.is_active
-    assert service_account_data["name"] == service_account.name
-    assert list(service_account.permissions.all()) == [permission_manage_products]
-    assert default_token == service_account.tokens.get().auth_token
+    app = App.objects.exclude(pk=requestor.pk).get()
+    assert service_account_data["isActive"] == app.is_active
+    assert service_account_data["name"] == app.name
+    assert list(app.permissions.all()) == [permission_manage_products]
+    assert default_token == app.tokens.get().auth_token
 
 
 def test_service_account_create_mutation_out_of_scope_permissions(
@@ -131,18 +138,17 @@ def test_service_account_create_mutation_out_of_scope_permissions(
     content = get_graphql_content(response)
     service_account_data = content["data"]["serviceAccountCreate"]["serviceAccount"]
     default_token = content["data"]["serviceAccountCreate"]["authToken"]
-    service_account = ServiceAccount.objects.get()
-    assert service_account_data["isActive"] == service_account.is_active
-    assert service_account_data["name"] == service_account.name
-    assert list(service_account.permissions.all()) == [permission_manage_products]
-    assert default_token == service_account.tokens.get().auth_token
+    app = App.objects.get()
+    assert service_account_data["isActive"] == app.is_active
+    assert service_account_data["name"] == app.name
+    assert list(app.permissions.all()) == [permission_manage_products]
+    assert default_token == app.tokens.get().auth_token
 
 
 def test_service_account_create_mutation_for_service_account_out_of_scope_permissions(
     permission_manage_service_accounts,
     permission_manage_products,
-    service_account_api_client,
-    service_account,
+    app_api_client,
     staff_user,
 ):
     query = SERVICE_ACCOUNT_CREATE_MUTATION
@@ -152,7 +158,7 @@ def test_service_account_create_mutation_for_service_account_out_of_scope_permis
         "is_active": True,
         "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
     }
-    response = service_account_api_client.post_graphql(
+    response = app_api_client.post_graphql(
         query, variables=variables, permissions=(permission_manage_service_accounts,)
     )
     content = get_graphql_content(response)
@@ -212,7 +218,7 @@ mutation ServiceAccountUpdate($id: ID!, $is_active: Boolean,
 
 
 def test_service_account_update_mutation(
-    service_account,
+    app,
     permission_manage_service_accounts,
     permission_manage_products,
     permission_manage_orders,
@@ -222,13 +228,10 @@ def test_service_account_update_mutation(
 ):
     query = SERVICE_ACCOUNT_UPDATE_MUTATION
     staff_user.user_permissions.add(
-        permission_manage_service_accounts,
-        permission_manage_products,
-        permission_manage_users,
-        permission_manage_orders,
+        permission_manage_products, permission_manage_users, permission_manage_orders,
     )
-    service_account.permissions.add(permission_manage_orders)
-    id = graphene.Node.to_global_id("ServiceAccount", service_account.id)
+    app.permissions.add(permission_manage_orders)
+    id = graphene.Node.to_global_id("ServiceAccount", app.id)
 
     variables = {
         "id": id,
@@ -238,19 +241,21 @@ def test_service_account_update_mutation(
             PermissionEnum.MANAGE_USERS.name,
         ],
     }
-    response = staff_api_client.post_graphql(query, variables=variables)
+    response = staff_api_client.post_graphql(
+        query, variables=variables, permissions=(permission_manage_service_accounts,)
+    )
     content = get_graphql_content(response)
 
     service_account_data = content["data"]["serviceAccountUpdate"]["serviceAccount"]
     tokens_data = service_account_data["tokens"]
-    service_account.refresh_from_db()
-    tokens = service_account.tokens.all()
+    app.refresh_from_db()
+    tokens = app.tokens.all()
 
-    assert service_account_data["isActive"] == service_account.is_active
-    assert service_account.is_active is False
+    assert service_account_data["isActive"] == app.is_active
+    assert app.is_active is False
     assert len(tokens_data) == 1
     assert tokens_data[0]["authToken"] == tokens.get().auth_token[-4:]
-    assert set(service_account.permissions.all()) == {
+    assert set(app.permissions.all()) == {
         permission_manage_products,
         permission_manage_users,
     }
@@ -261,20 +266,20 @@ def test_service_account_update_mutation_for_service_account(
     permission_manage_products,
     permission_manage_orders,
     permission_manage_users,
-    service_account_api_client,
+    app_api_client,
 ):
-    service_account = ServiceAccount.objects.create(name="New_sa")
-    ServiceAccountToken.objects.create(service_account=service_account)
+    app = App.objects.create(name="New_sa")
+    AppToken.objects.create(app=app)
     query = SERVICE_ACCOUNT_UPDATE_MUTATION
-    requestor = service_account_api_client.service_account
+    requestor = app_api_client.app
     requestor.permissions.add(
         permission_manage_service_accounts,
         permission_manage_products,
         permission_manage_users,
         permission_manage_orders,
     )
-    service_account.permissions.add(permission_manage_orders)
-    id = graphene.Node.to_global_id("ServiceAccount", service_account.id)
+    app.permissions.add(permission_manage_orders)
+    id = graphene.Node.to_global_id("ServiceAccount", app.id)
 
     variables = {
         "id": id,
@@ -284,26 +289,26 @@ def test_service_account_update_mutation_for_service_account(
             PermissionEnum.MANAGE_USERS.name,
         ],
     }
-    response = service_account_api_client.post_graphql(query, variables=variables)
+    response = app_api_client.post_graphql(query, variables=variables)
     content = get_graphql_content(response)
 
     service_account_data = content["data"]["serviceAccountUpdate"]["serviceAccount"]
     tokens_data = service_account_data["tokens"]
-    service_account.refresh_from_db()
-    tokens = service_account.tokens.all()
+    app.refresh_from_db()
+    tokens = app.tokens.all()
 
-    assert service_account_data["isActive"] == service_account.is_active
-    assert service_account.is_active is False
+    assert service_account_data["isActive"] == app.is_active
+    assert app.is_active is False
     assert len(tokens_data) == 1
     assert tokens_data[0]["authToken"] == tokens.get().auth_token[-4:]
-    assert set(service_account.permissions.all()) == {
+    assert set(app.permissions.all()) == {
         permission_manage_products,
         permission_manage_users,
     }
 
 
 def test_service_account_update_mutation_out_of_scope_permissions(
-    service_account,
+    app,
     permission_manage_service_accounts,
     permission_manage_products,
     permission_manage_users,
@@ -319,7 +324,7 @@ def test_service_account_update_mutation_out_of_scope_permissions(
     staff_user.user_permissions.add(
         permission_manage_service_accounts, permission_manage_products
     )
-    id = graphene.Node.to_global_id("ServiceAccount", service_account.id)
+    id = graphene.Node.to_global_id("ServiceAccount", app.id)
 
     variables = {
         "id": id,
@@ -350,14 +355,14 @@ def test_service_account_update_mutation_out_of_scope_permissions(
     data = content["data"]["serviceAccountUpdate"]
     service_account_data = data["serviceAccount"]
     tokens_data = service_account_data["tokens"]
-    service_account.refresh_from_db()
-    tokens = service_account.tokens.all()
+    app.refresh_from_db()
+    tokens = app.tokens.all()
 
-    assert service_account_data["isActive"] == service_account.is_active
-    assert service_account.is_active is False
+    assert service_account_data["isActive"] == app.is_active
+    assert app.is_active is False
     assert len(tokens_data) == 1
     assert tokens_data[0]["authToken"] == tokens.get().auth_token[-4:]
-    assert set(service_account.permissions.all()) == {
+    assert set(app.permissions.all()) == {
         permission_manage_products,
         permission_manage_users,
     }
@@ -368,18 +373,18 @@ def test_service_account_update_mutation_for_service_account_out_of_scope_permis
     permission_manage_products,
     permission_manage_orders,
     permission_manage_users,
-    service_account_api_client,
+    app_api_client,
 ):
-    service_account = ServiceAccount.objects.create(name="New_sa")
+    app = App.objects.create(name="New_sa")
     query = SERVICE_ACCOUNT_UPDATE_MUTATION
-    requestor = service_account_api_client.service_account
+    requestor = app_api_client.app
     requestor.permissions.add(
         permission_manage_service_accounts,
         permission_manage_products,
         permission_manage_orders,
     )
-    service_account.permissions.add(permission_manage_orders)
-    id = graphene.Node.to_global_id("ServiceAccount", service_account.id)
+    app.permissions.add(permission_manage_orders)
+    id = graphene.Node.to_global_id("ServiceAccount", app.id)
 
     variables = {
         "id": id,
@@ -389,7 +394,7 @@ def test_service_account_update_mutation_for_service_account_out_of_scope_permis
             PermissionEnum.MANAGE_USERS.name,
         ],
     }
-    response = service_account_api_client.post_graphql(query, variables=variables)
+    response = app_api_client.post_graphql(query, variables=variables)
     content = get_graphql_content(response)
 
     data = content["data"]["serviceAccountUpdate"]
@@ -403,7 +408,7 @@ def test_service_account_update_mutation_for_service_account_out_of_scope_permis
 
 
 def test_service_account_update_mutation_out_of_scope_service_account(
-    service_account,
+    app,
     permission_manage_service_accounts,
     permission_manage_products,
     permission_manage_orders,
@@ -422,8 +427,8 @@ def test_service_account_update_mutation_out_of_scope_service_account(
         permission_manage_products,
         permission_manage_users,
     )
-    service_account.permissions.add(permission_manage_orders)
-    id = graphene.Node.to_global_id("ServiceAccount", service_account.id)
+    app.permissions.add(permission_manage_orders)
+    id = graphene.Node.to_global_id("ServiceAccount", app.id)
 
     variables = {
         "id": id,
@@ -453,14 +458,14 @@ def test_service_account_update_mutation_out_of_scope_service_account(
     data = content["data"]["serviceAccountUpdate"]
     service_account_data = data["serviceAccount"]
     tokens_data = service_account_data["tokens"]
-    service_account.refresh_from_db()
-    tokens = service_account.tokens.all()
+    app.refresh_from_db()
+    tokens = app.tokens.all()
 
-    assert service_account_data["isActive"] == service_account.is_active
-    assert service_account.is_active is False
+    assert service_account_data["isActive"] == app.is_active
+    assert app.is_active is False
     assert len(tokens_data) == 1
     assert tokens_data[0]["authToken"] == tokens.get().auth_token[-4:]
-    assert set(service_account.permissions.all()) == {
+    assert set(app.permissions.all()) == {
         permission_manage_products,
         permission_manage_users,
     }
@@ -471,18 +476,18 @@ def test_service_account_update_mutation_for_service_account_out_of_scope_servic
     permission_manage_products,
     permission_manage_orders,
     permission_manage_users,
-    service_account_api_client,
+    app_api_client,
 ):
-    service_account = ServiceAccount.objects.create(name="New_sa")
+    app = App.objects.create(name="New_sa")
     query = SERVICE_ACCOUNT_UPDATE_MUTATION
-    requestor = service_account_api_client.service_account
+    requestor = app_api_client.app
     requestor.permissions.add(
         permission_manage_service_accounts,
         permission_manage_products,
         permission_manage_users,
     )
-    service_account.permissions.add(permission_manage_orders)
-    id = graphene.Node.to_global_id("ServiceAccount", service_account.id)
+    app.permissions.add(permission_manage_orders)
+    id = graphene.Node.to_global_id("ServiceAccount", app.id)
 
     variables = {
         "id": id,
@@ -492,7 +497,7 @@ def test_service_account_update_mutation_for_service_account_out_of_scope_servic
             PermissionEnum.MANAGE_USERS.name,
         ],
     }
-    response = service_account_api_client.post_graphql(query, variables=variables)
+    response = app_api_client.post_graphql(query, variables=variables)
     content = get_graphql_content(response)
 
     data = content["data"]["serviceAccountUpdate"]
@@ -504,11 +509,9 @@ def test_service_account_update_mutation_for_service_account_out_of_scope_servic
     assert error["code"] == AccountErrorCode.OUT_OF_SCOPE_SERVICE_ACCOUNT.name
 
 
-def test_service_account_update_no_permission(
-    service_account, staff_api_client, staff_user
-):
+def test_service_account_update_no_permission(app, staff_api_client, staff_user):
     query = SERVICE_ACCOUNT_UPDATE_MUTATION
-    id = graphene.Node.to_global_id("ServiceAccount", service_account.id)
+    id = graphene.Node.to_global_id("ServiceAccount", app.id)
     variables = {
         "id": id,
         "is_active": False,
@@ -537,14 +540,14 @@ SERVICE_ACCOUNT_DELETE_MUTATION = """
 def test_service_account_delete(
     staff_api_client,
     staff_user,
-    service_account,
+    app,
     permission_manage_orders,
     permission_manage_service_accounts,
 ):
     query = SERVICE_ACCOUNT_DELETE_MUTATION
-    service_account.permissions.add(permission_manage_orders)
+    app.permissions.add(permission_manage_orders)
     staff_user.user_permissions.add(permission_manage_orders)
-    id = graphene.Node.to_global_id("ServiceAccount", service_account.id)
+    id = graphene.Node.to_global_id("ServiceAccount", app.id)
 
     variables = {"id": id}
     response = staff_api_client.post_graphql(
@@ -555,23 +558,21 @@ def test_service_account_delete(
     data = content["data"]["serviceAccountDelete"]
     assert data["serviceAccount"]
     assert not data["serviceAccountErrors"]
-    assert not ServiceAccount.objects.filter(id=service_account.id).exists()
+    assert not App.objects.filter(id=app.id).exists()
 
 
-def test_service_account_delete_for_service_account(
-    service_account_api_client,
-    permission_manage_orders,
-    permission_manage_service_accounts,
+def test_service_account_delete_for_app(
+    app_api_client, permission_manage_orders, permission_manage_service_accounts,
 ):
-    requestor = service_account_api_client.service_account
-    service_account = ServiceAccount.objects.create(name="New_sa")
+    requestor = app_api_client.app
+    app = App.objects.create(name="New_sa")
     query = SERVICE_ACCOUNT_DELETE_MUTATION
-    service_account.permissions.add(permission_manage_orders)
+    app.permissions.add(permission_manage_orders)
     requestor.permissions.add(permission_manage_orders)
-    id = graphene.Node.to_global_id("ServiceAccount", service_account.id)
+    id = graphene.Node.to_global_id("ServiceAccount", app.id)
 
     variables = {"id": id}
-    response = service_account_api_client.post_graphql(
+    response = app_api_client.post_graphql(
         query, variables=variables, permissions=(permission_manage_service_accounts,)
     )
     content = get_graphql_content(response)
@@ -579,14 +580,14 @@ def test_service_account_delete_for_service_account(
     data = content["data"]["serviceAccountDelete"]
     assert data["serviceAccount"]
     assert not data["serviceAccountErrors"]
-    assert not ServiceAccount.objects.filter(id=service_account.id).exists()
+    assert not App.objects.filter(id=app.id).exists()
 
 
-def test_service_account_delete_out_of_scope_service_account(
+def test_service_account_delete_out_of_scope_app(
     staff_api_client,
     superuser_api_client,
     staff_user,
-    service_account,
+    app,
     permission_manage_service_accounts,
     permission_manage_orders,
 ):
@@ -595,8 +596,8 @@ def test_service_account_delete_out_of_scope_service_account(
     Ensure superuser pass restriction
     """
     query = SERVICE_ACCOUNT_DELETE_MUTATION
-    service_account.permissions.add(permission_manage_orders)
-    id = graphene.Node.to_global_id("ServiceAccount", service_account.id)
+    app.permissions.add(permission_manage_orders)
+    id = graphene.Node.to_global_id("ServiceAccount", app.id)
 
     variables = {"id": id}
 
@@ -621,21 +622,19 @@ def test_service_account_delete_out_of_scope_service_account(
     data = content["data"]["serviceAccountDelete"]
     assert data["serviceAccount"]
     assert not data["serviceAccountErrors"]
-    assert not ServiceAccount.objects.filter(id=service_account.id).exists()
+    assert not App.objects.filter(id=app.id).exists()
 
 
 def test_service_account_delete_for_service_account_out_of_scope_service_account(
-    service_account_api_client,
-    permission_manage_orders,
-    permission_manage_service_accounts,
+    app_api_client, permission_manage_orders, permission_manage_service_accounts,
 ):
-    service_account = ServiceAccount.objects.create(name="New_sa")
+    app = App.objects.create(name="New_sa")
     query = SERVICE_ACCOUNT_DELETE_MUTATION
-    service_account.permissions.add(permission_manage_orders)
-    id = graphene.Node.to_global_id("ServiceAccount", service_account.id)
+    app.permissions.add(permission_manage_orders)
+    id = graphene.Node.to_global_id("ServiceAccount", app.id)
 
     variables = {"id": id}
-    response = service_account_api_client.post_graphql(
+    response = app_api_client.post_graphql(
         query, variables=variables, permissions=(permission_manage_service_accounts,)
     )
     content = get_graphql_content(response)
@@ -678,14 +677,14 @@ QUERY_SERVICE_ACCOUNTS_WITH_FILTER = """
 def test_service_accounts_query(
     staff_api_client,
     permission_manage_service_accounts,
-    service_account,
+    app,
     service_account_filter,
     count,
 ):
-    second_service_account = ServiceAccount.objects.create(name="Simple service")
-    second_service_account.is_active = False
-    second_service_account.tokens.create(name="default")
-    second_service_account.save()
+    second_app = App.objects.create(name="Simple service")
+    second_app.is_active = False
+    second_app.tokens.create(name="default")
+    second_app.save()
 
     variables = {"filter": service_account_filter}
     response = staff_api_client.post_graphql(
@@ -732,9 +731,9 @@ def test_query_service_accounts_with_sort(
     permission_manage_service_accounts,
 ):
     with freeze_time("2018-05-31 12:00:01"):
-        ServiceAccount.objects.create(name="google", is_active=True)
+        App.objects.create(name="google", is_active=True)
     with freeze_time("2019-05-31 12:00:01"):
-        ServiceAccount.objects.create(name="facebook", is_active=True)
+        App.objects.create(name="facebook", is_active=True)
     variables = {"sort_by": service_accounts_sort}
     staff_api_client.user.user_permissions.add(permission_manage_service_accounts)
     response = staff_api_client.post_graphql(
@@ -748,7 +747,7 @@ def test_query_service_accounts_with_sort(
 
 
 def test_service_accounts_query_no_permission(
-    staff_api_client, permission_manage_users, permission_manage_staff, service_account
+    staff_api_client, permission_manage_users, permission_manage_staff, app
 ):
     variables = {"filter": {}}
     response = staff_api_client.post_graphql(
@@ -784,14 +783,11 @@ QUERY_SERVICE_ACCOUNT = """
 
 
 def test_service_account_query(
-    staff_api_client,
-    permission_manage_service_accounts,
-    permission_manage_staff,
-    service_account,
+    staff_api_client, permission_manage_service_accounts, permission_manage_staff, app,
 ):
-    service_account.permissions.add(permission_manage_staff)
+    app.permissions.add(permission_manage_staff)
 
-    id = graphene.Node.to_global_id("ServiceAccount", service_account.id)
+    id = graphene.Node.to_global_id("ServiceAccount", app.id)
     variables = {"id": id}
     response = staff_api_client.post_graphql(
         QUERY_SERVICE_ACCOUNT,
@@ -800,24 +796,24 @@ def test_service_account_query(
     )
     content = get_graphql_content(response)
 
-    tokens = service_account.tokens.all()
+    tokens = app.tokens.all()
     service_account_data = content["data"]["serviceAccount"]
     tokens_data = service_account_data["tokens"]
     assert tokens.count() == 1
     assert tokens_data[0]["authToken"] == tokens.first().auth_token[-4:]
 
-    assert service_account_data["isActive"] == service_account.is_active
+    assert service_account_data["isActive"] == app.is_active
     assert service_account_data["permissions"] == [
         {"code": "MANAGE_STAFF", "name": "Manage staff."}
     ]
 
 
 def test_service_account_query_no_permission(
-    staff_api_client, permission_manage_staff, permission_manage_users, service_account
+    staff_api_client, permission_manage_staff, permission_manage_users, app
 ):
-    service_account.permissions.add(permission_manage_staff)
+    app.permissions.add(permission_manage_staff)
 
-    id = graphene.Node.to_global_id("ServiceAccount", service_account.id)
+    id = graphene.Node.to_global_id("ServiceAccount", app.id)
     variables = {"id": id}
     response = staff_api_client.post_graphql(
         QUERY_SERVICE_ACCOUNT, variables, permissions=[]
@@ -833,10 +829,7 @@ def test_service_account_query_no_permission(
 
 
 def test_service_account_with_access_to_resources(
-    service_account_api_client,
-    service_account,
-    permission_manage_orders,
-    order_with_lines,
+    app_api_client, app, permission_manage_orders, order_with_lines,
 ):
     query = """
       query {
@@ -849,9 +842,9 @@ def test_service_account_with_access_to_resources(
         }
       }
     """
-    response = service_account_api_client.post_graphql(query)
+    response = app_api_client.post_graphql(query)
     assert_no_permission(response)
-    response = service_account_api_client.post_graphql(
+    response = app_api_client.post_graphql(
         query, permissions=[permission_manage_orders]
     )
     get_graphql_content(response)
@@ -882,13 +875,12 @@ def test_service_account_token_create(
     staff_user,
     permission_manage_orders,
 ):
-
-    service_account = ServiceAccount.objects.create(name="New_sa")
+    app = App.objects.create(name="New_sa")
     query = SERVICE_ACCOUNT_TOKEN_CREATE_MUTATION
     staff_user.user_permissions.add(permission_manage_orders)
-    service_account.permissions.add(permission_manage_orders)
+    app.permissions.add(permission_manage_orders)
 
-    id = graphene.Node.to_global_id("ServiceAccount", service_account.id)
+    id = graphene.Node.to_global_id("ServiceAccount", app.id)
     variables = {"name": "Default token", "serviceAccount": id}
     response = staff_api_client.post_graphql(
         query,
@@ -898,28 +890,26 @@ def test_service_account_token_create(
     content = get_graphql_content(response)
     token_data = content["data"]["serviceAccountTokenCreate"]["serviceAccountToken"]
     auth_token_data = content["data"]["serviceAccountTokenCreate"]["authToken"]
-    auth_token = service_account.tokens.get().auth_token
+    auth_token = app.tokens.get().auth_token
     assert auth_token_data == auth_token
 
     assert token_data["authToken"] == auth_token[-4:]
     assert token_data["name"] == "Default token"
 
 
-def test_service_account_token_create_for_service_account(
-    permission_manage_service_accounts,
-    service_account_api_client,
-    permission_manage_orders,
+def test_service_account_token_create_for_app(
+    permission_manage_service_accounts, app_api_client, permission_manage_orders,
 ):
 
-    service_account = ServiceAccount.objects.create(name="New_sa")
+    app = App.objects.create(name="New_sa")
     query = SERVICE_ACCOUNT_TOKEN_CREATE_MUTATION
-    requestor = service_account_api_client.service_account
+    requestor = app_api_client.app
     requestor.permissions.add(permission_manage_orders)
-    service_account.permissions.add(permission_manage_orders)
+    app.permissions.add(permission_manage_orders)
 
-    id = graphene.Node.to_global_id("ServiceAccount", service_account.id)
+    id = graphene.Node.to_global_id("ServiceAccount", app.id)
     variables = {"name": "Default token", "serviceAccount": id}
-    response = service_account_api_client.post_graphql(
+    response = app_api_client.post_graphql(
         query,
         variables={"input": variables},
         permissions=(permission_manage_service_accounts,),
@@ -927,7 +917,7 @@ def test_service_account_token_create_for_service_account(
     content = get_graphql_content(response)
     token_data = content["data"]["serviceAccountTokenCreate"]["serviceAccountToken"]
     auth_token_data = content["data"]["serviceAccountTokenCreate"]["authToken"]
-    auth_token = service_account.tokens.get().auth_token
+    auth_token = app.tokens.get().auth_token
     assert auth_token_data == auth_token
 
     assert token_data["authToken"] == auth_token[-4:]
@@ -946,11 +936,11 @@ def test_service_account_token_create_out_of_scope_service_account(
 
     Ensure superuser pass restrictions.
     """
-    service_account = ServiceAccount.objects.create(name="New_sa")
+    app = App.objects.create(name="New_sa")
     query = SERVICE_ACCOUNT_TOKEN_CREATE_MUTATION
-    service_account.permissions.add(permission_manage_orders)
+    app.permissions.add(permission_manage_orders)
 
-    id = graphene.Node.to_global_id("ServiceAccount", service_account.id)
+    id = graphene.Node.to_global_id("ServiceAccount", app.id)
     variables = {"name": "Default token", "serviceAccount": id}
 
     # for staff user
@@ -974,7 +964,7 @@ def test_service_account_token_create_out_of_scope_service_account(
     content = get_graphql_content(response)
     token_data = content["data"]["serviceAccountTokenCreate"]["serviceAccountToken"]
     auth_token_data = content["data"]["serviceAccountTokenCreate"]["authToken"]
-    auth_token = service_account.tokens.get().auth_token
+    auth_token = app.tokens.get().auth_token
     assert auth_token_data == auth_token
 
     assert token_data["authToken"] == auth_token[-4:]
@@ -982,19 +972,16 @@ def test_service_account_token_create_out_of_scope_service_account(
 
 
 def test_service_account_token_create_as_service_account_out_of_scope_service_account(
-    permission_manage_service_accounts,
-    service_account_api_client,
-    service_account,
-    permission_manage_orders,
+    permission_manage_service_accounts, app_api_client, app, permission_manage_orders,
 ):
 
-    service_account = ServiceAccount.objects.create(name="New_sa")
+    app = App.objects.create(name="New_sa")
     query = SERVICE_ACCOUNT_TOKEN_CREATE_MUTATION
-    service_account.permissions.add(permission_manage_orders)
+    app.permissions.add(permission_manage_orders)
 
-    id = graphene.Node.to_global_id("ServiceAccount", service_account.id)
+    id = graphene.Node.to_global_id("ServiceAccount", app.id)
     variables = {"name": "Default token", "serviceAccount": id}
-    response = service_account_api_client.post_graphql(
+    response = app_api_client.post_graphql(
         query,
         variables={"input": variables},
         permissions=(permission_manage_service_accounts,),
@@ -1010,9 +997,9 @@ def test_service_account_token_create_as_service_account_out_of_scope_service_ac
 
 
 def test_service_account_token_create_no_permissions(staff_api_client, staff_user):
-    service_account = ServiceAccount.objects.create(name="New_sa")
+    app = App.objects.create(name="New_sa")
     query = SERVICE_ACCOUNT_TOKEN_CREATE_MUTATION
-    id = graphene.Node.to_global_id("ServiceAccount", service_account.id)
+    id = graphene.Node.to_global_id("ServiceAccount", app.id)
     variables = {"name": "Default token", "serviceAccount": id}
     response = staff_api_client.post_graphql(query, variables={"input": variables})
     assert_no_permission(response)
@@ -1037,16 +1024,16 @@ SERVICE_ACCOUNT_TOKEN_DELETE_MUTATION = """
 
 def test_service_account_token_delete(
     permission_manage_service_accounts,
+    permission_manage_products,
     staff_api_client,
     staff_user,
-    service_account,
-    permission_manage_products,
+    app,
 ):
 
     query = SERVICE_ACCOUNT_TOKEN_DELETE_MUTATION
-    token = service_account.tokens.get()
+    token = app.tokens.get()
     staff_user.user_permissions.add(permission_manage_products)
-    service_account.permissions.add(permission_manage_products)
+    app.permissions.add(permission_manage_products)
     id = graphene.Node.to_global_id("ServiceAccountToken", token.id)
 
     variables = {"id": id}
@@ -1054,37 +1041,33 @@ def test_service_account_token_delete(
         query, variables=variables, permissions=(permission_manage_service_accounts,)
     )
     get_graphql_content(response)
-    assert not ServiceAccountToken.objects.filter(id=token.id).first()
+    assert not AppToken.objects.filter(id=token.id).first()
 
 
-def test_service_account_token_delete_for_service_account(
-    permission_manage_service_accounts,
-    service_account_api_client,
-    permission_manage_products,
+def test_service_account_token_delete_for_app(
+    permission_manage_service_accounts, app_api_client, permission_manage_products,
 ):
-    service_account = ServiceAccount.objects.create(name="New_sa", is_active=True)
-    token = ServiceAccountToken.objects.create(service_account=service_account)
+    app = App.objects.create(name="New_sa", is_active=True)
+    token = AppToken.objects.create(app=app)
     query = SERVICE_ACCOUNT_TOKEN_DELETE_MUTATION
-    token = service_account.tokens.get()
-    requestor = service_account_api_client.service_account
+    token = app.tokens.get()
+    requestor = app_api_client.app
     requestor.permissions.add(permission_manage_products)
-    service_account.permissions.add(permission_manage_products)
+    app.permissions.add(permission_manage_products)
     id = graphene.Node.to_global_id("ServiceAccountToken", token.id)
 
     variables = {"id": id}
-    response = service_account_api_client.post_graphql(
+    response = app_api_client.post_graphql(
         query, variables=variables, permissions=(permission_manage_service_accounts,)
     )
     get_graphql_content(response)
-    assert not ServiceAccountToken.objects.filter(id=token.id).first()
+    assert not AppToken.objects.filter(id=token.id).first()
 
 
-def test_service_account_token_delete_no_permissions(
-    staff_api_client, staff_user, service_account
-):
+def test_service_account_token_delete_no_permissions(staff_api_client, staff_user, app):
 
     query = SERVICE_ACCOUNT_TOKEN_DELETE_MUTATION
-    token = service_account.tokens.get()
+    token = app.tokens.get()
     id = graphene.Node.to_global_id("ServiceAccountToken", token.id)
 
     variables = {"id": id}
@@ -1098,7 +1081,7 @@ def test_service_account_token_delete_out_of_scope_service_account(
     staff_api_client,
     superuser_api_client,
     staff_user,
-    service_account,
+    app,
     permission_manage_products,
 ):
     """Ensure user can't delete service account token with wider scope of permissions.
@@ -1106,8 +1089,8 @@ def test_service_account_token_delete_out_of_scope_service_account(
     Ensure superuser pass restrictions.
     """
     query = SERVICE_ACCOUNT_TOKEN_DELETE_MUTATION
-    token = service_account.tokens.get()
-    service_account.permissions.add(permission_manage_products)
+    token = app.tokens.get()
+    app.permissions.add(permission_manage_products)
     id = graphene.Node.to_global_id("ServiceAccountToken", token.id)
 
     variables = {"id": id}
@@ -1126,7 +1109,7 @@ def test_service_account_token_delete_out_of_scope_service_account(
     error = errors[0]
     assert error["code"] == AccountErrorCode.OUT_OF_SCOPE_SERVICE_ACCOUNT.name
     assert error["field"] == "id"
-    assert ServiceAccountToken.objects.filter(id=token.id).exists()
+    assert AppToken.objects.filter(id=token.id).exists()
 
     # for superuser
     response = superuser_api_client.post_graphql(query, variables=variables)
@@ -1137,22 +1120,20 @@ def test_service_account_token_delete_out_of_scope_service_account(
 
     assert data["serviceAccountToken"]
     assert not errors
-    assert not ServiceAccountToken.objects.filter(id=token.id).exists()
+    assert not AppToken.objects.filter(id=token.id).exists()
 
 
-def test_service_account_token_delete_for_service_account_out_of_scope_service_account(
-    permission_manage_service_accounts,
-    service_account_api_client,
-    permission_manage_products,
+def test_service_account_token_delete_for_service_account_out_of_scope_app(
+    permission_manage_service_accounts, app_api_client, permission_manage_products,
 ):
-    service_account = ServiceAccount.objects.create(name="New_sa", is_active=True)
-    token = ServiceAccountToken.objects.create(service_account=service_account)
+    app = App.objects.create(name="New_sa", is_active=True)
+    token = AppToken.objects.create(app=app)
     query = SERVICE_ACCOUNT_TOKEN_DELETE_MUTATION
-    service_account.permissions.add(permission_manage_products)
+    app.permissions.add(permission_manage_products)
     id = graphene.Node.to_global_id("ServiceAccountToken", token.id)
 
     variables = {"id": id}
-    response = service_account_api_client.post_graphql(
+    response = app_api_client.post_graphql(
         query, variables=variables, permissions=(permission_manage_service_accounts,)
     )
     content = get_graphql_content(response)
@@ -1165,4 +1146,4 @@ def test_service_account_token_delete_for_service_account_out_of_scope_service_a
     error = errors[0]
     assert error["code"] == AccountErrorCode.OUT_OF_SCOPE_SERVICE_ACCOUNT.name
     assert error["field"] == "id"
-    assert ServiceAccountToken.objects.filter(id=token.id).exists()
+    assert AppToken.objects.filter(id=token.id).exists()

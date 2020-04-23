@@ -1,15 +1,16 @@
 import graphene
 from django.core.exceptions import ValidationError
 
-from ....account import models
 from ....account.error_codes import AccountErrorCode
-from ....core.permissions import AccountPermissions, get_permissions
+from ....app import models
+from ....core.permissions import AppPermission, get_permissions
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types.common import ServiceAccountError
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
-from ...utils import get_user_or_service_account_from_context, requestor_is_superuser
-from ..utils import can_manage_service_account, get_out_of_scope_permissions
+from ...utils import get_user_or_app_from_context, requestor_is_superuser
+from ..utils import can_manage_app, get_out_of_scope_permissions
+from .types import ServiceAccount, ServiceAccountToken
 
 
 class ServiceAccountInput(graphene.InputObjectType):
@@ -39,17 +40,23 @@ class ServiceAccountTokenCreate(ModelMutation):
         )
 
     class Meta:
+        return_field_name = "serviceAccountToken"
         description = "Creates a new token."
-        model = models.ServiceAccountToken
-        permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
+        model = models.AppToken
+        permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = ServiceAccountError
         error_type_field = "service_account_errors"
 
     @classmethod
+    def get_type_for_model(cls):
+        return ServiceAccountToken
+
+    @classmethod
     def perform_mutation(cls, root, info, **data):
+        input_data = data.get("input", {})
         instance = cls.get_instance(info, **data)
-        data = data.get("input")
-        cleaned_input = cls.clean_input(info, instance, data)
+        cleaned_input = cls.clean_input(info, instance, input_data)
+        cleaned_input["app"] = cleaned_input.pop("service_account", None)
         instance = cls.construct_instance(instance, cleaned_input)
         cls.clean_instance(info, instance)
         cls.save(info, instance, cleaned_input)
@@ -62,8 +69,8 @@ class ServiceAccountTokenCreate(ModelMutation):
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
         service_account = cleaned_input.get("service_account")
-        requestor = get_user_or_service_account_from_context(info.context)
-        if not requestor_is_superuser(requestor) and not can_manage_service_account(
+        requestor = get_user_or_app_from_context(info.context)
+        if not requestor_is_superuser(requestor) and not can_manage_app(
             requestor, service_account
         ):
             msg = "You can't manage this service account."
@@ -77,22 +84,25 @@ class ServiceAccountTokenDelete(ModelDeleteMutation):
         id = graphene.ID(description="ID of an auth token to delete.", required=True)
 
     class Meta:
+        return_field_name = "serviceAccountToken"
         description = "Deletes an authentication token assigned to service account."
-        model = models.ServiceAccountToken
-        permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
+        model = models.AppToken
+        permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = ServiceAccountError
         error_type_field = "service_account_errors"
 
     @classmethod
     def clean_instance(cls, info, instance):
-        service_account = instance.service_account
-        requestor = get_user_or_service_account_from_context(info.context)
-        if not requestor_is_superuser(requestor) and not can_manage_service_account(
-            requestor, service_account
-        ):
+        app = instance.app
+        requestor = get_user_or_app_from_context(info.context)
+        if not requestor_is_superuser(requestor) and not can_manage_app(requestor, app):
             msg = "You can't delete this service account token."
             code = AccountErrorCode.OUT_OF_SCOPE_SERVICE_ACCOUNT.value
             raise ValidationError({"id": ValidationError(msg, code=code)})
+
+    @classmethod
+    def get_type_for_model(cls):
+        return ServiceAccountToken
 
 
 class ServiceAccountCreate(ModelMutation):
@@ -107,18 +117,23 @@ class ServiceAccountCreate(ModelMutation):
         )
 
     class Meta:
+        return_field_name = "serviceAccount"
         description = "Creates a new service account."
-        model = models.ServiceAccount
-        permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
+        model = models.App
+        permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = ServiceAccountError
         error_type_field = "service_account_errors"
 
     @classmethod
-    def clean_input(cls, info, instance, data):
-        cleaned_input = super().clean_input(info, instance, data)
+    def get_type_for_model(cls):
+        return ServiceAccount
+
+    @classmethod
+    def clean_input(cls, info, instance, data, input_cls=None):
+        cleaned_input = super().clean_input(info, instance, data, input_cls)
         # clean and prepare permissions
         if "permissions" in cleaned_input:
-            requestor = get_user_or_service_account_from_context(info.context)
+            requestor = get_user_or_app_from_context(info.context)
             permissions = cleaned_input.pop("permissions")
             cleaned_input["permissions"] = get_permissions(permissions)
             cls.ensure_can_manage_permissions(requestor, permissions)
@@ -165,17 +180,18 @@ class ServiceAccountUpdate(ModelMutation):
         )
 
     class Meta:
+        return_field_name = "serviceAccount"
         description = "Updates an existing service account."
-        model = models.ServiceAccount
-        permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
+        model = models.App
+        permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = ServiceAccountError
         error_type_field = "service_account_errors"
 
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
-        requestor = get_user_or_service_account_from_context(info.context)
-        if not requestor_is_superuser(requestor) and not can_manage_service_account(
+        requestor = get_user_or_app_from_context(info.context)
+        if not requestor_is_superuser(requestor) and not can_manage_app(
             requestor, instance
         ):
             msg = "You can't manage this service account."
@@ -189,6 +205,10 @@ class ServiceAccountUpdate(ModelMutation):
             ServiceAccountCreate.ensure_can_manage_permissions(requestor, permissions)
         return cleaned_input
 
+    @classmethod
+    def get_type_for_model(cls):
+        return ServiceAccount
+
 
 class ServiceAccountDelete(ModelDeleteMutation):
     class Arguments:
@@ -197,28 +217,34 @@ class ServiceAccountDelete(ModelDeleteMutation):
         )
 
     class Meta:
+        return_field_name = "serviceAccount"
         description = "Deletes a service account."
-        model = models.ServiceAccount
-        permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
+        model = models.App
+        permissions = (AppPermission.MANAGE_APPS,)
         error_type_class = ServiceAccountError
         error_type_field = "service_account_errors"
 
     @classmethod
     def clean_instance(cls, info, instance):
-        requestor = get_user_or_service_account_from_context(info.context)
-        if not requestor_is_superuser(requestor) and not can_manage_service_account(
+        requestor = get_user_or_app_from_context(info.context)
+        if not requestor_is_superuser(requestor) and not can_manage_app(
             requestor, instance
         ):
             msg = "You can't delete this service account."
             code = AccountErrorCode.OUT_OF_SCOPE_SERVICE_ACCOUNT.value
             raise ValidationError({"id": ValidationError(msg, code=code)})
 
+    @classmethod
+    def get_type_for_model(cls):
+        return ServiceAccount
+
 
 class ServiceAccountUpdatePrivateMeta(UpdateMetaBaseMutation):
     class Meta:
+        return_field_name = "serviceAccount"
         description = "Updates private metadata for a service account."
-        permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
-        model = models.ServiceAccount
+        permissions = (AppPermission.MANAGE_APPS,)
+        model = models.App
         public = False
         error_type_class = ServiceAccountError
         error_type_field = "service_account_errors"
@@ -226,9 +252,10 @@ class ServiceAccountUpdatePrivateMeta(UpdateMetaBaseMutation):
 
 class ServiceAccountClearPrivateMeta(ClearMetaBaseMutation):
     class Meta:
+        return_field_name = "serviceAccount"
         description = "Clear private metadata for a service account."
-        model = models.ServiceAccount
-        permissions = (AccountPermissions.MANAGE_SERVICE_ACCOUNTS,)
+        model = models.App
+        permissions = (AppPermission.MANAGE_APPS,)
         public = False
         error_type_class = ServiceAccountError
         error_type_field = "service_account_errors"

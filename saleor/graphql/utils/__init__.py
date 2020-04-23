@@ -168,10 +168,10 @@ def create_jwt_payload(user, context=None):
     return payload
 
 
-def get_user_or_service_account_from_context(context):
+def get_user_or_app_from_context(context):
     # order is important
-    # service_account can be None but user if None then is passed as anonymous
-    return context.service_account or context.user
+    # app can be None but user if None then is passed as anonymous
+    return context.app or context.user
 
 
 def filter_range_field(qs, field, value):

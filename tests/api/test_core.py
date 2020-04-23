@@ -446,8 +446,8 @@ def test_requestor_is_superuser_for_superuser(superuser):
     assert result is True
 
 
-def test_requestor_is_superuser_for_service_account(service_account):
-    result = requestor_is_superuser(service_account)
+def test_requestor_is_superuser_for_app(app):
+    result = requestor_is_superuser(app)
     assert result is False
 
 

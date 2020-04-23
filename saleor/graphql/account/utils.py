@@ -15,7 +15,8 @@ from ...core.permissions import AccountPermissions, get_permissions
 
 if TYPE_CHECKING:
     from django.db.models import QuerySet
-    from ...account.models import User, ServiceAccount
+    from ...account.models import User
+    from ...app.models import App
 
 
 class UserDeleteMixin:
@@ -180,7 +181,7 @@ def get_user_permissions(user: "User") -> "QuerySet":
 
 
 def get_out_of_scope_permissions(
-    requestor: Union["User", "ServiceAccount"], permissions: List[str]
+    requestor: Union["User", "App"], permissions: List[str]
 ) -> List[str]:
     """Return permissions that the requestor hasn't got."""
     missing_permissions = []
@@ -206,11 +207,9 @@ def can_user_manage_group(user: "User", group: Group) -> bool:
     return user.has_perms(permissions)
 
 
-def can_manage_service_account(
-    requestor: Union["User", "ServiceAccount"], service_account: "ServiceAccount"
-) -> bool:
+def can_manage_app(requestor: Union["User", "App"], app: "App") -> bool:
     """Requestor can't manage service account with wider scope of permissions."""
-    permissions = service_account.get_permissions()
+    permissions = app.get_permissions()
     return requestor.has_perms(permissions)
 
 
