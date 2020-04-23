@@ -4,8 +4,10 @@ from django.template.response import TemplateResponse
 
 
 def home(request):
-    storefront = os.environ.get("STOREFRONT_URL", "")
-    dashboard = os.environ.get("DASHBOARD_URL", "")
+    storefront_url = os.environ.get("STOREFRONT_URL", "")
+    dashboard_url = os.environ.get("DASHBOARD_URL", "")
     return TemplateResponse(
-        request, "home.html", {"storefront": storefront, "dashboard": dashboard}
+        request,
+        "home.html",
+        {"storefront_url": storefront_url, "dashboard_url": dashboard_url},
     )
