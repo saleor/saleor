@@ -3971,7 +3971,6 @@ mutation createProduct(
         $category: ID!
         $name: String!,
         $sku: String,
-        $quantity: Int,
         $basePrice: Decimal!
         $weight: WeightScalar
         $trackInventory: Boolean)
@@ -3983,7 +3982,6 @@ mutation createProduct(
                 name: $name,
                 sku: $sku,
                 trackInventory: $trackInventory,
-                quantity: $quantity,
                 basePrice: $basePrice,
                 weight: $weight
             })
@@ -4019,7 +4017,6 @@ mutation createProduct(
         $category: ID!
         $name: String!,
         $sku: String,
-        $quantity: Int,
         $basePrice: Decimal!
         $trackInventory: Boolean)
     {{
@@ -4030,7 +4027,6 @@ mutation createProduct(
                 name: $name,
                 sku: $sku,
                 trackInventory: $trackInventory,
-                quantity: $quantity,
                 basePrice: $basePrice,
                 weight: {weight}
             }})
@@ -4088,7 +4084,6 @@ def test_create_product_with_weight_variable(
         "category": category_id,
         "productType": product_type_id,
         "name": "Test",
-        "quantity": 8,
         "sku": "23434",
         "trackInventory": True,
         "basePrice": Decimal("19"),
@@ -4134,7 +4129,6 @@ def test_create_product_with_weight_input(
         "category": category_id,
         "productType": product_type_id,
         "name": "Test",
-        "quantity": 8,
         "sku": "23434",
         "trackInventory": True,
         "basePrice": Decimal("19"),
