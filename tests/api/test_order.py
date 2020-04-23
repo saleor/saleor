@@ -11,7 +11,6 @@ from prices import Money, TaxedMoney
 from saleor.account.models import CustomerEvent
 from saleor.core.permissions import OrderPermissions
 from saleor.core.taxes import zero_taxed_money
-from saleor.plugins.manager import PluginsManager
 from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.order.mutations.orders import (
     clean_order_cancel,
@@ -26,6 +25,7 @@ from saleor.order.error_codes import OrderErrorCode
 from saleor.order.models import Order, OrderEvent
 from saleor.payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from saleor.payment.models import Payment
+from saleor.plugins.manager import PluginsManager
 from saleor.shipping.models import ShippingMethod
 from saleor.warehouse.models import Allocation, Stock
 
@@ -504,9 +504,7 @@ def test_non_staff_user_cannot_only_see_his_order(user_api_client, order):
     assert_no_permission(response)
 
 
-def test_query_order_as_service_account(
-    service_account_api_client, permission_manage_orders, order
-):
+def test_query_order_as_app(app_api_client, permission_manage_orders, order):
     query = """
     query OrderQuery($id: ID!) {
         order(id: $id) {
@@ -516,7 +514,7 @@ def test_query_order_as_service_account(
     """
     ID = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": ID}
-    response = service_account_api_client.post_graphql(
+    response = app_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)

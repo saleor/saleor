@@ -8,9 +8,9 @@ from .types import Webhook, WebhookEvent
 
 
 def resolve_webhooks(info, **_kwargs):
-    service_account = info.context.service_account
-    if service_account:
-        qs = models.Webhook.objects.filter(service_account=service_account)
+    app = info.context.app
+    if app:
+        qs = models.Webhook.objects.filter(app=app)
     else:
         user = info.context.user
         if not user.has_perm(WebhookPermissions.MANAGE_WEBHOOKS):
@@ -20,10 +20,10 @@ def resolve_webhooks(info, **_kwargs):
 
 
 def resolve_webhook(info, webhook_id):
-    service_account = info.context.service_account
-    if service_account:
+    app = info.context.app
+    if app:
         _, webhook_id = graphene.Node.from_global_id(webhook_id)
-        return service_account.webhooks.filter(id=webhook_id).first()
+        return app.webhooks.filter(id=webhook_id).first()
     user = info.context.user
     if user.has_perm(WebhookPermissions.MANAGE_WEBHOOKS):
         return graphene.Node.get_node_from_global_id(info, webhook_id, Webhook)
@@ -38,10 +38,10 @@ def resolve_webhook_events():
 
 
 def resolve_sample_payload(info, event_name):
-    service_account = info.context.service_account
+    app = info.context.app
     required_permission = WebhookEventType.PERMISSIONS.get(event_name)
     if required_permission:
-        if service_account and service_account.has_perm(required_permission):
+        if app and app.has_perm(required_permission):
             return payloads.generate_sample_payload(event_name)
         if info.context.user.has_perm(required_permission):
             return payloads.generate_sample_payload(event_name)
