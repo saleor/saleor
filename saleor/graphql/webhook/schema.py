@@ -29,6 +29,10 @@ class WebhookQueries(graphene.ObjectType):
         description="List of webhooks.",
         sort_by=WebhookSortingInput(description="Sort webhooks."),
         filter=WebhookFilterInput(description="Filtering options for webhooks."),
+        deprecation_reason=(
+            "Use webhooks field on app(s) query instead. This field will be removed "
+            "after 2020-07-31."
+        ),
     )
     webhook_events = graphene.List(
         WebhookEvent, description="List of all available webhook events."
