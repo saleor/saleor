@@ -147,12 +147,12 @@ class ServiceAccountCreate(ModelMutation):
         """
         if requestor_is_superuser(requestor):
             return
-        permissions = get_out_of_scope_permissions(requestor, permission_items)
-        if permissions:
+        missing_permissions = get_out_of_scope_permissions(requestor, permission_items)
+        if missing_permissions:
             # add error
             error_msg = "You can't add permission that you don't have."
             code = AccountErrorCode.OUT_OF_SCOPE_PERMISSION.value
-            params = {"permissions": permissions}
+            params = {"permissions": missing_permissions}
             raise ValidationError(
                 {"permissions": ValidationError(error_msg, code=code, params=params)}
             )
