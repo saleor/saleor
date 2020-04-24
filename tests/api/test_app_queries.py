@@ -48,16 +48,13 @@ def test_apps_query(
     second_app.tokens.create(name="default")
     second_app.save()
 
-    webhooks_in_db = Webhook.objects.bulk_create(
+    webhooks = Webhook.objects.bulk_create(
         [
             Webhook(app=app, name="first", target_url="http://www.example.com/test"),
-            Webhook(
-                app=second_app,
-                name="second",
-                target_url="http://www.example.com/second",
-            ),
+            Webhook(app=second_app, name="second", target_url="http://www.exa.com/s",),
         ]
     )
+    webhooks_names = [w.name for w in webhooks]
 
     variables = {"filter": app_filter}
     response = staff_api_client.post_graphql(
@@ -74,7 +71,7 @@ def test_apps_query(
         assert len(tokens[0]["authToken"]) == 4
         webhooks = app_data["node"]["webhooks"]
         assert len(webhooks) == 1
-        assert webhooks[0]["name"] in [w.name for w in webhooks_in_db]
+        assert webhooks[0]["name"] in webhooks_names
     assert len(apps_data) == count
 
 
