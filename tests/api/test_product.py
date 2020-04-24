@@ -3972,8 +3972,7 @@ mutation createProduct(
         $name: String!,
         $sku: String,
         $basePrice: Decimal!
-        $weight: WeightScalar
-        $trackInventory: Boolean)
+        $weight: WeightScalar)
     {
         productCreate(
             input: {
@@ -3981,20 +3980,12 @@ mutation createProduct(
                 productType: $productType,
                 name: $name,
                 sku: $sku,
-                trackInventory: $trackInventory,
                 basePrice: $basePrice,
                 weight: $weight
             })
         {
             product {
                 id
-                name
-                variants{
-                    id
-                    sku
-                    trackInventory
-                    quantity
-                }
                 weight{
                     value
                     unit
@@ -4007,51 +3998,6 @@ mutation createProduct(
             }
         }
     }
-    """
-
-# Because we use Scalars for Weight this test query tests only a scenario when weight
-# value is passed by directly in input
-MUTATION_CREATE_PRODUCT_WITH_WEIGHT_GQL_INPUT = """
-mutation createProduct(
-        $productType: ID!,
-        $category: ID!
-        $name: String!,
-        $sku: String,
-        $basePrice: Decimal!
-        $trackInventory: Boolean)
-    {{
-        productCreate(
-            input: {{
-                category: $category,
-                productType: $productType,
-                name: $name,
-                sku: $sku,
-                trackInventory: $trackInventory,
-                basePrice: $basePrice,
-                weight: {weight}
-            }})
-        {{
-            product {{
-                id
-                name
-                variants{{
-                    id
-                    sku
-                    trackInventory
-                    quantity
-                }}
-                weight{{
-                    value
-                    unit
-                }}
-            }}
-            productErrors {{
-                message
-                field
-                code
-            }}
-        }}
-    }}
     """
 
 
@@ -4074,7 +4020,6 @@ def test_create_product_with_weight_variable(
     category,
     permission_manage_products,
     product_type_without_variant,
-    warehouse,
 ):
     category_id = graphene.Node.to_global_id("Category", category.pk)
     product_type_id = graphene.Node.to_global_id(
@@ -4085,7 +4030,6 @@ def test_create_product_with_weight_variable(
         "productType": product_type_id,
         "name": "Test",
         "sku": "23434",
-        "trackInventory": True,
         "basePrice": Decimal("19"),
         "weight": weight,
     }
@@ -4119,8 +4063,42 @@ def test_create_product_with_weight_input(
     category,
     permission_manage_products,
     product_type_without_variant,
-    warehouse,
 ):
+    # Because we use Scalars for Weight this test query tests only a scenario when
+    # weight value is passed by directly in input
+    MUTATION_CREATE_PRODUCT_WITH_WEIGHT_GQL_INPUT = f"""
+mutation createProduct(
+        $productType: ID!,
+        $category: ID!
+        $name: String!,
+        $sku: String,
+        $basePrice: Decimal!)
+    {{
+        productCreate(
+            input: {{
+                category: $category,
+                productType: $productType,
+                name: $name,
+                sku: $sku,
+                basePrice: $basePrice,
+                weight: {weight}
+            }})
+        {{
+            product {{
+                id
+                weight{{
+                    value
+                    unit
+                }}
+            }}
+            productErrors {{
+                message
+                field
+                code
+            }}
+        }}
+    }}
+    """
     category_id = graphene.Node.to_global_id("Category", category.pk)
     product_type_id = graphene.Node.to_global_id(
         "ProductType", product_type_without_variant.pk
@@ -4130,11 +4108,10 @@ def test_create_product_with_weight_input(
         "productType": product_type_id,
         "name": "Test",
         "sku": "23434",
-        "trackInventory": True,
         "basePrice": Decimal("19"),
     }
     response = staff_api_client.post_graphql(
-        MUTATION_CREATE_PRODUCT_WITH_WEIGHT_GQL_INPUT.format(weight=weight),
+        MUTATION_CREATE_PRODUCT_WITH_WEIGHT_GQL_INPUT,
         variables,
         permissions=[permission_manage_products],
     )
