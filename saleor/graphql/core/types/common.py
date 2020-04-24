@@ -70,15 +70,6 @@ class AccountError(Error):
     code = AccountErrorCode(description="The error code.", required=True)
 
 
-# DEPRECATED: Will be removed in 2020-07-31 (issue: #5521).
-class ServiceAccountError(AccountError):
-    permissions = graphene.List(
-        graphene.NonNull(PermissionEnum),
-        description="List of permissions which causes the error.",
-        required=False,
-    )
-
-
 class AppError(Error):
     code = AppErrorCode(description="The error code.", required=True)
     permissions = graphene.List(

@@ -7,7 +7,7 @@ from ....core.permissions import AppPermission, get_permissions
 from ...account.utils import can_manage_app, get_out_of_scope_permissions
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
-from ...core.types.common import ServiceAccountError
+from ...core.types.common import AccountError
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ...utils import get_user_or_app_from_context, requestor_is_superuser
 from .types import ServiceAccount, ServiceAccountToken
@@ -44,8 +44,8 @@ class ServiceAccountTokenCreate(ModelMutation):
         description = "Creates a new token."
         model = models.AppToken
         permissions = (AppPermission.MANAGE_APPS,)
-        error_type_class = ServiceAccountError
-        error_type_field = "service_account_errors"
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     def get_type_for_model(cls):
@@ -88,8 +88,8 @@ class ServiceAccountTokenDelete(ModelDeleteMutation):
         description = "Deletes an authentication token assigned to service account."
         model = models.AppToken
         permissions = (AppPermission.MANAGE_APPS,)
-        error_type_class = ServiceAccountError
-        error_type_field = "service_account_errors"
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     def clean_instance(cls, info, instance):
@@ -121,8 +121,8 @@ class ServiceAccountCreate(ModelMutation):
         description = "Creates a new service account."
         model = models.App
         permissions = (AppPermission.MANAGE_APPS,)
-        error_type_class = ServiceAccountError
-        error_type_field = "service_account_errors"
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     def get_type_for_model(cls):
@@ -152,9 +152,8 @@ class ServiceAccountCreate(ModelMutation):
             # add error
             error_msg = "You can't add permission that you don't have."
             code = AccountErrorCode.OUT_OF_SCOPE_PERMISSION.value
-            params = {"permissions": missing_permissions}
             raise ValidationError(
-                {"permissions": ValidationError(error_msg, code=code, params=params)}
+                {"permissions": ValidationError(error_msg, code=code)}
             )
 
     @classmethod
@@ -184,8 +183,8 @@ class ServiceAccountUpdate(ModelMutation):
         description = "Updates an existing service account."
         model = models.App
         permissions = (AppPermission.MANAGE_APPS,)
-        error_type_class = ServiceAccountError
-        error_type_field = "service_account_errors"
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     def clean_input(cls, info, instance, data):
@@ -221,8 +220,8 @@ class ServiceAccountDelete(ModelDeleteMutation):
         description = "Deletes a service account."
         model = models.App
         permissions = (AppPermission.MANAGE_APPS,)
-        error_type_class = ServiceAccountError
-        error_type_field = "service_account_errors"
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
     @classmethod
     def clean_instance(cls, info, instance):
@@ -246,8 +245,8 @@ class ServiceAccountUpdatePrivateMeta(UpdateMetaBaseMutation):
         permissions = (AppPermission.MANAGE_APPS,)
         model = models.App
         public = False
-        error_type_class = ServiceAccountError
-        error_type_field = "service_account_errors"
+        error_type_class = AccountError
+        error_type_field = "account_errors"
 
 
 class ServiceAccountClearPrivateMeta(ClearMetaBaseMutation):
@@ -257,5 +256,5 @@ class ServiceAccountClearPrivateMeta(ClearMetaBaseMutation):
         model = models.App
         permissions = (AppPermission.MANAGE_APPS,)
         public = False
-        error_type_class = ServiceAccountError
-        error_type_field = "service_account_errors"
+        error_type_class = AccountError
+        error_type_field = "account_errors"
