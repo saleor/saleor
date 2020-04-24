@@ -100,6 +100,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add job abstract model and interface - #5510 by @IKarbowiak
 - Refactor implementation of allocation - #5445 by @fowczarek
 - Fix WeightScalar - #5530 by @koradon
+- Add OrderFulfill mutation - #5525 by @fowczarek
 
 ## 2.9.0
 
