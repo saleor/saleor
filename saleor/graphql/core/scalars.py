@@ -40,12 +40,7 @@ class WeightScalar(graphene.Scalar):
         if isinstance(value, dict):
             weight = Weight(**{value["unit"]: value["value"]})
         else:
-            try:
-                value = decimal.Decimal(value)
-            except decimal.DecimalException:
-                return None
-            default_unit = get_default_weight_unit()
-            weight = Weight(**{default_unit: value})
+            weight = WeightScalar.parse_decimal(value)
         if not weight:
             raise GraphQLError(f"Unsupported value: {value}")
         return weight
@@ -65,15 +60,15 @@ class WeightScalar(graphene.Scalar):
         if isinstance(node, ast.ObjectValue):
             weight = WeightScalar.parse_literal_object(node)
         else:
-            weight = WeightScalar.parse_literal_decimal(node)
+            weight = WeightScalar.parse_decimal(node.value)
         if not weight:
             raise GraphQLError(f"Unsupported value: {node.value}")
         return weight
 
     @staticmethod
-    def parse_literal_decimal(node):
+    def parse_decimal(value):
         try:
-            value = decimal.Decimal(node.value)
+            value = decimal.Decimal(value)
         except decimal.DecimalException:
             return None
         default_unit = get_default_weight_unit()
