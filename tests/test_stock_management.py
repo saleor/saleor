@@ -1,4 +1,6 @@
 import pytest
+from django.db.models import Sum
+from django.db.models.functions import Coalesce
 
 from saleor.core.exceptions import InsufficientStock
 from saleor.warehouse.management import (
@@ -177,8 +179,9 @@ def test_decrease_stock(allocation):
     stock.save(update_fields=["quantity"])
     allocation.quantity_allocated = 80
     allocation.save(update_fields=["quantity_allocated"])
+    warehouse_pk = allocation.stock.warehouse.pk
 
-    decrease_stock(allocation.order_line, 50)
+    decrease_stock(allocation.order_line, 50, warehouse_pk)
 
     stock.refresh_from_db()
     assert stock.quantity == 50
@@ -192,8 +195,9 @@ def test_decrease_stock_partially(allocation):
     stock.save(update_fields=["quantity"])
     allocation.quantity_allocated = 80
     allocation.save(update_fields=["quantity_allocated"])
+    warehouse_pk = allocation.stock.warehouse.pk
 
-    decrease_stock(allocation.order_line, 80)
+    decrease_stock(allocation.order_line, 80, warehouse_pk)
 
     stock.refresh_from_db()
     assert stock.quantity == 20
@@ -203,25 +207,44 @@ def test_decrease_stock_partially(allocation):
 
 def test_decrease_stock_many_allocations(order_line_with_allocation_in_many_stocks,):
     order_line = order_line_with_allocation_in_many_stocks
-
-    decrease_stock(order_line, 3)
-
     allocations = order_line.allocations.all()
+    warehouse_pk = allocations[1].stock.warehouse.pk
+
+    decrease_stock(order_line, 3, warehouse_pk)
+
     assert allocations[0].quantity_allocated == 0
-    assert allocations[0].stock.quantity == 2
     assert allocations[1].quantity_allocated == 0
-    assert allocations[1].stock.quantity == 2
+    assert allocations[0].stock.quantity == 4
+    assert allocations[1].stock.quantity == 0
 
 
 def test_decrease_stock_many_allocations_partially(
     order_line_with_allocation_in_many_stocks,
 ):
     order_line = order_line_with_allocation_in_many_stocks
-
-    decrease_stock(order_line, 2)
-
     allocations = order_line.allocations.all()
+    warehouse_pk = allocations[0].stock.warehouse.pk
+
+    decrease_stock(order_line, 2, warehouse_pk)
+
     assert allocations[0].quantity_allocated == 0
-    assert allocations[0].stock.quantity == 2
     assert allocations[1].quantity_allocated == 1
+    assert allocations[0].stock.quantity == 2
+    assert allocations[1].stock.quantity == 3
+
+
+def test_decrease_stock_more_then_allocated(order_line_with_allocation_in_many_stocks,):
+    order_line = order_line_with_allocation_in_many_stocks
+    allocations = order_line.allocations.all()
+    warehouse_pk = allocations[0].stock.warehouse.pk
+    quantity_allocated = allocations.aggregate(
+        quantity_allocated=Coalesce(Sum("quantity_allocated"), 0)
+    )["quantity_allocated"]
+    assert quantity_allocated < 4
+
+    decrease_stock(order_line, 4, warehouse_pk)
+
+    assert allocations[0].quantity_allocated == 0
+    assert allocations[1].quantity_allocated == 0
+    assert allocations[0].stock.quantity == 0
     assert allocations[1].stock.quantity == 3

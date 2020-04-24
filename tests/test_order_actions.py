@@ -174,7 +174,7 @@ def test_fulfill_order_line(order_with_lines):
     stock = Stock.objects.get(product_variant=variant)
     stock_quantity_after = stock.quantity - line.quantity
 
-    fulfill_order_line(line, line.quantity)
+    fulfill_order_line(line, line.quantity, stock.warehouse.pk)
 
     stock.refresh_from_db()
     assert stock.quantity == stock_quantity_after
@@ -187,7 +187,7 @@ def test_fulfill_order_line_with_variant_deleted(order_with_lines):
 
     line.refresh_from_db()
 
-    fulfill_order_line(line, line.quantity)
+    fulfill_order_line(line, line.quantity, "warehouse_pk")
 
 
 def test_fulfill_order_line_without_inventory_tracking(order_with_lines):
@@ -202,7 +202,7 @@ def test_fulfill_order_line_without_inventory_tracking(order_with_lines):
     # stock should not change
     stock_quantity_after = stock.quantity
 
-    fulfill_order_line(line, line.quantity)
+    fulfill_order_line(line, line.quantity, stock.warehouse.pk)
 
     stock.refresh_from_db()
     assert stock.quantity == stock_quantity_after

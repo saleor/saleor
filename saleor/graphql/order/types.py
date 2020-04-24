@@ -21,6 +21,7 @@ from ..meta.types import ObjectWithMetadata
 from ..payment.types import OrderAction, Payment, PaymentChargeStatusEnum
 from ..product.types import ProductVariant
 from ..shipping.types import ShippingMethod
+from ..warehouse.types import Warehouse
 from .enums import OrderEventsEmailsEnum, OrderEventsEnum
 from .utils import validate_draft_order
 
@@ -169,6 +170,11 @@ class Fulfillment(CountableDjangoObjectType):
         FulfillmentLine, description="List of lines for the fulfillment."
     )
     status_display = graphene.String(description="User-friendly fulfillment status.")
+    warehouse = graphene.Field(
+        Warehouse,
+        required=False,
+        description=("Warehouse from fulfillment was fulfilled."),
+    )
 
     class Meta:
         description = "Represents order fulfillment."
@@ -189,6 +195,11 @@ class Fulfillment(CountableDjangoObjectType):
     @staticmethod
     def resolve_status_display(root: models.Fulfillment, _info):
         return root.get_status_display()
+
+    @staticmethod
+    def resolve_warehouse(root: models.Fulfillment, _info):
+        line = root.lines.first()
+        return line.stock.warehouse if line and line.stock else None
 
     @staticmethod
     @permission_required(OrderPermissions.MANAGE_ORDERS)

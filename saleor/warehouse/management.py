@@ -2,6 +2,7 @@ from typing import TYPE_CHECKING
 
 from django.db import transaction
 from django.db.models import F, Sum
+from django.db.models.functions import Coalesce
 
 from ..core.exceptions import AllocationError, InsufficientStock
 from .models import Allocation, Stock, Warehouse
@@ -139,41 +140,35 @@ def increase_stock(
 
 
 @transaction.atomic
-def decrease_stock(order_line: "OrderLine", quantity: int):
-    """Decrease stock quantity for given `order_line`.
+def decrease_stock(order_line: "OrderLine", quantity: int, warehouse_pk: str):
+    """Decrease stock quantity for given `order_line` in given warehouse.
 
-    Function lock for update stocks and allocations related to given `order_line`.
-    Iterate over allocations sorted by `stock.pk` and deallocate and decrease stock
-    quantity for as many items as needed of available in stock for order line, until
-    deallocated all required quantity for the order line. If there is less quantity in
-    stocks then raise an exception.
+    Function deallocate as many quantities as requested if order_line has less quantity
+    from requested function deallocate whole quantity. Next function try to find the
+    stock in a given warehouse, if stock not exists or have not enough stock,
+    the function raise InsufficientStock exception. When the stock has enough quantity
+    function decrease it by given value.
     """
-    allocations = (
-        order_line.allocations.select_related("stock")
-        .select_for_update(of=("self", "stock",))
-        .order_by("stock__pk")
-    )
-    quantity_decreased = 0
-    updated_stocks = []
+    try:
+        deallocate_stock(order_line, quantity)
+    except AllocationError:
+        order_line.allocations.update(quantity_allocated=0)
 
-    for allocation in allocations:
-        quantity_to_decreased = min(
-            (quantity - quantity_decreased), allocation.quantity_allocated
+    try:
+        stock = (
+            order_line.variant.stocks.select_for_update()  # type: ignore
+            .prefetch_related("allocations")
+            .get(warehouse__pk=warehouse_pk)
         )
-        if quantity_to_decreased > 0:
+    except Stock.DoesNotExist:
+        raise InsufficientStock(order_line.variant)
 
-            allocation.quantity_allocated = (
-                F("quantity_allocated") - quantity_to_decreased
-            )
+    quantity_allocated = stock.allocations.aggregate(
+        quantity_allocated=Coalesce(Sum("quantity_allocated"), 0)
+    )["quantity_allocated"]
 
-            stock = allocation.stock
-            stock.quantity = F("quantity") - quantity_to_decreased
-            updated_stocks.append(stock)
+    if stock.quantity - quantity_allocated < quantity:
+        raise InsufficientStock(order_line.variant)
 
-            quantity_decreased += quantity_to_decreased
-            if quantity_decreased == quantity:
-                Allocation.objects.bulk_update(allocations, ["quantity_allocated"])
-                Stock.objects.bulk_update(updated_stocks, ["quantity"])
-                break
-    if not quantity_decreased == quantity:
-        raise AllocationError(order_line, quantity)
+    stock.quantity = F("quantity") - quantity
+    stock.save(update_fields=["quantity"])
