@@ -284,9 +284,9 @@ class PermissionGroupUpdate(PermissionGroupCreate):
 
         Requestor cannot manage users with wider scope of permissions.
         """
-        users = cleaned_input[field]
         if requestor.is_superuser:
             return
+        users = cleaned_input[field]
         out_of_scope_users = get_out_of_scope_users(requestor, users)
         if out_of_scope_users:
             # add error
