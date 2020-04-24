@@ -1,6 +1,4 @@
 import graphene
-import graphene_django_optimizer as gql_optimizer
-from django.db.models import Prefetch
 from graphene import relay
 
 from ...menu import models
@@ -9,17 +7,8 @@ from ..translations.fields import TranslationField
 from ..translations.types import MenuItemTranslation
 
 
-def prefetch_menus(info, *_args, **_kwargs):
-    qs = models.MenuItem.objects.filter(level=0)
-    return Prefetch(
-        "items", queryset=gql_optimizer.query(qs, info), to_attr="prefetched_items"
-    )
-
-
 class Menu(CountableDjangoObjectType):
-    items = gql_optimizer.field(
-        graphene.List(lambda: MenuItem), prefetch_related=prefetch_menus
-    )
+    items = graphene.List(lambda: MenuItem)
 
     class Meta:
         description = (
@@ -38,9 +27,7 @@ class Menu(CountableDjangoObjectType):
 
 
 class MenuItem(CountableDjangoObjectType):
-    children = gql_optimizer.field(
-        graphene.List(lambda: MenuItem), model_field="children"
-    )
+    children = graphene.List(lambda: MenuItem)
     url = graphene.String(description="URL to the menu item.")
     translation = TranslationField(MenuItemTranslation, type_name="menu item")
 

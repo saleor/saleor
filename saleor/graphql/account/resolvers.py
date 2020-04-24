@@ -2,7 +2,6 @@ from itertools import chain
 from typing import Optional
 
 import graphene
-import graphene_django_optimizer as gql_optimizer
 from django.contrib.auth import models as auth_models
 from graphql_jwt.exceptions import PermissionDenied
 from i18naddress import get_validation_rules
@@ -39,13 +38,11 @@ def resolve_customers(info, query, **_kwargs):
     qs = filter_by_query_param(
         queryset=qs, query=query, search_fields=USER_SEARCH_FIELDS
     )
-    qs = qs.distinct()
-    return gql_optimizer.query(qs, info)
+    return qs.distinct()
 
 
 def resolve_permission_groups(info, **_kwargs):
-    qs = auth_models.Group.objects.all()
-    return gql_optimizer.query(qs, info)
+    return auth_models.Group.objects.all()
 
 
 def resolve_staff_users(info, query, **_kwargs):
@@ -53,8 +50,7 @@ def resolve_staff_users(info, query, **_kwargs):
     qs = filter_by_query_param(
         queryset=qs, query=query, search_fields=USER_SEARCH_FIELDS
     )
-    qs = qs.distinct()
-    return gql_optimizer.query(qs, info)
+    return qs.distinct()
 
 
 def resolve_user(info, id):

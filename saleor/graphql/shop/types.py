@@ -14,7 +14,7 @@ from ...site import models as site_models
 from ..account.types import Address, StaffNotificationRecipient
 from ..core.enums import WeightUnitsEnum
 from ..core.types.common import CountryDisplay, LanguageDisplay, Permission
-from ..core.utils import get_node_optimized, str_to_enum
+from ..core.utils import str_to_enum
 from ..decorators import permission_required
 from ..menu.types import Menu
 from ..product.types import Collection
@@ -209,7 +209,7 @@ class Shop(graphene.ObjectType):
     def resolve_homepage_collection(_, info):
         collection_pk = info.context.site.settings.homepage_collection_id
         qs = product_models.Collection.objects.all()
-        return get_node_optimized(qs, {"pk": collection_pk}, info)
+        return qs.filter(pk=collection_pk).first()
 
     @staticmethod
     def resolve_languages(_, _info):
@@ -228,8 +228,8 @@ class Shop(graphene.ObjectType):
     def resolve_navigation(_, info):
         site_settings = info.context.site.settings
         qs = menu_models.Menu.objects.all()
-        top_menu = get_node_optimized(qs, {"pk": site_settings.top_menu_id}, info)
-        bottom_menu = get_node_optimized(qs, {"pk": site_settings.bottom_menu_id}, info)
+        top_menu = qs.filter(pk=site_settings.top_menu_id).first()
+        bottom_menu = qs.filter(pk=site_settings.bottom_menu_id).first()
         return Navigation(main=top_menu, secondary=bottom_menu)
 
     @staticmethod
