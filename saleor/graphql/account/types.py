@@ -1,5 +1,4 @@
 import graphene
-import graphene_django_optimizer as gql_optimizer
 from django.contrib.auth import get_user_model, models as auth_models
 from graphene import relay
 from graphene_federation import key
@@ -13,7 +12,7 @@ from ..checkout.types import Checkout
 from ..core.connection import CountableDjangoObjectType
 from ..core.fields import PrefetchingConnectionField
 from ..core.types import CountryDisplay, Image, Permission
-from ..core.utils import from_global_id_strict_type, get_node_optimized
+from ..core.utils import from_global_id_strict_type
 from ..decorators import one_of_permissions_required, permission_required
 from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
@@ -123,11 +122,8 @@ class CustomerEvent(CountableDjangoObjectType):
     user = graphene.Field(lambda: User, description="User who performed the action.")
     message = graphene.String(description="Content of the event.")
     count = graphene.Int(description="Number of objects concerned by the event.")
-    order = gql_optimizer.field(
-        graphene.Field(
-            "saleor.graphql.order.types.Order", description="The concerned order."
-        ),
-        model_field="order",
+    order = graphene.Field(
+        "saleor.graphql.order.types.Order", description="The concerned order."
     )
     order_line = graphene.Field(
         "saleor.graphql.order.types.OrderLine", description="The concerned order line."
@@ -164,7 +160,7 @@ class CustomerEvent(CountableDjangoObjectType):
             try:
                 qs = order_models.OrderLine.objects
                 order_line_pk = root.parameters["order_line_pk"]
-                return get_node_optimized(qs, {"pk": order_line_pk}, info)
+                return qs.filter(pk=order_line_pk).first()
             except order_models.OrderLine.DoesNotExist:
                 pass
         return None
@@ -193,59 +189,40 @@ class UserPermission(Permission):
 @key("id")
 @key("email")
 class User(CountableDjangoObjectType):
-    addresses = gql_optimizer.field(
-        graphene.List(Address, description="List of all user's addresses."),
-        model_field="addresses",
-    )
+    addresses = graphene.List(Address, description="List of all user's addresses.")
     checkout = graphene.Field(
         Checkout, description="Returns the last open checkout of this user."
     )
-    gift_cards = gql_optimizer.field(
-        PrefetchingConnectionField(
-            "saleor.graphql.giftcard.types.GiftCard",
-            description="List of the user gift cards.",
-        ),
-        model_field="gift_cards",
+    gift_cards = PrefetchingConnectionField(
+        "saleor.graphql.giftcard.types.GiftCard",
+        description="List of the user gift cards.",
     )
     note = graphene.String(description="A note about the customer.")
-    orders = gql_optimizer.field(
-        PrefetchingConnectionField(
-            "saleor.graphql.order.types.Order", description="List of user's orders."
-        ),
-        model_field="orders",
+    orders = PrefetchingConnectionField(
+        "saleor.graphql.order.types.Order", description="List of user's orders."
     )
     # deprecated, to remove in #5389
-    permissions = gql_optimizer.field(
-        graphene.List(
-            Permission,
-            description="List of user's permissions.",
-            deprecation_reason=(
-                "Will be removed in Saleor 2.11." "Use the `userPermissions` instead."
-            ),
+    permissions = graphene.List(
+        Permission,
+        description="List of user's permissions.",
+        deprecation_reason=(
+            "Will be removed in Saleor 2.11." "Use the `userPermissions` instead."
         ),
-        model_field="user_permissions",
     )
-    user_permissions = gql_optimizer.field(
-        graphene.List(UserPermission, description="List of user's permissions."),
-        model_field="user_permissions",
+    user_permissions = graphene.List(
+        UserPermission, description="List of user's permissions."
     )
-    permission_groups = gql_optimizer.field(
-        graphene.List(
-            "saleor.graphql.account.types.Group",
-            description="List of user's permission groups.",
-        ),
-        model_field="groups",
+    permission_groups = graphene.List(
+        "saleor.graphql.account.types.Group",
+        description="List of user's permission groups.",
     )
     editable_groups = graphene.List(
         "saleor.graphql.account.types.Group",
         description="List of user's permission groups which user can manage.",
     )
     avatar = graphene.Field(Image, size=graphene.Int(description="Size of the avatar."))
-    events = gql_optimizer.field(
-        graphene.List(
-            CustomerEvent, description="List of events associated with the user."
-        ),
-        model_field="events",
+    events = graphene.List(
+        CustomerEvent, description="List of events associated with the user."
     )
     stored_payment_sources = graphene.List(
         "saleor.graphql.payment.types.PaymentSource",
@@ -445,12 +422,10 @@ class Group(CountableDjangoObjectType):
 
     @staticmethod
     @permission_required(AccountPermissions.MANAGE_STAFF)
-    @gql_optimizer.resolver_hints(prefetch_related="user_set")
     def resolve_users(root: auth_models.Group, _info):
         return root.user_set.all()
 
     @staticmethod
-    @gql_optimizer.resolver_hints(prefetch_related="permissions")
     def resolve_permissions(root: auth_models.Group, _info):
         permissions = root.permissions.prefetch_related("content_type").order_by(
             "codename"

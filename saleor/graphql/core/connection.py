@@ -2,10 +2,9 @@ import json
 from typing import Any, Dict, Iterable, List, Tuple, Union
 
 import graphene
-import opentracing as ot
-from django.db.models import Manager, Model as DjangoModel, Q, QuerySet
+from django.db.models import Model as DjangoModel, Q, QuerySet
 from graphene.relay.connection import Connection
-from graphene_django_optimizer.types import OptimizedDjangoObjectType
+from graphene_django.types import DjangoObjectType
 from graphql.error import GraphQLError
 from graphql_relay.connection.connectiontypes import Edge, PageInfo
 from graphql_relay.utils import base64, unbase64
@@ -267,7 +266,7 @@ class CountableConnection(NonNullConnection):
         return root.iterable.count()
 
 
-class CountableDjangoObjectType(OptimizedDjangoObjectType):
+class CountableDjangoObjectType(DjangoObjectType):
     class Meta:
         abstract = True
 
@@ -278,19 +277,3 @@ class CountableDjangoObjectType(OptimizedDjangoObjectType):
             "{}CountableConnection".format(cls.__name__), node=cls
         )
         super().__init_subclass_with_meta__(*args, connection=countable_conn, **kwargs)
-
-    @classmethod
-    def maybe_optimize(cls, info, qs: Union[QuerySet, Manager], pk):
-        with ot.global_tracer().start_active_span("optimizer") as scope:
-            span = scope.span
-            span.set_tag("optimizer.pk", pk)
-            span.set_tag("optimizer.model", cls._meta.model.__name__)
-            return super().maybe_optimize(info, qs, pk)
-
-    @classmethod
-    def get_node(cls, info, id):
-        with ot.global_tracer().start_active_span("node") as scope:
-            span = scope.span
-            span.set_tag("node.pk", id)
-            span.set_tag("node.type", cls.__name__)
-            return super().get_node(info, id)

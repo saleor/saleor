@@ -60,6 +60,7 @@ class VatlayerPlugin(BasePlugin):
     def calculate_checkout_total(
         self,
         checkout: "Checkout",
+        lines: List["CheckoutLine"],
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -67,8 +68,12 @@ class VatlayerPlugin(BasePlugin):
             return previous_value
 
         return (
-            calculations.checkout_subtotal(checkout, discounts)
-            + calculations.checkout_shipping_price(checkout, discounts)
+            calculations.checkout_subtotal(
+                checkout=checkout, lines=lines, discounts=discounts
+            )
+            + calculations.checkout_shipping_price(
+                checkout=checkout, lines=lines, discounts=discounts
+            )
             - checkout.discount
         )
 
@@ -90,6 +95,7 @@ class VatlayerPlugin(BasePlugin):
     def calculate_checkout_shipping(
         self,
         checkout: "Checkout",
+        lines: List["CheckoutLine"],
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:

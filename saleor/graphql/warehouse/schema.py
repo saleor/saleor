@@ -1,5 +1,4 @@
 import graphene
-import graphene_django_optimizer as gql_optimizer
 
 from ...core.permissions import ProductPermissions
 from ...warehouse import models
@@ -40,8 +39,7 @@ class WarehouseQueries(graphene.ObjectType):
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_warehouses(self, info, **_kwargs):
-        qs = models.Warehouse.objects.all()
-        return gql_optimizer.query(qs, info)
+        return models.Warehouse.objects.all()
 
 
 class WarehouseMutations(graphene.ObjectType):
@@ -70,5 +68,4 @@ class StockQueries(graphene.ObjectType):
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_stocks(self, info, **_kwargs):
-        qs = models.Stock.objects.all()
-        return gql_optimizer.query(qs, info)
+        return models.Stock.objects.all()

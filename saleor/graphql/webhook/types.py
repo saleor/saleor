@@ -1,5 +1,4 @@
 import graphene
-import graphene_django_optimizer as gql_optimizer
 
 from ...webhook import models
 from ...webhook.event_types import WebhookEventType
@@ -27,13 +26,10 @@ class WebhookEvent(CountableDjangoObjectType):
 
 class Webhook(CountableDjangoObjectType):
     name = graphene.String(required=True)
-    events = gql_optimizer.field(
-        graphene.List(
-            graphene.NonNull(WebhookEvent),
-            description="List of webhook events.",
-            required=True,
-        ),
-        model_field="events",
+    events = graphene.List(
+        graphene.NonNull(WebhookEvent),
+        description="List of webhook events.",
+        required=True,
     )
     service_account = graphene.Field(
         ServiceAccount,
@@ -60,6 +56,5 @@ class Webhook(CountableDjangoObjectType):
         return root.app
 
     @staticmethod
-    @gql_optimizer.resolver_hints(prefetch_related=("events",))
     def resolve_events(root: models.Webhook, *_args, **_kwargs):
         return root.events.all()
