@@ -355,7 +355,12 @@ def test_draft_order_query(staff_api_client, permission_manage_orders, orders):
 
 
 def test_nested_order_events_query(
-    staff_api_client, permission_manage_orders, fulfilled_order, fulfillment, staff_user
+    staff_api_client,
+    permission_manage_orders,
+    fulfilled_order,
+    fulfillment,
+    staff_user,
+    warehouse,
 ):
     query = """
         query OrdersQuery {
@@ -384,6 +389,9 @@ def test_nested_order_events_query(
                             }
                             paymentId
                             paymentGateway
+                            warehouse {
+                                name
+                            }
                         }
                     }
                 }
@@ -403,6 +411,7 @@ def test_nested_order_events_query(
             "amount": "80.00",
             "quantity": "10",
             "composed_id": "10-10",
+            "warehouse": warehouse.pk,
         }
     )
     event.save()
@@ -432,6 +441,7 @@ def test_nested_order_events_query(
     ]
     assert data["paymentId"] is None
     assert data["paymentGateway"] is None
+    assert data["warehouse"]["name"] == warehouse.name
 
 
 def test_payment_information_order_events_query(

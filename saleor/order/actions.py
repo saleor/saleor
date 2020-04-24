@@ -163,7 +163,10 @@ def cancel_fulfillment(
         order=fulfillment.order, user=user, fulfillment=fulfillment
     )
     events.fulfillment_restocked_items_event(
-        order=fulfillment.order, user=user, fulfillment=fulfillment
+        order=fulfillment.order,
+        user=user,
+        fulfillment=fulfillment,
+        warehouse_pk=warehouse.pk,
     )
     restock_fulfillment_lines(fulfillment, warehouse)
     fulfillment.status = FulfillmentStatus.CANCELED

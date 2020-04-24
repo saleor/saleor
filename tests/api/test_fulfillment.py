@@ -511,7 +511,8 @@ def test_cancel_fulfillment(
 
     assert event_restocked_items.type == (OrderEvents.FULFILLMENT_RESTOCKED_ITEMS)
     assert event_restocked_items.parameters == {
-        "quantity": fulfillment.get_total_quantity()
+        "quantity": fulfillment.get_total_quantity(),
+        "warehouse": str(warehouse.pk),
     }
     assert event_restocked_items.user == staff_user
 

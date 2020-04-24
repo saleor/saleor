@@ -2698,6 +2698,7 @@ type OrderEvent implements Node {
   oversoldItems: [String]
   lines: [OrderEventOrderLineObject]
   fulfilledItems: [FulfillmentLine]
+  warehouse: Warehouse
 }
 
 type OrderEventCountableConnection {
