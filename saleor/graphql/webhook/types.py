@@ -4,7 +4,6 @@ import graphene_django_optimizer as gql_optimizer
 from ...webhook import models
 from ...webhook.event_types import WebhookEventType
 from ..account.deprecated.types import ServiceAccount
-from ..app.types import App
 from ..core.connection import CountableDjangoObjectType
 from .enums import WebhookEventTypeEnum
 
@@ -42,7 +41,7 @@ class Webhook(CountableDjangoObjectType):
             "Use the `app` field instead. This field will be removed after 2020-07-31."
         ),
     )
-    app = graphene.Field(App, required=True)
+    app = graphene.Field("saleor.graphql.app.types.App", required=True)
 
     class Meta:
         description = "Webhook."

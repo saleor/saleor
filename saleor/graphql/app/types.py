@@ -9,6 +9,7 @@ from ..core.types import Permission
 from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display
+from ..webhook.types import Webhook
 
 
 class AppToken(CountableDjangoObjectType):
@@ -41,6 +42,9 @@ class App(CountableDjangoObjectType):
     name = graphene.String(description="Name of the app.")
 
     tokens = graphene.List(AppToken, description="Last 4 characters of the tokens.")
+    webhooks = graphene.List(
+        Webhook, description="List of webhooks assigned to this app."
+    )
 
     class Meta:
         description = "Represents app data."
@@ -80,3 +84,8 @@ class App(CountableDjangoObjectType):
     @staticmethod
     def __resolve_reference(root, _info, **_kwargs):
         return graphene.Node.get_node_from_global_id(_info, root.id)
+
+    @staticmethod
+    @gql_optimizer.resolver_hints(prefetch_related="webhooks")
+    def resolve_webhooks(root: models.App, _info):
+        return root.webhooks.all()
