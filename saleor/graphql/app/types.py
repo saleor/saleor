@@ -1,5 +1,4 @@
 import graphene
-import graphene_django_optimizer as gql_optimizer
 from graphene_federation import key
 
 from ...app import models
@@ -69,7 +68,6 @@ class App(CountableDjangoObjectType):
         return format_permissions_for_display(permissions)
 
     @staticmethod
-    @gql_optimizer.resolver_hints(prefetch_related="tokens")
     def resolve_tokens(root: models.App, _info, **_kwargs):
         return root.tokens.all()
 
@@ -86,6 +84,5 @@ class App(CountableDjangoObjectType):
         return graphene.Node.get_node_from_global_id(_info, root.id)
 
     @staticmethod
-    @gql_optimizer.resolver_hints(prefetch_related="webhooks")
     def resolve_webhooks(root: models.App, _info):
         return root.webhooks.all()
