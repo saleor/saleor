@@ -4097,7 +4097,7 @@ type ServiceAccount implements Node & ObjectWithMetadata {
 
 type ServiceAccountClearPrivateMeta {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  serviceAccountErrors: [ServiceAccountError!]!
+  accountErrors: [AccountError!]!
   serviceAccount: ServiceAccount
 }
 
@@ -4115,21 +4115,14 @@ type ServiceAccountCountableEdge {
 type ServiceAccountCreate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   authToken: String
-  serviceAccountErrors: [ServiceAccountError!]!
+  accountErrors: [AccountError!]!
   serviceAccount: ServiceAccount
 }
 
 type ServiceAccountDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  serviceAccountErrors: [ServiceAccountError!]!
+  accountErrors: [AccountError!]!
   serviceAccount: ServiceAccount
-}
-
-type ServiceAccountError {
-  field: String
-  message: String
-  code: AccountErrorCode!
-  permissions: [PermissionEnum!]
 }
 
 input ServiceAccountFilterInput {
@@ -4162,13 +4155,13 @@ type ServiceAccountToken implements Node {
 type ServiceAccountTokenCreate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   authToken: String
-  serviceAccountErrors: [ServiceAccountError!]!
+  accountErrors: [AccountError!]!
   serviceAccountToken: ServiceAccountToken
 }
 
 type ServiceAccountTokenDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  serviceAccountErrors: [ServiceAccountError!]!
+  accountErrors: [AccountError!]!
   serviceAccountToken: ServiceAccountToken
 }
 
@@ -4179,13 +4172,13 @@ input ServiceAccountTokenInput {
 
 type ServiceAccountUpdate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  serviceAccountErrors: [ServiceAccountError!]!
+  accountErrors: [AccountError!]!
   serviceAccount: ServiceAccount
 }
 
 type ServiceAccountUpdatePrivateMeta {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  serviceAccountErrors: [ServiceAccountError!]!
+  accountErrors: [AccountError!]!
   serviceAccount: ServiceAccount
 }
 

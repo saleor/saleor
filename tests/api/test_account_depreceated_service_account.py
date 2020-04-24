@@ -34,11 +34,10 @@ SERVICE_ACCOUNT_CREATE_MUTATION = """
                     authToken
                 }
             }
-            serviceAccountErrors{
+            accountErrors{
                 field
                 message
                 code
-                permissions
             }
         }
     }
@@ -125,13 +124,12 @@ def test_service_account_create_mutation_out_of_scope_permissions(
     content = get_graphql_content(response)
     data = content["data"]["serviceAccountCreate"]
 
-    errors = data["serviceAccountErrors"]
+    errors = data["accountErrors"]
     assert not data["serviceAccount"]
     assert len(errors) == 1
     error = errors[0]
     assert error["field"] == "permissions"
     assert error["code"] == AccountErrorCode.OUT_OF_SCOPE_PERMISSION.name
-    assert error["permissions"] == [PermissionEnum.MANAGE_PRODUCTS.name]
 
     # for superuser
     response = superuser_api_client.post_graphql(query, variables=variables)
@@ -164,13 +162,12 @@ def test_service_account_create_mutation_for_service_account_out_of_scope_permis
     content = get_graphql_content(response)
     data = content["data"]["serviceAccountCreate"]
 
-    errors = data["serviceAccountErrors"]
+    errors = data["accountErrors"]
     assert not data["serviceAccount"]
     assert len(errors) == 1
     error = errors[0]
     assert error["field"] == "permissions"
     assert error["code"] == AccountErrorCode.OUT_OF_SCOPE_PERMISSION.name
-    assert error["permissions"] == [PermissionEnum.MANAGE_PRODUCTS.name]
 
 
 def test_service_account_create_mutation_no_permissions(
@@ -206,11 +203,10 @@ mutation ServiceAccountUpdate($id: ID!, $is_active: Boolean,
             }
             name
         }
-        serviceAccountErrors{
+        accountErrors{
             field
             message
             code
-            permissions
         }
     }
 }
@@ -340,13 +336,12 @@ def test_service_account_update_mutation_out_of_scope_permissions(
     content = get_graphql_content(response)
 
     data = content["data"]["serviceAccountUpdate"]
-    errors = data["serviceAccountErrors"]
+    errors = data["accountErrors"]
     assert not data["serviceAccount"]
     assert len(errors) == 1
     error = errors[0]
     assert error["field"] == "permissions"
     assert error["code"] == AccountErrorCode.OUT_OF_SCOPE_PERMISSION.name
-    assert error["permissions"] == [PermissionEnum.MANAGE_USERS.name]
 
     # for superuser
     response = superuser_api_client.post_graphql(query, variables=variables)
@@ -398,13 +393,12 @@ def test_service_account_update_mutation_for_service_account_out_of_scope_permis
     content = get_graphql_content(response)
 
     data = content["data"]["serviceAccountUpdate"]
-    errors = data["serviceAccountErrors"]
+    errors = data["accountErrors"]
     assert not data["serviceAccount"]
     assert len(errors) == 1
     error = errors[0]
     assert error["field"] == "permissions"
     assert error["code"] == AccountErrorCode.OUT_OF_SCOPE_PERMISSION.name
-    assert error["permissions"] == [PermissionEnum.MANAGE_USERS.name]
 
 
 def test_service_account_update_mutation_out_of_scope_service_account(
@@ -444,7 +438,7 @@ def test_service_account_update_mutation_out_of_scope_service_account(
     content = get_graphql_content(response)
 
     data = content["data"]["serviceAccountUpdate"]
-    errors = data["serviceAccountErrors"]
+    errors = data["accountErrors"]
     assert not data["serviceAccount"]
     assert len(errors) == 1
     error = errors[0]
@@ -501,7 +495,7 @@ def test_service_account_update_mutation_for_service_account_out_of_scope_servic
     content = get_graphql_content(response)
 
     data = content["data"]["serviceAccountUpdate"]
-    errors = data["serviceAccountErrors"]
+    errors = data["accountErrors"]
     assert not data["serviceAccount"]
     assert len(errors) == 1
     error = errors[0]
@@ -524,7 +518,7 @@ def test_service_account_update_no_permission(app, staff_api_client, staff_user)
 SERVICE_ACCOUNT_DELETE_MUTATION = """
     mutation serviceAccountDelete($id: ID!){
       serviceAccountDelete(id: $id){
-        serviceAccountErrors{
+        accountErrors{
           field
           message
           code
@@ -557,7 +551,7 @@ def test_service_account_delete(
 
     data = content["data"]["serviceAccountDelete"]
     assert data["serviceAccount"]
-    assert not data["serviceAccountErrors"]
+    assert not data["accountErrors"]
     assert not App.objects.filter(id=app.id).exists()
 
 
@@ -579,7 +573,7 @@ def test_service_account_delete_for_app(
 
     data = content["data"]["serviceAccountDelete"]
     assert data["serviceAccount"]
-    assert not data["serviceAccountErrors"]
+    assert not data["accountErrors"]
     assert not App.objects.filter(id=app.id).exists()
 
 
@@ -608,7 +602,7 @@ def test_service_account_delete_out_of_scope_app(
     content = get_graphql_content(response)
 
     data = content["data"]["serviceAccountDelete"]
-    errors = data["serviceAccountErrors"]
+    errors = data["accountErrors"]
     assert not data["serviceAccount"]
     assert len(errors) == 1
     error = errors[0]
@@ -621,7 +615,7 @@ def test_service_account_delete_out_of_scope_app(
 
     data = content["data"]["serviceAccountDelete"]
     assert data["serviceAccount"]
-    assert not data["serviceAccountErrors"]
+    assert not data["accountErrors"]
     assert not App.objects.filter(id=app.id).exists()
 
 
@@ -640,7 +634,7 @@ def test_service_account_delete_for_service_account_out_of_scope_service_account
     content = get_graphql_content(response)
 
     data = content["data"]["serviceAccountDelete"]
-    errors = data["serviceAccountErrors"]
+    errors = data["accountErrors"]
     assert not data["serviceAccount"]
     assert len(errors) == 1
     error = errors[0]
@@ -859,7 +853,7 @@ mutation serviceAccountTokenCreate($input: ServiceAccountTokenInput!) {
       authToken
       id
     }
-    serviceAccountErrors{
+    accountErrors{
       field
       message
       code
@@ -952,7 +946,7 @@ def test_service_account_token_create_out_of_scope_service_account(
     content = get_graphql_content(response)
 
     data = content["data"]["serviceAccountTokenCreate"]
-    errors = data["serviceAccountErrors"]
+    errors = data["accountErrors"]
     assert not data["serviceAccountToken"]
     assert len(errors) == 1
     error = errors[0]
@@ -988,7 +982,7 @@ def test_service_account_token_create_as_service_account_out_of_scope_service_ac
     )
     content = get_graphql_content(response)
     data = content["data"]["serviceAccountTokenCreate"]
-    errors = data["serviceAccountErrors"]
+    errors = data["accountErrors"]
     assert not data["serviceAccountToken"]
     assert len(errors) == 1
     error = errors[0]
@@ -1008,7 +1002,7 @@ def test_service_account_token_create_no_permissions(staff_api_client, staff_use
 SERVICE_ACCOUNT_TOKEN_DELETE_MUTATION = """
     mutation serviceAccountTokenDelete($id: ID!){
       serviceAccountTokenDelete(id: $id){
-        serviceAccountErrors{
+        accountErrors{
           field
           message
           code
@@ -1102,7 +1096,7 @@ def test_service_account_token_delete_out_of_scope_service_account(
     content = get_graphql_content(response)
 
     data = content["data"]["serviceAccountTokenDelete"]
-    errors = data["serviceAccountErrors"]
+    errors = data["accountErrors"]
 
     assert not data["serviceAccountToken"]
     assert len(errors) == 1
@@ -1116,7 +1110,7 @@ def test_service_account_token_delete_out_of_scope_service_account(
     content = get_graphql_content(response)
 
     data = content["data"]["serviceAccountTokenDelete"]
-    errors = data["serviceAccountErrors"]
+    errors = data["accountErrors"]
 
     assert data["serviceAccountToken"]
     assert not errors
@@ -1139,7 +1133,7 @@ def test_service_account_token_delete_for_service_account_out_of_scope_app(
     content = get_graphql_content(response)
 
     data = content["data"]["serviceAccountTokenDelete"]
-    errors = data["serviceAccountErrors"]
+    errors = data["accountErrors"]
 
     assert not data["serviceAccountToken"]
     assert len(errors) == 1
