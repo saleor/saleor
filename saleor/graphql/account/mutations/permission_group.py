@@ -113,12 +113,12 @@ class PermissionGroupCreate(ModelMutation):
         """
         if requestor.is_superuser:
             return
-        permissions = get_out_of_scope_permissions(requestor, permission_items)
-        if permissions:
+        missing_permissions = get_out_of_scope_permissions(requestor, permission_items)
+        if missing_permissions:
             # add error
             error_msg = "You can't add permission that you don't have."
             code = PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.value
-            params = {"permissions": permissions}
+            params = {"permissions": missing_permissions}
             cls.update_errors(errors, error_msg, field, code, params)
 
     @classmethod

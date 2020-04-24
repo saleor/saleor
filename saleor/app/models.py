@@ -24,7 +24,7 @@ class App(ModelWithMetadata):
         ordering = ("name", "pk")
         permissions = ((AppPermission.MANAGE_APPS.codename, "Manage apps",),)
 
-    def _get_permissions(self) -> Set[str]:
+    def get_permissions(self) -> Set[str]:
         """Return the permissions of the app."""
         if not self.is_active:
             return set()
@@ -40,8 +40,11 @@ class App(ModelWithMetadata):
         if not self.is_active:
             return False
 
-        wanted_perms = {perm.value for perm in perm_list}
-        actual_perms = self._get_permissions()
+        try:
+            wanted_perms = {perm.value for perm in perm_list}
+        except AttributeError:
+            wanted_perms = set(perm_list)
+        actual_perms = self.get_permissions()
 
         return (wanted_perms & actual_perms) == wanted_perms
 
@@ -50,7 +53,8 @@ class App(ModelWithMetadata):
         if not self.is_active:
             return False
 
-        return perm.value in self._get_permissions()
+        perm_value = perm.value if hasattr(perm, "value") else perm
+        return perm_value in self.get_permissions()
 
 
 class AppToken(models.Model):

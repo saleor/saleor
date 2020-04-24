@@ -52,6 +52,7 @@ enum AccountErrorCode {
   LEFT_NOT_MANAGEABLE_PERMISSION
   INVALID_CREDENTIALS
   NOT_FOUND
+  OUT_OF_SCOPE_SERVICE_ACCOUNT
   OUT_OF_SCOPE_USER
   OUT_OF_SCOPE_GROUP
   OUT_OF_SCOPE_PERMISSION
@@ -231,6 +232,7 @@ type AppError {
   field: String
   message: String
   code: AppErrorCode!
+  permissions: [PermissionEnum!]
 }
 
 enum AppErrorCode {
@@ -239,6 +241,8 @@ enum AppErrorCode {
   NOT_FOUND
   REQUIRED
   UNIQUE
+  OUT_OF_SCOPE_APP
+  OUT_OF_SCOPE_PERMISSION
 }
 
 input AppFilterInput {
