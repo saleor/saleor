@@ -4111,9 +4111,7 @@ def test_create_product_with_weight_input(
         "basePrice": Decimal("19"),
     }
     response = staff_api_client.post_graphql(
-        query,
-        variables,
-        permissions=[permission_manage_products],
+        query, variables, permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
     result_weight = content["data"]["productCreate"]["product"]["weight"]
