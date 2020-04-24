@@ -86,11 +86,7 @@ def test_app_create_mutation_for_app(
 
 
 def test_app_create_mutation_out_of_scope_permissions(
-    permission_manage_apps,
-    permission_manage_products,
-    staff_api_client,
-    superuser_api_client,
-    staff_user,
+    permission_manage_apps, permission_manage_products, staff_api_client, staff_user,
 ):
     """Ensure user can't create app with permissions out of user's scope.
 
@@ -105,7 +101,6 @@ def test_app_create_mutation_out_of_scope_permissions(
         "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
     }
 
-    # for staff user
     response = staff_api_client.post_graphql(query, variables=variables)
     content = get_graphql_content(response)
     data = content["data"]["appCreate"]
@@ -118,7 +113,19 @@ def test_app_create_mutation_out_of_scope_permissions(
     assert error["code"] == AppErrorCode.OUT_OF_SCOPE_PERMISSION.name
     assert error["permissions"] == [PermissionEnum.MANAGE_PRODUCTS.name]
 
-    # for superuser
+
+def test_app_create_mutation_superuser_can_create_app_with_any_perms(
+    permission_manage_apps, permission_manage_products, superuser_api_client,
+):
+    """Ensure superuser can create app with any permissions."""
+    query = APP_CREATE_MUTATION
+
+    variables = {
+        "name": "New integration",
+        "is_active": True,
+        "permissions": [PermissionEnum.MANAGE_PRODUCTS.name],
+    }
+
     response = superuser_api_client.post_graphql(query, variables=variables)
     content = get_graphql_content(response)
     app_data = content["data"]["appCreate"]["app"]
@@ -243,9 +250,12 @@ def test_app_update_mutation_for_app(
     permission_manage_users,
     app_api_client,
 ):
-    app = App.objects.create(name="New_sa")
-    AppToken.objects.create(app=app)
     query = APP_UPDATE_MUTATION
+
+    app = App.objects.create(name="New_app")
+    app.permissions.add(permission_manage_orders)
+    AppToken.objects.create(app=app)
+
     requestor = app_api_client.app
     requestor.permissions.add(
         permission_manage_apps,
@@ -253,7 +263,6 @@ def test_app_update_mutation_for_app(
         permission_manage_users,
         permission_manage_orders,
     )
-    app.permissions.add(permission_manage_orders)
     id = graphene.Node.to_global_id("App", app.id)
 
     variables = {
@@ -288,13 +297,9 @@ def test_app_update_mutation_out_of_scope_permissions(
     permission_manage_products,
     permission_manage_users,
     staff_api_client,
-    superuser_api_client,
     staff_user,
 ):
-    """Ensure user cannot add permissions to app witch he doesn't have.
-
-    Ensure that superuser pass restrictions.
-    """
+    """Ensure user cannot add permissions to app witch he doesn't have."""
     query = APP_UPDATE_MUTATION
     staff_user.user_permissions.add(permission_manage_apps, permission_manage_products)
     id = graphene.Node.to_global_id("App", app.id)
@@ -308,7 +313,6 @@ def test_app_update_mutation_out_of_scope_permissions(
         ],
     }
 
-    # for staff user
     response = staff_api_client.post_graphql(query, variables=variables)
     content = get_graphql_content(response)
 
@@ -321,7 +325,27 @@ def test_app_update_mutation_out_of_scope_permissions(
     assert error["code"] == AppErrorCode.OUT_OF_SCOPE_PERMISSION.name
     assert error["permissions"] == [PermissionEnum.MANAGE_USERS.name]
 
-    # for superuser
+
+def test_app_update_mutation_superuser_can_add_any_permissions_to_app(
+    app,
+    permission_manage_apps,
+    permission_manage_products,
+    permission_manage_users,
+    superuser_api_client,
+):
+    """Ensure superuser can add any permissions to app."""
+    query = APP_UPDATE_MUTATION
+    id = graphene.Node.to_global_id("App", app.id)
+
+    variables = {
+        "id": id,
+        "is_active": False,
+        "permissions": [
+            PermissionEnum.MANAGE_PRODUCTS.name,
+            PermissionEnum.MANAGE_USERS.name,
+        ],
+    }
+
     response = superuser_api_client.post_graphql(query, variables=variables)
     content = get_graphql_content(response)
 
@@ -348,7 +372,7 @@ def test_app_update_mutation_for_app_out_of_scope_permissions(
     permission_manage_users,
     app_api_client,
 ):
-    app = App.objects.create(name="New_sa")
+    app = App.objects.create(name="New_app")
     query = APP_UPDATE_MUTATION
     requestor = app_api_client.app
     requestor.permissions.add(
@@ -384,14 +408,10 @@ def test_app_update_mutation_out_of_scope_app(
     permission_manage_products,
     permission_manage_orders,
     permission_manage_users,
-    superuser_api_client,
     staff_api_client,
     staff_user,
 ):
-    """Ensure user cannot manage app with wider permission scope.
-
-    Ensure that superuser pass restrictions.
-    """
+    """Ensure user cannot manage app with wider permission scope."""
     query = APP_UPDATE_MUTATION
     staff_user.user_permissions.add(
         permission_manage_apps, permission_manage_products, permission_manage_users,
@@ -408,7 +428,6 @@ def test_app_update_mutation_out_of_scope_app(
         ],
     }
 
-    # for staff user
     response = staff_api_client.post_graphql(query, variables=variables)
     content = get_graphql_content(response)
 
@@ -420,7 +439,29 @@ def test_app_update_mutation_out_of_scope_app(
     assert error["field"] == "id"
     assert error["code"] == AppErrorCode.OUT_OF_SCOPE_APP.name
 
-    # for superuser
+
+def test_app_update_mutation_superuser_can_update_any_app(
+    app,
+    permission_manage_apps,
+    permission_manage_products,
+    permission_manage_orders,
+    permission_manage_users,
+    superuser_api_client,
+):
+    """Ensure superuser can manage any app."""
+    query = APP_UPDATE_MUTATION
+    app.permissions.add(permission_manage_orders)
+    id = graphene.Node.to_global_id("App", app.id)
+
+    variables = {
+        "id": id,
+        "is_active": False,
+        "permissions": [
+            PermissionEnum.MANAGE_PRODUCTS.name,
+            PermissionEnum.MANAGE_USERS.name,
+        ],
+    }
+
     response = superuser_api_client.post_graphql(query, variables=variables)
     content = get_graphql_content(response)
 
@@ -447,7 +488,7 @@ def test_app_update_mutation_for_app_out_of_scope_app(
     permission_manage_users,
     app_api_client,
 ):
-    app = App.objects.create(name="New_sa")
+    app = App.objects.create(name="New_app")
     query = APP_UPDATE_MUTATION
     requestor = app_api_client.app
     requestor.permissions.add(
@@ -521,14 +562,14 @@ def test_app_delete(
     data = content["data"]["appDelete"]
     assert data["app"]
     assert not data["appErrors"]
-    assert not App.objects.filter(id=app.id).exists()
+    assert not App.objects.filter(id=app.id)
 
 
 def test_app_delete_for_app(
     app_api_client, permission_manage_orders, permission_manage_apps,
 ):
     requestor = app_api_client.app
-    app = App.objects.create(name="New_sa")
+    app = App.objects.create(name="New_app")
     query = APP_DELETE_MUTATION
     app.permissions.add(permission_manage_orders)
     requestor.permissions.add(permission_manage_orders)
@@ -547,24 +588,15 @@ def test_app_delete_for_app(
 
 
 def test_app_delete_out_of_scope_app(
-    staff_api_client,
-    superuser_api_client,
-    staff_user,
-    app,
-    permission_manage_apps,
-    permission_manage_orders,
+    staff_api_client, staff_user, app, permission_manage_apps, permission_manage_orders,
 ):
-    """Ensure user can't delete app with wider scope of permissions.
-
-    Ensure superuser pass restriction.
-    """
+    """Ensure user can't delete app with wider scope of permissions."""
     query = APP_DELETE_MUTATION
     app.permissions.add(permission_manage_orders)
     id = graphene.Node.to_global_id("App", app.id)
 
     variables = {"id": id}
 
-    # for staff user
     response = staff_api_client.post_graphql(
         query, variables=variables, permissions=(permission_manage_apps,)
     )
@@ -578,7 +610,17 @@ def test_app_delete_out_of_scope_app(
     assert error["code"] == AppErrorCode.OUT_OF_SCOPE_APP.name
     assert error["field"] == "id"
 
-    # for superuser
+
+def test_app_delete_superuser_can_delete_any_app(
+    superuser_api_client, app, permission_manage_apps, permission_manage_orders,
+):
+    """Ensure superuser can delete app with any scope of permissions."""
+    query = APP_DELETE_MUTATION
+    app.permissions.add(permission_manage_orders)
+    id = graphene.Node.to_global_id("App", app.id)
+
+    variables = {"id": id}
+
     response = superuser_api_client.post_graphql(query, variables=variables)
     content = get_graphql_content(response)
 
@@ -591,7 +633,7 @@ def test_app_delete_out_of_scope_app(
 def test_app_delete_for_app_out_of_scope_app(
     app_api_client, permission_manage_orders, permission_manage_apps,
 ):
-    app = App.objects.create(name="New_sa")
+    app = App.objects.create(name="New_app")
     query = APP_DELETE_MUTATION
     app.permissions.add(permission_manage_orders)
     id = graphene.Node.to_global_id("App", app.id)
@@ -820,7 +862,7 @@ def test_app_token_create(
     permission_manage_apps, staff_api_client, staff_user, permission_manage_orders
 ):
 
-    app = App.objects.create(name="New_sa")
+    app = App.objects.create(name="New_app")
     query = APP_TOKEN_CREATE_MUTATION
     staff_user.user_permissions.add(permission_manage_orders)
     app.permissions.add(permission_manage_orders)
@@ -844,7 +886,7 @@ def test_app_token_create_for_app(
     permission_manage_apps, app_api_client, permission_manage_orders,
 ):
 
-    app = App.objects.create(name="New_sa")
+    app = App.objects.create(name="New_app")
     query = APP_TOKEN_CREATE_MUTATION
     requestor = app_api_client.app
     requestor.permissions.add(permission_manage_orders)
@@ -866,24 +908,16 @@ def test_app_token_create_for_app(
 
 
 def test_app_token_create_out_of_scope_app(
-    permission_manage_apps,
-    staff_api_client,
-    superuser_api_client,
-    staff_user,
-    permission_manage_orders,
+    permission_manage_apps, staff_api_client, staff_user, permission_manage_orders,
 ):
-    """Ensure user can't create token for app with wider scope of permissions.
-
-    Ensure superuser pass restrictions.
-    """
-    app = App.objects.create(name="New_sa")
+    """Ensure user can't create token for app with wider scope of permissions."""
+    app = App.objects.create(name="New_app")
     query = APP_TOKEN_CREATE_MUTATION
     app.permissions.add(permission_manage_orders)
 
     id = graphene.Node.to_global_id("App", app.id)
     variables = {"name": "Default token", "app": id}
 
-    # for staff user
     response = staff_api_client.post_graphql(
         query, variables={"input": variables}, permissions=(permission_manage_apps,),
     )
@@ -897,7 +931,18 @@ def test_app_token_create_out_of_scope_app(
     assert error["code"] == AppErrorCode.OUT_OF_SCOPE_APP.name
     assert error["field"] == "app"
 
-    # for superuser
+
+def test_app_token_create_superuser_can_create_token_for_any_app(
+    permission_manage_apps, superuser_api_client, permission_manage_orders,
+):
+    """Ensure superuser can create token for app with any scope of permissions."""
+    app = App.objects.create(name="New_app")
+    query = APP_TOKEN_CREATE_MUTATION
+    app.permissions.add(permission_manage_orders)
+
+    id = graphene.Node.to_global_id("App", app.id)
+    variables = {"name": "Default token", "app": id}
+
     response = superuser_api_client.post_graphql(query, variables={"input": variables})
     content = get_graphql_content(response)
     token_data = content["data"]["appTokenCreate"]["appToken"]
@@ -912,7 +957,7 @@ def test_app_token_create_out_of_scope_app(
 def test_app_token_create_as_app_out_of_scope_app(
     permission_manage_apps, app_api_client, app, permission_manage_orders,
 ):
-    app = App.objects.create(name="New_sa")
+    app = App.objects.create(name="New_app")
     query = APP_TOKEN_CREATE_MUTATION
     app.permissions.add(permission_manage_orders)
 
@@ -981,7 +1026,7 @@ def test_app_token_delete(
 def test_app_token_delete_for_app(
     permission_manage_apps, app_api_client, permission_manage_products,
 ):
-    app = App.objects.create(name="New_sa", is_active=True)
+    app = App.objects.create(name="New_app", is_active=True)
     token = AppToken.objects.create(app=app)
     query = APP_TOKEN_DELETE_MUTATION
     token = app.tokens.get()
@@ -1013,15 +1058,11 @@ def test_app_token_delete_no_permissions(staff_api_client, staff_user, app):
 def test_app_token_delete_out_of_scope_app(
     permission_manage_apps,
     staff_api_client,
-    superuser_api_client,
     staff_user,
     app,
     permission_manage_products,
 ):
-    """Ensure user can't delete app token with wider scope of permissions.
-
-    Ensure superuser pass restrictions.
-    """
+    """Ensure user can't delete app token with wider scope of permissions."""
     query = APP_TOKEN_DELETE_MUTATION
     token = app.tokens.get()
     app.permissions.add(permission_manage_products)
@@ -1045,7 +1086,18 @@ def test_app_token_delete_out_of_scope_app(
     assert error["field"] == "id"
     assert AppToken.objects.filter(id=token.id).exists()
 
-    # for superuser
+
+def test_app_token_delete_superuser_can_delete_token_for_any_app(
+    permission_manage_apps, superuser_api_client, app, permission_manage_products,
+):
+    """Ensure superuser can delete app token for app with any scope of permissions."""
+    query = APP_TOKEN_DELETE_MUTATION
+    token = app.tokens.get()
+    app.permissions.add(permission_manage_products)
+    id = graphene.Node.to_global_id("AppToken", token.id)
+
+    variables = {"id": id}
+
     response = superuser_api_client.post_graphql(query, variables=variables)
     content = get_graphql_content(response)
 
@@ -1060,7 +1112,7 @@ def test_app_token_delete_out_of_scope_app(
 def test_app_token_delete_for_app_out_of_scope_app(
     permission_manage_apps, app_api_client, permission_manage_products,
 ):
-    app = App.objects.create(name="New_sa", is_active=True)
+    app = App.objects.create(name="New_app", is_active=True)
     token = AppToken.objects.create(app=app)
     query = APP_TOKEN_DELETE_MUTATION
     app.permissions.add(permission_manage_products)
