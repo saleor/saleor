@@ -208,7 +208,7 @@ def can_user_manage_group(user: "User", group: Group) -> bool:
 
 
 def can_manage_app(requestor: Union["User", "App"], app: "App") -> bool:
-    """Requestor can't manage service account with wider scope of permissions."""
+    """Requestor can't manage app with wider scope of permissions."""
     permissions = app.get_permissions()
     return requestor.has_perms(permissions)
 
