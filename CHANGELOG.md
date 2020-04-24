@@ -101,6 +101,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Refactor implementation of allocation - #5445 by @fowczarek
 - Fix WeightScalar - #5530 by @koradon
 - Add OrderFulfill mutation - #5525 by @fowczarek
+- Add home page - #5494 by @IKarbowiak and @dominik-zeglen
 
 ## 2.9.0
 
