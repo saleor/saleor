@@ -26,10 +26,10 @@ from ..types import OrderLine
 
 class OrderFulfillStockInput(graphene.InputObjectType):
     quantity = graphene.Int(
-        description="The number of line item to be fulfilled from given warehouse."
+        description="The number of line items to be fulfilled from given warehouse."
     )
     warehouse = graphene.ID(
-        description="ID of the warehouse from which item be fulfilled."
+        description="ID of the warehouse from which the item will be fulfilled."
     )
 
 
@@ -169,6 +169,19 @@ class OrderFulfill(BaseMutation):
             )
 
     @classmethod
+    def check_total_quantity_of_items(cls, quantities_for_lines):
+        flat_quantities = sum(quantities_for_lines, [])
+        if sum(flat_quantities) <= 0:
+            raise ValidationError(
+                {
+                    "lines": ValidationError(
+                        "Total quantity must be larger than 0.",
+                        code=OrderErrorCode.ZERO_QUANTITY,
+                    )
+                }
+            )
+
+    @classmethod
     def clean_input(cls, data):
         lines = data["lines"]
 
@@ -189,15 +202,7 @@ class OrderFulfill(BaseMutation):
 
         cls.clean_lines(order_lines, quantities_for_lines)
 
-        if sum(sum(quantities_for_lines, [])) <= 0:
-            raise ValidationError(
-                {
-                    "lines": ValidationError(
-                        "Total quantity must be larger than 0.",
-                        code=OrderErrorCode.ZERO_QUANTITY,
-                    )
-                }
-            )
+        cls.check_total_quantity_of_items(quantities_for_lines)
 
         lines_for_warehouses = defaultdict(list)
         for line, order_line in zip(lines, order_lines):
