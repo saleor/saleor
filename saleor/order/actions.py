@@ -1,6 +1,6 @@
 import logging
 from decimal import Decimal
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, Dict, List
 
 from django.db import transaction
 
@@ -251,3 +251,107 @@ def automatically_fulfill_digital_lines(order: "Order"):
         order, fulfillment, user=order.user
     )
     update_order_status(order)
+
+
+def _create_fulfillment(
+    fulfillment: Fulfillment, warehouse_pk: str, lines: List[Dict]
+) -> List[FulfillmentLine]:
+    """Modify stocks and allocations. Return list of unsaved FulfillmentLines.
+
+    Args:
+        fulfillment (Fulfillment): Fulfillment to create lines
+        warehouse_pk (str): Warehouse to fulfill order.
+        lines (List[Dict]): List with information from which system
+            create FulfillmentLines. Example:
+                [
+                    {
+                        "order_line": (OrderLine),
+                        "quantity": (int),
+                    },
+                    ...
+                ]
+
+    Return:
+        List[FulfillmentLine]: Unsaved fulfillmet lines created for this fulfillment
+            based on information form `lines`
+
+    Raise:
+        InsufficientStock: If system hasn't containt enough item in stock for any line.
+
+    """
+    fulfillment_lines = []
+    for line in lines:
+        quantity = line["quantity"]
+        order_line = line["order_line"]
+        if quantity > 0:
+            try:
+                fulfill_order_line(order_line, quantity, warehouse_pk)
+            except InsufficientStock as exc:
+                raise exc
+            if order_line.is_digital:
+                order_line.variant.digital_content.urls.create(line=order_line)
+            fulfillment_lines.append(
+                FulfillmentLine(
+                    order_line=order_line,
+                    fulfillment=fulfillment,
+                    quantity=quantity,
+                    stock=order_line.variant.stocks.get(warehouse=warehouse_pk),
+                )
+            )
+    return fulfillment_lines
+
+
+@transaction.atomic()
+def create_fulfillments(
+    requester: "User",
+    order: "Order",
+    fulfillment_lines_for_warehouses: Dict,
+    notify_customer: bool = True,
+):
+    """Fulfill order.
+
+    Function create fulfillments with lines.
+    Next updates Order based on created fulfillments.
+
+    Args:
+        requester (User): Requester who trigger this action.
+        order (Order): Order to fulfill
+        fulfillment_lines_for_warehouses (Dict): Dict with information from which
+            system create fulfillments. Example:
+                {
+                    (Warehouse.pk): [
+                        {
+                            "order_line": (OrderLine),
+                            "quantity": (int),
+                        },
+                        ...
+                    ]
+                }
+        notify_customer (bool): If `True` system send email about
+            fulfillments to customer.
+
+    Raise:
+        InsufficientStock: If system hasn't containt enough item in stock for any line.
+
+    """
+    fulfillments = []
+    fulfillment_lines: List[FulfillmentLine] = []
+    for warehouse_pk in fulfillment_lines_for_warehouses:
+        fulfillment = Fulfillment.objects.create(order=order)
+        fulfillments.append(fulfillment)
+        try:
+            fulfillment_lines.extend(
+                _create_fulfillment(
+                    fulfillment,
+                    warehouse_pk,
+                    fulfillment_lines_for_warehouses[warehouse_pk],
+                )
+            )
+        except InsufficientStock as exc:
+            raise exc
+
+    FulfillmentLine.objects.bulk_create(fulfillment_lines)
+    order_fulfilled(
+        fulfillments, requester, fulfillment_lines, notify_customer,
+    )
+    return fulfillments

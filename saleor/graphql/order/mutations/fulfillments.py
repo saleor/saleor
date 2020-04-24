@@ -2,7 +2,6 @@ from collections import defaultdict
 
 import graphene
 from django.core.exceptions import ValidationError
-from django.db import transaction
 from django.template.defaultfilters import pluralize
 
 from ....core.exceptions import InsufficientStock
@@ -10,18 +9,17 @@ from ....core.permissions import OrderPermissions
 from ....order import models
 from ....order.actions import (
     cancel_fulfillment,
-    fulfill_order_line,
+    create_fulfillments,
     fulfillment_tracking_updated,
-    order_fulfilled,
 )
 from ....order.emails import send_fulfillment_update
 from ....order.error_codes import OrderErrorCode
 from ...core.mutations import BaseMutation
 from ...core.types.common import OrderError
-from ...core.utils import from_global_id_strict_type
+from ...core.utils import from_global_id_strict_type, get_duplicated_values
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ...order.types import Fulfillment, Order
-from ...utils import get_user_or_service_account_from_context
+from ...utils import get_user_or_app_from_context
 from ...warehouse.types import Warehouse
 from ..types import OrderLine
 
@@ -42,7 +40,7 @@ class OrderFulfillLineInput(graphene.InputObjectType):
     stocks = graphene.List(
         graphene.NonNull(OrderFulfillStockInput),
         required=True,
-        description="Stocks from item line be fulfilled.",
+        description="List of stock items to create.",
     )
 
 
@@ -50,7 +48,7 @@ class OrderFulfillInput(graphene.InputObjectType):
     lines = graphene.List(
         graphene.NonNull(OrderFulfillLineInput),
         required=True,
-        description="Item line to be fulfilled.",
+        description="List of items informing how to fulfill the order.",
     )
     notify_customer = graphene.Boolean(
         description="If true, send an email notification to the customer."
@@ -102,7 +100,9 @@ class FulfillmentUpdatePrivateMeta(UpdateMetaBaseMutation):
 
 
 class OrderFulfill(BaseMutation):
-    fulfillments = graphene.List(Fulfillment, description="A created fulfillments.")
+    fulfillments = graphene.List(
+        Fulfillment, description="List of created fulfillments."
+    )
     order = graphene.Field(Order, description="Fulfilled order.")
 
     class Arguments:
@@ -114,7 +114,7 @@ class OrderFulfill(BaseMutation):
         )
 
     class Meta:
-        description = "Creates a new fulfillments for an order."
+        description = "Creates new fulfillments for an order."
         permissions = (OrderPermissions.MANAGE_ORDERS,)
         error_type_class = OrderError
         error_type_field = "order_errors"
@@ -144,28 +144,26 @@ class OrderFulfill(BaseMutation):
     @classmethod
     def check_warehouses_for_duplicates(cls, warehouse_ids):
         for warehouse_ids_for_line in warehouse_ids:
-            duplicates = {
-                id
-                for id in warehouse_ids_for_line
-                if warehouse_ids_for_line.count(id) > 1
-            }
+            duplicates = get_duplicated_values(warehouse_ids_for_line)
             if duplicates:
                 raise ValidationError(
                     {
                         "warehouse": ValidationError(
-                            "Duplicated warehouse ID.", code=OrderErrorCode.UNIQUE
+                            "Duplicated warehouse ID.",
+                            code=OrderErrorCode.DUPLICATED_INPUT_ITEM,
                         )
                     }
                 )
 
     @classmethod
     def check_lines_for_duplicates(cls, lines_ids):
-        duplicates = {id for id in lines_ids if lines_ids.count(id) > 1}
+        duplicates = get_duplicated_values(lines_ids)
         if duplicates:
             raise ValidationError(
                 {
                     "orderLineId": ValidationError(
-                        "Duplicated warehouse ID.", code=OrderErrorCode.UNIQUE
+                        "Duplicated order line ID.",
+                        code=OrderErrorCode.DUPLICATED_INPUT_ITEM,
                     )
                 }
             )
@@ -186,7 +184,7 @@ class OrderFulfill(BaseMutation):
         lines_ids = [line["order_line_id"] for line in lines]
         cls.check_lines_for_duplicates(lines_ids)
         order_lines = cls.get_nodes_or_error(
-            lines_ids, field="liens", only_type=OrderLine
+            lines_ids, field="lines", only_type=OrderLine
         )
 
         cls.clean_lines(order_lines, quantities_for_lines)
@@ -204,7 +202,10 @@ class OrderFulfill(BaseMutation):
         lines_for_warehouses = defaultdict(list)
         for line, order_line in zip(lines, order_lines):
             for stock in line["stocks"]:
-                lines_for_warehouses[stock["warehouse"]].append(
+                warehouse_pk = from_global_id_strict_type(
+                    stock["warehouse"], only_type=Warehouse, field="warehouse"
+                )
+                lines_for_warehouses[warehouse_pk].append(
                     {"order_line": order_line, "quantity": stock["quantity"]}
                 )
 
@@ -214,73 +215,29 @@ class OrderFulfill(BaseMutation):
         return data
 
     @classmethod
-    def create_fulfillment(cls, fulfillment, warehouse_pk, lines):
-        fulfillment_lines = []
-        for line in lines:
-            quantity = line["quantity"]
-            order_line = line["order_line"]
-            if quantity > 0:
-                try:
-                    fulfill_order_line(order_line, quantity, warehouse_pk)
-                except InsufficientStock as exc:
-                    raise ValidationError(
-                        {
-                            "stocks": ValidationError(
-                                f"Insufficient product stock: {exc.item}",
-                                code=OrderErrorCode.INSUFFICIENT_STOCK,
-                            )
-                        }
-                    )
-                if order_line.is_digital:
-                    order_line.variant.digital_content.urls.create(line=order_line)
-                fulfillment_lines.append(
-                    models.FulfillmentLine(
-                        order_line=order_line,
-                        fulfillment=fulfillment,
-                        quantity=quantity,
-                        stock=order_line.variant.stocks.get(warehouse=warehouse_pk),
-                    )
-                )
-        return fulfillment_lines
-
-    @classmethod
-    @transaction.atomic()
-    def create_fulfillments(cls, requester, order, cleaned_input):
-        lines_for_warehouses = cleaned_input["lines_for_warehouses"]
-        fulfillments = []
-        fulfillment_lines = []
-        for warehouse_global_id in lines_for_warehouses:
-            warehouse_pk = from_global_id_strict_type(
-                warehouse_global_id, only_type=Warehouse, field="warehouse",
-            )
-            fulfillment = models.Fulfillment.objects.create(order=order)
-            fulfillments.append(fulfillment)
-            fulfillment_lines.extend(
-                cls.create_fulfillment(
-                    fulfillment,
-                    warehouse_pk,
-                    lines_for_warehouses[warehouse_global_id],
-                )
-            )
-
-        models.FulfillmentLine.objects.bulk_create(fulfillment_lines)
-        order_fulfilled(
-            fulfillments,
-            requester,
-            fulfillment_lines,
-            cleaned_input.get("notify_customer", True),
-        )
-        return fulfillments
-
-    @classmethod
     def perform_mutation(cls, _root, info, order, **data):
         order = cls.get_node_or_error(info, order, field="order", only_type=Order)
         data = data.get("input")
 
         cleaned_input = cls.clean_input(data)
 
-        requester = get_user_or_service_account_from_context(info.context)
-        fulfillments = cls.create_fulfillments(requester, order, cleaned_input)
+        requester = get_user_or_app_from_context(info.context)
+        lines_for_warehouses = cleaned_input["lines_for_warehouses"]
+        notify_customer = cleaned_input.get("notify_customer", True)
+
+        try:
+            fulfillments = create_fulfillments(
+                requester, order, dict(lines_for_warehouses), notify_customer
+            )
+        except InsufficientStock as exc:
+            raise ValidationError(
+                {
+                    "stocks": ValidationError(
+                        f"Insufficient product stock: {exc.item}",
+                        code=OrderErrorCode.INSUFFICIENT_STOCK,
+                    )
+                }
+            )
 
         return OrderFulfill(fulfillments=fulfillments, order=order)
 
