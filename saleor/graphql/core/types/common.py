@@ -72,6 +72,11 @@ class AccountError(Error):
 
 class AppError(Error):
     code = AppErrorCode(description="The error code.", required=True)
+    permissions = graphene.List(
+        graphene.NonNull(PermissionEnum),
+        description="List of permissions which causes the error.",
+        required=False,
+    )
 
 
 class StaffError(AccountError):

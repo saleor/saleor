@@ -1,12 +1,14 @@
 from django.contrib.auth.models import Group
 
 from saleor.account.models import User
+from saleor.app.models import App
 from saleor.core.permissions import (
     AccountPermissions,
     OrderPermissions,
     ProductPermissions,
 )
 from saleor.graphql.account.utils import (
+    can_manage_app,
     can_user_manage_group,
     get_group_permission_codes,
     get_group_to_permissions_and_users_mapping,
@@ -62,28 +64,48 @@ def test_get_out_of_scope_permissions_user_has_all_permissions(
     staff_user, permission_manage_orders, permission_manage_users
 ):
     staff_user.user_permissions.add(permission_manage_orders, permission_manage_users)
-    result = get_out_of_scope_permissions(
+    missing_perms = get_out_of_scope_permissions(
         staff_user, [AccountPermissions.MANAGE_USERS, OrderPermissions.MANAGE_ORDERS]
     )
-    assert result == []
+    assert missing_perms == []
 
 
 def test_get_out_of_scope_permissions_user_does_not_have_all_permissions(
     staff_user, permission_manage_orders, permission_manage_users
 ):
     staff_user.user_permissions.add(permission_manage_orders)
-    result = get_out_of_scope_permissions(
+    missing_perms = get_out_of_scope_permissions(
         staff_user, [AccountPermissions.MANAGE_USERS, OrderPermissions.MANAGE_ORDERS]
     )
-    assert result == [AccountPermissions.MANAGE_USERS]
+    assert missing_perms == [AccountPermissions.MANAGE_USERS]
 
 
 def test_get_out_of_scope_permissions_user_without_permissions(
     staff_user, permission_manage_orders, permission_manage_users
 ):
     permissions = [AccountPermissions.MANAGE_USERS, OrderPermissions.MANAGE_ORDERS]
-    result = get_out_of_scope_permissions(staff_user, permissions)
-    assert result == permissions
+    missing_perms = get_out_of_scope_permissions(staff_user, permissions)
+    assert missing_perms == permissions
+
+
+def test_get_out_of_scope_permissions_app_has_all_permissions(
+    app, permission_manage_orders, permission_manage_users
+):
+    app.permissions.add(permission_manage_orders, permission_manage_users)
+    missing_perms = get_out_of_scope_permissions(
+        app, [AccountPermissions.MANAGE_USERS, OrderPermissions.MANAGE_ORDERS],
+    )
+    assert missing_perms == []
+
+
+def test_get_out_of_scope_permissions_app_does_not_have_all_permissions(
+    app, permission_manage_orders, permission_manage_users
+):
+    app.permissions.add(permission_manage_orders)
+    missing_perms = get_out_of_scope_permissions(
+        app, [AccountPermissions.MANAGE_USERS, OrderPermissions.MANAGE_ORDERS],
+    )
+    assert missing_perms == [AccountPermissions.MANAGE_USERS]
 
 
 def test_get_group_permission_codes(
@@ -702,3 +724,45 @@ def test_get_not_manageable_permissions_deactivate_or_remove_user_cant_manage_st
     )
 
     assert not permissions
+
+
+def test_can_manage_app_no_permission(
+    app, staff_user, permission_manage_products, permission_manage_apps,
+):
+    app.permissions.add(permission_manage_products)
+    staff_user.user_permissions.add(permission_manage_apps)
+
+    result = can_manage_app(staff_user, app)
+    assert result is False
+
+
+def test_can_manage_app_account(
+    app, staff_user, permission_manage_products, permission_manage_apps,
+):
+    app.permissions.add(permission_manage_products)
+    staff_user.user_permissions.add(permission_manage_apps, permission_manage_products)
+
+    result = can_manage_app(staff_user, app)
+    assert result is True
+
+
+def test_can_manage_app_for_app_no_permission(
+    permission_manage_products, permission_manage_apps,
+):
+    apps = App.objects.bulk_create([App(name="sa1"), App(name="sa2")])
+    apps[1].permissions.add(permission_manage_products)
+    apps[0].permissions.add(permission_manage_apps)
+
+    result = can_manage_app(apps[0], apps[1])
+    assert result is False
+
+
+def test_can_manage_app_for_app(
+    permission_manage_products, permission_manage_apps,
+):
+    apps = App.objects.bulk_create([App(name="sa1"), App(name="sa2")])
+    apps[1].permissions.add(permission_manage_products)
+    apps[0].permissions.add(permission_manage_apps, permission_manage_products)
+
+    result = can_manage_app(apps[0], apps[1])
+    assert result is True
