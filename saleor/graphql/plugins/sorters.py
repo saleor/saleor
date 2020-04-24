@@ -29,8 +29,8 @@ def sort_plugins(
 
 
 class PluginSortField(graphene.Enum):
-    NAME = "name"
-    IS_ACTIVE = "active"
+    NAME = ["name"]
+    IS_ACTIVE = ["active", "name"]
 
     @property
     def description(self):

@@ -104,7 +104,9 @@ def test_variant_pricing(variant: ProductVariant, monkeypatch, settings, stock):
         PluginsManager, "apply_taxes_to_product", Mock(return_value=taxed_price)
     )
 
-    pricing = get_variant_availability(variant)
+    pricing = get_variant_availability(
+        variant=variant, product=variant.product, collections=[], discounts=[]
+    )
     assert pricing.price == taxed_price
     assert pricing.price_local_currency is None
 
@@ -116,10 +118,19 @@ def test_variant_pricing(variant: ProductVariant, monkeypatch, settings, stock):
     settings.DEFAULT_COUNTRY = "PL"
     settings.OPENEXCHANGERATES_API_KEY = "fake-key"
 
-    pricing = get_variant_availability(variant, local_currency="PLN", country="US")
+    pricing = get_variant_availability(
+        variant=variant,
+        product=variant.product,
+        collections=[],
+        discounts=[],
+        local_currency="PLN",
+        country="US",
+    )
     assert pricing.price_local_currency.currency == "PLN"  # type: ignore
 
-    pricing = get_variant_availability(variant)
+    pricing = get_variant_availability(
+        variant=variant, product=variant.product, collections=[], discounts=[]
+    )
     assert pricing.price.tax.amount
     assert pricing.price_undiscounted.tax.amount
     assert pricing.price_undiscounted.tax.amount

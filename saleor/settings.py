@@ -200,6 +200,7 @@ if not SECRET_KEY and DEBUG:
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.middleware.common.CommonMiddleware",
+    "saleor.core.middleware.request_time",
     "saleor.core.middleware.discounts",
     "saleor.core.middleware.google_analytics",
     "saleor.core.middleware.country",
@@ -238,6 +239,7 @@ INSTALLED_APPS = [
     "saleor.warehouse",
     "saleor.webhook",
     "saleor.wishlist",
+    "saleor.app",
     # External apps
     "versatileimagefield",
     "django_measurement",
@@ -385,7 +387,6 @@ PAYMENT_MODEL = "order.Payment"
 
 SESSION_SERIALIZER = "django.contrib.sessions.serializers.JSONSerializer"
 
-LOW_STOCK_THRESHOLD = 10
 MAX_CHECKOUT_LINE_QUANTITY = int(os.environ.get("MAX_CHECKOUT_LINE_QUANTITY", 50))
 
 TEST_RUNNER = "tests.runner.PytestTestRunner"
@@ -509,7 +510,7 @@ GRAPHENE = {
     "MIDDLEWARE": [
         "saleor.graphql.middleware.OpentracingGrapheneMiddleware",
         "saleor.graphql.middleware.JWTMiddleware",
-        "saleor.graphql.middleware.service_account_middleware",
+        "saleor.graphql.middleware.app_middleware",
     ],
 }
 

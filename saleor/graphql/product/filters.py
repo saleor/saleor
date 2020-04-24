@@ -3,7 +3,8 @@ from typing import Dict, List, Optional
 
 import django_filters
 import graphene
-from django.db.models import Q, Subquery, Sum
+from django.db.models import F, Q, Subquery, Sum
+from django.db.models.functions import Coalesce
 from graphene_django.filter import GlobalIDFilter, GlobalIDMultipleChoiceFilter
 
 from ...product.filters import filter_products_by_attributes_values
@@ -115,10 +116,13 @@ def filter_products_by_collections(qs, collections):
 def filter_products_by_stock_availability(qs, stock_availability):
     total_stock = (
         Stock.objects.select_related("product_variant")
-        .annotate_available_quantity()
         .values("product_variant__product_id")
-        .annotate(total_quantity=Sum("available_quantity"))
-        .filter(total_quantity__lte=0)
+        .annotate(
+            total_quantity_allocated=Coalesce(Sum("allocations__quantity_allocated"), 0)
+        )
+        .annotate(total_quantity=Coalesce(Sum("quantity"), 0))
+        .annotate(total_available=F("total_quantity") - F("total_quantity_allocated"))
+        .filter(total_available__lte=0)
         .values_list("product_variant__product_id", flat=True)
     )
     if stock_availability == StockAvailability.IN_STOCK:

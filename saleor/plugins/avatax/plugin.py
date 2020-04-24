@@ -1,4 +1,5 @@
 import logging
+from dataclasses import asdict
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Union
 from urllib.parse import urljoin
@@ -112,6 +113,7 @@ class AvataxPlugin(BasePlugin):
     def calculate_checkout_total(
         self,
         checkout: "Checkout",
+        lines: Iterable["CheckoutLine"],
         discounts: Iterable[DiscountInfo],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -154,6 +156,7 @@ class AvataxPlugin(BasePlugin):
     def calculate_checkout_subtotal(
         self,
         checkout: "Checkout",
+        lines: Iterable["CheckoutLine"],
         discounts: Iterable[DiscountInfo],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -189,6 +192,7 @@ class AvataxPlugin(BasePlugin):
     def calculate_checkout_shipping(
         self,
         checkout: "Checkout",
+        lines: Iterable["CheckoutLine"],
         discounts: Iterable[DiscountInfo],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -254,7 +258,7 @@ class AvataxPlugin(BasePlugin):
         transaction_url = urljoin(
             get_api_url(self.config.use_sandbox), "transactions/createoradjust"
         )
-        api_post_request_task.delay(transaction_url, data, self.config)
+        api_post_request_task.delay(transaction_url, data, asdict(self.config))
         return previous_value
 
     def calculate_checkout_line_total(

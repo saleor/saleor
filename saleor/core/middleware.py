@@ -44,11 +44,21 @@ def google_analytics(get_response):
     return _google_analytics_middleware
 
 
+def request_time(get_response):
+    def _stamp_request(request):
+        request.request_time = timezone.now()
+        return get_response(request)
+
+    return _stamp_request
+
+
 def discounts(get_response):
     """Assign active discounts to `request.discounts`."""
 
     def _discounts_middleware(request):
-        request.discounts = SimpleLazyObject(lambda: fetch_discounts(timezone.now()))
+        request.discounts = SimpleLazyObject(
+            lambda: fetch_discounts(request.request_time)
+        )
         return get_response(request)
 
     return _discounts_middleware

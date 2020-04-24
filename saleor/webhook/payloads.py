@@ -234,10 +234,14 @@ def generate_fulfillment_lines_payload(fulfillment: Fulfillment):
 def generate_fulfillment_payload(fulfillment: Fulfillment):
     serializer = PayloadSerializer()
 
-    # fulfilment fields to serialize
+    # fulfillment fields to serialize
     fulfillment_fields = ("status", "tracking_code", "order__user_email")
     order_country = get_order_country(fulfillment.order)
-    warehouse = Warehouse.objects.for_country(order_country)
+    fulfillment_line = fulfillment.lines.first()
+    if fulfillment_line and fulfillment_line.stock:
+        warehouse = fulfillment_line.stock.warehouse
+    else:
+        warehouse = Warehouse.objects.for_country(order_country).first()
     fulfillment_data = serializer.serialize(
         [fulfillment],
         fields=fulfillment_fields,

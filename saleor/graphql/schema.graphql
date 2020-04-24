@@ -39,7 +39,7 @@ type AccountError {
 enum AccountErrorCode {
   ACTIVATE_OWN_ACCOUNT
   ACTIVATE_SUPERUSER_ACCOUNT
-  ASSIGN_NON_STAFF_MEMBER
+  DUPLICATED_INPUT_ITEM
   DEACTIVATE_OWN_ACCOUNT
   DEACTIVATE_SUPERUSER_ACCOUNT
   DELETE_NON_STAFF_USER
@@ -49,8 +49,13 @@ enum AccountErrorCode {
   GRAPHQL_ERROR
   INVALID
   INVALID_PASSWORD
+  LEFT_NOT_MANAGEABLE_PERMISSION
   INVALID_CREDENTIALS
   NOT_FOUND
+  OUT_OF_SCOPE_SERVICE_ACCOUNT
+  OUT_OF_SCOPE_USER
+  OUT_OF_SCOPE_GROUP
+  OUT_OF_SCOPE_PERMISSION
   PASSWORD_ENTIRELY_NUMERIC
   PASSWORD_TOO_COMMON
   PASSWORD_TOO_SHORT
@@ -185,6 +190,112 @@ type AddressValidationData {
   postalCodePrefix: String
 }
 
+type App implements Node & ObjectWithMetadata {
+  id: ID!
+  name: String
+  created: DateTime
+  isActive: Boolean
+  permissions: [Permission]
+  tokens: [AppToken]
+  privateMetadata: [MetadataItem]!
+  metadata: [MetadataItem]!
+  privateMeta: [MetaStore]! @deprecated(reason: "Use the `privetaMetadata` field. This field will be removed after 2020-07-31.")
+  meta: [MetaStore]! @deprecated(reason: "Use the `metadata` field. This field will be removed after 2020-07-31.")
+  webhooks: [Webhook]
+}
+
+type AppCountableConnection {
+  pageInfo: PageInfo!
+  edges: [AppCountableEdge!]!
+  totalCount: Int
+}
+
+type AppCountableEdge {
+  node: App!
+  cursor: String!
+}
+
+type AppCreate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  authToken: String
+  appErrors: [AppError!]!
+  app: App
+}
+
+type AppDelete {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  appErrors: [AppError!]!
+  app: App
+}
+
+type AppError {
+  field: String
+  message: String
+  code: AppErrorCode!
+  permissions: [PermissionEnum!]
+}
+
+enum AppErrorCode {
+  GRAPHQL_ERROR
+  INVALID
+  NOT_FOUND
+  REQUIRED
+  UNIQUE
+  OUT_OF_SCOPE_APP
+  OUT_OF_SCOPE_PERMISSION
+}
+
+input AppFilterInput {
+  search: String
+  isActive: Boolean
+}
+
+input AppInput {
+  name: String
+  isActive: Boolean
+  permissions: [PermissionEnum]
+}
+
+enum AppSortField {
+  NAME
+  CREATION_DATE
+}
+
+input AppSortingInput {
+  direction: OrderDirection!
+  field: AppSortField!
+}
+
+type AppToken implements Node {
+  name: String
+  authToken: String
+  id: ID!
+}
+
+type AppTokenCreate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  authToken: String
+  appErrors: [AppError!]!
+  appToken: AppToken
+}
+
+type AppTokenDelete {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  appErrors: [AppError!]!
+  appToken: AppToken
+}
+
+input AppTokenInput {
+  name: String
+  app: ID!
+}
+
+type AppUpdate {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  appErrors: [AppError!]!
+  app: App
+}
+
 type AssignNavigation {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   menu: Menu
@@ -316,8 +427,6 @@ enum AttributeSortField {
   VISIBLE_IN_STOREFRONT
   FILTERABLE_IN_STOREFRONT
   FILTERABLE_IN_DASHBOARD
-  DASHBOARD_VARIANT_POSITION
-  DASHBOARD_PRODUCT_POSITION
   STOREFRONT_SEARCH_POSITION
   AVAILABLE_IN_GRID
 }
@@ -494,6 +603,7 @@ type BulkProductError {
   message: String
   code: ProductErrorCode!
   index: Int
+  warehouses: [ID!]
 }
 
 type BulkStockError {
@@ -1646,6 +1756,7 @@ type Fulfillment implements Node & ObjectWithMetadata {
   meta: [MetaStore]! @deprecated(reason: "Use the `metadata` field. This field will be removed after 2020-07-31.")
   lines: [FulfillmentLine]
   statusDisplay: String
+  warehouse: Warehouse
 }
 
 type FulfillmentCancel {
@@ -1669,28 +1780,10 @@ type FulfillmentClearPrivateMeta {
   fulfillment: Fulfillment
 }
 
-type FulfillmentCreate {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  fulfillment: Fulfillment
-  order: Order
-  orderErrors: [OrderError!]!
-}
-
-input FulfillmentCreateInput {
-  trackingNumber: String
-  notifyCustomer: Boolean
-  lines: [FulfillmentLineInput]!
-}
-
 type FulfillmentLine implements Node {
   id: ID!
   quantity: Int!
   orderLine: OrderLine
-}
-
-input FulfillmentLineInput {
-  orderLineId: ID
-  quantity: Int
 }
 
 enum FulfillmentStatus {
@@ -1813,8 +1906,9 @@ input GiftCardUpdateInput {
 type Group implements Node {
   id: ID!
   name: String!
-  permissions: [PermissionDisplay]
+  permissions: [Permission]
   users: [User]
+  userCanManage: Boolean!
 }
 
 type GroupCountableConnection {
@@ -2296,8 +2390,8 @@ type Mutation {
   orderCapture(amount: Decimal!, id: ID!): OrderCapture
   orderClearPrivateMeta(id: ID!, input: MetaPath!): OrderClearPrivateMeta @deprecated(reason: "Use the `deletePrivateMetadata` mutation instead. This field will be removed after 2020-07-31.")
   orderClearMeta(input: MetaPath!, token: UUID!): OrderClearMeta @deprecated(reason: "Use the `deleteMetadata` mutation instead. This field will be removed after 2020-07-31.")
+  orderFulfill(input: OrderFulfillInput!, order: ID): OrderFulfill
   orderFulfillmentCancel(id: ID!, input: FulfillmentCancelInput!): FulfillmentCancel
-  orderFulfillmentCreate(input: FulfillmentCreateInput!, order: ID): FulfillmentCreate
   orderFulfillmentUpdateTracking(id: ID!, input: FulfillmentUpdateTrackingInput!): FulfillmentUpdateTracking
   orderFulfillmentClearMeta(id: ID!, input: MetaPath!): FulfillmentClearMeta @deprecated(reason: "Use the `deleteMetadata` mutation instead. This field will be removed after 2020-07-31.")
   orderFulfillmentClearPrivateMeta(id: ID!, input: MetaPath!): FulfillmentClearPrivateMeta @deprecated(reason: "Use the `deletePrivateMetadata` mutation instead. This field will be removed after 2020-07-31.")
@@ -2346,7 +2440,7 @@ type Mutation {
   voucherCataloguesRemove(id: ID!, input: CatalogueInput!): VoucherRemoveCatalogues
   voucherTranslate(id: ID!, input: NameTranslationInput!, languageCode: LanguageCodeEnum!): VoucherTranslate
   tokenCreate(email: String!, password: String!): CreateToken
-  tokenRefresh(token: String!): Refresh
+  tokenRefresh(token: String!): RefreshToken
   tokenVerify(token: String!): VerifyToken
   checkoutAddPromoCode(checkoutId: ID!, promoCode: String!): CheckoutAddPromoCode
   checkoutBillingAddressUpdate(billingAddress: AddressInput!, checkoutId: ID!): CheckoutBillingAddressUpdate
@@ -2366,6 +2460,11 @@ type Mutation {
   checkoutClearMetadata(id: ID!, input: MetaPath!): CheckoutClearMeta @deprecated(reason: "Use the `deleteMetadata` mutation. This field will be removed after 2020-07-31.")
   checkoutUpdatePrivateMetadata(id: ID!, input: MetaInput!): CheckoutUpdatePrivateMeta @deprecated(reason: "Use the `updatePrivateMetadata` mutation. This field will be removed after 2020-07-31.")
   checkoutClearPrivateMetadata(id: ID!, input: MetaPath!): CheckoutClearPrivateMeta @deprecated(reason: "Use the `deletePrivateMetadata` mutation. This field will be removed after 2020-07-31.")
+  appCreate(input: AppInput!): AppCreate
+  appUpdate(id: ID!, input: AppInput!): AppUpdate
+  appDelete(id: ID!): AppDelete
+  appTokenCreate(input: AppTokenInput!): AppTokenCreate
+  appTokenDelete(id: ID!): AppTokenDelete
   requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
   confirmAccount(email: String!, token: String!): ConfirmAccount
   setPassword(token: String!, email: String!, password: String!): SetPassword
@@ -2390,7 +2489,7 @@ type Mutation {
   customerDelete(id: ID!): CustomerDelete
   customerBulkDelete(ids: [ID]!): CustomerBulkDelete
   staffCreate(input: StaffCreateInput!): StaffCreate
-  staffUpdate(id: ID!, input: StaffInput!): StaffUpdate
+  staffUpdate(id: ID!, input: StaffUpdateInput!): StaffUpdate
   staffDelete(id: ID!): StaffDelete
   staffBulkDelete(ids: [ID]!): StaffBulkDelete
   userAvatarUpdate(image: Upload!): UserAvatarUpdate
@@ -2400,18 +2499,16 @@ type Mutation {
   userClearMetadata(id: ID!, input: MetaPath!): UserClearMeta @deprecated(reason: "Use the `deleteMetadata` mutation. This field will be removed after 2020-07-31.")
   userUpdatePrivateMetadata(id: ID!, input: MetaInput!): UserUpdatePrivateMeta @deprecated(reason: "Use the `updatePrivateMetadata` mutation. This field will be removed after 2020-07-31.")
   userClearPrivateMetadata(id: ID!, input: MetaPath!): UserClearPrivateMeta @deprecated(reason: "Use the `deletePrivateMetadata` mutation. This field will be removed after 2020-07-31.")
-  serviceAccountCreate(input: ServiceAccountInput!): ServiceAccountCreate
-  serviceAccountUpdate(id: ID!, input: ServiceAccountInput!): ServiceAccountUpdate
-  serviceAccountDelete(id: ID!): ServiceAccountDelete
-  serviceAccountUpdatePrivateMetadata(id: ID!, input: MetaInput!): ServiceAccountUpdatePrivateMeta @deprecated(reason: "Use the `updatePrivateMetadata` mutation. This field will be removed after 2020-07-31.")
-  serviceAccountClearPrivateMetadata(id: ID!, input: MetaPath!): ServiceAccountClearPrivateMeta @deprecated(reason: "Use the `deletePrivateMetadata` mutation. This field will be removed after 2020-07-31.")
-  serviceAccountTokenCreate(input: ServiceAccountTokenInput!): ServiceAccountTokenCreate
-  serviceAccountTokenDelete(id: ID!): ServiceAccountTokenDelete
+  serviceAccountCreate(input: ServiceAccountInput!): ServiceAccountCreate @deprecated(reason: "Use the `appCreate` mutation instead. This field will be removed after 2020-07-31.")
+  serviceAccountUpdate(id: ID!, input: ServiceAccountInput!): ServiceAccountUpdate @deprecated(reason: "Use the `appUpdate` mutation instead. This field will be removed after 2020-07-31.")
+  serviceAccountDelete(id: ID!): ServiceAccountDelete @deprecated(reason: "Use the `appDelete` mutation instead. This field will be removed after 2020-07-31.")
+  serviceAccountUpdatePrivateMetadata(id: ID!, input: MetaInput!): ServiceAccountUpdatePrivateMeta @deprecated(reason: "Use the `updatePrivateMetadata` mutation with App instead.This field will be removed after 2020-07-31.")
+  serviceAccountClearPrivateMetadata(id: ID!, input: MetaPath!): ServiceAccountClearPrivateMeta @deprecated(reason: "Use the `deletePrivateMetadata` mutation with App instead.This field will be removed after 2020-07-31.")
+  serviceAccountTokenCreate(input: ServiceAccountTokenInput!): ServiceAccountTokenCreate @deprecated(reason: "Use the `appTokenCreate` mutation instead. This field will be removed after 2020-07-31.")
+  serviceAccountTokenDelete(id: ID!): ServiceAccountTokenDelete @deprecated(reason: "Use the `appTokenDelete` mutation instead. This field will be removed after 2020-07-31.")
   permissionGroupCreate(input: PermissionGroupCreateInput!): PermissionGroupCreate
-  permissionGroupUpdate(id: ID!, input: PermissionGroupInput!): PermissionGroupUpdate
+  permissionGroupUpdate(id: ID!, input: PermissionGroupUpdateInput!): PermissionGroupUpdate
   permissionGroupDelete(id: ID!): PermissionGroupDelete
-  permissionGroupAssignUsers(id: ID!, users: [ID!]!): PermissionGroupAssignUsers
-  permissionGroupUnassignUsers(id: ID!, users: [ID!]!): PermissionGroupUnassignUsers
 }
 
 input NameTranslationInput {
@@ -2580,6 +2677,8 @@ enum OrderErrorCode {
   UNIQUE
   VOID_INACTIVE_PAYMENT
   ZERO_QUANTITY
+  INSUFFICIENT_STOCK
+  DUPLICATED_INPUT_ITEM
 }
 
 type OrderEvent implements Node {
@@ -2657,6 +2756,28 @@ input OrderFilterInput {
   customer: String
   created: DateRangeInput
   search: String
+}
+
+type OrderFulfill {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  fulfillments: [Fulfillment]
+  order: Order
+  orderErrors: [OrderError!]!
+}
+
+input OrderFulfillInput {
+  lines: [OrderFulfillLineInput!]!
+  notifyCustomer: Boolean
+}
+
+input OrderFulfillLineInput {
+  orderLineId: ID
+  stocks: [OrderFulfillStockInput!]!
+}
+
+input OrderFulfillStockInput {
+  quantity: Int
+  warehouse: ID
 }
 
 type OrderLine implements Node {
@@ -3010,7 +3131,7 @@ type PaymentVoid {
   paymentErrors: [PaymentError!]!
 }
 
-type PermissionDisplay {
+type Permission {
   code: PermissionEnum!
   name: String!
 }
@@ -3019,6 +3140,7 @@ enum PermissionEnum {
   MANAGE_USERS
   MANAGE_STAFF
   MANAGE_SERVICE_ACCOUNTS
+  MANAGE_APPS
   MANAGE_DISCOUNTS
   MANAGE_PLUGINS
   MANAGE_GIFT_CARD
@@ -3033,36 +3155,45 @@ enum PermissionEnum {
   MANAGE_CHECKOUTS
 }
 
-type PermissionGroupAssignUsers {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  group: Group
-  accountErrors: [AccountError!]!
-}
-
 type PermissionGroupCreate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   group: Group
-  accountErrors: [AccountError!]!
+  permissionGroupErrors: [PermissionGroupError!]!
 }
 
 input PermissionGroupCreateInput {
+  addPermissions: [PermissionEnum!]
+  addUsers: [ID!]
   name: String!
-  permissions: [PermissionEnum!]
 }
 
 type PermissionGroupDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  accountErrors: [AccountError!]!
+  permissionGroupErrors: [PermissionGroupError!]!
   group: Group
+}
+
+type PermissionGroupError {
+  field: String
+  message: String
+  code: PermissionGroupErrorCode!
+  permissions: [PermissionEnum!]
+  users: [ID!]
+}
+
+enum PermissionGroupErrorCode {
+  ASSIGN_NON_STAFF_MEMBER
+  DUPLICATED_INPUT_ITEM
+  CANNOT_REMOVE_FROM_LAST_GROUP
+  LEFT_NOT_MANAGEABLE_PERMISSION
+  OUT_OF_SCOPE_PERMISSION
+  OUT_OF_SCOPE_USER
+  REQUIRED
+  UNIQUE
 }
 
 input PermissionGroupFilterInput {
   search: String
-}
-
-input PermissionGroupInput {
-  name: String
-  permissions: [PermissionEnum!]
 }
 
 enum PermissionGroupSortField {
@@ -3074,16 +3205,18 @@ input PermissionGroupSortingInput {
   field: PermissionGroupSortField!
 }
 
-type PermissionGroupUnassignUsers {
-  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  group: Group
-  accountErrors: [AccountError!]!
-}
-
 type PermissionGroupUpdate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   group: Group
-  accountErrors: [AccountError!]!
+  permissionGroupErrors: [PermissionGroupError!]!
+}
+
+input PermissionGroupUpdateInput {
+  addPermissions: [PermissionEnum!]
+  addUsers: [ID!]
+  name: String
+  removePermissions: [PermissionEnum!]
+  removeUsers: [ID!]
 }
 
 type Plugin implements Node {
@@ -3251,7 +3384,6 @@ input ProductCreateInput {
   seo: SeoInput
   weight: WeightScalar
   sku: String
-  quantity: Int
   trackInventory: Boolean
   productType: ID!
   stocks: [StockInput!]
@@ -3274,6 +3406,7 @@ enum ProductErrorCode {
   ATTRIBUTE_ALREADY_ASSIGNED
   ATTRIBUTE_CANNOT_BE_ASSIGNED
   ATTRIBUTE_VARIANTS_DISABLED
+  DUPLICATED_INPUT_ITEM
   GRAPHQL_ERROR
   INVALID
   NOT_PRODUCTS_IMAGE
@@ -3365,7 +3498,6 @@ input ProductInput {
   seo: SeoInput
   weight: WeightScalar
   sku: String
-  quantity: Int
   trackInventory: Boolean
 }
 
@@ -3608,9 +3740,9 @@ input ProductVariantBulkCreateInput {
   costPrice: Decimal
   priceOverride: Decimal
   sku: String!
-  quantity: Int
   trackInventory: Boolean
   weight: WeightScalar
+  stocks: [StockInput!]
 }
 
 type ProductVariantBulkDelete {
@@ -3653,7 +3785,6 @@ input ProductVariantCreateInput {
   costPrice: Decimal
   priceOverride: Decimal
   sku: String
-  quantity: Int
   trackInventory: Boolean
   weight: WeightScalar
   product: ID!
@@ -3671,7 +3802,6 @@ input ProductVariantInput {
   costPrice: Decimal
   priceOverride: Decimal
   sku: String
-  quantity: Int
   trackInventory: Boolean
   weight: WeightScalar
 }
@@ -3733,7 +3863,7 @@ type ProductVariantUpdatePrivateMeta {
 
 type Query {
   webhook(id: ID!): Webhook
-  webhooks(sortBy: WebhookSortingInput, filter: WebhookFilterInput, before: String, after: String, first: Int, last: Int): WebhookCountableConnection
+  webhooks(sortBy: WebhookSortingInput, filter: WebhookFilterInput, before: String, after: String, first: Int, last: Int): WebhookCountableConnection @deprecated(reason: "Use webhooks field on app(s) query instead. This field will be removed after 2020-07-31.")
   webhookEvents: [WebhookEvent]
   webhookSamplePayload(eventType: WebhookSampleEventTypeEnum!): JSONString
   warehouse(id: ID!): Warehouse
@@ -3787,6 +3917,8 @@ type Query {
   checkouts(before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
   checkoutLine(id: ID): CheckoutLine
   checkoutLines(before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection
+  apps(filter: AppFilterInput, sortBy: AppSortingInput, before: String, after: String, first: Int, last: Int): AppCountableConnection
+  app(id: ID!): App
   addressValidationRules(countryCode: CountryCode!, countryArea: String, city: String, cityArea: String): AddressValidationData
   address(id: ID!): Address
   customers(filter: CustomerFilterInput, sortBy: UserSortingInput, before: String, after: String, first: Int, last: Int): UserCountableConnection
@@ -3794,8 +3926,8 @@ type Query {
   permissionGroup(id: ID!): Group
   me: User
   staffUsers(filter: StaffUserInput, sortBy: UserSortingInput, before: String, after: String, first: Int, last: Int): UserCountableConnection
-  serviceAccounts(filter: ServiceAccountFilterInput, sortBy: ServiceAccountSortingInput, before: String, after: String, first: Int, last: Int): ServiceAccountCountableConnection
-  serviceAccount(id: ID!): ServiceAccount
+  serviceAccounts(filter: ServiceAccountFilterInput, sortBy: ServiceAccountSortingInput, before: String, after: String, first: Int, last: Int): ServiceAccountCountableConnection @deprecated(reason: "Use the `apps` query instead. This field will be removed after 2020-07-31.")
+  serviceAccount(id: ID!): ServiceAccount @deprecated(reason: "Use the `app` query instead. This field will be removed after 2020-07-31.")
   user(id: ID!): User
   _entities(representations: [_Any]): [_Entity]
   _service: _Service
@@ -3806,7 +3938,7 @@ type ReducedRate {
   rateType: TaxRateType!
 }
 
-type Refresh {
+type RefreshToken {
   token: String
   payload: GenericScalar
 }
@@ -3962,7 +4094,7 @@ type ServiceAccount implements Node & ObjectWithMetadata {
   name: String
   created: DateTime
   isActive: Boolean
-  permissions: [PermissionDisplay]
+  permissions: [Permission]
   tokens: [ServiceAccountToken]
   privateMetadata: [MetadataItem]!
   metadata: [MetadataItem]!
@@ -4079,7 +4211,7 @@ enum ShippingErrorCode {
   NOT_FOUND
   REQUIRED
   UNIQUE
-  CANNOT_ADD_AND_REMOVE
+  DUPLICATED_INPUT_ITEM
 }
 
 type ShippingMethod implements Node {
@@ -4231,7 +4363,7 @@ type Shop {
   languages: [LanguageDisplay]!
   name: String!
   navigation: Navigation
-  permissions: [PermissionDisplay]!
+  permissions: [Permission]!
   phonePrefixes: [String]!
   headerText: String
   includeTaxesInPrices: Boolean!
@@ -4330,12 +4462,12 @@ input SiteDomainInput {
 type StaffBulkDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
   count: Int!
-  accountErrors: [AccountError!]!
+  staffErrors: [StaffError!]!
 }
 
 type StaffCreate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  accountErrors: [AccountError!]!
+  staffErrors: [StaffError!]!
   user: User
 }
 
@@ -4345,23 +4477,23 @@ input StaffCreateInput {
   email: String
   isActive: Boolean
   note: String
-  permissions: [PermissionEnum]
+  addGroups: [ID!]
   redirectUrl: String
 }
 
 type StaffDelete {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  accountErrors: [AccountError!]!
+  staffErrors: [StaffError!]!
   user: User
 }
 
-input StaffInput {
-  firstName: String
-  lastName: String
-  email: String
-  isActive: Boolean
-  note: String
-  permissions: [PermissionEnum]
+type StaffError {
+  field: String
+  message: String
+  code: AccountErrorCode!
+  permissions: [PermissionEnum!]
+  groups: [ID!]
+  users: [ID!]
 }
 
 enum StaffMemberStatus {
@@ -4402,8 +4534,18 @@ type StaffNotificationRecipientUpdate {
 
 type StaffUpdate {
   errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
-  accountErrors: [AccountError!]!
+  staffErrors: [StaffError!]!
   user: User
+}
+
+input StaffUpdateInput {
+  firstName: String
+  lastName: String
+  email: String
+  isActive: Boolean
+  note: String
+  addGroups: [ID!]
+  removeGroups: [ID!]
 }
 
 input StaffUserInput {
@@ -4415,9 +4557,9 @@ type Stock implements Node {
   warehouse: Warehouse!
   productVariant: ProductVariant!
   quantity: Int!
-  quantityAllocated: Int!
   id: ID!
   stockQuantity: Int!
+  quantityAllocated: Int!
 }
 
 enum StockAvailability {
@@ -4453,7 +4595,6 @@ enum StockErrorCode {
 
 input StockFilterInput {
   quantity: Float
-  quantityAllocated: Float
   search: String
 }
 
@@ -4623,7 +4764,10 @@ type User implements Node & ObjectWithMetadata {
   checkout: Checkout
   giftCards(before: String, after: String, first: Int, last: Int): GiftCardCountableConnection
   orders(before: String, after: String, first: Int, last: Int): OrderCountableConnection
-  permissions: [PermissionDisplay]
+  permissions: [Permission] @deprecated(reason: "Will be removed in Saleor 2.11.Use the `userPermissions` instead.")
+  userPermissions: [UserPermission]
+  permissionGroups: [Group]
+  editableGroups: [Group]
   avatar(size: Int): Image
   events: [CustomerEvent]
   storedPaymentSources: [PaymentSource]
@@ -4679,6 +4823,12 @@ input UserCreateInput {
   isActive: Boolean
   note: String
   redirectUrl: String
+}
+
+type UserPermission {
+  code: PermissionEnum!
+  name: String!
+  sourcePermissionGroups(userId: ID!): [Group!]
 }
 
 enum UserSortField {
@@ -4991,12 +5141,13 @@ input WarehouseUpdateInput {
 
 type Webhook implements Node {
   name: String!
-  serviceAccount: ServiceAccount!
   targetUrl: String!
   isActive: Boolean!
   secretKey: String
   id: ID!
   events: [WebhookEvent!]!
+  serviceAccount: ServiceAccount! @deprecated(reason: "Use the `app` field instead. This field will be removed after 2020-07-31.")
+  app: App!
 }
 
 type WebhookCountableConnection {
@@ -5021,6 +5172,7 @@ input WebhookCreateInput {
   targetUrl: String
   events: [WebhookEventTypeEnum]
   serviceAccount: ID
+  app: ID
   isActive: Boolean
   secretKey: String
 }
@@ -5084,6 +5236,7 @@ enum WebhookSortField {
   NAME
   SERVICE_ACCOUNT
   TARGET_URL
+  APP
 }
 
 input WebhookSortingInput {
@@ -5102,6 +5255,7 @@ input WebhookUpdateInput {
   targetUrl: String
   events: [WebhookEventTypeEnum]
   serviceAccount: ID
+  app: ID
   isActive: Boolean
   secretKey: String
 }
@@ -5122,7 +5276,7 @@ enum WeightUnitsEnum {
 
 scalar _Any
 
-union _Entity = Address | ServiceAccount | User | Group | ProductVariant | Product | ProductType | Collection | Category | ProductImage
+union _Entity = Address | User | Group | ServiceAccount | App | ProductVariant | Product | ProductType | Collection | Category | ProductImage
 
 type _Service {
   sdl: String

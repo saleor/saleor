@@ -428,6 +428,9 @@ class Fulfillment(ModelWithMetadata):
     tracking_number = models.CharField(max_length=255, default="", blank=True)
     created = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ("pk",)
+
     def __str__(self):
         return f"Fulfillment #{self.composed_id}"
 
@@ -462,6 +465,13 @@ class FulfillmentLine(models.Model):
         Fulfillment, related_name="lines", on_delete=models.CASCADE
     )
     quantity = models.PositiveIntegerField()
+    stock = models.ForeignKey(
+        "warehouse.Stock",
+        related_name="fulfillment_lines",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+    )
 
 
 class OrderEvent(models.Model):
