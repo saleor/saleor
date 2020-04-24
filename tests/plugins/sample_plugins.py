@@ -49,15 +49,15 @@ class PluginSample(BasePlugin):
         },
     }
 
-    def calculate_checkout_total(self, checkout, discounts, previous_value):
+    def calculate_checkout_total(self, checkout, lines, discounts, previous_value):
         total = Money("1.0", currency=checkout.currency)
         return TaxedMoney(total, total)
 
-    def calculate_checkout_subtotal(self, checkout, discounts, previous_value):
+    def calculate_checkout_subtotal(self, checkout, lines, discounts, previous_value):
         subtotal = Money("1.0", currency=checkout.currency)
         return TaxedMoney(subtotal, subtotal)
 
-    def calculate_checkout_shipping(self, checkout, discounts, previous_value):
+    def calculate_checkout_shipping(self, checkout, lines, discounts, previous_value):
         price = Money("1.0", currency=checkout.currency)
         return TaxedMoney(price, price)
 

@@ -1847,7 +1847,9 @@ def app(db):
 
 @pytest.fixture
 def webhook(app):
-    webhook = Webhook.objects.create(app=app, target_url="http://www.example.com/test")
+    webhook = Webhook.objects.create(
+        name="Simple webhook", app=app, target_url="http://www.example.com/test"
+    )
     webhook.events.create(event_type=WebhookEventType.ORDER_CREATED)
     return webhook
 

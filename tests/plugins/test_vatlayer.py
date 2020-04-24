@@ -236,7 +236,9 @@ def test_calculate_checkout_total(
     site_settings.save()
 
     discounts = [discount_info] if with_discount else None
-    total = manager.calculate_checkout_total(checkout_with_item, discounts)
+    total = manager.calculate_checkout_total(
+        checkout_with_item, list(checkout_with_item), discounts
+    )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
@@ -284,7 +286,9 @@ def test_calculate_checkout_subtotal(
 
     discounts = [discount_info] if with_discount else None
     add_variant_to_checkout(checkout_with_item, variant, 2)
-    total = manager.calculate_checkout_subtotal(checkout_with_item, discounts)
+    total = manager.calculate_checkout_subtotal(
+        checkout_with_item, list(checkout_with_item), discounts
+    )
     total = quantize_price(total, total.currency)
     assert total == TaxedMoney(
         net=Money(expected_net, "USD"), gross=Money(expected_gross, "USD")
@@ -433,7 +437,9 @@ def test_calculations_checkout_total_with_vatlayer(
     vatlayer, settings, checkout_with_item
 ):
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
-    checkout_subtotal = calculations.checkout_total(checkout_with_item)
+    checkout_subtotal = calculations.checkout_total(
+        checkout=checkout_with_item, lines=list(checkout_with_item)
+    )
     assert checkout_subtotal == TaxedMoney(
         net=Money("30", "USD"), gross=Money("30", "USD")
     )
@@ -443,7 +449,9 @@ def test_calculations_checkout_subtotal_with_vatlayer(
     vatlayer, settings, checkout_with_item
 ):
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
-    checkout_subtotal = calculations.checkout_subtotal(checkout_with_item)
+    checkout_subtotal = calculations.checkout_subtotal(
+        checkout=checkout_with_item, lines=list(checkout_with_item)
+    )
     assert checkout_subtotal == TaxedMoney(
         net=Money("30", "USD"), gross=Money("30", "USD")
     )
@@ -453,7 +461,9 @@ def test_calculations_checkout_shipping_price_with_vatlayer(
     vatlayer, settings, checkout_with_item
 ):
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
-    checkout_shipping_price = calculations.checkout_shipping_price(checkout_with_item)
+    checkout_shipping_price = calculations.checkout_shipping_price(
+        checkout=checkout_with_item, lines=list(checkout_with_item)
+    )
     assert checkout_shipping_price == TaxedMoney(
         net=Money("0", "USD"), gross=Money("0", "USD")
     )
