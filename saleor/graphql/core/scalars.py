@@ -2,6 +2,7 @@ import decimal
 
 import graphene
 from graphql.language import ast
+from graphql.error import GraphQLError
 from measurement.measures import Weight
 
 from ...core.weight import convert_weight, get_default_weight_unit
@@ -46,7 +47,7 @@ class WeightScalar(graphene.Scalar):
             default_unit = get_default_weight_unit()
             weight = Weight(**{default_unit: value})
         if not weight:
-            raise ValueError(f"Unsupported value: {value}")
+            raise GraphQLError(f"Unsupported value: {value}")
         return weight
 
     @staticmethod
@@ -66,7 +67,7 @@ class WeightScalar(graphene.Scalar):
         else:
             weight = WeightScalar.parse_literal_decimal(node)
         if not weight:
-            raise ValueError(f"Unsupported value: {node.value}")
+            raise GraphQLError(f"Unsupported value: {node.value}")
         return weight
 
     @staticmethod
@@ -88,7 +89,7 @@ class WeightScalar(graphene.Scalar):
                 try:
                     value = decimal.Decimal(field.value.value)
                 except decimal.DecimalException:
-                    return None
+                    raise GraphQLError(f"Unsupported value: {field.value.value}")
             if field.name.value == "unit":
                 unit = field.value.value
         return Weight(**{unit: value})
