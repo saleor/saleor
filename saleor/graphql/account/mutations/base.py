@@ -25,6 +25,7 @@ from ...core.mutations import (
 )
 from ...core.types.common import AccountError
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
+from ..i18n import I18nMixin
 
 BILLING_ADDRESS_FIELD = "default_billing_address"
 SHIPPING_ADDRESS_FIELD = "default_shipping_address"
@@ -228,7 +229,7 @@ class PasswordChange(BaseMutation):
         return PasswordChange(user=user)
 
 
-class BaseAddressUpdate(ModelMutation):
+class BaseAddressUpdate(ModelMutation, I18nMixin):
     """Base mutation for address update used by staff and account."""
 
     user = graphene.Field(
@@ -254,9 +255,13 @@ class BaseAddressUpdate(ModelMutation):
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
+        address_data = data["input"]
         response = super().perform_mutation(root, info, **data)
         user = response.address.user_addresses.first()
-        address = info.context.plugins.change_user_address(response.address, None, user)
+        address = cls.validate_address(
+            address_data, instance=response.address, info=info
+        )
+        address = info.context.plugins.change_user_address(address, None, user)
         response.user = user
         response.address = address
         return response
