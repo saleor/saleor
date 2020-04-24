@@ -4,12 +4,12 @@ from django.core.exceptions import ValidationError
 from ....account.error_codes import AccountErrorCode
 from ....app import models
 from ....core.permissions import AppPermission, get_permissions
+from ...account.utils import can_manage_app, get_out_of_scope_permissions
 from ...core.enums import PermissionEnum
 from ...core.mutations import ModelDeleteMutation, ModelMutation
 from ...core.types.common import ServiceAccountError
 from ...meta.deprecated.mutations import ClearMetaBaseMutation, UpdateMetaBaseMutation
 from ...utils import get_user_or_app_from_context, requestor_is_superuser
-from ..utils import can_manage_app, get_out_of_scope_permissions
 from .types import ServiceAccount, ServiceAccountToken
 
 

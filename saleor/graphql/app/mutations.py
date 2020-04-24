@@ -1,10 +1,14 @@
 import graphene
+from django.core.exceptions import ValidationError
 
 from ...app import models
+from ...app.error_codes import AppErrorCode
 from ...core.permissions import AppPermission, get_permissions
+from ..account.utils import can_manage_app, get_out_of_scope_permissions
 from ..core.enums import PermissionEnum
 from ..core.mutations import ModelDeleteMutation, ModelMutation
 from ..core.types.common import AppError
+from ..utils import get_user_or_app_from_context, requestor_is_superuser
 from .types import App, AppToken
 
 
@@ -56,6 +60,17 @@ class AppTokenCreate(ModelMutation):
         response.auth_token = instance.auth_token
         return response
 
+    @classmethod
+    def clean_input(cls, info, instance, data):
+        cleaned_input = super().clean_input(info, instance, data)
+        app = cleaned_input.get("app")
+        requestor = get_user_or_app_from_context(info.context)
+        if not requestor_is_superuser(requestor) and not can_manage_app(requestor, app):
+            msg = "You can't manage this app."
+            code = AppErrorCode.OUT_OF_SCOPE_APP.value
+            raise ValidationError({"app": ValidationError(msg, code=code)})
+        return cleaned_input
+
 
 class AppTokenDelete(ModelDeleteMutation):
     class Arguments:
@@ -71,6 +86,15 @@ class AppTokenDelete(ModelDeleteMutation):
     @classmethod
     def get_type_for_model(cls):
         return AppToken
+
+    @classmethod
+    def clean_instance(cls, info, instance):
+        app = instance.app
+        requestor = get_user_or_app_from_context(info.context)
+        if not requestor_is_superuser(requestor) and not can_manage_app(requestor, app):
+            msg = "You can't delete this app token."
+            code = AppErrorCode.OUT_OF_SCOPE_APP.value
+            raise ValidationError({"id": ValidationError(msg, code=code)})
 
 
 class AppCreate(ModelMutation):
@@ -99,9 +123,29 @@ class AppCreate(ModelMutation):
         cleaned_input = super().clean_input(info, instance, data, input_cls)
         # clean and prepare permissions
         if "permissions" in cleaned_input:
+            requestor = get_user_or_app_from_context(info.context)
             permissions = cleaned_input.pop("permissions")
             cleaned_input["permissions"] = get_permissions(permissions)
+            cls.ensure_can_manage_permissions(requestor, permissions)
         return cleaned_input
+
+    @classmethod
+    def ensure_can_manage_permissions(cls, requestor, permission_items):
+        """Check if requestor can manage permissions from input.
+
+        Requestor cannot manage permissions witch he doesn't have.
+        """
+        if requestor_is_superuser(requestor):
+            return
+        permissions = get_out_of_scope_permissions(requestor, permission_items)
+        if permissions:
+            # add error
+            error_msg = "You can't add permission that you don't have."
+            code = AppErrorCode.OUT_OF_SCOPE_PERMISSION.value
+            params = {"permissions": permissions}
+            raise ValidationError(
+                {"permissions": ValidationError(error_msg, code=code, params=params)}
+            )
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -136,9 +180,19 @@ class AppUpdate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data, input_cls=None):
         cleaned_input = super().clean_input(info, instance, data, input_cls)
+        requestor = get_user_or_app_from_context(info.context)
+        if not requestor_is_superuser(requestor) and not can_manage_app(
+            requestor, instance
+        ):
+            msg = "You can't manage this app."
+            code = AppErrorCode.OUT_OF_SCOPE_APP.value
+            raise ValidationError({"id": ValidationError(msg, code=code)})
+
         # clean and prepare permissions
         if "permissions" in cleaned_input:
-            cleaned_input["permissions"] = get_permissions(cleaned_input["permissions"])
+            permissions = cleaned_input.pop("permissions")
+            cleaned_input["permissions"] = get_permissions(permissions)
+            AppCreate.ensure_can_manage_permissions(requestor, permissions)
         return cleaned_input
 
 
@@ -156,3 +210,13 @@ class AppDelete(ModelDeleteMutation):
     @classmethod
     def get_type_for_model(cls):
         return App
+
+    @classmethod
+    def clean_instance(cls, info, instance):
+        requestor = get_user_or_app_from_context(info.context)
+        if not requestor_is_superuser(requestor) and not can_manage_app(
+            requestor, instance
+        ):
+            msg = "You can't delete this app."
+            code = AppErrorCode.OUT_OF_SCOPE_APP.value
+            raise ValidationError({"id": ValidationError(msg, code=code)})

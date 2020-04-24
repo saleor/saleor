@@ -240,6 +240,8 @@ enum AppErrorCode {
   NOT_FOUND
   REQUIRED
   UNIQUE
+  OUT_OF_SCOPE_APP
+  OUT_OF_SCOPE_PERMISSION
 }
 
 input AppFilterInput {
