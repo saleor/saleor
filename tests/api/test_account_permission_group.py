@@ -1214,7 +1214,7 @@ def test_permission_group_update_mutation_out_of_scope_users(
     permission_manage_orders,
     permission_manage_products,
 ):
-    """Ensure user cannot assign and unasign users whose permission scope
+    """Ensure user can assign and cannot unasign users whose permission scope
     is wider than requestor scope.
     Ensure superuser pass restrictions.
     """
