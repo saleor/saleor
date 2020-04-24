@@ -4066,38 +4066,38 @@ def test_create_product_with_weight_input(
 ):
     # Because we use Scalars for Weight this test query tests only a scenario when
     # weight value is passed by directly in input
-    MUTATION_CREATE_PRODUCT_WITH_WEIGHT_GQL_INPUT = f"""
-mutation createProduct(
-        $productType: ID!,
-        $category: ID!
-        $name: String!,
-        $sku: String,
-        $basePrice: Decimal!)
-    {{
-        productCreate(
-            input: {{
-                category: $category,
-                productType: $productType,
-                name: $name,
-                sku: $sku,
-                basePrice: $basePrice,
-                weight: {weight}
-            }})
+    query = f"""
+    mutation createProduct(
+            $productType: ID!,
+            $category: ID!
+            $name: String!,
+            $sku: String,
+            $basePrice: Decimal!)
         {{
-            product {{
-                id
-                weight{{
-                    value
-                    unit
+            productCreate(
+                input: {{
+                    category: $category,
+                    productType: $productType,
+                    name: $name,
+                    sku: $sku,
+                    basePrice: $basePrice,
+                    weight: {weight}
+                }})
+            {{
+                product {{
+                    id
+                    weight{{
+                        value
+                        unit
+                    }}
+                }}
+                productErrors {{
+                    message
+                    field
+                    code
                 }}
             }}
-            productErrors {{
-                message
-                field
-                code
-            }}
         }}
-    }}
     """
     category_id = graphene.Node.to_global_id("Category", category.pk)
     product_type_id = graphene.Node.to_global_id(
@@ -4111,7 +4111,7 @@ mutation createProduct(
         "basePrice": Decimal("19"),
     }
     response = staff_api_client.post_graphql(
-        MUTATION_CREATE_PRODUCT_WITH_WEIGHT_GQL_INPUT,
+        query,
         variables,
         permissions=[permission_manage_products],
     )
