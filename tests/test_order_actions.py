@@ -17,7 +17,7 @@ from saleor.order.actions import (
 from saleor.order.models import Fulfillment
 from saleor.payment import ChargeStatus, PaymentError
 from saleor.product.models import DigitalContent
-from saleor.warehouse.models import Stock
+from saleor.warehouse.models import Allocation, Stock
 
 from .utils import create_image
 
@@ -36,18 +36,22 @@ def order_with_digital_line(order, digital_content, stock, site_settings):
     product_type.is_digital = True
     product_type.save()
 
+    quantity = 3
     net = variant.get_price()
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
-    order.lines.create(
+    line = order.lines.create(
         product_name=str(variant.product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
-        quantity=3,
+        quantity=quantity,
         variant=variant,
         unit_price=TaxedMoney(net=net, gross=gross),
         tax_rate=23,
     )
+
+    Allocation.objects.create(order_line=line, stock=stock, quantity_allocated=quantity)
+
     return order
 
 
@@ -170,7 +174,7 @@ def test_fulfill_order_line(order_with_lines):
     stock = Stock.objects.get(product_variant=variant)
     stock_quantity_after = stock.quantity - line.quantity
 
-    fulfill_order_line(line, line.quantity)
+    fulfill_order_line(line, line.quantity, stock.warehouse.pk)
 
     stock.refresh_from_db()
     assert stock.quantity == stock_quantity_after
@@ -183,7 +187,7 @@ def test_fulfill_order_line_with_variant_deleted(order_with_lines):
 
     line.refresh_from_db()
 
-    fulfill_order_line(line, line.quantity)
+    fulfill_order_line(line, line.quantity, "warehouse_pk")
 
 
 def test_fulfill_order_line_without_inventory_tracking(order_with_lines):
@@ -198,7 +202,7 @@ def test_fulfill_order_line_without_inventory_tracking(order_with_lines):
     # stock should not change
     stock_quantity_after = stock.quantity
 
-    fulfill_order_line(line, line.quantity)
+    fulfill_order_line(line, line.quantity, stock.warehouse.pk)
 
     stock.refresh_from_db()
     assert stock.quantity == stock_quantity_after

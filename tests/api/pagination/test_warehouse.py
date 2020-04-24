@@ -19,7 +19,6 @@ def warehouses_for_pagination(db, address):
     )
 
 
-# After fix #5410 we should remove `id` from requested fields.
 QUERY_WAREHOUSES_PAGINATION = """
     query (
         $first: Int, $last: Int, $after: String, $before: String,
@@ -84,9 +83,9 @@ def test_warehouses_pagination_with_sorting(
     [
         (
             {"search": "WarehouseWarehouse"},
-            ["WarehouseWarehouse1", "WarehouseWarehouse2"],
+            ["WarehouseWarehouse2", "WarehouseWarehouse1"],
         ),
-        ({"search": "Warehouse1"}, ["Warehouse1", "WarehouseWarehouse1"]),
+        ({"search": "Warehouse1"}, ["WarehouseWarehouse1", "Warehouse1"]),
     ],
 )
 def test_warehouses_pagination_with_filtering(
@@ -113,7 +112,7 @@ def test_warehouses_pagination_with_filtering_by_id(
     staff_api_client, permission_manage_products, warehouses_for_pagination,
 ):
     page_size = 2
-    warehouses_order = ["Warehouse1", "Warehouse2"]
+    warehouses_order = ["WarehouseWarehouse2", "WarehouseWarehouse1"]
     warehouses_ids = [
         graphene.Node.to_global_id("Warehouse", warehouse.pk)
         for warehouse in warehouses_for_pagination

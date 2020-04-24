@@ -248,8 +248,8 @@ class ProductQueries(graphene.ObjectType):
     def resolve_attribute(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, Attribute)
 
-    def resolve_categories(self, info, level=None, query=None, **kwargs):
-        return resolve_categories(info, level=level, query=query, **kwargs)
+    def resolve_categories(self, info, level=None, **kwargs):
+        return resolve_categories(info, level=level, **kwargs)
 
     def resolve_category(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, Category)
@@ -257,8 +257,8 @@ class ProductQueries(graphene.ObjectType):
     def resolve_collection(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, Collection)
 
-    def resolve_collections(self, info, query=None, **kwargs):
-        return resolve_collections(info, query, **kwargs)
+    def resolve_collections(self, info, **kwargs):
+        return resolve_collections(info, **kwargs)
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
     def resolve_digital_content(self, info, id):
@@ -277,8 +277,8 @@ class ProductQueries(graphene.ObjectType):
     def resolve_product_type(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, ProductType)
 
-    def resolve_product_types(self, info, query=None, **kwargs):
-        return resolve_product_types(info, query, **kwargs)
+    def resolve_product_types(self, info, **kwargs):
+        return resolve_product_types(info, **kwargs)
 
     def resolve_product_variant(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, ProductVariant)

@@ -33,7 +33,9 @@ def test_manager_calculates_checkout_total(
     currency = checkout_with_item.currency
     expected_total = Money(total_amount, currency)
     manager = PluginsManager(plugins=plugins)
-    taxed_total = manager.calculate_checkout_total(checkout_with_item, [discount_info])
+    taxed_total = manager.calculate_checkout_total(
+        checkout_with_item, list(checkout_with_item), [discount_info]
+    )
     assert TaxedMoney(expected_total, expected_total) == taxed_total
 
 
@@ -47,7 +49,7 @@ def test_manager_calculates_checkout_subtotal(
     currency = checkout_with_item.currency
     expected_subtotal = Money(subtotal_amount, currency)
     taxed_subtotal = PluginsManager(plugins=plugins).calculate_checkout_subtotal(
-        checkout_with_item, [discount_info]
+        checkout_with_item, list(checkout_with_item), [discount_info]
     )
     assert TaxedMoney(expected_subtotal, expected_subtotal) == taxed_subtotal
 
@@ -62,7 +64,7 @@ def test_manager_calculates_checkout_shipping(
     currency = checkout_with_item.currency
     expected_shipping_price = Money(shipping_amount, currency)
     taxed_shipping_price = PluginsManager(plugins=plugins).calculate_checkout_shipping(
-        checkout_with_item, [discount_info]
+        checkout_with_item, list(checkout_with_item), [discount_info]
     )
     assert (
         TaxedMoney(expected_shipping_price, expected_shipping_price)

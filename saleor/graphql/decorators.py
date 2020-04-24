@@ -5,9 +5,11 @@ from typing import Iterable, Union
 from graphql_jwt import exceptions
 from graphql_jwt.decorators import context
 
+from ..core.permissions import AccountPermissions
+
 
 def account_passes_test(test_func):
-    """Determine if user/service_account has permission to access to content."""
+    """Determine if user/app has permission to access to content."""
 
     def decorator(f):
         @wraps(f)
@@ -25,9 +27,12 @@ def account_passes_test(test_func):
 def _permission_required(perms: Iterable[Enum], context):
     if context.user.has_perms(perms):
         return True
-    service_account = getattr(context, "service_account", None)
-    if service_account and service_account.has_perms(perms):
-        return True
+    app = getattr(context, "app", None)
+    if app:
+        # for now MANAGE_STAFF permission for app is not supported
+        if AccountPermissions.MANAGE_STAFF in perms:
+            return False
+        return app.has_perms(perms)
     return False
 
 

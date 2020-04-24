@@ -124,14 +124,6 @@ QUERY_ATTRIBUTES_PAGINATION = """
             {"field": "STOREFRONT_SEARCH_POSITION", "direction": "ASC"},
             ["Attr3", "AttrAttr2", "AttrAttr1"],
         ),
-        (
-            {"field": "DASHBOARD_VARIANT_POSITION", "direction": "ASC"},
-            ["AttrAttr1", "Attr2", "Attr3"],
-        ),
-        (
-            {"field": "DASHBOARD_PRODUCT_POSITION", "direction": "ASC"},
-            ["AttrAttr2", "Attr1", "AttrAttr1"],
-        ),
     ],
 )
 def test_attributes_pagination_with_sorting(
@@ -152,10 +144,10 @@ def test_attributes_pagination_with_sorting(
 @pytest.mark.parametrize(
     "filter_by, attributes_order",
     [
-        ({"search": "AttrAttr"}, ["AttrAttr1", "AttrAttr2"]),
-        ({"search": "attr_attr"}, ["AttrAttr1", "AttrAttr2"]),
-        ({"search": "Attr1"}, ["Attr1", "AttrAttr1"]),
-        ({"valueRequired": False}, ["Attr2", "Attr3"]),
+        ({"search": "AttrAttr"}, ["AttrAttr2", "AttrAttr1"]),
+        ({"search": "attr_attr"}, ["AttrAttr2", "AttrAttr1"]),
+        ({"search": "Attr1"}, ["AttrAttr1", "Attr1"]),
+        ({"valueRequired": False}, ["Attr3", "Attr2"]),
     ],
 )
 def test_attributes_pagination_with_filtering(
@@ -176,7 +168,7 @@ def test_attributes_pagination_with_filtering_in_collection(
     staff_api_client, attributes_for_pagination, collection
 ):
     page_size = 2
-    attributes_order = ["Attr1", "Attr2"]
+    attributes_order = ["Attr3", "AttrAttr2"]
     collection_id = graphene.Node.to_global_id("Collection", collection.id)
     filter_by = {"inCollection": collection_id}
 
@@ -193,7 +185,7 @@ def test_attributes_pagination_with_filtering_in_category(
     staff_api_client, attributes_for_pagination, category
 ):
     page_size = 2
-    attributes_order = ["Attr1", "Attr2"]
+    attributes_order = ["Attr3", "AttrAttr2"]
     category_id = graphene.Node.to_global_id("Category", category.id)
     filter_by = {"inCategory": category_id}
 

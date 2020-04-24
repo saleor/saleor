@@ -71,6 +71,7 @@ class MenuItemTranslation(models.Model):
     name = models.CharField(max_length=128)
 
     class Meta:
+        ordering = ("language_code", "menu_item")
         unique_together = (("language_code", "menu_item"),)
 
     def __repr__(self):

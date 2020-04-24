@@ -1011,7 +1011,7 @@ QUERY_VOUCHER_WITH_SORT = """
         ),
         (
             {"field": "TYPE", "direction": "DESC"},
-            ["FreeShipping", "Voucher1", "Voucher2"],
+            ["FreeShipping", "Voucher2", "Voucher1"],
         ),
         (
             {"field": "START_DATE", "direction": "ASC"},
@@ -1271,7 +1271,7 @@ QUERY_SALE_WITH_SORT = """
         ({"field": "VALUE", "direction": "ASC"}, ["Sale3", "Sale2", "BigSale"]),
         ({"field": "VALUE", "direction": "DESC"}, ["BigSale", "Sale2", "Sale3"]),
         ({"field": "TYPE", "direction": "ASC"}, ["Sale2", "Sale3", "BigSale"]),
-        ({"field": "TYPE", "direction": "DESC"}, ["BigSale", "Sale2", "Sale3"]),
+        ({"field": "TYPE", "direction": "DESC"}, ["BigSale", "Sale3", "Sale2"]),
         ({"field": "START_DATE", "direction": "ASC"}, ["Sale3", "Sale2", "BigSale"]),
         ({"field": "START_DATE", "direction": "DESC"}, ["BigSale", "Sale2", "Sale3"]),
         ({"field": "END_DATE", "direction": "ASC"}, ["Sale2", "Sale3", "BigSale"]),

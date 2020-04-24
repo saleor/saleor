@@ -3,6 +3,7 @@ from unittest.mock import Mock, patch
 import django_filters
 import graphene
 import pytest
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.utils import timezone
 from graphene import InputField
@@ -15,6 +16,7 @@ from saleor.graphql.core.mutations import BaseMutation
 from saleor.graphql.core.types import FilterInputObjectType
 from saleor.graphql.core.utils import (
     clean_seo_fields,
+    get_duplicated_values,
     snake_to_camel_case,
     validate_slug_and_generate_if_needed,
 )
@@ -23,6 +25,7 @@ from saleor.graphql.utils import (
     filter_range_field,
     get_database_id,
     reporting_period_to_date,
+    requestor_is_superuser,
 )
 from saleor.product.models import Category, Product
 from tests.api.utils import _get_graphql_content_from_response, get_graphql_content
@@ -423,3 +426,32 @@ def test_filter_range_field(value, count, product_indexes, product_list):
     expected_products = [qs[index] for index in product_indexes]
     assert result.count() == count
     assert list(result) == expected_products
+
+
+def test_get_duplicated_values():
+    values = ("a", "b", "a", 1, 1, 1, 2)
+
+    result = get_duplicated_values(values)
+
+    assert result == {"a", 1}
+
+
+def test_requestor_is_superuser_for_staff_user(staff_user):
+    result = requestor_is_superuser(staff_user)
+    assert result is False
+
+
+def test_requestor_is_superuser_for_superuser(superuser):
+    result = requestor_is_superuser(superuser)
+    assert result is True
+
+
+def test_requestor_is_superuser_for_app(app):
+    result = requestor_is_superuser(app)
+    assert result is False
+
+
+def test_requestor_is_superuser_for_anonymous_user():
+    user = AnonymousUser()
+    result = requestor_is_superuser(user)
+    assert result is False

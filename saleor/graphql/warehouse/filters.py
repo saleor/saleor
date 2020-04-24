@@ -62,7 +62,7 @@ class StockFilter(django_filters.FilterSet):
 
     class Meta:
         model = Stock
-        fields = ["quantity", "quantity_allocated"]
+        fields = ["quantity"]
 
 
 class StockFilterInput(FilterInputObjectType):
