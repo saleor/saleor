@@ -348,8 +348,23 @@ def match_orders_with_new_user(user: User) -> None:
 
 def generate_invoice_pdf_for_order(invoice):
     logo_path = static_finders.find("images/logo-light.svg")
+
+    all_products = invoice.order.lines.all()
+    _product_limit = 3 if len(all_products) < 4 else 4
+    products_first_page = all_products[:_product_limit]
+    rest_of_products = []
+    for i in range(0, len(all_products[_product_limit:]), 13):
+        limit = i + 13
+        rest_of_products.append(all_products[_product_limit:][i:limit])
+
     rendered_template = get_template("invoice.html").render(
-        {"invoice": invoice, "order": invoice.order, "logo_path": f"file://{logo_path}"}
+        {
+            "invoice": invoice,
+            "order": invoice.order,
+            "logo_path": f"file://{logo_path}",
+            "products_first_page": products_first_page,
+            "rest_of_products": rest_of_products,
+        }
     )
     content_file = ContentFile(HTML(string=rendered_template).write_pdf())
     return default_storage.save(f"{uuid4()}.pdf", content_file)

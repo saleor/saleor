@@ -8,6 +8,9 @@
         @page {
             background-color: #FAFAFA;
             margin: 0.5cm;
+            @bottom-right {
+                content: counter(page) " / " counter(pages);
+            }
         }
 
         body {
@@ -62,7 +65,7 @@
         }
 
         .content-padded {
-            padding: 20px;
+            padding: 10px 20px 10px 20px;
         }
 
         .content-tight-padded {
@@ -96,6 +99,7 @@
 
         .row-category > td,
         .row-product > td {
+            padding: 7px 0 7px 0;
             border-bottom: 2px solid #EFF5F8;
         }
 
@@ -125,6 +129,20 @@
             display: inline-block;
             width: 100%;
             border-bottom: 2px solid #EFF5F8;
+        }
+
+        .page-counter {
+            float: right;
+        }
+
+        .page-footer {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+        }
+
+        .page-break {
+            page-break-before: always;
         }
     </style>
 </head>
@@ -166,7 +184,6 @@
             <br />
             <span class="header-item">{{ order.id }}</span>
             <br />
-
             <span class="header-category">
                 {% trans "Date:" context "Invoice PDF header" %}
             </span>
@@ -195,8 +212,8 @@
             <span class="normal-text">{{ order.billing_address.street_address_1 }}</span>
             <br />
             {% if order.billing_address.street_address_2 %}
-            <span class="normal-text">{{ order.billing_address.street_address_2 }}</span>
-            <br />
+                <span class="normal-text">{{ order.billing_address.street_address_2 }}</span>
+                <br />
             {% endif %}
             <span class="normal-text">{{ order.billing_address.country }}</span>
             <br />
@@ -224,8 +241,8 @@
             <span class="normal-text">{{ order.shipping_address.street_address_1 }}</span>
             <br />
             {% if order.shipping_address.street_address_2 %}
-            <span class="normal-text">{{ order.shipping_address.street_address_2 }}</span>
-            <br />
+                <span class="normal-text">{{ order.shipping_address.street_address_2 }}</span>
+                <br />
             {% endif %}
             <span class="normal-text">{{ order.shipping_address.country }}</span>
             <br />
@@ -264,94 +281,30 @@
     <div class="content-padded">
         <span class="header-title">{% trans "ITEMS ORDERED" context "Invoice PDF table header" %}</span>
         <br />
-        <table class="products-table">
-            <tbody>
-                <tr class="row-category">
-                    <td class="cell-product">
-                        <span class="header-category">{% trans "Products" context "Invoice PDF table" %}</span>
-                    </td>
-                    <td class="cell-price">
-                        <span class="header-category">{% trans "Price" context "Invoice PDF table" %}</span>
-                    </td>
-                    <td class="cell-quantity">
-                        <span class="header-category">{% trans "Quantity" context "Invoice PDF table" %}</span>
-                    </td>
-                    <td class="cell-total-price">
-                        <span class="header-category">{% trans "Total Price" context "Invoice PDF table" %}</span>
-                    </td>
-                </tr>
-                {% for line in order %}
-                    <tr class="row-product">
-                        <td class="cell-product">
-                            <span class="normal-text">
-                                {{ line|truncatechars:30 }}
-                                <br />
-                                SKU: {{ line.product_sku }}
-                            </span>
-                        </td>
-                        <td class="cell-price">{% price line.unit_price.gross %}</td>
-                        <td class="cell-quantity">{{ line.quantity }}</td>
-                        <td class="cell-total-price">{% price line.get_total.gross %}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <table class="summary-table">
-            <tbody>
-                <tr class="summary-row">
-                    <td class="cell-summary">
-                        <span class="normal-text">
-                            {% trans "Subtotal" context "Invoice PDF summary" %}
-                        </span>
-                    </td>
-                    <td class="cell-quantity"></td>
-                    <td class="cell-total-price">
-                        <span class="header-item">
-                            {% price order.get_subtotal.gross %}
-                        </span>
-                    </td>
-                </tr>
-                <tr class="summary-row">
-                    <td class="cell-summary">
-                        <span class="normal-text">
-                            {% trans "Delivery Cost" context "Invoice PDF summary" %}
-                        </span>
-                    </td>
-                    <td class="cell-quantity"></td>
-                    <td class="cell-total-price">
-                        <span class="header-item">
-                            {% price order.shipping_price.gross %}
-                        </span>
-                    </td>
-                </tr>
-                <tr class="summary-row">
-                    <td class="cell-summary">
-                        <span class="normal-text">
-                            {% trans "Tax" context "Invoice PDF summary" %}
-                        </span>
-                    </td>
-                    <td class="cell-quantity"></td>
-                    <td class="cell-total-price">
-                        <span class="header-item">
-                            {% price order.total.tax %}
-                        </span>
-                    </td>
-                </tr>
-                <tr class="summary-row">
-                    <td class="cell-summary">
-                        <span class="normal-text">
-                            {% trans "Grand Total" context "Invoice PDF summary" %}
-                        </span>
-                    </td>
-                    <td class="cell-quantity"></td>
-                    <td class="cell-total-price">
-                        <span class="header-item">
-                            {% price order.total.gross %}
-                        </span>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+        {% include "invoice_products_table.html" with products=products_first_page %}
+        {% if not rest_of_products|length %}
+            {% if products_first_page|length == 4 %}
+                <div class="page-break"></div>
+            {% endif %}
+            {% include "invoice_summary_table.html" with order=order %}
+            <div class="page-footer">
+                <span class="page-counter header-category">1 / 9</span>
+            </div>
+        {% else %}
+            {% for product_set in rest_of_products %}
+                <div class="page-break"></div>
+                {% include "invoice_products_table.html" with products=product_set %}
+                {% if forloop.last %}
+                    {% if product_set|length > 11 %}
+                        <div class="page-break"></div>
+                    {% endif %}
+                    {% include "invoice_summary_table.html" with order=order %}
+                {% endif %}
+            {% endfor %}
+            <div class="page-footer">
+                <span class="page-counter header-category">1 / 9</span>
+            </div>
+        {% endif %}
     </div>
 </body>
 
