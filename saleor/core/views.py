@@ -8,6 +8,6 @@ def home(request):
     dashboard_url = os.environ.get("DASHBOARD_URL", "")
     return TemplateResponse(
         request,
-        "home.html",
+        "home/index.html",
         {"storefront_url": storefront_url, "dashboard_url": dashboard_url},
     )
