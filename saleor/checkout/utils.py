@@ -845,7 +845,7 @@ def add_voucher_to_checkout(checkout: Checkout, voucher: Voucher, discounts=None
     """
     discount = get_voucher_discount_for_checkout(voucher, checkout, discounts)
     checkout.voucher_code = voucher.code
-    checkout.discount_name = voucher.name
+    checkout.discount_name = voucher.name if voucher.name else ""
     checkout.translated_discount_name = (
         voucher.translated.name if voucher.translated.name != voucher.name else ""
     )
