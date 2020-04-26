@@ -542,7 +542,7 @@ class RequestInvoice(BaseMutation):
         invoice = models.Invoice.objects.create(
             order=order, status=InvoiceStatus.PENDING, number=data.get("number")
         )
-        info.context.extensions.invoice_request(
+        info.context.plugins.invoice_request(
             order=order, invoice=invoice, number=data.get("number")
         )
         return RequestInvoice()
@@ -612,7 +612,7 @@ class RequestDeleteInvoice(ModelMutation):
         invoice = cls.get_node_or_error(info, data["id"], only_type=Invoice)
         invoice.status = InvoiceStatus.PENDING_DELETE
         invoice.save()
-        info.context.extensions.invoice_delete(invoice)
+        info.context.plugins.invoice_delete(invoice)
         return RequestDeleteInvoice()
 
 
