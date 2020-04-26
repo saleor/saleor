@@ -3,17 +3,20 @@ from unittest.mock import Mock, patch
 import django_filters
 import graphene
 import pytest
+from django.contrib.auth.models import AnonymousUser
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.utils import timezone
 from graphene import InputField
 from graphql_jwt.shortcuts import get_token
 
+from saleor.account.error_codes import AccountErrorCode
 from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.core.filters import EnumFilter
 from saleor.graphql.core.mutations import BaseMutation
 from saleor.graphql.core.types import FilterInputObjectType
 from saleor.graphql.core.utils import (
     clean_seo_fields,
+    get_duplicated_values,
     snake_to_camel_case,
     validate_slug_and_generate_if_needed,
 )
@@ -22,6 +25,7 @@ from saleor.graphql.utils import (
     filter_range_field,
     get_database_id,
     reporting_period_to_date,
+    requestor_is_superuser,
 )
 from saleor.product.models import Category, Product
 from tests.api.utils import _get_graphql_content_from_response, get_graphql_content
@@ -288,6 +292,57 @@ def test_mutation_invalid_permission_in_meta(_mocked, should_fail, permissions_v
     assert exc.value.args[0] == "Permissions should be a tuple or a string in Meta"
 
 
+MUTATION_CREATE_TOKEN = """
+    mutation tokenCreate($email: String!, $password: String!){
+        tokenCreate(email: $email, password: $password) {
+            token
+            user {
+                email
+            }
+            errors {
+                field
+                message
+            }
+            accountErrors {
+                field
+                message
+                code
+            }
+        }
+    }
+"""
+
+
+def test_create_token(api_client, customer_user):
+    variables = {"email": customer_user.email, "password": customer_user._password}
+    response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
+    content = get_graphql_content(response)
+    user_email = content["data"]["tokenCreate"]["user"]["email"]
+    assert customer_user.email == user_email
+    assert content["data"]["tokenCreate"]["token"]
+    assert content["data"]["tokenCreate"]["accountErrors"] == []
+
+
+def test_create_token_invalid_password(api_client, customer_user):
+    variables = {"email": customer_user.email, "password": "wrongpassword"}
+    expected_error_code = AccountErrorCode.INVALID_CREDENTIALS.value.upper()
+    response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
+    content = get_graphql_content(response)
+    response_error = content["data"]["tokenCreate"]["accountErrors"][0]
+    assert response_error["code"] == expected_error_code
+    assert response_error["field"] == "email"
+
+
+def test_create_token_invalid_email(api_client, customer_user):
+    variables = {"email": "wrongemail", "password": "wrongpassword"}
+    expected_error_code = AccountErrorCode.INVALID_CREDENTIALS.value.upper()
+    response = api_client.post_graphql(MUTATION_CREATE_TOKEN, variables)
+    content = get_graphql_content(response)
+    response_error = content["data"]["tokenCreate"]["accountErrors"][0]
+    assert response_error["code"] == expected_error_code
+    assert response_error["field"] == "email"
+
+
 MUTATION_TOKEN_VERIFY = """
     mutation tokenVerify($token: String!){
         tokenVerify(token: $token){
@@ -371,3 +426,32 @@ def test_filter_range_field(value, count, product_indexes, product_list):
     expected_products = [qs[index] for index in product_indexes]
     assert result.count() == count
     assert list(result) == expected_products
+
+
+def test_get_duplicated_values():
+    values = ("a", "b", "a", 1, 1, 1, 2)
+
+    result = get_duplicated_values(values)
+
+    assert result == {"a", 1}
+
+
+def test_requestor_is_superuser_for_staff_user(staff_user):
+    result = requestor_is_superuser(staff_user)
+    assert result is False
+
+
+def test_requestor_is_superuser_for_superuser(superuser):
+    result = requestor_is_superuser(superuser)
+    assert result is True
+
+
+def test_requestor_is_superuser_for_app(app):
+    result = requestor_is_superuser(app)
+    assert result is False
+
+
+def test_requestor_is_superuser_for_anonymous_user():
+    user = AnonymousUser()
+    result = requestor_is_superuser(user)
+    assert result is False

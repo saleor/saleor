@@ -80,9 +80,9 @@ QUERY_SALES_PAGINATION = """
         ({"field": "NAME", "direction": "ASC"}, ["Sale1", "Sale15", "Sale2"]),
         ({"field": "NAME", "direction": "DESC"}, ["Sale4", "Sale3", "Sale2"]),
         ({"field": "START_DATE", "direction": "ASC"}, ["Sale2", "Sale3", "Sale4"]),
-        ({"field": "END_DATE", "direction": "ASC"}, ["Sale2", "Sale4", "Sale3"]),
+        ({"field": "END_DATE", "direction": "ASC"}, ["Sale2", "Sale4", "Sale15"]),
         ({"field": "VALUE", "direction": "ASC"}, ["Sale1", "Sale3", "Sale4"]),
-        ({"field": "TYPE", "direction": "ASC"}, ["Sale2", "Sale4", "Sale15"]),
+        ({"field": "TYPE", "direction": "ASC"}, ["Sale15", "Sale2", "Sale4"]),
     ],
 )
 def test_sales_pagination_with_sorting(
@@ -114,10 +114,10 @@ def test_sales_pagination_with_sorting(
     [
         ({"status": "SCHEDULED"}, ["Sale1", "Sale15"]),
         ({"status": "ACTIVE"}, ["Sale2", "Sale3"]),
-        ({"saleType": "FIXED"}, ["Sale2", "Sale4"]),
+        ({"saleType": "FIXED"}, ["Sale15", "Sale2"]),
         ({"saleType": "PERCENTAGE"}, ["Sale1", "Sale3"]),
         ({"started": {"gte": "2020-03-18T13:00:00+00:00"}}, ["Sale1", "Sale15"]),
-        ({"started": {"lte": "2020-03-18T13:00:00+00:00"}}, ["Sale2", "Sale3"]),
+        ({"started": {"lte": "2020-03-18T13:00:00+00:00"}}, ["Sale15", "Sale2"]),
     ],
 )
 @freeze_time("2020-03-18 12:15:00")
@@ -244,7 +244,7 @@ QUERY_VOUCHERS_PAGINATION = """
             ["Voucher2", "Voucher4", "Voucher3"],
         ),
         ({"field": "VALUE", "direction": "ASC"}, ["Voucher1", "Voucher15", "Voucher3"]),
-        ({"field": "TYPE", "direction": "ASC"}, ["Voucher2", "Voucher3", "Voucher15"]),
+        ({"field": "TYPE", "direction": "ASC"}, ["Voucher15", "Voucher2", "Voucher3"]),
         (
             {"field": "USAGE_LIMIT", "direction": "ASC"},
             ["Voucher1", "Voucher15", "Voucher3"],
@@ -285,11 +285,11 @@ def test_vouchers_pagination_with_sorting(
         ({"status": "SCHEDULED"}, ["Voucher1", "Voucher15"]),
         ({"status": "ACTIVE"}, ["Voucher2", "Voucher3"]),
         ({"timesUsed": {"gte": 1}}, ["Voucher2", "Voucher3"]),
-        ({"timesUsed": {"lte": 1}}, ["Voucher1", "Voucher4"]),
+        ({"timesUsed": {"lte": 1}}, ["Voucher1", "Voucher15"]),
         ({"discountType": "FIXED"}, ["Voucher2", "Voucher4"]),
-        ({"discountType": "PERCENTAGE"}, ["Voucher1", "Voucher3"]),
+        ({"discountType": "PERCENTAGE"}, ["Voucher1", "Voucher15"]),
         ({"started": {"gte": "2020-03-18T13:00:00+00:00"}}, ["Voucher1", "Voucher15"]),
-        ({"started": {"lte": "2020-03-18T13:00:00+00:00"}}, ["Voucher2", "Voucher3"]),
+        ({"started": {"lte": "2020-03-18T13:00:00+00:00"}}, ["Voucher15", "Voucher2"]),
     ],
 )
 @freeze_time("2020-03-18 12:15:00")

@@ -1,12 +1,9 @@
 import graphene
-import graphene_django_optimizer as gql_optimizer
-from django.db.models import QuerySet
 
 from ...core.permissions import ProductPermissions
 from ...warehouse import models
 from ..core.fields import FilterInputConnectionField
 from ..decorators import permission_required
-from ..utils import sort_queryset
 from .filters import StockFilterInput, WarehouseFilterInput
 from .mutations import (
     WarehouseCreate,
@@ -15,14 +12,8 @@ from .mutations import (
     WarehouseShippingZoneUnassign,
     WarehouseUpdate,
 )
-from .sorters import WarehouseSortField, WarehouseSortingInput
+from .sorters import WarehouseSortingInput
 from .types import Stock, Warehouse
-
-
-def sort_warehouses(qs: QuerySet, sort_by: WarehouseSortingInput) -> QuerySet:
-    if sort_by:
-        return sort_queryset(qs, sort_by, WarehouseSortField)
-    return qs.order_by("name")
 
 
 class WarehouseQueries(graphene.ObjectType):
@@ -47,10 +38,8 @@ class WarehouseQueries(graphene.ObjectType):
         return warehouse
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_warehouses(self, info, sort_by=None, **kwargs):
-        qs = models.Warehouse.objects.all()
-        qs = sort_warehouses(qs, sort_by)
-        return gql_optimizer.query(qs, info)
+    def resolve_warehouses(self, info, **_kwargs):
+        return models.Warehouse.objects.all()
 
 
 class WarehouseMutations(graphene.ObjectType):
@@ -78,6 +67,5 @@ class StockQueries(graphene.ObjectType):
         return stock
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_stocks(self, info, **data):
-        qs = models.Stock.objects.all()
-        return gql_optimizer.query(qs, info)
+    def resolve_stocks(self, info, **_kwargs):
+        return models.Stock.objects.all()

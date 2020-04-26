@@ -12,15 +12,19 @@ class BasePermissionEnum(Enum):
 class AccountPermissions(BasePermissionEnum):
     MANAGE_USERS = "account.manage_users"
     MANAGE_STAFF = "account.manage_staff"
-    MANAGE_SERVICE_ACCOUNTS = "account.manage_service_accounts"
+    MANAGE_SERVICE_ACCOUNTS = "app.manage_apps"
+
+
+class AppPermission(BasePermissionEnum):
+    MANAGE_APPS = "app.manage_apps"
 
 
 class DiscountPermissions(BasePermissionEnum):
     MANAGE_DISCOUNTS = "discount.manage_discounts"
 
 
-class ExtensionsPermissions(BasePermissionEnum):
-    MANAGE_PLUGINS = "extensions.manage_plugins"
+class PluginsPermissions(BasePermissionEnum):
+    MANAGE_PLUGINS = "plugins.manage_plugins"
 
 
 class GiftcardPermissions(BasePermissionEnum):
@@ -62,8 +66,9 @@ class WebhookPermissions(BasePermissionEnum):
 
 PERMISSIONS_ENUMS = [
     AccountPermissions,
+    AppPermission,
     DiscountPermissions,
-    ExtensionsPermissions,
+    PluginsPermissions,
     GiftcardPermissions,
     MenuPermissions,
     OrderPermissions,

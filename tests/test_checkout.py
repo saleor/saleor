@@ -32,28 +32,31 @@ from saleor.core.exceptions import InsufficientStock
 from saleor.core.taxes import zero_money, zero_taxed_money
 from saleor.discount import DiscountValueType, VoucherType
 from saleor.discount.models import NotApplicable, Voucher
-from saleor.extensions.manager import get_extensions_manager
 from saleor.order import OrderEvents, OrderEventsEmails
 from saleor.order.models import OrderEvent
+from saleor.plugins.manager import get_plugins_manager
 from saleor.shipping.models import ShippingZone
+
+from .utils import flush_post_commit_hooks
 
 
 def test_is_valid_shipping_method(checkout_with_item, address, shipping_zone):
     checkout = checkout_with_item
     checkout.shipping_address = address
     checkout.save()
+    lines = list(checkout)
     # no shipping method assigned
-    assert not is_valid_shipping_method(checkout, None)
+    assert not is_valid_shipping_method(checkout, lines, None)
     shipping_method = shipping_zone.shipping_methods.first()
     checkout.shipping_method = shipping_method
     checkout.save()
 
-    assert is_valid_shipping_method(checkout, None)
+    assert is_valid_shipping_method(checkout, lines, None)
 
     zone = ShippingZone.objects.create(name="DE", countries=["DE"])
     shipping_method.shipping_zone = zone
     shipping_method.save()
-    assert not is_valid_shipping_method(checkout, None)
+    assert not is_valid_shipping_method(checkout, lines, None)
 
 
 def test_clear_shipping_method(checkout, shipping_method):
@@ -106,11 +109,15 @@ def test_create_order_creates_expected_events(
     order = create_order(
         checkout=checkout,
         order_data=prepare_order_data(
-            checkout=checkout, tracking_code="tracking_code", discounts=None
+            checkout=checkout,
+            lines=list(checkout),
+            tracking_code="tracking_code",
+            discounts=None,
         ),
         user=customer_user if not is_anonymous_user else AnonymousUser(),
         redirect_url="https://www.example.com",
     )
+    flush_post_commit_hooks()
 
     # Ensure only two events were created, and retrieve them
     placement_event, email_sent_event = order.events.all()  # type: OrderEvent
@@ -160,7 +167,10 @@ def test_create_order_insufficient_stock(
 
     with pytest.raises(InsufficientStock):
         prepare_order_data(
-            checkout=request_checkout, tracking_code="tracking_code", discounts=None
+            checkout=request_checkout,
+            lines=list(request_checkout),
+            tracking_code="tracking_code",
+            discounts=None,
         )
 
 
@@ -174,7 +184,9 @@ def test_create_order_doesnt_duplicate_order(
     checkout.shipping_method = shipping_method
     checkout.save()
 
-    order_data = prepare_order_data(checkout=checkout, tracking_code="", discounts=None)
+    order_data = prepare_order_data(
+        checkout=checkout, lines=list(checkout), tracking_code="", discounts=None
+    )
 
     order_1 = create_order(
         checkout=checkout,
@@ -205,8 +217,11 @@ def test_create_order_with_gift_card(
     checkout.shipping_method = shipping_method
     checkout.save()
 
-    subtotal = calculations.checkout_subtotal(checkout)
-    shipping_price = calculations.checkout_shipping_price(checkout)
+    lines = list(checkout)
+    subtotal = calculations.checkout_subtotal(checkout=checkout, lines=lines)
+    shipping_price = calculations.checkout_shipping_price(
+        checkout=checkout, lines=lines
+    )
     total_gross_without_gift_cards = (
         subtotal.gross + shipping_price.gross - checkout.discount
     )
@@ -215,7 +230,10 @@ def test_create_order_with_gift_card(
     order = create_order(
         checkout=checkout,
         order_data=prepare_order_data(
-            checkout=checkout, tracking_code="tracking_code", discounts=None
+            checkout=checkout,
+            lines=lines,
+            tracking_code="tracking_code",
+            discounts=None,
         ),
         user=customer_user if not is_anonymous_user else AnonymousUser(),
         redirect_url="https://www.example.com",
@@ -236,7 +254,9 @@ def test_create_order_with_gift_card_partial_use(
     checkout.shipping_method = shipping_method
     checkout.save()
 
-    price_without_gift_card = calculations.checkout_total(checkout)
+    price_without_gift_card = calculations.checkout_total(
+        checkout=checkout, lines=list(checkout)
+    )
     gift_card_balance_before_order = gift_card_used.current_balance_amount
 
     checkout.gift_cards.add(gift_card_used)
@@ -245,7 +265,10 @@ def test_create_order_with_gift_card_partial_use(
     order = create_order(
         checkout=checkout,
         order_data=prepare_order_data(
-            checkout=checkout, tracking_code="tracking_code", discounts=None
+            checkout=checkout,
+            lines=list(checkout),
+            tracking_code="tracking_code",
+            discounts=None,
         ),
         user=customer_user,
         redirect_url="https://www.example.com",
@@ -276,7 +299,9 @@ def test_create_order_with_many_gift_cards(
     checkout.shipping_method = shipping_method
     checkout.save()
 
-    price_without_gift_card = calculations.checkout_total(checkout)
+    price_without_gift_card = calculations.checkout_total(
+        checkout=checkout, lines=list(checkout)
+    )
     gift_cards_balance_before_order = (
         gift_card_created_by_staff.current_balance.amount
         + gift_card.current_balance.amount
@@ -289,7 +314,10 @@ def test_create_order_with_many_gift_cards(
     order = create_order(
         checkout=checkout,
         order_data=prepare_order_data(
-            checkout=checkout, tracking_code="tracking_code", discounts=None
+            checkout=checkout,
+            lines=list(checkout),
+            tracking_code="tracking_code",
+            discounts=None,
         ),
         user=customer_user,
         redirect_url="https://www.example.com",
@@ -314,6 +342,7 @@ def test_note_in_created_order(request_checkout_with_item, address, customer_use
         checkout=request_checkout_with_item,
         order_data=prepare_order_data(
             checkout=request_checkout_with_item,
+            lines=list(request_checkout_with_item),
             tracking_code="tracking_code",
             discounts=None,
         ),
@@ -357,13 +386,13 @@ def test_get_discount_for_checkout_value_voucher(
     subtotal = TaxedMoney(Money(total, "USD"), Money(total, "USD"))
     monkeypatch.setattr(
         "saleor.checkout.utils.calculations.checkout_subtotal",
-        lambda checkout, discounts: subtotal,
+        lambda checkout, lines, discounts: subtotal,
     )
     monkeypatch.setattr(
         "saleor.discount.utils.calculations.checkout_subtotal",
-        lambda checkout, discounts: subtotal,
+        lambda checkout, lines, discounts: subtotal,
     )
-    discount = get_voucher_discount_for_checkout(voucher, checkout)
+    discount = get_voucher_discount_for_checkout(voucher, checkout, [], [])
     assert discount == Money(expected_value, "USD")
 
 
@@ -371,9 +400,13 @@ def test_get_discount_for_checkout_value_voucher(
 def test_get_voucher_discount_for_checkout_voucher_validation(
     mock_validate_voucher, voucher, checkout_with_voucher
 ):
-    get_voucher_discount_for_checkout(voucher, checkout_with_voucher)
-    manager = get_extensions_manager()
-    subtotal = manager.calculate_checkout_subtotal(checkout_with_voucher, [])
+    get_voucher_discount_for_checkout(
+        voucher, checkout_with_voucher, list(checkout_with_voucher)
+    )
+    manager = get_plugins_manager()
+    subtotal = manager.calculate_checkout_subtotal(
+        checkout_with_voucher, list(checkout_with_voucher), []
+    )
     quantity = checkout_with_voucher.quantity
     customer_email = checkout_with_voucher.get_customer_email()
     mock_validate_voucher.assert_called_once_with(
@@ -415,14 +448,14 @@ def test_get_discount_for_checkout_entire_order_voucher_not_applicable(
     subtotal = TaxedMoney(Money(total, "USD"), Money(total, "USD"))
     monkeypatch.setattr(
         "saleor.checkout.utils.calculations.checkout_subtotal",
-        lambda checkout, discounts: subtotal,
+        lambda checkout, lines, discounts: subtotal,
     )
     monkeypatch.setattr(
         "saleor.discount.utils.calculations.checkout_subtotal",
-        lambda checkout, discounts: subtotal,
+        lambda checkout, lines, discounts: subtotal,
     )
     with pytest.raises(NotApplicable):
-        get_voucher_discount_for_checkout(voucher, checkout)
+        get_voucher_discount_for_checkout(voucher, checkout, [], [])
 
 
 @pytest.mark.parametrize(
@@ -452,7 +485,9 @@ def test_get_discount_for_checkout_specific_products_voucher(
     )
     for product in product_list:
         voucher.products.add(product)
-    discount = get_voucher_discount_for_checkout(voucher, checkout_with_items)
+    discount = get_voucher_discount_for_checkout(
+        voucher, checkout_with_items, list(checkout_with_items)
+    )
     assert discount == Money(discount_amount, "USD")
 
 
@@ -487,13 +522,13 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
     )
     monkeypatch.setattr(
         "saleor.discount.utils.calculations.checkout_subtotal",
-        lambda checkout, discounts: TaxedMoney(
+        lambda checkout, lines, discounts: TaxedMoney(
             Money(total, "USD"), Money(total, "USD")
         ),
     )
     monkeypatch.setattr(
         "saleor.checkout.utils.calculations.checkout_subtotal",
-        lambda checkout, discounts: TaxedMoney(
+        lambda checkout, lines, discounts: TaxedMoney(
             Money(total, "USD"), Money(total, "USD")
         ),
     )
@@ -510,7 +545,7 @@ def test_get_discount_for_checkout_specific_products_voucher_not_applicable(
     )
     checkout = Mock(quantity=total_quantity, spec=Checkout)
     with pytest.raises(NotApplicable):
-        get_voucher_discount_for_checkout(voucher, checkout, discounts)
+        get_voucher_discount_for_checkout(voucher, checkout, [], discounts)
 
 
 @pytest.mark.parametrize(
@@ -535,11 +570,11 @@ def test_get_discount_for_checkout_shipping_voucher(
     subtotal = TaxedMoney(Money(100, "USD"), Money(100, "USD"))
     monkeypatch.setattr(
         "saleor.checkout.utils.calculations.checkout_subtotal",
-        lambda checkout, discounts: subtotal,
+        lambda checkout, lines, discounts: subtotal,
     )
     monkeypatch.setattr(
         "saleor.discount.utils.calculations.checkout_subtotal",
-        lambda checkout, discounts: subtotal,
+        lambda checkout, lines, discounts: subtotal,
     )
     shipping_total = Money(shipping_cost, "USD")
     checkout = Mock(
@@ -556,7 +591,7 @@ def test_get_discount_for_checkout_shipping_voucher(
         discount_value=discount_value,
         countries=countries,
     )
-    discount = get_voucher_discount_for_checkout(voucher, checkout)
+    discount = get_voucher_discount_for_checkout(voucher, checkout, [])
     assert discount == Money(expected_value, "USD")
 
 
@@ -564,16 +599,16 @@ def test_get_discount_for_checkout_shipping_voucher_all_countries(monkeypatch):
     subtotal = TaxedMoney(Money(100, "USD"), Money(100, "USD"))
     monkeypatch.setattr(
         "saleor.checkout.utils.calculations.checkout_subtotal",
-        lambda checkout, discounts: subtotal,
+        lambda checkout, lines, discounts: subtotal,
     )
     monkeypatch.setattr(
         "saleor.discount.utils.calculations.checkout_subtotal",
-        lambda checkout, discounts: subtotal,
+        lambda checkout, lines, discounts: subtotal,
     )
     shipping_total = TaxedMoney(Money(10, "USD"), Money(10, "USD"))
     monkeypatch.setattr(
         "saleor.checkout.utils.calculations.checkout_shipping_price",
-        lambda checkout, discounts: shipping_total,
+        lambda checkout, lines, discounts: shipping_total,
     )
     checkout = Mock(
         spec=Checkout,
@@ -589,7 +624,7 @@ def test_get_discount_for_checkout_shipping_voucher_all_countries(monkeypatch):
         countries=[],
     )
 
-    discount = get_voucher_discount_for_checkout(voucher, checkout)
+    discount = get_voucher_discount_for_checkout(voucher, checkout, [])
 
     assert discount == Money(5, "USD")
 
@@ -599,7 +634,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(monkeypatc
     shipping_total = TaxedMoney(net=Money(10, "USD"), gross=Money(10, "USD"))
     monkeypatch.setattr(
         "saleor.discount.utils.calculations.checkout_subtotal",
-        lambda checkout, discounts: subtotal,
+        lambda checkout, lines, discounts: subtotal,
     )
     checkout = Mock(
         get_subtotal=Mock(return_value=subtotal),
@@ -616,7 +651,7 @@ def test_get_discount_for_checkout_shipping_voucher_limited_countries(monkeypatc
     )
 
     with pytest.raises(NotApplicable):
-        get_voucher_discount_for_checkout(voucher, checkout)
+        get_voucher_discount_for_checkout(voucher, checkout, [])
 
 
 @pytest.mark.parametrize(
@@ -713,11 +748,11 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
 ):
     monkeypatch.setattr(
         "saleor.checkout.utils.calculations.checkout_subtotal",
-        lambda checkout, discounts: subtotal,
+        lambda checkout, lines, discounts: subtotal,
     )
     monkeypatch.setattr(
         "saleor.discount.utils.calculations.checkout_subtotal",
-        lambda checkout, discounts: subtotal,
+        lambda checkout, lines, discounts: subtotal,
     )
     checkout = Mock(
         is_shipping_required=Mock(return_value=is_shipping_required),
@@ -738,7 +773,7 @@ def test_get_discount_for_checkout_shipping_voucher_not_applicable(
         countries=countries,
     )
     with pytest.raises(NotApplicable) as e:
-        get_voucher_discount_for_checkout(voucher, checkout)
+        get_voucher_discount_for_checkout(voucher, checkout, [])
     assert str(e.value) == error_msg
 
 
@@ -777,7 +812,9 @@ def test_recalculate_checkout_discount(
     voucher.discount_value = 10
     voucher.save()
 
-    recalculate_checkout_discount(checkout_with_voucher, None)
+    recalculate_checkout_discount(
+        checkout_with_voucher, list(checkout_with_voucher), None
+    )
     assert (
         checkout_with_voucher.translated_discount_name == voucher_translation_fr.name
     )  # noqa
@@ -788,10 +825,10 @@ def test_recalculate_checkout_discount_with_sale(
     checkout_with_voucher_percentage, discount_info
 ):
     checkout = checkout_with_voucher_percentage
-    recalculate_checkout_discount(checkout, [discount_info])
+    recalculate_checkout_discount(checkout, list(checkout), [discount_info])
     assert checkout.discount == Money("1.50", "USD")
     assert calculations.checkout_total(
-        checkout, discounts=[discount_info]
+        checkout=checkout, lines=list(checkout), discounts=[discount_info]
     ).gross == Money("13.50", "USD")
 
 
@@ -802,7 +839,9 @@ def test_recalculate_checkout_discount_voucher_not_applicable(
     voucher.min_spent = Money(100, "USD")
     voucher.save(update_fields=["min_spent_amount", "currency"])
 
-    recalculate_checkout_discount(checkout_with_voucher, None)
+    recalculate_checkout_discount(
+        checkout_with_voucher, list(checkout_with_voucher), None
+    )
 
     assert not checkout.voucher_code
     assert not checkout.discount_name
@@ -815,7 +854,9 @@ def test_recalculate_checkout_discount_expired_voucher(checkout_with_voucher, vo
     voucher.end_date = date_yesterday
     voucher.save()
 
-    recalculate_checkout_discount(checkout_with_voucher, None)
+    recalculate_checkout_discount(
+        checkout_with_voucher, list(checkout_with_voucher), None
+    )
 
     assert not checkout.voucher_code
     assert not checkout.discount_name
@@ -829,18 +870,19 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_less_than_shipping
 ):
     checkout = checkout_with_voucher_percentage_and_shipping
 
-    shipping_method.price = calculations.checkout_subtotal(checkout).gross + Money(
-        "10.00", "USD"
-    )
+    lines = list(checkout)
+    shipping_method.price = calculations.checkout_subtotal(
+        checkout=checkout, lines=lines
+    ).gross + Money("10.00", "USD")
     shipping_method.save()
 
-    recalculate_checkout_discount(checkout, None)
+    recalculate_checkout_discount(checkout, lines, None)
 
     assert checkout.discount == shipping_method.price
     assert checkout.discount_name == "Free shipping"
-    assert calculations.checkout_total(checkout) == calculations.checkout_subtotal(
-        checkout
-    )
+    assert calculations.checkout_total(
+        checkout=checkout, lines=lines
+    ) == calculations.checkout_subtotal(checkout=checkout, lines=lines)
 
 
 def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shipping(
@@ -850,18 +892,19 @@ def test_recalculate_checkout_discount_free_shipping_subtotal_bigger_than_shippi
 ):
     checkout = checkout_with_voucher_percentage_and_shipping
 
-    shipping_method.price = calculations.checkout_subtotal(checkout).gross - Money(
-        "1.00", "USD"
-    )
+    lines = list(checkout)
+    shipping_method.price = calculations.checkout_subtotal(
+        checkout=checkout, lines=lines
+    ).gross - Money("1.00", "USD")
     shipping_method.save()
 
-    recalculate_checkout_discount(checkout, None)
+    recalculate_checkout_discount(checkout, lines, None)
 
     assert checkout.discount == shipping_method.price
     assert checkout.discount_name == "Free shipping"
-    assert calculations.checkout_total(checkout) == calculations.checkout_subtotal(
-        checkout
-    )
+    assert calculations.checkout_total(
+        checkout=checkout, lines=lines
+    ) == calculations.checkout_subtotal(checkout=checkout, lines=lines)
 
 
 def test_recalculate_checkout_discount_free_shipping_for_checkout_without_shipping(
@@ -869,7 +912,7 @@ def test_recalculate_checkout_discount_free_shipping_for_checkout_without_shippi
 ):
     checkout = checkout_with_voucher_percentage
 
-    recalculate_checkout_discount(checkout, None)
+    recalculate_checkout_discount(checkout, list(checkout), None)
 
     assert not checkout.discount_name
     assert not checkout.voucher_code
@@ -950,7 +993,7 @@ def test_change_address_in_checkout_from_user_address_to_other(
 
 def test_add_voucher_to_checkout(checkout_with_item, voucher):
     assert checkout_with_item.voucher_code is None
-    add_voucher_to_checkout(checkout_with_item, voucher)
+    add_voucher_to_checkout(checkout_with_item, list(checkout_with_item), voucher)
 
     assert checkout_with_item.voucher_code == voucher.code
 
@@ -959,7 +1002,11 @@ def test_add_voucher_to_checkout_fail(
     checkout_with_item, voucher_with_high_min_spent_amount
 ):
     with pytest.raises(NotApplicable):
-        add_voucher_to_checkout(checkout_with_item, voucher_with_high_min_spent_amount)
+        add_voucher_to_checkout(
+            checkout_with_item,
+            list(checkout_with_item),
+            voucher_with_high_min_spent_amount,
+        )
 
     assert checkout_with_item.voucher_code is None
 
