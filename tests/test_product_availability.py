@@ -4,7 +4,7 @@ from unittest.mock import Mock
 import pytest
 from prices import Money, TaxedMoney, TaxedMoneyRange
 
-from saleor.extensions.manager import ExtensionsManager
+from saleor.plugins.manager import PluginsManager
 from saleor.product import ProductAvailabilityStatus, VariantAvailabilityStatus, models
 from saleor.product.utils.availability import (
     get_product_availability,
@@ -83,8 +83,7 @@ def test_variant_is_out_of_stock_when_product_is_unavalable(
 )
 def test_variant_availability_status(stock, current_stock, expected_status):
     stock.quantity = current_stock
-    stock.quantity_allocated = 0
-    stock.save(update_fields=["quantity", "quantity_allocated"])
+    stock.save(update_fields=["quantity"])
     variant = stock.product_variant
 
     status = get_variant_availability_status(variant, "US")
@@ -104,10 +103,7 @@ def test_variant_is_still_available_when_another_variant_is_unavailable(
         product_variant=unavailable_variant, warehouse=warehouse, quantity=0
     )
     Stock.objects.create(
-        product_variant=available_variant,
-        warehouse=warehouse,
-        quantity=1,
-        quantity_allocated=0,
+        product_variant=available_variant, warehouse=warehouse, quantity=1,
     )
 
     status = get_variant_availability_status(available_variant, "US")
@@ -121,9 +117,15 @@ def test_availability(stock, monkeypatch, settings):
     product = stock.product_variant.product
     taxed_price = TaxedMoney(Money("10.0", "USD"), Money("12.30", "USD"))
     monkeypatch.setattr(
-        ExtensionsManager, "apply_taxes_to_product", Mock(return_value=taxed_price)
+        PluginsManager, "apply_taxes_to_product", Mock(return_value=taxed_price)
     )
-    availability = get_product_availability(product, country="PL")
+    availability = get_product_availability(
+        product=product,
+        variants=product.variants.all(),
+        collections=[],
+        discounts=[],
+        country="PL",
+    )
     taxed_price_range = TaxedMoneyRange(start=taxed_price, stop=taxed_price)
     assert availability.price_range == taxed_price_range
     assert availability.price_range_local_currency is None
@@ -134,10 +136,23 @@ def test_availability(stock, monkeypatch, settings):
     )
     settings.DEFAULT_COUNTRY = "PL"
     settings.OPENEXCHANGERATES_API_KEY = "fake-key"
-    availability = get_product_availability(product, local_currency="PLN", country="PL")
+    availability = get_product_availability(
+        product=product,
+        variants=product.variants.all(),
+        collections=[],
+        discounts=[],
+        local_currency="PLN",
+        country="PL",
+    )
     assert availability.price_range_local_currency.start.currency == "PLN"
 
-    availability = get_product_availability(product, country="PL")
+    availability = get_product_availability(
+        product=product,
+        variants=product.variants.all(),
+        collections=[],
+        discounts=[],
+        country="PL",
+    )
     assert availability.price_range.start.tax.amount
     assert availability.price_range.stop.tax.amount
     assert availability.price_range_undiscounted.start.tax.amount

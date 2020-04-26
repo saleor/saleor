@@ -4,11 +4,11 @@ from ..core.types import SortInputObjectType
 
 
 class SaleSortField(graphene.Enum):
-    NAME = "name"
-    START_DATE = "start_date"
-    END_DATE = "end_date"
-    VALUE = "value"
-    TYPE = "type"
+    NAME = ["name", "pk"]
+    START_DATE = ["start_date", "name", "pk"]
+    END_DATE = ["end_date", "name", "pk"]
+    VALUE = ["value", "name", "pk"]
+    TYPE = ["type", "name", "pk"]
 
     @property
     def description(self):
@@ -32,13 +32,13 @@ class SaleSortingInput(SortInputObjectType):
 
 
 class VoucherSortField(graphene.Enum):
-    CODE = "code"
-    START_DATE = "start_date"
-    END_DATE = "end_date"
-    VALUE = "discount_value"
-    TYPE = "type"
-    USAGE_LIMIT = "usage_limit"
-    MINIMUM_SPENT_AMOUNT = "min_spent_amount"
+    CODE = ["code"]
+    START_DATE = ["start_date", "name", "code"]
+    END_DATE = ["end_date", "name", "code"]
+    VALUE = ["discount_value", "name", "code"]
+    TYPE = ["type", "name", "code"]
+    USAGE_LIMIT = ["usage_limit", "name", "code"]
+    MINIMUM_SPENT_AMOUNT = ["min_spent_amount", "name", "code"]
 
     @property
     def description(self):

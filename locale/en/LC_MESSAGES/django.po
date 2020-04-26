@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: master\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-04-20 03:17-0500\n"
+"POT-Creation-Date: 2020-04-26 05:00-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -32,87 +32,87 @@ msgid ""
 "%(street_address_2)s"
 msgstr ""
 
-#: templates/invoice.html:158
+#: templates/invoice.html:160
 msgctxt "Invoice PDF header"
 msgid "INVOICE INFORMATION"
 msgstr ""
 
-#: templates/invoice.html:162
-msgctxt "Invoice PDF header"
+#: templates/invoice.html:164
+msgctxt "Invoice PDF header: order number"
 msgid "Order:"
 msgstr ""
 
-#: templates/invoice.html:169
+#: templates/invoice.html:171
 msgctxt "Invoice PDF header"
 msgid "Date:"
 msgstr ""
 
-#: templates/invoice.html:175
+#: templates/invoice.html:177
 msgctxt "Invoice PDF amount (price)"
 msgid "Amount:"
 msgstr ""
 
-#: templates/invoice.html:185
+#: templates/invoice.html:187
 msgctxt "Invoice PDF"
 msgid "BILLING ADDRESS"
 msgstr ""
 
-#: templates/invoice.html:214
+#: templates/invoice.html:216
 msgctxt "Invoice PDF"
 msgid "SHIPMENT ADDRESS"
 msgstr ""
 
-#: templates/invoice.html:245
+#: templates/invoice.html:247
 msgctxt "Invoice PDF"
 msgid "PAYMENT METHOD"
 msgstr ""
 
-#: templates/invoice.html:253
+#: templates/invoice.html:255
 msgctxt "Invoice PDF"
 msgid "SHIPMENT METHOD"
 msgstr ""
 
-#: templates/invoice.html:263
+#: templates/invoice.html:265
 msgctxt "Invoice PDF table header"
 msgid "ITEMS ORDERED"
 msgstr ""
 
-#: templates/invoice.html:269
+#: templates/invoice.html:271
 msgctxt "Invoice PDF table"
 msgid "Products"
 msgstr ""
 
-#: templates/invoice.html:272
+#: templates/invoice.html:274
 msgctxt "Invoice PDF table"
 msgid "Price"
 msgstr ""
 
-#: templates/invoice.html:275
+#: templates/invoice.html:277
 msgctxt "Invoice PDF table"
 msgid "Quantity"
 msgstr ""
 
-#: templates/invoice.html:278
+#: templates/invoice.html:280
 msgctxt "Invoice PDF table"
 msgid "Total Price"
 msgstr ""
 
-#: templates/invoice.html:302
+#: templates/invoice.html:304
 msgctxt "Invoice PDF summary"
 msgid "Subtotal"
 msgstr ""
 
-#: templates/invoice.html:315
+#: templates/invoice.html:317
 msgctxt "Invoice PDF summary"
 msgid "Delivery Cost"
 msgstr ""
 
-#: templates/invoice.html:328
+#: templates/invoice.html:330
 msgctxt "Invoice PDF summary"
 msgid "Tax"
 msgstr ""
 
-#: templates/invoice.html:341
+#: templates/invoice.html:343
 msgctxt "Invoice PDF summary"
 msgid "Grand Total"
 msgstr ""

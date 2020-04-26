@@ -22,10 +22,10 @@ from .mutations.fulfillments import (
     FulfillmentCancel,
     FulfillmentClearMeta,
     FulfillmentClearPrivateMeta,
-    FulfillmentCreate,
     FulfillmentUpdateMeta,
     FulfillmentUpdatePrivateMeta,
     FulfillmentUpdateTracking,
+    OrderFulfill,
 )
 from .mutations.orders import (
     CreateInvoice,
@@ -89,17 +89,15 @@ class OrderQueries(graphene.ObjectType):
         created=graphene.Argument(
             ReportingPeriod,
             description=(
-                "Filter orders from a selected timespan. "
-                "DEPRECATED: Will be removed in Saleor 2.11, "
-                "use the `filter` field instead."
+                "[Deprecated] Filter orders from a selected timespan. Use the `filter` "
+                "field instead. This field will be removed after 2020-07-31."
             ),
         ),
         status=graphene.Argument(
             OrderStatusFilter,
             description=(
-                "Filter order by status. "
-                "DEPRECATED: Will be removed in Saleor 2.11, "
-                "use the `filter` field instead."
+                "[Deprecated] Filter order by status. Use the `filter` field instead. "
+                "This field will be removed after 2020-07-31."
             ),
         ),
         description="List of orders.",
@@ -111,9 +109,8 @@ class OrderQueries(graphene.ObjectType):
         created=graphene.Argument(
             ReportingPeriod,
             description=(
-                "Filter draft orders from a selected timespan. "
-                "DEPRECATED: Will be removed in Saleor 2.11, "
-                "use the `filter` field instead."
+                "[Deprecated] Filter draft orders from a selected timespan. Use the "
+                "`filter` field instead. This field will be removed after 2020-07-31."
             ),
         ),
         description="List of draft orders.",
@@ -140,16 +137,12 @@ class OrderQueries(graphene.ObjectType):
         return resolve_order(info, data.get("id"))
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
-    def resolve_orders(
-        self, info, created=None, status=None, query=None, sort_by=None, **_kwargs
-    ):
-        return resolve_orders(info, created, status, query, sort_by)
+    def resolve_orders(self, info, created=None, status=None, **_kwargs):
+        return resolve_orders(info, created, status)
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
-    def resolve_draft_orders(
-        self, info, created=None, query=None, sort_by=None, **_kwargs
-    ):
-        return resolve_draft_orders(info, created, query, sort_by)
+    def resolve_draft_orders(self, info, created=None, **_kwargs):
+        return resolve_draft_orders(info, created)
 
     @permission_required(OrderPermissions.MANAGE_ORDERS)
     def resolve_orders_total(self, info, period, **_kwargs):
@@ -175,38 +168,41 @@ class OrderMutations(graphene.ObjectType):
     order_capture = OrderCapture.Field()
     order_clear_private_meta = OrderClearPrivateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11."
-            "Use the `DeletePrivateMetadata` mutation instead."
+            "Use the `deletePrivateMetadata` mutation instead. This field will be "
+            "removed after 2020-07-31."
         )
     )
     order_clear_meta = OrderClearMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11. Use the `DeleteMetadata` mutation instead."
+            "Use the `deleteMetadata` mutation instead. This field will be removed "
+            "after 2020-07-31."
         )
     )
+    order_fulfill = OrderFulfill.Field()
     order_fulfillment_cancel = FulfillmentCancel.Field()
-    order_fulfillment_create = FulfillmentCreate.Field()
     order_fulfillment_update_tracking = FulfillmentUpdateTracking.Field()
     order_fulfillment_clear_meta = FulfillmentClearMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11. Use the `DeleteMetadata` mutation instead."
+            "Use the `deleteMetadata` mutation instead. This field will be removed "
+            "after 2020-07-31."
         )
     )
     order_fulfillment_clear_private_meta = FulfillmentClearPrivateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11."
-            "Use the `DeletePrivateMetadata` mutation instead."
+            "Use the `deletePrivateMetadata` mutation instead. This field will be "
+            "removed after 2020-07-31."
         )
     )
     order_fulfillment_update_meta = FulfillmentUpdateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11. Use the `UpdateMetadata` mutation instead."
+            "Use the `updateMetadata` mutation instead. This field will be removed "
+            "after 2020-07-31."
         )
     )
     order_fulfillment_update_private_meta = FulfillmentUpdatePrivateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11."
-            "Use the `UpdatePrivateMetadata` mutation instead."
+            "Use the `updatePrivateMetadata` mutation instead. This field will be "
+            "removed after 2020-07-31."
         )
     )
     order_mark_as_paid = OrderMarkAsPaid.Field()
@@ -214,13 +210,14 @@ class OrderMutations(graphene.ObjectType):
     order_update = OrderUpdate.Field()
     order_update_meta = OrderUpdateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11. Use the `UpdateMetadata` mutation instead."
+            "Use the `updateMetadata` mutation instead. This field will be removed "
+            "after 2020-07-31."
         )
     )
     order_update_private_meta = OrderUpdatePrivateMeta.Field(
         deprecation_reason=(
-            "Will be removed in Saleor 2.11."
-            "Use the `UpdatePrivateMetadata` mutation instead."
+            "Use the `updatePrivateMetadata` mutation instead. This field will be "
+            "removed after 2020-07-31."
         )
     )
     order_update_shipping = OrderUpdateShipping.Field()

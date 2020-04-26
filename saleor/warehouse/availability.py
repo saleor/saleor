@@ -1,13 +1,30 @@
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from django.conf import settings
 from django.db.models import Sum
+from django.db.models.functions import Coalesce
 
 from ..core.exceptions import InsufficientStock
-from .models import Stock
+from .models import Stock, StockQuerySet
 
 if TYPE_CHECKING:
     from ..product.models import Product, ProductVariant
+
+
+def _get_quantity_allocated(stocks: StockQuerySet) -> int:
+    return stocks.aggregate(
+        quantity_allocated=Coalesce(Sum("allocations__quantity_allocated"), 0)
+    )["quantity_allocated"]
+
+
+def _get_available_quantity(stocks: StockQuerySet) -> int:
+    results = stocks.aggregate(
+        total_quantity=Coalesce(Sum("quantity"), 0),
+        quantity_allocated=Coalesce(Sum("allocations__quantity_allocated"), 0),
+    )
+    total_quantity = results["total_quantity"]
+    quantity_allocated = results["quantity_allocated"]
+    return max(total_quantity - quantity_allocated, 0)
 
 
 def check_stock_quantity(variant: "ProductVariant", country_code: str, quantity: int):
@@ -16,30 +33,37 @@ def check_stock_quantity(variant: "ProductVariant", country_code: str, quantity:
     If so - returns None. If there is less stock then required rise InsufficientStock
     exception.
     """
-    try:
-        stock = Stock.objects.get_variant_stock_for_country(country_code, variant)
-    except Stock.DoesNotExist:
+    stocks = Stock.objects.get_variant_stocks_for_country(country_code, variant)
+    if not stocks:
         raise InsufficientStock(variant)
 
-    if variant.track_inventory and quantity > stock.quantity_available:
+    if variant.track_inventory and quantity > _get_available_quantity(stocks):
         raise InsufficientStock(variant)
 
 
 def get_available_quantity(variant: "ProductVariant", country_code: str) -> int:
     """Return available quantity for given product in given country."""
-    try:
-        stock = Stock.objects.get_variant_stock_for_country(country_code, variant)
-    except Stock.DoesNotExist:
+    stocks = Stock.objects.get_variant_stocks_for_country(country_code, variant)
+    if not stocks:
         return 0
-    return stock.quantity_available
+    return _get_available_quantity(stocks)
+
+
+def get_available_quantity_for_customer(
+    variant: "ProductVariant", country_code: str
+) -> int:
+    """Return maximum checkout line quantity."""
+    stocks = Stock.objects.get_variant_stocks_for_country(country_code, variant)
+    if not stocks:
+        return 0
+    return min(_get_available_quantity(stocks), settings.MAX_CHECKOUT_LINE_QUANTITY)
 
 
 def get_quantity_allocated(variant: "ProductVariant", country_code: str) -> int:
-    try:
-        stock = Stock.objects.get_variant_stock_for_country(country_code, variant)
-    except Stock.DoesNotExist:
+    stocks = Stock.objects.get_variant_stocks_for_country(country_code, variant)
+    if not stocks:
         return 0
-    return stock.quantity_allocated
+    return _get_quantity_allocated(stocks)
 
 
 def is_variant_in_stock(variant: "ProductVariant", country_code: str) -> bool:
@@ -77,20 +101,3 @@ def are_all_product_variants_in_stock(product: "Product", country_code: str) -> 
 
     product_variants = product.variants.exclude(id__in=variants_with_stocks).exists()
     return are_all_available and not product_variants
-
-
-def products_with_low_stock(threshold: Optional[int] = None):
-    """Return queryset with stock lower than given threshold."""
-    if threshold is None:
-        threshold = settings.LOW_STOCK_THRESHOLD
-    stocks = (
-        Stock.objects.select_related("product_variant")
-        .values("product_variant__product_id", "warehouse_id")
-        .annotate(total_stock=Sum("quantity"))
-    )
-    return stocks.filter(total_stock__lte=threshold).distinct()
-
-
-def get_available_quantity_for_customer(stock: Stock) -> int:
-    """Return maximum checkout line quantity."""
-    return min(stock.quantity_available, settings.MAX_CHECKOUT_LINE_QUANTITY)

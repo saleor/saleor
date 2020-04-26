@@ -3,7 +3,8 @@ from graphene import Node
 
 from saleor.checkout import calculations
 from saleor.checkout.models import Checkout
-from tests.api.utils import get_graphql_content
+
+from ..utils import get_graphql_content
 
 FRAGMENT_PRICE = """
     fragment Price on TaxedMoney {
@@ -484,7 +485,8 @@ def test_checkout_payment_charge(
         "checkoutId": Node.to_global_id("Checkout", checkout_with_billing_address.pk),
         "input": {
             "amount": calculations.checkout_total(
-                checkout=checkout_with_billing_address
+                checkout=checkout_with_billing_address,
+                lines=list(checkout_with_billing_address),
             ).gross.amount,
             "gateway": "Dummy",
             "token": "charged",

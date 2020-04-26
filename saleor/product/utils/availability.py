@@ -1,15 +1,16 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Iterable, Optional, Tuple, Union
 
+import opentracing
 from django.conf import settings
-from prices import TaxedMoney, TaxedMoneyRange
+from prices import TaxedMoney, TaxedMoneyRange, MoneyRange
 
-from saleor.graphql.core.types import MoneyRange
-from saleor.product.models import Product, ProductVariant
+from saleor.product.models import Collection, Product, ProductVariant
 
 from ...core.utils import to_local_currency
 from ...discount import DiscountInfo
-from ...extensions.manager import get_extensions_manager
+from ...discount.utils import calculate_discounted_price
+from ...plugins.manager import get_plugins_manager
 from ...warehouse.availability import (
     are_all_product_variants_in_stock,
     is_product_in_stock,
@@ -19,7 +20,7 @@ from .. import ProductAvailabilityStatus, VariantAvailabilityStatus
 
 if TYPE_CHECKING:
     # flake8: noqa
-    from ...extensions.manager import ExtensionsManager
+    from ...plugins.manager import PluginsManager
 
 
 @dataclass
@@ -113,87 +114,159 @@ def _get_product_price_range(
     return price_range_local, discount_local_currency
 
 
-def get_product_availability(
+def get_variant_base_price(*, variant: ProductVariant, product: Product):
+    return (
+        variant.price_override if variant.price_override is not None else product.price
+    )
+
+
+def get_variant_price(
+    *,
+    variant: ProductVariant,
     product: Product,
-    discounts: Iterable[DiscountInfo] = None,
+    collections: Iterable[Collection],
+    discounts: Iterable[DiscountInfo]
+):
+    return calculate_discounted_price(
+        product=product,
+        price=get_variant_base_price(variant=variant, product=product),
+        collections=collections,
+        discounts=discounts,
+    )
+
+
+def get_product_price_range(
+    *,
+    product: Product,
+    variants: Iterable[ProductVariant],
+    collections: Iterable[Collection],
+    discounts: Iterable[DiscountInfo]
+) -> MoneyRange:
+    with opentracing.global_tracer().start_active_span("get_product_price_range"):
+        if variants:
+            prices = [
+                get_variant_price(
+                    variant=variant,
+                    product=product,
+                    collections=collections,
+                    discounts=discounts,
+                )
+                for variant in variants
+            ]
+            return MoneyRange(min(prices), max(prices))
+        price = calculate_discounted_price(
+            product=product,
+            price=product.price,
+            collections=collections,
+            discounts=discounts,
+        )
+        return MoneyRange(start=price, stop=price)
+
+
+def get_product_availability(
+    *,
+    product: Product,
+    variants: Iterable[ProductVariant],
+    collections: Iterable[Collection],
+    discounts: Iterable[DiscountInfo],
     country: Optional[str] = None,
     local_currency: Optional[str] = None,
-    extensions: Optional["ExtensionsManager"] = None,
+    plugins: Optional["PluginsManager"] = None,
 ) -> ProductAvailability:
+    with opentracing.global_tracer().start_active_span("get_product_availability"):
+        if not plugins:
+            plugins = get_plugins_manager()
+        discounted_net_range = get_product_price_range(
+            product=product,
+            variants=variants,
+            collections=collections,
+            discounts=discounts,
+        )
+        undiscounted_net_range = get_product_price_range(
+            product=product, variants=variants, collections=collections, discounts=[]
+        )
+        discounted = TaxedMoneyRange(
+            start=plugins.apply_taxes_to_product(
+                product, discounted_net_range.start, country
+            ),
+            stop=plugins.apply_taxes_to_product(
+                product, discounted_net_range.stop, country
+            ),
+        )
+        undiscounted = TaxedMoneyRange(
+            start=plugins.apply_taxes_to_product(
+                product, undiscounted_net_range.start, country
+            ),
+            stop=plugins.apply_taxes_to_product(
+                product, undiscounted_net_range.stop, country
+            ),
+        )
 
-    if not extensions:
-        extensions = get_extensions_manager()
-    discounted_net_range = product.get_price_range(discounts=discounts)
-    undiscounted_net_range = product.get_price_range()
-    discounted = TaxedMoneyRange(
-        start=extensions.apply_taxes_to_product(
-            product, discounted_net_range.start, country
-        ),
-        stop=extensions.apply_taxes_to_product(
-            product, discounted_net_range.stop, country
-        ),
-    )
-    undiscounted = TaxedMoneyRange(
-        start=extensions.apply_taxes_to_product(
-            product, undiscounted_net_range.start, country
-        ),
-        stop=extensions.apply_taxes_to_product(
-            product, undiscounted_net_range.stop, country
-        ),
-    )
+        discount = _get_total_discount_from_range(undiscounted, discounted)
+        price_range_local, discount_local_currency = _get_product_price_range(
+            discounted, undiscounted, local_currency
+        )
 
-    discount = _get_total_discount_from_range(undiscounted, discounted)
-    price_range_local, discount_local_currency = _get_product_price_range(
-        discounted, undiscounted, local_currency
-    )
-
-    is_on_sale = product.is_visible and discount is not None
-    return ProductAvailability(
-        on_sale=is_on_sale,
-        price_range=discounted,
-        price_range_undiscounted=undiscounted,
-        discount=discount,
-        price_range_local_currency=price_range_local,
-        discount_local_currency=discount_local_currency,
-    )
+        is_on_sale = product.is_visible and discount is not None
+        return ProductAvailability(
+            on_sale=is_on_sale,
+            price_range=discounted,
+            price_range_undiscounted=undiscounted,
+            discount=discount,
+            price_range_local_currency=price_range_local,
+            discount_local_currency=discount_local_currency,
+        )
 
 
 def get_variant_availability(
     variant: ProductVariant,
-    discounts: Iterable[DiscountInfo] = None,
+    product: Product,
+    collections: Iterable[Collection],
+    discounts: Iterable[DiscountInfo],
     country: Optional[str] = None,
     local_currency: Optional[str] = None,
-    extensions: Optional["ExtensionsManager"] = None,
+    plugins: Optional["PluginsManager"] = None,
 ) -> VariantAvailability:
+    with opentracing.global_tracer().start_active_span("get_variant_availability"):
+        if not plugins:
+            plugins = get_plugins_manager()
+        discounted = plugins.apply_taxes_to_product(
+            product,
+            get_variant_price(
+                variant=variant,
+                product=product,
+                collections=collections,
+                discounts=discounts,
+            ),
+            country,
+        )
+        undiscounted = plugins.apply_taxes_to_product(
+            product,
+            get_variant_price(
+                variant=variant, product=product, collections=collections, discounts=[]
+            ),
+            country,
+        )
 
-    if not extensions:
-        extensions = get_extensions_manager()
-    discounted = extensions.apply_taxes_to_product(
-        variant.product, variant.get_price(discounts=discounts), country
-    )
-    undiscounted = extensions.apply_taxes_to_product(
-        variant.product, variant.get_price(), country
-    )
+        discount = _get_total_discount(undiscounted, discounted)
 
-    discount = _get_total_discount(undiscounted, discounted)
+        if country is None:
+            country = settings.DEFAULT_COUNTRY
 
-    if country is None:
-        country = settings.DEFAULT_COUNTRY
+        if local_currency:
+            price_local_currency = to_local_currency(discounted, local_currency)
+            discount_local_currency = to_local_currency(discount, local_currency)
+        else:
+            price_local_currency = None
+            discount_local_currency = None
 
-    if local_currency:
-        price_local_currency = to_local_currency(discounted, local_currency)
-        discount_local_currency = to_local_currency(discount, local_currency)
-    else:
-        price_local_currency = None
-        discount_local_currency = None
+        is_on_sale = product.is_visible and discount is not None
 
-    is_on_sale = variant.is_visible and discount is not None
-
-    return VariantAvailability(
-        on_sale=is_on_sale,
-        price=discounted,
-        price_undiscounted=undiscounted,
-        discount=discount,
-        price_local_currency=price_local_currency,
-        discount_local_currency=discount_local_currency,
-    )
+        return VariantAvailability(
+            on_sale=is_on_sale,
+            price=discounted,
+            price_undiscounted=undiscounted,
+            discount=discount,
+            price_local_currency=price_local_currency,
+            discount_local_currency=discount_local_currency,
+        )
