@@ -139,43 +139,40 @@ def test_pagination_forward_first_page_info(books):
     assert page_info["hasPreviousPage"] is False
 
 
-# Currently, page info has the bug, new pagination fixing it.
-# We should uncomment this test in PR #5149.
-# def test_pagination_forward_middle_page_info(books):
-#     page_size = 5
+def test_pagination_forward_middle_page_info(books):
+    page_size = 5
 
-#     variables = {"first": page_size, "after": None}
-#     result = schema.execute(QUERY_PAGINATION_TEST, variables=variables)
-#     assert not result.errors
-#     content = result.data
-#     end_cursor = content["books"]["pageInfo"]["endCursor"]
+    variables = {"first": page_size, "after": None}
+    result = schema.execute(QUERY_PAGINATION_TEST, variables=variables)
+    assert not result.errors
+    content = result.data
+    end_cursor = content["books"]["pageInfo"]["endCursor"]
 
-#     variables = {"first": page_size, "after": end_cursor}
-#     result = schema.execute(QUERY_PAGINATION_TEST, variables=variables)
-#     assert not result.errors
-#     content = result.data
-#     page_info = content["books"]["pageInfo"]
-#     assert page_info["hasNextPage"]
-#     assert page_info["hasPreviousPage"]
+    variables = {"first": page_size, "after": end_cursor}
+    result = schema.execute(QUERY_PAGINATION_TEST, variables=variables)
+    assert not result.errors
+    content = result.data
+    page_info = content["books"]["pageInfo"]
+    assert page_info["hasNextPage"]
+    assert page_info["hasPreviousPage"]
 
-# Currently, page info has the bug, new pagination fixing it.
-# We should uncomment this test in PR #5149.
-# def test_pagination_forward_last_page_info(books):
-#     page_size = 20
 
-#     variables = {"first": page_size, "after": None}
-#     result = schema.execute(QUERY_PAGINATION_TEST, variables=variables)
-#     assert not result.errors
-#     content = result.data
-#     end_cursor = content["books"]["pageInfo"]["endCursor"]
+def test_pagination_forward_last_page_info(books):
+    page_size = 20
 
-#     variables = {"first": page_size, "after": end_cursor}
-#     result = schema.execute(QUERY_PAGINATION_TEST, variables=variables)
-#     assert not result.errors
-#     content = result.data
-#     page_info = content["books"]["pageInfo"]
-#     assert page_info["hasNextPage"] is False
-#     assert page_info["hasPreviousPage"]
+    variables = {"first": page_size, "after": None}
+    result = schema.execute(QUERY_PAGINATION_TEST, variables=variables)
+    assert not result.errors
+    content = result.data
+    end_cursor = content["books"]["pageInfo"]["endCursor"]
+
+    variables = {"first": page_size, "after": end_cursor}
+    result = schema.execute(QUERY_PAGINATION_TEST, variables=variables)
+    assert not result.errors
+    content = result.data
+    page_info = content["books"]["pageInfo"]
+    assert page_info["hasNextPage"] is False
+    assert page_info["hasPreviousPage"]
 
 
 def test_pagination_backward_first_page_info(books):
@@ -188,40 +185,37 @@ def test_pagination_backward_first_page_info(books):
     assert page_info["hasPreviousPage"]
 
 
-# Currently, page info has the bug, new pagination fixing it.
-# We should uncomment this test in PR #5149.
-# def test_pagination_backward_middle_page_info(books):
-#     page_size = 5
+def test_pagination_backward_middle_page_info(books):
+    page_size = 5
 
-#     variables = {"last": 5, "before": None}
-#     result = schema.execute(QUERY_PAGINATION_TEST, variables=variables)
-#     assert not result.errors
-#     content = result.data
-#     start_cursor = content["books"]["pageInfo"]["startCursor"]
+    variables = {"last": 5, "before": None}
+    result = schema.execute(QUERY_PAGINATION_TEST, variables=variables)
+    assert not result.errors
+    content = result.data
+    start_cursor = content["books"]["pageInfo"]["startCursor"]
 
-#     variables = {"last": page_size, "before": start_cursor}
-#     result = schema.execute(QUERY_PAGINATION_TEST, variables=variables)
-#     assert not result.errors
-#     content = result.data
-#     page_info = content["books"]["pageInfo"]
-#     assert page_info["hasNextPage"]
-#     assert page_info["hasPreviousPage"]
+    variables = {"last": page_size, "before": start_cursor}
+    result = schema.execute(QUERY_PAGINATION_TEST, variables=variables)
+    assert not result.errors
+    content = result.data
+    page_info = content["books"]["pageInfo"]
+    assert page_info["hasNextPage"]
+    assert page_info["hasPreviousPage"]
 
-# Currently, page info has the bug, new pagination fixing it.
-# We should uncomment this test in PR #5149.
-# def test_pagination_backward_last_page_info(books):
-#     page_size = 20
 
-#     variables = {"last": page_size, "before": None}
-#     result = schema.execute(QUERY_PAGINATION_TEST, variables=variables)
-#     assert not result.errors
-#     content = result.data
-#     start_cursor = content["books"]["pageInfo"]["startCursor"]
+def test_pagination_backward_last_page_info(books):
+    page_size = 20
 
-#     variables = {"last": page_size, "before": start_cursor}
-#     result = schema.execute(QUERY_PAGINATION_TEST, variables=variables)
-#     assert not result.errors
-#     content = result.data
-#     page_info = content["books"]["pageInfo"]
-#     assert page_info["hasNextPage"]
-#     assert page_info["hasPreviousPage"] is False
+    variables = {"last": page_size, "before": None}
+    result = schema.execute(QUERY_PAGINATION_TEST, variables=variables)
+    assert not result.errors
+    content = result.data
+    start_cursor = content["books"]["pageInfo"]["startCursor"]
+
+    variables = {"last": page_size, "before": start_cursor}
+    result = schema.execute(QUERY_PAGINATION_TEST, variables=variables)
+    assert not result.errors
+    content = result.data
+    page_info = content["books"]["pageInfo"]
+    assert page_info["hasNextPage"]
+    assert page_info["hasPreviousPage"] is False

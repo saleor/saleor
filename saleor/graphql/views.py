@@ -3,8 +3,8 @@ import logging
 import traceback
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-import opentracing as ot
-import opentracing.tags as ot_tags
+import opentracing
+import opentracing.tags
 from django.conf import settings
 from django.db import connection
 from django.db.backends.postgresql.base import DatabaseWrapper
@@ -35,11 +35,11 @@ handled_errors_logger = logging.getLogger("saleor.graphql.errors.handled")
 def tracing_wrapper(execute, sql, params, many, context):
     conn: DatabaseWrapper = context["connection"]
     operation = f"{conn.alias} {conn.display_name}"
-    with ot.global_tracer().start_active_span(operation_name=operation) as scope:
+    with opentracing.global_tracer().start_active_span(operation) as scope:
         span = scope.span
-        span.set_tag(ot_tags.COMPONENT, "db")
-        span.set_tag(ot_tags.DATABASE_STATEMENT, sql)
-        span.set_tag(ot_tags.DATABASE_TYPE, conn.display_name)
+        span.set_tag(opentracing.tags.COMPONENT, "db")
+        span.set_tag(opentracing.tags.DATABASE_STATEMENT, sql)
+        span.set_tag(opentracing.tags.DATABASE_TYPE, conn.display_name)
         return execute(sql, params, many, context)
 
 
@@ -120,20 +120,21 @@ class GraphQLView(View):
         return JsonResponse(data=result, status=status_code, safe=False)
 
     def handle_query(self, request: HttpRequest) -> JsonResponse:
-        with ot.global_tracer().start_active_span(operation_name="http") as scope:
+        with opentracing.global_tracer().start_active_span("http") as scope:
             span = scope.span
-            span.set_tag(ot_tags.COMPONENT, "http")
-            span.set_tag(ot_tags.HTTP_METHOD, request.method)
+            span.set_tag(opentracing.tags.COMPONENT, "http")
+            span.set_tag(opentracing.tags.HTTP_METHOD, request.method)
             span.set_tag(
-                ot_tags.HTTP_URL, request.build_absolute_uri(request.get_full_path())
+                opentracing.tags.HTTP_URL,
+                request.build_absolute_uri(request.get_full_path()),
             )
 
             request_ips = request.META.get(settings.REAL_IP_ENVIRON, "")
             for ip in request_ips.split(","):
                 if is_valid_ipv4(ip):
-                    span.set_tag(ot_tags.PEER_HOST_IPV4, ip)
+                    span.set_tag(opentracing.tags.PEER_HOST_IPV4, ip)
                 elif is_valid_ipv6(ip):
-                    span.set_tag(ot_tags.PEER_HOST_IPV6, ip)
+                    span.set_tag(opentracing.tags.PEER_HOST_IPV6, ip)
                 else:
                     continue
                 span.set_tag("http.client_ip", ip)
@@ -143,7 +144,7 @@ class GraphQLView(View):
                 break
 
             response = self._handle_query(request)
-            span.set_tag(ot_tags.HTTP_STATUS_CODE, response.status_code)
+            span.set_tag(opentracing.tags.HTTP_STATUS_CODE, response.status_code)
 
             # RFC2616: Content-Length is defined in bytes,
             # we can calculate the RAW UTF-8 size using the length of
@@ -205,11 +206,9 @@ class GraphQLView(View):
             return None, ExecutionResult(errors=[e], invalid=True)
 
     def execute_graphql_request(self, request: HttpRequest, data: dict):
-        with ot.global_tracer().start_active_span(
-            operation_name="graphql_query"
-        ) as scope:
+        with opentracing.global_tracer().start_active_span("graphql_query") as scope:
             span = scope.span
-            span.set_tag(ot_tags.COMPONENT, "graphql_query")
+            span.set_tag(opentracing.tags.COMPONENT, "GraphQL")
 
             query, variables, operation_name = self.get_graphql_params(request, data)
 
@@ -243,7 +242,7 @@ class GraphQLView(View):
                         **extra_options,
                     )
             except Exception as e:
-                span.set_tag(ot_tags.ERROR, True)
+                span.set_tag(opentracing.tags.ERROR, True)
                 return ExecutionResult(errors=[e], invalid=True)
 
     @staticmethod

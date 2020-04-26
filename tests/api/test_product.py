@@ -12,9 +12,10 @@ from graphql_relay import to_global_id
 from prices import Money
 
 from saleor.core.taxes import TaxType
-from saleor.extensions.manager import ExtensionsManager
 from saleor.graphql.core.enums import ReportingPeriod
+from saleor.graphql.product.bulk_mutations.products import ProductVariantStocksUpdate
 from saleor.graphql.product.utils import create_stocks
+from saleor.plugins.manager import PluginsManager
 from saleor.product import AttributeInputType
 from saleor.product.error_codes import ProductErrorCode
 from saleor.product.models import (
@@ -29,7 +30,7 @@ from saleor.product.models import (
 )
 from saleor.product.tasks import update_variants_names
 from saleor.product.utils.attributes import associate_attribute_values_to_instance
-from saleor.warehouse.models import Stock, Warehouse
+from saleor.warehouse.models import Allocation, Stock, Warehouse
 from tests.api.utils import get_graphql_content
 from tests.utils import create_image, create_pdf_file_with_image_ext
 
@@ -111,10 +112,10 @@ def test_fetch_all_products(user_api_client, product):
     assert len(content["data"]["products"]["edges"]) == num_products
 
 
-def test_fetch_all_products_service_account(
-    service_account_api_client, unavailable_product, permission_manage_products,
+def test_fetch_all_products_app(
+    app_api_client, unavailable_product, permission_manage_products,
 ):
-    response = service_account_api_client.post_graphql(
+    response = app_api_client.post_graphql(
         QUERY_FETCH_ALL_PRODUCTS,
         permissions=[permission_manage_products],
         check_no_permissions=False,
@@ -452,6 +453,29 @@ def test_products_query_with_filter_search_by_sku(
     assert len(products) == 1
     assert products[0]["node"]["id"] == product_id
     assert products[0]["node"]["name"] == product_with_default_variant.name
+
+
+def test_products_query_with_filter_stock_availability(
+    query_products_with_filter,
+    staff_api_client,
+    product,
+    order_line,
+    permission_manage_products,
+):
+    stock = product.variants.first().stocks.first()
+    Allocation.objects.create(
+        order_line=order_line, stock=stock, quantity_allocated=stock.quantity
+    )
+    variables = {"filter": {"stockAvailability": "OUT_OF_STOCK"}}
+    staff_api_client.user.user_permissions.add(permission_manage_products)
+    response = staff_api_client.post_graphql(query_products_with_filter, variables)
+    content = get_graphql_content(response)
+    product_id = graphene.Node.to_global_id("Product", product.id)
+    products = content["data"]["products"]["edges"]
+
+    assert len(products) == 1
+    assert products[0]["node"]["id"] == product_id
+    assert products[0]["node"]["name"] == product.name
 
 
 @pytest.mark.parametrize(
@@ -911,7 +935,7 @@ def test_create_product(
 
     # Mock tax interface with fake response from tax gateway
     monkeypatch.setattr(
-        ExtensionsManager,
+        PluginsManager,
         "get_tax_code_from_object_meta",
         lambda self, x: TaxType(description="", code=product_tax_rate),
     )
@@ -992,7 +1016,7 @@ def test_create_product_no_slug_in_input(
 
     # Mock tax interface with fake response from tax gateway
     monkeypatch.setattr(
-        ExtensionsManager,
+        PluginsManager,
         "get_tax_code_from_object_meta",
         lambda self, x: TaxType(description="", code=product_tax_rate),
     )
@@ -1280,7 +1304,7 @@ def test_product_create_with_collections_webhook(
         assert product.collections.first() == collection
 
     monkeypatch.setattr(
-        "saleor.extensions.manager.ExtensionsManager.product_created",
+        "saleor.plugins.manager.PluginsManager.product_created",
         lambda _, product: assert_product_has_collections(product),
     )
 
@@ -1388,7 +1412,7 @@ def test_update_product(
 
     # Mock tax interface with fake response from tax gateway
     monkeypatch.setattr(
-        ExtensionsManager,
+        PluginsManager,
         "get_tax_code_from_object_meta",
         lambda self, x: TaxType(description="", code=product_tax_rate),
     )
@@ -2050,7 +2074,7 @@ def test_product_type_query(
     monkeypatch,
 ):
     monkeypatch.setattr(
-        ExtensionsManager,
+        PluginsManager,
         "get_tax_code_from_object_meta",
         lambda self, x: TaxType(code="123", description="Standard Taxes"),
     )
@@ -2097,8 +2121,8 @@ def test_product_type_create_mutation(
     staff_api_client, product_type, permission_manage_products, monkeypatch, settings
 ):
     settings.VATLAYER_ACCESS_KEY = "test"
-    settings.PLUGINS = ["saleor.extensions.plugins.vatlayer.plugin.VatlayerPlugin"]
-    manager = ExtensionsManager(plugins=settings.PLUGINS)
+    settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
+    manager = PluginsManager(plugins=settings.PLUGINS)
     query = """
     mutation createProductType(
         $name: String!,
@@ -3149,8 +3173,8 @@ QUERY_COLLECTIONS_WITH_SORT = """
         ({"field": "NAME", "direction": "ASC"}, ["Coll1", "Coll2", "Coll3"]),
         ({"field": "NAME", "direction": "DESC"}, ["Coll3", "Coll2", "Coll1"]),
         ({"field": "AVAILABILITY", "direction": "ASC"}, ["Coll2", "Coll1", "Coll3"]),
-        ({"field": "AVAILABILITY", "direction": "DESC"}, ["Coll1", "Coll3", "Coll2"]),
-        ({"field": "PRODUCT_COUNT", "direction": "ASC"}, ["Coll3", "Coll1", "Coll2"]),
+        ({"field": "AVAILABILITY", "direction": "DESC"}, ["Coll3", "Coll1", "Coll2"]),
+        ({"field": "PRODUCT_COUNT", "direction": "ASC"}, ["Coll1", "Coll3", "Coll2"]),
         ({"field": "PRODUCT_COUNT", "direction": "DESC"}, ["Coll2", "Coll3", "Coll1"]),
     ],
 )
@@ -3245,7 +3269,7 @@ QUERY_CATEGORIES_WITH_SORT = """
         ),
         (
             {"field": "SUBCATEGORY_COUNT", "direction": "DESC"},
-            ["Cat1", "SubCat", "Cat2", "SubSubCat"],
+            ["SubCat", "Cat1", "SubSubCat", "Cat2"],
         ),
         (
             {"field": "PRODUCT_COUNT", "direction": "ASC"},
@@ -3253,7 +3277,7 @@ QUERY_CATEGORIES_WITH_SORT = """
         ),
         (
             {"field": "PRODUCT_COUNT", "direction": "DESC"},
-            ["Cat1", "SubCat", "SubSubCat", "Cat2"],
+            ["Cat1", "SubSubCat", "SubCat", "Cat2"],
         ),
     ],
 )
@@ -3388,7 +3412,7 @@ QUERY_PRODUCT_TYPE_WITH_SORT = """
         # is_digital
         (
             {"field": "DIGITAL", "direction": "ASC"},
-            ["Tools", "Subscription", "Digital"],
+            ["Subscription", "Tools", "Digital"],
         ),
         (
             {"field": "DIGITAL", "direction": "DESC"},
@@ -3401,7 +3425,7 @@ QUERY_PRODUCT_TYPE_WITH_SORT = """
         ),
         (
             {"field": "SHIPPING_REQUIRED", "direction": "DESC"},
-            ["Tools", "Digital", "Subscription"],
+            ["Tools", "Subscription", "Digital"],
         ),
     ],
 )
@@ -3442,6 +3466,32 @@ def test_product_type_query_with_sort(
 
     for order, product_type_name in enumerate(result_order):
         assert product_types[order]["node"]["name"] == product_type_name
+
+
+NOT_EXISTS_IDS_COLLECTIONS_QUERY = """
+    query ($filter: ProductTypeFilterInput!) {
+        productTypes(first: 5, filter: $filter) {
+            edges {
+                node {
+                    id
+                    name
+                }
+            }
+        }
+    }
+"""
+
+
+def test_product_types_query_ids_not_exists(user_api_client, category):
+    query = NOT_EXISTS_IDS_COLLECTIONS_QUERY
+    variables = {"filter": {"ids": ["fTEJRuFHU6fd2RU=", "2XwnQNNhwCdEjhP="]}}
+    response = user_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response, ignore_errors=True)
+    message_error = '{"ids": [{"message": "Invalid ID specified.", "code": ""}]}'
+
+    assert len(content["errors"]) == 1
+    assert content["errors"][0]["message"] == message_error
+    assert content["data"]["productTypes"] is None
 
 
 MUTATION_BULK_PUBLISH_PRODUCTS = """
@@ -3731,7 +3781,6 @@ mutation createProduct(
         $name: String!,
         $sku: String,
         $stocks: [StockInput!],
-        $quantity: Int,
         $basePrice: Decimal!
         $trackInventory: Boolean)
     {
@@ -3743,7 +3792,6 @@ mutation createProduct(
                 sku: $sku,
                 stocks: $stocks,
                 trackInventory: $trackInventory,
-                quantity: $quantity,
                 basePrice: $basePrice,
             })
         {
@@ -3755,6 +3803,7 @@ mutation createProduct(
                     sku
                     trackInventory
                     quantity
+                    stockQuantity
                 }
             }
             productErrors {
@@ -3788,7 +3837,6 @@ def test_create_product_without_variant_creates_stocks(
         "category": category_id,
         "productType": product_type_id,
         "name": "Test",
-        "quantity": 8,
         "stocks": stocks,
         "sku": "23434",
         "trackInventory": True,
@@ -3800,7 +3848,8 @@ def test_create_product_without_variant_creates_stocks(
         permissions=[permission_manage_products],
     )
     content = get_graphql_content(response)
-    quantity = content["data"]["productCreate"]["product"]["variants"][0]["quantity"]
+    data = content["data"]["productCreate"]
+    quantity = data["product"]["variants"][0]["stockQuantity"]
     assert quantity == 20
 
 
@@ -3834,41 +3883,6 @@ def test_create_product_with_variants_does_not_create_stock(
     variants = content["data"]["productCreate"]["product"]["variants"]
     assert len(variants) == 0
     assert not Stock.objects.exists()
-
-
-MUTATION_UPDATE_PRODUCT_QUANTITY = """
-mutation updateProduct(
-    $productId: ID!,
-
-    $quantity: Int,
-    ) {
-        productUpdate(
-            id: $productId,
-            input: {
-                quantity: $quantity
-            }) {
-                product {
-                    variants {
-                        quantity
-                    }
-                }
-}}
-"""
-
-
-def test_update_product_without_variants_updates_stock(
-    staff_api_client, product_with_default_variant, permission_manage_products
-):
-    product_id = graphene.Node.to_global_id("Product", product_with_default_variant.pk)
-    stock = product_with_default_variant.variants.first().stocks.first()
-    variables = {"productId": product_id, "quantity": 17}
-    staff_api_client.post_graphql(
-        MUTATION_UPDATE_PRODUCT_QUANTITY,
-        variables,
-        permissions=[permission_manage_products],
-    )
-    stock.refresh_from_db()
-    assert stock.quantity == 17
 
 
 def test_create_stocks_failed(product_with_single_variant, warehouse):
@@ -3910,3 +3924,196 @@ def test_create_stocks(variant, warehouse):
     assert {stock.quantity for stock in variant.stocks.all()} == {
         data["quantity"] for data in stocks_data
     }
+
+
+def test_update_or_create_variant_stocks(variant, warehouses):
+    Stock.objects.create(
+        product_variant=variant, warehouse=warehouses[0], quantity=5,
+    )
+    stocks_data = [
+        {"quantity": 10, "warehouse": "123"},
+        {"quantity": 10, "warehouse": "321"},
+    ]
+
+    ProductVariantStocksUpdate.update_or_create_variant_stocks(
+        variant, stocks_data, warehouses
+    )
+
+    variant.refresh_from_db()
+    assert variant.stocks.count() == 2
+    assert {stock.warehouse.pk for stock in variant.stocks.all()} == {
+        warehouse.pk for warehouse in warehouses
+    }
+    assert {stock.quantity for stock in variant.stocks.all()} == {
+        data["quantity"] for data in stocks_data
+    }
+
+
+def test_update_or_create_variant_stocks_empty_stocks_data(variant, warehouses):
+    Stock.objects.create(
+        product_variant=variant, warehouse=warehouses[0], quantity=5,
+    )
+
+    ProductVariantStocksUpdate.update_or_create_variant_stocks(variant, [], warehouses)
+
+    variant.refresh_from_db()
+    assert variant.stocks.count() == 1
+    stock = variant.stocks.first()
+    assert stock.warehouse == warehouses[0]
+    assert stock.quantity == 5
+
+
+# Because we use Scalars for Weight this test query tests only a scenario when weight
+# value is passed by a variable
+MUTATION_CREATE_PRODUCT_WITH_WEIGHT_GQL_VARIABLE = """
+mutation createProduct(
+        $productType: ID!,
+        $category: ID!
+        $name: String!,
+        $sku: String,
+        $basePrice: Decimal!
+        $weight: WeightScalar)
+    {
+        productCreate(
+            input: {
+                category: $category,
+                productType: $productType,
+                name: $name,
+                sku: $sku,
+                basePrice: $basePrice,
+                weight: $weight
+            })
+        {
+            product {
+                id
+                weight{
+                    value
+                    unit
+                }
+            }
+            productErrors {
+                message
+                field
+                code
+            }
+        }
+    }
+    """
+
+
+@pytest.mark.parametrize(
+    "weight, expected_weight_value, expected_weight_unit",
+    (
+        (11.11, 11.11, "kg"),
+        (11, 11.0, "kg"),
+        ("11.11", 11.11, "kg"),
+        ({"value": 11.11, "unit": "kg"}, 11.11, "kg",),
+        ({"value": 11, "unit": "g"}, 11.0, "g",),
+        ({"value": "11.11", "unit": "ounce"}, 11.11, "oz",),
+    ),
+)
+def test_create_product_with_weight_variable(
+    weight,
+    expected_weight_value,
+    expected_weight_unit,
+    staff_api_client,
+    category,
+    permission_manage_products,
+    product_type_without_variant,
+):
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_type_id = graphene.Node.to_global_id(
+        "ProductType", product_type_without_variant.pk
+    )
+    variables = {
+        "category": category_id,
+        "productType": product_type_id,
+        "name": "Test",
+        "sku": "23434",
+        "basePrice": Decimal("19"),
+        "weight": weight,
+    }
+    response = staff_api_client.post_graphql(
+        MUTATION_CREATE_PRODUCT_WITH_WEIGHT_GQL_VARIABLE,
+        variables,
+        permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    result_weight = content["data"]["productCreate"]["product"]["weight"]
+    assert result_weight["value"] == expected_weight_value
+    assert result_weight["unit"] == expected_weight_unit
+
+
+@pytest.mark.parametrize(
+    "weight, expected_weight_value, expected_weight_unit",
+    (
+        ("11.11", 11.11, "kg"),
+        ("11", 11.0, "kg"),
+        ('"11.11"', 11.11, "kg"),
+        ('{value: 11.11, unit: "kg"}', 11.11, "kg",),
+        ('{value: 11, unit: "g"}', 11.0, "g",),
+        ('{value: "11.11", unit: "ounce"}', 11.11, "oz",),
+    ),
+)
+def test_create_product_with_weight_input(
+    weight,
+    expected_weight_value,
+    expected_weight_unit,
+    staff_api_client,
+    category,
+    permission_manage_products,
+    product_type_without_variant,
+):
+    # Because we use Scalars for Weight this test query tests only a scenario when
+    # weight value is passed by directly in input
+    query = f"""
+    mutation createProduct(
+            $productType: ID!,
+            $category: ID!
+            $name: String!,
+            $sku: String,
+            $basePrice: Decimal!)
+        {{
+            productCreate(
+                input: {{
+                    category: $category,
+                    productType: $productType,
+                    name: $name,
+                    sku: $sku,
+                    basePrice: $basePrice,
+                    weight: {weight}
+                }})
+            {{
+                product {{
+                    id
+                    weight{{
+                        value
+                        unit
+                    }}
+                }}
+                productErrors {{
+                    message
+                    field
+                    code
+                }}
+            }}
+        }}
+    """
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_type_id = graphene.Node.to_global_id(
+        "ProductType", product_type_without_variant.pk
+    )
+    variables = {
+        "category": category_id,
+        "productType": product_type_id,
+        "name": "Test",
+        "sku": "23434",
+        "basePrice": Decimal("19"),
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products],
+    )
+    content = get_graphql_content(response)
+    result_weight = content["data"]["productCreate"]["product"]["weight"]
+    assert result_weight["value"] == expected_weight_value
+    assert result_weight["unit"] == expected_weight_unit

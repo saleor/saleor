@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 # Override urls to use different GraphQL view on demo
 ROOT_URLCONF = "saleor.demo.urls"
 
-PLUGINS += ["saleor.extensions.plugins.anonymize.plugin.AnonymizePlugin"]
+PLUGINS += ["saleor.plugins.anonymize.plugin.AnonymizePlugin"]
 
 MIDDLEWARE += ["saleor.core.middleware.ReadOnlyMiddleware"]
 

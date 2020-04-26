@@ -42,11 +42,10 @@ class PaymentInput(graphene.InputObjectType):
     billing_address = AddressInput(
         required=False,
         description=(
-            "Billing address. If empty, the billing address associated with the "
-            "checkout instance will be used. "
-            "DEPRECATED: `Checkout.billingAddress` will be used instead. Use "
-            "`checkoutCreate` or `checkoutBillingAddressUpdate` mutations to set it. "
-            "This field will be removed in Saleor 2.11"
+            "[Deprecated] Billing address. If empty, the billing address associated "
+            "with the checkout instance will be used. Use `checkoutCreate` or "
+            "`checkoutBillingAddressUpdate` mutations to set it. This field will be "
+            "removed after 2020-07-31."
         ),
     )
 
@@ -69,8 +68,8 @@ class CheckoutPaymentCreate(BaseMutation, I18nMixin):
     @classmethod
     def calculate_total(cls, info, checkout):
         checkout_total = (
-            info.context.extensions.calculate_checkout_total(
-                checkout, discounts=info.context.discounts
+            info.context.plugins.calculate_checkout_total(
+                checkout, lines=list(checkout), discounts=info.context.discounts
             )
             - checkout.get_total_gift_cards_balance()
         )

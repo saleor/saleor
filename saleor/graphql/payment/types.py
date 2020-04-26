@@ -1,5 +1,4 @@
 import graphene
-import graphene_django_optimizer as gql_optimizer
 from django_countries.fields import Country
 from graphene import relay
 
@@ -114,7 +113,6 @@ class Payment(CountableDjangoObjectType):
         ]
 
     @staticmethod
-    @gql_optimizer.resolver_hints(prefetch_related="transactions")
     def resolve_actions(root: models.Payment, _info):
         actions = []
         if root.can_capture():
@@ -149,7 +147,6 @@ class Payment(CountableDjangoObjectType):
         )
 
     @staticmethod
-    @gql_optimizer.resolver_hints(prefetch_related="transactions")
     def resolve_transactions(root: models.Payment, _info):
         return root.transactions.all()
 
@@ -161,7 +158,6 @@ class Payment(CountableDjangoObjectType):
         return root.get_captured_amount()
 
     @staticmethod
-    @gql_optimizer.resolver_hints(prefetch_related="transactions")
     def resolve_available_capture_amount(root: models.Payment, _info):
         # FIXME TESTME
         if not root.can_capture():

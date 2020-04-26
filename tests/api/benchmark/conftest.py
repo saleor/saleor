@@ -140,7 +140,7 @@ def checkout_with_billing_address(checkout_with_shipping_method, address):
 def checkout_with_charged_payment(checkout_with_billing_address):
     checkout = checkout_with_billing_address
 
-    taxed_total = calculations.checkout_total(checkout)
+    taxed_total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
     payment = Payment.objects.create(
         gateway="Dummy", is_active=True, total=taxed_total.gross.amount, currency="USD"
     )

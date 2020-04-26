@@ -1,5 +1,4 @@
 import graphene
-import graphene_django_optimizer as gql_optimizer
 from graphene import relay
 
 from ....core.permissions import ProductPermissions
@@ -15,7 +14,7 @@ class DigitalContentUrl(CountableDjangoObjectType):
 
     class Meta:
         model = models.DigitalContentUrl
-        only_fields = ["content", "created", "download_num", "token", "url"]
+        only_fields = ["content", "created", "download_num", "token"]
         interfaces = (relay.Node,)
 
     @staticmethod
@@ -24,12 +23,8 @@ class DigitalContentUrl(CountableDjangoObjectType):
 
 
 class DigitalContent(CountableDjangoObjectType):
-    urls = gql_optimizer.field(
-        graphene.List(
-            lambda: DigitalContentUrl,
-            description="List of URLs for the digital variant.",
-        ),
-        model_field="urls",
+    urls = graphene.List(
+        lambda: DigitalContentUrl, description="List of URLs for the digital variant.",
     )
 
     class Meta:
@@ -47,8 +42,7 @@ class DigitalContent(CountableDjangoObjectType):
 
     @staticmethod
     def resolve_urls(root: models.DigitalContent, info, **_kwargs):
-        qs = root.urls.all()
-        return gql_optimizer.query(qs, info)
+        return root.urls.all()
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)

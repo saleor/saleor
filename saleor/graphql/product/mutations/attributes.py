@@ -383,20 +383,6 @@ class AttributeAssign(BaseMutation):
             )
 
     @classmethod
-    def handle_typed_errors(cls, errors: list, **extra):
-        typed_errors = [
-            cls._meta.error_type_class(  # type: ignore
-                field=e.field,
-                message=e.message,
-                code=code,
-                attributes=params.get("attributes") if params else None,
-            )
-            for e, code, params in errors
-        ]
-        extra.update({cls._meta.error_type_field: typed_errors})  # type: ignore
-        return cls(errors=[e[0] for e in errors], **extra)  # type: ignore
-
-    @classmethod
     def clean_operations(cls, product_type, product_attrs_pks, variant_attrs_pks):
         """Ensure the attributes are not already assigned to the product type."""
         attrs_pk = product_attrs_pks + variant_attrs_pks

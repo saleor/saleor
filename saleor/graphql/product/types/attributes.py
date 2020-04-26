@@ -1,7 +1,6 @@
 import re
 
 import graphene
-import graphene_django_optimizer as gql_optimizer
 from graphene import relay
 
 from ....core.permissions import ProductPermissions
@@ -12,6 +11,7 @@ from ...meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ...meta.types import ObjectWithMetadata
 from ...translations.fields import TranslationField
 from ...translations.types import AttributeTranslation, AttributeValueTranslation
+from ..dataloaders import AttributeValuesByAttributeIdLoader
 from ..descriptions import AttributeDescriptions, AttributeValueDescriptions
 from ..enums import AttributeInputTypeEnum, AttributeValueType
 
@@ -37,10 +37,7 @@ class AttributeValue(CountableDjangoObjectType):
         AttributeValueTranslation, type_name="attribute value"
     )
 
-    input_type = gql_optimizer.field(
-        AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE),
-        model_field="attribute",
-    )
+    input_type = AttributeInputTypeEnum(description=AttributeDescriptions.INPUT_TYPE)
 
     class Meta:
         description = "Represents a value of an attribute."
@@ -64,10 +61,7 @@ class Attribute(CountableDjangoObjectType):
     name = graphene.String(description=AttributeDescriptions.NAME)
     slug = graphene.String(description=AttributeDescriptions.SLUG)
 
-    values = gql_optimizer.field(
-        graphene.List(AttributeValue, description=AttributeDescriptions.VALUES),
-        model_field="values",
-    )
+    values = graphene.List(AttributeValue, description=AttributeDescriptions.VALUES)
 
     value_required = graphene.Boolean(
         description=AttributeDescriptions.VALUE_REQUIRED, required=True
@@ -101,8 +95,8 @@ class Attribute(CountableDjangoObjectType):
         model = models.Attribute
 
     @staticmethod
-    def resolve_values(root: models.Attribute, *_args):
-        return root.values.all()
+    def resolve_values(root: models.Attribute, info):
+        return AttributeValuesByAttributeIdLoader(info.context).load(root.id)
 
     @staticmethod
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
@@ -164,8 +158,8 @@ class AttributeInput(graphene.InputObjectType):
     value = graphene.String(
         required=False,
         description=(
-            "Internal representation of a value (unique per attribute). "
-            "DEPRECATED: Will be removed in Saleor 2.11"
+            "[Deprecated] Internal representation of a value (unique per attribute). "
+            "This field will be removed after 2020-07-31."
         ),
     )  # deprecated
     values = graphene.List(

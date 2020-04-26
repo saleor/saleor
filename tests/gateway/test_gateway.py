@@ -85,7 +85,7 @@ USED_GATEWAY = "Dummy"
 @pytest.fixture
 def mock_payment_interface(mocker, fake_payment_interface):
     mgr = mocker.patch(
-        "saleor.payment.gateway.get_extensions_manager",
+        "saleor.payment.gateway.get_plugins_manager",
         autospec=True,
         return_value=fake_payment_interface,
     )
