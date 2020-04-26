@@ -12,7 +12,7 @@ import saleor.order.emails as emails
 from saleor.core.emails import get_email_context, prepare_url
 from saleor.core.utils import build_absolute_uri
 from saleor.order.models import Invoice, InvoiceStatus
-from saleor.order.utils import add_variant_to_order
+from saleor.order.utils import add_variant_to_draft_order
 
 
 def test_get_email_context(site_settings):
@@ -165,7 +165,7 @@ def test_send_confirmation_emails_without_addresses_for_payment(
     assert not order.lines.count()
 
     template = emails.CONFIRM_PAYMENT_TEMPLATE
-    add_variant_to_order(order, digital_content.product_variant, quantity=1)
+    add_variant_to_draft_order(order, digital_content.product_variant, quantity=1)
     order.shipping_address = None
     order.shipping_method = None
     order.billing_address = None
@@ -199,7 +199,7 @@ def test_send_confirmation_emails_without_addresses_for_order(
     assert not order.lines.count()
 
     template = emails.CONFIRM_ORDER_TEMPLATE
-    add_variant_to_order(order, digital_content.product_variant, quantity=1)
+    add_variant_to_draft_order(order, digital_content.product_variant, quantity=1)
     order.shipping_address = None
     order.shipping_method = None
     order.billing_address = None

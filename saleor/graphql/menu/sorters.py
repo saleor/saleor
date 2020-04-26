@@ -5,8 +5,8 @@ from ..core.types import SortInputObjectType
 
 
 class MenuSortField(graphene.Enum):
-    NAME = "name"
-    ITEMS_COUNT = "items_count"
+    NAME = ["name", "pk"]
+    ITEMS_COUNT = ["items_count", "name", "pk"]
 
     @property
     def description(self):
@@ -17,12 +17,8 @@ class MenuSortField(graphene.Enum):
         raise ValueError("Unsupported enum value: %s" % self.value)
 
     @staticmethod
-    def sort_by_items_count(
-        queryset: QuerySet, sort_by: SortInputObjectType
-    ) -> QuerySet:
-        return queryset.annotate(items_count=Count("items__id")).order_by(
-            f"{sort_by.direction}items_count", "name"
-        )
+    def qs_with_items_count(queryset: QuerySet) -> QuerySet:
+        return queryset.annotate(items_count=Count("items__id"))
 
 
 class MenuSortingInput(SortInputObjectType):
@@ -32,7 +28,7 @@ class MenuSortingInput(SortInputObjectType):
 
 
 class MenuItemsSortField(graphene.Enum):
-    NAME = "name"
+    NAME = ["name", "sort_order"]
 
     @property
     def description(self):

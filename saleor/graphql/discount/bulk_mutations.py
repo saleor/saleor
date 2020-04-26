@@ -3,6 +3,7 @@ import graphene
 from ...core.permissions import DiscountPermissions
 from ...discount import models
 from ..core.mutations import ModelBulkDeleteMutation
+from ..core.types.common import DiscountError
 
 
 class SaleBulkDelete(ModelBulkDeleteMutation):
@@ -15,6 +16,8 @@ class SaleBulkDelete(ModelBulkDeleteMutation):
         description = "Deletes sales."
         model = models.Sale
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
+        error_type_class = DiscountError
+        error_type_field = "discount_errors"
 
 
 class VoucherBulkDelete(ModelBulkDeleteMutation):
@@ -27,3 +30,5 @@ class VoucherBulkDelete(ModelBulkDeleteMutation):
         description = "Deletes vouchers."
         model = models.Voucher
         permissions = (DiscountPermissions.MANAGE_DISCOUNTS,)
+        error_type_class = DiscountError
+        error_type_field = "discount_errors"

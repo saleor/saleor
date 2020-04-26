@@ -3,7 +3,6 @@ from django.conf.urls import include, url
 from django.conf.urls.static import static
 from django.contrib.staticfiles.views import serve
 from django.views.decorators.csrf import csrf_exempt
-from django.views.generic.base import RedirectView
 
 from .data_feeds.urls import urlpatterns as feed_urls
 from .graphql.api import schema
@@ -22,6 +21,7 @@ urlpatterns = [
 
 if settings.DEBUG:
     import warnings
+    from .core import views
 
     try:
         import debug_toolbar
@@ -35,5 +35,5 @@ if settings.DEBUG:
 
     urlpatterns += static("/media/", document_root=settings.MEDIA_ROOT) + [
         url(r"^static/(?P<path>.*)$", serve),
-        url(r"^", RedirectView.as_view(url="/graphql/")),
+        url(r"^", views.home, name="home"),
     ]

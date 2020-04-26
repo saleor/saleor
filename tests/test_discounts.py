@@ -129,7 +129,9 @@ def test_specific_products_voucher_checkout_discount(
     )
     voucher.save()
     checkout = checkout_with_item
-    discount = get_voucher_discount_for_checkout(voucher, checkout, discounts)
+    discount = get_voucher_discount_for_checkout(
+        voucher, checkout, list(checkout), discounts
+    )
     assert discount == Money(expected_value, "USD")
 
 

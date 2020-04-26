@@ -18,7 +18,11 @@ class WebhookCreateInput(graphene.InputObjectType):
     )
     service_account = graphene.ID(
         required=False,
-        description="ID of the service account to which webhook belongs.",
+        description="DEPRECATED: Use the `app` field instead. This field will be "
+        "removed after 2020-07-31.",
+    )
+    app = graphene.ID(
+        required=False, description="ID of the app to which webhook belongs.",
     )
     is_active = graphene.Boolean(
         description="Determine if webhook will be set active or not.", required=False
@@ -46,40 +50,39 @@ class WebhookCreate(ModelMutation):
     def clean_input(cls, info, instance, data):
         cleaned_data = super().clean_input(info, instance, data)
 
-        service_account = cleaned_data.get("service_account")
+        # This should be removed after we drop service_account
+        service_account = cleaned_data.pop("service_account", None)
+        app = cleaned_data["app"] = cleaned_data.get("app") or service_account
 
         # We are not able to check it in `check_permission`.
-        # We need to confirm that cleaned_data has service_account_id or
-        # context has assigned service account instance
-        if not instance.service_account_id and not service_account:
-            raise ValidationError(
-                "Missing token or serviceAccount", code=WebhookErrorCode.INVALID
-            )
+        # We need to confirm that cleaned_data has app_id or
+        # context has assigned app instance
+        if not instance.app_id and not app:
+            raise ValidationError("Missing token or app", code=WebhookErrorCode.INVALID)
 
-        if instance.service_account_id:
-            # Let's skip service_account id in case when context has
-            # service_account instance
-            service_account = instance.service_account
-            cleaned_data.pop("service_account", None)
+        if instance.app_id:
+            # Let's skip app id in case when context has
+            # app instance
+            app = instance.app
+            cleaned_data.pop("app", None)
 
-        if not service_account or not service_account.is_active:
+        if not app or not app.is_active:
             raise ValidationError(
-                "Service account doesn't exist or is disabled",
-                code=WebhookErrorCode.NOT_FOUND,
+                "App doesn't exist or is disabled", code=WebhookErrorCode.NOT_FOUND,
             )
         return cleaned_data
 
     @classmethod
     def get_instance(cls, info, **data):
         instance = super().get_instance(info, **data)
-        service_account = info.context.service_account
-        instance.service_account = service_account
+        app = info.context.app
+        instance.app = app
         return instance
 
     @classmethod
     def check_permissions(cls, context):
         has_perm = super().check_permissions(context)
-        has_perm = bool(context.service_account) or has_perm
+        has_perm = bool(context.app) or has_perm
         return has_perm
 
     @classmethod
@@ -106,7 +109,11 @@ class WebhookUpdateInput(graphene.InputObjectType):
     )
     service_account = graphene.ID(
         required=False,
-        description="ID of the service account to which webhook belongs.",
+        description="DEPRECATED: Use the `app` field instead. This field will be "
+        "removed after 2020-07-31.",
+    )
+    app = graphene.ID(
+        required=False, description="ID of the app to which webhook belongs.",
     )
     is_active = graphene.Boolean(
         description="Determine if webhook will be set active or not.", required=False
@@ -131,6 +138,16 @@ class WebhookUpdate(ModelMutation):
         permissions = (WebhookPermissions.MANAGE_WEBHOOKS,)
         error_type_class = WebhookError
         error_type_field = "webhook_errors"
+
+    @classmethod
+    def clean_input(cls, info, instance, data, input_cls=None):
+        cleaned_input = super().clean_input(info, instance, data, input_cls)
+        # This should be removed after we drop service_account
+        service_account = cleaned_input.pop("service_account", None)
+        app = cleaned_input.get("app", service_account)
+        if app:
+            cleaned_input["app"] = app
+        return cleaned_input
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
@@ -162,7 +179,7 @@ class WebhookDelete(ModelDeleteMutation):
     @classmethod
     def check_permissions(cls, context):
         has_perm = super().check_permissions(context)
-        has_perm = bool(context.service_account) or has_perm
+        has_perm = bool(context.app) or has_perm
         return has_perm
 
     @classmethod
@@ -170,15 +187,15 @@ class WebhookDelete(ModelDeleteMutation):
         node_id = data["id"]
         _, object_id = graphene.Node.from_global_id(node_id)
 
-        service_account = info.context.service_account
-        if service_account:
-            if not service_account.is_active:
+        app = info.context.app
+        if app:
+            if not app.is_active:
                 raise ValidationError(
-                    "Service account needs to be active to delete webhook",
+                    "App needs to be active to delete webhook",
                     code=WebhookErrorCode.INVALID,
                 )
             try:
-                service_account.webhooks.get(id=object_id)
+                app.webhooks.get(id=object_id)
             except models.Webhook.DoesNotExist:
                 raise ValidationError(
                     "Couldn't resolve to a node: %s" % node_id,

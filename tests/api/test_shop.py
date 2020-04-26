@@ -179,7 +179,7 @@ def test_query_permissions(staff_api_client):
         }
     }
     """
-    permissions_codenames = get_permissions_codename()
+    permissions_codenames = set(get_permissions_codename())
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     data = content["data"]["shop"]

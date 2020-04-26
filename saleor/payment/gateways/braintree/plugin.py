@@ -1,7 +1,6 @@
 from typing import TYPE_CHECKING, List
 
-from saleor.extensions import ConfigurationTypeField
-from saleor.extensions.base_plugin import BasePlugin
+from saleor.plugins.base_plugin import BasePlugin, ConfigurationTypeField
 
 from . import (
     GatewayConfig,
