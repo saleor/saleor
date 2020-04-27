@@ -282,7 +282,7 @@ def restock_order_lines(order):
 def restock_fulfillment_lines(fulfillment, warehouse):
     """Return fulfilled products to corresponding stocks.
 
-    Return products to stocks and update order_line quantity_fulfilled value.
+    Return products to stocks and update order lines quantity fulfilled values.
     """
     order_lines = []
     for line in fulfillment:
