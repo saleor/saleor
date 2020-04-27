@@ -243,10 +243,10 @@ class OrderFulfill(BaseMutation):
             )
         except InsufficientStock as exc:
             order_line_global_id = graphene.Node.to_global_id(
-                "OrderLine", exc.order_line.pk
+                "OrderLine", exc.context["order_line"].pk
             )
             warehouse_global_id = graphene.Node.to_global_id(
-                "Warehouse", exc.warehouse_pk
+                "Warehouse", exc.context["warehouse_pk"]
             )
             raise ValidationError(
                 {
