@@ -135,10 +135,15 @@ class OrderFulfill(BaseMutation):
                     "item_pluralize": pluralize(line_quantity_unfulfilled),
                     "order_line": order_line,
                 }
+                order_line_global_id = graphene.Node.to_global_id(
+                    "OrderLine", order_line.pk
+                )
                 raise ValidationError(
                     {
                         "order_line_id": ValidationError(
-                            msg, code=OrderErrorCode.FULFILL_ORDER_LINE
+                            msg,
+                            code=OrderErrorCode.FULFILL_ORDER_LINE,
+                            params={"order_line": order_line_global_id},
                         )
                     }
                 )
@@ -153,6 +158,7 @@ class OrderFulfill(BaseMutation):
                         "warehouse": ValidationError(
                             "Duplicated warehouse ID.",
                             code=OrderErrorCode.DUPLICATED_INPUT_ITEM,
+                            params={"warehouse": duplicates.pop()},
                         )
                     }
                 )
@@ -166,6 +172,7 @@ class OrderFulfill(BaseMutation):
                     "orderLineId": ValidationError(
                         "Duplicated order line ID.",
                         code=OrderErrorCode.DUPLICATED_INPUT_ITEM,
+                        params={"order_line": duplicates.pop()},
                     )
                 }
             )
@@ -237,11 +244,21 @@ class OrderFulfill(BaseMutation):
                 requester, order, dict(lines_for_warehouses), notify_customer
             )
         except InsufficientStock as exc:
+            order_line_global_id = graphene.Node.to_global_id(
+                "OrderLine", exc.context["order_line"].pk
+            )
+            warehouse_global_id = graphene.Node.to_global_id(
+                "Warehouse", exc.context["warehouse_pk"]
+            )
             raise ValidationError(
                 {
                     "stocks": ValidationError(
                         f"Insufficient product stock: {exc.item}",
                         code=OrderErrorCode.INSUFFICIENT_STOCK,
+                        params={
+                            "order_line": order_line_global_id,
+                            "warehouse": warehouse_global_id,
+                        },
                     )
                 }
             )
