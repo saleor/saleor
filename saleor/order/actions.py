@@ -7,7 +7,7 @@ from django.db import transaction
 from ..core import analytics
 from ..payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from ..plugins.manager import get_plugins_manager
-from ..warehouse.management import decrease_stock
+from ..warehouse.management import deallocate_stock_for_order, decrease_stock
 from . import FulfillmentStatus, OrderStatus, emails, events, utils
 from .emails import send_fulfillment_confirmation_to_customer, send_payment_confirmation
 from .models import Fulfillment, FulfillmentLine
@@ -55,36 +55,18 @@ def handle_fully_paid_order(order: "Order"):
     manager.order_updated(order)
 
 
-def cancel_order(order: "Order", user: "User", restock: bool):
-    """Cancel order and associated fulfillments.
+@transaction.atomic
+def cancel_order(order: "Order", user: "User"):
+    """Cancel order.
 
-    Return products to corresponding stocks if restock is set to True.
+    Release allocation of unfulfilled order items.
     """
 
     events.order_canceled_event(order=order, user=user)
-    if restock:
-        events.fulfillment_restocked_items_event(
-            order=order, user=user, fulfillment=order
-        )
-        utils.restock_order_lines(order)
 
-    for fulfillment in order.fulfillments.all():
-        fulfillment.status = FulfillmentStatus.CANCELED
-        fulfillment.save(update_fields=["status"])
+    deallocate_stock_for_order(order)
     order.status = OrderStatus.CANCELED
     order.save(update_fields=["status"])
-
-    payments = order.payments.filter(is_active=True).exclude(
-        charge_status=ChargeStatus.FULLY_REFUNDED
-    )
-
-    from ..payment import gateway
-
-    for payment in payments:
-        if payment.can_refund():
-            gateway.refund(payment)
-        elif payment.can_void():
-            gateway.void(payment)
 
     manager = get_plugins_manager()
     manager.order_cancelled(order)
