@@ -38,7 +38,7 @@ from saleor.giftcard.models import GiftCard
 from saleor.menu.models import Menu, MenuItem, MenuItemTranslation
 from saleor.menu.utils import update_menu
 from saleor.order import OrderStatus
-from saleor.order.actions import fulfill_order_line
+from saleor.order.actions import cancel_fulfillment, fulfill_order_line
 from saleor.order.events import OrderEvents
 from saleor.order.models import FulfillmentStatus, Order, OrderEvent, OrderLine
 from saleor.order.utils import recalculate_order
@@ -1232,6 +1232,15 @@ def fulfilled_order_with_cancelled_fulfillment(fulfilled_order):
     fulfillment.lines.create(order_line=line_2, quantity=line_2.quantity)
     fulfillment.status = FulfillmentStatus.CANCELED
     fulfillment.save()
+    return fulfilled_order
+
+
+@pytest.fixture
+def fulfilled_order_with_all_cancelled_fulfillments(
+    fulfilled_order, staff_user, warehouse
+):
+    fulfillment = fulfilled_order.fulfillments.get()
+    cancel_fulfillment(fulfillment, staff_user, warehouse)
     return fulfilled_order
 
 
