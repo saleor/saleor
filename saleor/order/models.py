@@ -508,12 +508,20 @@ class OrderEvent(models.Model):
         return f"{self.__class__.__name__}(type={self.type!r}, user={self.user!r})"
 
 
+class InvoiceQueryset(models.QuerySet):
+    def ready(self):
+        return self.filter(status=InvoiceStatus.READY)
+
+
 class Invoice(ModelWithMetadata):
-    order = models.ForeignKey(Order, null=True, on_delete=models.SET_NULL)
+    order = models.ForeignKey(
+        Order, related_name="invoices", null=True, on_delete=models.SET_NULL
+    )
     number = models.CharField(max_length=255, null=True)
     created = models.DateTimeField(null=True)
     url = models.URLField(null=True, max_length=2048)
     status = models.CharField(max_length=32, default=InvoiceStatus.PENDING)
+    objects = InvoiceQueryset.as_manager()
 
     def update_invoice(self, number=None, url=None):
         if number is not None:
