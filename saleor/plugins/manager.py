@@ -1,6 +1,7 @@
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Union
 
+import opentracing
 from django.conf import settings
 from django.utils.module_loading import import_string
 from django_countries.fields import Country
@@ -51,12 +52,15 @@ class PluginsManager(PaymentInterface):
         self, method_name: str, default_value: Any, *args, **kwargs
     ):
         """Try to run a method with the given name on each declared plugin."""
-        value = default_value
-        for plugin in self.plugins:
-            value = self.__run_method_on_single_plugin(
-                plugin, method_name, value, *args, **kwargs
-            )
-        return value
+        with opentracing.global_tracer().start_active_span(
+            f"ExtensionsManager.{method_name}"
+        ):
+            value = default_value
+            for plugin in self.plugins:
+                value = self.__run_method_on_single_plugin(
+                    plugin, method_name, value, *args, **kwargs
+                )
+            return value
 
     def __run_method_on_single_plugin(
         self,
@@ -93,38 +97,47 @@ class PluginsManager(PaymentInterface):
         self.__run_method_on_plugins("checkout_quantity_changed", None, checkout)
 
     def calculate_checkout_total(
-        self, checkout: "Checkout", discounts: Iterable[DiscountInfo]
+        self,
+        checkout: "Checkout",
+        lines: Iterable["CheckoutLine"],
+        discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
 
         default_value = base_calculations.base_checkout_total(
-            subtotal=self.calculate_checkout_subtotal(checkout, discounts),
-            shipping_price=self.calculate_checkout_shipping(checkout, discounts),
+            subtotal=self.calculate_checkout_subtotal(checkout, lines, discounts),
+            shipping_price=self.calculate_checkout_shipping(checkout, lines, discounts),
             discount=checkout.discount,
             currency=checkout.currency,
         )
         return self.__run_method_on_plugins(
-            "calculate_checkout_total", default_value, checkout, discounts
+            "calculate_checkout_total", default_value, checkout, lines, discounts
         )
 
     def calculate_checkout_subtotal(
-        self, checkout: "Checkout", discounts: Iterable[DiscountInfo]
+        self,
+        checkout: "Checkout",
+        lines: Iterable["CheckoutLine"],
+        discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
         line_totals = [
-            self.calculate_checkout_line_total(line, discounts) for line in checkout
+            self.calculate_checkout_line_total(line, discounts) for line in lines
         ]
         default_value = base_calculations.base_checkout_subtotal(
             line_totals, checkout.currency
         )
         return self.__run_method_on_plugins(
-            "calculate_checkout_subtotal", default_value, checkout, discounts
+            "calculate_checkout_subtotal", default_value, checkout, lines, discounts
         )
 
     def calculate_checkout_shipping(
-        self, checkout: "Checkout", discounts: Iterable[DiscountInfo]
+        self,
+        checkout: "Checkout",
+        lines: Iterable["CheckoutLine"],
+        discounts: Iterable[DiscountInfo],
     ) -> TaxedMoney:
-        default_value = base_calculations.base_checkout_shipping_price(checkout)
+        default_value = base_calculations.base_checkout_shipping_price(checkout, lines)
         return self.__run_method_on_plugins(
-            "calculate_checkout_shipping", default_value, checkout, discounts
+            "calculate_checkout_shipping", default_value, checkout, lines, discounts
         )
 
     def calculate_order_shipping(self, order: "Order") -> TaxedMoney:

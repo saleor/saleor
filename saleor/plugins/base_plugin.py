@@ -68,6 +68,7 @@ class BasePlugin:
     def calculate_checkout_total(
         self,
         checkout: "Checkout",
+        lines: List["CheckoutLine"],
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -81,6 +82,7 @@ class BasePlugin:
     def calculate_checkout_subtotal(
         self,
         checkout: "Checkout",
+        lines: List["CheckoutLine"],
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -94,6 +96,7 @@ class BasePlugin:
     def calculate_checkout_shipping(
         self,
         checkout: "Checkout",
+        lines: List["CheckoutLine"],
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:

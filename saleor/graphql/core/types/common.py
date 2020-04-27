@@ -72,6 +72,11 @@ class AccountError(Error):
 
 class AppError(Error):
     code = AppErrorCode(description="The error code.", required=True)
+    permissions = graphene.List(
+        graphene.NonNull(PermissionEnum),
+        description="List of permissions which causes the error.",
+        required=False,
+    )
 
 
 class StaffError(AccountError):
@@ -110,6 +115,12 @@ class MetadataError(Error):
 
 class OrderError(Error):
     code = OrderErrorCode(description="The error code.", required=True)
+    warehouse = graphene.ID(
+        description="Warehouse ID which causes the error.", required=False,
+    )
+    order_line = graphene.ID(
+        description="Order line ID which causes the error.", required=False,
+    )
 
 
 class PermissionGroupError(Error):

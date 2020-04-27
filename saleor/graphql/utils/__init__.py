@@ -183,3 +183,8 @@ def filter_range_field(qs, field, value):
         lookup = {f"{field}__lte": lte}
         qs = qs.filter(**lookup)
     return qs
+
+
+def requestor_is_superuser(requestor):
+    """Return True if requestor is superuser."""
+    return getattr(requestor, "is_superuser", False)

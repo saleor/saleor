@@ -148,9 +148,7 @@ class ProductsQueryset(PublishedQuerySet):
         )
 
     def collection_sorted(self, user: "User"):
-        qs = self.visible_to_user(user).prefetch_related(
-            "collections__products__collectionproduct"
-        )
+        qs = self.visible_to_user(user)
         qs = qs.order_by(
             F("collectionproduct__sort_order").asc(nulls_last=True),
             F("collectionproduct__id"),
@@ -340,11 +338,19 @@ class Product(SeoModel, ModelWithMetadata, PublishableModel):
     def get_price_range(
         self, discounts: Optional[Iterable[DiscountInfo]] = None
     ) -> MoneyRange:
-        if self.variants.all():
-            prices = [variant.get_price(discounts) for variant in self]
-            return MoneyRange(min(prices), max(prices))
-        price = calculate_discounted_price(self, self.price, discounts)
-        return MoneyRange(start=price, stop=price)
+        import opentracing
+
+        with opentracing.global_tracer().start_active_span("get_price_range"):
+            if self.variants.all():
+                prices = [variant.get_price(discounts) for variant in self]
+                return MoneyRange(min(prices), max(prices))
+            price = calculate_discounted_price(
+                product=self,
+                price=self.price,
+                collections=self.collections.all(),
+                discounts=discounts,
+            )
+            return MoneyRange(start=price, stop=price)
 
     @staticmethod
     def sort_by_attribute_fields() -> list:
@@ -356,7 +362,7 @@ class ProductTranslation(SeoModelTranslation):
     product = models.ForeignKey(
         Product, related_name="translations", on_delete=models.CASCADE
     )
-    name = models.CharField(max_length=128)
+    name = models.CharField(max_length=250)
     description = models.TextField(blank=True)
     description_json = SanitizedJSONField(
         blank=True, default=dict, sanitizer=clean_draft_js
@@ -470,7 +476,12 @@ class ProductVariant(ModelWithMetadata):
         )
 
     def get_price(self, discounts: Optional[Iterable[DiscountInfo]] = None) -> "Money":
-        return calculate_discounted_price(self.product, self.base_price, discounts)
+        return calculate_discounted_price(
+            product=self.product,
+            price=self.base_price,
+            collections=self.product.collections.all(),
+            discounts=discounts,
+        )
 
     def get_weight(self):
         return self.weight or self.product.weight or self.product.product_type.weight

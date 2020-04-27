@@ -38,7 +38,7 @@ from saleor.giftcard.models import GiftCard
 from saleor.menu.models import Menu, MenuItem, MenuItemTranslation
 from saleor.menu.utils import update_menu
 from saleor.order import OrderStatus
-from saleor.order.actions import fulfill_order_line
+from saleor.order.actions import cancel_fulfillment, fulfill_order_line
 from saleor.order.events import OrderEvents
 from saleor.order.models import FulfillmentStatus, Order, OrderEvent, OrderLine
 from saleor.order.utils import recalculate_order
@@ -1207,13 +1207,17 @@ def order_events(order):
 @pytest.fixture
 def fulfilled_order(order_with_lines):
     order = order_with_lines
-    fulfillment = order.fulfillments.create()
+    fulfillment = order.fulfillments.create(tracking_number="123")
     line_1 = order.lines.first()
+    stock_1 = line_1.allocations.get().stock
+    warehouse_1_pk = stock_1.warehouse.pk
     line_2 = order.lines.last()
-    fulfillment.lines.create(order_line=line_1, quantity=line_1.quantity)
-    fulfill_order_line(line_1, line_1.quantity)
-    fulfillment.lines.create(order_line=line_2, quantity=line_2.quantity)
-    fulfill_order_line(line_2, line_2.quantity)
+    stock_2 = line_2.allocations.get().stock
+    warehouse_2_pk = stock_2.warehouse.pk
+    fulfillment.lines.create(order_line=line_1, quantity=line_1.quantity, stock=stock_1)
+    fulfill_order_line(line_1, line_1.quantity, warehouse_1_pk)
+    fulfillment.lines.create(order_line=line_2, quantity=line_2.quantity, stock=stock_2)
+    fulfill_order_line(line_2, line_2.quantity, warehouse_2_pk)
     order.status = OrderStatus.FULFILLED
     order.save(update_fields=["status"])
     return order
@@ -1228,6 +1232,15 @@ def fulfilled_order_with_cancelled_fulfillment(fulfilled_order):
     fulfillment.lines.create(order_line=line_2, quantity=line_2.quantity)
     fulfillment.status = FulfillmentStatus.CANCELED
     fulfillment.save()
+    return fulfilled_order
+
+
+@pytest.fixture
+def fulfilled_order_with_all_cancelled_fulfillments(
+    fulfilled_order, staff_user, warehouse
+):
+    fulfillment = fulfilled_order.fulfillments.get()
+    cancel_fulfillment(fulfillment, staff_user, warehouse)
     return fulfilled_order
 
 
@@ -1847,7 +1860,9 @@ def app(db):
 
 @pytest.fixture
 def webhook(app):
-    webhook = Webhook.objects.create(app=app, target_url="http://www.example.com/test")
+    webhook = Webhook.objects.create(
+        name="Simple webhook", app=app, target_url="http://www.example.com/test"
+    )
     webhook.events.create(event_type=WebhookEventType.ORDER_CREATED)
     return webhook
 

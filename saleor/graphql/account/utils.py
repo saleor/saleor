@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import TYPE_CHECKING, List, Optional, Set
+from typing import TYPE_CHECKING, List, Optional, Set, Union
 
 import graphene
 from django.contrib.auth.models import Group, Permission
@@ -16,6 +16,7 @@ from ...core.permissions import AccountPermissions, get_permissions
 if TYPE_CHECKING:
     from django.db.models import QuerySet
     from ...account.models import User
+    from ...app.models import App
 
 
 class UserDeleteMixin:
@@ -179,11 +180,13 @@ def get_user_permissions(user: "User") -> "QuerySet":
     return permissions
 
 
-def get_out_of_scope_permissions(user: "User", permissions: List[str]) -> List[str]:
-    """Return permissions that the user hasn't got."""
+def get_out_of_scope_permissions(
+    requestor: Union["User", "App"], permissions: List[str]
+) -> List[str]:
+    """Return permissions that the requestor hasn't got."""
     missing_permissions = []
     for perm in permissions:
-        if not user.has_perm(perm):
+        if not requestor.has_perm(perm):
             missing_permissions.append(perm)
     return missing_permissions
 
@@ -202,6 +205,12 @@ def can_user_manage_group(user: "User", group: Group) -> bool:
     """User can't manage a group with permission that is out of the user's scope."""
     permissions = get_group_permission_codes(group)
     return user.has_perms(permissions)
+
+
+def can_manage_app(requestor: Union["User", "App"], app: "App") -> bool:
+    """Requestor can't manage app with wider scope of permissions."""
+    permissions = app.get_permissions()
+    return requestor.has_perms(permissions)
 
 
 def get_group_permission_codes(group: Group) -> "QuerySet":
