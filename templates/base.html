@@ -62,6 +62,13 @@
             {# We display language picker only if there're languages to pick from #}
            
             {% if user.is_authenticated %}
+              {% if user.is_staff or request.impersonator.is_staff %}
+                <li>
+                  <a href="{% url "dashboard:index" %}" target="_blank" rel="noopener">
+                    {% trans "Dashboard" context "Main navigation item" %}
+                  </a>
+                </li>
+              {% endif %}
               
               <li>
                 <a href="{% url "account:details" %}">
