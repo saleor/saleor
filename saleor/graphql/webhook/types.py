@@ -1,10 +1,8 @@
 import graphene
-import graphene_django_optimizer as gql_optimizer
 
 from ...webhook import models
 from ...webhook.event_types import WebhookEventType
 from ..account.deprecated.types import ServiceAccount
-from ..app.types import App
 from ..core.connection import CountableDjangoObjectType
 from .enums import WebhookEventTypeEnum
 
@@ -27,13 +25,10 @@ class WebhookEvent(CountableDjangoObjectType):
 
 class Webhook(CountableDjangoObjectType):
     name = graphene.String(required=True)
-    events = gql_optimizer.field(
-        graphene.List(
-            graphene.NonNull(WebhookEvent),
-            description="List of webhook events.",
-            required=True,
-        ),
-        model_field="events",
+    events = graphene.List(
+        graphene.NonNull(WebhookEvent),
+        description="List of webhook events.",
+        required=True,
     )
     service_account = graphene.Field(
         ServiceAccount,
@@ -42,7 +37,7 @@ class Webhook(CountableDjangoObjectType):
             "Use the `app` field instead. This field will be removed after 2020-07-31."
         ),
     )
-    app = graphene.Field(App, required=True)
+    app = graphene.Field("saleor.graphql.app.types.App", required=True)
 
     class Meta:
         description = "Webhook."
@@ -60,6 +55,5 @@ class Webhook(CountableDjangoObjectType):
         return root.app
 
     @staticmethod
-    @gql_optimizer.resolver_hints(prefetch_related=("events",))
     def resolve_events(root: models.Webhook, *_args, **_kwargs):
         return root.events.all()

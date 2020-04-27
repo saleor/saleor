@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=no"
+    />
+    <title>Saleor e-commerce</title>
+    <style>
+      @import url("https://rsms.me/inter/inter.css");
+
+      html,
+      body {
+        font-family: Inter;
+        font-size: 16px;
+        font-weight: 300;
+        line-height: 19px;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: #ebf1f6;
+      }
+      a {
+        color: #056dff;
+        text-decoration: none;
+      }
+      h1,
+      h2 {
+        font-size: 48px;
+        line-height: 67px;
+      }
+      h1,
+      h2,
+      p {
+        margin: 0;
+        margin-bottom: 20px;
+      }
+      h1 {
+        font-weight: 800;
+        margin-top: 70px;
+      }
+      h2 {
+        font-weight: 400;
+      }
+
+      .btn {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 0 0 0 rgba(40, 35, 74, 0.1);
+        cursor: pointer;
+        transition: 200ms;
+      }
+      .btn:hover {
+        box-shadow: 0 0 20px 7px rgba(40, 35, 74, 0.1);
+      }
+
+      .container {
+        margin: 0 auto;
+        max-width: 1820px;
+        padding: 0 10px;
+      }
+
+      .go-to-saleor {
+        background: #056dff;
+        color: #ffffff;
+        font-weight: 600;
+        font-size: 16px;
+        height: 60px;
+        width: 244px;
+      }
+
+      .main {
+        width: 670px;
+      }
+
+      .nav {
+        align-items: center;
+        border-bottom: 1px solid rgba(40, 35, 74, 0.1);
+        display: flex;
+        justify-content: space-between;
+        height: 92px;
+      }
+
+      .logo {
+        margin-left: 24px;
+      }
+
+      .inner-container {
+        display: flex;
+        align-items: center;
+        height: calc(100vh - 120px);
+      }
+
+      .content-container {
+        display: grid;
+        grid-template-columns: 910px 1fr;
+        column-gap: 120px;
+      }
+
+      .splash {
+        width: 100%;
+      }
+      .splash__container {
+        align-items: center;
+        display: flex;
+      }
+
+      .tile {
+        width: 200px;
+        height: 216px;
+        padding: 16px;
+      }
+      .tile__container {
+        margin: 28px 0 60px 0;
+      }
+      .tile__container a:not(:last-child) .tile {
+        margin-right: 24px;
+      }
+      .tile__icon {
+        height: 128px;
+        margin-bottom: 10px;
+      }
+      .tile__label {
+        display: block;
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 170%;
+        transition: 200ms;
+      }
+      .tile:hover .tile__label {
+        color: #056dff;
+      }
+
+      @media (max-width: 1720px) {
+        h1,
+        h2 {
+          font-size: 36px;
+          line-height: 50px;
+        }
+        .container {
+          max-width: 1320px;
+        }
+
+        .content-container {
+          grid-template-columns: repeat(2, 1fr) 50px;
+          column-gap: 80px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+      <nav class="nav">
+        {% include "home/images/logo.svg" %}
+        <span> <a href="https://docs.saleor.io/docs/index/" target="_blank">View documentation</a> for Saleor 2.10 </span>
+      </nav>
+      <div class="inner-container">
+        <div class="content-container">
+          <div class="splash__container">
+            {% include "home/images/splash.svg" %}
+          </div>
+          <main class="main">
+            <h1>Congratulations.</h1>
+            <h2>Your Saleor instance is ready to work</h2>
+
+            <p>
+              Now you can start setting up your e-commerce. Below are some useful
+              links you can use to start up:
+            </p>
+
+            <div class="tile__container">
+              {% if dashboard_url %}
+              <a href="{{dashboard_url}}" target="_blank">
+                <button class="btn tile">
+                  {% include "home/images/dashboard.svg" %}
+                  <span class="tile__label" href="#">Dashboard</span>
+                </button>
+              </a>
+              {% endif %} {% if storefront_url %}
+              <a href="{{storefront_url}}" target="_blank">
+                <button class="btn tile">
+                  {% include "home/images/storefront.svg" %}
+                  <span class="tile__label" href="#">Storefront</span>
+                </button>
+              </a>
+              {% endif %}
+
+              <a href={% url "api" %}  target="_blank">
+                <button class="btn tile">
+                  {% include "home/images/playground.svg" %}
+                  <span class="tile__label" href="#">GraphQL Playground</span>
+                </button>
+              </a>
+            </div>
+
+            {% if not storefront_url and not dashboard_url %}
+            <p>
+              It looks like you're only running the Saleor core. If you're
+              looking for an easy way to run all services locally, check out
+              <a
+                href="https://github.com/mirumee/saleor-platform"
+                target="_blank"
+                >Saleor Platform.</a
+              >
+            </p>
+            {% endif %}
+          </main>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

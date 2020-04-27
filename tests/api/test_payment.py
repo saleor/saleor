@@ -96,7 +96,7 @@ def test_checkout_add_payment(user_api_client, checkout_with_item, address):
     checkout.save()
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    total = calculations.checkout_total(checkout)
+    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
     variables = {
         "checkoutId": checkout_id,
         "input": {
@@ -133,7 +133,7 @@ def test_checkout_add_payment_default_amount(
     checkout.save()
 
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    total = calculations.checkout_total(checkout)
+    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
 
     variables = {
         "checkoutId": checkout_id,
@@ -166,7 +166,10 @@ def test_checkout_add_payment_bad_amount(user_api_client, checkout_with_item, ad
             "gateway": "DUMMY",
             "token": "sample-token",
             "amount": str(
-                calculations.checkout_total(checkout).gross.amount + Decimal(1)
+                calculations.checkout_total(
+                    checkout=checkout, lines=list(checkout)
+                ).gross.amount
+                + Decimal(1)
             ),
         },
     }
@@ -184,7 +187,7 @@ def test_use_checkout_billing_address_as_payment_billing(
 ):
     checkout = checkout_with_item
     checkout_id = graphene.Node.to_global_id("Checkout", checkout.pk)
-    total = calculations.checkout_total(checkout)
+    total = calculations.checkout_total(checkout=checkout, lines=list(checkout))
     variables = {
         "checkoutId": checkout_id,
         "input": {

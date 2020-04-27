@@ -115,6 +115,7 @@ class AvataxPlugin(BasePlugin):
     def calculate_checkout_total(
         self,
         checkout: "Checkout",
+        lines: Iterable["CheckoutLine"],
         discounts: Iterable[DiscountInfo],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -157,6 +158,7 @@ class AvataxPlugin(BasePlugin):
     def calculate_checkout_subtotal(
         self,
         checkout: "Checkout",
+        lines: Iterable["CheckoutLine"],
         discounts: Iterable[DiscountInfo],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -192,6 +194,7 @@ class AvataxPlugin(BasePlugin):
     def calculate_checkout_shipping(
         self,
         checkout: "Checkout",
+        lines: Iterable["CheckoutLine"],
         discounts: Iterable[DiscountInfo],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:

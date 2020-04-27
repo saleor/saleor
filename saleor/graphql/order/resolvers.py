@@ -1,5 +1,4 @@
 import graphene
-import graphene_django_optimizer as gql_optimizer
 
 from ...order import OrderStatus, models
 from ...order.events import OrderEvents
@@ -26,7 +25,7 @@ def filter_orders(qs, info, created, status):
     if created is not None:
         qs = filter_by_period(qs, created, "created")
 
-    return gql_optimizer.query(qs, info)
+    return qs
 
 
 def resolve_orders(info, created, status, **_kwargs):

@@ -113,12 +113,12 @@ class PermissionGroupCreate(ModelMutation):
         """
         if requestor.is_superuser:
             return
-        permissions = get_out_of_scope_permissions(requestor, permission_items)
-        if permissions:
+        missing_permissions = get_out_of_scope_permissions(requestor, permission_items)
+        if missing_permissions:
             # add error
             error_msg = "You can't add permission that you don't have."
             code = PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.value
-            params = {"permissions": permissions}
+            params = {"permissions": missing_permissions}
             cls.update_errors(errors, error_msg, field, code, params)
 
     @classmethod
@@ -131,35 +131,7 @@ class PermissionGroupCreate(ModelMutation):
     ):
         user_items = cleaned_input.get("add_users")
         if user_items:
-            cls.ensure_can_manage_users(requestor, errors, "add_users", cleaned_input)
             cls.ensure_users_are_staff(errors, "add_users", cleaned_input)
-
-    @classmethod
-    def ensure_can_manage_users(
-        cls,
-        requestor: "User",
-        errors: Dict[Optional[str], List[ValidationError]],
-        field: str,
-        cleaned_input: dict,
-    ):
-        """Check if requestor can manage users from input.
-
-        Requestor cannot manage users with wider scope of permissions.
-        """
-        users = cleaned_input[field]
-        if requestor.is_superuser:
-            return
-        out_of_scope_users = get_out_of_scope_users(requestor, users)
-        if out_of_scope_users:
-            # add error
-            ids = [
-                graphene.Node.to_global_id("User", user_instance.pk)
-                for user_instance in out_of_scope_users
-            ]
-            error_msg = "You can't manage these users."
-            code = PermissionGroupErrorCode.OUT_OF_SCOPE_USER.value
-            params = {"users": ids}
-            cls.update_errors(errors, error_msg, field, code, params)
 
     @classmethod
     def ensure_users_are_staff(
@@ -299,6 +271,33 @@ class PermissionGroupUpdate(PermissionGroupCreate):
                 requestor, errors, "remove_users", cleaned_input
             )
             cls.clean_remove_users(requestor, errors, cleaned_input, group)
+
+    @classmethod
+    def ensure_can_manage_users(
+        cls,
+        requestor: "User",
+        errors: Dict[Optional[str], List[ValidationError]],
+        field: str,
+        cleaned_input: dict,
+    ):
+        """Check if requestor can manage users from input.
+
+        Requestor cannot manage users with wider scope of permissions.
+        """
+        if requestor.is_superuser:
+            return
+        users = cleaned_input[field]
+        out_of_scope_users = get_out_of_scope_users(requestor, users)
+        if out_of_scope_users:
+            # add error
+            ids = [
+                graphene.Node.to_global_id("User", user_instance.pk)
+                for user_instance in out_of_scope_users
+            ]
+            error_msg = "You can't manage these users."
+            code = PermissionGroupErrorCode.OUT_OF_SCOPE_USER.value
+            params = {"users": ids}
+            cls.update_errors(errors, error_msg, field, code, params)
 
     @classmethod
     def clean_remove_users(
