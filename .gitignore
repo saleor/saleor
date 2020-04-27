@@ -30,6 +30,7 @@ dist/
 /docs/_build/
 /media/
 /node_modules/
+/venv/
 /static/
 /saleor/static/assets/
 webpack-bundle.json
