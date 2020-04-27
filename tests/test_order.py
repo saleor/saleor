@@ -194,7 +194,7 @@ def test_restock_fulfilled_order_lines(fulfilled_order):
     assert stock_2.quantity == stock_2_quantity_before + line_2.quantity
 
 
-def test_restock_fulfillment_lines(fulfilled_order):
+def test_restock_fulfillment_lines(fulfilled_order, warehouse):
     fulfillment = fulfilled_order.fulfillments.first()
     line_1 = fulfillment.lines.first()
     line_2 = fulfillment.lines.last()
@@ -204,8 +204,12 @@ def test_restock_fulfillment_lines(fulfilled_order):
     stock_2_quantity_allocated_before = get_quantity_allocated_for_stock(stock_2)
     stock_1_quantity_before = stock_1.quantity
     stock_2_quantity_before = stock_2.quantity
+    order_line_1 = line_1.order_line
+    order_line_2 = line_2.order_line
+    order_line_1_quantity_fulfilled_before = order_line_1.quantity_fulfilled
+    order_line_2_quantity_fulfilled_before = order_line_2.quantity_fulfilled
 
-    restock_fulfillment_lines(fulfillment)
+    restock_fulfillment_lines(fulfillment, warehouse)
 
     stock_1.refresh_from_db()
     stock_2.refresh_from_db()
@@ -217,6 +221,16 @@ def test_restock_fulfillment_lines(fulfilled_order):
     )
     assert stock_1.quantity == stock_1_quantity_before + line_1.quantity
     assert stock_2.quantity == stock_2_quantity_before + line_2.quantity
+    order_line_1.refresh_from_db()
+    order_line_2.refresh_from_db()
+    assert (
+        order_line_1.quantity_fulfilled
+        == order_line_1_quantity_fulfilled_before - line_1.quantity
+    )
+    assert (
+        order_line_2.quantity_fulfilled
+        == order_line_2_quantity_fulfilled_before - line_2.quantity
+    )
 
 
 def test_update_order_status(fulfilled_order):
