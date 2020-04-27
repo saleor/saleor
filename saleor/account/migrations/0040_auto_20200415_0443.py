@@ -6,6 +6,7 @@ from django.db import migrations
 def change_extension_permission_to_plugin_permission(apps, schema_editor):
     permission = apps.get_model("auth", "Permission")
     users = apps.get_model("account", "User")
+    service_account = apps.get_model("account", "ServiceAccount")
 
     plugin_permission = permission.objects.filter(
         codename="manage_plugins", content_type__app_label="plugins"
@@ -17,6 +18,10 @@ def change_extension_permission_to_plugin_permission(apps, schema_editor):
         user_permissions__content_type__app_label="extensions",
         user_permissions__codename="manage_plugins",
     )
+    service_accounts = service_account.objects.filter(
+        permissions__content_type__app_label="extensions",
+        permissions__codename="manage_plugins",
+    )
 
     if not plugin_permission or not extension_permission:
         return
@@ -24,6 +29,10 @@ def change_extension_permission_to_plugin_permission(apps, schema_editor):
     for user in users:
         user.user_permissions.remove(extension_permission)
         user.user_permissions.add(plugin_permission)
+
+    for service_account in service_accounts:
+        service_account.permissions.remove(extension_permission)
+        service_account.permissions.add(plugin_permission)
 
     if extension_permission:
         extension_permission.delete()

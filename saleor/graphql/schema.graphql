@@ -2654,6 +2654,8 @@ type OrderError {
   field: String
   message: String
   code: OrderErrorCode!
+  warehouse: ID
+  orderLine: ID
 }
 
 enum OrderErrorCode {
