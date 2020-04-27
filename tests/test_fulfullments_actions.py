@@ -54,7 +54,7 @@ def test_create_fulfillments(
 
 
 @patch("saleor.order.actions.send_fulfillment_confirmation_to_customer", autospec=True)
-def test_create_fulfillments_without_email(
+def test_create_fulfillments_without_notification(
     mock_email_fulfillment, staff_user, order_with_lines, warehouse,
 ):
     order = order_with_lines
@@ -258,8 +258,14 @@ def test_create_fulfillments_warehouse_with_out_of_stock(
         ]
     }
 
-    with pytest.raises(InsufficientStock):
+    with pytest.raises(InsufficientStock) as exc:
         create_fulfillments(staff_user, order, fulfillment_lines_for_warehouses, True)
+
+    assert exc.value.item == order_line1.variant
+    assert exc.value.context == {
+        "order_line": order_line1,
+        "warehouse_pk": str(warehouse.pk),
+    }
 
     order.refresh_from_db()
     assert FulfillmentLine.objects.filter(fulfillment__order=order).count() == 0
@@ -294,8 +300,14 @@ def test_create_fulfillments_warehouse_without_stock(
         ]
     }
 
-    with pytest.raises(InsufficientStock):
+    with pytest.raises(InsufficientStock) as exc:
         create_fulfillments(staff_user, order, fulfillment_lines_for_warehouses, True)
+
+    assert exc.value.item == order_line1.variant
+    assert exc.value.context == {
+        "order_line": order_line1,
+        "warehouse_pk": str(warehouse_no_shipping_zone.pk),
+    }
 
     order.refresh_from_db()
     assert FulfillmentLine.objects.filter(fulfillment__order=order).count() == 0
