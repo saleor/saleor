@@ -1335,7 +1335,7 @@ description = "A framework for managing and maintaining multi-language pre-commi
 name = "pre-commit"
 optional = false
 python-versions = ">=3.6.1"
-version = "2.2.0"
+version = "2.3.0"
 
 [package.dependencies]
 cfgv = ">=2.0.0"
@@ -2172,7 +2172,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "232c8299927bcface99a6f979d4db9989bf8df93988af62113a11a3f13d8c14b"
+content-hash = "2ad24369274e06bef708537e3e2b2653d67fae7d6766268e09c208b3f50c8e4f"
 python-versions = "~3.8"
 
 [metadata.files]
@@ -2767,8 +2767,8 @@ pluggy = [
     {file = "pluggy-0.13.1.tar.gz", hash = "sha256:15b2acde666561e1298d71b523007ed7364de07029219b604cf808bfa1c765b0"},
 ]
 pre-commit = [
-    {file = "pre_commit-2.2.0-py2.py3-none-any.whl", hash = "sha256:487c675916e6f99d355ec5595ad77b325689d423ef4839db1ed2f02f639c9522"},
-    {file = "pre_commit-2.2.0.tar.gz", hash = "sha256:c0aa11bce04a7b46c5544723aedf4e81a4d5f64ad1205a30a9ea12d5e81969e1"},
+    {file = "pre_commit-2.3.0-py2.py3-none-any.whl", hash = "sha256:979b53dab1af35063a483bfe13b0fcbbf1a2cf8c46b60e0a9a8d08e8269647a1"},
+    {file = "pre_commit-2.3.0.tar.gz", hash = "sha256:f3e85e68c6d1cbe7828d3471896f1b192cfcf1c4d83bf26e26beeb5941855257"},
 ]
 prices = [
     {file = "prices-1.0.0.tar.gz", hash = "sha256:1e920a2f3b8d610985e7effcecd2b9ccfe58798c4c9641f76f6b5eb4a4bcd91b"},
