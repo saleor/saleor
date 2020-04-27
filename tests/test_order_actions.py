@@ -157,15 +157,22 @@ def test_cancel_fulfillment(fulfilled_order, warehouse):
     assert line_2.order_line.quantity_fulfilled == 0
 
 
-def test_cancel_order(fulfilled_order):
-    cancel_order(fulfilled_order, None, restock=False)
-    assert all(
-        [
-            f.status == FulfillmentStatus.CANCELED
-            for f in fulfilled_order.fulfillments.all()
-        ]
-    )
-    assert fulfilled_order.status == OrderStatus.CANCELED
+def test_cancel_order(fulfilled_order_with_all_cancelled_fulfillments):
+    order = fulfilled_order_with_all_cancelled_fulfillments
+
+    assert Allocation.objects.filter(
+        order_line__order=order, quantity_allocated__gt=0
+    ).exists()
+
+    cancel_order(order, None)
+
+    order_event = order.events.last()
+    assert order_event.type == OrderEvents.CANCELED
+
+    assert order.status == OrderStatus.CANCELED
+    assert not Allocation.objects.filter(
+        order_line__order=order, quantity_allocated__gt=0
+    ).exists()
 
 
 def test_fulfill_order_line(order_with_lines):
