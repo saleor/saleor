@@ -23,6 +23,8 @@ mutation fulfillOrder(
             field
             code
             message
+            warehouse
+            orderLine
         }
     }
 }
@@ -231,22 +233,12 @@ def test_order_fulfill_with_one_line_empty_quantity(
     )
 
 
-@pytest.mark.parametrize(
-    "quantity, error_code, error_field",
-    (
-        (0, OrderErrorCode.ZERO_QUANTITY.name, "lines"),
-        (100, OrderErrorCode.FULFILL_ORDER_LINE.name, "orderLineId"),
-    ),
-)
 @patch("saleor.graphql.order.mutations.fulfillments.create_fulfillments")
-def test_order_fulfill_not_sufficient_quantity(
+def test_order_fulfill_zero_quantity(
     mock_create_fulfillments,
     staff_api_client,
     staff_user,
     order_with_lines,
-    quantity,
-    error_code,
-    error_field,
     permission_manage_orders,
     warehouse,
 ):
@@ -261,7 +253,7 @@ def test_order_fulfill_not_sufficient_quantity(
             "lines": [
                 {
                     "orderLineId": order_line_id,
-                    "stocks": [{"quantity": quantity, "warehouse": warehouse_id}],
+                    "stocks": [{"quantity": 0, "warehouse": warehouse_id}],
                 }
             ]
         },
@@ -272,8 +264,51 @@ def test_order_fulfill_not_sufficient_quantity(
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
     assert data["orderErrors"]
-    assert data["orderErrors"][0]["field"] == error_field
-    assert data["orderErrors"][0]["code"] == error_code
+    error = data["orderErrors"][0]
+    assert error["field"] == "lines"
+    assert error["code"] == OrderErrorCode.ZERO_QUANTITY.name
+    assert not error["orderLine"]
+    assert not error["warehouse"]
+
+    mock_create_fulfillments.assert_not_called()
+
+
+@patch("saleor.graphql.order.mutations.fulfillments.create_fulfillments")
+def test_order_fulfill_fulfilled_order(
+    mock_create_fulfillments,
+    staff_api_client,
+    staff_user,
+    order_with_lines,
+    permission_manage_orders,
+    warehouse,
+):
+    query = ORDER_FULFILL_QUERY
+    order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
+    order_line = order_with_lines.lines.first()
+    order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
+    warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    variables = {
+        "order": order_id,
+        "input": {
+            "lines": [
+                {
+                    "orderLineId": order_line_id,
+                    "stocks": [{"quantity": 100, "warehouse": warehouse_id}],
+                }
+            ]
+        },
+    }
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["orderFulfill"]
+    assert data["orderErrors"]
+    error = data["orderErrors"][0]
+    assert error["field"] == "orderLineId"
+    assert error["code"] == OrderErrorCode.FULFILL_ORDER_LINE.name
+    assert error["orderLine"] == order_line_id
+    assert not error["warehouse"]
 
     mock_create_fulfillments.assert_not_called()
 
@@ -306,7 +341,9 @@ def test_order_fulfill_warehouse_with_insufficient_stock_exception(
         },
     }
 
-    mock_create_fulfillments.side_effect = InsufficientStock(order_line.variant)
+    mock_create_fulfillments.side_effect = InsufficientStock(
+        order_line.variant, order_line, warehouse_no_shipping_zone.pk
+    )
 
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
@@ -314,8 +351,11 @@ def test_order_fulfill_warehouse_with_insufficient_stock_exception(
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
     assert data["orderErrors"]
-    assert data["orderErrors"][0]["field"] == "stocks"
-    assert data["orderErrors"][0]["code"] == OrderErrorCode.INSUFFICIENT_STOCK.name
+    error = data["orderErrors"][0]
+    assert error["field"] == "stocks"
+    assert error["code"] == OrderErrorCode.INSUFFICIENT_STOCK.name
+    assert error["orderLine"] == order_line_id
+    assert error["warehouse"] == warehouse_id
 
 
 @patch("saleor.graphql.order.mutations.fulfillments.create_fulfillments", autospec=True)
@@ -352,8 +392,11 @@ def test_order_fulfill_warehouse_duplicated_warehouse_id(
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
     assert data["orderErrors"]
-    assert data["orderErrors"][0]["field"] == "warehouse"
-    assert data["orderErrors"][0]["code"] == OrderErrorCode.DUPLICATED_INPUT_ITEM.name
+    error = data["orderErrors"][0]
+    assert error["field"] == "warehouse"
+    assert error["code"] == OrderErrorCode.DUPLICATED_INPUT_ITEM.name
+    assert not error["orderLine"]
+    assert error["warehouse"] == warehouse_id
     mock_create_fulfillments.assert_not_called()
 
 
@@ -392,8 +435,11 @@ def test_order_fulfill_warehouse_duplicated_order_line_id(
     content = get_graphql_content(response)
     data = content["data"]["orderFulfill"]
     assert data["orderErrors"]
-    assert data["orderErrors"][0]["field"] == "orderLineId"
-    assert data["orderErrors"][0]["code"] == OrderErrorCode.DUPLICATED_INPUT_ITEM.name
+    error = data["orderErrors"][0]
+    assert error["field"] == "orderLineId"
+    assert error["code"] == OrderErrorCode.DUPLICATED_INPUT_ITEM.name
+    assert error["orderLine"] == order_line_id
+    assert not error["warehouse"]
     mock_create_fulfillments.assert_not_called()
 
 

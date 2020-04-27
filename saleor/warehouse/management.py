@@ -161,14 +161,14 @@ def decrease_stock(order_line: "OrderLine", quantity: int, warehouse_pk: str):
             .get(warehouse__pk=warehouse_pk)
         )
     except Stock.DoesNotExist:
-        raise InsufficientStock(order_line.variant)
+        raise InsufficientStock(order_line.variant, order_line, warehouse_pk)
 
     quantity_allocated = stock.allocations.aggregate(
         quantity_allocated=Coalesce(Sum("quantity_allocated"), 0)
     )["quantity_allocated"]
 
     if stock.quantity - quantity_allocated < quantity:
-        raise InsufficientStock(order_line.variant)
+        raise InsufficientStock(order_line.variant, order_line, warehouse_pk)
 
     stock.quantity = F("quantity") - quantity
     stock.save(update_fields=["quantity"])
