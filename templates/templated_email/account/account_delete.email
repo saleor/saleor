@@ -7,10 +7,10 @@
 {% block plain %}
 {% include 'templated_email/shared/_header.email' %}
 {% blocktrans context "Account delete reset e-mail text" %}
-You're receiving this e-mail because you or someone else has requested a deletion of your user account at {{ domain }}.
-Click the link below to delete your account.
+Você está recebendo este e-mail porque você solicitou uma exclusão da sua conta de usuário em {{ domain }}.
+Clique no link abaixo para excluir sua conta.
 
-Please note that this action is permanent and cannot be reversed.
+Observe que esta ação é permanente e não pode ser revertida.
 {% endblocktrans %}
 
 {{ delete_url }}
