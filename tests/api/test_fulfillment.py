@@ -490,6 +490,9 @@ CANCEL_FULFILLMENT_MUTATION = """
                     fulfillment {
                         status
                     }
+                    order {
+                        status
+                    }
                 }
         }
 """
@@ -506,8 +509,9 @@ def test_cancel_fulfillment(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    data = content["data"]["orderFulfillmentCancel"]["fulfillment"]
-    assert data["status"] == FulfillmentStatus.CANCELED.upper()
+    data = content["data"]["orderFulfillmentCancel"]
+    assert data["fulfillment"]["status"] == FulfillmentStatus.CANCELED.upper()
+    assert data["order"]["status"] == OrderStatus.UNFULFILLED.upper()
     event_cancelled, event_restocked_items = fulfillment.order.events.all()
     assert event_cancelled.type == (OrderEvents.FULFILLMENT_CANCELED)
     assert event_cancelled.parameters == {"composed_id": fulfillment.composed_id}

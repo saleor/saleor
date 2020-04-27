@@ -149,6 +149,8 @@ def test_cancel_fulfillment(fulfilled_order, warehouse):
 
     cancel_fulfillment(fulfillment, None, warehouse)
 
+    fulfillment.refresh_from_db()
+    fulfilled_order.refresh_from_db()
     assert fulfillment.status == FulfillmentStatus.CANCELED
     assert fulfilled_order.status == OrderStatus.UNFULFILLED
     assert line_1.order_line.quantity_fulfilled == 0

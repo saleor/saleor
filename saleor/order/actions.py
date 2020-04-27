@@ -152,6 +152,7 @@ def fulfillment_tracking_updated(
     get_plugins_manager().order_updated(fulfillment.order)
 
 
+@transaction.atomic
 def cancel_fulfillment(
     fulfillment: "Fulfillment", user: "User", warehouse: "Warehouse"
 ):
@@ -159,6 +160,8 @@ def cancel_fulfillment(
 
     Return products to corresponding stocks.
     """
+    fulfillment = Fulfillment.objects.select_for_update().get(pk=fulfillment.pk)
+    restock_fulfillment_lines(fulfillment, warehouse)
     events.fulfillment_canceled_event(
         order=fulfillment.order, user=user, fulfillment=fulfillment
     )
@@ -168,7 +171,6 @@ def cancel_fulfillment(
         fulfillment=fulfillment,
         warehouse_pk=warehouse.pk,
     )
-    restock_fulfillment_lines(fulfillment, warehouse)
     fulfillment.status = FulfillmentStatus.CANCELED
     fulfillment.save(update_fields=["status"])
     update_order_status(fulfillment.order)

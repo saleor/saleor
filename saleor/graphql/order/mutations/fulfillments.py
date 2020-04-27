@@ -320,4 +320,6 @@ class FulfillmentCancel(BaseMutation):
 
         order = fulfillment.order
         cancel_fulfillment(fulfillment, info.context.user, warehouse)
+        fulfillment.refresh_from_db(fields=["status"])
+        order.refresh_from_db(fields=["status"])
         return FulfillmentCancel(fulfillment=fulfillment, order=order)
