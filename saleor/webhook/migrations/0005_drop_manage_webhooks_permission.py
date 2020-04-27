@@ -24,9 +24,7 @@ def change_webhook_permission_to_app_permission(apps, schema_editor):
         permissions__codename="manage_webhooks",
     )
 
-    if not manage_apps:
-        if manage_webhooks:
-            manage_webhooks.delete()
+    if not manage_apps or not manage_webhooks:
         return
 
     for group in groups:
@@ -37,8 +35,7 @@ def change_webhook_permission_to_app_permission(apps, schema_editor):
         app.permissions.remove(manage_webhooks)
         app.permissions.add(manage_apps)
 
-    if manage_webhooks:
-        manage_webhooks.delete()
+    manage_webhooks.delete()
 
 
 class Migration(migrations.Migration):
