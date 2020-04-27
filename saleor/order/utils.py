@@ -353,6 +353,13 @@ def generate_invoice_pdf_for_order(invoice):
         limit = i + 13
         rest_of_products.append(all_products[_product_limit:][i:limit])
 
+    try:
+        page_count = (
+            1 + len(rest_of_products) + (1 if len(rest_of_products[-1]) > 11 else 0)
+        )
+    except IndexError:
+        page_count = 1
+
     rendered_template = get_template("invoice.html").render(
         {
             "invoice": invoice,
@@ -360,6 +367,7 @@ def generate_invoice_pdf_for_order(invoice):
             "logo_path": f"file://{logo_path}",
             "products_first_page": products_first_page,
             "rest_of_products": rest_of_products,
+            "page_count": page_count,
         }
     )
     content_file = ContentFile(HTML(string=rendered_template).write_pdf())
