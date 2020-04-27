@@ -1662,7 +1662,7 @@ def menu_item_translation_fr(menu_item):
 @pytest.fixture
 def payment_dummy(db, order_with_lines):
     return Payment.objects.create(
-        gateway="mirumee.gateway.dummy",
+        gateway="mirumee.payments.dummy",
         order=order_with_lines,
         is_active=True,
         cc_first_digits="4111",

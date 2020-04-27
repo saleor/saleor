@@ -278,7 +278,7 @@ def test_order_queryset_to_ship(settings):
     ]
     for order in orders_to_ship:
         order.payments.create(
-            gateway="mirumee.gateway.dummy",
+            gateway="mirumee.payments.dummy",
             charge_status=ChargeStatus.FULLY_CHARGED,
             total=order.total.gross.amount,
             captured_amount=order.total.gross.amount,
