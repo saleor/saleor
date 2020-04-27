@@ -1554,7 +1554,7 @@ def test_order_capture(
     assert event_captured.user == staff_user
     assert event_captured.parameters == {
         "amount": str(amount),
-        "payment_gateway": "mirumee.gateway.dummy",
+        "payment_gateway": "mirumee.payments.dummy",
         "payment_id": "",
     }
 

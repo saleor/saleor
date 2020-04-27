@@ -604,7 +604,7 @@ def set_braintree_customer_id(customer_user, braintree_customer_id):
 
 @pytest.fixture
 def set_dummy_customer_id(customer_user, dummy_customer_id):
-    gateway_name = "mirumee.gateway.dummy"
+    gateway_name = "mirumee.payments.dummy"
     store_customer_id(customer_user, gateway_name, dummy_customer_id)
     return customer_user
 
@@ -612,7 +612,7 @@ def set_dummy_customer_id(customer_user, dummy_customer_id):
 def test_list_payment_sources(
     mocker, dummy_customer_id, set_dummy_customer_id, user_api_client
 ):
-    gateway = "mirumee.gateway.dummy"
+    gateway = "mirumee.payments.dummy"
     query = """
     {
         me {

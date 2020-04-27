@@ -142,7 +142,7 @@ def checkout_with_charged_payment(checkout_with_billing_address):
 
     taxed_total = calculations.checkout_total(checkout)
     payment = Payment.objects.create(
-        gateway="mirumee.gateway.dummy",
+        gateway="mirumee.payments.dummy",
         is_active=True,
         total=taxed_total.gross.amount,
         currency="USD",

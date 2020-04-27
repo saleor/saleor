@@ -453,7 +453,7 @@ def test_checkout_create_check_lines_quantity(
 @pytest.fixture
 def expected_dummy_gateway():
     return {
-        "id": "mirumee.gateway.dummy",
+        "id": "mirumee.payments.dummy",
         "name": "Dummy",
         "config": [{"field": "store_customer_card", "value": "false"}],
     }
