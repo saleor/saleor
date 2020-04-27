@@ -2607,6 +2607,7 @@ type Order implements Node & ObjectWithMetadata {
   lines: [OrderLine]!
   actions: [OrderAction]!
   availableShippingMethods: [ShippingMethod]
+  invoices: [Invoice]
   number: String
   isPaid: Boolean
   paymentStatus: PaymentChargeStatusEnum
