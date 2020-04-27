@@ -4,7 +4,7 @@
 {% block plain %}
 {% include 'templated_email/shared/_header.email' %}
 {% blocktrans context "Promote customer to staff member confirmation e-mail text" %}
-You're receiving this e-mail because you have been promoted to staff member at {{ domain }}.{% endblocktrans %}
+Você está recebendo este e-mail porque foi promovido a membro da equipe do cantinho online {{ domain }}.{% endblocktrans %}
 
 {% include 'templated_email/shared/_footer.email' %}
 {% endblock %}
