@@ -1450,8 +1450,8 @@ category = "dev"
 description = "Python docstring style checker"
 name = "pydocstyle"
 optional = false
-python-versions = ">=3.4"
-version = "4.0.1"
+python-versions = ">=3.5"
+version = "5.0.2"
 
 [package.dependencies]
 snowballstemmer = "*"
@@ -2172,7 +2172,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "2ad24369274e06bef708537e3e2b2653d67fae7d6766268e09c208b3f50c8e4f"
+content-hash = "3a0f8105dcf81ba918bf4a20a15c4f9a28f0b7050184bfda69cc0309d706c684"
 python-versions = "~3.8"
 
 [metadata.files]
@@ -2876,8 +2876,8 @@ pycparser = [
     {file = "pycparser-2.20.tar.gz", hash = "sha256:2d475327684562c3a96cc71adf7dc8c4f0565175cf86b6d7a404ff4c771f15f0"},
 ]
 pydocstyle = [
-    {file = "pydocstyle-4.0.1-py3-none-any.whl", hash = "sha256:66aff87ffe34b1e49bff2dd03a88ce6843be2f3346b0c9814410d34987fbab59"},
-    {file = "pydocstyle-4.0.1.tar.gz", hash = "sha256:04c84e034ebb56eb6396c820442b8c4499ac5eb94a3bda88951ac3dc519b6058"},
+    {file = "pydocstyle-5.0.2-py3-none-any.whl", hash = "sha256:da7831660b7355307b32778c4a0dbfb137d89254ef31a2b2978f50fc0b4d7586"},
+    {file = "pydocstyle-5.0.2.tar.gz", hash = "sha256:f4f5d210610c2d153fae39093d44224c17429e2ad7da12a8b419aba5c2f614b5"},
 ]
 pyflakes = [
     {file = "pyflakes-2.1.1-py2.py3-none-any.whl", hash = "sha256:17dbeb2e3f4d772725c777fabc446d5634d1038f234e77343108ce445ea69ce0"},
