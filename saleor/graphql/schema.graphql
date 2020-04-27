@@ -1767,7 +1767,7 @@ type FulfillmentCancel {
 }
 
 input FulfillmentCancelInput {
-  restock: Boolean
+  warehouseId: ID!
 }
 
 type FulfillmentClearMeta {
@@ -2698,6 +2698,7 @@ type OrderEvent implements Node {
   oversoldItems: [String]
   lines: [OrderEventOrderLineObject]
   fulfilledItems: [FulfillmentLine]
+  warehouse: Warehouse
 }
 
 type OrderEventCountableConnection {
