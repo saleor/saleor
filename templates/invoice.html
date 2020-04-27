@@ -8,9 +8,6 @@
         @page {
             background-color: #FAFAFA;
             margin: 0.5cm;
-            @bottom-right {
-                content: counter(page) " / " counter(pages);
-            }
         }
 
         body {
@@ -282,28 +279,36 @@
         <span class="header-title">{% trans "ITEMS ORDERED" context "Invoice PDF table header" %}</span>
         <br />
         {% include "invoice_products_table.html" with products=products_first_page %}
+        <div class="page-footer">
+            <span class="page-counter header-category">
+                1 / {{ page_count }}
+            </span>
+        </div>
         {% if not rest_of_products|length %}
             {% if products_first_page|length == 4 %}
                 <div class="page-break"></div>
+                <div class="page-footer">
+                    <span class="page-counter header-category">2 / 2</span>
+                </div>
             {% endif %}
             {% include "invoice_summary_table.html" with order=order %}
-            <div class="page-footer">
-                <span class="page-counter header-category">1 / 9</span>
-            </div>
         {% else %}
             {% for product_set in rest_of_products %}
                 <div class="page-break"></div>
+                <div class="page-footer">
+                    <span class="page-counter header-category">{{ forloop.counter|add:1 }} / {{ page_count }}</span>
+                </div>
                 {% include "invoice_products_table.html" with products=product_set %}
                 {% if forloop.last %}
                     {% if product_set|length > 11 %}
                         <div class="page-break"></div>
+                        <div class="page-footer">
+                            <span class="page-counter header-category">{{ forloop.counter|add:2 }} / {{ page_count }}</span>
+                        </div>
                     {% endif %}
                     {% include "invoice_summary_table.html" with order=order %}
                 {% endif %}
             {% endfor %}
-            <div class="page-footer">
-                <span class="page-counter header-category">1 / 9</span>
-            </div>
         {% endif %}
     </div>
 </body>
