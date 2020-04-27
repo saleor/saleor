@@ -262,8 +262,10 @@ def test_create_fulfillments_warehouse_with_out_of_stock(
         create_fulfillments(staff_user, order, fulfillment_lines_for_warehouses, True)
 
     assert exc.value.item == order_line1.variant
-    assert exc.value.order_line == order_line1
-    assert exc.value.warehouse_pk == str(warehouse.pk)
+    assert exc.value.context == {
+        "order_line": order_line1,
+        "warehouse_pk": str(warehouse.pk),
+    }
 
     order.refresh_from_db()
     assert FulfillmentLine.objects.filter(fulfillment__order=order).count() == 0
@@ -302,8 +304,10 @@ def test_create_fulfillments_warehouse_without_stock(
         create_fulfillments(staff_user, order, fulfillment_lines_for_warehouses, True)
 
     assert exc.value.item == order_line1.variant
-    assert exc.value.order_line == order_line1
-    assert exc.value.warehouse_pk == str(warehouse_no_shipping_zone.pk)
+    assert exc.value.context == {
+        "order_line": order_line1,
+        "warehouse_pk": str(warehouse_no_shipping_zone.pk),
+    }
 
     order.refresh_from_db()
     assert FulfillmentLine.objects.filter(fulfillment__order=order).count() == 0
