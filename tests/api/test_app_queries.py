@@ -36,12 +36,7 @@ QUERY_APPS_WITH_FILTER = """
     "app_filter, count", (({"search": "Sample"}, 1), ({"isActive": False}, 1), ({}, 2)),
 )
 def test_apps_query(
-    staff_api_client,
-    permission_manage_apps,
-    permission_manage_webhooks,
-    app,
-    app_filter,
-    count,
+    staff_api_client, permission_manage_apps, app, app_filter, count,
 ):
     second_app = App.objects.create(name="Simple service")
     second_app.is_active = False
@@ -60,7 +55,7 @@ def test_apps_query(
     response = staff_api_client.post_graphql(
         QUERY_APPS_WITH_FILTER,
         variables,
-        permissions=[permission_manage_apps, permission_manage_webhooks],
+        permissions=[permission_manage_apps, permission_manage_apps],
     )
     content = get_graphql_content(response)
 
