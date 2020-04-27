@@ -88,7 +88,7 @@ pytest-xdist = "^1.29"
 tox = "^3.14.6"
 transifex-client = "^0"
 django-stubs = "^1.2"
-mypy = "^0.740.0"
+mypy = "^0.770"
 
 [tool.black]
 target_version = ['py35', 'py36', 'py37', 'py38']
