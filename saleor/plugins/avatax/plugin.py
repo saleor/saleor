@@ -41,6 +41,8 @@ logger = logging.getLogger(__name__)
 
 class AvataxPlugin(BasePlugin):
     PLUGIN_NAME = "Avalara"
+    PLUGIN_ID = "mirumee.taxes.avalara"
+
     DEFAULT_CONFIGURATION = [
         {"name": "Username or account", "value": None},
         {"name": "Password or license", "value": None},
