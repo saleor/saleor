@@ -275,6 +275,14 @@ class OrderLine(CountableDjangoObjectType):
         return root.translated_variant_name
 
 
+class Invoice(CountableDjangoObjectType):
+    class Meta:
+        description = "Represents an Invoice."
+        interfaces = [relay.Node]
+        model = models.Invoice
+        only_fields = ["id", "number", "url"]
+
+
 class Order(CountableDjangoObjectType):
     fulfillments = graphene.List(
         Fulfillment, required=True, description="List of shipments for the order."
@@ -293,6 +301,9 @@ class Order(CountableDjangoObjectType):
         ShippingMethod,
         required=False,
         description="Shipping methods that can be used with this order.",
+    )
+    invoices = graphene.List(
+        Invoice, required=False, description="List of order invoices."
     )
     number = graphene.String(description="User-friendly number of an order.")
     is_paid = graphene.Boolean(description="Informs if an order is fully paid.")
@@ -485,6 +496,10 @@ class Order(CountableDjangoObjectType):
         return available
 
     @staticmethod
+    def resolve_invoices(root: models.Order, info):
+        return root.invoices.ready()
+
+    @staticmethod
     def resolve_is_shipping_required(root: models.Order, _info):
         return root.is_shipping_required()
 
@@ -500,11 +515,3 @@ class Order(CountableDjangoObjectType):
     @staticmethod
     def resolve_meta(root: models.Order, _info):
         return resolve_meta(root, _info)
-
-
-class Invoice(CountableDjangoObjectType):
-    class Meta:
-        description = "Represents an Invoice."
-        interfaces = [relay.Node]
-        model = models.Invoice
-        only_fields = ["id", "number", "url"]
