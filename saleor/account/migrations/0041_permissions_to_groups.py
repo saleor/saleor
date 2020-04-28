@@ -43,6 +43,7 @@ def create_permissions_mapping(User):
         User.objects.filter(user_permissions__isnull=False)
         .distinct()
         .prefetch_related("user_permissions")
+        .iterator()
     )
     for user in users:
         permissions = user.user_permissions.all().order_by("pk")

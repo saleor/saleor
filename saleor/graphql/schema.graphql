@@ -2424,7 +2424,7 @@ type Mutation {
   giftCardCreate(input: GiftCardCreateInput!): GiftCardCreate
   giftCardDeactivate(id: ID!): GiftCardDeactivate
   giftCardUpdate(id: ID!, input: GiftCardUpdateInput!): GiftCardUpdate
-  pluginUpdate(id: ID!, input: PluginUpdateInput!): PluginUpdate
+  pluginUpdate(id: ID!, input: PluginUpdateInput!, name: String!): PluginUpdate
   saleCreate(input: SaleInput!): SaleCreate
   saleDelete(id: ID!): SaleDelete
   saleBulkDelete(ids: [ID]!): SaleBulkDelete
@@ -3225,7 +3225,7 @@ input PermissionGroupUpdateInput {
 
 type Plugin implements Node {
   id: ID!
-  name: String
+  name: String!
   description: String!
   active: Boolean!
   configuration: [ConfigurationItem]

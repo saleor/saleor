@@ -10,13 +10,19 @@ def create_payments_customer_ids():
     plugins = get_plugins_manager().plugins
 
     return {
-        f"{plugin.PLUGIN_NAME.strip().upper()}.customer_id": f"{plugin.PLUGIN_ID.strip().upper()}.customer_id"  # noqa E501
+        f"{plugin.PLUGIN_NAME.strip().upper()}.customer_id": (
+            f"{plugin.PLUGIN_ID.strip().upper()}.customer_id"
+        )
         for plugin in plugins
     }
 
 
 def convert_user_payments_customer_id(apps, schema_editor):
-    users = apps.get_model("account", "User").objects.exclude(private_metadata={})
+    users = (
+        apps.get_model("account", "User")
+        .objects.exclude(private_metadata={})
+        .iterator()
+    )
     payments_customer_ids = create_payments_customer_ids()
 
     for user in users:
