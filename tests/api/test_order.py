@@ -161,6 +161,11 @@ def test_order_query(
                             amount
                         }
                     }
+                    invoices {
+                        id
+                        number
+                        url
+                    }
                     availableShippingMethods {
                         id
                         price {
@@ -181,6 +186,9 @@ def test_order_query(
     response = staff_api_client.post_graphql(query)
     content = get_graphql_content(response)
     order_data = content["data"]["orders"]["edges"][0]["node"]
+    invoice = order_data["invoices"][0]
+    assert invoice["url"] == "http://www.example.com/invoice.pdf"
+    assert invoice["number"] == "01/12/2020/TEST"
     assert order_data["number"] == str(order.pk)
     assert order_data["canFinalize"] is True
     assert order_data["status"] == order.status.upper()
@@ -2965,7 +2973,7 @@ SEND_INVOICE_MUTATION = """
 """
 
 
-@mock.patch("saleor.extensions.base_plugin.BasePlugin.invoice_request")
+@mock.patch("saleor.plugins.base_plugin.BasePlugin.invoice_request")
 def test_request_invoice(
     plugin_mock, staff_api_client, permission_manage_orders, order
 ):
@@ -3002,7 +3010,7 @@ def test_request_invoice_invalid_order(staff_api_client, permission_manage_order
     assert errors["field"] == "orderId"
 
 
-@mock.patch("saleor.extensions.base_plugin.BasePlugin.invoice_delete")
+@mock.patch("saleor.plugins.base_plugin.BasePlugin.invoice_delete")
 def test_request_delete_invoice(
     plugin_mock, staff_api_client, permission_manage_orders, order
 ):
@@ -3015,7 +3023,7 @@ def test_request_delete_invoice(
     plugin_mock.assert_called_once_with(invoice, previous_value=None)
 
 
-@mock.patch("saleor.extensions.base_plugin.BasePlugin.invoice_delete")
+@mock.patch("saleor.plugins.base_plugin.BasePlugin.invoice_delete")
 def test_request_delete_invoice_invalid_id(
     plugin_mock, staff_api_client, permission_manage_orders
 ):
@@ -3029,7 +3037,7 @@ def test_request_delete_invoice_invalid_id(
     plugin_mock.assert_not_called()
 
 
-@mock.patch("saleor.extensions.base_plugin.BasePlugin.invoice_delete")
+@mock.patch("saleor.plugins.base_plugin.BasePlugin.invoice_delete")
 def test_request_delete_invoice_no_permission(
     plugin_mock, staff_api_client, permission_manage_orders, order
 ):
@@ -3051,7 +3059,7 @@ def test_delete_invoice(staff_api_client, permission_manage_orders, order):
     assert not Invoice.objects.filter(id=invoice.pk).exists()
 
 
-@mock.patch("saleor.extensions.base_plugin.BasePlugin.invoice_delete")
+@mock.patch("saleor.plugins.base_plugin.BasePlugin.invoice_delete")
 def test_delete_invoice_invalid_id(
     plugin_mock, staff_api_client, permission_manage_orders
 ):
