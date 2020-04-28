@@ -14,7 +14,7 @@ documentation = "https://docs.getsaleor.com/en/latest/"
 [tool.poetry.dependencies]
 python = "~3.8"
 babel = "~2.7"
-boto3 = "^1.9"
+boto3 = "^1.12"
 braintree = "~3.49.0"
 celery = { version = "^4.3.0", extras = ["redis"] }
 dj-database-url = "^0"
