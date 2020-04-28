@@ -682,6 +682,24 @@ def test_query_geolocalization(user_api_client):
     assert data["country"] is None
 
 
+def test_query_available_payment_gateways(user_api_client):
+    query = """
+        query {
+            shop {
+                availablePaymentGateways {
+                    id
+                    name
+                }
+            }
+        }
+    """
+    response = user_api_client.post_graphql(query)
+    content = get_graphql_content(response)
+    data = content["data"]["shop"]["availablePaymentGateways"]
+    assert data[0]["id"] == "mirumee.payments.dummy"
+    assert data[0]["name"] == "Dummy"
+
+
 AUTHORIZATION_KEY_ADD = """
 mutation AddKey($key: String!, $password: String!, $keyType: AuthorizationKeyType!) {
     authorizationKeyAdd(input: {key: $key, password: $password}, keyType: $keyType) {
