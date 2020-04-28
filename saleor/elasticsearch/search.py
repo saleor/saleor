@@ -16,7 +16,7 @@ from elasticsearch_dsl.connections import connections
 
 __author__ = 'tkolter'
 
-connections.create_connection()
+connections.create_connection(hosts=[settings.ELASTICSEARCH_HOST])
 redis = cache.caches['default']
 logger = logging.getLogger(__name__)
 

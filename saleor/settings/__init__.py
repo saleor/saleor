@@ -432,7 +432,9 @@ VERSATILEIMAGEFIELD_SETTINGS = {
 }
 
 
-ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')
+ELASTICSEARCH_HOST = os.environ.get('ELASTICSEARCH_HOST', 'localhost')
+ELASTICSEARCH_PORT = os.environ.get('ELASTICSEARCH_PORT', '9200')
+ELASTICSEARCH_URL = 'http://{}:{}'.format(ELASTICSEARCH_HOST, ELASTICSEARCH_PORT)
 
 # We'll support couple of elasticsearch add-ons, but finally we'll use single
 # variable
@@ -572,6 +574,8 @@ PASSWORD_CONFIRMATION_TIMEOUT_DAYS = 1
 #
 PAYPAL_LOG_URL = os.environ.get('PAYPAL_LOG_URL', None)
 PAYPAL_API_URL = os.environ.get('PAYPAL_API_URL', None)
+PAYPAL_API_CLIENT_ID = os.environ.get('PAYPAL_API_CLIENT', None)
+PAYPAL_API_SECRET = os.environ.get('PAYPAL_API_SECRET', None)
 PAYPAL_API_USER = os.environ.get('PAYPAL_API_USER', None)
 PAYPAL_API_PWD = os.environ.get('PAYPAL_API_PWD', None)
 PAYPAL_API_SIG = os.environ.get('PAYPAL_API_SIG', None)
@@ -585,17 +589,18 @@ ENVIRONMENT = os.environ.get('ENVIRONMENT', None)
 
 REMOTE = ast.literal_eval(os.environ.get('REMOTE', 'False'))
 
-RAVEN_CONFIG = {
-    'dsn': 'https://{public_key}:{secret}@{host}/{project_id}'.format(
-        public_key=os.environ.get('SENTRY_PUBLIC_KEY'),
-        secret=os.environ.get('SENTRY_SECRET_KEY'),
-        host=os.environ.get('SENTRY_HOST'),
-        project_id=os.environ.get('SENTRY_PROJECT_ID'),
-    ),
-    # If you are using git, you can also automatically configure the
-    # release based on the git info.
-    # 'release': raven.fetch_git_sha(os.path.abspath(os.pardir)),
-}
+if os.environ.get('SENTRY_HOST'):
+    RAVEN_CONFIG = {
+        'dsn': 'https://{public_key}:{secret}@{host}/{project_id}'.format(
+            public_key=os.environ.get('SENTRY_PUBLIC_KEY'),
+            secret=os.environ.get('SENTRY_SECRET_KEY'),
+            host=os.environ.get('SENTRY_HOST'),
+            project_id=os.environ.get('SENTRY_PROJECT_ID'),
+        ),
+        # If you are using git, you can also automatically configure the
+        # release based on the git info.
+        # 'release': raven.fetch_git_sha(os.path.abspath(os.pardir)),
+    }
 
 
 MAILCHIMP_API_KEY = os.environ.get('MAILCHIMP_API_KEY')
