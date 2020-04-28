@@ -5,11 +5,10 @@ from django.db import migrations
 
 
 def create_plugin_permission(apps):
-    for app_config in apps.get_app_configs():
-        if app_config.label == "plugins":
-            app_config.models_module = True
-            create_permissions(app_config, apps=apps, verbosity=0)
-            app_config.models_module = None
+    app_config = apps.get_app_config("plugins")
+    app_config.models_module = True
+    create_permissions(app_config, apps=apps, verbosity=0)
+    app_config.models_module = None
 
 
 def change_extension_permission_to_plugin_permission(apps, schema_editor):
