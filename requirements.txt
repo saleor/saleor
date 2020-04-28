@@ -94,11 +94,11 @@ kombu==4.1.0
 ipython==5.3.0
 
 # Legacy MySQL database
-mysqlclient==1.3.10
+mysqlclient==1.4.6
 
 
 # Proprietary Oye Saleor Plugin
--e git+git@github.com:tillkolter/saleor-oye-records.git@master#egg=saleor_oye
+-e git+git@github.com:tillkolter/saleor-oye-records.git@fix/paypal-v2#egg=saleor_oye
 
 # Fixed migration overkill by sorting currencies
 # -e git+git@github.com:tillkolter/django-prices-openexchangerates@master#egg=django-prices-openexchangerates
@@ -119,7 +119,7 @@ argon2-cffi==16.3.0
 # OPS
 django-constance==2.0.0
 django-picklefield==1.0.0
-celery==4.0.2
+celery==4.1.0
 # git+git://github.com/celery/celery@master#egg=celery
 
 django-celery-beat==1.0.1
