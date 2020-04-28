@@ -247,11 +247,15 @@ def test_query_plugin_configuration_as_customer_user(user_api_client, settings):
 
 PLUGIN_UPDATE_MUTATION = """
         mutation pluginUpdate(
-            $id: ID!, $active: Boolean, $configuration: [ConfigurationItemInput]){
-            pluginUpdate(
-                id:$id,
-                input:{active: $active, configuration: $configuration}
-            ){
+            $id: ID!,
+            $name: String!,
+            $active: Boolean,
+            $configuration: [ConfigurationItemInput]
+        ){pluginUpdate(
+            id:$id,
+            name:$name,
+            input:{active: $active, configuration: $configuration}
+        ){
             plugin{
               name
               active
@@ -294,6 +298,7 @@ def test_plugin_configuration_update(
 
     variables = {
         "id": plugin.PLUGIN_ID,
+        "name": plugin.PLUGIN_NAME,
         "active": active,
         "configuration": [updated_configuration_item],
     }
@@ -318,7 +323,8 @@ def test_plugin_configuration_update_containing_invalid_plugin_name(
     staff_api_client_can_manage_plugins,
 ):
     variables = {
-        "id": "fake-name",
+        "id": "fake-id",
+        "name": "fake-name",
         "active": True,
         "configuration": [{"name": "Username", "value": "user"}],
     }
@@ -341,6 +347,7 @@ def test_plugin_update_saves_boolean_as_boolean(
     use_sandbox = get_config_value("Use sandbox", plugin.configuration)
     variables = {
         "id": plugin.PLUGIN_ID,
+        "name": plugin.PLUGIN_NAME,
         "active": plugin.active,
         "configuration": [{"name": "Use sandbox", "value": True}],
     }
@@ -396,6 +403,7 @@ def test_plugin_configuration_update_as_customer_user(user_api_client, settings)
 
     variables = {
         "id": plugin.PLUGIN_ID,
+        "name": plugin.PLUGIN_NAME,
         "active": True,
         "configuration": [{"name": "Username", "value": "user"}],
     }

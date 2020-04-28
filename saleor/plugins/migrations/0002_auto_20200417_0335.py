@@ -39,7 +39,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="pluginconfiguration",
             name="name",
-            field=models.CharField(max_length=128, blank=True, null=True),
+            field=models.CharField(max_length=128),
         ),
         migrations.RunPython(update_identifier_field),
         migrations.AlterField(

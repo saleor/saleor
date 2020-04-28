@@ -32,6 +32,7 @@ class PluginUpdate(BaseMutation):
 
     class Arguments:
         id = graphene.ID(required=True, description="ID of plugin to update.")
+        name = graphene.String(required=True, description="Name of plugin to update.")
         input = PluginUpdateInput(
             description="Fields required to update a plugin configuration.",
             required=True,
