@@ -216,12 +216,13 @@ class OrderFulfill(BaseMutation):
         lines_for_warehouses = defaultdict(list)
         for line, order_line in zip(lines, order_lines):
             for stock in line["stocks"]:
-                warehouse_pk = from_global_id_strict_type(
-                    stock["warehouse"], only_type=Warehouse, field="warehouse"
-                )
-                lines_for_warehouses[warehouse_pk].append(
-                    {"order_line": order_line, "quantity": stock["quantity"]}
-                )
+                if stock["quantity"] > 0:
+                    warehouse_pk = from_global_id_strict_type(
+                        stock["warehouse"], only_type=Warehouse, field="warehouse"
+                    )
+                    lines_for_warehouses[warehouse_pk].append(
+                        {"order_line": order_line, "quantity": stock["quantity"]}
+                    )
 
         data["order_lines"] = order_lines
         data["quantities"] = quantities_for_lines

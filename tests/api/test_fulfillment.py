@@ -184,13 +184,14 @@ def test_order_fulfill_without_notification(
 
 
 @patch("saleor.graphql.order.mutations.fulfillments.create_fulfillments")
-def test_order_fulfill_with_one_line_empty_quantity(
+def test_order_fulfill_lines_with_empty_quantity(
     mock_create_fulfillments,
     staff_api_client,
     staff_user,
     order_with_lines,
     permission_manage_orders,
     warehouse,
+    warehouse_no_shipping_zone,
 ):
     order = order_with_lines
     query = ORDER_FULFILL_QUERY
@@ -199,6 +200,9 @@ def test_order_fulfill_with_one_line_empty_quantity(
     order_line_id = graphene.Node.to_global_id("OrderLine", order_line.id)
     order_line2_id = graphene.Node.to_global_id("OrderLine", order_line2.id)
     warehouse_id = graphene.Node.to_global_id("Warehouse", warehouse.pk)
+    warehouse2_id = graphene.Node.to_global_id(
+        "Warehouse", warehouse_no_shipping_zone.pk
+    )
     assert not order.events.all()
     variables = {
         "order": order_id,
@@ -206,11 +210,17 @@ def test_order_fulfill_with_one_line_empty_quantity(
             "lines": [
                 {
                     "orderLineId": order_line_id,
-                    "stocks": [{"quantity": 0, "warehouse": warehouse_id}],
+                    "stocks": [
+                        {"quantity": 0, "warehouse": warehouse_id},
+                        {"quantity": 0, "warehouse": warehouse2_id},
+                    ],
                 },
                 {
                     "orderLineId": order_line2_id,
-                    "stocks": [{"quantity": 2, "warehouse": warehouse_id}],
+                    "stocks": [
+                        {"quantity": 2, "warehouse": warehouse_id},
+                        {"quantity": 0, "warehouse": warehouse2_id},
+                    ],
                 },
             ],
         },
@@ -224,10 +234,7 @@ def test_order_fulfill_with_one_line_empty_quantity(
     assert not data["orderErrors"]
 
     fulfillment_lines_for_warehouses = {
-        str(warehouse.pk): [
-            {"order_line": order_line, "quantity": 0},
-            {"order_line": order_line2, "quantity": 2},
-        ]
+        str(warehouse.pk): [{"order_line": order_line2, "quantity": 2}]
     }
     mock_create_fulfillments.assert_called_once_with(
         staff_user, order, fulfillment_lines_for_warehouses, True
