@@ -22,6 +22,7 @@ def require_active_plugin(fn):
 
 class RazorpayGatewayPlugin(BasePlugin):
     PLUGIN_NAME = GATEWAY_NAME
+    PLUGIN_ID = "mirumee.payments.razorpay"
     DEFAULT_CONFIGURATION = [
         {"name": "Public API key", "value": None},
         {"name": "Secret API key", "value": None},

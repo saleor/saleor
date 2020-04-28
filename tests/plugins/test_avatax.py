@@ -31,7 +31,7 @@ def plugin_configuration(db):
             ],
         }
         configuration = PluginConfiguration.objects.create(
-            name=AvataxPlugin.PLUGIN_NAME, **data
+            identifier=AvataxPlugin.PLUGIN_ID, name=AvataxPlugin.PLUGIN_NAME, **data
         )
         return configuration
 
@@ -359,7 +359,7 @@ def test_checkout_needs_new_fetch(monkeypatch, checkout_with_item, address):
 def test_get_plugin_configuration(settings):
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
     manager = get_plugins_manager()
-    plugin = manager.get_plugin("Avalara")
+    plugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID)
 
     configuration_fields = [
         configuration_item["name"] for configuration_item in plugin.configuration
@@ -375,7 +375,8 @@ def test_save_plugin_configuration(settings):
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
     manager = get_plugins_manager()
     manager.save_plugin_configuration(
-        "Avalara",
+        AvataxPlugin.PLUGIN_ID,
+        AvataxPlugin.PLUGIN_NAME,
         {
             "configuration": [
                 {"name": "Username or account", "value": "test"},
@@ -383,8 +384,12 @@ def test_save_plugin_configuration(settings):
             ]
         },
     )
-    manager.save_plugin_configuration("Avalara", {"active": True})
-    plugin_configuration = PluginConfiguration.objects.get(name="Avalara")
+    manager.save_plugin_configuration(
+        AvataxPlugin.PLUGIN_ID, AvataxPlugin.PLUGIN_NAME, {"active": True}
+    )
+    plugin_configuration = PluginConfiguration.objects.get(
+        identifier=AvataxPlugin.PLUGIN_ID
+    )
     assert plugin_configuration.active
 
 
@@ -395,7 +400,9 @@ def test_save_plugin_configuration_cannot_be_enabled_without_config(
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
     manager = get_plugins_manager()
     with pytest.raises(ValidationError):
-        manager.save_plugin_configuration("Avalara", {"active": True})
+        manager.save_plugin_configuration(
+            AvataxPlugin.PLUGIN_ID, AvataxPlugin.PLUGIN_NAME, {"active": True}
+        )
 
 
 def test_show_taxes_on_storefront(plugin_configuration):
@@ -467,7 +474,7 @@ def test_skip_disabled_plugin(settings, plugin_configuration):
     plugin_configuration(username=None, password=None)
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
     manager = get_plugins_manager()
-    plugin: AvataxPlugin = manager.get_plugin("Avalara")
+    plugin: AvataxPlugin = manager.get_plugin(AvataxPlugin.PLUGIN_ID)
 
     assert (
         plugin._skip_plugin(

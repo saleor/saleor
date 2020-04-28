@@ -5,13 +5,13 @@ from .filters import filter_plugin_search
 from .sorters import sort_plugins
 
 
-def resolve_plugin(info, plugin_name):
+def resolve_plugin(info, plugin_id):
     manager = get_plugins_manager()
-    plugin: BasePlugin = manager.get_plugin(plugin_name)
+    plugin: BasePlugin = manager.get_plugin(plugin_id)
     if not plugin:
         return None
     return PluginConfiguration(
-        id=plugin.PLUGIN_NAME,
+        id=plugin.PLUGIN_ID,
         active=plugin.active,
         configuration=plugin.configuration,
         description=plugin.PLUGIN_DESCRIPTION,
@@ -35,7 +35,7 @@ def resolve_plugins(sort_by=None, **kwargs):
 
     return [
         PluginConfiguration(
-            id=plugin.PLUGIN_NAME,
+            id=plugin.PLUGIN_ID,
             active=plugin.active,
             configuration=plugin.configuration,
             description=plugin.PLUGIN_DESCRIPTION,

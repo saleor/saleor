@@ -13,8 +13,8 @@ from django.utils.translation import get_language
 from django_countries.fields import Country
 
 from ..discount.utils import fetch_discounts
-from ..plugins.manager import get_plugins_manager
 from ..graphql.views import API_PATH, GraphQLView
+from ..plugins.manager import get_plugins_manager
 from . import analytics
 from .exceptions import ReadOnlyException
 from .utils import get_client_ip, get_country_by_ip, get_currency_for_country

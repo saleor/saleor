@@ -455,6 +455,7 @@ def test_checkout_create_check_lines_quantity(
 @pytest.fixture
 def expected_dummy_gateway():
     return {
+        "id": "mirumee.payments.dummy",
         "name": "Dummy",
         "config": [{"field": "store_customer_card", "value": "false"}],
     }
@@ -467,6 +468,7 @@ def test_checkout_available_payment_gateways(
     query getCheckout($token: UUID!) {
         checkout(token: $token) {
            availablePaymentGateways {
+               id
                name
                config {
                    field
