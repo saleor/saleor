@@ -109,8 +109,11 @@ def test_query_plugins_hides_secret_fields(
             conf_field["value"] = api_key
     manager.save_plugin_configuration(
         PluginSample.PLUGIN_ID,
-        PluginSample.PLUGIN_NAME,
-        {"active": True, "configuration": configuration},
+        {
+            "active": True,
+            "configuration": configuration,
+            "name": PluginSample.PLUGIN_NAME,
+        },
     )
 
     staff_api_client.user.user_permissions.add(permission_manage_plugins)
@@ -184,8 +187,11 @@ def test_query_plugin_hides_secret_fields(
             conf_field["value"] = api_key
     manager.save_plugin_configuration(
         PluginSample.PLUGIN_ID,
-        PluginSample.PLUGIN_NAME,
-        {"active": True, "configuration": configuration},
+        {
+            "active": True,
+            "configuration": configuration,
+            "name": PluginSample.PLUGIN_NAME,
+        },
     )
 
     variables = {"id": plugin.PLUGIN_ID}
@@ -247,11 +253,13 @@ def test_query_plugin_configuration_as_customer_user(user_api_client, settings):
 
 PLUGIN_UPDATE_MUTATION = """
         mutation pluginUpdate(
-            $id: ID!, $active: Boolean, $configuration: [ConfigurationItemInput]){
-            pluginUpdate(
-                id:$id,
-                input:{active: $active, configuration: $configuration}
-            ){
+            $id: ID!,
+            $active: Boolean,
+            $configuration: [ConfigurationItemInput]
+        ){pluginUpdate(
+            id:$id,
+            input:{active: $active, configuration: $configuration}
+        ){
             plugin{
               name
               active
@@ -314,11 +322,11 @@ def test_plugin_configuration_update(
     assert second_configuration_item["value"] == old_configuration[1]["value"]
 
 
-def test_plugin_configuration_update_containing_invalid_plugin_name(
+def test_plugin_configuration_update_containing_invalid_plugin_id(
     staff_api_client_can_manage_plugins,
 ):
     variables = {
-        "id": "fake-name",
+        "id": "fake-id",
         "active": True,
         "configuration": [{"name": "Username", "value": "user"}],
     }

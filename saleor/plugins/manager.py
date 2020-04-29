@@ -395,12 +395,11 @@ class PluginsManager(PaymentInterface):
             "get_tax_rate_percentage_value", default_value, obj, country
         ).quantize(Decimal("1."))
 
-    def save_plugin_configuration(self, plugin_id, plugin_name, cleaned_data: dict):
+    def save_plugin_configuration(self, plugin_id, cleaned_data: dict):
         for plugin in self.plugins:
             if plugin.PLUGIN_ID == plugin_id:
                 plugin_configuration, _ = PluginConfiguration.objects.get_or_create(
                     identifier=plugin_id,
-                    name=plugin_name,
                     defaults={"configuration": plugin.configuration},
                 )
                 return plugin.save_plugin_configuration(
