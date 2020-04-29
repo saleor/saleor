@@ -16,7 +16,6 @@ def configure_braintree():
     manager = get_plugins_manager()
     manager.save_plugin_configuration(
         BraintreeGatewayPlugin.PLUGIN_ID,
-        BraintreeGatewayPlugin.PLUGIN_NAME,
         {
             "active": True,
             "configuration": [

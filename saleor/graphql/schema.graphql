@@ -3225,7 +3225,7 @@ input PermissionGroupUpdateInput {
 
 type Plugin implements Node {
   id: ID!
-  name: String
+  name: String!
   description: String!
   active: Boolean!
   configuration: [ConfigurationItem]
