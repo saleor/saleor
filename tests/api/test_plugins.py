@@ -254,12 +254,11 @@ def test_query_plugin_configuration_as_customer_user(user_api_client, settings):
 PLUGIN_UPDATE_MUTATION = """
         mutation pluginUpdate(
             $id: ID!,
-            $name: String!,
             $active: Boolean,
             $configuration: [ConfigurationItemInput]
         ){pluginUpdate(
             id:$id,
-            input:{active: $active, configuration: $configuration, name:$name}
+            input:{active: $active, configuration: $configuration}
         ){
             plugin{
               name
@@ -303,7 +302,6 @@ def test_plugin_configuration_update(
 
     variables = {
         "id": plugin.PLUGIN_ID,
-        "name": plugin.PLUGIN_NAME,
         "active": active,
         "configuration": [updated_configuration_item],
     }
@@ -324,46 +322,11 @@ def test_plugin_configuration_update(
     assert second_configuration_item["value"] == old_configuration[1]["value"]
 
 
-def test_plugin_update_name(staff_api_client_can_manage_plugins, settings):
-    settings.PLUGINS = ["tests.plugins.sample_plugins.PluginSample"]
-    manager = get_plugins_manager()
-    plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
-    variables = {
-        "id": plugin.PLUGIN_ID,
-        "active": True,
-        "name": plugin.PLUGIN_NAME,
-    }
-    response = staff_api_client_can_manage_plugins.post_graphql(
-        PLUGIN_UPDATE_MUTATION, variables
-    )
-    get_graphql_content(response)
-
-    actual_plugin = PluginConfiguration.objects.get(identifier=PluginSample.PLUGIN_ID)
-
-    assert actual_plugin.name == plugin.PLUGIN_NAME
-
-    new_plugin_name = "New Plugin Name"
-    variables = {
-        "id": plugin.PLUGIN_ID,
-        "active": True,
-        "name": new_plugin_name,
-    }
-
-    response = staff_api_client_can_manage_plugins.post_graphql(
-        PLUGIN_UPDATE_MUTATION, variables
-    )
-    get_graphql_content(response)
-    actual_plugin.refresh_from_db()
-
-    assert actual_plugin.name == new_plugin_name
-
-
-def test_plugin_configuration_update_containing_invalid_plugin_name(
+def test_plugin_configuration_update_containing_invalid_plugin_id(
     staff_api_client_can_manage_plugins,
 ):
     variables = {
         "id": "fake-id",
-        "name": "fake-name",
         "active": True,
         "configuration": [{"name": "Username", "value": "user"}],
     }
@@ -386,7 +349,6 @@ def test_plugin_update_saves_boolean_as_boolean(
     use_sandbox = get_config_value("Use sandbox", plugin.configuration)
     variables = {
         "id": plugin.PLUGIN_ID,
-        "name": plugin.PLUGIN_NAME,
         "active": plugin.active,
         "configuration": [{"name": "Use sandbox", "value": True}],
     }
@@ -442,7 +404,6 @@ def test_plugin_configuration_update_as_customer_user(user_api_client, settings)
 
     variables = {
         "id": plugin.PLUGIN_ID,
-        "name": plugin.PLUGIN_NAME,
         "active": True,
         "configuration": [{"name": "Username", "value": "user"}],
     }

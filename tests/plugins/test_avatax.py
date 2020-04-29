@@ -378,7 +378,6 @@ def test_save_plugin_configuration(settings):
     manager.save_plugin_configuration(
         AvataxPlugin.PLUGIN_ID,
         {
-            "name": AvataxPlugin.PLUGIN_NAME,
             "configuration": [
                 {"name": "Username or account", "value": "test"},
                 {"name": "Password or license", "value": "test"},
@@ -399,9 +398,7 @@ def test_save_plugin_configuration_cannot_be_enabled_without_config(
     settings.PLUGINS = ["saleor.plugins.avatax.plugin.AvataxPlugin"]
     manager = get_plugins_manager()
     with pytest.raises(ValidationError):
-        manager.save_plugin_configuration(
-            AvataxPlugin.PLUGIN_ID, {"active": True, "name": AvataxPlugin.PLUGIN_NAME}
-        )
+        manager.save_plugin_configuration(AvataxPlugin.PLUGIN_ID, {"active": True})
 
 
 def test_show_taxes_on_storefront(plugin_configuration):

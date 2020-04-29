@@ -364,9 +364,7 @@ def test_get_tax_rate_percentage_value(
 def test_save_plugin_configuration(vatlayer, settings):
     settings.PLUGINS = ["saleor.plugins.vatlayer.plugin.VatlayerPlugin"]
     manager = get_plugins_manager()
-    manager.save_plugin_configuration(
-        VatlayerPlugin.PLUGIN_ID, {"active": False, "name": VatlayerPlugin.PLUGIN_NAME}
-    )
+    manager.save_plugin_configuration(VatlayerPlugin.PLUGIN_ID, {"active": False})
 
     configuration = PluginConfiguration.objects.get(identifier=VatlayerPlugin.PLUGIN_ID)
     assert not configuration.active
@@ -377,8 +375,7 @@ def test_save_plugin_configuration_cannot_be_enabled_without_config(settings):
     manager = get_plugins_manager()
     with pytest.raises(ValidationError):
         manager.save_plugin_configuration(
-            VatlayerPlugin.PLUGIN_ID,
-            {"active": True, "name": VatlayerPlugin.PLUGIN_NAME},
+            VatlayerPlugin.PLUGIN_ID, {"active": True},
         )
 
 

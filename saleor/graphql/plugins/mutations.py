@@ -25,7 +25,6 @@ class PluginUpdateInput(graphene.InputObjectType):
         required=False,
         description="Configuration of the plugin.",
     )
-    name = graphene.String(required=False, description="Name of plugin to update.")
 
 
 class PluginUpdate(BaseMutation):
