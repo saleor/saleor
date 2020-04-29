@@ -802,6 +802,18 @@ class ProductCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
+
+        weight = cleaned_input.get("weight")
+        if weight and weight.value < 0:
+            raise ValidationError(
+                {
+                    "weight": ValidationError(
+                        "Product can't have negative weight.",
+                        code=ProductErrorCode.INVALID,
+                    )
+                }
+            )
+
         # Attributes are provided as list of `AttributeValueInput` objects.
         # We need to transform them into the format they're stored in the
         # `Product` model, which is HStore field that maps attribute's PK to
@@ -1158,6 +1170,17 @@ class ProductVariantCreate(ModelMutation):
     ):
         cleaned_input = super().clean_input(info, instance, data)
 
+        weight = cleaned_input.get("weight")
+        if weight and weight.value < 0:
+            raise ValidationError(
+                {
+                    "weight": ValidationError(
+                        "Product variant can't have negative weight.",
+                        code=ProductErrorCode.INVALID.value,
+                    )
+                }
+            )
+
         if "cost_price" in cleaned_input:
             cost_price = cleaned_input.pop("cost_price")
             if cost_price and cost_price < 0:
@@ -1419,6 +1442,18 @@ class ProductTypeCreate(ModelMutation):
     @classmethod
     def clean_input(cls, info, instance, data):
         cleaned_input = super().clean_input(info, instance, data)
+
+        weight = cleaned_input.get("weight")
+        if weight and weight.value < 0:
+            raise ValidationError(
+                {
+                    "weight": ValidationError(
+                        "Product type can't have negative weight.",
+                        code=ProductErrorCode.INVALID,
+                    )
+                }
+            )
+
         try:
             cleaned_input = validate_slug_and_generate_if_needed(
                 instance, "name", cleaned_input

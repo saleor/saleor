@@ -901,6 +901,11 @@ CREATE_PRODUCT_MUTATION = """
                                 }
                             }
                           }
+                          productErrors {
+                            field
+                            code
+                            message
+                          }
                           errors {
                             message
                             field
@@ -1047,6 +1052,40 @@ def test_create_product_no_slug_in_input(
     assert data["product"]["productType"]["name"] == product_type.name
     assert data["product"]["category"]["name"] == category.name
     assert str(data["product"]["basePrice"]["amount"]) == product_price
+
+
+def test_create_product_with_negative_weight(
+    staff_api_client,
+    product_type,
+    category,
+    description_json,
+    permission_manage_products,
+):
+    query = CREATE_PRODUCT_MUTATION
+
+    description_json = json.dumps(description_json)
+
+    product_type_id = graphene.Node.to_global_id("ProductType", product_type.pk)
+    category_id = graphene.Node.to_global_id("Category", category.pk)
+    product_name = "test name"
+
+    variables = {
+        "input": {
+            "productType": product_type_id,
+            "category": category_id,
+            "name": product_name,
+            "weight": -1,
+        }
+    }
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productCreate"]
+    error = data["productErrors"][0]
+    assert error["field"] == "weight"
+    assert error["code"] == ProductErrorCode.INVALID.name
 
 
 QUERY_CREATE_PRODUCT_WITHOUT_VARIANTS = """
@@ -1900,6 +1939,46 @@ def test_update_product_without_variants_sku_duplication(
     assert data["errors"][0]["message"] == "Product with this SKU already exists."
 
 
+def test_update_product_with_negative_weight(
+    staff_api_client, product_with_default_variant, permission_manage_products, product
+):
+    query = """
+        mutation updateProduct(
+            $productId: ID!,
+            $weight: WeightScalar)
+        {
+            productUpdate(
+                id: $productId,
+                input: {
+                    weight: $weight
+                })
+            {
+                product {
+                    id
+                }
+                productErrors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    """
+    product = product_with_default_variant
+    product_id = graphene.Node.to_global_id("Product", product.pk)
+
+    variables = {"productId": product_id, "weight": -1}
+
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productUpdate"]
+    error = data["productErrors"][0]
+    assert error["field"] == "weight"
+    assert error["code"] == ProductErrorCode.INVALID.name
+
+
 def test_update_product_without_category_and_true_is_published_value(
     staff_api_client, permission_manage_products, product
 ):
@@ -2260,6 +2339,42 @@ def test_create_product_type_with_given_slug(
     assert data["productType"]["slug"] == expected_slug
 
 
+def test_create_product_type_create_with_negative_weight(
+    staff_api_client, permission_manage_products
+):
+    query = """
+        mutation(
+                $name: String, $weight: WeightScalar) {
+            productTypeCreate(
+                input: {
+                    name: $name
+                    weight: $weight
+                }
+            ) {
+                productType {
+                    id
+                    name
+                }
+                productErrors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    """
+    name = "Test product type"
+    variables = {"name": name, "weight": -1.1}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    data = content["data"]["productTypeCreate"]
+    error = data["productErrors"][0]
+    assert error["field"] == "weight"
+    assert error["code"] == ProductErrorCode.INVALID.name
+
+
 def test_product_type_update_mutation(
     staff_api_client, product_type, permission_manage_products
 ):
@@ -2479,6 +2594,42 @@ def test_update_product_type_slug_and_name(
         assert errors
         assert errors[0]["field"] == error_field
         assert errors[0]["code"] == ProductErrorCode.REQUIRED.name
+
+
+def test_update_product_type_with_negative_weight(
+    staff_api_client, product_type, permission_manage_products,
+):
+    query = """
+        mutation($id: ID!, $weight: WeightScalar) {
+            productTypeUpdate(
+                id: $id
+                input: {
+                    weight: $weight
+                }
+            ) {
+                productType{
+                    name
+                }
+                productErrors {
+                    field
+                    message
+                    code
+                }
+            }
+        }
+    """
+
+    node_id = graphene.Node.to_global_id("ProductType", product_type.id)
+    variables = {"id": node_id, "weight": "-1"}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_products]
+    )
+    content = get_graphql_content(response)
+    product_type.refresh_from_db()
+    data = content["data"]["productTypeUpdate"]
+    error = data["productErrors"][0]
+    assert error["field"] == "weight"
+    assert error["code"] == ProductErrorCode.INVALID.name
 
 
 def test_product_type_delete_mutation(
@@ -4004,6 +4155,8 @@ mutation createProduct(
 @pytest.mark.parametrize(
     "weight, expected_weight_value, expected_weight_unit",
     (
+        ("0", 0, "kg"),
+        (0, 0, "kg"),
         (11.11, 11.11, "kg"),
         (11, 11.0, "kg"),
         ("11.11", 11.11, "kg"),
@@ -4047,6 +4200,8 @@ def test_create_product_with_weight_variable(
 @pytest.mark.parametrize(
     "weight, expected_weight_value, expected_weight_unit",
     (
+        ("0", 0, "kg"),
+        (0, 0, "kg"),
         ("11.11", 11.11, "kg"),
         ("11", 11.0, "kg"),
         ('"11.11"', 11.11, "kg"),

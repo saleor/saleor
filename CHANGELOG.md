@@ -104,6 +104,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add home page - #5494 by @IKarbowiak and @dominik-zeglen
 - Extend errors in OrderFulfill mutation - #5553 by @fowczarek
 - Refactor OrderCancel mutation for many warehouses - #5554 by @fowczarek
+- Add negative weight validation - #5564 by @fowczarek
 
 ## 2.9.0
 
