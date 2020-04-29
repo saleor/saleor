@@ -97,11 +97,10 @@ class PermissionGroupCreate(ModelMutation):
         permission_items = cleaned_input.get(field)
         if permission_items:
             cleaned_input[field] = get_permissions(permission_items)
-            if requestor.is_superuser:
-                return
-            cls.ensure_can_manage_permissions(
-                requestor, errors, field, permission_items
-            )
+            if not requestor.is_superuser:
+                cls.ensure_can_manage_permissions(
+                    requestor, errors, field, permission_items
+                )
 
     @classmethod
     def ensure_can_manage_permissions(
@@ -255,12 +254,11 @@ class PermissionGroupUpdate(PermissionGroupCreate):
         permission_items = cleaned_input.get(field)
         if permission_items:
             cleaned_input[field] = get_permissions(permission_items)
-            if requestor.is_superuser:
-                return
-            cls.ensure_can_manage_permissions(
-                requestor, errors, field, permission_items
-            )
-            cls.ensure_permissions_can_be_removed(errors, group, permission_items)
+            if not requestor.is_superuser:
+                cls.ensure_can_manage_permissions(
+                    requestor, errors, field, permission_items
+                )
+                cls.ensure_permissions_can_be_removed(errors, group, permission_items)
 
     @classmethod
     def ensure_permissions_can_be_removed(
