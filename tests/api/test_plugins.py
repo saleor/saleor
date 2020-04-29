@@ -109,8 +109,11 @@ def test_query_plugins_hides_secret_fields(
             conf_field["value"] = api_key
     manager.save_plugin_configuration(
         PluginSample.PLUGIN_ID,
-        PluginSample.PLUGIN_NAME,
-        {"active": True, "configuration": configuration},
+        {
+            "active": True,
+            "configuration": configuration,
+            "name": PluginSample.PLUGIN_NAME,
+        },
     )
 
     staff_api_client.user.user_permissions.add(permission_manage_plugins)
@@ -184,8 +187,11 @@ def test_query_plugin_hides_secret_fields(
             conf_field["value"] = api_key
     manager.save_plugin_configuration(
         PluginSample.PLUGIN_ID,
-        PluginSample.PLUGIN_NAME,
-        {"active": True, "configuration": configuration},
+        {
+            "active": True,
+            "configuration": configuration,
+            "name": PluginSample.PLUGIN_NAME,
+        },
     )
 
     variables = {"id": plugin.PLUGIN_ID}
@@ -253,8 +259,7 @@ PLUGIN_UPDATE_MUTATION = """
             $configuration: [ConfigurationItemInput]
         ){pluginUpdate(
             id:$id,
-            name:$name,
-            input:{active: $active, configuration: $configuration}
+            input:{active: $active, configuration: $configuration, name:$name}
         ){
             plugin{
               name
@@ -317,6 +322,40 @@ def test_plugin_configuration_update(
     second_configuration_item = plugin.configuration[1]
     assert second_configuration_item["name"] == old_configuration[1]["name"]
     assert second_configuration_item["value"] == old_configuration[1]["value"]
+
+
+def test_plugin_update_name(staff_api_client_can_manage_plugins, settings):
+    settings.PLUGINS = ["tests.plugins.sample_plugins.PluginSample"]
+    manager = get_plugins_manager()
+    plugin = manager.get_plugin(PluginSample.PLUGIN_ID)
+    variables = {
+        "id": plugin.PLUGIN_ID,
+        "active": True,
+        "name": plugin.PLUGIN_NAME,
+    }
+    response = staff_api_client_can_manage_plugins.post_graphql(
+        PLUGIN_UPDATE_MUTATION, variables
+    )
+    get_graphql_content(response)
+
+    actual_plugin = PluginConfiguration.objects.get(identifier=PluginSample.PLUGIN_ID)
+
+    assert actual_plugin.name == plugin.PLUGIN_NAME
+
+    new_plugin_name = "New Plugin Name"
+    variables = {
+        "id": plugin.PLUGIN_ID,
+        "active": True,
+        "name": new_plugin_name,
+    }
+
+    response = staff_api_client_can_manage_plugins.post_graphql(
+        PLUGIN_UPDATE_MUTATION, variables
+    )
+    get_graphql_content(response)
+    actual_plugin.refresh_from_db()
+
+    assert actual_plugin.name == new_plugin_name
 
 
 def test_plugin_configuration_update_containing_invalid_plugin_name(

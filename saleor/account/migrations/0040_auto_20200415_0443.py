@@ -50,7 +50,6 @@ def change_extension_permission_to_plugin_permission(apps, schema_editor):
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("contenttypes", "0002_remove_content_type_name"),
         ("account", "0039_auto_20200221_0257"),
         ("plugins", "0001_initial"),
     ]

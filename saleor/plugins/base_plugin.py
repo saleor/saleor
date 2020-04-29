@@ -360,6 +360,9 @@ class BasePlugin:
     def save_plugin_configuration(
         cls, plugin_configuration: "PluginConfiguration", cleaned_data
     ):
+        if "name" in cleaned_data:
+            plugin_configuration.name = cleaned_data["name"]
+
         current_config = plugin_configuration.configuration
         configuration_to_update = cleaned_data.get("configuration")
         if configuration_to_update:

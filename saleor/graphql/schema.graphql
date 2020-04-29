@@ -2424,7 +2424,7 @@ type Mutation {
   giftCardCreate(input: GiftCardCreateInput!): GiftCardCreate
   giftCardDeactivate(id: ID!): GiftCardDeactivate
   giftCardUpdate(id: ID!, input: GiftCardUpdateInput!): GiftCardUpdate
-  pluginUpdate(id: ID!, input: PluginUpdateInput!, name: String!): PluginUpdate
+  pluginUpdate(id: ID!, input: PluginUpdateInput!): PluginUpdate
   saleCreate(input: SaleInput!): SaleCreate
   saleDelete(id: ID!): SaleDelete
   saleBulkDelete(ids: [ID]!): SaleBulkDelete
@@ -3281,6 +3281,7 @@ type PluginUpdate {
 input PluginUpdateInput {
   active: Boolean
   configuration: [ConfigurationItemInput]
+  name: String
 }
 
 input PriceRangeInput {

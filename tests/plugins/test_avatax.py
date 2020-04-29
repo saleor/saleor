@@ -22,6 +22,7 @@ def plugin_configuration(db):
     def set_configuration(username="test", password="test", sandbox=True):
         data = {
             "active": True,
+            "name": AvataxPlugin.PLUGIN_NAME,
             "configuration": [
                 {"name": "Username or account", "value": username},
                 {"name": "Password or license", "value": password},
@@ -31,7 +32,7 @@ def plugin_configuration(db):
             ],
         }
         configuration = PluginConfiguration.objects.create(
-            identifier=AvataxPlugin.PLUGIN_ID, name=AvataxPlugin.PLUGIN_NAME, **data
+            identifier=AvataxPlugin.PLUGIN_ID, **data
         )
         return configuration
 
@@ -376,17 +377,15 @@ def test_save_plugin_configuration(settings):
     manager = get_plugins_manager()
     manager.save_plugin_configuration(
         AvataxPlugin.PLUGIN_ID,
-        AvataxPlugin.PLUGIN_NAME,
         {
+            "name": AvataxPlugin.PLUGIN_NAME,
             "configuration": [
                 {"name": "Username or account", "value": "test"},
                 {"name": "Password or license", "value": "test"},
-            ]
+            ],
         },
     )
-    manager.save_plugin_configuration(
-        AvataxPlugin.PLUGIN_ID, AvataxPlugin.PLUGIN_NAME, {"active": True}
-    )
+    manager.save_plugin_configuration(AvataxPlugin.PLUGIN_ID, {"active": True})
     plugin_configuration = PluginConfiguration.objects.get(
         identifier=AvataxPlugin.PLUGIN_ID
     )
@@ -401,7 +400,7 @@ def test_save_plugin_configuration_cannot_be_enabled_without_config(
     manager = get_plugins_manager()
     with pytest.raises(ValidationError):
         manager.save_plugin_configuration(
-            AvataxPlugin.PLUGIN_ID, AvataxPlugin.PLUGIN_NAME, {"active": True}
+            AvataxPlugin.PLUGIN_ID, {"active": True, "name": AvataxPlugin.PLUGIN_NAME}
         )
 
 
