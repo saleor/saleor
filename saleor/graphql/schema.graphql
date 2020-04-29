@@ -3281,7 +3281,6 @@ type PluginUpdate {
 input PluginUpdateInput {
   active: Boolean
   configuration: [ConfigurationItemInput]
-  name: String
 }
 
 input PriceRangeInput {

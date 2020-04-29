@@ -17,7 +17,6 @@ def configure_braintree():
     manager.save_plugin_configuration(
         BraintreeGatewayPlugin.PLUGIN_ID,
         {
-            "name": BraintreeGatewayPlugin.PLUGIN_NAME,
             "active": True,
             "configuration": [
                 {"name": "Public API key", "value": braintree_api_key},
