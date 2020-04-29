@@ -4004,6 +4004,8 @@ mutation createProduct(
 @pytest.mark.parametrize(
     "weight, expected_weight_value, expected_weight_unit",
     (
+        ("0", 0, "kg"),
+        (0, 0, "kg"),
         (11.11, 11.11, "kg"),
         (11, 11.0, "kg"),
         ("11.11", 11.11, "kg"),
@@ -4047,6 +4049,8 @@ def test_create_product_with_weight_variable(
 @pytest.mark.parametrize(
     "weight, expected_weight_value, expected_weight_unit",
     (
+        ("0", 0, "kg"),
+        (0, 0, "kg"),
         ("11.11", 11.11, "kg"),
         ("11", 11.0, "kg"),
         ('"11.11"', 11.11, "kg"),

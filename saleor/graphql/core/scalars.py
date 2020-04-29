@@ -1,8 +1,8 @@
 import decimal
 
 import graphene
-from graphql.language import ast
 from graphql.error import GraphQLError
+from graphql.language import ast
 from measurement.measures import Weight
 
 from ...core.weight import convert_weight, get_default_weight_unit
@@ -41,7 +41,7 @@ class WeightScalar(graphene.Scalar):
             weight = Weight(**{value["unit"]: value["value"]})
         else:
             weight = WeightScalar.parse_decimal(value)
-        if not weight:
+        if weight is None:
             raise GraphQLError(f"Unsupported value: {value}")
         return weight
 
@@ -61,7 +61,7 @@ class WeightScalar(graphene.Scalar):
             weight = WeightScalar.parse_literal_object(node)
         else:
             weight = WeightScalar.parse_decimal(node.value)
-        if not weight:
+        if weight is None:
             raise GraphQLError(f"Unsupported value: {node.value}")
         return weight
 
