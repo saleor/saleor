@@ -66,7 +66,11 @@
         }
 
         .content-tight-padded {
-            padding: 0 20px 10px 20px;
+            padding: 0 20px 0 20px;
+        }
+
+        .padded-top {
+            padding-top: 15px;
         }
 
         .normal-text {
@@ -200,7 +204,7 @@
         </div>
     </div>
     <div class="section-left">
-        <div class="content-padded">
+        <div class="content-tight-padded padded-top">
             <span class="header-title">
                 {% trans "BILLING ADDRESS" context "Invoice PDF" %}
             </span>
@@ -229,7 +233,7 @@
         </div>
     </div>
     <div class="section-right">
-        <div class="content-padded">
+        <div class="content-tight-padded padded-top">
             <span class="header-title">
                 {% trans "SHIPMENT ADDRESS" context "Invoice PDF" %}
             </span>
@@ -261,7 +265,7 @@
         <div class="content-separator">&nbsp;</div>
     </div>
     <div class="section-left">
-        <div class="content-padded">
+        <div class="content-tight-padded padded-top">
             <span class="header-title">{% trans "PAYMENT METHOD" context "Invoice PDF" %}</span>
             <br />
             <span class="normal-text">{{ order.get_last_payment.gateway }}</span>
@@ -269,7 +273,7 @@
         </div>
     </div>
     <div class="section-right">
-        <div class="content-padded">
+        <div class="content-tight-padded padded-top">
             <span class="header-title">{% trans "SHIPMENT METHOD" context "Invoice PDF" %}</span>
             <br />
             <span class="normal-text">{{ order.shipping_method_name }}</span>
@@ -281,7 +285,6 @@
     </div>
     <div class="content-padded">
         <span class="header-title">{% trans "ITEMS ORDERED" context "Invoice PDF table header" %}</span>
-        <br />
         {% include "invoice_products_table.html" with products=products_first_page %}
         <div class="page-footer">
             <span class="page-counter header-category">

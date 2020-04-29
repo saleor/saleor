@@ -342,23 +342,31 @@ def match_orders_with_new_user(user: User) -> None:
     Order.objects.confirmed().filter(user_email=user.email, user=None).update(user=user)
 
 
+def _chunk_products(products, product_limit):
+    chunks = []
+    for i in range(0, len(products), product_limit):
+        limit = i + product_limit
+        chunks.append(products[i:limit])
+    return chunks
+
+
+def _get_page_count(products_first_page, rest_of_products):
+    if not rest_of_products and len(products_first_page) == 4:
+        return 2
+    try:
+        append_last_page = 1 if len(rest_of_products[-1]) > 11 else 0
+        return 1 + len(rest_of_products) + append_last_page
+    except IndexError:
+        return 1
+
+
 def generate_invoice_pdf_for_order(invoice):
     logo_path = static_finders.find("images/logo-light.svg")
 
     all_products = invoice.order.lines.all()
     _product_limit = 3 if len(all_products) < 4 else 4
     products_first_page = all_products[:_product_limit]
-    rest_of_products = []
-    for i in range(0, len(all_products[_product_limit:]), 13):
-        limit = i + 13
-        rest_of_products.append(all_products[_product_limit:][i:limit])
-
-    try:
-        page_count = (
-            1 + len(rest_of_products) + (1 if len(rest_of_products[-1]) > 11 else 0)
-        )
-    except IndexError:
-        page_count = 1
+    rest_of_products = _chunk_products(all_products[_product_limit:], 13)
 
     rendered_template = get_template("invoice.html").render(
         {
@@ -367,7 +375,7 @@ def generate_invoice_pdf_for_order(invoice):
             "logo_path": f"file://{logo_path}",
             "products_first_page": products_first_page,
             "rest_of_products": rest_of_products,
-            "page_count": page_count,
+            "page_count": _get_page_count(products_first_page, rest_of_products),
         }
     )
     content_file = ContentFile(HTML(string=rendered_template).write_pdf())
