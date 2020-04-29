@@ -2078,6 +2078,43 @@ def test_group_delete_mutation_delete_last_group_with_manage_staff(
     }
 
 
+def test_group_delete_mutation_cannot_remove_requestor_last_group(
+    staff_users,
+    permission_manage_staff,
+    permission_manage_orders,
+    permission_manage_products,
+    staff_api_client,
+):
+    staff_user, staff_user1, staff_user2 = staff_users
+    staff_user.user_permissions.add(
+        permission_manage_orders, permission_manage_products
+    )
+    groups = Group.objects.bulk_create(
+        [Group(name="manage orders"), Group(name="manage orders and products")]
+    )
+    group1, group2 = groups
+    group1.permissions.add(permission_manage_orders, permission_manage_staff)
+    group2.permissions.add(
+        permission_manage_orders, permission_manage_products, permission_manage_staff
+    )
+
+    staff_user2.groups.add(group1, group2)
+    staff_user.groups.add(group1)
+
+    query = PERMISSION_GROUP_DELETE_MUTATION
+
+    variables = {"id": graphene.Node.to_global_id("Group", group1.id)}
+    response = staff_api_client.post_graphql(query, variables)
+    content = get_graphql_content(response)
+    data = content["data"]["permissionGroupDelete"]
+    errors = data["permissionGroupErrors"]
+
+    assert errors[0]["field"] == "id"
+    assert (
+        errors[0]["code"] == PermissionGroupErrorCode.CANNOT_REMOVE_FROM_LAST_GROUP.name
+    )
+
+
 QUERY_PERMISSION_GROUP_WITH_FILTER = """
     query ($filter: PermissionGroupFilterInput ){
         permissionGroups(first: 5, filter: $filter){

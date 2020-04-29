@@ -426,10 +426,15 @@ class PermissionGroupDelete(ModelDeleteMutation):
             code = PermissionGroupErrorCode.OUT_OF_SCOPE_PERMISSION.value
             raise ValidationError(error_msg, code)
 
-        cls.check_if_group_can_be_removed(instance)
+        cls.check_if_group_can_be_removed(requestor, instance)
 
     @classmethod
-    def check_if_group_can_be_removed(cls, group):
+    def check_if_group_can_be_removed(cls, requestor, group):
+        cls.ensure_deleting_not_left_not_manageable_permissions(group)
+        cls.ensure_not_removing_requestor_last_group(group, requestor)
+
+    @classmethod
+    def ensure_deleting_not_left_not_manageable_permissions(cls, group):
         """Return true if management of all permissions is provided by other groups.
 
         After removing group, for each permission, there should be at least one staff
@@ -444,3 +449,11 @@ class PermissionGroupDelete(ModelDeleteMutation):
             raise ValidationError(
                 {"id": ValidationError(message=msg, code=code, params=params)}
             )
+
+    @classmethod
+    def ensure_not_removing_requestor_last_group(cls, group, requestor):
+        """Ensure user doesn't remove user's last group."""
+        if requestor in group.user_set.all() and requestor.groups.count() == 1:
+            msg = "You cannot delete your last group."
+            code = PermissionGroupErrorCode.CANNOT_REMOVE_FROM_LAST_GROUP.value
+            raise ValidationError({"id": ValidationError(message=msg, code=code)})
