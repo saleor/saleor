@@ -207,7 +207,7 @@ def test_manager_save_plugin_configuration(plugin_configuration):
     plugins = ["tests.plugins.sample_plugins.PluginSample"]
     manager = PluginsManager(plugins=plugins)
     manager.save_plugin_configuration(
-        PluginSample.PLUGIN_ID, PluginSample.PLUGIN_NAME, {"active": False}
+        PluginSample.PLUGIN_ID, {"active": False, "name": PluginSample.PLUGIN_NAME}
     )
     plugin_configuration.refresh_from_db()
     assert not plugin_configuration.active

@@ -25,6 +25,7 @@ class PluginUpdateInput(graphene.InputObjectType):
         required=False,
         description="Configuration of the plugin.",
     )
+    name = graphene.String(required=False, description="Name of plugin to update.")
 
 
 class PluginUpdate(BaseMutation):
@@ -32,7 +33,6 @@ class PluginUpdate(BaseMutation):
 
     class Arguments:
         id = graphene.ID(required=True, description="ID of plugin to update.")
-        name = graphene.String(required=True, description="Name of plugin to update.")
         input = PluginUpdateInput(
             description="Fields required to update a plugin configuration.",
             required=True,
@@ -47,7 +47,6 @@ class PluginUpdate(BaseMutation):
     @classmethod
     def perform_mutation(cls, root, info, **data):
         plugin_id = data.get("id")
-        plugin_name = data.get("name")
         data = data.get("input")
         manager = get_plugins_manager()
         plugin = manager.get_plugin(plugin_id)
@@ -59,5 +58,5 @@ class PluginUpdate(BaseMutation):
                     )
                 }
             )
-        instance = manager.save_plugin_configuration(plugin_id, plugin_name, data)
+        instance = manager.save_plugin_configuration(plugin_id, data)
         return PluginUpdate(plugin=instance)
