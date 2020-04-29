@@ -83,7 +83,9 @@ class Checkout(CountableDjangoObjectType):
         description="Shipping methods that can be used with this order.",
     )
     available_payment_gateways = graphene.List(
-        PaymentGateway, description="List of available payment gateways.", required=True
+        graphene.NonNull(PaymentGateway),
+        description="List of available payment gateways.",
+        required=True,
     )
     email = graphene.String(description="Email of a customer.", required=True)
     gift_cards = graphene.List(
