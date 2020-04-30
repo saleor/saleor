@@ -4,14 +4,19 @@ from django.contrib.auth.models import Permission
 from django.db import models
 from oauthlib.common import generate_token
 
-from ..core.models import ModelWithMetadata
+from ..core.models import Job, ModelWithMetadata
 from ..core.permissions import AppPermission
+from .types import AppType
 
 
 class App(ModelWithMetadata):
     name = models.CharField(max_length=60)
     created = models.DateTimeField(auto_now_add=True)
     is_active = models.BooleanField(default=True)
+    type = models.CharField(
+        choices=AppType.CHOICES, default=AppType.CUSTOM, max_length=60
+    )
+    identificator = models.CharField(max_length=256)
     permissions = models.ManyToManyField(
         Permission,
         blank=True,
@@ -19,6 +24,13 @@ class App(ModelWithMetadata):
         related_name="app_set",
         related_query_name="app",
     )
+    about_app = models.TextField(blank=True)
+    data_privacy = models.TextField(blank=True)
+    data_privacy_url = models.URLField(blank=True)
+    homepage_url = models.URLField(blank=True)
+    support_url = models.URLField(blank=True)
+    configuration_url = models.URLField(blank=True)
+    app_url = models.URLField(blank=True)
 
     class Meta:
         ordering = ("name", "pk")
@@ -61,3 +73,15 @@ class AppToken(models.Model):
     app = models.ForeignKey(App, on_delete=models.CASCADE, related_name="tokens")
     name = models.CharField(blank=True, default="", max_length=128)
     auth_token = models.CharField(default=generate_token, unique=True, max_length=30)
+
+
+class AppJob(Job):
+    name = models.CharField(max_length=60)
+    manifest_url = models.URLField()
+    permissions = models.ManyToManyField(
+        Permission,
+        blank=True,
+        help_text="Specific permissions which will be assigned to app.",
+        related_name="app_job_set",
+        related_query_name="app_job",
+    )

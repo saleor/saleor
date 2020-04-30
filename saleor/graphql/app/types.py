@@ -5,10 +5,12 @@ from ...app import models
 from ...core.permissions import AppPermission
 from ..core.connection import CountableDjangoObjectType
 from ..core.types import Permission
+from ..core.types.common import Job
 from ..meta.deprecated.resolvers import resolve_meta, resolve_private_meta
 from ..meta.types import ObjectWithMetadata
 from ..utils import format_permissions_for_display
 from ..webhook.types import Webhook
+from .enums import AppTypeEnum
 
 
 class AppToken(CountableDjangoObjectType):
@@ -39,11 +41,26 @@ class App(CountableDjangoObjectType):
         description="Determine if app will be set active or not."
     )
     name = graphene.String(description="Name of the app.")
-
+    type = AppTypeEnum(description="Type of the app.")
     tokens = graphene.List(AppToken, description="Last 4 characters of the tokens.")
     webhooks = graphene.List(
         Webhook, description="List of webhooks assigned to this app."
     )
+
+    about_app = graphene.String(description="Description of this app.")
+
+    data_privacy = graphene.String(
+        description="Description of the data privacy defined for this app."
+    )
+    data_privacy_url = graphene.String(
+        description="Url to details about the privacy policy on the app owner page."
+    )
+    homepage_url = graphene.String(description="Homepage of the app.")
+    support_url = graphene.String(description="Support page for the app.")
+    configuration_url = graphene.String(
+        description="Url to iframe with the configuration for the app."
+    )
+    app_url = graphene.String(description="Url to iframe with the app.")
 
     class Meta:
         description = "Represents app data."
@@ -86,3 +103,20 @@ class App(CountableDjangoObjectType):
     @staticmethod
     def resolve_webhooks(root: models.App, _info):
         return root.webhooks.all()
+
+
+class OngoingAppInstallation(CountableDjangoObjectType):
+    class Meta:
+        model = models.AppJob
+        description = "Represents ongoing installation of app."
+        interface = (Job,)
+        permissions = (AppPermission.MANAGE_APPS,)
+        only_fields = [
+            "id",
+            "status",
+            "created_at",
+            "updated_at",
+            "name",
+            "manifest_url",
+            "message",
+        ]

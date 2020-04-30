@@ -201,7 +201,15 @@ type App implements Node & ObjectWithMetadata {
   metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "Use the `privetaMetadata` field. This field will be removed after 2020-07-31.")
   meta: [MetaStore]! @deprecated(reason: "Use the `metadata` field. This field will be removed after 2020-07-31.")
+  type: AppTypeEnum
   webhooks: [Webhook]
+  aboutApp: String
+  dataPrivacy: String
+  dataPrivacyUrl: String
+  homepageUrl: String
+  supportUrl: String
+  configurationUrl: String
+  appUrl: String
 }
 
 type AppCountableConnection {
@@ -256,6 +264,13 @@ input AppInput {
   permissions: [PermissionEnum]
 }
 
+enum AppJobStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  DELETED
+}
+
 enum AppSortField {
   NAME
   CREATION_DATE
@@ -288,6 +303,11 @@ type AppTokenDelete {
 input AppTokenInput {
   name: String
   app: ID!
+}
+
+enum AppTypeEnum {
+  CUSTOM
+  FROM_MARKETPLACE
 }
 
 type AppUpdate {
@@ -1933,6 +1953,18 @@ type Image {
   alt: String
 }
 
+type InstallApp {
+  errors: [Error!]! @deprecated(reason: "Use typed errors with error codes. This field will be removed after 2020-07-31.")
+  appErrors: [AppError!]!
+  appJob: OngoingAppInstallation
+}
+
+input InstallAppInput {
+  name: String
+  manifestUrl: String
+  permissions: [PermissionEnum]
+}
+
 input IntRangeInput {
   gte: Int
   lte: Int
@@ -2465,6 +2497,7 @@ type Mutation {
   appDelete(id: ID!): AppDelete
   appTokenCreate(input: AppTokenInput!): AppTokenCreate
   appTokenDelete(id: ID!): AppTokenDelete
+  installApp(input: InstallAppInput!): InstallApp
   requestPasswordReset(email: String!, redirectUrl: String!): RequestPasswordReset
   confirmAccount(email: String!, token: String!): ConfirmAccount
   setPassword(token: String!, email: String!, password: String!): SetPassword
@@ -2534,6 +2567,27 @@ interface ObjectWithMetadata {
   metadata: [MetadataItem]!
   privateMeta: [MetaStore]! @deprecated(reason: "Use the `privetaMetadata` field. This field will be removed after 2020-07-31.")
   meta: [MetaStore]! @deprecated(reason: "Use the `metadata` field. This field will be removed after 2020-07-31.")
+}
+
+type OngoingAppInstallation {
+  id: ID!
+  status: AppJobStatus!
+  message: String
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  name: String!
+  manifestUrl: String!
+}
+
+type OngoingAppInstallationCountableConnection {
+  pageInfo: PageInfo!
+  edges: [OngoingAppInstallationCountableEdge!]!
+  totalCount: Int
+}
+
+type OngoingAppInstallationCountableEdge {
+  node: OngoingAppInstallation!
+  cursor: String!
 }
 
 type Order implements Node & ObjectWithMetadata {
@@ -3920,6 +3974,7 @@ type Query {
   checkouts(before: String, after: String, first: Int, last: Int): CheckoutCountableConnection
   checkoutLine(id: ID): CheckoutLine
   checkoutLines(before: String, after: String, first: Int, last: Int): CheckoutLineCountableConnection
+  ongoingAppsInstallations(before: String, after: String, first: Int, last: Int): OngoingAppInstallationCountableConnection
   apps(filter: AppFilterInput, sortBy: AppSortingInput, before: String, after: String, first: Int, last: Int): AppCountableConnection
   app(id: ID!): App
   addressValidationRules(countryCode: CountryCode!, countryArea: String, city: String, cityArea: String): AddressValidationData
