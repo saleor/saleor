@@ -1,0 +1,13 @@
+{
+    "name": "app",
+    "version": "1.0.0",
+    "about_app": "Lorem ipsum",
+    "data_privacy": "Lorem ipsum",
+    "data_privacy_url": "http://localhost:3000/app-data-privacy",
+    "homepage_url": "http://localhost:3000/homepage",
+    "support_url": "http://localhost:3000/support",
+    "configuration_url": "htpp://localhost:3000/configuration",
+    "app_url": "http://localhost:3000/app",
+    "token_target_url": "http://localhost:3000/register",
+    "identificator": "app1"
+}

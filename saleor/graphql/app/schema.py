@@ -1,14 +1,21 @@
 import graphene
 
 from ...core.permissions import AppPermission
-from ..core.fields import FilterInputConnectionField
+from ..core.fields import FilterInputConnectionField, PrefetchingConnectionField
 from ..core.types import FilterInputObjectType
 from ..decorators import permission_required
 from .filters import AppFilter
-from .mutations import AppCreate, AppDelete, AppTokenCreate, AppTokenDelete, AppUpdate
+from .mutations import (
+    AppCreate,
+    AppDelete,
+    AppTokenCreate,
+    AppTokenDelete,
+    AppUpdate,
+    InstallApp,
+)
 from .resolvers import resolve_apps
 from .sorters import AppSortingInput
-from .types import App
+from .types import App, OngoingAppInstallation
 
 
 class AppFilterInput(FilterInputObjectType):
@@ -17,6 +24,9 @@ class AppFilterInput(FilterInputObjectType):
 
 
 class AppQueries(graphene.ObjectType):
+    ongoing_apps_installations = PrefetchingConnectionField(
+        OngoingAppInstallation, description="List of all ongoing apps installations"
+    )
     apps = FilterInputConnectionField(
         App,
         filter=AppFilterInput(description="Filtering options for apps."),
@@ -45,3 +55,5 @@ class AppMutations(graphene.ObjectType):
 
     app_token_create = AppTokenCreate.Field()
     app_token_delete = AppTokenDelete.Field()
+
+    install_app = InstallApp.Field()
