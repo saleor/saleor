@@ -76,6 +76,7 @@
           <a href="{% url "dashboard:product-update" product.pk %}" class="btn-flat waves-effect">
             {% trans "Edit product" context "Product action" %}
           </a>
+          <!--<a href="#">LINK PRIMEIRO BOX</a> -->
           <a href="#base-modal" data-href="{% url 'dashboard:product-delete' pk=product.pk %}" class="modal-trigger-custom btn-flat waves-effect">
             {% trans "Remove product" context "Product action" %}
           </a>
@@ -129,6 +130,7 @@
                         -
                       {% endif %}
                     </td>
+
                     <td><a href="{% url 'dashboard:variant-update' product_pk=product.pk variant_pk=variant.pk %}" class="btn-flat waves-effect">{% trans "Edit" %}</a></td>
                   </tr>
                 {% empty %}
@@ -142,9 +144,27 @@
         </div>
       {% endif %}
     </div>
+
     <div class="col s12 l4">
       <div class="row no-margin">
         <div class="col s12">
+
+          <div class="card">
+            <div class="card-content">
+              <span class="card-title">{% trans "Images" %}</span>
+              <div class="row">
+                {% for image in images %}
+                  <div class="col s4">
+                    <img class="responsive-img" src="{{ image.image.thumbnail.255x255 }}" srcset="{{ image.image.thumbnail.255x255 }} 1x, {{ image.image.thumbnail.510x510 }} 2x" alt="{{ image.alt }}">
+                  </div>
+                {% endfor %}
+              </div>
+            </div>
+            <div class="card-action">
+              <a href="{% url 'dashboard:product-image-list' product.pk %}" class="btn-flat waves-effect">{% trans "Edit images" %}</a>
+            </div>
+          </div>
+
           <div class="card">
             <div class="data-table-header">
               <div class="data-table-title">
@@ -256,21 +276,7 @@
               </div>
             </div>
           {% endif %}
-          <div class="card">
-            <div class="card-content">
-              <span class="card-title">{% trans "Images" %}</span>
-              <div class="row">
-                {% for image in images %}
-                  <div class="col s4">
-                    <img class="responsive-img" src="{{ image.image.thumbnail.255x255 }}" srcset="{{ image.image.thumbnail.255x255 }} 1x, {{ image.image.thumbnail.510x510 }} 2x" alt="{{ image.alt }}">
-                  </div>
-                {% endfor %}
-              </div>
-            </div>
-            <div class="card-action">
-              <a href="{% url 'dashboard:product-image-list' product.pk %}" class="btn-flat waves-effect">{% trans "Edit images" %}</a>
-            </div>
-          </div>
+          
         </div>
       </div>
     </div>

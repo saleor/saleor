@@ -371,7 +371,7 @@ msgid "Your input fits between the recommended lengths"
 msgstr "Sua entrada se encaixa no tamanho recomendado"
 
 #: saleor/static/js/components/variantPicker/QuantityInput.js:22
-msgctxt "Add to cart form field label"
+msgctxt "Adicionar form field label"
 msgid "Quantity"
 msgstr "Quantidade"
 

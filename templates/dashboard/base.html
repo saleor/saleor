@@ -36,7 +36,7 @@
               <li class="user-name">
                 {{ request.user }}
               </li>
-              <li class="divider"></li>
+              <li class="divider"></li>           
               <li>
                 <a href="{% url 'home' %}" target="_blank" class="waves-effect">
                   {% trans "Visit storefront" context "Dashboard top navigation action" %}
@@ -249,6 +249,7 @@
                 {% trans "Home" context "Dashboard homepage" %}
               </a>
             </li>
+            <!-- Titulo da home dashboard -->
           </ul>
         {% endblock %}
         {% block header_extra %}{% endblock %}
@@ -257,6 +258,7 @@
     <main class="main">
       <div id="base-modal" class="modal"></div>
       <div id="base-modal-fixed" class="modal modal-fixed-footer"></div>
+      
       <div class="container">
         {% block content %}{% endblock %}
         <div id="dashboard-app"></div>

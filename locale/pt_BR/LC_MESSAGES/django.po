@@ -1950,12 +1950,12 @@ msgstr "Produto removido do pedido"
 
 #: templates/checkout/index.html:30
 msgctxt "Checkout table header"
-msgid "Product"
+msgid "Produto"
 msgstr "Produto"
 
 #: templates/checkout/index.html:33
 msgctxt "Checkout table header"
-msgid "Quantity"
+msgid "Quantitdade"
 msgstr "Quantidade"
 
 #: templates/checkout/index.html:36
@@ -2203,7 +2203,7 @@ msgstr "Catálogo"
 #: templates/dashboard/product/product_type/form.html:12
 #: templates/dashboard/product/product_variant/form.html:26
 msgctxt "Dashboard products list"
-msgid "Products"
+msgid "Produtos"
 msgstr "Produtos"
 
 #: templates/dashboard/base.html:112
@@ -3725,7 +3725,7 @@ msgstr "Adicionar produtos ao pedido"
 
 #: templates/dashboard/order/detail.html:443
 msgctxt "Order summary card action"
-msgid "Add product"
+msgid "Adicionar Produto"
 msgstr "Adicionar produto"
 
 #: templates/dashboard/order/detail.html:448
@@ -3898,7 +3898,7 @@ msgstr "Adicionar produto a %(order)s"
 
 #: templates/dashboard/order/modal/add_variant_to_order.html:22
 msgctxt "Modal order add variant primary action"
-msgid "Add"
+msgid "Adicionar"
 msgstr "Adicionar"
 
 #: templates/dashboard/order/modal/cancel_fulfillment.html:11
@@ -6270,8 +6270,8 @@ msgstr "Excluindo %(tax_rate)s%% de ICMS"
 
 #: templates/product/details.html:178
 msgctxt "Product details primary action"
-msgid "Add to checkout"
-msgstr "Adicionar à compra"
+msgid "Adicionar"
+msgstr "Adicionar"
 
 #: templates/product/details.html:190
 msgctxt "Product details text"

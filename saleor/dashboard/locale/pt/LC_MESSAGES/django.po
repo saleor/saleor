@@ -853,7 +853,7 @@ msgctxt "Number of matching records in the dashboard orders list"
 msgid "Found %(counter)d matching order"
 msgid_plural "Found %(counter)d matching orders"
 msgstr[0] "Encontrada %(counter)d encomenda"
-msgstr[1] "Encontradas %(counter)d encomendas"
+msgstr[1] "Encontradas %(counter)d pedidos"
 
 #: saleor/dashboard/order/forms.py:49
 msgctxt "Send email to customer about order created by staff users"

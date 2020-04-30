@@ -2208,7 +2208,7 @@ msgstr ""
 #: templates/dashboard/product/product_type/form.html:12
 #: templates/dashboard/product/product_variant/form.html:26
 msgctxt "Dashboard products list"
-msgid "Products"
+msgid "Produtos"
 msgstr ""
 
 #: templates/dashboard/base.html:112
@@ -2662,7 +2662,7 @@ msgid "Visibility"
 msgstr ""
 
 #: templates/dashboard/collection/list.html:58
-msgid "Products in collection:"
+msgid "Produtos em coleção:"
 msgstr ""
 
 #: templates/dashboard/collection/list.html:79
@@ -6143,7 +6143,7 @@ msgstr ""
 
 #: templates/product/details.html:178
 msgctxt "Product details primary action"
-msgid "Add to cart"
+msgid "Adicionar"
 msgstr ""
 
 #: templates/product/details.html:190
