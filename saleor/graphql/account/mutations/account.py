@@ -254,17 +254,18 @@ class AccountAddressCreate(ModelMutation, I18nMixin):
 
     @classmethod
     def perform_mutation(cls, root, info, **data):
-        address_data = data["input"]
-        success_response = super().perform_mutation(root, info, **data)
         address_type = data.get("type", None)
         user = info.context.user
-        success_response.user = user
+        cleaned_input = cls.clean_input(
+            info=info, instance=Address(), data=data.get("input")
+        )
+        address = cls.validate_address(cleaned_input)
+        cls.clean_instance(info, address)
+        cls.save(info, address, cleaned_input)
+        cls._save_m2m(info, address, cleaned_input)
         if address_type:
-            address = cls.validate_address(
-                address_data, instance=success_response.address, info=info
-            )
             utils.change_user_default_address(user, address, address_type)
-        return success_response
+        return AccountAddressCreate(user=user, address=address)
 
     @classmethod
     def save(cls, info, instance, cleaned_input):
