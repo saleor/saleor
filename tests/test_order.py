@@ -256,6 +256,14 @@ def test_update_order_status(fulfilled_order):
     assert fulfilled_order.status == OrderStatus.UNFULFILLED
 
 
+def test_validate_fulfillment_tracking_number_as_url(fulfilled_order):
+    fulfillment = fulfilled_order.fulfillments.first()
+    assert not fulfillment.is_tracking_number_url
+    fulfillment.tracking_number = "https://www.example.com"
+    fulfillment.save()
+    assert fulfillment.is_tracking_number_url
+
+
 def test_order_queryset_confirmed(draft_order):
     other_orders = [
         Order.objects.create(status=OrderStatus.UNFULFILLED),
