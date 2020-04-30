@@ -41,7 +41,8 @@ from ...translations.types import (
     ProductTranslation,
     ProductVariantTranslation,
 )
-from ...utils import get_database_id, reporting_period_to_date
+from ...utils import get_database_id
+from ...utils.filters import reporting_period_to_date
 from ...warehouse.types import Stock
 from ..dataloaders import (
     CategoryByIdLoader,
