@@ -22,6 +22,13 @@ def resolve_attributes(info, qs=None, in_category=None, in_collection=None, **_k
     return qs.distinct()
 
 
+def resolve_category_by_slug(info, slug):
+    try:
+        return models.Category.objects.get(slug=slug)
+    except models.Category.DoesNotExist:
+        return None
+
+
 def resolve_categories(info, level=None, **_kwargs):
     qs = models.Category.objects.prefetch_related("children")
     if level is not None:
