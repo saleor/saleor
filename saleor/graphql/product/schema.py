@@ -1,4 +1,5 @@
 import graphene
+from graphql.error import GraphQLError
 
 from ...core.permissions import ProductPermissions
 from ..core.enums import ReportingPeriod
@@ -105,6 +106,7 @@ from .mutations.products import (
 )
 from .resolvers import (
     resolve_attributes,
+    resolve_category_by_slug,
     resolve_categories,
     resolve_collections,
     resolve_digital_contents,
@@ -167,10 +169,9 @@ class ProductQueries(graphene.ObjectType):
     )
     category = graphene.Field(
         Category,
-        id=graphene.Argument(
-            graphene.ID, required=True, description="ID of the category."
-        ),
-        description="Look up a category by ID.",
+        id=graphene.Argument(graphene.ID, description="ID of the category."),
+        slug=graphene.Argument(graphene.String, description="Slug of the category"),
+        description="Look up a category by ID or slug.",
     )
     collection = graphene.Field(
         Collection,
@@ -251,8 +252,12 @@ class ProductQueries(graphene.ObjectType):
     def resolve_categories(self, info, level=None, **kwargs):
         return resolve_categories(info, level=level, **kwargs)
 
-    def resolve_category(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, Category)
+    def resolve_category(self, info, id=None, slug=None):
+        if id:
+            return graphene.Node.get_node_from_global_id(info, id, Category)
+        if slug:
+            return resolve_category_by_slug(info=info, slug=slug)
+        raise GraphQLError("Either ID or slug are required")
 
     def resolve_collection(self, info, id):
         return graphene.Node.get_node_from_global_id(info, id, Collection)
