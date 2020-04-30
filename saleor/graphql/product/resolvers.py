@@ -23,10 +23,7 @@ def resolve_attributes(info, qs=None, in_category=None, in_collection=None, **_k
 
 
 def resolve_category_by_slug(info, slug):
-    try:
-        return models.Category.objects.get(slug=slug)
-    except models.Category.DoesNotExist:
-        return None
+    return models.Category.objects.filter(slug=slug).first()
 
 
 def resolve_categories(info, level=None, **_kwargs):
