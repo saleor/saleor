@@ -5856,8 +5856,8 @@ msgstr "Promoção e Liquidação"
 
 #: templates/home.html:13
 msgctxt "Homepage title"
-msgid "from the Cantinho"
-msgstr "do Cantinho Doce"
+msgid "Do Cantinho Doce"
+msgstr "Do Cantinho Doce"
 
 #: templates/home.html:15 templates/home.html:30 templates/home.html:42
 msgctxt "Homepage action"

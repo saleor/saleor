@@ -21,12 +21,15 @@
 *.pot
 *.pyc
 local_settings.py
+cantinho_env.yml
+Cantinho Workspace.code-workspace
 __pycache__/
 build/
 coverage/
 dist/
 *\.egg*
 # data
+/saleor/saleor/gifcard/migrations/
 /docs/_build/
 /media/
 /node_modules/
