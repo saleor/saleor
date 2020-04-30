@@ -28,10 +28,16 @@
     }
   }
   &__copy {
+   
+    align-items: center;
     padding: $global-padding * .5 0 $global-padding * .5;
     &-text {
       text-align: right;
     }
+  }
+  .box-sale {
+    display: flex;
+    align-content: center;
   }
   &__logo {
     

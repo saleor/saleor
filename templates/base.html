@@ -188,12 +188,14 @@
           {% footer_menu site_menu=site.settings.bottom_menu %}
         <div class="col-md-2 col-6">
         <ul class="menu">
+            
           <li class="nav-item__dropdown menu__item">
             <a>
               <strong>
                 {% trans "Account" %}
               </strong>
             </a>
+            
             <hr />
             <li>
               <a rel="nofollow" href="{% url "checkout:index" %}">
@@ -253,7 +255,7 @@
   </div>
   <div class="footer__copy">
     <div class="container">
-      <div class="row">
+      <div class="row" style="display:flex;align-items:center;">
         <div class="col-4">
           <a href="{% url 'home' %}" class="footer__logo float-md-left">
             <svg data-src="{% static "images/logo-light.svg" %}"/>
