@@ -10,6 +10,8 @@ import django.db.models.deletion
 import versatileimagefield.fields
 from django.db import migrations, models
 
+from saleor.core.hstore import h_store_field
+
 
 class Migration(migrations.Migration):
 
@@ -64,7 +66,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="product",
             name="attributes",
-            field=django.contrib.postgres.fields.hstore.HStoreField(default={}),
+            field=h_store_field(default={}),
         ),
         migrations.AlterField(
             model_name="product",
@@ -188,7 +190,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="productvariant",
             name="attributes",
-            field=django.contrib.postgres.fields.hstore.HStoreField(default={}),
+            field=h_store_field(default={}),
         ),
         migrations.AlterField(
             model_name="productvariant",

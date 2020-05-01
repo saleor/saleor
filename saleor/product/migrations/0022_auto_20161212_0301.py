@@ -6,6 +6,8 @@ import django.contrib.postgres.fields.hstore
 import django.db.models.deletion
 from django.db import migrations, models
 
+from saleor.core.hstore import h_store_field
+
 
 class Migration(migrations.Migration):
 
@@ -16,7 +18,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="product",
             name="attributes",
-            field=django.contrib.postgres.fields.hstore.HStoreField(
+            field=h_store_field(
                 default={}, verbose_name="attributes"
             ),
         ),

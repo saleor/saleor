@@ -3,6 +3,8 @@
 import django.contrib.postgres.fields.hstore
 from django.db import migrations
 
+from saleor.core.hstore import h_store_field
+
 
 class Migration(migrations.Migration):
 
@@ -12,14 +14,14 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="product",
             name="attributes",
-            field=django.contrib.postgres.fields.hstore.HStoreField(
+            field=h_store_field(
                 blank=True, default=dict
             ),
         ),
         migrations.AlterField(
             model_name="productvariant",
             name="attributes",
-            field=django.contrib.postgres.fields.hstore.HStoreField(
+            field=h_store_field(
                 blank=True, default=dict
             ),
         ),

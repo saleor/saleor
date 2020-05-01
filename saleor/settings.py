@@ -558,3 +558,14 @@ if "JAEGER_AGENT_HOST" in os.environ:
         service_name="saleor",
         validate=True,
     ).initialize_tracer()
+
+# Whether or not the backward compatibility to HStore should be kept.
+#
+# This can be safely set to False (backward compatibility disabled) if you are
+# migrating from Saleor 2.9 and upwards.
+#
+# It should be set to False (enabled) for any version between v2018.09 and 2.8 included.
+#
+# This is useful to disable (False) if you do not want to create your database running
+# as super-user.
+BACKWARD_HSTORE = get_bool_from_env("BACKWARD_HSTORE_COMPATIBILITY", True)

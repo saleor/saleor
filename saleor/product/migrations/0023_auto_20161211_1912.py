@@ -5,6 +5,8 @@ from __future__ import unicode_literals
 import django.contrib.postgres.fields.hstore
 from django.db import migrations
 
+from saleor.core.hstore import h_store_field
+
 
 class Migration(migrations.Migration):
 
@@ -14,7 +16,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="productvariant",
             name="attributes_postgres",
-            field=django.contrib.postgres.fields.hstore.HStoreField(
+            field=h_store_field(
                 default={}, verbose_name="attributes"
             ),
         )

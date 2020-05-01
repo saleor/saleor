@@ -105,6 +105,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Extend errors in OrderFulfill mutation - #5553 by @fowczarek
 - Refactor OrderCancel mutation for many warehouses - #5554 by @fowczarek
 - Add negative weight validation - #5564 by @fowczarek
+- Added a flag to optionally use HStore field against backward compatibility - #5576 by @NyanKiyoshi
 
 ## 2.9.0
 
