@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 
 from decimal import Decimal
 
-import django.contrib.postgres.fields.hstore
 import django.core.validators
 import django.db.models.deletion
 import versatileimagefield.fields
@@ -64,9 +63,7 @@ class Migration(migrations.Migration):
             model_name="category", name="slug", field=models.SlugField()
         ),
         migrations.AlterField(
-            model_name="product",
-            name="attributes",
-            field=h_store_field(default={}),
+            model_name="product", name="attributes", field=h_store_field(default={}),
         ),
         migrations.AlterField(
             model_name="product",

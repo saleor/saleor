@@ -11,6 +11,4 @@ class Migration(migrations.Migration):
 
     dependencies = [("product", "0012_auto_20160218_0812")]
 
-    operations = [
-        h_store_extension
-    ]
+    operations = [h_store_extension]

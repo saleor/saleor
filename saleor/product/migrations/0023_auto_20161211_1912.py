@@ -16,8 +16,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name="productvariant",
             name="attributes_postgres",
-            field=h_store_field(
-                default={}, verbose_name="attributes"
-            ),
+            field=h_store_field(default={}, verbose_name="attributes"),
         )
     ]

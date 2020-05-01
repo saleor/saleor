@@ -14,15 +14,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="product",
             name="attributes",
-            field=h_store_field(
-                blank=True, default=dict
-            ),
+            field=h_store_field(blank=True, default=dict),
         ),
         migrations.AlterField(
             model_name="productvariant",
             name="attributes",
-            field=h_store_field(
-                blank=True, default=dict
-            ),
+            field=h_store_field(blank=True, default=dict),
         ),
     ]
