@@ -1,0 +1,103 @@
+interactions:
+- request:
+    body: grant_type=client_credentials
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip
+      Authorization:
+      - Basic QVctTEQwcE1mck5CTS1lckNtOHNDYWhvWTFrZlh4TDZDMk05SjFUYmxIUHNWNWpkUF9FMWVvakxuMGdGeHVpenVjX1p3MjJYSVBMN2NianI6RUVabXE4RFF1VzItWGlBaU5lV2stWk5KWW1yYzVmcFRKV2JHSmpyRzZQMURBWjJMNUV0bEVxSVJjOExENlB5ck92akFHWnBSUXFzMENNM28=
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '29'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      api_integration_type:
+      - PAYPALSDK
+      sdk_name:
+      - Checkout SDK
+      sdk_tech_stack:
+      - Python3.6.3
+      sdk_version:
+      - 1.0.1
+      user-agent:
+      - PayPalSDK/Checkout-Python-SDK 1.0.0 (requests 2.23.0; python 3.6.3; OpenSSL
+        1.0.2k  26 Jan 2017)
+    method: POST
+    uri: https://api.sandbox.paypal.com/v1/oauth2/token
+  response:
+    body:
+      string: '{"scope":"https://uri.paypal.com/services/invoicing https://uri.paypal.com/services/disputes/read-buyer
+        https://uri.paypal.com/services/payments/realtimepayment https://uri.paypal.com/services/disputes/update-seller
+        https://uri.paypal.com/services/payments/payment/authcapture openid https://uri.paypal.com/services/disputes/read-seller
+        https://uri.paypal.com/services/payments/refund https://api.paypal.com/v1/vault/credit-card
+        https://api.paypal.com/v1/payments/.* https://uri.paypal.com/payments/payouts
+        https://api.paypal.com/v1/vault/credit-card/.* https://uri.paypal.com/services/subscriptions
+        https://uri.paypal.com/services/applications/webhooks","access_token":"A21AAHp4Qk4hU5jcxUVVM0x5TUbC2Syk8ksdAR7jk_0Y9ENI7HzAs1g1dkT7p82sl7wSvJi0WBRSXOy3f6SMrKcJxrjw_kI4A","token_type":"Bearer","app_id":"APP-80W284485P519543T","expires_in":30145,"nonce":"2020-04-28T12:04:12ZjpikqeF7zX28F0k_8Md4QVB-DJcOMtC6aZFggQ0yQSE"}'
+    headers:
+      Cache-Control:
+      - max-age=0, no-cache, no-store, must-revalidate
+      Content-Length:
+      - '918'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 28 Apr 2020 12:41:47 GMT
+      Paypal-Debug-Id:
+      - 22af483e28909
+      X-Paypal-Token-Service:
+      - IAAS
+    status:
+      code: 200
+      message: OK
+- request:
+    body: '{"intent": "CAPTURE", "purchase_units": [{"amount": {"currency_code": "EUR",
+      "value": 42.42}}]}'
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip
+      Authorization:
+      - Bearer A21AAHp4Qk4hU5jcxUVVM0x5TUbC2Syk8ksdAR7jk_0Y9ENI7HzAs1g1dkT7p82sl7wSvJi0WBRSXOy3f6SMrKcJxrjw_kI4A
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '95'
+      Content-Type:
+      - application/json
+      Prefer:
+      - return=representation
+      api_integration_type:
+      - PAYPALSDK
+      sdk_name:
+      - Checkout SDK
+      sdk_tech_stack:
+      - Python3.6.3
+      sdk_version:
+      - 1.0.1
+      user-agent:
+      - PayPalSDK/Checkout-Python-SDK 1.0.0 (requests 2.23.0; python 3.6.3; OpenSSL
+        1.0.2k  26 Jan 2017)
+    method: POST
+    uri: https://api.sandbox.paypal.com/v2/checkout/orders
+  response:
+    body:
+      string: '{"id":"39R61016NN2825118","intent":"CAPTURE","purchase_units":[{"reference_id":"default","amount":{"currency_code":"EUR","value":"42.42"},"payee":{"email_address":"info.yougardener-facilitator@gmail.com","merchant_id":"FE3MYNZ438X4N"}}],"create_time":"2020-04-28T12:41:49Z","links":[{"href":"https://api.sandbox.paypal.com/v2/checkout/orders/39R61016NN2825118","rel":"self","method":"GET"},{"href":"https://www.sandbox.paypal.com/checkoutnow?token=39R61016NN2825118","rel":"approve","method":"GET"},{"href":"https://api.sandbox.paypal.com/v2/checkout/orders/39R61016NN2825118","rel":"update","method":"PATCH"},{"href":"https://api.sandbox.paypal.com/v2/checkout/orders/39R61016NN2825118/capture","rel":"capture","method":"POST"}],"status":"CREATED"}'
+    headers:
+      Cache-Control:
+      - max-age=0, no-cache, no-store, must-revalidate
+      Content-Length:
+      - '749'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 28 Apr 2020 12:41:48 GMT
+      Paypal-Debug-Id:
+      - 342109d296495
+    status:
+      code: 201
+      message: Created
+version: 1

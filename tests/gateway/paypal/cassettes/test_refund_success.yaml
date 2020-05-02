@@ -1,0 +1,100 @@
+interactions:
+- request:
+    body: grant_type=client_credentials
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip
+      Authorization:
+      - Basic QVctTEQwcE1mck5CTS1lckNtOHNDYWhvWTFrZlh4TDZDMk05SjFUYmxIUHNWNWpkUF9FMWVvakxuMGdGeHVpenVjX1p3MjJYSVBMN2NianI6RUVabXE4RFF1VzItWGlBaU5lV2stWk5KWW1yYzVmcFRKV2JHSmpyRzZQMURBWjJMNUV0bEVxSVJjOExENlB5ck92akFHWnBSUXFzMENNM28=
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '29'
+      Content-Type:
+      - application/x-www-form-urlencoded
+      api_integration_type:
+      - PAYPALSDK
+      sdk_name:
+      - Checkout SDK
+      sdk_tech_stack:
+      - Python3.6.3
+      sdk_version:
+      - 1.0.1
+      user-agent:
+      - PayPalSDK/Checkout-Python-SDK 1.0.0 (requests 2.23.0; python 3.6.3; OpenSSL
+        1.0.2k  26 Jan 2017)
+    method: POST
+    uri: https://api.sandbox.paypal.com/v1/oauth2/token
+  response:
+    body:
+      string: '{"scope":"https://uri.paypal.com/services/invoicing https://uri.paypal.com/services/disputes/read-buyer
+        https://uri.paypal.com/services/payments/realtimepayment https://uri.paypal.com/services/disputes/update-seller
+        https://uri.paypal.com/services/payments/payment/authcapture openid https://uri.paypal.com/services/disputes/read-seller
+        https://uri.paypal.com/services/payments/refund https://api.paypal.com/v1/vault/credit-card
+        https://api.paypal.com/v1/payments/.* https://uri.paypal.com/payments/payouts
+        https://api.paypal.com/v1/vault/credit-card/.* https://uri.paypal.com/services/subscriptions
+        https://uri.paypal.com/services/applications/webhooks","access_token":"A21AAG8wVT2vfsg3dfrUfBfa6SwomY-ft5pS45-dltwkc_kBBAR2vLMz13VFPvNwO69dOVjytU0M14SYXnZNrHVCG89G9fTIg","token_type":"Bearer","app_id":"APP-80W284485P519543T","expires_in":32400,"nonce":"2020-04-28T14:12:58ZLK2PWk6-yPNIDNdQcfA61QL6zQgt4z2izjDZclnUaWg"}'
+    headers:
+      Cache-Control:
+      - max-age=0, no-cache, no-store, must-revalidate
+      Content-Length:
+      - '918'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 28 Apr 2020 14:12:58 GMT
+      Paypal-Debug-Id:
+      - 9279d21a0997
+      X-Paypal-Token-Service:
+      - IAAS
+    status:
+      code: 200
+      message: OK
+- request:
+    body: null
+    headers:
+      Accept:
+      - '*/*'
+      Accept-Encoding:
+      - gzip
+      Authorization:
+      - Bearer A21AAG8wVT2vfsg3dfrUfBfa6SwomY-ft5pS45-dltwkc_kBBAR2vLMz13VFPvNwO69dOVjytU0M14SYXnZNrHVCG89G9fTIg
+      Connection:
+      - keep-alive
+      Content-Length:
+      - '0'
+      Content-Type:
+      - application/json
+      api_integration_type:
+      - PAYPALSDK
+      sdk_name:
+      - Checkout SDK
+      sdk_tech_stack:
+      - Python3.6.3
+      sdk_version:
+      - 1.0.1
+      user-agent:
+      - PayPalSDK/Checkout-Python-SDK 1.0.0 (requests 2.23.0; python 3.6.3; OpenSSL
+        1.0.2k  26 Jan 2017)
+    method: POST
+    uri: https://api.sandbox.paypal.com/v2/payments/captures/81466026X71727922/refund
+  response:
+    body:
+      string: '{"id":"3A391393JT085142V","status":"COMPLETED","links":[{"href":"https://api.sandbox.paypal.com/v2/payments/refunds/3A391393JT085142V","rel":"self","method":"GET"},{"href":"https://api.sandbox.paypal.com/v2/payments/captures/81466026X71727922","rel":"up","method":"GET"}]}'
+    headers:
+      Cache-Control:
+      - max-age=0, no-cache, no-store, must-revalidate
+      Content-Length:
+      - '272'
+      Content-Type:
+      - application/json
+      Date:
+      - Tue, 28 Apr 2020 14:13:01 GMT
+      Paypal-Debug-Id:
+      - aa3d4010a3fad
+    status:
+      code: 201
+      message: Created
+version: 1
