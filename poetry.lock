@@ -645,11 +645,11 @@ description = "Mypy stubs for Django"
 name = "django-stubs"
 optional = false
 python-versions = ">=3.6"
-version = "1.2.0"
+version = "1.5.0"
 
 [package.dependencies]
 django = "*"
-mypy = ">=0.730"
+mypy = ">=0.770,<0.780"
 typing-extensions = "*"
 
 [[package]]
@@ -2172,7 +2172,7 @@ idna = ">=2.0"
 multidict = ">=4.0"
 
 [metadata]
-content-hash = "d779e83d37305a0fb9895c3d1aaa0f36d35d5180ae63bff149a8afe65a28ea37"
+content-hash = "f1d19d95df5f1ae50b25754f16604405545825a29c3828603b1c0a4561ff8286"
 python-versions = "~3.8"
 
 [metadata.files]
@@ -2432,8 +2432,8 @@ django-storages = [
     {file = "django_storages-1.9.1-py2.py3-none-any.whl", hash = "sha256:3103991c2ee8cef8a2ff096709973ffe7106183d211a79f22cf855f33533d924"},
 ]
 django-stubs = [
-    {file = "django-stubs-1.2.0.tar.gz", hash = "sha256:c0515576de547bb33057e24d1b0294d10a68e55150ee32fc964f1082192ab012"},
-    {file = "django_stubs-1.2.0-py3-none-any.whl", hash = "sha256:ca565958a66c0772a11bf95e415d0bcd476eb59919a7ed1a417cc93315d68809"},
+    {file = "django-stubs-1.5.0.tar.gz", hash = "sha256:b4c9042f2c2fcb89dc0fb37df070cce0f9bf93b39ae193847b6e5a392b13c430"},
+    {file = "django_stubs-1.5.0-py3-none-any.whl", hash = "sha256:4a03df70e062f4133085efc461148d0934f36ccfd60a2b6d7bc35821f62008b6"},
 ]
 django-templated-email = [
     {file = "django-templated-email-2.3.0.tar.gz", hash = "sha256:536c4e5ae099eabfb9aab36087d4d7799948c654e73da55a744213d086d5bb33"},
