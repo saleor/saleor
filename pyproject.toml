@@ -53,7 +53,7 @@ python-magic-bin = {version = "^0.4.14", platform = "win32"}
 razorpay = "^1.2"
 requests = "^2.22"
 sentry-sdk = "^0"
-stripe = "^2.44.0"
+stripe = "^2.47.0"
 text-unidecode = "^1.2"
 tqdm = "^4.36"
 uwsgi = {version = "^2.0.8", platform = "!=win32"}
