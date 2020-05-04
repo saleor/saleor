@@ -4,7 +4,7 @@ from ...order import OrderStatus, models
 from ...order.events import OrderEvents
 from ...order.models import OrderEvent
 from ...order.utils import sum_order_totals
-from ..utils import filter_by_period
+from ..utils.filters import filter_by_period
 from .enums import OrderStatusFilter
 from .types import Order
 
