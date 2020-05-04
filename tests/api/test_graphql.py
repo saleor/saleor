@@ -10,7 +10,8 @@ from graphql.error import GraphQLError
 from graphql_relay import to_global_id
 
 from saleor.graphql.product.types import Product
-from saleor.graphql.utils import filter_by_query_param, get_nodes
+from saleor.graphql.utils import get_nodes
+from saleor.graphql.utils.filters import filter_by_query_param
 from tests.api.utils import get_graphql_content
 
 
@@ -104,7 +105,7 @@ def test_real_query(user_api_client, product):
         id
         name
         url
-        ancestors(last: 20) {
+        ancestors(first: 20) {
             edges {
                 node {
                     name

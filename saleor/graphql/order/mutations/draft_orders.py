@@ -10,15 +10,14 @@ from ....order import OrderStatus, events, models
 from ....order.actions import order_created
 from ....order.error_codes import OrderErrorCode
 from ....order.utils import (
-    add_variant_to_order,
-    allocate_stock,
+    add_variant_to_draft_order,
     change_order_line_quantity,
     delete_order_line,
     get_order_country,
     recalculate_order,
     update_order_prices,
 )
-from ....warehouse.availability import check_stock_quantity, get_available_quantity
+from ....warehouse.management import allocate_stock
 from ...account.i18n import I18nMixin
 from ...account.types import AddressInput
 from ...core.mutations import BaseMutation, ModelDeleteMutation, ModelMutation
@@ -143,13 +142,7 @@ class DraftOrderCreate(ModelMutation, I18nMixin):
             lines = []
             for variant, quantity in zip(variants, quantities):
                 lines.append((quantity, variant))
-                add_variant_to_order(
-                    instance,
-                    variant,
-                    quantity,
-                    allow_overselling=True,
-                    track_inventory=False,
-                )
+                add_variant_to_draft_order(instance, variant, quantity)
 
             # New event
             events.draft_order_added_products_event(
@@ -257,7 +250,8 @@ class DraftOrderComplete(BaseMutation):
     @classmethod
     def perform_mutation(cls, _root, info, id):
         order = cls.get_node_or_error(info, id, only_type=Order)
-        validate_draft_order(order)
+        country = get_order_country(order)
+        validate_draft_order(order, country)
         cls.update_user_fields(order)
         order.status = OrderStatus.UNFULFILLED
 
@@ -268,23 +262,20 @@ class DraftOrderComplete(BaseMutation):
                 order.shipping_address.delete()
 
         order.save()
-        country = get_order_country(order)
 
-        oversold_items = []
         for line in order:
             try:
-                check_stock_quantity(line.variant, country, line.quantity)
-                allocate_stock(line.variant, country, line.quantity)
-            except InsufficientStock:
-                available_stock = get_available_quantity(line.variant, country)
-                allocate_stock(line.variant, country, available_stock)
-                oversold_items.append(str(line))
+                allocate_stock(line, country, line.quantity)
+            except InsufficientStock as exc:
+                raise ValidationError(
+                    {
+                        "lines": ValidationError(
+                            f"Insufficient product stock: {exc.item}",
+                            code=OrderErrorCode.INSUFFICIENT_STOCK,
+                        )
+                    }
+                )
         order_created(order, user=info.context.user, from_draft=True)
-
-        if oversold_items:
-            events.draft_order_oversold_items_event(
-                order=order, user=info.context.user, oversold_items=oversold_items
-            )
 
         return DraftOrderComplete(order=order)
 
@@ -346,7 +337,7 @@ class DraftOrderLinesCreate(BaseMutation):
 
         # Add the lines
         lines = [
-            add_variant_to_order(order, variant, quantity, allow_overselling=True)
+            add_variant_to_draft_order(order, variant, quantity)
             for quantity, variant in lines_to_add
         ]
 

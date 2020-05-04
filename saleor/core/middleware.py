@@ -13,8 +13,8 @@ from django.utils.translation import get_language
 from django_countries.fields import Country
 
 from ..discount.utils import fetch_discounts
-from ..plugins.manager import get_plugins_manager
 from ..graphql.views import API_PATH, GraphQLView
+from ..plugins.manager import get_plugins_manager
 from . import analytics
 from .exceptions import ReadOnlyException
 from .utils import get_client_ip, get_country_by_ip, get_currency_for_country
@@ -44,11 +44,21 @@ def google_analytics(get_response):
     return _google_analytics_middleware
 
 
+def request_time(get_response):
+    def _stamp_request(request):
+        request.request_time = timezone.now()
+        return get_response(request)
+
+    return _stamp_request
+
+
 def discounts(get_response):
     """Assign active discounts to `request.discounts`."""
 
     def _discounts_middleware(request):
-        request.discounts = SimpleLazyObject(lambda: fetch_discounts(timezone.now()))
+        request.discounts = SimpleLazyObject(
+            lambda: fetch_discounts(request.request_time)
+        )
         return get_response(request)
 
     return _discounts_middleware

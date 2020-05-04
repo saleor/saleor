@@ -13,7 +13,7 @@ from ..product.filters import ProductFilterInput
 from ..product.types import Product
 from ..utils import resolve_global_ids_to_primary_keys
 from .enums import ExportScope
-from .types import Job
+from .types import ExportFile
 
 
 class ExportProductsInput(graphene.InputObjectType):
@@ -31,8 +31,11 @@ class ExportProductsInput(graphene.InputObjectType):
 
 
 class ExportProducts(BaseMutation):
-    job = graphene.Field(
-        Job, description="The newly created job which is responsible for export data."
+    export_file = graphene.Field(
+        ExportFile,
+        description=(
+            "The newly created export file job which is responsible for export data."
+        ),
     )
 
     class Arguments:
@@ -50,10 +53,10 @@ class ExportProducts(BaseMutation):
     def perform_mutation(cls, root, info, **data):
         user = info.context.user
         scope = cls.get_products_scope(info, data["input"])
-        job = csv_models.Job.objects.create(created_by=user)
-        export_products.delay(job.pk, scope)
-        job.refresh_from_db()
-        return cls(job=job)
+        export_file = csv_models.ExportFile.objects.create(created_by=user)
+        export_products.delay(export_file.pk, scope)
+        export_file.refresh_from_db()
+        return cls(export_file=export_file)
 
     @classmethod
     def get_products_scope(cls, info, input) -> Mapping[str, Union[list, dict, str]]:

@@ -25,7 +25,6 @@ class ProductExportFields:
     WAREHOUSE_FIELDS = [
         "stocks__warehouse__slug",
         "stocks__quantity",
-        "stocks__quantity_allocated",
     ]
     ATTRIBUTE_FIELDS = ["slugs_of_values", "attribute_slug"]
     PRODUCT_HEADERS_MAPPING = {
@@ -228,7 +227,6 @@ def update_variant_data(
         warehouse_data = {
             "slug": data.pop("stocks__warehouse__slug"),
             "qty": data.pop("stocks__quantity"),
-            "qty_alc": data.pop("stocks__quantity_allocated"),
         }
         image: str = data.pop("image_path")  # type: ignore
 
@@ -306,10 +304,8 @@ def add_warehouse_info_to_data(
     warehouse_headers: Set[str] = set()
     if slug:
         warehouse_qty_header = f"{slug} (warehouse quantity)"
-        warehouse_qty_alc_header = f"{slug} (warehouse quantity allocated)"
         if warehouse_qty_header not in result_data[pk]:
             result_data[pk][warehouse_qty_header] = warehouse_data["qty"]
-            result_data[pk][warehouse_qty_alc_header] = warehouse_data["qty_alc"]
-            warehouse_headers = {warehouse_qty_header, warehouse_qty_alc_header}
+            warehouse_headers.add(warehouse_qty_header)
 
     return result_data, warehouse_headers

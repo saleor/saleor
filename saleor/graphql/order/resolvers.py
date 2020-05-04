@@ -1,21 +1,17 @@
 import graphene
-import graphene_django_optimizer as gql_optimizer
 
 from ...order import OrderStatus, models
 from ...order.events import OrderEvents
 from ...order.models import OrderEvent
 from ...order.utils import sum_order_totals
-from ..utils import filter_by_period, filter_by_query_param, sort_queryset
+from ..utils.filters import filter_by_period
 from .enums import OrderStatusFilter
-from .sorters import OrderSortField
 from .types import Order
 
 ORDER_SEARCH_FIELDS = ("id", "discount_name", "token", "user_email", "user__email")
 
 
-def filter_orders(qs, info, created, status, query):
-    qs = filter_by_query_param(qs, query, ORDER_SEARCH_FIELDS)
-
+def filter_orders(qs, info, created, status):
     # DEPRECATED: Will be removed in Saleor 2.11, use the `filter` field instead.
     # filter orders by status
     if status is not None:
@@ -29,19 +25,17 @@ def filter_orders(qs, info, created, status, query):
     if created is not None:
         qs = filter_by_period(qs, created, "created")
 
-    return gql_optimizer.query(qs, info)
+    return qs
 
 
-def resolve_orders(info, created, status, query, sort_by=None):
+def resolve_orders(info, created, status, **_kwargs):
     qs = models.Order.objects.confirmed()
-    qs = sort_queryset(qs, sort_by, OrderSortField)
-    return filter_orders(qs, info, created, status, query)
+    return filter_orders(qs, info, created, status)
 
 
-def resolve_draft_orders(info, created, query, sort_by=None):
+def resolve_draft_orders(info, created, **_kwargs):
     qs = models.Order.objects.drafts()
-    qs = sort_queryset(qs, sort_by, OrderSortField)
-    return filter_orders(qs, info, created, None, query)
+    return filter_orders(qs, info, created, None)
 
 
 def resolve_orders_total(_info, period):

@@ -51,7 +51,7 @@ All notable, unreleased changes to this project will be documented in this file.
 - Fix getting title field in page mutations #5160 by @maarcingebala
 - Copy public and private metadata from the checkout to the order upon creation - #5165 by @dankolbman
 - Add warehouses and stocks- #4986 by @szewczykmira
-- Add permission groups - #5176 by @IKarbowiak
+- Add permission groups - #5176, #5513 by @IKarbowiak
 - Drop gettext occurrences - #5189 by @IKarbowiak
 - Fix `product_created` webhook - #5187 by @dzkb
 - Drop unused resolver `resolve_availability` - #5190 by @maarcingebala
@@ -96,6 +96,16 @@ All notable, unreleased changes to this project will be documented in this file.
 - Add accountErrors to CreateToken as a required field - #5437 by @koradon
 - Raise GraphQLError if filter has not valid IDs - #5460 by @gabmartinez
 - Fix missing accountError when JSONWebTokenError is raised in CreateToken - #5465 by @koradon
+- Use AccountErrorCode.INVALID_CREDENTIALS instead of INVALID_PASSWORD - #5495 by @koradon
+- Add tests for pagination - #5468 by @koradon
+- Add job abstract model and interface - #5510 by @IKarbowiak
+- Refactor implementation of allocation - #5445 by @fowczarek
+- Fix WeightScalar - #5530 by @koradon
+- Add OrderFulfill mutation - #5525 by @fowczarek
+- Add home page - #5494 by @IKarbowiak and @dominik-zeglen
+- Extend errors in OrderFulfill mutation - #5553 by @fowczarek
+- Refactor OrderCancel mutation for many warehouses - #5554 by @fowczarek
+- Add negative weight validation - #5564 by @fowczarek
 
 ## 2.9.0
 

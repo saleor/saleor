@@ -17,7 +17,7 @@ from saleor.order.actions import (
 from saleor.order.models import Fulfillment
 from saleor.payment import ChargeStatus, PaymentError
 from saleor.product.models import DigitalContent
-from saleor.warehouse.models import Stock
+from saleor.warehouse.models import Allocation, Stock
 
 from .utils import create_image
 
@@ -36,18 +36,22 @@ def order_with_digital_line(order, digital_content, stock, site_settings):
     product_type.is_digital = True
     product_type.save()
 
+    quantity = 3
     net = variant.get_price()
     gross = Money(amount=net.amount * Decimal(1.23), currency=net.currency)
-    order.lines.create(
+    line = order.lines.create(
         product_name=str(variant.product),
         variant_name=str(variant),
         product_sku=variant.sku,
         is_shipping_required=variant.is_shipping_required(),
-        quantity=3,
+        quantity=quantity,
         variant=variant,
         unit_price=TaxedMoney(net=net, gross=gross),
         tax_rate=23,
     )
+
+    Allocation.objects.create(order_line=line, stock=stock, quantity_allocated=quantity)
+
     return order
 
 
@@ -138,28 +142,37 @@ def test_clean_mark_order_as_paid(payment_txn_preauth):
         clean_mark_order_as_paid(order)
 
 
-def test_cancel_fulfillment(fulfilled_order):
+def test_cancel_fulfillment(fulfilled_order, warehouse):
     fulfillment = fulfilled_order.fulfillments.first()
     line_1 = fulfillment.lines.first()
     line_2 = fulfillment.lines.first()
 
-    cancel_fulfillment(fulfillment, None, restock=False)
+    cancel_fulfillment(fulfillment, None, warehouse)
 
+    fulfillment.refresh_from_db()
+    fulfilled_order.refresh_from_db()
     assert fulfillment.status == FulfillmentStatus.CANCELED
     assert fulfilled_order.status == OrderStatus.UNFULFILLED
     assert line_1.order_line.quantity_fulfilled == 0
     assert line_2.order_line.quantity_fulfilled == 0
 
 
-def test_cancel_order(fulfilled_order):
-    cancel_order(fulfilled_order, None, restock=False)
-    assert all(
-        [
-            f.status == FulfillmentStatus.CANCELED
-            for f in fulfilled_order.fulfillments.all()
-        ]
-    )
-    assert fulfilled_order.status == OrderStatus.CANCELED
+def test_cancel_order(fulfilled_order_with_all_cancelled_fulfillments):
+    order = fulfilled_order_with_all_cancelled_fulfillments
+
+    assert Allocation.objects.filter(
+        order_line__order=order, quantity_allocated__gt=0
+    ).exists()
+
+    cancel_order(order, None)
+
+    order_event = order.events.last()
+    assert order_event.type == OrderEvents.CANCELED
+
+    assert order.status == OrderStatus.CANCELED
+    assert not Allocation.objects.filter(
+        order_line__order=order, quantity_allocated__gt=0
+    ).exists()
 
 
 def test_fulfill_order_line(order_with_lines):
@@ -170,7 +183,7 @@ def test_fulfill_order_line(order_with_lines):
     stock = Stock.objects.get(product_variant=variant)
     stock_quantity_after = stock.quantity - line.quantity
 
-    fulfill_order_line(line, line.quantity)
+    fulfill_order_line(line, line.quantity, stock.warehouse.pk)
 
     stock.refresh_from_db()
     assert stock.quantity == stock_quantity_after
@@ -183,7 +196,7 @@ def test_fulfill_order_line_with_variant_deleted(order_with_lines):
 
     line.refresh_from_db()
 
-    fulfill_order_line(line, line.quantity)
+    fulfill_order_line(line, line.quantity, "warehouse_pk")
 
 
 def test_fulfill_order_line_without_inventory_tracking(order_with_lines):
@@ -198,7 +211,7 @@ def test_fulfill_order_line_without_inventory_tracking(order_with_lines):
     # stock should not change
     stock_quantity_after = stock.quantity
 
-    fulfill_order_line(line, line.quantity)
+    fulfill_order_line(line, line.quantity, stock.warehouse.pk)
 
     stock.refresh_from_db()
     assert stock.quantity == stock_quantity_after

@@ -6,19 +6,19 @@ import pytest
 from django.utils import timezone
 
 from saleor.account.models import User
-from saleor.csv import JobStatus
-from saleor.csv.models import Job
+from saleor.core import JobStatus
+from saleor.csv.models import ExportFile
 from saleor.graphql.csv.enums import ExportScope
 from tests.api.utils import get_graphql_content
 
 EXPORT_PRODUCTS_MUTATION = """
     mutation ExportProducts($input: ExportProductsInput!){
         exportProducts(input: $input){
-            job {
+            exportFile {
                 id
                 status
                 createdAt
-                completedAt
+                updatedAt
                 url
                 createdBy {
                     email
@@ -61,14 +61,14 @@ def test_export_products_mutation(
     )
     content = get_graphql_content(response)
     data = content["data"]["exportProducts"]
-    job_data = data["job"]
+    export_file_data = data["exportFile"]
 
     export_products_mock.assert_called_once_with(ANY, called_data)
 
     assert not data["csvErrors"]
-    assert data["job"]["id"]
-    assert job_data["createdAt"]
-    assert job_data["createdBy"]["email"] == staff_api_client.user.email
+    assert data["exportFile"]["id"]
+    assert export_file_data["createdAt"]
+    assert export_file_data["createdBy"]["email"] == staff_api_client.user.email
 
 
 @patch("saleor.graphql.csv.mutations.export_products.delay")
@@ -92,7 +92,7 @@ def test_export_products_mutation_ids_scope(
     )
     content = get_graphql_content(response)
     data = content["data"]["exportProducts"]
-    job_data = data["job"]
+    export_file_data = data["exportFile"]
 
     export_products_mock.assert_called_once()
     (call_args, call_kwargs,) = export_products_mock.call_args
@@ -100,9 +100,9 @@ def test_export_products_mutation_ids_scope(
     assert set(call_args[1]["ids"]) == pks
 
     assert not data["csvErrors"]
-    assert data["job"]["id"]
-    assert job_data["createdAt"]
-    assert job_data["createdBy"]["email"] == staff_api_client.user.email
+    assert data["exportFile"]["id"]
+    assert export_file_data["createdAt"]
+    assert export_file_data["createdBy"]["email"] == staff_api_client.user.email
 
 
 @pytest.mark.parametrize(
@@ -137,13 +137,13 @@ def test_export_products_mutation_failed(
     assert errors[0]["field"] == error_field
 
 
-JOB_QUERY = """
-    query($jobId: ID!){
-        job(id: $jobId){
+EXPORT_FILE_QUERY = """
+    query($id: ID!){
+        exportFile(id: $id){
             id
             status
-            completedAt
             createdAt
+            updatedAt
             url
             createdBy{
                 email
@@ -153,14 +153,34 @@ JOB_QUERY = """
 """
 
 
-FILTER_JOBS_QUERY = """
-    query($filter: JobFilterInput!){
-        jobs(first: 10, filter: $filter) {
+FILTER_EXPORT_FILES_QUERY = """
+    query($filter: ExportFileFilterInput!){
+        exportFiles(first: 10, filter: $filter) {
             edges{
                 node {
                     id
                     status
-                    completedAt
+                    createdAt
+                    updatedAt
+                    url
+                    createdBy{
+                        email
+                    }
+                }
+            }
+        }
+    }
+"""
+
+
+SORT_EXPORT_FILES_QUERY = """
+    query($sortBy: ExportFileSortingInput!) {
+        exportFiles(first: 10, sortBy: $sortBy) {
+            edges{
+                node {
+                    id
+                    status
+                    updatedAt
                     createdAt
                     url
                     createdBy{
@@ -173,39 +193,19 @@ FILTER_JOBS_QUERY = """
 """
 
 
-SORT_JOBS_QUERY = """
-    query($sortBy: JobSortingInput!) {
-        jobs(first: 10, sortBy: $sortBy) {
-            edges{
-                node {
-                    id
-                    status
-                    completedAt
-                    createdAt
-                    url
-                    createdBy{
-                        email
-                    }
-                }
-            }
-        }
-    }
-"""
-
-
-def test_query_job(staff_api_client, job, permission_manage_products):
-    query = JOB_QUERY
-    variables = {"jobId": graphene.Node.to_global_id("Job", job.pk)}
+def test_query_export_file(staff_api_client, export_file, permission_manage_products):
+    query = EXPORT_FILE_QUERY
+    variables = {"id": graphene.Node.to_global_id("ExportFile", export_file.pk)}
 
     response = staff_api_client.post_graphql(
         query, variables=variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
-    data = content["data"]["job"]
+    data = content["data"]["exportFile"]
 
     assert data["status"] == JobStatus.PENDING.upper()
     assert data["createdAt"]
-    assert not data["completedAt"]
+    assert data["updatedAt"]
     assert not data["url"]
     assert data["createdBy"]["email"] == staff_api_client.user.email
 
@@ -218,17 +218,17 @@ def test_query_job(staff_api_client, job, permission_manage_products):
         ({"status": JobStatus.FAILED.upper()}, 1),
     ],
 )
-def test_filter_jobs_by_status(
-    staff_api_client, job_list, permission_manage_products, status_filter, count
+def test_filter_export_files_by_status(
+    staff_api_client, export_file_list, permission_manage_products, status_filter, count
 ):
-    query = FILTER_JOBS_QUERY
+    query = FILTER_EXPORT_FILES_QUERY
     variables = {"filter": status_filter}
 
     response = staff_api_client.post_graphql(
         query, variables=variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
-    nodes = content["data"]["jobs"]["edges"]
+    nodes = content["data"]["exportFiles"]["edges"]
 
     assert len(nodes) == count
 
@@ -240,17 +240,21 @@ def test_filter_jobs_by_status(
         ({"createdAt": {"lte": "2019-04-10T00:00:00+00:00"}}, 2),
     ],
 )
-def test_filter_jobs_by_created_at_date(
-    staff_api_client, job_list, permission_manage_products, created_at_filter, count
+def test_filter_export_files_by_created_at_date(
+    staff_api_client,
+    export_file_list,
+    permission_manage_products,
+    created_at_filter,
+    count,
 ):
-    query = FILTER_JOBS_QUERY
+    query = FILTER_EXPORT_FILES_QUERY
     variables = {"filter": created_at_filter}
 
     response = staff_api_client.post_graphql(
         query, variables=variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
-    nodes = content["data"]["jobs"]["edges"]
+    nodes = content["data"]["exportFiles"]["edges"]
 
     assert len(nodes) == count
 
@@ -258,27 +262,31 @@ def test_filter_jobs_by_created_at_date(
 @pytest.mark.parametrize(
     "ended_at_filter, count",
     [
-        ({"completedAt": {"gte": "2019-04-18T00:00:00+00:00"}}, 3),
-        ({"completedAt": {"lte": "2019-04-18T00:00:00+00:00"}}, 2),
+        ({"updatedAt": {"gte": "2019-04-18T00:00:00+00:00"}}, 3),
+        ({"updatedAt": {"lte": "2019-04-18T00:00:00+00:00"}}, 2),
     ],
 )
-def test_filter_jobs_by_ended_at_date(
-    staff_api_client, job_list, permission_manage_products, ended_at_filter, count
+def test_filter_export_files_by_ended_at_date(
+    staff_api_client,
+    export_file_list,
+    permission_manage_products,
+    ended_at_filter,
+    count,
 ):
-    query = FILTER_JOBS_QUERY
+    query = FILTER_EXPORT_FILES_QUERY
     variables = {"filter": ended_at_filter}
 
     response = staff_api_client.post_graphql(
         query, variables=variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
-    nodes = content["data"]["jobs"]["edges"]
+    nodes = content["data"]["exportFiles"]["edges"]
 
     assert len(nodes) == count
 
 
-def test_filter_jobs_by_user(
-    staff_api_client, job_list, permission_manage_products, staff_user
+def test_filter_export_files_by_user(
+    staff_api_client, export_file_list, permission_manage_products, staff_user
 ):
     second_staff_user = User.objects.create_user(
         email="staff_test2@example.com",
@@ -287,23 +295,23 @@ def test_filter_jobs_by_user(
         is_active=True,
     )
 
-    job_list[1].created_by = second_staff_user
-    job_list[1].save()
+    export_file_list[1].created_by = second_staff_user
+    export_file_list[1].save()
 
-    query = FILTER_JOBS_QUERY
+    query = FILTER_EXPORT_FILES_QUERY
     variables = {"filter": {"createdBy": staff_user.email}}
 
     response = staff_api_client.post_graphql(
         query, variables=variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
-    nodes = content["data"]["jobs"]["edges"]
+    nodes = content["data"]["exportFiles"]["edges"]
 
     assert len(nodes) == 4
 
 
-def test_sort_jobs_query_by_user(
-    staff_api_client, job, permission_manage_products, permission_manage_users
+def test_sort_export_files_query_by_user(
+    staff_api_client, export_file, permission_manage_products, permission_manage_users
 ):
     second_staff_user = User.objects.create_user(
         email="staff_test2@example.com",
@@ -312,8 +320,8 @@ def test_sort_jobs_query_by_user(
         is_active=True,
     )
 
-    Job.objects.create(created_by=second_staff_user)
-    query = SORT_JOBS_QUERY
+    ExportFile.objects.create(created_by=second_staff_user)
+    query = SORT_EXPORT_FILES_QUERY
     variables = {"sortBy": {"field": "CREATED_BY", "direction": "DESC"}}
 
     response = staff_api_client.post_graphql(
@@ -322,68 +330,76 @@ def test_sort_jobs_query_by_user(
         permissions=[permission_manage_products, permission_manage_users],
     )
     content = get_graphql_content(response)
-    nodes = content["data"]["jobs"]["edges"]
+    nodes = content["data"]["exportFiles"]["edges"]
 
     assert len(nodes) == 2
     assert nodes[0]["node"]["createdBy"]["email"] == second_staff_user.email
 
 
-def test_sort_jobs_query_by_created_at_date(
-    staff_api_client, job, permission_manage_products, staff_user
+def test_sort_export_files_query_by_created_at_date(
+    staff_api_client, export_file, permission_manage_products, staff_user
 ):
-    second_job = Job.objects.create(created_by=staff_user)
-    second_job.created_at = job.created_at - datetime.timedelta(minutes=10)
-    second_job.save()
+    second_export_file = ExportFile.objects.create(created_by=staff_user)
+    second_export_file.created_at = export_file.created_at - datetime.timedelta(
+        minutes=10
+    )
+    second_export_file.save()
 
-    query = SORT_JOBS_QUERY
+    query = SORT_EXPORT_FILES_QUERY
     variables = {"sortBy": {"field": "CREATED_AT", "direction": "ASC"}}
 
     response = staff_api_client.post_graphql(
         query, variables=variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
-    nodes = content["data"]["jobs"]["edges"]
+    nodes = content["data"]["exportFiles"]["edges"]
 
     assert len(nodes) == 2
-    assert nodes[0]["node"]["id"] == graphene.Node.to_global_id("Job", second_job.pk)
+    assert nodes[0]["node"]["id"] == graphene.Node.to_global_id(
+        "ExportFile", second_export_file.pk
+    )
 
 
-def test_sort_jobs_query_by_ended_at_date(
-    staff_api_client, job, permission_manage_products, staff_user
+def test_sort_export_files_query_by_updated_at_date(
+    staff_api_client, export_file, permission_manage_products, staff_user
 ):
-    job.completed_at = datetime.datetime(
+    export_file.completed_at = datetime.datetime(
         2010, 2, 19, tzinfo=timezone.get_current_timezone()
     )
-    job.save()
+    export_file.save()
 
-    second_job = Job.objects.create(created_by=staff_user)
-    second_job.completed_at = job.completed_at + datetime.timedelta(minutes=10)
-    second_job.save()
+    second_export_file = ExportFile.objects.create(created_by=staff_user)
+    second_export_file.completed_at = export_file.completed_at + datetime.timedelta(
+        minutes=10
+    )
+    second_export_file.save()
 
-    query = SORT_JOBS_QUERY
-    variables = {"sortBy": {"field": "COMPLETED_AT", "direction": "ASC"}}
+    query = SORT_EXPORT_FILES_QUERY
+    variables = {"sortBy": {"field": "UPDATED_AT", "direction": "ASC"}}
 
     response = staff_api_client.post_graphql(
         query, variables=variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
-    nodes = content["data"]["jobs"]["edges"]
+    nodes = content["data"]["exportFiles"]["edges"]
 
     assert len(nodes) == 2
-    assert nodes[0]["node"]["id"] == graphene.Node.to_global_id("Job", job.pk)
+    assert nodes[0]["node"]["id"] == graphene.Node.to_global_id(
+        "ExportFile", export_file.pk
+    )
 
 
-def test_sort_jobs_query_by_status(
-    staff_api_client, job_list, permission_manage_products, staff_user
+def test_sort_export_files_query_by_status(
+    staff_api_client, export_file_list, permission_manage_products, staff_user
 ):
-    query = SORT_JOBS_QUERY
+    query = SORT_EXPORT_FILES_QUERY
     variables = {"sortBy": {"field": "STATUS", "direction": "ASC"}}
 
     response = staff_api_client.post_graphql(
         query, variables=variables, permissions=[permission_manage_products]
     )
     content = get_graphql_content(response)
-    nodes = content["data"]["jobs"]["edges"]
+    nodes = content["data"]["exportFiles"]["edges"]
 
     assert len(nodes) == 5
     status_result = [node["node"]["status"] for node in nodes]

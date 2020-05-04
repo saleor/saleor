@@ -1,39 +1,37 @@
 import graphene
-import graphene_django_optimizer as gql_optimizer
 
 from ...core.permissions import ProductPermissions
 from ...csv import models
 from ..core.fields import FilterInputConnectionField
 from ..decorators import permission_required
-from ..utils import sort_queryset
-from .filters import JobFilterInput
+from .filters import ExportFileFilterInput
 from .mutations import ExportProducts
-from .sorters import JobSortingInput
-from .types import Job
+from .sorters import ExportFileSortingInput
+from .types import ExportFile
 
 
 class CsvQueries(graphene.ObjectType):
-    job = graphene.Field(
-        Job,
-        id=graphene.Argument(graphene.ID, description="ID of the job.", required=True),
-        description="Look up a job by ID.",
+    export_file = graphene.Field(
+        ExportFile,
+        id=graphene.Argument(
+            graphene.ID, description="ID of the export file job.", required=True
+        ),
+        description="Look up a export file by ID.",
     )
-    jobs = FilterInputConnectionField(
-        Job,
-        filter=JobFilterInput(description="Filtering options for jobs."),
-        sort_by=JobSortingInput(description="Sort jobs."),
-        description="List of jobs.",
+    export_files = FilterInputConnectionField(
+        ExportFile,
+        filter=ExportFileFilterInput(description="Filtering options for export files."),
+        sort_by=ExportFileSortingInput(description="Sort export files."),
+        description="List of export files.",
     )
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_job(self, info, id):
-        return graphene.Node.get_node_from_global_id(info, id, Job)
+    def resolve_export_file(self, info, id):
+        return graphene.Node.get_node_from_global_id(info, id, ExportFile)
 
     @permission_required(ProductPermissions.MANAGE_PRODUCTS)
-    def resolve_jobs(self, info, query=None, sort_by=None, **kwargs):
-        qs = models.Job.objects.all()
-        qs = sort_queryset(qs, sort_by, JobSortingInput)
-        return gql_optimizer.query(qs, info)
+    def resolve_export_files(self, info, query=None, sort_by=None, **kwargs):
+        return models.ExportFile.objects.all()
 
 
 class CsvMutations(graphene.ObjectType):

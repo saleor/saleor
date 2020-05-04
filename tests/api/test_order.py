@@ -1,6 +1,6 @@
 import uuid
 from datetime import date, timedelta
-from unittest.mock import ANY, MagicMock, Mock
+from unittest.mock import ANY, MagicMock, Mock, call, patch
 
 import graphene
 import pytest
@@ -11,7 +11,6 @@ from prices import Money, TaxedMoney
 from saleor.account.models import CustomerEvent
 from saleor.core.permissions import OrderPermissions
 from saleor.core.taxes import zero_taxed_money
-from saleor.plugins.manager import PluginsManager
 from saleor.graphql.core.enums import ReportingPeriod
 from saleor.graphql.order.mutations.orders import (
     clean_order_cancel,
@@ -26,9 +25,11 @@ from saleor.order.error_codes import OrderErrorCode
 from saleor.order.models import Order, OrderEvent
 from saleor.payment import ChargeStatus, CustomPaymentChoices, PaymentError
 from saleor.payment.models import Payment
+from saleor.plugins.manager import PluginsManager
 from saleor.shipping.models import ShippingMethod
-from saleor.warehouse.models import Stock
+from saleor.warehouse.models import Allocation, Stock
 
+from ..utils import get_available_quantity_for_stock
 from .utils import assert_no_permission, get_graphql_content
 
 
@@ -354,7 +355,12 @@ def test_draft_order_query(staff_api_client, permission_manage_orders, orders):
 
 
 def test_nested_order_events_query(
-    staff_api_client, permission_manage_orders, fulfilled_order, fulfillment, staff_user
+    staff_api_client,
+    permission_manage_orders,
+    fulfilled_order,
+    fulfillment,
+    staff_user,
+    warehouse,
 ):
     query = """
         query OrdersQuery {
@@ -383,6 +389,9 @@ def test_nested_order_events_query(
                             }
                             paymentId
                             paymentGateway
+                            warehouse {
+                                name
+                            }
                         }
                     }
                 }
@@ -402,6 +411,7 @@ def test_nested_order_events_query(
             "amount": "80.00",
             "quantity": "10",
             "composed_id": "10-10",
+            "warehouse": warehouse.pk,
         }
     )
     event.save()
@@ -431,6 +441,7 @@ def test_nested_order_events_query(
     ]
     assert data["paymentId"] is None
     assert data["paymentGateway"] is None
+    assert data["warehouse"]["name"] == warehouse.name
 
 
 def test_payment_information_order_events_query(
@@ -503,9 +514,7 @@ def test_non_staff_user_cannot_only_see_his_order(user_api_client, order):
     assert_no_permission(response)
 
 
-def test_query_order_as_service_account(
-    service_account_api_client, permission_manage_orders, order
-):
+def test_query_order_as_app(app_api_client, permission_manage_orders, order):
     query = """
     query OrderQuery($id: ID!) {
         order(id: $id) {
@@ -515,7 +524,7 @@ def test_query_order_as_service_account(
     """
     ID = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": ID}
-    response = service_account_api_client.post_graphql(
+    response = app_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
@@ -716,10 +725,8 @@ ORDER_CAN_FINALIZE_QUERY = """
 """
 
 
-def test_can_finalize_order(
-    staff_api_client, permission_manage_orders, order_with_lines
-):
-    order_id = graphene.Node.to_global_id("Order", order_with_lines.id)
+def test_can_finalize_order(staff_api_client, permission_manage_orders, draft_order):
+    order_id = graphene.Node.to_global_id("Order", draft_order.id)
     variables = {"id": order_id}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
     response = staff_api_client.post_graphql(ORDER_CAN_FINALIZE_QUERY, variables)
@@ -730,6 +737,8 @@ def test_can_finalize_order(
 def test_can_finalize_order_no_order_lines(
     staff_api_client, permission_manage_orders, order
 ):
+    order.status = OrderStatus.DRAFT
+    order.save(update_fields=["status"])
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
     staff_api_client.user.user_permissions.add(permission_manage_orders)
@@ -738,32 +747,32 @@ def test_can_finalize_order_no_order_lines(
     assert content["data"]["order"]["canFinalize"] is False
 
 
-def test_validate_draft_order(order_with_lines):
+def test_validate_draft_order(draft_order):
     # should not raise any errors
-    validate_draft_order(order_with_lines)
+    assert validate_draft_order(draft_order, "US") is None
 
 
-def test_validate_draft_order_wrong_shipping(order_with_lines):
-    order = order_with_lines
+def test_validate_draft_order_wrong_shipping(draft_order):
+    order = draft_order
     shipping_zone = order.shipping_method.shipping_zone
     shipping_zone.countries = ["DE"]
     shipping_zone.save()
     assert order.shipping_address.country.code not in shipping_zone.countries
     with pytest.raises(ValidationError) as e:
-        validate_draft_order(order)
+        validate_draft_order(order, "US")
     msg = "Shipping method is not valid for chosen shipping address"
     assert e.value.error_dict["shipping"][0].message == msg
 
 
 def test_validate_draft_order_no_order_lines(order):
     with pytest.raises(ValidationError) as e:
-        validate_draft_order(order)
+        validate_draft_order(order, "US")
     msg = "Could not create order without any products."
     assert e.value.error_dict["lines"][0].message == msg
 
 
-def test_validate_draft_order_non_existing_variant(order_with_lines):
-    order = order_with_lines
+def test_validate_draft_order_non_existing_variant(draft_order):
+    order = draft_order
     line = order.lines.first()
     variant = line.variant
     variant.delete()
@@ -771,13 +780,28 @@ def test_validate_draft_order_non_existing_variant(order_with_lines):
     assert line.variant is None
 
     with pytest.raises(ValidationError) as e:
-        validate_draft_order(order)
+        validate_draft_order(order, "US")
     msg = "Could not create orders with non-existing products."
     assert e.value.error_dict["lines"][0].message == msg
 
 
+def test_validate_draft_order_out_of_stock_variant(draft_order):
+    order = draft_order
+    line = order.lines.first()
+    variant = line.variant
+
+    stock = variant.stocks.get()
+    stock.quantity = 0
+    stock.save(update_fields=["quantity"])
+
+    with pytest.raises(ValidationError) as e:
+        validate_draft_order(order, "US")
+    msg = "Insufficient product stock: SKU_A"
+    assert e.value.error_dict["lines"][0].message == msg
+
+
 def test_draft_order_complete(
-    staff_api_client, permission_manage_orders, staff_user, draft_order
+    staff_api_client, permission_manage_orders, staff_user, draft_order,
 ):
     order = draft_order
     query = """
@@ -793,13 +817,8 @@ def test_draft_order_complete(
     # Ensure no events were created
     assert not OrderEvent.objects.exists()
 
-    line_1, line_2 = order.lines.order_by("-quantity").all()
-    line_1.quantity = 1
-    line_1.save(update_fields=["quantity"])
-    stock_1 = Stock.objects.get(product_variant=line_1.variant)
-    stock_2 = Stock.objects.get(product_variant=line_2.variant)
-    assert stock_1.quantity_available >= line_1.quantity
-    assert stock_2.quantity_available < line_2.quantity
+    # Ensure no allocation were created
+    assert not Allocation.objects.filter(order_line__order=order).exists()
 
     order_id = graphene.Node.to_global_id("Order", order.id)
     variables = {"id": order_id}
@@ -810,15 +829,55 @@ def test_draft_order_complete(
     data = content["data"]["draftOrderComplete"]["order"]
     order.refresh_from_db()
     assert data["status"] == order.status.upper()
-    draft_placed_event, missing_stock_event = OrderEvent.objects.all()
+    draft_placed_event = OrderEvent.objects.get()
 
-    assert missing_stock_event.user == staff_user
-    assert missing_stock_event.type == order_events.OrderEvents.OVERSOLD_ITEMS
-    assert missing_stock_event.parameters == {"oversold_items": [str(line_2)]}
+    for line in order:
+        allocation = line.allocations.get()
+        assert allocation.quantity_allocated == line.quantity_unfulfilled
 
     assert draft_placed_event.user == staff_user
     assert draft_placed_event.type == order_events.OrderEvents.PLACED_FROM_DRAFT
     assert draft_placed_event.parameters == {}
+
+
+def test_draft_order_complete_out_of_stock_variant(
+    staff_api_client, permission_manage_orders, staff_user, draft_order
+):
+    order = draft_order
+    query = """
+        mutation draftComplete($id: ID!) {
+            draftOrderComplete(id: $id) {
+                orderErrors {
+                    field
+                    code
+                }
+                order {
+                    status
+                }
+            }
+        }
+        """
+
+    # Ensure no events were created
+    assert not OrderEvent.objects.exists()
+
+    line_1, _ = order.lines.order_by("-quantity").all()
+    stock_1 = Stock.objects.get(product_variant=line_1.variant)
+    line_1.quantity = get_available_quantity_for_stock(stock_1) + 1
+    line_1.save(update_fields=["quantity"])
+
+    order_id = graphene.Node.to_global_id("Order", order.id)
+    variables = {"id": order_id}
+    response = staff_api_client.post_graphql(
+        query, variables, permissions=[permission_manage_orders]
+    )
+    content = get_graphql_content(response)
+    error = content["data"]["draftOrderComplete"]["orderErrors"][0]
+    order.refresh_from_db()
+    assert order.status == OrderStatus.DRAFT
+
+    assert error["field"] == "lines"
+    assert error["code"] == OrderErrorCode.INSUFFICIENT_STOCK.name
 
 
 def test_draft_order_complete_existing_user_email_updates_user_field(
@@ -1409,53 +1468,40 @@ def test_order_add_note_fail_on_empty_message(
     assert data["orderErrors"][0]["code"] == OrderErrorCode.REQUIRED.name
 
 
-CANCEL_ORDER_QUERY = """
-    mutation cancelOrder($id: ID!, $restock: Boolean!) {
-        orderCancel(id: $id, restock: $restock) {
-            order {
-                status
-            }
-        }
-    }
-"""
-
-
-def test_order_cancel_and_restock(
-    staff_api_client, permission_manage_orders, order_with_lines
+@patch("saleor.graphql.order.mutations.orders.cancel_order")
+@patch("saleor.graphql.order.mutations.orders.clean_order_cancel")
+def test_order_cancel(
+    mock_clean_order_cancel,
+    mock_cancel_order,
+    staff_api_client,
+    permission_manage_orders,
+    order_with_lines,
 ):
     order = order_with_lines
-    query = CANCEL_ORDER_QUERY
+    query = """
+        mutation cancelOrder($id: ID!) {
+            orderCancel(id: $id) {
+                order {
+                    status
+                }
+                orderErrors{
+                    field
+                    code
+                }
+            }
+        }
+    """
     order_id = graphene.Node.to_global_id("Order", order.id)
-    restock = True
-    quantity = order.get_total_quantity()
-    variables = {"id": order_id, "restock": restock}
+    variables = {"id": order_id}
     response = staff_api_client.post_graphql(
         query, variables, permissions=[permission_manage_orders]
     )
     content = get_graphql_content(response)
-    data = content["data"]["orderCancel"]["order"]
-    order.refresh_from_db()
-    order_event = order.events.last()
-    assert order_event.parameters["quantity"] == quantity
-    assert order_event.type == order_events.OrderEvents.FULFILLMENT_RESTOCKED_ITEMS
-    assert data["status"] == order.status.upper()
+    data = content["data"]["orderCancel"]
+    assert not data["orderErrors"]
 
-
-def test_order_cancel(staff_api_client, permission_manage_orders, order_with_lines):
-    order = order_with_lines
-    query = CANCEL_ORDER_QUERY
-    order_id = graphene.Node.to_global_id("Order", order.id)
-    restock = False
-    variables = {"id": order_id, "restock": restock}
-    response = staff_api_client.post_graphql(
-        query, variables, permissions=[permission_manage_orders]
-    )
-    content = get_graphql_content(response)
-    data = content["data"]["orderCancel"]["order"]
-    order.refresh_from_db()
-    order_event = order.events.last()
-    assert order_event.type == order_events.OrderEvents.CANCELED
-    assert data["status"] == order.status.upper()
+    mock_clean_order_cancel.assert_called_once_with(order)
+    mock_cancel_order.assert_called_once_with(order=order, user=staff_api_client.user)
 
 
 def test_order_capture(
@@ -1505,7 +1551,7 @@ def test_order_capture(
     assert event_captured.user == staff_user
     assert event_captured.parameters == {
         "amount": str(amount),
-        "payment_gateway": "Dummy",
+        "payment_gateway": "mirumee.payments.dummy",
         "payment_id": "",
     }
 
@@ -1780,17 +1826,49 @@ def test_clean_order_capture():
     assert e.value.error_dict["payment"][0].message == msg
 
 
-def test_clean_order_cancel(order):
+def test_clean_order_cancel(fulfilled_order_with_all_cancelled_fulfillments):
+    order = fulfilled_order_with_all_cancelled_fulfillments
     # Shouldn't raise any errors
-    clean_order_cancel(order)
+    assert clean_order_cancel(order) is None
+
+
+def test_clean_order_cancel_draft_order(
+    fulfilled_order_with_all_cancelled_fulfillments,
+):
+    order = fulfilled_order_with_all_cancelled_fulfillments
 
     order.status = OrderStatus.DRAFT
     order.save()
 
     with pytest.raises(ValidationError) as e:
         clean_order_cancel(order)
-    msg = "This order can't be canceled."
-    assert e.value.error_dict["order"][0].message == msg
+    assert e.value.error_dict["order"][0].code == OrderErrorCode.CANNOT_CANCEL_ORDER
+
+
+def test_clean_order_cancel_canceled_order(
+    fulfilled_order_with_all_cancelled_fulfillments,
+):
+    order = fulfilled_order_with_all_cancelled_fulfillments
+
+    order.status = OrderStatus.CANCELED
+    order.save()
+
+    with pytest.raises(ValidationError) as e:
+        clean_order_cancel(order)
+    assert e.value.error_dict["order"][0].code == OrderErrorCode.CANNOT_CANCEL_ORDER
+
+
+def test_clean_order_cancel_order_with_fulfillment(
+    fulfilled_order_with_cancelled_fulfillment,
+):
+    order = fulfilled_order_with_cancelled_fulfillment
+
+    order.status = OrderStatus.CANCELED
+    order.save()
+
+    with pytest.raises(ValidationError) as e:
+        clean_order_cancel(order)
+    assert e.value.error_dict["order"][0].code == OrderErrorCode.CANNOT_CANCEL_ORDER
 
 
 ORDER_UPDATE_SHIPPING_QUERY = """
@@ -2075,39 +2153,44 @@ def test_query_draft_order_by_token_as_anonymous_customer(api_client, draft_orde
     assert not content["data"]["orderByToken"]
 
 
-MUTATION_CANCEL_ORDERS = """
-    mutation CancelManyOrders($ids: [ID]!, $restock: Boolean!) {
-        orderBulkCancel(ids: $ids, restock: $restock) {
-            count
-            errors {
-                field
-                message
+@patch("saleor.graphql.order.bulk_mutations.orders.cancel_order")
+def test_order_bulk_cancel(
+    mock_cancel_order,
+    staff_api_client,
+    order_list,
+    fulfilled_order_with_all_cancelled_fulfillments,
+    permission_manage_orders,
+    address,
+):
+    query = """
+        mutation CancelManyOrders($ids: [ID]!) {
+            orderBulkCancel(ids: $ids) {
+                count
+                orderErrors{
+                    field
+                    code
+                }
             }
         }
-    }
     """
-
-
-def test_order_bulk_cancel_with_restock(
-    staff_api_client, orders, order_with_lines, permission_manage_orders, address
-):
-    assert order_with_lines.can_cancel()
-    orders.append(order_with_lines)
+    orders = order_list
+    orders.append(fulfilled_order_with_all_cancelled_fulfillments)
     expected_count = sum(order.can_cancel() for order in orders)
     variables = {
         "ids": [graphene.Node.to_global_id("Order", order.id) for order in orders],
-        "restock": True,
     }
     response = staff_api_client.post_graphql(
-        MUTATION_CANCEL_ORDERS, variables, permissions=[permission_manage_orders]
+        query, variables, permissions=[permission_manage_orders]
     )
-    order_with_lines.refresh_from_db()
     content = get_graphql_content(response)
     data = content["data"]["orderBulkCancel"]
     assert data["count"] == expected_count
-    event = order_with_lines.events.all()[1]
-    assert event.type == order_events.OrderEvents.FULFILLMENT_RESTOCKED_ITEMS
-    assert event.user == staff_api_client.user
+    assert not data["orderErrors"]
+
+    calls = [call(order=order, user=staff_api_client.user) for order in orders]
+
+    mock_cancel_order.assert_has_calls(calls, any_order=True)
+    mock_cancel_order.call_count == expected_count
 
 
 @pytest.mark.parametrize(
@@ -2311,7 +2394,7 @@ def test_draft_order_query_with_filter_customer_fields(
         ({"created": {"gte": str(date.today() + timedelta(days=1))}}, 0),
     ],
 )
-def test_order_query_with_filter_created_(
+def test_draft_order_query_with_filter_created_(
     orders_filter,
     count,
     draft_orders_query_with_filter,

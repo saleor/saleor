@@ -14,8 +14,8 @@ from .models import NotApplicable, Sale, VoucherCustomer
 if TYPE_CHECKING:
     # flake8: noqa
     from .models import Voucher
-    from ..product.models import Product
-    from ..checkout.models import Checkout
+    from ..product.models import Collection, Product
+    from ..checkout.models import Checkout, CheckoutLine
     from ..order.models import Order
 
 
@@ -63,10 +63,13 @@ def get_product_discount_on_sale(
 
 
 def get_product_discounts(
-    product: "Product", discounts: Iterable[DiscountInfo]
+    *,
+    product: "Product",
+    collections: Iterable["Collection"],
+    discounts: Iterable[DiscountInfo]
 ) -> Money:
     """Return discount values for all discounts applicable to a product."""
-    product_collections = set(product.collections.all().values_list("pk", flat=True))
+    product_collections = set(pc.id for pc in collections)
     for discount in discounts or []:
         try:
             yield get_product_discount_on_sale(product, product_collections, discount)
@@ -75,11 +78,19 @@ def get_product_discounts(
 
 
 def calculate_discounted_price(
-    product: "Product", price: Money, discounts: Optional[Iterable[DiscountInfo]]
+    *,
+    product: "Product",
+    price: Money,
+    collections: Iterable["Collection"],
+    discounts: Optional[Iterable[DiscountInfo]]
 ) -> Money:
     """Return minimum product's price of all prices with discounts applied."""
     if discounts:
-        discount_prices = list(get_product_discounts(product, discounts))
+        discount_prices = list(
+            get_product_discounts(
+                product=product, collections=collections, discounts=discounts
+            )
+        )
         if discount_prices:
             price = min(discount(price) for discount in discount_prices)
     return price
@@ -88,9 +99,12 @@ def calculate_discounted_price(
 def validate_voucher_for_checkout(
     voucher: "Voucher",
     checkout: "Checkout",
+    lines: Iterable["CheckoutLine"],
     discounts: Optional[Iterable[DiscountInfo]],
 ):
-    subtotal = calculations.checkout_subtotal(checkout, discounts)
+    subtotal = calculations.checkout_subtotal(
+        checkout=checkout, lines=lines, discounts=discounts
+    )
 
     customer_email = checkout.get_customer_email()
     validate_voucher(voucher, subtotal.gross, checkout.quantity, customer_email)

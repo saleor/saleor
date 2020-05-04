@@ -1,8 +1,5 @@
 import graphene
 
-from ...csv import JobStatus
-from ...graphql.core.enums import to_enum
-
 
 class ExportScope(graphene.Enum):
     ALL = "all"
@@ -20,6 +17,3 @@ class ExportScope(graphene.Enum):
         if self.name in description_mapping:
             return description_mapping[self.name]
         raise ValueError("Unsupported enum value: %s" % self.value)
-
-
-JobStatusEnum = to_enum(JobStatus)

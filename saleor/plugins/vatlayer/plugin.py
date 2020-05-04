@@ -30,6 +30,7 @@ if TYPE_CHECKING:
 
 
 class VatlayerPlugin(BasePlugin):
+    PLUGIN_ID = "mirumee.taxes.vatlayer"
     PLUGIN_NAME = "Vatlayer"
     META_CODE_KEY = "vatlayer.code"
     META_DESCRIPTION_KEY = "vatlayer.description"
@@ -60,6 +61,7 @@ class VatlayerPlugin(BasePlugin):
     def calculate_checkout_total(
         self,
         checkout: "Checkout",
+        lines: List["CheckoutLine"],
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:
@@ -67,8 +69,12 @@ class VatlayerPlugin(BasePlugin):
             return previous_value
 
         return (
-            calculations.checkout_subtotal(checkout, discounts)
-            + calculations.checkout_shipping_price(checkout, discounts)
+            calculations.checkout_subtotal(
+                checkout=checkout, lines=lines, discounts=discounts
+            )
+            + calculations.checkout_shipping_price(
+                checkout=checkout, lines=lines, discounts=discounts
+            )
             - checkout.discount
         )
 
@@ -90,6 +96,7 @@ class VatlayerPlugin(BasePlugin):
     def calculate_checkout_shipping(
         self,
         checkout: "Checkout",
+        lines: List["CheckoutLine"],
         discounts: List["DiscountInfo"],
         previous_value: TaxedMoney,
     ) -> TaxedMoney:

@@ -1,8 +1,9 @@
 import graphene
 
 from ...account import error_codes as account_error_codes
+from ...app import error_codes as app_error_codes
 from ...checkout import error_codes as checkout_error_codes
-from ...core import error_codes as core_error_codes
+from ...core import JobStatus, error_codes as core_error_codes
 from ...core.permissions import get_permissions_enum_list
 from ...core.weight import WeightUnits
 from ...csv import error_codes as csv_error_codes
@@ -76,16 +77,15 @@ TaxRateType = graphene.Enum(
     "TaxRateType", [(str_to_enum(rate[0]), rate[0]) for rate in CoreTaxRateType.CHOICES]
 )
 
-
+JobStatusEnum = to_enum(JobStatus)
 PermissionEnum = graphene.Enum("PermissionEnum", get_permissions_enum_list())
-
-
 WeightUnitsEnum = graphene.Enum(
     "WeightUnitsEnum", [(str_to_enum(unit[0]), unit[0]) for unit in WeightUnits.CHOICES]
 )
 
 
 AccountErrorCode = graphene.Enum.from_enum(account_error_codes.AccountErrorCode)
+AppErrorCode = graphene.Enum.from_enum(app_error_codes.AppErrorCode)
 CheckoutErrorCode = graphene.Enum.from_enum(checkout_error_codes.CheckoutErrorCode)
 CsvErrorCode = graphene.Enum.from_enum(csv_error_codes.CsvErrorCode)
 DiscountErrorCode = graphene.Enum.from_enum(discount_error_codes.DiscountErrorCode)
@@ -96,6 +96,9 @@ MetadataErrorCode = graphene.Enum.from_enum(core_error_codes.MetadataErrorCode)
 OrderErrorCode = graphene.Enum.from_enum(order_error_codes.OrderErrorCode)
 PageErrorCode = graphene.Enum.from_enum(page_error_codes.PageErrorCode)
 PaymentErrorCode = graphene.Enum.from_enum(payment_error_codes.PaymentErrorCode)
+PermissionGroupErrorCode = graphene.Enum.from_enum(
+    account_error_codes.PermissionGroupErrorCode
+)
 ProductErrorCode = graphene.Enum.from_enum(product_error_codes.ProductErrorCode)
 ShopErrorCode = graphene.Enum.from_enum(core_error_codes.ShopErrorCode)
 ShippingErrorCode = graphene.Enum.from_enum(shipping_error_codes.ShippingErrorCode)

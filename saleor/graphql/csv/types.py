@@ -5,40 +5,31 @@ from graphql_jwt.exceptions import PermissionDenied
 from ...core.permissions import AccountPermissions
 from ...csv import models
 from ..core.connection import CountableDjangoObjectType
-from .enums import JobStatusEnum
+from ..core.types.common import Job
+from ..utils import get_user_or_app_from_context
 
 
-class Job(CountableDjangoObjectType):
+class ExportFile(CountableDjangoObjectType):
     url = graphene.String(description="The URL of field to download.")
-    status = JobStatusEnum(description="Job status.")
 
     class Meta:
-        description = "Represents a data export job."
-        interfaces = [relay.Node]
-        model = models.Job
-        only_fields = [
-            "id",
-            "created_at",
-            "completed_at",
-            "status",
-            "url",
-            "created_by",
-        ]
+        description = "Represents a job data of exported file."
+        interfaces = [relay.Node, Job]
+        model = models.ExportFile
+        only_fields = ["id", "created_by", "url"]
 
     @staticmethod
-    def resolve_url(root: models.Job, info):
+    def resolve_url(root: models.ExportFile, info):
         content_file = root.content_file
         if not content_file:
             return None
         return info.context.build_absolute_uri(content_file.url)
 
     @staticmethod
-    def resolve_status(root: models.Job, _info):
-        return root.status
-
-    @staticmethod
-    def resolve_created_by(root: models.Job, info):
-        user = info.context.user
-        if user == root.created_by or user.has_perm(AccountPermissions.MANAGE_USERS):
+    def resolve_created_by(root: models.ExportFile, info):
+        requestor = get_user_or_app_from_context(info.context)
+        if requestor == root.created_by or requestor.has_perm(
+            AccountPermissions.MANAGE_USERS
+        ):
             return root.created_by
         raise PermissionDenied()

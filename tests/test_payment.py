@@ -101,7 +101,9 @@ def test_create_payment(checkout_with_item, address):
     data = {
         "gateway": "Dummy",
         "payment_token": "token",
-        "total": checkout_total(checkout_with_item).gross.amount,
+        "total": checkout_total(
+            checkout=checkout_with_item, lines=list(checkout_with_item)
+        ).gross.amount,
         "currency": checkout_with_item.currency,
         "email": "test@example.com",
         "customer_ip_address": "127.0.0.1",
@@ -127,16 +129,16 @@ def test_create_payment_requires_order_or_checkout(settings):
     assert e.value.args[0] == "Must provide checkout or order to create a payment."
 
 
-def test_create_payment_from_checkout_requires_billing_address(
-    checkout_with_item, settings
-):
+def test_create_payment_from_checkout_requires_billing_address(checkout_with_item):
     checkout_with_item.billing_address = None
     checkout_with_item.save()
 
     data = {
         "gateway": "Dummy",
         "payment_token": "token",
-        "total": checkout_total(checkout_with_item),
+        "total": checkout_total(
+            checkout=checkout_with_item, lines=list(checkout_with_item)
+        ),
         "currency": checkout_with_item.currency,
         "email": "test@example.com",
         "checkout": checkout_with_item,
@@ -146,7 +148,7 @@ def test_create_payment_from_checkout_requires_billing_address(
     assert e.value.code == PaymentErrorCode.BILLING_ADDRESS_NOT_SET.value
 
 
-def test_create_payment_from_order_requires_billing_address(draft_order, settings):
+def test_create_payment_from_order_requires_billing_address(draft_order):
     draft_order.billing_address = None
     draft_order.save()
 
@@ -170,7 +172,9 @@ def test_create_payment_information_for_checkout_payment(address, checkout_with_
     data = {
         "gateway": "Dummy",
         "payment_token": "token",
-        "total": checkout_total(checkout_with_item).gross.amount,
+        "total": checkout_total(
+            checkout=checkout_with_item, lines=list(checkout_with_item)
+        ).gross.amount,
         "currency": checkout_with_item.currency,
         "email": "test@example.com",
         "customer_ip_address": "127.0.0.1",
