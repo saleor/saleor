@@ -331,6 +331,52 @@ def test_checkout_create_required_email(api_client, stock):
     assert checkout_errors[0]["code"] == CheckoutErrorCode.REQUIRED.name
 
 
+def test_checkout_create_required_country_shipping_address(
+    api_client, stock, graphql_address_data
+):
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    shipping_address = graphql_address_data
+    del shipping_address["country"]
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": "test@example.com",
+            "shippingAddress": shipping_address,
+        }
+    }
+
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+
+    checkout_errors = content["data"]["checkoutCreate"]["checkoutErrors"]
+    assert checkout_errors[0]["field"] == "country"
+    assert checkout_errors[0]["code"] == CheckoutErrorCode.REQUIRED.name
+
+
+def test_checkout_create_required_country_billing_address(
+    api_client, stock, graphql_address_data
+):
+    variant = stock.product_variant
+    variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
+    billing_address = graphql_address_data
+    del billing_address["country"]
+    variables = {
+        "checkoutInput": {
+            "lines": [{"quantity": 1, "variantId": variant_id}],
+            "email": "test@example.com",
+            "billingAddress": billing_address,
+        }
+    }
+
+    response = api_client.post_graphql(MUTATION_CHECKOUT_CREATE, variables)
+    content = get_graphql_content(response)
+
+    checkout_errors = content["data"]["checkoutCreate"]["checkoutErrors"]
+    assert checkout_errors[0]["field"] == "country"
+    assert checkout_errors[0]["code"] == CheckoutErrorCode.REQUIRED.name
+
+
 def test_checkout_create_default_email_for_logged_in_customer(user_api_client, stock):
     variant = stock.product_variant
     variant_id = graphene.Node.to_global_id("ProductVariant", variant.id)
