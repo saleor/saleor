@@ -15,15 +15,7 @@ class OrderSortField(graphene.Enum):
 
     @property
     def description(self):
-        # pylint: disable=no-member
-        if self in [
-            OrderSortField.NAME,
-            OrderSortField.CREATION_DATE,
-            OrderSortField.CUSTOMER,
-            OrderSortField.PAYMENT,
-            OrderSortField.FULFILLMENT_STATUS,
-            OrderSortField.TOTAL,
-        ]:
+        if self.name in OrderSortField.__enum__._member_names_:
             sort_name = self.name.lower().replace("_", " ")
             return f"Sort orders by {sort_name}."
         raise ValueError("Unsupported enum value: %s" % self.value)
