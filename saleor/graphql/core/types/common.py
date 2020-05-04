@@ -281,7 +281,6 @@ class TaxType(graphene.ObjectType):
 
 
 class Job(graphene.Interface):
-    id = graphene.ID(description="ID of job.", required=True)
     status = JobStatusEnum(description="Job status.", required=True)
     created_at = graphene.DateTime(
         description="Created date time of job in ISO 8601 format.", required=True

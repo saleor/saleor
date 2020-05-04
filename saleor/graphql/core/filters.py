@@ -60,8 +60,8 @@ def filter_created_at(qs, _, value):
     return filter_range_field(qs, "created_at", value)
 
 
-def filter_completed_at(qs, _, value):
-    return filter_range_field(qs, "completed_at", value)
+def filter_updated_at(qs, _, value):
+    return filter_range_field(qs, "updated_at", value)
 
 
 def filter_status(qs, _, value):
@@ -74,7 +74,7 @@ class BaseJobFilter(django_filters.FilterSet):
     created_at = ObjectTypeFilter(
         input_class=DateTimeRangeInput, method=filter_created_at
     )
-    completed_at = ObjectTypeFilter(
-        input_class=DateTimeRangeInput, method=filter_completed_at
+    updated_at = ObjectTypeFilter(
+        input_class=DateTimeRangeInput, method=filter_updated_at
     )
     status = EnumFilter(input_class=JobStatusEnum, method=filter_status)

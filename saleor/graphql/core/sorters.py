@@ -2,9 +2,9 @@ import graphene
 
 
 class BaseJobSortField(graphene.Enum):
-    STATUS = "status"
-    CREATED_AT = "created_at"
-    UPDATED_AT = "updated_at"
+    STATUS = ["status"]
+    CREATED_AT = ["created_at"]
+    UPDATED_AT = ["updated_at"]
 
     @property
     def description(self):
